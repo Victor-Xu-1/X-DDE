@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -6,8 +6,6 @@ import {
 } from "@ant-design/icons";
 import { TaskForm } from "../TaskForm";
 import { TaskDetail } from "../TaskDetail";
-import { Capabilities } from "./Capabilities";
-import { ReferenceProjects } from "./ReferenceProjects";
 import { CandidatePanel } from "./CandidatePanel";
 import { AnalysisGrid } from "./AnalysisGrid";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -23,6 +21,7 @@ import type {
   Project,
 } from "../types";
 interface Props {
+  resultsVersion: number;
   language: Language;
   ready: boolean;
   health: Health | null;
@@ -44,9 +43,6 @@ interface Props {
   candidate?: Candidate;
   onCandidate(id: string): void;
   urls: string[];
-  reference: string | null;
-  onReference(id: string): void;
-  onView(value: "projects" | "analysis" | "reports"): void;
   compared: string[];
   onCompare(ids: string[]): void;
   focusResidue: { residue: string; nonce: number } | null;
@@ -56,10 +52,14 @@ interface Props {
   onSubmit(value: Prediction, key: string): Promise<void>;
 }
 export function HomeWorkspace(p: Props) {
+  const [showInput, setShowInput] = useState(
+    () => !/^#task=[0-9a-f-]+$/.test(location.hash),
+  );
+  useEffect(() => {
+    if (p.resultsVersion) setShowInput(false);
+  }, [p.resultsVersion]);
   const zh = p.language === "zh",
-    t = translator(p.language),
-    input = useRef<HTMLDivElement>(null),
-    viewer = useRef<HTMLDivElement>(null);
+    t = translator(p.language);
   return (
     <>
       <header className="studio-intro">
@@ -93,28 +93,28 @@ export function HomeWorkspace(p: Props) {
           {p.health.worker_error || p.health.engine.reason}
         </div>
       )}
-      <Capabilities
-        language={p.language}
-        onChoose={(value) =>
-          value === "input"
-            ? input.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              })
-            : value === "viewer"
-              ? viewer.current?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                })
-              : p.onView(value)
-        }
-      />
-      <ReferenceProjects
-        language={p.language}
-        onChoose={p.onReference}
-        onNew={() => p.onView("projects")}
-      />
       <section className="workbench-section">
+        <div
+          className="workspace-mode segmented"
+          role="group"
+          aria-label={zh ? "工作区" : "Workspace"}
+        >
+          <button
+            aria-pressed={showInput}
+            className={showInput ? "selected" : ""}
+            onClick={() => setShowInput(true)}
+          >
+            {zh ? "新建预测" : "New prediction"}
+          </button>
+          <button
+            aria-pressed={!showInput}
+            className={!showInput ? "selected" : ""}
+            disabled={!p.job}
+            onClick={() => setShowInput(false)}
+          >
+            {zh ? "结构与结果" : "Structure and results"}
+          </button>
+        </div>
         <div className="workbench-toolbar guided-toolbar">
           <label>
             {zh ? "研究项目" : "Project"}
@@ -137,9 +137,12 @@ export function HomeWorkspace(p: Props) {
           <label>
             {zh ? "查看任务结果" : "View task results"}
             <select
-              value={p.reference ? "" : (p.job?.id ?? "")}
+              value={p.job?.id ?? ""}
               onChange={(e) => {
-                if (e.target.value) p.onJob(e.target.value);
+                if (e.target.value) {
+                  p.onJob(e.target.value);
+                  setShowInput(false);
+                }
               }}
             >
               <option value="">{zh ? "选择已有任务" : "Choose a task"}</option>
@@ -151,34 +154,48 @@ export function HomeWorkspace(p: Props) {
             </select>
           </label>
           {p.job && (
-            <button className="quickstart" onClick={p.onReuse}>
+            <button
+              className="quickstart"
+              onClick={() => {
+                p.onReuse();
+                setShowInput(true);
+              }}
+            >
               <ReloadOutlined /> {zh ? "复用此任务输入" : "Reuse inputs"}
             </button>
           )}
         </div>
         <div className="workbench-columns">
-          <div className="input-column" ref={input}>
+          <div className="input-column" hidden={!showInput}>
             <TaskForm
               language={p.language}
               ready={p.ready}
               abagAvailable={Boolean(p.health?.engine.models?.abag)}
               initialRequest={p.draft}
-              onSubmit={p.onSubmit}
+              onSubmit={async (value, key) => {
+                await p.onSubmit(value, key);
+                setShowInput(false);
+              }}
             />
           </div>
-          <div className="viewer-column" ref={viewer}>
+          <div className="viewer-column" hidden={showInput}>
             <StructureViewer
               urls={p.urls}
               language={p.language}
-              reference={p.reference}
               focusResidue={p.focusResidue}
               comparison={p.compared.length > 1}
             />
           </div>
-          <div className="candidate-column">
+          <div className="candidate-column" hidden={showInput}>
+            <h2 className="result-task-name">
+              {p.job?.request.name}{" "}
+              <span className={"status " + p.job?.status}>
+                {p.job ? t(p.job.status) : ""}
+              </span>
+            </h2>
             <CandidatePanel
-              key={p.reference || p.job?.id || "empty"}
-              job={p.reference ? null : p.job}
+              key={p.job?.id || "empty"}
+              job={p.job}
               analysis={p.analysis}
               loading={p.loadingAnalysis}
               error={p.analysisError}
@@ -191,14 +208,17 @@ export function HomeWorkspace(p: Props) {
             />
           </div>
         </div>
-        <AnalysisGrid
-          analysis={p.analysis}
-          candidate={p.candidate}
-          language={p.language}
-          onResidue={p.onResidue}
-        />
+        {!showInput && (
+          <AnalysisGrid
+            analysis={p.analysis}
+            candidate={p.candidate}
+            language={p.language}
+            onResidue={p.onResidue}
+            components={p.job?.request.components ?? []}
+          />
+        )}
       </section>
-      {p.job && !p.reference && (
+      {p.job && !showInput && (
         <details className="execution-detail">
           <summary>
             {zh ? "任务详情与运行日志" : "Task details and execution log"}{" "}

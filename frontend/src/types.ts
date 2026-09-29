@@ -8,7 +8,7 @@ export type Status =
   | "cancelled"
   | "interrupted";
 export interface Component {
-  kind: "protein" | "ligand";
+  kind: "protein" | "ligand" | "dna" | "rna" | "ion";
   value: string;
   count: number;
 }

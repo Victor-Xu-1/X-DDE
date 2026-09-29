@@ -4,7 +4,10 @@ import { StructureViewer } from "./StructureViewer";
 
 it("clears the prior structure when switching to a task without a result", () => {
   const { rerender } = render(
-    <StructureViewer urls={["/references/7RPZ.cif"]} language="zh" />,
+    <StructureViewer
+      urls={["/api/jobs/abc/download?name=result.cif"]}
+      language="zh"
+    />,
   );
   const frame = screen.getByTitle("可交互分子结构") as HTMLIFrameElement;
   const post = vi.spyOn(frame.contentWindow!, "postMessage");
@@ -21,7 +24,7 @@ it("clears the prior structure when switching to a task without a result", () =>
     {
       channel: "opendde-viewer",
       type: "load",
-      value: ["/references/7RPZ.cif"],
+      value: ["/api/jobs/abc/download?name=result.cif"],
     },
     location.origin,
   );
@@ -30,5 +33,5 @@ it("clears the prior structure when switching to a task without a result", () =>
     { channel: "opendde-viewer", type: "clear", value: undefined },
     location.origin,
   );
-  expect(screen.getByText("从预测结果或参考项目载入结构")).toBeVisible();
+  expect(screen.getByText("预测完成后，结构会显示在这里")).toBeVisible();
 });

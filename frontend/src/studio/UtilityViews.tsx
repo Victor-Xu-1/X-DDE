@@ -121,6 +121,7 @@ export function UtilityViews(p: Props) {
           analysis={p.analysis}
           candidate={p.candidate}
           language={p.language}
+          components={p.job?.request.components ?? []}
         />
         <button className="secondary-button" onClick={p.onHome}>
           {zh ? "回到三维预览" : "Return to 3D preview"}
@@ -215,11 +216,11 @@ export function UtilityViews(p: Props) {
             ? [
                 [
                   "选任务",
-                  "仅有小分子选“小分子结构”；有靶蛋白和小分子选“蛋白–小分子”。",
+                  "从六类任务中选择目标；有靶蛋白和小分子选“蛋白–小分子”，抗体–抗原任务自动使用已安装的 ABAG 模型。",
                 ],
                 [
                   "填输入",
-                  "从结构编辑器复制 SMILES，从序列文件复制蛋白序列。可以先点咖啡因示例体验。",
+                  "复制 SMILES 或序列，每条链分别填写。DNA 使用 T，RNA 使用 U。专家模式可添加离子与其他组分；首次可填入咖啡因示例。",
                 ],
                 [
                   "选方案",
@@ -227,17 +228,17 @@ export function UtilityViews(p: Props) {
                 ],
                 [
                   "看结果",
-                  "点击构象切换三维结构，勾选 2–3 个叠加比较。点击附近残基可定位，问号提供解释。",
+                  "在“结构与结果”中看构象与口袋。点击原子/残基，选择范围、显示样式或两点测距；问号提供解释。显示编辑不改变分子坐标。",
                 ],
               ]
             : [
                 [
                   "Choose a task",
-                  "Use Small-molecule structure for a ligand alone, or Protein–ligand complex when you also have a target.",
+                  "Choose among six workflows. Antibody–antigen defaults to the installed ABAG checkpoint; use Protein–ligand when you have a target and compound.",
                 ],
                 [
                   "Enter molecules",
-                  "Copy SMILES from a structure editor and protein sequences from sequence files. Try caffeine first if needed.",
+                  "Copy SMILES or sequences, one chain per field. DNA uses T and RNA uses U. Expert mode adds ions and custom assemblies; try caffeine to check the workflow.",
                 ],
                 [
                   "Choose a preset",
@@ -245,7 +246,7 @@ export function UtilityViews(p: Props) {
                 ],
                 [
                   "Inspect results",
-                  "Select a conformer, check 2–3 to overlay, or click nearby residues to locate them. Question marks explain each metric.",
+                  "In Structure and results, inspect conformers and pockets. Select atoms/residues, choose a radius, edit display or measure two atoms. Display edits preserve molecular coordinates.",
                 ],
               ]
           ).map(([title, note], i) => (

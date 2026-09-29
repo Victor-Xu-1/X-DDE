@@ -2,27 +2,51 @@ import { defaults } from "../form-model";
 import type { Component, Parameters } from "../types";
 export const taskKinds = [
   {
-    id: "ligand",
-    label: ["小分子结构", "Small-molecule structure"],
-    note: [
-      "输入一个小分子，查看预测的三维构象。",
-      "Predict a 3D conformer for a small molecule.",
-    ],
-  },
-  {
     id: "complex",
     label: ["蛋白–小分子", "Protein–ligand complex"],
     note: [
-      "输入靶蛋白和小分子，预测二者的相对位置。",
-      "Predict the relative pose of a protein and ligand.",
+      "已有靶蛋白和化合物，预测复合物中的位置。",
+      "Predict a complex from an existing target and compound.",
     ],
   },
   {
     id: "protein",
     label: ["蛋白结构", "Protein structure"],
     note: [
-      "输入蛋白序列，预测三维结构。",
-      "Predict a structure from a protein sequence.",
+      "从一条蛋白序列预测三维结构。",
+      "Predict a 3D structure from a protein sequence.",
+    ],
+  },
+  {
+    id: "protein-complex",
+    label: ["蛋白–蛋白复合物", "Protein–protein complex"],
+    note: [
+      "提供两条或多条蛋白链，预测共同结构。",
+      "Predict an assembly of two or more protein chains.",
+    ],
+  },
+  {
+    id: "antibody",
+    label: ["抗体–抗原复合物", "Antibody–antigen complex"],
+    note: [
+      "输入已有抗体和抗原，自动使用 ABAG 专用模型。",
+      "Use existing antibody and antigen sequences with the ABAG model.",
+    ],
+  },
+  {
+    id: "nucleic",
+    label: ["DNA / RNA 结构", "DNA / RNA structure"],
+    note: [
+      "单链、双链 DNA 或 RNA，也可加入蛋白组分。",
+      "Predict DNA or RNA alone or together with protein chains.",
+    ],
+  },
+  {
+    id: "ligand",
+    label: ["小分子结构", "Small-molecule structure"],
+    note: [
+      "仅有化合物时，查看其预测的三维构象。",
+      "Predict a 3D conformer when you only have a compound.",
     ],
   },
 ] as const;
@@ -68,24 +92,50 @@ export function profileFor(value: Parameters): Profile {
     )?.id ?? "custom"
   );
 }
-export function kindFor(items: Component[]): TaskKind {
-  return items.some((x) => x.kind === "protein")
-    ? items.some((x) => x.kind === "ligand")
-      ? "complex"
-      : "protein"
-    : "ligand";
+export function kindFor(
+  items: Component[],
+  model?: Parameters["model"],
+): TaskKind {
+  if (items.some((x) => x.kind === "dna" || x.kind === "rna")) return "nucleic";
+  if (model === "abag") return "antibody";
+  const proteins = items.filter((x) => x.kind === "protein");
+  if (proteins.length && items.some((x) => x.kind === "ligand"))
+    return "complex";
+  if (proteins.reduce((n, x) => n + x.count, 0) > 1) return "protein-complex";
+  return proteins.length ? "protein" : "ligand";
 }
 export function componentsFor(
   kind: TaskKind,
   previous: Component[],
 ): Component[] {
-  const component = (type: Component["kind"]): Component =>
-    previous.find((x) => x.kind === type) ?? {
-      kind: type,
-      value: "",
-      count: 1,
-    };
-  return kind === "complex"
-    ? [component("protein"), component("ligand")]
-    : [component(kind === "protein" ? "protein" : "ligand")];
+  const types: Component["kind"][] =
+    kind === "complex"
+      ? ["protein", "ligand"]
+      : kind === "protein-complex" || kind === "antibody"
+        ? ["protein", "protein"]
+        : [kind === "nucleic" ? "rna" : kind];
+  const available = [...previous];
+  return types.map((type) => {
+    const index = available.findIndex((x) => x.kind === type);
+    return index < 0
+      ? { kind: type, value: "", count: 1 }
+      : { ...available.splice(index, 1)[0] };
+  });
+}
+export function requiredKinds(kind: TaskKind): Component["kind"][] {
+  return componentsFor(kind, []).map((x) => x.kind);
+}
+export function completeWorkflow(
+  kind: TaskKind,
+  components: Component[],
+): boolean {
+  const kinds = components.map((x) => x.kind);
+  if (kind === "nucleic") return kinds.includes("dna") || kinds.includes("rna");
+  const available = [...kinds];
+  return requiredKinds(kind).every((type) => {
+    const index = available.indexOf(type);
+    if (index < 0) return false;
+    available.splice(index, 1);
+    return true;
+  });
 }

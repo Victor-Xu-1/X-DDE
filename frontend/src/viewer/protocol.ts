@@ -1,0 +1,55 @@
+export type ViewMode = "cartoon" | "pocket" | "surface";
+export type PickMode = "residue" | "atom" | "distance";
+export interface ViewerOptions {
+  mode: ViewMode;
+  radius: number;
+  labels: boolean;
+  ligand: string;
+  pick: PickMode;
+}
+export const defaultOptions: ViewerOptions = {
+  mode: "cartoon",
+  radius: 5,
+  labels: true,
+  ligand: "",
+  pick: "residue",
+};
+export interface Residue {
+  key: string;
+  chain: string;
+  resn: string;
+  resi: number;
+  icode: string;
+}
+export interface SceneInfo {
+  chains: string[];
+  ligands: Residue[];
+  residues: Residue[];
+  atoms: number;
+  hasPolymer: boolean;
+}
+export interface SelectionInfo {
+  chain: string;
+  residue: string;
+  atom: string;
+  element: string;
+  count: number;
+}
+export const emptyScene: SceneInfo = {
+  chains: [],
+  ligands: [],
+  residues: [],
+  atoms: 0,
+  hasPolymer: false,
+};
+export const residueLabel = (r: Residue) =>
+  `${r.chain}:${r.resn}${r.resi}${r.icode}`;
+export const validSource = (raw: string, origin: string) => {
+  const url = new URL(raw, origin);
+  if (
+    url.origin !== origin ||
+    !/^\/api\/jobs\/[0-9a-f-]+\/download$/.test(url.pathname)
+  )
+    throw new Error("Unsupported structure source");
+  return url;
+};

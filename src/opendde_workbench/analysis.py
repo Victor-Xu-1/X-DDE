@@ -19,7 +19,9 @@ class AnalysisService:
         target = directory / "output/workbench-analysis.json"
         async with self.lock:
             if target.is_file():
-                return json.loads(target.read_text())
+                cached = json.loads(target.read_text())
+                if cached.get("schema_version") == 2:
+                    return cached
             image, _ = self.engine.runtime()
             script = Path(__file__).parent / "compute_analysis.py"
             name = "opendde-wb-analysis-" + job.id

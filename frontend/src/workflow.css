@@ -1,0 +1,226 @@
+.workbench-section {
+  display: block;
+}
+.workbench-toolbar {
+  height: auto;
+  min-height: 46px;
+  margin-bottom: 12px;
+}
+.workbench-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.input-column {
+  grid-column: 1 / -1;
+}
+.viewer-column,
+.candidate-column {
+  min-width: 0;
+}
+.workbench-section > .analysis-grid {
+  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.studio-app .input-panel {
+  padding: 20px;
+  min-height: 0;
+}
+.form-mode-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+.form-mode-row .segmented {
+  display: flex;
+  align-items: center;
+}
+.form-mode-row button {
+  font-size: 13px;
+  padding: 8px 14px;
+}
+.workflow-picker h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.workflow-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.workflow-options label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid #dce6f5;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fbfdff;
+}
+.workflow-options label.selected {
+  background: #eef5ff;
+  border-color: #4e8bfa;
+  box-shadow: 0 0 0 1px #4e8bfa;
+}
+.workflow-options input {
+  accent-color: #2164e4;
+  margin-top: 3px;
+}
+.workflow-options strong {
+  font-size: 14px;
+  color: #254477;
+}
+.workflow-options small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6a7f9d;
+  margin-top: 4px;
+}
+.workflow-note {
+  font-size: 12px;
+  color: #6a7f9d;
+  line-height: 1.6;
+  margin: 12px 0 20px;
+}
+.task-setup-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 24px;
+  border-top: 1px solid #e8edf6;
+  padding-top: 20px;
+}
+.studio-app .input-panel h3 {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+.studio-app .input-panel .small {
+  font-size: 12px;
+  line-height: 1.65;
+}
+.studio-app .input-panel .component-card {
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+.studio-app .input-panel .field {
+  font-size: 13px;
+  gap: 6px;
+}
+.studio-app .input-panel textarea {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.molecular-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+  gap: 10px;
+}
+.run-choices {
+  margin-top: 0;
+}
+.preset-choices label {
+  padding: 11px;
+}
+.preset-choices strong {
+  font-size: 13px;
+}
+.preset-choices small {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.nucleic-choice,
+.copy-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.nucleic-choice label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.add-components .add-button {
+  margin-right: 7px !important;
+}
+.example-button {
+  margin-top: 12px;
+}
+.expert-parameters {
+  padding: 12px 0;
+}
+.model-summary {
+  padding: 8px 0;
+  color: #526e97;
+}
+@media (max-width: 1150px) {
+  .workbench-columns {
+    grid-template-columns: 1fr;
+  }
+  .workflow-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .task-setup-grid {
+    grid-template-columns: 1fr;
+  }
+  .studio-app .input-panel {
+    padding: 14px;
+  }
+  .form-mode-row {
+    flex-wrap: wrap;
+  }
+  .molecular-fields {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .workflow-options {
+    grid-template-columns: 1fr;
+  }
+}
+.workspace-mode {
+  display: inline-flex;
+  margin-bottom: 12px;
+  gap: 4px;
+}
+.workspace-mode button {
+  padding: 9px 18px;
+  border: 1px solid #dbe5f5;
+  border-radius: 7px;
+  background: white;
+  color: #496181;
+  font-size: 14px;
+}
+.result-task-name {
+  font-size: 15px;
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+.result-task-name .status {
+  margin-left: 5px;
+}
+
+.workspace-mode button.selected {
+  color: #185ac9;
+  background: #e9f2ff;
+  border-color: #b6d0fc;
+}
+.form-mode-row .segmented > button {
+  border: 1px solid #d9e4f3;
+  border-radius: 6px;
+  color: #526a8b;
+  background: #fff;
+}
+.form-mode-row .segmented > button.selected {
+  color: #185ac9;
+  border-color: #a9c9fb;
+  background: #eaf3ff;
+}

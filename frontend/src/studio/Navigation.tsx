@@ -60,7 +60,7 @@ export function Navigation({
         <DeploymentUnitOutlined className="studio-brand-mark" />
         <span>
           <strong>OpenDDE</strong>
-          <small>{zh ? "药 物 设 计 工 作 台" : "DRUG DESIGN WORKBENCH"}</small>
+          <small>{zh ? "药 物 结 构 工 作 台" : "STRUCTURE WORKBENCH"}</small>
         </span>
       </button>
       <nav aria-label={zh ? "主导航" : "Main navigation"}>

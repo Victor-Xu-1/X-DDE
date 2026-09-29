@@ -4,23 +4,23 @@
 
 An independent, MIT-licensed local workbench for OpenDDE predictions. It provides Chinese/English task entry, a durable queue, interactive 3D structures, computed descriptors, and downloadable results. The workbench runs only on your computer; it does not contain OpenDDE source, model weights, or an LLM service.
 
-The fixed owner-supplied visual reference is [`docs/design/reference.png`](docs/design/reference.png). The UI follows its navigation, cards, prediction form, viewer, candidate table, and analysis panels. Example PDB structures are **experimental references**, not predictions. Candidate numbers and plots come from the selected completed task. [Design decisions](docs/design/README.md).
+The owner-supplied image is retained as a color/style reference only. The interface is organized around verified engine capabilities, with separate guided task entry and interactive structure results. See [design and capability decisions](docs/design/README.md).
 
 ## 中文
 
 ### 功能与边界
 
-- 本机 OpenDDE 标准/ABAG 结构预测：蛋白、SMILES/CCD 配体及复合物；可设置种子、样本数、扩散步数、循环数和精度。
+- 本机 OpenDDE 标准/ABAG 结构预测：蛋白、SMILES/CCD 配体、DNA、RNA、常见离子及复合物；可设置种子、样本数、扩散步数、循环数和精度。
 - 任务排队、取消、重试、服务重启后的状态恢复，日志和结构文件下载。
-- 浏览器内旋转、缩放、蛋白表面/卡通/配体邻域显示；候选筛选和比较。
+- 浏览器内旋转、缩放、色带/表面/配体球棍显示；按 3/4/5/6/8 Å 查看配体邻域和残基名称。支持原子/残基点选、搜索、定位、显示样式编辑、隐藏恢复、两点测距与构象叠加。显示编辑不会改动坐标或化学结构。
 - 对真实输出计算 RDKit 分子性质、OpenDDE 原生置信度、结构 RMSD 和近邻接触；导出 CIF、CSV、HTML 报告。
 - 本机项目分组与中英切换。无需 LLM 密钥即可使用上述能力。
 
 ### 普通用户的三步操作
 
-1. 选“小分子结构”“蛋白–小分子”或“蛋白结构”，粘贴 SMILES/单条 FASTA；首次使用可一键填入咖啡因示例。
-2. 选“快速试跑”“标准预测（推荐）”或“多构象比较”，点击“开始预测”。高级参数默认收起，任务名称可自动生成。
-3. 点击构象查看结构，勾选 2–3 个构象叠加，点击附近残基定位。专业指标旁的问号支持悬停、点击及键盘说明；导出页提供 CSV/HTML，构象行可下载 CIF。
+1. 选择蛋白–小分子、蛋白、蛋白–蛋白、抗体–抗原、DNA/RNA 或小分子结构。按出现的输入框粘贴序列/单条 FASTA/SMILES；抗体任务自动选择已安装的 ABAG。首次可填入咖啡因检查流程。
+2. 选“快速试跑”“标准预测（推荐）”或“多构象比较”，点击“开始预测”。默认简易模式；“专家微调”可调整数值、模型、组分和拷贝数，切换模式保留已填值。任务名称可自动生成。
+3. 提交后进入“结构与结果”。点击构象查看结构，勾选 2–3 个构象叠加，点击附近残基定位。选择“配体与口袋”可调整邻域，预览下方可编辑显示与测距。专业指标旁的问号支持悬停、点击及键盘说明；导出页提供 CSV/HTML，构象行可下载 CIF。
 
 快速试跑减少计算量，仅用于检查输入/流程。标准与多构象采用相同的单构象参数，多构象生成同一输入的 3 个结构，并非生成 3 个新化合物。未安装的可选模型不出现在新任务选项中。
 
@@ -70,15 +70,15 @@ uv run --locked pytest -q
 uv build --wheel
 ```
 
-Python 单元/API 测试以可控的真实子进程检验队列和文件协议，不消耗 GPU；科学推理需在有镜像与模型的设备上由网页提交任务验证。CI 执行前后端检查、测试和 wheel 构建。wheel 内包含构建后的前端及固定 PDB 参考结构。任务数据不进 Git 仓库。
+Python 单元/API 测试以可控的真实子进程检验队列和文件协议，不消耗 GPU；科学推理需在有镜像与模型的设备上由网页提交任务验证。CI 执行前后端检查、测试和 wheel 构建。wheel 内包含构建后的前端和独立查看器。任务数据不进 Git 仓库。
 
 ### 架构与排错
 
-`frontend/src/studio` 是界面模块；`frontend/src/viewer` 是隔离的 3Dmol 查看器；`src/opendde_workbench/api.py` 定义本地 API；`store.py`/`worker.py` 管理持久队列；`engine.py` 用 digest 固定的外部容器运行 OpenDDE；`analysis.py`/`compute_analysis.py` 在同一科学环境计算结果。输入经 Pydantic 校验，结构下载经目录边界检查。项目元数据和任务共用 SQLite，预测输出保留在 `WB_STATE_DIR`。
+`frontend/src/studio` 是界面模块；`frontend/src/guided` 定义工作流、组分和预设；`frontend/src/viewer` 按协议、几何选择、场景显示和 UI 控件拆分隔离的 3Dmol 查看器；`src/opendde_workbench/api.py` 定义本地 API；`store.py`/`worker.py` 管理持久队列；`engine.py` 用 digest 固定的外部容器运行 OpenDDE；`analysis.py`/`compute_analysis.py` 在同一科学环境计算结果。输入经 Pydantic 校验，结构下载经目录边界检查。项目元数据和任务共用 SQLite，预测输出保留在 `WB_STATE_DIR`。
 
 - “引擎未就绪”：检查 Docker、GPU、镜像引用、运行代码和 checkpoint 路径；`GET /api/health` 返回原因。
 - 预测失败：任务中心查看任务日志；8 GB 显存优先 BF16、单样本、短序列。分析失败不会删除预测文件。
-- 查看器空白：检查 WebGL、结构下载和 `/viewer.html`；参考结构应可独立打开。
+- 查看器空白：检查 WebGL、结构下载和 `/viewer.html`；请从已完成任务重新加载结构。
 - 分析失败：检查任务 `analysis-error.log`、镜像内 RDKit/Biotite 和 2 GiB 容器内存上限。
 - 端口被占用：工作台默认 4320；更改端口时同步更新 `WB_ALLOWED_ORIGINS`，仍只绑定 loopback。
 
@@ -86,8 +86,8 @@ Python 单元/API 测试以可控的真实子进程检验队列和文件协议�
 
 ### 授权与数据来源
 
-工作台原创源码采用 [MIT](LICENSE)。OpenDDE 与独立 Harness 的代码、权重和许可证由各自上游管理，未并入本仓库。固定设计图由项目所有者提供；其中第三方图形和标识不因本仓库的 MIT 声明而重新授权。四份参考 mmCIF 来自 RCSB PDB，来源、校验值与 CC0 声明记录在 [`manifest.json`](frontend/public/references/manifest.json)。
+工作台原创源码采用 [MIT](LICENSE)。OpenDDE 与独立 Harness 的代码、权重和许可证由各自上游管理，未并入本仓库。固定设计图由项目所有者提供；其中第三方图形和标识不因本仓库的 MIT 声明而重新授权。旧版的 PDB 示例卡片与静态结构资产已移除。
 
 ## English
 
-Install OpenDDE and a digest-pinned GPU Docker image first. In `frontend`, run `npm ci && npm run build`; at the root run `uv sync --locked --group dev`, configure `.env` from `.env.example`, and launch `uv run --locked opendde-workbench --port 4320`. Visit `http://127.0.0.1:4320/`. The interface switches between Chinese and English. Native confidence, RDKit descriptors, contacts, exports, and reports come from completed predictions. Calibrated affinity, small-molecule generation, local MSA databases, and an LLM provider are not bundled. Use the verification commands above; CI exercises the non-GPU suite.
+Install OpenDDE and a digest-pinned GPU Docker image first. In `frontend`, run `npm ci && npm run build`; at the root run `uv sync --locked --group dev`, configure `.env` from `.env.example`, and launch `uv run --locked opendde-workbench --port 4320`. Visit `http://127.0.0.1:4320/`. The interface switches between Chinese and English. Native confidence, RDKit descriptors, contacts, exports, and reports come from completed predictions. Six guided workflows cover protein–ligand, protein, protein–protein, antibody–antigen, DNA/RNA and ligand-only inputs. Expert mode exposes model/numeric settings and all five native entity types. Pocket controls show geometric neighborhoods around an existing ligand; display editing and distance measurements do not modify input chemistry or coordinates. Calibrated affinity, small-molecule generation, local MSA databases, and an LLM provider are not bundled. Covalent bonds, modified residues and user-uploaded MSA/template inputs are not exposed by this adapter. Use the verification commands above; CI exercises the non-GPU suite.

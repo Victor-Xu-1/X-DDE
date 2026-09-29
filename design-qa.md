@@ -1,43 +1,37 @@
-# Design and usability QA — 2026-09-29
+# Workbench 0.2.0 acceptance record — 2026-09-30
 
-final result: passed
+## Scope and authority
 
-## Scope and visual authority
+The owner clarified that the supplied image is style inspiration, not a pixel/layout specification. The capability audit and current boundaries are in `docs/design/README.md`. This revision removes image-derived example projects and their complete asset/loader pipeline, adds native entity workflows and guided/expert operation, and implements direct molecular selection and pocket display controls.
 
-Source: `docs/design/reference.png`, 1448 × 1086, SHA-256 `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842`.
-The owner subsequently requested removal of unavailable controls and a guided workflow for medicinal chemists. The authorized changes are documented in `docs/design/README.md`; the source image remains unmodified.
+## Validation map and results
 
-The desktop comparison used a completed prediction in the 1448 × 1086 CSS viewport. Blue/white palette, approximately 200 px navigation, 60 px header, reference cards, input/viewer/results columns and lower interpretation panels are retained. Real structures and metrics replace illustrative values. There are four implemented shortcuts and three meaningful interpretation panels, as required by the usability revision.
+| Change / risk | Validation | Result |
+| --- | --- | --- |
+| DNA/RNA/ion contracts, legacy job compatibility | Input alphabet/FASTA normalization; native JSON mapping; API 422 rejection before execution; real queue persistence and reload | Passed |
+| Guided workflows and expert overrides | Correct entity fields, distinct protein chains, ABAG default, explicit standard-model override, profile payloads, preserved mode/workflow drafts | Passed |
+| Separate entry/result work areas | Navigation event selects results; switching work area retains input; protein-only analysis omits ligand panels | Passed |
+| Molecular selection | Actual 3Dmol parser regression for omitted insertion codes; selected LYS8 resolves to 9 atoms in a real generated CIF; hide/restore and focus | Passed |
+| Pocket and display controls | 3/4/5/6/8 Å options, label toggle, surface/ribbon display, bilingual controls, two actual atom clicks yield 1.49 Å | Passed in browser |
+| Existing analysis/overlays | Real RDKit/native CIF analysis, two-conformer overlay; display editing disabled while overlaying; ligand properties/pocket omitted for nucleic-only task | Passed |
+| Removal and packaging | Type/format checks, no reference imports/assets in product, installable wheel includes both web entries and viewer code | Passed |
 
-Local capture records: `workbench-desktop-final.png` and `workbench-mobile-final.png`, retained outside the repository in the deployment evidence folder. Captures were inspected; extra empty capture canvas was cropped to the verified CSS viewport. The screenshot does not substitute for interaction testing.
+Commands run: `npm run check`, `npm test` (**28 frontend tests**), `npm run build`; `uv run --locked ruff check src tests hatch_build.py`, `uv run --locked pytest -q` (**30 backend tests**), `uv build --wheel`. The parser regression uses the real library, isolating only the unused worker-Blob URL boundary in the test environment.
 
-## Findings resolved
+The required suite includes existing CSRF/origin/host, path/symlink, body limit, idempotency, timeout, cancellation and recovery checks. Input additions retain the existing queue and container boundary. Renderer messages require matching origin and parent/frame source; structure loading is restricted to same-origin prediction artifacts. Display edits never rewrite downloaded structures. No new dependency was introduced; lockfile changes are the package version only.
 
-- Removed non-executable generation, affinity, optimization and benchmark entries, empty affinity values, arbitrary radar normalization and redundant chart displays.
-- Replaced exposed numerical setup with three task choices and three presets. Advanced parameters are collapsed; missing optional models are rejected by the API and omitted from new-task choices.
-- Renamed candidates to conformers. Added real multi-conformer alignment/overlay, residue selection, native-unit descriptors and accessible explanations.
-- Corrected same-origin viewer framing, stale structure retention, premature surface-ready state, empty-project selection and draft loss during navigation.
-- Replaced obsolete green tokens and removed abandoned layout rules. Split the application into state, workspace, utility-page, input, result and viewer modules.
-- Corrected the narrow-screen toolbar overlap. At 480 × 844 CSS pixels, navigation labels remain available, the form starts below the toolbar and there is no document horizontal overflow.
+`npm audit --omit=dev` fell back to a retired registry endpoint and failed with HTTP 400. A direct request to the official npm bulk advisory endpoint verified the **16 production packages** from the locked tree and returned **zero advisory packages**. This is not a claim about all development dependencies. The existing 3Dmol chunk-size / optional upstream string-callback `eval` build warnings remain visible; the application uses function callbacks and CSP does not permit unsafe eval.
 
-No unresolved P0/P1/P2 visual or core-flow issue was observed. P3: the compact desktop layout uses vertical page scrolling for the full guided input and interpretation content.
+## Real local GPU / API evidence
 
-## Actual verification
+- `2368d175-23e5-4f98-b63d-17d2c4830e90`: submitted in the browser with RNA `GUAC`, DNA `GATC`, and MG. General checkpoint, quick preset, succeeded. Native CIF analysis: **170 atoms, three chains**, no false protein–ligand contacts. JSON, CSV and HTML routes remain on the existing artifact path.
+- `b28662f8-5de9-4ce4-8e8a-4b282d04b385`: antibody entry dispatched the ABAG checkpoint with two small Trp-cage test chains; succeeded. Named explicitly as a runtime check, **not an antibody accuracy evaluation**.
+- Existing standard protein–ligand and three-conformer tasks were reused to verify current parsing, analysis, selection, labels, surface display and overlays. Existing task/project data was preserved.
 
-Browser: Codex in-app browser against the running local service. No claim of a separate Safari/Firefox/Chrome-extension run.
+Browser smoke used the actual local server and Codex in-app browser, including 1448×1086 and 480×844 CSS viewports, with no horizontal page overflow or recorded browser errors. Chinese/English switching, reload persistence, guided/expert fields, task submission, native result loading and direct atom selection were exercised. Viewport overrides were reset. Independent Chrome/Firefox and large production-scale targets were not tested.
 
-- Submitted a standard protein–ligand prediction and a three-conformer prediction through the UI; parsed 157-atom structures and real model summaries.
-- Three generated conformers aligned successfully; subsequent RMSD values were approximately 0.33 and 0.42 Å. Two-conformer overlay displayed and residue-list selection located the selected residue in 3D.
-- Created a local project, verified its empty result state, used the caffeine example and quick preset, and obtained a completed task linked to that project.
-- A separate ABAG checkpoint smoke test completed. This validates runtime/checkpoint execution only, not antibody-design accuracy.
-- Verified language switching and refresh persistence, preserved unfinished input when navigating to Help and back, exercised tooltip hover/focus/click/Escape, and inspected empty/loading/completed states.
-- Downloaded the actual CSV and HTML report via browser controls and checked their task identifiers and computed content.
-- Browser error log was empty at the end of the checked flows.
+Screenshots are local acceptance artifacts under `E:/OpenDDE/evidence/workbench-0.2-*`, outside the repository. GPU task files and local credentials also remain outside Git. Public CI independently installs the locked project and runs the required non-GPU suite.
 
-Commands run: `npm run check`, `npm test` (19 tests), `npm run build`; `uv run --locked ruff check src tests hatch_build.py`, `uv run --locked pytest -q` (21 tests), and `uv build --wheel`. The built wheel includes the application entry page, viewer entry page and PDB reference assets.
+## Boundaries
 
-Security checks exercised origin/CSRF/host validation, body limits, UUID and sequence validation, path/symlink containment, HTML escaping, bounded output, idempotency, cancellation, timeout and restart recovery. Reference image checksum was verified; no credential patterns or model/runtime data were found in the source intended for publication. npm reported zero known vulnerabilities for the locked dependency tree.
-
-Build notes: the isolated 3Dmol viewer bundle exceeds the bundler's 500 kB warning threshold and its upstream optional callback parser triggers an eval warning. Application code supplies function callbacks only; CSP does not enable unsafe-eval. The viewer and tested surface/selection flows ran with that policy.
-
-LLM-provider validation is not applicable to this workbench release: the owner deferred model-provider configuration, and no nonfunctional agent entry is exposed. Computational predictions are not experimental potency validation.
+The tested runtime uses an 8 GB laptop GPU, BF16 and no MSA/templates. GPU smoke establishes executable integration, not scientific accuracy on full-size systems. Binding-affinity prediction, chemical bond/coordinate editing, minimization, covalent restraints, modified residues, uploaded MSA/templates and LLM design campaigns are not provided by this workbench version. The LLM provider remains unconfigured at the owner's request; no LLM code changed in this revision.

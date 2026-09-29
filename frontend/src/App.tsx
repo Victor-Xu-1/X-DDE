@@ -12,8 +12,8 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>("home"),
-    [reference, setReference] = useState<string | null>(null),
     [projectId, setProjectId] = useState<string | null>(null);
+  const [resultsVersion, setResultsVersion] = useState(0);
   const [candidateId, setCandidateId] = useState<string | null>(null),
     [compared, setCompared] = useState<string[]>([]),
     [focusResidue, setFocusResidue] = useState<{
@@ -33,7 +33,7 @@ export function App() {
   const ready = Boolean(
     health?.engine.ready && health.worker_ready && !work.connectionError,
   );
-  const analysis = reference ? null : science.analysis;
+  const analysis = science.analysis;
   const candidate =
     analysis?.candidates.find((x) => x.id === candidateId) ??
     (analysis
@@ -48,9 +48,8 @@ export function App() {
     job?.status === "succeeded" && detail?.id === job.id
       ? detail.artifacts.find((x) => x.name.endsWith(".cif"))
       : null;
-  const urls = reference
-    ? ["/references/" + reference + ".cif"]
-    : job && comparison.length > 1
+  const urls =
+    job && comparison.length > 1
       ? comparison.map((x) =>
           artifactUrl(job.id, x.aligned_artifact ?? x.artifact),
         )
@@ -65,13 +64,13 @@ export function App() {
   }, [language]);
   function chooseJob(id: string) {
     select(id);
-    setReference(null);
     setCandidateId(null);
     setCompared([]);
     setFocusResidue(null);
   }
   function showJob(id: string) {
     inspectJob(id);
+    setResultsVersion((n) => n + 1);
     setView("home");
   }
   function inspectJob(id: string) {
@@ -98,13 +97,6 @@ export function App() {
   }
   async function submit(value: Prediction, key: string) {
     changed(await api.submit({ ...value, project_id: projectId }, key));
-  }
-  function chooseReference(id: string) {
-    setReference(id);
-    setCompared([]);
-    setCandidateId(null);
-    setFocusResidue(null);
-    setView("home");
   }
   const common = {
     language,
@@ -152,6 +144,7 @@ export function App() {
             <div hidden={view !== "home"}>
               <HomeWorkspace
                 {...common}
+                resultsVersion={resultsVersion}
                 jobs={
                   projectId
                     ? jobs.filter((x) => x.request.project_id === projectId)
@@ -160,9 +153,6 @@ export function App() {
                 onJob={chooseJob}
                 connectionError={work.connectionError}
                 onRefresh={refresh}
-                reference={reference}
-                onReference={chooseReference}
-                onView={setView}
                 compared={compared}
                 onCompare={(ids) => {
                   setCompared(ids);
@@ -198,7 +188,7 @@ export function App() {
                 loading={loading}
                 onJob={inspectJob}
                 onHome={() => {
-                  setReference(null);
+                  setResultsVersion((n) => n + 1);
                   setView("home");
                 }}
                 projectError={science.projectError}

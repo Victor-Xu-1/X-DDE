@@ -23,14 +23,14 @@ TERMINAL = {Status.SUCCEEDED, Status.FAILED, Status.CANCELLED, Status.INTERRUPTE
 
 class Component(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["protein", "ligand"]
+    kind: Literal["protein", "ligand", "dna", "rna", "ion"]
     value: str = Field(min_length=1, max_length=5000)
     count: int = Field(default=1, ge=1, le=4)
 
     @model_validator(mode="after")
     def validate_value(self) -> Self:
         self.value = self.value.strip()
-        if self.kind == "protein":
+        if self.kind in {"protein", "dna", "rna"}:
             lines = self.value.splitlines()
             if (
                 self.value.startswith(">")
@@ -38,8 +38,15 @@ class Component(BaseModel):
             ):
                 self.value = "".join(lines[1:])
             self.value = re.sub(r"\s+", "", self.value).upper()
-            if not re.fullmatch(r"[ACDEFGHIKLMNPQRSTVWYX]+", self.value):
-                raise ValueError("Protein sequence must use one-letter amino-acid codes.")
+            alphabets = {"protein": "ACDEFGHIKLMNPQRSTVWYX", "dna": "ATGCNX", "rna": "AUGCNX"}
+            if not re.fullmatch(f"[{alphabets[self.kind]}]+", self.value):
+                raise ValueError(
+                    f"{self.kind.upper()} requires one sequence using {alphabets[self.kind]}."
+                )
+        elif self.kind == "ion":
+            self.value = self.value.upper()
+            if self.value not in {"MG", "ZN", "CA", "NA", "K", "CL", "MN", "FE", "CU", "CO"}:
+                raise ValueError("Select a supported ion CCD code.")
         elif (
             not self.value
             or self.value.startswith("FILE_")
@@ -79,11 +86,13 @@ class Prediction(BaseModel):
     def inference_input(self, job_id: str) -> list[dict]:
         entities = []
         for component in self.components:
-            kind, key = (
-                ("proteinChain", "sequence")
-                if component.kind == "protein"
-                else ("ligand", "ligand")
-            )
+            kind, key = {
+                "protein": ("proteinChain", "sequence"),
+                "dna": ("dnaSequence", "sequence"),
+                "rna": ("rnaSequence", "sequence"),
+                "ligand": ("ligand", "ligand"),
+                "ion": ("ion", "ion"),
+            }[component.kind]
             entities.append({kind: {key: component.value, "count": component.count}})
         return [{"name": job_id, "modelSeeds": [self.parameters.seed], "sequences": entities}]
 

@@ -38,5 +38,5 @@ jobs:
               files = set(wheel.namelist())
           assert 'opendde_workbench/web/index.html' in files
           assert 'opendde_workbench/web/viewer.html' in files
-          assert any(path.endswith('/references/7RPZ.cif') for path in files)
+          assert any('/assets/viewer-' in path and path.endswith('.js') for path in files)
           PY

@@ -8,8 +8,8 @@ export const metrics = {
     "OpenDDE's combined structural ranking. Higher usually ranks better within this task; it is not binding activity.",
   ],
   plddt: [
-    "蛋白局部置信度",
-    "Local protein confidence",
+    "局部结构置信度",
+    "Local structural confidence",
     "pLDDT：模型对局部结构的把握程度，通常为 0–100；高分不等于高亲和力。",
     "pLDDT measures local structural confidence, usually 0–100. High confidence does not mean high affinity.",
   ],

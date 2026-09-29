@@ -1,0 +1,101 @@
+.viewer-panel {
+  min-height: 0;
+}
+.studio-app .viewer-panel .molecular-stage {
+  min-height: 420px;
+  background: white;
+  border: 1px solid #edf0f6;
+}
+.viewer-panel:fullscreen {
+  overflow: auto;
+  padding: 20px;
+  background: white;
+}
+.viewer-panel:fullscreen .molecular-stage {
+  min-height: 65vh;
+}
+.viewer-controls {
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.pocket-controls,
+.selection-row,
+.selection-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.viewer-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.viewer-controls select,
+.viewer-controls button,
+.residue-browser input {
+  border: 1px solid #dce5f2;
+  border-radius: 5px;
+  padding: 6px 8px;
+  color: #39587f;
+  background: #fff;
+  font-size: 12px;
+}
+.viewer-controls button:disabled {
+  opacity: 0.4;
+}
+.selection-editor {
+  margin-top: 12px;
+  border-top: 1px solid #edf0f6;
+  padding-top: 10px;
+}
+.selection-editor > summary {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.selection-explanation,
+.measurement-status {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #66778e;
+}
+.selection-actions button:hover:not(:disabled),
+.residue-options button:hover {
+  background: #edf4ff;
+}
+.residue-browser {
+  margin-top: 12px;
+  font-size: 12px;
+}
+.residue-browser input {
+  width: 100%;
+  margin: 8px 0;
+}
+.residue-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 140px;
+  overflow: auto;
+}
+@media (max-width: 580px) {
+  .studio-app .viewer-panel .molecular-stage {
+    min-height: 320px;
+  }
+}
+.studio-app .viewer-panel .molecular-stage {
+  height: 480px;
+}
+.molecular-stage iframe {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+@media (max-width: 580px) {
+  .studio-app .viewer-panel .molecular-stage {
+    height: 360px;
+  }
+}

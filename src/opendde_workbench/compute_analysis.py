@@ -56,8 +56,18 @@ def molecular_properties(entities):
 
 def contacts(atoms):
     heavy = atoms.element != "H"
-    ligand = atoms[atoms.hetero & heavy & ~np.isin(atoms.res_name, ["HOH", "WAT"])]
-    protein = atoms[~atoms.hetero & heavy]
+    protein_mask = structure.filter_amino_acids(atoms)
+    nucleotide_mask = structure.filter_nucleotides(atoms)
+    ion_mask = np.isin(atoms.res_name, ["MG", "ZN", "CA", "NA", "K", "CL", "MN", "FE", "CU", "CO"])
+    ligand = atoms[
+        atoms.hetero
+        & heavy
+        & ~protein_mask
+        & ~nucleotide_mask
+        & ~ion_mask
+        & ~np.isin(atoms.res_name, ["HOH", "WAT"])
+    ]
+    protein = atoms[protein_mask & heavy]
     if not len(ligand) or not len(protein):
         return []
     matches = {}
@@ -131,7 +141,7 @@ def analyze(root: Path) -> dict:
             }
         )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "ligands": ligands,
         "candidates": candidates,
         "metric_notes": {

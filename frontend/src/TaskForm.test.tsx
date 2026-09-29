@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { TaskForm } from "./TaskForm";
 import type { Prediction } from "./types";
-it("shows ready-to-use choices and keeps advanced parameters collapsed", () => {
+it("shows ready-to-use choices and exposes expert parameters only on request", () => {
   const { rerender } = render(
     <TaskForm language="zh" ready={false} onSubmit={vi.fn()} />,
   );
@@ -17,9 +17,7 @@ it("shows ready-to-use choices and keeps advanced parameters collapsed", () => {
   expect(
     screen.getByLabelText("标准预测 · 推荐", { exact: false }),
   ).toBeChecked();
-  expect(
-    screen.getByText("高级设置（通常不用改）").closest("details"),
-  ).not.toHaveAttribute("open");
+  expect(screen.queryByLabelText("随机种子")).not.toBeInTheDocument();
   rerender(<TaskForm language="en" ready={true} onSubmit={vi.fn()} />);
   expect(screen.getByRole("button", { name: "Run prediction" })).toBeEnabled();
 });
@@ -72,6 +70,7 @@ it("submits entered values once and exposes pending state", async () => {
       }),
   );
   render(<TaskForm language="en" ready onSubmit={submit} />);
+  await user.click(screen.getByLabelText("Small-molecule structure"));
   await user.type(screen.getByLabelText(/Task name/), "my experiment");
   await user.type(screen.getByLabelText("SMILES or CCD_ identifier"), "CCO");
   await user.click(screen.getByRole("button", { name: "Run prediction" }));
@@ -93,6 +92,7 @@ it("preserves automatic name and idempotency key after uncertain network failure
   const { rerender } = render(
     <TaskForm language="en" ready onSubmit={submit} />,
   );
+  fireEvent.click(screen.getByLabelText("Small-molecule structure"));
   fireEvent.change(screen.getByLabelText("SMILES or CCD_ identifier"), {
     target: { value: "CCO" },
   });

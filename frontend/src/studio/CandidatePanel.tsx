@@ -35,7 +35,9 @@ export function CandidatePanel({
     [filter, setFilter] = useState("all");
   const filterId = useId();
   const all = analysis?.candidates ?? [],
-    protein = job?.request.components.some((x) => x.kind === "protein"),
+    polymer = job?.request.components.some((x) =>
+      ["protein", "dna", "rna"].includes(x.kind),
+    ),
     multiple =
       (job?.request.components.reduce((a, x) => a + x.count, 0) ?? 0) > 1;
   const candidates = useMemo(() => {
@@ -108,7 +110,7 @@ export function CandidatePanel({
                 {zh ? "排序分数" : "Ranking"}
                 <MetricHelp metric="ranking" language={language} />
               </th>
-              {protein && (
+              {polymer && (
                 <th>
                   pLDDT
                   <MetricHelp metric="plddt" language={language} />
@@ -145,7 +147,7 @@ export function CandidatePanel({
                   </small>
                 </td>
                 <td className="score">{n(row.ranking_score, 3)}</td>
-                {protein && <td>{n(row.plddt)}</td>}
+                {polymer && <td>{n(row.plddt)}</td>}
                 {multiple && <td>{n(row.iptm)}</td>}
                 {all.length > 1 && <td>{n(row.rmsd_to_first)} Å</td>}
                 <td>

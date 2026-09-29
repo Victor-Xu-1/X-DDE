@@ -115,6 +115,11 @@ export const messages = {
     "配体必须是 SMILES 或 CCD_ 编号，不能使用文件路径或网址。",
     "Use SMILES or a CCD_ identifier, not a file path or URL.",
   ],
+  invalidNucleic: [
+    "DNA 请使用 A/T/G/C/N/X，RNA 请使用 A/U/G/C/N/X；每个框只填一条序列。",
+    "Use A/T/G/C/N/X for DNA and A/U/G/C/N/X for RNA, one sequence per field.",
+  ],
+  invalidIon: ["请从列表选择离子。", "Select an ion from the list."],
   savedSession: [
     "浏览器禁止保存偏好；语言选择仅对当前页面有效。",
     "Browser storage is unavailable; language applies to this page only.",

@@ -34,6 +34,26 @@ export function validate(
   if (
     components.some(
       (item) =>
+        (item.kind === "dna" &&
+          !/^[ATGCNX]+$/.test(normalizeProtein(item.value))) ||
+        (item.kind === "rna" &&
+          !/^[AUGCNX]+$/.test(normalizeProtein(item.value))),
+    )
+  )
+    return "invalidNucleic";
+  if (
+    components.some(
+      (item) =>
+        item.kind === "ion" &&
+        !["MG", "ZN", "CA", "NA", "K", "CL", "MN", "FE", "CU", "CO"].includes(
+          item.value.trim().toUpperCase(),
+        ),
+    )
+  )
+    return "invalidIon";
+  if (
+    components.some(
+      (item) =>
         item.kind === "ligand" &&
         (/\s|:\/\//.test(item.value.trim()) ||
           item.value.trim().startsWith("FILE_")),
@@ -51,9 +71,10 @@ export function prediction(
     name: name.trim(),
     components: components.map((item) => ({
       ...item,
-      value:
-        item.kind === "protein"
-          ? normalizeProtein(item.value)
+      value: ["protein", "dna", "rna"].includes(item.kind)
+        ? normalizeProtein(item.value)
+        : item.kind === "ion"
+          ? item.value.trim().toUpperCase()
           : item.value.trim(),
     })),
     parameters,
