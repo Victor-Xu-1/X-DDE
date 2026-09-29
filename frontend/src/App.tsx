@@ -218,11 +218,7 @@ export function App() {
                   setInputVersion((n) => n + 1);
                   setView("home");
                 }}
-                onDraft={(value) => {
-                  chooseJob("");
-                  setDraft(value);
-                  setView("home");
-                }}
+                onDraft={prepareDraft}
               />
             )}
             {view !== "home" && view !== "tools" && (
