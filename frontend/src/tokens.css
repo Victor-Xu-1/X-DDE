@@ -1,0 +1,10 @@
+:root {
+  --canvas: #f7faff;
+  --ink: #18325e;
+  --muted: #7184a5;
+  --accent: #1468ef;
+  --sidebar: #f8fbff;
+  --line: #dae5f7;
+  --font: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}

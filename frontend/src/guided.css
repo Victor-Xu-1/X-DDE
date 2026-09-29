@@ -1,0 +1,320 @@
+.help-trigger {
+  display: inline-flex;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.help-trigger > button,
+.studio-heading .help-trigger > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: #6984ae;
+  padding: 2px;
+  font-size: 12px;
+  line-height: 1;
+}
+.help-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: min(280px, calc(100vw - 16px));
+  padding: 11px 13px;
+  background: #163464;
+  color: white;
+  box-shadow: 0 5px 18px #14356135;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.65;
+  pointer-events: none;
+}
+.task-kind-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.task-kind-choices label {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  border: 1px solid #dbe5f6;
+  border-radius: 5px;
+  padding: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #f8fbff;
+}
+.task-kind-choices label.selected,
+.preset-choices label.selected {
+  border-color: #669afb;
+  background: #edf4ff;
+  color: #174fbe;
+}
+.task-kind-choices input,
+.preset-choices input {
+  accent-color: #276ced;
+  margin: 0;
+}
+.task-kind-note {
+  margin: 6px 0;
+}
+.example-button {
+  font-size: 11px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+.studio-app .input-panel h3 {
+  font-size: 12px;
+}
+.input-options {
+  margin: 7px 0;
+  color: #6880a7;
+  font-size: 10px;
+}
+.input-options summary {
+  font-size: 10px;
+  font-weight: 400;
+}
+.input-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-options select {
+  border: 1px solid #dfe7f6;
+  border-radius: 4px;
+  padding: 4px;
+  background: white;
+}
+.run-choices {
+  margin-top: 16px;
+}
+.preset-choices {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+.preset-choices label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 8px;
+  border: 1px solid #e0e8f7;
+  border-radius: 5px;
+  background: white;
+}
+.preset-choices input {
+  margin-top: 3px;
+}
+.preset-choices strong {
+  font-size: 12px;
+  display: block;
+  font-weight: 600;
+}
+.preset-choices small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 2px;
+  color: #7287a6;
+}
+.studio-app .input-panel .task-name {
+  margin-top: 13px;
+}
+.guided-toolbar {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.guided-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #4b6896;
+}
+.guided-toolbar select {
+  max-width: 280px;
+  border: 1px solid #dae5f7;
+  border-radius: 5px;
+  padding: 7px;
+  color: #294e86;
+  background: white;
+  font-size: 11px;
+}
+.quickstart {
+  padding: 7px 10px;
+  border: 1px solid #d9e6fb;
+  border-radius: 5px;
+  color: #2863bc;
+  background: #f6f9ff;
+  font-size: 11px;
+}
+.candidate-actions select {
+  max-width: 130px;
+  font-size: 10px;
+  background: white;
+  border: 1px solid #dce6f7;
+  padding: 4px;
+  border-radius: 4px;
+  color: #44638e;
+}
+.candidate-guidance {
+  color: #7387a6;
+  font-size: 10px;
+  line-height: 1.6;
+  margin: 4px 0 9px;
+}
+.conformer-select {
+  border: 0;
+  background: transparent;
+  padding: 3px 0;
+  color: #215fcd;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+}
+.comparison-note button {
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  color: #316bbc;
+  font-size: 10px;
+}
+.property-grid {
+  margin: 9px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.property-grid > div {
+  padding: 6px;
+  background: #f6f9ff;
+  border-radius: 4px;
+}
+.property-grid dt {
+  font-size: 10px;
+  color: #6982a7;
+}
+.property-grid dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: #214b87;
+  font-variant-numeric: tabular-nums;
+}
+.analysis-empty {
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+  font-size: 11px !important;
+  color: #7e91af !important;
+  text-align: center;
+  line-height: 1.6;
+}
+.result-explanation {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 10px 0;
+  color: #526b91;
+}
+.result-explanation > p {
+  margin: 6px 0;
+}
+.analysis-card {
+  min-height: 240px;
+  height: auto;
+}
+.analysis-card > p {
+  line-height: 1.5;
+}
+.contact-card li button {
+  background: transparent;
+  border: 0;
+  color: #2366c9;
+  font-size: 11px;
+  padding: 4px 2px;
+  text-decoration: underline;
+}
+.selection-explanation {
+  margin: 5px 0 0;
+  font-size: 10px;
+  color: #5e789f;
+  min-height: 26px;
+  line-height: 1.5;
+}
+.viewer-comparison {
+  font-size: 10px;
+  color: #647b9b;
+  margin-bottom: 5px;
+}
+.viewer-panel {
+  height: 100%;
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+}
+.viewer-panel .molecular-stage {
+  flex: 1;
+  min-height: 315px;
+}
+.workbench-section .candidate-panel {
+  height: 100%;
+  min-height: 410px;
+}
+.viewer-footer {
+  flex-wrap: wrap;
+}
+@media (max-width: 1000px) {
+  .guided-toolbar select {
+    max-width: 210px;
+  }
+  .analysis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 580px) {
+  .workbench-section {
+    display: block;
+  }
+  .guided-toolbar {
+    margin-bottom: 12px;
+  }
+  .studio-sidebar nav button {
+    min-width: max-content;
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+  .studio-sidebar nav button > span:last-child {
+    display: inline;
+  }
+  .guided-toolbar label {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .guided-toolbar select {
+    max-width: 70%;
+  }
+  .workbench-section > .analysis-grid,
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+  .help-tooltip {
+    font-size: 13px;
+  }
+  .property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .task-kind-choices label {
+    font-size: 12px;
+    padding: 9px;
+  }
+  .preset-choices strong {
+    font-size: 13px;
+  }
+  .preset-choices small {
+    font-size: 12px;
+  }
+  .input-options summary {
+    font-size: 12px;
+  }
+}

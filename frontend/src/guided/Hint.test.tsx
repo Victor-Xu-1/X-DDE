@@ -1,0 +1,20 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { expect, it } from "vitest";
+import { Hint } from "./Hint";
+it("explains a term on hover, keyboard focus, and click; Escape dismisses it", async () => {
+  render(<Hint label="分子量说明">根据结构计算，单位 g/mol。</Hint>);
+  const button = screen.getByRole("button", { name: "分子量说明" });
+  fireEvent.mouseEnter(button.parentElement!);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("g/mol");
+  fireEvent.mouseLeave(button.parentElement!);
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  const user = userEvent.setup();
+  await user.tab();
+  expect(button).toHaveFocus();
+  expect(screen.getByRole("tooltip")).toBeVisible();
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  await user.click(button);
+  expect(screen.getByRole("tooltip")).toBeVisible();
+});
