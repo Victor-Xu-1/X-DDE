@@ -39,8 +39,8 @@ export const messages = {
     "For 8 GB GPUs, start with BF16, one sample, and small systems. Larger systems may exceed memory.",
   ],
   noMsa: [
-    "当前使用本地、无 MSA / 模板的预测流程。",
-    "This version runs local predictions without MSA or templates.",
+    "直接预测模式不搜索 MSA / 模板；需要时可在特征选项中开启。",
+    "Direct mode skips MSA/templates; enable features when needed.",
   ],
   submit: ["提交预测任务", "Run prediction"],
   submitting: ["正在提交…", "Submitting…"],
@@ -84,18 +84,18 @@ export const messages = {
   refresh: ["刷新", "Refresh"],
   recent: ["最近 100 个任务", "Latest 100 tasks"],
   queueNote: [
-    "单任务 GPU 队列 · 页面关闭后任务继续运行",
-    "One GPU task at a time · Tasks continue when the page is closed",
+    "持久任务队列 · 页面关闭后任务继续运行",
+    "Persistent queue · Tasks continue when the page is closed",
   ],
-  privacy: ["数据保留在本机", "Your data stays local"],
+  privacy: ["研究数据与服务", "Research data and services"],
   privacyNote: [
-    "预测容器关闭网络；序列和分子不会发送给模型服务。",
-    "Prediction containers have no network access. Inputs are not sent to model providers.",
+    "直接预测默认离线；开启搜索或 Harness 服务时会按任务设置发送输入。",
+    "Direct prediction is offline by default; searches and Harness services transmit inputs according to task settings.",
   ],
   boundaries: ["能力范围", "Capabilities"],
   supported: [
-    "结构预测、任务管理、结果下载",
-    "Prediction, task management, downloads",
+    "结构预测、抗体设计、性质计算、序列评分、特征准备与结果分析",
+    "Structures, antibody design, properties, sequence scoring, feature preparation and analysis",
   ],
   error: ["操作未完成", "Action failed"],
   connectionError: [

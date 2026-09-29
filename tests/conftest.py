@@ -16,7 +16,7 @@ class ProcessEngine:
     def __init__(self, script=None, ready=True):
         self.script = script or (
             "from pathlib import Path; import time; print('worker-started', flush=True); "
-            "time.sleep(0.2); Path('output').mkdir(); "
+            "time.sleep(0.2); Path('output').mkdir(exist_ok=True); "
             "Path('output/result.cif').write_text('controlled-process-output'); print('finished')"
         )
         self.ready = ready

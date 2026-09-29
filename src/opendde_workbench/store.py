@@ -6,9 +6,10 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4, uuid5
 
-from .models import Job, Prediction, Status
+from .models import Job, Status
+from .requests import TASK_ADAPTER, TaskRequest, input_identifiers
 
 
 def now() -> str:
@@ -35,6 +36,13 @@ class Store:
                 created_at TEXT NOT NULL, started_at TEXT, finished_at TEXT,
                 error TEXT, parent_id TEXT)""")
             db.execute("CREATE INDEX IF NOT EXISTS jobs_status_time ON jobs(status, created_at)")
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS queue_control(key TEXT PRIMARY KEY,value TEXT NOT NULL)"
+            )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS batches (idempotency_key TEXT PRIMARY KEY, "
+                "requests TEXT NOT NULL, job_ids TEXT NOT NULL, created_at TEXT NOT NULL)"
+            )
 
     @contextmanager
     def connect(self):
@@ -67,50 +75,136 @@ class Store:
                 )
             ]
 
-    def create(
+    def _create_in_transaction(
         self,
-        request: Prediction,
+        db,
+        request: TaskRequest,
         key: str,
         max_pending: int,
         max_jobs: int,
         parent_id: str | None = None,
     ) -> Job:
         body = request.model_dump_json()
+        old = db.execute("SELECT * FROM jobs WHERE idempotency_key=?", (key,)).fetchone()
+        if old:
+            previous = TASK_ADAPTER.validate_json(old["request"]).model_dump_json()
+            if previous != body or old["parent_id"] != parent_id:
+                raise ConflictError("Idempotency key was used for a different request.")
+            return self.decode(old)
+        pending = db.execute(
+            "SELECT count(*) FROM jobs WHERE status IN ('queued','running','cancelling')"
+        ).fetchone()[0]
+        total = db.execute("SELECT count(*) FROM jobs").fetchone()[0]
+        if pending >= max_pending or total >= max_jobs:
+            raise CapacityError(
+                "Task capacity reached. Wait for jobs or archive the state directory."
+            )
+        for identifier in input_identifiers(request):
+            if not db.execute("SELECT 1 FROM assets WHERE id=?", (identifier,)).fetchone():
+                raise ConflictError(
+                    "An uploaded input was removed before submission. Upload it again."
+                )
+        job_id = str(uuid4())
         digest = hashlib.sha256((body + (parent_id or "")).encode()).hexdigest()
+        db.execute(
+            "INSERT INTO jobs(id,request,request_hash,idempotency_key,status,created_at,parent_id) "
+            "VALUES(?,?,?,?,?,?,?)",
+            (job_id, body, digest, key, Status.QUEUED, now(), parent_id),
+        )
+        return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
+
+    def create(
+        self,
+        request: TaskRequest,
+        key: str,
+        max_pending: int,
+        max_jobs: int,
+        parent_id: str | None = None,
+    ) -> Job:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            old = db.execute("SELECT * FROM jobs WHERE idempotency_key=?", (key,)).fetchone()
-            if old:
-                # Normalize older requests through the current schema so adding an
-                # optional field does not invalidate existing idempotency keys.
-                previous = Prediction.model_validate_json(old["request"]).model_dump_json()
-                if previous != body or old["parent_id"] != parent_id:
-                    raise ConflictError("Idempotency key was used for a different request.")
-                return self.decode(old)
-            pending = db.execute(
-                "SELECT count(*) FROM jobs WHERE status IN ('queued','running','cancelling')"
-            ).fetchone()[0]
-            total = db.execute("SELECT count(*) FROM jobs").fetchone()[0]
-            if pending >= max_pending or total >= max_jobs:
-                raise CapacityError(
-                    "Task capacity reached. Wait for jobs or archive the state directory."
-                )
-            job_id = str(uuid4())
-            db.execute(
-                "INSERT INTO jobs(id,request,request_hash,idempotency_key,"
-                "status,created_at,parent_id) "
-                "VALUES(?,?,?,?,?,?,?)",
-                (job_id, body, digest, key, Status.QUEUED, now(), parent_id),
-            )
-            return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
+            return self._create_in_transaction(db, request, key, max_pending, max_jobs, parent_id)
 
-    def claim(self) -> Job | None:
+    def create_batch(
+        self, requests: list[TaskRequest], key: UUID, max_pending: int, max_jobs: int
+    ) -> list[Job]:
+        bodies = [request.model_dump(mode="json") for request in requests]
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            previous = db.execute(
+                "SELECT * FROM batches WHERE idempotency_key=?", (str(key),)
+            ).fetchone()
+            if previous:
+                normalized = [
+                    TASK_ADAPTER.validate_python(value).model_dump(mode="json")
+                    for value in json.loads(previous["requests"])
+                ]
+                if normalized != bodies:
+                    raise ConflictError("Batch key was used for a different set of tasks.")
+                existing_jobs = [
+                    self.decode(
+                        db.execute("SELECT * FROM jobs WHERE id=?", (identifier,)).fetchone()
+                    )
+                    for identifier in json.loads(previous["job_ids"])
+                ]
+                if any(job is None for job in existing_jobs):
+                    raise ConflictError(
+                        "Batch state is incomplete. Restore the missing jobs from backup."
+                    )
+                return existing_jobs
+            jobs = [
+                self._create_in_transaction(
+                    db, request, str(uuid5(key, f"batch:{index}")), max_pending, max_jobs
+                )
+                for index, request in enumerate(requests)
+            ]
+            db.execute(
+                "INSERT INTO batches(idempotency_key,requests,job_ids,created_at) VALUES(?,?,?,?)",
+                (
+                    str(key),
+                    json.dumps(bodies, ensure_ascii=False),
+                    json.dumps([job.id for job in jobs]),
+                    now(),
+                ),
+            )
+            return jobs
+
+    def next_queued(self) -> Job | None:
+        with self.connect() as db:
+            return self.decode(
+                db.execute(
+                    "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at LIMIT 1"
+                ).fetchone()
+            )
+
+    def pause_queue(self, job_id: str, reason: str) -> None:
+        with self.connect() as db:
+            db.execute(
+                "INSERT OR REPLACE INTO queue_control(key,value) VALUES('halt',?)",
+                (json.dumps({"job_id": job_id, "reason": reason}),),
+            )
+
+    def queue_halt(self):
+        with self.connect() as db:
+            row = db.execute("SELECT value FROM queue_control WHERE key='halt'").fetchone()
+        return json.loads(row[0]) if row else None
+
+    def clear_queue_halt(self, job_id: str) -> None:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT value FROM queue_control WHERE key='halt'").fetchone()
+            if row and json.loads(row[0])["job_id"] == job_id:
+                db.execute("DELETE FROM queue_control WHERE key='halt'")
+
+    def claim(self, expected_id: str | None = None) -> Job | None:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute(
                 "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at LIMIT 1"
             ).fetchone()
             if not row:
+                return None
+            if expected_id is not None and row["id"] != expected_id:
                 return None
             db.execute(
                 "UPDATE jobs SET status='running',started_at=? WHERE id=?", (now(), row["id"])
@@ -134,9 +228,10 @@ class Store:
     def finish(self, job_id: str, status: Status, error: str | None = None) -> None:
         with self.connect() as db:
             db.execute(
-                """UPDATE jobs SET status=CASE WHEN status='cancelling' THEN 'cancelled' ELSE ? END,
+                """UPDATE jobs SET status=CASE WHEN status='cancelling'
+                AND ? NOT IN ('failed','interrupted') THEN 'cancelled' ELSE ? END,
                 error=?, finished_at=? WHERE id=? AND status IN ('running','cancelling')""",
-                (status, error, now(), job_id),
+                (status, status, error, now(), job_id),
             )
 
     def unfinished(self) -> list[Job]:

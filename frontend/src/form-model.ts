@@ -21,7 +21,10 @@ export function validate(
   components: Component[],
 ): MessageKey | null {
   if (!name.trim()) return "requiredName";
-  if (!components.length || components.some((item) => !item.value.trim()))
+  if (
+    !components.length ||
+    components.some((item) => !item.value.trim() && !item.ligand_file)
+  )
     return "requiredInput";
   if (
     components.some(
@@ -45,9 +48,7 @@ export function validate(
     components.some(
       (item) =>
         item.kind === "ion" &&
-        !["MG", "ZN", "CA", "NA", "K", "CL", "MN", "FE", "CU", "CO"].includes(
-          item.value.trim().toUpperCase(),
-        ),
+        !/^[A-Z0-9]{1,4}$/.test(item.value.trim().toUpperCase()),
     )
   )
     return "invalidIon";

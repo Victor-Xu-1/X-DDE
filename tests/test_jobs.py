@@ -118,3 +118,23 @@ def test_large_stdout_is_drained_with_bounded_capture(client_factory, settings):
         log = settings.state_dir / "jobs" / job_id / "run.log"
         assert log.stat().st_size < 1024
         assert "Log capture limit" in log.read_text()
+
+
+def test_cancellation_cleanup_failure_remains_visible_as_failure(settings):
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    job = store.create(Prediction.model_validate(payload()), str(uuid4()), 20, 500)
+    store.claim()
+    store.cancel(job.id)
+    store.finish(job.id, Status.FAILED, "Remote cancellation could not be confirmed.")
+    assert store.get(job.id).status == Status.FAILED
+    assert "could not be confirmed" in store.get(job.id).error
+
+
+def test_configured_compute_token_is_redacted_from_process_logs(client_factory, settings):
+    token = "acceptance-token-not-a-real-credential"
+    script = "import os; os.write(1,b'x'*16380+b'acceptance-token-not-a-real-credential'+b' end')"
+    with client_factory(ProcessEngine(script), harness_token=token) as client:
+        job_id = submit(client).json()["id"]
+        wait_status(client, job_id, {"failed"})
+        log = (settings.state_dir / "jobs" / job_id / "run.log").read_text()
+        assert token not in log and "[redacted]" in log

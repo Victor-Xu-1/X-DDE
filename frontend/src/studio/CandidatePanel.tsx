@@ -1,3 +1,4 @@
+import { componentsOf } from "../operations/types";
 import { useId, useMemo, useState } from "react";
 import { DownloadOutlined } from "@ant-design/icons";
 import { artifactUrl } from "../api";
@@ -5,8 +6,16 @@ import { MetricHelp } from "../guided/MetricHelp";
 import type { Analysis, Job, Language } from "../types";
 const n = (v: number | null | undefined, d = 2) =>
   v == null ? "—" : v.toFixed(d);
-export const conformerName = (id: string, zh: boolean) =>
-  (zh ? "构象 " : "Conformer ") + (Number(id.replace("sample-", "")) + 1);
+export const conformerName = (id: string, zh: boolean) => {
+  const multi = /^seed-(\d+)-sample-(\d+)$/.exec(id);
+  if (multi)
+    return `${zh ? "种子" : "Seed"} ${multi[1]} · ${zh ? "构象" : "Conformer"} ${Number(multi[2]) + 1}`;
+  return (
+    (zh ? "构象 " : "Conformer ") +
+    (Number(id.split("-")[1]) + 1) +
+    (id.split("-")[2] ? " · " + id.split("-")[2].slice(0, 6) : "")
+  );
+};
 interface Props {
   job: Job | null;
   analysis: Analysis | null;
@@ -35,11 +44,11 @@ export function CandidatePanel({
     [filter, setFilter] = useState("all");
   const filterId = useId();
   const all = analysis?.candidates ?? [],
-    polymer = job?.request.components.some((x) =>
+    polymer = componentsOf(job?.request).some((x) =>
       ["protein", "dna", "rna"].includes(x.kind),
     ),
     multiple =
-      (job?.request.components.reduce((a, x) => a + x.count, 0) ?? 0) > 1;
+      (componentsOf(job?.request).reduce((a, x) => a + x.count, 0) ?? 0) > 1;
   const candidates = useMemo(() => {
     let rows = [...all].sort(
       (a, b) => (b.ranking_score ?? -Infinity) - (a.ranking_score ?? -Infinity),

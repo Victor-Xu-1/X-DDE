@@ -1,3 +1,4 @@
+import { componentsOf, isPrediction } from "../operations/types";
 import {
   DownloadOutlined,
   FileTextOutlined,
@@ -18,6 +19,7 @@ import type {
   Job,
   Language,
   Project,
+  Prediction,
 } from "../types";
 interface Props {
   view: View;
@@ -43,6 +45,7 @@ interface Props {
   analysisError: string;
   onRetry(): void;
   onCandidate(id: string): void;
+  onDraft?(request: Prediction): void;
 }
 export function UtilityViews(p: Props) {
   const zh = p.language === "zh",
@@ -90,8 +93,23 @@ export function UtilityViews(p: Props) {
             detail={p.detail}
             failed={p.detailError}
             onChange={p.onChanged}
+            onDraft={p.onDraft}
           />
         </div>
+      </section>
+    );
+  if (p.view === "analysis" && p.job && !isPrediction(p.job.request))
+    return (
+      <section className="utility-page">
+        <h1>{zh ? "结果解读" : "Result interpretation"}</h1>
+        <TaskDetail
+          language={p.language}
+          job={p.job}
+          detail={p.detail}
+          failed={p.detailError}
+          onChange={p.onChanged}
+          onDraft={p.onDraft}
+        />
       </section>
     );
   if (p.view === "analysis")
@@ -121,7 +139,7 @@ export function UtilityViews(p: Props) {
           analysis={p.analysis}
           candidate={p.candidate}
           language={p.language}
-          components={p.job?.request.components ?? []}
+          components={componentsOf(p.job?.request)}
         />
         <button className="secondary-button" onClick={p.onHome}>
           {zh ? "回到三维预览" : "Return to 3D preview"}
@@ -155,11 +173,20 @@ export function UtilityViews(p: Props) {
                 <DownloadOutlined /> {t("inputJson")}
               </a>
             </>
+          ) : p.job ? (
+            <TaskDetail
+              language={p.language}
+              job={p.job}
+              detail={p.detail}
+              failed={p.detailError}
+              onChange={p.onChanged}
+              onDraft={p.onDraft}
+            />
           ) : (
             <p>
               {zh
-                ? "先完成或选择一个预测任务，再来下载结果。"
-                : "Complete or select a prediction before exporting."}
+                ? "先从任务中心选择一项任务。"
+                : "Select a task from Task center first."}
             </p>
           )}
           <button className="secondary-button" onClick={p.onHome}>
@@ -174,8 +201,8 @@ export function UtilityViews(p: Props) {
         <h1>{zh ? "运行状态" : "Runtime status"}</h1>
         <p>
           {zh
-            ? "这里显示本机是否可以开始计算。"
-            : "Check whether this computer is ready to run a prediction."}
+            ? "这里显示计算服务器的引擎与存储状态。"
+            : "Inspect the compute server engine and storage status."}
         </p>
         <div className="model-grid">
           <div className="studio-panel">
@@ -200,8 +227,8 @@ export function UtilityViews(p: Props) {
             </p>
             <p>
               {zh
-                ? "所有任务输入与结果保存在本机。"
-                : "Task inputs and results stay on this computer."}
+                ? "工作台结果保存在配置的数据目录；Harness 原生结果保存在其计算服务。"
+                : "Workbench results use the configured data directory; native Harness results remain on its compute service."}
             </p>
           </div>
         </div>
@@ -261,8 +288,8 @@ export function UtilityViews(p: Props) {
         <div className="notice">
           <p>
             {zh
-              ? "目前执行无 MSA／模板的本地结构预测；工作台没有结合亲和力或小分子从头生成工具。结构和置信度不能替代活性实验。"
-              : "Predictions currently run locally without MSA/templates. Binding-affinity and de novo small-molecule tools are not included. Structures and confidence do not replace activity experiments."}
+              ? "“全部能力”包含性质计算、抗体设计、序列评分、MSA/模板和原生分析。需要的模型、数据库及服务在服务器配置。QED/SA 和结构置信度不能替代活性实验。"
+              : "All capabilities includes molecular properties, antibody design, sequence scoring, MSA/templates and native analysis. Configure models, databases and services on the server. Descriptors and confidence do not replace activity experiments."}
           </p>
         </div>
         <button className="primary-button" onClick={p.onHome}>

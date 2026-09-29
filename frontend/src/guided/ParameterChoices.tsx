@@ -67,6 +67,7 @@ export function ParameterChoices({
               checked={selected === p.id}
               onChange={() =>
                 onChange({
+                  ...value,
                   ...p.parameters,
                   seed: value.seed,
                   model: value.model,

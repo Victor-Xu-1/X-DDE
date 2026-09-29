@@ -1,3 +1,12 @@
+# 0.3 candidate status — server validation deferred
+
+The owner requested code first and no tests/inference on this PC. This expansion has not had local browser, GPU, multi-GPU, remote scientific service or LLM acceptance. Static lint/type/format results are reported separately in the delivery record; they are not runtime evidence. The prior0.2 installation remains unchanged.
+
+The current capability contract is docs/design/README.md. Required candidate acceptance is docs/server-acceptance.md. The old evidence below applies only to0.2 and must not be attributed to the new frontend/adapters.
+
+GitHub CI for candidate `b4ca494eed79f3480758d30740e148a3b20a8356` passed remotely: `npm run check`, 33 frontend tests (`npm test`), `npm run build`, `uv sync --locked --group dev`, Ruff, 68 backend tests (`pytest -q`) and `uv build --wheel` with packaged-web assertions. [Run evidence](https://github.com/Victor-Xu-1/opendde-workbench/actions/runs/36620549910). The first CI run exposed a help-button/input label association defect; the corrected components and regression test passed. No native scientific or browser acceptance is implied by these results. Later commits must have their own passing checks before promotion.
+
+---
 # Workbench 0.2.0 acceptance record — 2026-09-30
 
 ## Scope and authority

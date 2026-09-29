@@ -1,7 +1,7 @@
 [project]
 name = "opendde-workbench"
-version = "0.2.0"
-description = "Local bilingual task workbench for OpenDDE"
+version = "0.3.0rc1"
+description = "Bilingual research workbench for OpenDDE and Harness"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"

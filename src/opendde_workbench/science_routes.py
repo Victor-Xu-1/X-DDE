@@ -4,12 +4,14 @@ import csv
 import html
 import io
 import json
+from typing import Literal
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
 
 from .analysis import AnalysisService
+from .confidence import confidence_view
 from .engine import DockerEngine, Engine
 from .models import Status
 from .settings import Settings
@@ -27,7 +29,7 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         job = store.get(str(job_id))
         if not job:
             raise HTTPException(404, "Task not found.")
-        if job.status != Status.SUCCEEDED:
+        if job.status != Status.SUCCEEDED or job.request.operation != "predict":
             raise HTTPException(409, "Analysis requires a completed prediction.")
         if service is None:
             raise HTTPException(503, "Scientific analysis requires the Docker runtime.")
@@ -44,6 +46,29 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
     async def analysis(job_id: UUID):
         _, data = await result(job_id)
         return data
+
+    @app.get("/api/jobs/{job_id}/confidence")
+    async def confidence(
+        job_id: UUID,
+        candidate: str = Query(min_length=1, max_length=100),
+        metric: Literal["pae", "pde", "contacts"] = "pae",
+    ):
+        _, data = await result(job_id)
+        selected = next((c for c in data["candidates"] if c["id"] == candidate), None)
+        if selected is None:
+            raise HTTPException(404, "Candidate not found.")
+        try:
+            return confidence_view(
+                settings.state_dir / "jobs" / str(job_id) / "output", selected["artifact"], metric
+            )
+        except FileNotFoundError as exc:
+            raise HTTPException(
+                404,
+                "This prediction has no atom-level confidence artifact. "
+                "Enable it in expert parameters for a new run.",
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
 
     @app.get("/api/jobs/{job_id}/candidates.csv")
     async def candidates_csv(job_id: UUID):

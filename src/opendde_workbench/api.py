@@ -17,9 +17,17 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import __version__
 from .artifacts import contained, list_artifacts, log_tail
+from .asset_routes import register_assets
+from .assets import AssetStore
+from .checkpoints import registered, resolve
 from .engine import DockerEngine, Engine
-from .models import TERMINAL, Job, Prediction
+from .harness_routes import register_harness
+from .models import TERMINAL, Job
+from .operation_routes import register_operations
+from .prediction import Prediction
+from .preflight import check
 from .projects import register_projects
+from .requests import BatchRequest, TaskRequest
 from .science_routes import register_science
 from .settings import Settings
 from .store import CapacityError, ConflictError, Store
@@ -31,7 +39,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     settings.state_dir.mkdir(parents=True, exist_ok=True)
     store = Store(settings.state_dir / "jobs.sqlite3")
     engine = engine or DockerEngine(settings)
-    worker = Worker(store, engine, settings)
+    assets = AssetStore(store, settings.state_dir / "assets")
+    worker = Worker(store, engine, settings, assets)
     csrf = secrets.token_urlsafe(32)
     health_cache = {"expires": 0.0, "value": None}
 
@@ -64,10 +73,19 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     async def security_headers(request: Request, call_next):
         if request.method in {"POST", "PUT", "PATCH"}:
             length = request.headers.get("content-length", "")
-            if not length.isdigit() or int(length) > 262144:
+            limit = (
+                25 * 1024**2
+                if request.url.path == "/api/assets"
+                else 2 * 1024**2
+                if request.url.path == "/api/batches"
+                else 262144
+            )
+            if not length.isdigit() or int(length) > limit:
                 return JSONResponse(
                     status_code=413,
-                    content={"detail": "Request body exceeds 256 KiB or has no fixed length."},
+                    content={
+                        "detail": "Request body exceeds the size limit or has no fixed length."
+                    },
                 )
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -95,49 +113,85 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             raise HTTPException(404, "Task not found.")
         return job
 
-    async def enqueue(prediction: Prediction, key: UUID, parent: str | None = None):
-        if worker.error:
-            raise HTTPException(503, worker.error)
+    async def preflight(value: TaskRequest):
         readiness = await health()
         if not readiness["worker_ready"]:
-            raise HTTPException(503, "Task worker is not available.")
-        if not readiness["engine"]["ready"]:
-            raise HTTPException(503, readiness["engine"]["reason"])
-        if prediction.parameters.model == "abag" and not readiness["engine"].get("models", {}).get(
-            "abag"
-        ):
-            raise HTTPException(
-                503,
-                "The ABAG checkpoint is not available. "
-                "Select the standard model or install the ABAG checkpoint.",
-            )
+            raise HTTPException(503, worker.error or "Task worker is not available.")
+        try:
+            if value.operation == "harness":
+                assets.validate_bindings(value)
+                if (
+                    not settings.harness_python
+                    or not settings.harness_python.is_file()
+                    or value.tool != "compare"
+                    and not settings.harness_url
+                ):
+                    raise RuntimeError(
+                        "Configure the Harness interpreter and compute URL in server settings."
+                    )
+                await harness_service.invoke(
+                    {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
+                )
+            else:
+                check(value, readiness["engine"], assets)
+                if value.operation == "predict" and value.parameters.checkpoint_id:
+                    resolve(settings, value.parameters.checkpoint_id)
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except (RuntimeError, OSError, TimeoutError) as exc:
+            raise HTTPException(503, str(exc)) from exc
         capacity = settings.capacity_dir or settings.state_dir
         if (
             min(shutil.disk_usage(settings.state_dir).free, shutil.disk_usage(capacity).free)
             < settings.minimum_free_bytes
         ):
-            raise HTTPException(507, "At least 2 GiB free disk space is required.")
-        if prediction.project_id is not None:
+            raise HTTPException(507, "At least2GiB free disk space is required.")
+        if value.project_id is not None:
             with store.connect() as db:
                 if not db.execute(
-                    "SELECT 1 FROM projects WHERE id=?", (str(prediction.project_id),)
+                    "SELECT 1 FROM projects WHERE id=?", (str(value.project_id),)
                 ).fetchone():
                     raise HTTPException(422, "Selected project does not exist.")
-        if isinstance(engine, DockerEngine) and prediction.parameters.model == "abag":
-            if not (settings.model_dir / "checkpoint/opendde_abag.pt").is_file():
-                raise HTTPException(503, "ABAG checkpoint is not installed.")
+
+    async def enqueue(value: TaskRequest, key: UUID, parent: str | None = None):
+        await preflight(value)
         try:
-            return store.create(
-                prediction, str(key), settings.max_pending, settings.max_jobs, parent
+            return store.create(value, str(key), settings.max_pending, settings.max_jobs, parent)
+        except ConflictError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except CapacityError as exc:
+            raise HTTPException(429, str(exc)) from exc
+
+    @app.post(
+        "/api/batches", response_model=list[Job], status_code=201, dependencies=[Depends(mutation)]
+    )
+    async def batch(value: BatchRequest, idempotency_key: Annotated[UUID, Header()]):
+        for task in value.tasks:
+            await preflight(task)
+        try:
+            return store.create_batch(
+                value.tasks, idempotency_key, settings.max_pending, settings.max_jobs
             )
-        except ConflictError as error:
-            raise HTTPException(409, str(error)) from error
-        except CapacityError as error:
-            raise HTTPException(429, str(error)) from error
+        except ConflictError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except CapacityError as exc:
+            raise HTTPException(429, str(exc)) from exc
 
     @app.get("/api/session")
     def session():
         return {"csrf_token": csrf, "version": __version__}
+
+    @app.get("/api/checkpoints")
+    def checkpoints():
+        try:
+            return [
+                {"id": identifier, "present": path.is_file()}
+                for identifier, path in registered(settings).items()
+            ]
+        except (ValueError, OSError) as exc:
+            raise HTTPException(
+                503, "Checkpoint registry could not be read. Check server configuration."
+            ) from exc
 
     @app.get("/api/health")
     async def health():
@@ -150,6 +204,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             "engine": health_cache["value"],
             "worker_ready": alive and not worker.error,
             "worker_error": worker.error,
+            "queue_wait_reason": worker.waiting_reason,
             "disk_total_gib": round(
                 shutil.disk_usage(settings.capacity_dir or settings.state_dir).total / 1024**3, 1
             ),
@@ -161,7 +216,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 / 1024**3,
                 1,
             ),
-            "capabilities": {"prediction": True, "msa": False, "templates": False, "llm": False},
+            "capabilities": {
+                "prediction": True,
+                "msa": True,
+                "templates": True,
+                "llm": settings.harness_python is not None,
+            },
         }
 
     @app.get("/api/jobs", response_model=list[Job])
@@ -169,7 +229,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return store.list_jobs(limit, offset)
 
     @app.post("/api/jobs", response_model=Job, status_code=201, dependencies=[Depends(mutation)])
-    async def submit(prediction: Prediction, idempotency_key: Annotated[UUID, Header()]):
+    async def submit(prediction: TaskRequest, idempotency_key: Annotated[UUID, Header()]):
         return await enqueue(prediction, idempotency_key)
 
     @app.get("/api/jobs/{job_id}", response_model=Job)
@@ -178,7 +238,17 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=[Depends(mutation)])
     def cancel(job_id: UUID):
-        required(job_id)
+        job = required(job_id)
+        if (
+            job.status == "running"
+            and job.request.operation == "harness"
+            and job.request.tool != "fold"
+        ):
+            raise HTTPException(
+                409,
+                "This native synchronous tool cannot be cancelled after dispatch. "
+                "Wait for its result; queued tasks can be cancelled.",
+            )
         return store.cancel(str(job_id))
 
     @app.post(
@@ -219,11 +289,33 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     @app.get("/api/jobs/{job_id}/input")
     def input_document(job_id: UUID):
         job = required(job_id)
+        path = settings.state_dir / "jobs" / job.id / "input.json"
+        if path.is_file():
+            try:
+                path = contained(path.parent, "input.json")
+            except (ValueError, FileNotFoundError) as exc:
+                raise HTTPException(404, "Input artifact is unavailable.") from exc
+            return FileResponse(
+                path, filename=f"{job.id}-input.json", media_type="application/json"
+            )
+        if isinstance(job.request, Prediction):
+            bindings = {
+                identifier: "/job/assets/" + identifier + asset.suffix
+                for identifier, asset in assets.validate_bindings(job.request).items()
+            }
+            return JSONResponse(
+                job.request.inference_input(job.id, bindings),
+                headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
+            )
         return JSONResponse(
-            job.request.inference_input(job.id),
+            job.request.model_dump(mode="json"),
             headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
         )
 
+    register_assets(app, assets, mutation)
+    harness_service = register_harness(app, store, assets, settings, mutation)
+    worker.gate = harness_service.queue_gate
+    register_operations(app, store, assets, settings, mutation)
     register_projects(app, store, mutation)
     register_science(app, store, engine, settings)
     web = Path(__file__).parent / "web"
