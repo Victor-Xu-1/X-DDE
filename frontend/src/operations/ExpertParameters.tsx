@@ -1,6 +1,6 @@
 import type { Language, Parameters } from "../types";
 import { Hint } from "../guided/Hint";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { request } from "../api";
 import { IntegerListField } from "./IntegerListField";
 
@@ -15,6 +15,7 @@ export function ExpertParameters({
   language: Language;
   expert: boolean;
 }) {
+  const featureId = useId();
   const zh = language === "zh";
   const [checkpoints, setCheckpoints] = useState<
       { id: string; present: boolean }[]
@@ -86,14 +87,19 @@ export function ExpertParameters({
   ] as const;
   return (
     <section className="extended-parameters">
-      <label className="field">
-        {zh ? "是否加入进化信息？" : "Include evolutionary information?"}
-        <Hint label={zh ? "进化信息说明" : "Evolutionary features help"}>
-          {zh
-            ? "MSA 是同源序列比对。模板提供已有结构信息；搜索需要配置数据库或服务。"
-            : "MSA aligns homologous sequences. Templates supply existing structure information; searches require configured databases or services."}
-        </Hint>
+      <div className="field">
+        <span>
+          <label htmlFor={featureId}>
+            {zh ? "是否加入进化信息？" : "Include evolutionary information?"}
+          </label>{" "}
+          <Hint label={zh ? "进化信息说明" : "Evolutionary features help"}>
+            {zh
+              ? "MSA 是同源序列比对。模板提供已有结构信息；搜索需要配置数据库或服务。"
+              : "MSA aligns homologous sequences. Templates supply existing structure information; searches require configured databases or services."}
+          </Hint>
+        </span>
         <select
+          id={featureId}
           value={value.feature_mode ?? "none"}
           onChange={(e) =>
             update({
@@ -116,7 +122,7 @@ export function ExpertParameters({
             {zh ? "使用已上传的比对文件" : "Use uploaded alignments"}
           </option>
         </select>
-      </label>
+      </div>
       {(value.feature_mode ?? "none") !== "none" && (
         <div className="check-choices">
           <label>
@@ -263,15 +269,19 @@ export function ExpertParameters({
           </div>
           <div className="check-choices">
             {flags.map(([key, cn, en, hcn, hen, def]) => (
-              <label key={key}>
-                <input
-                  type="checkbox"
-                  checked={value[key] ?? def}
-                  onChange={(e) => update({ [key]: e.target.checked })}
-                />
-                {zh ? cn : en}
-                <Hint label={(zh ? cn : en) + " help"}>{zh ? hcn : hen}</Hint>
-              </label>
+              <span className="choice-with-help" key={key}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={value[key] ?? def}
+                    onChange={(e) => update({ [key]: e.target.checked })}
+                  />
+                  {zh ? cn : en}
+                </label>
+                <Hint label={zh ? cn + "说明" : en + " help"}>
+                  {zh ? hcn : hen}
+                </Hint>
+              </span>
             ))}
           </div>
           {value.device !== "cpu" && (

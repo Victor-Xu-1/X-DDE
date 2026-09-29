@@ -4,6 +4,8 @@ import { ToolCenter } from "./ToolCenter";
 import { parsePositions } from "./ScientificInputs";
 import { campaignConfig } from "./campaign-model";
 import { PropertyForm } from "./PropertyForm";
+import { ExpertParameters } from "./ExpertParameters";
+import { HarnessField } from "./HarnessField";
 import { api } from "../api";
 import { defaults, prediction, validate } from "../form-model";
 
@@ -93,7 +95,7 @@ it("submits standalone properties without scheduling structure prediction", asyn
     .spyOn(api, "submit")
     .mockRejectedValue(new Error("server unavailable"));
   render(<PropertyForm language="en" onCreated={vi.fn()} />);
-  fireEvent.change(screen.getByLabelText(/SMILES/), {
+  fireEvent.change(screen.getByRole("textbox", { name: "SMILES" }), {
     target: { value: "CCO\nCC(=O)O" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Calculate properties" }));
@@ -109,4 +111,44 @@ it("submits standalone properties without scheduling structure prediction", asyn
     expect.any(String),
   );
   submit.mockRestore();
+});
+
+it("keeps form labels attached to scientific inputs when help buttons are present", () => {
+  const update = vi.fn();
+  render(
+    <>
+      <ExpertParameters
+        value={defaults}
+        onChange={update}
+        language="en"
+        expert={false}
+      />
+      <HarnessField
+        field={{
+          key: "sequence",
+          kind: "sequence",
+          label: ["序列", "Sequence"],
+          help: ["输入序列", "Enter a sequence"],
+        }}
+        payload={{ sequence: "" }}
+        onChange={update}
+        language="en"
+        tool="esm"
+      />
+    </>,
+  );
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "Include evolutionary information?" }),
+    { target: { value: "uploaded" } },
+  );
+  expect(update).toHaveBeenCalledWith(
+    expect.objectContaining({ feature_mode: "uploaded" }),
+  );
+  fireEvent.change(screen.getByRole("textbox", { name: "Sequence" }), {
+    target: { value: "ac de" },
+  });
+  expect(update).toHaveBeenCalledWith("ACDE");
+  update.mockClear();
+  fireEvent.click(screen.getByRole("button", { name: "Sequence help" }));
+  expect(update).not.toHaveBeenCalled();
 });

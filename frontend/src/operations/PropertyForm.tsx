@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Job, Language } from "../types";
 import { AssetPicker } from "./AssetPicker";
 import { useTaskSubmit } from "./useTaskSubmit";
@@ -11,6 +11,7 @@ export function PropertyForm({
   language: Language;
   onCreated(j: Job): void;
 }) {
+  const smilesId = useId();
   const zh = language === "zh",
     [smiles, setSmiles] = useState(""),
     [file, setFile] = useState(""),
@@ -38,21 +39,24 @@ export function PropertyForm({
             ? "粘贴 SMILES 或上传分子文件，即可直接计算，不需要先做结构预测。每次最多 500 个分子。"
             : "Paste SMILES or upload molecules to calculate directly, without structure prediction. Up to 500 molecules per task."}
         </p>
-        <label className="field">
-          SMILES{" "}
-          <Hint label={zh ? "SMILES 说明" : "SMILES help"}>
-            {zh
-              ? "一行一个分子，不附加名称或表头；也可以只上传 SDF。"
-              : "One molecule per line without names or headers. You can instead upload SDF."}
-          </Hint>
+        <div className="field">
+          <span>
+            <label htmlFor={smilesId}>SMILES</label>{" "}
+            <Hint label={zh ? "SMILES 说明" : "SMILES help"}>
+              {zh
+                ? "一行一个分子，不附加名称或表头；也可以只上传 SDF。"
+                : "One molecule per line without names or headers. You can instead upload SDF."}
+            </Hint>
+          </span>
           <textarea
+            id={smilesId}
             value={smiles}
             onChange={(e) => setSmiles(e.target.value)}
             rows={7}
             spellCheck={false}
             maxLength={200000}
           />
-        </label>
+        </div>
         <AssetPicker
           kind="ligand"
           value={file}

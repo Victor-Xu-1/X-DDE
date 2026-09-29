@@ -201,6 +201,11 @@
   margin-top: 18px;
   padding-top: 10px;
 }
+.choice-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .covalent-editor {
   margin-top: 18px;
   border-top: 1px solid #e7edf6;

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { Language } from "../types";
 import { AssetPicker } from "./AssetPicker";
 import {
@@ -22,6 +23,7 @@ export function HarnessField({
   language: Language;
   tool: string;
 }) {
+  const inputId = useId();
   const zh = language === "zh",
     value = payload[field.key],
     label = field.label[zh ? 0 : 1];
@@ -154,13 +156,18 @@ export function HarnessField({
     ? value.join(field.kind === "chain-list" ? ", " : "\n")
     : String(value ?? "");
   return (
-    <label className="field">
-      {label}
-      {field.help && (
-        <Hint label={label + " help"}>{field.help[zh ? 0 : 1]}</Hint>
-      )}
+    <div className="field">
+      <span>
+        <label htmlFor={inputId}>{label}</label>{" "}
+        {field.help && (
+          <Hint label={label + (zh ? "说明" : " help")}>
+            {field.help[zh ? 0 : 1]}
+          </Hint>
+        )}
+      </span>
       {field.kind === "sequence" || field.kind === "lines" ? (
         <textarea
+          id={inputId}
           required={field.required}
           value={text}
           rows={5}
@@ -176,6 +183,7 @@ export function HarnessField({
         />
       ) : (
         <input
+          id={inputId}
           required={field.required}
           type={field.kind === "number" ? "number" : "text"}
           step={field.kind === "number" ? "any" : undefined}
@@ -193,6 +201,6 @@ export function HarnessField({
           }
         />
       )}
-    </label>
+    </div>
   );
 }
