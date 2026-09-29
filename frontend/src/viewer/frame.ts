@@ -46,7 +46,13 @@ async function load(urls: string[]) {
       if (text.length > 10000000)
         throw new Error("Structure is too large for the viewer");
       if (current !== generation) return;
-      const model = viewer.addModel(text, "cif");
+      const source = validSource(raw, location.origin);
+      const format =
+        response.headers.get("X-Structure-Format") === "pdb" ||
+        source.searchParams.get("name")?.toLowerCase().endsWith(".pdb")
+          ? "pdb"
+          : "cif";
+      const model = viewer.addModel(text, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
       if (urls.length > 1)

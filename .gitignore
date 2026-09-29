@@ -16,3 +16,6 @@ dist/
 *.log
 *.sqlite*
 *.whl
+
+server_tests/evidence/
+*.tsbuildinfo

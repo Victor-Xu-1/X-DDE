@@ -8,12 +8,17 @@ import { Navigation, Header, type View } from "./studio/Navigation";
 import { HomeWorkspace } from "./studio/HomeWorkspace";
 import { UtilityViews } from "./studio/UtilityViews";
 import type { Job, Language, Prediction } from "./types";
+import { ToolCenter } from "./operations/ToolCenter";
+import { isPrediction } from "./operations/types";
 export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
-  const [view, setView] = useState<View>("home"),
+  const [view, setView] = useState<View>(() =>
+      location.hash.startsWith("#task=") ? "home" : "tools",
+    ),
     [projectId, setProjectId] = useState<string | null>(null);
   const [resultsVersion, setResultsVersion] = useState(0);
+  const [inputVersion, setInputVersion] = useState(0);
   const [candidateId, setCandidateId] = useState<string | null>(null),
     [compared, setCompared] = useState<string[]>([]),
     [focusResidue, setFocusResidue] = useState<{
@@ -62,6 +67,10 @@ export function App() {
     document.documentElement.lang = zh ? "zh-CN" : "en";
     document.title = t("workspace") + " · OpenDDE";
   }, [language]);
+  useEffect(() => {
+    if (job && !isPrediction(job.request))
+      setView((current) => (current === "home" ? "tasks" : current));
+  }, [job?.id]);
   function chooseJob(id: string) {
     select(id);
     setCandidateId(null);
@@ -71,7 +80,10 @@ export function App() {
   function showJob(id: string) {
     inspectJob(id);
     setResultsVersion((n) => n + 1);
-    setView("home");
+    const value =
+      jobs.find((j) => j.id === id) ??
+      (submitted?.id === id ? submitted : null);
+    setView(value && !isPrediction(value.request) ? "tasks" : "home");
   }
   function inspectJob(id: string) {
     const next = jobs.find((x) => x.id === id);
@@ -94,11 +106,20 @@ export function App() {
     showJob(next.id);
     setProjectId(next.request.project_id ?? null);
     refresh();
+    if (!isPrediction(next.request)) setView("tasks");
   }
   async function submit(value: Prediction, key: string) {
     changed(await api.submit({ ...value, project_id: projectId }, key));
   }
+  function prepareDraft(value: Prediction) {
+    chooseJob("");
+    setDraft(value);
+    setProjectId(value.project_id ?? null);
+    setInputVersion((n) => n + 1);
+    setView("home");
+  }
   const common = {
+    onDraft: prepareDraft,
     language,
     ready,
     health,
@@ -141,15 +162,22 @@ export function App() {
             storageWarning={storageWarning}
           />
           <main className="studio-content">
+            {health?.queue_wait_reason && (
+              <p className="notice" role="status">
+                {zh ? "计算队列正在等待：" : "Compute queue is waiting: "}
+                {health.queue_wait_reason}
+              </p>
+            )}
             <div hidden={view !== "home"}>
               <HomeWorkspace
                 {...common}
                 resultsVersion={resultsVersion}
-                jobs={
-                  projectId
-                    ? jobs.filter((x) => x.request.project_id === projectId)
-                    : jobs
-                }
+                inputVersion={inputVersion}
+                jobs={jobs.filter(
+                  (x) =>
+                    isPrediction(x.request) &&
+                    (!projectId || x.request.project_id === projectId),
+                )}
                 onJob={chooseJob}
                 connectionError={work.connectionError}
                 onRefresh={refresh}
@@ -166,7 +194,7 @@ export function App() {
                 }}
                 draft={draft}
                 onReuse={() => {
-                  if (job) {
+                  if (job && isPrediction(job.request)) {
                     setProjectId(job.request.project_id ?? null);
                     setDraft({
                       ...job.request,
@@ -179,7 +207,25 @@ export function App() {
                 onSubmit={submit}
               />
             </div>
-            {view !== "home" && (
+            {view === "tools" && (
+              <ToolCenter
+                language={language}
+                health={health}
+                jobs={jobs}
+                onCreated={changed}
+                onPredict={() => {
+                  chooseJob("");
+                  setInputVersion((n) => n + 1);
+                  setView("home");
+                }}
+                onDraft={(value) => {
+                  chooseJob("");
+                  setDraft(value);
+                  setView("home");
+                }}
+              />
+            )}
+            {view !== "home" && view !== "tools" && (
               <UtilityViews
                 {...common}
                 analysis={science.analysis}
@@ -188,6 +234,10 @@ export function App() {
                 loading={loading}
                 onJob={inspectJob}
                 onHome={() => {
+                  if (job && !isPrediction(job.request)) {
+                    setView("tasks");
+                    return;
+                  }
                   setResultsVersion((n) => n + 1);
                   setView("home");
                 }}
@@ -198,8 +248,8 @@ export function App() {
             <footer className="studio-footer">
               OpenDDE Workbench ·{" "}
               {zh
-                ? "本机计算，结果保存在本机"
-                : "Local computation and storage"}
+                ? "OpenDDE · Harness · RDKit，按实际能力提供研究工具"
+                : "Research tools powered by OpenDDE, Harness and RDKit"}
             </footer>
           </main>
         </div>

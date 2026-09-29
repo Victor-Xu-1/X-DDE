@@ -1,5 +1,6 @@
 """Run inside the external compute image; never fabricates missing scientific metrics."""
 
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -7,51 +8,13 @@ from pathlib import Path
 import biotite.structure as structure
 import numpy as np
 from biotite.structure.io.pdbx import CIFFile, get_structure, set_structure
-from rdkit import Chem
-from rdkit.Chem import QED, Crippen, Descriptors, rdMolDescriptors
-from rdkit.Contrib.SA_Score import sascorer
+from molecule_math import molecular_properties
 
 
 def finite(value):
     if isinstance(value, (int, float)) and math.isfinite(value):
         return float(value)
     return None
-
-
-def molecular_properties(entities):
-    ligands = []
-    for entity in entities:
-        if "ligand" not in entity:
-            continue
-        smiles = entity["ligand"]["ligand"]
-        if smiles.startswith("CCD_"):
-            ligands.append(
-                {
-                    "input": smiles,
-                    "available": False,
-                    "reason": "Descriptors require a SMILES representation.",
-                }
-            )
-            continue
-        molecule = Chem.MolFromSmiles(smiles)
-        if molecule is None:
-            raise ValueError("A ligand SMILES could not be parsed by RDKit.")
-        ligands.append(
-            {
-                "input": smiles,
-                "available": True,
-                "smiles": Chem.MolToSmiles(molecule),
-                "mw": Descriptors.MolWt(molecule),
-                "logp": Crippen.MolLogP(molecule),
-                "tpsa": rdMolDescriptors.CalcTPSA(molecule),
-                "qed": QED.qed(molecule),
-                "sa": sascorer.calculateScore(molecule),
-                "hbd": rdMolDescriptors.CalcNumHBD(molecule),
-                "hba": rdMolDescriptors.CalcNumHBA(molecule),
-                "rotatable_bonds": rdMolDescriptors.CalcNumRotatableBonds(molecule),
-            }
-        )
-    return ligands
 
 
 def contacts(atoms):
@@ -94,6 +57,8 @@ def analyze(root: Path) -> dict:
     candidates = []
     reference = None
     for path in sorted((root / "output").rglob("*_sample_*.cif"))[:64]:
+        if path.is_symlink() or not path.resolve().is_relative_to((root / "output").resolve()):
+            raise ValueError("Structure output escapes the managed task directory.")
         atoms = get_structure(CIFFile.read(path), model=1)
         if len(atoms) == 0 or not np.isfinite(atoms.coord).all():
             raise ValueError("Predicted structure has empty or non-finite coordinates.")
@@ -102,6 +67,22 @@ def analyze(root: Path) -> dict:
         ).with_suffix(".json")
         summary = json.loads(summary_path.read_text()) if summary_path.is_file() else {}
         sample_id = path.stem.split("_sample_")[-1]
+        seed = next(
+            (
+                int(part[5:])
+                for part in path.parts
+                if part.startswith("seed_") and part[5:].isdigit()
+            ),
+            None,
+        )
+        candidate_id = (
+            "sample-"
+            + sample_id
+            + "-"
+            + hashlib.sha256(path.relative_to(root / "output").as_posix().encode()).hexdigest()[:12]
+        )
+        if seed is not None:
+            candidate_id = f"seed-{seed}-sample-{sample_id}"
         rmsd = None
         aligned_relative = None
         signature = list(
@@ -118,7 +99,7 @@ def analyze(root: Path) -> dict:
         elif signature == reference[0]:
             fitted, _ = structure.superimpose(reference[1], atoms)
             rmsd = float(structure.rmsd(reference[1], fitted))
-            aligned = root / "output/workbench-aligned" / f"{sample_id}.cif"
+            aligned = root / "output/workbench-aligned" / f"{candidate_id}.cif"
             aligned.parent.mkdir(exist_ok=True)
             aligned_file = CIFFile()
             set_structure(aligned_file, fitted)
@@ -126,7 +107,8 @@ def analyze(root: Path) -> dict:
             aligned_relative = aligned.relative_to(root / "output").as_posix()
         candidates.append(
             {
-                "id": f"sample-{sample_id}",
+                "id": candidate_id,
+                "seed": seed,
                 "artifact": path.relative_to(root / "output").as_posix(),
                 "atom_count": len(atoms),
                 "chains": sorted(set(atoms.chain_id.tolist())),
@@ -141,7 +123,7 @@ def analyze(root: Path) -> dict:
             }
         )
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "ligands": ligands,
         "candidates": candidates,
         "metric_notes": {

@@ -14,6 +14,9 @@ import { MolecularInputs } from "./guided/MolecularInputs";
 import { ParameterChoices } from "./guided/ParameterChoices";
 import { Hint } from "./guided/Hint";
 import type { Component, Language, Parameters, Prediction } from "./types";
+import { ExpertParameters } from "./operations/ExpertParameters";
+import { CovalentEditor } from "./operations/CovalentEditor";
+import type { CovalentBond } from "./operations/types";
 interface Props {
   language: Language;
   ready: boolean;
@@ -46,6 +49,7 @@ export function TaskForm({
   const drafts = useRef<Partial<Record<TaskKind, Component[]>>>({});
   const request = useRef({ body: "", key: crypto.randomUUID() });
   const automaticName = useRef("");
+  const [bonds, setBonds] = useState<CovalentBond[]>([]);
   useEffect(() => {
     if (!initialRequest) return;
     setName(initialRequest.name);
@@ -53,7 +57,13 @@ export function TaskForm({
       kindFor(initialRequest.components, initialRequest.parameters.model),
     );
     setComponents(initialRequest.components.map((x) => ({ ...x })));
+    drafts.current = {
+      [kindFor(initialRequest.components, initialRequest.parameters.model)]:
+        initialRequest.components.map((x) => ({ ...x })),
+    };
+    automaticName.current = "";
     setParameters({ ...initialRequest.parameters });
+    setBonds(initialRequest.covalent_bonds ?? []);
     setExample(false);
     setError("");
   }, [initialRequest]);
@@ -61,6 +71,7 @@ export function TaskForm({
     drafts.current[kind] = components;
     setComponents(drafts.current[next] ?? componentsFor(next, components));
     setKind(next);
+    setBonds([]);
     setParameters((p) => ({
       ...p,
       model: next === "antibody" ? "abag" : "standard",
@@ -96,7 +107,11 @@ export function TaskForm({
         ? (parameters.model ?? "standard")
         : "standard",
     });
-    if (value.parameters.model === "abag" && !abagAvailable) {
+    if (
+      value.parameters.model === "abag" &&
+      !value.parameters.checkpoint_id &&
+      !abagAvailable
+    ) {
       setError(
         zh
           ? "ABAG 模型未就绪，请到运行状态检查权重。"
@@ -104,6 +119,7 @@ export function TaskForm({
       );
       return;
     }
+    value.covalent_bonds = bonds;
     const body = JSON.stringify(value);
     if (request.current.body !== body)
       request.current = { body, key: crypto.randomUUID() };
@@ -180,6 +196,7 @@ export function TaskForm({
               language={language}
               expert={expert}
               workflow={kind}
+              features={parameters.feature_mode === "uploaded"}
             />
             <button
               type="button"
@@ -192,6 +209,15 @@ export function TaskForm({
                 : "First visit? Try caffeine"}
             </button>
             {example && <p className="notice small">{t("demoNote")}</p>}
+            {expert && (
+              <CovalentEditor
+                components={components}
+                parameters={parameters}
+                value={bonds}
+                onChange={setBonds}
+                language={language}
+              />
+            )}
           </div>
           <div className="run-settings">
             <ParameterChoices
@@ -200,6 +226,12 @@ export function TaskForm({
               value={parameters}
               onChange={setParameters}
               hasProtein={components.some((x) => x.kind === "protein")}
+              expert={expert}
+            />
+            <ExpertParameters
+              value={parameters}
+              onChange={setParameters}
+              language={language}
               expert={expert}
             />
             <p className="small model-summary">

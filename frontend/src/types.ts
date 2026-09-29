@@ -1,3 +1,4 @@
+import type { CovalentBond, TaskRequest } from "./operations/types";
 export type Language = "zh" | "en";
 export type Status =
   | "queued"
@@ -11,6 +12,12 @@ export interface Component {
   kind: "protein" | "ligand" | "dna" | "rna" | "ion";
   value: string;
   count: number;
+  chain_ids?: string[];
+  modifications?: { position: number; ccd: string }[];
+  ligand_file?: string | null;
+  paired_msa?: string | null;
+  unpaired_msa?: string | null;
+  template_hits?: string | null;
 }
 export interface Parameters {
   seed: number;
@@ -19,12 +26,32 @@ export interface Parameters {
   cycles: number;
   dtype: "bf16" | "fp32";
   model?: "standard" | "abag";
+  checkpoint_id?: string | null;
+  additional_seeds?: number[];
+  device?: "cuda" | "cpu";
+  gpu_ids?: number[];
+  distributed?: boolean;
+  tfg?: boolean;
+  atom_confidence?: boolean;
+  triatt_kernel?: "auto" | "cuequivariance" | "torch";
+  trimul_kernel?: "auto" | "cuequivariance" | "torch";
+  enable_cache?: boolean;
+  enable_fusion?: boolean;
+  enable_tf32?: boolean;
+  deterministic?: boolean;
+  feature_mode?: "none" | "uploaded" | "search";
+  use_template?: boolean;
+  use_rna_msa?: boolean;
+  allow_network?: boolean;
+  search_cpus?: number;
 }
 export interface Prediction {
+  operation?: "predict";
   name: string;
   components: Component[];
   parameters: Parameters;
   project_id?: string | null;
+  covalent_bonds?: CovalentBond[];
 }
 export interface Project {
   id: string;
@@ -74,7 +101,7 @@ export interface Analysis {
 }
 export interface Job {
   id: string;
-  request: Prediction;
+  request: TaskRequest;
   status: Status;
   created_at: string;
   started_at: string | null;
@@ -89,9 +116,12 @@ export interface Health {
     gpu: string | null;
     reason: string | null;
     models?: { standard: boolean; abag: boolean };
+    gpu_count?: number;
+    resources?: Record<string, boolean>;
   };
   worker_ready: boolean;
   worker_error: string | null;
+  queue_wait_reason?: string | null;
   free_disk_gib: number;
   disk_total_gib: number;
   capabilities: {

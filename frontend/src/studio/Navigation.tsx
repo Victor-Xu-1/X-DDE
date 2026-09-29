@@ -16,8 +16,21 @@ import { useState } from "react";
 import type { Job, Language } from "../types";
 
 export type View =
-  "home" | "projects" | "tasks" | "analysis" | "reports" | "models" | "help";
+  | "home"
+  | "tools"
+  | "projects"
+  | "tasks"
+  | "analysis"
+  | "reports"
+  | "models"
+  | "help";
 const items = [
+  {
+    id: "tools",
+    cn: "全部能力",
+    en: "All capabilities",
+    icon: ExperimentOutlined,
+  },
   { id: "home", cn: "预测工作台", en: "Workbench", icon: HomeFilled },
   { id: "projects", cn: "项目空间", en: "Projects", icon: FolderOutlined },
   { id: "tasks", cn: "任务中心", en: "Task center", icon: ProfileOutlined },
@@ -56,11 +69,11 @@ export function Navigation({
   );
   return (
     <aside className="studio-sidebar">
-      <button className="studio-brand" onClick={() => onView("home")}>
+      <button className="studio-brand" onClick={() => onView("tools")}>
         <DeploymentUnitOutlined className="studio-brand-mark" />
         <span>
           <strong>OpenDDE</strong>
-          <small>{zh ? "药 物 结 构 工 作 台" : "STRUCTURE WORKBENCH"}</small>
+          <small>{zh ? "药 物 研 究 工 作 台" : "DISCOVERY WORKBENCH"}</small>
         </span>
       </button>
       <nav aria-label={zh ? "主导航" : "Main navigation"}>
@@ -80,7 +93,7 @@ export function Navigation({
       <div className="sidebar-status">
         <div className="sidebar-project">
           <span>{zh ? "当前工作空间" : "Current workspace"}</span>
-          <strong>{zh ? "本机研究项目" : "Local research projects"}</strong>
+          <strong>{zh ? "研究项目" : "Research projects"}</strong>
           <small>
             {running
               ? zh
@@ -244,8 +257,8 @@ export function Header({
             <strong>{zh ? "本机工作台" : "Local workbench"}</strong>
             <p>
               {zh
-                ? "所有任务与结果仅保存在本机，未启用团队登录。"
-                : "Tasks and results stay on this computer. Team sign-in is not enabled."}
+                ? "任务保存在配置的研究服务器；联网搜索和模型服务按任务选项使用。未启用团队登录。"
+                : "Tasks use the configured research server; online searches and model services follow task settings. Team sign-in is not enabled."}
             </p>
           </div>
         </details>

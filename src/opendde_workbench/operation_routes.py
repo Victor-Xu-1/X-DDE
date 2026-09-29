@@ -1,0 +1,100 @@
+"""Reusable input imports and typed results for utility operations."""
+
+import json
+from uuid import UUID
+
+from fastapi import Depends, HTTPException, Query
+
+from .artifacts import contained
+from .assets import AssetKind
+from .models import Status
+from .native_import import import_document
+
+
+def register_operations(app, store, assets, settings, mutation):
+    def completed(job_id):
+        job = store.get(str(job_id))
+        if not job:
+            raise HTTPException(404, "Task not found.")
+        if job.status != Status.SUCCEEDED:
+            raise HTTPException(409, "Wait for the task to succeed.")
+        return settings.state_dir / "jobs" / str(job_id)
+
+    @app.get("/api/jobs/{job_id}/result")
+    def result(job_id: UUID):
+        root = completed(job_id)
+        try:
+            path = contained(root / "output", "result.json")
+            if path.stat().st_size > 25 * 1024**2:
+                raise ValueError("Result exceeds the display size limit. Download the artifact.")
+            return json.loads(path.read_text())
+        except FileNotFoundError as exc:
+            raise HTTPException(
+                404, "This task provides native files instead of a structured result."
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+    @app.post("/api/jobs/{job_id}/import", dependencies=[Depends(mutation)])
+    def reuse(job_id: UUID, name: str = Query(min_length=1, max_length=500)):
+        root = completed(job_id)
+
+        def resolve_file(value, kind):
+            if not isinstance(value, str) or not value.startswith("/job/"):
+                raise ValueError("Native paths must refer to this task's managed files.")
+            file = contained(root, value.removeprefix("/job/"))
+            if file.stat().st_size > 25 * 1024**2:
+                raise ValueError("Prepared file exceeds the managed upload limit.")
+            return assets.save(file.name, kind, file.read_bytes()).id
+
+        try:
+            path = contained(root / "output", name)
+            if path.suffix != ".json" or path.stat().st_size > 2 * 1024**2:
+                raise ValueError("Choose an inference JSON smaller than2MiB.")
+            docs = json.loads(path.read_text())
+            if isinstance(docs, dict):
+                docs = [docs]
+            if not isinstance(docs, list) or not 1 <= len(docs) <= 20:
+                raise ValueError("Import one to20 inference entries at a time.")
+            return [import_document(doc, resolve_file) for doc in docs]
+        except (ValueError, KeyError, TypeError, FileNotFoundError) as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+    @app.post("/api/jobs/{job_id}/assets", dependencies=[Depends(mutation)], status_code=201)
+    def preserve_artifact(
+        job_id: UUID, kind: AssetKind, name: str = Query(min_length=1, max_length=500)
+    ):
+        root = completed(job_id)
+        try:
+            file = contained(root / "output", name)
+            if file.stat().st_size > 25 * 1024**2:
+                raise ValueError("Artifact exceeds the25MiB reusable-input limit.")
+            return assets.save(file.name, kind, file.read_bytes())
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+    @app.post("/api/assets/{asset_id}/import", dependencies=[Depends(mutation)])
+    def import_input(asset_id: UUID):
+        try:
+            asset = assets.get(asset_id)
+            if asset.kind != "config" or asset.suffix != ".json" or asset.size > 2 * 1024**2:
+                raise ValueError("Choose an OpenDDE inference JSON smaller than2MiB.")
+            docs = json.loads(assets.path(asset).read_text(encoding="utf-8-sig"))
+            if isinstance(docs, dict):
+                docs = [docs]
+            if not isinstance(docs, list) or not 1 <= len(docs) <= 20:
+                raise ValueError("Import one to20 inference entries at a time.")
+
+            def resolve(value, kind):
+                if not isinstance(value, str) or not value.startswith("asset:"):
+                    raise ValueError(
+                        "Replace local paths with asset:<uploaded UUID> before importing."
+                    )
+                binding = assets.get(value[6:])
+                if binding.kind != kind:
+                    raise ValueError("Uploaded file type does not match the native field.")
+                return binding.id
+
+            return [import_document(doc, resolve) for doc in docs]
+        except (ValueError, KeyError, TypeError, FileNotFoundError) as exc:
+            raise HTTPException(422, str(exc)) from exc

@@ -22,16 +22,20 @@ interface Props {
   language: Language;
   focusResidue?: { residue: string; nonce: number } | null;
   comparison?: boolean;
+  onAtomSelected?(selection: SelectionInfo | null): void;
 }
 export function StructureViewer({
   urls,
   language,
   focusResidue,
   comparison = false,
+  onAtomSelected,
 }: Props) {
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
     key = urls.join("|");
+  const selectionCallback = useRef(onAtomSelected);
+  selectionCallback.current = onAtomSelected;
   const [ready, setReady] = useState(false),
     [status, setStatus] = useState("empty"),
     [error, setError] = useState("");
@@ -55,7 +59,10 @@ export function StructureViewer({
         return;
       const { type, detail } = event.data;
       if (type === "ready") setReady(true);
-      if (type === "selected") setSelection(detail);
+      if (type === "selected") {
+        setSelection(detail);
+        selectionCallback.current?.(detail);
+      }
       if (type === "distance")
         setDistance(
           typeof detail === "number" && Number.isFinite(detail) ? detail : null,
@@ -108,6 +115,7 @@ export function StructureViewer({
           </Hint>
         </h3>
         <button
+          type="button"
           title={zh ? "全屏" : "Fullscreen"}
           onClick={() =>
             void frame.current
@@ -133,6 +141,7 @@ export function StructureViewer({
             .filter(([id]) => id !== "pocket" || scene.ligands.length > 0)
             .map(([id, cn, en]) => (
               <button
+                type="button"
                 key={id}
                 className={options.mode === id ? "selected" : ""}
                 disabled={!loaded || comparison}
@@ -180,6 +189,7 @@ export function StructureViewer({
           <div className="viewer-error" role="alert">
             {error}
             <button
+              type="button"
               onClick={() => {
                 setError("");
                 send("load", urls);
@@ -205,6 +215,7 @@ export function StructureViewer({
               ] as const
             ).map(([type, value, cn, en, Icon], i) => (
               <button
+                type="button"
                 key={i}
                 title={zh ? cn : en}
                 onClick={() => send(type, value)}
@@ -218,11 +229,15 @@ export function StructureViewer({
       {loaded && (
         <>
           <div className="viewer-footer">
-            <button onClick={() => send("reset")}>
+            <button type="button" onClick={() => send("reset")}>
               {zh ? "回到全局" : "Full structure"}
             </button>
             {scene.chains.slice(0, 8).map((chain) => (
-              <button key={chain} onClick={() => send("chain", chain)}>
+              <button
+                type="button"
+                key={chain}
+                onClick={() => send("chain", chain)}
+              >
                 {zh ? "链 " : "Chain "}
                 {chain}
               </button>

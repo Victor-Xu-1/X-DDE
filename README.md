@@ -1,42 +1,44 @@
 # OpenDDE Workbench
 
-[中文](#中文) · [English](#english)
+[中文](#中文) · [English](#english) · [能力与源码对照](docs/design/README.md) · [服务器验收](docs/server-acceptance.md)
 
-An independent, MIT-licensed local workbench for OpenDDE predictions. It provides Chinese/English task entry, a durable queue, interactive 3D structures, computed descriptors, and downloadable results. The workbench runs only on your computer; it does not contain OpenDDE source, model weights, or an LLM service.
+An independent MIT workbench for the public scientific capabilities of OpenDDE and OpenDDE Harness, with additional RDKit descriptors. Chinese and English interfaces, guided inputs, expert parameters, durable jobs, native antibody campaigns and interactive molecular structures.
 
-The owner-supplied image is retained as a color/style reference only. The interface is organized around verified engine capabilities, with separate guided task entry and interactive structure results. See [design and capability decisions](docs/design/README.md).
+**0.3 release candidate:** this expansion is delivered as code for server acceptance. The existing 0.2 installation is unchanged. GPU, multi-GPU, MSA/template databases, remote scientific services, real LLM campaigns and browser acceptance of 0.3 must be verified on the target server. A successful static check or CPU CI job is not evidence of those integrations working.
 
 ## 中文
 
-### 功能与边界
+### 从研究目标进入
 
-- 本机 OpenDDE 标准/ABAG 结构预测：蛋白、SMILES/CCD 配体、DNA、RNA、常见离子及复合物；可设置种子、样本数、扩散步数、循环数和精度。
-- 任务排队、取消、重试、服务重启后的状态恢复，日志和结构文件下载。
-- 浏览器内旋转、缩放、色带/表面/配体球棍显示；按 3/4/5/6/8 Å 查看配体邻域和残基名称。支持原子/残基点选、搜索、定位、显示样式编辑、隐藏恢复、两点测距与构象叠加。显示编辑不会改动坐标或化学结构。
-- 对真实输出计算 RDKit 分子性质、OpenDDE 原生置信度、结构 RMSD 和近邻接触；导出 CIF、CSV、HTML 报告。
-- 本机项目分组与中英切换。无需 LLM 密钥即可使用上述能力。
+“全部能力”按设计、结构预测、性质与评分、分析、检索、输入准备、资源配置组织入口。
 
-### 普通用户的三步操作
+- **小分子研究：**直接批量计算 SMILES/SDF 的 MW、LogP、TPSA、QED、SA、HBD/HBA 和可旋转键；预测小分子或蛋白–配体结构；查看配体口袋、原生置信度、构象叠加、RMSD 和近邻接触。
+- **抗体设计：**使用 Harness 原生 VHH、scFv、VH/VL 设计流程；选择 CDR 和固定位置，审阅目标与计算预算后启动。查看轮次、阶段、候选和结构；调整后续提案数/反思间隔，停止任务，生成表位、相互作用和完整搜索历史分析。
+- **序列与候选工具：**ESM2 评分、ESM2 引导提案、SolubleMPNN、候选折叠与评分、ProTrek 序列/结构检索、表位/PLIP 分析、目标对齐后的结合链 RMSD、进化分析、两次候选集比较。
+- **完整原生输入：**蛋白、小分子、DNA、RNA、CCD 离子；链 ID/拷贝、残基修饰、单记录三维配体文件、共价连接、已上传 MSA/模板；PDB/CIF 转换、原生 JSON 导入和批量提交。已有结果可直接转为下一步输入。
+- **特征与计算控制：**MSA、MSA＋模板、完整蛋白/模板/RNA 特征准备；多种子、TFG、原子置信度、CPU/CUDA、计算内核、缓存/融合/TF32、确定性设置、FoldCP 和服务器登记的自定义 checkpoint。
 
-1. 选择蛋白–小分子、蛋白、蛋白–蛋白、抗体–抗原、DNA/RNA 或小分子结构。按出现的输入框粘贴序列/单条 FASTA/SMILES；抗体任务自动选择已安装的 ABAG。首次可填入咖啡因检查流程。
-2. 选“快速试跑”“标准预测（推荐）”或“多构象比较”，点击“开始预测”。默认简易模式；“专家微调”可调整数值、模型、组分和拷贝数，切换模式保留已填值。任务名称可自动生成。
-3. 提交后进入“结构与结果”。点击构象查看结构，勾选 2–3 个构象叠加，点击附近残基定位。选择“配体与口袋”可调整邻域，预览下方可编辑显示与测距。专业指标旁的问号支持悬停、点击及键盘说明；导出页提供 CSV/HTML，构象行可下载 CIF。
+普通模式提供表单与预设，专业术语带说明；专家模式开放科学参数。抗体序列点选使用从 **1** 开始的编号，提交时转换为 Harness 原生的从 **0** 开始的编号。OpenDDE 共价连接使用其原生的从 **1** 开始的实体/拷贝/位置编号。专家 JSON 遵循所选工具的原生契约。
 
-快速试跑减少计算量，仅用于检查输入/流程。标准与多构象采用相同的单构象参数，多构象生成同一输入的 3 个结构，并非生成 3 个新化合物。未安装的可选模型不出现在新任务选项中。
+三维查看器保留蓝白配色、配体球棍、柔和色带、邻域残基、点选、搜索、显示编辑、隐藏/恢复和两点测距。输入原子检查用于拓扑编辑，**不是**预测结合姿势。显示样式编辑不改变坐标；共价编辑器明确生成新的输入连接。
 
-当前安装**没有**标定的 kcal/mol 结合亲和力、小分子从头生成模型、完整 MSA/模板数据库或已配置的 LLM。页面明确提示这些边界，不把置信度冒充药效。计算结果并非实验验证。
+### 能力边界
 
-### 环境要求
+公开的 OpenDDE 是结构预测/共折叠引擎；Harness 提供抗体设计流程和相应工具。审计版本没有独立的通用小分子从头生成、完整 ADMET 或经过校准的结合亲和力模型。QED/SA/LogP 是计算描述符，不是实验药效。
 
-Linux 或 Windows WSL2（推荐 Ubuntu/systemd），Python 3.12、uv、Node.js 22、Docker、支持容器的 NVIDIA GPU、已安装的 OpenDDE 运行代码和 checkpoint。至少保留 2 GiB 空闲磁盘，模型和镜像另需数 GB。浏览器需支持 WebGL。首次部署需要准备引擎；准备好后普通用户在网页提交任务即可。
+Harness 的 `developability_filter.py` 在公开版本中是返回 `available: false` 的空实现，因此不提供“客观可开发性预测”按钮。设计流程可使用其原生 LLM 质量判断，来源与不确定性须保留。原生服务返回 unavailable 时，工作台保留失败/不可用信息，不编造结果。
 
-### 安装与启动
+### 环境和安装
 
-在 WSL/Linux 中执行：
+目标环境为 Linux 或 Windows WSL2、Python 3.12、Node.js 22、uv、Docker。CUDA 预测需 NVIDIA 容器支持；CPU 模式和 RDKit 性质任务不要求 GPU。FoldCP 需至少两张 GPU。模板/RNA 数据库由管理员安装或从资源页明确下载，不在普通预测中自动安装。搜索数据库整包需要至少 110 GiB 空间，镜像需包含 zstd、HMMER、kalign。
+
+以下命令在**目标服务器**执行；本次版本的完整部署验收尚待执行：
 
 ```bash
 git clone https://github.com/Victor-Xu-1/opendde-workbench.git
-cd opendde-workbench/frontend
+cd opendde-workbench
+git checkout feat/full-engine-integration
+cd frontend
 npm ci
 npm run build
 cd ..
@@ -44,7 +46,33 @@ uv sync --locked --group dev
 cp .env.example .env
 ```
 
-编辑 `.env` 为本机路径。`WB_IMAGE_FILE` 的内容是一行 **sha256 digest 固定**的 Docker 镜像引用；`WB_CODE_FILE` 的内容是一行 OpenDDE 运行代码目录路径。`WB_MODEL_DIR/checkpoint/opendde.pt` 必须存在，ABAG 模式另需 `opendde_abag.pt`。镜像应包含原版 OpenDDE 推理依赖及 RDKit、Biotite（用于结果分析）。确认 `docker image inspect "$(cat /path/to/image-reference.txt)"` 能找到镜像，`nvidia-smi` 可运行。`WB_STATE_DIR` 保存 SQLite、输入、日志和输出，须可写；在 E 盘支持的 WSL 发行版或 E 盘目录下配置。
+配置含义：
+
+| 设置 | 内容 |
+| --- | --- |
+| `WB_STATE_DIR` | 可写数据目录：SQLite、不可变上传、任务快照、结果、设计交接记录。 |
+| `WB_IMAGE_FILE` | 文本文件，内容为带 `@sha256:` 的固定 Docker 镜像引用。 |
+| `WB_CODE_FILE` | 文本文件，内容为外部运行代码根目录；包含 `external/opendde/runner/batch_inference.py`。 |
+| `WB_MODEL_DIR` | `checkpoint/`、`common/`、`search_database/` 所在目录。 |
+| `WB_CACHE_DIR` | 可写计算缓存。 |
+| `WB_MSA_URL` | 可选的管理员配置 MSA 服务；未设时由原生运行环境采用其默认服务。 |
+| `WB_CHECKPOINTS_FILE` | 可选 JSON，映射自定义 ID 到 checkpoint 目录内的 `.pt` 文件名；不接受客户端任意路径。 |
+| `WB_HARNESS_PYTHON` | **已安装 OpenDDE Harness 的独立 Python 解释器**。工作台不复制或替代原生代理。 |
+| `WB_HARNESS_URL` / `WB_HARNESS_TOKEN` | 固定计算服务地址和服务端凭据；浏览器不接收令牌。 |
+| `WB_HARNESS_SHARED_DIR` | 工作台主机上可访问的 Harness 计算输出根目录。文件工具需共享挂载，并以相同服务 UID 读写共享输入。 |
+| `WB_HARNESS_REMOTE_DIR` | 同一个目录在计算服务主机/容器内的绝对路径；同路径时可留空。 |
+
+OpenDDE 镜像须包含其推理依赖、RDKit 和 Biotite。`WB_MODEL_DIR/checkpoint/opendde.pt` 和可选的 `opendde_abag.pt` 为对应预测所需权重。公开源码、权重、数据库和模型服务均不打包进此仓库。
+
+Harness 的 LLM、工具模型与计算池按上游安装文档配置。启动工作台的用户必须能够读取该用户的默认 `~/.opendde_harness/config.json`；原生 detached worker 使用这个默认配置。不要把真实凭据放进设计 JSON/YAML。可在服务器 `.env` 设置 `OPENDDE_HARNESS_PROTEIN_DESIGN_ROOT` 指定原生任务目录。
+
+自定义 checkpoint 注册示例（文件由管理员管理）：
+
+```json
+{"my_finetuned_model": "my_finetuned_model.pt"}
+```
+
+启动：
 
 ```bash
 set -a
@@ -53,11 +81,15 @@ set +a
 uv run --locked opendde-workbench --port 4320
 ```
 
-打开 `http://127.0.0.1:4320/`。先在“运行状态”确认引擎就绪，再一键载入咖啡因示例，或录入自己的蛋白/小分子。网页关闭后队列继续运行，任务中心可恢复查看。服务绑定 loopback，同源 CSRF 保护写操作；请仅在可信的单用户电脑上使用，**不要直接开放公网**。
+工作台仅绑定 `127.0.0.1`，采用同源 CSRF 和 Host 校验。服务器使用 SSH 转发访问：
 
-这台设备的 E 盘部署另有 `E:\OpenDDE\Start-Workbench.cmd` 启动器；它和 `E:\OpenDDE\deployment\workbench.env` 属于个人部署文件，不进入公开仓库。用户双击启动器即可打开工作台。
+```bash
+ssh -L 4320:127.0.0.1:4320 USER@SERVER
+```
 
-### 验证与构建
+浏览器打开 `http://127.0.0.1:4320/`。这是单用户研究工作台；不要直接作为无鉴权公网服务暴露。E 盘支持的 WSL 发行版仍可保存代码、模型和数据，但 0.3 不自动替换现有 0.2 服务。
+
+### 验证、构建与部署
 
 ```bash
 cd frontend
@@ -65,29 +97,43 @@ npm run check
 npm test
 npm run build
 cd ..
-uv run --locked ruff check src tests
+uv run --locked ruff check src tests server_tests
 uv run --locked pytest -q
 uv build --wheel
 ```
 
-Python 单元/API 测试以可控的真实子进程检验队列和文件协议，不消耗 GPU；科学推理需在有镜像与模型的设备上由网页提交任务验证。CI 执行前后端检查、测试和 wheel 构建。wheel 内包含构建后的前端和独立查看器。任务数据不进 Git 仓库。
+CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证科学推理。真实科学运行与浏览器验收见 [服务器验收说明](docs/server-acceptance.md)。新增测试已提供；本机未运行测试套件或推理。不要把既有 0.2 的通过记录当作 0.3 验收。
 
-### 架构与排错
+部署前备份 `WB_STATE_DIR` 并停止工作台，确认原生设计任务已结束或明确交接；构建并安装精确提交对应的 wheel 后启动。0.3 只新增 `assets`、`batches`、`design_plans`、`queue_control` 表，保留旧任务。回退到 0.2 前须使用升级前的数据备份：0.2 不认识新增任务类型。不要直接删除共享模型、原生 Harness 任务或用户数据。
 
-`frontend/src/studio` 是界面模块；`frontend/src/guided` 定义工作流、组分和预设；`frontend/src/viewer` 按协议、几何选择、场景显示和 UI 控件拆分隔离的 3Dmol 查看器；`src/opendde_workbench/api.py` 定义本地 API；`store.py`/`worker.py` 管理持久队列；`engine.py` 用 digest 固定的外部容器运行 OpenDDE；`analysis.py`/`compute_analysis.py` 在同一科学环境计算结果。输入经 Pydantic 校验，结构下载经目录边界检查。项目元数据和任务共用 SQLite，预测输出保留在 `WB_STATE_DIR`。
+### 架构和故障恢复
 
-- “引擎未就绪”：检查 Docker、GPU、镜像引用、运行代码和 checkpoint 路径；`GET /api/health` 返回原因。
-- 预测失败：任务中心查看任务日志；8 GB 显存优先 BF16、单样本、短序列。分析失败不会删除预测文件。
-- 查看器空白：检查 WebGL、结构下载和 `/viewer.html`；请从已完成任务重新加载结构。
-- 分析失败：检查任务 `analysis-error.log`、镜像内 RDKit/Biotite 和 2 GiB 容器内存上限。
-- 端口被占用：工作台默认 4320；更改端口时同步更新 `WB_ALLOWED_ORIGINS`，仍只绑定 loopback。
+- `frontend/src/operations`：能力目录、各任务表单、文件/原子/残基选择、原生参数编辑、设计计划和结果展示。
+- `entities` / `parameters` / `prediction` / `requests`：显式输入契约；`native_arguments` / `native_task` 只调用固定版本的原生命令。
+- `store` / `worker`：单一持久队列，批次原子提交，有限日志、超时、取消和重启恢复。普通预测/资源任务等待本工作台发起的原生设计结束，避免争抢同一计算资源；外部手动启动的进程仍需管理员协调。
+- `assets`：UUID 输入、类型/大小限制、SHA-256 快照、引用保护、结果复用和路径边界检查。
+- `harness_contract` / `harness_compute`：科学工具白名单、原生请求校验、管理路径映射、固定服务地址、原生计算客户端。
+- `harness_service` / `harness_bridge`：审阅计划与幂等交接，实际生命周期、种群和代理循环始终属于原生 Harness。响应丢失时核对已有任务，禁止自动重复启动。
+- `analysis` / `molecule_math` / `confidence`：真实描述符、唯一的多种子构象标识、原生 PAE/PDE/接触概率与逐原子置信度。
 
-更新时备份 `WB_STATE_DIR`，停止服务，更新代码并重跑 `npm ci && npm run build`、`uv sync --locked`，再启动。回退代码不自动迁移或删除任务数据；重大升级前应保留 SQLite 备份。
+常见恢复路径：
 
-### 授权与数据来源
-
-工作台原创源码采用 [MIT](LICENSE)。OpenDDE 与独立 Harness 的代码、权重和许可证由各自上游管理，未并入本仓库。固定设计图由项目所有者提供；其中第三方图形和标识不因本仓库的 MIT 声明而重新授权。旧版的 PDB 示例卡片与静态结构资产已移除。
+- **资源缺失：**到资源页检查文件状态；存在状态不是哈希或科学准确性验证。检查 Docker、代码根目录和模型文件。
+- **Harness 不可用：**检查解释器、默认原生配置、固定服务地址/令牌以及共享存储映射；不要把服务器路径填写到浏览器参数中。
+- **设计启动状态不确定：**在“抗体设计 → 恢复未启动/待核对计划”恢复计划并核对。原生启动仍在运行时不能重复启动；已无原生任务时恢复为待审阅状态。
+- **不能取消同步工具：**原生 ESM/分析等同步接口派发后没有取消协议；队列中可取消，派发后等待返回。异步折叠支持取消；远端取消无法确认时暂停队列，先检查原生服务。
+- **多记录 SDF：**性质计算支持多记录；结构预测的每个配体须为单个三维记录，不会悄悄只读取第一条。
+- **大置信度文件：**交互读取最多 64 MiB，矩阵按明确间隔取样；完整文件仍可下载，坐标为原生 token 索引。
+- **旧浏览器页面没有新功能：**该页面仍连接现有 0.2 服务；需在服务器验收并部署 0.3 候选后才会切换。
 
 ## English
 
-Install OpenDDE and a digest-pinned GPU Docker image first. In `frontend`, run `npm ci && npm run build`; at the root run `uv sync --locked --group dev`, configure `.env` from `.env.example`, and launch `uv run --locked opendde-workbench --port 4320`. Visit `http://127.0.0.1:4320/`. The interface switches between Chinese and English. Native confidence, RDKit descriptors, contacts, exports, and reports come from completed predictions. Six guided workflows cover protein–ligand, protein, protein–protein, antibody–antigen, DNA/RNA and ligand-only inputs. Expert mode exposes model/numeric settings and all five native entity types. Pocket controls show geometric neighborhoods around an existing ligand; display editing and distance measurements do not modify input chemistry or coordinates. Calibrated affinity, small-molecule generation, local MSA databases, and an LLM provider are not bundled. Covalent bonds, modified residues and user-uploaded MSA/template inputs are not exposed by this adapter. Use the verification commands above; CI exercises the non-GPU suite.
+The capability matrix is tied to audited upstream source, not to the reference screenshot. All public scientific entry points described in [the matrix](docs/design/README.md) have adapter/UI code; runtime availability depends on the target server. The public objective-developability stub, generic small-molecule de novo generation, complete ADMET and calibrated affinity are not presented as available models.
+
+Install/build using the commands above, configure `.env.example`, and run the app on loopback. For Harness, configure an existing native installation and its default provider configuration. Scientific file tools require a shared directory mapped to the compute output root. The browser uses uploaded IDs, not filesystem paths or credentials. Native campaigns retain their own lifecycle; Workbench stores reviewed handoffs and never implements a second agent loop.
+
+0.3 remains a release candidate until the target-server matrix, native inference, service/LLM calls and browser workflows pass. See [server acceptance](docs/server-acceptance.md). No local runtime testing or replacement of the existing 0.2 installation was performed for this expansion.
+
+## License and provenance
+
+Original workbench code is [MIT](LICENSE). [OpenDDE](https://github.com/aurekaresearch/OpenDDE) and [OpenDDE Harness](https://github.com/aurekaresearch/OpenDDE-Harness) remain external dependencies under their upstream licenses. The owner-provided reference image is retained for style only; its third-party artwork and marks are not relicensed by the code license. No upstream model weights, private data, secrets or proprietary editor implementation are included.

@@ -25,7 +25,18 @@ def list_artifacts(root: Path) -> list[Artifact]:
     for path in sorted(root.rglob("*")):
         if len(results) >= 500:
             break
-        if path.suffix.lower() not in {".cif", ".pdb", ".json", ".csv"}:
+        if path.suffix.lower() not in {
+            ".cif",
+            ".pdb",
+            ".json",
+            ".csv",
+            ".jsonl",
+            ".txt",
+            ".a3m",
+            ".hhr",
+            ".sdf",
+            ".fasta",
+        }:
             continue
         name = path.relative_to(root).as_posix()
         try:

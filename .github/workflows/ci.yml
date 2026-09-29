@@ -26,7 +26,7 @@ jobs:
       - name: Backend dependencies and checks
         run: |
           uv sync --locked --group dev
-          uv run --locked ruff check src tests
+          uv run --locked ruff check src tests server_tests
           uv run --locked pytest -q
       - name: Build installable wheel
         run: |

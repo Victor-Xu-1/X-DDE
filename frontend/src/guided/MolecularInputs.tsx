@@ -4,18 +4,21 @@ import { entityInfo, ions } from "./entities";
 import { translator } from "../i18n";
 import type { TaskKind } from "./presets";
 import type { Component, Language } from "../types";
+import { EntityOptions } from "../operations/EntityOptions";
 export function MolecularInputs({
   items,
   onChange,
   language,
   expert,
   workflow,
+  features = false,
 }: {
   items: Component[];
   onChange(items: Component[]): void;
   language: Language;
   expert: boolean;
   workflow: TaskKind;
+  features?: boolean;
 }) {
   const t = translator(language),
     zh = language === "zh",
@@ -113,7 +116,19 @@ export function MolecularInputs({
                     {info.help[i]}
                   </Hint>
                 </span>
-                {item.kind === "ion" ? (
+                {item.kind === "ion" && expert ? (
+                  <input
+                    id={"molecule-" + index}
+                    value={item.value}
+                    maxLength={4}
+                    required
+                    pattern="[A-Za-z0-9]{1,4}"
+                    placeholder="MG, ZN, FE2…"
+                    onChange={(e) =>
+                      update(index, { value: e.target.value.toUpperCase() })
+                    }
+                  />
+                ) : item.kind === "ion" ? (
                   <select
                     id={"molecule-" + index}
                     value={item.value}
@@ -128,7 +143,8 @@ export function MolecularInputs({
                 ) : (
                   <textarea
                     id={"molecule-" + index}
-                    required
+                    required={!item.ligand_file}
+                    disabled={Boolean(item.ligand_file)}
                     maxLength={5000}
                     rows={item.kind === "ligand" ? 2 : 4}
                     value={item.value}
@@ -138,6 +154,13 @@ export function MolecularInputs({
                   />
                 )}
               </div>
+              <EntityOptions
+                value={item}
+                onChange={(patch) => update(index, patch)}
+                language={language}
+                expert={expert}
+                features={features}
+              />
               {expert && (
                 <label className="copy-choice">
                   {t("copies")}{" "}

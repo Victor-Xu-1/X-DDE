@@ -1,3 +1,4 @@
+import { componentsOf } from "../operations/types";
 import { useEffect, useState } from "react";
 import {
   CheckCircleOutlined,
@@ -5,6 +6,7 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { TaskForm } from "../TaskForm";
+import { ConfidencePanel } from "../operations/ConfidencePanel";
 import { TaskDetail } from "../TaskDetail";
 import { CandidatePanel } from "./CandidatePanel";
 import { AnalysisGrid } from "./AnalysisGrid";
@@ -22,6 +24,7 @@ import type {
 } from "../types";
 interface Props {
   resultsVersion: number;
+  inputVersion?: number;
   language: Language;
   ready: boolean;
   health: Health | null;
@@ -58,6 +61,12 @@ export function HomeWorkspace(p: Props) {
   useEffect(() => {
     if (p.resultsVersion) setShowInput(false);
   }, [p.resultsVersion]);
+  useEffect(() => {
+    if (p.draft) setShowInput(true);
+  }, [p.draft]);
+  useEffect(() => {
+    if (p.inputVersion) setShowInput(true);
+  }, [p.inputVersion]);
   const zh = p.language === "zh",
     t = translator(p.language);
   return (
@@ -153,17 +162,19 @@ export function HomeWorkspace(p: Props) {
               ))}
             </select>
           </label>
-          {p.job && (
-            <button
-              className="quickstart"
-              onClick={() => {
-                p.onReuse();
-                setShowInput(true);
-              }}
-            >
-              <ReloadOutlined /> {zh ? "复用此任务输入" : "Reuse inputs"}
-            </button>
-          )}
+          {p.job &&
+            (!p.job.request.operation ||
+              p.job.request.operation === "predict") && (
+              <button
+                className="quickstart"
+                onClick={() => {
+                  p.onReuse();
+                  setShowInput(true);
+                }}
+              >
+                <ReloadOutlined /> {zh ? "复用此任务输入" : "Reuse inputs"}
+              </button>
+            )}
         </div>
         <div className="workbench-columns">
           <div className="input-column" hidden={!showInput}>
@@ -214,10 +225,28 @@ export function HomeWorkspace(p: Props) {
             candidate={p.candidate}
             language={p.language}
             onResidue={p.onResidue}
-            components={p.job?.request.components ?? []}
+            components={componentsOf(p.job?.request)}
           />
         )}
       </section>
+      {!showInput &&
+        p.job &&
+        p.candidate &&
+        (!("parameters" in p.job.request) ||
+          p.job.request.parameters.atom_confidence !== false) && (
+          <details className="confidence-details">
+            <summary>
+              {zh
+                ? "查看 PAE / PDE / 接触概率 / 逐原子置信度"
+                : "Inspect PAE / PDE / contact probability / atom confidence"}
+            </summary>
+            <ConfidencePanel
+              jobId={p.job.id}
+              candidate={p.candidate.id}
+              language={p.language}
+            />
+          </details>
+        )}
       {p.job && !showInput && (
         <details className="execution-detail">
           <summary>

@@ -48,7 +48,12 @@ export const validSource = (raw: string, origin: string) => {
   const url = new URL(raw, origin);
   if (
     url.origin !== origin ||
-    !/^\/api\/jobs\/[0-9a-f-]+\/download$/.test(url.pathname)
+    !(
+      /^\/api\/jobs\/[0-9a-f-]+\/download$/.test(url.pathname) ||
+      /^\/api\/harness\/campaigns\/[A-Za-z0-9._-]+\/structure$/.test(
+        url.pathname,
+      )
+    )
   )
     throw new Error("Unsupported structure source");
   return url;

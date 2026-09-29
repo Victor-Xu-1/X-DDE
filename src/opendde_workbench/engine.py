@@ -1,12 +1,15 @@
-"""OpenDDE is executed as an external, digest-pinned Docker dependency."""
+"""Digest-pinned Docker adapter shared by every OpenDDE operation."""
 
 import asyncio
+import json
 import os
 import re
+import sqlite3
 from pathlib import Path
 from typing import Protocol
 
 from .models import Job
+from .native_arguments import native_arguments, needs_gpu, network_enabled
 from .settings import Settings
 
 
@@ -44,27 +47,33 @@ class DockerEngine:
             raise ValueError("Configure a Docker image pinned by sha256 digest.")
         if not (code / "external/opendde/runner/batch_inference.py").is_file():
             raise ValueError("OpenDDE runtime code is missing.")
-        if not (self.settings.model_dir / "checkpoint/opendde.pt").is_file():
-            raise ValueError("OpenDDE checkpoint is missing.")
         return image, code
 
-    def arguments(self, job: Job, directory: Path) -> list[str]:
-        image, code = self.runtime()
+    def arguments(self, job: Job, directory: Path, runtime=None) -> list[str]:
+        image, code = runtime or self.runtime()
+        resource = job.request.operation == "resources"
         args = [
             "docker",
             "create",
             "--name",
             self.container(job.id),
             "--network",
-            "none",
-            "--gpus",
-            "all",
+            "bridge" if network_enabled(job.request) else "none",
             "--shm-size",
             "2g",
             "--user",
             f"{os.getuid()}:{os.getgid()}",
+            "--security-opt",
+            "no-new-privileges",
+            "--cap-drop",
+            "ALL",
+            "--pids-limit",
+            "1024",
         ]
-        for key, value in {
+        if needs_gpu(job.request):
+            ids = job.request.parameters.gpu_ids
+            args += ["--gpus", '"device=' + ",".join(map(str, ids)) + '"' if ids else "all"]
+        env = {
             "OPENDDE_ROOT_DIR": "/opendde",
             "PYTHONPATH": "/runtime/external/opendde",
             "LAYERNORM_TYPE": "torch",
@@ -74,13 +83,17 @@ class DockerEngine:
             "TRITON_CACHE_DIR": "/cache/triton",
             "CUDA_CACHE_PATH": "/cache/cuda",
             "PYTHONUNBUFFERED": "1",
-        }.items():
+        }
+        if self.settings.msa_url:
+            env["MMSEQS_SERVICE_HOST_URL"] = self.settings.msa_url
+        for key, value in env.items():
             args += ["--env", f"{key}={value}"]
         for host, guest, readonly in [
             (code, "/runtime", True),
-            (self.settings.model_dir, "/opendde", True),
+            (self.settings.model_dir, "/opendde", not resource),
             (directory, "/job", False),
             (self.settings.cache_dir, "/cache", False),
+            (Path(__file__).parent, "/adapter", True),
         ]:
             if "," in str(host):
                 raise ValueError("Docker mount paths cannot contain commas.")
@@ -88,44 +101,29 @@ class DockerEngine:
                 "--mount",
                 f"type=bind,source={host},target={guest}" + (",readonly" if readonly else ""),
             ]
-        p = job.request.parameters
-        prediction_args = [
-            "--workdir",
-            "/job",
-            "--entrypoint",
-            "python",
-            image,
-            "-m",
-            "runner.batch_inference",
-            "pred",
-            "-i",
-            "input.json",
-            "-o",
-            "output",
-            "--device",
-            "cuda",
-            "--dtype",
-            p.dtype,
-            "--sample",
-            str(p.samples),
-            "--step",
-            str(p.steps),
-            "--cycle",
-            str(p.cycles),
-            "--use_msa",
-            "false",
-            "--use_template",
-            "false",
-            "--use_rna_msa",
-            "false",
-        ]
-        if p.model == "abag":
-            prediction_args += ["--load_checkpoint_path", "/opendde/checkpoint/opendde_abag.pt"]
-        return args + prediction_args
+        checkpoint = None
+        if job.request.operation == "predict" and job.request.parameters.checkpoint_id:
+            from .checkpoints import resolve
+
+            checkpoint = resolve(self.settings, job.request.parameters.checkpoint_id)
+        invocation = native_arguments(job.request, checkpoint)
+        return args + ["--workdir", "/job", "--entrypoint", invocation[0], image, *invocation[1:]]
 
     async def start(self, job: Job, directory: Path) -> asyncio.subprocess.Process:
+        if job.request.operation == "harness":
+            from .harness_process import start
+
+            return await start(self.settings, directory)
         self.settings.cache_dir.mkdir(parents=True, exist_ok=True)
-        code, output = await command(*self.arguments(job, directory))
+        if job.request.operation == "resources":
+            self.settings.model_dir.mkdir(parents=True, exist_ok=True)
+        from .provenance import write_provenance
+
+        runtime = self.runtime()
+        args = self.arguments(job, directory, runtime)
+        entry = args.index("--entrypoint")
+        write_provenance(directory, runtime[0], runtime[1], [args[entry + 1], *args[entry + 3 :]])
+        code, output = await command(*args)
         if code:
             raise RuntimeError(f"Docker could not create the task container: {output}")
         return await asyncio.create_subprocess_exec(
@@ -138,32 +136,56 @@ class DockerEngine:
         )
 
     async def stop(self, job_id: str) -> None:
+        directory = self.settings.state_dir / "jobs" / job_id
+        # The mutable job filesystem is never an execution-routing authority.
+        with sqlite3.connect(self.settings.state_dir / "jobs.sqlite3") as db:
+            row = db.execute("SELECT request FROM jobs WHERE id=?", (job_id,)).fetchone()
+        if row and json.loads(row[0]).get("operation") == "harness":
+            from .harness_process import stop
+
+            await stop(self.settings, directory)
+            return
         code, output = await command("docker", "rm", "--force", self.container(job_id))
         if code and "No such container" not in output:
             raise RuntimeError("Docker could not remove the task container.")
 
     async def readiness(self) -> dict:
+        from .resources import resource_inventory
+
+        result = {
+            "ready": False,
+            "gpu": None,
+            "gpu_count": 0,
+            "reason": None,
+            "models": {
+                name: (self.settings.model_dir / "checkpoint" / filename).is_file()
+                for name, filename in {"standard": "opendde.pt", "abag": "opendde_abag.pt"}.items()
+            },
+            "resources": resource_inventory(self.settings.model_dir),
+        }
         try:
             image, _ = self.runtime()
             code, _ = await command("docker", "image", "inspect", image, timeout=8)
             if code:
                 raise ValueError("Configured Docker image is unavailable.")
-            code, output = await command(
-                "nvidia-smi",
-                "--query-gpu=name,memory.total,memory.free",
-                "--format=csv,noheader,nounits",
-                timeout=5,
-            )
-            if code:
-                raise ValueError("NVIDIA GPU is unavailable.")
-            return {
-                "ready": True,
-                "gpu": output.strip(),
-                "reason": None,
-                "models": {
-                    "standard": True,
-                    "abag": (self.settings.model_dir / "checkpoint/opendde_abag.pt").is_file(),
-                },
-            }
+            result["ready"] = True
+            try:
+                code, output = await command(
+                    "nvidia-smi",
+                    "--query-gpu=name,memory.total,memory.free",
+                    "--format=csv,noheader,nounits",
+                    timeout=5,
+                )
+                if code == 0:
+                    result.update(gpu=output.strip(), gpu_count=len(output.strip().splitlines()))
+                else:
+                    result["gpu_reason"] = (
+                        "NVIDIA GPU is unavailable; CPU execution remains available."
+                    )
+            except (OSError, TimeoutError):
+                result["gpu_reason"] = (
+                    "NVIDIA GPU could not be queried; choose CPU or configure the GPU."
+                )
         except (OSError, ValueError, RuntimeError, TimeoutError) as error:
-            return {"ready": False, "gpu": None, "reason": str(error)}
+            result["reason"] = str(error)
+        return result

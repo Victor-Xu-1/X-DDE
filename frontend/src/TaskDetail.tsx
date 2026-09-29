@@ -1,7 +1,14 @@
 import { useRef, useState } from "react";
 import { api, artifactUrl } from "./api";
 import { translator } from "./i18n";
-import { terminal, type Detail, type Job, type Language } from "./types";
+import {
+  terminal,
+  type Detail,
+  type Job,
+  type Language,
+  type Prediction,
+} from "./types";
+import { OperationResults } from "./operations/OperationResults";
 
 interface Props {
   job: Job | null;
@@ -9,8 +16,16 @@ interface Props {
   failed: boolean;
   language: Language;
   onChange(job: Job): void;
+  onDraft?(request: Prediction): void;
 }
-export function TaskDetail({ job, detail, failed, language, onChange }: Props) {
+export function TaskDetail({
+  job,
+  detail,
+  failed,
+  language,
+  onChange,
+  onDraft,
+}: Props) {
   const t = translator(language);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -81,8 +96,9 @@ export function TaskDetail({ job, detail, failed, language, onChange }: Props) {
       </div>
       <details className="input-summary">
         <summary>
-          {t("parameters")} · {job.request.parameters.dtype.toUpperCase()} ·{" "}
-          {job.request.parameters.samples} {t("samples")}
+          {t("parameters")} · {job.request.operation ?? "predict"}
+          {"parameters" in job.request &&
+            ` · ${job.request.parameters.dtype.toUpperCase()} · ${job.request.parameters.samples} ${t("samples")}`}
         </summary>
         <p className="muted small">
           {t("taskId")}: {job.id}
@@ -109,7 +125,22 @@ export function TaskDetail({ job, detail, failed, language, onChange }: Props) {
           <button
             className="danger-button"
             onClick={() => void action("cancel")}
-            disabled={busy || job.status === "cancelling"}
+            disabled={
+              busy ||
+              job.status === "cancelling" ||
+              (job.status === "running" &&
+                job.request.operation === "harness" &&
+                job.request.tool !== "fold")
+            }
+            title={
+              job.status === "running" &&
+              job.request.operation === "harness" &&
+              job.request.tool !== "fold"
+                ? language === "zh"
+                  ? "原生同步接口派发后不支持取消，请等待结果。"
+                  : "This native synchronous tool cannot be cancelled after dispatch."
+                : undefined
+            }
           >
             {t("cancel")}
           </button>
@@ -129,6 +160,11 @@ export function TaskDetail({ job, detail, failed, language, onChange }: Props) {
         <h3>{t("results")}</h3>
         <span className="count">{shown?.artifacts.length ?? 0}</span>
       </div>
+      {job.status === "succeeded" &&
+        job.request.operation &&
+        job.request.operation !== "predict" && (
+          <OperationResults job={job} language={language} onDraft={onDraft} />
+        )}
       <div className="artifacts">
         {shown?.artifacts.length ? (
           shown.artifacts.map((file) => (

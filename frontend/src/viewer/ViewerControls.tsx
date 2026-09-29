@@ -50,7 +50,7 @@ export function ViewerControls({
               ))}
             </select>
           </label>
-          <button onClick={() => send("focus-ligand")}>
+          <button type="button" onClick={() => send("focus-ligand")}>
             {zh ? "定位配体" : "Focus ligand"}
           </button>
           {scene.hasPolymer && (
@@ -117,7 +117,10 @@ export function ViewerControls({
               ? "直接点三维图，或从下方列表选择。编辑只改变显示，原始结构和预测输入不变；测距显示几何距离，不判断氢键。"
               : "Click in 3D or use the list below. Edits affect the display only; original coordinates and prediction inputs stay intact. Measurements are geometric distances, not hydrogen-bond assignments."}
           </Hint>
-          <button onClick={() => send("selection-action", "restore")}>
+          <button
+            type="button"
+            onClick={() => send("selection-action", "restore")}
+          >
             {zh ? "恢复全部显示" : "Restore display"}
           </button>
         </div>
@@ -149,6 +152,7 @@ export function ViewerControls({
             ] as const
           ).map(([action, cn, en]) => (
             <button
+              type="button"
               key={action}
               disabled={!selection || disabled}
               onClick={() => send("selection-action", action)}
@@ -172,7 +176,11 @@ export function ViewerControls({
             />
             <div className="residue-options">
               {residues.map((r) => (
-                <button key={r.key} onClick={() => send("residue", r.key)}>
+                <button
+                  type="button"
+                  key={r.key}
+                  onClick={() => send("residue", r.key)}
+                >
                   {residueLabel(r)}
                 </button>
               ))}

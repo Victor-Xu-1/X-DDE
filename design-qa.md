@@ -1,3 +1,10 @@
+# 0.3 candidate status — server validation deferred
+
+The owner requested code first and no tests/inference on this PC. This expansion has not had local browser, GPU, multi-GPU, remote scientific service or LLM acceptance. Static lint/type/format results are reported separately in the delivery record; they are not runtime evidence. The prior0.2 installation remains unchanged.
+
+The current capability contract is docs/design/README.md. Required candidate acceptance is docs/server-acceptance.md. The old evidence below applies only to0.2 and must not be attributed to the new frontend/adapters.
+
+---
 # Workbench 0.2.0 acceptance record — 2026-09-30
 
 ## Scope and authority

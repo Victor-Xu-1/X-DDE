@@ -20,10 +20,10 @@ class AnalysisService:
         async with self.lock:
             if target.is_file():
                 cached = json.loads(target.read_text())
-                if cached.get("schema_version") == 2:
+                if cached.get("schema_version") == 3:
                     return cached
             image, _ = self.engine.runtime()
-            script = Path(__file__).parent / "compute_analysis.py"
+            script = Path(__file__).parent
             name = "opendde-wb-analysis-" + job.id
             # A crashed server can leave only this task's named analysis container behind.
             await command("docker", "rm", "--force", name)
@@ -42,11 +42,11 @@ class AnalysisService:
                     "--mount",
                     f"type=bind,source={directory},target=/job",
                     "--mount",
-                    f"type=bind,source={script},target=/analyze.py,readonly",
+                    f"type=bind,source={script},target=/adapter,readonly",
                     "--entrypoint",
                     "python",
                     image,
-                    "/analyze.py",
+                    "/adapter/compute_analysis.py",
                     timeout=60,
                 )
             finally:

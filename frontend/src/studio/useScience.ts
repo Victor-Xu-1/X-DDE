@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { Analysis, Job, Project } from "../types";
+import { isPrediction } from "../operations/types";
 
 export function useScience(job: Job | null) {
   const [result, setResult] = useState<{ id: string; data: Analysis } | null>(
@@ -33,7 +34,8 @@ export function useScience(job: Job | null) {
     setResult(null);
     setAnalysisError("");
     setLoadingAnalysis(false);
-    if (job?.status !== "succeeded") return () => controller.abort();
+    if (job?.status !== "succeeded" || !isPrediction(job.request))
+      return () => controller.abort();
     setLoadingAnalysis(true);
     void api
       .analysis(job.id, controller.signal)

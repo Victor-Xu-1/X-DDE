@@ -1,19 +1,23 @@
+import type { Analysis, Artifact, Health, Job, Project } from "./types";
 import type {
-  Analysis,
-  Artifact,
-  Health,
-  Job,
-  Prediction,
-  Project,
-} from "./types";
+  Asset,
+  AssetKind,
+  OperationResult,
+  TaskRequest,
+} from "./operations/types";
 
 let csrf = "";
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function request<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const response = await fetch(`/api${path}`, {
     ...init,
     signal: init.signal ?? AbortSignal.timeout(30000),
   });
-  const payload = await response.json();
+  const payload = await response.json().catch(() => {
+    throw new Error(`HTTP ${response.status}: invalid server response`);
+  });
   if (!response.ok) {
     const detail = payload.detail;
     throw new Error(
@@ -25,6 +29,43 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return payload as T;
 }
 export const api = {
+  async post<T>(
+    path: string,
+    body: unknown,
+    key = crypto.randomUUID(),
+    timeoutMs = 30000,
+  ): Promise<T> {
+    await api.initialize();
+    return request<T>(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Workbench-CSRF": csrf,
+        "Idempotency-Key": key,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  },
+  assets: (signal?: AbortSignal) => request<Asset[]>("/assets", { signal }),
+  async upload(file: File, kind: AssetKind): Promise<Asset> {
+    if (file.size > 25 * 1024 ** 2) throw new Error("25 MiB maximum");
+    await api.initialize();
+    return request<Asset>(
+      `/assets?${new URLSearchParams({ kind, name: file.name })}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "X-Workbench-CSRF": csrf,
+        },
+        body: file,
+        signal: AbortSignal.timeout(90000),
+      },
+    );
+  },
+  result: (id: string, signal?: AbortSignal) =>
+    request<OperationResult>(`/jobs/${id}/result`, { signal }),
   async initialize() {
     const session = await request<{ csrf_token: string }>("/session");
     csrf = session.csrf_token;
@@ -61,7 +102,7 @@ export const api = {
       body: JSON.stringify(body),
     });
   },
-  submit: (value: Prediction, key: string) => api.mutate("/jobs", key, value),
+  submit: (value: TaskRequest, key: string) => api.mutate("/jobs", key, value),
   retry: (id: string, key: string) => api.mutate(`/jobs/${id}/retry`, key),
   cancel: (id: string) => api.mutate(`/jobs/${id}/cancel`, crypto.randomUUID()),
 };
