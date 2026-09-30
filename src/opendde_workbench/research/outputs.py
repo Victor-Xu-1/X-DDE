@@ -67,12 +67,23 @@ class OutputCatalog:
             raise ValueError("Generation output report exceeds its typed limit.")
         result = json.loads(report.read_text())
         if "core_verification" not in result:
+            execution = root.parent / "execution.json"
+            if execution.is_file():
+                execution = contained(execution.parent, execution.name)
+                if execution.stat().st_size > 2 * 1024**2:
+                    raise ValueError("Generation execution evidence exceeds its limit.")
+                if (
+                    json.loads(execution.read_text()).get("core_verification")
+                    == "rdkit_fixed_core_v1"
+                ):
+                    raise ValueError("Required independent core verification is missing.")
             return None  # Historical results retain their original, limited native status.
         from ..diffsbdd.quality import validate_verification
 
         evidence = validate_verification(result, job.request, root)
         if file.suffix.lower() == ".sdf" and (
-            file.name != evidence.qualified_artifact or not evidence.qualified_count
+            file.resolve() != contained(root, evidence.qualified_artifact).resolve()
+            or not evidence.qualified_count
         ):
             raise ValueError(
                 "Only independently qualified core candidates are reusable; "

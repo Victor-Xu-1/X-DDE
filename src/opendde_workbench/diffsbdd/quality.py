@@ -52,7 +52,9 @@ class CoreVerification(ScientificModel):
     source: MoleculeRef
     fixed_atoms: tuple[int, ...] = Field(min_length=1, max_length=80)
     preserve_bonds: bool
-    raw_artifact: str = Field(max_length=240)
+    raw_artifact: str = Field(
+        max_length=240, pattern=r"^native/(?:[a-zA-Z0-9_-]+/)*molecules\.sdf$"
+    )
     raw_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     qualified_artifact: Literal["qualified-molecules.sdf"]
     qualified_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
@@ -82,6 +84,12 @@ class CoreVerification(ScientificModel):
 
 
 def validate_verification(result, request, output: Path):
+    if (
+        result.get("operation") != "diffsbdd"
+        or result.get("mode") != "inpaint"
+        or result.get("complete") is not True
+    ):
+        raise ValueError("Core verification must belong to a completed inpainting result.")
     evidence = CoreVerification.model_validate(result["core_verification"])
     payload = request.payload
     if (

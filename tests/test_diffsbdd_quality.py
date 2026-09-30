@@ -101,6 +101,11 @@ def test_raw_and_diagnostic_assets_cannot_bypass_shared_qualification(tmp_path):
     for name in ("native/molecules.sdf", "diagnostic-core-002.sdf"):
         with pytest.raises(ValueError, match="qualified"):
             catalog.preserve(job.id, output / name, "ligand")
+    disguised = output / "native/qualified-molecules.sdf"
+    disguised.write_text("unqualified disguised record\n$$$$\n")
+    with pytest.raises(ValueError, match="qualified"):
+        catalog.preserve(job.id, disguised, "ligand")
+    disguised.unlink()
     indexed = catalog.index(job, output)
     assert indexed["state"] == "complete"
     objects = catalog.scientific.list()
@@ -144,6 +149,12 @@ def test_core_contract_rejects_forged_partial_mapping_and_qualification(tmp_path
     (output / "result.json").write_text(json.dumps(result))
     with pytest.raises(KeyError):
         successful(job, output.parent, 0)
+    catalog = OutputCatalog(
+        Store(tmp_path / "jobs.sqlite3"),
+        AssetStore(Store(tmp_path / "jobs.sqlite3"), tmp_path / "assets"),
+    )
+    with pytest.raises(ValueError, match="missing"):
+        catalog.preserve(job.id, output / "native/molecules.sdf", "ligand")
 
 
 def test_diff_adapter_freezes_exact_bounded_entry_point(tmp_path):

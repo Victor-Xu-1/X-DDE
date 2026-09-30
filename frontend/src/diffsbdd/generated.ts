@@ -470,6 +470,7 @@ export const coreVerificationSchema = {
     },
     raw_artifact: {
       maxLength: 240,
+      pattern: "^native/(?:[a-zA-Z0-9_-]+/)*molecules\\.sdf$",
       title: "Raw Artifact",
       type: "string",
     },
