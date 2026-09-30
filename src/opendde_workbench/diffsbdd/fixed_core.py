@@ -6,7 +6,7 @@ order, upstream validity flags, or absolute CIP labels after substituent changes
 
 import math
 
-from stereo import stereo_status
+from stereo import chemical_stereo, stereo_status
 
 METHOD = "rdkit_fixed_core_v1"
 TOLERANCE = 0.5  # The frozen native inpainting coordinate contract, in angstrom.
@@ -34,6 +34,7 @@ def bond_identity(mol, left, right):
 
 
 def assess(source, candidate, fixed_atoms, preserve_bonds=True, *, search_limit=SEARCH_LIMIT):
+    source, candidate = chemical_stereo(source), chemical_stereo(candidate)
     points, output_points = coordinates(source), coordinates(candidate)
     fixed = tuple(fixed_atoms)
     if (

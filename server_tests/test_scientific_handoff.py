@@ -370,3 +370,18 @@ def test_actual_sdf_core_qualification_keeps_rejected_raw_records(monkeypatch, t
     (destination / "verification.json").write_text(
         json.dumps(report, allow_nan=False), encoding="utf-8"
     )
+
+
+def test_core_bookkeeping_atom_maps_do_not_manufacture_stereochemical_rejections(monkeypatch):
+    core = core_module(monkeypatch)
+    source = core_molecule("[CH3:1][C@H:2]([CH3:3])[CH2:4][OH:5]")
+    candidate = Chem.Mol(source)
+    candidate.GetAtomWithIdx(1).InvertChirality()
+    assert core.assess(source, candidate, list(range(source.GetNumAtoms())))["status"] == "passed"
+    # The same normalization must retain true tetrahedral stereochemistry.
+    source = core_molecule("F[C@H](Cl)Br")
+    for atom in source.GetAtoms():
+        atom.SetAtomMapNum(atom.GetIdx() + 1)
+    candidate = Chem.Mol(source)
+    candidate.GetAtomWithIdx(1).InvertChirality()
+    assert core.assess(source, candidate, list(range(source.GetNumAtoms())))["status"] == "failed"

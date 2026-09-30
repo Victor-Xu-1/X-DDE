@@ -1,6 +1,20 @@
 """Fixed-core local stereo checks in the exact mapped three-dimensional frame."""
 
 
+def chemical_stereo(molecule):
+    """Bookkeeping map labels must not manufacture stereochemical differences."""
+    from rdkit import Chem
+
+    if molecule is None:
+        raise ValueError("Core verification requires a parsed molecule.")
+    mol = Chem.Mol(molecule)
+    for atom in mol.GetAtoms():
+        atom.SetAtomMapNum(0)
+    mol.UpdatePropertyCache(strict=False)
+    Chem.AssignStereochemistry(mol, cleanIt=True, force=True)
+    return mol
+
+
 def volume(points):
     import numpy as np
 
