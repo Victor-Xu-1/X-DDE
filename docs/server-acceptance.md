@@ -1,4 +1,4 @@
-# Target-server acceptance for 0.3
+# Target-server acceptance for X-DDE
 
 This is the acceptance plan for the X-DDE frontend, platform server and scientific adapters. It is not a record of successful inference. Scientific runtime acceptance is deferred to the target server; the local released package and source preview are separately identified during delivery.
 
@@ -85,3 +85,21 @@ Use the browser on the target installation after the real API checks. Record the
 CI and static checks alone do not satisfy the native matrix. Report each row as passed, failed or not yet run with its actual reason. Missing GPU(s), credentials, model weights or external services are unverified dependencies, not successful tests. Preserve the original failures while fixing them.
 
 Promote the candidate only after relevant mandatory gates and real workflows pass. Install the wheel built from that exact commit. Before rollback, use the pre-upgrade state backup; old0.2 cannot parse the new operation types. Keep native Harness tasks and model stores under their own lifecycle and ownership.
+
+## Acceptance of the planned platform and exploration work
+
+The canonical scope, implementation status and dependencies are the [76-task roadmap](design/README.md#统一实施路线与未完成任务). The rows below are **future required evidence**, not records of completed inference. Run each row only when its actual adapter and relevant inputs are implemented. The existing native matrix and mandatory checks remain in force; each stage has its own reviewed benchmark and pass criteria.
+
+| Roadmap scope | Required implementation and scientific evidence | Guard against a false completion claim |
+| --- | --- | --- |
+| R01–R09, R25–R29 | Real version/input/constraint checks, SQLite plans/steps/attempts, cancellation/recovery and mapped selections after editing/conversion | No second queue/store; no viewer-index identity, silent hard-constraint relaxation or unsupported stage labeled native |
+| R10–R20 | Actual compatible DiffSBDD mode/model matrix, preserved native options, selected input versions, real candidate normalization, 2D/3D continuation and export | Installing models or a successful controlled protocol is not GPU/scientific acceptance |
+| R21–R24 | Real descriptors and each enabled predictive endpoint with method, provenance, units, calibration/uncertainty and domain evidence | Descriptors are not full ADMET; uncalibrated docking/LLM output is not measured affinity |
+| R30–R40 | Reviewed reference/unknown sites, receptor structures and chemical states, native pose generation, remapping/cluster checks, independent quality and positive/negative cases | Keep multiple hypotheses; distinguish failure, invalidity, unknown and insufficient budget |
+| R41–R46 | Exposure and space definitions, target/assembly scope, independently checked constraints, real search-stage support and counterexamples against degenerate solutions | Post-filtering cannot establish guided search; higher exposure alone cannot establish retained binding |
+| R47–R56 | Original/full chemical graph, cut/cap/rejoin/stereo checks, both-end evidence, full-molecule conformations and bounded partner assembly sampling | Fragment scores and constructible geometry do not prove ternary cooperativity, degradation or efficacy |
+| R57–R64 | Same-condition series/assay data, distinct endpoints/units, versioned iteration and actual parameterization/simulation evidence where enabled | Do not combine incompatible measurements or silently fall back after parameterization failure |
+| R65–R69 | Read-only legacy inventory, dry-run, interrupted/repeated import, native candidate/draft/review lineage and actual cross-software result reuse | Keep source data; no pagination truncation, invented origins or competing native campaign authority |
+| R70–R76 | Exact-candidate applicable tests, actual browser/API/native workflows, dependency/security review and clean-machine release/install/upgrade/rollback evidence | A new source preview or a wheel build does not update existing release attachments |
+
+Evidence records identify task IDs, exact candidate/native/model versions, inputs, conditions, seeds/budgets, CPU/GPU and service resources, actual commands, outputs, failure/limitations and screenshots where relevant. Keep evidence outside the repository; do not include provider secrets or unnecessary private inputs. New task implementation can progress without local inference; model/GPU/LLM and scientific claims remain unverified until their actual target-server runs complete.

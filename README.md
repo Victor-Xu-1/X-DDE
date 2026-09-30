@@ -4,6 +4,8 @@
 
 X-DDE is an independent Apache-2.0 drug research platform. X-DDE owns both its frontend and unified backend. OpenDDE, DiffSBDD, Harness, editors and other integrated software are managed environments/components beneath the platform; their native scientific programs, dependencies, models and licenses retain their actual identities.
 
+后续实施范围、当前状态、WP1–WP7 依赖与 76 项任务见[统一实施路线](docs/design/README.md#统一实施路线与未完成任务)。该清单描述待交付工作，不表示已具备全部科学能力。
+
 **平台关系：X-DDE 负责前端和后端，其余软件均作为集成环境。** X-DDE 后端拥有公共 API、业务规则、项目、任务、科学对象、版本、工作流、环境管理与证据。集成环境提供真实科学程序、模型和依赖，不拥有平台业务或数据权威。
 
 环境准备和科学执行分别接入：**X-DDE 环境管理 → 配置适配器 → 集成环境**；**X-DDE 科学任务 → 科学/执行适配器 → 环境中的真实程序 → X-DDE 资产与证据**。产品中的 OpenDDE 环境配置接口当前使用已审查的 OpenDDE Harness 安装器，只有源码准备、镜像校验和模型资源准备等实际支持的动作。暂停、取消、重试、升级与卸载的部署策略和进程管理由 X-DDE 承担，不虚构上游 API。DiffSBDD、编辑器和 Harness 客户端使用各自实际安装配方，不要求通过 OpenDDE 配置。
