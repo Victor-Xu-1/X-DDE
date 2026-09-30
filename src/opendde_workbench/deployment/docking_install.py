@@ -19,8 +19,8 @@ from .transfers import download
 def install_docking(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install the server Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 8 * 1024**3:
-        raise ValueError("GNINA installation needs at least 8 GiB free staging/image space.")
+    if shutil.disk_usage(root).free < 12 * 1024**3:
+        raise ValueError("GNINA installation needs at least 12 GiB free staging/image space.")
     binary = root / "downloads" / "gnina-1.3.3.static"
     report("Downloading the checksum-verified GNINA executable")
     download(BINARY_URL, binary, BINARY_SHA256, report, checkpoint, limit=BINARY_BYTES + 1024**2)

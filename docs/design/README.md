@@ -604,3 +604,5 @@ X-DDE 的 `docking` 类型任务由同一 Store/Worker/BackendRouter 分派到�
 保留完整姿势集、逐姿势 SDF、评分原单位/方向、原子映射状态、软件/解析器与输入来源。无效记录保留原因；有歧义的原子映射要求重选区域，不宣称原子索引永久稳定。用户只预览和复用所选姿势；性质、重新评分和最小化均复用它的不可变资产版本。P2Rank 的中心可带入初始搜索范围；默认 20 Å 是可调整方案，不是实测口袋边界。工作流仅允许新对接动态绑定生成分子；已有姿势跨帧自动绑定尚不允许，必须保留明确参照证据。
 
 远程 CI 使用冻结上游 184L 示例验证真实程序、离线容器、三模式、结果归一化、SQLite/资产血缘与重启。它是工程执行证据；多受体/质子化状态、姿势基准、GPU/CNN、独立 PoseBusters/能量评价、完整 ConstraintSet、空间出口、全图连接与多伙伴装配仍按 R01–R76 推进，不能把该入口视作完整路线或科学验证已完成。
+
+The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU tasks. Its isolated runtime locks NVIDIA cuDNN 9.8.0.87, cuBLAS 12.8.4.1 and CUDA runtime 12.8.90 by package hashes. These libraries have NVIDIA proprietary software terms, separate from X-DDE Apache-2.0 and GNINA upstream licenses; they are downloaded by the operator's optional environment installation, not vendored into the platform wheel or repository. Installation requires approximately 3.5 GB of downloads and at least 12 GiB free staging space. The image build checks actual native linker dependencies before activation. GPU/CNN performance and scientific accuracy still require separate target-server evidence.

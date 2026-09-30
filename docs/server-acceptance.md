@@ -111,7 +111,7 @@ P2Rank 原生验收使用固定发布包、固定 Java 镜像摘要和官方 1fb
 
 ## GNINA native docking gate
 
-On an isolated Linux x86_64 server with Docker and at least 8 GiB staging space, after the documented frontend build and locked platform dependency installation:
+On an isolated Linux x86_64 server with Docker and at least 12 GiB staging space, after the documented frontend build and locked platform dependency installation:
 
 ```bash
 WB_TEST_NATIVE_DOCKING=1 uv run --locked pytest -q -s server_tests/test_native_docking.py
@@ -120,3 +120,5 @@ WB_TEST_NATIVE_DOCKING=1 uv run --locked pytest -q -s server_tests/test_native_d
 This downloads the pinned official 2.1 GB executable, builds the hash-locked isolated scientific image and executes actual CPU docking, scoring and local minimization on upstream 184L fixtures. It verifies exact frames, empirical-only scoring, per-pose artifacts, environment fingerprints, original-input/derived-output versions, filtered asset reads and restart persistence. It does not validate docking accuracy, CNN/GPU behavior, experimental potency, special chemistries, full spatial constraints or multi-partner assembly. Run those reviewed target-server benchmarks before asserting scientific suitability. Failure artifacts and native logs remain identifiable under `server_tests/evidence`; CI uploads them, never fabricates successful poses.
 
 Configure the component through Installation & components → GNINA, or set `WB_GNINA_IMAGE` to the immutable reviewed Docker image ID, then restart X-DDE. Readiness requires matching native-version/executable/runtime-lock labels; the actual executable hash is rechecked inside every offline task. No large GNINA installation or scientific execution is authorized on the owner's workstation.
+
+The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU tasks. Its isolated runtime locks NVIDIA cuDNN 9.8.0.87, cuBLAS 12.8.4.1 and CUDA runtime 12.8.90 by package hashes. These libraries have NVIDIA proprietary software terms, separate from X-DDE Apache-2.0 and GNINA upstream licenses; they are downloaded by the operator's optional environment installation, not vendored into the platform wheel or repository. Installation requires approximately 3.5 GB of downloads and at least 12 GiB free staging space. The image build checks actual native linker dependencies before activation. GPU/CNN performance and scientific accuracy still require separate target-server evidence.

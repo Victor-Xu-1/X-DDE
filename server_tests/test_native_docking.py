@@ -165,6 +165,10 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             for file in output.glob("*"):
                 if file.is_file() and file.stat().st_size < 4 * 1024**2:
                     shutil.copyfile(file, evidence / (mode + "-" + file.name))
+            retained_log = client.get("/api/jobs/" + identifier + "/logs").json()["text"]
+            (evidence / (mode + "-worker.log")).write_text(retained_log)
+            if job["status"] != "succeeded":
+                print(retained_log)
             assert job["status"] == "succeeded", client.get(
                 "/api/jobs/" + identifier + "/logs"
             ).json()

@@ -32,5 +32,11 @@ def prepare_context(destination, binary, licenses):
         'org.xdde.gnina.sha256="' + BINARY_SHA256 + '" '
         'org.xdde.gnina.runtime-lock="' + lock_digest() + '"\n'
         "ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1\n"
+        "ENV LD_LIBRARY_PATH=/usr/local/lib/python3.10/site-packages/nvidia/cudnn/lib:"
+        "/usr/local/lib/python3.10/site-packages/nvidia/cublas/lib:"
+        "/usr/local/lib/python3.10/site-packages/nvidia/cuda_runtime/lib:"
+        "/usr/local/nvidia/lib:/usr/local/nvidia/lib64\n"
+        "RUN ldd /opt/gnina/gnina > /opt/gnina/linker-report.txt "
+        "&& ! grep -q 'not found' /opt/gnina/linker-report.txt\n"
         "WORKDIR /output\n"
     )
