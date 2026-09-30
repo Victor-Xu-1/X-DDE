@@ -99,6 +99,30 @@ def inspect_results(settings, image, job_id, pose, reference, evidence):
                         indent=2,
                     )
                 )
+            except Exception:
+                page.screenshot(path=str(evidence / "native-browser-failure.png"), full_page=True)
+                frames = []
+                for frame in page.frames:
+                    frames.append(
+                        {
+                            "url": frame.url,
+                            "text": frame.locator("body").inner_text(timeout=2000)[:20000],
+                        }
+                    )
+                (evidence / "native-browser-failure.json").write_text(
+                    json.dumps(
+                        {
+                            "page_errors": errors,
+                            "alerts": page.get_by_role("alert").all_text_contents(),
+                            "body": page.locator("body").inner_text()[:30000],
+                            "frames": frames,
+                            "downloaded_artifacts": downloads,
+                        },
+                        indent=2,
+                        ensure_ascii=False,
+                    )
+                )
+                raise
             finally:
                 browser.close()
     finally:
