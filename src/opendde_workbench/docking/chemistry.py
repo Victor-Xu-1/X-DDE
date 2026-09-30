@@ -115,7 +115,10 @@ def summarize_poses(file, original, options):
             if not any(value["name"] == "minimizedAffinity" for value in row["scores"]):
                 raise ValueError("Native pose has no empirical score.")
             mapping = {atom.GetAtomMapNum(): atom.GetIdx() for atom in mol.GetAtoms()}
-            if set(mapping) == set(range(1, original.GetNumAtoms() + 1)):
+            mapped_indices = [mapping.get(i + 1, -1) for i in range(original.GetNumAtoms())]
+            if set(mapping) == set(
+                range(1, original.GetNumAtoms() + 1)
+            ) and chemical_mapping_matches(original, mol, mapped_indices):
                 row["source_to_pose_atoms"] = [
                     mapping[i + 1] for i in range(original.GetNumAtoms())
                 ]
@@ -134,3 +137,28 @@ def summarize_poses(file, original, options):
             row["reason"] = str(exc)
         poses.append(row)
     return poses
+
+
+def chemical_mapping_matches(original, pose, indices):
+    """Native map labels must preserve the actual atom and bond graph before reuse."""
+    if (
+        len(indices) != original.GetNumAtoms()
+        or len(set(indices)) != len(indices)
+        or any(index < 0 or index >= pose.GetNumAtoms() for index in indices)
+    ):
+        return False
+    for atom, index in zip(original.GetAtoms(), indices, strict=True):
+        mapped = pose.GetAtomWithIdx(index)
+        if (atom.GetAtomicNum(), atom.GetFormalCharge(), atom.GetIsotope()) != (
+            mapped.GetAtomicNum(),
+            mapped.GetFormalCharge(),
+            mapped.GetIsotope(),
+        ):
+            return False
+    for bond in original.GetBonds():
+        mapped = pose.GetBondBetweenAtoms(
+            indices[bond.GetBeginAtomIdx()], indices[bond.GetEndAtomIdx()]
+        )
+        if mapped is None or mapped.GetBondType() != bond.GetBondType():
+            return False
+    return True

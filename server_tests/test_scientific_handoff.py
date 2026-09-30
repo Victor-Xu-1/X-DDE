@@ -75,3 +75,40 @@ def test_diffsbdd_atom_identity_uses_real_parser_and_exact_record(tmp_path):
         chemistry.inspect_identity(
             {"molecule": ref}, {"input": "/job/assets/library.sdf"}, tmp_path, tmp_path
         )
+
+
+def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path):
+    from types import SimpleNamespace
+
+    from rdkit.Chem import AllChem
+
+    source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/docking/chemistry.py"
+    spec = importlib.util.spec_from_file_location("docking_chemistry", source)
+    chemistry = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(chemistry)
+    molecule = Chem.AddHs(Chem.MolFromSmiles("CCO"))
+    assert AllChem.EmbedMolecule(molecule, randomSeed=2026) == 0
+    molecule = Chem.RemoveHs(molecule)
+    for atom in molecule.GetAtoms():
+        atom.SetAtomMapNum(atom.GetIdx() + 1)
+    assert chemistry.chemical_mapping_matches(molecule, molecule, [0, 1, 2])
+    assert not chemistry.chemical_mapping_matches(molecule, molecule, [2, 1, 0])
+    output = tmp_path / "poses.sdf"
+    molecule.SetProp("minimizedAffinity", "-5.2")
+    molecule.SetProp("CNNscore", "0.0")
+    with Chem.SDWriter(str(output)) as writer:
+        writer.write(molecule)
+    rows = chemistry.summarize_poses(
+        output, molecule, SimpleNamespace(num_modes=1, cnn_scoring="none")
+    )
+    assert rows[0]["valid"]
+    assert rows[0]["scores"] == [
+        {"name": "minimizedAffinity", "value": -5.2, "unit": "kcal/mol", "direction": "lower"}
+    ]
+    assert rows[0]["source_to_pose_atoms"] == [0, 1, 2]
+    molecule.SetProp("minimizedAffinity", "NaN")
+    with Chem.SDWriter(str(output)) as writer:
+        writer.write(molecule)
+    assert not chemistry.summarize_poses(
+        output, molecule, SimpleNamespace(num_modes=1, cnn_scoring="none")
+    )[0]["valid"]

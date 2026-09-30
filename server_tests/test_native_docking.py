@@ -101,7 +101,8 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             assert registered.status_code == 201, registered.text
             refs[role] = registered.json()["reference"]
         health = client.get("/api/health").json()
-        assert health["environments"]["gnina"]["ready"]
+        (evidence / "runtime-health.json").write_text(json.dumps(health, indent=2))
+        assert health["environments"]["gnina"]["ready"], health["environments"]["gnina"]
         assert not health["environments"]["opendde"]["ready"]
         pose = refs["ligand"]
         for mode in ("dock", "score", "minimize"):

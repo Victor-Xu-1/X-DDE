@@ -80,9 +80,12 @@ export function DockingForm({
               ligand,
               options,
               kind === "reference" ? reference : null,
-              mode === "dock" && kind === "box" ? parseBox(center, size) : null,
+              mode === "dock" && kind === "box"
+                ? parseBox(center, size, language)
+                : null,
               confirmed,
               name.trim() || labels[mode][zh ? 0 : 1],
+              language,
             ),
           );
         } catch (failure) {
