@@ -129,7 +129,7 @@ it("uses the supplied raster logo as the accessible brand navigation", async () 
   render(<Navigation view="home" onView={onView} language="zh" jobs={[]} />);
   expect(
     screen.getByRole("img", { name: "X-DDE 药物研究工作台" }),
-  ).toHaveAttribute("src", "/brand/x-dde-logo.png");
+  ).toHaveAttribute("src", "/brand/x-dde-wordmark.png");
   await userEvent.click(screen.getByRole("button", { name: /^X-DDE$/ }));
   expect(onView).toHaveBeenCalledWith("tools");
 });

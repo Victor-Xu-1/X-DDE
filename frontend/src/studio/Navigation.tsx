@@ -146,15 +146,20 @@ export function Navigation({
         aria-label="X-DDE"
         onClick={() => onView("tools")}
       >
-        <picture className="studio-brand-picture">
-          <source media="(max-width: 960px)" srcSet="/brand/x-dde-mark.png" />
-          <img
-            src="/brand/x-dde-logo.png"
-            alt={zh ? "X-DDE 药物研究工作台" : "X-DDE discovery workbench"}
-            width="780"
-            height="970"
-          />
-        </picture>
+        <img
+          className="studio-brand-mark"
+          src="/brand/x-dde-mark.png"
+          alt=""
+          width="64"
+          height="64"
+        />
+        <img
+          className="studio-brand-wordmark"
+          src="/brand/x-dde-wordmark.png"
+          alt={zh ? "X-DDE 药物研究工作台" : "X-DDE discovery workbench"}
+          width="755"
+          height="165"
+        />
       </button>
       <nav aria-label={zh ? "主导航" : "Main navigation"}>
         {items.map((item) => (

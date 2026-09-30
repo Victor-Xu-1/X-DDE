@@ -41,6 +41,7 @@ jobs:
           assert 'opendde_workbench/web/theme-init.js' in files
           assert 'opendde_workbench/web/brand/x-dde-logo.png' in files
           assert 'opendde_workbench/web/brand/favicon.png' in files
+          assert 'opendde_workbench/web/brand/x-dde-wordmark.png' in files
           from email.parser import BytesParser
           with ZipFile(glob('dist/*.whl')[0]) as wheel:
               metadata = BytesParser().parsebytes(wheel.read(next(p for p in files if p.endswith('/METADATA'))))

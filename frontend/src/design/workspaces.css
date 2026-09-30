@@ -161,10 +161,6 @@ dialog::backdrop {
   .studio-sidebar {
     padding: 14px 8px 10px;
   }
-  .studio-brand {
-    padding: 4px;
-    justify-content: center;
-  }
   .studio-sidebar nav button > span:not(.anticon),
   .management-trigger-copy,
   .management-more {
@@ -206,9 +202,6 @@ dialog::backdrop {
   }
   .studio-sidebar {
     padding: 8px 5px;
-  }
-  .studio-brand {
-    display: none;
   }
   .studio-sidebar nav {
     flex-direction: column;

@@ -19,16 +19,22 @@ if (Test-Path -LiteralPath $savedConfigPath -PathType Leaf) {
     try { $savedConfig = Get-Content -LiteralPath $savedConfigPath -Raw | ConvertFrom-Json }
     catch { throw 'Existing workbench.json is invalid. Review the local configuration before upgrading.' }
 }
-if (!$Distribution) { $Distribution = if ($savedConfig.distribution) { $savedConfig.distribution } else { 'Ubuntu-24.04' } }
-if (!$LinuxUser -and $savedConfig.distribution -eq $Distribution) { $LinuxUser = $savedConfig.user }
 New-Item -ItemType Directory -Path (Join-Path $InstallRoot 'tmp') -Force | Out-Null
 $env:TEMP = Join-Path $InstallRoot 'tmp'
 $env:TMP = $env:TEMP
 if (!(Get-Command wsl.exe -ErrorAction SilentlyContinue)) { throw 'Install WSL2 first in an administrator terminal: wsl --install. Restart Windows, then run this installer again.' }
 $distributions = (& wsl.exe --list --quiet) -replace "`0", ''
 if ($LASTEXITCODE -ne 0) { throw 'WSL is not ready. Run wsl --install in an administrator terminal and restart Windows.' }
+# Reuse the shared workspace before considering a fresh Linux installation.
+if (!$Distribution) {
+    $Distribution = if ($savedConfig.distribution) { $savedConfig.distribution }
+    elseif ('WSL' -in ($distributions | ForEach-Object { $_.Trim() })) { 'WSL' }
+    else { 'Ubuntu-24.04' }
+}
+if (!$LinuxUser -and $savedConfig.distribution -eq $Distribution) { $LinuxUser = $savedConfig.user }
 if ($Distribution -notin ($distributions | ForEach-Object { $_.Trim() })) {
-    $diskLocation = if ($InstallRoot -eq 'E:\WSL\apps\x-dde') { Join-Path 'E:\WSL\distros' ($Distribution -replace '[^A-Za-z0-9._-]', '-').ToLowerInvariant() } else { Join-Path $InstallRoot 'WSL' }
+    $diskLocation = if ($InstallRoot -eq 'E:\WSL\apps\x-dde') { 'E:\WSL\system' } else { Join-Path $InstallRoot 'WSL' }
+    if (Test-Path -LiteralPath (Join-Path $diskLocation 'ext4.vhdx')) { throw 'The shared Linux disk already exists. Register or select its distribution before installing; existing disks will not be overwritten.' }
     & wsl.exe --install --distribution $Distribution --location $diskLocation --no-launch
     if ($LASTEXITCODE -ne 0) { throw 'WSL installation requires administrator access or a Windows restart. Complete the displayed Windows step, then re-run this installer.' }
     & wsl.exe -d $Distribution -u root -- useradd --create-home --shell /bin/bash opendde

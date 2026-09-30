@@ -16,11 +16,12 @@ $manifest = @('install.sh', 'opendde.ps1', $wheel) | ForEach-Object {
     (Get-FileHash -LiteralPath (Join-Path $fixtures $_) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_
 }
 $manifest | Set-Content -LiteralPath (Join-Path $fixtures 'SHA256SUMS') -Encoding ascii
-$boundary = @{ corrupt = $false; installations = 0 }
+$boundary = @{ corrupt = $false; installations = 0; distributions = @('OpenDDE', 'WSL'); lastDistribution = '' }
 # Isolate the external WSL/download boundaries; run the real installer and file writes.
 function global:wsl.exe {
     $global:LASTEXITCODE = 0
-    if ($args[0] -eq '--list') { return 'OpenDDE' }
+    if ($args[0] -eq '--list') { return $boundary.distributions }
+    if ($args[0] -eq '-d') { $boundary.lastDistribution = $args[1] }
     if ('whoami' -in $args) { return 'researcher' }
     if ('printenv' -in $args) { return '/home/researcher' }
     if ('test' -in $args) { return }
@@ -70,6 +71,26 @@ try {
     }
     & (Join-Path $repository 'install.ps1') -InstallRoot $target
     if ($boundary.installations -ne 2) { throw 'Upgrade did not reuse the saved WSL distribution and account.' }
+    $sharedTarget = $target + ' shared workspace'
+    & (Join-Path $repository 'install.ps1') -InstallRoot $sharedTarget
+    $sharedConfig = Get-Content -LiteralPath (Join-Path $sharedTarget 'bin/workbench.json') -Raw | ConvertFrom-Json
+    if ($sharedConfig.distribution -ne 'WSL' -or $boundary.lastDistribution -ne 'WSL') { throw 'Fresh application setup did not reuse the existing shared WSL environment.' }
+    & (Join-Path $repository 'install.ps1') -InstallRoot $sharedTarget
+    if ($boundary.installations -ne 4 -or $boundary.lastDistribution -ne 'WSL') { throw 'Shared-workspace upgrade changed its saved distribution.' }
+    $guardTarget = $target + ' retained disk'
+    $retainedDisk = Join-Path $guardTarget 'WSL/ext4.vhdx'
+    New-Item -ItemType Directory -Path (Split-Path $retainedDisk) -Force | Out-Null
+    [IO.File]::WriteAllText($retainedDisk, 'Retained user disk')
+    $boundary.distributions = @()
+    $guarded = $false
+    try {
+        & (Join-Path $repository 'install.ps1') -Distribution Ubuntu-24.04 -InstallRoot $guardTarget
+    } catch {
+        if ($_.Exception.Message -notlike 'The shared Linux disk already exists.*') { throw }
+        $guarded = $true
+    }
+    if (!$guarded -or [IO.File]::ReadAllText($retainedDisk) -ne 'Retained user disk' -or $boundary.installations -ne 4) { throw 'Existing shared disk was not preserved.' }
+    $boundary.distributions = @('OpenDDE','WSL')
     $boundary.corrupt = $true
     $rejected = $false
     try {
@@ -78,7 +99,7 @@ try {
         if ($_.Exception.Message -notlike 'Release checksum mismatch:*') { throw }
         $rejected = $true
     }
-    if (!$rejected -or $boundary.installations -ne 2) { throw 'Corrupt release reached the installation boundary.' }
+    if (!$rejected -or $boundary.installations -ne 4) { throw 'Corrupt release reached the installation boundary.' }
     Write-Output 'Windows installer paths, verified local files, corruption rejection, configuration and aliases passed.'
 } finally {
     [Environment]::SetEnvironmentVariable('Path', $previousPath, 'User')

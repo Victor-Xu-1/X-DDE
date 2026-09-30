@@ -207,6 +207,8 @@ Install/build using the commands above, configure `.env.example`, and run the ap
 
 0.4 remains a release candidate until the target-server matrix, native inference and service/LLM calls pass. See [server acceptance](docs/server-acceptance.md). Local acceptance covers installation, lifecycle and browser/editor behavior; it does not establish scientific inference readiness.
 
+On Windows, updates reuse the distribution/account in `bin/workbench.json`. A new application setup prefers an existing shared `WSL` distribution. If a fresh Linux installation is required, the default E: system disk lives under `E:\WSL\system`; an existing `ext4.vhdx` is never overwritten or migrated automatically. The owner's source/runtime/data/cache remain in that E-backed disk, accessed through `\\wsl.localhost\WSL\`. Internal Linux paths such as `/opt/opendde` remain valid.
+
 ## License and provenance
 
 X-DDE original code is [Apache-2.0](LICENSE), with attribution retained in [NOTICE](NOTICE). [OpenDDE](https://github.com/aurekaresearch/OpenDDE) and [OpenDDE Harness](https://github.com/aurekaresearch/OpenDDE-Harness) remain external dependencies under their upstream licenses. The owner-provided reference image is retained for style only; its third-party artwork and marks are not relicensed by the code license. No upstream model weights, private data, secrets or proprietary editor implementation are included.

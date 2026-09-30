@@ -172,3 +172,92 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             page.screenshot(path=str(evidence / "final-browser-state.png"), full_page=True)
             context.close()
             browser.close()
+
+
+def test_compact_transparent_brand():
+    """Check actual PNG alpha and visible brand geometry at every supported theme/width."""
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        try:
+            page.goto(os.environ["WB_BROWSER_URL"])
+            raster = page.evaluate(
+                """async () => {
+                    const result = {};
+                    for (const name of ['x-dde-logo.png', 'x-dde-mark.png',
+                            'x-dde-wordmark.png', 'favicon.png', 'apple-touch-icon.png']) {
+                        const image = new Image();
+                        image.src = '/brand/' + name;
+                        await image.decode();
+                        const canvas = document.createElement('canvas');
+                        canvas.width = image.naturalWidth;
+                        canvas.height = image.naturalHeight;
+                        const context = canvas.getContext('2d', {willReadFrequently: true});
+                        context.drawImage(image, 0, 0);
+                        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                        let clear = 0, solid = 0;
+                        for (let offset = 3; offset < pixels.length; offset += 4) {
+                            if (pixels[offset] === 0) clear++;
+                            if (pixels[offset] >= 200) solid++;
+                        }
+                        const count = canvas.width * canvas.height;
+                        result[name] = {
+                            clear: clear / count, solid: solid / count,
+                            corners: [0, canvas.width - 1,
+                                (canvas.height - 1) * canvas.width, count - 1]
+                                .map(index => pixels[index * 4 + 3])
+                        };
+                    }
+                    return result;
+                }"""
+            )
+            for asset, alpha in raster.items():
+                assert alpha["corners"] == [0, 0, 0, 0], asset
+                assert alpha["clear"] > 0.25, asset
+                assert alpha["solid"] > 0.1, asset
+            for theme, label in (("warm", "暖色"), ("light", "纯白"), ("dark", "夜间黑")):
+                page.set_viewport_size({"width": 1440, "height": 1000})
+                open_settings(page)
+                page.get_by_role("radio", name=label, exact=True).check()
+                expect(page.locator("html")).to_have_attribute("data-theme", theme)
+                page.get_by_role("button", name="全部能力", exact=True).click()
+                for width in (390, 768, 1440):
+                    page.set_viewport_size({"width": width, "height": 1000})
+                    brand = page.get_by_role("button", name="X-DDE", exact=True)
+                    expect(brand).to_be_visible()
+                    mark = brand.locator(".studio-brand-mark")
+                    expect(mark).to_be_visible()
+                    assert mark.evaluate("node => node.complete && node.naturalWidth > 0")
+                    mark_box = mark.bounding_box()
+                    assert 20 <= mark_box["width"] <= 24.5
+                    assert 20 <= mark_box["height"] <= 24.5
+                    assert 40 <= brand.bounding_box()["height"] <= 48
+                    assert page.get_by_role("navigation", name="主导航").bounding_box()["y"] < 120
+                    assert (
+                        brand.evaluate("node => getComputedStyle(node).backgroundColor")
+                        == "rgba(0, 0, 0, 0)"
+                    )
+                    wordmark = brand.locator(".studio-brand-wordmark")
+                    if width > 960:
+                        expect(wordmark).to_be_visible()
+                        assert 80 <= wordmark.bounding_box()["width"] <= 84.5
+                        assert wordmark.bounding_box()["height"] < 20
+                        assert wordmark.evaluate("node => getComputedStyle(node).filter") == (
+                            "brightness(0) invert(1)" if theme == "dark" else "none"
+                        )
+                    else:
+                        expect(wordmark).to_be_hidden()
+                    assert page.evaluate(
+                        "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                    )
+                    page.screenshot(path=str(evidence / f"brand-{theme}-{width}.png"))
+                page.get_by_role("button", name="X-DDE", exact=True).click()
+                expect(page.get_by_role("heading", name="全部能力", exact=True)).to_be_visible()
+            assert not errors
+        finally:
+            page.close()
+            browser.close()

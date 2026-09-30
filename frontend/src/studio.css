@@ -25,17 +25,6 @@ body {
   border-right: 1px solid var(--line);
   padding: 10px 7px 13px;
 }
-.studio-brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  padding: 0 16px 10px;
-  color: var(--ink);
-  min-height: 58px;
-}
 .studio-sidebar nav {
   display: flex;
   flex-direction: column;
@@ -954,9 +943,6 @@ body {
   .studio-sidebar {
     padding: 9px 5px;
   }
-  .studio-brand {
-    padding: 4px;
-  }
   .studio-sidebar nav button {
     justify-content: center;
     padding: 8px;
@@ -986,9 +972,6 @@ body {
     position: static;
     display: block;
     padding: 6px;
-  }
-  .studio-brand {
-    display: none;
   }
   .studio-sidebar nav {
     flex-direction: row;
@@ -1064,9 +1047,6 @@ body {
   position: sticky;
   top: 0;
   z-index: 30;
-}
-.studio-brand {
-  flex-shrink: 0;
 }
 .studio-sidebar nav {
   min-height: 0;
