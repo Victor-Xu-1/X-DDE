@@ -47,6 +47,11 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     from opendde_workbench.deployment.docking_install import install_docking
     from opendde_workbench.settings import Settings
 
+    # Native environment isolation must not change where the already installed browser lives.
+    browser_cache = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or str(
+        Path.home() / ".cache/ms-playwright"
+    )
+    monkeypatch.setenv("PLAYWRIGHT_BROWSERS_PATH", browser_cache)
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     root = tmp_path / "components"
     root.mkdir()

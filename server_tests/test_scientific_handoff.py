@@ -139,3 +139,10 @@ def test_atom_map_identifiers_do_not_create_false_stereochemical_changes():
     assert chemistry.plain_smiles(first) == Chem.MolToSmiles(
         Chem.MolFromSmiles("F[C@H](Cl)Br"), isomericSmiles=True
     )
+
+    trans = Chem.MolFromSmiles("F/C=C/F")
+    cis = Chem.MolFromSmiles("F/C=C" + chr(92) + "F")
+    for mol in (trans, cis):
+        for atom in mol.GetAtoms():
+            atom.SetAtomMapNum(atom.GetIdx() + 1)
+    assert chemistry.plain_smiles(trans) != chemistry.plain_smiles(cis)

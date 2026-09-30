@@ -100,7 +100,7 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
-      {data.notes && (
+      {data.notes && job.request.operation !== "docking" && (
         <p className="notice">
           {zh && job.request.operation === "properties"
             ? "这些是 RDKit 计算描述符。QED 表示类药性，SA 是合成难易度启发式指标；不代表 ADMET 或实验药效。"

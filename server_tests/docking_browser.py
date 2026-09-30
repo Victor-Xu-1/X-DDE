@@ -56,6 +56,12 @@ def inspect_results(settings, image, job_id, pose, reference, evidence):
                     ),
                 )
                 page.goto(base + "/#task=" + job_id)
+                expect(
+                    page.get_by_text(
+                        "Empirical docking scores and model outputs are not measured affinity.",
+                        exact=False,
+                    )
+                ).to_have_count(0)
                 panel = page.get_by_role("region", name="结合模式与下一步", exact=True)
                 panel.get_by_role("button", name=f"姿势 {pose['record'] + 1}", exact=True).click()
                 expect(panel.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(
