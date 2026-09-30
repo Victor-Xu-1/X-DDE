@@ -216,3 +216,5 @@ On Windows, updates reuse the distribution/account in `bin/workbench.json`. A ne
 X-DDE original code is [Apache-2.0](LICENSE), with attribution retained in [NOTICE](NOTICE). [OpenDDE](https://github.com/aurekaresearch/OpenDDE) and [OpenDDE Harness](https://github.com/aurekaresearch/OpenDDE-Harness) remain external dependencies under their upstream licenses. The owner-provided reference image is retained for style only; its third-party artwork and marks are not relicensed by the code license. No upstream model weights, private data, secrets or proprietary editor implementation are included.
 
 The current source uses Apache-2.0. Previously published MIT releases retain the license distributed with those releases; third-party code and models are not relicensed.
+
+能力目录由后端维护。修改能力或 DiffSBDD 参数契约后，在已安装锁定依赖的源码目录执行 `PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py`，CI 使用同一命令的 `--check` 检查前端是否同步。界面支持八个 DiffSBDD 模型和四类设计任务，服务器就绪与科学验收状态分别记录。

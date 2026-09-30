@@ -27,6 +27,7 @@ jobs:
         run: |
           uv sync --locked --group dev
           uv run --locked ruff check src tests server_tests
+          PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py --check
           uv run --locked pytest -q
       - name: Build installable wheel
         run: |

@@ -261,3 +261,51 @@ def test_compact_transparent_brand():
         finally:
             page.close()
             browser.close()
+
+
+def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        try:
+            page.goto(os.environ["WB_BROWSER_URL"])
+            for title in [
+                "口袋条件分子生成",
+                "局部重设计",
+                "分子多样化",
+                "分子优化",
+                "口袋检查",
+                "准备受体结构",
+                "分子相互作用",
+                "候选描述符",
+                "候选导出",
+            ]:
+                page.get_by_role("button", name=title, exact=True).click()
+                expect(page.get_by_role("heading", name=title, exact=True)).to_be_visible()
+                expect(page.get_by_role("button", name="创建任务", exact=True)).to_be_disabled()
+                if title in ["口袋条件分子生成", "局部重设计", "分子多样化", "分子优化"]:
+                    model = page.get_by_role("combobox", name="使用哪个模型？", exact=True)
+                    assert model.locator("option").count() == (
+                        8 if title == "口袋条件分子生成" else 4
+                    )
+                    page.get_by_role("button", name="专家微调", exact=True).click()
+                    expect(
+                        page.get_by_role(
+                            "textbox", name="全部原生参数（服务器逐项校验）", exact=True
+                        )
+                    ).to_be_visible()
+                for width in (390, 768, 1440):
+                    page.set_viewport_size({"width": width, "height": 1000})
+                    assert page.evaluate(
+                        "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                    )
+                page.screenshot(path=str(evidence / ("diff-" + title + ".png")), full_page=True)
+                page.get_by_role("button", name="返回全部能力", exact=True).click()
+            assert page.request.get(os.environ["WB_BROWSER_URL"] + "/api/jobs").json() == []
+            assert not errors
+        finally:
+            browser.close()

@@ -21,6 +21,7 @@ from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .assets import AssetStore
 from .backend_router import BackendRouter
+from .capabilities import register_capabilities
 from .checkpoints import registered, resolve
 from .deployment.manager import DeploymentManager
 from .deployment.provisioners import states as provisioner_states
@@ -428,6 +429,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             or await scientific_busy()
         }
 
+    register_capabilities(app, settings, health)
     register_deployments(app, deployments, mutation, scientific_busy)
 
     @app.post("/api/lifecycle/stop", dependencies=[Depends(mutation)])

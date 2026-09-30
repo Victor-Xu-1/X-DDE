@@ -115,7 +115,7 @@ def prepare(payload, bindings, directory, output):
     result["structure"] = "prepared.pdb"
     result["notes"] = (
         "Coordinates are preserved; filtering does not repair missing atoms "
-            "or optimize the protein."
+        "or optimize the protein."
     )
     return result
 
@@ -207,4 +207,28 @@ def molecular_collection(payload, bindings, directory, output):
         "engine": "RDKit " + rdBase.rdkitVersion,
         "artifact": "selected.sdf",
         "notes": "Calculated descriptors, not ADMET or binding activity.",
+    }
+
+
+def inspect_identity(payload, bindings, directory, output):
+    """Canonical atom order is the exact RDKit order used by generation_input."""
+    from rdkit import rdBase
+
+    mol = molecule(payload["molecule"], bindings, directory)
+    artifact = "selection.sdf"
+    (output / artifact).write_text(sdf(mol))
+    return {
+        "molecule_artifact": artifact,
+        "reference": payload["molecule"],
+        "atoms": [
+            {
+                "index": atom.GetIdx(),
+                "element": atom.GetSymbol(),
+                "selectable": atom.GetAtomicNum() > 1,
+            }
+            for atom in mol.GetAtoms()
+        ],
+        "identity_basis": "rdkit_removeHs_record_order",
+        "engine": "RDKit " + rdBase.rdkitVersion,
+        "notes": "Atom identity for this exact input version. Not a binding-pose validation.",
     }

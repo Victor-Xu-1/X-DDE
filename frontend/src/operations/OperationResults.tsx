@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
+import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 
@@ -54,6 +55,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "diffsbdd",
     "properties",
     "inspect",
     "json",
@@ -207,6 +209,9 @@ export function OperationResults({
               />
             </details>
           ))}
+      {job.request.operation === "diffsbdd" && (
+        <DiffResults job={job} data={data} language={language} />
+      )}
       {job.request.operation === "harness" && (
         <ResultTree value={data.result ?? data} zh={zh} />
       )}

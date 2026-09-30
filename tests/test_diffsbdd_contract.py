@@ -78,3 +78,17 @@ def test_stale_fixed_atoms_pocket_and_insertion_codes_are_rejected():
     value["payload"]["pocket"]["residues"][0]["insertion_code"] = "A"
     with pytest.raises(ValidationError, match="insertion"):
         DiffTask.model_validate(value)
+
+
+def test_atom_identity_uses_same_task_queue_and_cpu_only():
+    ref = reference()
+    task = TASK_ADAPTER.validate_python(
+        {
+            "operation": "diffsbdd",
+            "name": "identity",
+            "payload": {"mode": "identity", "molecule": ref},
+        }
+    )
+    assert not needs_gpu(task)
+    assert input_identifiers(task) == {ref["asset_id"]}
+    assert TASK_ADAPTER.validate_json(task.model_dump_json()) == task

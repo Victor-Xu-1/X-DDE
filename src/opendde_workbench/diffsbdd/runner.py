@@ -10,6 +10,7 @@ from pathlib import Path
 from chemistry import (
     edit,
     generation_input,
+    inspect_identity,
     inspect_pocket,
     interactions,
     molecular_collection,
@@ -89,6 +90,7 @@ def main():
     else:
         handler = {
             "pocket": inspect_pocket,
+            "identity": inspect_identity,
             "prepare": prepare,
             "edit": edit,
             "interactions": interactions,

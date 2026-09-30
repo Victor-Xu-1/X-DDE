@@ -54,14 +54,14 @@ it("reports filtered counts and recovers from an empty search with one action", 
 
   await user.type(search, "  rDKit  ");
   expect(screen.getByRole("status")).toHaveTextContent(
-    "Showing 1 of 18 capabilities",
+    `Showing 1 of ${tools.length} capabilities`,
   );
   expect(
     screen.getByRole("heading", { name: "Calculate molecular properties" }),
   ).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Design" }));
   expect(screen.getByRole("status")).toHaveTextContent(
-    "Showing 0 of 18 capabilities",
+    `Showing 0 of ${tools.length} capabilities`,
   );
   expect(
     screen.getByRole("heading", { name: "No matching capabilities" }),
@@ -76,7 +76,7 @@ it("reports filtered counts and recovers from an empty search with one action", 
     screen.getByRole("button", { name: "All capabilities" }),
   ).toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("status")).toHaveTextContent(
-    "Showing 18 of 18 capabilities",
+    `Showing ${tools.length} of ${tools.length} capabilities`,
   );
   expect(
     screen.queryByRole("heading", { name: "No matching capabilities" }),
@@ -87,13 +87,17 @@ it("supports bilingual search and clearing filters in Chinese", async () => {
   const user = userEvent.setup();
   render(<ToolCenter {...props("zh")} />);
   await user.type(screen.getByRole("searchbox"), "molecular properties");
-  expect(screen.getByRole("status")).toHaveTextContent("显示 1 / 18 项能力");
+  expect(screen.getByRole("status")).toHaveTextContent(
+    `显示 1 / ${tools.length} 项能力`,
+  );
   expect(
     screen.getByRole("heading", { name: "计算小分子性质", level: 2 }),
   ).toBeVisible();
 
   await user.click(screen.getByRole("button", { name: "清空搜索与筛选" }));
-  expect(screen.getByRole("status")).toHaveTextContent("显示 18 / 18 项能力");
+  expect(screen.getByRole("status")).toHaveTextContent(
+    `显示 ${tools.length} / ${tools.length} 项能力`,
+  );
   expect(screen.getByRole("searchbox")).toHaveValue("");
 });
 
@@ -140,6 +144,8 @@ it("preserves active form input on language changes and restores filtered naviga
     "aria-pressed",
     "true",
   );
-  expect(screen.getByRole("status")).toHaveTextContent("显示 1 / 18 项能力");
+  expect(screen.getByRole("status")).toHaveTextContent(
+    `显示 1 / ${tools.length} 项能力`,
+  );
   expect(screen.getByRole("button", { name: "计算小分子性质" })).toHaveFocus();
 });

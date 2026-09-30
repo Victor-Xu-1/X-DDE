@@ -62,6 +62,7 @@ export type TaskRequest =
   | PropertyTask
   | ResourceTask
   | HarnessTask
+  | import("../diffsbdd/types").DiffTask
   | (BaseTask & { operation: "doctor" });
 export const isPrediction = (value: TaskRequest): value is Prediction =>
   !value.operation || value.operation === "predict";

@@ -177,6 +177,13 @@ export class MolecularScene {
       atom: atom.atom ?? "",
       element: atom.elem ?? "",
       count: this.selected.length,
+      identity: {
+        chain: atom.chain ?? "",
+        number: atom.resi ?? 0,
+        insertion_code: atom.icode ?? "",
+        alternate_location: atom.altLoc ?? "",
+      },
+      source_atom_index: atom.serial,
     });
     if (this.options.pick === "distance") {
       if (this.measurement.length === 2) this.measurement = [];

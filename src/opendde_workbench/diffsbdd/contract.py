@@ -112,13 +112,24 @@ class InteractionInput(InputModel):
     molecule: MoleculeRef
 
 
+class IdentityInput(InputModel):
+    mode: Literal["identity"]
+    molecule: MoleculeRef
+
+
 class MolecularInput(InputModel):
     mode: Literal["properties", "export"]
     molecules: list[MoleculeRef] = Field(min_length=1, max_length=100)
 
 
 DiffInput = Annotated[
-    DesignInput | PocketInput | PrepareInput | EditInput | InteractionInput | MolecularInput,
+    DesignInput
+    | PocketInput
+    | PrepareInput
+    | EditInput
+    | InteractionInput
+    | MolecularInput
+    | IdentityInput,
     Field(discriminator="mode"),
 ]
 

@@ -8,6 +8,8 @@ import { ResourceForm } from "./ResourceForm";
 import { HarnessForm } from "./HarnessForm";
 import { CampaignForm } from "./CampaignForm";
 import "./operations.css";
+import { DiffForm } from "../diffsbdd/DiffForm";
+import type { DiffMode } from "../diffsbdd/types";
 
 export function ToolCenter({
   language,
@@ -99,7 +101,14 @@ export function ToolCenter({
       </header>
       {current ? (
         <>
-          {selected === "properties" ? (
+          {selected?.startsWith("diffsbdd.") ? (
+            <DiffForm
+              key={selected}
+              mode={selected.slice(9) as DiffMode}
+              language={language}
+              onCreated={onCreated}
+            />
+          ) : selected === "properties" ? (
             <PropertyForm language={language} onCreated={onCreated} />
           ) : selected === "features" ? (
             <FeatureForm language={language} onCreated={onCreated} />
