@@ -86,7 +86,7 @@ export function Navigation({
       <button className="studio-brand" onClick={() => onView("tools")}>
         <DeploymentUnitOutlined className="studio-brand-mark" />
         <span>
-          <strong>OpenDDE</strong>
+          <strong>X-DDE</strong>
           <small>{zh ? "药 物 研 究 工 作 台" : "DISCOVERY WORKBENCH"}</small>
         </span>
       </button>

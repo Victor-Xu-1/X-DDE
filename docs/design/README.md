@@ -68,7 +68,7 @@ This document remains the capability/design authority. The 2026-09-30 architectu
 
 ### Platform and engine responsibilities
 
-OpenDDE Workbench is the project/research workspace. OpenDDE is a structure-prediction engine within it. Organize research around evidence → hypothesis → design → computation → comparison → experimental feedback. A model accepting a ligand, peptide or nucleic acid does not establish a complete validated research workflow for that object. Confidence, docking scores, affinity and measured activity remain distinct.
+X-DDE is the project/research workspace. OpenDDE is a structure-prediction engine within it. Organize research around evidence → hypothesis → design → computation → comparison → experimental feedback. A model accepting a ligand, peptide or nucleic acid does not establish a complete validated research workflow for that object. Confidence, docking scores, affinity and measured activity remain distinct.
 
 Keep a modular control backend, the existing frontend and isolated scientific environments. Domain modules communicate through versioned scientific objects and typed step requests, never another module's private routes or scripts. Do not introduce a second job queue, antibody campaign loop or general agent runtime. Native Harness remains authoritative inside its campaigns; Workbench stores immutable handoffs, campaign identifiers, idempotency and reconciliation state.
 

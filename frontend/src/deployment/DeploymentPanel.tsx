@@ -159,14 +159,14 @@ export function DeploymentPanel({
                   ? "uv 由工作台安装器提供；Ubuntu 的 Docker 可在终端使用下方命令安装。GPU 驱动和 NVIDIA Container Toolkit 请按 README 配置。"
                   : "The installer provides uv. For Docker on Ubuntu use the command below; configure the GPU driver and NVIDIA Container Toolkit as documented in README."}
               </p>
-              <code>sudo $(command -v opendde) setup system</code>
+              <code>sudo $(command -v xdde) setup system</code>
             </aside>
           )}
           {data.restart_required && (
             <p className="notice">
               {zh
-                ? "计算组件安装或卸载后，暂停剩余安装并执行 opendde restart 使配置生效。编辑器可以直接打开；安装成功不代表模型、GPU 或 Harness 服务已就绪。"
-                : "After compute changes, pause remaining installations and run opendde restart. Editors open immediately. Installed does not imply models, GPU or Harness service are ready."}
+                ? "计算组件安装或卸载后，暂停剩余安装并执行 xdde restart 使配置生效。编辑器可以直接打开；安装成功不代表模型、GPU 或 Harness 服务已就绪。"
+                : "After compute changes, pause remaining installations and run xdde restart. Editors open immediately. Installed does not imply models, GPU or Harness service are ready."}
             </p>
           )}
           <ComponentLibrary
@@ -186,27 +186,27 @@ export function DeploymentPanel({
             <h2>{zh ? "常用终端命令" : "Terminal quick reference"}</h2>
             <dl>
               {[
-                ["OpenDDE UI", "启动并打开浏览器", "Start and open browser"],
+                ["X-DDE UI", "启动并打开浏览器", "Start and open browser"],
                 [
-                  "opendde dashboard",
+                  "xdde dashboard",
                   "同上，大小写均可",
                   "Same on Windows; commands ignore case",
                 ],
                 [
-                  "opendde stop",
+                  "xdde stop",
                   "安全关闭；先暂停安装和计算",
                   "Stop safely; pause installs and tasks first",
                 ],
                 [
-                  "opendde restart",
+                  "xdde restart",
                   "重启并应用计算配置",
                   "Restart with updated compute configuration",
                 ],
-                ["opendde status", "查看服务状态", "Show service status"],
-                ["opendde doctor", "检查系统依赖", "Check prerequisites"],
-                ["opendde logs", "查看启动日志", "Read startup log"],
+                ["xdde status", "查看服务状态", "Show service status"],
+                ["xdde doctor", "检查系统依赖", "Check prerequisites"],
+                ["xdde logs", "查看启动日志", "Read startup log"],
                 [
-                  "opendde ui --no-auto-deploy",
+                  "xdde ui --no-auto-deploy",
                   "启动但不自动创建安装任务",
                   "Start without scheduling automatic installs",
                 ],

@@ -10,7 +10,7 @@ from .locations import home
 
 
 def parser():
-    p = argparse.ArgumentParser(prog="OpenDDE", description="OpenDDE research workbench")
+    p = argparse.ArgumentParser(prog="X-DDE", description="X-DDE research workbench")
     p.add_argument(
         "command",
         nargs="?",
@@ -52,9 +52,9 @@ def main():
         p.error("Port must be between 1024 and 65535.")
     command = args.action if args.command in {"ui", "dashboard"} and args.action else args.command
     if args.action and args.command not in {"ui", "dashboard", "setup"}:
-        p.error("Use opendde COMMAND, or opendde ui start|stop|restart|status.")
+        p.error("Use xdde COMMAND, or xdde ui start|stop|restart|status.")
     if args.action == "system" and args.command != "setup":
-        p.error("Use opendde setup system.")
+        p.error("Use xdde setup system.")
     from .service_control import logs, start, status, stop
 
     try:
@@ -68,7 +68,7 @@ def main():
             print(logs())
         elif command in {"stop", "close"}:
             stop()
-            print("OpenDDE UI stopped. Your data is retained.")
+            print("X-DDE UI stopped. Your data is retained.")
         elif command == "doctor":
             from .deployment.catalog import prerequisites
 
@@ -91,12 +91,12 @@ def main():
             if command == "restart":
                 stop()
             url = start(args.port, not args.no_auto_deploy)
-            print(f"OpenDDE {__version__}: {url}")
-            print("Stop: opendde stop | Status: opendde status | Logs: opendde logs")
+            print(f"X-DDE {__version__}: {url}")
+            print("Stop: xdde stop | Status: xdde status | Logs: xdde logs")
             if not args.no_browser:
                 webbrowser.open(url)
     except (ValueError, RuntimeError, OSError, TimeoutError) as exc:
-        print(f"OpenDDE: {exc}", file=sys.stderr)
+        print(f"X-DDE: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
 

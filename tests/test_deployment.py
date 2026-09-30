@@ -11,6 +11,7 @@ import tarfile
 import threading
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -200,3 +201,11 @@ def test_cli_real_start_status_stop_case_insensitive(tmp_path):
         assert not json.loads(invoke("status").stdout)["running"]
     finally:
         invoke("stop")
+
+
+@pytest.mark.parametrize("name", ["X-DDE", "x-dde", "xdde", "opendde", "OpenDDE", "OPENDDE"])
+def test_installed_brand_and_legacy_commands(name):
+    executable = Path(sys.executable).parent / name
+    result = subprocess.run([str(executable), "HeLp"], capture_output=True, text=True, timeout=10)
+    assert result.returncode == 0, result.stderr
+    assert "usage: X-DDE" in result.stdout

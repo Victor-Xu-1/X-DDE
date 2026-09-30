@@ -73,7 +73,7 @@ export function App() {
           : [];
   useEffect(() => {
     document.documentElement.lang = zh ? "zh-CN" : "en";
-    document.title = t("workspace") + " · OpenDDE";
+    document.title = t("workspace") + " · X-DDE";
   }, [language]);
   useEffect(() => {
     if (job && !isPrediction(job.request))
@@ -291,7 +291,7 @@ export function App() {
                 />
               )}
             <footer className="studio-footer">
-              OpenDDE Workbench ·{" "}
+              X-DDE ·{" "}
               {zh
                 ? "OpenDDE · Harness · RDKit，按实际能力提供研究工具"
                 : "Research tools powered by OpenDDE, Harness and RDKit"}

@@ -20,8 +20,8 @@ expected="$(cut -d ' ' -f1 "$archive.sha256")"
 printf '%s  %s\n' "$expected" "$archive" | sha256sum --check
 tar -xzf "$archive" -C "$prefix/downloads" --no-same-owner
 install -m 0755 "$prefix/downloads/uv-x86_64-unknown-linux-gnu/uv" "$prefix/bin/uv"
-base="https://github.com/Victor-Xu-1/opendde-workbench/releases/download/$release"
-wheel="opendde_workbench-${release#v}-py3-none-any.whl"
+base="https://github.com/Victor-Xu-1/X-DDE/releases/download/$release"
+wheel="x_dde-${release#v}-py3-none-any.whl"
 fetch "$base/$wheel" "$prefix/downloads/$wheel"
 fetch "$base/SHA256SUMS" "$prefix/downloads/SHA256SUMS"
 expected="$(awk -v filename="$wheel" '$2 == filename {print $1}' "$prefix/downloads/SHA256SUMS")"
@@ -29,9 +29,9 @@ expected="$(awk -v filename="$wheel" '$2 == filename {print $1}' "$prefix/downlo
 printf '%s  %s\n' "$expected" "$prefix/downloads/$wheel" | sha256sum --check
 export UV_TOOL_DIR="$prefix/tools" UV_TOOL_BIN_DIR="$prefix/bin" UV_CACHE_DIR="$prefix/cache"
 "$prefix/bin/uv" tool install --force --python 3.12 "$prefix/downloads/$wheel"
-"$prefix/bin/opendde" version
+"$prefix/bin/xdde" version
 profile_line="$(printf 'export PATH=%q:"$PATH"' "$prefix/bin")"
 if ! grep -Fxq "$profile_line" "$HOME/.profile" 2>/dev/null; then
-    printf '\n# OpenDDE Workbench\n%s\n' "$profile_line" >> "$HOME/.profile"
+    printf '\n# X-DDE\n%s\n' "$profile_line" >> "$HOME/.profile"
 fi
-printf '\nInstalled. Run: export PATH="%s/bin:$PATH"\nThen: OpenDDE UI\n' "$prefix"
+printf '\nInstalled. Run: export PATH="%s/bin:$PATH"\nThen: X-DDE UI\n' "$prefix"

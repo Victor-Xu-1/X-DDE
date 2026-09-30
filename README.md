@@ -1,4 +1,4 @@
-# OpenDDE Workbench
+# X-DDE
 
 [中文](#中文) · [English](#english) · [能力与源码对照](docs/design/README.md) · [服务器验收](docs/server-acceptance.md)
 
@@ -8,54 +8,54 @@ An independent MIT workbench for the public scientific capabilities of OpenDDE a
 
 ## 简单安装 / Quick installation
 
-从 [GitHub Releases](https://github.com/Victor-Xu-1/opendde-workbench/releases) 下载 `install.ps1`（Windows）或 `install.sh`（Linux）。安装器下载带校验和的发行包，不需要编译前端，也不要求安装 Node.js。
+从 [GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases) 下载 `install.ps1`（Windows）或 `install.sh`（Linux）。安装器下载带校验和的发行包，不需要编译前端，也不要求安装 Node.js。
 
 Windows PowerShell：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
-OpenDDE UI
+X-DDE UI
 ```
 
 已安装 WSL 的用户可指定发行版、Linux 用户和 E 盘位置：
 
 ```powershell
-.\install.ps1 -Distribution OpenDDE -LinuxUser opendde -InstallRoot E:\OpenDDE\Workbench
+.\install.ps1 -Distribution OpenDDE -LinuxUser opendde -InstallRoot E:\X-DDE
 ```
 
-安装器优先使用 E 盘（没有 E 盘则使用当前用户应用目录）。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。新建 WSL 时磁盘文件位于所选 E 盘目录；已有 WSL 的磁盘位置保持不变。模型、代码缓存与编辑器目录可在面板另选。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `OpenDDE UI`、`opendde dashboard`。
+安装器优先使用 E 盘（没有 E 盘则使用当前用户应用目录）。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。新建 WSL 时磁盘文件位于所选 E 盘目录；已有 WSL 的磁盘位置保持不变。模型、代码缓存与编辑器目录可在面板另选。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `X-DDE UI`、`xdde dashboard`。
 
 Linux x86-64 / WSL2：
 
 ```bash
 bash install.sh
 export PATH="$HOME/.local/share/opendde-workbench/app/bin:$PATH"
-OpenDDE UI
+X-DDE UI
 ```
 
-Linux 可执行文件提供 `opendde`、`OpenDDE`、`OPENDDE` 三种写法；命令参数不区分大小写。再次运行安装器即可更新工作台，研究数据不随程序更新移除。
+主命令为 `X-DDE UI`、`x-dde ui` 或 `xdde dashboard`。之前的 `OpenDDE UI`、`opendde dashboard`、`OPENDDE UI` 均指向同一启动器；命令参数不区分大小写。再次运行安装器即可更新工作台，研究数据不随程序更新移除。
 
 | 命令 / Command | 作用 / Behavior |
 | --- | --- |
-| `OpenDDE UI` / `opendde dashboard` | 后台启动，自动打开浏览器 / Start and open browser |
-| `opendde stop` / `OpenDDE UI close` | 安全关闭；正在运行的任务或安装需先停止/暂停 |
-| `opendde restart` | 重启并载入新的计算组件配置 |
-| `opendde status` | 查看端口和服务状态 |
-| `opendde logs` | 查看最近的启动日志 |
-| `opendde doctor` | 检查系统与服务配置 |
-| `opendde ui --port 4321` | 选择其他本地端口 |
-| `opendde ui --no-auto-deploy` | 首次启动不自动创建安装任务 |
-| `opendde ui --no-browser` | 启动但不打开浏览器 |
+| `X-DDE UI` / `xdde dashboard` | 后台启动，自动打开浏览器 / Start and open browser |
+| `xdde stop` / `X-DDE UI close` | 安全关闭；正在运行的任务或安装需先停止/暂停 |
+| `xdde restart` | 重启并载入新的计算组件配置 |
+| `xdde status` | 查看端口和服务状态 |
+| `xdde logs` | 查看最近的启动日志 |
+| `xdde doctor` | 检查系统与服务配置 |
+| `xdde ui --port 4321` | 选择其他本地端口 |
+| `xdde ui --no-auto-deploy` | 首次启动不自动创建安装任务 |
+| `xdde ui --no-browser` | 启动但不打开浏览器 |
 
 首次使用：打开 **安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
 
 部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。更改安装位置不自动迁移已有数据。
 
-Ubuntu 系统依赖：`sudo $(command -v opendde) setup system` 安装 Docker 与基础工具；Docker 用户访问按 [Docker 官方说明](https://docs.docker.com/engine/install/linux-postinstall/) 配置，GPU 按 [NVIDIA Container Toolkit 官方说明](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) 配置。网页不自动获得管理员权限。Harness 计算服务、共享目录和 LLM 凭据仍在下方环境配置中设置；不会把“已安装”显示成“已能推理”。
+Ubuntu 系统依赖：`sudo $(command -v xdde) setup system` 安装 Docker 与基础工具；Docker 用户访问按 [Docker 官方说明](https://docs.docker.com/engine/install/linux-postinstall/) 配置，GPU 按 [NVIDIA Container Toolkit 官方说明](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) 配置。网页不自动获得管理员权限。Harness 计算服务、共享目录和 LLM 凭据仍在下方环境配置中设置；不会把“已安装”显示成“已能推理”。
 
 **分子与结构**：Ketcher 画分子、打开 MOL/SDF/SMILES、保存到工作台分子库、交接性质计算；Mol* 打开本地蛋白/复合物、查看序列、选择残基、修改显示与导出视图。Mol* 的显示编辑不是蛋白序列设计或结构能量优化。编辑器依赖在本机托管；Mol* 运行在独立的浏览器沙箱中，不能读取工作台会话和上传库。两者保留各自上游许可证，MIT 仅覆盖本工作台代码。
 
-安装状态和数据默认保存在 `~/.local/share/opendde-workbench`，可用 `WB_HOME` 和 `WB_STATE_DIR` 覆盖。计算组件更改后执行 `opendde restart`；显式 `WB_*` 设置优先于组件管理器。仅监听本机环回地址，服务器远程使用请通过 SSH 隧道。
+改名保留原内部模块与数据目录，已有记录不需要迁移。安装状态和数据默认保存在 `~/.local/share/opendde-workbench`，可用 `WB_HOME` 和 `WB_STATE_DIR` 覆盖。计算组件更改后执行 `xdde restart`；显式 `WB_*` 设置优先于组件管理器。仅监听本机环回地址，服务器远程使用请通过 SSH 隧道。
 
 ## 中文
 
@@ -86,8 +86,8 @@ Harness 的 `developability_filter.py` 在公开版本中是返回 `available: f
 以下命令在**目标服务器**执行；本次版本的完整部署验收尚待执行：
 
 ```bash
-git clone https://github.com/Victor-Xu-1/opendde-workbench.git
-cd opendde-workbench
+git clone https://github.com/Victor-Xu-1/X-DDE.git
+cd X-DDE
 git checkout main
 cd frontend
 npm ci
@@ -129,7 +129,7 @@ Harness 的 LLM、工具模型与计算池按上游安装文档配置。启动�
 set -a
 . ./.env
 set +a
-uv run --locked opendde-workbench --port 4320
+uv run --locked x-dde-server --port 4320
 ```
 
 工作台仅绑定 `127.0.0.1`，采用同源 CSRF 和 Host 校验。服务器使用 SSH 转发访问：
@@ -138,7 +138,7 @@ uv run --locked opendde-workbench --port 4320
 ssh -L 4320:127.0.0.1:4320 USER@SERVER
 ```
 
-浏览器打开 `http://127.0.0.1:4320/`。这是单用户研究工作台；不要直接作为无鉴权公网服务暴露。E 盘支持的 WSL 发行版仍可保存代码、模型和数据，但 0.3 不自动替换现有 0.2 服务。
+浏览器打开 `http://127.0.0.1:4320/`。这是单用户研究工作台；不要直接作为无鉴权公网服务暴露。E 盘支持的 WSL 发行版仍可保存代码、模型和数据，程序更新前需安全关闭正在运行的服务。
 
 ### 验证、构建与部署
 
@@ -153,7 +153,7 @@ uv run --locked pytest -q
 uv build --wheel
 ```
 
-CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证科学推理。真实科学运行与浏览器验收见 [服务器验收说明](docs/server-acceptance.md)。新增测试已提供；本机未运行测试套件或推理。不要把既有 0.2 的通过记录当作 0.3 验收。
+CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证科学推理。真实科学运行与浏览器验收见 [服务器验收说明](docs/server-acceptance.md)。新增测试已提供；本机未运行测试套件或推理。每个发布候选都必须通过其精确提交对应的 CI。
 
 部署前备份 `WB_STATE_DIR` 并停止工作台，确认原生设计任务已结束或明确交接；构建并安装精确提交对应的 wheel 后启动。0.3 只新增 `assets`、`batches`、`design_plans`、`queue_control` 表，保留旧任务。回退到 0.2 前须使用升级前的数据备份：0.2 不认识新增任务类型。不要直接删除共享模型、原生 Harness 任务或用户数据。
 
@@ -175,7 +175,7 @@ CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证�
 - **不能取消同步工具：**原生 ESM/分析等同步接口派发后没有取消协议；队列中可取消，派发后等待返回。异步折叠支持取消；远端取消无法确认时暂停队列，先检查原生服务。
 - **多记录 SDF：**性质计算支持多记录；结构预测的每个配体须为单个三维记录，不会悄悄只读取第一条。
 - **大置信度文件：**交互读取最多 64 MiB，矩阵按明确间隔取样；完整文件仍可下载，坐标为原生 token 索引。
-- **旧浏览器页面没有新功能：**该页面仍连接现有 0.2 服务；需在服务器验收并部署 0.3 候选后才会切换。
+- **旧浏览器页面没有新功能：**先查看 `xdde version`、`xdde status`，更新后执行 `xdde restart` 并刷新浏览器。
 
 ## English
 
@@ -183,7 +183,7 @@ The capability matrix is tied to audited upstream source, not to the reference s
 
 Install/build using the commands above, configure `.env.example`, and run the app on loopback. For Harness, configure an existing native installation and its default provider configuration. Scientific file tools require a shared directory mapped to the compute output root. The browser uses uploaded IDs, not filesystem paths or credentials. Native campaigns retain their own lifecycle; Workbench stores reviewed handoffs and never implements a second agent loop.
 
-0.3 remains a release candidate until the target-server matrix, native inference, service/LLM calls and browser workflows pass. See [server acceptance](docs/server-acceptance.md). No local runtime testing or replacement of the existing 0.2 installation was performed for this expansion.
+0.4 remains a release candidate until the target-server matrix, native inference and service/LLM calls pass. See [server acceptance](docs/server-acceptance.md). Local acceptance covers installation, lifecycle and browser/editor behavior; it does not establish scientific inference readiness.
 
 ## License and provenance
 

@@ -55,7 +55,7 @@ def status() -> dict:
 def logs() -> str:
     path = home() / "service.log"
     if not path.is_file():
-        return "No startup log yet. Run OpenDDE UI."
+        return "No startup log yet. Run X-DDE UI."
     with path.open("rb") as file:
         file.seek(max(0, path.stat().st_size - 16000))
         return file.read().decode(errors="replace")
@@ -96,7 +96,7 @@ def start(port: int, auto_deploy: bool) -> str:
         deadline = time.monotonic() + 30
         while time.monotonic() < deadline:
             if process.poll() is not None:
-                raise RuntimeError("UI startup failed. Run opendde logs for details.")
+                raise RuntimeError("UI startup failed. Run xdde logs for details.")
             try:
                 if session(port).get("instance") == instance:
                     return f"http://127.0.0.1:{port}/"
@@ -104,7 +104,7 @@ def start(port: int, auto_deploy: bool) -> str:
                 time.sleep(0.2)
         if alive(record):
             os.killpg(process.pid, signal.SIGTERM)
-        raise TimeoutError("UI did not become ready in30 seconds. Run opendde logs.")
+        raise TimeoutError("UI did not become ready in 30 seconds. Run xdde logs.")
 
 
 def stop() -> None:

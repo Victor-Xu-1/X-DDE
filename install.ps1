@@ -7,7 +7,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if (!$InstallRoot) {
-    $InstallRoot = if (Test-Path -LiteralPath 'E:\') { 'E:\OpenDDE\Workbench' } else { Join-Path $env:LOCALAPPDATA 'OpenDDE-Workbench' }
+    $InstallRoot = if (Test-Path -LiteralPath 'E:\') { 'E:\X-DDE' } else { Join-Path $env:LOCALAPPDATA 'X-DDE' }
 }
 $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
 if ($InstallRoot -notmatch '^[A-Za-z]:\\' -or $InstallRoot.Contains('"')) { throw 'Choose an absolute local drive directory.' }
@@ -33,7 +33,7 @@ if (!$linuxHome.StartsWith('/')) { throw 'Could not resolve the Linux account ho
 $prefix = "$linuxHome/.local/share/opendde-workbench/app"
 New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
 # Both scripts come from the same immutable release as the wheel.
-$base = "https://github.com/Victor-Xu-1/opendde-workbench/releases/download/$Release"
+$base = "https://github.com/Victor-Xu-1/X-DDE/releases/download/$Release"
 Invoke-WebRequest "$base/install.sh" -OutFile (Join-Path $InstallRoot 'install.sh')
 & wsl.exe -d $Distribution -u $LinuxUser -- bash "$linuxRoot/install.sh" $Release $prefix
 if ($LASTEXITCODE -ne 0) { throw 'Workbench install failed. Fix the displayed error and run this installer again.' }
@@ -41,10 +41,12 @@ $bin = Join-Path $InstallRoot 'bin'
 New-Item -ItemType Directory -Path $bin -Force | Out-Null
 Invoke-WebRequest "$base/opendde.ps1" -OutFile (Join-Path $bin 'opendde.ps1')
 @{ distribution = $Distribution; user = $LinuxUser; prefix = $prefix; home = "$linuxHome/.local/share/opendde-workbench" } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding UTF8
-'@echo off', 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0opendde.ps1" %*', 'exit /b %errorlevel%' | Set-Content -LiteralPath (Join-Path $bin 'opendde.cmd') -Encoding ASCII
+foreach ($launcher in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
+    '@echo off', 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0opendde.ps1" %*', 'exit /b %errorlevel%' | Set-Content -LiteralPath (Join-Path $bin $launcher) -Encoding ASCII
+}
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 if ($bin -notin ($userPath -split ';')) { [Environment]::SetEnvironmentVariable('Path', "$bin;$userPath", 'User') }
 $env:Path = "$bin;$env:Path"
-Write-Host 'Installed. OpenDDE UI or opendde dashboard starts the workbench. opendde stop closes it.'
+Write-Host 'Installed. X-DDE UI or xdde dashboard starts the workbench. xdde stop closes it.'
 Write-Host 'Open a new terminal to use the command from any folder.'
 Write-Host 'Python runs inside the Linux disk of your WSL distribution; model/data locations are selectable in the panel.'

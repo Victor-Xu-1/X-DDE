@@ -61,7 +61,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await deployments.close()
                 await worker.close()
 
-    app = FastAPI(title="OpenDDE Workbench", version=__version__, lifespan=lifespan)
+    app = FastAPI(title="X-DDE", version=__version__, lifespan=lifespan)
     app.state.quiescing = False
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 
