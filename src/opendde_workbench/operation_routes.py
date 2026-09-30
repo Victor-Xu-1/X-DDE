@@ -42,7 +42,23 @@ def register_operations(app, store, assets, settings, mutation):
             path = contained(root / "output", "result.json")
             if path.stat().st_size > 25 * 1024**2:
                 raise ValueError("Result exceeds the display size limit. Download the artifact.")
-            return json.loads(path.read_text())
+            value = json.loads(path.read_text())
+            job = store.get(str(job_id))
+            if job.request.operation == "diffsbdd" and job.request.payload.mode == "inpaint":
+                try:
+                    output_catalog.core_output(job_id, path)
+                except (ValueError, KeyError, TypeError) as exc:
+                    import logging
+
+                    logging.getLogger(__name__).warning(
+                        "invalid_core_result job_id=%s error_type=%s", job_id, type(exc).__name__
+                    )
+                    raise HTTPException(
+                        422,
+                        "Fixed-core result evidence is invalid or changed. "
+                        "Inspect native files before reusing this task.",
+                    ) from exc
+            return value
         except FileNotFoundError as exc:
             raise HTTPException(
                 404, "This task provides native files instead of a structured result."

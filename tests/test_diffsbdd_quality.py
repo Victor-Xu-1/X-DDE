@@ -177,3 +177,25 @@ def test_diff_adapter_freezes_exact_bounded_entry_point(tmp_path):
         assert not file.stat().st_mode & 0o222
     with pytest.raises(FileExistsError):
         capture(tmp_path)
+
+
+def test_result_api_revalidates_core_evidence_and_returns_a_safe_recovery_message(
+    settings, client_factory
+):
+    from opendde_workbench.models import Status
+
+    store, assets, job, output, result = fixture_result(settings.state_dir)
+    assert store.claim(expected_id=job.id).id == job.id
+    store.finish(job.id, Status.SUCCEEDED)
+    with client_factory() as client:
+        assert client.get(f"/api/jobs/{job.id}/result").status_code == 200
+        result["core_verification"]["candidates"][0]["mapping"] = []
+        (output / "result.json").write_text(json.dumps(result))
+        response = client.get(f"/api/jobs/{job.id}/result")
+        assert response.status_code == 422
+        assert (
+            response.json()["detail"] == "Fixed-core result evidence is invalid or changed. "
+            "Inspect native files before reusing this task."
+        )
+        assert "CoreVerification" not in response.text
+        assert len(assets.list()) == 2

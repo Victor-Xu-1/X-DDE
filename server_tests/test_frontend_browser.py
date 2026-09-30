@@ -758,6 +758,12 @@ def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_re
                     ).json()
                     assert len([o for o in actual if o["kind"] == "molecule"]) == 1
                     assert len(page.request.get(base + "/api/jobs").json()) == 1
+                    # The displayed proof must also fail closed when its molecular
+                    # bundle is corrupted after indexing; no native inference runs.
+                    (output / report["qualified_artifact"]).write_text("changed")
+                    invalid = page.request.get(base + f"/api/jobs/{job.id}/result")
+                    assert invalid.status == 422
+                    assert "invalid or changed" in invalid.json()["detail"]
                     assert not errors
                 except Exception:
                     page.screenshot(path=str(evidence / "fixed-core-failure.png"), full_page=True)
