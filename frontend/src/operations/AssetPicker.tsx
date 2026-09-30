@@ -68,6 +68,11 @@ export function AssetPicker({
             .map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
+                {assets.filter(
+                  (other) => other.kind === kind && other.name === a.name,
+                ).length > 1
+                  ? ` · ${a.id.slice(0, 8)}`
+                  : ""}
               </option>
             ))}
           {value && !assets.some((a) => a.id === value) && (

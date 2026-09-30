@@ -49,6 +49,16 @@ export function PropertyForm({
             ? "粘贴 SMILES 或上传分子文件，即可直接计算，不需要先做结构预测。每次最多 500 个分子。"
             : "Paste SMILES or upload molecules to calculate directly, without structure prediction. Up to 500 molecules per task."}
         </p>
+        {scientificInput && file === scientificInput.asset_id && (
+          <p
+            className="notice"
+            title={`Version: ${scientificInput.version_id ?? "file"}; SHA256: ${scientificInput.sha256}`}
+          >
+            {zh
+              ? `当前选定文件中的第 ${scientificInput.record + 1} 个分子，只计算这一记录。切换文件会解除此版本绑定。`
+              : `Using molecule record ${scientificInput.record + 1} from the selected file. Only this record is calculated. Changing the file removes this version binding.`}
+          </p>
+        )}
         <div className="field">
           <span>
             <label htmlFor={smilesId}>SMILES</label>{" "}
