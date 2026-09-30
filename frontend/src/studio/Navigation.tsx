@@ -11,8 +11,11 @@ import {
   SearchOutlined,
   BellOutlined,
   UserOutlined,
+  SettingOutlined,
+  MoreOutlined,
+  RightOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 
 export type View =
@@ -25,7 +28,9 @@ export type View =
   | "models"
   | "deployment"
   | "editors"
-  | "help";
+  | "help"
+  | "settings"
+  | "overview";
 const items = [
   {
     id: "tools",
@@ -40,47 +45,93 @@ const items = [
     en: "Molecules & structures",
     icon: ExperimentOutlined,
   },
-  {
-    id: "deployment",
-    cn: "安装与组件",
-    en: "Installation & components",
-    icon: DeploymentUnitOutlined,
-  },
   { id: "projects", cn: "项目空间", en: "Projects", icon: FolderOutlined },
   { id: "tasks", cn: "任务中心", en: "Task center", icon: ProfileOutlined },
   { id: "analysis", cn: "结果解读", en: "Results", icon: BarChartOutlined },
   { id: "reports", cn: "导出结果", en: "Exports", icon: FileTextOutlined },
+] as const;
+const management = [
   {
-    id: "models",
-    cn: "运行状态",
-    en: "Runtime status",
-    icon: DatabaseOutlined,
+    label: ["个人", "Personal"],
+    items: [
+      {
+        id: "settings",
+        cn: "账户与设置",
+        en: "Account & settings",
+        icon: SettingOutlined,
+      },
+    ],
   },
-  { id: "help", cn: "帮助中心", en: "Help", icon: QuestionCircleOutlined },
+  {
+    label: ["工作台", "Workspace"],
+    items: [
+      {
+        id: "overview",
+        cn: "工作空间概况",
+        en: "Workspace overview",
+        icon: BarChartOutlined,
+      },
+      {
+        id: "deployment",
+        cn: "安装与组件",
+        en: "Installation & components",
+        icon: DeploymentUnitOutlined,
+      },
+      {
+        id: "models",
+        cn: "运行状态",
+        en: "Runtime status",
+        icon: DatabaseOutlined,
+      },
+    ],
+  },
+  {
+    label: ["支持", "Support"],
+    items: [
+      { id: "help", cn: "帮助中心", en: "Help", icon: QuestionCircleOutlined },
+    ],
+  },
 ] as const;
 export function Navigation({
   view,
   onView,
   language,
   jobs,
-  gpu,
-  free,
-  total,
 }: {
   view: View;
   onView(value: View): void;
   language: Language;
   jobs: Job[];
-  gpu: string | undefined;
-  free: number | undefined;
-  total: number | undefined;
 }) {
   const zh = language === "zh";
-  const running = jobs.filter((item) => item.status === "running").length;
-  const today = jobs.filter(
-    (item) =>
-      new Date(item.created_at).toDateString() === new Date().toDateString(),
+  const running = jobs.filter((job) => job.status === "running").length;
+  const [open, setOpen] = useState(false);
+  const container = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const isManagement = management.some((group) =>
+    group.items.some((item) => item.id === view),
   );
+  useEffect(() => {
+    if (!open) return;
+    menu.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    function outside(event: PointerEvent) {
+      if (!container.current?.contains(event.target as Node)) setOpen(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        trigger.current?.focus();
+      }
+    }
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
   return (
     <aside className="studio-sidebar">
       <button className="studio-brand" onClick={() => onView("tools")}>
@@ -95,91 +146,172 @@ export function Navigation({
           <button
             key={item.id}
             title={zh ? item.cn : item.en}
+            aria-label={zh ? item.cn : item.en}
+            aria-current={view === item.id ? "page" : undefined}
             className={view === item.id ? "active" : ""}
             onClick={() => onView(item.id)}
           >
             <item.icon />
             <span>{zh ? item.cn : item.en}</span>
+            <small className="nav-short" aria-hidden="true">
+              {
+                {
+                  tools: ["能力", "Tools"],
+                  home: ["预测", "Predict"],
+                  editors: ["编辑", "Editors"],
+                  projects: ["项目", "Projects"],
+                  tasks: ["任务", "Tasks"],
+                  analysis: ["结果", "Results"],
+                  reports: ["导出", "Export"],
+                }[item.id][zh ? 0 : 1]
+              }
+            </small>
             {item.id === "tasks" && running > 0 && <b>{running}</b>}
           </button>
         ))}
       </nav>
-      <div className="sidebar-status">
-        <div className="sidebar-project">
-          <span>{zh ? "当前工作空间" : "Current workspace"}</span>
-          <strong>{zh ? "研究项目" : "Research projects"}</strong>
-          <small>
-            {running
-              ? zh
-                ? "任务运行中"
-                : "Task running"
-              : zh
-                ? "等待新任务"
-                : "Ready for a new task"}
-          </small>
-        </div>
-        <div className="sidebar-divider" />
-        <span>{zh ? "今日任务" : "Today"}</span>
-        <p>
-          <DeploymentUnitOutlined /> {zh ? "结构预测" : "Predictions"}{" "}
-          <strong>{today.length}</strong>
-        </p>
-        <p>
-          <ExperimentOutlined /> {zh ? "运行中" : "Running"}{" "}
-          <strong>{running}</strong>
-        </p>
-        <div className="sidebar-divider" />
-        <span>{zh ? "存储空间" : "Storage"}</span>
-        <div
-          className="storage-meter"
-          role="progressbar"
-          aria-label={zh ? "磁盘已用比例" : "Disk usage"}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={
-            free != null && total ? Math.round((1 - free / total) * 100) : 0
-          }
-        >
-          <span
-            style={{
-              width:
-                free != null && total
-                  ? `${Math.min(100, Math.max(0, (1 - free / total) * 100))}%`
-                  : "0%",
+      <div
+        className="sidebar-management"
+        ref={container}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node))
+            setOpen(false);
+        }}
+      >
+        {open && (
+          <div
+            className="management-menu"
+            id="management-menu"
+            ref={menu}
+            role="menu"
+            aria-label={zh ? "工作台管理" : "Workbench management"}
+            onKeyDown={(event) => {
+              const buttons = Array.from(
+                menu.current?.querySelectorAll<HTMLButtonElement>("button") ??
+                  [],
+              );
+              const index = buttons.indexOf(
+                document.activeElement as HTMLButtonElement,
+              );
+              let next: number | undefined;
+              if (event.key === "ArrowDown")
+                next = (index + 1) % buttons.length;
+              if (event.key === "ArrowUp")
+                next = (index - 1 + buttons.length) % buttons.length;
+              if (event.key === "Home") next = 0;
+              if (event.key === "End") next = buttons.length - 1;
+              if (next !== undefined) {
+                event.preventDefault();
+                buttons[next]?.focus();
+              }
             }}
-          />
-        </div>
-        <small>
-          {free == null ? "—" : `${free.toFixed(1)} GiB`} {zh ? "可用" : "free"}
-        </small>
-        {gpu && <small>GPU · {gpu.split(",")[0]}</small>}
+          >
+            <div className="management-menu-heading">
+              <strong>{zh ? "工作台管理" : "Workbench management"}</strong>
+              <small>{zh ? "本地 · 单用户" : "Local · single user"}</small>
+            </div>
+            {management.map((group) => (
+              <div
+                className="management-group"
+                key={group.label[1]}
+                role="group"
+                aria-label={group.label[zh ? 0 : 1]}
+              >
+                <span className="management-group-label">
+                  {group.label[zh ? 0 : 1]}
+                </span>
+                {group.items.map((item) => (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    aria-label={zh ? item.cn : item.en}
+                    key={item.id}
+                    aria-current={view === item.id ? "page" : undefined}
+                    onClick={() => {
+                      setOpen(false);
+                      onView(item.id);
+                      trigger.current?.focus();
+                    }}
+                  >
+                    <item.icon />
+                    <span>{zh ? item.cn : item.en}</span>
+                    <RightOutlined />
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+        <button
+          type="button"
+          ref={trigger}
+          className={"management-trigger" + (isManagement ? " active" : "")}
+          aria-label={zh ? "账户与设置" : "Account & settings"}
+          title={zh ? "账户与设置" : "Account & settings"}
+          aria-haspopup="menu"
+          aria-controls={open ? "management-menu" : undefined}
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              setOpen(true);
+            }
+          }}
+        >
+          <span className="management-avatar">
+            <UserOutlined />
+          </span>
+          <span className="management-trigger-copy">
+            <strong>{zh ? "本地用户" : "Local user"}</strong>
+            <small>{zh ? "账户与设置" : "Account & settings"}</small>
+          </span>
+          <MoreOutlined className="management-more" />
+        </button>
       </div>
     </aside>
   );
 }
+export function viewTitle(view: View, language: Language) {
+  const all: { id: View; cn: string; en: string }[] = [...items];
+  for (const group of management) all.push(...group.items);
+  const item = all.find((item) => item.id === view);
+  return item ? (language === "zh" ? item.cn : item.en) : "X-DDE";
+}
 export function Header({
+  view,
   language,
-  onLanguage,
   jobs,
   onJob,
-  onView,
   storageWarning,
 }: {
+  view: View;
   language: Language;
-  onLanguage(value: Language): void;
   jobs: Job[];
   onJob(id: string): void;
-  onView(value: View): void;
   storageWarning: boolean;
 }) {
   const zh = language === "zh";
   const [query, setQuery] = useState("");
+  const header = useRef<HTMLElement>(null);
+  const search = useRef<HTMLInputElement>(null);
+  const notifications = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    function close(event: PointerEvent) {
+      if (!header.current?.contains(event.target as Node)) {
+        setQuery("");
+        if (notifications.current) notifications.current.open = false;
+      }
+    }
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
   const matches = query.trim()
     ? jobs
         .filter((job) =>
           `${job.request.name} ${job.id}`
             .toLocaleLowerCase()
-            .includes(query.toLocaleLowerCase()),
+            .includes(query.trim().toLocaleLowerCase()),
         )
         .slice(0, 8)
     : [];
@@ -187,7 +319,22 @@ export function Header({
     .filter((job) => ["failed", "interrupted"].includes(job.status))
     .slice(0, 5);
   return (
-    <header className="studio-topbar">
+    <header
+      className="studio-topbar"
+      ref={header}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        if (query) {
+          setQuery("");
+          search.current?.focus();
+        }
+        if (notifications.current?.open) {
+          notifications.current.open = false;
+          notifications.current.querySelector("summary")?.focus();
+        }
+      }}
+    >
+      <span className="page-context">{viewTitle(view, language)}</span>
       <div className="global-search">
         <SearchOutlined />
         <label className="sr-only" htmlFor="global-search">
@@ -195,18 +342,24 @@ export function Header({
         </label>
         <input
           id="global-search"
+          ref={search}
           type="search"
           value={query}
+          aria-expanded={Boolean(query.trim())}
+          aria-controls={query.trim() ? "task-search-results" : undefined}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={zh ? "搜索任务名称或 ID" : "Search tasks by name or ID"}
         />
-        {query && (
-          <div className="search-results" role="listbox">
+        {query.trim() && (
+          <div
+            className="search-results"
+            id="task-search-results"
+            role="region"
+            aria-label={zh ? "任务搜索结果" : "Task search results"}
+          >
             {matches.length ? (
               matches.map((job) => (
                 <button
-                  role="option"
-                  aria-selected="false"
                   key={job.id}
                   onClick={() => {
                     onJob(job.id);
@@ -224,7 +377,7 @@ export function Header({
         )}
       </div>
       <div className="top-actions">
-        <details className="top-popover">
+        <details className="top-popover" ref={notifications}>
           <summary aria-label={zh ? "任务提醒" : "Task notifications"}>
             <BellOutlined />
             {problems.length > 0 && <span className="notification-dot" />}
@@ -233,47 +386,20 @@ export function Header({
             <strong>{zh ? "需关注的任务" : "Tasks needing attention"}</strong>
             {problems.length ? (
               problems.map((job) => (
-                <button key={job.id} onClick={() => onJob(job.id)}>
+                <button
+                  key={job.id}
+                  onClick={() => {
+                    onJob(job.id);
+                    if (notifications.current)
+                      notifications.current.open = false;
+                  }}
+                >
                   {job.request.name} · {job.status}
                 </button>
               ))
             ) : (
               <p>{zh ? "目前没有失败任务" : "No failed tasks"}</p>
             )}
-          </div>
-        </details>
-        <button
-          title={zh ? "帮助" : "Help"}
-          aria-label={zh ? "帮助" : "Help"}
-          onClick={() => onView("help")}
-        >
-          <QuestionCircleOutlined />
-        </button>
-        <label className="language-control">
-          <span className="sr-only">{zh ? "界面语言" : "Language"}</span>
-          <select
-            value={language}
-            onChange={(e) => onLanguage(e.target.value as Language)}
-          >
-            <option value="zh">中文</option>
-            <option value="en">English</option>
-          </select>
-        </label>
-        <details className="top-popover account-menu">
-          <summary>
-            <UserOutlined />
-            <span>
-              <strong>{zh ? "本地用户" : "Local user"}</strong>
-              <small>{zh ? "单用户工作台" : "Single-user workbench"}</small>
-            </span>
-          </summary>
-          <div>
-            <strong>{zh ? "本机工作台" : "Local workbench"}</strong>
-            <p>
-              {zh
-                ? "任务保存在配置的研究服务器；联网搜索和模型服务按任务选项使用。未启用团队登录。"
-                : "Tasks use the configured research server; online searches and model services follow task settings. Team sign-in is not enabled."}
-            </p>
           </div>
         </details>
       </div>

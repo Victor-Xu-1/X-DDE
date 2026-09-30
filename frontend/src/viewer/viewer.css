@@ -3,13 +3,13 @@
 }
 .studio-app .viewer-panel .molecular-stage {
   min-height: 420px;
-  background: white;
-  border: 1px solid #ece9df;
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
 .viewer-panel:fullscreen {
   overflow: auto;
   padding: 20px;
-  background: white;
+  background: var(--surface);
 }
 .viewer-panel:fullscreen .molecular-stage {
   min-height: 65vh;
@@ -32,24 +32,24 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
 }
 .viewer-controls select,
 .viewer-controls button,
 .residue-browser input {
-  border: 1px solid #ded9cb;
+  border: 1px solid var(--line);
   border-radius: 5px;
   padding: 6px 8px;
-  color: #635d53;
-  background: #fff;
-  font-size: 12px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: var(--text-small, 13px);
 }
 .viewer-controls button:disabled {
   opacity: 0.4;
 }
 .selection-editor {
   margin-top: 12px;
-  border-top: 1px solid #ece9df;
+  border-top: 1px solid var(--line);
   padding-top: 10px;
 }
 .selection-editor > summary {
@@ -58,17 +58,17 @@
 }
 .selection-explanation,
 .measurement-status {
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   line-height: 1.6;
-  color: #635d53;
+  color: var(--muted);
 }
 .selection-actions button:hover:not(:disabled),
 .residue-options button:hover {
-  background: #f5f3ed;
+  background: var(--canvas);
 }
 .residue-browser {
   margin-top: 12px;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
 }
 .residue-browser input {
   width: 100%;

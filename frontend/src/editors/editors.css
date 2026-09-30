@@ -7,9 +7,9 @@
   margin-bottom: 14px;
 }
 .editor-tabs button[aria-pressed="true"] {
-  background: #33342e;
-  color: white;
-  border-color: #33342e;
+  background: var(--ink);
+  color: var(--accent-contrast);
+  border-color: var(--ink);
 }
 .editor-tabs button:last-child {
   margin-left: auto;
@@ -22,7 +22,7 @@
   flex-direction: column;
   border: 1px dashed var(--line);
   border-radius: 12px;
-  background: #fffefa;
+  background: var(--surface);
 }
 .editor-empty .step-number {
   font-size: 70px;
@@ -35,14 +35,14 @@
   height: max(600px, 75vh);
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: white;
+  background: var(--surface);
 }
 .file-choice {
   cursor: pointer;
   display: flex;
   gap: 12px;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   padding: 6px 0;
 }
 .file-choice input {

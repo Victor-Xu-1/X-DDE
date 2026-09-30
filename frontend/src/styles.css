@@ -1,5 +1,3 @@
-@import url("./tokens.css");
-
 * {
   box-sizing: border-box;
 }
@@ -8,7 +6,7 @@ body {
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font);
-  font-size: 14px;
+  font-size: var(--text-body, 14px);
   line-height: 1.55;
 }
 button,
@@ -43,7 +41,7 @@ select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible,
 pre:focus-visible {
-  outline: 3px solid #5cbab4;
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
 a {
@@ -69,14 +67,14 @@ h2 {
   overflow-wrap: anywhere;
 }
 h3 {
-  font-size: 14px;
+  font-size: var(--text-body, 14px);
   font-weight: 650;
 }
 .panel {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 11px;
-  box-shadow: 0 3px 5px #173f3510;
+  box-shadow: 0 3px 5px transparent;
   padding: 24px;
 }
 .panel-heading {
@@ -87,11 +85,11 @@ h3 {
   margin-bottom: 21px;
 }
 .tag {
-  font-size: 10px;
+  font-size: var(--text-small, 13px);
   border: 1px solid var(--line);
   border-radius: 5px;
   padding: 4px 8px;
-  color: #69827e;
+  color: var(--muted);
 }
 fieldset {
   border: 0;
@@ -103,7 +101,7 @@ fieldset {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   font-weight: 560;
   margin-bottom: 17px;
 }
@@ -111,8 +109,8 @@ fieldset {
 .field textarea,
 .field select {
   width: 100%;
-  background: #fcfdfd;
-  border: 1px solid #dce5e3;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 10px 11px;
   color: var(--ink);
@@ -120,7 +118,7 @@ fieldset {
 }
 input::placeholder,
 textarea::placeholder {
-  color: #9aaba9;
+  color: var(--muted);
 }
 textarea {
   resize: vertical;
@@ -143,14 +141,14 @@ textarea {
   background: transparent;
   color: var(--accent);
   padding: 3px 0;
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
   text-align: left;
 }
 .text-button:hover {
   text-decoration: underline;
 }
 .small {
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
   line-height: 1.75;
 }
 .muted {
@@ -159,7 +157,7 @@ textarea {
 .component-card {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #f9fbfa;
+  background: var(--surface-muted);
   padding: 12px 14px;
   margin-top: 13px;
 }
@@ -175,19 +173,19 @@ textarea {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
 }
 .component-number {
   font: 10px var(--mono);
-  color: #7c9690;
+  color: var(--muted);
   padding: 4px 6px;
-  background: #e9f0ec;
+  background: var(--surface-muted);
   border-radius: 4px;
 }
 .icon-button {
   background: transparent;
   border: 0;
-  color: #778e88;
+  color: var(--muted);
   padding: 0 4px;
   font-size: 20px;
 }
@@ -195,25 +193,25 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
   color: var(--muted);
 }
 .inline-field input {
   width: 55px;
   border: 1px solid var(--line);
-  background: white;
+  background: var(--surface);
   border-radius: 4px;
   padding: 4px 6px;
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
 }
 .add-button {
   width: 100%;
   padding: 10px;
-  border: 1px dashed #b9d3ca;
+  border: 1px dashed var(--line);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--accent);
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   margin: 13px 0 1px;
 }
 .parameters {
@@ -223,7 +221,7 @@ textarea {
 }
 summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   font-weight: 600;
 }
 .parameter-grid {
@@ -233,12 +231,12 @@ summary {
   margin-top: 16px;
 }
 .parameter-grid .field {
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
 }
 .parameter-grid input,
 .parameter-grid select {
   padding: 7px 9px;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
 }
 .submit-area {
   margin-top: 21px;
@@ -251,7 +249,7 @@ summary {
   border: 1px solid var(--accent);
   border-radius: 7px;
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -259,10 +257,10 @@ summary {
   padding: 13px;
   font-size: 13px;
   font-weight: 580;
-  box-shadow: 0 3px 4px #14756220;
+  box-shadow: 0 3px 4px transparent;
 }
 .primary-button:hover:enabled {
-  background: #0c5d54;
+  background: var(--accent);
 }
 .primary-button span {
   font-size: 19px;
@@ -271,30 +269,30 @@ summary {
 .status {
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
+  font-size: var(--text-small, 13px);
   border-radius: 20px;
   padding: 4px 8px;
-  background: #ece9df;
-  color: #687778;
+  background: var(--line);
+  color: var(--muted);
   white-space: nowrap;
 }
 .status.succeeded {
-  background: #e4f4eb;
-  color: #277858;
+  background: var(--success-soft);
+  color: var(--success);
 }
 .status.running,
 .status.cancelling {
-  background: #ece9df;
-  color: #635d53;
+  background: var(--line);
+  color: var(--muted);
 }
 .status.queued {
-  background: #faf1da;
-  color: #9b711e;
+  background: var(--warning-soft);
+  color: var(--warning);
 }
 .status.failed,
 .status.interrupted {
-  background: #fae9e7;
-  color: #b44840;
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 .empty-detail {
   min-height: 260px;
@@ -309,11 +307,11 @@ summary {
   font-size: 13px;
 }
 .empty-detail p {
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
 }
 .orb {
-  color: #93b2a9;
-  background: radial-gradient(circle, #e6f1eb, transparent 70%);
+  color: var(--muted);
+  background: radial-gradient(circle, var(--accent-soft), transparent 70%);
   font-size: 48px;
   width: 95px;
   height: 80px;
@@ -326,12 +324,12 @@ summary {
 }
 .task-meta span {
   display: block;
-  font-size: 10px;
+  font-size: var(--text-small, 13px);
   color: var(--muted);
   margin-bottom: 5px;
 }
 .task-meta strong {
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
   font-weight: 500;
 }
 .input-summary {
@@ -341,7 +339,7 @@ summary {
   font: 11px/1.7 var(--mono);
   max-height: 200px;
   overflow: auto;
-  background: #f6f8f7;
+  background: var(--surface-muted);
   padding: 12px;
   border-radius: 5px;
 }
@@ -358,21 +356,21 @@ summary {
 .danger-button {
   border: 1px solid var(--line);
   border-radius: 5px;
-  background: white;
-  font-size: 11px;
+  background: var(--surface);
+  font-size: var(--text-small, 13px);
   padding: 7px 10px;
-  color: #366b5c;
+  color: var(--accent);
 }
 .danger-button {
-  color: #b54e3e;
-  border-color: #e9d8d3;
+  color: var(--danger);
+  border-color: var(--line);
 }
 .count {
-  font-size: 10px;
-  background: #edf3ef;
+  font-size: var(--text-small, 13px);
+  background: var(--surface-muted);
   border-radius: 4px;
   padding: 2px 6px;
-  color: #5e8a78;
+  color: var(--accent);
 }
 .artifacts {
   border: 1px solid var(--line);
@@ -387,19 +385,19 @@ summary {
   align-items: center;
   gap: 9px;
   padding: 10px 0;
-  font-size: 10px;
+  font-size: var(--text-small, 13px);
   color: var(--ink);
-  border-bottom: 1px solid #f1f4f2;
+  border-bottom: 1px solid var(--surface-muted);
 }
 .artifacts a:last-child {
   border: 0;
 }
 .file-icon {
   font: 8px var(--mono);
-  border: 1px solid #d5e2d9;
+  border: 1px solid var(--line);
   border-radius: 3px;
   padding: 5px 3px;
-  color: #688578;
+  color: var(--muted);
 }
 .file-name {
   min-width: 0;
@@ -409,8 +407,8 @@ summary {
 .terminal {
   margin: 0;
   padding: 15px;
-  color: #bbd7cd;
-  background: #172c30;
+  color: var(--line);
+  background: var(--ink);
   border-radius: 7px;
   font: 10px/1.8 var(--mono);
   min-height: 120px;
@@ -420,15 +418,15 @@ summary {
   overflow-wrap: anywhere;
 }
 .log-heading .live-dot {
-  color: #3c9b7b;
+  color: var(--accent);
 }
 .error-box {
-  border: 1px solid #edc9c1;
-  background: #fff4f0;
-  color: #984a3b;
+  border: 1px solid var(--danger-soft);
+  background: var(--danger-soft);
+  color: var(--danger);
   padding: 12px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   margin: 12px 0;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -441,14 +439,14 @@ summary {
 }
 .notice {
   padding: 10px 12px;
-  border-left: 2px solid #d4b47a;
-  background: #faf7ef;
-  color: #8b7958;
+  border-left: 2px solid var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
   margin: 13px 0;
 }
 footer {
-  font-size: 10px;
-  color: #8c9f99;
+  font-size: var(--text-small, 13px);
+  color: var(--muted);
   text-align: center;
   margin-top: 26px;
 }

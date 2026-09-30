@@ -13,11 +13,15 @@ interface Ketcher {
 export function Editors({
   language,
   deployment,
+  deploymentError = "",
+  onRetry,
   onSetup,
   onCreated,
 }: {
   language: Language;
   deployment: Deployment | null;
+  deploymentError?: string;
+  onRetry?(): void;
   onSetup(): void;
   onCreated(j: Job): void;
 }) {
@@ -89,7 +93,34 @@ export function Editors({
           {zh ? "管理编辑器" : "Manage editors"}
         </button>
       </div>
-      {!deployment?.installed[mode] ? (
+      {!deployment ? (
+        <div
+          className="empty-state"
+          role={deploymentError ? "alert" : "status"}
+        >
+          <h2>
+            {deploymentError
+              ? zh
+                ? "暂时无法读取编辑器状态"
+                : "Unable to load editor status"
+              : zh
+                ? "正在读取编辑器状态…"
+                : "Loading editor status…"}
+          </h2>
+          {deploymentError && (
+            <>
+              <p>
+                {zh
+                  ? "请检查工作台连接后重试。"
+                  : "Check the workbench connection and try again."}
+              </p>
+              <button className="secondary-button" onClick={onRetry}>
+                {zh ? "重新连接" : "Reconnect"}
+              </button>
+            </>
+          )}
+        </div>
+      ) : !deployment.installed[mode] ? (
         <div className="editor-empty">
           <span className="step-number">{mode === "ketcher" ? "⌬" : "◇"}</span>
           <h2>{zh ? "安装后即可开始" : "Install to get started"}</h2>

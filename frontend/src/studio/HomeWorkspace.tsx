@@ -96,9 +96,19 @@ export function HomeWorkspace(p: Props) {
         </div>
       )}
       {p.health && (!p.health.engine.ready || p.health.worker_error) && (
-        <div className="error-box" role="alert">
-          {p.health.worker_error || p.health.engine.reason}
-        </div>
+        <aside className="notice engine-notice">
+          <p>
+            {zh
+              ? "计算环境尚未就绪。你可以先准备输入，再到运行状态查看需要配置的组件。"
+              : "The compute environment is not ready. You can prepare inputs now and check Runtime status for required components."}
+          </p>
+          <details>
+            <summary>
+              {zh ? "查看环境诊断" : "View environment diagnostics"}
+            </summary>
+            <p>{p.health.worker_error || p.health.engine.reason}</p>
+          </details>
+        </aside>
       )}
       <section className="workbench-section">
         <div
