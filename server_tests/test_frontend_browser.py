@@ -658,7 +658,9 @@ def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_re
         }
     )
     job = store.create(request, str(uuid4()), 20, 100)
+    assert store.claim(expected_id=job.id).id == job.id
     store.finish(job.id, Status.SUCCEEDED)
+    assert store.get(job.id).status == Status.SUCCEEDED
     output = state / "jobs" / job.id / "output"
     (output / "native").mkdir(parents=True)
     report = json.loads((fixture / "verification.json").read_text())
@@ -755,6 +757,12 @@ def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_re
                     assert len([o for o in actual if o["kind"] == "molecule"]) == 1
                     assert len(page.request.get(base + "/api/jobs").json()) == 1
                     assert not errors
+                except Exception:
+                    page.screenshot(path=str(evidence / "fixed-core-failure.png"), full_page=True)
+                    (evidence / "fixed-core-failure.html").write_text(
+                        page.content(), encoding="utf-8"
+                    )
+                    raise
                 finally:
                     browser.close()
         finally:

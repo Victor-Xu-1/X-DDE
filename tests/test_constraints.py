@@ -190,7 +190,9 @@ def test_fixed_regions_compile_only_exact_native_selection(settings, client_fact
     body["constraints"] = ref.model_dump(mode="json")
     persisted = TASK_ADAPTER.validate_python(body)
     job = regions.store.create(persisted, str(uuid4()), 20, 100)
+    assert regions.store.claim(expected_id=job.id).id == job.id
     regions.store.finish(job.id, Status.FAILED, "controlled pre-launch failure")
+    assert regions.store.get(job.id).status == Status.FAILED
     directory = settings.state_dir / "jobs" / job.id
     directory.mkdir(parents=True)
     receipt = directory / "constraint-execution.json"
