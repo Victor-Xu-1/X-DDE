@@ -131,10 +131,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - uses: astral-sh/setup-uv@v6
+      - name: Build the installable platform first
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
       - name: Native offline P2Rank and immutable shared assets (remote CPU only)
         env:
           WB_TEST_NATIVE_POCKETS: '1'
         run: |
-          uv sync --locked --group dev --no-install-project
-          PYTHONPATH=src .venv/bin/python -m pytest -q server_tests/test_native_pockets.py
+          uv sync --locked --group dev
+          uv run --locked pytest -q server_tests/test_native_pockets.py
