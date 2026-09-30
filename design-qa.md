@@ -12,6 +12,16 @@ The Windows installer puts launchers on the chosen drive and executable Python e
 
 Release promotion requires exact-candidate CI, installing the published wheel via the release installer, real startup/stop checks and final browser inspection. Unchanged scientific acceptance remains in `docs/server-acceptance.md`.
 
+## Released installer and local deployment
+
+`v0.4.0rc3` is bound to `26e811ab958d83d810b7bc273e27994f9b7dd90b`. [Exact main CI](https://github.com/Victor-Xu-1/X-DDE/actions/runs/36659694768), [tag CI](https://github.com/Victor-Xu-1/X-DDE/actions/runs/36659732331) and [release build](https://github.com/Victor-Xu-1/X-DDE/actions/runs/36659732379) passed. Counts are 38 frontend and 87 backend tests, plus the Windows installer check for drive paths, verified local files, corrupt-release rejection, launcher/configuration persistence. The fixture isolates only WSL/download boundaries; actual installation is evidenced separately below.
+
+The published `install.ps1` was downloaded from GitHub Releases and executed through Windows PowerShell against the existing OpenDDE WSL account with `-InstallRoot E:\X-DDE`. It installed the verified wheel into the Linux filesystem and the shared Windows command wrappers into the selected E drive directory. Windows now downloads release files with checksum verification before handing them to WSL, fixing actual WSL-to-GitHub timeouts. rc1 is superseded after a Windows path forwarding defect; rc2 is superseded by this transport improvement.
+
+Actual commands: mixed-case `X-DdE DaShBoArD --port 4330 --no-auto-deploy --no-browser`, `OpEnDdE Ui StAtUs`, `xdde StOp`, `xdde status`, and `xdde version`. Startup, running status and graceful shutdown passed. `X-DDE UI` then opened the published release on port 4320; `/api/health` reported `0.4.0rc3` and `worker_ready: true`. Existing preview state was copied using SQLite backup; its original directory remains intact for rollback. No scientific task was submitted.
+
+Final browser inspection covered the X-DDE brand, component page/registration/history, Chinese/English switching, navigation and embedded editor loading. The released Mol* page loaded real 1CRN coordinates and sequence without console errors. The in-app automation could not observe the embedded iframe file chooser; direct Mol* page import was exercised instead. Independent Chrome control and a narrow viewport override were unavailable; no independent/mobile acceptance is claimed. Ketcher sketch/import/save/handoff and UI queue reinstall were exercised on the same application code before packaging. Scientific inference and LLM acceptance remain deferred.
+
 ---
 
 # 0.3 candidate status — server validation deferred
