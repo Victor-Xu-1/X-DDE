@@ -3,7 +3,7 @@ param(
     [string]$Distribution = 'Ubuntu-24.04',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
-    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.4.0rc1'
+    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.4.0rc2'
 )
 $ErrorActionPreference = 'Stop'
 if (!$InstallRoot) {
@@ -26,7 +26,7 @@ if (!$LinuxUser) {
     if ($LASTEXITCODE -ne 0 -or !$LinuxUser) { throw 'Open your WSL distribution once to finish its initial user setup.' }
 }
 if ($LinuxUser -eq 'root') { throw 'Choose an existing non-root account using -LinuxUser. Workbench must not run as root.' }
-$linuxRoot = ((& wsl.exe -d $Distribution -u $LinuxUser -- wslpath -a -u $InstallRoot) | Out-String).Trim()
+$linuxRoot = ((& wsl.exe -d $Distribution -u $LinuxUser -- wslpath -a -u $InstallRoot.Replace('\', '/')) | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Could not resolve installation location in WSL.' }
 $linuxHome = ((& wsl.exe -d $Distribution -u $LinuxUser -- printenv HOME) | Out-String).Trim()
 if (!$linuxHome.StartsWith('/')) { throw 'Could not resolve the Linux account home directory.' }

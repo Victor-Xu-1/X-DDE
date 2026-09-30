@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Install a verified GitHub release without requiring Node, Git or a source checkout.
 set -euo pipefail
-release="${1:-v0.4.0rc1}"
+release="${1:-v0.4.0rc2}"
 prefix="${2:-$HOME/.local/share/opendde-workbench/app}"
-case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4.0rc1' >&2; exit 2;; esac
+case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4.0rc2' >&2; exit 2;; esac
 [[ "$release" =~ ^v[0-9A-Za-z.-]+$ ]] || exit 2
 [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'Use Linux x86-64 or Windows WSL2.' >&2; exit 2; }
 command -v curl >/dev/null || { echo 'Install curl first: sudo apt-get install curl ca-certificates' >&2; exit 2; }
