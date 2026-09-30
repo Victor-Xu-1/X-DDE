@@ -53,12 +53,12 @@
   cursor: pointer;
   margin-right: 10px;
 }
-.research-inspector > button {
+.research-workspace .research-inspector > button {
   background: var(--accent);
   border-color: var(--accent);
   color: white;
 }
-.research-inspector > button:hover:enabled {
+.research-workspace .research-inspector > button:hover:enabled {
   background: #87432e;
 }
 .research-inspector li {
