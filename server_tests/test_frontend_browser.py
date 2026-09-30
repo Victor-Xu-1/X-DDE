@@ -446,6 +446,13 @@ def test_overlapping_drug_modalities_and_purpose_filter(tmp_path):
                 assert page.evaluate(
                     "document.documentElement.scrollWidth <= window.innerWidth + 1"
                 )
+                bounds = center.locator(".tool-groups").bounding_box()
+                assert bounds is not None
+                for button in center.locator(".tool-groups button").all():
+                    box = button.bounding_box()
+                    assert box is not None
+                    assert box["x"] >= bounds["x"] - 1
+                    assert box["x"] + box["width"] <= bounds["x"] + bounds["width"] + 1
                 page.screenshot(path=str(evidence / f"modalities-small-molecule-{width}.png"))
             center.get_by_role("button", name="清空搜索与筛选", exact=True).click()
             center.get_by_role("button", name="RNA", exact=True).click()
