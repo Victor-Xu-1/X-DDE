@@ -10,6 +10,7 @@ from pathlib import Path
 from ..locations import atomic_json, home
 from .catalog import PACKAGES, catalogue, prerequisites
 from .installers import install
+from .paths import environment_root
 from .process import Paused, reap
 from .storage import ACTIVE, DeployStore, managed_root
 
@@ -154,7 +155,7 @@ class DeploymentManager:
                 # Only versioned package files are removed. Models and Docker layers may be shared.
                 if entry.get("directory"):
                     directory = Path(entry["directory"])
-                    parent = root / "packages" / key
+                    parent = environment_root(root) if key == "harness" else root / "packages" / key
                     if directory.is_symlink() or directory.resolve().parent != parent.resolve():
                         raise ValueError(
                             "Refusing to remove a path outside the owned package folder."

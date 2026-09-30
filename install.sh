@@ -30,4 +30,8 @@ printf '%s  %s\n' "$expected" "$prefix/downloads/$wheel" | sha256sum --check
 export UV_TOOL_DIR="$prefix/tools" UV_TOOL_BIN_DIR="$prefix/bin" UV_CACHE_DIR="$prefix/cache"
 "$prefix/bin/uv" tool install --force --python 3.12 "$prefix/downloads/$wheel"
 "$prefix/bin/opendde" version
+profile_line="$(printf 'export PATH=%q:"$PATH"' "$prefix/bin")"
+if ! grep -Fxq "$profile_line" "$HOME/.profile" 2>/dev/null; then
+    printf '\n# OpenDDE Workbench\n%s\n' "$profile_line" >> "$HOME/.profile"
+fi
 printf '\nInstalled. Run: export PATH="%s/bin:$PATH"\nThen: OpenDDE UI\n' "$prefix"

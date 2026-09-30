@@ -95,8 +95,8 @@ export function DeploymentPanel({
               </label>
               <p className="field-help">
                 {zh
-                  ? "Windows 可填写 E:\\OpenDDE；WSL 中对应 /mnt/e/OpenDDE。只管理其中的 opendde-managed 子目录，研究数据另行保存。"
-                  : "On Windows, E:\\OpenDDE maps to /mnt/e/OpenDDE. Components live in its opendde-managed subfolder; research data is separate."}
+                  ? "Windows 可填写 E:\\OpenDDE；WSL 中对应 /mnt/e/OpenDDE。管理其中的 opendde-managed 子目录。Python 客户端保存在 WSL Linux 磁盘中，研究结果另行保存。"
+                  : "On Windows, E:\\OpenDDE maps to /mnt/e/OpenDDE. Bulk components use its opendde-managed subfolder; Python environments use the WSL Linux disk. Research results are separate."}
               </p>
               <button
                 disabled={busy || !location.trim()}

@@ -7,7 +7,28 @@ body {
 }
 #molecular-root {
   position: absolute;
-  inset: 0;
+  inset: 54px 0 0;
+}
+#molecular-toolbar {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  background: #f5f3ed;
+  font:
+    12px system-ui,
+    sans-serif;
+  color: #34332d;
+}
+#molecular-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#molecular-file-status {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #molecular-status {
   position: absolute;

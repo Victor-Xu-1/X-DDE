@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .catalog import PACKAGES
+from .paths import environment_root
 from .process import run
 from .transfers import download, extract
 
@@ -39,7 +40,8 @@ def install(key, root, installed, operation, report, checkpoint):
         archive = root / "downloads" / spec.url.rsplit("/", 1)[1]
         download(spec.url, archive, spec.checksum, report, checkpoint)
         # Each attempt has a separate staging area, never overwrites an active release.
-        destination = root / "packages" / key / (spec.version + "-" + str(uuid4()))
+        parent = environment_root(root) if key == "harness" else root / "packages" / key
+        destination = parent / (spec.version + "-" + str(uuid4()))
         destination.mkdir(parents=True)
         metadata["directory"] = str(destination)
         if key == "harness":
@@ -54,7 +56,18 @@ def install(key, root, installed, operation, report, checkpoint):
             execute([uv, "venv", "--python", sys.executable, destination / "venv"])
             python = destination / "venv/bin/python"
             execute(
-                [uv, "pip", "install", "--python", python, "--constraint", constraints, archive]
+                [
+                    uv,
+                    "pip",
+                    "install",
+                    "--link-mode",
+                    "copy",
+                    "--python",
+                    python,
+                    "--constraint",
+                    constraints,
+                    archive,
+                ]
             )
             execute([python, "-c", "import opendde_harness.cli.commands"])
             metadata["python"] = str(python)

@@ -84,3 +84,27 @@ it("offers installation instead of a blank nonfunctional editor iframe", () => {
   fireEvent.click(screen.getByRole("button", { name: "前往安装与组件" }));
   expect(setup).toHaveBeenCalledOnce();
 });
+
+it("preserves the molecule editor while switching to protein inspection", () => {
+  render(
+    <Editors
+      deployment={{
+        ...data,
+        installed: {
+          ketcher: { version: "3.18.0" },
+          molstar: { version: "5.12.0" },
+        },
+      }}
+      language="zh"
+      onSetup={vi.fn()}
+      onCreated={vi.fn()}
+    />,
+  );
+  const sketch = screen.getByTitle("Ketcher molecular editor");
+  fireEvent.click(screen.getByRole("button", { name: "蛋白与复合物 · Mol*" }));
+  expect(screen.getByTitle("Ketcher molecular editor")).toBe(sketch);
+  expect(sketch).not.toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "分子绘图 · Ketcher" }));
+  expect(screen.getByTitle("Ketcher molecular editor")).toBe(sketch);
+  expect(sketch).toBeVisible();
+});

@@ -23,6 +23,7 @@ export function Editors({
 }) {
   const zh = language === "zh";
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
+  const [proteinOpened, setProteinOpened] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const [message, setMessage] = useState(""),
     [error, setError] = useState("");
@@ -78,6 +79,7 @@ export function Editors({
           aria-pressed={mode === "molstar"}
           onClick={() => {
             setMode("molstar");
+            setProteinOpened(true);
             setError("");
           }}
         >
@@ -131,6 +133,10 @@ export function Editors({
                 }
                 onClick={() =>
                   void action(async (editor) => {
+                    if (!(await editor.getSmiles()).trim())
+                      throw new Error(
+                        zh ? "请先画一个分子。" : "Draw a molecule first.",
+                      );
                     const mol = await editor.getMolfile();
                     await api.upload(
                       new File([mol + "\n$$$$\n"], "sketched-molecule.sdf", {
@@ -175,21 +181,6 @@ export function Editors({
               {message}
             </p>
           )}
-          <iframe
-            key={mode}
-            ref={frame}
-            className="molecular-editor"
-            title={
-              mode === "ketcher"
-                ? "Ketcher molecular editor"
-                : "Molstar protein structure viewer"
-            }
-            src={
-              mode === "ketcher"
-                ? "/tools/ketcher/index.html"
-                : "/molecular.html"
-            }
-          />
           <p className="field-help">
             {mode === "ketcher"
               ? zh
@@ -200,6 +191,23 @@ export function Editors({
                 : "Open local PDB / mmCIF files. Select residues, inspect sequences, change representations and save views. These are inspection and display edits, not protein sequence design or energy optimization."}
           </p>
         </>
+      )}
+      {deployment?.installed.ketcher && (
+        <iframe
+          ref={frame}
+          hidden={mode !== "ketcher"}
+          className="molecular-editor"
+          title="Ketcher molecular editor"
+          src="/tools/ketcher/index.html"
+        />
+      )}
+      {deployment?.installed.molstar && proteinOpened && (
+        <iframe
+          hidden={mode !== "molstar"}
+          className="molecular-editor"
+          title="Molstar protein structure viewer"
+          src="/molecular.html"
+        />
       )}
       {smiles && (
         <section className="setup-card">

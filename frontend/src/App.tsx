@@ -15,6 +15,7 @@ import { DeploymentPanel } from "./deployment/DeploymentPanel";
 import { Editors } from "./editors/Editors";
 export function App() {
   const deployment = useDeployment();
+  const [editorsOpened, setEditorsOpened] = useState(false);
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>(() =>
@@ -22,6 +23,9 @@ export function App() {
     ),
     [projectId, setProjectId] = useState<string | null>(null);
   const [resultsVersion, setResultsVersion] = useState(0);
+  useEffect(() => {
+    if (view === "editors") setEditorsOpened(true);
+  }, [view]);
   const [inputVersion, setInputVersion] = useState(0);
   const [candidateId, setCandidateId] = useState<string | null>(null),
     [compared, setCompared] = useState<string[]>([]),
@@ -194,14 +198,16 @@ export function App() {
                 onEditors={() => setView("editors")}
               />
             )}
-            {view === "editors" && (
-              <Editors
-                language={language}
-                deployment={deployment.data}
-                onSetup={() => setView("deployment")}
-                onCreated={changed}
-              />
-            )}
+            <div hidden={view !== "editors"}>
+              {(editorsOpened || view === "editors") && (
+                <Editors
+                  language={language}
+                  deployment={deployment.data}
+                  onSetup={() => setView("deployment")}
+                  onCreated={changed}
+                />
+              )}
+            </div>
             {health?.queue_wait_reason && (
               <p className="notice" role="status">
                 {zh ? "计算队列正在等待：" : "Compute queue is waiting: "}

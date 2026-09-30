@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api, request } from "../api";
 import type { Deployment } from "./client";
-import { names, states } from "./labels";
+import { names, states, stageLabel } from "./labels";
 export function DeploymentActivity({
   data,
   zh,
@@ -33,7 +33,7 @@ export function DeploymentActivity({
               <span className="status-pill">
                 {zh ? states[o.state] : o.state}
               </span>
-              <p role="status">{o.stage}</p>
+              <p role="status">{stageLabel(o.stage, zh)}</p>
               {o.error && <p className="error">{o.error}</p>}
             </div>
             <div className="component-actions">

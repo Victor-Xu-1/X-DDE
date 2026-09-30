@@ -17,6 +17,9 @@ def download(
     if destination.is_file() and verify(destination, checksum):
         return
     partial = destination.with_suffix(destination.suffix + ".part")
+    if partial.is_file() and verify(partial, checksum):
+        partial.replace(destination)
+        return
     offset = partial.stat().st_size if partial.exists() else 0
     headers = {"User-Agent": "OpenDDE-Workbench/0.4", "Accept-Encoding": "identity"}
     if offset:
