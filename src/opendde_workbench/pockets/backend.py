@@ -46,6 +46,7 @@ class PocketBackend:
                 raise ValueError("Docker mount paths cannot contain commas.")
         cache = directory / "p2rank-cache"
         cache.mkdir(exist_ok=True)
+        (directory / "java-native").mkdir(exist_ok=True)
         args = [
             "docker",
             "create",
@@ -53,6 +54,10 @@ class PocketBackend:
             self.container(job.id),
             "--network",
             "none",
+            "--hostname",
+            "xdde-pocket",
+            "--add-host",
+            "xdde-pocket:127.0.0.1",
             "--read-only",
             "--user",
             f"{os.getuid()}:{os.getgid()}",
@@ -83,6 +88,7 @@ class PocketBackend:
             self.settings.p2rank_image,
             "-Xmx" + str(max(256, task.memory_mib - 256)) + "m",
             "-Duser.home=/job",
+            "-Djava.io.tmpdir=/job/java-native",
             "-cp",
             "/p2rank/bin/p2rank.jar:/p2rank/bin/lib/*",
             "cz.siret.prank.program.Main",
