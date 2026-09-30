@@ -100,6 +100,27 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             )
             assert registered.status_code == 201, registered.text
             refs[role] = registered.json()["reference"]
+        raw_runtime = execute(["docker", "info", "--format", "{{json .Runtimes}}"])
+        labels = execute(
+            [
+                "docker",
+                "image",
+                "inspect",
+                "--format",
+                "{{json .Config.Labels}}",
+                installed["image"],
+            ]
+        )
+        (evidence / "docker-metadata.json").write_text(
+            json.dumps(
+                {
+                    "runtimes_bytes": len(raw_runtime.encode()),
+                    "runtime_names": list(json.loads(raw_runtime)),
+                    "image_labels": json.loads(labels),
+                },
+                indent=2,
+            )
+        )
         health = client.get("/api/health").json()
         (evidence / "runtime-health.json").write_text(json.dumps(health, indent=2))
         assert health["environments"]["gnina"]["ready"], health["environments"]["gnina"]

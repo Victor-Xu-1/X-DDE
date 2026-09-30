@@ -45,11 +45,16 @@ class DockingBackend:
                     "GNINA image is missing or differs from the reviewed runtime contract."
                 )
             code, text = await command(
-                "docker", "info", "--format", "{{json .Runtimes}}", timeout=8, separate_stderr=True
+                "docker",
+                "info",
+                "--format",
+                "{{range $name, $runtime := .Runtimes}}{{$name}} {{end}}",
+                timeout=8,
+                separate_stderr=True,
             )
             if code:
                 raise ValueError("The Docker daemon is unavailable.")
-            result.update(ready=True, gpu_runtime="nvidia" in json.loads(text))
+            result.update(ready=True, gpu_runtime="nvidia" in text.split())
         except (ValueError, OSError, RuntimeError, TimeoutError) as exc:
             result["reason"] = str(exc)
         return result
