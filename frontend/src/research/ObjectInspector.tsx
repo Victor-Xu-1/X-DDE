@@ -55,7 +55,7 @@ export function ObjectInspector({
     (e) => e.source === selected || e.target === selected,
   );
   return (
-    <section className="setup-card">
+    <section className="setup-card research-inspector">
       {node ? (
         <>
           <h2>{node.label}</h2>

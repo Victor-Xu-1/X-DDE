@@ -2,6 +2,68 @@
   display: grid;
   gap: 20px;
 }
+.research-workspace .editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.research-workspace .editor-toolbar button,
+.research-workspace .editor-toolbar a,
+.research-inspector > button,
+.research-inspector li button,
+.research-workspace > .notice button,
+.research-columns > .setup-card > button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: #fffefa;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.research-workspace .editor-toolbar button:hover:enabled,
+.research-workspace .editor-toolbar a:hover,
+.research-inspector button:hover:enabled {
+  background: #f1ece2;
+  border-color: var(--accent);
+}
+.research-workspace .editor-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.research-workspace .editor-toolbar select,
+.research-workspace .file-choice input::file-selector-button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: #fffefa;
+  color: var(--ink);
+  font: inherit;
+}
+.research-workspace .file-choice input {
+  max-width: 100%;
+  color: var(--muted);
+}
+.research-workspace .file-choice input::file-selector-button {
+  cursor: pointer;
+  margin-right: 10px;
+}
+.research-inspector > button {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.research-inspector > button:hover:enabled {
+  background: #87432e;
+}
+.research-inspector li {
+  margin: 8px 0;
+}
 .research-columns {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(360px, 2fr);
@@ -21,8 +83,13 @@
   gap: 4px;
   padding: 10px;
   border: 0;
-  border-bottom: 1px solid #e5dfd5;
+  border-bottom: 1px solid var(--line);
   border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.research-node-list button:hover {
+  background: #f1ece2;
 }
 .research-node-list .selected {
   background: #eee5da;
