@@ -103,3 +103,5 @@ The canonical scope, implementation status and dependencies are the [76-task roa
 | R70–R76 | Exact-candidate applicable tests, actual browser/API/native workflows, dependency/security review and clean-machine release/install/upgrade/rollback evidence | A new source preview or a wheel build does not update existing release attachments |
 
 Evidence records identify task IDs, exact candidate/native/model versions, inputs, conditions, seeds/budgets, CPU/GPU and service resources, actual commands, outputs, failure/limitations and screenshots where relevant. Keep evidence outside the repository; do not include provider secrets or unnecessary private inputs. New task implementation can progress without local inference; model/GPU/LLM and scientific claims remain unverified until their actual target-server runs complete.
+
+研究计划的软件回归使用真实 SQLite、API 和受控本地进程协议在远程 CI 执行。其科学验收仍需在目标服务器完成：DiffSBDD 输出角色 → 指定候选版本 → 真实 RDKit 性质、跨步骤坐标/固定原子失效拒绝、真实 GPU 取消/恢复及条件性外部工具取消。计划暂停只阻止新步骤派发，已派发任务继续；无法确认同步外部调用终止时明确阻塞。

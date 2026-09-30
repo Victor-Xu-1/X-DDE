@@ -142,7 +142,7 @@ def test_native_steps_reuse_one_queue_and_persist_dependencies(client_factory):
 def test_output_binding_uses_real_artifact_and_new_version(client_factory):
     script = (
         "from pathlib import Path; import json; "
-        "Path('output/library.sdf').write_text('one\n$$$$\ntwo\n$$$$\n'); "
+        "Path('output/library.sdf').write_text('one\\n$$$$\\ntwo\\n$$$$\\n'); "
         "Path('output/result.json').write_text(json.dumps("
         "{'operation':'properties','complete':True,"
         "'molecule_artifact':'library.sdf','molecules':[]}))"

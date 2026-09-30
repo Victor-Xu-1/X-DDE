@@ -14,15 +14,20 @@ const names: Record<string, [string, string]> = {
 export function RunMonitor({
   initial,
   language,
+  onChange,
 }: {
   initial: WorkflowRun;
   language: Language;
+  onChange?(value: WorkflowRun): void;
 }) {
   const zh = language === "zh",
     [run, setRun] = useState(initial),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => setRun(initial), [initial.id]);
+  useEffect(() => {
+    onChange?.(run);
+  }, [run, onChange]);
   useEffect(() => {
     if (["succeeded", "failed", "cancelled"].includes(run.state)) return;
     const c = new AbortController();
