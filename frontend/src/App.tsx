@@ -257,6 +257,7 @@ export function App() {
             <div hidden={view !== "home"}>
               <HomeWorkspace
                 {...common}
+                active={view === "home"}
                 resultsVersion={resultsVersion}
                 inputVersion={inputVersion}
                 jobs={jobs.filter(

@@ -6,6 +6,7 @@ import { defaults } from "../form-model";
 import { UtilityViews } from "./UtilityViews";
 import type { Health } from "../types";
 const props: ComponentProps<typeof HomeWorkspace> = {
+  active: true,
   resultsVersion: 0,
   language: "zh",
   ready: true,
@@ -124,4 +125,37 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
   expect(screen.getByText("Platform service unavailable")).toBeVisible();
   expect(screen.getByText("Environment checks passed")).toBeVisible();
   expect(screen.getByRole("alert")).toHaveTextContent("Queue recovery failed");
+});
+
+it("does not render duplicate task results in an inactive prediction workspace", () => {
+  const { rerender } = render(
+    <HomeWorkspace {...props} active={false} resultsVersion={1} />,
+  );
+  expect(
+    screen.queryByRole("region", { name: "任务详情", hidden: true }),
+  ).toBeNull();
+  rerender(<HomeWorkspace {...props} active resultsVersion={1} />);
+  expect(
+    screen.getByRole("region", { name: "任务详情", hidden: true }),
+  ).toBeInTheDocument();
+});
+it("does not send non-prediction tasks to the prediction result workspace", () => {
+  render(
+    <HomeWorkspace
+      {...props}
+      resultsVersion={1}
+      job={{
+        ...props.job!,
+        request: {
+          operation: "properties",
+          name: "property result",
+          smiles: ["CCO"],
+          ligand_files: [],
+        },
+      }}
+    />,
+  );
+  expect(
+    screen.queryByRole("region", { name: "任务详情", hidden: true }),
+  ).toBeNull();
 });

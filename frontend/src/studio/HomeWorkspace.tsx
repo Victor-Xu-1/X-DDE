@@ -1,4 +1,4 @@
-import { componentsOf } from "../operations/types";
+import { componentsOf, isPrediction } from "../operations/types";
 import { useEffect, useState } from "react";
 import {
   CheckCircleOutlined,
@@ -23,6 +23,7 @@ import type {
   Project,
 } from "../types";
 interface Props {
+  active: boolean;
   resultsVersion: number;
   inputVersion?: number;
   language: Language;
@@ -252,7 +253,7 @@ export function HomeWorkspace(p: Props) {
             />
           </details>
         )}
-      {p.job && !showInput && (
+      {p.active && p.job && isPrediction(p.job.request) && !showInput && (
         <details className="execution-detail">
           <summary>
             {zh ? "任务详情与运行日志" : "Task details and execution log"}{" "}

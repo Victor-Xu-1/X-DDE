@@ -720,7 +720,9 @@ def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_re
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 try:
                     page.goto(base + "/#task=" + job.id)
-                    page.get_by_text("固定区域独立复核", exact=False).click()
+                    summaries = page.get_by_text("固定区域独立复核", exact=False)
+                    expect(summaries).to_have_count(1)
+                    summaries.click()
                     expect(page.get_by_text("候选 1 · 通过", exact=True)).to_be_visible()
                     expect(page.get_by_text("候选 2 · 违反要求", exact=True)).to_be_visible()
                     page.get_by_text("查看已验证原子映射", exact=True).click()
