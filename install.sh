@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
 # Install a verified GitHub release without requiring Node, Git or a source checkout.
 set -euo pipefail
-release="${1:-v0.4.0rc2}"
+release="${1:-v0.4.0rc3}"
 prefix="${2:-$HOME/.local/share/opendde-workbench/app}"
-case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4.0rc2' >&2; exit 2;; esac
+download_dir="${3:-}"
+case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4.0rc3' >&2; exit 2;; esac
 [[ "$release" =~ ^v[0-9A-Za-z.-]+$ ]] || exit 2
 [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'Use Linux x86-64 or Windows WSL2.' >&2; exit 2; }
 command -v curl >/dev/null || { echo 'Install curl first: sudo apt-get install curl ca-certificates' >&2; exit 2; }
 mkdir -p "$prefix/downloads" "$prefix/bin"
 prefix="$(cd "$prefix" && pwd)"
-fetch() { curl --fail --location --retry 2 --connect-timeout 20 --max-time 900 --proto '=https' --proto-redir '=https' "$1" -o "$2"; }
+fetch() {
+    if [[ -n "$download_dir" ]]; then
+        [[ -f "$download_dir/${1##*/}" ]] || { echo "Offline release file is missing: ${1##*/}" >&2; exit 2; }
+        cp -- "$download_dir/${1##*/}" "$2"
+    else
+        curl --fail --location --retry 2 --connect-timeout 20 --max-time 900 --proto '=https' --proto-redir '=https' "$1" -o "$2"
+    fi
+}
 uvversion=0.12.20
 # Reuse our exact pinned tool on upgrades; fresh installs still verify the official archive.
 if [[ ! -x "$prefix/bin/uv" ]] || [[ "$("$prefix/bin/uv" --version)" != "uv $uvversion"* ]]; then

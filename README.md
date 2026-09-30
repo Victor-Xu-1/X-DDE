@@ -23,7 +23,7 @@ X-DDE UI
 .\install.ps1 -Distribution OpenDDE -LinuxUser opendde -InstallRoot E:\X-DDE
 ```
 
-安装器优先使用 E 盘（没有 E 盘则使用当前用户应用目录）。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。新建 WSL 时磁盘文件位于所选 E 盘目录；已有 WSL 的磁盘位置保持不变。模型、代码缓存与编辑器目录可在面板另选。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `X-DDE UI`、`xdde dashboard`。
+Windows 安装器使用 Windows 网络下载并校验发行文件，交给 WSL 安装；无需先调整 WSL 的 GitHub 代理。安装器优先使用 E 盘（没有 E 盘则使用当前用户应用目录）。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。新建 WSL 时磁盘文件位于所选 E 盘目录；已有 WSL 的磁盘位置保持不变。模型、代码缓存与编辑器目录可在面板另选。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `X-DDE UI`、`xdde dashboard`。
 
 Linux x86-64 / WSL2：
 

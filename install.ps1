@@ -3,7 +3,7 @@ param(
     [string]$Distribution = 'Ubuntu-24.04',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
-    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.4.0rc2'
+    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.4.0rc3'
 )
 $ErrorActionPreference = 'Stop'
 if (!$InstallRoot) {
@@ -32,14 +32,37 @@ $linuxHome = ((& wsl.exe -d $Distribution -u $LinuxUser -- printenv HOME) | Out-
 if (!$linuxHome.StartsWith('/')) { throw 'Could not resolve the Linux account home directory.' }
 $prefix = "$linuxHome/.local/share/opendde-workbench/app"
 New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
-# Both scripts come from the same immutable release as the wheel.
+# Windows uses its own network/proxy; Linux verifies the same files again before installing.
 $base = "https://github.com/Victor-Xu-1/X-DDE/releases/download/$Release"
-Invoke-WebRequest "$base/install.sh" -OutFile (Join-Path $InstallRoot 'install.sh')
-& wsl.exe -d $Distribution -u $LinuxUser -- bash "$linuxRoot/install.sh" $Release $prefix
-if ($LASTEXITCODE -ne 0) { throw 'Workbench install failed. Fix the displayed error and run this installer again.' }
+$downloads = Join-Path $InstallRoot 'downloads'
 $bin = Join-Path $InstallRoot 'bin'
-New-Item -ItemType Directory -Path $bin -Force | Out-Null
-Invoke-WebRequest "$base/opendde.ps1" -OutFile (Join-Path $bin 'opendde.ps1')
+New-Item -ItemType Directory -Path $downloads, $bin -Force | Out-Null
+Invoke-WebRequest "$base/SHA256SUMS" -OutFile (Join-Path $downloads 'SHA256SUMS')
+$checksums = @{}
+foreach ($line in Get-Content -LiteralPath (Join-Path $downloads 'SHA256SUMS')) {
+    $parts = $line -split '\s+', 2
+    if ($parts.Count -eq 2 -and $parts[0] -match '^[a-f0-9]{64}$') { $checksums[$parts[1]] = $parts[0] }
+}
+function Get-ReleaseFile([string]$Name, [string]$Destination) {
+    if (!$checksums.ContainsKey($Name)) { throw "Release checksum missing: $Name" }
+    Invoke-WebRequest "$base/$Name" -OutFile $Destination
+    if ((Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash -ne $checksums[$Name]) {
+        throw "Release checksum mismatch: $Name. Download again from the official release."
+    }
+}
+Get-ReleaseFile 'install.sh' (Join-Path $InstallRoot 'install.sh')
+Get-ReleaseFile 'opendde.ps1' (Join-Path $bin 'opendde.ps1')
+$wheel = "x_dde-$($Release.Substring(1))-py3-none-any.whl"
+Get-ReleaseFile $wheel (Join-Path $downloads $wheel)
+$uvVersion = (& wsl.exe -d $Distribution -u $LinuxUser -- "$prefix/bin/uv" --version 2>$null | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or $uvVersion -notlike 'uv 0.12.20*') {
+    $uvBase = 'https://github.com/astral-sh/uv/releases/download/0.12.20'
+    foreach ($name in @('uv-x86_64-unknown-linux-gnu.tar.gz', 'uv-x86_64-unknown-linux-gnu.tar.gz.sha256')) {
+        Invoke-WebRequest "$uvBase/$name" -OutFile (Join-Path $downloads $name)
+    }
+}
+& wsl.exe -d $Distribution -u $LinuxUser -- bash "$linuxRoot/install.sh" $Release $prefix "$linuxRoot/downloads"
+if ($LASTEXITCODE -ne 0) { throw 'Workbench install failed. Fix the displayed error and run this installer again.' }
 @{ distribution = $Distribution; user = $LinuxUser; prefix = $prefix; home = "$linuxHome/.local/share/opendde-workbench" } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding UTF8
 foreach ($launcher in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
     '@echo off', 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0opendde.ps1" %*', 'exit /b %errorlevel%' | Set-Content -LiteralPath (Join-Path $bin $launcher) -Encoding ASCII
