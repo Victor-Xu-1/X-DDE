@@ -1,6 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Health, Job, Language, Prediction } from "../types";
 import { tools, type ToolId } from "./catalog";
+import { CapabilityFilters } from "./CapabilityFilters";
+import { ModalityTags } from "./ModalityTags";
+import {
+  filterCapabilities,
+  type ModalityFilter,
+  type PurposeFilter,
+} from "./filter";
 import { PropertyForm } from "./PropertyForm";
 import { FeatureForm } from "./FeatureForm";
 import { ImportForm } from "./ImportForm";
@@ -30,7 +37,8 @@ export function ToolCenter({
 }) {
   const zh = language === "zh",
     [selected, setSelected] = useState<ToolId | null>(null),
-    [group, setGroup] = useState("all"),
+    [modality, setModality] = useState<ModalityFilter>("all"),
+    [group, setGroup] = useState<PurposeFilter>("all"),
     [query, setQuery] = useState("");
   const current = tools.find((t) => t.id === selected),
     index = zh ? 0 : 1;
@@ -44,28 +52,13 @@ export function ToolCenter({
     else if (lastOpenedTool.current)
       cards.current[lastOpenedTool.current]?.focus();
   }, [selected]);
-  const filteredTools = tools.filter(
-    (t) =>
-      (group === "all" || t.group === group) &&
-      `${t.label.join(" ")} ${t.note.join(" ")} ${t.source}`
-        .toLowerCase()
-        .includes(query.trim().toLowerCase()),
-  );
+  const filteredTools = filterCapabilities(modality, group, query);
   function clearFilters() {
     setQuery("");
     setGroup("all");
+    setModality("all");
     search.current?.focus();
   }
-  const groups = [
-    ["all", "全部能力", "All capabilities"],
-    ["design", "设计", "Design"],
-    ["structure", "结构预测", "Structures"],
-    ["evaluate", "性质与评分", "Properties & scoring"],
-    ["analyze", "结果分析", "Analysis"],
-    ["search", "检索", "Search"],
-    ["prepare", "输入准备", "Preparation"],
-    ["system", "资源配置", "Resources"],
-  ];
   return (
     <section className="tool-center" aria-labelledby={headingId}>
       {current && (
@@ -96,8 +89,8 @@ export function ToolCenter({
             {current
               ? current.note[index]
               : zh
-                ? "按研究目标选择工具，准备输入后创建任务。"
-                : "Choose a tool for your research goal, then prepare its inputs."}
+                ? "先选药物形式，再选研究用途。同一能力可属于多个类别。"
+                : "Choose a drug modality, then a research purpose. Capabilities can belong to multiple categories."}
           </p>
         </div>
       </header>
@@ -148,48 +141,23 @@ export function ToolCenter({
         </>
       ) : (
         <>
-          <div className="tool-filter">
-            <label className="field">
-              <span className="sr-only">
-                {zh ? "搜索能力" : "Search capabilities"}
-              </span>
-              <input
-                ref={search}
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={
-                  zh
-                    ? "我想做：性质、抗体设计、MSA、结构比较…"
-                    : "Find properties, antibody design, MSA, structure comparison…"
-                }
-              />
-            </label>
-            <div
-              className="tool-groups"
-              role="group"
-              aria-label={zh ? "能力分类" : "Capability groups"}
-            >
-              {groups.map(([id, cn, en]) => (
-                <button
-                  type="button"
-                  key={id}
-                  aria-pressed={group === id}
-                  className={group === id ? "selected" : ""}
-                  onClick={() => setGroup(id)}
-                >
-                  {zh ? cn : en}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CapabilityFilters
+            language={language}
+            searchRef={search}
+            query={query}
+            onQuery={setQuery}
+            modality={modality}
+            onModality={setModality}
+            purpose={group}
+            onPurpose={setGroup}
+          />
           <div className="tool-results-summary">
             <p role="status" aria-live="polite" aria-atomic="true">
               {zh
                 ? `显示 ${filteredTools.length} / ${tools.length} 项能力`
                 : `Showing ${filteredTools.length} of ${tools.length} capabilities`}
             </p>
-            {(query || group !== "all") && (
+            {(query || group !== "all" || modality !== "all") && (
               <button
                 type="button"
                 className="tool-clear-filters"
@@ -222,6 +190,7 @@ export function ToolCenter({
                   <span className="source-badge">{t.source}</span>
                   <h2>{t.label[index]}</h2>
                   <p>{t.note[index]}</p>
+                  <ModalityTags tool={t} language={language} />
                   <span className="tool-open">
                     {zh ? "开始准备" : "Prepare task"} →
                   </span>

@@ -10,10 +10,12 @@ from ..engine_registry import engine_for
 from ..harness_contract import TOOLS
 from .catalogue import forms
 from .contract import CapabilitySpec, ConstraintSupport
+from .modalities import modality_metadata
 
 _BASE = forms() + (
     CapabilitySpec(
         id="native.inspect",
+        **modality_metadata("native.inspect"),
         group="prepare",
         environment="opendde",
         operations=("inspect",),
@@ -29,6 +31,7 @@ _BASE = forms() + (
 _DIFF = tuple(
     CapabilitySpec(
         id="diffsbdd." + mode,
+        **modality_metadata("diffsbdd." + mode),
         group=group,
         environment="diffsbdd",
         operations=("diffsbdd",),
@@ -144,6 +147,7 @@ _DIFF = tuple(
 _PLATFORM = (
     CapabilitySpec(
         id="workflows",
+        **modality_metadata("workflows"),
         group="design",
         environment="platform",
         operations=(),
@@ -162,6 +166,7 @@ _PLATFORM = (
 _POCKETS = (
     CapabilitySpec(
         id="p2rank.detect",
+        **modality_metadata("p2rank.detect"),
         group="analyze",
         environment="p2rank",
         operations=("pocket_search",),

@@ -1,6 +1,7 @@
 """Reviewed form labels and bindings; the generated frontend is a projection."""
 
 from .contract import CapabilitySpec
+from .modalities import modality_metadata
 
 _ROWS = (
     (
@@ -196,6 +197,7 @@ def forms() -> tuple[CapabilitySpec, ...]:
         result.append(
             CapabilitySpec(
                 id=identifier,
+                **modality_metadata(identifier),
                 group=group,
                 label=label,
                 note=note,

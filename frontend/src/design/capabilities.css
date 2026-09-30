@@ -111,3 +111,46 @@
   line-height: 1.7;
   color: var(--muted);
 }
+
+.modality-filter-block {
+  display: grid;
+  gap: 10px;
+}
+.filter-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.modality-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.tool-purpose {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tool-purpose select {
+  width: min(220px, 100%);
+  min-height: 36px;
+}
+.tool-modality-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.tool-modality-tags > span {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--canvas);
+}
+.tool-modality-tags .modality-context {
+  flex-basis: 100%;
+  padding-left: 0;
+  background: transparent;
+}

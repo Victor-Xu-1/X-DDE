@@ -403,3 +403,65 @@ def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_
             page.screenshot(path="server_tests/evidence/pocket-selection.png", full_page=True)
         finally:
             browser.close()
+
+
+def test_overlapping_drug_modalities_and_purpose_filter(tmp_path):
+    base_url = os.environ["WB_BROWSER_URL"]
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    errors = []
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        try:
+            page.goto(base_url)
+            center = page.locator(".tool-center")
+            expect(center.get_by_role("heading", name="全部能力", exact=True)).to_be_visible()
+            for name in ("生物药", "抗体", "蛋白"):
+                center.get_by_role("button", name=name, exact=True).click()
+                expect(
+                    center.get_by_role("button", name="抗体设计与 CDR 优化", exact=True)
+                ).to_be_visible()
+                expect(
+                    center.get_by_role("button", name="计算小分子性质", exact=True)
+                ).to_have_count(0)
+            center.get_by_role("button", name="小分子", exact=True).click()
+            expect(
+                center.get_by_role("button", name="口袋条件分子生成", exact=True)
+            ).to_be_visible()
+            expect(
+                center.get_by_role("button", name="发现多个候选口袋", exact=True)
+            ).to_be_visible()
+            expect(
+                center.get_by_role("button", name="抗体设计与 CDR 优化", exact=True)
+            ).to_have_count(0)
+            center.get_by_role("combobox", name="研究用途", exact=True).select_option("evaluate")
+            expect(center.get_by_role("button", name="计算小分子性质", exact=True)).to_be_visible()
+            expect(center.get_by_role("button", name="口袋条件分子生成", exact=True)).to_have_count(
+                0
+            )
+            for width in (390, 768, 1440):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert page.evaluate(
+                    "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                )
+                page.screenshot(path=str(evidence / f"modalities-small-molecule-{width}.png"))
+            center.get_by_role("button", name="清空搜索与筛选", exact=True).click()
+            center.get_by_role("button", name="RNA", exact=True).click()
+            expect(
+                center.get_by_role("button", name="预测分子与复合物结构", exact=True)
+            ).to_be_visible()
+            expect(center.get_by_role("button", name="准备 MSA 与模板", exact=True)).to_be_visible()
+            expect(
+                center.get_by_role("button", name="抗体设计与 CDR 优化", exact=True)
+            ).to_have_count(0)
+            expect(center.locator(".modality-help")).to_contain_text("不是通用 RNA 药物设计")
+            page.screenshot(path=str(evidence / "modalities-rna.png"))
+            catalogue = page.request.get(base_url + "/api/capabilities").json()
+            antibody = next(item for item in catalogue["capabilities"] if item["id"] == "campaign")
+            assert antibody["modalities"] == ["biologic", "antibody", "protein"]
+            assert page.request.get(base_url + "/api/jobs").json() == []
+            assert errors == []
+        finally:
+            browser.close()

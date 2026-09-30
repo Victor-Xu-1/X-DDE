@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 from ..requests import TASK_ADAPTER
 from .definitions import CAPABILITIES
+from .modalities import modality_catalogue
 from .runtime import availability
 
 
@@ -23,7 +24,7 @@ def frontend_catalogue() -> list[dict]:
     return [
         {
             key: spec.model_dump(mode="json")[key]
-            for key in ("id", "group", "label", "note", "source")
+            for key in ("id", "group", "label", "note", "source", "modalities", "modality_role")
         }
         for spec in CAPABILITIES.values()
         if spec.frontend_form is not None
@@ -46,6 +47,7 @@ def register_capabilities(app, settings, health):
         return {
             "schema_version": 1,
             "owner": "X-DDE",
+            "modalities": modality_catalogue(),
             "capabilities": [
                 {
                     **spec.model_dump(mode="json"),

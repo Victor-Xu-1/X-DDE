@@ -59,7 +59,10 @@ it("reports filtered counts and recovers from an empty search with one action", 
   expect(
     screen.getByRole("heading", { name: "Calculate molecular properties" }),
   ).toBeVisible();
-  await user.click(screen.getByRole("button", { name: "Design" }));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Research purpose" }),
+    "design",
+  );
   expect(screen.getByRole("status")).toHaveTextContent(
     `Showing 0 of ${tools.length} capabilities`,
   );
@@ -108,9 +111,11 @@ it("preserves active form input on language changes and restores filtered naviga
   const handlers = props();
   const { rerender } = render(<ToolCenter {...handlers} />);
   await user.type(screen.getByRole("searchbox"), "RDKit");
-  await user.click(
-    screen.getByRole("button", { name: "Properties & scoring" }),
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Research purpose" }),
+    "evaluate",
   );
+  await user.click(screen.getByRole("button", { name: "Small molecules" }));
   await user.click(
     screen.getByRole("button", {
       name: "Calculate molecular properties",
@@ -140,7 +145,10 @@ it("preserves active form input on language changes and restores filtered naviga
 
   await user.click(screen.getByRole("button", { name: "返回全部能力" }));
   expect(screen.getByRole("searchbox")).toHaveValue("RDKit");
-  expect(screen.getByRole("button", { name: "性质与评分" })).toHaveAttribute(
+  expect(screen.getByRole("combobox", { name: "研究用途" })).toHaveValue(
+    "evaluate",
+  );
+  expect(screen.getByRole("button", { name: "小分子" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
@@ -148,4 +156,39 @@ it("preserves active form input on language changes and restores filtered naviga
     `显示 1 / ${tools.length} 项能力`,
   );
   expect(screen.getByRole("button", { name: "计算小分子性质" })).toHaveFocus();
+});
+
+it("shows the same antibody capability across overlapping modalities without dispatch", async () => {
+  const user = userEvent.setup();
+  const submit = vi.spyOn(api, "submit");
+  render(<ToolCenter {...props()} />);
+  for (const name of ["Biologics", "Antibodies", "Proteins"]) {
+    await user.click(screen.getByRole("button", { name }));
+    expect(
+      screen.getByRole("button", {
+        name: "Antibody design and CDR optimization",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Calculate molecular properties" }),
+    ).toBeNull();
+  }
+  await user.click(screen.getByRole("button", { name: "RNA" }));
+  expect(
+    screen.getByRole("button", { name: "Predict structures and complexes" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Prepare MSAs and templates" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("button", {
+      name: "Antibody design and CDR optimization",
+    }),
+  ).toBeNull();
+  expect(
+    screen.getByText(
+      /RNA structure inputs, complex prediction and MSA preparation/,
+    ),
+  ).toBeVisible();
+  expect(submit).not.toHaveBeenCalled();
 });

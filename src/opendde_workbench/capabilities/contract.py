@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .modalities import ModalityId
+
 
 class ConstraintSupport(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -16,6 +18,8 @@ class CapabilitySpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     id: str = Field(pattern=r"^[a-z][a-z0-9_.-]{0,63}$")
     group: Literal["design", "structure", "evaluate", "analyze", "search", "prepare", "system"]
+    modalities: tuple[ModalityId, ...] = Field(min_length=1)
+    modality_role: Literal["research_object", "target_context", "shared"]
     environment: Literal["opendde", "harness", "diffsbdd", "platform", "p2rank"]
     operations: tuple[str, ...]
     label: tuple[str, str]
