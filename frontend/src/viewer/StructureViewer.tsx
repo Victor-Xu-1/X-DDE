@@ -23,6 +23,7 @@ interface Props {
   language: Language;
   focusResidue?: { residue: string; nonce: number } | null;
   comparison?: boolean;
+  focusModel?: number;
   selectionMode?: PickMode;
   onAtomSelected?(selection: SelectionInfo | null): void;
 }
@@ -31,12 +32,16 @@ export function StructureViewer({
   language,
   focusResidue,
   comparison = false,
+  focusModel,
   selectionMode,
   onAtomSelected,
 }: Props) {
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
     key = urls.join("|");
+  const overlay = urls.length > 1;
+  const focusedModel = useRef(focusModel);
+  focusedModel.current = focusModel;
   const initialPick = useRef(selectionMode);
   initialPick.current = selectionMode;
   const selectionCallback = useRef(onAtomSelected);
@@ -80,6 +85,8 @@ export function StructureViewer({
       if (type === "loaded") {
         setStatus("loaded");
         setScene(detail);
+        if (focusedModel.current !== undefined)
+          send("focus-model", focusedModel.current);
         if (initialPick.current) {
           setOptions({ ...detail.options, pick: initialPick.current });
           send("options", { pick: initialPick.current });
@@ -137,7 +144,7 @@ export function StructureViewer({
           <FullscreenOutlined />
         </button>
       </div>
-      {scene.hasPolymer && (
+      {scene.hasPolymer && !overlay && (
         <div className="segmented viewer-modes">
           {(
             [
@@ -240,6 +247,14 @@ export function StructureViewer({
             <button type="button" onClick={() => send("reset")}>
               {zh ? "回到全局" : "Full structure"}
             </button>
+            {focusModel !== undefined && (
+              <button
+                type="button"
+                onClick={() => send("focus-model", focusModel)}
+              >
+                {zh ? "定位所选配体" : "Focus selected ligand"}
+              </button>
+            )}
             {scene.chains.slice(0, 8).map((chain) => (
               <button
                 type="button"
@@ -254,16 +269,18 @@ export function StructureViewer({
               {zh ? "拖动旋转 · 滚轮缩放" : "Drag to rotate · Scroll to zoom"}
             </span>
           </div>
-          <ViewerControls
-            language={language}
-            scene={scene}
-            options={options}
-            selection={selection}
-            distance={distance}
-            disabled={comparison}
-            onOptions={configure}
-            send={send}
-          />
+          {!overlay && (
+            <ViewerControls
+              language={language}
+              scene={scene}
+              options={options}
+              selection={selection}
+              distance={distance}
+              disabled={comparison}
+              onOptions={configure}
+              send={send}
+            />
+          )}
         </>
       )}
     </section>

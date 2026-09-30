@@ -132,6 +132,7 @@ export function DockingResults({
               artifactUrl(job.id, selected.artifact),
             ]}
             language={language}
+            focusModel={1}
           />
           <a href={artifactUrl(job.id, selected.artifact)} download>
             {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
@@ -139,7 +140,12 @@ export function DockingResults({
           {version ? (
             <div className="editor-toolbar">
               {(["properties", "score", "minimize"] as const).map((v, n) => (
-                <button type="button" key={v} onClick={() => setNext(v)}>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  key={v}
+                  onClick={() => setNext(v)}
+                >
                   {
                     (zh
                       ? ["计算性质", "重新评分", "局部最小化"]

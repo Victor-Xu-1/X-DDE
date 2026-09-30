@@ -70,6 +70,8 @@ def inspect_results(settings, image, job_id, pose, reference, evidence):
                 expect(
                     panel.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                 ).to_be_visible()
+                expect(panel.get_by_role("button", name="定位所选配体", exact=True)).to_be_visible()
+                expect(panel.get_by_role("button", name="分子表面", exact=True)).to_have_count(0)
                 requested = [
                     parse_qs(urlparse(url).query).get("name", [None])[0] for url in downloads
                 ]

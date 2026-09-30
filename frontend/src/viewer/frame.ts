@@ -71,7 +71,12 @@ async function load(urls: string[]) {
       const model = viewer.addModel(text, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
-      if (urls.length > 1) paintOverlayModel(model, index);
+      if (urls.length > 1)
+        paintOverlayModel(
+          model,
+          index,
+          ["sdf", "mol", "mol2"].includes(format),
+        );
     }
     scene.inspect(urls.length > 1);
     await scene.paint();
@@ -118,6 +123,18 @@ window.addEventListener("message", (event) => {
     void load(value.filter((item) => typeof item === "string"));
   if (["options", "selection-action", "residue"].includes(type))
     void command(type, value);
+  if (
+    type === "focus-model" &&
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value < 3 &&
+    viewer.getModel(value)
+  ) {
+    viewer.zoomTo({ model: value });
+    viewer.zoom(0.85);
+    viewer.render();
+  }
   if (type === "reset") reset();
   if (type === "focus-ligand") scene.focusLigand();
   if (type === "zoom") {

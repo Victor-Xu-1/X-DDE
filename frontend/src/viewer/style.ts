@@ -78,14 +78,23 @@ export async function paintBase(
     );
 }
 
-export function paintOverlayModel(model: mol.GLModel, index: number) {
+export function paintOverlayModel(
+  model: mol.GLModel,
+  index: number,
+  molecular = false,
+) {
   model.setStyle(
     {},
     {
       stick: {
-        radius: 0.1,
-        colorscheme: ["blueCarbon", "orangeCarbon", "purpleCarbon"][index],
+        radius: molecular ? 0.17 : 0.1,
+        colorscheme: molecular
+          ? "greenCarbon"
+          : ["blueCarbon", "orangeCarbon", "purpleCarbon"][index],
       },
+      ...(molecular
+        ? { sphere: { scale: 0.24, colorscheme: "greenCarbon" } }
+        : {}),
     },
   );
   // Small-molecule parsers have no polymer residue names. Cartoon rendering must

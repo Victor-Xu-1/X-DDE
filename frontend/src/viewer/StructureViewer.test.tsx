@@ -35,3 +35,57 @@ it("clears the prior structure when switching to a task without a result", () =>
   );
   expect(screen.getByText("预测完成后，结构会显示在这里")).toBeVisible();
 });
+
+it("focuses the actual ligand source and exposes only supported overlay controls", () => {
+  render(
+    <StructureViewer
+      urls={[
+        "/api/jobs/j/download?name=receptor.pdb",
+        "/api/jobs/j/download?name=pose-001.sdf",
+      ]}
+      language="en"
+      focusModel={1}
+    />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  act(() =>
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: location.origin,
+        source: frame.contentWindow,
+        data: {
+          channel: "opendde-viewer",
+          type: "loaded",
+          detail: {
+            atoms: 10,
+            chains: ["A"],
+            ligands: [],
+            residues: [],
+            hasPolymer: true,
+            options: {
+              mode: "cartoon",
+              radius: 5,
+              labels: true,
+              ligand: "",
+              pick: "residue",
+            },
+          },
+        },
+      }),
+    ),
+  );
+  expect(post).toHaveBeenCalledWith(
+    { channel: "opendde-viewer", type: "focus-model", value: 1 },
+    location.origin,
+  );
+  expect(
+    screen.getByRole("button", { name: "Focus selected ligand" }),
+  ).toBeVisible();
+  expect(screen.queryByText("Surface", { exact: true })).toBeNull();
+  expect(
+    screen.queryByText("Selection and display editing", { exact: true }),
+  ).toBeNull();
+});
