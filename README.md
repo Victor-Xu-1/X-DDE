@@ -2,9 +2,13 @@
 
 [中文](#中文) · [English](#english) · [能力与源码对照](docs/design/README.md) · [服务器验收](docs/server-acceptance.md)
 
-X-DDE is an independent MIT drug research platform that manages projects, tasks, scientific assets, software deployment and interactive workspaces. OpenDDE is one of its scientific backends, alongside the currently integrated Harness tools and RDKit descriptors. Ketcher and Mol* provide editing and inspection. Chinese and English interfaces offer guided choices and expert parameters.
+X-DDE is an independent MIT drug research platform with its own frontend and platform server. The X-DDE server owns projects, tasks, scientific assets, deployment and provenance. OpenDDE, DiffSBDD and native Harness tools supply scientific implementations through adapters and isolated environments; Ketcher and Mol* provide editing and inspection. Chinese and English interfaces offer guided choices and expert parameters.
 
-**平台关系：X-DDE 是主平台，OpenDDE 是可接入的软件后端之一。** 各后端的能力、依赖和就绪状态分别管理；OpenDDE 的能力边界不代表 X-DDE 的平台边界。新增软件只有完成真实适配后才进入可用能力目录。
+**平台关系：X-DDE 前端 → X-DDE 平台后端 → 计算引擎及各自的运行环境。** 前端和平台服务端都属于 X-DDE。OpenDDE、DiffSBDD、Harness 是接入的科学计算软件，分别管理源码、Python/CUDA 或 Docker 环境、模型和服务配置；它们不拥有平台的任务队列或资产库。研究任务按所选引擎检查依赖，X-DDE 服务端、资产管理和编辑预览可以独立运行。新增软件只有完成真实适配后才进入可用能力目录。
+
+运行状态页分别展示 **X-DDE 平台后端**、已登记的计算引擎、客户端/计算服务配置和模型文件检查。安装页按引擎归属组织环境与模型；选择 DiffSBDD 只安装其独立环境，不把 OpenDDE 作为公共前置依赖。环境检查通过、模型文件存在和科学验收通过是不同状态。
+
+`engine_registry` 是任务操作归属与引擎身份的唯一登记；现有 `BackendRouter` 是唯一启动、取消和恢复调度。`Store`、`Worker`、`AssetStore` 与科学对象版本仍由 X-DDE 统一管理。新增组件目录使用 `x-dde-managed`；已有 `opendde-managed` 目录、Python 包名和 WSL 内部路径保留以继续读取原安装与数据，这些历史名称不代表平台后端身份。WSL 是承载平台和各独立环境的 Linux 主机；发行版的历史名称与科学引擎的软件身份分开，不能据此把所有引擎归为 OpenDDE。
 
 平台使用统一项目、科学资产版本和来源关系组织研究。结构、分子、序列和分析结果能通过实际输入输出关联，修改保留原始版本。正在开发的资产网络与 DiffSBDD 集成状态、模块边界及服务器验收要求见[权威架构说明](docs/design/README.md#x-dde-平台架构与资产关系)，候选分支能力不等于已发布能力。
 
@@ -57,7 +61,7 @@ X-DDE UI
 
 Core research tools remain in the main navigation. The bottom **Account & settings** menu groups workspace overview, installation, runtime status and help. Open its settings page to choose Chinese/English and Warm/Pure white/Night appearance; preferences are saved in the current browser. Account information reflects the existing local single-user mode.
 
-部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。更改安装位置不自动迁移已有数据。
+部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。新位置的组件目录由 X-DDE 标记归属；升级复用已有目录与归属标记，不自动搬动环境或研究数据。同一位置同时存在新旧组件目录时拒绝猜测，提示管理员核对。更改安装位置不自动迁移已有数据。
 
 Ubuntu 系统依赖：`sudo $(command -v xdde) setup system` 安装 Docker 与基础工具；Docker 用户访问按 [Docker 官方说明](https://docs.docker.com/engine/install/linux-postinstall/) 配置，GPU 按 [NVIDIA Container Toolkit 官方说明](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) 配置。网页不自动获得管理员权限。Harness 计算服务、共享目录和 LLM 凭据仍在下方环境配置中设置；不会把“已安装”显示成“已能推理”。
 
@@ -112,7 +116,7 @@ cp .env.example .env
 | `WB_STATE_DIR` | 可写数据目录：SQLite、不可变上传、任务快照、结果、设计交接记录。 |
 | `WB_IMAGE_FILE` | 文本文件，内容为带 `@sha256:` 的固定 Docker 镜像引用。 |
 | `WB_CODE_FILE` | 文本文件，内容为外部运行代码根目录；包含 `external/opendde/runner/batch_inference.py`。 |
-| `WB_MODEL_DIR` | `checkpoint/`、`common/`、`search_database/` 所在目录。 |
+| `WB_MODEL_DIR` | OpenDDE 的 `checkpoint/`、`common/`、`search_database/` 根目录。 |
 | `WB_CACHE_DIR` | 可写计算缓存。 |
 | `WB_MSA_URL` | 可选的管理员配置 MSA 服务；未设时由原生运行环境采用其默认服务。 |
 | `WB_CHECKPOINTS_FILE` | 可选 JSON，映射自定义 ID 到 checkpoint 目录内的 `.pt` 文件名；不接受客户端任意路径。 |
@@ -120,6 +124,8 @@ cp .env.example .env
 | `WB_HARNESS_URL` / `WB_HARNESS_TOKEN` | 固定计算服务地址和服务端凭据；浏览器不接收令牌。 |
 | `WB_HARNESS_SHARED_DIR` | 工作台主机上可访问的 Harness 计算输出根目录。文件工具需共享挂载，并以相同服务 UID 读写共享输入。 |
 | `WB_HARNESS_REMOTE_DIR` | 同一个目录在计算服务主机/容器内的绝对路径；同路径时可留空。 |
+| `WB_DIFFSBDD_PYTHON` / `WB_DIFFSBDD_SOURCE` | DiffSBDD 独立解释器与经过审查的原生源码；安装管理会自动记录。 |
+| `WB_DIFFSBDD_HOME` / `WB_DIFFSBDD_MANIFEST_SHA256` | DiffSBDD 运行根目录与可信安装清单摘要；仅管理员覆盖，不接受浏览器任意路径。 |
 
 OpenDDE 镜像须包含其推理依赖、RDKit 和 Biotite。`WB_MODEL_DIR/checkpoint/opendde.pt` 和可选的 `opendde_abag.pt` 为对应预测所需权重。公开源码、权重、数据库和模型服务均不打包进此仓库。
 
@@ -191,7 +197,7 @@ CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证�
 
 ## English
 
-The capability matrix records currently integrated software and audited upstream source. All public scientific entry points described in [the matrix](docs/design/README.md) have adapter/UI code; runtime availability depends on each backend and the target server. The audited OpenDDE/Harness distribution does not provide objective developability, generic small-molecule de novo generation, complete ADMET or calibrated affinity. These are current integration boundaries, not restrictions on X-DDE's platform architecture; additional software requires a real adapter and acceptance evidence.
+The capability matrix records currently integrated software and audited upstream source. The implemented adapters, available UI and pending integration work are distinguished in [the matrix](docs/design/README.md); runtime and scientific acceptance depend on the selected engine and target server. X-DDE has its own platform server independently of these environments. The audited OpenDDE/Harness distribution does not provide objective developability, generic small-molecule de novo generation, complete ADMET or calibrated affinity. These are current integration boundaries, not restrictions on X-DDE's platform architecture; additional software requires a real adapter and acceptance evidence.
 
 Install/build using the commands above, configure `.env.example`, and run the app on loopback. For Harness, configure an existing native installation and its default provider configuration. Scientific file tools require a shared directory mapped to the compute output root. The browser uses uploaded IDs, not filesystem paths or credentials. Native campaigns retain their own lifecycle; Workbench stores reviewed handoffs and never implements a second agent loop.
 

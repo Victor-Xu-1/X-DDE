@@ -14,6 +14,7 @@ const data: Deployment = {
   restart_required: false,
   prerequisites: { docker: true, uv: true, gpu_tool: false, supported: true },
   packages: [],
+  engines: {},
 };
 it("maps Windows locations without altering Linux paths", () => {
   expect(linuxLocation("E:\\OpenDDE\\Workbench")).toBe(
@@ -30,6 +31,8 @@ it("uses catalogue names for new scientific components and removal review", () =
         packages: [
           {
             id: "diffsbdd",
+            engine: "diffsbdd",
+            kind: "runtime",
             name: "DiffSBDD",
             version: "55f365b",
             description: "小分子设计科学环境 / Small-molecule design runtime",
@@ -39,6 +42,8 @@ it("uses catalogue names for new scientific components and removal review", () =
           },
           {
             id: "diffsbdd-model-crossdock_full",
+            engine: "diffsbdd",
+            kind: "model",
             name: "DiffSBDD · crossdock_full",
             version: "model-sha",
             description: "官方固定模型 / Official pinned checkpoint",
@@ -149,4 +154,46 @@ it("preserves the molecule editor while switching to protein inspection", () => 
   fireEvent.click(screen.getByRole("button", { name: "分子绘图 · Ketcher" }));
   expect(screen.getByTitle("Ketcher molecular editor")).toBe(sketch);
   expect(sketch).toBeVisible();
+});
+
+it("installs the selected DiffSBDD environment independently of OpenDDE", async () => {
+  const post = vi.spyOn(api, "post").mockResolvedValue({});
+  render(
+    <DeploymentPanel
+      data={data}
+      error=""
+      refresh={vi.fn()}
+      language="zh"
+      onEditors={vi.fn()}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: /安装 DiffSBDD 小分子设计环境/ }),
+  );
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
+  expect(post.mock.calls.map((c) => c[0])).toEqual([
+    "/deployment/config",
+    "/deployment/packages/diffsbdd/install",
+  ]);
+  post.mockRestore();
+});
+
+it("saves the base of an existing managed location without nesting it", async () => {
+  const post = vi.spyOn(api, "post").mockResolvedValue({});
+  render(
+    <DeploymentPanel
+      data={{ ...data, config: { root: "/srv/components/x-dde-managed" } }}
+      error=""
+      refresh={vi.fn()}
+      language="en"
+      onEditors={vi.fn()}
+    />,
+  );
+  expect(screen.getByLabelText("Installation location")).toHaveValue(
+    "/srv/components",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save location" }));
+  await waitFor(() => expect(post).toHaveBeenCalledOnce());
+  expect(post.mock.calls[0][1]).toMatchObject({ location: "/srv/components" });
+  post.mockRestore();
 });

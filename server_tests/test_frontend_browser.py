@@ -105,8 +105,32 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 page.screenshot(path=str(evidence / f"assets-{theme}.png"))
 
             page.get_by_role("button", name="账户与设置", exact=True).click()
-            page.get_by_role("menuitem", name="安装与组件", exact=True).click()
-            catalogue = page.request.get(base_url + "/api/deployment").json()["packages"]
+            page.get_by_role("menuitem", name="运行状态", exact=True).click()
+            expect(page.get_by_role("heading", name="X-DDE 平台后端", exact=True)).to_be_visible()
+            expect(page.get_by_text("平台服务就绪", exact=True)).to_be_visible()
+            health = page.request.get(base_url + "/api/health").json()
+            assert health["platform"] == {"name": "X-DDE", "ready": True}
+            assert set(health["engines"]) == {"opendde", "diffsbdd", "harness"}
+            for name in ("OpenDDE · 计算引擎", "DiffSBDD · 计算引擎", "OpenDDE Harness · 科学工具"):
+                expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
+            for width in (390, 768, 1440):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert page.evaluate(
+                    "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                )
+            page.screenshot(path=str(evidence / "xdde-runtime.png"))
+            page.get_by_role("button", name="管理计算引擎与环境", exact=True).click()
+            expect(
+                page.get_by_role("heading", name="X-DDE 计算环境管理", exact=True)
+            ).to_be_visible()
+            deployment = page.request.get(base_url + "/api/deployment").json()
+            for engine in deployment["engines"].values():
+                group = page.get_by_role("region", name=engine["name"] + " · 计算环境与模型")
+                expect(group).to_be_visible()
+            expect(
+                page.get_by_role("button", name="安装 DiffSBDD 小分子设计环境", exact=False)
+            ).to_be_visible()
+            catalogue = deployment["packages"]
             for package in catalogue:
                 if package["id"].startswith("diffsbdd"):
                     expect(

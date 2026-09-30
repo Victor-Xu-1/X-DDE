@@ -32,7 +32,16 @@ def managed_root(value: str) -> Path:
         Path("/sys"),
     }:
         raise ValueError("Choose a data folder, not a system directory.")
-    root = resolved / "opendde-managed"
+    root = resolved / "x-dde-managed"
+    legacy = resolved / "opendde-managed"
+
+    def present(path: Path) -> bool:
+        return path.exists() or path.is_symlink()
+
+    if present(root) and present(legacy):
+        raise ValueError("Both X-DDE and legacy managed directories exist; review their ownership.")
+    if present(legacy):
+        root = legacy
     if root.is_symlink():
         raise ValueError("The managed directory cannot be a symlink.")
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -40,9 +49,12 @@ def managed_root(value: str) -> Path:
     if not marker.exists():
         if any(root.iterdir()):
             raise ValueError("This directory contains unowned files; choose another location.")
-        atomic_json(marker, {"owner": "opendde-workbench", "id": str(uuid4())})
-    if read_json(marker).get("owner") != "opendde-workbench":
-        raise ValueError("The directory does not belong to Workbench.")
+        atomic_json(marker, {"owner": "X-DDE", "id": str(uuid4())})
+    owners = {"X-DDE"}
+    if root.name == "opendde-managed":
+        owners.add("opendde-workbench")
+    if read_json(marker).get("owner") not in owners:
+        raise ValueError("The directory does not belong to X-DDE.")
     return root
 
 

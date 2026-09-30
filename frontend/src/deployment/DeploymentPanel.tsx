@@ -26,7 +26,7 @@ export function DeploymentPanel({
   useEffect(() => {
     if (data && !location)
       setLocation(
-        data.config.root?.replace(/\/opendde-managed$/, "") ??
+        data.config.root?.replace(/\/(?:x-dde|opendde)-managed$/, "") ??
           data.default_location,
       );
   }, [data]);
@@ -56,12 +56,12 @@ export function DeploymentPanel({
   return (
     <section className="deployment-workspace">
       <header className="research-heading">
-        <span className="eyebrow">WORKSPACE SETUP</span>
-        <h1>{zh ? "准备好你的研究工作台" : "Make room for discovery"}</h1>
+        <span className="eyebrow">X-DDE ENVIRONMENTS</span>
+        <h1>{zh ? "X-DDE 计算环境管理" : "X-DDE environments"}</h1>
         <p>
           {zh
-            ? "选择位置，再选你需要的能力。下载和安装会在后台进行，你可以继续浏览工作台。"
-            : "Choose a location and the capabilities you need. Installation continues in the background."}
+            ? "X-DDE 服务端统一管理各计算引擎。选择位置和研究目标，按需安装对应环境；下载在后台进行。"
+            : "The X-DDE server manages each scientific engine. Choose a location and research goal; install the required environment in the background."}
         </p>
       </header>
       {(message || error) && (
@@ -96,7 +96,7 @@ export function DeploymentPanel({
                   list="install-locations"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="E:\\X-DDE"
+                  placeholder="E:\\WSL\\apps\\x-dde"
                 />
                 <datalist id="install-locations">
                   {data.locations.map((p) => (
@@ -106,8 +106,8 @@ export function DeploymentPanel({
               </label>
               <p className="field-help">
                 {zh
-                  ? "Windows 可填写 E:\\X-DDE；WSL 中对应 /mnt/e/X-DDE。管理其中的 opendde-managed 子目录。Python 客户端保存在 WSL Linux 磁盘中，研究结果另行保存。"
-                  : "On Windows, E:\\X-DDE maps to /mnt/e/X-DDE. Bulk components use its opendde-managed subfolder; Python environments use the WSL Linux disk. Research results are separate."}
+                  ? "Windows 可填写 E:\\WSL\\apps\\x-dde；新组件使用 x-dde-managed 子目录。已有安装保留原目录。每个引擎的 Python 环境独立保存在 E 盘 WSL 中，研究资产由 X-DDE 统一管理。"
+                  : "On Windows, E:\\WSL\\apps\\x-dde maps to WSL. New components use x-dde-managed; existing installations retain their location. Each engine has an isolated environment; X-DDE owns the research assets."}
               </p>
               <button
                 disabled={busy || !location.trim()}
@@ -153,6 +153,22 @@ export function DeploymentPanel({
                   {zh
                     ? "编辑器 + Harness + OpenDDE + Docker 镜像；模型在下面单独选择"
                     : "Editors, Harness, OpenDDE and Docker image; choose models below"}
+                </span>
+              </button>
+              <button
+                className="setup-choice"
+                disabled={busy}
+                onClick={() => void execute(() => install(["diffsbdd"]))}
+              >
+                <strong>
+                  {zh
+                    ? "安装 DiffSBDD 小分子设计环境"
+                    : "Install DiffSBDD for small-molecule design"}
+                </strong>
+                <span>
+                  {zh
+                    ? "独立科学环境，不依赖 OpenDDE；八种模型在组件库中按需选择"
+                    : "Isolated scientific runtime, independent of OpenDDE; choose among eight models below"}
                 </span>
               </button>
               <button className="text-button" onClick={onEditors}>

@@ -17,6 +17,12 @@ export function ComponentLibrary({
 }) {
   const [remove, setRemove] = useState<string | null>(null);
   const removeName = data.packages.find((p) => p.id === remove)?.name ?? remove;
+  const groups = [
+    ...new Set(data.packages.map((p) => p.engine ?? "editors")),
+  ].map((id) => ({
+    id,
+    packages: data.packages.filter((p) => (p.engine ?? "editors") === id),
+  }));
   return (
     <>
       {" "}
@@ -28,82 +34,103 @@ export function ComponentLibrary({
             : "Reviewed, pinned official releases"}
         </span>
       </div>
-      <div className="component-grid">
-        {data.packages.map((p) => {
-          const installed = data.installed[p.id];
-          const pending = data.operations.some(
-            (o) =>
-              o.package === p.id &&
-              ["queued", "running", "pausing", "paused"].includes(o.state),
-          );
-          return (
-            <article className="component-card" key={p.id}>
-              <div className="component-top">
-                <span
-                  className={
-                    installed ? "status-pill installed" : "status-pill"
-                  }
-                >
-                  {installed
-                    ? zh
-                      ? "已安装"
-                      : "Installed"
-                    : zh
-                      ? "未安装"
-                      : "Not installed"}
-                </span>
-                <small>{p.version}</small>
-              </div>
-              <h3>{zh ? (names[p.id] ?? p.name) : p.name}</h3>
-              <p>{p.description.split(" / ")[zh ? 0 : 1] ?? p.description}</p>
-              <small>
-                {p.size} · {p.license}
-              </small>
-              <div className="component-actions">
-                <button
-                  disabled={busy || pending}
-                  onClick={() => void execute(() => install([p.id]))}
-                >
-                  {installed
-                    ? zh
-                      ? "重新安装"
-                      : "Reinstall"
-                    : zh
-                      ? "安装"
-                      : "Install"}
-                </button>
-                {installed && (
-                  <>
-                    <button
-                      disabled={
-                        busy || pending || installed.version === p.version
-                      }
-                      title={
-                        zh
-                          ? "升级到工作台目录中已审核的新版本；更新工作台可获取新的组件目录。"
-                          : "Upgrade to a newer reviewed catalogue release by updating Workbench."
-                      }
-                      onClick={() =>
-                        void execute(() =>
-                          api.post(`/deployment/packages/${p.id}/upgrade`, {}),
-                        )
+      {groups.map((group) => (
+        <section
+          key={group.id}
+          className="component-group"
+          aria-labelledby={"component-group-" + group.id}
+        >
+          <h3 id={"component-group-" + group.id}>
+            {group.id === "editors"
+              ? zh
+                ? "编辑与预览工具"
+                : "Editing & inspection tools"
+              : (data.engines[group.id]?.name ?? group.id) +
+                (zh ? " · 计算环境与模型" : " · Environment & models")}
+          </h3>
+          <div className="component-grid">
+            {group.packages.map((p) => {
+              const installed = data.installed[p.id];
+              const pending = data.operations.some(
+                (o) =>
+                  o.package === p.id &&
+                  ["queued", "running", "pausing", "paused"].includes(o.state),
+              );
+              return (
+                <article className="component-card" key={p.id}>
+                  <div className="component-top">
+                    <span
+                      className={
+                        installed ? "status-pill installed" : "status-pill"
                       }
                     >
-                      {zh ? "升级" : "Upgrade"}
-                    </button>
+                      {installed
+                        ? zh
+                          ? "已安装"
+                          : "Installed"
+                        : zh
+                          ? "未安装"
+                          : "Not installed"}
+                    </span>
+                    <small>{p.version}</small>
+                  </div>
+                  <h3>{zh ? (names[p.id] ?? p.name) : p.name}</h3>
+                  <p>
+                    {p.description.split(" / ")[zh ? 0 : 1] ?? p.description}
+                  </p>
+                  <small>
+                    {p.size} · {p.license}
+                  </small>
+                  <div className="component-actions">
                     <button
                       disabled={busy || pending}
-                      onClick={() => setRemove(p.id)}
+                      onClick={() => void execute(() => install([p.id]))}
                     >
-                      {zh ? "卸载" : "Uninstall"}
+                      {installed
+                        ? zh
+                          ? "重新安装"
+                          : "Reinstall"
+                        : zh
+                          ? "安装"
+                          : "Install"}
                     </button>
-                  </>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </div>
+                    {installed && (
+                      <>
+                        <button
+                          disabled={
+                            busy || pending || installed.version === p.version
+                          }
+                          title={
+                            zh
+                              ? "升级到工作台目录中已审核的新版本；更新工作台可获取新的组件目录。"
+                              : "Upgrade to a newer reviewed catalogue release by updating Workbench."
+                          }
+                          onClick={() =>
+                            void execute(() =>
+                              api.post(
+                                `/deployment/packages/${p.id}/upgrade`,
+                                {},
+                              ),
+                            )
+                          }
+                        >
+                          {zh ? "升级" : "Upgrade"}
+                        </button>
+                        <button
+                          disabled={busy || pending}
+                          onClick={() => setRemove(p.id)}
+                        >
+                          {zh ? "卸载" : "Uninstall"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ))}
       {remove && (
         <section
           className="notice"

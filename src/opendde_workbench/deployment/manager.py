@@ -7,6 +7,7 @@ import shutil
 import threading
 from pathlib import Path
 
+from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
 from .catalog import PACKAGES, catalogue, prerequisites
 from .installers import install
@@ -75,10 +76,11 @@ class DeploymentManager:
             "installed": self.store.installed(),
             "operations": self.store.rows(),
             "packages": catalogue(),
+            "engines": engine_catalogue(),
             "prerequisites": prerequisites(),
             "default_location": str(home() / "components"),
             "locations": [str(home() / "components")]
-            + [str(p / "X-DDE") for p in Path("/mnt").glob("[a-z]") if p.is_dir()],
+            + (["/mnt/e/WSL/apps/x-dde"] if Path("/mnt/e").is_dir() else []),
             "restart_required": self.activated
             != {k: v for k, v in self.store.installed().items() if k not in {"ketcher", "molstar"}},
         }

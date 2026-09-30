@@ -6,13 +6,16 @@ Execution backends own process/container lifecycle. The existing Store remains t
 
 import asyncio
 import json
+import logging
 import os
+from collections.abc import Awaitable
 from pathlib import Path
 
 from . import harness_process, local_process
 from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
 from .engine import DockerEngine
+from .engine_registry import engine_for
 from .store import Store
 
 
@@ -23,9 +26,10 @@ class BackendRouter:
         self.opendde = DockerEngine(settings)
 
     async def start(self, job, directory):
-        if job.request.operation == "harness":
+        implementation = engine_for(job.request.operation).id
+        if implementation == "harness":
             return await harness_process.start(self.settings, directory)
-        if job.request.operation == "diffsbdd":
+        if implementation == "diffsbdd":
             python, source, root = configuration(self.settings)
             # Scientific software never inherits model-provider or compute-service secrets.
             env = {
@@ -57,7 +61,9 @@ class BackendRouter:
             return await local_process.start(
                 python, Path(__file__).parent / "diffsbdd/runner.py", directory, env
             )
-        return await self.opendde.start(job, directory)
+        if implementation == "opendde":
+            return await self.opendde.start(job, directory)
+        raise ValueError("No execution adapter for registered engine: " + implementation)
 
     async def stop(self, job_id):
         # Never route using request.json: task directories contain untrusted scientific outputs.
@@ -65,19 +71,43 @@ class BackendRouter:
         if job is None:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
-        if job.request.operation == "harness":
+        implementation = engine_for(job.request.operation).id
+        if implementation == "harness":
             await harness_process.stop(self.settings, directory)
-        elif job.request.operation == "diffsbdd":
+        elif implementation == "diffsbdd":
             await local_process.stop(Path(__file__).parent / "diffsbdd/runner.py", directory)
-        else:
+        elif implementation == "opendde":
             await self.opendde.stop(job_id)
+        else:
+            raise ValueError("No execution adapter for registered engine: " + implementation)
 
     async def readiness(self):
         # Preserve the existing OpenDDE health contract; expose other engines independently.
-        opendde = await self.opendde.readiness()
-        diff = await asyncio.to_thread(diff_readiness, self.settings)
+        opendde, diff = await asyncio.gather(
+            self._checked_readiness("opendde", self.opendde.readiness()),
+            self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
+        )
         harness = {
             "ready": bool(self.settings.harness_python and self.settings.harness_python.is_file()),
             "compute_configured": bool(self.settings.harness_url),
         }
         return {**opendde, "backends": {"opendde": opendde, "diffsbdd": diff, "harness": harness}}
+
+    async def _checked_readiness(self, identifier: str, check: Awaitable[dict]) -> dict:
+        try:
+            result = await check
+            if not isinstance(result, dict):
+                raise ValueError("Engine returned an invalid runtime status.")
+            return result
+        except Exception as exc:
+            # Diagnostics identify the failing adapter without exposing provider/config secrets.
+            logging.getLogger(__name__).warning(
+                "Scientific runtime check failed: engine=%s error_type=%s",
+                identifier,
+                type(exc).__name__,
+            )
+            return {
+                "ready": False,
+                "gpu": None,
+                "reason": "Engine runtime check failed. Check installation and X-DDE logs.",
+            }

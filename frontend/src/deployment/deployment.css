@@ -229,3 +229,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+.component-group {
+  margin-top: 24px;
+}
+.component-group > h3 {
+  margin-bottom: 12px;
+}

@@ -101,8 +101,8 @@ export function HomeWorkspace(p: Props) {
         <aside className="notice engine-notice">
           <p>
             {zh
-              ? "计算环境尚未就绪。你可以先准备输入，再到运行状态查看需要配置的组件。"
-              : "The compute environment is not ready. You can prepare inputs now and check Runtime status for required components."}
+              ? "OpenDDE 预测环境尚未就绪。你可以先准备输入，再到运行状态查看该引擎需要的组件。"
+              : "The OpenDDE prediction environment is not ready. Prepare inputs now and check Runtime status for this engine’s prerequisites."}
           </p>
           <details>
             <summary>

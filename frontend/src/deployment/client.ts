@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { request } from "../api";
+import type { ScientificEngine } from "../types";
 
 export interface Deployment {
   config: { root?: string; automatic?: boolean };
@@ -13,6 +14,7 @@ export interface Deployment {
     supported: boolean;
   };
   installed: Record<string, { version: string; web?: string }>;
+  engines: Record<string, ScientificEngine>;
   packages: {
     id: string;
     name: string;
@@ -20,6 +22,8 @@ export interface Deployment {
     description: string;
     size: string;
     automatic: boolean;
+    engine: string | null;
+    kind: "runtime" | "model" | "editor";
     license: string;
   }[];
   operations: {

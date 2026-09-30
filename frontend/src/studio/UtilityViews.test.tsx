@@ -57,6 +57,7 @@ function props(
     onChanged: vi.fn(),
     onHome: vi.fn(),
     onStart: vi.fn(),
+    onSetup: vi.fn(),
     onTasks: vi.fn(),
     projects: [],
     projectError: "",

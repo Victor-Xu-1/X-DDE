@@ -287,3 +287,10 @@ textarea {
   margin-top: 8px;
   justify-content: center;
 }
+
+.runtime-workspace .studio-panel {
+  min-width: 0;
+}
+.runtime-workspace .studio-panel p {
+  overflow-wrap: anywhere;
+}

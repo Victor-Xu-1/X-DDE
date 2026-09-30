@@ -2,8 +2,6 @@ import { componentsOf, isPrediction } from "../operations/types";
 import {
   DownloadOutlined,
   FileTextOutlined,
-  DeploymentUnitOutlined,
-  DatabaseOutlined,
   BarChartOutlined,
   ProfileOutlined,
   ReloadOutlined,
@@ -13,6 +11,7 @@ import { ProjectPanel } from "./ProjectPanel";
 import { CandidatePanel } from "./CandidatePanel";
 import { AnalysisGrid } from "./AnalysisGrid";
 import { EmptyState } from "./EmptyState";
+import { RuntimeStatus } from "./RuntimeStatus";
 import { translator } from "../i18n";
 import type { View } from "./Navigation";
 import type {
@@ -40,6 +39,7 @@ interface Props {
   onChanged(job: Job): void;
   onHome(): void;
   onStart(): void;
+  onSetup(): void;
   onTasks(): void;
   projects: Project[];
   projectError: string;
@@ -427,77 +427,13 @@ export function UtilityViews(p: Props) {
     );
   if (p.view === "models")
     return (
-      <section className="utility-page">
-        <h1>{zh ? "运行状态" : "Runtime status"}</h1>
-        <p>
-          {zh
-            ? "X-DDE 任务服务与各软件后端分别就绪。OpenDDE 的状态只影响依赖它的任务。"
-            : "X-DDE's task service and software backends have separate readiness. OpenDDE status applies to tasks that require it."}
-        </p>
-        <div className="model-grid">
-          <div className="studio-panel">
-            <DeploymentUnitOutlined />
-            <h3>{zh ? "X-DDE 任务服务" : "X-DDE task service"}</h3>
-            <span
-              className={
-                "status " + (p.health?.worker_ready ? "succeeded" : "failed")
-              }
-            >
-              {!p.health
-                ? t("connecting")
-                : p.health.worker_ready
-                  ? zh
-                    ? "任务服务就绪"
-                    : "Task service ready"
-                  : zh
-                    ? "任务服务未就绪"
-                    : "Task service unavailable"}
-            </span>
-            {p.health?.worker_error && (
-              <p role="alert">{p.health.worker_error}</p>
-            )}
-            <p>
-              {zh
-                ? "管理任务队列与执行记录；软件后端的依赖单独检查。"
-                : "Manages the task queue and execution records; software prerequisites are checked separately."}
-            </p>
-          </div>
-          <div className="studio-panel">
-            <DeploymentUnitOutlined />
-            <h3>{zh ? "OpenDDE 后端" : "OpenDDE backend"}</h3>
-            <p>
-              {p.health?.engine.gpu?.split(",")[0] ??
-                (zh ? "正在读取 GPU" : "Checking GPU")}
-            </p>
-            <span
-              className={
-                "status " + (p.health?.engine.ready ? "succeeded" : "failed")
-              }
-            >
-              {!p.health
-                ? t("connecting")
-                : p.health.engine.ready
-                  ? t("ready")
-                  : t("unavailable")}
-            </span>
-            {p.health?.engine.reason && (
-              <p role="alert">{p.health.engine.reason}</p>
-            )}
-          </div>
-          <div className="studio-panel">
-            <DatabaseOutlined />
-            <h3>{zh ? "结果存储空间" : "Result storage"}</h3>
-            <p>
-              {p.health?.free_disk_gib ?? "—"} GiB {zh ? "可用" : "free"}
-            </p>
-            <p>
-              {zh
-                ? "工作台结果保存在配置的数据目录；Harness 原生结果保存在其计算服务。"
-                : "Workbench results use the configured data directory; native Harness results remain on its compute service."}
-            </p>
-          </div>
-        </div>
-      </section>
+      <RuntimeStatus
+        language={p.language}
+        health={p.health}
+        connectionError={p.connectionError}
+        onRefresh={p.onRefresh}
+        onSetup={p.onSetup}
+      />
     );
   if (p.view === "help")
     return (

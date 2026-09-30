@@ -26,13 +26,13 @@ from opendde_workbench.locations import atomic_json, read_json
 def test_location_ownership_and_no_symlinks(tmp_path):
     base = tmp_path / "data"
     root = managed_root(str(base))
-    assert root == base / "opendde-managed"
+    assert root == base / "x-dde-managed"
     assert managed_root(str(base)) == root
-    assert read_json(root / ".workbench-owner.json")["owner"] == "opendde-workbench"
+    assert read_json(root / ".workbench-owner.json")["owner"] == "X-DDE"
     with pytest.raises(ValueError):
         managed_root("/etc")
     (tmp_path / "other").mkdir()
-    (tmp_path / "other/opendde-managed").symlink_to(root)
+    (tmp_path / "other/x-dde-managed").symlink_to(root)
     with pytest.raises(ValueError):
         managed_root(str(tmp_path / "other"))
 
@@ -65,7 +65,7 @@ def test_pause_resume_cancel_persists_without_background_work(tmp_path):
 def test_uninstall_removes_only_owned_package_and_retains_models(tmp_path):
     manager = DeploymentManager(tmp_path / "state")
     manager.configure(str(tmp_path / "components"), False)
-    root = tmp_path / "components/opendde-managed"
+    root = tmp_path / "components/x-dde-managed"
     directory = root / "packages/ketcher/3.18.0-local"
     directory.mkdir(parents=True)
     (directory / "index.html").write_text("editor")
@@ -177,7 +177,7 @@ def test_deployment_api_origin_validation_and_saved_state(client_factory, tmp_pa
         assert client.post("/api/deployment/packages/unknown/install", json={}).status_code == 409
         assert client.get("/api/lifecycle").json() == {"busy": False}
     with client_factory() as client:
-        assert client.get("/api/deployment").json()["config"]["root"].endswith("opendde-managed")
+        assert client.get("/api/deployment").json()["config"]["root"].endswith("x-dde-managed")
 
 
 def test_cli_real_start_status_stop_case_insensitive(tmp_path):
@@ -209,3 +209,30 @@ def test_installed_brand_and_legacy_commands(name):
     result = subprocess.run([str(executable), "HeLp"], capture_output=True, text=True, timeout=10)
     assert result.returncode == 0, result.stderr
     assert "usage: X-DDE" in result.stdout
+
+
+def test_existing_platform_components_keep_owned_legacy_storage(tmp_path):
+    base = tmp_path / "components"
+    legacy = base / "opendde-managed"
+    legacy.mkdir(parents=True)
+    atomic_json(legacy / ".workbench-owner.json", {"owner": "opendde-workbench", "id": "original"})
+    original = legacy / "models" / "retained-model.bin"
+    original.parent.mkdir()
+    original.write_bytes(b"existing scientific resource")
+    manager = DeploymentManager(tmp_path / "state")
+    assert manager.configure(str(base), False)["config"]["root"] == str(legacy)
+    assert managed_root(str(base)) == legacy
+    assert original.read_bytes() == b"existing scientific resource"
+    assert read_json(legacy / ".workbench-owner.json")["id"] == "original"
+    assert not (base / "x-dde-managed").exists()
+    (base / "x-dde-managed").mkdir()
+    with pytest.raises(ValueError, match="Both X-DDE and legacy"):
+        managed_root(str(base))
+
+
+def test_new_platform_storage_does_not_adopt_a_legacy_owner_marker(tmp_path):
+    new = tmp_path / "x-dde-managed"
+    new.mkdir()
+    atomic_json(new / ".workbench-owner.json", {"owner": "opendde-workbench"})
+    with pytest.raises(ValueError, match="does not belong to X-DDE"):
+        managed_root(str(tmp_path))

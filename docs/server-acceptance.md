@@ -1,10 +1,10 @@
 # Target-server acceptance for 0.3
 
-This is the acceptance plan for the expanded frontend and adapters. It is not a record of successful inference. The owner explicitly deferred runtime testing on the development PC; the existing 0.2 service remains unchanged.
+This is the acceptance plan for the X-DDE frontend, platform server and scientific adapters. It is not a record of successful inference. Scientific runtime acceptance is deferred to the target server; the local released package and source preview are separately identified during delivery.
 
 ## Preparation
 
-1. Check out the exact candidate commit and record `git rev-parse HEAD`, the image digest, OpenDDE code revision, installed Harness revision/version and model/resource identifiers.
+1. Check out the exact candidate commit and record `git rev-parse HEAD`. Verify the API title and `health.platform.name` are X-DDE. Record each selected engine’s revision, runtime/image digest, model/resource identifiers and its own acceptance evidence; OpenDDE is not a prerequisite for unrelated engines. Confirm the platform and asset APIs remain available when scientific environments are missing.
 2. Use a separate `WB_STATE_DIR` for acceptance. Keep production state and native campaigns intact. Configure `.env.example`; build/install using README commands.
 3. Install the audited scientific runtime, CPU/GPU support and required resources. Configure Harness and provider credentials on the server only. For file-based tools, map `WB_HARNESS_SHARED_DIR` to the native compute output root, with `WB_HARNESS_REMOTE_DIR` identifying the same directory inside compute.
 4. Run the existing mandatory frontend/backend/packaging gates. Do not skip or weaken them because inference is deferred.

@@ -206,8 +206,8 @@ export function App() {
                     </strong>
                     <p>
                       {zh
-                        ? "编辑器可独立使用；OpenDDE 等计算后端需要各自的环境与模型。"
-                        : "Editors work independently. Compute backends such as OpenDDE need their own environments and models."}
+                        ? "编辑器可独立使用；OpenDDE、DiffSBDD 等计算引擎分别管理环境与模型。"
+                        : "Editors work independently. Scientific engines such as OpenDDE and DiffSBDD manage their own environments and models."}
                     </p>
                   </div>
                   <button onClick={() => setView("deployment")}>
@@ -323,6 +323,7 @@ export function App() {
                   connectionError={work.connectionError}
                   onRefresh={refresh}
                   onStart={() => setView("tools")}
+                  onSetup={() => setView("deployment")}
                   onTasks={() => setView("tasks")}
                   onJob={chooseJob}
                   onHome={() => {

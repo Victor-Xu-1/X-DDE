@@ -4,11 +4,11 @@ The owner-provided `reference.png` remains unchanged as style inspiration only: 
 
 ## Product hierarchy
 
-**X-DDE is the platform. OpenDDE is one of its software backends.** X-DDE owns projects, tasks, assets, user interaction, deployment coordination and execution provenance. Scientific software provides capabilities through adapters beneath that platform boundary; no upstream product owns X-DDE's scope or identity.
+**Both the frontend and the platform server are X-DDE.** The X-DDE server owns APIs, projects, task and deployment state, scientific assets and execution provenance. OpenDDE, DiffSBDD and Harness are scientific implementations beneath the platform, with separately installed execution environments. An engine is not the platform server and is not a prerequisite for unrelated engines, editors or asset management.
 
-Currently integrated scientific software includes OpenDDE, native Harness tools/campaigns and RDKit descriptors. Ketcher and Mol* are editor/inspection components. Backend installation, backend readiness and X-DDE task-service readiness are distinct states. Missing OpenDDE prerequisites must be identified as an OpenDDE problem, not a failure of the entire platform or of an unrelated editor.
+Currently registered scientific implementations include OpenDDE, DiffSBDD and native Harness tools; RDKit descriptors run through the audited chemical adapter. Ketcher and Mol* are editor/inspection components. Platform readiness, engine environment checks, model resources, remote-service configuration and scientific acceptance are separate states. Runtime status and installation use the same server-owned engine identities; missing OpenDDE prerequisites affect only tasks that require its adapter.
 
-The existing `Engine`/Docker path is the OpenDDE adapter, not a universal registry for every future backend. Explicit environment/capability registration and composed multi-engine workflows remain staged work below; this hierarchy does not claim those planned capabilities already exist.
+`engine_registry.py` owns the reviewed engine identities and task-operation mapping; `BackendRouter` alone starts and stops their adapters. The `Engine` protocol describes the lifecycle interface and `DockerEngine` implements the OpenDDE adapter. Registration does not grant browser-supplied executable paths or commands. New engines still require an implemented adapter, typed scientific input/output, isolated dependency installation, cancellation/recovery and acceptance. Composed multi-step workflows remain staged work below.
 
 ## Source authority
 
@@ -72,7 +72,7 @@ Display limits are Workbench guardrails, not model limits: 20 tasks per atomic b
 
 ## X-DDE 平台架构与资产关系
 
-X-DDE 是完整药物研究平台。OpenDDE、DiffSBDD、Harness 中的科学工具，以及后续经过实际适配的软件，是平台接入的实现。前端围绕研究目标、项目、候选、资产与证据组织，不按某一个开源软件的菜单组织。平台治理、资产与执行状态由 X-DDE 掌握，科学计算使用各软件的真实实现。
+X-DDE 是完整药物研究平台，包含 X-DDE 前端和 X-DDE 平台后端。OpenDDE、DiffSBDD、Harness 中的科学工具，以及后续经过实际适配的软件，是平台管理的科学计算实现。前端围绕研究目标、项目、候选、资产与证据组织，不按某一个开源软件的菜单组织。平台治理、资产与执行状态由 X-DDE 掌握，科学计算使用各软件的真实实现。
 
 **实施状态必须区分：架构已设计、适配代码已实现、真实协议已验证、科学基准已通过。** 主分支已落地共享资产版本、血缘图、成功任务的产物登记、指定分子记录的性质交接和独立多后端调度。DiffSBDD 的四种设计契约、原生科学桥接与八模型安装代码也已提交；完整前端、历史导入和服务器科学验收仍在推进。下列未来引擎不会因出现在架构里而出现在可用工具卡片里。
 
@@ -81,13 +81,16 @@ X-DDE 是完整药物研究平台。OpenDDE、DiffSBDD、Harness 中的科学工
 ```mermaid
 flowchart TB
   User[研究目标 / 项目 / 候选] --> UI[X-DDE 中文与英文工作台]
-  UI --> API[类型化 API / 输入校验 / CSRF]
+  UI --> API[X-DDE 平台后端 · 类型化 API / 输入校验 / CSRF]
+  API --> Registry[统一引擎身份 / 操作归属 / 独立运行状态]
+  Registry --> Deployment[X-DDE 环境部署管理 · 环境 / 权重 / 版本]
   API --> Objects[科学资产版本与来源关系]
   API --> Capabilities[能力与输入输出契约]
   Capabilities --> Tasks[任务请求 / 工作流步骤]
   Tasks --> Store[唯一持久任务状态 Store]
   Store --> Worker[唯一任务 Worker / GPU 协调 / 取消与恢复]
-  Worker --> Router[受信任后端调度]
+  Registry --> Router
+  Worker --> Router[X-DDE 唯一执行调度]
   Router --> DDE[OpenDDE · Docker]
   Router --> Diff[DiffSBDD · 独立 Python / CUDA]
   Router --> Harness[Harness · 原生工具与内部 campaign]
@@ -98,6 +101,16 @@ flowchart TB
   Assets --> Objects
   Objects --> UI
 ```
+
+平台服务端名称和健康身份始终为 **X-DDE**。`/api/health.platform` 表示平台任务服务；`/api/health.engines` 按已登记引擎分别返回身份和配置检查；`/api/deployment.engines` 与各组件的 `engine`、`kind` 使用同一归属。历史 `health.engine` 只保留原 OpenDDE 快照供已有调用方读取，不能再用于判断整个平台是否可用。
+
+| 层次 | 责任与边界 |
+| --- | --- |
+| X-DDE 前端 | 研究目标选择、输入、预览/编辑和专家参数；只通过 X-DDE API 调用 |
+| X-DDE 平台后端 | 唯一项目、任务状态、安装状态、资产版本、血缘与方法来源；校验和调度 |
+| 科学计算引擎 | OpenDDE、DiffSBDD、Harness 及未来完成适配的软件；实现各自科学方法 |
+| 执行与依赖环境 | Docker 或独立进程、Python/CUDA、权重和服务地址；按引擎分别部署 |
+| 研究资产 | 结构、分子、序列、口袋和分析版本；属于 X-DDE，可跨兼容引擎复用 |
 
 `Capability` 描述用户希望完成的科学活动，例如建模、生成、性质计算、姿势评估；`Engine` 是实现该活动的软件及版本、模型和许可证；`ExecutionBackend` 管理 Docker 或受控本地进程的运行、终止和恢复。三者不能混成一个“已安装”状态。安装完成不代表权重就绪、GPU 可用或科学结果可靠。
 
@@ -152,9 +165,10 @@ flowchart LR
 - `projects`：研究空间和项目关联；不复制科学文件。
 - `assets`：唯一上传/结果文件存储；`research` 在同一个 SQLite 数据库保存对象版本及血缘。
 - `requests` 与 `scientific_objects`：共享任务和科学身份契约；服务端校验确切版本与任务真实输入一致。
+- `engine_registry`：已审查的引擎身份、运行方式和唯一操作归属；未知操作不能默认派给 OpenDDE。
 - `backend_router`：统一启动、停止、恢复路由；`engine` 只负责 OpenDDE Docker；`local_process` 负责持久进程身份和有界终止。
 - `diffsbdd`：固定源码及模型清单、契约、原生科学桥接；不搬入旧服务器、JobManager、独立网页或 DesignStore。
-- `deployment`：软件安装生命周期；与科学任务状态分离，并协调安装期间的任务提交。
+- `deployment`：X-DDE 管理各引擎的环境、模型和独立编辑器；组件显式声明所属引擎与 runtime/model/editor 角色，安装生命周期与科学任务状态分离。新目录为 `x-dde-managed`，旧归属目录复用且不改写原数据；冲突目录明确拒绝。
 - `frontend/research`：关系图、资产说明与任务交接；编辑器和三维查看器通过明确接口接入。
 
 新增引擎必须登记真实输入/输出 schema、软件/镜像/模型摘要、许可证、资源前提、约束支持、失败与取消语义、结果规范化和科学验证状态。原生约束、适配层约束、仅结果检查及不支持约束明确区分。刚性固定原子和保留键型不能用生成后的过滤冒充。

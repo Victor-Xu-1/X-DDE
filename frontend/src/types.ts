@@ -110,7 +110,23 @@ export interface Job {
   error: string | null;
   parent_id: string | null;
 }
+export interface ScientificEngine {
+  id: string;
+  name: string;
+  description: string;
+  execution_backend: "docker" | "local_process" | "harness_process";
+  operations: string[];
+}
+export interface EngineStatus extends ScientificEngine {
+  ready: boolean;
+  reason?: string | null;
+  gpu?: string | null;
+  models?: Record<string, boolean>;
+  compute_configured?: boolean;
+}
 export interface Health {
+  platform?: { name: "X-DDE"; ready: boolean };
+  engines?: Record<string, EngineStatus>;
   version: string;
   engine: {
     ready: boolean;

@@ -2,4 +2,5 @@
 
 from importlib.metadata import version
 
+PRODUCT_NAME = "X-DDE"
 __version__ = version("x-dde")

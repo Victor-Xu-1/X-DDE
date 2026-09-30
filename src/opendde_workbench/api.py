@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import __version__
+from . import PRODUCT_NAME, __version__
 from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .assets import AssetStore
@@ -26,6 +26,7 @@ from .deployment.manager import DeploymentManager
 from .deployment.routes import register_deployments
 from .diffsbdd.runtime import validate as validate_diffsbdd
 from .engine import Engine
+from .engine_registry import statuses as engine_statuses
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
 from .operation_routes import register_operations
@@ -64,7 +65,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await deployments.close()
                 await worker.close()
 
-    app = FastAPI(title="X-DDE", version=__version__, lifespan=lifespan)
+    app = FastAPI(title=PRODUCT_NAME, version=__version__, lifespan=lifespan)
     app.state.quiescing = False
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 
@@ -271,6 +272,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         alive = worker.task is not None and not worker.task.done()
         return {
             "version": __version__,
+            "platform": {"name": PRODUCT_NAME, "ready": alive and not worker.error},
+            "engines": engine_statuses(health_cache["value"]),
             "engine": health_cache["value"],
             "worker_ready": alive and not worker.error,
             "worker_error": worker.error,

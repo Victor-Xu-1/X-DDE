@@ -68,7 +68,7 @@ it("separates task entry from structure review while preserving the draft", () =
   ).not.toBeInTheDocument();
 });
 
-it("keeps platform and backend readiness independent in the runtime view", () => {
+it("keeps platform and scientific engine readiness independent in the runtime view", () => {
   const health: Health = {
     version: "test",
     engine: { ready: false, gpu: null, reason: "Missing OpenDDE weights" },
@@ -91,20 +91,21 @@ it("keeps platform and backend readiness independent in the runtime view", () =>
     loading: false,
     onHome: vi.fn(),
     onStart: vi.fn(),
+    onSetup: vi.fn(),
     onTasks: vi.fn(),
     projectError: "",
     reloadProjects: vi.fn(),
   };
   const { rerender } = render(<UtilityViews {...runtimeProps} />);
   const service = screen.getByRole("heading", {
-    name: "X-DDE 任务服务",
+    name: "X-DDE 平台后端",
   }).parentElement!;
   const backend = screen.getByRole("heading", {
-    name: "OpenDDE 后端",
+    name: "OpenDDE · 计算引擎",
   }).parentElement!;
-  expect(within(service).getByText("任务服务就绪")).toBeVisible();
+  expect(within(service).getByText("平台服务就绪")).toBeVisible();
   expect(within(service).queryByRole("alert")).not.toBeInTheDocument();
-  expect(within(backend).getByText("OpenDDE 未就绪")).toBeVisible();
+  expect(within(backend).getByText("环境未就绪")).toBeVisible();
   expect(within(backend).getByRole("alert")).toHaveTextContent(
     "Missing OpenDDE weights",
   );
@@ -120,7 +121,7 @@ it("keeps platform and backend readiness independent in the runtime view", () =>
       }}
     />,
   );
-  expect(screen.getByText("Task service unavailable")).toBeVisible();
-  expect(screen.getByText("OpenDDE ready")).toBeVisible();
+  expect(screen.getByText("Platform service unavailable")).toBeVisible();
+  expect(screen.getByText("Environment checks passed")).toBeVisible();
   expect(screen.getByRole("alert")).toHaveTextContent("Queue recovery failed");
 });
