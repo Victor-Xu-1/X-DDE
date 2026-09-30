@@ -7,6 +7,7 @@ import shutil
 import threading
 from pathlib import Path
 
+from ..engine_registry import ENGINES
 from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
 from .catalog import PACKAGES, catalogue, prerequisites
@@ -162,9 +163,7 @@ class DeploymentManager:
                 if entry.get("directory"):
                     directory = Path(entry["directory"])
                     parent = (
-                        environment_root(root, key)
-                        if key in {"harness", "diffsbdd", "p2rank"}
-                        else root / "packages" / key
+                        environment_root(root, key) if key in ENGINES else root / "packages" / key
                     )
                     if directory.is_symlink() or directory.resolve().parent != parent.resolve():
                         raise ValueError(

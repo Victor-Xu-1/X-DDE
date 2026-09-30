@@ -55,7 +55,8 @@ def arguments(options: DockingOptions, mode: str) -> list[str]:
         str(options.seed),
     ]
     if options.use_gpu:
-        args.extend(["--device", str(options.gpu_device)])
+        # Docker exposes exactly the selected host GPU as native CUDA device 0.
+        args.extend(["--device", "0"])
     else:
         args.append("--no_gpu")
     if mode == "dock":

@@ -1,6 +1,5 @@
 """GNINA is an isolated adapter below the sole BackendRouter execution authority."""
 
-import hashlib
 import json
 import os
 import sys
@@ -10,6 +9,7 @@ from .. import local_process
 from ..engine import command
 from .manifest import VERSION
 from .runtime import configuration, labels_match
+from .snapshot import capture
 
 
 class DockingBackend:
@@ -56,10 +56,10 @@ class DockingBackend:
     async def start(self, job, directory):
         image = configuration(self.settings)
         source = Path(__file__).parent
-        refs = source.parent / "scientific_objects.py"
+        adapter, adapter_files = capture(directory, source)
         output = directory / "output"
         output.mkdir(exist_ok=True)
-        paths = [source, refs, directory, directory / "assets", output]
+        paths = [adapter, directory, directory / "assets", output]
         if any("," in str(path) or path.is_symlink() for path in paths):
             raise ValueError("Native mount paths must be real paths without commas.")
         options = job.request.options
@@ -93,7 +93,7 @@ class DockingBackend:
             "/output",
         ]
         for host, target in [
-            (source.parent, "/platform"),
+            (adapter, "/platform"),
             (directory / "assets", "/input/assets"),
             (directory / "request.json", "/input/request.json"),
             (directory / "bindings.json", "/input/bindings.json"),
@@ -106,10 +106,6 @@ class DockingBackend:
         code, text = await command(*args)
         if code:
             raise RuntimeError("Unable to create the GNINA task container: " + text)
-        adapter_files = {
-            file.name: hashlib.sha256(file.read_bytes()).hexdigest() for file in source.glob("*.py")
-        }
-        adapter_files["scientific_objects.py"] = hashlib.sha256(refs.read_bytes()).hexdigest()
         (directory / "docking-execution.json").write_text(
             json.dumps({"image": image, "adapter_files": adapter_files})
         )

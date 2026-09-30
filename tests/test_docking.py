@@ -186,3 +186,63 @@ def test_workflow_allows_new_docking_ligand_but_not_unverified_pose_frames():
     )
     with pytest.raises(ValidationError, match="existing poses"):
         PlanInput.model_validate(value)
+
+
+def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
+    import hashlib
+
+    from opendde_workbench.docking.snapshot import NATIVE_FILES, capture
+
+    source = tmp_path / "source" / "docking"
+    source.mkdir(parents=True)
+    for name in NATIVE_FILES:
+        (source / name).write_text("original adapter bytes")
+    (source.parent / "scientific_objects.py").write_text("canonical contract bytes")
+    directory = tmp_path / "job"
+    directory.mkdir()
+    target, digests = capture(directory, source)
+    (source / "native.py").write_text("new source bytes after scheduling")
+    assert (target / "docking/native.py").read_text() == "original adapter bytes"
+    assert digests["docking/native.py"] == hashlib.sha256(b"original adapter bytes").hexdigest()
+    assert len(digests) == 5
+    with pytest.raises(FileExistsError):
+        capture(directory, source)
+
+
+def test_host_gpu_selection_does_not_become_an_invalid_container_index():
+    args = arguments(DockingOptions(use_gpu=True, gpu_device=3), "dock")
+    assert args[args.index("--device") + 1] == "0"
+
+
+def test_failed_native_container_records_exit_and_is_removed(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+
+    from opendde_workbench.container_supervision import attach
+
+    directory = tmp_path / str(uuid4())
+    directory.mkdir()
+    calls = []
+
+    def run(args, **kwargs):
+        calls.append(args)
+        if args[1] == "inspect":
+            return SimpleNamespace(
+                stdout=json.dumps({"Running": False, "ExitCode": 2, "OOMKilled": False})
+            )
+        return SimpleNamespace(returncode=2 if args[1] == "start" else 0)
+
+    monkeypatch.setattr("opendde_workbench.container_supervision.subprocess.run", run)
+    with pytest.raises(RuntimeError, match="did not finish successfully"):
+        attach(directory, "xdde-gnina-")
+    assert json.loads((directory / "native-exit.json").read_text())["ExitCode"] == 2
+    assert calls[-1] == ["docker", "rm", "xdde-gnina-" + directory.name]
+
+
+def test_deployment_paths_follow_the_canonical_environment_registry(tmp_path, monkeypatch):
+    from opendde_workbench.deployment.paths import environment_root
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    assert environment_root(tmp_path / "components", "gnina").name == "gnina"
+    with pytest.raises(ValueError, match="Unknown"):
+        environment_root(tmp_path, "../escape")
