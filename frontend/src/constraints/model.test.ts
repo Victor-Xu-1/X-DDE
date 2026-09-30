@@ -98,3 +98,17 @@ it("requires a saved matching output choice rather than silently using old condi
     }),
   ).toMatchObject({ constraints: reference });
 });
+
+it("supports output-only condition drafts for scoring without inventing a native search box", async () => {
+  const score = {
+    ...request,
+    mode: "score",
+    search: null,
+    pose_frame: receptor,
+    pose_coordinate_basis: "user_confirmed",
+  } as const;
+  const doc = await currentConditions(score, "output", null, () => "condition");
+  expect(doc.frame?.reference).toEqual(receptor);
+  expect(doc.conditions).toEqual([]);
+  expect(doc.subject).toEqual(ref);
+});

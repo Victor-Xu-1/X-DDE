@@ -415,7 +415,21 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         (evidence / "native-cancellation.json").write_text(json.dumps(cancelled, indent=2))
     # New server lifespan uses persisted jobs, versions and environment snapshots.
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
-        assert len(client.get("/api/jobs").json()) == 4
+        persisted_jobs = client.get("/api/jobs").json()
+        assert len(persisted_jobs) == 5
+        assert {j["request"]["name"] for j in persisted_jobs} == {
+            "remote native dock",
+            "remote native score",
+            "remote native minimize",
+            "Native output rejection",
+            "native cancellation",
+        }
+        persisted_rejection = next(j for j in persisted_jobs if j["id"] == rejected_id)
+        assert persisted_rejection["status"] == "succeeded"
+        assert (
+            client.get("/api/jobs/" + rejected_id + "/result").json()["scientific_outcome"]
+            == "no_valid_pose"
+        )
         assert client.get("/api/research/objects/" + pose["version_id"]).status_code == 200
 
     from docking_browser import inspect_results

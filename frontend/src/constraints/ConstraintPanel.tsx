@@ -1,3 +1,4 @@
+import type { SearchBox } from "../docking/types";
 import { ConstraintSupportSummary } from "./ConstraintSupportSummary";
 import { OutputConditionControls } from "./OutputConditionControls";
 import { outputBoundsDefaults } from "./generated";
@@ -24,6 +25,8 @@ export function ConstraintPanel({
   outputSettings = outputBoundsDefaults,
   onOutputSettings,
   expert = false,
+  getOutputBox,
+  boxFingerprint = "",
 }: {
   subject: MoleculeRef;
   language: Language;
@@ -35,6 +38,8 @@ export function ConstraintPanel({
   outputSettings?: OutputSettings;
   onOutputSettings?(value: OutputSettings): void;
   expert?: boolean;
+  getOutputBox?(): SearchBox;
+  boxFingerprint?: string;
   onOutputChoice?(
     value: "none" | "heavy_atom_centroid" | "all_heavy_atoms",
   ): void;
@@ -53,7 +58,12 @@ export function ConstraintPanel({
   const selected = values.find((v) => v.id === value?.id);
   let fingerprint: string;
   try {
-    fingerprint = JSON.stringify(getTask());
+    fingerprint = JSON.stringify([
+      getTask(),
+      boxFingerprint,
+      outputChoice,
+      outputSettings,
+    ]);
   } catch {
     fingerprint = "incomplete_input";
   }
@@ -112,11 +122,13 @@ export function ConstraintPanel({
         );
         if (outputChoice && outputChoice !== "none") {
           const search = body.conditions.find((c) => c.kind === "search_box");
-          if (search?.kind !== "search_box")
+          const bounds =
+            search?.kind === "search_box" ? search.box : getOutputBox?.();
+          if (!bounds)
             throw new Error(
               zh
-                ? "请先指定显式搜索范围"
-                : "Define an explicit search box first",
+                ? "请先指定结果检查范围"
+                : "Define the output-check bounds first",
             );
           if (!ids.current.has("output_bounds"))
             ids.current.set("output_bounds", crypto.randomUUID());
@@ -139,7 +151,7 @@ export function ConstraintPanel({
             kind: "spatial_bounds",
             phase: "result",
             selection: outputChoice,
-            box: search.box,
+            box: bounds,
             validator: "rdkit_receptor_bounds_v1",
             source: "user_selection",
             scope: "target_a",
@@ -149,6 +161,10 @@ export function ConstraintPanel({
             tolerance_angstrom: outputSettings.tolerance_angstrom,
           });
         }
+        if (!body.conditions.length)
+          throw new Error(
+            zh ? "请选择需要保存的结果检查" : "Choose an output check to save",
+          );
         const serialized = JSON.stringify(body);
         if (intent.current.body !== serialized)
           intent.current = { body: serialized, key: crypto.randomUUID() };

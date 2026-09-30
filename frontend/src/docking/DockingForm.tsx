@@ -1,3 +1,4 @@
+import { BoxFields } from "./BoxFields";
 import { outputBoundsDefaults } from "../constraints/generated";
 import type { OutputSettings } from "../constraints/types";
 import { ConstraintPanel } from "../constraints/ConstraintPanel";
@@ -163,6 +164,25 @@ export function DockingForm({
             onSize={setSize}
           />
         )}
+        {mode !== "dock" && (
+          <details className="input-summary">
+            <summary>
+              {zh ? "结果检查范围（可选）" : "Output-check bounds (optional)"}
+            </summary>
+            <p className="field-help">
+              {zh
+                ? "以当前受体版本为坐标参照；仅用于计算后的空间检查，不引导评分或最小化。"
+                : "In the current receptor coordinates, for output verification only; it does not guide scoring or minimization."}
+            </p>
+            <BoxFields
+              language={language}
+              center={center}
+              onCenter={setCenter}
+              size={size}
+              onSize={setSize}
+            />
+          </details>
+        )}
         {(mode !== "dock" || kind === "reference") && (
           <label>
             <input
@@ -204,7 +224,7 @@ export function DockingForm({
             onChange={setOptions}
           />
         )}
-        {mode === "dock" && ligand && (
+        {ligand && (
           <ConstraintPanel
             key={referenceKey(ligand)}
             subject={ligand}
@@ -217,9 +237,15 @@ export function DockingForm({
             outputSettings={outputSettings}
             onOutputSettings={setOutputSettings}
             expert={expert}
+            getOutputBox={() => parseBox(center, size, language)}
+            boxFingerprint={JSON.stringify([center, size])}
             onApply={(doc) => {
-              const box = doc.conditions.find((c) => c.kind === "search_box");
-              if (!box || box.kind !== "search_box" || !doc.frame)
+              const box = doc.conditions.find(
+                (c) =>
+                  c.kind ===
+                  (mode === "dock" ? "search_box" : "spatial_bounds"),
+              );
+              if (!box || box.kind === "fixed_region" || !doc.frame)
                 throw new Error(
                   zh
                     ? "所选条件不包含搜索范围"

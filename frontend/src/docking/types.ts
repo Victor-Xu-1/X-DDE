@@ -65,6 +65,7 @@ export interface DockingResult {
   pose_artifact: string;
   raw_pose_artifact?: string | null;
   receptor_artifact: string;
+  search?: DockingTask["search"];
   poses: PoseResult[];
   scientific_outcome: string;
 }

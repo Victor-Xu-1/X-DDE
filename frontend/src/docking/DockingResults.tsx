@@ -262,6 +262,7 @@ export function DockingResults({
           language={language}
           initialReceptor={result.receptor}
           initialLigand={version.reference}
+          initialBox={result.search?.kind === "box" ? result.search.box : null}
           onCreated={(j) =>
             setMessage((zh ? "已创建任务：" : "Created task: ") + j.id)
           }

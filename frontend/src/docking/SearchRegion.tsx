@@ -1,3 +1,4 @@
+import { BoxFields } from "./BoxFields";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
@@ -70,43 +71,13 @@ export function SearchRegion({
               onCenter={onCenter}
             />
           )}
-          <div className="operation-grid">
-            {["X", "Y", "Z"].map((axis, index) => (
-              <div key={axis}>
-                <label className="field">
-                  {zh ? "中心" : "Center"} {axis} (Å)
-                  <input
-                    type="number"
-                    value={center[index]}
-                    step="0.1"
-                    onChange={(event) =>
-                      onCenter(
-                        center.map((v, n) =>
-                          n === index ? event.target.value : v,
-                        ),
-                      )
-                    }
-                  />
-                </label>
-                <label className="field">
-                  {zh ? "边长" : "Length"} {axis} (Å)
-                  <input
-                    type="number"
-                    min={4}
-                    max={100}
-                    value={size[index]}
-                    onChange={(event) =>
-                      onSize(
-                        size.map((v, n) =>
-                          n === index ? event.target.value : v,
-                        ),
-                      )
-                    }
-                  />
-                </label>
-              </div>
-            ))}
-          </div>
+          <BoxFields
+            language={language}
+            center={center}
+            onCenter={onCenter}
+            size={size}
+            onSize={onSize}
+          />
         </>
       )}
       <Hint label={zh ? "搜索范围说明" : "Search-region help"}>

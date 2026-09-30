@@ -204,7 +204,16 @@ def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
     (source / "native.py").write_text("new source bytes after scheduling")
     assert (target / "docking/native.py").read_text() == "original adapter bytes"
     assert digests["docking/native.py"] == hashlib.sha256(b"original adapter bytes").hexdigest()
-    assert len(digests) == 5
+    assert set(digests) == {
+        "docking/native.py",
+        "docking/chemistry.py",
+        "docking/bounds.py",
+        "docking/options.py",
+        "docking/manifest.py",
+        "scientific_objects.py",
+    }
+    (source / "bounds.py").write_text("Changed verifier after capture")
+    assert (target / "docking/bounds.py").read_bytes() == b"original adapter bytes"
     with pytest.raises(FileExistsError):
         capture(directory, source)
 

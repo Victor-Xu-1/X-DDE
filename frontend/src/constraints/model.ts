@@ -74,6 +74,19 @@ export async function currentConditions(
         },
       ],
     };
+  if (task.operation === "docking" && task.mode !== "dock")
+    return {
+      schema_version: 1,
+      name,
+      subject: task.ligand,
+      parent_id: parent,
+      frame: {
+        reference: task.receptor,
+        basis: "reference_coordinates",
+        unit: "angstrom",
+      },
+      conditions: [],
+    };
   if (
     task.operation === "diffsbdd" &&
     task.payload.mode === "inpaint" &&

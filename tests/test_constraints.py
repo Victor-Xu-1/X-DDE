@@ -1,7 +1,7 @@
 """Constraint conditions exercise typed contracts, real SQLite, CSRF and execution boundaries."""
 
 import hashlib
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -66,7 +66,7 @@ def test_immutable_revisions_idempotency_restarts_and_digest_integrity(settings)
         ConstraintRecords(Store(records.store.path), records.assets, settings).get(saved["id"])
         == saved
     )
-    revised = value.model_copy(update={"name": "Revised", "parent_id": saved["id"]})
+    revised = value.model_copy(update={"name": "Revised", "parent_id": UUID(saved["id"])})
     with pytest.raises(ConflictError):
         records.save(revised, key)
     child = records.save(revised, uuid4())
