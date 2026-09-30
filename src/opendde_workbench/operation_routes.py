@@ -46,7 +46,9 @@ def register_operations(app, store, assets, settings, mutation):
             job = store.get(str(job_id))
             if job.request.operation == "diffsbdd" and job.request.payload.mode == "inpaint":
                 try:
-                    output_catalog.core_output(job_id, path)
+                    if not isinstance(value, dict):
+                        raise ValueError("Generation result must be a structured object.")
+                    output_catalog.core_output(job_id, path, document=value)
                 except (ValueError, KeyError, TypeError) as exc:
                     import logging
 

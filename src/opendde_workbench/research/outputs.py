@@ -1,5 +1,6 @@
 """Idempotent artifact ingestion; scientific execution and indexing have separate outcomes."""
 
+import hashlib
 import json
 
 from ..artifacts import contained, list_artifacts
@@ -57,7 +58,7 @@ class OutputCatalog:
             raise ValueError("No qualified pose is available for downstream reuse.")
         return result
 
-    def core_output(self, job_id, file):
+    def core_output(self, job_id, file, *, document=None):
         job = self.store.get(str(job_id))
         if not job or job.request.operation != "diffsbdd" or job.request.payload.mode != "inpaint":
             return None
@@ -65,7 +66,9 @@ class OutputCatalog:
         report = contained(root, "result.json")
         if report.stat().st_size > 2 * 1024**2:
             raise ValueError("Generation output report exceeds its typed limit.")
-        result = json.loads(report.read_text())
+        result = json.loads(report.read_text()) if document is None else document
+        if not isinstance(result, dict):
+            raise ValueError("Generation result must be a structured object.")
         if "core_verification" not in result:
             execution = root.parent / "execution.json"
             if execution.is_file():
@@ -93,10 +96,16 @@ class OutputCatalog:
 
     def preserve(self, job_id, file, kind):
         self.docking_output(job_id, file)
-        self.core_output(job_id, file)
+        core = self.core_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
+        if (
+            core
+            and file.suffix.lower() == ".sdf"
+            and hashlib.sha256(content).hexdigest() != core.qualified_sha256
+        ):
+            raise ValueError("Qualified molecule bytes changed before asset registration.")
         asset = self.assets.save(file.name, kind, content)
         object_kind = OBJECT_KINDS.get(kind)
         if not object_kind:

@@ -199,3 +199,43 @@ def test_result_api_revalidates_core_evidence_and_returns_a_safe_recovery_messag
         )
         assert "CoreVerification" not in response.text
         assert len(assets.list()) == 2
+
+
+def test_core_handoff_verifies_the_bytes_actually_saved_during_a_file_race(tmp_path, monkeypatch):
+    store, assets, job, output, _ = fixture_result(tmp_path)
+    catalog = OutputCatalog(store, assets)
+    actual = catalog.core_output
+
+    def replace_after_check(*args, **kwargs):
+        evidence = actual(*args, **kwargs)
+        (output / evidence.qualified_artifact).write_text("changed during preservation\n$$$$\n")
+        return evidence
+
+    monkeypatch.setattr(catalog, "core_output", replace_after_check)
+    with pytest.raises(ValueError, match="bytes changed"):
+        catalog.preserve(job.id, output / "qualified-molecules.sdf", "ligand")
+    assert len(assets.list()) == 2
+
+
+def test_result_api_validates_the_same_document_it_displays_during_a_file_race(
+    settings, client_factory, monkeypatch
+):
+    from opendde_workbench.models import Status
+
+    store, _, job, output, result = fixture_result(settings.state_dir)
+    assert store.claim(expected_id=job.id).id == job.id
+    store.finish(job.id, Status.SUCCEEDED)
+    valid_document = json.dumps(result)
+    result["core_verification"]["candidates"][0]["mapping"] = []
+    (output / "result.json").write_text(json.dumps(result))
+    actual = OutputCatalog.core_output
+
+    def replace_after_api_read(self, *args, **kwargs):
+        (output / "result.json").write_text(valid_document)
+        return actual(self, *args, **kwargs)
+
+    monkeypatch.setattr(OutputCatalog, "core_output", replace_after_api_read)
+    with client_factory() as client:
+        response = client.get(f"/api/jobs/{job.id}/result")
+        assert response.status_code == 422
+        assert "invalid or changed" in response.json()["detail"]
