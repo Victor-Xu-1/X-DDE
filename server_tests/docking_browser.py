@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, urlparse
 from playwright.sync_api import expect, sync_playwright
 
 
-def inspect_results(settings, image, job_id, pose, reference, evidence):
+def inspect_results(settings, image, job_id, pose, reference, evidence, rejected_id=None):
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -42,6 +42,8 @@ def inspect_results(settings, image, job_id, pose, reference, evidence):
                 time.sleep(0.2)
         else:
             raise AssertionError("Actual persisted scientific preview did not start.")
+        with urllib.request.urlopen(base + "/api/jobs", timeout=5) as response:
+            expected_job_ids = {j["id"] for j in json.load(response)}
         errors = []
         downloads = []
         with sync_playwright() as playwright:
@@ -87,7 +89,39 @@ def inspect_results(settings, image, job_id, pose, reference, evidence):
                     )
                 panel.get_by_role("button", name="计算性质", exact=True).click()
                 expect(panel.locator(".tool-form select").last).to_have_value(reference["asset_id"])
-                assert len(page.request.get(base + "/api/jobs").json()) == 4
+                assert {
+                    j["id"] for j in page.request.get(base + "/api/jobs").json()
+                } == expected_job_ids
+                if rejected_id:
+                    page.goto(base + "/#task=" + rejected_id)
+                    rejected_panel = page.get_by_role("region", name="结合模式与下一步", exact=True)
+                    expect(
+                        rejected_panel.get_by_role("button", name="姿势 1", exact=True)
+                    ).to_be_disabled()
+                    expect(
+                        rejected_panel.get_by_text("已排除：未满足硬空间条件", exact=True)
+                    ).to_be_visible()
+                    rejected_panel.get_by_role("button", name="检查不合格姿势", exact=True).click()
+                    expect(
+                        rejected_panel.get_by_text("拖动旋转 · 滚轮缩放", exact=True)
+                    ).to_be_visible(timeout=30000)
+                    rejected_panel.get_by_text("查看违反位置", exact=True).click()
+                    expect(rejected_panel.get_by_text("输出原子 1", exact=False)).to_be_visible()
+                    expect(
+                        rejected_panel.get_by_role("button", name="计算性质", exact=True)
+                    ).to_have_count(0)
+                    for width in (1440, 390):
+                        page.set_viewport_size({"width": width, "height": 1000})
+                        assert page.evaluate(
+                            "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                        )
+                        page.screenshot(
+                            path=str(evidence / f"rejected-binding-results-{width}.png"),
+                            full_page=True,
+                        )
+                    assert {
+                        j["id"] for j in page.request.get(base + "/api/jobs").json()
+                    } == expected_job_ids
                 assert errors == []
                 (evidence / "native-browser-acceptance.json").write_text(
                     json.dumps(

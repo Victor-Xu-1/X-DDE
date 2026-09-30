@@ -441,4 +441,5 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         completed_pose,
         completed_reference,
         evidence,
+        rejected_id,
     )
