@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api";
 import type { ResearchGraph, ScientificObject } from "./types";
@@ -91,7 +97,9 @@ it("recovers from a loading failure and saves annotations as a separate version"
   expect(
     await screen.findByRole("heading", { name: "reviewed" }),
   ).toBeVisible();
-  expect(screen.getByRole("button", { name: "分子 ethanol" })).toBeVisible();
+  expect(
+    within(screen.getByRole("list")).getByRole("button", { name: /ethanol/ }),
+  ).toBeVisible();
 });
 
 it("passes the selected record and version to a property task", async () => {

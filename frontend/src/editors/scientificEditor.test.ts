@@ -37,12 +37,9 @@ it("opens exactly the selected SDF record and refuses unsupported conversion", a
       }),
     ),
   );
-  expect(
-    await molecularRecord(original, new AbortController().signal),
-  ).toContain("second");
-  expect(
-    await molecularRecord(original, new AbortController().signal),
-  ).not.toContain("first");
+  const record = await molecularRecord(original, new AbortController().signal);
+  expect(record).toContain("second");
+  expect(record).not.toContain("first");
   vi.mocked(fetch).mockResolvedValue(
     new Response("MOL2 file", { headers: { "X-Structure-Format": "mol2" } }),
   );

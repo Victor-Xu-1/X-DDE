@@ -1,12 +1,15 @@
 """Real RDKit parsing validates file/version handoffs on the remote CPU runner."""
 
+import importlib.util
 from pathlib import Path
 
 import pytest
 
-from opendde_workbench import native_task
-
 Chem = pytest.importorskip("rdkit.Chem")
+source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/native_task.py"
+spec = importlib.util.spec_from_file_location("native_task", source)
+native_task = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(native_task)
 
 
 def test_property_handoff_selects_one_real_sdf_record(tmp_path, monkeypatch):
