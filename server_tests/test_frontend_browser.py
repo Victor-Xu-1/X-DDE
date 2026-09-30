@@ -273,6 +273,16 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
         page.on("pageerror", lambda error: errors.append(str(error)))
         try:
             page.goto(os.environ["WB_BROWSER_URL"])
+            csrf = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/session").json()[
+                "csrf_token"
+            ]
+            uploaded = page.request.post(
+                os.environ["WB_BROWSER_URL"] + "/api/assets?kind=ligand&name=core-form-record.sdf",
+                data=ETHANOL.encode(),
+                headers={"Content-Type": "application/octet-stream", "X-Workbench-CSRF": csrf},
+            )
+            assert uploaded.status == 201
+            molecule_id = uploaded.json()["id"]
             for title in [
                 "口袋条件分子生成",
                 "局部重设计",
@@ -293,6 +303,25 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                     )
                     expect(hint).to_be_visible()
                     assert "0.5 Å" in hint.get_attribute("title")
+                    page.get_by_role(
+                        "combobox", name="选择与受体对齐的三维 SDF 分子", exact=True
+                    ).select_option(molecule_id)
+                    picker = page.get_by_role("button", name="读取可选原子", exact=True)
+                    expect(picker).to_have_count(1)
+                    for round_number in range(3):
+                        page.get_by_role("button", name="专家微调", exact=True).click()
+                        page.get_by_role("textbox", name="任务名称（可选）", exact=True).fill(
+                            f"retained draft {round_number}"
+                        )
+                        page.get_by_role("button", name="简易模式", exact=True).click()
+                        expect(picker).to_have_count(1)
+                    expect(
+                        page.get_by_role("textbox", name="任务名称（可选）", exact=True)
+                    ).to_have_value("retained draft 2")
+                    page.screenshot(
+                        path=str(evidence / "fixed-picker-after-updates.png"), full_page=True
+                    )
+
                 if title in ["口袋条件分子生成", "局部重设计", "分子多样化", "分子优化"]:
                     model = page.get_by_role("combobox", name="使用哪个模型？", exact=True)
                     assert model.locator("option").count() == (

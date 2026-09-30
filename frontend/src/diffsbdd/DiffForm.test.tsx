@@ -84,3 +84,42 @@ it("exposes every native option in expert mode while language changes preserve d
     "kept draft",
   );
 });
+
+it("retains one fixed-atom picker across repeated draft and mode updates", async () => {
+  boundary(false);
+  const created = vi.fn(),
+    user = userEvent.setup();
+  const { rerender } = render(
+    <DiffForm
+      mode="inpaint"
+      language="en"
+      initialMolecule={ref}
+      onCreated={created}
+    />,
+  );
+  for (let i = 0; i < 5; i++) {
+    await user.click(screen.getByRole("button", { name: "Expert mode" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Task name (optional)" }),
+      "x",
+    );
+    await user.click(screen.getByRole("button", { name: "Guided mode" }));
+    rerender(
+      <DiffForm
+        mode="inpaint"
+        language="en"
+        initialMolecule={ref}
+        onCreated={created}
+      />,
+    );
+    expect(
+      screen.getAllByRole("button", {
+        name: "Read selectable atoms",
+      }),
+    ).toHaveLength(1);
+    expect(
+      screen.getByRole("textbox", { name: "Task name (optional)" }),
+    ).toHaveValue("x".repeat(i + 1));
+  }
+  expect(screen.getByRole("button", { name: "Create task" })).toBeDisabled();
+});

@@ -241,7 +241,7 @@ export function DiffForm({
         )}
         {mode === "inpaint" && molecule && (
           <FixedAtomPicker
-            key={referenceKey(molecule)}
+            key={`fixed:${referenceKey(molecule)}`}
             initial={molecule}
             fixed={fixed}
             onChange={(values) => {
@@ -254,7 +254,7 @@ export function DiffForm({
         )}
         {mode === "inpaint" && molecule && (
           <ConstraintPanel
-            key={referenceKey(molecule)}
+            key={`constraints:${referenceKey(molecule)}`}
             subject={molecule}
             language={language}
             value={constraints}
