@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { Job, Language } from "../types";
+import type { ScientificObject } from "../research/types";
 import type { Deployment } from "../deployment/client";
 import { PropertyForm } from "../operations/PropertyForm";
 import "./editors.css";
@@ -15,13 +16,17 @@ export function Editors({
   deployment,
   onSetup,
   onCreated,
+  initialObject = null,
 }: {
   language: Language;
   deployment: Deployment | null;
   onSetup(): void;
   onCreated(j: Job): void;
+  initialObject?: ScientificObject | null;
 }) {
   const zh = language === "zh";
+  const [origin, setOrigin] = useState<ScientificObject | null>(initialObject);
+  const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -29,6 +34,52 @@ export function Editors({
     [error, setError] = useState("");
   const [smiles, setSmiles] = useState(""),
     [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!initialObject || !loaded) return;
+    const controller = new AbortController();
+    setMode("ketcher");
+    setBusy(true);
+    setError("");
+    setOrigin(initialObject);
+    void (async () => {
+      const response = await fetch(
+        `/api/assets/${initialObject.reference.asset_id}`,
+        { signal: controller.signal },
+      );
+      if (
+        !response.ok ||
+        Number(response.headers.get("Content-Length")) > 5 * 1024 ** 2
+      )
+        throw new Error("Molecule file is unavailable or exceeds 5 MiB.");
+      const text = await response.text();
+      if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum");
+      const records = text.split("$$$$").filter((value) => value.trim());
+      const record = records[initialObject.reference.record];
+      if (!record) throw new Error("Selected molecular record is missing.");
+      const editor = (
+        frame.current?.contentWindow as (Window & { ketcher?: Ketcher }) | null
+      )?.ketcher;
+      if (!editor)
+        throw new Error(
+          "Editor is still loading; reopen this asset after loading.",
+        );
+      if (!controller.signal.aborted) {
+        await editor.setMolecule(record);
+        setMessage(
+          zh
+            ? "已打开所选版本；保存将创建新分子版本。"
+            : "Selected version opened. Saving creates a new molecule version.",
+        );
+      }
+    })()
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(String(e));
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setBusy(false);
+      });
+    return () => controller.abort();
+  }, [initialObject?.id, loaded]);
   async function action(fn: (editor: Ketcher) => Promise<void>) {
     setError("");
     setMessage("");
@@ -119,6 +170,7 @@ export function Editors({
                         if (file.size > 5 * 1024 ** 2)
                           throw new Error("5 MiB maximum");
                         await editor.setMolecule(await file.text());
+                        setOrigin(null);
                       });
                     e.target.value = "";
                   }}
@@ -138,16 +190,29 @@ export function Editors({
                         zh ? "请先画一个分子。" : "Draw a molecule first.",
                       );
                     const mol = await editor.getMolfile();
-                    await api.upload(
+                    const asset = await api.upload(
                       new File([mol + "\n$$$$\n"], "sketched-molecule.sdf", {
                         type: "chemical/x-mdl-sdfile",
                       }),
                       "ligand",
                     );
+                    const version = await api.post<ScientificObject>(
+                      "/research/objects",
+                      {
+                        asset_id: asset.id,
+                        kind: "molecule",
+                        label: origin ? origin.label + " · edit" : asset.name,
+                        parent_id: origin?.id ?? null,
+                        relation: "edited_from",
+                        notes: origin?.notes ?? "",
+                        rating: origin?.rating ?? 0,
+                      },
+                    );
+                    setOrigin(version);
                     setMessage(
                       zh
-                        ? "已保存到分子文件库，可在任务输入中选择。"
-                        : "Saved to the molecule library; select it in task inputs.",
+                        ? "已保存新版本，可在资产与关系中查看来源和继续复用。二维编辑不代表已预测三维姿势。"
+                        : "New version saved. Inspect its lineage and reuse it in Assets & relationships. A 2D edit is not a predicted 3D pose.",
                     );
                   })
                 }
@@ -195,6 +260,7 @@ export function Editors({
       {deployment?.installed.ketcher && (
         <iframe
           ref={frame}
+          onLoad={() => setLoaded(true)}
           hidden={mode !== "ketcher"}
           className="molecular-editor"
           title="Ketcher molecular editor"

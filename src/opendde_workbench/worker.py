@@ -161,7 +161,9 @@ class Worker:
                         if job.request.operation == "predict"
                         else "expected operation result is missing"
                     )
-                    error = f"OpenDDE exited with code {code}; {missing}. Inspect the task log."
+                    error = (
+                        f"Scientific task exited with code {code}; {missing}. Inspect the task log."
+                    )
         except Exception as exc:
             error = f"Task execution failed: {type(exc).__name__}. Inspect the task log."
             with (directory / "run.log").open("a") as file:

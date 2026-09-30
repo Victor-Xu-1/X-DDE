@@ -8,15 +8,19 @@ export function PropertyForm({
   language,
   onCreated,
   initialSmiles = "",
+  initialFile = "",
+  scientificInput,
 }: {
   language: Language;
   onCreated(j: Job): void;
   initialSmiles?: string;
+  initialFile?: string;
+  scientificInput?: import("../research/types").MoleculeRef;
 }) {
   const smilesId = useId();
   const zh = language === "zh",
     [smiles, setSmiles] = useState(initialSmiles),
-    [file, setFile] = useState(""),
+    [file, setFile] = useState(initialFile),
     [name, setName] = useState(""),
     run = useTaskSubmit(onCreated);
   return (
@@ -26,6 +30,10 @@ export function PropertyForm({
         e.preventDefault();
         void run.submit({
           operation: "properties",
+          scientific_inputs:
+            scientificInput && file === scientificInput.asset_id
+              ? [scientificInput]
+              : [],
           name: name.trim() || (zh ? "小分子性质" : "Molecular properties"),
           smiles: smiles
             .split(/\r?\n/)

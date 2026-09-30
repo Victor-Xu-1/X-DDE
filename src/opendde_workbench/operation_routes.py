@@ -9,6 +9,8 @@ from .artifacts import contained
 from .assets import AssetKind
 from .models import Status
 from .native_import import import_document
+from .research.contracts import VersionInput
+from .research.storage import ScientificStore
 
 
 def register_operations(app, store, assets, settings, mutation):
@@ -45,7 +47,21 @@ def register_operations(app, store, assets, settings, mutation):
             file = contained(root, value.removeprefix("/job/"))
             if file.stat().st_size > 25 * 1024**2:
                 raise ValueError("Prepared file exceeds the managed upload limit.")
-            return assets.save(file.name, kind, file.read_bytes()).id
+            asset = assets.save(file.name, kind, file.read_bytes())
+            object_kind = {
+                "ligand": "molecule",
+                "structure": "structure",
+                "sequences": "sequence",
+                "config": "analysis",
+            }.get(kind)
+            if object_kind:
+                scientific = ScientificStore(store, assets)
+                scientific.create(
+                    VersionInput(asset_id=asset.id, kind=object_kind, label=file.name),
+                    f"artifact:{job_id}:{name}:{kind}",
+                    source_job=job_id,
+                )
+            return asset.id
 
         try:
             path = contained(root / "output", name)

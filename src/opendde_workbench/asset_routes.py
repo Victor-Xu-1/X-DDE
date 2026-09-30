@@ -33,12 +33,22 @@ def register_assets(app: FastAPI, assets: AssetStore, mutation):
         except (ValueError, UnicodeError) as exc:
             raise HTTPException(422, str(exc)) from exc
 
+    @app.get("/api/assets/{asset_id}/metadata")
+    def metadata(asset_id: UUID):
+        try:
+            return assets.get(asset_id)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+
     @app.get("/api/assets/{asset_id}")
     def download(asset_id: UUID):
         try:
             asset = assets.get(asset_id)
             return FileResponse(
-                assets.path(asset), filename=asset.name, media_type="application/octet-stream"
+                assets.path(asset),
+                filename=asset.name,
+                media_type="application/octet-stream",
+                headers={"X-Structure-Format": asset.suffix.removeprefix(".")},
             )
         except FileNotFoundError as exc:
             raise HTTPException(404, str(exc)) from exc

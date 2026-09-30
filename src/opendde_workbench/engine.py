@@ -1,10 +1,8 @@
 """Digest-pinned Docker adapter shared by every OpenDDE operation."""
 
 import asyncio
-import json
 import os
 import re
-import sqlite3
 from pathlib import Path
 from typing import Protocol
 
@@ -110,10 +108,6 @@ class DockerEngine:
         return args + ["--workdir", "/job", "--entrypoint", invocation[0], image, *invocation[1:]]
 
     async def start(self, job: Job, directory: Path) -> asyncio.subprocess.Process:
-        if job.request.operation == "harness":
-            from .harness_process import start
-
-            return await start(self.settings, directory)
         self.settings.cache_dir.mkdir(parents=True, exist_ok=True)
         if job.request.operation == "resources":
             self.settings.model_dir.mkdir(parents=True, exist_ok=True)
@@ -136,15 +130,6 @@ class DockerEngine:
         )
 
     async def stop(self, job_id: str) -> None:
-        directory = self.settings.state_dir / "jobs" / job_id
-        # The mutable job filesystem is never an execution-routing authority.
-        with sqlite3.connect(self.settings.state_dir / "jobs.sqlite3") as db:
-            row = db.execute("SELECT request FROM jobs WHERE id=?", (job_id,)).fetchone()
-        if row and json.loads(row[0]).get("operation") == "harness":
-            from .harness_process import stop
-
-            await stop(self.settings, directory)
-            return
         code, output = await command("docker", "rm", "--force", self.container(job_id))
         if code and "No such container" not in output:
             raise RuntimeError("Docker could not remove the task container.")

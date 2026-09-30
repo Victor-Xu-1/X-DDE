@@ -16,6 +16,7 @@ import { useState } from "react";
 import type { Job, Language } from "../types";
 
 export type View =
+  | "research"
   | "home"
   | "tools"
   | "projects"
@@ -27,6 +28,12 @@ export type View =
   | "editors"
   | "help";
 const items = [
+  {
+    id: "research",
+    cn: "资产与关系",
+    en: "Assets & relationships",
+    icon: DeploymentUnitOutlined,
+  },
   {
     id: "tools",
     cn: "全部能力",

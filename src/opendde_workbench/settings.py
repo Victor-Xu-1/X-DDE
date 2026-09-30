@@ -28,6 +28,10 @@ class Settings:
     harness_url: str | None = None
     harness_token: str | None = field(default=None, repr=False)
     checkpoints_file: Path | None = None
+    diffsbdd_python: Path | None = None
+    diffsbdd_source: Path | None = None
+    diffsbdd_home: Path | None = None
+    diffsbdd_manifest_sha256: str | None = None
 
     @classmethod
     def from_env(cls):
@@ -46,7 +50,19 @@ class Settings:
             else:
                 (references / attribute).unlink(missing_ok=True)
         harness = installed.get("harness", {}).get("python")
+        diff = installed.get("diffsbdd", {})
         return cls(
+            diffsbdd_python=path("WB_DIFFSBDD_PYTHON", diff.get("python", ""))
+            if os.environ.get("WB_DIFFSBDD_PYTHON") or diff.get("python")
+            else None,
+            diffsbdd_source=path("WB_DIFFSBDD_SOURCE", diff.get("source", ""))
+            if os.environ.get("WB_DIFFSBDD_SOURCE") or diff.get("source")
+            else None,
+            diffsbdd_home=path("WB_DIFFSBDD_HOME", diff.get("runtime", ""))
+            if os.environ.get("WB_DIFFSBDD_HOME") or diff.get("runtime")
+            else None,
+            diffsbdd_manifest_sha256=os.environ.get("WB_DIFFSBDD_MANIFEST_SHA256")
+            or diff.get("manifest_sha256"),
             state_dir=state,
             image_file=path(
                 "WB_IMAGE_FILE",

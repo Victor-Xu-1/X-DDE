@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
 
 from .analysis import AnalysisService
+from .backend_router import BackendRouter
 from .confidence import confidence_view
 from .engine import DockerEngine, Engine
 from .models import Status
@@ -19,9 +20,10 @@ from .store import Store
 
 
 def register_science(app: FastAPI, store: Store, engine: Engine, settings: Settings):
+    analysis_engine = engine.opendde if isinstance(engine, BackendRouter) else engine
     service = (
-        AnalysisService(engine, settings.state_dir / "jobs")
-        if isinstance(engine, DockerEngine)
+        AnalysisService(analysis_engine, settings.state_dir / "jobs")
+        if isinstance(analysis_engine, DockerEngine)
         else None
     )
 

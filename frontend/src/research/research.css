@@ -1,0 +1,82 @@
+.research-workspace {
+  display: grid;
+  gap: 20px;
+}
+.research-columns {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(360px, 2fr);
+  gap: 20px;
+}
+.research-node-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 480px;
+  overflow: auto;
+}
+.research-node-list button {
+  display: grid;
+  text-align: left;
+  width: 100%;
+  gap: 4px;
+  padding: 10px;
+  border: 0;
+  border-bottom: 1px solid #e5dfd5;
+  border-radius: 0;
+}
+.research-node-list .selected {
+  background: #eee5da;
+}
+.research-node-list small,
+.graph-kind {
+  color: #79766e;
+  font-size: 11px;
+}
+.research-graph-scroll {
+  overflow: auto;
+  border: 1px solid #e5dfd5;
+  border-radius: 16px;
+  background: #fdfbf7;
+  padding: 12px;
+}
+.research-graph {
+  display: block;
+  min-width: 760px;
+  width: 100%;
+  max-height: 560px;
+}
+.relationship-node {
+  cursor: pointer;
+}
+.relationship-node rect {
+  fill: #fcfaf5;
+  stroke: #d9d1c5;
+}
+.relationship-node.selected rect,
+.relationship-node:focus rect {
+  stroke: #bd704e;
+  stroke-width: 2;
+  fill: #f8eee4;
+}
+.relationship-node text {
+  font-size: 12px;
+  fill: #343c37;
+}
+.relationship-node .graph-kind {
+  font-size: 10px;
+  fill: #7a786f;
+}
+.relationship-edge {
+  color: #a8b2a0;
+}
+.relationship-edge path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+@media (max-width: 850px) {
+  .research-columns {
+    grid-template-columns: 1fr;
+  }
+}
