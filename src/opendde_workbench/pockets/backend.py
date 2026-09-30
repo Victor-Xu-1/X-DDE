@@ -81,7 +81,7 @@ class PocketBackend:
             "--entrypoint",
             "java",
             self.settings.p2rank_image,
-            "-Xmx" + str(task.memory_mib) + "m",
+            "-Xmx" + str(max(256, task.memory_mib - 256)) + "m",
             "-Duser.home=/job",
             "-cp",
             "/p2rank/bin/p2rank.jar:/p2rank/bin/lib/*",
@@ -116,6 +116,7 @@ class PocketBackend:
         env = {
             "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
             "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": str(Path(__file__).resolve().parents[2]),
         }
         return await local_process.start(
             Path(__import__("sys").executable),

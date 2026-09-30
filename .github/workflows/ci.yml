@@ -136,5 +136,5 @@ jobs:
         env:
           WB_TEST_NATIVE_POCKETS: '1'
         run: |
-          uv sync --locked --group dev
-          uv run --locked pytest -q server_tests/test_native_pockets.py
+          uv sync --locked --group dev --no-install-project
+          PYTHONPATH=src .venv/bin/python -m pytest -q server_tests/test_native_pockets.py
