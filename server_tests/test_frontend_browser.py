@@ -728,7 +728,7 @@ def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_re
                     page.get_by_text("查看已验证原子映射", exact=True).click()
                     expect(page.get_by_text("0 → 1; 1 → 2; 2 → 0", exact=True)).to_be_visible()
                     candidates = page.get_by_role(
-                        "button", name="qualified-molecules.sdf", exact=False
+                        "button", name="候选 1 · 固定区域检查通过", exact=True
                     )
                     expect(candidates).to_have_count(1)
                     candidates.click()
