@@ -53,6 +53,15 @@ REGION_ROLES = (
         ),
     },
     {
+        "id": "mutable",
+        "label": ("可修改区域", "Mutable region"),
+        "help": (
+            "标注允许调整的区域；实际设计仍以提交的固定原子与支持参数为准。",
+            "Annotate regions allowed to change; actual design follows submitted fixed atoms "
+            "and supported parameters.",
+        ),
+    },
+    {
         "id": "custom",
         "label": ("自定义区域", "Custom region"),
         "help": ("命名一个需要复用的原子集合。", "Name an atom selection for reuse."),
@@ -62,7 +71,7 @@ REGION_ROLES = (
 
 class Region(ScientificModel):
     name: str = Field(min_length=1, max_length=80, pattern=r"^[^\x00-\x1f]+$")
-    role: Literal["fixed_core", "binder_a", "binder_b", "linker", "payload", "custom"]
+    role: Literal["fixed_core", "binder_a", "binder_b", "linker", "payload", "mutable", "custom"]
     atom_indices: tuple[Annotated[int, Field(strict=True, ge=0, le=4999)], ...] = Field(
         min_length=1, max_length=5000
     )

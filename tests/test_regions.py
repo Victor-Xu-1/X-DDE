@@ -174,6 +174,7 @@ def test_region_public_schema_filters_and_mutation_boundary(client_factory, sett
             "binder_b",
             "linker",
             "payload",
+            "mutable",
             "custom",
         }
         query = f"?asset_id={value.subject.asset_id}&record=0&conformer=0"

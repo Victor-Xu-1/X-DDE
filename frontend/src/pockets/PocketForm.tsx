@@ -61,11 +61,6 @@ export function PocketForm({
       }}
     >
       <fieldset disabled={run.busy}>
-        <p className="notice">
-          {zh
-            ? "P2Rank 预测蛋白表面的候选位点。可以保留多个口袋继续比较；位点分数与模型概率不是配体亲和力，也不是实验活性。"
-            : "P2Rank predicts candidate sites on protein surfaces. Retain multiple pockets for comparison; site scores and model probabilities are not ligand affinity or experimental activity."}
-        </p>
         {!ready && (
           <p className="notice">
             {zh
@@ -108,6 +103,11 @@ export function PocketForm({
           {zh
             ? "预测结构中的 B 因子列可能保存置信度，不能当作晶体实验 B 因子。对应选择原生 alphafold 模型配置。"
             : "B-factor columns in predicted structures may encode confidence rather than experimental B-factors. This choice uses the native alphafold configuration."}
+        </Hint>
+        <Hint label={zh ? "口袋检测说明" : "Pocket detection help"}>
+          {zh
+            ? "P2Rank 预测蛋白表面的候选位点。可以保留多个口袋继续比较；位点分数与模型概率不是配体亲和力，也不是实验活性。"
+            : "P2Rank predicts candidate sites on protein surfaces. Retain multiple pockets for comparison; site scores and model probabilities are not ligand affinity or experimental activity."}
         </Hint>
         <button
           type="button"
@@ -165,11 +165,6 @@ export function PocketForm({
             ))}
           </div>
         )}
-        <p className="field-help">
-          {zh
-            ? "程序离线运行，原始 CSV 报告完整保留。展示数量只限制面板，不会删除其他预测位点。输入结构本身的完整性和模型适用范围仍需核对。"
-            : "Inference runs offline and retains complete native CSV reports. The review limit affects the panel, not the retained sites. Check input completeness and model applicability."}
-        </p>
         {(error || run.error) && (
           <p role="alert" className="error-box">
             {error || run.error}

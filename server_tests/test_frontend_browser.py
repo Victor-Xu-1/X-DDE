@@ -487,6 +487,11 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
                 navigation.get_by_role("button", name=label, exact=True).click()
                 expect(page.get_by_role("heading", name=heading, exact=True)).to_be_visible()
                 assert page.locator(".studio-intro").count() == 0
+                if label == "口袋寻找":
+                    expect(
+                        page.get_by_text("P2Rank 预测蛋白表面的候选位点。", exact=False)
+                    ).to_have_count(0)
+
             navigation.get_by_role("button", name="全部能力", exact=True).click()
             page.screenshot(path=str(evidence / "compact-core-navigation.png"))
             catalogue = page.request.get(base_url + "/api/capabilities").json()

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { PocketForm } from "./PocketForm";
 import { api } from "../api";
@@ -29,5 +29,9 @@ it("requires a real structure and source profile, and explains model-specific me
       name: "Where did this structure come from?",
     }),
   ).toHaveValue("");
+  expect(screen.queryByText(/not ligand affinity/)).toBeNull();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Pocket detection help" }),
+  );
   expect(screen.getByText(/not ligand affinity/)).toBeVisible();
 });

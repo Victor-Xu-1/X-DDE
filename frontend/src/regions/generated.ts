@@ -41,6 +41,14 @@ export const roles = [
     ],
   },
   {
+    id: "mutable",
+    label: ["可修改区域", "Mutable region"],
+    help: [
+      "标注允许调整的区域；实际设计仍以提交的固定原子与支持参数为准。",
+      "Annotate regions allowed to change; actual design follows submitted fixed atoms and supported parameters.",
+    ],
+  },
+  {
     id: "custom",
     label: ["自定义区域", "Custom region"],
     help: ["命名一个需要复用的原子集合。", "Name an atom selection for reuse."],
