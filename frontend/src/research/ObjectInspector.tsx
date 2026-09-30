@@ -180,7 +180,18 @@ export function ObjectInspector({
                   other = graph.nodes.find((n) => n.id === target);
                 return (
                   <li key={i}>
-                    <span>{edgeLabels[edge.relation]?.[zh ? 0 : 1]} → </span>
+                    <span>
+                      {edge.target === selected
+                        ? zh
+                          ? "来源"
+                          : "Source"
+                        : zh
+                          ? "去向"
+                          : "Downstream"}
+                      {" · "}
+                      {edgeLabels[edge.relation]?.[zh ? 0 : 1]}
+                      {": "}
+                    </span>
                     <button onClick={() => onSelect(target)}>
                       {other?.label ?? target}
                     </button>

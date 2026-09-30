@@ -122,6 +122,11 @@ export function ResearchWorkspace({
         <button onClick={() => void load()} disabled={busy}>
           {zh ? "刷新关系" : "Refresh relationships"}
         </button>
+        {selected && (
+          <button onClick={() => setSelected(null)}>
+            {zh ? "查看全局关系" : "View all relationships"}
+          </button>
+        )}
         <label>
           {zh ? "上传资产类型" : "Upload type"}{" "}
           <select
