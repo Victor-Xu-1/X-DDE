@@ -87,8 +87,14 @@ class BackendRouter:
             self._checked_readiness("opendde", self.opendde.readiness()),
             self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
         )
+        client_present = bool(
+            self.settings.harness_python and self.settings.harness_python.is_file()
+        )
         harness = {
-            "ready": bool(self.settings.harness_python and self.settings.harness_python.is_file()),
+            "ready": client_present,
+            "reason": None
+            if client_present
+            else "Configure the native Harness interpreter, then restart X-DDE.",
             "compute_configured": bool(self.settings.harness_url),
         }
         return {**opendde, "backends": {"opendde": opendde, "diffsbdd": diff, "harness": harness}}

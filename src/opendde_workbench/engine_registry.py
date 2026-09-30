@@ -72,7 +72,9 @@ def statuses(readiness: dict) -> dict[str, dict]:
     return {
         identifier: {
             "ready": False,
-            "reason": "This engine does not report runtime state in this deployment.",
+            "reason": None
+            if identifier in states
+            else "This engine does not report runtime state in this deployment.",
             **states.get(identifier, {}),
             **definition,
         }

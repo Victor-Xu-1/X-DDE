@@ -130,6 +130,13 @@ export function RuntimeStatus({
                       ? "环境未就绪"
                       : "Environment unavailable"}
               </span>
+              {connected && !engine.ready && (
+                <p>
+                  {zh
+                    ? "打开计算环境管理，检查该引擎的环境、模型与服务配置；修改后重启工作台。"
+                    : "Open environment management to check this engine's runtime, models and services; restart after configuration changes."}
+                </p>
+              )}
               {engine.reason && <p role="alert">{engine.reason}</p>}
               {engine.gpu && <p>GPU · {engine.gpu.split(",")[0]}</p>}
               {modelFiles.length > 0 && (
