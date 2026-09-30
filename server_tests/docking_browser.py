@@ -106,7 +106,7 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                         rejected_panel.get_by_text("拖动旋转 · 滚轮缩放", exact=True)
                     ).to_be_visible(timeout=30000)
                     rejected_panel.get_by_text("查看违反位置", exact=True).click()
-                    expect(rejected_panel.get_by_text("输出原子 1", exact=False)).to_be_visible()
+                    expect(rejected_panel.get_by_text("输出原子 1 ·", exact=False)).to_be_visible()
                     expect(
                         rejected_panel.get_by_role("button", name="计算性质", exact=True)
                     ).to_have_count(0)
