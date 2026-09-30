@@ -113,7 +113,12 @@ def register_constraints(app, store, assets, settings, mutation):
             execution = file.parent / "execution.json"
             # Old frozen receipts must retain their original support claims. Current
             # native launches record the verification profile before executing.
-            core_check = False
+            # A launch can fail after freezing its planned receipt but before
+            # writing execution.json. Retain that planned support, without making
+            # any claim that its output checks actually ran.
+            core_check = any(
+                c.independent_result_check == "rdkit_fixed_core_v1" for c in result.conditions
+            )
             if execution.is_file():
                 verified_execution = contained(execution.parent, execution.name)
                 if verified_execution.stat().st_size > 2 * 1024**2:

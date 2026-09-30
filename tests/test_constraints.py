@@ -134,7 +134,7 @@ def test_support_cannot_claim_soft_scope_or_parameter_mismatches(settings):
         assert not result.executable and result.conditions[0].reason_code == code
 
 
-def test_fixed_regions_compile_only_exact_native_selection(settings):
+def test_fixed_regions_compile_only_exact_native_selection(settings, client_factory):
     from test_regions import setup as setup_regions
 
     regions, selection, _ = setup_regions(settings)
@@ -178,6 +178,37 @@ def test_fixed_regions_compile_only_exact_native_selection(settings):
 
     legacy = compile_constraints(value, ref, request, regions, fixed_core_check=False)
     assert legacy.conditions[0].independent_result_check == "not_implemented"
+    # A real persisted failed launch still exposes its frozen plan; an old receipt
+    # keeps its historical absence of independent checking.
+    import json
+
+    from opendde_workbench.models import Status
+
+    protein = regions.assets.save("controlled.pdb", "structure", b"controlled receptor\n")
+    body = request.model_dump(mode="json")
+    body["payload"]["protein"] = {"asset_id": protein.id, "sha256": protein.sha256}
+    body["constraints"] = ref.model_dump(mode="json")
+    persisted = TASK_ADAPTER.validate_python(body)
+    job = regions.store.create(persisted, str(uuid4()), 20, 100)
+    regions.store.finish(job.id, Status.FAILED, "controlled pre-launch failure")
+    directory = settings.state_dir / "jobs" / job.id
+    directory.mkdir(parents=True)
+    receipt = directory / "constraint-execution.json"
+    receipt.write_text(result.model_dump_json())
+    with client_factory() as client:
+        response = client.get(f"/api/jobs/{job.id}/constraints")
+        assert response.status_code == 200, response.text
+        assert response.json()["conditions"][0]["independent_result_check"] == "rdkit_fixed_core_v1"
+        receipt.write_text(legacy.model_dump_json())
+        response = client.get(f"/api/jobs/{job.id}/constraints")
+        assert response.status_code == 200, response.text
+        assert response.json()["conditions"][0]["independent_result_check"] == "not_implemented"
+        receipt.write_text(result.model_dump_json())
+        (directory / "execution.json").write_text(
+            json.dumps({"core_verification": "rdkit_fixed_core_v1"})
+        )
+        assert client.get(f"/api/jobs/{job.id}/constraints").status_code == 200
+
     body = request.model_dump(mode="json")
     body["payload"]["options"]["fixed_atoms"] = [1]
     body["payload"]["fixed_atoms"] = body["payload"]["fixed_atoms"][:1]

@@ -20,7 +20,17 @@ from opendde_workbench.task_io import successful
 def fixture_result(tmp_path):
     store = Store(tmp_path / "jobs.sqlite3")
     assets = AssetStore(store, tmp_path / "assets")
-    request = TASK_ADAPTER.validate_python(design("inpaint"))
+    body = design("inpaint")
+    protein = assets.save("receptor.pdb", "structure", b"controlled receptor file\n")
+    ligand = assets.save("initial.sdf", "ligand", b"controlled molecular record\n$$$$\n")
+    protein_ref = {"asset_id": protein.id, "sha256": protein.sha256}
+    ligand_ref = {"asset_id": ligand.id, "sha256": ligand.sha256}
+    body["payload"]["protein"] = protein_ref
+    body["payload"]["pocket"]["residues"][0]["structure"] = protein_ref
+    body["payload"]["initial"] = ligand_ref
+    for atom in body["payload"]["fixed_atoms"]:
+        atom["molecule"] = ligand_ref
+    request = TASK_ADAPTER.validate_python(body)
     job = store.create(request, str(uuid4()), 20, 100)
     directory = tmp_path / "jobs" / job.id
     output = directory / "output"
