@@ -57,34 +57,34 @@
   align-items: flex-start;
   gap: 9px;
   padding: 14px;
-  border: 1px solid #ded9cb;
+  border: 1px solid var(--line);
   border-radius: 8px;
   cursor: pointer;
-  background: #f5f3ed;
+  background: var(--canvas);
 }
 .workflow-options label.selected {
-  background: #f5f3ed;
-  border-color: #82786a;
-  box-shadow: 0 0 0 1px #82786a;
+  background: var(--canvas);
+  border-color: var(--muted);
+  box-shadow: 0 0 0 1px var(--muted);
 }
 .workflow-options input {
-  accent-color: #a85237;
+  accent-color: var(--accent);
   margin-top: 3px;
 }
 .workflow-options strong {
-  font-size: 14px;
-  color: #34332d;
+  font-size: var(--text-body, 14px);
+  color: var(--ink);
 }
 .workflow-options small {
   display: block;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   line-height: 1.6;
-  color: #635d53;
+  color: var(--muted);
   margin-top: 4px;
 }
 .workflow-note {
-  font-size: 12px;
-  color: #635d53;
+  font-size: var(--text-small, 13px);
+  color: var(--muted);
   line-height: 1.6;
   margin: 12px 0 20px;
 }
@@ -92,7 +92,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
   gap: 24px;
-  border-top: 1px solid #ece9df;
+  border-top: 1px solid var(--line);
   padding-top: 20px;
 }
 .studio-app .input-panel h3 {
@@ -100,7 +100,7 @@
   margin: 0 0 12px;
 }
 .studio-app .input-panel .small {
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   line-height: 1.65;
 }
 .studio-app .input-panel .component-card {
@@ -131,7 +131,7 @@
   font-size: 13px;
 }
 .preset-choices small {
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   line-height: 1.6;
 }
 .nucleic-choice,
@@ -139,7 +139,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
 }
 .nucleic-choice label {
   display: flex;
@@ -157,7 +157,7 @@
 }
 .model-summary {
   padding: 8px 0;
-  color: #635d53;
+  color: var(--muted);
 }
 @media (max-width: 1150px) {
   .workbench-columns {
@@ -193,11 +193,11 @@
 }
 .workspace-mode button {
   padding: 9px 18px;
-  border: 1px solid #ded9cb;
+  border: 1px solid var(--line);
   border-radius: 7px;
-  background: white;
-  color: #635d53;
-  font-size: 14px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--text-body, 14px);
 }
 .result-task-name {
   font-size: 15px;
@@ -209,18 +209,18 @@
 }
 
 .workspace-mode button.selected {
-  color: #a85237;
-  background: #ece9df;
-  border-color: #a19c90;
+  color: var(--accent);
+  background: var(--line);
+  border-color: var(--muted);
 }
 .form-mode-row .segmented > button {
-  border: 1px solid #ded9cb;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  color: #635d53;
-  background: #fff;
+  color: var(--muted);
+  background: var(--surface);
 }
 .form-mode-row .segmented > button.selected {
-  color: #a85237;
-  border-color: #a19c90;
-  background: #ece9df;
+  color: var(--accent);
+  border-color: var(--muted);
+  background: var(--line);
 }

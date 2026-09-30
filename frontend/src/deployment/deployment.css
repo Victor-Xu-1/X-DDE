@@ -3,7 +3,7 @@
   margin: 22px 0 30px;
 }
 .eyebrow {
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
   letter-spacing: 0.15em;
   color: var(--muted);
   font-weight: 600;
@@ -27,7 +27,7 @@
 }
 .setup-card,
 .component-card {
-  background: #fffefa;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 24px;
@@ -59,7 +59,7 @@
 .setup-choice span,
 .section-heading span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   line-height: 1.6;
 }
 .section-heading {
@@ -92,7 +92,7 @@
 }
 .component-card small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
 }
 .component-top,
 .component-actions {
@@ -107,17 +107,17 @@
 .status-pill {
   display: inline-flex;
   border-radius: 5px;
-  background: #eeece5;
-  color: #625e55;
+  background: var(--surface-muted);
+  color: var(--muted);
   padding: 4px 8px;
-  font-size: 11px;
+  font-size: var(--text-small, 13px);
 }
 .status-pill.installed {
-  background: #e6eee6;
-  color: #38553f;
+  background: var(--success-soft);
+  color: var(--success);
 }
 .deployment-activity article {
-  background: #fffefa;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 18px;
@@ -130,7 +130,7 @@
   margin-right: 12px;
 }
 .deployment-activity p {
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
   margin: 8px 0 0;
   overflow-wrap: anywhere;
 }
@@ -144,7 +144,7 @@
   margin: 32px 0;
 }
 .command-reference dl {
-  background: #eeece5;
+  background: var(--surface-muted);
   border-radius: 10px;
   padding: 12px 22px;
 }
@@ -165,8 +165,8 @@
   align-items: center;
   gap: 18px;
   justify-content: space-between;
-  background: #ede8dd;
-  border: 1px solid #ded6c5;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 16px 20px;
   margin-bottom: 20px;
@@ -174,7 +174,7 @@
 .onboarding-banner p {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-small, 13px);
 }
 @media (max-width: 800px) {
   .setup-grid {
@@ -195,7 +195,7 @@
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 9px 13px;
-  background: #fffefa;
+  background: var(--surface);
   color: var(--ink);
   cursor: pointer;
   font-size: 13px;
@@ -215,9 +215,9 @@
 }
 .component-actions button:first-child,
 .onboarding-banner button {
-  background: #a85237;
-  color: white;
-  border-color: #a85237;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
 }
 @media (max-width: 1150px) {
   .component-grid {

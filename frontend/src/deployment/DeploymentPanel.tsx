@@ -67,11 +67,22 @@ export function DeploymentPanel({
       {(message || error) && (
         <p className="error" role="alert">
           {message || error}
+          {error && (
+            <button className="secondary-button" onClick={refresh}>
+              {zh ? "重试" : "Retry"}
+            </button>
+          )}
         </p>
       )}
       {!data ? (
         <p role="status">
-          {zh ? "正在读取安装状态…" : "Loading installation state…"}
+          {error
+            ? zh
+              ? "安装状态暂不可用。"
+              : "Installation state is unavailable."
+            : zh
+              ? "正在读取安装状态…"
+              : "Loading installation state…"}
         </p>
       ) : (
         <>

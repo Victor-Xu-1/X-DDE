@@ -38,6 +38,7 @@ jobs:
               files = set(wheel.namelist())
           assert 'opendde_workbench/web/index.html' in files
           assert 'opendde_workbench/web/viewer.html' in files
+          assert 'opendde_workbench/web/theme-init.js' in files
           assert any('/assets/viewer-' in path and path.endswith('.js') for path in files)
           PY
 
@@ -61,3 +62,53 @@ jobs:
           uv run --no-project --python 3.10
           --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
           python -m pytest -q server_tests/test_scientific_handoff.py
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build real frontend and install browser test tooling
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+      - name: Verify real appearance and shared asset workflow
+        env:
+          WB_STATE_DIR: ${{ runner.temp }}/xdde-browser-state
+          WB_AUTO_DEPLOY: '0'
+          WB_BROWSER_URL: http://127.0.0.1:4330
+        run: |
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence-browser.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          .venv/bin/python - <<'PY'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:4330/api/health', timeout=2):
+                      break
+              except OSError:
+                  time.sleep(0.5)
+          else:
+              raise SystemExit('Browser preview did not start')
+          PY
+          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence-${{ github.sha }}
+          path: |
+            server_tests/evidence/
+            server_tests/evidence-browser.log

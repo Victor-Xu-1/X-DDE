@@ -48,7 +48,7 @@ export function ProjectPanel({
     <section className="project-workspace">
       <header>
         <span className="eyebrow">PROJECT SPACE</span>
-        <h2>{zh ? "项目空间" : "Projects"}</h2>
+        <h1>{zh ? "项目空间" : "Projects"}</h1>
         <p>
           {zh
             ? "把同一研究问题的任务放在一起；任务和结果始终保留在本机。"

@@ -1,0 +1,289 @@
+.studio-panel,
+.studio-app .panel,
+.tool-form,
+.management-card,
+.setup-card,
+.component-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+.studio-panel,
+.studio-app .panel,
+.tool-form,
+.management-card {
+  padding: 24px;
+}
+.studio-heading {
+  margin-bottom: 16px;
+  gap: 12px;
+}
+.studio-heading h3 {
+  font-size: 15px;
+}
+.studio-heading button {
+  font-size: 12px;
+  min-height: 30px;
+  padding: 5px 9px;
+  border-radius: 7px;
+}
+.studio-app .input-panel {
+  padding: 24px;
+  min-height: 0;
+}
+.studio-app .input-panel .panel-heading {
+  margin-bottom: 20px;
+}
+.studio-app .input-panel .panel-heading h2 {
+  font-size: 18px;
+}
+.field,
+.studio-app .input-panel .field,
+.project-layout label {
+  font-size: 13px;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+.field > span,
+.field > label {
+  color: var(--ink);
+  font-weight: 500;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+    [type="color"]
+  ),
+select,
+textarea {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 0;
+}
+.studio-app .input-panel .field input,
+.studio-app .input-panel textarea,
+.studio-app .input-panel select,
+.tool-form input,
+.tool-form select,
+.tool-form textarea {
+  font-size: 14px;
+  line-height: 1.55;
+  padding: 10px 12px;
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+.studio-app .input-panel textarea {
+  min-height: 100px;
+  font-family: var(--mono);
+}
+.studio-app .input-panel .section-heading {
+  margin: 24px 0 12px;
+}
+.studio-app .input-panel .section-heading h3 {
+  font-size: 15px;
+}
+.studio-app .input-panel .component-card {
+  background: var(--surface-muted);
+  padding: 16px;
+  margin-top: 12px;
+}
+.studio-app .input-panel .parameter-grid {
+  gap: 12px 16px;
+  margin-top: 16px;
+}
+.studio-app .input-panel .parameter-grid .field {
+  font-size: 13px;
+}
+.studio-app .input-panel .parameters {
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.field-help,
+.small,
+.help-text {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.primary-button,
+.studio-app .primary-button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 8px;
+  min-height: 40px;
+  font-size: 14px;
+  padding: 9px 16px;
+  box-shadow: none;
+}
+.secondary-button,
+.studio-app .secondary-button {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 38px;
+  font-size: 13px;
+  padding: 8px 14px;
+}
+.secondary-button:hover {
+  background: var(--surface-hover);
+}
+.danger-button {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  min-height: 38px;
+  padding: 8px 14px;
+}
+.onboarding-banner {
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  gap: 20px;
+  align-items: center;
+}
+.onboarding-banner strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.onboarding-banner p {
+  font-size: 13px;
+  margin-top: 3px;
+  color: var(--muted);
+}
+.onboarding-banner button {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 12px;
+  min-height: 36px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.error-box,
+.studio-app .error-box,
+.error {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.7;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.notice,
+.studio-app .notice,
+.header-warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-color: var(--warning);
+  font-size: 13px;
+  line-height: 1.7;
+  border-radius: 8px;
+}
+.ready-indicator {
+  font-size: 12px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  padding: 6px 10px;
+  margin-top: 4px;
+}
+.ready-indicator.ok {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.status {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.studio-app .status.succeeded {
+  color: var(--success);
+  background: var(--success-soft);
+}
+.studio-app .status.failed,
+.studio-app .status.interrupted {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+.studio-app .status.running,
+.studio-app .status.queued {
+  color: var(--info);
+  background: var(--info-soft);
+}
+.project-layout,
+.task-page-grid,
+.guide-grid,
+.model-grid {
+  gap: 20px;
+}
+.task-page-grid {
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr);
+}
+.task-page-list button {
+  padding: 14px 10px;
+  border-radius: 6px;
+  align-items: flex-start;
+}
+.task-page-list button > span {
+  overflow-wrap: anywhere;
+}
+.task-page-list button:hover,
+.task-page-list button.selected {
+  background: var(--surface-hover);
+}
+.guide-grid .studio-panel p,
+.model-grid .studio-panel p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.project-row {
+  padding: 14px;
+  border-radius: 8px;
+}
+.project-row small {
+  font-size: 12px;
+}
+.report-panel > a {
+  margin: 8px 8px 8px 0;
+  border-radius: 8px;
+}
+.empty-state,
+.tool-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 56px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-height: 260px;
+}
+.empty-state p,
+.tool-empty-state p {
+  max-width: 480px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.empty-state-icon {
+  color: var(--muted);
+  font-size: 28px;
+}
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  justify-content: center;
+}

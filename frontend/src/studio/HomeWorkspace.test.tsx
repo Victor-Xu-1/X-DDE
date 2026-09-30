@@ -90,6 +90,8 @@ it("keeps platform and backend readiness independent in the runtime view", () =>
     view: "models" as const,
     loading: false,
     onHome: vi.fn(),
+    onStart: vi.fn(),
+    onTasks: vi.fn(),
     projectError: "",
     reloadProjects: vi.fn(),
   };

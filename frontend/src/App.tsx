@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import IconContext from "@ant-design/icons/es/components/Context";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import { useWorkbench } from "./useWorkbench";
 import { useScience } from "./studio/useScience";
-import { Navigation, Header, type View } from "./studio/Navigation";
+import { Navigation, Header, viewTitle, type View } from "./studio/Navigation";
 import { HomeWorkspace } from "./studio/HomeWorkspace";
 import { UtilityViews } from "./studio/UtilityViews";
 import type { Job, Language, Prediction } from "./types";
@@ -12,10 +12,13 @@ import { ToolCenter } from "./operations/ToolCenter";
 import { isPrediction } from "./operations/types";
 import { useDeployment } from "./deployment/client";
 import { DeploymentPanel } from "./deployment/DeploymentPanel";
+import { AccountSettings } from "./studio/AccountSettings";
+import { WorkspaceOverview } from "./studio/WorkspaceOverview";
 import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
 export function App() {
+  const content = useRef<HTMLElement>(null);
   const deployment = useDeployment();
   const [editorObject, setEditorObject] = useState<ScientificObject | null>(
     null,
@@ -78,8 +81,12 @@ export function App() {
           : [];
   useEffect(() => {
     document.documentElement.lang = zh ? "zh-CN" : "en";
-    document.title = t("workspace") + " · X-DDE";
-  }, [language]);
+    document.title = viewTitle(view, language) + " · X-DDE";
+  }, [language, view]);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    content.current?.focus({ preventScroll: true });
+  }, [view]);
   useEffect(() => {
     if (job && !isPrediction(job.request))
       setView((current) => (current === "home" ? "tasks" : current));
@@ -105,7 +112,11 @@ export function App() {
   }
   function chooseProject(id: string | null) {
     setProjectId(id);
-    const next = jobs.find((x) => !id || x.request.project_id === id);
+    const next = jobs.find(
+      (x) =>
+        (!id || x.request.project_id === id) &&
+        (view !== "home" || isPrediction(x.request)),
+    );
     chooseJob(next?.id ?? "");
     if (!next) setSubmitted(null);
   }
@@ -158,24 +169,34 @@ export function App() {
           onView={setView}
           language={language}
           jobs={jobs}
-          gpu={health?.engine.gpu ?? undefined}
-          free={health?.free_disk_gib}
-          total={health?.disk_total_gib}
         />
         <div className="studio-main">
           <Header
+            view={view}
             language={language}
-            onLanguage={(value) => {
-              setLanguage(value);
-              setStorageWarning(!persistLanguage(value));
-            }}
             jobs={jobs}
             onJob={showJob}
-            onView={setView}
             storageWarning={storageWarning}
           />
-          <main className="studio-content">
-            {view !== "deployment" &&
+          <main className="studio-content" ref={content} tabIndex={-1}>
+            {view === "settings" && (
+              <AccountSettings
+                language={language}
+                storageWarning={storageWarning}
+                onLanguage={(value) => {
+                  setLanguage(value);
+                  setStorageWarning(!persistLanguage(value));
+                }}
+              />
+            )}
+            {view === "overview" && (
+              <WorkspaceOverview
+                language={language}
+                jobs={jobs}
+                health={health}
+              />
+            )}
+            {view === "tools" &&
               deployment.data &&
               !deployment.data.installed.compute && (
                 <aside className="onboarding-banner">
@@ -220,6 +241,8 @@ export function App() {
                   initialObject={editorObject}
                   language={language}
                   deployment={deployment.data}
+                  deploymentError={deployment.error}
+                  onRetry={deployment.refresh}
                   onSetup={() => setView("deployment")}
                   onCreated={changed}
                 />
@@ -288,6 +311,8 @@ export function App() {
               view !== "tools" &&
               view !== "deployment" &&
               view !== "editors" &&
+              view !== "settings" &&
+              view !== "overview" &&
               view !== "research" && (
                 <UtilityViews
                   {...common}
@@ -295,7 +320,11 @@ export function App() {
                   view={view}
                   jobs={jobs}
                   loading={loading}
-                  onJob={inspectJob}
+                  connectionError={work.connectionError}
+                  onRefresh={refresh}
+                  onStart={() => setView("tools")}
+                  onTasks={() => setView("tasks")}
+                  onJob={chooseJob}
                   onHome={() => {
                     if (job && !isPrediction(job.request)) {
                       setView("tasks");

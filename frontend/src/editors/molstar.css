@@ -15,11 +15,11 @@ body {
   align-items: center;
   gap: 20px;
   padding: 0 16px;
-  background: #f5f3ed;
+  background: var(--canvas);
   font:
     12px system-ui,
     sans-serif;
-  color: #34332d;
+  color: var(--ink);
 }
 #molecular-toolbar label {
   display: flex;

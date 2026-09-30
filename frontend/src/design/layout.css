@@ -1,0 +1,211 @@
+/* Shared workspace rhythm. Colors are defined once in tokens.css. */
+:root {
+  --text-body: 14px;
+  --text-small: 13px;
+  --content-width: 1200px;
+  --radius: 12px;
+}
+html {
+  scrollbar-color: var(--line) transparent;
+}
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  line-height: 1.6;
+}
+button,
+input,
+select,
+textarea {
+  color: inherit;
+}
+button {
+  transition: none;
+}
+button:disabled {
+  opacity: 0.5;
+}
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.studio-app {
+  grid-template-columns: 232px minmax(0, 1fr);
+  background: var(--canvas);
+  color: var(--ink);
+}
+.studio-sidebar {
+  background: var(--sidebar);
+  border-color: var(--line);
+  padding: 16px 10px 12px;
+}
+.studio-brand {
+  gap: 10px;
+  padding: 2px 12px 18px;
+  min-height: 68px;
+}
+.studio-brand strong {
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+.studio-brand small {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  color: var(--muted);
+}
+.studio-brand-mark {
+  font-size: 28px;
+}
+.studio-sidebar nav {
+  gap: 4px;
+}
+.studio-sidebar nav button {
+  min-height: 43px;
+  padding: 10px 12px;
+  gap: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.studio-sidebar nav button.active {
+  background: var(--surface-hover);
+  color: var(--ink);
+  font-weight: 600;
+}
+.studio-sidebar nav button:hover {
+  background: var(--surface-hover);
+}
+.studio-sidebar nav button .anticon {
+  font-size: 17px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.studio-sidebar nav button.active .anticon {
+  color: var(--accent);
+}
+.studio-sidebar nav button b {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+}
+.nav-short {
+  display: none;
+}
+.studio-topbar {
+  height: 64px;
+  padding: 0 32px;
+  background: var(--canvas);
+  border-bottom-color: var(--line);
+  gap: 24px;
+}
+.page-context {
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.global-search {
+  width: min(400px, 45vw);
+  margin-left: auto;
+  height: 36px;
+  border-color: var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.global-search input {
+  color: var(--ink);
+  background: transparent;
+  font-size: 13px;
+  min-width: 0;
+}
+.global-search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.top-actions {
+  gap: 12px;
+}
+.top-popover > div,
+.search-results {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 8px;
+  max-height: 55dvh;
+  overflow: auto;
+}
+.top-popover button,
+.search-results button {
+  min-height: 40px;
+  padding: 10px;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 6px;
+}
+.top-popover button:hover,
+.search-results button:hover {
+  background: var(--surface-hover);
+}
+.studio-content {
+  width: 100%;
+  max-width: var(--content-width);
+  padding: 32px 36px 20px;
+  min-width: 0;
+}
+.studio-content > [hidden] {
+  display: none;
+}
+.studio-intro,
+.research-heading,
+.management-heading {
+  margin-bottom: 28px;
+  min-height: 0;
+  gap: 20px;
+  align-items: flex-start;
+}
+.studio-content h1,
+.studio-intro h1,
+.research-heading h1,
+.utility-page > h1,
+.project-workspace > header h1 {
+  font-family: var(--font);
+  font-size: clamp(25px, 2.2vw, 30px);
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+.studio-content h2 {
+  font-family: var(--font);
+  font-size: 18px;
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.studio-content h3 {
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+.studio-intro p,
+.research-heading p,
+.utility-page > p,
+.management-heading > p,
+.project-workspace header > p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 780px;
+  margin-top: 10px;
+}
+.utility-page {
+  min-height: 0;
+}

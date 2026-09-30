@@ -51,7 +51,11 @@ X-DDE UI
 | `xdde ui --no-auto-deploy` | 首次启动不自动创建安装任务 |
 | `xdde ui --no-browser` | 启动但不打开浏览器 |
 
-首次使用：打开 **安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
+首次使用：打开左侧底部 **账户与设置 → 安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
+
+核心科研入口保留在主导航；工作空间概况、安装、运行状态和帮助位于底部管理菜单。**账户与设置**可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器；账户信息反映现有本地单用户模式。
+
+Core research tools remain in the main navigation. The bottom **Account & settings** menu groups workspace overview, installation, runtime status and help. Open its settings page to choose Chinese/English and Warm/Pure white/Night appearance; preferences are saved in the current browser. Account information reflects the existing local single-user mode.
 
 部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。更改安装位置不自动迁移已有数据。
 
@@ -160,6 +164,8 @@ uv build --wheel
 ```
 
 CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证科学推理。真实科学运行与浏览器验收见 [服务器验收说明](docs/server-acceptance.md)。新增测试已提供；本机未运行测试套件或推理。每个发布候选都必须通过其精确提交对应的 CI。
+
+浏览器 CI 使用独立临时服务和锁定的 `browser` 开发依赖，验证三种主题、资产页文字对比度、窄屏布局、管理菜单、备注版本持久化、中英文刷新和指定分子的性质输入交接。测试只登记小型输入资产，不提交科学计算任务；截图和日志保存在 CI 附件中，不进入仓库或发行包。共享界面样式按职责拆分在 `frontend/src/design/`，颜色统一来自 `tokens.css`，资产页使用同一套语义颜色。
 
 部署前备份 `WB_STATE_DIR` 并停止工作台，确认原生设计任务已结束或明确交接；构建并安装精确提交对应的 wheel 后启动。0.3 只新增 `assets`、`batches`、`design_plans`、`queue_control` 表，保留旧任务。回退到 0.2 前须使用升级前的数据备份：0.2 不认识新增任务类型。不要直接删除共享模型、原生 Harness 任务或用户数据。
 

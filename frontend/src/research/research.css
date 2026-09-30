@@ -1,6 +1,7 @@
 .research-workspace {
   display: grid;
   gap: 20px;
+  min-width: 0;
 }
 .research-workspace .editor-toolbar {
   display: flex;
@@ -17,7 +18,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 9px 13px;
-  background: #fffefa;
+  background: var(--surface);
   color: var(--ink);
   font-size: 13px;
   line-height: 1.5;
@@ -26,7 +27,7 @@
 .research-workspace .editor-toolbar button:hover:enabled,
 .research-workspace .editor-toolbar a:hover,
 .research-inspector button:hover:enabled {
-  background: #f1ece2;
+  background: var(--surface-hover);
   border-color: var(--accent);
 }
 .research-workspace .editor-toolbar label {
@@ -41,7 +42,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 9px 13px;
-  background: #fffefa;
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
 }
@@ -56,10 +57,11 @@
 .research-workspace .research-inspector > button {
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
 }
 .research-workspace .research-inspector > button:hover:enabled {
-  background: #87432e;
+  background: var(--accent);
+  filter: brightness(0.92);
 }
 .research-inspector li {
   margin: 8px 0;
@@ -68,6 +70,9 @@
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(360px, 2fr);
   gap: 20px;
+}
+.research-columns > * {
+  min-width: 0;
 }
 .research-node-list {
   list-style: none;
@@ -87,24 +92,25 @@
   border-radius: 0;
   background: transparent;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 .research-node-list button:hover {
-  background: #f1ece2;
+  background: var(--surface-hover);
 }
 .research-node-list .selected {
-  background: #eee5da;
+  background: var(--accent-soft);
 }
 .research-node-list small,
 .graph-kind {
-  color: #79766e;
+  color: var(--muted);
   font-size: 11px;
 }
 .research-graph-scroll {
   max-height: 560px;
   overflow: auto;
-  border: 1px solid #e5dfd5;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fdfbf7;
+  background: var(--surface);
   padding: 12px;
 }
 .research-graph {
@@ -116,25 +122,25 @@
   cursor: pointer;
 }
 .relationship-node rect {
-  fill: #fcfaf5;
-  stroke: #d9d1c5;
+  fill: var(--surface);
+  stroke: var(--line);
 }
 .relationship-node.selected rect,
 .relationship-node:focus rect {
-  stroke: #bd704e;
+  stroke: var(--accent);
   stroke-width: 2;
-  fill: #f8eee4;
+  fill: var(--accent-soft);
 }
 .relationship-node text {
   font-size: 12px;
-  fill: #343c37;
+  fill: var(--ink);
 }
 .relationship-node .graph-kind {
   font-size: 10px;
-  fill: #7a786f;
+  fill: var(--muted);
 }
 .relationship-edge {
-  color: #a8b2a0;
+  color: var(--muted);
 }
 .relationship-edge path {
   fill: none;

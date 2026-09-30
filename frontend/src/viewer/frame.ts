@@ -1,10 +1,23 @@
 import * as mol from "3dmol";
 import { MolecularScene } from "./scene";
 import { validSource } from "./protocol";
+import { initializeTheme } from "../theme";
 import "./frame.css";
+initializeTheme();
+const background = () =>
+  getComputedStyle(document.documentElement)
+    .getPropertyValue("--chart-bg")
+    .trim();
 const viewer = mol.createViewer(document.getElementById("molecule")!, {
-  backgroundColor: "#ffffff",
+  backgroundColor: background(),
   antialias: true,
+});
+new MutationObserver(() => {
+  viewer.setBackgroundColor(background(), 1);
+  viewer.render();
+}).observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["data-theme"],
 });
 new ResizeObserver(() => {
   viewer.resize();
