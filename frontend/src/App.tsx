@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import IconContext from "@ant-design/icons/es/components/Context";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
-import { useWorkbench } from "./useWorkbench";
+import { useWorkbench, taskIdFromHash } from "./useWorkbench";
 import { useScience } from "./studio/useScience";
 import {
   Navigation,
@@ -33,9 +33,23 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>(() =>
-      location.hash.startsWith("#task=") ? "home" : "tools",
+      taskIdFromHash(location.hash) ? "home" : "tools",
     ),
     [projectId, setProjectId] = useState<string | null>(null);
+  useEffect(() => {
+    function navigate() {
+      if (taskIdFromHash(window.location.hash)) {
+        setView("home");
+        setProjectId(null);
+      }
+    }
+    window.addEventListener("hashchange", navigate);
+    window.addEventListener("popstate", navigate);
+    return () => {
+      window.removeEventListener("hashchange", navigate);
+      window.removeEventListener("popstate", navigate);
+    };
+  }, []);
   const [resultsVersion, setResultsVersion] = useState(0);
   useEffect(() => {
     if (view === "editors") setEditorsOpened(true);

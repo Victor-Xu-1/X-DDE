@@ -171,7 +171,12 @@ export function TaskDetail({
       {job.status === "succeeded" &&
         job.request.operation &&
         job.request.operation !== "predict" && (
-          <OperationResults job={job} language={language} onDraft={onDraft} />
+          <OperationResults
+            key={job.id}
+            job={job}
+            language={language}
+            onDraft={onDraft}
+          />
         )}
       <div className="artifacts">
         {shown?.artifacts.length ? (

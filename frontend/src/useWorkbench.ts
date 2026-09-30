@@ -2,15 +2,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { Detail, Health, Job } from "./types";
 
-function hashId() {
-  const value =
-    new URLSearchParams(window.location.hash.slice(1)).get("task") ?? "";
-  return /^[0-9a-f-]{36}$/.test(value) ? value : "";
+export function taskIdFromHash(hash: string) {
+  const value = new URLSearchParams(hash.slice(1)).get("task") ?? "";
+  return /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value)
+    ? value.toLowerCase()
+    : "";
 }
 export function useWorkbench() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [health, setHealth] = useState<Health | null>(null);
-  const [selected, setSelected] = useState(hashId);
+  const [selected, setSelected] = useState(() =>
+    taskIdFromHash(window.location.hash),
+  );
   const explicitSelection = useRef(false);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [connectionError, setConnectionError] = useState(false);
@@ -24,6 +27,20 @@ export function useWorkbench() {
     setDetail(null);
     setDetailError(false);
     window.history.replaceState(null, "", `#task=${encodeURIComponent(id)}`);
+  }, []);
+  useEffect(() => {
+    function navigate() {
+      explicitSelection.current = true;
+      setSelected(taskIdFromHash(window.location.hash));
+      setDetail(null);
+      setDetailError(false);
+    }
+    window.addEventListener("hashchange", navigate);
+    window.addEventListener("popstate", navigate);
+    return () => {
+      window.removeEventListener("hashchange", navigate);
+      window.removeEventListener("popstate", navigate);
+    };
   }, []);
   useEffect(() => {
     const controller = new AbortController();
