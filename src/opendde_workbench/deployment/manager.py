@@ -78,7 +78,7 @@ class DeploymentManager:
             "prerequisites": prerequisites(),
             "default_location": str(home() / "components"),
             "locations": [str(home() / "components")]
-            + [str(p / "OpenDDE") for p in Path("/mnt").glob("[a-z]") if p.is_dir()],
+            + [str(p / "X-DDE") for p in Path("/mnt").glob("[a-z]") if p.is_dir()],
             "restart_required": self.activated
             != {k: v for k, v in self.store.installed().items() if k not in {"ketcher", "molstar"}},
         }

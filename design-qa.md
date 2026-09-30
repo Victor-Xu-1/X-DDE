@@ -1,3 +1,19 @@
+# X-DDE 0.4 installation and workspace acceptance
+
+The owner authorized local installation/lifecycle and browser inspection, while deferring scientific inference and LLM calls to the target server. The product/repository are X-DDE; upstream engine names, internal Python namespace and existing data directories remain unchanged. All launch aliases use one CLI and one service record.
+
+Candidate `4ae4e00a853fe6631064322b00cb544557bf6e49` passed [GitHub CI](https://github.com/Victor-Xu-1/X-DDE/actions/runs/36658021413): frontend type/format checks, **38 frontend tests**, production build, Ruff, **87 backend tests**, and wheel packaging. Subsequent revisions require their own passing run before release.
+
+Affected-path evidence: real loopback HTTP downloads with hash and size limits, safe archive extraction, SQLite operation persistence and origin/input validation, cancellation of real child processes, case-insensitive CLI start/status/stop, and all new/legacy installed command entry points. These are implementation checks, not inference accuracy tests.
+
+Actual local browser checks use the live server: Ketcher 3.18.0 and Mol* 5.12.0 official distributions were downloaded, verified and loaded. A simple ethanol structure imported into Ketcher was passed as CCO to the property form and saved as an immutable SDF asset. Mol* loaded the public 1CRN PDB with a real sequence and 3D structure. The component panel performed an actual Ketcher reinstall through its API and persistent background queue, reaching completed. No property computation, GPU job, model/database download or real LLM call was submitted. Chrome extension control was unavailable (connection requests failed); in-app browser interaction is the current browser evidence, not independent Chrome layout acceptance.
+
+The Windows installer puts launchers on the chosen drive and executable Python environments inside the WSL Linux filesystem. This avoids the verified symlink/hardlink failures on this machine's Windows-mounted drive. The component root retains models/caches separately. Mol* has a dedicated opaque-origin CSP sandbox; its required dynamic code allowance does not apply to the main app. Ketcher assets are locally hosted. Scientific services still require explicit server configuration and acceptance.
+
+Release promotion requires exact-candidate CI, installing the published wheel via the release installer, real startup/stop checks and final browser inspection. Unchanged scientific acceptance remains in `docs/server-acceptance.md`.
+
+---
+
 # 0.3 candidate status — server validation deferred
 
 The owner requested code first and no tests/inference on this PC. This expansion has not had local browser, GPU, multi-GPU, remote scientific service or LLM acceptance. Static lint/type/format results are reported separately in the delivery record; they are not runtime evidence. The prior0.2 installation remains unchanged.

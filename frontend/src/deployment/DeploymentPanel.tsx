@@ -85,7 +85,7 @@ export function DeploymentPanel({
                   list="install-locations"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="E:\\OpenDDE"
+                  placeholder="E:\\X-DDE"
                 />
                 <datalist id="install-locations">
                   {data.locations.map((p) => (
@@ -95,8 +95,8 @@ export function DeploymentPanel({
               </label>
               <p className="field-help">
                 {zh
-                  ? "Windows 可填写 E:\\OpenDDE；WSL 中对应 /mnt/e/OpenDDE。管理其中的 opendde-managed 子目录。Python 客户端保存在 WSL Linux 磁盘中，研究结果另行保存。"
-                  : "On Windows, E:\\OpenDDE maps to /mnt/e/OpenDDE. Bulk components use its opendde-managed subfolder; Python environments use the WSL Linux disk. Research results are separate."}
+                  ? "Windows 可填写 E:\\X-DDE；WSL 中对应 /mnt/e/X-DDE。管理其中的 opendde-managed 子目录。Python 客户端保存在 WSL Linux 磁盘中，研究结果另行保存。"
+                  : "On Windows, E:\\X-DDE maps to /mnt/e/X-DDE. Bulk components use its opendde-managed subfolder; Python environments use the WSL Linux disk. Research results are separate."}
               </p>
               <button
                 disabled={busy || !location.trim()}
