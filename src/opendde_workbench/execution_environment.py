@@ -79,6 +79,17 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
             runtime["image"]
         )
         matched = matched and installed.get("runtime", {}).get("code") == runtime["code"]
+    elif software == "p2rank":
+        runtime = {
+            "source": str(settings.p2rank_home or ""),
+            "image": settings.p2rank_image or "",
+            "manifest_sha256": settings.p2rank_manifest_sha256 or "",
+        }
+        matched = (
+            bool(runtime["source"])
+            and installed.get("p2rank", {}).get("source") == runtime["source"]
+        )
+        matched = matched and installed.get("p2rank-compute", {}).get("image") == runtime["image"]
     elif software == "diffsbdd":
         runtime = {
             "python": str(settings.diffsbdd_python or ""),

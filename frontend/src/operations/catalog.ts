@@ -280,5 +280,15 @@ export const tools = [
     ],
     source: "X-DDE",
   },
+  {
+    id: "p2rank.detect",
+    group: "analyze",
+    label: ["发现多个候选口袋", "Discover candidate protein pockets"],
+    note: [
+      "使用 P2Rank 预测蛋白位点，保留多个假设及原生评分。",
+      "Predict protein sites with P2Rank and retain multiple hypotheses and native scores.",
+    ],
+    source: "P2Rank",
+  },
 ] as const;
 export type ToolId = (typeof tools)[number]["id"];

@@ -159,7 +159,23 @@ _PLATFORM = (
         scientific_validation="not_applicable",
     ),
 )
-_ITEMS = _BASE + _DIFF + _PLATFORM
+_POCKETS = (
+    CapabilitySpec(
+        id="p2rank.detect",
+        group="analyze",
+        environment="p2rank",
+        operations=("pocket_search",),
+        label=("发现多个候选口袋", "Discover candidate protein pockets"),
+        note=(
+            "使用 P2Rank 预测蛋白位点，保留多个假设及原生评分。",
+            "Predict protein sites with P2Rank and retain multiple hypotheses and native scores.",
+        ),
+        source="P2Rank",
+        frontend_form="p2rank",
+        contract_source="PocketSearch",
+    ),
+)
+_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

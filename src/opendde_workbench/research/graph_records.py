@@ -107,6 +107,8 @@ def project_record(store, kind, row):
         ("asset:" + value, identifier, "used_as_input") for value in input_identifiers(job.request)
     ]
     refs = list(job.request.scientific_inputs)
+    if job.request.operation == "pocket_search":
+        refs.append(job.request.protein)
     if job.request.operation == "diffsbdd":
         from ..diffsbdd.contract import references
 

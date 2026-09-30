@@ -19,18 +19,20 @@ export function DiffForm({
   onCreated,
   initialProtein = null,
   initialMolecule = null,
+  initialPocket = null,
 }: {
   mode: DiffMode;
   language: Language;
   onCreated(job: Job): void;
   initialProtein?: MoleculeRef | null;
   initialMolecule?: MoleculeRef | null;
+  initialPocket?: Pocket | null;
 }) {
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
   const [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),
     [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule);
-  const [pocket, setPocket] = useState<Pocket | null>(null),
+  const [pocket, setPocket] = useState<Pocket | null>(initialPocket),
     [fixed, setFixed] = useState<number[]>([]);
   const [savedRegions, setSavedRegions] = useState<string | null>(null);
   const [expert, setExpert] = useState(false),

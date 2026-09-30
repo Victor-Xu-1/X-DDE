@@ -19,8 +19,12 @@ export function PocketPicker({
   language: Language;
 }) {
   const zh = language === "zh",
-    [kind, setKind] = useState<Pocket["kind"]>("residues");
-  const [text, setText] = useState(""),
+    [kind, setKind] = useState<Pocket["kind"]>(value?.kind ?? "residues");
+  const [text, setText] = useState(
+      value?.kind === "residues"
+        ? value.residues.map((r) => `${r.chain}:${r.number}`).join(", ")
+        : "",
+    ),
     [error, setError] = useState("");
   function update(raw: string) {
     setText(raw);

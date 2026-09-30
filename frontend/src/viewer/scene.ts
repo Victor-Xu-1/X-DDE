@@ -3,6 +3,7 @@ import {
   residueRef as ref,
   residueSelection as sel,
   atomPosition as position,
+  scientificSelectionIdentity,
 } from "./geometry";
 import * as mol from "3dmol";
 import {
@@ -179,10 +180,7 @@ export class MolecularScene {
       element: atom.elem ?? "",
       count: this.selected.length,
       identity: {
-        chain: atom.chain ?? "",
-        number: atom.resi ?? 0,
-        insertion_code: atom.icode ?? "",
-        alternate_location: atom.altLoc ?? "",
+        ...scientificSelectionIdentity(atom),
         is_ligand: this.info.ligands.some((r) => r.key === ref(atom).key),
       },
       source_atom_index: atom.serial,

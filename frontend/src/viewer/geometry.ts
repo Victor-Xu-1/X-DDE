@@ -19,3 +19,10 @@ export const atomPosition = (atom: AtomSpec) => ({
   y: atom.y ?? 0,
   z: atom.z ?? 0,
 });
+
+export const scientificSelectionIdentity = (atom: AtomSpec) => ({
+  chain: (atom.chain ?? "").trim(),
+  number: atom.resi ?? 0,
+  insertion_code: (atom.icode ?? "").trim(),
+  alternate_location: (atom.altLoc ?? "").trim(),
+});

@@ -125,3 +125,16 @@ jobs:
           path: |
             server_tests/evidence/
             server_tests/evidence-browser.log
+
+  native-pockets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Native offline P2Rank and immutable shared assets (remote CPU only)
+        env:
+          WB_TEST_NATIVE_POCKETS: '1'
+        run: |
+          uv sync --locked --group dev
+          uv run --locked pytest -q server_tests/test_native_pockets.py

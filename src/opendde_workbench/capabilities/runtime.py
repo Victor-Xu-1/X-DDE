@@ -9,6 +9,9 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
     if spec.environment == "platform":
         checks = {"platform_api": True}
         specific = ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
+    elif spec.environment == "p2rank":
+        checks = {"runtime": bool(backends.get("p2rank", {}).get("ready"))}
+        specific.extend(("structural_input", "structure_source_profile", "native_report"))
     elif spec.environment == "opendde":
         checks = {"runtime": bool(backends.get("opendde", {}).get("ready"))}
         if "predict" in spec.operations:

@@ -117,7 +117,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_text("平台服务就绪", exact=True)).to_be_visible()
             health = page.request.get(base_url + "/api/health").json()
             assert health["platform"] == {"name": "X-DDE", "ready": True}
-            assert set(health["engines"]) == {"opendde", "diffsbdd", "harness"}
+            assert set(health["engines"]) == {"opendde", "diffsbdd", "harness", "p2rank"}
             for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
             for width in (390, 768, 1440):

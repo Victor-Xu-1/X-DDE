@@ -16,7 +16,7 @@ class CapabilitySpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     id: str = Field(pattern=r"^[a-z][a-z0-9_.-]{0,63}$")
     group: Literal["design", "structure", "evaluate", "analyze", "search", "prepare", "system"]
-    environment: Literal["opendde", "harness", "diffsbdd", "platform"]
+    environment: Literal["opendde", "harness", "diffsbdd", "platform", "p2rank"]
     operations: tuple[str, ...]
     label: tuple[str, str]
     note: tuple[str, str]

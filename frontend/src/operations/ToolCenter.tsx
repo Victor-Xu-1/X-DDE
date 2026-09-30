@@ -8,6 +8,7 @@ import { ResourceForm } from "./ResourceForm";
 import { HarnessForm } from "./HarnessForm";
 import { CampaignForm } from "./CampaignForm";
 import "./operations.css";
+import { PocketForm } from "../pockets/PocketForm";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import type { DiffMode } from "../diffsbdd/types";
@@ -102,7 +103,13 @@ export function ToolCenter({
       </header>
       {current ? (
         <>
-          {selected === "workflows" ? (
+          {selected === "p2rank.detect" ? (
+            <PocketForm
+              language={language}
+              onCreated={onCreated}
+              onPredict={onPredict}
+            />
+          ) : selected === "workflows" ? (
             <WorkflowCenter language={language} jobs={jobs} />
           ) : selected?.startsWith("diffsbdd.") ? (
             <DiffForm

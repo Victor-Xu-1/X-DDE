@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
+import { PocketResults } from "../pockets/PocketResults";
+import type { PocketResult } from "../pockets/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -55,6 +57,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "pocket_search",
     "diffsbdd",
     "properties",
     "inspect",
@@ -209,6 +212,13 @@ export function OperationResults({
               />
             </details>
           ))}
+      {job.request.operation === "pocket_search" && (
+        <PocketResults
+          job={job}
+          result={data as unknown as PocketResult}
+          language={language}
+        />
+      )}
       {job.request.operation === "diffsbdd" && (
         <DiffResults job={job} data={data} language={language} />
       )}

@@ -33,6 +33,7 @@ from .execution_environment import EnvironmentRecord
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
 from .operation_routes import register_operations
+from .pockets.runtime import validate as validate_pockets
 from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
@@ -197,6 +198,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await harness_service.invoke(
                     {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
                 )
+            elif value.operation == "pocket_search":
+                assets.validate_bindings(value)
+                validate_pockets(value, readiness["engine"].get("backends", {}).get("p2rank", {}))
             elif value.operation == "diffsbdd":
                 assets.validate_bindings(value)
                 regions.check_task(value)

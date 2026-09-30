@@ -73,7 +73,11 @@ class PlanInput(BaseModel):
                     )
                 if binding.target == "property_input" and step.request.operation != "properties":
                     raise ValueError("Property bindings require a properties task.")
-                if binding.target != "property_input" and step.request.operation != "diffsbdd":
+                if binding.target != "property_input" and not (
+                    step.request.operation == "diffsbdd"
+                    or step.request.operation == "pocket_search"
+                    and binding.target == "protein"
+                ):
                     raise ValueError("Scientific reference slots require a typed DiffSBDD task.")
             resolved.add(step.id)
         return self

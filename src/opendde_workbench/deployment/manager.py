@@ -163,7 +163,7 @@ class DeploymentManager:
                     directory = Path(entry["directory"])
                     parent = (
                         environment_root(root, key)
-                        if key in {"harness", "diffsbdd"}
+                        if key in {"harness", "diffsbdd", "p2rank"}
                         else root / "packages" / key
                     )
                     if directory.is_symlink() or directory.resolve().parent != parent.resolve():

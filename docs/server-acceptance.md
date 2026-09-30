@@ -105,3 +105,5 @@ The canonical scope, implementation status and dependencies are the [76-task roa
 Evidence records identify task IDs, exact candidate/native/model versions, inputs, conditions, seeds/budgets, CPU/GPU and service resources, actual commands, outputs, failure/limitations and screenshots where relevant. Keep evidence outside the repository; do not include provider secrets or unnecessary private inputs. New task implementation can progress without local inference; model/GPU/LLM and scientific claims remain unverified until their actual target-server runs complete.
 
 研究计划的软件回归使用真实 SQLite、API 和受控本地进程协议在远程 CI 执行。其科学验收仍需在目标服务器完成：DiffSBDD 输出角色 → 指定候选版本 → 真实 RDKit 性质、跨步骤坐标/固定原子失效拒绝、真实 GPU 取消/恢复及条件性外部工具取消。计划暂停只阻止新步骤派发，已派发任务继续；无法确认同步外部调用终止时明确阻塞。
+
+P2Rank 原生验收使用固定发布包、固定 Java 镜像摘要和官方 1fbl 示例，经过实际 Docker 推理、原生 CSV 解析、共享任务/资产入库。版本、报告及软件意义参考 [P2Rank 官方说明](https://github.com/rdk/p2rank/tree/2.5.1) 和 [稳定发布](https://github.com/rdk/p2rank/releases/tag/2.5.1)。该软件验收不构成未知靶点口袋的实验证实，也不代替 R33–R40 的体系/姿势基准。

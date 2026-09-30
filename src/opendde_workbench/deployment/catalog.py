@@ -6,6 +6,9 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from ..diffsbdd.manifest import MODEL_URL, MODELS, SOURCE_COMMIT, SOURCE_SHA256, SOURCE_URL
+from ..pockets.manifest import SHA256 as P2_SHA
+from ..pockets.manifest import URL as P2_URL
+from ..pockets.manifest import VERSION as P2_VERSION
 
 
 @dataclass(frozen=True)
@@ -142,6 +145,29 @@ for identifier, model in MODELS.items():
         engine="diffsbdd",
         kind="model",
     )
+
+
+PACKAGES["p2rank-compute"] = Package(
+    "p2rank-compute",
+    "temurin-21-amd64",
+    "P2Rank CPU Java",
+    "受限、离线 Java 容器 / Bounded offline Java container",
+    "约 200 MB",
+    license="GPL-2.0 with Classpath Exception / image licenses",
+    engine="p2rank",
+)
+PACKAGES["p2rank"] = Package(
+    "p2rank",
+    P2_VERSION,
+    "P2Rank",
+    "蛋白结合位点候选 / Protein-site hypotheses",
+    "263 MiB",
+    ("p2rank-compute",),
+    url=P2_URL,
+    checksum=P2_SHA,
+    license="MIT / bundled library terms",
+    engine="p2rank",
+)
 
 
 def prerequisites() -> dict:

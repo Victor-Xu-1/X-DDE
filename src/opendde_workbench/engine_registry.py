@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "p2rank",
+        "P2Rank",
+        "蛋白位点候选与残基评分 / Protein-site hypotheses and residue scores",
+        "docker",
+        ("pocket_search",),
+    ),
+    ScientificEngine(
         "opendde",
         "OpenDDE",
         "结构与复合物预测、特征准备和原生化学工具 / Structures, features and native chemical tools",

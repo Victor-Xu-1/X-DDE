@@ -32,6 +32,9 @@ class Settings:
     diffsbdd_source: Path | None = None
     diffsbdd_home: Path | None = None
     diffsbdd_manifest_sha256: str | None = None
+    p2rank_home: Path | None = None
+    p2rank_image: str | None = None
+    p2rank_manifest_sha256: str | None = None
 
     @classmethod
     def from_env(cls):
@@ -51,7 +54,15 @@ class Settings:
                 (references / attribute).unlink(missing_ok=True)
         harness = installed.get("harness", {}).get("python")
         diff = installed.get("diffsbdd", {})
+        pockets = installed.get("p2rank", {})
         return cls(
+            p2rank_home=path("WB_P2RANK_HOME", pockets.get("source", ""))
+            if os.environ.get("WB_P2RANK_HOME") or pockets.get("source")
+            else None,
+            p2rank_image=os.environ.get("WB_P2RANK_IMAGE")
+            or installed.get("p2rank-compute", {}).get("image"),
+            p2rank_manifest_sha256=os.environ.get("WB_P2RANK_MANIFEST_SHA256")
+            or pockets.get("manifest_sha256"),
             diffsbdd_python=path("WB_DIFFSBDD_PYTHON", diff.get("python", ""))
             if os.environ.get("WB_DIFFSBDD_PYTHON") or diff.get("python")
             else None,

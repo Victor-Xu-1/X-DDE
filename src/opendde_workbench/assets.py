@@ -167,6 +167,21 @@ class AssetStore:
 
     def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        if getattr(request, "operation", None) == "pocket_search":
+            ref = request.protein
+            asset = self.get(ref.asset_id)
+            if (
+                asset.kind != "structure"
+                or asset.suffix not in {".pdb", ".cif"}
+                or asset.sha256 != ref.sha256
+            ):
+                raise ValueError("Pocket search requires an exact PDB/mmCIF structural asset.")
+            if ref.version_id:
+                from .research.storage import ScientificStore
+
+                ScientificStore(self.store, self).validate_reference(ref)
+            self.path(asset)
+            return {asset.id: asset}
         if getattr(request, "operation", None) == "diffsbdd":
             from .diffsbdd.contract import references
 

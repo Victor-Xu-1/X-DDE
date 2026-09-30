@@ -11,17 +11,21 @@ export function ReferencePicker({
   onChange,
   language,
   label,
+  allowedSuffixes,
 }: {
   kind: "structure" | "ligand";
   value: MoleculeRef | null;
   onChange(ref: MoleculeRef | null): void;
   language: Language;
   label: string;
+  allowedSuffixes?: readonly string[];
 }) {
   const zh = language === "zh",
     selectionIntent = useRef(0);
   const [versions, setVersions] = useState<ScientificObject[]>([]),
     [error, setError] = useState("");
+  const formats =
+    allowedSuffixes ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     const c = new AbortController();
@@ -66,7 +70,7 @@ export function ReferencePicker({
     setLoading(true);
     try {
       const asset = await request<Asset>(`/assets/${id}/metadata`);
-      if (asset.suffix !== (kind === "structure" ? ".pdb" : ".sdf"))
+      if (!formats.includes(asset.suffix))
         throw new Error(
           zh
             ? "此适配器需要 PDB 受体或 SDF 分子，请先明确转换格式。"
@@ -121,7 +125,7 @@ export function ReferencePicker({
       </label>
       <AssetPicker
         kind={kind}
-        allowedSuffixes={kind === "structure" ? [".pdb"] : [".sdf"]}
+        allowedSuffixes={formats}
         value={value?.asset_id ?? ""}
         onChange={(id) => void choose(id)}
         language={language}

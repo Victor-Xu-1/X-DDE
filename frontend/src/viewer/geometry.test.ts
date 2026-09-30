@@ -21,3 +21,33 @@ it("selects actual parsed atoms when the structure omits insertion codes", () =>
     model.selectedAtoms({ ...residueSelection(residueRef(atoms[0])), resi: 9 }),
   ).toHaveLength(0);
 });
+
+it("normalizes blank PDB identity columns while retaining real insertion and alternate codes", async () => {
+  const { scientificSelectionIdentity } = await import("./geometry");
+  expect(
+    scientificSelectionIdentity({
+      chain: "A",
+      resi: 10,
+      icode: " ",
+      altLoc: " ",
+    }),
+  ).toEqual({
+    chain: "A",
+    number: 10,
+    insertion_code: "",
+    alternate_location: "",
+  });
+  expect(
+    scientificSelectionIdentity({
+      chain: "AB",
+      resi: 10,
+      icode: " B",
+      altLoc: " A",
+    }),
+  ).toEqual({
+    chain: "AB",
+    number: 10,
+    insertion_code: "B",
+    alternate_location: "A",
+  });
+});

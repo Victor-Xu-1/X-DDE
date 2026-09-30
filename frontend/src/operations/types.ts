@@ -63,6 +63,7 @@ export type TaskRequest =
   | ResourceTask
   | HarnessTask
   | import("../diffsbdd/types").DiffTask
+  | import("../pockets/types").PocketSearch
   | (BaseTask & { operation: "doctor" });
 export const isPrediction = (value: TaskRequest): value is Prediction =>
   !value.operation || value.operation === "predict";

@@ -34,6 +34,8 @@ def resolve(step, latest, store, outputs, settings):
             body["smiles"] = []
         elif binding.target == "reference_ligand":
             body["payload"]["pocket"] = {"kind": "ligand", "ligand": ref}
+        elif body["operation"] == "pocket_search" and binding.target == "protein":
+            body["protein"] = ref
         else:
             body["payload"][binding.target] = ref
     # Contract validation rejects stale pocket/fixed-atom references and incompatible formats.

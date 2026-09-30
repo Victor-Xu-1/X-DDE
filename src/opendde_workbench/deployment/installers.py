@@ -7,6 +7,7 @@ from uuid import uuid4
 from .catalog import PACKAGES
 from .diffsbdd_install import install_model, install_runtime
 from .paths import environment_root
+from .pocket_install import install_pockets
 from .process import run
 from .provisioners import OPEN_PACKAGES, OPENDDE, provisioning_origin
 from .transfers import download, extract
@@ -26,7 +27,9 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "diffsbdd":
+    if key in {"p2rank", "p2rank-compute"}:
+        metadata.update(install_pockets(key, root, work, execute, report, checkpoint))
+    elif key == "diffsbdd":
         metadata.update(install_runtime(root, work, report, checkpoint))
     elif key.startswith("diffsbdd-model-"):
         metadata.update(install_model(key, root, installed, report, checkpoint))
