@@ -4,6 +4,7 @@ import type { ScientificObject } from "../research/types";
 import type { Deployment } from "../deployment/client";
 import { PropertyForm } from "../operations/PropertyForm";
 import "./editors.css";
+import { AlignedEditAction } from "./AlignedEditAction";
 import {
   editorReady,
   molecularRecord,
@@ -229,6 +230,13 @@ export function Editors({
               >
                 {zh ? "保存到工作台" : "Save to Workbench"}
               </button>
+              <AlignedEditAction
+                origin={origin}
+                language={language}
+                busy={busy}
+                execute={action}
+                onCreated={onCreated}
+              />
               <button
                 disabled={busy}
                 onClick={() =>

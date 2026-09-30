@@ -21,6 +21,9 @@ export function DiffResults({
     [error, setError] = useState("");
   const [selected, setSelected] = useState<ScientificObject | null>(null),
     [action, setAction] = useState<"properties" | "export" | null>(null);
+  const [designMode, setDesignMode] = useState<
+    "inpaint" | "diversify" | "optimize" | null
+  >(null);
   const [query, setQuery] = useState(""),
     [message, setMessage] = useState("");
   useEffect(() => {
@@ -130,6 +133,34 @@ export function DiffResults({
                 </li>
               ))}
           </ul>
+          {selected &&
+            job.request.operation === "diffsbdd" &&
+            "protein" in job.request.payload && (
+              <label className="field">
+                {zh
+                  ? "下一轮想怎样设计？"
+                  : "What should the next design round do?"}
+                <select
+                  value={designMode ?? ""}
+                  onChange={(e) =>
+                    setDesignMode((e.target.value || null) as typeof designMode)
+                  }
+                >
+                  <option value="">—</option>
+                  <option value="inpaint">
+                    {zh
+                      ? "保留核心，局部重设计"
+                      : "Keep a core and redesign locally"}
+                  </option>
+                  <option value="diversify">
+                    {zh ? "围绕当前分子多样化" : "Diversify this molecule"}
+                  </option>
+                  <option value="optimize">
+                    {zh ? "按 QED/SA 优化" : "Optimize QED/SA"}
+                  </option>
+                </select>
+              </label>
+            )}
           {selected && (
             <div className="editor-toolbar">
               <button type="button" onClick={() => setAction("properties")}>
@@ -170,6 +201,27 @@ export function DiffResults({
           }
         />
       )}
+      {selected &&
+        designMode &&
+        job.request.operation === "diffsbdd" &&
+        "protein" in job.request.payload && (
+          <DiffForm
+            key={selected.id + designMode}
+            mode={designMode}
+            language={language}
+            initialProtein={
+              job.request.payload
+                .protein as import("../research/types").MoleculeRef
+            }
+            initialMolecule={selected.reference}
+            onCreated={(j) =>
+              setMessage(
+                (zh ? "已创建下一轮任务：" : "Created next-round task: ") +
+                  j.id,
+              )
+            }
+          />
+        )}
       {message && <p role="status">{message}</p>}
       {error && (
         <p role="alert" className="error-box">

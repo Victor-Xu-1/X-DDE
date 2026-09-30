@@ -5,17 +5,20 @@ import type { MoleculeRef } from "../research/types";
 import type { IdentityResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { referenceKey } from "./model";
+import { SavedRegions } from "./SavedRegions";
 
 export function FixedAtomPicker({
   initial,
   fixed,
   onChange,
   language,
+  onSaved,
 }: {
   initial: MoleculeRef;
   fixed: number[];
   onChange(v: number[]): void;
   language: Language;
+  onSaved(id: string | null): void;
 }) {
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
@@ -159,6 +162,14 @@ export function FixedAtomPicker({
             {zh ? "已固定" : "Fixed"}:{" "}
             {fixed.map((n) => n + 1).join(", ") || "—"}
           </p>
+          <SavedRegions
+            subject={initial}
+            identityJob={job.id}
+            fixed={fixed}
+            onFixed={onChange}
+            onSaved={onSaved}
+            language={language}
+          />
           <button type="button" onClick={() => onChange([])}>
             {zh ? "清空选择" : "Clear selection"}
           </button>

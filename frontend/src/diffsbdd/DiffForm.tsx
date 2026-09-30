@@ -32,6 +32,7 @@ export function DiffForm({
     [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule);
   const [pocket, setPocket] = useState<Pocket | null>(null),
     [fixed, setFixed] = useState<number[]>([]);
+  const [savedRegions, setSavedRegions] = useState<string | null>(null);
   const [expert, setExpert] = useState(false),
     [options, setOptions] = useState<Record<string, unknown>>(() =>
       isDesign(mode) ? optionsFor(mode) : structuredClone(defaults),
@@ -75,6 +76,7 @@ export function DiffForm({
   function selectMolecule(ref: MoleculeRef | null) {
     setMolecule(ref);
     setFixed([]);
+    setSavedRegions(null);
   }
   async function submit() {
     setError("");
@@ -92,6 +94,7 @@ export function DiffForm({
           molecule,
           options,
           fixed,
+          savedRegions,
         );
       } else if (mode === "pocket") {
         if (!protein || !pocket)
@@ -212,7 +215,11 @@ export function DiffForm({
             key={referenceKey(molecule)}
             initial={molecule}
             fixed={fixed}
-            onChange={setFixed}
+            onChange={(values) => {
+              setFixed(values);
+              setSavedRegions(null);
+            }}
+            onSaved={setSavedRegions}
             language={language}
           />
         )}

@@ -17,7 +17,7 @@ export type Pocket =
   | { kind: "ligand"; ligand: MoleculeRef };
 export interface DiffTask extends BaseTask {
   operation: "diffsbdd";
-  payload: Record<string, unknown> & { mode: DiffMode | "identity" };
+  payload: Record<string, unknown> & { mode: DiffMode | "identity" | "edit" };
 }
 export interface IdentityResult {
   mode: "identity";

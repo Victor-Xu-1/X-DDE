@@ -23,7 +23,7 @@ export interface ScientificObject {
 }
 export interface GraphNode {
   id: string;
-  kind: ObjectKind | "file" | "task" | "plan" | "run";
+  kind: ObjectKind | "file" | "task" | "plan" | "run" | "region";
   label: string;
   asset_id?: string;
   asset_kind?: string;
@@ -55,9 +55,12 @@ export const objectLabels: Record<string, [string, string]> = {
   task: ["任务", "Task"],
   plan: ["研究计划", "Research plan"],
   run: ["计划运行", "Research run"],
+  region: ["分子区域", "Molecular regions"],
 };
 export const edgeLabels: Record<string, [string, string]> = {
   represented_by: ["登记为", "Registered as"],
+  selected_region: ["选定区域", "Selected region"],
+  identity_evidence: ["原子身份依据", "Atom identity evidence"],
   planned_input: ["计划输入", "Planned input"],
   executed_as: ["运行", "Executed as"],
   executed_step: ["执行步骤", "Executed step"],

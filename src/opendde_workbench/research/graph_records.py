@@ -9,6 +9,7 @@ TABLES = {
     "task": "jobs",
     "plan": "workflow_plans",
     "run": "workflow_runs",
+    "region": "research_regions",
 }
 
 
@@ -43,6 +44,23 @@ def project_record(store, kind, row):
                 "object": obj.model_dump(mode="json"),
             },
             edges,
+        )
+    if kind == "region":
+        from .regions import RegionInput
+
+        value = RegionInput.model_validate_json(row["body"])
+        source = (
+            "object:" + str(value.subject.version_id)
+            if value.subject.version_id
+            else "asset:" + str(value.subject.asset_id)
+        )
+        return (
+            identifier,
+            {"id": identifier, "kind": "region", "label": value.name},
+            [
+                (source, identifier, "selected_region"),
+                ("task:" + str(value.identity_job), identifier, "identity_evidence"),
+            ],
         )
     if kind == "plan":
         from ..workflows.contracts import PlanInput

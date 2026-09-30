@@ -13,7 +13,18 @@ export const optionsFor = (
 });
 export const compatibleModels = (mode: DesignMode) =>
   models.filter((m) => mode === "generate" || m.strategy === "cond");
-export const referenceKey = (ref: MoleculeRef | null) => JSON.stringify(ref);
+export const referenceKey = (ref: MoleculeRef | null) =>
+  JSON.stringify(
+    ref
+      ? [
+          ref.asset_id,
+          ref.sha256,
+          ref.record,
+          ref.conformer,
+          ref.version_id ?? null,
+        ]
+      : null,
+  );
 export function residueFromSelection(
   protein: MoleculeRef,
   chain: string,
@@ -56,6 +67,7 @@ export function designPayload(
   initial: MoleculeRef | null,
   options: Record<string, unknown>,
   fixed: number[],
+  savedRegions: string | null = null,
 ) {
   if (options.task !== mode)
     throw new Error("Design mode and task parameter must agree.");
@@ -70,6 +82,7 @@ export function designPayload(
     throw new Error("Select fixed atoms on the validated molecular preview.");
   return {
     mode,
+    saved_regions: mode === "inpaint" ? savedRegions : null,
     protein,
     pocket,
     initial: mode === "generate" ? null : initial,

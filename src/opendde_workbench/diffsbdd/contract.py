@@ -38,10 +38,13 @@ class DesignInput(InputModel):
     pocket: Pocket
     initial: MoleculeRef | None = None
     options: DiffOptions = Field(default_factory=DiffOptions)
+    saved_regions: UUID | None = None
     fixed_atoms: list[AtomRef] = Field(default_factory=list, max_length=80)
 
     @model_validator(mode="after")
     def identities(self) -> Self:
+        if self.saved_regions and self.mode != "inpaint":
+            raise ValueError("Saved fixed regions are only supported by inpainting.")
         if self.options.task != self.mode:
             raise ValueError("Design mode and native options.task must agree.")
         if self.mode != "generate" and not self.initial:

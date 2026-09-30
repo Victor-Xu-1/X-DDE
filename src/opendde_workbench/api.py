@@ -37,6 +37,7 @@ from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
 from .requests import BatchRequest, TaskRequest
+from .research.region_routes import register_regions
 from .research.routes import register_research
 from .science_routes import register_science
 from .settings import Settings
@@ -198,6 +199,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 )
             elif value.operation == "diffsbdd":
                 assets.validate_bindings(value)
+                regions.check_task(value)
                 validate_diffsbdd(
                     value, readiness["engine"].get("backends", {}).get("diffsbdd", {})
                 )
@@ -443,6 +445,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     worker.gate = harness_service.queue_gate
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
+    regions = register_regions(app, store, assets, settings, mutation)
     workflows_service = register_workflows(
         app, store, assets, worker, preflight, settings, mutation
     )
