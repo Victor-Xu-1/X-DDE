@@ -77,3 +77,26 @@ export async function paintBase(
       { hetflag: false, not: { index: hidden } },
     );
 }
+
+export function paintOverlayModel(model: mol.GLModel, index: number) {
+  model.setStyle(
+    {},
+    {
+      stick: {
+        radius: 0.1,
+        colorscheme: ["blueCarbon", "orangeCarbon", "purpleCarbon"][index],
+      },
+    },
+  );
+  // Small-molecule parsers have no polymer residue names. Cartoon rendering must
+  // never fabricate those identities or apply a polymer renderer to their atoms.
+  const polymers = model
+    .selectedAtoms({ hetflag: false })
+    .filter((atom) => typeof atom.resn === "string")
+    .map((atom) => atom.index!);
+  if (polymers.length)
+    model.setStyle(
+      { index: polymers },
+      { cartoon: { color: ["#478dff", "#ffb266", "#aa84ef"][index] } },
+    );
+}

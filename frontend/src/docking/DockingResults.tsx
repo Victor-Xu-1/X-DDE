@@ -55,6 +55,7 @@ export function DockingResults({
               <tr key={p.record}>
                 <th>
                   <button
+                    className="secondary-button"
                     type="button"
                     disabled={!p.valid || !p.artifact}
                     aria-pressed={record === p.record}
@@ -76,7 +77,23 @@ export function DockingResults({
                           : "Native method and units; no direct conversion to KD or IC50"
                       }
                     >
-                      {v.name}: {v.value.toFixed(3)} {v.unit}{" "}
+                      {v.name === "minimizedAffinity"
+                        ? zh
+                          ? "经验对接分数"
+                          : "Empirical docking score"
+                        : v.name === "CNNscore"
+                          ? zh
+                            ? "模型姿势分数"
+                            : "CNN pose score"
+                          : zh
+                            ? "模型结合分数"
+                            : "CNN binding score"}
+                      : {v.value.toFixed(3)}{" "}
+                      {v.unit === "model_output"
+                        ? zh
+                          ? "模型输出"
+                          : "model output"
+                        : v.unit}{" "}
                     </span>
                   ))}
                 </td>
@@ -137,6 +154,7 @@ export function DockingResults({
             </div>
           ) : (
             <button
+              className="secondary-button"
               type="button"
               disabled={assets.busy}
               onClick={() => void assets.refresh()}

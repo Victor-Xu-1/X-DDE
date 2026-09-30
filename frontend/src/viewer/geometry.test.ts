@@ -65,3 +65,25 @@ it("uses finite original PDB coordinates and never fabricates zero coordinates",
   expect(finiteCoordinates({ x: 1, y: NaN, z: 3 })).toBeUndefined();
   expect(() => atomPosition({ x: 1, y: 2 })).toThrow(/finite coordinates/);
 });
+
+it("styles real SDF ligands and PDB polymers without inventing residue identities", async () => {
+  const { paintOverlayModel } = await import("./style");
+  const polymer = new GLModel(0),
+    ligand = new GLModel(1);
+  polymer.addMolData(
+    "ATOM      1  CA  LYS B   8       1.000   2.000   3.000  1.00 50.00           C  \nEND\n",
+    "pdb",
+  );
+  ligand.addMolData(
+    "ligand\n  RDKit          3D\n\n  1  0  0  0  0  0  0  0  0  0999 V2000\n    1.0000    2.0000    3.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\nM  END\n$$$$\n",
+    "sdf",
+  );
+  paintOverlayModel(polymer, 0);
+  paintOverlayModel(ligand, 1);
+  const first = polymer.selectedAtoms({})[0],
+    second = ligand.selectedAtoms({})[0];
+  expect(first.style?.cartoon).toBeDefined();
+  expect(second.style?.stick).toBeDefined();
+  expect(second.style?.cartoon).toBeUndefined();
+  expect(second.resn).toBeUndefined();
+});

@@ -96,7 +96,11 @@ export function TaskDetail({
       </div>
       <details className="input-summary">
         <summary>
-          {t("parameters")} · {job.request.operation ?? "predict"}
+          {!job.request.operation || job.request.operation === "predict"
+            ? t("parameters")
+            : language === "zh"
+              ? "任务参数"
+              : "Task parameters"}
           {"parameters" in job.request &&
             ` · ${job.request.parameters.dtype.toUpperCase()} · ${job.request.parameters.samples} ${t("samples")}`}
         </summary>

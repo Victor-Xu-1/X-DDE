@@ -1,4 +1,5 @@
 import * as mol from "3dmol";
+import { paintOverlayModel } from "./style";
 import { MolecularScene } from "./scene";
 import { validSource } from "./protocol";
 import { initializeTheme } from "../theme";
@@ -70,19 +71,7 @@ async function load(urls: string[]) {
       const model = viewer.addModel(text, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
-      if (urls.length > 1)
-        model.setStyle(
-          {},
-          {
-            cartoon: { color: ["#478dff", "#ffb266", "#aa84ef"][index] },
-            stick: {
-              radius: 0.1,
-              colorscheme: ["blueCarbon", "orangeCarbon", "purpleCarbon"][
-                index
-              ],
-            },
-          },
-        );
+      if (urls.length > 1) paintOverlayModel(model, index);
     }
     scene.inspect(urls.length > 1);
     await scene.paint();
