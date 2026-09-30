@@ -4,10 +4,12 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
+from ..research.constraint_contract import ConstraintReference
 from ..scientific_objects import MoleculeRef, ScientificModel
 from .contract import Search
 from .manifest import BINARY_SHA256, VERSION
 from .options import DockingOptions
+from .quality import BoundsCheck
 
 
 class Score(ScientificModel):
@@ -37,9 +39,26 @@ class Pose(ScientificModel):
     smiles: str | None = Field(default=None, max_length=20000)
     reason: str | None = Field(default=None, max_length=1000)
     artifact: str | None = None
+    diagnostic_artifact: str | None = None
+    qualified_record: int | None = Field(default=None, strict=True, ge=0, lt=100)
+    constraint_checks: tuple[BoundsCheck, ...] = Field(default=(), max_length=32)
 
     @model_validator(mode="after")
     def candidate(self) -> Self:
+        if self.diagnostic_artifact is not None and (
+            self.diagnostic_artifact != f"diagnostic-pose-{self.record + 1:03d}.sdf"
+            or self.valid
+            or not any(c.strength == "hard" and not c.passed for c in self.constraint_checks)
+        ):
+            raise ValueError("Diagnostic normalized poses require an actual failed hard check.")
+        if len({c.condition_id for c in self.constraint_checks}) != len(self.constraint_checks):
+            raise ValueError("Output condition checks must be unique per pose.")
+        if self.valid and any(
+            c.strength == "hard" and not c.passed for c in self.constraint_checks
+        ):
+            raise ValueError("A failed hard output condition cannot be a reusable candidate.")
+        if not self.valid and self.qualified_record is not None:
+            raise ValueError("Rejected poses cannot have a qualified bundle record.")
         if len({v.name for v in self.scores}) != len(self.scores):
             raise ValueError("Duplicate native scores are not a complete pose result.")
         if self.valid:
@@ -81,7 +100,9 @@ class DockingResult(ScientificModel):
     search: Search | None
     initial_conformer_generated: bool
     poses: tuple[Pose, ...] = Field(max_length=100)
-    pose_artifact: Literal["poses.sdf"]
+    pose_artifact: Literal["poses.sdf", "qualified-poses.sdf"]
+    raw_pose_artifact: Literal["poses.sdf"] | None = None
+    constraint_reference: ConstraintReference | None = None
     receptor_artifact: Literal["receptor.pdb"]
     scientific_outcome: Literal["candidates", "no_valid_pose"]
     scientific_acceptance: Literal["pending_server_validation"]
@@ -104,6 +125,15 @@ class DockingResult(ScientificModel):
             raise ValueError("Pose count exceeds the declared execution budget.")
         if (self.scientific_outcome == "candidates") != any(p.valid for p in self.poses):
             raise ValueError("Scientific outcome differs from actual pose validation.")
+        if self.raw_pose_artifact is not None:
+            if self.pose_artifact != "qualified-poses.sdf":
+                raise ValueError("New results must separate raw native and qualified bundles.")
+            if [p.qualified_record for p in self.poses if p.valid] != list(
+                range(sum(p.valid for p in self.poses))
+            ):
+                raise ValueError("Qualified bundle records must retain eligible pose order.")
+        if any(p.constraint_checks for p in self.poses) and self.constraint_reference is None:
+            raise ValueError("Output checks require the immutable condition reference.")
         if self.options.cnn_scoring == "none" and any(
             s.name.startswith("CNN") for p in self.poses for s in p.scores
         ):

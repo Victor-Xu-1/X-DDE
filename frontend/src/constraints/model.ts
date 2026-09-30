@@ -8,6 +8,7 @@ import type {
   ConstraintSet,
   SavedConstraints,
   Support,
+  OutputSettings,
 } from "./types";
 
 export async function listConstraints(
@@ -118,6 +119,10 @@ export async function currentConditions(
   );
 }
 export const reasons: Record<string, [string, string]> = {
+  output_bounds: [
+    "计算结束后独立检查空间条件；不参与搜索引导",
+    "Independent output bounds check; no search guidance",
+  ],
   native_fixed: [
     "原生局部重设计保留所选原子",
     "Native inpainting retains the selected atoms",
@@ -159,8 +164,18 @@ export async function withConstraints(
   value: TaskRequest,
   reference: ConstraintReference | null,
   language: Language,
+  outputChoice?: "none" | "heavy_atom_centroid" | "all_heavy_atoms",
+  outputSettings?: OutputSettings,
 ): Promise<TaskRequest> {
-  if (!reference) return value;
+  if (!reference) {
+    if (outputChoice && outputChoice !== "none")
+      throw new Error(
+        language === "zh"
+          ? "请先保存所选结果检查的条件版本。"
+          : "Save the selected output check as a condition revision first.",
+      );
+    return value;
+  }
   const body = { ...value, constraints: reference };
   const support = await api.post<Support>("/research/constraint-support", {
     reference,
@@ -175,6 +190,44 @@ export async function withConstraints(
             reasons[c.reason_code]?.[language === "zh" ? 0 : 1] ?? c.reason,
         )
         .join("; "),
+    );
+  if (outputChoice !== undefined) {
+    const checks = support.document.conditions.filter(
+      (c) => c.kind === "spatial_bounds",
+    );
+    if (
+      (outputChoice === "none" && checks.length > 0) ||
+      (outputChoice !== "none" &&
+        (!checks.length ||
+          checks.some(
+            (c) => c.kind !== "spatial_bounds" || c.selection !== outputChoice,
+          )))
+    )
+      throw new Error(
+        language === "zh"
+          ? "结果检查选择与保存的条件不同；请应用条件或保存新版本。"
+          : "Output choices differ from the saved conditions; apply them or save a new revision.",
+      );
+  }
+  if (
+    outputChoice &&
+    outputChoice !== "none" &&
+    outputSettings &&
+    support.document.conditions.some(
+      (c) =>
+        c.kind === "spatial_bounds" &&
+        (c.strength !== outputSettings.strength ||
+          c.tolerance_angstrom !== outputSettings.tolerance_angstrom ||
+          c.weight !==
+            (outputSettings.strength === "soft"
+              ? outputSettings.weight
+              : null)),
+    )
+  )
+    throw new Error(
+      language === "zh"
+        ? "结果检查参数与保存版本不同，请应用条件或保存新版本。"
+        : "Output check settings differ from the saved revision; apply it or save a new revision.",
     );
   return body;
 }

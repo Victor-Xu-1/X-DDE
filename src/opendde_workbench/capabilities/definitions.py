@@ -211,9 +211,14 @@ _DOCKING = tuple(
         native_mode=mode,
         frontend_form="docking",
         contract_source="DockingTask",
-        constraint_support=(ConstraintSupport(kind="search_box", support="native", phase="input"),)
-        if mode == "dock"
-        else (),
+        constraint_support=(
+            (
+                (ConstraintSupport(kind="search_box", support="native", phase="input"),)
+                if mode == "dock"
+                else ()
+            )
+            + (ConstraintSupport(kind="spatial_bounds", support="result_check", phase="result"),)
+        ),
     )
     for mode, label, note in (
         (

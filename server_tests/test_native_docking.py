@@ -188,7 +188,16 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
                                 "label": "Search bounds",
                                 "kind": "search_box",
                                 "box": explicit_box,
-                            }
+                            },
+                            {
+                                "id": str(uuid4()),
+                                "label": "Output centroid",
+                                "kind": "spatial_bounds",
+                                "phase": "result",
+                                "selection": "heavy_atom_centroid",
+                                "validator": "rdkit_receptor_bounds_v1",
+                                "box": explicit_box,
+                            },
                         ],
                     },
                     headers={"Idempotency-Key": str(uuid4())},
@@ -236,6 +245,10 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             assert result["scientific_acceptance"] == "pending_server_validation"
             valid = [p for p in result["poses"] if p["valid"]]
             assert valid, result
+            if mode == "dock":
+                assert all(p["constraint_checks"][0]["passed"] for p in valid)
+                assert result["pose_artifact"] == "qualified-poses.sdf"
+                assert result["raw_pose_artifact"] == "poses.sdf"
             assert all(s["name"] == "minimizedAffinity" for p in valid for s in p["scores"])
             selected = valid[0]
             assert selected["artifact"] == f"pose-{selected['record'] + 1:03d}.sdf"
@@ -256,6 +269,79 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             (evidence / (mode + "-acceptance.json")).write_text(
                 json.dumps({"job": job, "result": result, "environment": environment}, indent=2)
             )
+        # Real native scoring completes, but a distant hard output condition rejects its pose.
+        negative_condition = client.post(
+            "/api/research/constraints",
+            json={
+                "name": "Reject far output bounds",
+                "subject": pose,
+                "frame": {"reference": refs["receptor"], "basis": "reference_coordinates"},
+                "conditions": [
+                    {
+                        "id": str(uuid4()),
+                        "label": "All heavy atoms",
+                        "kind": "spatial_bounds",
+                        "phase": "result",
+                        "selection": "all_heavy_atoms",
+                        "box": {"center": [10000, 10000, 10000], "size": [4, 4, 4]},
+                    }
+                ],
+            },
+            headers={"Idempotency-Key": str(uuid4())},
+        )
+        assert negative_condition.status_code == 201, negative_condition.text
+        negative_request = {
+            "operation": "docking",
+            "name": "Native output rejection",
+            "mode": "score",
+            "receptor": refs["receptor"],
+            "ligand": pose,
+            "pose_frame": refs["receptor"],
+            "pose_coordinate_basis": "user_confirmed",
+            "constraints": {k: negative_condition.json()[k] for k in ("id", "sha256")},
+            "options": {"cpu": 2, "cnn_scoring": "none", "time_limit_seconds": 180},
+        }
+        rejected = client.post(
+            "/api/jobs", json=negative_request, headers={"Idempotency-Key": str(uuid4())}
+        )
+        assert rejected.status_code == 201, rejected.text
+        rejected_id = rejected.json()["id"]
+        deadline = time.monotonic() + 240
+        while time.monotonic() < deadline:
+            rejected_job = client.get("/api/jobs/" + rejected_id).json()
+            if rejected_job["status"] not in {"queued", "running", "cancelling"}:
+                break
+            time.sleep(0.1)
+        assert rejected_job["status"] == "succeeded", client.get(
+            "/api/jobs/" + rejected_id + "/logs"
+        ).json()
+        rejected_result = client.get("/api/jobs/" + rejected_id + "/result").json()
+        assert rejected_result["scientific_outcome"] == "no_valid_pose"
+        rejected_pose = rejected_result["poses"][0]
+        assert not rejected_pose["valid"] and rejected_pose["constraint_checks"][0]["violations"]
+        assert rejected_pose["diagnostic_artifact"] == "diagnostic-pose-001.sdf"
+        assert (
+            client.post("/api/jobs/" + rejected_id + "/index-assets", json={}).json()["state"]
+            == "complete"
+        )
+        for name in ("poses.sdf", "qualified-poses.sdf", "diagnostic-pose-001.sdf"):
+            denied = client.post(
+                "/api/jobs/" + rejected_id + "/assets", params={"kind": "ligand", "name": name}
+            )
+            assert denied.status_code == 422, denied.text
+        rejected_versions = client.get(
+            "/api/research/objects", params={"source_job": rejected_id, "limit": 200}
+        ).json()
+        assert all(
+            v["label"] not in {"poses.sdf", "qualified-poses.sdf", "diagnostic-pose-001.sdf"}
+            for v in rejected_versions
+        )
+        (evidence / "output-constraint-rejection.json").write_text(
+            json.dumps(
+                {"job": rejected_job, "result": rejected_result, "versions": rejected_versions},
+                indent=2,
+            )
+        )
         completed_job_id = identifier
         completed_pose = selected
         completed_reference = pose

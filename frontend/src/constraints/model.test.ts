@@ -59,3 +59,42 @@ it("fails closed on unsupported conditions and retains the exact reference when 
   });
   expect(await withConstraints(request, null, "en")).toBe(request);
 });
+
+it("requires a saved matching output choice rather than silently using old conditions", async () => {
+  await expect(
+    withConstraints(request, null, "en", "all_heavy_atoms"),
+  ).rejects.toThrow("Save the selected output check");
+  const reference = { id: "conditions", sha256: "b".repeat(64) };
+  vi.spyOn(api, "post").mockResolvedValue({
+    executable: true,
+    conditions: [],
+    document: {
+      conditions: [
+        {
+          kind: "spatial_bounds",
+          selection: "heavy_atom_centroid",
+          strength: "hard",
+          weight: null,
+          tolerance_angstrom: 0.001,
+        },
+      ],
+    },
+  } as never);
+  await expect(
+    withConstraints(request, reference, "en", "all_heavy_atoms"),
+  ).rejects.toThrow("Output choices differ");
+  await expect(
+    withConstraints(request, reference, "en", "heavy_atom_centroid", {
+      strength: "soft",
+      weight: 2,
+      tolerance_angstrom: 0.001,
+    }),
+  ).rejects.toThrow("Output check settings differ");
+  expect(
+    await withConstraints(request, reference, "en", "heavy_atom_centroid", {
+      strength: "hard",
+      weight: 1,
+      tolerance_angstrom: 0.001,
+    }),
+  ).toMatchObject({ constraints: reference });
+});

@@ -55,8 +55,18 @@ class SearchBoxCondition(Condition):
     validator: Literal["exact_native_search_box"] = "exact_native_search_box"
 
 
+class SpatialBoundsCondition(Condition):
+    kind: Literal["spatial_bounds"]
+    phase: Literal["result"] = "result"
+    scope: Literal["target_a", "target_b", "assembly"] = "target_a"
+    selection: Literal["heavy_atom_centroid", "all_heavy_atoms"] = "heavy_atom_centroid"
+    box: SearchBox
+    tolerance_angstrom: float = Field(default=0.001, ge=0, le=0.1, allow_inf_nan=False)
+    validator: Literal["rdkit_receptor_bounds_v1"] = "rdkit_receptor_bounds_v1"
+
+
 ConstraintCondition = Annotated[
-    FixedRegionCondition | SearchBoxCondition, Field(discriminator="kind")
+    FixedRegionCondition | SearchBoxCondition | SpatialBoundsCondition, Field(discriminator="kind")
 ]
 
 
@@ -76,13 +86,34 @@ class ConstraintSet(ScientificModel):
             raise ValueError("Condition identities must be unique.")
         if len({c.label.strip() for c in self.conditions}) != len(self.conditions):
             raise ValueError("Condition labels must be unique.")
-        boxes = [c for c in self.conditions if c.kind == "search_box"]
+        boxes = [c for c in self.conditions if c.kind in {"search_box", "spatial_bounds"}]
         if boxes and not self.frame:
             raise ValueError("Spatial conditions require an explicit versioned coordinate frame.")
-        for scope in {c.scope for c in boxes}:
-            values = [c.box for c in boxes if c.scope == scope]
+        for scope in {c.scope for c in boxes if c.kind == "search_box"}:
+            values = [c.box for c in boxes if c.scope == scope and c.kind == "search_box"]
             if len({v.model_dump_json() for v in values}) > 1:
                 raise ValueError("Conflicting search boxes for the same scope cannot be combined.")
+        for scope in {c.scope for c in boxes if c.kind == "spatial_bounds"}:
+            hard = [
+                c
+                for c in boxes
+                if c.kind == "spatial_bounds" and c.strength == "hard" and c.scope == scope
+            ]
+            if len(hard) > 1:
+                for axis in range(3):
+                    lower = max(
+                        c.box.center[axis] - c.box.size[axis] / 2 - c.tolerance_angstrom
+                        for c in hard
+                    )
+                    upper = min(
+                        c.box.center[axis] + c.box.size[axis] / 2 + c.tolerance_angstrom
+                        for c in hard
+                    )
+                    if lower > upper:
+                        raise ValueError(
+                            "Hard output bounds have no common spatial region "
+                            "in this reference frame."
+                        )
         return self
 
 
@@ -96,6 +127,7 @@ class ConditionSupport(ScientificModel):
     reason_code: Literal[
         "native_fixed",
         "native_box",
+        "output_bounds",
         "wrong_subject",
         "wrong_frame",
         "wrong_scope",
@@ -106,7 +138,9 @@ class ConditionSupport(ScientificModel):
     ]
     native_parameter: str | None = None
     value: list[int] | SearchBox | None = None
-    independent_result_check: Literal["not_implemented"] = "not_implemented"
+    independent_result_check: Literal["not_implemented", "rdkit_receptor_bounds_v1"] = (
+        "not_implemented"
+    )
 
 
 class ConstraintExecution(ScientificModel):

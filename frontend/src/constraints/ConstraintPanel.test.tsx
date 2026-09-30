@@ -96,5 +96,7 @@ it("reads an existing version and blocks misleading native support claims", asyn
   expect(await screen.findByRole("status")).toHaveTextContent(
     "Conditions cannot run on this task",
   );
-  expect(screen.getByText(/Independent result verification:/)).toBeVisible();
+  expect(
+    screen.getByText(/No independent spatial output condition/),
+  ).toBeVisible();
 });

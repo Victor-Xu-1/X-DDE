@@ -22,6 +22,14 @@ export type Condition = ConditionBase &
         validator: "exact_native_indices";
       }
     | {
+        kind: "spatial_bounds";
+        phase: "result";
+        selection: "heavy_atom_centroid" | "all_heavy_atoms";
+        box: SearchBox;
+        tolerance_angstrom?: number;
+        validator: "rdkit_receptor_bounds_v1";
+      }
+    | {
         kind: "search_box";
         phase: "input";
         box: SearchBox;
@@ -55,4 +63,10 @@ export interface Support {
     reason: string;
     independent_result_check: string;
   }[];
+}
+
+export interface OutputSettings {
+  strength: "hard" | "soft";
+  tolerance_angstrom: number;
+  weight: number;
 }

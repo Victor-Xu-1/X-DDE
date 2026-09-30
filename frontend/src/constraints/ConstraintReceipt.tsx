@@ -57,8 +57,8 @@ export function ConstraintReceipt({
           </ul>
           <p className="field-help">
             {zh
-              ? "此记录证明提交的条件和参数，不证明计算成功或结果满足条件。独立结果复核尚未实现。"
-              : "This snapshot records requested conditions and parameters, not calculation success or output compliance. Independent result verification is not implemented."}
+              ? "此记录证明提交的条件和参数，不证明计算成功或结果满足条件。结果中的独立检查记录才是输出复核依据。"
+              : "This snapshot records requested conditions and parameters, not calculation success or output compliance. Consult the independent checks in the output for result verification."}
           </p>
         </>
       )}

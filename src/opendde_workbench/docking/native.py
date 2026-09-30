@@ -7,6 +7,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from bounds import verify_poses
 from chemistry import (
     bound,
     comparison_graph,
@@ -28,6 +29,14 @@ def main():
     ]
     request = json.loads(Path("/input/request.json").read_text())
     bindings = json.loads(Path("/input/bindings.json").read_text())
+    execution = None
+    if request.get("constraints"):
+        receipt = Path("/input/constraints.json")
+        if receipt.stat().st_size > 2 * 1024**2:
+            raise ValueError("Constraint snapshot exceeds its bounded limit.")
+        execution = json.loads(receipt.read_text())
+        if execution["reference"] != request["constraints"] or not execution["executable"]:
+            raise ValueError("Native constraint snapshot differs from the task reference.")
     options = DockingOptions.model_validate(request["options"])
     receptor = MoleculeRef.model_validate(request["receptor"])
     ligand = MoleculeRef.model_validate(request["ligand"])
@@ -140,12 +149,26 @@ def main():
     supplier = (
         Chem.SDMolSupplier(str(output), removeHs=True) if any(p["valid"] for p in poses) else None
     )
+    verify_poses(supplier, poses, execution)
+    qualified = root / "qualified-poses.sdf"
+    qualified_record = 0
+    with Chem.SDWriter(str(qualified)) as writer:
+        for pose in poses:
+            if pose["valid"]:
+                pose["qualified_record"] = qualified_record
+                qualified_record += 1
+                writer.write(comparison_graph(supplier[pose["record"]]))
     for pose in poses:
         if pose["valid"]:
             file = root / f"pose-{pose['record'] + 1:03d}.sdf"
             with Chem.SDWriter(str(file)) as writer:
                 writer.write(comparison_graph(supplier[pose["record"]]))
             pose["artifact"] = file.name
+        elif pose["constraint_checks"]:
+            file = root / f"diagnostic-pose-{pose['record'] + 1:03d}.sdf"
+            with Chem.SDWriter(str(file)) as writer:
+                writer.write(comparison_graph(supplier[pose["record"]]))
+            pose["diagnostic_artifact"] = file.name
     shutil.copyfile(protein, root / "receptor.pdb")
     result = {
         "operation": "docking",
@@ -162,7 +185,9 @@ def main():
         "search": search,
         "initial_conformer_generated": generated_conformer,
         "poses": poses,
-        "pose_artifact": "poses.sdf",
+        "pose_artifact": "qualified-poses.sdf",
+        "raw_pose_artifact": "poses.sdf",
+        "constraint_reference": request.get("constraints"),
         "receptor_artifact": "receptor.pdb",
         "scientific_outcome": "candidates" if any(p["valid"] for p in poses) else "no_valid_pose",
         "scientific_acceptance": "pending_server_validation",

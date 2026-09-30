@@ -15,7 +15,8 @@ def compile_constraints(value: ConstraintSet, reference, request, regions):
             "wrong_engine",
             "This engine/mode does not execute this condition.",
         )
-        if condition.strength == "soft":
+        output_check = False
+        if condition.strength == "soft" and condition.kind != "spatial_bounds":
             code, reason = (
                 "soft_unsupported",
                 "The native adapter cannot apply soft weights; no implicit relaxation is allowed.",
@@ -50,6 +51,32 @@ def compile_constraints(value: ConstraintSet, reference, request, regions):
                     "native_fixed",
                 )
                 reason = "These exact native atom indices are submitted to inpainting."
+        elif condition.kind == "spatial_bounds" and operation == "docking":
+            if value.subject != request.ligand:
+                code, reason = (
+                    "wrong_subject",
+                    "Output checks require the exact molecular input version.",
+                )
+            elif (
+                not value.frame
+                or value.frame.reference != request.receptor
+                or value.frame.basis != "reference_coordinates"
+            ):
+                code, reason = (
+                    "wrong_frame",
+                    "Output bounds must use the exact receptor coordinates.",
+                )
+            elif condition.scope != "target_a":
+                code, reason = (
+                    "wrong_scope",
+                    "This adapter checks one receptor frame, not a target B or assembly.",
+                )
+            else:
+                output_check, payload, code = True, condition.box, "output_bounds"
+                reason = (
+                    "Independent heavy-atom coordinate verification after native execution; "
+                    "no search guidance is claimed."
+                )
         elif condition.kind == "search_box" and operation == "docking" and mode == "dock":
             search = request.search
             if value.subject != request.ligand:
@@ -83,11 +110,15 @@ def compile_constraints(value: ConstraintSet, reference, request, regions):
                     "These receptor-frame bounds are submitted to native search; "
                     "they do not constrain every final atom."
                 )
-        supported = parameter is not None
+        supported = parameter is not None or output_check
         conditions.append(
             ConditionSupport(
                 condition_id=condition.id,
-                support="native" if supported else "unsupported",
+                support="result_check"
+                if output_check
+                else "native"
+                if supported
+                else "unsupported",
                 phase=condition.phase,
                 validator=condition.validator,
                 supported=supported,
@@ -95,6 +126,9 @@ def compile_constraints(value: ConstraintSet, reference, request, regions):
                 reason_code=code,
                 native_parameter=parameter,
                 value=payload,
+                independent_result_check="rdkit_receptor_bounds_v1"
+                if output_check
+                else "not_implemented",
             )
         )
     return ConstraintExecution(

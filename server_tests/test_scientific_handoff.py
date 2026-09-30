@@ -146,3 +146,60 @@ def test_atom_map_identifiers_do_not_create_false_stereochemical_changes():
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(atom.GetIdx() + 1)
     assert chemistry.plain_smiles(trans) != chemistry.plain_smiles(cis)
+
+
+def test_independent_bounds_use_real_heavy_atoms_and_retain_violations(tmp_path):
+    from uuid import uuid4
+
+    source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/docking/bounds.py"
+    spec = importlib.util.spec_from_file_location("bounds", source)
+    bounds = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(bounds)
+    mol = Chem.MolFromSmiles("CCO")
+    conf = Chem.Conformer(mol.GetNumAtoms())
+    conf.Set3D(True)
+    for i, pos in enumerate(((0, 0, 0), (1, 0, 0), (6, 0, 0))):
+        conf.SetAtomPosition(i, pos)
+    mol.AddConformer(conf)
+    file = tmp_path / "coordinates.sdf"
+    with Chem.SDWriter(str(file)) as writer:
+        writer.write(mol)
+    parsed = Chem.SDMolSupplier(str(file), removeHs=True)[0]
+    condition = {
+        "id": str(uuid4()),
+        "kind": "spatial_bounds",
+        "selection": "all_heavy_atoms",
+        "strength": "hard",
+        "weight": None,
+        "tolerance_angstrom": 0,
+        "box": {"center": [0, 0, 0], "size": [4, 4, 4]},
+    }
+    check = bounds.assess(parsed, condition)
+    assert not check["passed"] and check["checked_points"] == 3
+    assert check["maximum_excess"] == 4
+    assert check["violations"] == [
+        {"output_atom_index": 2, "position": (6.0, 0.0, 0.0), "excess": (4.0, 0.0, 0.0)}
+    ]
+    centroid = {**condition, "selection": "heavy_atom_centroid"}
+    assert bounds.assess(parsed, centroid)["violations"][0]["output_atom_index"] is None
+    inside = {**centroid, "box": {"center": [2, 0, 0], "size": [4, 4, 4]}}
+    assert bounds.assess(parsed, inside)["passed"]
+    soft = {**condition, "strength": "soft", "weight": 2}
+    rows = [{"record": 0, "valid": True}]
+    bounds.verify_poses([parsed], rows, {"document": {"conditions": [soft]}})
+    assert rows[0]["valid"] and rows[0]["constraint_checks"][0]["weighted_deviation"] == 8
+    rows = [{"record": 0, "valid": True}]
+    bounds.verify_poses([parsed], rows, {"document": {"conditions": [condition]}})
+    assert not rows[0]["valid"] and "raw" in rows[0]["reason"]
+    zero = {**condition, "box": {"center": [4, 0, 0], "size": [4, 4, 4]}}
+    assert bounds.assess(parsed, zero)["violations"][0]["output_atom_index"] == 0
+    parsed.GetConformer().SetAtomPosition(2, (2.0005, 0, 0))
+    assert not bounds.assess(parsed, condition)["passed"]
+    assert bounds.assess(parsed, {**condition, "tolerance_angstrom": 0.001})["passed"]
+    parsed.GetConformer().Set3D(False)
+    with pytest.raises(ValueError, match="three-dimensional"):
+        bounds.assess(parsed, condition)
+    parsed.GetConformer().Set3D(True)
+    parsed.GetConformer().SetAtomPosition(0, (float("nan"), 0, 0))
+    with pytest.raises(ValueError, match="nonfinite"):
+        bounds.assess(parsed, condition)

@@ -1,3 +1,5 @@
+import { outputBoundsDefaults } from "../constraints/generated";
+import type { OutputSettings } from "../constraints/types";
 import { ConstraintPanel } from "../constraints/ConstraintPanel";
 import { withConstraints } from "../constraints/model";
 import type { ConstraintReference } from "../constraints/types";
@@ -65,6 +67,12 @@ export function DockingForm({
       });
     return () => controller.abort();
   }, [mode]);
+  const [outputSettings, setOutputSettings] = useState<OutputSettings>({
+    ...outputBoundsDefaults,
+  });
+  const [outputChoice, setOutputChoice] = useState<
+    "none" | "heavy_atom_centroid" | "all_heavy_atoms"
+  >("none");
   const [constraints, setConstraints] = useState<ConstraintReference | null>(
     null,
   );
@@ -96,7 +104,13 @@ export function DockingForm({
         event.preventDefault();
         setError("");
         try {
-          void withConstraints(buildTask(), constraints, language)
+          void withConstraints(
+            buildTask(),
+            constraints,
+            language,
+            outputChoice,
+            outputSettings,
+          )
             .then(run.submit)
             .catch((failure) => setError(String(failure)));
         } catch (failure) {
@@ -168,7 +182,10 @@ export function DockingForm({
             onChange={(event) => {
               const advanced = event.target.value === "expert";
               setExpert(advanced);
-              if (!advanced) setOptions(structuredClone(defaults));
+              if (!advanced) {
+                setOptions(structuredClone(defaults));
+                setOutputSettings({ ...outputBoundsDefaults });
+              }
             }}
           >
             <option value="cpu">
@@ -195,6 +212,11 @@ export function DockingForm({
             getTask={buildTask}
             value={constraints}
             onChange={setConstraints}
+            outputChoice={outputChoice}
+            onOutputChoice={setOutputChoice}
+            outputSettings={outputSettings}
+            onOutputSettings={setOutputSettings}
+            expert={expert}
             onApply={(doc) => {
               const box = doc.conditions.find((c) => c.kind === "search_box");
               if (!box || box.kind !== "search_box" || !doc.frame)
@@ -203,6 +225,20 @@ export function DockingForm({
                     ? "所选条件不包含搜索范围"
                     : "Selected conditions do not contain a search box",
                 );
+              const post = doc.conditions.find(
+                (c) => c.kind === "spatial_bounds",
+              );
+              setOutputChoice(
+                post?.kind === "spatial_bounds" ? post.selection : "none",
+              );
+              if (post?.kind === "spatial_bounds")
+                setOutputSettings({
+                  strength: post.strength,
+                  tolerance_angstrom:
+                    post.tolerance_angstrom ??
+                    outputBoundsDefaults.tolerance_angstrom,
+                  weight: post.weight ?? 1,
+                });
               setReceptor(doc.frame.reference);
               setKind("box");
               setReference(null);

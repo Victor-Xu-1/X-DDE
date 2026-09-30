@@ -130,3 +130,10 @@ The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU t
 在远程 CI 执行 `uv run --locked pytest -q tests/test_constraints.py`、前端 Vitest 全门禁、`server_tests/test_frontend_browser.py` 与既有 native-docking 门禁。使用真正的 SQLite/HTTP/CSRF：同键同文档重放、不同内容冲突、重启与不可变修订、错摘要/版本/坐标系、软权重/装配范围拒绝、固定区域与 native indices 匹配；浏览器保存范围、修改中心、显示不支持、应用旧条件并恢复匹配，检查 390/1440 视口和零科学任务。Native GNINA CI 使用真实 RDKit 解析 fixture 坐标取得中心，保存明确 receptor frame 的范围，运行实际对接并确认结果的 search box 与执行快照相同。
 
 执行快照仅记录条件/参数与输入来源。它不能作为独立结果合格证据；`independent_result_check=not_implemented` 必须保持可见。目标服务器后续必须覆盖固定原子/键的实际保留、输出几何、违反位置、结果资格和空间/装配条件，不得用当前 API/SQLite/原生调用成功替代这些科学验证。本机只静态构建和既有数据的只读预览，不运行上述套件或原生科学任务。
+
+
+#### 独立输出空间检查与拒绝候选
+
+远程科学 handoff 门禁使用真实 RDKit SDF 解析与构象验证：非氢平均位置和每个重原子、边界、0–0.1 Å 显式容差、二维/NaN 拒绝、硬失败排除和软加权偏差保留。verify 的 `tests/test_constraints.py` 检查结果支持分类、无公共空间、类型/单位/真实违反记录一致性。真实 browser 门禁保存结果条件，验证 `result_check` 未显示为原生搜索约束，修改/应用后恢复并检查390/1440布局。native-docking门禁必须运行真实 GNINA 正例及已有真实姿势的硬空间失败负例：任务计算正常结束，但没有合格候选；保留原始文件、规范化诊断姿势及坐标报告，空合格集合不登记，原始/诊断/空集合的资产交接API必须422。
+
+前端选择与条件版本、软权重和容差必须一致；未经保存的选择不得悄悄省略。此验收仅证明所选几何条件，不证明整体姿势质量或实验结合。固定核心/键/原子碰撞/复杂空间方向/装配范围仍需各自原生与独立科学验收。新增结果条件不可通过恢复旧数据库丢弃；保留研究数据，优先前向修复代码。完整能力路线仍未完成。

@@ -285,6 +285,93 @@ export const constraintSchema = {
       title: "SearchBoxCondition",
       type: "object",
     },
+    SpatialBoundsCondition: {
+      additionalProperties: false,
+      properties: {
+        id: {
+          format: "uuid",
+          title: "Id",
+          type: "string",
+        },
+        label: {
+          maxLength: 120,
+          minLength: 1,
+          pattern: "^[^\\x00-\\x1f]+$",
+          title: "Label",
+          type: "string",
+        },
+        strength: {
+          default: "hard",
+          enum: ["hard", "soft"],
+          title: "Strength",
+          type: "string",
+        },
+        weight: {
+          anyOf: [
+            {
+              exclusiveMinimum: 0,
+              maximum: 1000,
+              type: "number",
+            },
+            {
+              type: "null",
+            },
+          ],
+          default: null,
+          title: "Weight",
+        },
+        scope: {
+          default: "target_a",
+          enum: ["target_a", "target_b", "assembly"],
+          title: "Scope",
+          type: "string",
+        },
+        source: {
+          default: "user_selection",
+          maxLength: 120,
+          minLength: 1,
+          pattern: "^[^\\x00-\\x1f]+$",
+          title: "Source",
+          type: "string",
+        },
+        kind: {
+          const: "spatial_bounds",
+          title: "Kind",
+          type: "string",
+        },
+        phase: {
+          const: "result",
+          default: "result",
+          title: "Phase",
+          type: "string",
+        },
+        selection: {
+          default: "heavy_atom_centroid",
+          enum: ["heavy_atom_centroid", "all_heavy_atoms"],
+          title: "Selection",
+          type: "string",
+        },
+        box: {
+          $ref: "#/$defs/SearchBox",
+        },
+        tolerance_angstrom: {
+          default: 0.001,
+          maximum: 0.1,
+          minimum: 0,
+          title: "Tolerance Angstrom",
+          type: "number",
+        },
+        validator: {
+          const: "rdkit_receptor_bounds_v1",
+          default: "rdkit_receptor_bounds_v1",
+          title: "Validator",
+          type: "string",
+        },
+      },
+      required: ["id", "label", "kind", "box"],
+      title: "SpatialBoundsCondition",
+      type: "object",
+    },
   },
   additionalProperties: false,
   properties: {
@@ -334,6 +421,7 @@ export const constraintSchema = {
           mapping: {
             fixed_region: "#/$defs/FixedRegionCondition",
             search_box: "#/$defs/SearchBoxCondition",
+            spatial_bounds: "#/$defs/SpatialBoundsCondition",
           },
           propertyName: "kind",
         },
@@ -343,6 +431,9 @@ export const constraintSchema = {
           },
           {
             $ref: "#/$defs/SearchBoxCondition",
+          },
+          {
+            $ref: "#/$defs/SpatialBoundsCondition",
           },
         ],
       },
@@ -355,4 +446,9 @@ export const constraintSchema = {
   required: ["name", "subject", "conditions"],
   title: "ConstraintSet",
   type: "object",
+} as const;
+export const outputBoundsDefaults = {
+  tolerance_angstrom: 0.001,
+  strength: "hard",
+  weight: 1,
 } as const;

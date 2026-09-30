@@ -105,6 +105,13 @@ class DockingBackend:
             (directory / "bindings.json", "/input/bindings.json"),
         ]:
             args.extend(["--mount", f"type=bind,source={host},target={target},readonly"])
+        if job.request.constraints:
+            receipt = directory / "constraint-execution.json"
+            if receipt.is_symlink() or not receipt.is_file():
+                raise ValueError("Scientific conditions lack their validated execution snapshot.")
+            args.extend(
+                ["--mount", f"type=bind,source={receipt},target=/input/constraints.json,readonly"]
+            )
         args.extend(["--mount", f"type=bind,source={output},target=/output"])
         if options.use_gpu:
             args.extend(["--gpus", "device=" + str(options.gpu_device)])

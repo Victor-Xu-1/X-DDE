@@ -10,8 +10,8 @@ from opendde_workbench.capabilities.modalities import modality_catalogue
 from opendde_workbench.diffsbdd.manifest import MODELS
 from opendde_workbench.diffsbdd.options import DiffOptions
 from opendde_workbench.docking.options import DockingOptions
+from opendde_workbench.research.constraint_contract import ConstraintSet, SpatialBoundsCondition
 from opendde_workbench.research.regions import REGION_ROLES
-from opendde_workbench.research.constraint_contract import ConstraintSet
 
 
 def main() -> None:
@@ -27,6 +27,17 @@ def main() -> None:
         "constraints/generated.ts": header
         + "export const constraintSchema = "
         + json.dumps(ConstraintSet.model_json_schema(), ensure_ascii=False, indent=2)
+        + " as const;\nexport const outputBoundsDefaults = "
+        + json.dumps(
+            {
+                "tolerance_angstrom": SpatialBoundsCondition.model_fields[
+                    "tolerance_angstrom"
+                ].default,
+                "strength": "hard",
+                "weight": 1,
+            },
+            indent=2,
+        )
         + " as const;\n",
         "docking/generated.ts": header
         + "export const defaults = "

@@ -1,3 +1,7 @@
+import { ConstraintSupportSummary } from "./ConstraintSupportSummary";
+import { OutputConditionControls } from "./OutputConditionControls";
+import { outputBoundsDefaults } from "./generated";
+import type { OutputSettings } from "./types";
 import { useEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
@@ -6,7 +10,7 @@ import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../diffsbdd/model";
 import type { SavedRegion } from "../regions/model";
 import type { ConstraintReference, SavedConstraints, Support } from "./types";
-import { currentConditions, listConstraints, reasons } from "./model";
+import { currentConditions, listConstraints } from "./model";
 
 export function ConstraintPanel({
   subject,
@@ -15,6 +19,11 @@ export function ConstraintPanel({
   value,
   onChange,
   onApply,
+  outputChoice,
+  onOutputChoice,
+  outputSettings = outputBoundsDefaults,
+  onOutputSettings,
+  expert = false,
 }: {
   subject: MoleculeRef;
   language: Language;
@@ -22,6 +31,13 @@ export function ConstraintPanel({
   value: ConstraintReference | null;
   onChange(v: ConstraintReference | null): void;
   onApply(document: SavedConstraints["body"], regions: SavedRegion[]): void;
+  outputChoice?: "none" | "heavy_atom_centroid" | "all_heavy_atoms";
+  outputSettings?: OutputSettings;
+  onOutputSettings?(value: OutputSettings): void;
+  expert?: boolean;
+  onOutputChoice?(
+    value: "none" | "heavy_atom_centroid" | "all_heavy_atoms",
+  ): void;
 }) {
   const zh = language === "zh";
   const [values, setValues] = useState<SavedConstraints[]>([]),
@@ -94,6 +110,45 @@ export function ConstraintPanel({
           },
           language,
         );
+        if (outputChoice && outputChoice !== "none") {
+          const search = body.conditions.find((c) => c.kind === "search_box");
+          if (search?.kind !== "search_box")
+            throw new Error(
+              zh
+                ? "请先指定显式搜索范围"
+                : "Define an explicit search box first",
+            );
+          if (!ids.current.has("output_bounds"))
+            ids.current.set("output_bounds", crypto.randomUUID());
+          if (
+            !Number.isFinite(outputSettings.tolerance_angstrom) ||
+            outputSettings.tolerance_angstrom < 0 ||
+            outputSettings.tolerance_angstrom > 0.1 ||
+            !Number.isFinite(outputSettings.weight) ||
+            outputSettings.weight <= 0 ||
+            outputSettings.weight > 1000
+          )
+            throw new Error(
+              zh
+                ? "请使用 0–0.1 Å 容差和有效偏差权重。"
+                : "Use tolerance 0–0.1 Å and a valid deviation weight.",
+            );
+          body.conditions.push({
+            id: ids.current.get("output_bounds")!,
+            label: zh ? "结果空间检查" : "Output spatial check",
+            kind: "spatial_bounds",
+            phase: "result",
+            selection: outputChoice,
+            box: search.box,
+            validator: "rdkit_receptor_bounds_v1",
+            source: "user_selection",
+            scope: "target_a",
+            strength: outputSettings.strength,
+            weight:
+              outputSettings.strength === "soft" ? outputSettings.weight : null,
+            tolerance_angstrom: outputSettings.tolerance_angstrom,
+          });
+        }
         const serialized = JSON.stringify(body);
         if (intent.current.body !== serialized)
           intent.current = { body: serialized, key: crypto.randomUUID() };
@@ -155,6 +210,17 @@ export function ConstraintPanel({
           {zh ? "正在读取条件版本…" : "Loading condition revisions…"}
         </p>
       )}
+      {onOutputChoice && (
+        <OutputConditionControls
+          language={language}
+          choice={outputChoice ?? "none"}
+          onChoice={onOutputChoice}
+          expert={expert}
+          settings={outputSettings}
+          onSettings={onOutputSettings}
+          conditions={selected?.body.conditions}
+        />
+      )}
       <label className="field">
         {zh ? "条件名称（可选）" : "Condition name (optional)"}
         <input
@@ -201,40 +267,11 @@ export function ConstraintPanel({
         }
       >
         {zh
-          ? "只保存已支持的固定核心或显式搜索范围；提交前再次核对。"
-          : "Save supported fixed cores or explicit search bounds; submission checks them again."}
+          ? "保存固定核心、显式搜索范围和所选结果检查；提交前再次核对。"
+          : "Save supported fixed cores, search bounds and selected output checks; submission checks them again."}
       </p>
       {support && (
-        <div role="status">
-          <strong>
-            {support.executable
-              ? zh
-                ? "条件与任务匹配"
-                : "Conditions match this task"
-              : zh
-                ? "条件不能用于当前任务"
-                : "Conditions cannot run on this task"}
-          </strong>
-          <ul>
-            {support.conditions.map((c) => (
-              <li key={c.condition_id}>
-                {reasons[c.reason_code]?.[zh ? 0 : 1] ?? c.reason} ·{" "}
-                {c.supported
-                  ? zh
-                    ? "原生执行"
-                    : "Native execution"
-                  : zh
-                    ? "不支持"
-                    : "Unsupported"}
-              </li>
-            ))}
-          </ul>
-          <p className="field-help">
-            {zh
-              ? "独立结果复核：尚未实现，不标记为结果已合格。"
-              : "Independent result verification: not implemented; output qualification is not claimed."}
-          </p>
-        </div>
+        <ConstraintSupportSummary support={support} language={language} />
       )}
       {error && (
         <p role="alert" className="error-box">

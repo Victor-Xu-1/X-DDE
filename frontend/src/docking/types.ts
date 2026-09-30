@@ -28,9 +28,26 @@ export interface PoseResult {
   record: number;
   valid: boolean;
   artifact?: string;
+  diagnostic_artifact?: string;
   reason?: string;
   smiles?: string;
   mapping_status: string;
+  qualified_record?: number | null;
+  constraint_checks?: {
+    condition_id: string;
+    passed: boolean;
+    strength: "hard" | "soft";
+    selection: "heavy_atom_centroid" | "all_heavy_atoms";
+    unit: "angstrom";
+    maximum_excess: number;
+    tolerance_angstrom: number;
+    checked_points: number;
+    violations: {
+      output_atom_index: number | null;
+      position: [number, number, number];
+      excess: [number, number, number];
+    }[];
+  }[];
   scores: {
     name: string;
     value: number;
@@ -46,6 +63,7 @@ export interface DockingResult {
   ligand: MoleculeRef;
   software_version: string;
   pose_artifact: string;
+  raw_pose_artifact?: string | null;
   receptor_artifact: string;
   poses: PoseResult[];
   scientific_outcome: string;

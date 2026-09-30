@@ -17,6 +17,7 @@ export function DockingResults({
 }) {
   const zh = language === "zh",
     assets = usePoseAssets(job.id);
+  const [diagnostic, setDiagnostic] = useState<string | null>(null);
   const [record, setRecord] = useState<number | null>(null),
     [next, setNext] = useState<"properties" | "score" | "minimize" | null>(
       null,
@@ -60,12 +61,26 @@ export function DockingResults({
                     disabled={!p.valid || !p.artifact}
                     aria-pressed={record === p.record}
                     onClick={() => {
+                      setDiagnostic(null);
                       setRecord(p.record);
                       setNext(null);
                     }}
                   >
                     {zh ? "姿势" : "Pose"} {p.record + 1}
                   </button>
+                  {p.diagnostic_artifact && (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => {
+                        setRecord(null);
+                        setNext(null);
+                        setDiagnostic(p.diagnostic_artifact!);
+                      }}
+                    >
+                      {zh ? "检查不合格姿势" : "Inspect rejected pose"}
+                    </button>
+                  )}
                 </th>
                 <td>
                   {p.scores.map((v) => (
@@ -109,17 +124,76 @@ export function DockingResults({
                         : "Recorded"}
                 </td>
                 <td>
+                  {p.constraint_checks?.map((c) => (
+                    <div key={c.condition_id}>
+                      {c.passed
+                        ? zh
+                          ? "空间条件通过"
+                          : "Spatial condition passed"
+                        : zh
+                          ? "空间条件未通过"
+                          : "Spatial condition failed"}{" "}
+                      · {c.maximum_excess.toFixed(3)} Å
+                      {c.violations.length > 0 && (
+                        <details>
+                          <summary>
+                            {zh
+                              ? "查看违反位置"
+                              : "Inspect violation positions"}
+                          </summary>
+                          <ul>
+                            {c.violations.map((v, i) => (
+                              <li key={i}>
+                                {v.output_atom_index === null
+                                  ? zh
+                                    ? "重原子中心"
+                                    : "Heavy-atom centroid"
+                                  : `${zh ? "输出原子" : "Output atom"} ${v.output_atom_index + 1}`}{" "}
+                                ·{" "}
+                                {v.position.map((x) => x.toFixed(3)).join(", ")}{" "}
+                                Å
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
+                  ))}
                   {p.valid
                     ? zh
                       ? "可复用候选"
                       : "Reusable candidate"
-                    : p.reason}
+                    : p.constraint_checks?.some(
+                          (c) => c.strength === "hard" && !c.passed,
+                        )
+                      ? zh
+                        ? "已排除：未满足硬空间条件"
+                        : "Excluded: hard spatial condition failed"
+                      : p.reason}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {diagnostic && (
+        <>
+          <p className="field-help">
+            {zh
+              ? "仅供检查的规范化重原子坐标，不进入合格候选或自动复用。"
+              : "Normalized heavy-atom coordinates for inspection only, excluded from qualified candidates and automatic handoff."}
+          </p>
+          <StructureViewer
+            key={diagnostic}
+            urls={[
+              artifactUrl(job.id, result.receptor_artifact),
+              artifactUrl(job.id, diagnostic),
+            ]}
+            language={language}
+            focusModel={1}
+          />
+        </>
+      )}
       {result.poses.length === 0 && (
         <p role="status">{zh ? "没有返回姿势" : "No poses returned"}</p>
       )}

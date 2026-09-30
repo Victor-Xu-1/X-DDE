@@ -247,3 +247,60 @@ def test_constraint_api_csrf_filters_graph_and_execution_receipt(settings, clien
             ).model_dump_json()
         )
         assert client.get("/api/jobs/" + job.id + "/constraints").status_code == 422
+
+
+def test_output_conditions_are_postchecks_and_infeasible_bounds_fail(settings):
+    records, value, request = setup(settings)
+    body = value.model_dump(mode="json")
+    body["conditions"][0].update(
+        kind="spatial_bounds",
+        phase="result",
+        validator="rdkit_receptor_bounds_v1",
+        selection="all_heavy_atoms",
+        strength="soft",
+        weight=2,
+    )
+    changed = ConstraintSet.model_validate(body)
+    saved = records.save(changed, uuid4())
+    support = records.preview(reference(saved), request)
+    assert support.executable and support.conditions[0].support == "result_check"
+    assert support.conditions[0].native_parameter is None
+    assert support.conditions[0].independent_result_check == "rdkit_receptor_bounds_v1"
+    body["conditions"][0].update(strength="hard", weight=None)
+    import copy
+
+    second = copy.deepcopy(body["conditions"][0])
+    second.update(id=str(uuid4()), label="Far bounds")
+    second["box"]["center"][0] = 999
+    body["conditions"].append(second)
+    with pytest.raises(ValidationError, match="no common spatial region"):
+        ConstraintSet.model_validate(body)
+
+
+def test_typed_spatial_evidence_rejects_false_success_units_or_deviation():
+    from opendde_workbench.docking.quality import BoundsCheck
+
+    value = {
+        "condition_id": str(uuid4()),
+        "validator": "rdkit_receptor_bounds_v1",
+        "selection": "all_heavy_atoms",
+        "strength": "hard",
+        "weight": None,
+        "unit": "angstrom",
+        "passed": False,
+        "checked_points": 1,
+        "tolerance_angstrom": 0,
+        "violations": [{"output_atom_index": 0, "position": [3, 0, 0], "excess": [1, 0, 0]}],
+        "maximum_excess": 1,
+        "weighted_deviation": None,
+    }
+    assert not BoundsCheck.model_validate(value).passed
+    for update in (
+        {"passed": True},
+        {"unit": "nm"},
+        {"maximum_excess": 0},
+        {"strength": "soft"},
+        {"checked_points": 0},
+    ):
+        with pytest.raises(ValidationError):
+            BoundsCheck.model_validate({**value, **update})

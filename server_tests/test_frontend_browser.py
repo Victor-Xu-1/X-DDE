@@ -568,6 +568,9 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             ).to_have_count(1)
             ligand_choice.select_option(ligand_upload.json()["id"])
             page.get_by_text("保存与复用任务条件（可选）", exact=True).click()
+            page.get_by_role("combobox", name="计算结束后检查什么？", exact=True).select_option(
+                "heavy_atom_centroid"
+            )
             page.get_by_role("button", name="保存当前条件", exact=True).click()
             expect(page.get_by_role("button", name="应用所选条件", exact=True)).to_be_enabled()
             page.get_by_role("button", name="检查引擎支持", exact=True).click()
@@ -579,7 +582,11 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             expect(page.get_by_role("spinbutton", name="中心 X (Å)", exact=True)).to_have_value("1")
             page.get_by_role("button", name="检查引擎支持", exact=True).click()
             expect(page.get_by_text("条件与任务匹配", exact=True)).to_be_visible()
-            assert page.request.get(base + "/api/research/constraints").json()
+            saved_conditions = page.request.get(base + "/api/research/constraints").json()
+            assert saved_conditions
+            assert saved_conditions[0]["body"]["conditions"][1]["kind"] == "spatial_bounds"
+            assert saved_conditions[0]["body"]["conditions"][1]["tolerance_angstrom"] == 0.001
+            expect(page.get_by_text("仅结果检查", exact=False)).to_be_visible()
             centers = page.locator('.operation-grid label:has(input[type="number"])').evaluate_all(
                 "labels=>labels.map(l=>({left:l.getBoundingClientRect().left,top:l.getBoundingClientRect().top}))"
             )

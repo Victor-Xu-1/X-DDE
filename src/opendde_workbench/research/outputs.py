@@ -33,7 +33,32 @@ class OutputCatalog:
                 job_id TEXT PRIMARY KEY, state TEXT NOT NULL, count INTEGER NOT NULL,
                 errors TEXT NOT NULL, updated_at TEXT NOT NULL)""")
 
+    def docking_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "docking":
+            return None
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        if not (root / "result.json").exists() and not job.request.constraints:
+            return None
+        report = contained(root, "result.json")
+        if report.stat().st_size > 2 * 1024**2:
+            raise ValueError("Docking output report exceeds its typed limit.")
+        from ..docking.result import DockingResult
+
+        result = DockingResult.model_validate_json(report.read_text())
+        if (result.raw_pose_artifact and file.name == result.raw_pose_artifact) or any(
+            file.name == p.diagnostic_artifact for p in result.poses
+        ):
+            raise ValueError(
+                "Raw native poses are diagnostic outputs; "
+                "use the qualified pose bundle for handoff."
+            )
+        if file.name == result.pose_artifact and not any(p.valid for p in result.poses):
+            raise ValueError("No qualified pose is available for downstream reuse.")
+        return result
+
     def preserve(self, job_id, file, kind):
+        self.docking_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -108,6 +133,22 @@ class OutputCatalog:
                     kind = "config"
                 if not kind:
                     continue
+                if job.request.operation == "docking":
+                    from ..docking.result import DockingResult
+
+                    manifest = contained(root, "result.json")
+                    if manifest.stat().st_size > 2 * 1024**2:
+                        raise ValueError("Docking output report exceeds its typed limit.")
+                    result = DockingResult.model_validate_json(manifest.read_text())
+                    if (
+                        any(artifact.name == p.diagnostic_artifact for p in result.poses)
+                        or artifact.name == result.raw_pose_artifact
+                        or (
+                            artifact.name == result.pose_artifact
+                            and not any(p.valid for p in result.poses)
+                        )
+                    ):
+                        continue
                 _, objects = self.preserve(job.id, file, kind)
                 count += len(objects)
             except (ValueError, KeyError, OSError) as exc:
