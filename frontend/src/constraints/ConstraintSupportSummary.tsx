@@ -47,9 +47,15 @@ export function ConstraintSupportSummary({
               ? zh
                 ? "已启用独立空间结果检查；不等于结合模式或完整质量已合格。"
                 : "Independent spatial output checking is enabled; binding or full pose quality is not established."
-              : zh
-                ? "未设置独立空间结果条件；不标记为结果已合格。"
-                : "No independent spatial output condition; output qualification is not claimed."}
+              : support.conditions.some(
+                    (c) => c.independent_result_check === "rdkit_fixed_core_v1",
+                  )
+                ? zh
+                  ? "固定区域将在生成后独立复核；合格候选以实际输出检查为准。"
+                  : "Fixed cores will be independently checked after generation; qualification depends on actual output evidence."
+                : zh
+                  ? "未设置独立空间结果条件；不标记为结果已合格。"
+                  : "No independent spatial output condition; output qualification is not claimed."}
           </p>
         </div>
       )}

@@ -9,7 +9,6 @@ import json
 import logging
 import os
 from collections.abc import Awaitable
-from pathlib import Path
 
 from . import harness_process, local_process
 from .diffsbdd.runtime import configuration
@@ -45,6 +44,9 @@ class BackendRouter:
             return await harness_process.start(self.settings, directory)
         if implementation == "diffsbdd":
             python, source, root = configuration(self.settings)
+            from .diffsbdd.snapshot import capture
+
+            runner, adapter_digests = capture(directory)
             # Scientific software never inherits model-provider or compute-service secrets.
             env = {
                 key: value
@@ -65,6 +67,8 @@ class BackendRouter:
                 json.dumps(
                     {
                         "engine": "diffsbdd",
+                        "core_verification": "rdkit_fixed_core_v1",
+                        "adapter_sha256": adapter_digests,
                         "environment_snapshot_sha256": environment.snapshot_sha256,
                         "backend": "local_process",
                         "source": str(source),
@@ -73,9 +77,7 @@ class BackendRouter:
                     }
                 )
             )
-            return await local_process.start(
-                python, Path(__file__).parent / "diffsbdd/runner.py", directory, env
-            )
+            return await local_process.start(python, runner, directory, env)
         if implementation == "opendde":
             return await self.opendde.start(job, directory)
         raise ValueError("No execution adapter for registered engine: " + implementation)
@@ -94,7 +96,7 @@ class BackendRouter:
         elif implementation == "harness":
             await harness_process.stop(self.settings, directory)
         elif implementation == "diffsbdd":
-            await local_process.stop(Path(__file__).parent / "diffsbdd/runner.py", directory)
+            await local_process.stop(directory / "adapter/runner.py", directory)
         elif implementation == "opendde":
             await self.opendde.stop(job_id)
         else:

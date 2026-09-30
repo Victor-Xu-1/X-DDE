@@ -74,6 +74,7 @@ export const componentsOf = (value: TaskRequest | undefined): Component[] =>
 export interface OperationResult {
   operation: string;
   complete: boolean;
+  core_verification?: import("../diffsbdd/types").CoreVerificationData;
   molecules?: import("../types").LigandProperties[];
   atoms?: (BondAtom & { chain: string; residue: string; element: string })[];
   structure?: string;

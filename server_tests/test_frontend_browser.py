@@ -287,6 +287,12 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                 page.get_by_role("button", name=title, exact=True).click()
                 expect(page.get_by_role("heading", name=title, exact=True)).to_be_visible()
                 expect(page.get_by_role("button", name="创建任务", exact=True)).to_be_disabled()
+                if title == "局部重设计":
+                    hint = page.get_by_text(
+                        "固定区域会独立复核；违反要求或无法确认的候选不会自动复用。", exact=True
+                    )
+                    expect(hint).to_be_visible()
+                    assert "0.5 Å" in hint.get_attribute("title")
                 if title in ["口袋条件分子生成", "局部重设计", "分子多样化", "分子优化"]:
                     model = page.get_by_role("combobox", name="使用哪个模型？", exact=True)
                     assert model.locator("option").count() == (

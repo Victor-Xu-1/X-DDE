@@ -4,7 +4,9 @@ from .constraint_contract import ConditionSupport, ConstraintExecution, Constrai
 from .regions import RegionInput
 
 
-def compile_constraints(value: ConstraintSet, reference, request, regions):
+def compile_constraints(
+    value: ConstraintSet, reference, request, regions, *, fixed_core_check=True
+):
     operation = request.operation
     mode = getattr(request, "mode", getattr(getattr(request, "payload", None), "mode", ""))
     conditions = []
@@ -128,6 +130,8 @@ def compile_constraints(value: ConstraintSet, reference, request, regions):
                 value=payload,
                 independent_result_check="rdkit_receptor_bounds_v1"
                 if output_check
+                else "rdkit_fixed_core_v1"
+                if fixed_core_check and code == "native_fixed"
                 else "not_implemented",
             )
         )

@@ -9,6 +9,7 @@ from opendde_workbench.capabilities import frontend_catalogue
 from opendde_workbench.capabilities.modalities import modality_catalogue
 from opendde_workbench.diffsbdd.manifest import MODELS
 from opendde_workbench.diffsbdd.options import DiffOptions
+from opendde_workbench.diffsbdd.quality import CoreVerification
 from opendde_workbench.docking.options import DockingOptions
 from opendde_workbench.research.constraint_contract import ConstraintSet, SpatialBoundsCondition
 from opendde_workbench.research.regions import REGION_ROLES
@@ -63,6 +64,8 @@ def main() -> None:
         + json.dumps(list(MODELS.values()), indent=2)
         + " as const;\nexport const optionSchema = "
         + json.dumps(DiffOptions.model_json_schema(), indent=2)
+        + " as const;\nexport const coreVerificationSchema = "
+        + json.dumps(CoreVerification.model_json_schema(), indent=2)
         + " as const;\n",
     }
     for name, body in files.items():

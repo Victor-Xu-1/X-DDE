@@ -225,6 +225,20 @@ export function DiffForm({
             }
           />
         )}
+        {mode === "inpaint" && (
+          <p
+            className="field-help"
+            title={
+              zh
+                ? "生成后逐个核对原子身份、内部连接与坐标；立体定义跨出固定区域时，请一并选择定义该立体化学的邻居原子。原生容差为 0.5 Å。"
+                : "After generation, check atom identity, internal bonds and coordinates independently. Include stereo-defining neighbours when they cross the core boundary. Native tolerance is 0.5 Å."
+            }
+          >
+            {zh
+              ? "固定区域会独立复核；违反要求或无法确认的候选不会自动复用。"
+              : "Fixed cores are independently checked; failed or uncertain candidates are not reused automatically."}
+          </p>
+        )}
         {mode === "inpaint" && molecule && (
           <FixedAtomPicker
             key={referenceKey(molecule)}

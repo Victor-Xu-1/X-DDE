@@ -110,7 +110,25 @@ def register_constraints(app, store, assets, settings, mutation):
                 raise ValueError("Frozen constraint document differs from its recorded digest.")
             from .constraint_compile import compile_constraints
 
-            expected = compile_constraints(result.document, reference, job.request, records.regions)
+            execution = file.parent / "execution.json"
+            # Old frozen receipts must retain their original support claims. Current
+            # native launches record the verification profile before executing.
+            core_check = False
+            if execution.is_file():
+                verified_execution = contained(execution.parent, execution.name)
+                if verified_execution.stat().st_size > 2 * 1024**2:
+                    raise ValueError("Execution evidence exceeds its limit.")
+                core_check = (
+                    json.loads(verified_execution.read_text()).get("core_verification")
+                    == "rdkit_fixed_core_v1"
+                )
+            expected = compile_constraints(
+                result.document,
+                reference,
+                job.request,
+                records.regions,
+                fixed_core_check=core_check,
+            )
             if expected != result:
                 raise ValueError(
                     "Constraint receipt parameters or support differ from the actual task."

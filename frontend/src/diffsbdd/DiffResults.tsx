@@ -4,6 +4,7 @@ import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
 import type { OperationResult } from "../operations/types";
 import { DiffForm } from "./DiffForm";
+import { CoreVerification } from "./CoreVerification";
 import { PropertyForm } from "../operations/PropertyForm";
 import { StructureViewer } from "../viewer/StructureViewer";
 
@@ -29,18 +30,25 @@ export function DiffResults({
   useEffect(() => {
     const c = new AbortController();
     setObjects([]);
+    setError("");
     setSelected(null);
     setAction(null);
     async function load() {
       const all: ScientificObject[] = [];
       for (let offset = 0; offset < 10000; offset += 200) {
         const page = await request<ScientificObject[]>(
-          `/research/objects?limit=200&offset=${offset}`,
+          `/research/objects?source_job=${encodeURIComponent(job.id)}&limit=200&offset=${offset}`,
           { signal: c.signal },
         );
         all.push(
           ...page.filter(
-            (v) => v.source_job === job.id && v.kind === "molecule",
+            (v) =>
+              v.source_job === job.id &&
+              v.kind === "molecule" &&
+              (!data.core_verification ||
+                (v.reference.sha256 ===
+                  data.core_verification.qualified_sha256 &&
+                  v.reference.record < data.core_verification.qualified_count)),
           ),
         );
         if (page.length < 200) break;
@@ -51,7 +59,7 @@ export function DiffResults({
       if (!c.signal.aborted) setError(String(e));
     });
     return () => c.abort();
-  }, [job.id]);
+  }, [job.id, data.core_verification]);
   const names = [
     "protein_artifact",
     "pocket_artifact",
@@ -79,6 +87,13 @@ export function DiffResults({
           {zh ? "有效候选 / 尝试数量" : "Valid candidates / attempts"}:{" "}
           {data.valid} / {String(data.attempted)}
         </p>
+      )}
+      {data.core_verification && (
+        <CoreVerification
+          data={data.core_verification}
+          jobId={job.id}
+          language={language}
+        />
       )}
       {names.length > 0 && (
         <ul>

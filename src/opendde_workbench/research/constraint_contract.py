@@ -138,9 +138,9 @@ class ConditionSupport(ScientificModel):
     ]
     native_parameter: str | None = None
     value: list[int] | SearchBox | None = None
-    independent_result_check: Literal["not_implemented", "rdkit_receptor_bounds_v1"] = (
-        "not_implemented"
-    )
+    independent_result_check: Literal[
+        "not_implemented", "rdkit_receptor_bounds_v1", "rdkit_fixed_core_v1"
+    ] = "not_implemented"
 
 
 class ConstraintExecution(ScientificModel):

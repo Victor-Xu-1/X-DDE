@@ -60,8 +60,8 @@ def generate(payload, bindings, directory, output):
             )
         )
     relative = destination.relative_to(output).as_posix()
-    # Native reports remain intact; the shared result adds artifact paths for the platform.
-    return {
+    # Native reports remain intact; qualification is an independent platform result.
+    result = {
         "status": report["status"],
         "valid": report["valid"],
         "attempted": report["attempted"],
@@ -72,6 +72,26 @@ def generate(payload, bindings, directory, output):
         "pocket_artifact": relative + "/pocket.pdb",
         "notes": report["notes"],
     }
+    if payload["mode"] == "inpaint":
+        from chemistry import molecule
+        from verification import verify_inpaint
+
+        evidence = verify_inpaint(
+            molecule(payload["initial"], bindings, directory),
+            payload["initial"],
+            payload["options"]["fixed_atoms"],
+            payload["options"]["preserve_bonds"],
+            destination / "molecules.sdf",
+            output,
+            report["valid"],
+        )
+        result.update(
+            core_verification=evidence,
+            native_valid=report["valid"],
+            valid=evidence["qualified_count"],
+            molecule_artifact=evidence["qualified_artifact"],
+        )
+    return result
 
 
 def main():

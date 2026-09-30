@@ -257,3 +257,265 @@ export const optionSchema = {
   title: "DiffOptions",
   type: "object",
 } as const;
+export const coreVerificationSchema = {
+  $defs: {
+    CoreAtomMapping: {
+      additionalProperties: false,
+      properties: {
+        source_atom: {
+          maximum: 4999,
+          minimum: 0,
+          title: "Source Atom",
+          type: "integer",
+        },
+        output_atom: {
+          maximum: 4999,
+          minimum: 0,
+          title: "Output Atom",
+          type: "integer",
+        },
+      },
+      required: ["source_atom", "output_atom"],
+      title: "CoreAtomMapping",
+      type: "object",
+    },
+    CoreCandidate: {
+      additionalProperties: false,
+      properties: {
+        record: {
+          maximum: 99,
+          minimum: 0,
+          title: "Record",
+          type: "integer",
+        },
+        qualified_record: {
+          anyOf: [
+            {
+              maximum: 99,
+              minimum: 0,
+              type: "integer",
+            },
+            {
+              type: "null",
+            },
+          ],
+          default: null,
+          title: "Qualified Record",
+        },
+        diagnostic_artifact: {
+          anyOf: [
+            {
+              pattern: "^diagnostic-core-[0-9]{3}\\.sdf$",
+              type: "string",
+            },
+            {
+              type: "null",
+            },
+          ],
+          default: null,
+          title: "Diagnostic Artifact",
+        },
+        method: {
+          const: "rdkit_fixed_core_v1",
+          title: "Method",
+          type: "string",
+        },
+        status: {
+          enum: ["passed", "failed", "indeterminate"],
+          title: "Status",
+          type: "string",
+        },
+        reason: {
+          anyOf: [
+            {
+              maxLength: 120,
+              type: "string",
+            },
+            {
+              type: "null",
+            },
+          ],
+          default: null,
+          title: "Reason",
+        },
+        preserve_bonds: {
+          title: "Preserve Bonds",
+          type: "boolean",
+        },
+        tolerance_angstrom: {
+          const: 0.5,
+          title: "Tolerance Angstrom",
+          type: "number",
+        },
+        unit: {
+          const: "angstrom",
+          title: "Unit",
+          type: "string",
+        },
+        search_states: {
+          maximum: 10000,
+          minimum: 1,
+          title: "Search States",
+          type: "integer",
+        },
+        mapping: {
+          items: {
+            $ref: "#/$defs/CoreAtomMapping",
+          },
+          maxItems: 80,
+          title: "Mapping",
+          type: "array",
+        },
+        maximum_displacement: {
+          anyOf: [
+            {
+              maximum: 0.5,
+              minimum: 0,
+              type: "number",
+            },
+            {
+              type: "null",
+            },
+          ],
+          default: null,
+          title: "Maximum Displacement",
+        },
+      },
+      required: [
+        "record",
+        "method",
+        "status",
+        "preserve_bonds",
+        "tolerance_angstrom",
+        "unit",
+        "search_states",
+        "mapping",
+      ],
+      title: "CoreCandidate",
+      type: "object",
+    },
+    MoleculeRef: {
+      additionalProperties: false,
+      properties: {
+        asset_id: {
+          format: "uuid",
+          title: "Asset Id",
+          type: "string",
+        },
+        sha256: {
+          pattern: "^[a-f0-9]{64}$",
+          title: "Sha256",
+          type: "string",
+        },
+        record: {
+          default: 0,
+          maximum: 499,
+          minimum: 0,
+          title: "Record",
+          type: "integer",
+        },
+        conformer: {
+          default: 0,
+          maximum: 999,
+          minimum: 0,
+          title: "Conformer",
+          type: "integer",
+        },
+        version_id: {
+          anyOf: [
+            {
+              format: "uuid",
+              type: "string",
+            },
+            {
+              type: "null",
+            },
+          ],
+          default: null,
+          title: "Version Id",
+        },
+      },
+      required: ["asset_id", "sha256"],
+      title: "MoleculeRef",
+      type: "object",
+    },
+  },
+  additionalProperties: false,
+  properties: {
+    schema_version: {
+      const: 1,
+      title: "Schema Version",
+      type: "integer",
+    },
+    method: {
+      const: "rdkit_fixed_core_v1",
+      title: "Method",
+      type: "string",
+    },
+    source: {
+      $ref: "#/$defs/MoleculeRef",
+    },
+    fixed_atoms: {
+      items: {
+        type: "integer",
+      },
+      maxItems: 80,
+      minItems: 1,
+      title: "Fixed Atoms",
+      type: "array",
+    },
+    preserve_bonds: {
+      title: "Preserve Bonds",
+      type: "boolean",
+    },
+    raw_artifact: {
+      maxLength: 240,
+      title: "Raw Artifact",
+      type: "string",
+    },
+    raw_sha256: {
+      pattern: "^[a-f0-9]{64}$",
+      title: "Raw Sha256",
+      type: "string",
+    },
+    qualified_artifact: {
+      const: "qualified-molecules.sdf",
+      title: "Qualified Artifact",
+      type: "string",
+    },
+    qualified_sha256: {
+      pattern: "^[a-f0-9]{64}$",
+      title: "Qualified Sha256",
+      type: "string",
+    },
+    qualified_count: {
+      maximum: 100,
+      minimum: 0,
+      title: "Qualified Count",
+      type: "integer",
+    },
+    candidates: {
+      items: {
+        $ref: "#/$defs/CoreCandidate",
+      },
+      maxItems: 100,
+      title: "Candidates",
+      type: "array",
+    },
+  },
+  required: [
+    "schema_version",
+    "method",
+    "source",
+    "fixed_atoms",
+    "preserve_bonds",
+    "raw_artifact",
+    "raw_sha256",
+    "qualified_artifact",
+    "qualified_sha256",
+    "qualified_count",
+    "candidates",
+  ],
+  title: "CoreVerification",
+  type: "object",
+} as const;

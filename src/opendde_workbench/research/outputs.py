@@ -57,8 +57,32 @@ class OutputCatalog:
             raise ValueError("No qualified pose is available for downstream reuse.")
         return result
 
+    def core_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "diffsbdd" or job.request.payload.mode != "inpaint":
+            return None
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        report = contained(root, "result.json")
+        if report.stat().st_size > 2 * 1024**2:
+            raise ValueError("Generation output report exceeds its typed limit.")
+        result = json.loads(report.read_text())
+        if "core_verification" not in result:
+            return None  # Historical results retain their original, limited native status.
+        from ..diffsbdd.quality import validate_verification
+
+        evidence = validate_verification(result, job.request, root)
+        if file.suffix.lower() == ".sdf" and (
+            file.name != evidence.qualified_artifact or not evidence.qualified_count
+        ):
+            raise ValueError(
+                "Only independently qualified core candidates are reusable; "
+                "other molecules remain diagnostic downloads."
+            )
+        return evidence
+
     def preserve(self, job_id, file, kind):
         self.docking_output(job_id, file)
+        self.core_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -149,6 +173,21 @@ class OutputCatalog:
                         )
                     ):
                         continue
+                if (
+                    job.request.operation == "diffsbdd"
+                    and job.request.payload.mode == "inpaint"
+                    and file.suffix.lower() == ".sdf"
+                ):
+                    manifest = contained(root, "result.json")
+                    if manifest.stat().st_size > 2 * 1024**2:
+                        raise ValueError("Generation output report exceeds its typed limit.")
+                    result = json.loads(manifest.read_text())
+                    if "core_verification" in result:
+                        from ..diffsbdd.quality import validate_verification
+
+                        evidence = validate_verification(result, job.request, root)
+                        if file.name != evidence.qualified_artifact or not evidence.qualified_count:
+                            continue
                 _, objects = self.preserve(job.id, file, kind)
                 count += len(objects)
             except (ValueError, KeyError, OSError) as exc:

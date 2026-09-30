@@ -203,3 +203,150 @@ def test_independent_bounds_use_real_heavy_atoms_and_retain_violations(tmp_path)
     parsed.GetConformer().SetAtomPosition(0, (float("nan"), 0, 0))
     with pytest.raises(ValueError, match="nonfinite"):
         bounds.assess(parsed, condition)
+
+
+def core_module(monkeypatch):
+    folder = Path(__file__).resolve().parents[1] / "src/opendde_workbench/diffsbdd"
+    monkeypatch.syspath_prepend(str(folder))
+    import fixed_core
+
+    return fixed_core
+
+
+def core_molecule(smiles, points=None):
+    from rdkit.Chem import AllChem
+
+    mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
+    assert AllChem.EmbedMolecule(mol, randomSeed=2026) == 0
+    mol = Chem.RemoveHs(mol)
+    if points:
+        for i, p in enumerate(points):
+            mol.GetConformer().SetAtomPosition(i, p)
+    return mol
+
+
+def test_independent_core_reorders_atoms_and_rejects_identity_bond_or_coordinate_changes(
+    monkeypatch,
+):
+    core = core_module(monkeypatch)
+    source = core_molecule("CCO", [(0, 0, 0), (1.4, 0, 0), (2.8, 0, 0)])
+    candidate = Chem.RenumberAtoms(source, [2, 0, 1])
+    result = core.assess(source, candidate, [0, 1, 2])
+    assert result["status"] == "passed"
+    assert result["mapping"] == [
+        {"source_atom": 0, "output_atom": 1},
+        {"source_atom": 1, "output_atom": 2},
+        {"source_atom": 2, "output_atom": 0},
+    ]
+    assert result["maximum_displacement"] == 0
+    for change in ("element", "charge", "isotope", "bond", "extra_bond", "coordinates"):
+        edited = Chem.RWMol(source)
+        if change == "element":
+            edited.GetAtomWithIdx(2).SetAtomicNum(7)
+        elif change == "charge":
+            edited.GetAtomWithIdx(2).SetFormalCharge(-1)
+        elif change == "isotope":
+            edited.GetAtomWithIdx(1).SetIsotope(13)
+        elif change == "bond":
+            edited.GetBondBetweenAtoms(0, 1).SetBondType(Chem.BondType.DOUBLE)
+        elif change == "extra_bond":
+            edited.AddBond(0, 2, Chem.BondType.SINGLE)
+        else:
+            edited.GetConformer().SetAtomPosition(2, (10, 0, 0))
+        assert core.assess(source, edited, [0, 1, 2])["status"] == "failed", change
+    changed_bond = Chem.RWMol(source)
+    changed_bond.GetBondBetweenAtoms(0, 1).SetBondType(Chem.BondType.DOUBLE)
+    atom_only = core.assess(source, changed_bond, [0, 1, 2], False)
+    assert atom_only["status"] == "passed" and not atom_only["preserve_bonds"]
+
+
+def test_core_ambiguity_budget_and_unusable_geometry_never_pass(monkeypatch):
+    core = core_module(monkeypatch)
+    source = core_molecule("CC", [(0, 0, 0), (0.2, 0, 0)])
+    assert core.assess(source, source, [0], False)["reason"] == "ambiguous_core_mapping"
+    assert (
+        core.assess(source, source, [0], False, search_limit=1)["reason"]
+        == "mapping_budget_exhausted"
+    )
+    for fixed in ([], [0, 0], [9], [-1]):
+        with pytest.raises(ValueError, match="Fixed atoms"):
+            core.assess(source, source, fixed)
+    source.GetConformer().Set3D(False)
+    with pytest.raises(ValueError, match="three-dimensional"):
+        core.assess(source, source, [0])
+    source.GetConformer().Set3D(True)
+    source.GetConformer().SetAtomPosition(0, (float("nan"), 0, 0))
+    with pytest.raises(ValueError, match="finite"):
+        core.assess(source, source, [0])
+
+
+def test_core_closed_tetrahedral_stereo_is_independent_of_atom_order(monkeypatch):
+    core = core_module(monkeypatch)
+    source = core_molecule("F[C@H](Cl)Br")
+    indices = list(range(source.GetNumAtoms()))
+    reordered = Chem.RenumberAtoms(source, list(reversed(indices)))
+    assert core.assess(source, reordered, indices)["status"] == "passed"
+    inverted = Chem.Mol(source)
+    inverted.GetAtomWithIdx(1).InvertChirality()
+    assert core.assess(source, inverted, indices)["reason"] == "stereochemistry_changed"
+    assert core.assess(source, source, [1])["reason"] == "stereo_crosses_fixed_boundary"
+    # Tiny coordinates isolate actual inversion from the native 0.5 A drift gate.
+    conf = source.GetConformer()
+    for i in indices:
+        p = conf.GetAtomPosition(i)
+        conf.SetAtomPosition(i, (p.x * 0.02, p.y * 0.02, p.z * 0.02))
+    inverted = Chem.Mol(source)
+    for i in indices:
+        p = inverted.GetConformer().GetAtomPosition(i)
+        inverted.GetConformer().SetAtomPosition(i, (-p.x, p.y, p.z))
+    assert core.assess(source, inverted, indices)["reason"] == "stereo_geometry_inverted"
+
+
+def test_core_double_bond_geometry_and_disconnected_regions(monkeypatch):
+    core = core_module(monkeypatch)
+    source = core_molecule("F/C=C/Cl")
+    assert core.assess(source, source, [0, 1, 2, 3])["status"] == "passed"
+    assert core.assess(source, source, [1, 2])["reason"] == "stereo_crosses_fixed_boundary"
+    conf = source.GetConformer()
+    for i in range(4):
+        p = conf.GetAtomPosition(i)
+        conf.SetAtomPosition(i, (p.x * 0.02, p.y * 0.02, p.z * 0.02))
+    edited = Chem.Mol(source)
+    # Reflect the defining substituent about the double-bond axis.
+    import numpy as np
+
+    points = core.coordinates(source)
+    p, q, r = [np.array(points[i]) for i in (0, 1, 2)]
+    axis = r - q
+    projection = q + axis * np.dot(p - q, axis) / np.dot(axis, axis)
+    edited.GetConformer().SetAtomPosition(0, tuple(2 * projection - p))
+    assert core.assess(source, edited, [0, 1, 2, 3])["status"] != "passed"
+    separated = core_molecule("CCO", [(0, 0, 0), (1.4, 0, 0), (2.8, 0, 0)])
+    assert core.assess(separated, separated, [0, 2])["status"] == "passed"
+
+
+def test_actual_sdf_core_qualification_keeps_rejected_raw_records(monkeypatch, tmp_path):
+    core_module(monkeypatch)
+    from verification import verify_inpaint
+
+    source = core_molecule("CCO", [(0, 0, 0), (1.4, 0, 0), (2.8, 0, 0)])
+    native = tmp_path / "native"
+    native.mkdir()
+    raw = native / "molecules.sdf"
+    rejected = Chem.Mol(source)
+    rejected.GetConformer().SetAtomPosition(2, (20, 0, 0))
+    with Chem.SDWriter(str(raw)) as writer:
+        writer.write(Chem.RenumberAtoms(source, [2, 0, 1]))
+        writer.write(rejected)
+    original = raw.read_bytes()
+    ref = {"asset_id": "fixture", "sha256": "a" * 64, "record": 0, "conformer": 0}
+    report = verify_inpaint(source, ref, [0, 1, 2], True, raw, tmp_path, 2)
+    assert report["qualified_count"] == 1
+    assert [c["status"] for c in report["candidates"]] == ["passed", "failed"]
+    assert report["candidates"][0]["qualified_record"] == 0
+    assert report["candidates"][1]["diagnostic_artifact"] == "diagnostic-core-002.sdf"
+    assert raw.read_bytes() == original
+    assert len(Chem.SDMolSupplier(str(tmp_path / report["qualified_artifact"]))) == 1
+    assert len(Chem.SDMolSupplier(str(tmp_path / "diagnostic-core-002.sdf"))) == 1
+    with pytest.raises(ValueError, match="count"):
+        verify_inpaint(source, ref, [0, 1, 2], True, raw, tmp_path, 1)

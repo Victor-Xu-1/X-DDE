@@ -173,6 +173,11 @@ def test_fixed_regions_compile_only_exact_native_selection(settings):
     ref = reference(saved)
     result = records.preview(ref, request)
     assert result.executable and result.conditions[0].value == [1, 2]
+    assert result.conditions[0].independent_result_check == "rdkit_fixed_core_v1"
+    from opendde_workbench.research.constraint_compile import compile_constraints
+
+    legacy = compile_constraints(value, ref, request, regions, fixed_core_check=False)
+    assert legacy.conditions[0].independent_result_check == "not_implemented"
     body = request.model_dump(mode="json")
     body["payload"]["options"]["fixed_atoms"] = [1]
     body["payload"]["fixed_atoms"] = body["payload"]["fixed_atoms"][:1]

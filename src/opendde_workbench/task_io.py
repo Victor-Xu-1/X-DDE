@@ -35,4 +35,14 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
     if not manifest.is_file() or manifest.stat().st_size > 25 * 1024**2:
         return False
     result = json.loads(manifest.read_text())
+    if operation == "diffsbdd" and job.request.payload.mode == "inpaint":
+        execution = directory / "execution.json"
+        required = (
+            execution.is_file()
+            and json.loads(execution.read_text()).get("core_verification") == "rdkit_fixed_core_v1"
+        )
+        if required or "core_verification" in result:
+            from .diffsbdd.quality import validate_verification
+
+            validate_verification(result, job.request, output)
     return result.get("operation") == operation and result.get("complete") is True

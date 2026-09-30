@@ -29,3 +29,19 @@ export interface IdentityResult {
 }
 export const isDesign = (mode: string): mode is DesignMode =>
   ["generate", "inpaint", "diversify", "optimize"].includes(mode);
+
+export interface CoreVerificationData {
+  method: "rdkit_fixed_core_v1";
+  preserve_bonds: boolean;
+  qualified_count: number;
+  qualified_sha256: string;
+  candidates: {
+    record: number;
+    qualified_record: number | null;
+    diagnostic_artifact: string | null;
+    status: "passed" | "failed" | "indeterminate";
+    reason: string | null;
+    maximum_displacement: number | null;
+    mapping: { source_atom: number; output_atom: number }[];
+  }[];
+}
