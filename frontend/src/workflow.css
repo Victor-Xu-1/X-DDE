@@ -57,34 +57,34 @@
   align-items: flex-start;
   gap: 9px;
   padding: 14px;
-  border: 1px solid #dce6f5;
+  border: 1px solid #ded9cb;
   border-radius: 8px;
   cursor: pointer;
-  background: #fbfdff;
+  background: #f5f3ed;
 }
 .workflow-options label.selected {
-  background: #eef5ff;
-  border-color: #4e8bfa;
-  box-shadow: 0 0 0 1px #4e8bfa;
+  background: #f5f3ed;
+  border-color: #82786a;
+  box-shadow: 0 0 0 1px #82786a;
 }
 .workflow-options input {
-  accent-color: #2164e4;
+  accent-color: #a85237;
   margin-top: 3px;
 }
 .workflow-options strong {
   font-size: 14px;
-  color: #254477;
+  color: #34332d;
 }
 .workflow-options small {
   display: block;
   font-size: 12px;
   line-height: 1.6;
-  color: #6a7f9d;
+  color: #635d53;
   margin-top: 4px;
 }
 .workflow-note {
   font-size: 12px;
-  color: #6a7f9d;
+  color: #635d53;
   line-height: 1.6;
   margin: 12px 0 20px;
 }
@@ -92,7 +92,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
   gap: 24px;
-  border-top: 1px solid #e8edf6;
+  border-top: 1px solid #ece9df;
   padding-top: 20px;
 }
 .studio-app .input-panel h3 {
@@ -157,7 +157,7 @@
 }
 .model-summary {
   padding: 8px 0;
-  color: #526e97;
+  color: #635d53;
 }
 @media (max-width: 1150px) {
   .workbench-columns {
@@ -193,10 +193,10 @@
 }
 .workspace-mode button {
   padding: 9px 18px;
-  border: 1px solid #dbe5f5;
+  border: 1px solid #ded9cb;
   border-radius: 7px;
   background: white;
-  color: #496181;
+  color: #635d53;
   font-size: 14px;
 }
 .result-task-name {
@@ -209,18 +209,18 @@
 }
 
 .workspace-mode button.selected {
-  color: #185ac9;
-  background: #e9f2ff;
-  border-color: #b6d0fc;
+  color: #a85237;
+  background: #ece9df;
+  border-color: #a19c90;
 }
 .form-mode-row .segmented > button {
-  border: 1px solid #d9e4f3;
+  border: 1px solid #ded9cb;
   border-radius: 6px;
-  color: #526a8b;
+  color: #635d53;
   background: #fff;
 }
 .form-mode-row .segmented > button.selected {
-  color: #185ac9;
-  border-color: #a9c9fb;
-  background: #eaf3ff;
+  color: #a85237;
+  border-color: #a19c90;
+  background: #ece9df;
 }

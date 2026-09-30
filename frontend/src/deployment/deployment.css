@@ -1,0 +1,231 @@
+.research-heading {
+  max-width: 850px;
+  margin: 22px 0 30px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.research-heading h1 {
+  font-family: Georgia, "Songti SC", "SimSun", serif;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  margin: 10px 0 14px;
+}
+.research-heading p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.setup-card,
+.component-card {
+  background: #fffefa;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+.setup-card h2 {
+  font-size: 20px;
+  margin: 10px 0 20px;
+}
+.step-number {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  color: var(--accent);
+}
+.setup-choice {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  gap: 7px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.setup-choice:hover {
+  border-color: var(--accent);
+}
+.setup-choice span,
+.section-heading span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 20px;
+  margin-top: 30px;
+}
+.component-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.component-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.component-card h3,
+.component-card p {
+  margin: 0;
+}
+.component-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  flex: 1;
+}
+.component-card small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.component-top,
+.component-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.component-top {
+  justify-content: space-between;
+}
+.status-pill {
+  display: inline-flex;
+  border-radius: 5px;
+  background: #eeece5;
+  color: #625e55;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+.status-pill.installed {
+  background: #e6eee6;
+  color: #38553f;
+}
+.deployment-activity article {
+  background: #fffefa;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.deployment-activity strong {
+  margin-right: 12px;
+}
+.deployment-activity p {
+  font-size: 12px;
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.deployment-log {
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.command-reference {
+  margin: 32px 0;
+}
+.command-reference dl {
+  background: #eeece5;
+  border-radius: 10px;
+  padding: 12px 22px;
+}
+.command-reference dl > div {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) 1fr;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.command-reference dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.onboarding-banner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  justify-content: space-between;
+  background: #ede8dd;
+  border: 1px solid #ded6c5;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.onboarding-banner p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 800px) {
+  .setup-grid {
+    grid-template-columns: 1fr;
+  }
+  .deployment-activity article {
+    flex-direction: column;
+  }
+  .command-reference dl > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.deployment-workspace button,
+.editor-workspace button,
+.onboarding-banner button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 13px;
+  background: #fffefa;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+}
+.deployment-workspace button:hover:not(:disabled),
+.editor-workspace button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.deployment-workspace button:disabled,
+.editor-workspace button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+.deployment-workspace .setup-choice {
+  padding: 17px;
+  background: var(--canvas);
+}
+.component-actions button:first-child,
+.onboarding-banner button {
+  background: #a85237;
+  color: white;
+  border-color: #a85237;
+}
+@media (max-width: 1150px) {
+  .component-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 650px) {
+  .component-grid {
+    grid-template-columns: 1fr;
+  }
+}

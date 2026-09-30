@@ -1,5 +1,6 @@
 """Loopback API: validated requests, same-origin mutations, safe result downloads."""
 
+import asyncio
 import fcntl
 import secrets
 import shutil
@@ -20,6 +21,8 @@ from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .assets import AssetStore
 from .checkpoints import registered, resolve
+from .deployment.manager import DeploymentManager
+from .deployment.routes import register_deployments
 from .engine import DockerEngine, Engine
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
@@ -41,7 +44,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     engine = engine or DockerEngine(settings)
     assets = AssetStore(store, settings.state_dir / "assets")
     worker = Worker(store, engine, settings, assets)
+    deployments = DeploymentManager(settings.state_dir)
     csrf = secrets.token_urlsafe(32)
+    mutations = asyncio.Lock()
     health_cache = {"expires": 0.0, "value": None}
 
     @asynccontextmanager
@@ -49,12 +54,15 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         with (settings.state_dir / "worker.lock").open("w") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             await worker.start()
+            await deployments.start()
             try:
                 yield
             finally:
+                await deployments.close()
                 await worker.close()
 
-    app = FastAPI(title="OpenDDE Workbench", version=__version__, lifespan=lifespan)
+    app = FastAPI(title="X-DDE", version=__version__, lifespan=lifespan)
+    app.state.quiescing = False
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 
     @app.exception_handler(RequestValidationError)
@@ -87,15 +95,53 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                         "detail": "Request body exceeds the size limit or has no fixed length."
                     },
                 )
-        response = await call_next(request)
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            async with mutations:
+                if app.state.quiescing:
+                    return JSONResponse(status_code=409, content={"detail": "UI is shutting down."})
+                if (
+                    request.url.path.startswith("/api/harness/")
+                    and request.url.path.endswith("/start")
+                    and any(
+                        r["state"] in {"queued", "running", "pausing"}
+                        and r["package"] not in {"ketcher", "molstar"}
+                        for r in deployments.store.rows()
+                    )
+                ):
+                    return JSONResponse(
+                        status_code=409,
+                        content={"detail": "Wait or pause component deployment first."},
+                    )
+                response = await call_next(request)
+        else:
+            response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
-        frame_ancestors = "'self'" if request.url.path == "/viewer.html" else "'none'"
+        editor = request.url.path.startswith("/tools/") or request.url.path == "/molecular.html"
+        frame_ancestors = "'self'" if request.url.path == "/viewer.html" or editor else "'none'"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; style-src 'self'; img-src 'self' data:; "
             "script-src 'self'; worker-src 'self' blob:; style-src-attr 'unsafe-inline'; "
             f"frame-ancestors {frame_ancestors}; base-uri 'none'"
         )
+        if editor:
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
+                "font-src 'self' data:; connect-src 'self' blob:; worker-src 'self' blob:; "
+                "frame-ancestors 'self'; base-uri 'self'"
+            )
+        if request.url.path == "/molecular.html":
+            # Mol* uses generated query functions. Restrict this permission to an opaque-origin
+            # sandbox: it cannot read the parent, session token, uploads or other app state.
+            response.headers["Content-Security-Policy"] = (
+                response.headers["Content-Security-Policy"].replace(
+                    "'wasm-unsafe-eval'", "'unsafe-eval'"
+                )
+                + "; sandbox allow-scripts allow-downloads"
+            )
+        if request.url.path.startswith(("/assets/", "/tools/molstar/")):
+            response.headers["Access-Control-Allow-Origin"] = "*"
         if request.url.path.startswith("/api"):
             response.headers["Cache-Control"] = "no-store"
         return response
@@ -114,6 +160,16 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return job
 
     async def preflight(value: TaskRequest):
+        if any(
+            r["state"] in {"queued", "running", "pausing"}
+            and r["package"] not in {"ketcher", "molstar"}
+            for r in deployments.store.rows()
+        ):
+            raise HTTPException(
+                409,
+                "Compute components are being deployed. Wait or pause deployment "
+                "before submitting a scientific task.",
+            )
         readiness = await health()
         if not readiness["worker_ready"]:
             raise HTTPException(503, worker.error or "Task worker is not available.")
@@ -179,7 +235,13 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     @app.get("/api/session")
     def session():
-        return {"csrf_token": csrf, "version": __version__}
+        import os
+
+        return {
+            "csrf_token": csrf,
+            "version": __version__,
+            "instance": os.environ.get("WB_INSTANCE", ""),
+        }
 
     @app.get("/api/checkpoints")
     def checkpoints():
@@ -314,6 +376,43 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     register_assets(app, assets, mutation)
     harness_service = register_harness(app, store, assets, settings, mutation)
+
+    async def scientific_busy():
+        with store.connect() as db:
+            active = db.execute(
+                "SELECT 1 FROM jobs WHERE status IN ('queued','running','cancelling') LIMIT 1"
+            ).fetchone()
+        if active:
+            return True
+        if settings.harness_python and settings.harness_python.is_file():
+            try:
+                return bool(await harness_service.invoke({"operation": "active"}, timeout=15))
+            except (RuntimeError, ValueError, OSError, TimeoutError):
+                raise HTTPException(
+                    503, "Cannot verify native task state; retry after checking Harness."
+                ) from None
+        return False
+
+    @app.get("/api/lifecycle")
+    async def lifecycle():
+        return {
+            "busy": bool(
+                any(
+                    r["state"] in {"queued", "running", "pausing"} for r in deployments.store.rows()
+                )
+            )
+            or await scientific_busy()
+        }
+
+    register_deployments(app, deployments, mutation, scientific_busy)
+
+    @app.post("/api/lifecycle/stop", dependencies=[Depends(mutation)])
+    async def prepare_shutdown():
+        if (await lifecycle())["busy"]:
+            raise HTTPException(409, "Pause deployments and stop scientific tasks before closing.")
+        app.state.quiescing = True
+        return {"busy": False}
+
     worker.gate = harness_service.queue_gate
     register_operations(app, store, assets, settings, mutation)
     register_projects(app, store, mutation)

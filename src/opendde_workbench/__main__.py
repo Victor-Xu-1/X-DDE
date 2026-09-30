@@ -7,7 +7,7 @@ import uvicorn
 
 
 def main():
-    parser = argparse.ArgumentParser(description="OpenDDE Workbench (localhost only)")
+    parser = argparse.ArgumentParser(description="X-DDE (localhost only)")
     parser.add_argument("--port", type=int, default=4320)
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535:

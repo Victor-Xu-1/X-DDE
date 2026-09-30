@@ -274,7 +274,7 @@ summary {
   font-size: 10px;
   border-radius: 20px;
   padding: 4px 8px;
-  background: #f0f2f3;
+  background: #ece9df;
   color: #687778;
   white-space: nowrap;
 }
@@ -284,8 +284,8 @@ summary {
 }
 .status.running,
 .status.cancelling {
-  background: #e3eff6;
-  color: #2c6f97;
+  background: #ece9df;
+  color: #635d53;
 }
 .status.queued {
   background: #faf1da;

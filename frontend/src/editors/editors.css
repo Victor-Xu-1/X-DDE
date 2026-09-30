@@ -1,0 +1,50 @@
+.editor-tabs,
+.editor-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.editor-tabs button[aria-pressed="true"] {
+  background: #33342e;
+  color: white;
+  border-color: #33342e;
+}
+.editor-tabs button:last-child {
+  margin-left: auto;
+}
+.editor-empty {
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: #fffefa;
+}
+.editor-empty .step-number {
+  font-size: 70px;
+}
+.editor-empty p {
+  color: var(--muted);
+}
+.molecular-editor {
+  width: 100%;
+  height: max(600px, 75vh);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+}
+.file-choice {
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  padding: 6px 0;
+}
+.file-choice input {
+  width: 220px;
+}

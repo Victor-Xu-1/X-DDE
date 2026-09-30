@@ -1,0 +1,40 @@
+name: Release installers
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify and build exact release
+        run: |
+          cd frontend
+          npm ci
+          npm run check
+          npm test
+          npm run build
+          cd ..
+          uv sync --locked --group dev
+          uv run ruff check src tests server_tests
+          uv run pytest -q
+          uv build --wheel
+          test "$GITHUB_REF_NAME" = "v$(uv run python -c 'from opendde_workbench import __version__; print(__version__)')"
+          cp install.sh install.ps1 scripts/opendde.ps1 dist/
+          cd dist
+          sha256sum *.whl install.sh install.ps1 opendde.ps1 > SHA256SUMS
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --prerelease --title "X-DDE $GITHUB_REF_NAME" --generate-notes

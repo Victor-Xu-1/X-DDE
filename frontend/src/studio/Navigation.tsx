@@ -23,6 +23,8 @@ export type View =
   | "analysis"
   | "reports"
   | "models"
+  | "deployment"
+  | "editors"
   | "help";
 const items = [
   {
@@ -32,6 +34,18 @@ const items = [
     icon: ExperimentOutlined,
   },
   { id: "home", cn: "预测工作台", en: "Workbench", icon: HomeFilled },
+  {
+    id: "editors",
+    cn: "分子与结构",
+    en: "Molecules & structures",
+    icon: ExperimentOutlined,
+  },
+  {
+    id: "deployment",
+    cn: "安装与组件",
+    en: "Installation & components",
+    icon: DeploymentUnitOutlined,
+  },
   { id: "projects", cn: "项目空间", en: "Projects", icon: FolderOutlined },
   { id: "tasks", cn: "任务中心", en: "Task center", icon: ProfileOutlined },
   { id: "analysis", cn: "结果解读", en: "Results", icon: BarChartOutlined },
@@ -72,7 +86,7 @@ export function Navigation({
       <button className="studio-brand" onClick={() => onView("tools")}>
         <DeploymentUnitOutlined className="studio-brand-mark" />
         <span>
-          <strong>OpenDDE</strong>
+          <strong>X-DDE</strong>
           <small>{zh ? "药 物 研 究 工 作 台" : "DISCOVERY WORKBENCH"}</small>
         </span>
       </button>

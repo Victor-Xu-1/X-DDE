@@ -1,6 +1,6 @@
 [project]
-name = "opendde-workbench"
-version = "0.3.0rc1"
+name = "x-dde"
+version = "0.4.0rc1"
 description = "Bilingual research workbench for OpenDDE and Harness"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,7 +12,14 @@ dependencies = [
 ]
 
 [project.scripts]
+X-DDE = "opendde_workbench.cli:main"
+x-dde = "opendde_workbench.cli:main"
+xdde = "opendde_workbench.cli:main"
+x-dde-server = "opendde_workbench.__main__:main"
 opendde-workbench = "opendde_workbench.__main__:main"
+opendde = "opendde_workbench.cli:main"
+OpenDDE = "opendde_workbench.cli:main"
+OPENDDE = "opendde_workbench.cli:main"
 
 [build-system]
 requires = ["hatchling==1.27.0"]

@@ -23,16 +23,16 @@
   flex-wrap: wrap;
 }
 .tool-groups button {
-  border: 1px solid #dbe6f6;
+  border: 1px solid #ded9cb;
   border-radius: 8px;
   padding: 9px 15px;
   background: #fff;
-  color: #31476e;
+  color: #34332d;
 }
 .tool-groups .selected {
-  color: #0759ef;
-  background: #edf4ff;
-  border-color: #8bb4ff;
+  color: #a85237;
+  background: #f5f3ed;
+  border-color: #a19c90;
 }
 .tool-grid {
   display: grid;
@@ -43,39 +43,39 @@
   text-align: left;
   display: flex;
   flex-direction: column;
-  border: 1px solid #dde7f7;
-  background: linear-gradient(145deg, #fff, #f6f9ff);
+  border: 1px solid #ded9cb;
+  background: linear-gradient(145deg, #fff, #f5f3ed);
   border-radius: 12px;
   padding: 22px;
   min-height: 195px;
-  box-shadow: 0 3px 12px #174caf06;
+  box-shadow: 0 3px 12px #635d5306;
 }
 .tool-card:hover,
 .tool-card:focus-visible {
-  border-color: #739eff;
-  box-shadow: 0 6px 22px #174caf13;
+  border-color: #a19c90;
+  box-shadow: 0 6px 22px #635d5313;
 }
 .tool-card h3 {
   font-size: 17px;
-  color: #13346c;
+  color: #34332d;
   margin: 13px 0 9px;
 }
 .tool-card p,
 .tool-heading p {
   font-size: 14px;
-  color: #647793;
+  color: #635d53;
   line-height: 1.6;
 }
 .tool-open {
   margin-top: auto;
   padding-top: 12px;
-  color: #0961fa;
+  color: #a85237;
   font-size: 13px;
 }
 .source-badge {
   font-size: 11px;
   letter-spacing: 0.03em;
-  color: #586f9b;
+  color: #635d53;
 }
 .tool-heading {
   padding: 18px 0;
@@ -85,7 +85,7 @@
 }
 .tool-form {
   background: #fff;
-  border: 1px solid #dce6f4;
+  border: 1px solid #ded9cb;
   border-radius: 12px;
   padding: 24px;
   max-width: 1120px;
@@ -117,21 +117,21 @@
 .inline-fields input,
 .extended-parameters input,
 .extended-parameters select {
-  border: 1px solid #cfddf2;
+  border: 1px solid #ded9cb;
   border-radius: 6px;
   padding: 9px 10px;
   background: #fff;
-  color: #18345a;
+  color: #34332d;
   min-width: 0;
 }
 .tool-form button:not(.primary-button):not(.danger-button),
 .covalent-editor > button,
 .asset-picker button {
-  border: 1px solid #d7e2f4;
-  background: #f8fbff;
+  border: 1px solid #ded9cb;
+  background: #f5f3ed;
   border-radius: 6px;
   padding: 8px 12px;
-  color: #2359a4;
+  color: #635d53;
 }
 .tool-form button:disabled {
   opacity: 0.5;
@@ -142,7 +142,7 @@
 }
 .tool-form details summary {
   cursor: pointer;
-  color: #315585;
+  color: #635d53;
   padding: 8px 0;
 }
 .asset-picker {
@@ -164,12 +164,12 @@
   display: grid;
   gap: 5px;
   font-size: 12px;
-  color: #31588c;
+  color: #635d53;
 }
 .asset-picker small {
   width: 100%;
   font-size: 11px;
-  color: #6e7e97;
+  color: #635d53;
 }
 .network-choice {
   display: flex;
@@ -178,7 +178,7 @@
   line-height: 1.6;
   margin: 18px 0;
   padding: 12px;
-  background: #f2f7ff;
+  background: #f5f3ed;
   border-radius: 8px;
   font-size: 13px;
 }
@@ -197,7 +197,7 @@
   font-size: 13px;
 }
 .extended-parameters {
-  border-top: 1px solid #e7edf6;
+  border-top: 1px solid #ece9df;
   margin-top: 18px;
   padding-top: 10px;
 }
@@ -208,7 +208,7 @@
 }
 .covalent-editor {
   margin-top: 18px;
-  border-top: 1px solid #e7edf6;
+  border-top: 1px solid #ece9df;
   padding-top: 12px;
 }
 .covalent-editor > .viewer-panel {
@@ -217,7 +217,7 @@
 .bond-row,
 .draft-row {
   padding: 10px;
-  background: #f4f8ff;
+  background: #f5f3ed;
   border-radius: 6px;
   margin: 8px 0;
   font-size: 12px;
@@ -234,7 +234,7 @@
 }
 .resource-list label {
   padding: 14px;
-  border: 1px solid #dce6f6;
+  border: 1px solid #ded9cb;
   border-radius: 8px;
 }
 .resource-list span {
@@ -242,7 +242,7 @@
   gap: 5px;
 }
 .resource-list small {
-  color: #7584a0;
+  color: #635d53;
 }
 .chain-entry {
   display: grid;
@@ -250,7 +250,7 @@
   gap: 12px;
   align-items: center;
   padding: 10px;
-  background: #f7faff;
+  background: #f5f3ed;
   border-radius: 8px;
   margin: 10px 0;
 }
@@ -278,10 +278,10 @@
 }
 .sequence-picker button small {
   font-size: 8px;
-  color: #76859b;
+  color: #635d53;
 }
 .sequence-picker button[aria-pressed="true"] {
-  background: #1a69ef !important;
+  background: #a85237 !important;
   color: #fff !important;
 }
 .sequence-picker button[aria-pressed="true"] small {
@@ -299,12 +299,12 @@
 }
 .table-scroll th,
 .table-scroll td {
-  border-bottom: 1px solid #e5edf8;
+  border-bottom: 1px solid #ece9df;
   padding: 10px;
   text-align: left;
 }
 .table-scroll thead {
-  background: #f3f7fe;
+  background: #f5f3ed;
 }
 .table-scroll tbody th,
 .sequence-cell {
@@ -321,12 +321,12 @@
   display: grid;
   grid-template-columns: minmax(100px, 28%) minmax(0, 1fr);
   gap: 12px;
-  border-bottom: 1px solid #ecf1f8;
+  border-bottom: 1px solid #ece9df;
   padding: 8px 0;
 }
 .result-tree dt {
   font-size: 12px;
-  color: #697f9e;
+  color: #635d53;
   overflow-wrap: anywhere;
 }
 .result-tree dd {
@@ -348,7 +348,7 @@
 }
 .plan-review,
 .campaign-monitor {
-  border-top: 1px solid #dae5f5;
+  border-top: 1px solid #ded9cb;
   padding-top: 20px;
   margin-top: 30px;
 }
@@ -358,7 +358,7 @@
 }
 .campaign-status {
   padding: 16px;
-  background: #f2f7ff;
+  background: #f5f3ed;
   border-radius: 8px;
   margin: 15px 0;
 }
@@ -370,7 +370,7 @@
   margin-left: 12px;
 }
 .capability-note {
-  color: #75829a;
+  color: #635d53;
   font-size: 12px;
   line-height: 1.7;
   margin: 24px 0;
@@ -380,7 +380,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 2px solid #347cff;
+  outline: 2px solid #82786a;
   outline-offset: 3px;
 }
 @media (max-width: 1100px) {
@@ -410,12 +410,12 @@ summary:focus-visible {
   width: min(100%, 500px);
   height: auto;
   image-rendering: pixelated;
-  border: 1px solid #d4e0f2;
+  border: 1px solid #ded9cb;
 }
 .plddt-spark {
   max-width: 650px;
   height: 100px;
-  border: 1px solid #e6edf7;
+  border: 1px solid #ece9df;
 }
 .plddt-spark svg {
   width: 100%;

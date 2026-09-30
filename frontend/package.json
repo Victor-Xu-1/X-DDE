@@ -1,7 +1,7 @@
 {
-  "name": "opendde-workbench-ui",
+  "name": "x-dde-ui",
   "private": true,
-  "version": "0.3.0-rc.1",
+  "version": "0.4.0-rc.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",

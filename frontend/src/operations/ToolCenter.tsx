@@ -44,9 +44,7 @@ export function ToolCenter({
     <section className="tool-center">
       <header className="studio-intro">
         <div>
-          <h1>
-            {zh ? "OpenDDE 药物研究工作台" : "OpenDDE Discovery Workbench"}
-          </h1>
+          <h1>{zh ? "X-DDE 药物研究工作台" : "X-DDE Discovery Workbench"}</h1>
           <p>
             {zh
               ? "先选研究目标，再按提示准备输入。每个工具都标明能力来源，专家模式可查看原生参数。"
