@@ -1,3 +1,5 @@
+import { PoseViolations } from "./PoseViolations";
+import "./results.css";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
@@ -31,6 +33,7 @@ export function DockingResults({
   );
   return (
     <section
+      className="docking-results"
       aria-label={zh ? "结合模式与下一步" : "Binding poses and next steps"}
     >
       <p className="field-help">
@@ -134,29 +137,6 @@ export function DockingResults({
                           ? "空间条件未通过"
                           : "Spatial condition failed"}{" "}
                       · {c.maximum_excess.toFixed(3)} Å
-                      {c.violations.length > 0 && (
-                        <details>
-                          <summary>
-                            {zh
-                              ? "查看违反位置"
-                              : "Inspect violation positions"}
-                          </summary>
-                          <ul>
-                            {c.violations.map((v, i) => (
-                              <li key={i}>
-                                {v.output_atom_index === null
-                                  ? zh
-                                    ? "重原子中心"
-                                    : "Heavy-atom centroid"
-                                  : `${zh ? "输出原子" : "Output atom"} ${v.output_atom_index + 1}`}{" "}
-                                ·{" "}
-                                {v.position.map((x) => x.toFixed(3)).join(", ")}{" "}
-                                Å
-                              </li>
-                            ))}
-                          </ul>
-                        </details>
-                      )}
                     </div>
                   ))}
                   <span className="pose-qualification">
@@ -178,6 +158,7 @@ export function DockingResults({
           </tbody>
         </table>
       </div>
+      <PoseViolations poses={result.poses} language={language} />
       {diagnostic && (
         <>
           <p className="field-help">

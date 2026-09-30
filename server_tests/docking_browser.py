@@ -118,6 +118,15 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     ).to_have_count(0)
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
+                        if not page.evaluate(
+                            "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                        ):
+                            overflow = page.evaluate(
+                                "Array.from(document.querySelectorAll('*')).filter(e=>e.getBoundingClientRect().right>window.innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width,text:e.textContent.slice(0,120)})).slice(0,50)"
+                            )
+                            (evidence / "diagnostic-overflow.json").write_text(
+                                json.dumps(overflow, indent=2)
+                            )
                         assert page.evaluate(
                             "document.documentElement.scrollWidth <= window.innerWidth + 1"
                         )

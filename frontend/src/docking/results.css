@@ -1,0 +1,21 @@
+.docking-results {
+  min-width: 0;
+  max-width: 100%;
+}
+.docking-results .table-scroll {
+  width: 100%;
+  min-width: 0;
+}
+.docking-results table {
+  min-width: 40rem;
+}
+.pose-violations {
+  margin-block: 1rem;
+  overflow-wrap: anywhere;
+}
+.pose-violations ul {
+  max-height: 14rem;
+  overflow: auto;
+  padding-inline-start: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
