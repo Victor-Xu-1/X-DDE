@@ -47,12 +47,6 @@ class DockingTask(TaskMetadata):
             raise ValueError(
                 "Score-only mode supports empirical or CNN rescoring, not search/refinement."
             )
-        if not self.name.strip():
-            raise ValueError("Task name cannot be blank.")
-        if self.mode == "score" and self.options.cnn_scoring not in {"none", "rescore"}:
-            raise ValueError(
-                "Score-only mode supports empirical or CNN rescoring, not search/refinement."
-            )
         if self.receptor.record or self.receptor.conformer or self.ligand.conformer:
             raise ValueError("GNINA requires one receptor model and SDF conformer 0.")
         if self.mode == "dock":

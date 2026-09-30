@@ -46,6 +46,7 @@ export interface Parameters {
   search_cpus?: number;
 }
 export interface Prediction {
+  constraints?: import("./constraints/types").ConstraintReference | null;
   scientific_inputs?: import("./research/types").MoleculeRef[];
   operation?: "predict";
   name: string;

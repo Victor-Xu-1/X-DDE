@@ -22,6 +22,7 @@ export interface CovalentBond {
   right: BondAtom;
 }
 export interface BaseTask {
+  constraints?: import("../constraints/types").ConstraintReference | null;
   name: string;
   project_id?: string | null;
   scientific_inputs?: import("../research/types").MoleculeRef[];

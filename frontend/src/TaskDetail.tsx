@@ -1,3 +1,4 @@
+import { ConstraintReceipt } from "./constraints/ConstraintReceipt";
 import { useRef, useState } from "react";
 import { api, artifactUrl } from "./api";
 import { translator } from "./i18n";
@@ -109,6 +110,9 @@ export function TaskDetail({
         </p>
         <pre>{JSON.stringify(job.request, null, 2)}</pre>
       </details>
+      {job.request.constraints && (
+        <ConstraintReceipt key={job.id} job={job} language={language} />
+      )}
       <div className="task-actions">
         <a
           className="secondary-button"

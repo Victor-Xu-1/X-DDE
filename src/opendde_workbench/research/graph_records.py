@@ -10,6 +10,7 @@ TABLES = {
     "plan": "workflow_plans",
     "run": "workflow_runs",
     "region": "research_regions",
+    "constraint": "research_constraints",
 }
 
 
@@ -72,12 +73,41 @@ def project_record(store, kind, row):
                 else []
             ),
         )
+    if kind == "constraint":
+        from .constraint_contract import ConstraintSet
+
+        value = ConstraintSet.model_validate_json(row["body"])
+        refs = [value.subject] + ([value.frame.reference] if value.frame else [])
+        edges = [
+            (
+                "object:" + str(ref.version_id) if ref.version_id else "asset:" + str(ref.asset_id),
+                identifier,
+                "constrained_input",
+            )
+            for ref in refs
+        ]
+        edges.extend(
+            ("region:" + str(c.region_id), identifier, "constraint_selection")
+            for c in value.conditions
+            if c.kind == "fixed_region"
+        )
+        if value.parent_id:
+            edges.append(("constraint:" + str(value.parent_id), identifier, "revised_conditions"))
+        return identifier, {"id": identifier, "kind": "constraint", "label": value.name}, edges
     if kind == "plan":
         from ..workflows.contracts import PlanInput
 
         plan = PlanInput.model_validate_json(row["body"])
         edges = []
         for step in plan.steps:
+            if step.request.constraints:
+                edges.append(
+                    (
+                        "constraint:" + str(step.request.constraints.id),
+                        identifier,
+                        "planned_conditions",
+                    )
+                )
             edges.extend(
                 ("asset:" + value, identifier, "planned_input")
                 for value in input_identifiers(step.request)
@@ -136,6 +166,10 @@ def project_record(store, kind, row):
         for ref in refs
         if ref.version_id
     )
+    if job.request.constraints:
+        edges.append(
+            ("constraint:" + str(job.request.constraints.id), identifier, "used_conditions")
+        )
     if job.parent_id:
         edges.append(("task:" + job.parent_id, identifier, "continued_as"))
     return (

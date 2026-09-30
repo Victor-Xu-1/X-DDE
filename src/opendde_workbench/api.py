@@ -39,6 +39,7 @@ from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
 from .requests import BatchRequest, TaskRequest
+from .research.constraint_routes import register_constraints
 from .research.region_routes import register_regions
 from .research.routes import register_research
 from .science_routes import register_science
@@ -185,6 +186,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         if not readiness["worker_ready"]:
             raise HTTPException(503, worker.error or "Task worker is not available.")
         try:
+            constraints.check_task(value)
             if value.operation == "harness":
                 assets.validate_bindings(value)
                 if (
@@ -454,6 +456,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
     regions = register_regions(app, store, assets, settings, mutation)
+    constraints = register_constraints(app, store, assets, settings, mutation)
     workflows_service = register_workflows(
         app, store, assets, worker, preflight, settings, mutation
     )

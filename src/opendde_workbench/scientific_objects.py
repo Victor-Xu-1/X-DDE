@@ -3,8 +3,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing_extensions import Self
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ScientificModel(BaseModel):
@@ -47,24 +46,6 @@ class ResidueRef(ScientificModel):
                 "and residues without insertion codes or unresolved alternate locations."
             )
         return f"{self.chain}:{self.number}"
-
-
-class Constraint(ScientificModel):
-    id: UUID
-    kind: Literal["fixed_atoms", "preserve_bonds", "pocket_residues"]
-    support: Literal["native", "adapter", "result_check", "unsupported"]
-    strength: Literal["hard", "soft"] = "hard"
-    phase: Literal["input", "sampling", "result"]
-    atoms: tuple[AtomRef, ...] = ()
-    residues: tuple[ResidueRef, ...] = ()
-
-    @model_validator(mode="after")
-    def has_targets(self) -> Self:
-        if self.kind in {"fixed_atoms", "preserve_bonds"} and not self.atoms:
-            raise ValueError("Atom constraints require explicit versioned atom references.")
-        if self.kind == "pocket_residues" and not self.residues:
-            raise ValueError("Pocket constraints require explicit residue references.")
-        return self
 
 
 class Measurement(ScientificModel):

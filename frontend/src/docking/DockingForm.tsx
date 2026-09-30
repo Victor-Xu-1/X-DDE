@@ -1,3 +1,7 @@
+import { ConstraintPanel } from "../constraints/ConstraintPanel";
+import { withConstraints } from "../constraints/model";
+import type { ConstraintReference } from "../constraints/types";
+import { referenceKey } from "../diffsbdd/model";
 import { useEffect, useState } from "react";
 import { request } from "../api";
 import type { Job, Language } from "../types";
@@ -61,11 +65,30 @@ export function DockingForm({
       });
     return () => controller.abort();
   }, [mode]);
+  const [constraints, setConstraints] = useState<ConstraintReference | null>(
+    null,
+  );
+  useEffect(() => setConstraints(null), [referenceKey(ligand), mode]);
   const labels = {
     dock: ["探索结合模式", "Explore binding poses"],
     score: ["评估已有姿势", "Score existing pose"],
     minimize: ["局部最小化", "Local minimization"],
   };
+  function buildTask() {
+    return task(
+      mode,
+      receptor,
+      ligand,
+      options,
+      kind === "reference" ? reference : null,
+      mode === "dock" && kind === "box"
+        ? parseBox(center, size, language)
+        : null,
+      confirmed,
+      name.trim() || labels[mode][zh ? 0 : 1],
+      language,
+    );
+  }
   return (
     <form
       className="tool-form"
@@ -73,21 +96,9 @@ export function DockingForm({
         event.preventDefault();
         setError("");
         try {
-          void run.submit(
-            task(
-              mode,
-              receptor,
-              ligand,
-              options,
-              kind === "reference" ? reference : null,
-              mode === "dock" && kind === "box"
-                ? parseBox(center, size, language)
-                : null,
-              confirmed,
-              name.trim() || labels[mode][zh ? 0 : 1],
-              language,
-            ),
-          );
+          void withConstraints(buildTask(), constraints, language)
+            .then(run.submit)
+            .catch((failure) => setError(String(failure)));
         } catch (failure) {
           setError(String(failure));
         }
@@ -174,6 +185,31 @@ export function DockingForm({
             mode={mode}
             value={options}
             onChange={setOptions}
+          />
+        )}
+        {mode === "dock" && ligand && (
+          <ConstraintPanel
+            key={referenceKey(ligand)}
+            subject={ligand}
+            language={language}
+            getTask={buildTask}
+            value={constraints}
+            onChange={setConstraints}
+            onApply={(doc) => {
+              const box = doc.conditions.find((c) => c.kind === "search_box");
+              if (!box || box.kind !== "search_box" || !doc.frame)
+                throw new Error(
+                  zh
+                    ? "所选条件不包含搜索范围"
+                    : "Selected conditions do not contain a search box",
+                );
+              setReceptor(doc.frame.reference);
+              setKind("box");
+              setReference(null);
+              setConfirmed(false);
+              setCenter(box.box.center.map(String));
+              setSize(box.box.size.map(String));
+            }}
           />
         )}
         <label className="field">

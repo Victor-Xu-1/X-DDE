@@ -342,9 +342,9 @@ WP2 开始接入固定版本 P2Rank 2.5.1：它作为独立集成环境由 X-DDE
 | --- | --- | --- | --- |
 | R25 | 部分基础已有 | 定义结合、连接、第二功能、可修改、保留等完整化学图上的逻辑区域 | 角色可重叠；标区域不会自动切键/片段化；选区引用不可变对象版本 |
 | R26 | 部分基础已有 | 建立编辑、加氢、化学状态、文件转换与结构处理后的稳定映射/失效机制 | AtomRef/ResidueRef 使用真实身份而非查看器数组索引；不完整映射明确失效，不静默改号 |
-| R27 | 待实施 | 实现 ConstraintSet 的对象/选区、参照/坐标系、范围、单位、硬软、阶段、来源与验证器 | 目标 A 与整个装配范围区分；没有证据不固定世界箭头；契约与持久化一致 |
-| R28 | 待实施 | 做约束支持、输入前提、冲突及可证明不可行性检查 | 原生执行/平台适配/仅结果检查/不支持分开；不支持硬条件执行前拒绝，不偷偷放宽 |
-| R29 | 待实施 | 将约束选择/修改与执行证据、违反位置和最终独立复核联动 | 原生程序接受了什么可追踪；事后筛选不冒充引导搜索；硬条件失败候选不能列为合格 |
+| R27 | 部分实现 · 原生固定区域/搜索范围契约与复用 | 实现 ConstraintSet 的对象/选区、参照/坐标系、范围、单位、硬软、阶段、来源与验证器 | 目标 A 与整个装配范围区分；没有证据不固定世界箭头；契约与持久化一致 |
+| R28 | 部分实现 · 两类原生条件的支持/冲突/版本检查 | 做约束支持、输入前提、冲突及可证明不可行性检查 | 原生执行/平台适配/仅结果检查/不支持分开；不支持硬条件执行前拒绝，不偷偷放宽 |
+| R29 | 部分实现 · 执行前冻结依据；独立结果复核待实施 | 将约束选择/修改与执行证据、违反位置和最终独立复核联动 | 原生程序接受了什么可追踪；事后筛选不冒充引导搜索；硬条件失败候选不能列为合格 |
 
 ### WP2 / P07 位点、结构准备与受体集合（M2）
 
@@ -610,3 +610,16 @@ The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU t
 Pose comparison clears temporary atom-map bookkeeping on a copy and reassigns stereochemistry, so identical substituents are not distinguished by identifiers. Genuine R/S and E/Z chemistry remains part of identity validation. Published individual pose SDFs use this chemically equivalent map-free representation; original input and raw native artifacts remain retained. This does not infer a unique atom correspondence for symmetric molecules: ambiguous mappings still require selection reconfirmation.
 
 The mixed receptor/pose preview draws polymer ribbons only on real polymer atoms and a green ball-and-stick ligand from its separate native SDF. It opens around the selected ligand, with explicit ligand/global focus controls. Unsupported multi-source editing/surface switches are omitted; atom selection and display edits remain available for single-source structures. No residue names or molecular coordinates are fabricated for rendering.
+
+
+### R27–R29：统一条件版本与原生支持检查
+
+`research/constraint_contract.py` 定义不可变 `ConstraintSet`（schema 1）：确切分子版本、选区引用、坐标参照版本/来源、Å 单位、subject/target A/target B/assembly 范围、硬/软及权重、输入/采样阶段、来源与验证器。当前提供两个有真实执行路径的条件：DiffSBDD inpainting 的固定区域，以及 GNINA 对接的显式搜索范围。固定区域复用已由原生身份任务验证的同版本选区，编译器确认其原子集合实际包含在提交的 `fixed_atoms` 中；搜索范围要求与 receptor、ligand、`search.box` 完全一致。搜索范围限定搜索设置，不声称每个结果原子必须处于盒内。
+
+`ConstraintRecords` 在同一 SQLite 新增幂等表 `research_constraints`，内容 SHA-256、同版本修订父链与严格引用校验；旧任务的可选 `constraints` 默认空，旧资产/区域/历史不改写。修改保存新版本，不覆盖旧条件；换分子版本必须重新确认选区。`GET /api/research/constraints/schema`、分页/版本限定列表、单个版本与幂等创建提供保存和复用；`POST /api/research/constraint-support` 是带同一 CSRF 边界的只读计算，不排队、不启动科学任务，也不要求科学环境已经安装。前端契约由既有唯一生成脚本投影并在 CI 检查一致性。
+
+编译器计算 native/adapter/result_check/unsupported 支持级别，禁止客户端自行宣称支持。当前仅两个 native 路径可执行；其他任务/范围、软权重、错版本、错参照和不同原生参数均失败关闭，不静默放宽。盒条件对同一范围重复不同边界在保存前拒绝。API 提交与唯一 Worker 开始执行前分别重新核对，冻结完整条件文档、摘要及实际原生参数至任务目录 `constraint-execution.json`。`GET /api/jobs/{id}/constraints` 验证冻结摘要/任务引用并返回依据；它证明捕获的条件和参数，不证明原生程序运行成功或最终结果合格。
+
+局部重设计与结合模式表单内提供默认折叠的「保存与复用任务条件」：保存当前条件、保存修订、选择已有版本、应用条件、检查引擎支持；中英文提示和悬浮解释，修改参数会清除过期支持结论。原始文件、选区、条件、版本、计划与任务加入同一关系图，使用真实数据库关系。删除未被任何消费者使用的早期 `scientific_objects.Constraint` 草图，避免两套约束定义。
+
+本阶段没有把事后筛选伪装成搜索引导，也没有新增无法运行的空间条件卡片。独立几何/键/固定核心复核、违反位置/硬条件候选隔离、方向/锥形/占据体/出口/通道/距离条件、受约束精修和装配范围执行仍属于 R29、R41–R46 后续实施，不能把本阶段标为完整空间约束或完整研究计划完成。远程验收覆盖真实 SQLite/CSRF/摘要/修订/冲突、真实浏览器保存/不匹配/应用恢复、真实 RDKit 得到受体参照中心并提交 GNINA 显式范围与冻结执行依据；GPU/CNN与科研准确性另在目标服务器验收。

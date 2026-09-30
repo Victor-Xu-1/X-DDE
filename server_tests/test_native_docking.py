@@ -130,6 +130,34 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         (evidence / "runtime-health.json").write_text(json.dumps(health, indent=2))
         assert health["environments"]["gnina"]["ready"], health["environments"]["gnina"]
         assert not health["environments"]["opendde"]["ready"]
+        # Real chemical parser supplies the explicit receptor-frame center in remote CI.
+        parsed = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "-i",
+                "--network",
+                "none",
+                "--entrypoint",
+                "python",
+                installed["image"],
+                "-c",
+                "import sys,json; from rdkit import Chem; "
+                "m=Chem.MolFromMolBlock(sys.stdin.read(),removeHs=True); "
+                "p=m.GetConformer().GetPositions(); print(json.dumps(p.mean(axis=0).tolist()))",
+            ],
+            input=upstream_fixture("184l_lig.sdf").decode(),
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
+        )
+        explicit_box = {
+            "center": json.loads(parsed.stdout),
+            "size": [30, 30, 30],
+            "unit": "angstrom",
+        }
         pose = refs["ligand"]
         for mode in ("dock", "score", "minimize"):
             request = {
@@ -147,12 +175,26 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
                 },
             }
             if mode == "dock":
-                request["search"] = {
-                    "kind": "reference_ligand",
-                    "frame": refs["receptor"],
-                    "reference": refs["ligand"],
-                    "coordinate_basis": "user_confirmed",
-                }
+                request["search"] = {"kind": "box", "frame": refs["receptor"], "box": explicit_box}
+                constraint = client.post(
+                    "/api/research/constraints",
+                    json={
+                        "name": "Native receptor search",
+                        "subject": pose,
+                        "frame": {"reference": refs["receptor"], "basis": "reference_coordinates"},
+                        "conditions": [
+                            {
+                                "id": str(uuid4()),
+                                "label": "Search bounds",
+                                "kind": "search_box",
+                                "box": explicit_box,
+                            }
+                        ],
+                    },
+                    headers={"Idempotency-Key": str(uuid4())},
+                )
+                assert constraint.status_code == 201, constraint.text
+                request["constraints"] = {k: constraint.json()[k] for k in ("id", "sha256")}
             else:
                 request.update(pose_frame=refs["receptor"], pose_coordinate_basis="user_confirmed")
             response = client.post(
@@ -179,6 +221,17 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             ).json()
             result = client.get("/api/jobs/" + identifier + "/result").json()
             assert result["mode"] == mode and result["complete"]
+            if mode == "dock":
+                receipt = client.get("/api/jobs/" + identifier + "/constraints")
+                assert receipt.status_code == 200, receipt.text
+                assert receipt.json()["conditions"][0]["value"] == explicit_box
+                assert result["search"]["box"] == explicit_box
+                assert (
+                    receipt.json()["conditions"][0]["independent_result_check"] == "not_implemented"
+                )
+                (evidence / "dock-constraint-receipt.json").write_text(
+                    json.dumps(receipt.json(), indent=2)
+                )
             assert result["frame"] == refs["receptor"]
             assert result["scientific_acceptance"] == "pending_server_validation"
             valid = [p for p in result["poses"] if p["valid"]]

@@ -1,3 +1,6 @@
+import { ConstraintPanel } from "../constraints/ConstraintPanel";
+import { withConstraints } from "../constraints/model";
+import type { ConstraintReference } from "../constraints/types";
 import { useState } from "react";
 import { request } from "../api";
 import { useEffect } from "react";
@@ -34,6 +37,9 @@ export function DiffForm({
     [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule);
   const [pocket, setPocket] = useState<Pocket | null>(initialPocket),
     [fixed, setFixed] = useState<number[]>([]);
+  const [constraints, setConstraints] = useState<ConstraintReference | null>(
+    null,
+  );
   const [savedRegions, setSavedRegions] = useState<string | null>(null);
   const [expert, setExpert] = useState(false),
     [options, setOptions] = useState<Record<string, unknown>>(() =>
@@ -79,6 +85,7 @@ export function DiffForm({
     setMolecule(ref);
     setFixed([]);
     setSavedRegions(null);
+    setConstraints(null);
   }
   async function submit() {
     setError("");
@@ -130,11 +137,17 @@ export function DiffForm({
           );
         payload = { mode, molecules: collection };
       }
-      await run.submit({
-        operation: "diffsbdd",
-        name: name.trim() || `DiffSBDD · ${mode}`,
-        payload,
-      });
+      await run.submit(
+        await withConstraints(
+          {
+            operation: "diffsbdd",
+            name: name.trim() || `DiffSBDD · ${mode}`,
+            payload,
+          },
+          constraints,
+          language,
+        ),
+      );
     } catch (e) {
       setError(String(e));
     }
@@ -223,6 +236,64 @@ export function DiffForm({
             }}
             onSaved={setSavedRegions}
             language={language}
+          />
+        )}
+        {mode === "inpaint" && molecule && (
+          <ConstraintPanel
+            key={referenceKey(molecule)}
+            subject={molecule}
+            language={language}
+            value={constraints}
+            onChange={setConstraints}
+            getTask={() => {
+              if (!protein || !pocket)
+                throw new Error(
+                  zh ? "请选择受体和口袋" : "Choose a receptor and pocket",
+                );
+              return {
+                operation: "diffsbdd",
+                name: name.trim() || "Inpainting",
+                payload: designPayload(
+                  "inpaint",
+                  protein,
+                  pocket,
+                  molecule,
+                  options,
+                  fixed,
+                  savedRegions,
+                ),
+              };
+            }}
+            onApply={(doc, regions) => {
+              const indices = new Set<number>();
+              for (const condition of doc.conditions) {
+                if (
+                  condition.kind !== "fixed_region" ||
+                  condition.scope !== "subject"
+                )
+                  throw new Error(
+                    zh
+                      ? "此任务仅支持分子固定核心"
+                      : "This task supports fixed molecular cores only",
+                  );
+                const region = regions
+                  .find((r) => r.id === condition.region_id)
+                  ?.body.regions.find((r) => r.name === condition.region_name);
+                if (!region)
+                  throw new Error(
+                    zh ? "无法读取保存选区" : "Saved selection is unavailable",
+                  );
+                region.atom_indices.forEach((i) => indices.add(i));
+              }
+              if (indices.size > 80)
+                throw new Error(
+                  zh
+                    ? "原生固定原子上限为 80"
+                    : "Native fixed atom limit is 80",
+                );
+              setFixed([...indices].sort((a, b) => a - b));
+              setSavedRegions(null);
+            }}
           />
         )}
         {isDesign(mode) && (

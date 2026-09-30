@@ -129,6 +129,15 @@ class Worker:
         started = time.monotonic()
         status, error = Status.FAILED, None
         try:
+            from .research.constraint_records import ConstraintRecords
+
+            receipt = ConstraintRecords(self.store, self.assets, self.settings).check_task(
+                job.request
+            )
+            if receipt:
+                (directory / "constraint-execution.json").write_text(
+                    receipt.model_dump_json(), encoding="utf-8"
+                )
             prepare(job, directory, self.assets)
             process = await self.engine.start(job, directory)
             reader = asyncio.create_task(self.capture(process.stdout, directory / "run.log"))

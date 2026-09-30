@@ -123,3 +123,10 @@ This downloads the pinned official 2.1 GB executable, builds the hash-locked iso
 Configure the component through Installation & components → GNINA, or set `WB_GNINA_IMAGE` to the immutable reviewed Docker image ID, then restart X-DDE. Readiness requires matching native-version/executable/runtime-lock labels; the actual executable hash is rechecked inside every offline task. No large GNINA installation or scientific execution is authorized on the owner's workstation.
 
 The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU tasks. Its isolated runtime locks NVIDIA cuDNN 9.8.0.87, cuBLAS 12.8.4.1 and CUDA runtime 12.8.90, cuSPARSE 12.5.8.93, cuFFT 11.3.3.83, cuSOLVER 11.7.3.90 and nvJitLink 12.8.93 by package hashes. These libraries have NVIDIA proprietary software terms, separate from X-DDE Apache-2.0 and GNINA upstream licenses; they are downloaded by the operator's optional environment installation, not vendored into the platform wheel or repository. Installation requires approximately 4.5 GB of downloads and at least 12 GiB free staging space. The image build checks actual native linker dependencies before activation. GPU/CNN performance and scientific accuracy still require separate target-server evidence.
+
+
+#### 统一条件版本（R27–R29 当前阶段）
+
+在远程 CI 执行 `uv run --locked pytest -q tests/test_constraints.py`、前端 Vitest 全门禁、`server_tests/test_frontend_browser.py` 与既有 native-docking 门禁。使用真正的 SQLite/HTTP/CSRF：同键同文档重放、不同内容冲突、重启与不可变修订、错摘要/版本/坐标系、软权重/装配范围拒绝、固定区域与 native indices 匹配；浏览器保存范围、修改中心、显示不支持、应用旧条件并恢复匹配，检查 390/1440 视口和零科学任务。Native GNINA CI 使用真实 RDKit 解析 fixture 坐标取得中心，保存明确 receptor frame 的范围，运行实际对接并确认结果的 search box 与执行快照相同。
+
+执行快照仅记录条件/参数与输入来源。它不能作为独立结果合格证据；`independent_result_check=not_implemented` 必须保持可见。目标服务器后续必须覆盖固定原子/键的实际保留、输出几何、违反位置、结果资格和空间/装配条件，不得用当前 API/SQLite/原生调用成功替代这些科学验证。本机只静态构建和既有数据的只读预览，不运行上述套件或原生科学任务。

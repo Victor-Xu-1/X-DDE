@@ -550,6 +550,36 @@ def test_binding_pose_entry_presets_and_configuration_limits():
                 expect(
                     page.get_by_role("spinbutton", name=f"中心 {axis} (Å)", exact=True)
                 ).to_have_value(value)
+            # Save/reuse a real task condition through API/SQLite without dispatching science.
+            ligand_upload = page.request.post(
+                base + "/api/assets?kind=ligand&name=constraint-carbon.sdf",
+                data=(
+                    b"Carbon\n  X-DDE\n\n  1  0  0  0  0  0            999 V2000\n"
+                    b"    1.0000    2.0000    3.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n"
+                    b"M  END\n$$$$\n"
+                ),
+                headers={"Content-Type": "application/octet-stream", "X-Workbench-CSRF": csrf},
+            )
+            assert ligand_upload.status == 201
+            ligand_choice = page.get_by_role("combobox", name="选择分子或已有姿势", exact=True)
+            ligand_choice.focus()
+            expect(
+                ligand_choice.locator('option[value="' + ligand_upload.json()["id"] + '"]')
+            ).to_have_count(1)
+            ligand_choice.select_option(ligand_upload.json()["id"])
+            page.get_by_text("保存与复用任务条件（可选）", exact=True).click()
+            page.get_by_role("button", name="保存当前条件", exact=True).click()
+            expect(page.get_by_role("button", name="应用所选条件", exact=True)).to_be_enabled()
+            page.get_by_role("button", name="检查引擎支持", exact=True).click()
+            expect(page.get_by_text("条件与任务匹配", exact=True)).to_be_visible()
+            page.get_by_role("spinbutton", name="中心 X (Å)", exact=True).fill("9")
+            page.get_by_role("button", name="检查引擎支持", exact=True).click()
+            expect(page.get_by_text("条件不能用于当前任务", exact=True)).to_be_visible()
+            page.get_by_role("button", name="应用所选条件", exact=True).click()
+            expect(page.get_by_role("spinbutton", name="中心 X (Å)", exact=True)).to_have_value("1")
+            page.get_by_role("button", name="检查引擎支持", exact=True).click()
+            expect(page.get_by_text("条件与任务匹配", exact=True)).to_be_visible()
+            assert page.request.get(base + "/api/research/constraints").json()
             for width in (390, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(

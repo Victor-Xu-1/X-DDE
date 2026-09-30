@@ -23,7 +23,7 @@ export interface ScientificObject {
 }
 export interface GraphNode {
   id: string;
-  kind: ObjectKind | "file" | "task" | "plan" | "run" | "region";
+  kind: ObjectKind | "file" | "task" | "plan" | "run" | "region" | "constraint";
   label: string;
   asset_id?: string;
   asset_kind?: string;
@@ -55,9 +55,15 @@ export const objectLabels: Record<string, [string, string]> = {
   task: ["任务", "Task"],
   plan: ["研究计划", "Research plan"],
   run: ["计划运行", "Research run"],
+  constraint: ["任务条件", "Task conditions"],
   region: ["分子区域", "Molecular regions"],
 };
 export const edgeLabels: Record<string, [string, string]> = {
+  constrained_input: ["约束参照", "Constraint reference"],
+  constraint_selection: ["约束选区", "Constraint selection"],
+  revised_conditions: ["修改条件为", "Revised conditions"],
+  planned_conditions: ["计划条件", "Planned conditions"],
+  used_conditions: ["使用条件", "Used conditions"],
   represented_by: ["登记为", "Registered as"],
   selected_region: ["选定区域", "Selected region"],
   identity_evidence: ["原子身份依据", "Atom identity evidence"],
