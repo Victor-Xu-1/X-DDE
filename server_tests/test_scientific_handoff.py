@@ -120,3 +120,22 @@ def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path)
         )
         == []
     )
+
+
+def test_atom_map_identifiers_do_not_create_false_stereochemical_changes():
+    source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/docking/chemistry.py"
+    spec = importlib.util.spec_from_file_location("docking_stereochemistry", source)
+    chemistry = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(chemistry)
+    # Two identical methyl substituents differ only by bookkeeping map labels.
+    labelled = Chem.MolFromSmiles("[CH3:1][C@H:2]([CH3:3])[CH2:4][OH:5]")
+    assert chemistry.plain_smiles(labelled) == "CC(C)CO"
+    first = Chem.MolFromSmiles("F[C@H](Cl)Br")
+    second = Chem.MolFromSmiles("F[C@@H](Cl)Br")
+    for mol in (first, second):
+        for atom in mol.GetAtoms():
+            atom.SetAtomMapNum(atom.GetIdx() + 1)
+    assert chemistry.plain_smiles(first) != chemistry.plain_smiles(second)
+    assert chemistry.plain_smiles(first) == Chem.MolToSmiles(
+        Chem.MolFromSmiles("F[C@H](Cl)Br"), isomericSmiles=True
+    )

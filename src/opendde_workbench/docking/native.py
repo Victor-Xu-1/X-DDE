@@ -7,7 +7,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from chemistry import bound, digest, molecule, plain_smiles, score, summarize_poses
+from chemistry import (
+    bound,
+    comparison_graph,
+    digest,
+    molecule,
+    plain_smiles,
+    score,
+    summarize_poses,
+)
 from manifest import BINARY_SHA256, VERSION
 from options import DockingOptions, SearchBox, arguments
 
@@ -136,7 +144,7 @@ def main():
         if pose["valid"]:
             file = root / f"pose-{pose['record'] + 1:03d}.sdf"
             with Chem.SDWriter(str(file)) as writer:
-                writer.write(supplier[pose["record"]])
+                writer.write(comparison_graph(supplier[pose["record"]]))
             pose["artifact"] = file.name
     shutil.copyfile(protein, root / "receptor.pdb")
     result = {

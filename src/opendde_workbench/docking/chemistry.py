@@ -59,13 +59,22 @@ def molecule(file, record, require_pose=False):
     return mol
 
 
-def plain_smiles(mol):
+def comparison_graph(mol):
     from rdkit import Chem
 
     copy = Chem.Mol(mol)
     for atom in copy.GetAtoms():
         atom.SetAtomMapNum(0)
-    return Chem.MolToSmiles(copy, isomericSmiles=True)
+    # Map labels are identifiers, not different substituents. Remove their artificial
+    # stereochemical distinctions while retaining genuine R/S and E/Z chemistry.
+    Chem.AssignStereochemistry(copy, cleanIt=True, force=True)
+    return copy
+
+
+def plain_smiles(mol):
+    from rdkit import Chem
+
+    return Chem.MolToSmiles(comparison_graph(mol), isomericSmiles=True)
 
 
 def score(name, value, unit, direction):
@@ -126,8 +135,8 @@ def summarize_poses(file, original, options):
                 ]
                 row["mapping_status"] = "native_atom_maps"
             else:
-                matches = mol.GetSubstructMatches(
-                    original, uniquify=False, useChirality=True, maxMatches=2
+                matches = comparison_graph(mol).GetSubstructMatches(
+                    comparison_graph(original), uniquify=False, useChirality=True, maxMatches=2
                 )
                 if len(matches) == 1:
                     row["source_to_pose_atoms"] = list(matches[0])
@@ -149,6 +158,8 @@ def chemical_mapping_matches(original, pose, indices):
         or any(index < 0 or index >= pose.GetNumAtoms() for index in indices)
     ):
         return False
+    original = comparison_graph(original)
+    pose = comparison_graph(pose)
     for atom, index in zip(original.GetAtoms(), indices, strict=True):
         mapped = pose.GetAtomWithIdx(index)
         if (atom.GetAtomicNum(), atom.GetFormalCharge(), atom.GetIsotope()) != (
