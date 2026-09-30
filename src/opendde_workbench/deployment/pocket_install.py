@@ -26,6 +26,8 @@ def install_pockets(key, root, work, execute, report, checkpoint):
     if len(jars) != 1:
         raise ValueError("The native distribution has an unexpected layout.")
     source = jars[0].parent.parent
+    # OCI must find the writable cache mount target beneath the read-only software mount.
+    (source / "cache").mkdir(exist_ok=True)
     files = {}
     for file in sorted(source.rglob("*")):
         checkpoint()
