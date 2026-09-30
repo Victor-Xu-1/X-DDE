@@ -141,12 +141,20 @@ export function Navigation({
   }, [open]);
   return (
     <aside className="studio-sidebar">
-      <button className="studio-brand" onClick={() => onView("tools")}>
-        <DeploymentUnitOutlined className="studio-brand-mark" />
-        <span>
-          <strong>X-DDE</strong>
-          <small>{zh ? "药 物 研 究 工 作 台" : "DISCOVERY WORKBENCH"}</small>
-        </span>
+      <button
+        className="studio-brand"
+        aria-label="X-DDE"
+        onClick={() => onView("tools")}
+      >
+        <picture className="studio-brand-picture">
+          <source media="(max-width: 960px)" srcSet="/brand/x-dde-mark.png" />
+          <img
+            src="/brand/x-dde-logo.png"
+            alt={zh ? "X-DDE 药物研究工作台" : "X-DDE discovery workbench"}
+            width="780"
+            height="970"
+          />
+        </picture>
       </button>
       <nav aria-label={zh ? "主导航" : "Main navigation"}>
         {items.map((item) => (

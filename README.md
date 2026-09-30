@@ -2,13 +2,17 @@
 
 [中文](#中文) · [English](#english) · [能力与源码对照](docs/design/README.md) · [服务器验收](docs/server-acceptance.md)
 
-X-DDE is an independent MIT drug research platform with its own frontend and platform server. The X-DDE server owns projects, tasks, scientific assets, deployment and provenance. OpenDDE, DiffSBDD and native Harness tools supply scientific implementations through adapters and isolated environments; Ketcher and Mol* provide editing and inspection. Chinese and English interfaces offer guided choices and expert parameters.
+X-DDE is an independent Apache-2.0 drug research platform. X-DDE owns both its frontend and unified backend. OpenDDE, DiffSBDD, Harness, editors and other integrated software are managed environments/components beneath the platform; their native scientific programs, dependencies, models and licenses retain their actual identities.
 
-**平台关系：X-DDE 前端 → X-DDE 平台后端 → 计算引擎及各自的运行环境。** 前端和平台服务端都属于 X-DDE。OpenDDE、DiffSBDD、Harness 是接入的科学计算软件，分别管理源码、Python/CUDA 或 Docker 环境、模型和服务配置；它们不拥有平台的任务队列或资产库。研究任务按所选引擎检查依赖，X-DDE 服务端、资产管理和编辑预览可以独立运行。新增软件只有完成真实适配后才进入可用能力目录。
+**平台关系：X-DDE 负责前端和后端，其余软件均作为集成环境。** X-DDE 后端拥有公共 API、业务规则、项目、任务、科学对象、版本、工作流、环境管理与证据。集成环境提供真实科学程序、模型和依赖，不拥有平台业务或数据权威。
 
-运行状态页分别展示 **X-DDE 平台后端**、已登记的计算引擎、客户端/计算服务配置和模型文件检查。安装页按引擎归属组织环境与模型；选择 DiffSBDD 只安装其独立环境，不把 OpenDDE 作为公共前置依赖。环境检查通过、模型文件存在和科学验收通过是不同状态。
+环境准备和科学执行分别接入：**X-DDE 环境管理 → 配置适配器 → 集成环境**；**X-DDE 科学任务 → 科学/执行适配器 → 环境中的真实程序 → X-DDE 资产与证据**。产品中的 OpenDDE 环境配置接口当前使用已审查的 OpenDDE Harness 安装器，只有源码准备、镜像校验和模型资源准备等实际支持的动作。暂停、取消、重试、升级与卸载的部署策略和进程管理由 X-DDE 承担，不虚构上游 API。DiffSBDD、编辑器和 Harness 客户端使用各自实际安装配方，不要求通过 OpenDDE 配置。
 
-`engine_registry` 是任务操作归属与引擎身份的唯一登记；现有 `BackendRouter` 是唯一启动、取消和恢复调度。`Store`、`Worker`、`AssetStore` 与科学对象版本仍由 X-DDE 统一管理。新增组件目录使用 `x-dde-managed`；已有 `opendde-managed` 目录、Python 包名和 WSL 内部路径保留以继续读取原安装与数据，这些历史名称不代表平台后端身份。WSL 是承载平台和各独立环境的 Linux 主机；发行版的历史名称与科学引擎的软件身份分开，不能据此把所有引擎归为 OpenDDE。
+已有 OpenDDE 原生预测与化学工具继续通过 X-DDE 科学适配器执行；原生 Harness 流程保留内部运行机制，X-DDE 管理顶层业务与引用。运行状态页以集成环境组织信息，配置工具来源收在详情中。平台就绪、配置客户端可用、环境/模型就绪和科学验收互相区分。
+
+科学运行在既有任务数据库中绑定不可覆盖的环境元数据版本，并分别记录环境准备来源与实际科学软件。`GET /api/jobs/{id}/environment` 返回该记录；历史未登记任务返回明确的 404。该记录是安装/配置元数据快照，不声称冻结管理员外部修改的环境文件或验证所有模型权重；实际原生来源、摘要和科学验证范围仍须核对。部署 API 继续保护排队/运行中的科学任务，不能在使用中更新组件。
+
+新组件目录使用 `x-dde-managed`，旧安装与研究数据原位保留。WSL 的历史发行版名称、Python 内部包名和原生 CLI 不代表平台所有权。
 
 平台使用统一项目、科学资产版本和来源关系组织研究。结构、分子、序列和分析结果能通过实际输入输出关联，修改保留原始版本。正在开发的资产网络与 DiffSBDD 集成状态、模块边界及服务器验收要求见[权威架构说明](docs/design/README.md#x-dde-平台架构与资产关系)，候选分支能力不等于已发布能力。
 
@@ -65,7 +69,7 @@ Core research tools remain in the main navigation. The bottom **Account & settin
 
 Ubuntu 系统依赖：`sudo $(command -v xdde) setup system` 安装 Docker 与基础工具；Docker 用户访问按 [Docker 官方说明](https://docs.docker.com/engine/install/linux-postinstall/) 配置，GPU 按 [NVIDIA Container Toolkit 官方说明](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) 配置。网页不自动获得管理员权限。Harness 计算服务、共享目录和 LLM 凭据仍在下方环境配置中设置；不会把“已安装”显示成“已能推理”。
 
-**分子与结构**：Ketcher 画分子、打开 MOL/SDF/SMILES、保存到工作台分子库、交接性质计算；Mol* 打开本地蛋白/复合物、查看序列、选择残基、修改显示与导出视图。Mol* 的显示编辑不是蛋白序列设计或结构能量优化。编辑器依赖在本机托管；Mol* 运行在独立的浏览器沙箱中，不能读取工作台会话和上传库。两者保留各自上游许可证，MIT 仅覆盖本工作台代码。
+**分子与结构**：Ketcher 画分子、打开 MOL/SDF/SMILES、保存到工作台分子库、交接性质计算；Mol* 打开本地蛋白/复合物、查看序列、选择残基、修改显示与导出视图。Mol* 的显示编辑不是蛋白序列设计或结构能量优化。编辑器依赖在本机托管；Mol* 运行在独立的浏览器沙箱中，不能读取工作台会话和上传库。两者保留各自上游许可证，Apache-2.0 仅覆盖本平台自有代码。
 
 改名保留原内部模块与数据目录，已有记录不需要迁移。安装状态和数据默认保存在 `~/.local/share/opendde-workbench`，可用 `WB_HOME` 和 `WB_STATE_DIR` 覆盖。计算组件更改后执行 `xdde restart`；显式 `WB_*` 设置优先于组件管理器。仅监听本机环回地址，服务器远程使用请通过 SSH 隧道。
 
@@ -205,4 +209,6 @@ Install/build using the commands above, configure `.env.example`, and run the ap
 
 ## License and provenance
 
-Original workbench code is [MIT](LICENSE). [OpenDDE](https://github.com/aurekaresearch/OpenDDE) and [OpenDDE Harness](https://github.com/aurekaresearch/OpenDDE-Harness) remain external dependencies under their upstream licenses. The owner-provided reference image is retained for style only; its third-party artwork and marks are not relicensed by the code license. No upstream model weights, private data, secrets or proprietary editor implementation are included.
+X-DDE original code is [Apache-2.0](LICENSE), with attribution retained in [NOTICE](NOTICE). [OpenDDE](https://github.com/aurekaresearch/OpenDDE) and [OpenDDE Harness](https://github.com/aurekaresearch/OpenDDE-Harness) remain external dependencies under their upstream licenses. The owner-provided reference image is retained for style only; its third-party artwork and marks are not relicensed by the code license. No upstream model weights, private data, secrets or proprietary editor implementation are included.
+
+The current source uses Apache-2.0. Previously published MIT releases retain the license distributed with those releases; third-party code and models are not relicensed.

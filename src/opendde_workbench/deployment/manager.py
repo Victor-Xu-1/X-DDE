@@ -13,6 +13,7 @@ from .catalog import PACKAGES, catalogue, prerequisites
 from .installers import install
 from .paths import environment_root
 from .process import Paused, reap
+from .provisioners import states as provisioner_states
 from .storage import ACTIVE, DeployStore, managed_root
 
 
@@ -71,12 +72,15 @@ class DeploymentManager:
 
     def snapshot(self):
         config = self.store.config()
+        environments = engine_catalogue()
         return {
             "config": config,
             "installed": self.store.installed(),
             "operations": self.store.rows(),
             "packages": catalogue(),
-            "engines": engine_catalogue(),
+            "environments": environments,
+            "engines": environments,
+            "provisioners": provisioner_states(self.store.installed()),
             "prerequisites": prerequisites(),
             "default_location": str(home() / "components"),
             "locations": [str(home() / "components")]

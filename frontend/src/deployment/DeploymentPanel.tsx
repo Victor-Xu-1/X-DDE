@@ -57,11 +57,11 @@ export function DeploymentPanel({
     <section className="deployment-workspace">
       <header className="research-heading">
         <span className="eyebrow">X-DDE ENVIRONMENTS</span>
-        <h1>{zh ? "X-DDE 计算环境管理" : "X-DDE environments"}</h1>
+        <h1>{zh ? "X-DDE 集成环境管理" : "X-DDE integrated environments"}</h1>
         <p>
           {zh
-            ? "X-DDE 服务端统一管理各计算引擎。选择位置和研究目标，按需安装对应环境；下载在后台进行。"
-            : "The X-DDE server manages each scientific engine. Choose a location and research goal; install the required environment in the background."}
+            ? "X-DDE 负责前后端，统一管理各软件集成环境。选择位置和研究目标，按需安装对应环境；下载在后台进行。"
+            : "X-DDE owns the frontend and backend and manages integrated software environments. Choose a location and research goal; install the required environment in the background."}
         </p>
       </header>
       {(message || error) && (
@@ -106,7 +106,7 @@ export function DeploymentPanel({
               </label>
               <p className="field-help">
                 {zh
-                  ? "Windows 可填写 E:\\WSL\\apps\\x-dde；新组件使用 x-dde-managed 子目录。已有安装保留原目录。每个引擎的 Python 环境独立保存在 E 盘 WSL 中，研究资产由 X-DDE 统一管理。"
+                  ? "Windows 可填写 E:\\WSL\\apps\\x-dde；新组件使用 x-dde-managed 子目录。已有安装保留原目录。各软件的 Python 环境独立保存在 E 盘 WSL 中，研究资产由 X-DDE 统一管理。"
                   : "On Windows, E:\\WSL\\apps\\x-dde maps to WSL. New components use x-dde-managed; existing installations retain their location. Each engine has an isolated environment; X-DDE owns the research assets."}
               </p>
               <button

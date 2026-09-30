@@ -7,8 +7,8 @@
   for unavoidable operating-system or desktop-tool metadata. Do not create new
   X-DDE work/output directories in the Windows user profile.
 - Windows launchers and release downloads use `E:\WSL\apps\x-dde`; development
-  evidence and task plans use `E:\WSL\management\x-dde`. The OpenDDE scientific
-  engine has its own Windows entry under `E:\WSL\apps\opendde`.
+  evidence and task plans use `E:\WSL\management\x-dde`. The OpenDDE integrated
+  environment has its own Windows entry under `E:\WSL\apps\opendde`.
 - Verify the actual WSL registration and Docker storage before installation;
   a distribution name or Linux path does not prove the Windows drive. The current
   E: distribution preserves its existing `/opt/opendde` and `/home/opendde` paths.
@@ -26,9 +26,12 @@
 ## Product boundaries
 
 - Both the UI and the platform server are X-DDE. X-DDE owns the shared task,
-  deployment and scientific asset authorities. OpenDDE, DiffSBDD and Harness are
-  scientific engines with separately managed execution environments.
-- The reviewed engine registry is the sole task-operation/engine identity mapping;
+  deployment and scientific asset authorities. All other software, including
+  OpenDDE, DiffSBDD and Harness, is integrated as managed environments/components.
+- Preparation adapters and native scientific programs have distinct contracts.
+  OpenDDE configuration currently uses the reviewed Harness installer APIs; never
+  invent upstream lifecycle methods or make it own platform/scientific business.
+- The reviewed environment registry is the sole task-operation/environment mapping;
   BackendRouter is the sole start/stop/recovery authority. Each new engine needs
   a real typed adapter, independent environment/model/service readiness and
   acceptance; missing OpenDDE never defines platform-wide availability.

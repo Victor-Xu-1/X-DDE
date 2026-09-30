@@ -16,6 +16,7 @@ from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
 from .engine import DockerEngine
 from .engine_registry import engine_for
+from .execution_environment import capture as capture_environment
 from .store import Store
 
 
@@ -27,6 +28,11 @@ class BackendRouter:
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
+        if implementation not in {"opendde", "diffsbdd", "harness"}:
+            raise ValueError("No execution adapter for registered engine: " + implementation)
+        environment = capture_environment(self.settings, implementation)
+        self.store.bind_environment(job.id, environment)
+        (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
         if implementation == "harness":
             return await harness_process.start(self.settings, directory)
         if implementation == "diffsbdd":
@@ -51,6 +57,7 @@ class BackendRouter:
                 json.dumps(
                     {
                         "engine": "diffsbdd",
+                        "environment_snapshot_sha256": environment.snapshot_sha256,
                         "backend": "local_process",
                         "source": str(source),
                         "runtime": str(root),

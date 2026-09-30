@@ -20,6 +20,7 @@ export function RuntimeStatus({
     connected && (health?.platform?.ready ?? health?.worker_ready);
   // Existing installed servers expose only the historical OpenDDE snapshot.
   const engines: Record<string, EngineStatus> =
+    health?.environments ??
     health?.engines ??
     (health
       ? {
@@ -38,8 +39,8 @@ export function RuntimeStatus({
       <h1>{zh ? "运行状态" : "Runtime status"}</h1>
       <p>
         {zh
-          ? "X-DDE 平台后端统一管理 API、任务、资产和环境。OpenDDE、DiffSBDD、Harness 分别提供计算能力，各自配置和检查。"
-          : "The X-DDE platform server manages APIs, tasks, assets and environments. OpenDDE, DiffSBDD and Harness supply independently configured scientific capabilities."}
+          ? "X-DDE 负责前端和统一后端。OpenDDE、DiffSBDD、Harness 等软件作为集成环境，由 X-DDE 管理配置、任务与研究资产。"
+          : "X-DDE owns the frontend and unified backend. OpenDDE, DiffSBDD, Harness and other software are integrated environments managed by X-DDE."}
       </p>
       {connectionError && (
         <p className="error-box" role="alert">
@@ -76,12 +77,36 @@ export function RuntimeStatus({
           </span>
           <p>
             {zh
-              ? "任务队列、科学资产版本、来源关系与软件部署由同一个服务管理。计算引擎缺失只影响依赖它的任务。"
-              : "One service owns the task queue, scientific asset versions, provenance and deployment. Missing engines affect only tasks that require them."}
+              ? "任务队列、科学资产版本、来源关系与软件部署由同一个服务管理。某个集成环境缺失，只影响依赖该环境的任务。"
+              : "One service owns the task queue, scientific asset versions, provenance and deployment. Missing integrated environments affect only tasks that require them."}
           </p>
           {health?.worker_error && <p role="alert">{health.worker_error}</p>}
+          {health?.provisioners?.opendde && (
+            <details>
+              <summary>
+                {zh ? "环境准备工具与来源" : "Environment preparation tools"}
+              </summary>
+              <p>
+                OpenDDE · {zh ? "环境配置接口" : "Provisioning interface"} ·{" "}
+                {health.provisioners.opendde.ready
+                  ? zh
+                    ? "客户端已配置"
+                    : "Client configured"
+                  : zh
+                    ? "客户端待配置"
+                    : "Client not configured"}
+              </p>
+              <p>{health.provisioners.opendde.implementation}</p>
+              <p>
+                {zh
+                  ? "仅处理其支持的新环境准备；科学任务调用已准备环境中的真实程序，平台服务和其他可用环境独立检查。"
+                  : "Prepares supported components only. Scientific tasks use real programs in prepared environments; platform and other environment readiness are independent."}
+              </p>
+            </details>
+          )}
+
           <button className="secondary-button" onClick={onSetup}>
-            {zh ? "管理计算引擎与环境" : "Manage engines & environments"}
+            {zh ? "管理集成环境" : "Manage integrated environments"}
           </button>
         </article>
         {Object.values(engines).map((engine) => {
@@ -91,14 +116,7 @@ export function RuntimeStatus({
             <article className="studio-panel" key={engine.id}>
               <DeploymentUnitOutlined />
               <h3>
-                {engine.name} ·{" "}
-                {harness
-                  ? zh
-                    ? "科学工具"
-                    : "Scientific tools"
-                  : zh
-                    ? "计算引擎"
-                    : "Scientific engine"}
+                {engine.name} · {zh ? "集成环境" : "Integrated environment"}
               </h3>
               <p>
                 {engine.description.split(" / ")[zh ? 0 : 1] ??
@@ -133,8 +151,8 @@ export function RuntimeStatus({
               {connected && !engine.ready && (
                 <p>
                   {zh
-                    ? "打开计算环境管理，检查该引擎的环境、模型与服务配置；修改后重启工作台。"
-                    : "Open environment management to check this engine's runtime, models and services; restart after configuration changes."}
+                    ? "打开集成环境管理，检查当前环境的依赖、模型与服务配置；修改后重启工作台。"
+                    : "Open integrated environment management to check dependencies, models and services; restart after configuration changes."}
                 </p>
               )}
               {engine.reason && <p role="alert">{engine.reason}</p>}

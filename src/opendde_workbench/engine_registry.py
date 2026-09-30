@@ -1,4 +1,4 @@
-"""Reviewed scientific implementations beneath the X-DDE platform server.
+"""Integrated scientific environments managed by the X-DDE platform server.
 
 This registry owns task-to-engine identity. BackendRouter remains the sole execution
 and recovery authority; a registration never downloads or executes software.
@@ -16,6 +16,7 @@ class ScientificEngine:
     description: str
     execution_backend: Literal["docker", "local_process", "harness_process"]
     operations: tuple[str, ...]
+    role: Literal["integrated_environment"] = "integrated_environment"
 
 
 _DEFINITIONS = (

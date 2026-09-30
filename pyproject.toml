@@ -4,7 +4,8 @@ version = "0.4.0rc4"
 description = "Independent discovery platform integrating scientific software backends"
 readme = "README.md"
 requires-python = ">=3.12"
-license = "MIT"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Victor Xu"}]
 dependencies = [
     "fastapi==0.141.1",

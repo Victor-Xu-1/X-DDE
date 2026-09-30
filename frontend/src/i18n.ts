@@ -130,8 +130,8 @@ export const messages = {
   taskId: ["任务 ID", "Task ID"],
   version: ["版本", "Version"],
   footer: [
-    "药物研究平台 · X-DDE 服务端统一管理任务、资产与计算引擎",
-    "Drug research platform · X-DDE server manages tasks, assets and scientific engines",
+    "药物研究平台 · X-DDE 服务端统一管理任务、资产与集成环境",
+    "Drug research platform · X-DDE server manages tasks, assets and integrated environments",
   ],
 } as const;
 

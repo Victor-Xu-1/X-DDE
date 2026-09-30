@@ -1,15 +1,14 @@
 """Fixed release recipes; all paths stay inside the owned deployment root."""
 
-import json
 import shutil
 import sys
-from pathlib import Path
 from uuid import uuid4
 
 from .catalog import PACKAGES
 from .diffsbdd_install import install_model, install_runtime
 from .paths import environment_root
 from .process import run
+from .provisioners import OPEN_PACKAGES, OPENDDE, provisioning_origin
 from .transfers import download, extract
 
 CONSTRAINTS = "https://github.com/aurekaresearch/OpenDDE-Harness/releases/download/v0.0.4/opendde-harness-constraints.txt"
@@ -25,17 +24,7 @@ def install(key, root, installed, operation, report, checkpoint):
         checkpoint()
         return run([str(v) for v in args], work, checkpoint, report, timeout=timeout)
 
-    def native(action, target):
-        python = installed["harness"]["python"]
-        text = execute([python, Path(__file__).with_name("native_setup.py"), action, target])
-        result = next(
-            (line[17:] for line in text.splitlines() if line.startswith("WORKBENCH_RESULT=")), None
-        )
-        if result is None:
-            raise RuntimeError("Native installer did not return a verified result.")
-        return json.loads(result)
-
-    metadata = {"version": spec.version}
+    metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
     if key == "diffsbdd":
         metadata.update(install_runtime(root, work, report, checkpoint))
@@ -95,41 +84,8 @@ def install(key, root, installed, operation, report, checkpoint):
             if not all(p.is_file() for p in required):
                 raise RuntimeError("Editor distribution is incomplete.")
             metadata["web"] = str(web)
-    elif key == "runtime":
-        report("Preparing official OpenDDE, PLIP and MPNN sources")
-        metadata.update(native("code", root / "code"))
-    elif key == "compute":
-        if not shutil.which("docker"):
-            raise RuntimeError(
-                "Docker is missing. Run opendde setup system in the terminal, then retry."
-            )
-        report("Pulling official compute image; Docker resumes completed layers on retry")
-        execute(["docker", "pull", "aurekaresearch/opendde-harness:v1"], timeout=7200)
-        inspection = execute(["docker", "image", "inspect", "aurekaresearch/opendde-harness:v1"])
-        image_file = work / "image.json"
-        image_file.write_text(inspection)
-        metadata.update(native("image", image_file))
-    elif key in {"standard", "abag"}:
-        report("Preparing official, checksum-verified model resources")
-        executable = Path(installed["harness"]["python"]).with_name("ddeharness")
-        execute(
-            [
-                executable,
-                "compute",
-                "prepare",
-                "--assets-only",
-                "--mode",
-                "local",
-                "--root",
-                root / "models/harness",
-                "--opendde-root",
-                root / "models/opendde",
-                "--checkpoint",
-                "opendde_abag.pt" if key == "abag" else "opendde.pt",
-            ],
-            timeout=43200,
-        )
-        metadata["models"] = str(root / "models")
+    elif key in OPEN_PACKAGES:
+        metadata.update(OPENDDE.prepare(key, root, work, installed, execute, report))
     else:
         raise ValueError("Unknown installer recipe")
     checkpoint()

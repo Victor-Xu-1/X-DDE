@@ -48,18 +48,33 @@ button:disabled {
   padding: 2px 12px 18px;
   min-height: 68px;
 }
-.studio-brand strong {
-  font-size: 21px;
-  letter-spacing: -0.02em;
+.studio-brand-picture {
+  display: block;
+  width: 156px;
+  margin: 0 auto;
 }
-.studio-brand small {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  font-weight: 500;
-  color: var(--muted);
+.studio-brand-picture img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
 }
-.studio-brand-mark {
-  font-size: 28px;
+@media (max-width: 960px) {
+  .studio-brand-picture {
+    width: 38px;
+  }
+  .studio-brand-picture img {
+    width: 38px;
+    height: 38px;
+  }
+}
+@media (max-width: 580px) {
+  .studio-brand {
+    display: flex;
+    min-height: 44px;
+    justify-content: center;
+    padding: 4px;
+  }
 }
 .studio-sidebar nav {
   gap: 4px;

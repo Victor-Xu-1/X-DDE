@@ -39,6 +39,17 @@ jobs:
           assert 'opendde_workbench/web/index.html' in files
           assert 'opendde_workbench/web/viewer.html' in files
           assert 'opendde_workbench/web/theme-init.js' in files
+          assert 'opendde_workbench/web/brand/x-dde-logo.png' in files
+          assert 'opendde_workbench/web/brand/favicon.png' in files
+          from email.parser import BytesParser
+          with ZipFile(glob('dist/*.whl')[0]) as wheel:
+              metadata = BytesParser().parsebytes(wheel.read(next(p for p in files if p.endswith('/METADATA'))))
+              assert metadata['License-Expression'] == 'Apache-2.0'
+              license_path = next(p for p in files if p.endswith('/licenses/LICENSE'))
+              notice_path = next(p for p in files if p.endswith('/licenses/NOTICE'))
+              assert b'Apache License' in wheel.read(license_path)
+              assert b'Copyright (c) 2026 Victor Xu' in wheel.read(notice_path)
+
           assert any('/assets/viewer-' in path and path.endswith('.js') for path in files)
           PY
 

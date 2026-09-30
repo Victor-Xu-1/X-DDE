@@ -14,6 +14,7 @@ export interface Deployment {
     supported: boolean;
   };
   installed: Record<string, { version: string; web?: string }>;
+  environments?: Record<string, ScientificEngine>;
   engines: Record<string, ScientificEngine>;
   packages: {
     id: string;

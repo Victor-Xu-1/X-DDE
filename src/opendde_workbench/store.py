@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4, uuid5
 
+from .execution_environment import EnvironmentRecord
 from .models import Job, Status
 from .requests import TASK_ADAPTER, TaskRequest, input_identifiers
 
@@ -37,6 +38,10 @@ class Store:
                 error TEXT, parent_id TEXT)""")
             db.execute("CREATE INDEX IF NOT EXISTS jobs_status_time ON jobs(status, created_at)")
             db.execute(
+                "CREATE TABLE IF NOT EXISTS job_environments ("
+                "job_id TEXT PRIMARY KEY, snapshot_sha256 TEXT NOT NULL, record TEXT NOT NULL)"
+            )
+            db.execute(
                 "CREATE TABLE IF NOT EXISTS queue_control(key TEXT PRIMARY KEY,value TEXT NOT NULL)"
             )
             db.execute(
@@ -65,6 +70,30 @@ class Store:
     def get(self, job_id: str) -> Job | None:
         with self.connect() as db:
             return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
+
+    def bind_environment(self, job_id: str, record: EnvironmentRecord) -> None:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if not db.execute("SELECT 1 FROM jobs WHERE id=?", (job_id,)).fetchone():
+                raise ConflictError("Cannot bind an environment to an unknown task.")
+            old = db.execute(
+                "SELECT record FROM job_environments WHERE job_id=?", (job_id,)
+            ).fetchone()
+            body = EnvironmentRecord.model_validate_json(record.model_dump_json()).model_dump_json()
+            if old:
+                if old["record"] != body:
+                    raise ConflictError("Task environment binding is immutable; create a new task.")
+                return
+            db.execute(
+                "INSERT INTO job_environments VALUES(?,?,?)", (job_id, record.snapshot_sha256, body)
+            )
+
+    def environment(self, job_id: str) -> EnvironmentRecord | None:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT record FROM job_environments WHERE job_id=?", (job_id,)
+            ).fetchone()
+        return EnvironmentRecord.model_validate_json(row["record"]) if row else None
 
     def list_jobs(self, limit: int = 100, offset: int = 0) -> list[Job]:
         with self.connect() as db:

@@ -45,8 +45,11 @@ export function ComponentLibrary({
               ? zh
                 ? "编辑与预览工具"
                 : "Editing & inspection tools"
-              : (data.engines[group.id]?.name ?? group.id) +
-                (zh ? " · 计算环境与模型" : " · Environment & models")}
+              : ((data.environments ?? data.engines)[group.id]?.name ??
+                  group.id) +
+                (zh
+                  ? " · 集成环境与模型"
+                  : " · Integrated environment & models")}
           </h3>
           <div className="component-grid">
             {group.packages.map((p) => {

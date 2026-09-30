@@ -57,10 +57,10 @@ it("shows an available X-DDE server independently of its scientific engines", ()
   expect(screen.getByRole("heading", { name: "X-DDE 平台后端" })).toBeVisible();
   expect(screen.getByText("平台服务就绪", { exact: true })).toBeVisible();
   const open = screen
-    .getByRole("heading", { name: "OpenDDE · 计算引擎" })
+    .getByRole("heading", { name: "OpenDDE · 集成环境" })
     .closest("article")!;
   const diff = screen
-    .getByRole("heading", { name: "DiffSBDD · 计算引擎" })
+    .getByRole("heading", { name: "DiffSBDD · 集成环境" })
     .closest("article")!;
   expect(within(open).getByText("环境未就绪", { exact: true })).toBeVisible();
   expect(within(diff).getByText("环境检查通过", { exact: true })).toBeVisible();
@@ -68,7 +68,7 @@ it("shows an available X-DDE server independently of its scientific engines", ()
     within(diff).getByText("模型文件：1 / 2", { exact: true }),
   ).toBeVisible();
   expect(screen.queryByText("OpenDDE 后端", { exact: true })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "管理计算引擎与环境" }));
+  fireEvent.click(screen.getByRole("button", { name: "管理集成环境" }));
   expect(setup).toHaveBeenCalledOnce();
 });
 
@@ -83,7 +83,7 @@ it("does not confuse the Harness client with its remote compute service", () => 
     />,
   );
   const harness = screen
-    .getByRole("heading", { name: "OpenDDE Harness · Scientific tools" })
+    .getByRole("heading", { name: "OpenDDE Harness · Integrated environment" })
     .closest("article")!;
   expect(
     within(harness).getByText("Client configured", { exact: true }),
@@ -147,9 +147,9 @@ it("can inspect existing server snapshots without inventing engine availability"
   );
   expect(screen.getByText("平台服务就绪", { exact: true })).toBeVisible();
   expect(
-    screen.getByRole("heading", { name: "OpenDDE · 计算引擎" }),
+    screen.getByRole("heading", { name: "OpenDDE · 集成环境" }),
   ).toBeVisible();
   expect(
-    screen.queryByRole("heading", { name: "DiffSBDD · 计算引擎" }),
+    screen.queryByRole("heading", { name: "DiffSBDD · 集成环境" }),
   ).toBeNull();
 });

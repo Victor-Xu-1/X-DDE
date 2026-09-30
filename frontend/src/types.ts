@@ -126,7 +126,17 @@ export interface EngineStatus extends ScientificEngine {
 }
 export interface Health {
   platform?: { name: "X-DDE"; ready: boolean };
+  environments?: Record<string, EngineStatus>;
   engines?: Record<string, EngineStatus>;
+  provisioners?: Record<
+    string,
+    {
+      name: string;
+      ready: boolean;
+      implementation: string;
+      reason: string | null;
+    }
+  >;
   version: string;
   engine: {
     ready: boolean;

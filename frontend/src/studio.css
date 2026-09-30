@@ -36,23 +36,6 @@ body {
   color: var(--ink);
   min-height: 58px;
 }
-.studio-brand-mark {
-  font-size: 31px;
-  color: var(--accent);
-}
-.studio-brand strong {
-  font-size: 22px;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
-}
-.studio-brand small {
-  display: block;
-  margin-top: 3px;
-  font-size: var(--text-small, 13px);
-  font-weight: 600;
-  letter-spacing: 0.19em;
-  color: var(--muted);
-}
 .studio-sidebar nav {
   display: flex;
   flex-direction: column;
@@ -973,9 +956,6 @@ body {
   }
   .studio-brand {
     padding: 4px;
-  }
-  .studio-brand span:last-child {
-    display: none;
   }
   .studio-sidebar nav button {
     justify-content: center;

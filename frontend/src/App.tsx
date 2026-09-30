@@ -206,8 +206,8 @@ export function App() {
                     </strong>
                     <p>
                       {zh
-                        ? "编辑器可独立使用；OpenDDE、DiffSBDD 等计算引擎分别管理环境与模型。"
-                        : "Editors work independently. Scientific engines such as OpenDDE and DiffSBDD manage their own environments and models."}
+                        ? "编辑器可独立使用；OpenDDE、DiffSBDD 等集成环境分别配置依赖与模型。"
+                        : "Editors work independently. Integrated environments such as OpenDDE and DiffSBDD have separate dependencies and models."}
                     </p>
                   </div>
                   <button onClick={() => setView("deployment")}>

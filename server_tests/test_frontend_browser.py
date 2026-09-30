@@ -58,6 +58,13 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
         page.on("pageerror", lambda error: errors.append(str(error)))
         try:
             page.goto(base_url)
+            logo = page.get_by_role("img", name="X-DDE 药物研究工作台", exact=True)
+            expect(logo).to_be_visible()
+            assert logo.evaluate("node => node.complete && node.naturalWidth > 0")
+            favicon = page.locator('link[rel="icon"]').get_attribute("href")
+            assert favicon == "/brand/favicon.png"
+            assert page.request.get(base_url + favicon).status == 200
+
             expect(page.get_by_role("heading", name="全部能力", exact=True)).to_be_visible()
             page.get_by_role("button", name="资产与关系", exact=True).click()
             expect(page.get_by_text("从第一份研究资产开始", exact=True)).to_be_visible()
@@ -111,7 +118,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             health = page.request.get(base_url + "/api/health").json()
             assert health["platform"] == {"name": "X-DDE", "ready": True}
             assert set(health["engines"]) == {"opendde", "diffsbdd", "harness"}
-            for name in ("OpenDDE · 计算引擎", "DiffSBDD · 计算引擎", "OpenDDE Harness · 科学工具"):
+            for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
             for width in (390, 768, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
@@ -119,13 +126,13 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                     "document.documentElement.scrollWidth <= window.innerWidth + 1"
                 )
             page.screenshot(path=str(evidence / "xdde-runtime.png"))
-            page.get_by_role("button", name="管理计算引擎与环境", exact=True).click()
+            page.get_by_role("button", name="管理集成环境", exact=True).click()
             expect(
-                page.get_by_role("heading", name="X-DDE 计算环境管理", exact=True)
+                page.get_by_role("heading", name="X-DDE 集成环境管理", exact=True)
             ).to_be_visible()
             deployment = page.request.get(base_url + "/api/deployment").json()
             for engine in deployment["engines"].values():
-                group = page.get_by_role("region", name=engine["name"] + " · 计算环境与模型")
+                group = page.get_by_role("region", name=engine["name"] + " · 集成环境与模型")
                 expect(group).to_be_visible()
             expect(
                 page.get_by_role("button", name="安装 DiffSBDD 小分子设计环境", exact=False)

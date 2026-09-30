@@ -23,10 +23,12 @@ from .assets import AssetStore
 from .backend_router import BackendRouter
 from .checkpoints import registered, resolve
 from .deployment.manager import DeploymentManager
+from .deployment.provisioners import states as provisioner_states
 from .deployment.routes import register_deployments
 from .diffsbdd.runtime import validate as validate_diffsbdd
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
+from .execution_environment import EnvironmentRecord
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
 from .operation_routes import register_operations
@@ -270,10 +272,13 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             health_cache["value"] = await engine.readiness()
             health_cache["expires"] = time.monotonic() + 10
         alive = worker.task is not None and not worker.task.done()
+        environments = engine_statuses(health_cache["value"])
         return {
             "version": __version__,
             "platform": {"name": PRODUCT_NAME, "ready": alive and not worker.error},
-            "engines": engine_statuses(health_cache["value"]),
+            "environments": environments,
+            "engines": environments,
+            "provisioners": provisioner_states(deployments.store.installed()),
             "engine": health_cache["value"],
             "worker_ready": alive and not worker.error,
             "worker_error": worker.error,
@@ -304,6 +309,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     @app.post("/api/jobs", response_model=Job, status_code=201, dependencies=[Depends(mutation)])
     async def submit(prediction: TaskRequest, idempotency_key: Annotated[UUID, Header()]):
         return await enqueue(prediction, idempotency_key)
+
+    @app.get("/api/jobs/{job_id}/environment", response_model=EnvironmentRecord)
+    def execution_environment(job_id: UUID):
+        required(job_id)
+        record = store.environment(str(job_id))
+        if record is None:
+            raise HTTPException(404, "This task has no recorded environment binding.")
+        return record
 
     @app.get("/api/jobs/{job_id}", response_model=Job)
     def detail(job_id: UUID):

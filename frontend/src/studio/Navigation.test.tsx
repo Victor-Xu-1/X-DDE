@@ -123,3 +123,13 @@ it("exposes language preference and honest account limitations", async () => {
   expect(onLanguage).toHaveBeenCalledWith("zh");
   expect(screen.getByRole("status")).toHaveTextContent("could not be saved");
 });
+
+it("uses the supplied raster logo as the accessible brand navigation", async () => {
+  const onView = vi.fn();
+  render(<Navigation view="home" onView={onView} language="zh" jobs={[]} />);
+  expect(
+    screen.getByRole("img", { name: "X-DDE 药物研究工作台" }),
+  ).toHaveAttribute("src", "/brand/x-dde-logo.png");
+  await userEvent.click(screen.getByRole("button", { name: /^X-DDE$/ }));
+  expect(onView).toHaveBeenCalledWith("tools");
+});

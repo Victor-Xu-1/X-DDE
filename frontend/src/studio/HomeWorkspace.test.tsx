@@ -101,7 +101,7 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
     name: "X-DDE 平台后端",
   }).parentElement!;
   const backend = screen.getByRole("heading", {
-    name: "OpenDDE · 计算引擎",
+    name: "OpenDDE · 集成环境",
   }).parentElement!;
   expect(within(service).getByText("平台服务就绪")).toBeVisible();
   expect(within(service).queryByRole("alert")).not.toBeInTheDocument();
