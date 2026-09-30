@@ -71,16 +71,11 @@ export function HomeWorkspace(p: Props) {
     t = translator(p.language);
   return (
     <>
-      <header className="studio-intro">
+      <header className="workbench-status-row">
         <div>
-          <h1>
+          <h1 className="sr-only">
             {zh ? "结构预测 · OpenDDE" : "Structure prediction · OpenDDE"}
           </h1>
-          <p>
-            {zh
-              ? "选一种任务，填入分子，选择运行方案。完成后直接查看三维结构与结果。"
-              : "Choose a task, enter molecules and pick a preset. Inspect structures and results when finished."}
-          </p>
         </div>
         <div className={"ready-indicator " + (p.ready ? "ok" : "off")}>
           {p.ready ? <CheckCircleOutlined /> : <CloseCircleOutlined />}

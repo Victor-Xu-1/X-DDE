@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { api, artifactUrl, request } from "../api";
-import type { Job, Language } from "../types";
+import { artifactUrl } from "../api";
+import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
-import type { IdentityResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
-import { referenceKey } from "./model";
+import { useNativeIdentity } from "../regions/useNativeIdentity";
 import { SavedRegions } from "./SavedRegions";
 
 export function FixedAtomPicker({
@@ -20,91 +18,11 @@ export function FixedAtomPicker({
   language: Language;
   onSaved(id: string | null): void;
 }) {
-  const zh = language === "zh",
-    [job, setJob] = useState<Job | null>(null),
-    [result, setResult] = useState<IdentityResult | null>(null);
-  const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
-    attempt = useRef(crypto.randomUUID());
-  const retryIntent = useRef({ parent: "", key: crypto.randomUUID() });
-  const live = useRef(true);
-  useEffect(() => {
-    live.current = true;
-    return () => {
-      live.current = false;
-    };
-  }, []);
-  useEffect(() => {
-    if (!job || !["queued", "running"].includes(job.status)) return;
-    const c = new AbortController();
-    const timer = setTimeout(() => {
-      void request<Job>(`/jobs/${job.id}`, { signal: c.signal })
-        .then((current) => {
-          if (!c.signal.aborted) setJob(current);
-        })
-        .catch((e) => {
-          if (!c.signal.aborted) setError(String(e));
-        });
-    }, 1200);
-    return () => {
-      clearTimeout(timer);
-      c.abort();
-    };
-  }, [job]);
-  useEffect(() => {
-    if (job?.status !== "succeeded") return;
-    const c = new AbortController();
-    void api
-      .result(job.id, c.signal)
-      .then((data) => {
-        const r = data as unknown as IdentityResult;
-        if (
-          r.mode !== "identity" ||
-          r.identity_basis !== "rdkit_removeHs_record_order" ||
-          referenceKey(r.reference) !== referenceKey(initial)
-        )
-          throw new Error(
-            "Atom identity does not match the selected input version.",
-          );
-        if (!c.signal.aborted) setResult(r);
-      })
-      .catch((e) => {
-        if (!c.signal.aborted) setError(String(e));
-      });
-    return () => c.abort();
-  }, [job?.status]);
-  const running =
-    busy || (!!job && ["queued", "running", "cancelling"].includes(job.status));
-  async function inspect() {
-    setBusy(true);
-    setError("");
-    try {
-      if (
-        job &&
-        !["queued", "running", "cancelling"].includes(job.status) &&
-        retryIntent.current.parent !== job.id
-      )
-        retryIntent.current = { parent: job.id, key: crypto.randomUUID() };
-      const created =
-        job && !["queued", "running", "cancelling"].includes(job.status)
-          ? await api.retry(job.id, retryIntent.current.key)
-          : await api.submit(
-              {
-                operation: "diffsbdd",
-                name: zh
-                  ? "读取分子原子身份"
-                  : "Inspect molecular atom identities",
-                payload: { mode: "identity", molecule: initial },
-              },
-              attempt.current,
-            );
-      if (live.current) setJob(created);
-    } catch (e) {
-      if (live.current) setError(String(e));
-    } finally {
-      if (live.current) setBusy(false);
-    }
-  }
+  const zh = language === "zh";
+  const { job, result, error, running, inspect, refresh } = useNativeIdentity(
+    initial,
+    language,
+  );
   return (
     <section>
       <p>
@@ -192,6 +110,9 @@ export function FixedAtomPicker({
       {error && (
         <p role="alert" className="error-box">
           {error}
+          <button type="button" onClick={refresh}>
+            {zh ? "重新读取任务状态" : "Refresh task status"}
+          </button>
         </p>
       )}
     </section>

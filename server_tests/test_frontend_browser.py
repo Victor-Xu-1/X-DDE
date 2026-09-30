@@ -29,7 +29,7 @@ def open_settings(page):
 
 
 def select_molecule(page):
-    page.get_by_role("button", name="资产与关系", exact=True).click()
+    page.get_by_role("button", name="研究资产", exact=True).click()
     page.get_by_role("button", name="分子 ethanol.sdf", exact=True).first.click()
     expect(page.get_by_role("heading", name="ethanol.sdf", exact=True)).to_be_visible()
 
@@ -66,7 +66,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             assert page.request.get(base_url + favicon).status == 200
 
             expect(page.get_by_role("heading", name="全部能力", exact=True)).to_be_visible()
-            page.get_by_role("button", name="资产与关系", exact=True).click()
+            page.get_by_role("button", name="研究资产", exact=True).click()
             expect(page.get_by_text("从第一份研究资产开始", exact=True)).to_be_visible()
             page.locator('.research-workspace input[type="file"]').set_input_files(molecule)
             expect(page.get_by_role("heading", name="ethanol.sdf", exact=True)).to_be_visible()
@@ -156,7 +156,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             page.get_by_label("界面语言").select_option("en")
             page.reload()
             expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-            page.get_by_role("button", name="Assets & relationships", exact=True).click()
+            page.get_by_role("button", name="Research assets", exact=True).click()
             page.get_by_role("button", name="Molecule ethanol.sdf", exact=True).first.click()
             expect(page.get_by_role("textbox", name="Research notes", exact=True)).to_have_value(
                 current["notes"]
@@ -405,7 +405,7 @@ def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_
             browser.close()
 
 
-def test_overlapping_drug_modalities_and_purpose_filter(tmp_path):
+def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
     base_url = os.environ["WB_BROWSER_URL"]
     evidence = Path("server_tests/evidence")
     evidence.mkdir(exist_ok=True)
@@ -436,11 +436,9 @@ def test_overlapping_drug_modalities_and_purpose_filter(tmp_path):
             expect(
                 center.get_by_role("button", name="抗体设计与 CDR 优化", exact=True)
             ).to_have_count(0)
-            center.get_by_role("combobox", name="研究用途", exact=True).select_option("evaluate")
-            expect(center.get_by_role("button", name="计算小分子性质", exact=True)).to_be_visible()
-            expect(center.get_by_role("button", name="口袋条件分子生成", exact=True)).to_have_count(
-                0
-            )
+            expect(center.get_by_role("searchbox")).to_have_count(0)
+            expect(center.get_by_role("combobox")).to_have_count(0)
+            expect(page.locator(".onboarding-banner")).to_have_count(0)
             for width in (390, 768, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(
@@ -454,7 +452,9 @@ def test_overlapping_drug_modalities_and_purpose_filter(tmp_path):
                     assert box["x"] >= bounds["x"] - 1
                     assert box["x"] + box["width"] <= bounds["x"] + bounds["width"] + 1
                 page.screenshot(path=str(evidence / f"modalities-small-molecule-{width}.png"))
-            center.get_by_role("button", name="清空搜索与筛选", exact=True).click()
+            center.locator(".tool-groups").get_by_role(
+                "button", name="全部能力", exact=True
+            ).click()
             center.get_by_role("button", name="RNA", exact=True).click()
             expect(
                 center.get_by_role("button", name="预测分子与复合物结构", exact=True)
@@ -463,8 +463,32 @@ def test_overlapping_drug_modalities_and_purpose_filter(tmp_path):
             expect(
                 center.get_by_role("button", name="抗体设计与 CDR 优化", exact=True)
             ).to_have_count(0)
-            expect(center.locator(".modality-help")).to_contain_text("不是通用 RNA 药物设计")
+            assert "不是通用 RNA 药物设计" in center.get_by_role(
+                "button", name="RNA", exact=True
+            ).get_attribute("title")
             page.screenshot(path=str(evidence / "modalities-rna.png"))
+            navigation = page.get_by_role("navigation", name="主导航")
+            labels = navigation.get_by_role("button").evaluate_all(
+                "nodes => nodes.map(node => node.getAttribute('aria-label'))"
+            )
+            assert labels[:6] == [
+                "结构预测",
+                "口袋寻找",
+                "分子生成",
+                "抗体设计",
+                "性质计算",
+                "分子编辑",
+            ]
+            for label, heading in (
+                ("口袋寻找", "发现多个候选口袋"),
+                ("分子生成", "口袋条件分子生成"),
+                ("性质计算", "计算小分子性质"),
+            ):
+                navigation.get_by_role("button", name=label, exact=True).click()
+                expect(page.get_by_role("heading", name=heading, exact=True)).to_be_visible()
+                assert page.locator(".studio-intro").count() == 0
+            navigation.get_by_role("button", name="全部能力", exact=True).click()
+            page.screenshot(path=str(evidence / "compact-core-navigation.png"))
             catalogue = page.request.get(base_url + "/api/capabilities").json()
             antibody = next(item for item in catalogue["capabilities"] if item["id"] == "campaign")
             assert antibody["modalities"] == ["biologic", "antibody", "protein"]

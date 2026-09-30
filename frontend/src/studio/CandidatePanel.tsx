@@ -216,8 +216,8 @@ export function CandidatePanel({
       {error && (
         <p className="candidate-state error-box" role="alert">
           {zh
-            ? "结果分析暂未完成。原始结构可从任务中心下载。"
-            : "Analysis could not complete. Download original structures from Task center."}{" "}
+            ? "结果分析暂未完成。原始结构可从任务记录下载。"
+            : "Analysis could not complete. Download original structures from Task history."}{" "}
           {error}{" "}
           {onRetry && (
             <button onClick={onRetry}>

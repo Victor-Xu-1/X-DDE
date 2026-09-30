@@ -31,13 +31,7 @@ export function AccountSettings({
   return (
     <section className="utility-page account-settings">
       <div className="management-heading">
-        <span>{zh ? "工作台管理" : "Workbench management"}</span>
-        <h1>{zh ? "账户与设置" : "Account & settings"}</h1>
-        <p>
-          {zh
-            ? "管理本地使用方式与界面偏好。"
-            : "Manage local access and interface preferences."}
-        </p>
+        <h1 className="sr-only">{zh ? "账户与设置" : "Account & settings"}</h1>
       </div>
       <div className="management-card">
         <h2>{zh ? "当前账户" : "Current account"}</h2>

@@ -182,21 +182,19 @@ button:disabled {
 .studio-content > [hidden] {
   display: none;
 }
-.studio-intro,
 .research-heading,
 .management-heading {
-  margin-bottom: 28px;
+  margin-bottom: 12px;
   min-height: 0;
   gap: 20px;
   align-items: flex-start;
 }
 .studio-content h1,
-.studio-intro h1,
 .research-heading h1,
 .utility-page > h1,
 .project-workspace > header h1 {
   font-family: var(--font);
-  font-size: clamp(25px, 2.2vw, 30px);
+  font-size: 18px;
   line-height: 1.35;
   font-weight: 600;
   letter-spacing: -0.035em;
@@ -215,7 +213,6 @@ button:disabled {
   line-height: 1.45;
   font-weight: 600;
 }
-.studio-intro p,
 .research-heading p,
 .utility-page > p,
 .management-heading > p,

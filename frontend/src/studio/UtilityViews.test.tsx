@@ -169,7 +169,7 @@ it("exposes export loading, retryable analysis failure and successful downloads"
     screen.getByRole("link", { name: "Download result report (HTML)" }),
   ).toHaveAttribute("href", `/api/jobs/${job.id}/report`);
   expect(screen.getByText("Original files and task details")).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Back to Task center" }));
+  fireEvent.click(screen.getByRole("button", { name: "Back to Task history" }));
   expect(p.onTasks).toHaveBeenCalledOnce();
   expect(p.onHome).not.toHaveBeenCalled();
 });
@@ -183,7 +183,7 @@ it("allows a missing export summary to be requested again", () => {
 });
 
 it.each(["analysis", "reports"] as const)(
-  "%s returns a non-prediction task to Task center",
+  "%s returns a non-prediction task to Task history",
   (view) => {
     const p = props({
       view,
@@ -199,7 +199,7 @@ it.each(["analysis", "reports"] as const)(
       },
     });
     render(<UtilityViews {...p} />);
-    fireEvent.click(screen.getByRole("button", { name: "返回任务中心" }));
+    fireEvent.click(screen.getByRole("button", { name: "返回任务记录" }));
     expect(p.onTasks).toHaveBeenCalledOnce();
     expect(p.onHome).not.toHaveBeenCalled();
   },

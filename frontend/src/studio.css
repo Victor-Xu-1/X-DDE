@@ -307,24 +307,6 @@ body {
   margin: 0 auto;
   padding: 15px 16px 10px;
 }
-.studio-intro {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 68px;
-  margin-bottom: 9px;
-}
-.studio-intro h1 {
-  font-size: 23px;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-  font-weight: 700;
-}
-.studio-intro p {
-  font-size: var(--text-small, 13px);
-  color: var(--muted);
-  margin-top: 4px;
-}
 .inline-help {
   background: transparent;
   border: 0;
@@ -956,9 +938,6 @@ body {
   .studio-content {
     padding: 11px;
   }
-  .studio-intro {
-    align-items: flex-start;
-  }
   .studio-topbar {
     padding: 0 9px;
   }
@@ -999,9 +978,6 @@ body {
   .studio-content {
     padding: 11px;
   }
-  .studio-intro {
-    display: block;
-  }
   .ready-indicator {
     margin: 8px 0;
   }
@@ -1016,12 +992,6 @@ body {
   }
 }
 
-.studio-intro h1 {
-  font-family: Georgia, "Songti SC", "SimSun", serif;
-  font-weight: 500;
-  letter-spacing: -0.035em;
-  font-size: 32px;
-}
 .studio-content {
   max-width: 1680px;
   margin: 0 auto;
@@ -1307,7 +1277,4 @@ body {
   .overview-stats {
     gap: 24px;
   }
-}
-.studio-intro {
-  margin-bottom: 24px;
 }

@@ -28,7 +28,7 @@ class CapabilitySpec(BaseModel):
     frontend_form: str | None = None
     native_tool: str | None = None
     native_mode: str | None = None
-    submission: Literal["task", "native_campaign", "research_plan"] = "task"
+    submission: Literal["task", "native_campaign", "research_plan", "scientific_record"] = "task"
     contract_source: str = "TaskRequest"
     constraint_support: tuple[ConstraintSupport, ...] = ()
     scientific_validation: Literal["target_server_pending", "not_applicable"] = (

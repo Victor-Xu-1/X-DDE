@@ -229,14 +229,7 @@ dialog::backdrop {
   .studio-content {
     padding: 24px 16px 16px;
   }
-  .studio-intro {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
   .studio-content h1,
-  .studio-intro h1 {
-    font-size: 25px;
-  }
   .tool-grid,
   .project-layout,
   .guide-grid,
@@ -258,11 +251,6 @@ dialog::backdrop {
   .management-card,
   .setup-card {
     padding: 18px;
-  }
-  .onboarding-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
   }
   .theme-option {
     display: grid;

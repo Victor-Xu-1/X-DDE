@@ -2,15 +2,6 @@
   max-width: 1500px;
   margin: auto;
 }
-.tool-filter {
-  display: grid;
-  gap: 16px;
-  margin: 20px 0;
-}
-.tool-filter input {
-  max-width: 760px;
-  width: 100%;
-}
 .tool-groups,
 .inline-fields,
 .bond-row,
@@ -60,8 +51,7 @@
   color: var(--ink);
   margin: 13px 0 9px;
 }
-.tool-card p,
-.tool-heading p {
+.tool-card p {
   font-size: var(--text-body, 14px);
   color: var(--muted);
   line-height: 1.6;
@@ -76,12 +66,6 @@
   font-size: var(--text-small, 13px);
   letter-spacing: 0.03em;
   color: var(--muted);
-}
-.tool-heading {
-  padding: 18px 0;
-}
-.tool-heading h2 {
-  margin: 8px 0;
 }
 .tool-form {
   background: var(--surface);

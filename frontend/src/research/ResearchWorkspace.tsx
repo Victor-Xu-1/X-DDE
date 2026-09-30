@@ -108,15 +108,9 @@ export function ResearchWorkspace({
   return (
     <section className="research-workspace">
       <header className="research-heading">
-        <span className="eyebrow">CONNECTED RESEARCH</span>
-        <h1>
-          {zh ? "科学资产与关系网络" : "Scientific assets & relationships"}
+        <h1 className="sr-only">
+          {zh ? "科学研究资产网络" : "Scientific assets & relationships"}
         </h1>
-        <p>
-          {zh
-            ? "结构、分子、序列和计算结果在同一个研究空间中。点击资产，查看它的来源、修改版本和下游任务，再选择下一步。"
-            : "Structures, molecules, sequences and results share one research space. Select an asset to inspect its origin, versions and downstream tasks, then choose the next step."}
-        </p>
       </header>
       <div className="editor-toolbar">
         <button onClick={() => void load()} disabled={busy}>

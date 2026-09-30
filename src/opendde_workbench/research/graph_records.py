@@ -56,11 +56,21 @@ def project_record(store, kind, row):
         )
         return (
             identifier,
-            {"id": identifier, "kind": "region", "label": value.name},
+            {
+                "id": identifier,
+                "kind": "region",
+                "label": value.name,
+                "region_document": value.model_dump(mode="json"),
+            },
             [
                 (source, identifier, "selected_region"),
                 ("task:" + str(value.identity_job), identifier, "identity_evidence"),
-            ],
+            ]
+            + (
+                [("region:" + str(value.parent_id), identifier, "revised_regions")]
+                if value.parent_id
+                else []
+            ),
         )
     if kind == "plan":
         from ..workflows.contracts import PlanInput

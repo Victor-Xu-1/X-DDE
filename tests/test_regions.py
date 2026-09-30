@@ -115,3 +115,87 @@ def test_saved_constraints_match_exact_version_and_native_fixed_atoms(settings):
     body["payload"]["saved_regions"] = str(uuid4())
     with pytest.raises(ValueError, match="no longer exist"):
         records.check_task(TASK_ADAPTER.validate_python(body))
+
+
+@pytest.mark.parametrize("bad", [True, 1.0, -1, 5000])
+def test_region_atom_indices_require_real_bounded_integers(bad):
+    with pytest.raises(ValidationError):
+        RegionInput.model_validate(
+            {
+                "name": "test",
+                "subject": {"asset_id": str(uuid4()), "sha256": "a" * 64},
+                "identity_job": str(uuid4()),
+                "regions": [{"name": "A", "role": "binder_a", "atom_indices": [bad]}],
+            }
+        )
+
+
+def test_revision_lineage_exact_version_filter_and_legacy_replay(settings, client_factory):
+    import hashlib
+
+    records, value, job = setup(settings)
+    key = uuid4()
+    saved = records.save(value, key)
+    changed = RegionInput.model_validate(
+        {**value.model_dump(mode="json"), "parent_id": saved["id"], "name": "Revised selections"}
+    )
+    revised = records.save(changed, uuid4())
+    assert records.get(saved["id"])["body"]["name"] == value.name
+    assert revised["body"]["parent_id"] == saved["id"]
+    assert len(records.list(subject=value.subject)) == 2
+    assert records.list(subject=value.subject.model_copy(update={"record": 2})) == []
+    with client_factory() as client:
+        edges = client.get("/api/research/graph").json()["edges"]
+        assert {
+            "source": "region:" + saved["id"],
+            "target": "region:" + revised["id"],
+            "relation": "revised_regions",
+        } in edges
+    legacy = value.model_dump(mode="json")
+    legacy.pop("parent_id")
+    body = json.dumps(legacy)
+    with records.store.connect() as db:
+        db.execute(
+            "UPDATE research_regions SET body=?,sha256=? WHERE id=?",
+            (body, hashlib.sha256(body.encode()).hexdigest(), saved["id"]),
+        )
+    assert records.save(value, key)["id"] == saved["id"]
+
+
+def test_region_public_schema_filters_and_mutation_boundary(client_factory, settings):
+    records, value, job = setup(settings)
+    saved = records.save(value, uuid4())
+    with client_factory() as client:
+        response = client.get("/api/research/regions/schema")
+        assert response.status_code == 200
+        assert {role["id"] for role in response.json()["roles"]} == {
+            "fixed_core",
+            "binder_a",
+            "binder_b",
+            "linker",
+            "payload",
+            "custom",
+        }
+        query = f"?asset_id={value.subject.asset_id}&record=0&conformer=0"
+        assert client.get("/api/research/regions" + query).json()[0]["id"] == saved["id"]
+        assert (
+            client.get("/api/research/regions" + query.replace("record=0", "record=2")).json() == []
+        )
+        assert client.get("/api/research/regions?record=2").status_code == 422
+        assert (
+            client.post(
+                "/api/research/regions",
+                json=value.model_dump(mode="json"),
+                headers={"Idempotency-Key": str(uuid4()), "Origin": "https://example.com"},
+            ).status_code
+            == 403
+        )
+        response = client.post(
+            "/api/research/regions",
+            json=value.model_dump(mode="json"),
+            headers={"Idempotency-Key": str(uuid4())},
+        )
+        assert response.status_code == 201
+        assert (
+            client.get("/api/assets/" + str(value.subject.asset_id)).content == b"molecule\n$$$$\n"
+        )

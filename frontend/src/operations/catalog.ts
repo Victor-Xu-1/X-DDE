@@ -425,6 +425,18 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "regions",
+    group: "prepare",
+    label: ["定义完整分子的区域", "Define full-molecule regions"],
+    note: [
+      "在真实原子身份上标记固定核心、结合端、连接区和载荷；区域可重叠并复用。",
+      "Annotate overlapping cores, binders, linkers and payloads using native atom identities.",
+    ],
+    source: "X-DDE / RDKit",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "workflows",
     group: "design",
     label: ["研究计划与连续任务", "Research plans and task workflows"],

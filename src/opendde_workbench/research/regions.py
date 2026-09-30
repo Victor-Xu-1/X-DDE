@@ -1,7 +1,7 @@
 """Logical regions retain the full molecular graph and exact parser identities."""
 
 import hashlib
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 from uuid import UUID, uuid5
 
 from pydantic import ConfigDict, Field, model_validator
@@ -11,12 +11,61 @@ from ..scientific_objects import MoleculeRef, ScientificModel
 from ..store import ConflictError, now
 
 NAMESPACE = UUID("f892b7e3-7708-4f18-af23-96c5039c8400")
+REGION_ROLES = (
+    {
+        "id": "fixed_core",
+        "label": ("固定核心", "Fixed core"),
+        "help": (
+            "局部重设计中保持的原子。只有显式提交固定原子才会影响生成。",
+            "Atoms retained in inpainting; generation changes only when fixed atoms are submitted.",
+        ),
+    },
+    {
+        "id": "binder_a",
+        "label": ("结合端 A", "Binder A"),
+        "help": (
+            "标记第一结合端；区域标签本身不证明结合。",
+            "Annotate the first binder; a label does not prove binding.",
+        ),
+    },
+    {
+        "id": "binder_b",
+        "label": ("结合端 B", "Binder B"),
+        "help": (
+            "标记第二结合端；可与其他区域重叠。",
+            "Annotate the second binder; regions may overlap.",
+        ),
+    },
+    {
+        "id": "linker",
+        "label": ("连接区", "Linker"),
+        "help": (
+            "完整分子中连接各端的逻辑区域，不切断键。",
+            "A logical connecting region in the full molecule; no bonds are cut.",
+        ),
+    },
+    {
+        "id": "payload",
+        "label": ("载荷", "Payload"),
+        "help": (
+            "标记载荷部分，保持完整分子与原始文件。",
+            "Annotate a payload while retaining the full molecule and file.",
+        ),
+    },
+    {
+        "id": "custom",
+        "label": ("自定义区域", "Custom region"),
+        "help": ("命名一个需要复用的原子集合。", "Name an atom selection for reuse."),
+    },
+)
 
 
 class Region(ScientificModel):
     name: str = Field(min_length=1, max_length=80, pattern=r"^[^\x00-\x1f]+$")
     role: Literal["fixed_core", "binder_a", "binder_b", "linker", "payload", "custom"]
-    atom_indices: tuple[int, ...] = Field(min_length=1, max_length=5000)
+    atom_indices: tuple[Annotated[int, Field(strict=True, ge=0, le=4999)], ...] = Field(
+        min_length=1, max_length=5000
+    )
 
     @model_validator(mode="after")
     def valid_indices(self) -> Self:
@@ -31,11 +80,14 @@ class RegionInput(ScientificModel):
     name: str = Field(min_length=1, max_length=120, pattern=r"^[^\x00-\x1f]+$")
     subject: MoleculeRef
     identity_job: UUID
+    parent_id: UUID | None = None
     regions: tuple[Region, ...] = Field(min_length=1, max_length=20)
 
     @model_validator(mode="after")
     def unique_regions(self) -> Self:
-        if len({region.name for region in self.regions}) != len(self.regions):
+        if not self.name.strip() or any(not region.name.strip() for region in self.regions):
+            raise ValueError("Selection and region names must not be blank.")
+        if len({region.name.strip() for region in self.regions}) != len(self.regions):
             raise ValueError("Region names must be unique; atom membership may overlap.")
         return self
 
@@ -107,15 +159,24 @@ class RegionRecords:
 
     def save(self, value, key):
         self.validate(value)
+        if value.parent_id:
+            self.get(value.parent_id)
         body = value.model_dump_json()
         digest = hashlib.sha256(body.encode()).hexdigest()
         identifier = str(uuid5(NAMESPACE, str(key)))
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            if not db.execute(
+                "SELECT 1 FROM assets WHERE id=? AND sha256=?",
+                (str(value.subject.asset_id), value.subject.sha256),
+            ).fetchone():
+                raise ValueError("Region subject disappeared before saving. Select it again.")
             old = db.execute(
-                "SELECT sha256 FROM research_regions WHERE id=?", (identifier,)
+                "SELECT body,sha256 FROM research_regions WHERE id=?", (identifier,)
             ).fetchone()
-            if old and old[0] != digest:
+            if old and hashlib.sha256(old["body"].encode()).hexdigest() != old["sha256"]:
+                raise ValueError("Saved region document failed integrity verification.")
+            if old and RegionInput.model_validate_json(old["body"]) != value:
                 raise ConflictError(
                     "Region key already identifies a different immutable selection."
                 )
@@ -140,13 +201,21 @@ class RegionRecords:
             "body": RegionInput.model_validate_json(row["body"]).model_dump(mode="json"),
         }
 
-    def list(self, limit=100, offset=0):
+    def list(self, limit=100, offset=0, subject=None):
+        filters, parameters = [], []
+        if subject:
+            for field, val in subject.model_dump(mode="json").items():
+                filters.append("json_extract(body,'$.subject." + field + "') IS ?")
+                parameters.append(val)
+        where = " WHERE " + " AND ".join(filters) if filters else ""
         with self.store.connect() as db:
             ids = [
                 r[0]
                 for r in db.execute(
-                    "SELECT id FROM research_regions ORDER BY created_at DESC,id LIMIT ? OFFSET ?",
-                    (limit, offset),
+                    "SELECT id FROM research_regions"
+                    + where
+                    + " ORDER BY created_at DESC,id LIMIT ? OFFSET ?",
+                    (*parameters, limit, offset),
                 )
             ]
         return [self.get(identifier) for identifier in ids]

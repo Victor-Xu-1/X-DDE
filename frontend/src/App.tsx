@@ -4,7 +4,13 @@ import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import { useWorkbench } from "./useWorkbench";
 import { useScience } from "./studio/useScience";
-import { Navigation, Header, viewTitle, type View } from "./studio/Navigation";
+import {
+  Navigation,
+  Header,
+  viewTitle,
+  coreToolForView,
+  type View,
+} from "./studio/Navigation";
 import { HomeWorkspace } from "./studio/HomeWorkspace";
 import { UtilityViews } from "./studio/UtilityViews";
 import type { Job, Language, Prediction } from "./types";
@@ -196,25 +202,6 @@ export function App() {
                 health={health}
               />
             )}
-            {view === "tools" &&
-              deployment.data &&
-              !deployment.data.installed.compute && (
-                <aside className="onboarding-banner">
-                  <div>
-                    <strong>
-                      {zh ? "按需安装研究软件" : "Install research software"}
-                    </strong>
-                    <p>
-                      {zh
-                        ? "编辑器可独立使用；OpenDDE、DiffSBDD 等集成环境分别配置依赖与模型。"
-                        : "Editors work independently. Integrated environments such as OpenDDE and DiffSBDD have separate dependencies and models."}
-                    </p>
-                  </div>
-                  <button onClick={() => setView("deployment")}>
-                    {zh ? "安装与组件 →" : "Installation & components →"}
-                  </button>
-                </aside>
-              )}
             {view === "research" && (
               <ResearchWorkspace
                 language={language}
@@ -293,8 +280,11 @@ export function App() {
                 onSubmit={submit}
               />
             </div>
-            {view === "tools" && (
+            {(view === "tools" || coreToolForView(view)) && (
               <ToolCenter
+                key={view}
+                initialTool={coreToolForView(view) ?? null}
+                onBrowse={view === "tools" ? undefined : () => setView("tools")}
                 language={language}
                 health={health}
                 jobs={jobs}
@@ -309,6 +299,7 @@ export function App() {
             )}
             {view !== "home" &&
               view !== "tools" &&
+              !coreToolForView(view) &&
               view !== "deployment" &&
               view !== "editors" &&
               view !== "settings" &&

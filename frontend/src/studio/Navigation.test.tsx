@@ -11,14 +11,16 @@ it("keeps all research modules directly accessible", async () => {
   render(<Navigation view="home" onView={onView} language="zh" jobs={[]} />);
   const nav = screen.getByRole("navigation", { name: "主导航" });
   for (const name of [
-    "资产与关系",
-    "全部能力",
     "结构预测",
-    "分子与结构",
-    "项目空间",
-    "任务中心",
-    "结果解读",
-    "导出结果",
+    "口袋寻找",
+    "分子生成",
+    "抗体设计",
+    "性质计算",
+    "分子编辑",
+    "全部能力",
+    "研究资产",
+    "研究项目",
+    "任务记录",
   ])
     expect(within(nav).getByRole("button", { name })).toBeVisible();
   expect(within(nav).queryByRole("button", { name: "安装与组件" })).toBeNull();
@@ -26,15 +28,15 @@ it("keeps all research modules directly accessible", async () => {
   await user.click(screen.getByRole("button", { name: "账户与设置" }));
   expect(
     within(screen.getByRole("menu")).getAllByRole("menuitem"),
-  ).toHaveLength(5);
+  ).toHaveLength(8);
   await user.click(screen.getByRole("menuitem", { name: "运行状态" }));
   expect(onView).toHaveBeenCalledWith("models");
   expect(screen.queryByRole("menu")).toBeNull();
   expect(screen.getByRole("button", { name: "账户与设置" })).toHaveFocus();
 });
 it.each([
-  ["zh", "资产与关系", "资产"],
-  ["en", "Assets & relationships", "Assets"],
+  ["zh", "研究资产", "资产"],
+  ["en", "Research assets", "Assets"],
 ] as const)(
   "keeps the shared asset destination reachable in %s",
   async (language, label, shortLabel) => {

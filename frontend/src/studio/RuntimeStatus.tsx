@@ -36,12 +36,7 @@ export function RuntimeStatus({
       : {});
   return (
     <section className="utility-page runtime-workspace">
-      <h1>{zh ? "运行状态" : "Runtime status"}</h1>
-      <p>
-        {zh
-          ? "X-DDE 负责前端和统一后端。OpenDDE、DiffSBDD、Harness 等软件作为集成环境，由 X-DDE 管理配置、任务与研究资产。"
-          : "X-DDE owns the frontend and unified backend. OpenDDE, DiffSBDD, Harness and other software are integrated environments managed by X-DDE."}
-      </p>
+      <h1 className="sr-only">{zh ? "运行状态" : "Runtime status"}</h1>
       {connectionError && (
         <p className="error-box" role="alert">
           {zh

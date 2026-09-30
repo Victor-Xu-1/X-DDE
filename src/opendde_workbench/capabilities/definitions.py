@@ -146,6 +146,24 @@ _DIFF = tuple(
 
 _PLATFORM = (
     CapabilitySpec(
+        id="regions",
+        **modality_metadata("regions"),
+        group="prepare",
+        environment="platform",
+        operations=(),
+        label=("定义完整分子的区域", "Define full-molecule regions"),
+        note=(
+            "在真实原子身份上标记固定核心、结合端、连接区和载荷；区域可重叠并复用。",
+            "Annotate overlapping cores, binders, linkers and payloads "
+            "using native atom identities.",
+        ),
+        source="X-DDE / RDKit",
+        frontend_form="regions",
+        submission="scientific_record",
+        contract_source="RegionInput",
+        scientific_validation="not_applicable",
+    ),
+    CapabilitySpec(
         id="workflows",
         **modality_metadata("workflows"),
         group="design",

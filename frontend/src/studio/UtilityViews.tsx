@@ -110,7 +110,7 @@ export function UtilityViews(p: Props) {
     return (
       <section className="utility-page">
         <div className="section-heading utility-heading">
-          <h1>{zh ? "任务中心" : "Task center"}</h1>
+          <h1 className="sr-only">{zh ? "任务记录" : "Task history"}</h1>
           {p.projectId && (
             <div
               className="task-project-filter"
@@ -243,8 +243,8 @@ export function UtilityViews(p: Props) {
             description={
               p.jobs.length
                 ? zh
-                  ? "前往任务中心选择任务，查看它的结果与可下载文件。"
-                  : "Select a task in Task center to inspect its results and available downloads."
+                  ? "前往任务记录选择任务，查看它的结果与可下载文件。"
+                  : "Select a task in Task history to inspect its results and available downloads."
                 : zh
                   ? "选择研究能力并创建任务，完成后即可在这里查看和导出结果。"
                   : "Choose a research tool and create a task. Return here to inspect and export its results."
@@ -274,7 +274,7 @@ export function UtilityViews(p: Props) {
   if (p.view === "analysis" && p.job && !isPrediction(p.job.request))
     return (
       <section className="utility-page">
-        <h1>{zh ? "结果解读" : "Result interpretation"}</h1>
+        <h1 className="sr-only">{zh ? "结果解读" : "Result interpretation"}</h1>
         <TaskDetail
           language={p.language}
           job={p.job}
@@ -284,14 +284,14 @@ export function UtilityViews(p: Props) {
           onDraft={p.onDraft}
         />
         <button className="secondary-button" onClick={p.onTasks}>
-          {zh ? "返回任务中心" : "Back to Task center"}
+          {zh ? "返回任务记录" : "Back to Task history"}
         </button>
       </section>
     );
   if (p.view === "analysis")
     return (
       <section className="utility-page">
-        <h1>{zh ? "结果解读" : "Result interpretation"}</h1>
+        <h1 className="sr-only">{zh ? "结果解读" : "Result interpretation"}</h1>
         <p>{p.job?.request.name}</p>
         <CandidatePanel
           job={p.job}
@@ -327,12 +327,7 @@ export function UtilityViews(p: Props) {
   if (p.view === "reports")
     return (
       <section className="utility-page">
-        <h1>{zh ? "导出结果" : "Export results"}</h1>
-        <p>
-          {zh
-            ? "结构文件用于进一步分析；表格用于整理数据；报告包含本次输入和指标解释。"
-            : "Use structures for further analysis, tables for data review, and reports for inputs and metric definitions."}
-        </p>
+        <h1 className="sr-only">{zh ? "导出结果" : "Export results"}</h1>
         <div className="studio-panel report-panel">
           {p.job?.status === "succeeded" && isPrediction(p.job.request) ? (
             <>
@@ -415,12 +410,12 @@ export function UtilityViews(p: Props) {
           ) : (
             <p>
               {zh
-                ? "先从任务中心选择一项任务。"
-                : "Select a task from Task center first."}
+                ? "先从任务记录选择一项任务。"
+                : "Select a task from Task history first."}
             </p>
           )}
           <button className="secondary-button" onClick={p.onTasks}>
-            {zh ? "返回任务中心" : "Back to Task center"}
+            {zh ? "返回任务记录" : "Back to Task history"}
           </button>
         </div>
       </section>

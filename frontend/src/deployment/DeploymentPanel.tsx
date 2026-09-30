@@ -56,13 +56,9 @@ export function DeploymentPanel({
   return (
     <section className="deployment-workspace">
       <header className="research-heading">
-        <span className="eyebrow">X-DDE ENVIRONMENTS</span>
-        <h1>{zh ? "X-DDE 集成环境管理" : "X-DDE integrated environments"}</h1>
-        <p>
-          {zh
-            ? "X-DDE 负责前后端，统一管理各软件集成环境。选择位置和研究目标，按需安装对应环境；下载在后台进行。"
-            : "X-DDE owns the frontend and backend and manages integrated software environments. Choose a location and research goal; install the required environment in the background."}
-        </p>
+        <h1 className="sr-only">
+          {zh ? "X-DDE 集成环境管理" : "X-DDE integrated environments"}
+        </h1>
       </header>
       {(message || error) && (
         <p className="error" role="alert">
@@ -173,7 +169,7 @@ export function DeploymentPanel({
               </button>
               <button className="text-button" onClick={onEditors}>
                 {zh
-                  ? "打开分子与结构 →"
+                  ? "打开分子编辑 →"
                   : "Open molecule & structure workspace →"}
               </button>
             </section>

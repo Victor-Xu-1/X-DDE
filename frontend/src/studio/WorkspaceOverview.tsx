@@ -24,13 +24,9 @@ export function WorkspaceOverview({
   return (
     <section className="utility-page workspace-overview">
       <div className="management-heading">
-        <span>{zh ? "工作台管理" : "Workbench management"}</span>
-        <h1>{zh ? "工作空间概况" : "Workspace overview"}</h1>
-        <p>
-          {zh
-            ? "任务与存储状态集中在这里，研究区域保持简洁。"
-            : "Task and storage status in one place, leaving room for research."}
-        </p>
+        <h1 className="sr-only">
+          {zh ? "工作空间概况" : "Workspace overview"}
+        </h1>
       </div>
       <div className="management-card">
         <h2>{zh ? "研究项目" : "Research projects"}</h2>

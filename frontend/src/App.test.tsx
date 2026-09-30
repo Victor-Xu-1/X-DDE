@@ -79,9 +79,7 @@ it("opens the shared asset workspace through the integrated navigation", async (
     .mockResolvedValueOnce([]);
   const user = userEvent.setup();
   render(<App />);
-  await user.click(
-    screen.getByRole("button", { name: "Assets & relationships" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Research assets" }));
   expect(
     await screen.findByRole("heading", {
       name: "Scientific assets & relationships",
@@ -91,15 +89,15 @@ it("opens the shared asset workspace through the integrated navigation", async (
     await screen.findByText("Start with your first research asset"),
   ).toBeVisible();
   expect(
-    screen.getByRole("button", { name: "Assets & relationships" }),
+    screen.getByRole("button", { name: "Research assets" }),
   ).toHaveAttribute("aria-current", "page");
-  expect(document.title).toBe("Assets & relationships · X-DDE");
+  expect(document.title).toBe("Research assets · X-DDE");
 });
 
 it("keeps all projects visible when selecting a task from the unfiltered task center", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Task center" }));
+  await user.click(screen.getByRole("button", { name: "Task history" }));
   await user.click(
     await screen.findByRole("button", { name: /Project A task/ }),
   );
@@ -132,4 +130,43 @@ it("applies an explicitly chosen project until the user clears its filter", asyn
   expect(screen.queryByRole("group", { name: "Project filter" })).toBeNull();
   expect(screen.getByRole("button", { name: /Project B task/ })).toBeVisible();
   expect(screen.getByRole("button", { name: /Ungrouped task/ })).toBeVisible();
+});
+
+it("opens core scientific forms directly from the first navigation entries", async () => {
+  vi.spyOn(api, "assets").mockResolvedValue([]);
+  vi.spyOn(apiClient, "request").mockImplementation(
+    async (path) =>
+      (path.includes("capabilities")
+        ? {
+            availability: {
+              configuration_present: false,
+              missing: ["runtime"],
+            },
+          }
+        : []) as never,
+  );
+  const user = userEvent.setup(),
+    submit = vi.spyOn(api, "submit");
+  render(<App />);
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  const core = [
+    "Structure prediction",
+    "Pocket discovery",
+    "Molecule generation",
+    "Antibody design",
+    "Molecular properties",
+    "Molecule editing",
+  ];
+  expect(
+    within(nav)
+      .getAllByRole("button")
+      .slice(0, 6)
+      .map((button) => button.getAttribute("aria-label")),
+  ).toEqual(core);
+  await user.click(
+    within(nav).getByRole("button", { name: "Molecular properties" }),
+  );
+  expect(screen.getByRole("textbox", { name: "SMILES" })).toBeVisible();
+  expect(screen.queryByText("Install research software")).toBeNull();
+  expect(submit).not.toHaveBeenCalled();
 });

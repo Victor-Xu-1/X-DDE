@@ -140,34 +140,6 @@ textarea {
   min-height: 38px;
   padding: 8px 14px;
 }
-.onboarding-banner {
-  margin: 0 0 24px;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface-muted);
-  gap: 20px;
-  align-items: center;
-}
-.onboarding-banner strong {
-  font-size: 13px;
-  font-weight: 600;
-}
-.onboarding-banner p {
-  font-size: 13px;
-  margin-top: 3px;
-  color: var(--muted);
-}
-.onboarding-banner button {
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 8px 12px;
-  min-height: 36px;
-  font-size: 13px;
-  flex-shrink: 0;
-}
 .error-box,
 .studio-app .error-box,
 .error {

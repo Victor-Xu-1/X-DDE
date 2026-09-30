@@ -111,13 +111,9 @@ export function Editors({
   return (
     <section className="editor-workspace">
       <header className="research-heading">
-        <span className="eyebrow">MOLECULAR WORKSPACE</span>
-        <h1>{zh ? "从一个分子开始" : "Begin with a molecule"}</h1>
-        <p>
-          {zh
-            ? "画出你的想法，或走进蛋白的三维结构。编辑器在本机运行，输入文件不会上传到第三方编辑网站。"
-            : "Sketch an idea or explore a protein in three dimensions. Editors run locally; inputs are not sent to third-party editor websites."}
-        </p>
+        <h1 className="sr-only">
+          {zh ? "从一个分子开始" : "Begin with a molecule"}
+        </h1>
       </header>
       <div
         className="editor-tabs"
@@ -222,8 +218,8 @@ export function Editors({
                     await saveMolecule(editor);
                     setMessage(
                       zh
-                        ? "已保存新版本，可在资产与关系中查看来源和继续复用。二维编辑不代表已预测三维姿势。"
-                        : "New version saved. Inspect its lineage and reuse it in Assets & relationships. A 2D edit is not a predicted 3D pose.",
+                        ? "已保存新版本，可在研究资产中查看来源和继续复用。二维编辑不代表已预测三维姿势。"
+                        : "New version saved. Inspect its lineage and reuse it in Research assets. A 2D edit is not a predicted 3D pose.",
                     );
                   })
                 }

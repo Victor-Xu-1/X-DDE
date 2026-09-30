@@ -120,6 +120,7 @@ _MEMBERSHIP = {
     "resources": _ALL,
     "native.inspect": _ALL,
     "workflows": _ALL,
+    "regions": _SMALL,
     "p2rank.detect": _CONTEXT,
     **{
         "diffsbdd." + mode: _SMALL

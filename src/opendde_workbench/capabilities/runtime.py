@@ -8,7 +8,11 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
     specific = ["native_input_validation", "selected_asset_versions"]
     if spec.environment == "platform":
         checks = {"platform_api": True}
-        specific = ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
+        specific = (
+            ["native_identity_task", "exact_molecule_record", "region_atom_membership"]
+            if spec.id == "regions"
+            else ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
+        )
     elif spec.environment == "p2rank":
         checks = {"runtime": bool(backends.get("p2rank", {}).get("ready"))}
         specific.extend(("structural_input", "structure_source_profile", "native_report"))

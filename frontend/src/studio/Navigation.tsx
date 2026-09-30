@@ -16,9 +16,15 @@ import {
   RightOutlined,
 } from "@ant-design/icons";
 import { useEffect, useRef, useState } from "react";
+import type { ToolId } from "../operations/catalog";
 import type { Job, Language } from "../types";
 
 export type View =
+  | "pockets"
+  | "molecule-design"
+  | "antibody-design"
+  | "properties"
+  | "regions"
   | "research"
   | "home"
   | "tools"
@@ -32,12 +38,47 @@ export type View =
   | "help"
   | "settings"
   | "overview";
-const items = [
+export const coreTools: Readonly<Partial<Record<View, ToolId>>> = Object.freeze(
   {
-    id: "research",
-    cn: "资产与关系",
-    en: "Assets & relationships",
+    pockets: "p2rank.detect",
+    "molecule-design": "diffsbdd.generate",
+    "antibody-design": "campaign",
+    properties: "properties",
+    regions: "regions",
+  },
+);
+export const coreToolForView = (view: View) => coreTools[view];
+const items = [
+  { id: "home", cn: "结构预测", en: "Structure prediction", icon: HomeFilled },
+  {
+    id: "pockets",
+    cn: "口袋寻找",
+    en: "Pocket discovery",
+    icon: SearchOutlined,
+  },
+  {
+    id: "molecule-design",
+    cn: "分子生成",
+    en: "Molecule generation",
+    icon: ExperimentOutlined,
+  },
+  {
+    id: "antibody-design",
+    cn: "抗体设计",
+    en: "Antibody design",
     icon: DeploymentUnitOutlined,
+  },
+  {
+    id: "properties",
+    cn: "性质计算",
+    en: "Molecular properties",
+    icon: BarChartOutlined,
+  },
+  {
+    id: "editors",
+    cn: "分子编辑",
+    en: "Molecule editing",
+    icon: ExperimentOutlined,
   },
   {
     id: "tools",
@@ -45,17 +86,14 @@ const items = [
     en: "All capabilities",
     icon: ExperimentOutlined,
   },
-  { id: "home", cn: "结构预测", en: "Structure prediction", icon: HomeFilled },
   {
-    id: "editors",
-    cn: "分子与结构",
-    en: "Molecules & structures",
-    icon: ExperimentOutlined,
+    id: "research",
+    cn: "研究资产",
+    en: "Research assets",
+    icon: DeploymentUnitOutlined,
   },
-  { id: "projects", cn: "项目空间", en: "Projects", icon: FolderOutlined },
-  { id: "tasks", cn: "任务中心", en: "Task center", icon: ProfileOutlined },
-  { id: "analysis", cn: "结果解读", en: "Results", icon: BarChartOutlined },
-  { id: "reports", cn: "导出结果", en: "Exports", icon: FileTextOutlined },
+  { id: "projects", cn: "研究项目", en: "Projects", icon: FolderOutlined },
+  { id: "tasks", cn: "任务记录", en: "Task history", icon: ProfileOutlined },
 ] as const;
 const management = [
   {
@@ -72,6 +110,14 @@ const management = [
   {
     label: ["工作台", "Workspace"],
     items: [
+      {
+        id: "regions",
+        cn: "分子区域",
+        en: "Molecular regions",
+        icon: ExperimentOutlined,
+      },
+      { id: "analysis", cn: "结果解读", en: "Results", icon: BarChartOutlined },
+      { id: "reports", cn: "导出结果", en: "Exports", icon: FileTextOutlined },
       {
         id: "overview",
         cn: "工作空间概况",
@@ -179,6 +225,10 @@ export function Navigation({
                   research: ["资产", "Assets"],
                   tools: ["能力", "Tools"],
                   home: ["预测", "Predict"],
+                  pockets: ["口袋", "Pockets"],
+                  "molecule-design": ["生成", "Generate"],
+                  "antibody-design": ["抗体", "Antibody"],
+                  properties: ["性质", "Properties"],
                   editors: ["编辑", "Editors"],
                   projects: ["项目", "Projects"],
                   tasks: ["任务", "Tasks"],

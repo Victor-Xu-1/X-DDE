@@ -1,17 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { api, request } from "../api";
+import { api } from "../api";
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
 import { referenceKey } from "./model";
-interface SavedRegion {
-  id: string;
-  body: {
-    name: string;
-    subject: MoleculeRef;
-    identity_job: string;
-    regions: { name: string; role: string; atom_indices: number[] }[];
-  };
-}
+import type { SavedRegion } from "../regions/model";
+import { savedRegions } from "../regions/records";
 export function SavedRegions({
   subject,
   identityJob,
@@ -37,15 +30,7 @@ export function SavedRegions({
   useEffect(() => {
     const c = new AbortController();
     async function load() {
-      const all: SavedRegion[] = [];
-      for (let offset = 0; offset < 10000; offset += 200) {
-        const page = await request<SavedRegion[]>(
-          `/research/regions?limit=200&offset=${offset}`,
-          { signal: c.signal },
-        );
-        all.push(...page);
-        if (page.length < 200) break;
-      }
+      const all = await savedRegions(subject, c.signal);
       if (!c.signal.aborted)
         setValues(
           all.filter(

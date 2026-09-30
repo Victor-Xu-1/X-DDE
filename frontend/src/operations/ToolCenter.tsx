@@ -3,11 +3,7 @@ import type { Health, Job, Language, Prediction } from "../types";
 import { tools, type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { ModalityTags } from "./ModalityTags";
-import {
-  filterCapabilities,
-  type ModalityFilter,
-  type PurposeFilter,
-} from "./filter";
+import { filterCapabilities, type ModalityFilter } from "./filter";
 import { PropertyForm } from "./PropertyForm";
 import { FeatureForm } from "./FeatureForm";
 import { ImportForm } from "./ImportForm";
@@ -15,6 +11,7 @@ import { ResourceForm } from "./ResourceForm";
 import { HarnessForm } from "./HarnessForm";
 import { CampaignForm } from "./CampaignForm";
 import "./operations.css";
+import { RegionWorkspace } from "../regions/RegionWorkspace";
 import { PocketForm } from "../pockets/PocketForm";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
 import { DiffForm } from "../diffsbdd/DiffForm";
@@ -27,7 +24,11 @@ export function ToolCenter({
   onCreated,
   onPredict,
   onDraft,
+  initialTool = null,
+  onBrowse,
 }: {
+  initialTool?: ToolId | null;
+  onBrowse?(): void;
   language: Language;
   health: Health | null;
   jobs: Job[];
@@ -36,15 +37,12 @@ export function ToolCenter({
   onDraft(p: Prediction): void;
 }) {
   const zh = language === "zh",
-    [selected, setSelected] = useState<ToolId | null>(null),
-    [modality, setModality] = useState<ModalityFilter>("all"),
-    [group, setGroup] = useState<PurposeFilter>("all"),
-    [query, setQuery] = useState("");
+    [selected, setSelected] = useState<ToolId | null>(initialTool),
+    [modality, setModality] = useState<ModalityFilter>("all");
   const current = tools.find((t) => t.id === selected),
     index = zh ? 0 : 1;
   const headingId = useId(),
     heading = useRef<HTMLHeadingElement>(null),
-    search = useRef<HTMLInputElement>(null),
     lastOpenedTool = useRef<ToolId | null>(null),
     cards = useRef<Partial<Record<ToolId, HTMLButtonElement | null>>>({});
   useEffect(() => {
@@ -52,13 +50,7 @@ export function ToolCenter({
     else if (lastOpenedTool.current)
       cards.current[lastOpenedTool.current]?.focus();
   }, [selected]);
-  const filteredTools = filterCapabilities(modality, group, query);
-  function clearFilters() {
-    setQuery("");
-    setGroup("all");
-    setModality("all");
-    search.current?.focus();
-  }
+  const filteredTools = filterCapabilities(modality);
   return (
     <section className="tool-center" aria-labelledby={headingId}>
       {current && (
@@ -66,7 +58,10 @@ export function ToolCenter({
           <button
             type="button"
             className="tool-back-button"
-            onClick={() => setSelected(null)}
+            onClick={() => {
+              if (onBrowse) onBrowse();
+              else setSelected(null);
+            }}
           >
             <span aria-hidden="true">← </span>
             {zh ? "返回全部能力" : "Back to all capabilities"}
@@ -74,29 +69,19 @@ export function ToolCenter({
           <span className="source-badge">{current.source}</span>
         </div>
       )}
-      <header
-        className={current ? "studio-intro tool-heading" : "studio-intro"}
+      <h1
+        id={headingId}
+        ref={heading}
+        tabIndex={-1}
+        className={current && !initialTool ? "compact-tool-heading" : "sr-only"}
       >
-        <div>
-          <h1 id={headingId} ref={heading} tabIndex={-1}>
-            {current
-              ? current.label[index]
-              : zh
-                ? "全部能力"
-                : "All capabilities"}
-          </h1>
-          <p>
-            {current
-              ? current.note[index]
-              : zh
-                ? "先选药物形式，再选研究用途。同一能力可属于多个类别。"
-                : "Choose a drug modality, then a research purpose. Capabilities can belong to multiple categories."}
-          </p>
-        </div>
-      </header>
+        {current ? current.label[index] : zh ? "全部能力" : "All capabilities"}
+      </h1>
       {current ? (
         <>
-          {selected === "p2rank.detect" ? (
+          {selected === "regions" ? (
+            <RegionWorkspace language={language} />
+          ) : selected === "p2rank.detect" ? (
             <PocketForm
               language={language}
               onCreated={onCreated}
@@ -143,31 +128,20 @@ export function ToolCenter({
         <>
           <CapabilityFilters
             language={language}
-            searchRef={search}
-            query={query}
-            onQuery={setQuery}
             modality={modality}
             onModality={setModality}
-            purpose={group}
-            onPurpose={setGroup}
           />
-          <div className="tool-results-summary">
-            <p role="status" aria-live="polite" aria-atomic="true">
-              {zh
-                ? `显示 ${filteredTools.length} / ${tools.length} 项能力`
-                : `Showing ${filteredTools.length} of ${tools.length} capabilities`}
-            </p>
-            {(query || group !== "all" || modality !== "all") && (
-              <button
-                type="button"
-                className="tool-clear-filters"
-                onClick={clearFilters}
-              >
-                {zh ? "清空搜索与筛选" : "Clear search and filters"}
-              </button>
-            )}
-          </div>
-          {filteredTools.length ? (
+          <p
+            className="sr-only"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {zh
+              ? `显示 ${filteredTools.length} / ${tools.length} 项能力`
+              : `Showing ${filteredTools.length} of ${tools.length} capabilities`}
+          </p>
+          {
             <div className="tool-grid">
               {filteredTools.map((t) => (
                 <button
@@ -197,24 +171,7 @@ export function ToolCenter({
                 </button>
               ))}
             </div>
-          ) : (
-            <div className="tool-empty-state">
-              <h2>{zh ? "未找到匹配的能力" : "No matching capabilities"}</h2>
-              <p>
-                {zh
-                  ? "试试其他关键词，或清空筛选查看全部能力。"
-                  : "Try a different keyword or clear the filters to see every capability."}
-              </p>
-              <button type="button" onClick={clearFilters}>
-                {zh ? "查看全部能力" : "Show all capabilities"}
-              </button>
-            </div>
-          )}
-          <p className="capability-note">
-            {zh
-              ? "当前 OpenDDE / Harness 适配范围：已核对的 OpenDDE / Harness 不提供通用小分子从头生成、完整 ADMET 或经过校准的亲和力预测；Harness 的客观可开发性后端未公开。X-DDE 可接入其他软件扩展能力，完成适配后再开放；LLM 判断保留实际来源。"
-              : "Current OpenDDE / Harness adapter scope: audited OpenDDE / Harness does not provide generic small-molecule generation, complete ADMET or calibrated affinity; Harness objective developability is not published. X-DDE can expand through additional software after real integration. LLM judgments retain their provenance."}
-          </p>
+          }
         </>
       )}
     </section>

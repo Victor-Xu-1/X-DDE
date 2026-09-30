@@ -61,6 +61,7 @@ export const edgeLabels: Record<string, [string, string]> = {
   represented_by: ["登记为", "Registered as"],
   selected_region: ["选定区域", "Selected region"],
   identity_evidence: ["原子身份依据", "Atom identity evidence"],
+  revised_regions: ["修改区域为", "Revised regions"],
   planned_input: ["计划输入", "Planned input"],
   executed_as: ["运行", "Executed as"],
   executed_step: ["执行步骤", "Executed step"],
