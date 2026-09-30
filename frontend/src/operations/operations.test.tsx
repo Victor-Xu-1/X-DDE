@@ -27,9 +27,7 @@ it("finds real capabilities by research goal without exposing the upstream stub"
   expect(
     screen.queryByRole("button", { name: /客观可开发性/ }),
   ).not.toBeInTheDocument();
-  fireEvent.change(screen.getByRole("searchbox"), {
-    target: { value: "SolubleMPNN" },
-  });
+  fireEvent.click(screen.getByRole("button", { name: "蛋白" }));
   expect(
     screen.getByRole("heading", { name: "结构引导序列设计" }),
   ).toBeVisible();

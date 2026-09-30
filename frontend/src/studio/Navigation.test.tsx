@@ -76,7 +76,7 @@ it("supports toggle, outside click, Escape, arrow keys and Tab", async () => {
   ).toHaveFocus();
   await user.keyboard("{ArrowDown}");
   expect(
-    screen.getByRole("menuitem", { name: "Workspace overview" }),
+    screen.getByRole("menuitem", { name: "Molecular regions" }),
   ).toHaveFocus();
   await user.keyboard("{End}");
   expect(screen.getByRole("menuitem", { name: "Help" })).toHaveFocus();
