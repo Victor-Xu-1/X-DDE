@@ -23,9 +23,11 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 it("resets hidden expert GPU settings when selecting the CPU preset", async () => {
-  mocks.request.mockResolvedValue({
-    availability: { configuration_present: true },
-  });
+  mocks.request.mockImplementation(async (path: string) =>
+    path.startsWith("/research/constraints")
+      ? []
+      : { availability: { configuration_present: true } },
+  );
   const user = userEvent.setup();
   render(
     <DockingForm
@@ -67,9 +69,11 @@ it("keeps unavailable computation disabled and reports configuration failure", a
   ).toBeDisabled();
 });
 it("does not offer CNN search/refinement for scoring an existing pose", async () => {
-  mocks.request.mockResolvedValue({
-    availability: { configuration_present: true },
-  });
+  mocks.request.mockImplementation(async (path: string) =>
+    path.startsWith("/research/constraints")
+      ? []
+      : { availability: { configuration_present: true } },
+  );
   const user = userEvent.setup();
   render(
     <DockingForm

@@ -580,11 +580,20 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             page.get_by_role("button", name="检查引擎支持", exact=True).click()
             expect(page.get_by_text("条件与任务匹配", exact=True)).to_be_visible()
             assert page.request.get(base + "/api/research/constraints").json()
+            centers = page.locator('.operation-grid label:has(input[type="number"])').evaluate_all(
+                "labels=>labels.map(l=>({left:l.getBoundingClientRect().left,top:l.getBoundingClientRect().top}))"
+            )
+            assert len(centers) == 6
+            assert abs(centers[0]["top"] - centers[2]["top"]) < 3
+            assert centers[2]["left"] > centers[0]["left"] + 100
             for width in (390, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(
                     "document.documentElement.scrollWidth <= window.innerWidth + 1"
                 )
+                page.get_by_text(
+                    "保存与复用任务条件（可选）", exact=True
+                ).scroll_into_view_if_needed()
                 page.screenshot(path=str(evidence / f"binding-pose-input-{width}.png"))
             assert page.request.get(base + "/api/jobs").json() == []
             assert errors == []

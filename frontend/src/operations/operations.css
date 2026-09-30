@@ -80,6 +80,15 @@
   margin: 0;
   min-width: 0;
 }
+.operation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.operation-grid > * {
+  min-width: 0;
+}
 .tool-form section + section {
   margin-top: 28px;
 }

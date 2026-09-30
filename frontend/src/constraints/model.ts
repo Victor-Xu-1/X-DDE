@@ -40,7 +40,9 @@ export async function currentConditions(
   name: string,
   parent: string | null,
   id: (key: string) => string,
+  language: Language = "en",
 ): Promise<ConstraintSet> {
+  const zh = language === "zh";
   if (
     task.operation === "docking" &&
     task.mode === "dock" &&
@@ -83,7 +85,11 @@ export async function currentConditions(
       (r) => r.role === "fixed_core",
     );
     if (!selected.length)
-      throw new Error("Save at least one fixed core before saving conditions.");
+      throw new Error(
+        zh
+          ? "请先保存至少一个固定核心区域，再保存任务条件。"
+          : "Save at least one fixed core before saving conditions.",
+      );
     return {
       schema_version: 1,
       name,
@@ -106,7 +112,9 @@ export async function currentConditions(
     };
   }
   throw new Error(
-    "Save native fixed regions or define an explicit receptor-frame search box first.",
+    zh
+      ? "请先保存固定区域，或在受体坐标系中指定搜索范围。"
+      : "Save native fixed regions or define an explicit receptor-frame search box first.",
   );
 }
 export const reasons: Record<string, [string, string]> = {

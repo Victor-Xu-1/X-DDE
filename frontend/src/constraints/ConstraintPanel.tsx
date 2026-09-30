@@ -92,6 +92,7 @@ export function ConstraintPanel({
               ids.current.set(key, crypto.randomUUID());
             return ids.current.get(key)!;
           },
+          language,
         );
         const serialized = JSON.stringify(body);
         if (intent.current.body !== serialized)
