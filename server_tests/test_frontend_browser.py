@@ -309,3 +309,56 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
             assert not errors
         finally:
             browser.close()
+
+
+def test_research_plan_can_be_saved_reopened_and_reviewed_without_starting_science():
+    import json
+
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        try:
+            page.goto(os.environ["WB_BROWSER_URL"])
+            page.get_by_role("button", name="研究计划与连续任务", exact=True).click()
+            page.get_by_role("button", name="专家完整计划", exact=True).click()
+            plan = {
+                "name": "Browser saved plan",
+                "steps": [
+                    {
+                        "id": "properties",
+                        "request": {
+                            "operation": "properties",
+                            "name": "from plan",
+                            "smiles": ["CCO"],
+                        },
+                    }
+                ],
+                "budget": {"max_jobs": 1, "wall_seconds": 3600},
+            }
+            page.get_by_role("textbox", name="完整计划、依赖、输出角色与预算", exact=True).fill(
+                json.dumps(plan)
+            )
+            page.get_by_role("button", name="保存计划（不执行）", exact=True).click()
+            expect(
+                page.get_by_role("heading", name="Browser saved plan", exact=True)
+            ).to_be_visible()
+            expect(page.get_by_role("button", name="运行这个计划", exact=True)).to_be_enabled()
+            for width in (390, 768, 1440):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert page.evaluate(
+                    "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                )
+            page.reload()
+            page.get_by_role("button", name="研究计划与连续任务", exact=True).click()
+            saved = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/workflows/plans").json()
+            target = next(p for p in saved if p["body"]["name"] == "Browser saved plan")
+            page.get_by_role("combobox", name="打开已保存计划", exact=True).select_option(
+                target["id"]
+            )
+            expect(
+                page.get_by_role("heading", name="Browser saved plan", exact=True)
+            ).to_be_visible()
+            assert page.request.get(os.environ["WB_BROWSER_URL"] + "/api/jobs").json() == []
+            page.screenshot(path="server_tests/evidence/research-plan.png", full_page=True)
+        finally:
+            browser.close()

@@ -16,7 +16,7 @@ class CapabilitySpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     id: str = Field(pattern=r"^[a-z][a-z0-9_.-]{0,63}$")
     group: Literal["design", "structure", "evaluate", "analyze", "search", "prepare", "system"]
-    environment: Literal["opendde", "harness", "diffsbdd"]
+    environment: Literal["opendde", "harness", "diffsbdd", "platform"]
     operations: tuple[str, ...]
     label: tuple[str, str]
     note: tuple[str, str]
@@ -24,10 +24,12 @@ class CapabilitySpec(BaseModel):
     frontend_form: str | None = None
     native_tool: str | None = None
     native_mode: str | None = None
-    submission: Literal["task", "native_campaign"] = "task"
+    submission: Literal["task", "native_campaign", "research_plan"] = "task"
     contract_source: str = "TaskRequest"
     constraint_support: tuple[ConstraintSupport, ...] = ()
-    scientific_validation: Literal["target_server_pending"] = "target_server_pending"
+    scientific_validation: Literal["target_server_pending", "not_applicable"] = (
+        "target_server_pending"
+    )
 
 
 class CapabilityAvailability(BaseModel):
@@ -38,4 +40,6 @@ class CapabilityAvailability(BaseModel):
     request_specific_checks: tuple[str, ...] = ()
     check_scope: Literal["configuration_only"] = "configuration_only"
     requires_native_preflight: Literal[True] = True
-    scientific_validation: Literal["target_server_pending"] = "target_server_pending"
+    scientific_validation: Literal["target_server_pending", "not_applicable"] = (
+        "target_server_pending"
+    )

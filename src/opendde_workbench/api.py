@@ -42,6 +42,7 @@ from .science_routes import register_science
 from .settings import Settings
 from .store import CapacityError, ConflictError, Store
 from .worker import Worker
+from .workflows import register_workflows
 
 
 def create_app(settings: Settings | None = None, engine: Engine | None = None) -> FastAPI:
@@ -407,7 +408,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             active = db.execute(
                 "SELECT 1 FROM jobs WHERE status IN ('queued','running','cancelling') LIMIT 1"
             ).fetchone()
-        if active:
+        if active or workflows_service.records.runs({"running", "cancelling"}, limit=1):
             return True
         if settings.harness_python and settings.harness_python.is_file():
             try:
@@ -442,6 +443,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     worker.gate = harness_service.queue_gate
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
+    workflows_service = register_workflows(
+        app, store, assets, worker, preflight, settings, mutation
+    )
     register_projects(app, store, mutation)
     register_science(app, store, engine, settings)
     web = Path(__file__).parent / "web"

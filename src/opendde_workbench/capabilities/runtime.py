@@ -6,7 +6,10 @@ from .contract import CapabilityAvailability, CapabilitySpec
 def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityAvailability:
     backends = readiness.get("backends", {"opendde": readiness})
     specific = ["native_input_validation", "selected_asset_versions"]
-    if spec.environment == "opendde":
+    if spec.environment == "platform":
+        checks = {"platform_api": True}
+        specific = ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
+    elif spec.environment == "opendde":
         checks = {"runtime": bool(backends.get("opendde", {}).get("ready"))}
         if "predict" in spec.operations:
             specific.extend(("selected_checkpoint", "selected_device", "feature_resources"))
@@ -33,4 +36,5 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
         checks=checks,
         missing=tuple(key for key, value in checks.items() if not value),
         request_specific_checks=tuple(specific),
+        scientific_validation=spec.scientific_validation,
     )

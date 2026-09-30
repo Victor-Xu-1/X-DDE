@@ -1,0 +1,87 @@
+"""Bounded, immutable research plans; native jobs remain the execution authority."""
+
+from typing import Literal, Self
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from ..requests import TaskRequest
+
+
+class Binding(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    from_step: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,31}$")
+    artifact: str | None = Field(default=None, min_length=1, max_length=500)
+    result_field: (
+        Literal["molecule_artifact", "protein_artifact", "pocket_artifact", "structure"] | None
+    ) = None
+
+    @model_validator(mode="after")
+    def output_selector(self) -> Self:
+        if bool(self.artifact) == bool(self.result_field):
+            raise ValueError("Choose an explicit artifact or a declared result field, not both.")
+        return self
+
+    kind: Literal["structure", "ligand"]
+    record: int = Field(default=0, ge=0, le=499)
+    target: Literal["protein", "initial", "molecule", "reference_ligand", "property_input"]
+
+
+class Step(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    id: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,31}$")
+    request: TaskRequest
+    depends_on: tuple[str, ...] = Field(default=(), max_length=30)
+    bindings: tuple[Binding, ...] = Field(default=(), max_length=20)
+    retries: int = Field(default=0, ge=0, le=2)
+    retry_backoff_seconds: int = Field(default=5, ge=1, le=300)
+
+
+class Budget(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    max_jobs: int = Field(default=30, ge=1, le=100)
+    wall_seconds: int = Field(default=3600, ge=1, le=86400)
+
+
+class PlanInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    name: str = Field(min_length=1, max_length=120, pattern=r"^[^\x00-\x1f]+$")
+    steps: tuple[Step, ...] = Field(min_length=1, max_length=30)
+    budget: Budget = Field(default_factory=Budget)
+
+    @model_validator(mode="after")
+    def valid_graph(self) -> Self:
+        identifiers = {step.id for step in self.steps}
+        if len(identifiers) != len(self.steps):
+            raise ValueError("Workflow step IDs must be unique.")
+        if sum(1 + step.retries for step in self.steps) > self.budget.max_jobs:
+            raise ValueError("Job budget must cover steps and permitted retries.")
+        resolved = set()
+        for step in self.steps:
+            deps = set(step.depends_on)
+            if len(deps) != len(step.depends_on) or not deps <= resolved:
+                raise ValueError(
+                    "Dependencies must name unique preceding steps; cycles are forbidden."
+                )
+            if any(binding.from_step not in deps for binding in step.bindings):
+                raise ValueError("Output bindings must come from explicitly declared dependencies.")
+            if len({binding.target for binding in step.bindings}) != len(step.bindings):
+                raise ValueError("A workflow input slot can have only one binding.")
+            for binding in step.bindings:
+                if (binding.target == "protein") != (binding.kind == "structure"):
+                    raise ValueError(
+                        "Protein slots require structures; molecular slots require ligands."
+                    )
+                if binding.target == "property_input" and step.request.operation != "properties":
+                    raise ValueError("Property bindings require a properties task.")
+                if binding.target != "property_input" and step.request.operation != "diffsbdd":
+                    raise ValueError("Scientific reference slots require a typed DiffSBDD task.")
+            resolved.add(step.id)
+        return self
+
+
+class RunInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    plan_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+RunState = Literal["running", "paused", "blocked", "cancelling", "cancelled", "succeeded", "failed"]

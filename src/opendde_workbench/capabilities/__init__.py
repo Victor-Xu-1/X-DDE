@@ -37,6 +37,7 @@ def register_capabilities(app, settings, health):
             "schema_version": 1,
             "task_request": request_schema(),
             "native_harness_schema_endpoint": "/api/harness/schemas",
+            "research_plan_schema_endpoint": "/api/workflows/schema",
         }
 
     @app.get("/api/capabilities")

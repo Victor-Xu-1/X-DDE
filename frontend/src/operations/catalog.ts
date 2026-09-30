@@ -270,5 +270,15 @@ export const tools = [
     ],
     source: "DiffSBDD",
   },
+  {
+    id: "workflows",
+    group: "design",
+    label: ["研究计划与连续任务", "Research plans and task workflows"],
+    note: [
+      "组合真实任务、声明依赖，保留每一步的输入与输出版本。",
+      "Combine real tasks with dependencies and retain each step's input/output versions.",
+    ],
+    source: "X-DDE",
+  },
 ] as const;
 export type ToolId = (typeof tools)[number]["id"];

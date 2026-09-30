@@ -303,6 +303,17 @@ class AssetStore:
                     raise ValueError(
                         "This input is referenced by a design plan and cannot be removed."
                     )
+                has_workflows = db.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='workflow_plans'"
+                ).fetchone()
+                if (
+                    has_workflows
+                    and db.execute(
+                        "SELECT 1 FROM workflow_plans WHERE body LIKE ? LIMIT 1",
+                        ("%" + asset.id + "%",),
+                    ).fetchone()
+                ):
+                    raise ValueError("This input belongs to a research plan and cannot be removed.")
                 path.parent.rename(tombstone)
                 moved = True
                 db.execute("DELETE FROM assets WHERE id=?", (asset.id,))

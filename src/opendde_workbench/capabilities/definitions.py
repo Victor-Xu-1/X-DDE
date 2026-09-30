@@ -141,7 +141,25 @@ _DIFF = tuple(
     )
 )
 
-_ITEMS = _BASE + _DIFF
+_PLATFORM = (
+    CapabilitySpec(
+        id="workflows",
+        group="design",
+        environment="platform",
+        operations=(),
+        label=("研究计划与连续任务", "Research plans and task workflows"),
+        note=(
+            "组合真实任务、声明依赖，保留每一步的输入与输出版本。",
+            "Combine real tasks with dependencies and retain each step's input/output versions.",
+        ),
+        source="X-DDE",
+        frontend_form="workflows",
+        submission="research_plan",
+        contract_source="PlanInput",
+        scientific_validation="not_applicable",
+    ),
+)
+_ITEMS = _BASE + _DIFF + _PLATFORM
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

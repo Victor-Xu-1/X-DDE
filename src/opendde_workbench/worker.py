@@ -27,6 +27,8 @@ class Worker:
         self.error: str | None = None
         self.task: asyncio.Task | None = None
         self.gate = None
+        self.before_claim = None
+        self.on_progress = None
         self.waiting_reason: str | None = None
 
     async def start(self) -> None:
@@ -62,6 +64,16 @@ class Worker:
 
     async def run(self) -> None:
         while not self.stopping and not self.error:
+            if self.before_claim:
+                try:
+                    await self.before_claim()
+                except Exception:
+                    # Do not silently abandon orchestration or keep submitting inconsistent jobs.
+                    self.error = (
+                        "Research-plan recovery failed; queue paused. Inspect service logs."
+                    )
+                    log.exception("workflow_orchestration_failed")
+                    break
             queued = self.store.next_queued()
             self.waiting_reason = None
             if queued and self.gate:
@@ -121,6 +133,8 @@ class Worker:
             process = await self.engine.start(job, directory)
             reader = asyncio.create_task(self.capture(process.stdout, directory / "run.log"))
             while process.returncode is None:
+                if self.on_progress:
+                    await self.on_progress()
                 current = self.store.get(job.id)
                 if current.status == Status.CANCELLING or self.stopping:
                     status = (
