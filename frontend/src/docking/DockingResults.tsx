@@ -159,17 +159,19 @@ export function DockingResults({
                       )}
                     </div>
                   ))}
-                  {p.valid
-                    ? zh
-                      ? "可复用候选"
-                      : "Reusable candidate"
-                    : p.constraint_checks?.some(
-                          (c) => c.strength === "hard" && !c.passed,
-                        )
+                  <span className="pose-qualification">
+                    {p.valid
                       ? zh
-                        ? "已排除：未满足硬空间条件"
-                        : "Excluded: hard spatial condition failed"
-                      : p.reason}
+                        ? "可复用候选"
+                        : "Reusable candidate"
+                      : p.constraint_checks?.some(
+                            (c) => c.strength === "hard" && !c.passed,
+                          )
+                        ? zh
+                          ? "已排除：未满足硬空间条件"
+                          : "Excluded: hard spatial condition failed"
+                        : p.reason}
+                  </span>
                 </td>
               </tr>
             ))}
