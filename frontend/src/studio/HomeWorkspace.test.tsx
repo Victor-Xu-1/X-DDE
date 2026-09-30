@@ -1,8 +1,10 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
 import { HomeWorkspace } from "./HomeWorkspace";
 import { defaults } from "../form-model";
+import { UtilityViews } from "./UtilityViews";
+import type { Health } from "../types";
 const props: ComponentProps<typeof HomeWorkspace> = {
   resultsVersion: 0,
   language: "zh",
@@ -64,4 +66,61 @@ it("separates task entry from structure review while preserving the draft", () =
   expect(
     screen.queryByRole("heading", { name: "小分子性质" }),
   ).not.toBeInTheDocument();
+});
+
+it("keeps platform and backend readiness independent in the runtime view", () => {
+  const health: Health = {
+    version: "test",
+    engine: { ready: false, gpu: null, reason: "Missing OpenDDE weights" },
+    worker_ready: true,
+    worker_error: null,
+    free_disk_gib: 1,
+    disk_total_gib: 2,
+    capabilities: {
+      prediction: false,
+      msa: false,
+      templates: false,
+      llm: false,
+    },
+  };
+  const runtimeProps = {
+    ...props,
+    ready: false,
+    health,
+    view: "models" as const,
+    loading: false,
+    onHome: vi.fn(),
+    onStart: vi.fn(),
+    onTasks: vi.fn(),
+    projectError: "",
+    reloadProjects: vi.fn(),
+  };
+  const { rerender } = render(<UtilityViews {...runtimeProps} />);
+  const service = screen.getByRole("heading", {
+    name: "X-DDE 任务服务",
+  }).parentElement!;
+  const backend = screen.getByRole("heading", {
+    name: "OpenDDE 后端",
+  }).parentElement!;
+  expect(within(service).getByText("任务服务就绪")).toBeVisible();
+  expect(within(service).queryByRole("alert")).not.toBeInTheDocument();
+  expect(within(backend).getByText("OpenDDE 未就绪")).toBeVisible();
+  expect(within(backend).getByRole("alert")).toHaveTextContent(
+    "Missing OpenDDE weights",
+  );
+  rerender(
+    <UtilityViews
+      {...runtimeProps}
+      language="en"
+      health={{
+        ...health,
+        engine: { ...health.engine, ready: true, reason: null },
+        worker_ready: false,
+        worker_error: "Queue recovery failed",
+      }}
+    />,
+  );
+  expect(screen.getByText("Task service unavailable")).toBeVisible();
+  expect(screen.getByText("OpenDDE ready")).toBeVisible();
+  expect(screen.getByRole("alert")).toHaveTextContent("Queue recovery failed");
 });

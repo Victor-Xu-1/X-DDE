@@ -46,7 +46,7 @@ PACKAGES = {
         Package(
             "compute",
             "v1",
-            "Compute environment",
+            "OpenDDE compute environment",
             "Docker 中的 PyTorch、RDKit、Biotite / Scientific dependencies",
             "数 GB / Several GB",
             ("harness", "runtime"),

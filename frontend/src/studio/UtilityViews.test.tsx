@@ -45,7 +45,6 @@ function props(
   return {
     view: "tasks",
     language: "zh",
-    ready: true,
     health: null,
     jobs: [],
     job: null,

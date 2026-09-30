@@ -2,7 +2,9 @@
 
 [中文](#中文) · [English](#english) · [能力与源码对照](docs/design/README.md) · [服务器验收](docs/server-acceptance.md)
 
-An independent MIT workbench for the public scientific capabilities of OpenDDE and OpenDDE Harness, with additional RDKit descriptors. Chinese and English interfaces, guided inputs, expert parameters, durable jobs, native antibody campaigns and interactive molecular structures.
+X-DDE is an independent MIT drug research platform that manages projects, tasks, scientific assets, software deployment and interactive workspaces. OpenDDE is one of its scientific backends, alongside the currently integrated Harness tools and RDKit descriptors. Ketcher and Mol* provide editing and inspection. Chinese and English interfaces offer guided choices and expert parameters.
+
+**平台关系：X-DDE 是主平台，OpenDDE 是可接入的软件后端之一。** 各后端的能力、依赖和就绪状态分别管理；OpenDDE 的能力边界不代表 X-DDE 的平台边界。新增软件只有完成真实适配后才进入可用能力目录。
 
 **0.4 release candidate:** guided installation, background component management, terminal start/stop, Ketcher and Mol* are available. Scientific GPU, multi-GPU, MSA/template databases, remote services and real LLM campaigns still require target-server acceptance. Installation success is not scientific readiness.
 
@@ -47,7 +49,11 @@ X-DDE UI
 | `xdde ui --no-auto-deploy` | 首次启动不自动创建安装任务 |
 | `xdde ui --no-browser` | 启动但不打开浏览器 |
 
-首次使用：打开 **安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
+首次使用：打开左侧底部 **账户与设置 → 安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
+
+核心科研入口保留在主导航；工作空间概况、安装、运行状态和帮助位于底部管理菜单。**账户与设置**可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器；账户信息反映现有本地单用户模式。
+
+Core research tools remain in the main navigation. The bottom **Account & settings** menu groups workspace overview, installation, runtime status and help. Open its settings page to choose Chinese/English and Warm/Pure white/Night appearance; preferences are saved in the current browser. Account information reflects the existing local single-user mode.
 
 部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。更改安装位置不自动迁移已有数据。
 
@@ -181,7 +187,7 @@ CI 使用真实 SQLite、文件和受控子进程检查应用协议，不验证�
 
 ## English
 
-The capability matrix is tied to audited upstream source, not to the reference screenshot. All public scientific entry points described in [the matrix](docs/design/README.md) have adapter/UI code; runtime availability depends on the target server. The public objective-developability stub, generic small-molecule de novo generation, complete ADMET and calibrated affinity are not presented as available models.
+The capability matrix records currently integrated software and audited upstream source. All public scientific entry points described in [the matrix](docs/design/README.md) have adapter/UI code; runtime availability depends on each backend and the target server. The audited OpenDDE/Harness distribution does not provide objective developability, generic small-molecule de novo generation, complete ADMET or calibrated affinity. These are current integration boundaries, not restrictions on X-DDE's platform architecture; additional software requires a real adapter and acceptance evidence.
 
 Install/build using the commands above, configure `.env.example`, and run the app on loopback. For Harness, configure an existing native installation and its default provider configuration. Scientific file tools require a shared directory mapped to the compute output root. The browser uses uploaded IDs, not filesystem paths or credentials. Native campaigns retain their own lifecycle; Workbench stores reviewed handoffs and never implements a second agent loop.
 

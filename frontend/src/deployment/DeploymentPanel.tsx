@@ -145,7 +145,9 @@ export function DeploymentPanel({
                 }
               >
                 <strong>
-                  {zh ? "准备完整计算环境" : "Prepare the compute environment"}
+                  {zh
+                    ? "安装 OpenDDE 计算套件"
+                    : "Install the OpenDDE compute suite"}
                 </strong>
                 <span>
                   {zh

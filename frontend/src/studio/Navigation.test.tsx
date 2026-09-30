@@ -12,7 +12,7 @@ it("keeps all research modules directly accessible", async () => {
   const nav = screen.getByRole("navigation", { name: "主导航" });
   for (const name of [
     "全部能力",
-    "预测工作台",
+    "结构预测",
     "分子与结构",
     "项目空间",
     "任务中心",

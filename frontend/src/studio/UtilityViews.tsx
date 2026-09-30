@@ -28,7 +28,6 @@ import type {
 interface Props {
   view: View;
   language: Language;
-  ready: boolean;
   health: Health | null;
   jobs: Job[];
   job: Job | null;
@@ -432,19 +431,54 @@ export function UtilityViews(p: Props) {
         <h1>{zh ? "运行状态" : "Runtime status"}</h1>
         <p>
           {zh
-            ? "这里显示计算服务器的引擎与存储状态。"
-            : "Inspect the compute server engine and storage status."}
+            ? "X-DDE 任务服务与各软件后端分别就绪。OpenDDE 的状态只影响依赖它的任务。"
+            : "X-DDE's task service and software backends have separate readiness. OpenDDE status applies to tasks that require it."}
         </p>
         <div className="model-grid">
           <div className="studio-panel">
             <DeploymentUnitOutlined />
-            <h3>{zh ? "预测引擎" : "Prediction engine"}</h3>
+            <h3>{zh ? "X-DDE 任务服务" : "X-DDE task service"}</h3>
+            <span
+              className={
+                "status " + (p.health?.worker_ready ? "succeeded" : "failed")
+              }
+            >
+              {!p.health
+                ? t("connecting")
+                : p.health.worker_ready
+                  ? zh
+                    ? "任务服务就绪"
+                    : "Task service ready"
+                  : zh
+                    ? "任务服务未就绪"
+                    : "Task service unavailable"}
+            </span>
+            {p.health?.worker_error && (
+              <p role="alert">{p.health.worker_error}</p>
+            )}
+            <p>
+              {zh
+                ? "管理任务队列与执行记录；软件后端的依赖单独检查。"
+                : "Manages the task queue and execution records; software prerequisites are checked separately."}
+            </p>
+          </div>
+          <div className="studio-panel">
+            <DeploymentUnitOutlined />
+            <h3>{zh ? "OpenDDE 后端" : "OpenDDE backend"}</h3>
             <p>
               {p.health?.engine.gpu?.split(",")[0] ??
                 (zh ? "正在读取 GPU" : "Checking GPU")}
             </p>
-            <span className={"status " + (p.ready ? "succeeded" : "failed")}>
-              {p.ready ? t("ready") : t("unavailable")}
+            <span
+              className={
+                "status " + (p.health?.engine.ready ? "succeeded" : "failed")
+              }
+            >
+              {!p.health
+                ? t("connecting")
+                : p.health.engine.ready
+                  ? t("ready")
+                  : t("unavailable")}
             </span>
             {p.health?.engine.reason && (
               <p role="alert">{p.health.engine.reason}</p>

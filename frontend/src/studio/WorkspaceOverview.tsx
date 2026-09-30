@@ -1,4 +1,3 @@
-import { isPrediction } from "../operations/types";
 import type { Health, Job, Language } from "../types";
 
 export function WorkspaceOverview({
@@ -46,8 +45,8 @@ export function WorkspaceOverview({
         </p>
         <dl className="overview-stats">
           <div>
-            <dt>{zh ? "今日结构预测" : "Today's predictions"}</dt>
-            <dd>{today.filter((job) => isPrediction(job.request)).length}</dd>
+            <dt>{zh ? "今日任务" : "Today's tasks"}</dt>
+            <dd>{today.length}</dd>
           </div>
           <div>
             <dt>{zh ? "运行中" : "Running"}</dt>

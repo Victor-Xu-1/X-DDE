@@ -38,7 +38,7 @@ const items = [
     en: "All capabilities",
     icon: ExperimentOutlined,
   },
-  { id: "home", cn: "预测工作台", en: "Workbench", icon: HomeFilled },
+  { id: "home", cn: "结构预测", en: "Structure prediction", icon: HomeFilled },
   {
     id: "editors",
     cn: "分子与结构",

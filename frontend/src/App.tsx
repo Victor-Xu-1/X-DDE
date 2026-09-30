@@ -197,14 +197,12 @@ export function App() {
                 <aside className="onboarding-banner">
                   <div>
                     <strong>
-                      {zh
-                        ? "按需配置研究环境"
-                        : "Set up what your research needs"}
+                      {zh ? "按需安装研究软件" : "Install research software"}
                     </strong>
                     <p>
                       {zh
-                        ? "编辑器、计算环境与模型可在安装与组件中管理。"
-                        : "Manage editors, compute environments and models in Installation & components."}
+                        ? "编辑器可独立使用；OpenDDE 等计算后端需要各自的环境与模型。"
+                        : "Editors work independently. Compute backends such as OpenDDE need their own environments and models."}
                     </p>
                   </div>
                   <button onClick={() => setView("deployment")}>
@@ -321,12 +319,7 @@ export function App() {
                   reloadProjects={science.reloadProjects}
                 />
               )}
-            <footer className="studio-footer">
-              X-DDE ·{" "}
-              {zh
-                ? "OpenDDE · Harness · RDKit，按实际能力提供研究工具"
-                : "Research tools powered by OpenDDE, Harness and RDKit"}
-            </footer>
+            <footer className="studio-footer">X-DDE · {t("footer")}</footer>
           </main>
         </div>
       </div>
