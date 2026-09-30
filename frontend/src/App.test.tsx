@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { api } from "./api";
+import * as apiClient from "./api";
 import * as deployment from "./deployment/client";
 import { defaults } from "./form-model";
 import * as i18n from "./i18n";
@@ -71,6 +72,29 @@ beforeEach(() => {
   ]);
 });
 afterEach(() => vi.restoreAllMocks());
+
+it("opens the shared asset workspace through the integrated navigation", async () => {
+  vi.spyOn(apiClient, "request")
+    .mockResolvedValueOnce({ nodes: [], edges: [], truncated: false })
+    .mockResolvedValueOnce([]);
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(
+    screen.getByRole("button", { name: "Assets & relationships" }),
+  );
+  expect(
+    await screen.findByRole("heading", {
+      name: "Scientific assets & relationships",
+    }),
+  ).toBeVisible();
+  expect(
+    await screen.findByText("Start with your first research asset"),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Assets & relationships" }),
+  ).toHaveAttribute("aria-current", "page");
+  expect(document.title).toBe("Assets & relationships · X-DDE");
+});
 
 it("keeps all projects visible when selecting a task from the unfiltered task center", async () => {
   const user = userEvent.setup();

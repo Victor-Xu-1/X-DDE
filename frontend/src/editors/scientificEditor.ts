@@ -1,0 +1,95 @@
+import { api } from "../api";
+import type { ScientificObject } from "../research/types";
+
+export interface Ketcher {
+  getSmiles(): Promise<string>;
+  getMolfile(): Promise<string>;
+  setMolecule(value: string): Promise<void>;
+}
+
+export async function editorReady(
+  frame: HTMLIFrameElement | null,
+  signal: AbortSignal,
+): Promise<Ketcher> {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    signal.throwIfAborted();
+    const editor = (
+      frame?.contentWindow as (Window & { ketcher?: Ketcher }) | null
+    )?.ketcher;
+    if (editor) return editor;
+    await new Promise<void>((resolve, reject) => {
+      const abort = () => {
+        clearTimeout(timer);
+        reject(signal.reason);
+      };
+      const timer = setTimeout(() => {
+        signal.removeEventListener("abort", abort);
+        resolve();
+      }, 100);
+      signal.addEventListener("abort", abort, { once: true });
+    });
+  }
+  throw new Error(
+    "Ketcher did not finish loading. Reload the editor and try again.",
+  );
+}
+
+export async function molecularRecord(
+  object: ScientificObject,
+  signal: AbortSignal,
+) {
+  const response = await fetch(`/api/assets/${object.reference.asset_id}`, {
+    signal,
+  });
+  if (
+    !response.ok ||
+    Number(response.headers.get("Content-Length")) > 5 * 1024 ** 2
+  )
+    throw new Error("Molecule file is unavailable or exceeds 5 MiB.");
+  const format = response.headers.get("X-Structure-Format");
+  if (format !== "sdf" && format !== "mol")
+    throw new Error(
+      "Convert this molecule explicitly to MOL or SDF before editing in Ketcher.",
+    );
+  const text = await response.text();
+  if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum");
+  const record = text.split("$$$$").filter((value) => value.trim())[
+    object.reference.record
+  ];
+  if (!record) throw new Error("Selected molecular record is missing.");
+  return record;
+}
+
+/** Retain the intent across uncertain HTTP outcomes; a retry cannot create another version. */
+export class MoleculeSaveIntent {
+  private pending: { fingerprint: string; key: string } | null = null;
+
+  async save(
+    mol: string,
+    parent: ScientificObject | null,
+  ): Promise<ScientificObject> {
+    const fingerprint = JSON.stringify([mol, parent?.id ?? null]);
+    if (this.pending?.fingerprint !== fingerprint)
+      this.pending = { fingerprint, key: crypto.randomUUID() };
+    const intent = this.pending;
+    const asset = await api.upload(
+      new File([mol + "\n$$$$\n"], "sketched-molecule.sdf", {
+        type: "chemical/x-mdl-sdfile",
+      }),
+      "ligand",
+    );
+    return api.post<ScientificObject>(
+      "/research/objects",
+      {
+        asset_id: asset.id,
+        kind: "molecule",
+        label: parent ? parent.label.slice(0, 113) + " · edit" : asset.name,
+        parent_id: parent?.id ?? null,
+        relation: "edited_from",
+        notes: parent?.notes ?? "",
+        rating: parent?.rating ?? 0,
+      },
+      intent.key,
+    );
+  }
+}

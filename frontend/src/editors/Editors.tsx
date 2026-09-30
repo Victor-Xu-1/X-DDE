@@ -1,15 +1,15 @@
-import { useRef, useState } from "react";
-import { api } from "../api";
+import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
+import type { ScientificObject } from "../research/types";
 import type { Deployment } from "../deployment/client";
 import { PropertyForm } from "../operations/PropertyForm";
 import "./editors.css";
-
-interface Ketcher {
-  getSmiles(): Promise<string>;
-  getMolfile(): Promise<string>;
-  setMolecule(value: string): Promise<void>;
-}
+import {
+  editorReady,
+  molecularRecord,
+  MoleculeSaveIntent,
+  type Ketcher,
+} from "./scientificEditor";
 export function Editors({
   language,
   deployment,
@@ -17,6 +17,7 @@ export function Editors({
   onRetry,
   onSetup,
   onCreated,
+  initialObject = null,
 }: {
   language: Language;
   deployment: Deployment | null;
@@ -24,16 +25,57 @@ export function Editors({
   onRetry?(): void;
   onSetup(): void;
   onCreated(j: Job): void;
+  initialObject?: ScientificObject | null;
 }) {
   const zh = language === "zh";
+  const [origin, setOrigin] = useState<ScientificObject | null>(initialObject);
+  const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const [message, setMessage] = useState(""),
     [error, setError] = useState("");
-  const [smiles, setSmiles] = useState(""),
+  const [propertyObject, setPropertyObject] = useState<ScientificObject | null>(
+      null,
+    ),
     [busy, setBusy] = useState(false);
+  const saveIntent = useRef(new MoleculeSaveIntent());
+  const loadQueue = useRef<Promise<void>>(Promise.resolve());
+  const actionRunning = useRef(false);
+  useEffect(() => {
+    if (!initialObject || !loaded) return;
+    const controller = new AbortController();
+    setMode("ketcher");
+    setBusy(true);
+    setError("");
+    setOrigin(null);
+    const loading = loadQueue.current
+      .then(async () => {
+        controller.signal.throwIfAborted();
+        const record = await molecularRecord(initialObject, controller.signal);
+        const editor = await editorReady(frame.current, controller.signal);
+        controller.signal.throwIfAborted();
+        await editor.setMolecule(record);
+        if (controller.signal.aborted) return;
+        setOrigin(initialObject);
+        setMessage(
+          zh
+            ? "已打开所选版本；保存将创建新分子版本。"
+            : "Selected version opened. Saving creates a new molecule version.",
+        );
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(String(e));
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setBusy(false);
+      });
+    loadQueue.current = loading;
+    return () => controller.abort();
+  }, [initialObject?.id, loaded]);
   async function action(fn: (editor: Ketcher) => Promise<void>) {
+    if (actionRunning.current || busy) return;
+    actionRunning.current = true;
     setError("");
     setMessage("");
     setBusy(true);
@@ -51,8 +93,19 @@ export function Editors({
     } catch (e) {
       setError(String(e));
     } finally {
+      actionRunning.current = false;
       setBusy(false);
     }
+  }
+  async function saveMolecule(editor: Ketcher) {
+    if (!(await editor.getSmiles()).trim())
+      throw new Error(zh ? "请先画一个分子。" : "Draw a molecule first.");
+    const version = await saveIntent.current.save(
+      await editor.getMolfile(),
+      origin,
+    );
+    setOrigin(version);
+    return version;
   }
   return (
     <section className="editor-workspace">
@@ -150,6 +203,7 @@ export function Editors({
                         if (file.size > 5 * 1024 ** 2)
                           throw new Error("5 MiB maximum");
                         await editor.setMolecule(await file.text());
+                        setOrigin(null);
                       });
                     e.target.value = "";
                   }}
@@ -164,21 +218,11 @@ export function Editors({
                 }
                 onClick={() =>
                   void action(async (editor) => {
-                    if (!(await editor.getSmiles()).trim())
-                      throw new Error(
-                        zh ? "请先画一个分子。" : "Draw a molecule first.",
-                      );
-                    const mol = await editor.getMolfile();
-                    await api.upload(
-                      new File([mol + "\n$$$$\n"], "sketched-molecule.sdf", {
-                        type: "chemical/x-mdl-sdfile",
-                      }),
-                      "ligand",
-                    );
+                    await saveMolecule(editor);
                     setMessage(
                       zh
-                        ? "已保存到分子文件库，可在任务输入中选择。"
-                        : "Saved to the molecule library; select it in task inputs.",
+                        ? "已保存新版本，可在资产与关系中查看来源和继续复用。二维编辑不代表已预测三维姿势。"
+                        : "New version saved. Inspect its lineage and reuse it in Assets & relationships. A 2D edit is not a predicted 3D pose.",
                     );
                   })
                 }
@@ -189,12 +233,7 @@ export function Editors({
                 disabled={busy}
                 onClick={() =>
                   void action(async (editor) => {
-                    const value = await editor.getSmiles();
-                    if (!value.trim())
-                      throw new Error(
-                        zh ? "请先画一个分子。" : "Draw a molecule first.",
-                      );
-                    setSmiles(value);
+                    setPropertyObject(await saveMolecule(editor));
                   })
                 }
               >
@@ -226,6 +265,7 @@ export function Editors({
       {deployment?.installed.ketcher && (
         <iframe
           ref={frame}
+          onLoad={() => setLoaded(true)}
           hidden={mode !== "ketcher"}
           className="molecular-editor"
           title="Ketcher molecular editor"
@@ -240,7 +280,7 @@ export function Editors({
           src="/molecular.html"
         />
       )}
-      {smiles && (
+      {propertyObject && (
         <section className="setup-card">
           <div className="section-heading">
             <h2>
@@ -248,13 +288,14 @@ export function Editors({
                 ? "检查分子并计算性质"
                 : "Review molecule and calculate properties"}
             </h2>
-            <button onClick={() => setSmiles("")}>
+            <button onClick={() => setPropertyObject(null)}>
               {zh ? "关闭" : "Close"}
             </button>
           </div>
           <PropertyForm
-            key={smiles}
-            initialSmiles={smiles}
+            key={propertyObject.id}
+            initialFile={propertyObject.reference.asset_id}
+            scientificInput={propertyObject.reference}
             language={language}
             onCreated={onCreated}
           />

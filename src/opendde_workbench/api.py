@@ -20,10 +20,12 @@ from . import __version__
 from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .assets import AssetStore
+from .backend_router import BackendRouter
 from .checkpoints import registered, resolve
 from .deployment.manager import DeploymentManager
 from .deployment.routes import register_deployments
-from .engine import DockerEngine, Engine
+from .diffsbdd.runtime import validate as validate_diffsbdd
+from .engine import Engine
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
 from .operation_routes import register_operations
@@ -31,6 +33,7 @@ from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
 from .requests import BatchRequest, TaskRequest
+from .research.routes import register_research
 from .science_routes import register_science
 from .settings import Settings
 from .store import CapacityError, ConflictError, Store
@@ -41,7 +44,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     settings = settings or Settings.from_env()
     settings.state_dir.mkdir(parents=True, exist_ok=True)
     store = Store(settings.state_dir / "jobs.sqlite3")
-    engine = engine or DockerEngine(settings)
+    engine = engine or BackendRouter(settings)
     assets = AssetStore(store, settings.state_dir / "assets")
     worker = Worker(store, engine, settings, assets)
     deployments = DeploymentManager(settings.state_dir)
@@ -187,6 +190,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     )
                 await harness_service.invoke(
                     {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
+                )
+            elif value.operation == "diffsbdd":
+                assets.validate_bindings(value)
+                validate_diffsbdd(
+                    value, readiness["engine"].get("backends", {}).get("diffsbdd", {})
                 )
             else:
                 check(value, readiness["engine"], assets)
@@ -415,6 +423,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     worker.gate = harness_service.queue_gate
     register_operations(app, store, assets, settings, mutation)
+    register_research(app, store, assets, mutation)
     register_projects(app, store, mutation)
     register_science(app, store, engine, settings)
     web = Path(__file__).parent / "web"

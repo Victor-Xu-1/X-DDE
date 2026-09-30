@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .catalog import PACKAGES
+from .diffsbdd_install import install_model, install_runtime
 from .paths import environment_root
 from .process import run
 from .transfers import download, extract
@@ -36,7 +37,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version}
     report("Preparing verified release")
-    if key in {"ketcher", "molstar", "harness"}:
+    if key == "diffsbdd":
+        metadata.update(install_runtime(root, work, report, checkpoint))
+    elif key.startswith("diffsbdd-model-"):
+        metadata.update(install_model(key, root, installed, report, checkpoint))
+    elif key in {"ketcher", "molstar", "harness"}:
         archive = root / "downloads" / spec.url.rsplit("/", 1)[1]
         download(spec.url, archive, spec.checksum, report, checkpoint)
         # Each attempt has a separate staging area, never overwrites an active release.

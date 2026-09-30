@@ -24,6 +24,7 @@ export interface CovalentBond {
 export interface BaseTask {
   name: string;
   project_id?: string | null;
+  scientific_inputs?: import("../research/types").MoleculeRef[];
 }
 export interface FeatureTask extends BaseTask {
   operation: "msa" | "mt" | "prep" | "inspect";

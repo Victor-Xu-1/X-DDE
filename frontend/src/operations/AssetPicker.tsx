@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, request } from "../api";
 import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
@@ -36,12 +36,20 @@ export function AssetPicker({
     const c = new AbortController();
     void api
       .assets(c.signal)
-      .then(setAssets)
+      .then(async (values) => {
+        if (value && !values.some((asset) => asset.id === value)) {
+          const selected = await request<Asset>(`/assets/${value}/metadata`, {
+            signal: c.signal,
+          });
+          values = [selected, ...values];
+        }
+        if (!c.signal.aborted) setAssets(values);
+      })
       .catch((e) => {
         if (!c.signal.aborted) setError(String(e));
       });
     return () => c.abort();
-  }, [Boolean(value), opened]);
+  }, [value, opened]);
   return (
     <div className="asset-picker">
       <label className="field">
@@ -60,6 +68,11 @@ export function AssetPicker({
             .map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
+                {assets.filter(
+                  (other) => other.kind === kind && other.name === a.name,
+                ).length > 1
+                  ? ` · ${a.id.slice(0, 8)}`
+                  : ""}
               </option>
             ))}
           {value && !assets.some((a) => a.id === value) && (

@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 
 export type View =
+  | "research"
   | "home"
   | "tools"
   | "projects"
@@ -32,6 +33,12 @@ export type View =
   | "settings"
   | "overview";
 const items = [
+  {
+    id: "research",
+    cn: "资产与关系",
+    en: "Assets & relationships",
+    icon: DeploymentUnitOutlined,
+  },
   {
     id: "tools",
     cn: "全部能力",
@@ -156,6 +163,7 @@ export function Navigation({
             <small className="nav-short" aria-hidden="true">
               {
                 {
+                  research: ["资产", "Assets"],
                   tools: ["能力", "Tools"],
                   home: ["预测", "Predict"],
                   editors: ["编辑", "Editors"],

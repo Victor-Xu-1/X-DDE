@@ -60,11 +60,13 @@ async function load(urls: string[]) {
         throw new Error("Structure is too large for the viewer");
       if (current !== generation) return;
       const source = validSource(raw, location.origin);
-      const format =
-        response.headers.get("X-Structure-Format") === "pdb" ||
-        source.searchParams.get("name")?.toLowerCase().endsWith(".pdb")
-          ? "pdb"
-          : "cif";
+      const suffix =
+        response.headers.get("X-Structure-Format") ||
+        source.searchParams.get("name")?.split(".").pop()?.toLowerCase() ||
+        "cif";
+      if (!["pdb", "cif", "sdf", "mol", "mol2"].includes(suffix))
+        throw new Error("Unsupported molecular display format");
+      const format = suffix;
       const model = viewer.addModel(text, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");

@@ -1,7 +1,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
-import { Navigation } from "./Navigation";
+import { Navigation, viewTitle } from "./Navigation";
 import { AccountSettings } from "./AccountSettings";
 
 afterEach(cleanup);
@@ -11,6 +11,7 @@ it("keeps all research modules directly accessible", async () => {
   render(<Navigation view="home" onView={onView} language="zh" jobs={[]} />);
   const nav = screen.getByRole("navigation", { name: "主导航" });
   for (const name of [
+    "资产与关系",
     "全部能力",
     "结构预测",
     "分子与结构",
@@ -31,6 +32,32 @@ it("keeps all research modules directly accessible", async () => {
   expect(screen.queryByRole("menu")).toBeNull();
   expect(screen.getByRole("button", { name: "账户与设置" })).toHaveFocus();
 });
+it.each([
+  ["zh", "资产与关系", "资产"],
+  ["en", "Assets & relationships", "Assets"],
+] as const)(
+  "keeps the shared asset destination reachable in %s",
+  async (language, label, shortLabel) => {
+    const user = userEvent.setup();
+    const onView = vi.fn();
+    render(
+      <Navigation
+        view="research"
+        onView={onView}
+        language={language}
+        jobs={[]}
+      />,
+    );
+    const button = screen.getByRole("button", { name: label });
+    expect(button).toHaveAttribute("aria-current", "page");
+    expect(
+      within(button).getByText(shortLabel, { exact: true }),
+    ).toBeInTheDocument();
+    expect(viewTitle("research", language)).toBe(label);
+    await user.click(button);
+    expect(onView).toHaveBeenLastCalledWith("research");
+  },
+);
 it("supports toggle, outside click, Escape, arrow keys and Tab", async () => {
   const user = userEvent.setup();
   render(

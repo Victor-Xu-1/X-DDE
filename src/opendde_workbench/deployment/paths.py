@@ -4,6 +4,8 @@ import hashlib
 from pathlib import Path
 
 
-def environment_root(component_root: Path) -> Path:
+def environment_root(component_root: Path, package: str = "harness") -> Path:
+    if package not in {"harness", "diffsbdd"}:
+        raise ValueError("Unknown scientific environment.")
     identifier = hashlib.sha256(str(component_root.resolve()).encode()).hexdigest()[:16]
-    return Path.home() / ".local/share/opendde-workbench/environments" / identifier / "harness"
+    return Path.home() / ".local/share/opendde-workbench/environments" / identifier / package

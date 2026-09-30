@@ -155,7 +155,11 @@ class DeploymentManager:
                 # Only versioned package files are removed. Models and Docker layers may be shared.
                 if entry.get("directory"):
                     directory = Path(entry["directory"])
-                    parent = environment_root(root) if key == "harness" else root / "packages" / key
+                    parent = (
+                        environment_root(root, key)
+                        if key in {"harness", "diffsbdd"}
+                        else root / "packages" / key
+                    )
                     if directory.is_symlink() or directory.resolve().parent != parent.resolve():
                         raise ValueError(
                             "Refusing to remove a path outside the owned package folder."

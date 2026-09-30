@@ -14,8 +14,10 @@ from pydantic import (
     model_validator,
 )
 
+from .diffsbdd.contract import DiffTask, references
 from .harness_contract import HarnessTask
 from .prediction import Prediction
+from .task_metadata import TaskMetadata
 
 
 class Preparation(Prediction):
@@ -48,7 +50,7 @@ class Inspection(Prediction):
     operation: Literal["inspect"] = "inspect"
 
 
-class UtilityRequest(BaseModel):
+class UtilityRequest(TaskMetadata):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=80)
     project_id: UUID | None = None
@@ -124,7 +126,8 @@ TaskRequest = Annotated[
     | Annotated[Diagnostic, Tag("doctor")]
     | Annotated[ResourceTask, Tag("resources")]
     | Annotated[Properties, Tag("properties")]
-    | Annotated[HarnessTask, Tag("harness")],
+    | Annotated[HarnessTask, Tag("harness")]
+    | Annotated[DiffTask, Tag("diffsbdd")],
     Discriminator(request_kind),
 ]
 TASK_ADAPTER = TypeAdapter(TaskRequest)
@@ -132,6 +135,11 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
+
+    if isinstance(request, DiffTask):
+        return {str(ref.asset_id) for _, ref in references(request)} | {
+            str(ref.asset_id) for ref in request.scientific_inputs
+        }
 
     identifiers = {
         str(value)
@@ -145,6 +153,7 @@ def input_identifiers(request: TaskRequest) -> set[str]:
     identifiers.update(
         identifier for _, identifier in asset_references(getattr(request, "payload", {}))
     )
+    identifiers.update(str(ref.asset_id) for ref in request.scientific_inputs)
     return identifiers
 
 

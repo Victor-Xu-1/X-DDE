@@ -9,9 +9,12 @@ from .artifacts import contained
 from .assets import AssetKind
 from .models import Status
 from .native_import import import_document
+from .research.outputs import OutputCatalog
 
 
 def register_operations(app, store, assets, settings, mutation):
+    output_catalog = OutputCatalog(store, assets)
+
     def completed(job_id):
         job = store.get(str(job_id))
         if not job:
@@ -19,6 +22,18 @@ def register_operations(app, store, assets, settings, mutation):
         if job.status != Status.SUCCEEDED:
             raise HTTPException(409, "Wait for the task to succeed.")
         return settings.state_dir / "jobs" / str(job_id)
+
+    def preserve_file(job_id, file, kind):
+        return output_catalog.preserve(job_id, file, kind)[0]
+
+    @app.get("/api/research/indexing")
+    def indexing():
+        return output_catalog.recent()
+
+    @app.post("/api/jobs/{job_id}/index-assets", dependencies=[Depends(mutation)])
+    def index_outputs(job_id: UUID):
+        root = completed(job_id)
+        return output_catalog.index(store.get(str(job_id)), root / "output")
 
     @app.get("/api/jobs/{job_id}/result")
     def result(job_id: UUID):
@@ -45,7 +60,7 @@ def register_operations(app, store, assets, settings, mutation):
             file = contained(root, value.removeprefix("/job/"))
             if file.stat().st_size > 25 * 1024**2:
                 raise ValueError("Prepared file exceeds the managed upload limit.")
-            return assets.save(file.name, kind, file.read_bytes()).id
+            return preserve_file(job_id, file, kind).id
 
         try:
             path = contained(root / "output", name)
@@ -69,7 +84,7 @@ def register_operations(app, store, assets, settings, mutation):
             file = contained(root / "output", name)
             if file.stat().st_size > 25 * 1024**2:
                 raise ValueError("Artifact exceeds the25MiB reusable-input limit.")
-            return assets.save(file.name, kind, file.read_bytes())
+            return preserve_file(job_id, file, kind)
         except (ValueError, FileNotFoundError) as exc:
             raise HTTPException(422, str(exc)) from exc
 

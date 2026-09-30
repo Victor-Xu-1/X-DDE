@@ -10,6 +10,7 @@ from uuid import uuid4
 from .harness_contract import FILE_FIELDS, asset_references, validate_payload
 from .harness_process import environment, start_time
 from .managed_files import publish_shared
+from .native_arguments import needs_gpu
 from .store import ConflictError, now
 
 
@@ -290,7 +291,8 @@ class HarnessService:
 
     async def queue_gate(self, job):
         if (
-            job.request.operation not in {"predict", "resources"}
+            not needs_gpu(job.request)
+            and job.request.operation != "resources"
             or not self.settings.harness_python
         ):
             return None

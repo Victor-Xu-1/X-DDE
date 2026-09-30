@@ -3,13 +3,14 @@
 from typing import Literal, Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from .entities import Component, CovalentBond
 from .parameters import Parameters
+from .task_metadata import TaskMetadata
 
 
-class Prediction(BaseModel):
+class Prediction(TaskMetadata):
     operation: Literal["predict"] = "predict"
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=80)

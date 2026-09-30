@@ -38,6 +38,7 @@ jobs:
               files = set(wheel.namelist())
           assert 'opendde_workbench/web/index.html' in files
           assert 'opendde_workbench/web/viewer.html' in files
+          assert 'opendde_workbench/web/theme-init.js' in files
           assert any('/assets/viewer-' in path and path.endswith('.js') for path in files)
           PY
 
@@ -48,3 +49,16 @@ jobs:
       - name: Verify Windows launcher and WSL arguments
         shell: pwsh
         run: ./tests/test_windows_installer.ps1
+
+  scientific-handoffs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Real chemical parser and selected-version handoff (remote CPU only)
+        env:
+          PYTHONPATH: src
+        run: >-
+          uv run --no-project --python 3.10
+          --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
+          python -m pytest -q server_tests/test_scientific_handoff.py

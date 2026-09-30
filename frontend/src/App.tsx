@@ -15,9 +15,14 @@ import { DeploymentPanel } from "./deployment/DeploymentPanel";
 import { AccountSettings } from "./studio/AccountSettings";
 import { WorkspaceOverview } from "./studio/WorkspaceOverview";
 import { Editors } from "./editors/Editors";
+import { ResearchWorkspace } from "./research/ResearchWorkspace";
+import type { ScientificObject } from "./research/types";
 export function App() {
   const content = useRef<HTMLElement>(null);
   const deployment = useDeployment();
+  const [editorObject, setEditorObject] = useState<ScientificObject | null>(
+    null,
+  );
   const [editorsOpened, setEditorsOpened] = useState(false);
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
@@ -210,6 +215,17 @@ export function App() {
                   </button>
                 </aside>
               )}
+            {view === "research" && (
+              <ResearchWorkspace
+                language={language}
+                onCreated={changed}
+                onJob={showJob}
+                onEdit={(object) => {
+                  setEditorObject(object);
+                  setView("editors");
+                }}
+              />
+            )}
             {view === "deployment" && (
               <DeploymentPanel
                 data={deployment.data}
@@ -222,6 +238,7 @@ export function App() {
             <div hidden={view !== "editors"}>
               {(editorsOpened || view === "editors") && (
                 <Editors
+                  initialObject={editorObject}
                   language={language}
                   deployment={deployment.data}
                   deploymentError={deployment.error}
@@ -295,7 +312,8 @@ export function App() {
               view !== "deployment" &&
               view !== "editors" &&
               view !== "settings" &&
-              view !== "overview" && (
+              view !== "overview" &&
+              view !== "research" && (
                 <UtilityViews
                   {...common}
                   analysis={science.analysis}

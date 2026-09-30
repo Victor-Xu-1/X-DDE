@@ -6,6 +6,8 @@ X-DDE is an independent MIT drug research platform that manages projects, tasks,
 
 **平台关系：X-DDE 是主平台，OpenDDE 是可接入的软件后端之一。** 各后端的能力、依赖和就绪状态分别管理；OpenDDE 的能力边界不代表 X-DDE 的平台边界。新增软件只有完成真实适配后才进入可用能力目录。
 
+平台使用统一项目、科学资产版本和来源关系组织研究。结构、分子、序列和分析结果能通过实际输入输出关联，修改保留原始版本。正在开发的资产网络与 DiffSBDD 集成状态、模块边界及服务器验收要求见[权威架构说明](docs/design/README.md#x-dde-平台架构与资产关系)，候选分支能力不等于已发布能力。
+
 **0.4 release candidate:** guided installation, background component management, terminal start/stop, Ketcher and Mol* are available. Scientific GPU, multi-GPU, MSA/template databases, remote services and real LLM campaigns still require target-server acceptance. Installation success is not scientific readiness.
 
 ## 简单安装 / Quick installation

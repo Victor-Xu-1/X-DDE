@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .task_metadata import TaskMetadata
+
 TOOLS = {
     "esm": ("EsmScoreRequest", "score_esm"),
     "esm2": ("Esm2GuidedProposalRequest", "generate_esm2_guided"),
@@ -103,7 +105,7 @@ def validate_payload(value, *, key="", depth=0):
             validate_payload(item, depth=depth + 1)
 
 
-class HarnessTask(BaseModel):
+class HarnessTask(TaskMetadata):
     model_config = ConfigDict(extra="forbid")
     operation: Literal["harness"] = "harness"
     name: str = Field(min_length=1, max_length=80)

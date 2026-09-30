@@ -152,7 +152,46 @@ class AssetStore:
         return asset
 
     def validate_bindings(self, request) -> dict[str, Asset]:
+        bindings = self._validate_bindings(request)
+        for ref in getattr(request, "scientific_inputs", []):
+            asset = bindings.get(str(ref.asset_id))
+            if asset is None or asset.sha256 != ref.sha256:
+                raise ValueError(
+                    "Scientific version must refer to an actual task input with a matching digest."
+                )
+            if ref.version_id:
+                from .research.storage import ScientificStore
+
+                ScientificStore(self.store, self).validate_reference(ref)
+        return bindings
+
+    def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        if getattr(request, "operation", None) == "diffsbdd":
+            from .diffsbdd.contract import references
+
+            for role, ref in references(request):
+                asset = self.get(ref.asset_id)
+                expected = "structure" if role == "protein" else "ligand"
+                suffix = ".pdb" if role == "protein" else ".sdf"
+                if asset.kind != expected or asset.suffix != suffix:
+                    raise ValueError(
+                        f"DiffSBDD {role} requires an uploaded {suffix} {expected} asset. "
+                        "Convert CIF explicitly before using this PDB adapter."
+                    )
+                if asset.sha256 != ref.sha256:
+                    raise ValueError("Scientific selection is stale: asset digest does not match.")
+                if ref.conformer != 0 or role == "protein" and ref.record != 0:
+                    raise ValueError(
+                        "This adapter requires the first conformer and first protein model."
+                    )
+                if ref.version_id:
+                    from .research.storage import ScientificStore
+
+                    ScientificStore(self.store, self).validate_reference(ref)
+                self.path(asset)
+                bindings[asset.id] = asset
+            return bindings
         fields = {
             "ligand_file": "ligand",
             "paired_msa": "msa",
@@ -210,7 +249,10 @@ class AssetStore:
             shutil.copyfile(self.path(asset), target)
             if hashlib.sha256(target.read_bytes()).hexdigest() != asset.sha256:
                 raise ValueError("Uploaded input integrity check failed.")
-            if asset.suffix == ".sdf" and getattr(request, "operation", None) != "properties":
+            if asset.suffix == ".sdf" and getattr(request, "operation", None) not in {
+                "properties",
+                "diffsbdd",
+            }:
                 records = [
                     part
                     for part in target.read_text(encoding="utf-8-sig").split("$$$$")
@@ -236,6 +278,18 @@ class AssetStore:
                     "SELECT 1 FROM jobs WHERE request LIKE ? LIMIT 1", ("%" + asset.id + "%",)
                 ).fetchone():
                     raise ValueError("This input is referenced by a task and cannot be removed.")
+                has_objects = db.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='scientific_objects'"
+                ).fetchone()
+                if (
+                    has_objects
+                    and db.execute(
+                        "SELECT 1 FROM scientific_objects WHERE asset_id=? LIMIT 1", (asset.id,)
+                    ).fetchone()
+                ):
+                    raise ValueError(
+                        "This file belongs to a scientific version and cannot be removed."
+                    )
                 has_plans = db.execute(
                     "SELECT 1 FROM sqlite_master WHERE type='table' AND name='design_plans'"
                 ).fetchone()

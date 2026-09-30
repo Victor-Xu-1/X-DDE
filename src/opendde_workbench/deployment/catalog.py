@@ -4,6 +4,8 @@ import platform
 import shutil
 from dataclasses import asdict, dataclass
 
+from ..diffsbdd.manifest import MODEL_URL, MODELS, SOURCE_COMMIT, SOURCE_SHA256, SOURCE_URL
+
 
 @dataclass(frozen=True)
 class Package:
@@ -95,6 +97,31 @@ PACKAGES = {
         ),
     ]
 }
+
+
+PACKAGES["diffsbdd"] = Package(
+    "diffsbdd",
+    SOURCE_COMMIT[:12],
+    "DiffSBDD",
+    "小分子设计科学环境 / Small-molecule design runtime",
+    "数 GB / Several GB",
+    url=SOURCE_URL,
+    checksum=SOURCE_SHA256,
+    license="MIT / upstream licenses",
+)
+for identifier, model in MODELS.items():
+    key = "diffsbdd-model-" + identifier
+    PACKAGES[key] = Package(
+        key,
+        model["sha256"][:12],
+        "DiffSBDD · " + identifier,
+        "官方固定模型 / Official pinned checkpoint",
+        f"{model['bytes'] / 1024**2:.1f} MiB",
+        ("diffsbdd",),
+        url=MODEL_URL + model["file"] + "?download=1",
+        checksum=model["sha256"],
+        license="Official DiffSBDD model terms",
+    )
 
 
 def prerequisites() -> dict:
