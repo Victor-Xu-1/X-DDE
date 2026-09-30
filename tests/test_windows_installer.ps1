@@ -21,6 +21,7 @@ function global:wsl.exe {
     if ($args[0] -eq '--list') { return 'OpenDDE' }
     if ('whoami' -in $args) { return 'researcher' }
     if ('printenv' -in $args) { return '/home/researcher' }
+    if ('test' -in $args) { return }
     if ('--version' -in $args) { return 'uv 0.12.20' }
     if ('wslpath' -in $args) {
         $path = [string]$args[-1]
@@ -40,7 +41,7 @@ function global:wsl.exe {
     throw ('Unexpected WSL invocation: ' + ($args -join ' '))
 }
 function global:Invoke-WebRequest {
-    param([string]$Uri, [string]$OutFile)
+    param([string]$Uri, [string]$OutFile, [switch]$UseBasicParsing, [int]$TimeoutSec)
     $name = $Uri.Split('/')[-1]
     Copy-Item -LiteralPath (Join-Path $fixtures $name) -Destination $OutFile
     if ($boundary.corrupt -and $name.EndsWith('.whl')) { Add-Content -LiteralPath $OutFile -Value 'corrupted' }

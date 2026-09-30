@@ -6,6 +6,7 @@ param(
     [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.4.0rc3'
 )
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 if (!$InstallRoot) {
     $InstallRoot = if (Test-Path -LiteralPath 'E:\') { 'E:\X-DDE' } else { Join-Path $env:LOCALAPPDATA 'X-DDE' }
 }
@@ -37,7 +38,7 @@ $base = "https://github.com/Victor-Xu-1/X-DDE/releases/download/$Release"
 $downloads = Join-Path $InstallRoot 'downloads'
 $bin = Join-Path $InstallRoot 'bin'
 New-Item -ItemType Directory -Path $downloads, $bin -Force | Out-Null
-Invoke-WebRequest "$base/SHA256SUMS" -OutFile (Join-Path $downloads 'SHA256SUMS')
+Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 "$base/SHA256SUMS" -OutFile (Join-Path $downloads 'SHA256SUMS')
 $checksums = @{}
 foreach ($line in Get-Content -LiteralPath (Join-Path $downloads 'SHA256SUMS')) {
     $parts = $line -split '\s+', 2
@@ -45,7 +46,7 @@ foreach ($line in Get-Content -LiteralPath (Join-Path $downloads 'SHA256SUMS')) 
 }
 function Get-ReleaseFile([string]$Name, [string]$Destination) {
     if (!$checksums.ContainsKey($Name)) { throw "Release checksum missing: $Name" }
-    Invoke-WebRequest "$base/$Name" -OutFile $Destination
+    Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 "$base/$Name" -OutFile $Destination
     if ((Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash -ne $checksums[$Name]) {
         throw "Release checksum mismatch: $Name. Download again from the official release."
     }
@@ -54,11 +55,15 @@ Get-ReleaseFile 'install.sh' (Join-Path $InstallRoot 'install.sh')
 Get-ReleaseFile 'opendde.ps1' (Join-Path $bin 'opendde.ps1')
 $wheel = "x_dde-$($Release.Substring(1))-py3-none-any.whl"
 Get-ReleaseFile $wheel (Join-Path $downloads $wheel)
-$uvVersion = (& wsl.exe -d $Distribution -u $LinuxUser -- "$prefix/bin/uv" --version 2>$null | Out-String).Trim()
-if ($LASTEXITCODE -ne 0 -or $uvVersion -notlike 'uv 0.12.20*') {
+$uvVersion = ''
+& wsl.exe -d $Distribution -u $LinuxUser -- test -x "$prefix/bin/uv"
+if ($LASTEXITCODE -eq 0) {
+    $uvVersion = (& wsl.exe -d $Distribution -u $LinuxUser -- "$prefix/bin/uv" --version | Out-String).Trim()
+}
+if ($uvVersion -notlike 'uv 0.12.20*') {
     $uvBase = 'https://github.com/astral-sh/uv/releases/download/0.12.20'
     foreach ($name in @('uv-x86_64-unknown-linux-gnu.tar.gz', 'uv-x86_64-unknown-linux-gnu.tar.gz.sha256')) {
-        Invoke-WebRequest "$uvBase/$name" -OutFile (Join-Path $downloads $name)
+        Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 "$uvBase/$name" -OutFile (Join-Path $downloads $name)
     }
 }
 & wsl.exe -d $Distribution -u $LinuxUser -- bash "$linuxRoot/install.sh" $Release $prefix "$linuxRoot/downloads"
