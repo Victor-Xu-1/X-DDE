@@ -8,6 +8,7 @@ from pathlib import Path
 from .assets import AssetStore
 from .engine import Engine
 from .models import Job, Status
+from .research.outputs import OutputCatalog
 from .settings import Settings
 from .store import Store
 from .task_io import prepare, successful
@@ -21,6 +22,7 @@ class Worker:
     ):
         self.store, self.engine, self.settings = store, engine, settings
         self.assets = assets or AssetStore(store, settings.state_dir / "assets")
+        self.outputs = OutputCatalog(store, self.assets)
         self.stopping = False
         self.error: str | None = None
         self.task: asyncio.Task | None = None
@@ -155,6 +157,13 @@ class Worker:
             if error is None and status not in {Status.CANCELLED, Status.INTERRUPTED}:
                 if successful(job, directory, code):
                     status = Status.SUCCEEDED
+                    index = await asyncio.to_thread(self.outputs.index, job, directory / "output")
+                    if index["errors"]:
+                        log.warning(
+                            "task_asset_index_partial job_id=%s count=%s",
+                            job.id,
+                            len(index["errors"]),
+                        )
                 else:
                     missing = (
                         "no successful structure result"

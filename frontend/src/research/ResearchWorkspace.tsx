@@ -1,18 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { api, request } from "../api";
+import { useEffect, useRef, useState } from "react";
+import { api } from "../api";
 import type { Job, Language } from "../types";
 import type { AssetKind } from "../operations/types";
 import { PropertyForm } from "../operations/PropertyForm";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { RelationshipGraph } from "./RelationshipGraph";
-import {
-  objectLabels,
-  type ObjectKind,
-  type ResearchGraph,
-  type ScientificObject,
-} from "./types";
+import { objectLabels, type ObjectKind, type ScientificObject } from "./types";
 import "./research.css";
 import { ObjectInspector } from "./ObjectInspector";
+import { useResearchGraph } from "./useResearchGraph";
 
 export function ResearchWorkspace({
   language,
@@ -26,10 +22,19 @@ export function ResearchWorkspace({
   onCreated(job: Job): void;
 }) {
   const zh = language === "zh";
-  const [graph, setGraph] = useState<ResearchGraph | null>(null),
-    [selected, setSelected] = useState<string | null>(null);
+  const {
+    graph,
+    selected,
+    setSelected,
+    error,
+    setError,
+    indexing,
+    hasOlder,
+    load,
+    older,
+    select,
+  } = useResearchGraph();
   const [query, setQuery] = useState(""),
-    [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [uploadKind, setUploadKind] = useState<ObjectKind>("molecule"),
@@ -37,20 +42,10 @@ export function ResearchWorkspace({
   const [label, setLabel] = useState(""),
     [notes, setNotes] = useState(""),
     [rating, setRating] = useState(0);
-  const load = useCallback(async (signal?: AbortSignal) => {
-    setError("");
-    try {
-      const value = await request<ResearchGraph>("/research/graph", { signal });
-      if (!signal?.aborted) setGraph(value);
-    } catch (e) {
-      if (!signal?.aborted) setError(String(e));
-    }
-  }, []);
-  useEffect(() => {
-    const c = new AbortController();
-    void load(c.signal);
-    return () => c.abort();
-  }, [load]);
+  const versionIntent = useRef<{ fingerprint: string; key: string } | null>(
+    null,
+  );
+  const mutationRunning = useRef(false);
   const node = graph?.nodes.find((n) => n.id === selected),
     object = node?.object;
   useEffect(() => {
@@ -65,36 +60,47 @@ export function ResearchWorkspace({
     name: string,
     parent?: ScientificObject,
   ) {
-    const value = await api.post<ScientificObject>("/research/objects", {
+    const body = {
       asset_id: assetId,
       kind,
       label: name,
       record: parent?.reference.record ?? 0,
       conformer: parent?.reference.conformer ?? 0,
       parent_id: parent?.id ?? null,
-      relation: "edited_from",
+      relation: parent ? "edited_from" : "derived_from",
       notes: parent ? notes : "",
       rating: parent ? rating : 0,
-    });
+    };
+    const fingerprint = JSON.stringify(body);
+    if (versionIntent.current?.fingerprint !== fingerprint)
+      versionIntent.current = { fingerprint, key: crypto.randomUUID() };
+    const value = await api.post<ScientificObject>(
+      "/research/objects",
+      body,
+      versionIntent.current.key,
+    );
     await load();
     setSelected("object:" + value.id);
     return value;
   }
-  async function mutate(fn: () => Promise<unknown>) {
-    if (busy) return;
+  async function mutate(fn: () => Promise<unknown>, successMessage?: string) {
+    if (mutationRunning.current) return;
+    mutationRunning.current = true;
     setBusy(true);
     setError("");
     setMessage("");
     try {
       await fn();
       setMessage(
-        zh
-          ? "已保存，原始版本仍保留。"
-          : "Saved. The original version is preserved.",
+        successMessage ??
+          (zh
+            ? "已保存，原始版本仍保留。"
+            : "Saved. The original version is preserved."),
       );
     } catch (e) {
       setError(String(e));
     } finally {
+      mutationRunning.current = false;
       setBusy(false);
     }
   }
@@ -170,6 +176,35 @@ export function ResearchWorkspace({
           {message}
         </p>
       )}
+      {indexing
+        .filter((item) => item.state === "partial")
+        .map((item) => (
+          <div className="notice" role="alert" key={item.job_id}>
+            <p>
+              {zh
+                ? "计算产物仍保留，以下文件登记为共享资产时遇到问题："
+                : "Task outputs are preserved, but these files could not be registered as shared assets:"}
+            </p>
+            <ul>
+              {item.errors.map((e, i) => (
+                <li key={i}>
+                  {e.artifact}: {e.reason}
+                </li>
+              ))}
+            </ul>
+            <button
+              disabled={busy}
+              onClick={() =>
+                void mutate(async () => {
+                  await api.post(`/jobs/${item.job_id}/index-assets`, {});
+                  await load();
+                })
+              }
+            >
+              {zh ? "重新登记产物" : "Retry output registration"}
+            </button>
+          </div>
+        ))}
       {!graph && !error && (
         <p role="status">
           {zh ? "正在读取资产关系…" : "Loading asset relationships…"}
@@ -195,13 +230,13 @@ export function ResearchWorkspace({
             graph={graph}
             selected={selected}
             language={language}
-            onSelect={setSelected}
+            onSelect={(id) => void select(id)}
           />
           {graph.truncated && (
             <p className="notice">
               {zh
-                ? "当前显示最近的资产与任务，以及关联来源。更早资产仍保留，可通过资产分页接口访问。"
-                : "Showing recent assets/tasks and their referenced origins. Older records are preserved and accessible through paginated asset APIs."}
+                ? "当前显示最近的资产与任务及关联来源。可以加载更早资产；点击节点查看其直接关系。"
+                : "Showing recent assets/tasks and their origins. Load older assets and select a node to inspect its direct relationships."}
             </p>
           )}
           <div className="research-columns">
@@ -225,7 +260,7 @@ export function ResearchWorkspace({
                     <li key={n.id}>
                       <button
                         className={selected === n.id ? "selected" : ""}
-                        onClick={() => setSelected(n.id)}
+                        onClick={() => void select(n.id)}
                       >
                         <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
                         <strong>{n.label}</strong>
@@ -233,6 +268,19 @@ export function ResearchWorkspace({
                     </li>
                   ))}
               </ul>
+              {graph.truncated && hasOlder && (
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    void mutate(
+                      older,
+                      zh ? "已加载更早资产。" : "Older assets loaded.",
+                    )
+                  }
+                >
+                  {zh ? "加载更早资产" : "Load older assets"}
+                </button>
+              )}
             </section>
             <ObjectInspector
               node={node}
@@ -248,7 +296,7 @@ export function ResearchWorkspace({
               setRating={setRating}
               onEdit={onEdit}
               onProperties={setProperties}
-              onSelect={setSelected}
+              onSelect={(id) => void select(id)}
               onJob={onJob}
               mutate={mutate}
               register={register}

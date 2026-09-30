@@ -68,14 +68,16 @@ export function RelationshipGraph({
           const a = positions.get(edge.source),
             b = positions.get(edge.target);
           if (!a || !b) return null;
-          const ax = a.x + 135,
+          const sameColumn = a.x === b.x,
+            forward = a.x < b.x;
+          const ax = a.x + (sameColumn || forward ? 270 : 0),
             ay = a.y + 26,
-            bx = b.x + 135,
+            bx = b.x + (sameColumn || !forward ? 270 : 0),
             by = b.y + 26;
           return (
             <g key={i} className="relationship-edge">
               <path
-                d={`M${ax},${ay} C${ax + 70},${ay} ${bx - 70},${by} ${bx},${by}`}
+                d={`M${ax},${ay} C${ax + (sameColumn ? 35 : forward ? 20 : -20)},${ay} ${bx + (sameColumn ? 35 : forward ? -20 : 20)},${by} ${bx},${by}`}
                 markerEnd={`url(#${marker})`}
               />
               <title>

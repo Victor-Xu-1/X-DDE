@@ -15,7 +15,7 @@ class VersionInput(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     asset_id: UUID
     kind: ObjectKind
-    label: str = Field(min_length=1, max_length=120)
+    label: str = Field(min_length=1, max_length=120, pattern=r"^[^\x00-\x1f\x7f]+$")
     record: int = Field(default=0, ge=0, le=499)
     conformer: int = Field(default=0, ge=0, le=999)
     parent_id: UUID | None = None

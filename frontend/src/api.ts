@@ -32,7 +32,7 @@ export const api = {
   async post<T>(
     path: string,
     body: unknown,
-    key = crypto.randomUUID(),
+    key: string = crypto.randomUUID(),
     timeoutMs = 30000,
   ): Promise<T> {
     await api.initialize();

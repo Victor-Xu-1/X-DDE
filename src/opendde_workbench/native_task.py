@@ -19,12 +19,26 @@ def properties(request: dict, bindings: dict) -> dict:
 
     rows = [describe(Chem.MolFromSmiles(s), s) for s in request["smiles"]]
     for identifier in request["ligand_files"]:
+        selected = {
+            ref["record"]: ref
+            for ref in request.get("scientific_inputs", [])
+            if ref["asset_id"] == identifier
+        }
+        found = set()
         for index, molecule in enumerate(read_molecules(Path(bindings[identifier]))):
+            if selected and index not in selected:
+                continue
             if len(rows) >= 500:
                 raise ValueError(
                     "A property task supports at most500 molecules; split the input file."
                 )
-            rows.append(describe(molecule, f"{identifier}:{index + 1}"))
+            row = describe(molecule, f"{identifier}:{index + 1}")
+            if selected:
+                row["scientific_reference"] = selected[index]
+                found.add(index)
+            rows.append(row)
+        if selected.keys() - found:
+            raise ValueError("Selected scientific molecular record is missing from the file.")
     if not rows:
         raise ValueError("No molecule records were found.")
     fields = [
@@ -48,7 +62,8 @@ def properties(request: dict, bindings: dict) -> dict:
         writer.writerows(
             {
                 k: "'" + v if isinstance(v, str) and v.startswith(("=", "+", "-", "@")) else v
-                for k, v in row.items()
+                for k in fields
+                for v in [row.get(k)]
             }
             for row in rows
         )

@@ -1,161 +1,104 @@
-"""Deterministic lineage projection over real versions, assets and persisted tasks."""
+"""Bounded ancestry traversal; graph data shares the existing database authority."""
 
-from ..requests import input_identifiers
-from .contracts import ScientificObject
+from uuid import UUID
+
+from .graph_records import TABLES, project_record
+
+MAX_NODES, MAX_DEPTH, BATCH = 3000, 32, 200
+
+
+def parse_focus(focus):
+    try:
+        kind, value = focus.split(":", 1)
+        if kind not in TABLES:
+            raise ValueError()
+        return kind, str(UUID(value))
+    except (ValueError, AttributeError) as exc:
+        raise KeyError("Scientific relationship node does not exist.") from exc
 
 
 def graph(store, *, limit=200, focus=None):
-    with store.connect() as db:
-        versions = [
-            ScientificObject.model_validate_json(row["body"])
-            for row in db.execute(
-                "SELECT body FROM scientific_objects ORDER BY created_at DESC,id LIMIT ?",
-                (limit + 1,),
-            )
-        ]
-        assets = [
-            dict(row)
-            for row in db.execute(
-                "SELECT * FROM assets ORDER BY created_at DESC,id LIMIT ?", (limit + 1,)
-            )
-        ]
-        jobs = [
-            store.decode(row)
-            for row in db.execute(
-                "SELECT * FROM jobs ORDER BY created_at DESC,id LIMIT ?", (limit + 1,)
-            )
-        ]
-    nodes, edges = {}, []
-    for asset in assets[:limit]:
-        identifier = "asset:" + asset["id"]
-        nodes[identifier] = {
-            "id": identifier,
-            "kind": "file",
-            "label": asset["name"],
-            "asset_id": asset["id"],
-            "format": asset["suffix"],
-            "asset_kind": asset["kind"],
-        }
-    for version in versions[:limit]:
-        identifier = "object:" + str(version.id)
-        nodes[identifier] = {
-            "id": identifier,
-            "kind": version.kind,
-            "label": version.label,
-            "object": version.model_dump(mode="json"),
-        }
-        edges.append(
-            {
-                "source": "asset:" + str(version.reference.asset_id),
-                "target": identifier,
-                "relation": "represented_by",
-            }
-        )
-        if version.parent_id:
-            edges.append(
-                {
-                    "source": "object:" + str(version.parent_id),
-                    "target": identifier,
-                    "relation": version.relation,
-                }
-            )
-        if version.source_job:
-            edges.append(
-                {
-                    "source": "task:" + str(version.source_job),
-                    "target": identifier,
-                    "relation": "produced",
-                }
-            )
-    for job in jobs[:limit]:
-        identifier = "task:" + job.id
-        nodes[identifier] = {
-            "id": identifier,
-            "kind": "task",
-            "label": job.request.name,
-            "operation": job.request.operation,
-            "status": job.status,
-            "job_id": job.id,
-        }
-        for asset in input_identifiers(job.request):
-            edges.append(
-                {"source": "asset:" + asset, "target": identifier, "relation": "used_as_input"}
-            )
-        for ref in job.request.scientific_inputs:
-            if ref.version_id:
-                edges.append(
-                    {
-                        "source": "object:" + str(ref.version_id),
-                        "target": identifier,
-                        "relation": "used_as_input",
-                    }
-                )
-        if job.parent_id:
-            edges.append(
-                {
-                    "source": "task:" + job.parent_id,
-                    "target": identifier,
-                    "relation": "continued_as",
-                }
-            )
-        if job.request.operation == "diffsbdd":
-            from ..diffsbdd.contract import references
+    nodes, edges, attempted = {}, set(), set()
+    truncated = False
 
-            for _, ref in references(job.request):
-                if ref.version_id:
-                    edges.append(
-                        {
-                            "source": "object:" + str(ref.version_id),
-                            "target": identifier,
-                            "relation": "used_as_input",
-                        }
-                    )
-    # Include referenced ancestors even if a page of recent records excludes them.
-    missing = {edge[side] for edge in edges for side in ("source", "target")} - nodes.keys()
+    def add(kind, row):
+        nonlocal truncated
+        identifier = kind + ":" + row["id"]
+        if identifier in nodes:
+            return
+        if len(nodes) >= MAX_NODES:
+            truncated = True
+            return
+        identifier, node, relations = project_record(store, kind, row)
+        nodes[identifier] = node
+        edges.update(relations)
+
     with store.connect() as db:
-        for identifier in sorted(missing):
-            kind, value = identifier.split(":", 1)
-            table = {"asset": "assets", "task": "jobs", "object": "scientific_objects"}[kind]
-            row = db.execute(f"SELECT * FROM {table} WHERE id=?", (value,)).fetchone()
+        for kind, table in TABLES.items():
+            rows = db.execute(
+                f"SELECT * FROM {table} ORDER BY created_at DESC,id LIMIT ?", (limit + 1,)
+            ).fetchall()
+            truncated |= len(rows) > limit
+            for row in rows[:limit]:
+                add(kind, row)
+        if focus:
+            kind, value = parse_focus(focus)
+            row = db.execute(f"SELECT * FROM {TABLES[kind]} WHERE id=?", (value,)).fetchone()
             if row is None:
-                continue
-            if kind == "object":
-                obj = ScientificObject.model_validate_json(row["body"])
-                node = {"kind": obj.kind, "label": obj.label, "object": obj.model_dump(mode="json")}
-            elif kind == "task":
-                job = store.decode(row)
-                node = {
-                    "kind": "task",
-                    "label": job.request.name,
-                    "job_id": job.id,
-                    "operation": job.request.operation,
-                    "status": job.status,
-                }
-            else:
-                node = {
-                    "kind": "file",
-                    "label": row["name"],
-                    "asset_id": row["id"],
-                    "format": row["suffix"],
-                    "asset_kind": row["kind"],
-                }
-            nodes[identifier] = {"id": identifier, **node}
-    edges = [edge for edge in edges if edge["source"] in nodes and edge["target"] in nodes]
+                raise KeyError("Scientific relationship node does not exist.")
+            add(kind, row)
+            # Decoded typed requests establish edges; LIKE only retrieves candidate consumers.
+            rows = db.execute(
+                "SELECT * FROM jobs WHERE request LIKE ? ORDER BY created_at DESC,id LIMIT ?",
+                ("%" + value + "%", limit + 1),
+            ).fetchall()
+            truncated |= len(rows) > limit
+            for row in rows[:limit]:
+                add("task", row)
+            rows = db.execute(
+                "SELECT * FROM scientific_objects WHERE asset_id=? OR "
+                "json_extract(body,'$.parent_id')=? OR json_extract(body,'$.source_job')=? "
+                "ORDER BY created_at DESC,id LIMIT ?",
+                (value, value, value, limit + 1),
+            ).fetchall()
+            truncated |= len(rows) > limit
+            for row in rows[:limit]:
+                add("object", row)
+        for _ in range(MAX_DEPTH):
+            missing = {part for edge in edges for part in edge[:2]} - nodes.keys() - attempted
+            if not missing:
+                break
+            for kind, table in TABLES.items():
+                values = sorted(
+                    part.split(":", 1)[1] for part in missing if part.startswith(kind + ":")
+                )
+                for start in range(0, len(values), BATCH):
+                    batch = values[start : start + BATCH]
+                    placeholders = ",".join("?" for _ in batch)
+                    for row in db.execute(
+                        f"SELECT * FROM {table} WHERE id IN ({placeholders})", batch
+                    ).fetchall():
+                        add(kind, row)
+            attempted.update(missing)
+            if len(nodes) >= MAX_NODES:
+                truncated = True
+                break
+        else:
+            truncated = True
+    valid = [(a, b, relation) for a, b, relation in edges if a in nodes and b in nodes]
     if focus:
-        if focus not in nodes:
-            raise KeyError("Requested relationship node is outside this page or does not exist.")
         connected = {focus}
-        for edge in edges:
-            if focus in (edge["source"], edge["target"]):
-                connected.update((edge["source"], edge["target"]))
+        for source, target, _ in valid:
+            if focus in (source, target):
+                connected.update((source, target))
         nodes = {key: value for key, value in nodes.items() if key in connected}
-        edges = [
-            edge for edge in edges if edge["source"] in connected and edge["target"] in connected
-        ]
+        valid = [(a, b, relation) for a, b, relation in valid if a in nodes and b in nodes]
     return {
         "schema": 1,
         "nodes": list(nodes.values()),
-        "edges": edges,
-        "truncated": max(len(assets), len(versions), len(jobs)) > limit,
+        "edges": [
+            {"source": a, "target": b, "relation": relation} for a, b, relation in sorted(valid)
+        ],
+        "truncated": bool(truncated),
         "limit": limit,
     }

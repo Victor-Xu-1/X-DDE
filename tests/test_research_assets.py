@@ -103,6 +103,7 @@ def test_preserving_result_registers_source_task_in_same_asset_authority(client_
     with client_factory() as client:
         job = submit(client).json()
         wait_status(client, job["id"], {"succeeded"})
+        assert client.get("/api/research/objects").json()[0]["source_job"] == job["id"]
         response = client.post(f"/api/jobs/{job['id']}/assets?kind=structure&name=result.cif")
         assert response.status_code == 201
         obj = client.get("/api/research/objects").json()[0]
@@ -113,3 +114,51 @@ def test_preserving_result_registers_source_task_in_same_asset_authority(client_
             == response.json()
         )
         assert len(client.get("/api/research/objects").json()) == 1
+        assert client.post(f"/api/jobs/{job['id']}/index-assets").json()["state"] == "complete"
+        assert len(client.get("/api/research/objects").json()) == 1
+
+
+def test_output_indexing_keeps_partial_failure_visible_and_can_retry(client_factory):
+    script = (
+        "from pathlib import Path; import json; "
+        "Path('output/library.sdf').write_text('first\\n$$$$\\nsecond\\n$$$$\\n'); "
+        "Path('output/broken.fasta').write_text('not a FASTA'); "
+        "Path('output/result.json').write_text(json.dumps("
+        "{'operation':'properties','complete':True,'molecules':[]}))"
+    )
+    with client_factory(ProcessEngine(script)) as client:
+        job = submit(
+            client, {"operation": "properties", "name": "outputs", "smiles": ["CCO"]}
+        ).json()
+        wait_status(client, job["id"], {"succeeded"})
+        index = client.get("/api/research/indexing").json()[0]
+        assert index["state"] == "partial"
+        assert index["errors"][0]["artifact"] == "broken.fasta"
+        molecules = [
+            obj for obj in client.get("/api/research/objects").json() if obj["kind"] == "molecule"
+        ]
+        assert {obj["reference"]["record"] for obj in molecules} == {0, 1}
+        count = len(client.get("/api/research/objects").json())
+        assert client.post(f"/api/jobs/{job['id']}/index-assets").json()["state"] == "partial"
+        assert len(client.get("/api/research/objects").json()) == count
+
+
+def test_graph_follows_older_ancestors_and_focuses_outside_recent_page(client_factory):
+    with client_factory() as client:
+        asset = upload(client)
+        first = version(client, asset, label="first").json()
+        second = version(client, asset, parent=first["id"], label="second").json()
+        third = version(client, asset, parent=second["id"], label="third").json()
+        graph = client.get("/api/research/graph?limit=1").json()
+        assert graph["truncated"]
+        assert {"object:" + obj["id"] for obj in [first, second, third]} <= {
+            node["id"] for node in graph["nodes"]
+        }
+        assert len(graph["edges"]) == len(
+            {(edge["source"], edge["target"], edge["relation"]) for edge in graph["edges"]}
+        )
+        focused = client.get(
+            "/api/research/graph", params={"limit": 1, "focus": "object:" + first["id"]}
+        ).json()
+        assert "object:" + second["id"] in {node["id"] for node in focused["nodes"]}
+        assert client.get("/api/research/graph?focus=object:invalid").status_code == 404

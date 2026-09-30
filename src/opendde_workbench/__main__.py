@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 
 import uvicorn
 
@@ -12,6 +13,9 @@ def main():
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535:
         parser.error("Port must be between 1024 and 65535.")
+    os.environ.setdefault(
+        "WB_ALLOWED_ORIGINS", f"http://127.0.0.1:{args.port},http://localhost:{args.port}"
+    )
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     uvicorn.run(
         "opendde_workbench.api:create_app",
