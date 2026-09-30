@@ -93,6 +93,7 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     j["id"] for j in page.request.get(base + "/api/jobs").json()
                 } == expected_job_ids
                 if rejected_id:
+                    page.set_viewport_size({"width": 1440, "height": 1000})
                     page.goto(base + "/#task=" + rejected_id)
                     rejected_panel = page.get_by_role("region", name="结合模式与下一步", exact=True)
                     expect(
@@ -105,6 +106,11 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     expect(
                         rejected_panel.get_by_text("拖动旋转 · 滚轮缩放", exact=True)
                     ).to_be_visible(timeout=30000)
+                    expect(
+                        rejected_panel.frame_locator('iframe[title="可交互分子结构"]')
+                        .locator("canvas")
+                        .first
+                    ).to_be_visible()
                     rejected_panel.get_by_text("查看违反位置", exact=True).click()
                     expect(rejected_panel.get_by_text("输出原子 1 ·", exact=False)).to_be_visible()
                     expect(
