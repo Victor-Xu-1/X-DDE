@@ -104,6 +104,15 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                     )
                 page.screenshot(path=str(evidence / f"assets-{theme}.png"))
 
+            page.get_by_role("button", name="账户与设置", exact=True).click()
+            page.get_by_role("menuitem", name="安装与组件", exact=True).click()
+            catalogue = page.request.get(base_url + "/api/deployment").json()["packages"]
+            for package in catalogue:
+                if package["id"].startswith("diffsbdd"):
+                    expect(
+                        page.get_by_role("heading", name=package["name"], exact=True)
+                    ).to_be_visible()
+
             trigger = page.get_by_role("button", name="账户与设置", exact=True)
             trigger.click()
             page.keyboard.press("End")

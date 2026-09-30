@@ -16,6 +16,7 @@ export function ComponentLibrary({
   install(keys: string[]): Promise<void>;
 }) {
   const [remove, setRemove] = useState<string | null>(null);
+  const removeName = data.packages.find((p) => p.id === remove)?.name ?? remove;
   return (
     <>
       {" "}
@@ -53,7 +54,7 @@ export function ComponentLibrary({
                 </span>
                 <small>{p.version}</small>
               </div>
-              <h3>{zh ? names[p.id] : p.name}</h3>
+              <h3>{zh ? (names[p.id] ?? p.name) : p.name}</h3>
               <p>{p.description.split(" / ")[zh ? 0 : 1] ?? p.description}</p>
               <small>
                 {p.size} · {p.license}
@@ -109,7 +110,11 @@ export function ComponentLibrary({
           role="alertdialog"
           aria-label={zh ? "确认卸载" : "Confirm uninstall"}
         >
-          <h3>{zh ? `卸载 ${names[remove]}？` : `Uninstall ${remove}?`}</h3>
+          <h3>
+            {zh
+              ? `卸载 ${names[remove] ?? removeName}？`
+              : `Uninstall ${removeName}?`}
+          </h3>
           <p>
             {zh
               ? "组件将停用并移除其独立安装文件。研究结果、模型权重、缓存和共享 Docker 镜像保留；依赖此组件的其他组件须先卸载。"

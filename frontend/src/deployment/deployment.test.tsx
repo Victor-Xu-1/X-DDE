@@ -21,6 +21,48 @@ it("maps Windows locations without altering Linux paths", () => {
   );
   expect(linuxLocation("/data/research")).toBe("/data/research");
 });
+it("uses catalogue names for new scientific components and removal review", () => {
+  render(
+    <DeploymentPanel
+      data={{
+        ...data,
+        installed: { diffsbdd: { version: "55f365b" } },
+        packages: [
+          {
+            id: "diffsbdd",
+            name: "DiffSBDD",
+            version: "55f365b",
+            description: "小分子设计科学环境 / Small-molecule design runtime",
+            size: "Several GB",
+            automatic: false,
+            license: "MIT",
+          },
+          {
+            id: "diffsbdd-model-crossdock_full",
+            name: "DiffSBDD · crossdock_full",
+            version: "model-sha",
+            description: "官方固定模型 / Official pinned checkpoint",
+            size: "74 MiB",
+            automatic: false,
+            license: "Official model terms",
+          },
+        ],
+      }}
+      error=""
+      refresh={vi.fn()}
+      language="zh"
+      onEditors={vi.fn()}
+    />,
+  );
+  expect(screen.getByRole("heading", { name: "DiffSBDD" })).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "DiffSBDD · crossdock_full" }),
+  ).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "卸载" }));
+  expect(screen.getByRole("alertdialog")).toHaveTextContent("卸载 DiffSBDD？");
+  fireEvent.click(screen.getByRole("button", { name: "取消" }));
+  expect(screen.queryByRole("alertdialog")).toBeNull();
+});
 it("saves location before scheduling only the selected editor components", async () => {
   const post = vi.spyOn(api, "post").mockResolvedValue({});
   render(
