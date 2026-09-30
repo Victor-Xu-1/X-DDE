@@ -303,9 +303,12 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                     )
                     expect(hint).to_be_visible()
                     assert "0.5 Å" in hint.get_attribute("title")
-                    page.get_by_role(
+                    molecule_select = page.get_by_role(
                         "combobox", name="选择与受体对齐的三维 SDF 分子", exact=True
-                    ).select_option(molecule_id)
+                    )
+                    # Uploaded-file choices load on focus, as in a real user interaction.
+                    molecule_select.focus()
+                    molecule_select.select_option(molecule_id)
                     picker = page.get_by_role("button", name="读取可选原子", exact=True)
                     expect(picker).to_have_count(1)
                     for round_number in range(3):
