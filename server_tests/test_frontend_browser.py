@@ -63,8 +63,12 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_text("从第一份研究资产开始", exact=True)).to_be_visible()
             page.locator('.research-workspace input[type="file"]').set_input_files(molecule)
             expect(page.get_by_role("heading", name="ethanol.sdf", exact=True)).to_be_visible()
-            page.get_by_label("研究备注", exact=True).fill("Browser regression: retained original")
-            page.get_by_label("人工评价（不代表模型分数）", exact=True).select_option("4")
+            page.get_by_role("textbox", name="研究备注", exact=True).fill(
+                "Browser regression: retained original"
+            )
+            page.get_by_role(
+                "combobox", name="人工评价（不代表模型分数）", exact=True
+            ).select_option("4")
             page.get_by_role("button", name="保存备注为新版本", exact=True).click()
             expect(page.get_by_role("status").filter(has_text="已保存")).to_be_visible()
             objects = page.request.get(base_url + "/api/research/objects").json()
@@ -109,17 +113,19 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_role("menu")).to_have_count(0)
 
             open_settings(page)
-            page.get_by_label("界面语言", exact=True).select_option("en")
+            page.get_by_label("界面语言").select_option("en")
             page.reload()
             expect(page.locator("html")).to_have_attribute("data-theme", "dark")
             page.get_by_role("button", name="Assets & relationships", exact=True).click()
             page.get_by_role("button", name="Molecule ethanol.sdf", exact=True).first.click()
-            expect(page.get_by_label("Research notes", exact=True)).to_have_value(current["notes"])
+            expect(page.get_by_role("textbox", name="Research notes", exact=True)).to_have_value(
+                current["notes"]
+            )
             page.get_by_role("button", name="Use for properties", exact=True).click()
             expect(page.get_by_text("Only this record is calculated", exact=False)).to_be_visible()
-            expect(page.get_by_label("Molecule file (multiple records allowed)")).to_have_value(
-                current["reference"]["asset_id"]
-            )
+            expect(
+                page.get_by_role("combobox", name="Molecule file (multiple records allowed)")
+            ).to_have_value(current["reference"]["asset_id"])
             assert page.request.get(base_url + "/api/jobs").json() == []
             assert not errors
         finally:
