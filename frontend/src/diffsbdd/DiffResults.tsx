@@ -84,8 +84,14 @@ export function DiffResults({
       </p>
       {typeof data.valid === "number" && (
         <p>
-          {zh ? "有效候选 / 尝试数量" : "Valid candidates / attempts"}:{" "}
-          {data.valid} / {String(data.attempted)}
+          {data.core_verification
+            ? zh
+              ? "通过固定区域复核 / 采样尝试"
+              : "Fixed-region checks passed / sampling attempts"
+            : zh
+              ? "有效候选 / 尝试数量"
+              : "Valid candidates / attempts"}
+          : {data.valid} / {String(data.attempted)}
         </p>
       )}
       {data.core_verification && (
@@ -137,13 +143,15 @@ export function DiffResults({
                   <button
                     type="button"
                     aria-pressed={selected?.id === v.id}
+                    title={`${v.label} · ${zh ? "SDF 记录" : "SDF record"} ${v.reference.record + 1}`}
                     onClick={() => {
                       setSelected(v);
                       setAction(null);
                     }}
                   >
-                    {v.label} · {zh ? "记录" : "Record"}{" "}
-                    {v.reference.record + 1}
+                    {data.core_verification
+                      ? `${zh ? "候选" : "Candidate"} ${(data.core_verification.candidates.find((c) => c.qualified_record === v.reference.record)?.record ?? v.reference.record) + 1} · ${zh ? "固定区域检查通过" : "Fixed-region checks passed"}`
+                      : `${v.label} · ${zh ? "记录" : "Record"} ${v.reference.record + 1}`}
                   </button>
                 </li>
               ))}
