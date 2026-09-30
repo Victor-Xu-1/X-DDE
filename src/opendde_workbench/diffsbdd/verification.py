@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 
 from fixed_core import METHOD, assess
+from stereo import chemical_stereo
 
 
 def digest(path):
@@ -29,6 +30,9 @@ def verify_inpaint(source, initial, fixed_atoms, preserve_bonds, native_file, ou
             if candidate is None:
                 raise ValueError("Native accepted output contains an invalid molecule.")
             check = assess(source, candidate, fixed_atoms, preserve_bonds)
+            # Keep raw native files intact. Canonical handoff records use the same
+            # chemical stereo interpretation as the verifier; atom order is unchanged.
+            candidate = chemical_stereo(candidate)
             row = {"record": record, "qualified_record": None, "diagnostic_artifact": None, **check}
             if check["status"] == "passed":
                 row["qualified_record"] = count

@@ -372,12 +372,30 @@ def test_actual_sdf_core_qualification_keeps_rejected_raw_records(monkeypatch, t
     )
 
 
-def test_core_bookkeeping_atom_maps_do_not_manufacture_stereochemical_rejections(monkeypatch):
+def test_core_bookkeeping_atom_maps_do_not_manufacture_stereochemical_rejections(
+    monkeypatch, tmp_path
+):
     core = core_module(monkeypatch)
     source = core_molecule("[CH3:1][C@H:2]([CH3:3])[CH2:4][OH:5]")
     candidate = Chem.Mol(source)
     candidate.GetAtomWithIdx(1).InvertChirality()
     assert core.assess(source, candidate, list(range(source.GetNumAtoms())))["status"] == "passed"
+    from verification import verify_inpaint
+
+    native = tmp_path / "native"
+    native.mkdir()
+    raw = native / "molecules.sdf"
+    with Chem.SDWriter(str(raw)) as writer:
+        writer.write(candidate)
+    original = raw.read_bytes()
+    result = verify_inpaint(
+        source, {"asset_id": "fixture"}, list(range(source.GetNumAtoms())), True, raw, tmp_path, 1
+    )
+    assert result["qualified_count"] == 1
+    canonical = Chem.SDMolSupplier(str(tmp_path / result["qualified_artifact"]), removeHs=True)[0]
+    assert all(atom.GetAtomMapNum() == 0 for atom in canonical.GetAtoms())
+    assert Chem.MolToSmiles(canonical, isomericSmiles=True) == "CC(C)CO"
+    assert raw.read_bytes() == original
     # The same normalization must retain true tetrahedral stereochemistry.
     source = core_molecule("F[C@H](Cl)Br")
     for atom in source.GetAtoms():
