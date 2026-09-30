@@ -7,13 +7,15 @@ import { Hint } from "../guided/Hint";
 export function PropertyForm({
   language,
   onCreated,
+  initialSmiles = "",
 }: {
   language: Language;
   onCreated(j: Job): void;
+  initialSmiles?: string;
 }) {
   const smilesId = useId();
   const zh = language === "zh",
-    [smiles, setSmiles] = useState(""),
+    [smiles, setSmiles] = useState(initialSmiles),
     [file, setFile] = useState(""),
     [name, setName] = useState(""),
     run = useTaskSubmit(onCreated);

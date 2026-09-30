@@ -10,7 +10,7 @@
   justify-content: center;
   border: 0;
   background: transparent;
-  color: #6984ae;
+  color: #635d53;
   padding: 2px;
   font-size: 12px;
   line-height: 1;
@@ -20,9 +20,9 @@
   z-index: 1000;
   width: min(280px, calc(100vw - 16px));
   padding: 11px 13px;
-  background: #163464;
+  background: #34332d;
   color: white;
-  box-shadow: 0 5px 18px #14356135;
+  box-shadow: 0 5px 18px #34332d35;
   border-radius: 7px;
   font-size: 12px;
   line-height: 1.65;
@@ -50,7 +50,7 @@
   align-items: flex-start;
   cursor: pointer;
   padding: 8px;
-  border: 1px solid #e0e8f7;
+  border: 1px solid #ece9df;
   border-radius: 5px;
   background: white;
 }
@@ -67,7 +67,7 @@
   font-size: 11px;
   line-height: 1.5;
   margin-top: 2px;
-  color: #7287a6;
+  color: #635d53;
 }
 .studio-app .input-panel .task-name {
   margin-top: 13px;
@@ -81,36 +81,36 @@
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  color: #4b6896;
+  color: #635d53;
 }
 .guided-toolbar select {
   max-width: 280px;
-  border: 1px solid #dae5f7;
+  border: 1px solid #ded9cb;
   border-radius: 5px;
   padding: 7px;
-  color: #294e86;
+  color: #34332d;
   background: white;
   font-size: 11px;
 }
 .quickstart {
   padding: 7px 10px;
-  border: 1px solid #d9e6fb;
+  border: 1px solid #ded9cb;
   border-radius: 5px;
-  color: #2863bc;
-  background: #f6f9ff;
+  color: #635d53;
+  background: #f5f3ed;
   font-size: 11px;
 }
 .candidate-actions select {
   max-width: 130px;
   font-size: 10px;
   background: white;
-  border: 1px solid #dce6f7;
+  border: 1px solid #ded9cb;
   padding: 4px;
   border-radius: 4px;
-  color: #44638e;
+  color: #635d53;
 }
 .candidate-guidance {
-  color: #7387a6;
+  color: #82786a;
   font-size: 10px;
   line-height: 1.6;
   margin: 4px 0 9px;
@@ -119,7 +119,7 @@
   border: 0;
   background: transparent;
   padding: 3px 0;
-  color: #215fcd;
+  color: #a85237;
   font-size: 11px;
   font-weight: 600;
   text-align: left;
@@ -128,7 +128,7 @@
   background: transparent;
   border: 0;
   text-decoration: underline;
-  color: #316bbc;
+  color: #635d53;
   font-size: 10px;
 }
 .property-grid {
@@ -139,17 +139,17 @@
 }
 .property-grid > div {
   padding: 6px;
-  background: #f6f9ff;
+  background: #f5f3ed;
   border-radius: 4px;
 }
 .property-grid dt {
   font-size: 10px;
-  color: #6982a7;
+  color: #635d53;
 }
 .property-grid dd {
   margin: 3px 0 0;
   font-size: 13px;
-  color: #214b87;
+  color: #34332d;
   font-variant-numeric: tabular-nums;
 }
 .analysis-empty {
@@ -157,7 +157,7 @@
   place-items: center;
   min-height: 100px;
   font-size: 11px !important;
-  color: #7e91af !important;
+  color: #82786a !important;
   text-align: center;
   line-height: 1.6;
 }
@@ -165,7 +165,7 @@
   font-size: 11px;
   line-height: 1.7;
   margin: 10px 0;
-  color: #526b91;
+  color: #635d53;
 }
 .result-explanation > p {
   margin: 6px 0;
@@ -180,7 +180,7 @@
 .contact-card li button {
   background: transparent;
   border: 0;
-  color: #2366c9;
+  color: #a85237;
   font-size: 11px;
   padding: 4px 2px;
   text-decoration: underline;
@@ -188,13 +188,13 @@
 .selection-explanation {
   margin: 5px 0 0;
   font-size: 10px;
-  color: #5e789f;
+  color: #635d53;
   min-height: 26px;
   line-height: 1.5;
 }
 .viewer-comparison {
   font-size: 10px;
-  color: #647b9b;
+  color: #635d53;
   margin-bottom: 5px;
 }
 .viewer-panel {

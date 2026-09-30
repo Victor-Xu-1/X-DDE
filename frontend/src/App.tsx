@@ -10,7 +10,11 @@ import { UtilityViews } from "./studio/UtilityViews";
 import type { Job, Language, Prediction } from "./types";
 import { ToolCenter } from "./operations/ToolCenter";
 import { isPrediction } from "./operations/types";
+import { useDeployment } from "./deployment/client";
+import { DeploymentPanel } from "./deployment/DeploymentPanel";
+import { Editors } from "./editors/Editors";
 export function App() {
+  const deployment = useDeployment();
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>(() =>
@@ -162,6 +166,42 @@ export function App() {
             storageWarning={storageWarning}
           />
           <main className="studio-content">
+            {view !== "deployment" &&
+              deployment.data &&
+              !deployment.data.installed.compute && (
+                <aside className="onboarding-banner">
+                  <div>
+                    <strong>
+                      {zh ? "让工作台准备就绪" : "Prepare your workspace"}
+                    </strong>
+                    <p>
+                      {zh
+                        ? "先安装编辑器即可画分子、看结构；计算任务需要相应环境与模型。"
+                        : "Install editors to sketch and explore. Scientific tasks need their compute environment and models."}
+                    </p>
+                  </div>
+                  <button onClick={() => setView("deployment")}>
+                    {zh ? "安装与组件 →" : "Installation & components →"}
+                  </button>
+                </aside>
+              )}
+            {view === "deployment" && (
+              <DeploymentPanel
+                data={deployment.data}
+                error={deployment.error}
+                refresh={deployment.refresh}
+                language={language}
+                onEditors={() => setView("editors")}
+              />
+            )}
+            {view === "editors" && (
+              <Editors
+                language={language}
+                deployment={deployment.data}
+                onSetup={() => setView("deployment")}
+                onCreated={changed}
+              />
+            )}
             {health?.queue_wait_reason && (
               <p className="notice" role="status">
                 {zh ? "计算队列正在等待：" : "Compute queue is waiting: "}
@@ -221,26 +261,29 @@ export function App() {
                 onDraft={prepareDraft}
               />
             )}
-            {view !== "home" && view !== "tools" && (
-              <UtilityViews
-                {...common}
-                analysis={science.analysis}
-                view={view}
-                jobs={jobs}
-                loading={loading}
-                onJob={inspectJob}
-                onHome={() => {
-                  if (job && !isPrediction(job.request)) {
-                    setView("tasks");
-                    return;
-                  }
-                  setResultsVersion((n) => n + 1);
-                  setView("home");
-                }}
-                projectError={science.projectError}
-                reloadProjects={science.reloadProjects}
-              />
-            )}
+            {view !== "home" &&
+              view !== "tools" &&
+              view !== "deployment" &&
+              view !== "editors" && (
+                <UtilityViews
+                  {...common}
+                  analysis={science.analysis}
+                  view={view}
+                  jobs={jobs}
+                  loading={loading}
+                  onJob={inspectJob}
+                  onHome={() => {
+                    if (job && !isPrediction(job.request)) {
+                      setView("tasks");
+                      return;
+                    }
+                    setResultsVersion((n) => n + 1);
+                    setView("home");
+                  }}
+                  projectError={science.projectError}
+                  reloadProjects={science.reloadProjects}
+                />
+              )}
             <footer className="studio-footer">
               OpenDDE Workbench ·{" "}
               {zh

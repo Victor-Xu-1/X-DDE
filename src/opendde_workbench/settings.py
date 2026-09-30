@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .locations import home, read_json
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -32,17 +34,39 @@ class Settings:
         def path(key: str, default: str) -> Path:
             return Path(os.environ.get(key, default)).expanduser().resolve()
 
-        state = path("WB_STATE_DIR", ".state")
+        state = path("WB_STATE_DIR", str(home() / "state"))
+        deployment = read_json(state / "deployment.json")
+        root = Path(deployment["root"]) if deployment else None
+        installed = read_json(root / "installed.json") if root else {}
+        references = state / "managed-references"
+        references.mkdir(parents=True, exist_ok=True)
+        for key, attribute in (("compute", "image"), ("runtime", "code")):
+            if key in installed:
+                (references / attribute).write_text(installed[key][attribute])
+            else:
+                (references / attribute).unlink(missing_ok=True)
+        harness = installed.get("harness", {}).get("python")
         return cls(
             state_dir=state,
-            image_file=path("WB_IMAGE_FILE", "/opt/opendde/image-reference.txt"),
-            code_file=path("WB_CODE_FILE", "/opt/opendde/runtime-code-reference.txt"),
-            model_dir=path("WB_MODEL_DIR", "/opt/opendde/data/opendde"),
+            image_file=path(
+                "WB_IMAGE_FILE",
+                str(references / "image") if deployment else "/opt/opendde/image-reference.txt",
+            ),
+            code_file=path(
+                "WB_CODE_FILE",
+                str(references / "code")
+                if deployment
+                else "/opt/opendde/runtime-code-reference.txt",
+            ),
+            model_dir=path(
+                "WB_MODEL_DIR",
+                str(root / "models/opendde") if root else "/opt/opendde/data/opendde",
+            ),
             cache_dir=path("WB_CACHE_DIR", str(state / "cache")),
             capacity_dir=path("WB_CAPACITY_DIR", str(state)),
             msa_url=os.environ.get("WB_MSA_URL") or None,
-            harness_python=path("WB_HARNESS_PYTHON", "")
-            if os.environ.get("WB_HARNESS_PYTHON")
+            harness_python=path("WB_HARNESS_PYTHON", harness or "")
+            if os.environ.get("WB_HARNESS_PYTHON") or harness
             else None,
             harness_shared_dir=path("WB_HARNESS_SHARED_DIR", "")
             if os.environ.get("WB_HARNESS_SHARED_DIR")

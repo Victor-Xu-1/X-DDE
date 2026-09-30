@@ -7,7 +7,13 @@ export default defineConfig({
   build: {
     outDir: "../src/opendde_workbench/web",
     emptyOutDir: true,
-    rollupOptions: { input: { app: "index.html", viewer: "viewer.html" } },
+    rollupOptions: {
+      input: {
+        app: "index.html",
+        viewer: "viewer.html",
+        molecular: "molecular.html",
+      },
+    },
   },
   test: { environment: "jsdom", setupFiles: ["./src/test-setup.ts"] },
 });
