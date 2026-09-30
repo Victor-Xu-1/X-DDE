@@ -168,11 +168,12 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
-          uv sync --locked --group dev
+          uv sync --locked --group dev --group browser
+          uv run --locked --group browser python -m playwright install --with-deps chromium
       - name: Actual offline GNINA three-mode execution and immutable pose handoff
         env:
           WB_TEST_NATIVE_DOCKING: '1'
-        run: uv run --locked pytest -q -s server_tests/test_native_docking.py
+        run: uv run --locked --group browser pytest -q -s server_tests/test_native_docking.py
       - name: Preserve native docking evidence
         if: always()
         uses: actions/upload-artifact@v4

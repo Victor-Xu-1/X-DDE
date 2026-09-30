@@ -40,7 +40,9 @@ PACKAGES = {
             "约 3.5 GB 下载；至少 12 GiB 安装空间 / ~3.5 GB download; 12 GiB staging",
             url=BINARY_URL,
             checksum=BINARY_SHA256,
-            license="GNINA GPL-2.0/Apache-2.0; NVIDIA proprietary runtime and other dependency terms",
+            license=(
+                "GNINA GPL-2.0/Apache-2.0; NVIDIA proprietary runtime and other dependency terms"
+            ),
             engine="gnina",
             kind="runtime",
         ),

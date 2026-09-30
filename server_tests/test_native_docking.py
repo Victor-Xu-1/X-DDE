@@ -198,7 +198,89 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             (evidence / (mode + "-acceptance.json")).write_text(
                 json.dumps({"job": job, "result": result, "environment": environment}, indent=2)
             )
+        completed_job_id = identifier
+        completed_pose = selected
+        completed_reference = pose
+        # Actual long-search container is cancelled through the sole Worker/BackendRouter.
+        request = {
+            "operation": "docking",
+            "name": "native cancellation",
+            "mode": "dock",
+            "receptor": refs["receptor"],
+            "ligand": refs["ligand"],
+            "search": {
+                "kind": "reference_ligand",
+                "frame": refs["receptor"],
+                "reference": refs["ligand"],
+                "coordinate_basis": "user_confirmed",
+            },
+            "options": {
+                "cnn_scoring": "none",
+                "cpu": 2,
+                "exhaustiveness": 128,
+                "num_modes": 10,
+                "time_limit_seconds": 180,
+            },
+        }
+        submitted = client.post(
+            "/api/jobs", json=request, headers={"Idempotency-Key": str(uuid4())}
+        )
+        assert submitted.status_code == 201, submitted.text
+        cancelled_id = submitted.json()["id"]
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            probe = subprocess.run(
+                [
+                    "docker",
+                    "inspect",
+                    "--format",
+                    "{{.State.Running}}",
+                    "xdde-gnina-" + cancelled_id,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if (
+                probe.returncode == 0
+                and probe.stdout.strip() == "true"
+                and (settings.state_dir / "jobs" / cancelled_id / "output/native.log").is_file()
+            ):
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError(
+                "Native cancellation fixture never reached the scientific execution boundary."
+            )
+        response = client.post("/api/jobs/" + cancelled_id + "/cancel", json={})
+        assert response.status_code == 200, response.text
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline:
+            cancelled = client.get("/api/jobs/" + cancelled_id).json()
+            if cancelled["status"] == "cancelled":
+                break
+            time.sleep(0.1)
+        assert cancelled["status"] == "cancelled", cancelled
+        assert (
+            subprocess.run(
+                ["docker", "inspect", "xdde-gnina-" + cancelled_id], capture_output=True
+            ).returncode
+            != 0
+        )
+        assert not (settings.state_dir / "jobs" / cancelled_id / "process.json").exists()
+        (evidence / "native-cancellation.json").write_text(json.dumps(cancelled, indent=2))
     # New server lifespan uses persisted jobs, versions and environment snapshots.
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
-        assert len(client.get("/api/jobs").json()) == 3
+        assert len(client.get("/api/jobs").json()) == 4
         assert client.get("/api/research/objects/" + pose["version_id"]).status_code == 200
+
+    from docking_browser import inspect_results
+
+    inspect_results(
+        settings,
+        installed["image"],
+        completed_job_id,
+        completed_pose,
+        completed_reference,
+        evidence,
+    )
