@@ -81,8 +81,10 @@ def summarize_poses(file, original, options):
 
     if file.is_symlink() or file.stat().st_size > 25 * 1024**2:
         raise ValueError("Native pose output exceeds its bounded file contract.")
+    if file.stat().st_size == 0:
+        return []
     supplier = Chem.SDMolSupplier(str(file), removeHs=True)
-    if not 1 <= len(supplier) <= options.num_modes:
+    if not 0 <= len(supplier) <= options.num_modes:
         raise ValueError("Native pose count does not match the requested limit.")
     poses = []
     source_smiles = plain_smiles(original)

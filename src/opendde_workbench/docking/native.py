@@ -129,7 +129,9 @@ def main():
     else:
         poses = summarize_poses(output, original, options)
     # Each valid pose is independently addressable for preview and downstream reuse.
-    supplier = Chem.SDMolSupplier(str(output), removeHs=True)
+    supplier = (
+        Chem.SDMolSupplier(str(output), removeHs=True) if any(p["valid"] for p in poses) else None
+    )
     for pose in poses:
         if pose["valid"]:
             file = root / f"pose-{pose['record'] + 1:03d}.sdf"

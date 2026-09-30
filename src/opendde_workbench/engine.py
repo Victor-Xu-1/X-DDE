@@ -1,6 +1,7 @@
 """Digest-pinned Docker adapter shared by every OpenDDE operation."""
 
 import asyncio
+import logging
 import os
 import re
 from pathlib import Path
@@ -17,16 +18,27 @@ class Engine(Protocol):
     async def readiness(self) -> dict: ...
 
 
-async def command(*args: str, timeout: int = 20) -> tuple[int, str]:
+async def command(*args: str, timeout: int = 20, separate_stderr: bool = False) -> tuple[int, str]:
     process = await asyncio.create_subprocess_exec(
-        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE if separate_stderr else asyncio.subprocess.STDOUT,
     )
     try:
-        output, _ = await asyncio.wait_for(process.communicate(), timeout)
+        output, diagnostics = await asyncio.wait_for(process.communicate(), timeout)
     except (TimeoutError, asyncio.CancelledError):
         process.kill()
         await process.wait()
         raise
+    if diagnostics:
+        if process.returncode:
+            output += diagnostics
+        else:
+            # Docker may emit warnings on stderr during a valid structured metadata response.
+            # Keep the protocol stream intact and log the warning without configuration contents.
+            logging.getLogger(__name__).warning(
+                "command_diagnostic_warning program=%s bytes=%d", args[0], len(diagnostics)
+            )
     return process.returncode, output.decode(errors="replace")[-4096:]
 
 

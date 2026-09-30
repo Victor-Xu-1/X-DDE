@@ -38,13 +38,14 @@ class DockingBackend:
                 "{{json .Config.Labels}}",
                 image,
                 timeout=8,
+                separate_stderr=True,
             )
             if code or not labels_match(json.loads(text) or {}):
                 raise ValueError(
                     "GNINA image is missing or differs from the reviewed runtime contract."
                 )
             code, text = await command(
-                "docker", "info", "--format", "{{json .Runtimes}}", timeout=8
+                "docker", "info", "--format", "{{json .Runtimes}}", timeout=8, separate_stderr=True
             )
             if code:
                 raise ValueError("The Docker daemon is unavailable.")

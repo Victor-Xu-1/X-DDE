@@ -112,3 +112,11 @@ def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path)
     assert not chemistry.summarize_poses(
         output, molecule, SimpleNamespace(num_modes=1, cnn_scoring="none")
     )[0]["valid"]
+
+    output.write_text("")
+    assert (
+        chemistry.summarize_poses(
+            output, molecule, SimpleNamespace(num_modes=1, cnn_scoring="none")
+        )
+        == []
+    )

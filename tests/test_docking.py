@@ -246,3 +246,47 @@ def test_deployment_paths_follow_the_canonical_environment_registry(tmp_path, mo
     assert environment_root(tmp_path / "components", "gnina").name == "gnina"
     with pytest.raises(ValueError, match="Unknown"):
         environment_root(tmp_path, "../escape")
+
+
+def test_normalized_pose_contract_rejects_false_success_and_conflicting_atom_maps():
+    from opendde_workbench.docking.result import Pose, Score
+
+    valid = {
+        "record": 0,
+        "valid": True,
+        "smiles": "CCO",
+        "artifact": "pose-001.sdf",
+        "mapping_status": "native_atom_maps",
+        "source_to_pose_atoms": [0, 1, 2],
+        "scores": [
+            {"name": "minimizedAffinity", "value": -5, "unit": "kcal/mol", "direction": "lower"}
+        ],
+    }
+    assert Pose.model_validate(valid).artifact == "pose-001.sdf"
+    for changes in [
+        {"artifact": "../outside.sdf"},
+        {"source_to_pose_atoms": [0, 0, 2]},
+        {"scores": []},
+        {"valid": False},
+        {"mapping_status": "ambiguous_reconfirm_selections"},
+    ]:
+        with pytest.raises(ValidationError):
+            Pose.model_validate({**valid, **changes})
+    with pytest.raises(ValidationError):
+        Score(name="CNNscore", value=float("nan"), unit="model_output", direction="higher")
+    with pytest.raises(ValidationError):
+        Score(name="minimizedAffinity", value=-5, unit="model_output", direction="higher")
+
+
+def test_real_metadata_protocol_is_not_corrupted_by_stderr_warnings():
+    import asyncio
+    import json
+    import sys
+
+    from opendde_workbench.engine import command
+
+    script = "import sys; print('{\"ready\":true}'); print('diagnostic warning',file=sys.stderr)"
+    code, text = asyncio.run(command(sys.executable, "-c", script, separate_stderr=True))
+    assert code == 0 and json.loads(text) == {"ready": True}
+    code, text = asyncio.run(command(sys.executable, "-c", script))
+    assert code == 0 and "diagnostic warning" in text
