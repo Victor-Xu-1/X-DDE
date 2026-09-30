@@ -26,8 +26,8 @@ def prepare_context(destination, binary, licenses):
         "COPY requirements.txt /tmp/requirements.txt\n"
         "RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt "
         "&& python -m pip check && rm /tmp/requirements.txt\n"
-        "COPY gnina LICENSE.APACHE LICENSE.GNU /opt/gnina/\n"
-        "RUN chmod 0555 /opt/gnina/gnina\n"
+        "COPY --chmod=0555 gnina /opt/gnina/gnina\n"
+        "COPY LICENSE.APACHE LICENSE.GNU /opt/gnina/\n"
         'LABEL org.xdde.gnina.version="' + VERSION + '" '
         'org.xdde.gnina.sha256="' + BINARY_SHA256 + '" '
         'org.xdde.gnina.runtime-lock="' + lock_digest() + '"\n'
@@ -36,7 +36,7 @@ def prepare_context(destination, binary, licenses):
         "/usr/local/lib/python3.10/site-packages/nvidia/cublas/lib:"
         "/usr/local/lib/python3.10/site-packages/nvidia/cuda_runtime/lib:"
         "/usr/local/nvidia/lib:/usr/local/nvidia/lib64\n"
-        "RUN ldd /opt/gnina/gnina > /opt/gnina/linker-report.txt "
+        "RUN ldd /opt/gnina/gnina | tee /opt/gnina/linker-report.txt "
         "&& ! grep -q 'not found' /opt/gnina/linker-report.txt\n"
         "WORKDIR /output\n"
     )
