@@ -24,10 +24,10 @@ X-DDE UI
 已安装 WSL 的用户可指定发行版、Linux 用户和 E 盘位置：
 
 ```powershell
-.\install.ps1 -Distribution OpenDDE -LinuxUser opendde -InstallRoot E:\X-DDE
+.\install.ps1 -Distribution OpenDDE -LinuxUser opendde -InstallRoot E:\WSL\apps\x-dde
 ```
 
-Windows 安装器使用 Windows 网络下载并校验发行文件，交给 WSL 安装；无需先调整 WSL 的 GitHub 代理。安装器优先使用 E 盘（没有 E 盘则使用当前用户应用目录）。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。新建 WSL 时磁盘文件位于所选 E 盘目录；已有 WSL 的磁盘位置保持不变。模型、代码缓存与编辑器目录可在面板另选。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `X-DDE UI`、`xdde dashboard`。
+Windows 安装器使用 Windows 网络下载并校验发行文件，交给 WSL 安装；无需先调整 WSL 的 GitHub 代理。默认入口为 `E:\WSL\apps\x-dde`；E 盘不可用时会停止并提示明确选择安装位置，不会静默写入 C 盘。升级会复用该目录保存的发行版和 Linux 用户。默认布局中新建的 WSL 磁盘位于 `E:\WSL\distros`；选择 E 盘安装目录时会核对已有发行版的真实注册位置，已有磁盘不自动迁移。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。安装与启动的 Windows 临时文件放在安装目录的 `tmp`，Linux 安装临时文件及缓存留在 Linux 程序目录。模型、代码缓存与编辑器目录可在面板另选。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `X-DDE UI`、`xdde dashboard`。
 
 Linux x86-64 / WSL2：
 

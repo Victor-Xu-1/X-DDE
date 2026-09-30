@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Distribution = 'Ubuntu-24.04',
+    [string]$Distribution = '',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
     [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.4.0rc4'
@@ -8,19 +8,37 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 if (!$InstallRoot) {
-    $InstallRoot = if (Test-Path -LiteralPath 'E:\') { 'E:\X-DDE' } else { Join-Path $env:LOCALAPPDATA 'X-DDE' }
+    if (!(Test-Path -LiteralPath 'E:\')) { throw 'E: is unavailable. Connect the drive or choose an explicit -InstallRoot; installation will not silently use C:.' }
+    $InstallRoot = 'E:\WSL\apps\x-dde'
 }
 $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
 if ($InstallRoot -notmatch '^[A-Za-z]:\\' -or $InstallRoot.Contains('"')) { throw 'Choose an absolute local drive directory.' }
+$savedConfigPath = Join-Path $InstallRoot 'bin/workbench.json'
+$savedConfig = $null
+if (Test-Path -LiteralPath $savedConfigPath -PathType Leaf) {
+    try { $savedConfig = Get-Content -LiteralPath $savedConfigPath -Raw | ConvertFrom-Json }
+    catch { throw 'Existing workbench.json is invalid. Review the local configuration before upgrading.' }
+}
+if (!$Distribution) { $Distribution = if ($savedConfig.distribution) { $savedConfig.distribution } else { 'Ubuntu-24.04' } }
+if (!$LinuxUser -and $savedConfig.distribution -eq $Distribution) { $LinuxUser = $savedConfig.user }
+New-Item -ItemType Directory -Path (Join-Path $InstallRoot 'tmp') -Force | Out-Null
+$env:TEMP = Join-Path $InstallRoot 'tmp'
+$env:TMP = $env:TEMP
 if (!(Get-Command wsl.exe -ErrorAction SilentlyContinue)) { throw 'Install WSL2 first in an administrator terminal: wsl --install. Restart Windows, then run this installer again.' }
 $distributions = (& wsl.exe --list --quiet) -replace "`0", ''
 if ($LASTEXITCODE -ne 0) { throw 'WSL is not ready. Run wsl --install in an administrator terminal and restart Windows.' }
 if ($Distribution -notin ($distributions | ForEach-Object { $_.Trim() })) {
-    & wsl.exe --install --distribution $Distribution --location (Join-Path $InstallRoot 'WSL') --no-launch
+    $diskLocation = if ($InstallRoot -eq 'E:\WSL\apps\x-dde') { Join-Path 'E:\WSL\distros' ($Distribution -replace '[^A-Za-z0-9._-]', '-').ToLowerInvariant() } else { Join-Path $InstallRoot 'WSL' }
+    & wsl.exe --install --distribution $Distribution --location $diskLocation --no-launch
     if ($LASTEXITCODE -ne 0) { throw 'WSL installation requires administrator access or a Windows restart. Complete the displayed Windows step, then re-run this installer.' }
     & wsl.exe -d $Distribution -u root -- useradd --create-home --shell /bin/bash opendde
     if ($LASTEXITCODE -ne 0) { throw 'Could not create the dedicated Linux account.' }
     $LinuxUser = 'opendde'
+}
+if ([IO.Path]::GetPathRoot($InstallRoot) -eq 'E:\') {
+    $registered = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss\*' -ErrorAction SilentlyContinue | Where-Object DistributionName -eq $Distribution | Select-Object -First 1
+    $diskBase = ([string]$registered.BasePath) -replace '^\\\\\?\\', ''
+    if (!$diskBase -or [IO.Path]::GetPathRoot($diskBase) -ne 'E:\') { throw 'The selected WSL distribution is not registered on E:. Choose an E: distribution; existing distributions will not be moved automatically.' }
 }
 if (!$LinuxUser) {
     $LinuxUser = ((& wsl.exe -d $Distribution -- whoami) | Out-String).Trim()
@@ -52,7 +70,8 @@ function Get-ReleaseFile([string]$Name, [string]$Destination) {
     }
 }
 Get-ReleaseFile 'install.sh' (Join-Path $InstallRoot 'install.sh')
-Get-ReleaseFile 'opendde.ps1' (Join-Path $bin 'opendde.ps1')
+# Preserve the released asset name, but keep the internal bridge off the command aliases.
+Get-ReleaseFile 'opendde.ps1' (Join-Path $bin 'xdde-launcher.ps1')
 $wheel = "x_dde-$($Release.Substring(1))-py3-none-any.whl"
 Get-ReleaseFile $wheel (Join-Path $downloads $wheel)
 $uvVersion = ''
@@ -70,8 +89,10 @@ if ($uvVersion -notlike 'uv 0.12.20*') {
 if ($LASTEXITCODE -ne 0) { throw 'Workbench install failed. Fix the displayed error and run this installer again.' }
 @{ distribution = $Distribution; user = $LinuxUser; prefix = $prefix; home = "$linuxHome/.local/share/opendde-workbench" } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding UTF8
 foreach ($launcher in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
-    '@echo off', 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0opendde.ps1" %*', 'exit /b %errorlevel%' | Set-Content -LiteralPath (Join-Path $bin $launcher) -Encoding ASCII
+    '@echo off', 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0xdde-launcher.ps1" %*', 'exit /b %errorlevel%' | Set-Content -LiteralPath (Join-Path $bin $launcher) -Encoding ASCII
 }
+$legacyBridge = Join-Path $bin 'opendde.ps1'
+if (Test-Path -LiteralPath $legacyBridge -PathType Leaf) { Remove-Item -LiteralPath $legacyBridge }
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 if ($bin -notin ($userPath -split ';')) { [Environment]::SetEnvironmentVariable('Path', "$bin;$userPath", 'User') }
 $env:Path = "$bin;$env:Path"

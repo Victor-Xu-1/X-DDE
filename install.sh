@@ -10,8 +10,9 @@ case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4
 if [[ -z "$download_dir" ]]; then
     command -v curl >/dev/null || { echo 'Install curl first: sudo apt-get install curl ca-certificates' >&2; exit 2; }
 fi
-mkdir -p "$prefix/downloads" "$prefix/bin"
+mkdir -p "$prefix/downloads" "$prefix/bin" "$prefix/tmp"
 prefix="$(cd "$prefix" && pwd)"
+export TMPDIR="$prefix/tmp"
 fetch() {
     if [[ -n "$download_dir" ]]; then
         [[ -f "$download_dir/${1##*/}" ]] || { echo "Offline release file is missing: ${1##*/}" >&2; exit 2; }

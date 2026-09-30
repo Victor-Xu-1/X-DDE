@@ -1,6 +1,11 @@
 $ErrorActionPreference = 'Stop'
 try {
     $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'workbench.json') -Raw | ConvertFrom-Json
+    $windowsRoot = Split-Path $PSScriptRoot -Parent
+    $windowsTemp = Join-Path $windowsRoot 'tmp'
+    New-Item -ItemType Directory -Path $windowsTemp -Force | Out-Null
+    $env:TEMP = $windowsTemp
+    $env:TMP = $windowsTemp
     $arguments = @($args)
     $command = if ($arguments.Count) { "$($arguments[0])".ToLowerInvariant() } else { 'ui' }
     $action = if ($arguments.Count -gt 1) { "$($arguments[1])".ToLowerInvariant() } else { '' }

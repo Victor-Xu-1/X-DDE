@@ -2,6 +2,8 @@ $ErrorActionPreference = 'Stop'
 $repository = Split-Path $PSScriptRoot -Parent
 $target = Join-Path ([IO.Path]::GetTempPath()) ('X DDE installer ' + [guid]::NewGuid())
 $previousPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+$previousTemp = $env:TEMP
+$previousTmp = $env:TMP
 $fixtures = Join-Path $target 'fixtures'
 New-Item -ItemType Directory -Path $fixtures -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repository 'install.sh') -Destination $fixtures
@@ -47,17 +49,27 @@ function global:Invoke-WebRequest {
     if ($boundary.corrupt -and $name.EndsWith('.whl')) { Add-Content -LiteralPath $OutFile -Value 'corrupted' }
 }
 try {
+    New-Item -ItemType Directory -Path (Join-Path $target 'bin') -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repository 'scripts/opendde.ps1') -Destination (Join-Path $target 'bin/opendde.ps1')
     & (Join-Path $repository 'install.ps1') -Distribution OpenDDE -LinuxUser researcher -InstallRoot $target
     foreach ($name in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
         $launcher = Get-Content -LiteralPath (Join-Path $target "bin/$name") -Raw
-        if (!$launcher.Contains('%~dp0opendde.ps1') -or !$launcher.Contains('%*')) {
+        if (!$launcher.Contains('%~dp0xdde-launcher.ps1') -or !$launcher.Contains('%*')) {
             throw "Launcher does not forward arguments to the shared implementation: $name"
         }
     }
+    if (Test-Path -LiteralPath (Join-Path $target 'bin/opendde.ps1')) { throw 'Legacy bridge still shadows the opendde command.' }
+    foreach ($alias in @('X-DDE', 'xdde', 'opendde')) {
+        $command = Get-Command $alias
+        if ($command.CommandType -ne 'Application' -or $command.Source -ne (Join-Path $target "bin/$alias.cmd")) { throw "Alias does not resolve to the command launcher: $alias" }
+    }
+    if ($env:TEMP -ne (Join-Path $target 'tmp') -or $env:TMP -ne $env:TEMP) { throw 'Installer temporary files are outside the selected application root.' }
     $config = Get-Content -LiteralPath (Join-Path $target 'bin/workbench.json') -Raw | ConvertFrom-Json
     if ($config.user -ne 'researcher' -or $config.distribution -ne 'OpenDDE') {
         throw 'WSL account configuration was not persisted.'
     }
+    & (Join-Path $repository 'install.ps1') -InstallRoot $target
+    if ($boundary.installations -ne 2) { throw 'Upgrade did not reuse the saved WSL distribution and account.' }
     $boundary.corrupt = $true
     $rejected = $false
     try {
@@ -66,9 +78,11 @@ try {
         if ($_.Exception.Message -notlike 'Release checksum mismatch:*') { throw }
         $rejected = $true
     }
-    if (!$rejected -or $boundary.installations -ne 1) { throw 'Corrupt release reached the installation boundary.' }
+    if (!$rejected -or $boundary.installations -ne 2) { throw 'Corrupt release reached the installation boundary.' }
     Write-Output 'Windows installer paths, verified local files, corruption rejection, configuration and aliases passed.'
 } finally {
     [Environment]::SetEnvironmentVariable('Path', $previousPath, 'User')
+    $env:TEMP = $previousTemp
+    $env:TMP = $previousTmp
     Remove-Item Function:\wsl.exe, Function:\Invoke-WebRequest
 }
