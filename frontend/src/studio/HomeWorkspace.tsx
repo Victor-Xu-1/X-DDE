@@ -73,7 +73,9 @@ export function HomeWorkspace(p: Props) {
     <>
       <header className="studio-intro">
         <div>
-          <h1>{zh ? "X-DDE 药物结构工作台" : "X-DDE Structure Workbench"}</h1>
+          <h1>
+            {zh ? "结构预测 · OpenDDE" : "Structure prediction · OpenDDE"}
+          </h1>
           <p>
             {zh
               ? "选一种任务，填入分子，选择运行方案。完成后直接查看三维结构与结果。"

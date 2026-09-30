@@ -1,15 +1,15 @@
 import type { Language } from "./types";
 
 export const messages = {
-  workspace: ["预测工作台", "Prediction workspace"],
+  workspace: ["药物研究工作台", "Discovery workspace"],
   subtitle: [
     "从分子输入到结构结果。",
     "From molecular input to structural insight.",
   ],
   local: ["本机执行", "LOCAL EXECUTION"],
   language: ["界面语言", "Language"],
-  ready: ["引擎就绪", "Engine ready"],
-  unavailable: ["引擎未就绪", "Engine unavailable"],
+  ready: ["OpenDDE 就绪", "OpenDDE ready"],
+  unavailable: ["OpenDDE 未就绪", "OpenDDE unavailable"],
   connecting: ["正在连接…", "Connecting…"],
   newTask: ["新建预测", "New prediction"],
   tasks: ["任务记录", "Tasks"],
@@ -130,8 +130,8 @@ export const messages = {
   taskId: ["任务 ID", "Task ID"],
   version: ["版本", "Version"],
   footer: [
-    "独立 MIT 项目 · 由 OpenDDE 引擎执行",
-    "Independent MIT project · Powered by the OpenDDE engine",
+    "独立药物研究平台 · 统一管理任务与软件后端",
+    "Independent discovery platform · Shared tasks and software backends",
   ],
 } as const;
 

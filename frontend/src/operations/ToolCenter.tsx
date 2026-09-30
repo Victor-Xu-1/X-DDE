@@ -154,8 +154,8 @@ export function ToolCenter({
           </div>
           <p className="capability-note">
             {zh
-              ? "范围说明：开源版不提供通用小分子从头生成、完整 ADMET 或经过校准的结合亲和力预测。Harness 的客观可开发性后端未公开；设计流程中的 LLM 质量判断会按其实际来源呈现。"
-              : "Scope: the public distribution does not provide generic small-molecule de novo generation, complete ADMET or calibrated affinity prediction. Its objective developability backend is not published; campaign LLM quality judgments retain their actual provenance."}
+              ? "当前后端范围：已核对的 OpenDDE / Harness 不提供通用小分子从头生成、完整 ADMET 或经过校准的亲和力预测；Harness 的客观可开发性后端未公开。X-DDE 可接入其他软件扩展能力，完成适配后再开放；LLM 判断保留实际来源。"
+              : "Current backend scope: audited OpenDDE / Harness does not provide generic small-molecule generation, complete ADMET or calibrated affinity; Harness objective developability is not published. X-DDE can expand through additional software after real integration. LLM judgments retain their provenance."}
           </p>
         </>
       )}

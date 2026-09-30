@@ -2,6 +2,14 @@
 
 The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction supersedes its blue palette with warm paper surfaces, charcoal typography and restrained clay accents inspired by Claude Science. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
 
+## Product hierarchy
+
+**X-DDE is the platform. OpenDDE is one of its software backends.** X-DDE owns projects, tasks, assets, user interaction, deployment coordination and execution provenance. Scientific software provides capabilities through adapters beneath that platform boundary; no upstream product owns X-DDE's scope or identity.
+
+Currently integrated scientific software includes OpenDDE, native Harness tools/campaigns and RDKit descriptors. Ketcher and Mol* are editor/inspection components. Backend installation, backend readiness and X-DDE task-service readiness are distinct states. Missing OpenDDE prerequisites must be identified as an OpenDDE problem, not a failure of the entire platform or of an unrelated editor.
+
+The existing `Engine`/Docker path is the OpenDDE adapter, not a universal registry for every future backend. Explicit environment/capability registration and composed multi-engine workflows remain staged work below; this hierarchy does not claim those planned capabilities already exist.
+
 ## Source authority
 
 - OpenDDE commit `ddfa1df8aff1babf1fddac4247b7d2351bd0ce9f`: `runner/cli.py`, `runner/batch_inference.py`, `runner/msa_search.py`, `runner/dumper.py`, `docs/infer_json_format.md` and model manifest.
@@ -47,9 +55,9 @@ The rows below describe **implemented code paths**, not completed runtime accept
 | Standalone molecular descriptors (Workbench extension) | Property form, up to 500 SMILES/file records | RDKit MW/LogP/TPSA/QED/SA/HBD/HBA/rotatable bonds; actual CSV/JSON |
 | Molecular display (Workbench extension) | Ligand ball/stick, ribbons, nearby residues, styles, selection, distance and overlays | Existing 3Dmol dependency and real CIF/PDB parsing |
 
-## Deliberately absent
+## Current upstream integration limits
 
-The public Harness `servers/backends/developability_filter.py` is a stub returning `available: false`. There is no objective-developability prediction card; native LLM campaign quality assessments retain their provenance. No generic small-molecule de novo, complete ADMET or calibrated-affinity model was found in the audited published implementation. Deprecated/ignored `msa_server_mode` and redundant `use_default_params` are not fake controls. Training and proprietary editor features are not part of the audited inference distribution.
+The public Harness `servers/backends/developability_filter.py` is a stub returning `available: false`. There is no objective-developability prediction card; native LLM campaign quality assessments retain their provenance. No generic small-molecule de novo, complete ADMET or calibrated-affinity model was found in the audited OpenDDE/Harness implementation. These findings constrain those integrations, not X-DDE's future capabilities through other software. Deprecated/ignored `msa_server_mode` and redundant `use_default_params` are not fake controls. Training and proprietary editor features are not part of the audited inference distribution.
 
 Service shutdown, arbitrary population replacement, provider secrets, arbitrary command/path execution and native application administration are not scientific task modules. Operator configuration is documented rather than proxied unrestrictedly to the browser.
 

@@ -13,7 +13,7 @@ it("offers only implemented modules", () => {
       total={200}
     />,
   );
-  expect(screen.getByRole("button", { name: /预测工作台/ })).toBeVisible();
+  expect(screen.getByRole("button", { name: /结构预测/ })).toBeVisible();
   expect(
     screen.queryByRole("button", { name: /设计生成|亲和力|基准/ }),
   ).toBeNull();

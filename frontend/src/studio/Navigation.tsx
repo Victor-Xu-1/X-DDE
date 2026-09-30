@@ -33,7 +33,7 @@ const items = [
     en: "All capabilities",
     icon: ExperimentOutlined,
   },
-  { id: "home", cn: "预测工作台", en: "Workbench", icon: HomeFilled },
+  { id: "home", cn: "结构预测", en: "Structure prediction", icon: HomeFilled },
   {
     id: "editors",
     cn: "分子与结构",
@@ -121,7 +121,7 @@ export function Navigation({
         <div className="sidebar-divider" />
         <span>{zh ? "今日任务" : "Today"}</span>
         <p>
-          <DeploymentUnitOutlined /> {zh ? "结构预测" : "Predictions"}{" "}
+          <DeploymentUnitOutlined /> {zh ? "全部任务" : "All tasks"}{" "}
           <strong>{today.length}</strong>
         </p>
         <p>
