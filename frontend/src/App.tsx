@@ -108,9 +108,8 @@ export function App() {
     content.current?.focus({ preventScroll: true });
   }, [view]);
   useEffect(() => {
-    if (job && !isPrediction(job.request))
-      setView((current) => (current === "home" ? "tasks" : current));
-  }, [job?.id]);
+    if (job && !isPrediction(job.request) && view === "home") setView("tasks");
+  }, [job?.id, view]);
   function chooseJob(id: string) {
     select(id);
     setCandidateId(null);

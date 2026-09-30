@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -174,4 +174,32 @@ it("opens core scientific forms directly from the first navigation entries", asy
   ).toBeDisabled();
   expect(screen.queryByText("Install research software")).toBeNull();
   expect(submit).not.toHaveBeenCalled();
+});
+
+it("keeps a linked non-prediction task in its task view across both history events", async () => {
+  const linked = {
+    ...jobs[0],
+    request: {
+      operation: "properties",
+      name: "Linked descriptors",
+      smiles: ["CCO"],
+      ligand_files: [],
+    },
+  } as Job;
+  vi.mocked(api.jobs).mockResolvedValue([linked]);
+  render(<App />);
+  act(() => {
+    window.history.replaceState(null, "", "/#task=" + linked.id);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  expect(
+    await screen.findByRole("heading", { name: "Task history" }),
+  ).toBeInTheDocument();
+  act(() => window.dispatchEvent(new HashChangeEvent("hashchange")));
+  expect(
+    await screen.findByRole("heading", { name: "Task history" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Structure prediction" }),
+  ).not.toBeInTheDocument();
 });
