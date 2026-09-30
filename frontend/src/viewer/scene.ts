@@ -172,6 +172,7 @@ export class MolecularScene {
       .map((a) => a.index!)
       .filter((n) => Number.isInteger(n));
     this.emit("selected", {
+      pick_mode: this.options.pick,
       chain: atom.chain ?? "",
       residue: `${atom.resn}${atom.resi}${atom.icode ?? ""}`,
       atom: atom.atom ?? "",
@@ -182,6 +183,7 @@ export class MolecularScene {
         number: atom.resi ?? 0,
         insertion_code: atom.icode ?? "",
         alternate_location: atom.altLoc ?? "",
+        is_ligand: this.info.ligands.some((r) => r.key === ref(atom).key),
       },
       source_atom_index: atom.serial,
     });

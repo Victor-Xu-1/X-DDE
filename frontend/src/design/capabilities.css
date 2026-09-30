@@ -83,6 +83,10 @@
   font-size: 13px;
 }
 .tool-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 24px;
 }
 .tool-back-button,

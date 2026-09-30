@@ -14,6 +14,7 @@ import {
   type SceneInfo,
   type SelectionInfo,
   type ViewerOptions,
+  type PickMode,
 } from "./protocol";
 import type { Language } from "../types";
 import "./viewer.css";
@@ -22,6 +23,7 @@ interface Props {
   language: Language;
   focusResidue?: { residue: string; nonce: number } | null;
   comparison?: boolean;
+  selectionMode?: PickMode;
   onAtomSelected?(selection: SelectionInfo | null): void;
 }
 export function StructureViewer({
@@ -29,11 +31,14 @@ export function StructureViewer({
   language,
   focusResidue,
   comparison = false,
+  selectionMode,
   onAtomSelected,
 }: Props) {
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
     key = urls.join("|");
+  const initialPick = useRef(selectionMode);
+  initialPick.current = selectionMode;
   const selectionCallback = useRef(onAtomSelected);
   selectionCallback.current = onAtomSelected;
   const [ready, setReady] = useState(false),
@@ -75,7 +80,10 @@ export function StructureViewer({
       if (type === "loaded") {
         setStatus("loaded");
         setScene(detail);
-        setOptions(detail.options);
+        if (initialPick.current) {
+          setOptions({ ...detail.options, pick: initialPick.current });
+          send("options", { pick: initialPick.current });
+        } else setOptions(detail.options);
       }
     }
     window.addEventListener("message", message);

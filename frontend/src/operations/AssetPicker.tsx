@@ -18,18 +18,21 @@ export function AssetPicker({
   onChange,
   language,
   label,
+  allowedSuffixes,
 }: {
   kind: AssetKind;
   value: string;
   onChange(id: string): void;
   language: Language;
   label: string;
+  allowedSuffixes?: readonly string[];
 }) {
   const zh = language === "zh",
     [assets, setAssets] = useState<Asset[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [opened, setOpened] = useState(false);
+  const accepted = allowedSuffixes?.join(",") ?? accept[kind];
   const [showResults, setShowResults] = useState(false);
   useEffect(() => {
     if (!value && !opened) return;
@@ -64,7 +67,11 @@ export function AssetPicker({
             {zh ? "选择已上传文件" : "Choose uploaded file"}
           </option>
           {assets
-            .filter((a) => a.kind === kind)
+            .filter(
+              (a) =>
+                a.kind === kind &&
+                (!allowedSuffixes || allowedSuffixes.includes(a.suffix)),
+            )
             .map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -90,7 +97,7 @@ export function AssetPicker({
             : "Upload file"}
         <input
           type="file"
-          accept={accept[kind]}
+          accept={accepted}
           disabled={busy}
           onChange={async (e) => {
             const file = e.target.files?.[0];
@@ -109,14 +116,14 @@ export function AssetPicker({
           }}
         />
       </label>
-      <small>{accept[kind]} · ≤25 MiB</small>
+      <small>{accepted} · ≤25 MiB</small>
       <button type="button" onClick={() => setShowResults((v) => !v)}>
         {zh ? "从已有任务结果中选择" : "Choose from task results"}
       </button>
       {showResults && (
         <ArtifactPicker
           kind={kind}
-          accept={accept[kind]}
+          accept={accepted}
           language={language}
           onSelected={(asset) => {
             setAssets((prev) => [asset, ...prev]);

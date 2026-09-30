@@ -26,6 +26,7 @@ export function FixedAtomPicker({
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     attempt = useRef(crypto.randomUUID());
+  const retryIntent = useRef({ parent: "", key: crypto.randomUUID() });
   const live = useRef(true);
   useEffect(() => {
     live.current = true;
@@ -78,14 +79,25 @@ export function FixedAtomPicker({
     setBusy(true);
     setError("");
     try {
-      const created = await api.submit(
-        {
-          operation: "diffsbdd",
-          name: zh ? "读取分子原子身份" : "Inspect molecular atom identities",
-          payload: { mode: "identity", molecule: initial },
-        },
-        attempt.current,
-      );
+      if (
+        job &&
+        !["queued", "running", "cancelling"].includes(job.status) &&
+        retryIntent.current.parent !== job.id
+      )
+        retryIntent.current = { parent: job.id, key: crypto.randomUUID() };
+      const created =
+        job && !["queued", "running", "cancelling"].includes(job.status)
+          ? await api.retry(job.id, retryIntent.current.key)
+          : await api.submit(
+              {
+                operation: "diffsbdd",
+                name: zh
+                  ? "读取分子原子身份"
+                  : "Inspect molecular atom identities",
+                payload: { mode: "identity", molecule: initial },
+              },
+              attempt.current,
+            );
       if (live.current) setJob(created);
     } catch (e) {
       if (live.current) setError(String(e));
@@ -121,7 +133,9 @@ export function FixedAtomPicker({
           <StructureViewer
             urls={[artifactUrl(job.id, result.molecule_artifact)]}
             language={language}
+            selectionMode="atom"
             onAtomSelected={(s) => {
+              if (s?.pick_mode === "distance") return;
               const atom = result.atoms.find(
                 (a) => a.index === s?.source_atom_index && a.selectable,
               );

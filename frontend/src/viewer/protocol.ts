@@ -29,11 +29,13 @@ export interface SceneInfo {
   hasPolymer: boolean;
 }
 export interface SelectionInfo {
+  pick_mode?: PickMode;
   identity?: {
     chain: string;
     number: number;
     insertion_code: string;
     alternate_location: string;
+    is_ligand?: boolean;
   };
   source_atom_index?: number;
   chain: string;

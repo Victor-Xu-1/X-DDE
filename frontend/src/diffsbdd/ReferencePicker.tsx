@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
 import { AssetPicker } from "../operations/AssetPicker";
 import type { Asset } from "../operations/types";
@@ -18,7 +18,8 @@ export function ReferencePicker({
   language: Language;
   label: string;
 }) {
-  const zh = language === "zh";
+  const zh = language === "zh",
+    selectionIntent = useRef(0);
   const [versions, setVersions] = useState<ScientificObject[]>([]),
     [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,11 +50,16 @@ export function ReferencePicker({
       .finally(() => {
         if (!c.signal.aborted) setLoading(false);
       });
-    return () => c.abort();
+    return () => {
+      selectionIntent.current++;
+      c.abort();
+    };
   }, [kind]);
-  async function choose(id: string) {
+  async function choose(id: string, reference?: MoleculeRef) {
+    const intent = ++selectionIntent.current;
     setError("");
     if (!id) {
+      setLoading(false);
       onChange(null);
       return;
     }
@@ -66,18 +72,23 @@ export function ReferencePicker({
             ? "此适配器需要 PDB 受体或 SDF 分子，请先明确转换格式。"
             : "This adapter requires PDB receptors or SDF molecules. Convert the format explicitly first.",
         );
-      onChange({
-        asset_id: asset.id,
-        sha256: asset.sha256,
-        record: 0,
-        conformer: 0,
-        version_id: null,
-      });
+      if (intent !== selectionIntent.current) return;
+      onChange(
+        reference ?? {
+          asset_id: asset.id,
+          sha256: asset.sha256,
+          record: 0,
+          conformer: 0,
+          version_id: null,
+        },
+      );
     } catch (e) {
-      onChange(null);
-      setError(String(e));
+      if (intent === selectionIntent.current) {
+        onChange(null);
+        setError(String(e));
+      }
     } finally {
-      setLoading(false);
+      if (intent === selectionIntent.current) setLoading(false);
     }
   }
   return (
@@ -89,7 +100,11 @@ export function ReferencePicker({
           disabled={loading}
           onChange={(e) => {
             const v = versions.find((v) => v.id === e.target.value);
-            onChange(v?.reference ?? null);
+            if (v) void choose(v.reference.asset_id, v.reference);
+            else {
+              selectionIntent.current++;
+              onChange(null);
+            }
           }}
         >
           <option value="">
@@ -106,6 +121,7 @@ export function ReferencePicker({
       </label>
       <AssetPicker
         kind={kind}
+        allowedSuffixes={kind === "structure" ? [".pdb"] : [".sdf"]}
         value={value?.asset_id ?? ""}
         onChange={(id) => void choose(id)}
         language={language}

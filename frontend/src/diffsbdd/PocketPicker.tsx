@@ -24,6 +24,11 @@ export function PocketPicker({
     [error, setError] = useState("");
   function update(raw: string) {
     setText(raw);
+    if (!raw.trim()) {
+      onChange(null);
+      setError("");
+      return;
+    }
     try {
       onChange({ kind: "residues", residues: parseResidues(raw, protein) });
       setError("");
@@ -90,6 +95,12 @@ export function PocketPicker({
                 return;
               }
               try {
+                if (kind === "bound_ligand" && !r.is_ligand)
+                  throw new Error(
+                    zh
+                      ? "请选择结构中的配体，不要选择蛋白残基。"
+                      : "Select a bound ligand, rather than a protein residue.",
+                  );
                 const ref = residueFromSelection(protein, r.chain, r.number);
                 if (kind === "bound_ligand") onChange({ kind, residue: ref });
                 else {

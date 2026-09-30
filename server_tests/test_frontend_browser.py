@@ -362,3 +362,44 @@ def test_research_plan_can_be_saved_reopened_and_reviewed_without_starting_scien
             page.screenshot(path="server_tests/evidence/research-plan.png", full_page=True)
         finally:
             browser.close()
+
+
+def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_science():
+    base = os.environ["WB_BROWSER_URL"]
+    protein = (
+        "ATOM      1  CA  ALA A  10       0.000   0.000   0.000  1.00 20.00           C  \n"
+        "ATOM      2  CA  GLY A  11       3.800   0.000   0.000  1.00 20.00           C  \n"
+        "END\n"
+    )
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        try:
+            page.goto(base)
+            csrf = page.request.get(base + "/api/session").json()["csrf_token"]
+            response = page.request.post(
+                base + "/api/assets?kind=structure&name=pocket-browser.pdb",
+                data=protein,
+                headers={"X-Workbench-CSRF": csrf, "Content-Type": "application/octet-stream"},
+            )
+            assert response.status == 201
+            asset = response.json()
+            page.get_by_role("button", name="口袋条件分子生成", exact=True).click()
+            picker = page.get_by_role("combobox", name="1. 选择 PDB 受体", exact=True)
+            picker.focus()
+            expect(picker.locator('option[value="' + asset["id"] + '"]')).to_have_count(1)
+            picker.select_option(asset["id"])
+            expect(page.get_by_role("heading", name="三维结构与口袋", exact=False)).to_be_visible()
+            page.get_by_text("从列表选择残基", exact=True).click()
+            page.get_by_role("button", name="A:ALA10", exact=True).click()
+            chosen = page.get_by_role("textbox", name="已选残基（也可输入 A:10, A:11）", exact=True)
+            expect(chosen).to_have_value("A:10")
+            page.get_by_role("button", name="A:GLY11", exact=True).click()
+            expect(chosen).to_have_value("A:10, A:11")
+            page.get_by_role("button", name="A:ALA10", exact=True).click()
+            expect(chosen).to_have_value("A:11")
+            page.get_by_role("button", name="创建任务", exact=True).is_disabled()
+            assert page.request.get(base + "/api/jobs").json() == []
+            page.screenshot(path="server_tests/evidence/pocket-selection.png", full_page=True)
+        finally:
+            browser.close()

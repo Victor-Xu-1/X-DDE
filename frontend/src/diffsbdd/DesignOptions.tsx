@@ -49,7 +49,7 @@ export function DesignOptions({
         >
           {compatibleModels(mode).map((m) => (
             <option key={m.id} value={m.id}>
-              {m.id}
+              {`${m.representation === "fullatom" ? (zh ? "全原子" : "Full atom") : "Cα"} · ${m.dataset} · ${m.strategy === "cond" ? (zh ? "条件生成" : "Conditional") : zh ? "联合生成" : "Joint"}`}
             </option>
           ))}
         </select>
