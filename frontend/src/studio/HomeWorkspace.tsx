@@ -69,7 +69,9 @@ export function HomeWorkspace(p: Props) {
     if (p.inputVersion) setShowInput(true);
   }, [p.inputVersion]);
   const zh = p.language === "zh",
-    t = translator(p.language);
+    t = translator(p.language),
+    showResults =
+      p.active && !showInput && Boolean(p.job && isPrediction(p.job.request));
   return (
     <>
       <header className="workbench-status-row">
@@ -195,37 +197,41 @@ export function HomeWorkspace(p: Props) {
               }}
             />
           </div>
-          <div className="viewer-column" hidden={showInput}>
-            <StructureViewer
-              urls={p.urls}
-              language={p.language}
-              focusResidue={p.focusResidue}
-              comparison={p.compared.length > 1}
-            />
-          </div>
-          <div className="candidate-column" hidden={showInput}>
-            <h2 className="result-task-name">
-              {p.job?.request.name}{" "}
-              <span className={"status " + p.job?.status}>
-                {p.job ? t(p.job.status) : ""}
-              </span>
-            </h2>
-            <CandidatePanel
-              key={p.job?.id || "empty"}
-              job={p.job}
-              analysis={p.analysis}
-              loading={p.loadingAnalysis}
-              error={p.analysisError}
-              onRetry={p.onRetry}
-              language={p.language}
-              selected={p.candidate?.id ?? null}
-              onSelect={p.onCandidate}
-              compared={p.compared}
-              onCompare={p.onCompare}
-            />
-          </div>
+          {showResults && (
+            <>
+              <div className="viewer-column">
+                <StructureViewer
+                  urls={p.urls}
+                  language={p.language}
+                  focusResidue={p.focusResidue}
+                  comparison={p.compared.length > 1}
+                />
+              </div>
+              <div className="candidate-column">
+                <h2 className="result-task-name">
+                  {p.job?.request.name}{" "}
+                  <span className={"status " + p.job?.status}>
+                    {p.job ? t(p.job.status) : ""}
+                  </span>
+                </h2>
+                <CandidatePanel
+                  key={p.job?.id || "empty"}
+                  job={p.job}
+                  analysis={p.analysis}
+                  loading={p.loadingAnalysis}
+                  error={p.analysisError}
+                  onRetry={p.onRetry}
+                  language={p.language}
+                  selected={p.candidate?.id ?? null}
+                  onSelect={p.onCandidate}
+                  compared={p.compared}
+                  onCompare={p.onCompare}
+                />
+              </div>
+            </>
+          )}
         </div>
-        {!showInput && (
+        {showResults && (
           <AnalysisGrid
             analysis={p.analysis}
             candidate={p.candidate}
@@ -235,7 +241,7 @@ export function HomeWorkspace(p: Props) {
           />
         )}
       </section>
-      {!showInput &&
+      {showResults &&
         p.job &&
         p.candidate &&
         (!("parameters" in p.job.request) ||
@@ -253,7 +259,7 @@ export function HomeWorkspace(p: Props) {
             />
           </details>
         )}
-      {p.active && p.job && isPrediction(p.job.request) && !showInput && (
+      {showResults && p.job && (
         <details className="execution-detail">
           <summary>
             {zh ? "任务详情与运行日志" : "Task details and execution log"}{" "}

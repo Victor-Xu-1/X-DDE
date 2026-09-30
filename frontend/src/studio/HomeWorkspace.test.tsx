@@ -134,6 +134,7 @@ it("does not render duplicate task results in an inactive prediction workspace",
   expect(
     screen.queryByRole("region", { name: "任务详情", hidden: true }),
   ).toBeNull();
+  expect(screen.queryByTitle("可交互分子结构")).toBeNull();
   rerender(<HomeWorkspace {...props} active resultsVersion={1} />);
   expect(
     screen.getByRole("region", { name: "任务详情", hidden: true }),
@@ -158,4 +159,5 @@ it("does not send non-prediction tasks to the prediction result workspace", () =
   expect(
     screen.queryByRole("region", { name: "任务详情", hidden: true }),
   ).toBeNull();
+  expect(screen.queryByTitle("可交互分子结构")).toBeNull();
 });
