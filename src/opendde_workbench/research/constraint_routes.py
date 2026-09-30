@@ -108,6 +108,13 @@ def register_constraints(app, store, assets, settings, mutation):
 
             if hashlib.sha256(body.encode()).hexdigest() != reference.sha256:
                 raise ValueError("Frozen constraint document differs from its recorded digest.")
+            from .constraint_compile import compile_constraints
+
+            expected = compile_constraints(result.document, reference, job.request, records.regions)
+            if expected != result:
+                raise ValueError(
+                    "Constraint receipt parameters or support differ from the actual task."
+                )
             return {"state": "captured_for_execution", **json.loads(result.model_dump_json())}
 
         return execute(load)

@@ -226,6 +226,15 @@ def test_constraint_api_csrf_filters_graph_and_execution_receipt(settings, clien
         (directory / "constraint-execution.json").write_text(receipt.model_dump_json())
         result = client.get("/api/jobs/" + job.id + "/constraints")
         assert result.status_code == 200 and result.json()["state"] == "captured_for_execution"
+        original = receipt.model_dump(mode="json")
+        original["conditions"][0]["value"]["center"][0] = 77
+        from opendde_workbench.research.constraint_contract import ConstraintExecution
+
+        (directory / "constraint-execution.json").write_text(
+            ConstraintExecution.model_validate(original).model_dump_json()
+        )
+        assert client.get("/api/jobs/" + job.id + "/constraints").status_code == 422
+        (directory / "constraint-execution.json").write_text(receipt.model_dump_json())
         edges = client.get("/api/research/graph").json()["edges"]
         assert {
             "source": "constraint:" + saved["id"],
