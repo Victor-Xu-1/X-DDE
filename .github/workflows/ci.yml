@@ -75,8 +75,15 @@ jobs:
           uv run --no-project --python 3.10
           --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
           python -m pytest -q server_tests/test_scientific_handoff.py
+      - name: Preserve actual fixed-core verification fixture for browser integration
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixed-core-fixture-${{ github.sha }}
+          path: server_tests/evidence/core-fixture/
+          if-no-files-found: error
 
   browser:
+    needs: scientific-handoffs
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -96,8 +103,14 @@ jobs:
           npm run build --prefix frontend
           uv sync --locked --group dev --group browser
           uv run --locked --group browser python -m playwright install --with-deps chromium
+      - name: Read verified RDKit outputs from this exact CI run
+        uses: actions/download-artifact@v4
+        with:
+          name: fixed-core-fixture-${{ github.sha }}
+          path: ${{ runner.temp }}/fixed-core-fixture
       - name: Verify real appearance and shared asset workflow
         env:
+          WB_CORE_FIXTURE: ${{ runner.temp }}/fixed-core-fixture
           WB_STATE_DIR: ${{ runner.temp }}/xdde-browser-state
           WB_AUTO_DEPLOY: '0'
           WB_BROWSER_URL: http://127.0.0.1:4330

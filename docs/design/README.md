@@ -654,3 +654,9 @@ The mixed receptor/pose preview draws polymer ribbons only on real polymer atoms
 原有有限原生状态，不追认独立复核。此阶段不代表完整 PoseBusters/应变/碰撞/出口/
 可达性验收；R29 其余检查与 R32–R35、R37–R76 继续实施。模型采样需目标服务器
 GPU 验收，本机仅静态构建，真实 RDKit 复核走远程 CPU CI。
+
+
+固定核心验收分开记录：真实 RDKit 候选输出正反例生成受摘要保护的 CI 夹具；同一
+CI 运行将其交给浏览器门禁，经过真实 SQLite、资产登记和 API 展示通过/失败、实际
+映射、诊断三维结构及仅合格集合的后续入口。此门禁验证复核器和平台集成，不声称
+已运行扩散模型。模型采样与 GPU 科学验收仍在目标服务器完成。

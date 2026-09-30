@@ -338,6 +338,11 @@ def test_actual_sdf_core_qualification_keeps_rejected_raw_records(monkeypatch, t
     with Chem.SDWriter(str(raw)) as writer:
         writer.write(Chem.RenumberAtoms(source, [2, 0, 1]))
         writer.write(rejected)
+    # A downstream real-browser gate consumes these actual verifier outputs. They
+    # are controlled RDKit fixtures, not a claim of diffusion-model acceptance.
+    initial_file = tmp_path / "initial.sdf"
+    with Chem.SDWriter(str(initial_file)) as writer:
+        writer.write(source)
     original = raw.read_bytes()
     ref = {"asset_id": "fixture", "sha256": "a" * 64, "record": 0, "conformer": 0}
     report = verify_inpaint(source, ref, [0, 1, 2], True, raw, tmp_path, 2)
@@ -350,3 +355,18 @@ def test_actual_sdf_core_qualification_keeps_rejected_raw_records(monkeypatch, t
     assert len(Chem.SDMolSupplier(str(tmp_path / "diagnostic-core-002.sdf"))) == 1
     with pytest.raises(ValueError, match="count"):
         verify_inpaint(source, ref, [0, 1, 2], True, raw, tmp_path, 1)
+    import json
+    import shutil
+
+    destination = Path("server_tests/evidence/core-fixture")
+    (destination / "native").mkdir(parents=True, exist_ok=True)
+    for relative in (
+        "initial.sdf",
+        "native/molecules.sdf",
+        "qualified-molecules.sdf",
+        "diagnostic-core-002.sdf",
+    ):
+        shutil.copyfile(tmp_path / relative, destination / relative)
+    (destination / "verification.json").write_text(
+        json.dumps(report, allow_nan=False), encoding="utf-8"
+    )

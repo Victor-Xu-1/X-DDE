@@ -612,3 +612,151 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             assert errors == []
         finally:
             browser.close()
+
+
+def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_reuse(tmp_path):
+    """Actual verifier artifacts through a real DB/API/browser, without model sampling."""
+    import hashlib
+    import json
+    import shutil
+    import socket
+    import subprocess
+    import sys
+    import time
+    from urllib.request import urlopen
+    from uuid import uuid4
+
+    from opendde_workbench.assets import AssetStore
+    from opendde_workbench.models import Status
+    from opendde_workbench.requests import TASK_ADAPTER
+    from opendde_workbench.research.outputs import OutputCatalog
+    from opendde_workbench.store import Store
+
+    fixture = Path(os.environ["WB_CORE_FIXTURE"])
+    state = tmp_path / "state"
+    store = Store(state / "jobs.sqlite3")
+    assets = AssetStore(store, state / "assets")
+    initial = assets.save(
+        "actual-verifier-initial.sdf", "ligand", (fixture / "initial.sdf").read_bytes()
+    )
+    protein = assets.save(
+        "controlled-protocol-receptor.pdb", "structure", b"controlled protocol fixture\n"
+    )
+    ref = {"asset_id": initial.id, "sha256": initial.sha256, "record": 0, "conformer": 0}
+    request = TASK_ADAPTER.validate_python(
+        {
+            "operation": "diffsbdd",
+            "name": "真实 RDKit 复核夹具（未运行扩散模型）",
+            "payload": {
+                "mode": "inpaint",
+                "protein": {"asset_id": protein.id, "sha256": protein.sha256},
+                "initial": ref,
+                "pocket": {"kind": "ligand", "ligand": ref},
+                "options": {"task": "inpaint", "fragment_policy": "all", "fixed_atoms": [0, 1, 2]},
+                "fixed_atoms": [{"molecule": ref, "index": i} for i in [0, 1, 2]],
+            },
+        }
+    )
+    job = store.create(request, str(uuid4()), 20, 100)
+    store.finish(job.id, Status.SUCCEEDED)
+    output = state / "jobs" / job.id / "output"
+    (output / "native").mkdir(parents=True)
+    report = json.loads((fixture / "verification.json").read_text())
+    report["source"] = request.payload.initial.model_dump(mode="json")
+    for name in (report["raw_artifact"], report["qualified_artifact"], "diagnostic-core-002.sdf"):
+        shutil.copyfile(fixture / name, output / name)
+    result = {
+        "operation": "diffsbdd",
+        "complete": True,
+        "mode": "inpaint",
+        "valid": 1,
+        "native_valid": 2,
+        "attempted": 2,
+        "molecule_artifact": report["qualified_artifact"],
+        "core_verification": report,
+        "notes": "Controlled real RDKit verification fixture; no diffusion-model sampling.",
+    }
+    (output / "result.json").write_text(json.dumps(result))
+    assert (
+        hashlib.sha256((output / report["qualified_artifact"]).read_bytes()).hexdigest()
+        == report["qualified_sha256"]
+    )
+    assert OutputCatalog(store, assets).index(job, output)["state"] == "complete"
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        port = listener.getsockname()[1]
+    env = {
+        **os.environ,
+        "WB_STATE_DIR": str(state),
+        "WB_AUTO_DEPLOY": "0",
+        "WB_ALLOWED_ORIGINS": f"http://127.0.0.1:{port}",
+    }
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    with (evidence / "fixed-core-service.log").open("w") as log:
+        process = subprocess.Popen(
+            [sys.executable, "-m", "opendde_workbench", "--port", str(port)],
+            env=env,
+            stdout=log,
+            stderr=log,
+        )
+        try:
+            base = f"http://127.0.0.1:{port}"
+            for _ in range(40):
+                try:
+                    with urlopen(base + "/api/health", timeout=2) as response:
+                        assert json.load(response)["worker_ready"]
+                    break
+                except OSError:
+                    time.sleep(0.25)
+            else:
+                raise AssertionError("Controlled verifier browser service did not start")
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch()
+                page = browser.new_page(viewport={"width": 1440, "height": 1000})
+                errors = []
+                page.on("pageerror", lambda error: errors.append(str(error)))
+                try:
+                    page.goto(base + "/#task=" + job.id)
+                    page.get_by_text("固定区域独立复核", exact=False).click()
+                    expect(page.get_by_text("候选 1 · 通过", exact=True)).to_be_visible()
+                    expect(page.get_by_text("候选 2 · 违反要求", exact=True)).to_be_visible()
+                    page.get_by_text("查看已验证原子映射", exact=True).click()
+                    expect(page.get_by_text("0 → 1; 1 → 2; 2 → 0", exact=True)).to_be_visible()
+                    candidates = page.get_by_role(
+                        "button", name="qualified-molecules.sdf", exact=False
+                    )
+                    expect(candidates).to_have_count(1)
+                    candidates.click()
+                    expect(
+                        page.get_by_role("button", name="计算这个候选的性质", exact=True)
+                    ).to_be_visible()
+                    page.get_by_text("检查诊断结构", exact=True).click()
+                    expect(
+                        page.get_by_role("link", name="下载诊断 SDF", exact=True)
+                    ).to_be_visible()
+                    expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(
+                        timeout=30000
+                    )
+                    expect(
+                        page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
+                    ).to_be_visible(timeout=30000)
+                    for width in (1440, 390):
+                        page.set_viewport_size({"width": width, "height": 1000})
+                        assert page.evaluate(
+                            "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                        )
+                        page.screenshot(
+                            path=str(evidence / f"actual-fixed-core-{width}.png"), full_page=True
+                        )
+                    actual = page.request.get(
+                        base + f"/api/research/objects?source_job={job.id}"
+                    ).json()
+                    assert len([o for o in actual if o["kind"] == "molecule"]) == 1
+                    assert len(page.request.get(base + "/api/jobs").json()) == 1
+                    assert not errors
+                finally:
+                    browser.close()
+        finally:
+            process.terminate()
+            process.wait(timeout=10)
