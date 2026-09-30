@@ -78,7 +78,13 @@ def test_real_p2rank_program_and_shared_asset_handoff(tmp_path, monkeypatch):
             if job["status"] not in {"queued", "running", "cancelling"}:
                 break
             time.sleep(0.1)
-        assert job["status"] == "succeeded", client.get("/api/jobs/" + id + "/logs").json()
+        if job["status"] != "succeeded":
+            log = client.get("/api/jobs/" + id + "/logs").json()["text"]
+            print(log)
+            evidence = Path("server_tests/evidence")
+            evidence.mkdir(exist_ok=True)
+            (evidence / "native-pocket.log").write_text(log)
+        assert job["status"] == "succeeded"
         result = client.get("/api/jobs/" + id + "/result").json()
         assert result["native_pocket_count"] > 0 and result["pockets"][0]["residues"]
         assert all(0 <= site["probability"] <= 1 for site in result["pockets"])

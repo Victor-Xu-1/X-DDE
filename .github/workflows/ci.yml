@@ -147,3 +147,9 @@ jobs:
         run: |
           uv sync --locked --group dev
           uv run --locked pytest -q server_tests/test_native_pockets.py
+      - name: Preserve native pocket diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-pocket-evidence-${{ github.sha }}
+          path: server_tests/evidence/
