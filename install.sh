@@ -11,15 +11,19 @@ mkdir -p "$prefix/downloads" "$prefix/bin"
 prefix="$(cd "$prefix" && pwd)"
 fetch() { curl --fail --location --retry 2 --connect-timeout 20 --max-time 900 --proto '=https' --proto-redir '=https' "$1" -o "$2"; }
 uvversion=0.12.20
-uvbase="https://github.com/astral-sh/uv/releases/download/$uvversion"
-archive="$prefix/downloads/uv-x86_64-unknown-linux-gnu.tar.gz"
-fetch "$uvbase/uv-x86_64-unknown-linux-gnu.tar.gz" "$archive"
-fetch "$uvbase/uv-x86_64-unknown-linux-gnu.tar.gz.sha256" "$archive.sha256"
-expected="$(cut -d ' ' -f1 "$archive.sha256")"
-[[ "$expected" =~ ^[a-f0-9]{64}$ ]] || exit 2
-printf '%s  %s\n' "$expected" "$archive" | sha256sum --check
-tar -xzf "$archive" -C "$prefix/downloads" --no-same-owner
-install -m 0755 "$prefix/downloads/uv-x86_64-unknown-linux-gnu/uv" "$prefix/bin/uv"
+# Reuse our exact pinned tool on upgrades; fresh installs still verify the official archive.
+if [[ ! -x "$prefix/bin/uv" ]] || [[ "$("$prefix/bin/uv" --version)" != "uv $uvversion"* ]]; then
+    uvbase="https://github.com/astral-sh/uv/releases/download/$uvversion"
+    archive="$prefix/downloads/uv-x86_64-unknown-linux-gnu.tar.gz"
+    fetch "$uvbase/uv-x86_64-unknown-linux-gnu.tar.gz" "$archive"
+    fetch "$uvbase/uv-x86_64-unknown-linux-gnu.tar.gz.sha256" "$archive.sha256"
+    expected="$(cut -d ' ' -f1 "$archive.sha256")"
+    [[ "$expected" =~ ^[a-f0-9]{64}$ ]] || exit 2
+    printf '%s  %s\n' "$expected" "$archive" | sha256sum --check
+    tar -xzf "$archive" -C "$prefix/downloads" --no-same-owner
+    install -m 0755 "$prefix/downloads/uv-x86_64-unknown-linux-gnu/uv" "$prefix/bin/uv"
+fi
+
 base="https://github.com/Victor-Xu-1/X-DDE/releases/download/$release"
 wheel="x_dde-${release#v}-py3-none-any.whl"
 fetch "$base/$wheel" "$prefix/downloads/$wheel"

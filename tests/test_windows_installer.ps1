@@ -2,7 +2,6 @@ $ErrorActionPreference = 'Stop'
 $repository = Split-Path $PSScriptRoot -Parent
 $target = Join-Path ([IO.Path]::GetTempPath()) ('X DDE installer ' + [guid]::NewGuid())
 $previousPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-$script:linuxPrefix = ''
 # Isolate the external WSL/download boundaries; run the real installer and file writes.
 function global:wsl.exe {
     $global:LASTEXITCODE = 0
@@ -17,7 +16,9 @@ function global:wsl.exe {
         return ('/mnt/' + $path.Substring(0,1).ToLowerInvariant() + $path.Substring(2))
     }
     if ('bash' -in $args) {
-        $script:linuxPrefix = $args[-1]
+        if ($args[-1] -ne '/home/researcher/.local/share/opendde-workbench/app') {
+            throw 'Python must be installed inside the Linux filesystem.'
+        }
         return 'Installed test boundary'
     }
     throw ('Unexpected WSL invocation: ' + ($args -join ' '))
@@ -32,9 +33,6 @@ function global:Invoke-WebRequest {
 }
 try {
     & (Join-Path $repository 'install.ps1') -Distribution OpenDDE -LinuxUser researcher -InstallRoot $target
-    if ($script:linuxPrefix -ne '/home/researcher/.local/share/opendde-workbench/app') {
-        throw 'Python must be installed inside the Linux filesystem.'
-    }
     foreach ($name in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
         $launcher = Get-Content -LiteralPath (Join-Path $target "bin/$name") -Raw
         if (!$launcher.Contains('%~dp0opendde.ps1') -or !$launcher.Contains('%*')) {
