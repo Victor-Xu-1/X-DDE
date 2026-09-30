@@ -1,0 +1,194 @@
+import { useState } from "react";
+import { artifactUrl } from "../api";
+import type { Job, Language } from "../types";
+import { StructureViewer } from "../viewer/StructureViewer";
+import { PropertyForm } from "../operations/PropertyForm";
+import { DockingForm } from "./DockingForm";
+import { usePoseAssets } from "./usePoseAssets";
+import type { DockingResult } from "./types";
+export function DockingResults({
+  job,
+  result,
+  language,
+}: {
+  job: Job;
+  result: DockingResult;
+  language: Language;
+}) {
+  const zh = language === "zh",
+    assets = usePoseAssets(job.id);
+  const [record, setRecord] = useState<number | null>(null),
+    [next, setNext] = useState<"properties" | "score" | "minimize" | null>(
+      null,
+    ),
+    [message, setMessage] = useState("");
+  const selected = result.poses.find(
+    (v) => v.record === record && v.valid && v.artifact,
+  );
+  const version = assets.versions.find(
+    (v) => v.kind === "molecule" && v.label === selected?.artifact,
+  );
+  return (
+    <section
+      aria-label={zh ? "结合模式与下一步" : "Binding poses and next steps"}
+    >
+      <p className="field-help">
+        {zh
+          ? "经验评分用于同一方法下比较候选，不是实测亲和力。化学与坐标检查通过也不等于结合模式已被实验确认。"
+          : "Empirical scores compare candidates within the same method; they are not measured affinity. Chemical and coordinate checks do not establish experimental pose validity."}
+      </p>
+      <div className="table-scroll">
+        <table>
+          <caption>GNINA {result.software_version}</caption>
+          <thead>
+            <tr>
+              {(zh
+                ? ["姿势", "评分", "原子映射", "状态"]
+                : ["Pose", "Scores", "Atom mapping", "Status"]
+              ).map((v) => (
+                <th key={v}>{v}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {result.poses.map((p) => (
+              <tr key={p.record}>
+                <th>
+                  <button
+                    type="button"
+                    disabled={!p.valid || !p.artifact}
+                    aria-pressed={record === p.record}
+                    onClick={() => {
+                      setRecord(p.record);
+                      setNext(null);
+                    }}
+                  >
+                    {zh ? "姿势" : "Pose"} {p.record + 1}
+                  </button>
+                </th>
+                <td>
+                  {p.scores.map((v) => (
+                    <span
+                      key={v.name}
+                      title={
+                        zh
+                          ? "保留原生方法与单位；不能直接换算成 KD 或 IC50"
+                          : "Native method and units; no direct conversion to KD or IC50"
+                      }
+                    >
+                      {v.name}: {v.value.toFixed(3)} {v.unit}{" "}
+                    </span>
+                  ))}
+                </td>
+                <td title={p.mapping_status}>
+                  {p.mapping_status === "ambiguous_reconfirm_selections"
+                    ? zh
+                      ? "重选原子区域"
+                      : "Reselect atom regions"
+                    : p.mapping_status === "unavailable"
+                      ? "—"
+                      : zh
+                        ? "已记录"
+                        : "Recorded"}
+                </td>
+                <td>
+                  {p.valid
+                    ? zh
+                      ? "可复用候选"
+                      : "Reusable candidate"
+                    : p.reason}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {result.poses.length === 0 && (
+        <p role="status">{zh ? "没有返回姿势" : "No poses returned"}</p>
+      )}
+      {selected?.artifact && (
+        <>
+          <StructureViewer
+            key={selected.artifact}
+            urls={[
+              artifactUrl(job.id, result.receptor_artifact),
+              artifactUrl(job.id, selected.artifact),
+            ]}
+            language={language}
+          />
+          <a href={artifactUrl(job.id, selected.artifact)} download>
+            {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+          </a>
+          {version ? (
+            <div className="editor-toolbar">
+              {(["properties", "score", "minimize"] as const).map((v, n) => (
+                <button type="button" key={v} onClick={() => setNext(v)}>
+                  {
+                    (zh
+                      ? ["计算性质", "重新评分", "局部最小化"]
+                      : [
+                          "Calculate properties",
+                          "Rescore",
+                          "Local minimization",
+                        ])[n]
+                  }
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={assets.busy}
+              onClick={() => void assets.refresh()}
+            >
+              {zh ? "登记并读取这个姿势" : "Register and load this pose"}
+            </button>
+          )}
+        </>
+      )}
+      {version && next === "properties" && (
+        <PropertyForm
+          key={version.id + next}
+          language={language}
+          initialFile={version.reference.asset_id}
+          scientificInput={version.reference}
+          onCreated={(j) =>
+            setMessage((zh ? "已创建任务：" : "Created task: ") + j.id)
+          }
+        />
+      )}
+      {version && (next === "score" || next === "minimize") && (
+        <DockingForm
+          key={version.id + next}
+          mode={next}
+          language={language}
+          initialReceptor={result.receptor}
+          initialLigand={version.reference}
+          onCreated={(j) =>
+            setMessage((zh ? "已创建任务：" : "Created task: ") + j.id)
+          }
+        />
+      )}
+      {assets.error && <p role="alert">{assets.error}</p>}
+      {message && <p role="status">{message}</p>}
+      <details>
+        <summary>
+          {zh
+            ? "方法、来源与原始文件"
+            : "Method, provenance and original files"}
+        </summary>
+        <p>
+          {zh
+            ? "科学基准：待服务器验证；保存受体与分子版本、搜索范围、预算、种子、原生软件和解析器来源。"
+            : "Scientific benchmark: pending target-server validation. Receptor/molecule versions, search region, budget, seed and native/parser provenance are retained."}
+        </p>
+        <a href={artifactUrl(job.id, "result.json")} download>
+          {zh ? "完整结果与来源" : "Complete result and provenance"}
+        </a>{" "}
+        <a href={artifactUrl(job.id, result.pose_artifact)} download>
+          {zh ? "完整姿势集" : "Complete pose set"}
+        </a>
+      </details>
+    </section>
+  );
+}

@@ -1,0 +1,5 @@
+# Independent Python 3.10 scientific-container boundary. Compile with UV + hashes.
+numpy==1.26.4
+rdkit==2023.9.6
+pydantic==2.13.5
+pillow

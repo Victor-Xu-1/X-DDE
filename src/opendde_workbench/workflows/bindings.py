@@ -28,7 +28,9 @@ def resolve(step, latest, store, outputs, settings):
         if binding.record >= len(versions):
             raise ValueError("Selected output record does not exist.")
         ref = versions[binding.record].reference.model_dump(mode="json")
-        if binding.target == "property_input":
+        if binding.target == "docking_ligand":
+            body["ligand"] = ref
+        elif binding.target == "property_input":
             body["ligand_files"] = [ref["asset_id"]]
             body["scientific_inputs"] = [ref]
             body["smiles"] = []

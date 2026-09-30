@@ -198,7 +198,51 @@ _POCKETS = (
         contract_source="PocketSearch",
     ),
 )
-_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS
+_DOCKING = tuple(
+    CapabilitySpec(
+        id="gnina." + mode,
+        **modality_metadata("gnina." + mode),
+        group="structure" if mode == "dock" else "evaluate",
+        environment="gnina",
+        operations=("docking",),
+        label=label,
+        note=note,
+        source="GNINA",
+        native_mode=mode,
+        frontend_form="docking",
+        contract_source="DockingTask",
+        constraint_support=(ConstraintSupport(kind="search_box", support="native", phase="input"),)
+        if mode == "dock"
+        else (),
+    )
+    for mode, label, note in (
+        (
+            "dock",
+            ("探索分子结合模式", "Explore molecular binding poses"),
+            (
+                "在明确受体与搜索区域中保留多个原生姿势。",
+                "Retain multiple native poses for an explicit receptor and search region.",
+            ),
+        ),
+        (
+            "score",
+            ("评估已有结合姿势", "Score an existing pose"),
+            (
+                "确认坐标参照后计算原生评分，不改变姿势。",
+                "Score a confirmed receptor-frame pose without moving it.",
+            ),
+        ),
+        (
+            "minimize",
+            ("局部最小化结合姿势", "Locally minimize a binding pose"),
+            (
+                "保留原姿势并生成局部最小化结果；不是充分诱导契合。",
+                "Retain the original and produce a local minimum; not full induced fit.",
+            ),
+        ),
+    )
+)
+_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

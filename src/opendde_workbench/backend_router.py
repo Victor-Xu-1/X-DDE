@@ -14,6 +14,7 @@ from pathlib import Path
 from . import harness_process, local_process
 from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
+from .docking.backend import DockingBackend
 from .engine import DockerEngine
 from .engine_registry import engine_for
 from .execution_environment import capture as capture_environment
@@ -27,14 +28,17 @@ class BackendRouter:
         self.store = Store(settings.state_dir / "jobs.sqlite3")
         self.opendde = DockerEngine(settings)
         self.pockets = PocketBackend(settings)
+        self.docking = DockingBackend(settings)
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
-        if implementation not in {"opendde", "diffsbdd", "harness", "p2rank"}:
+        if implementation not in {"opendde", "diffsbdd", "harness", "p2rank", "gnina"}:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation == "gnina":
+            return await self.docking.start(job, directory)
         if implementation == "p2rank":
             return await self.pockets.start(job, directory)
         if implementation == "harness":
@@ -83,7 +87,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "p2rank":
+        if implementation == "gnina":
+            await self.docking.stop(job.id, directory)
+        elif implementation == "p2rank":
             await self.pockets.stop(job.id, directory)
         elif implementation == "harness":
             await harness_process.stop(self.settings, directory)
@@ -96,10 +102,11 @@ class BackendRouter:
 
     async def readiness(self):
         # Preserve the existing OpenDDE health contract; expose other engines independently.
-        opendde, diff, pockets = await asyncio.gather(
+        opendde, diff, pockets, docking = await asyncio.gather(
             self._checked_readiness("opendde", self.opendde.readiness()),
             self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
             self._checked_readiness("p2rank", self.pockets.readiness()),
+            self._checked_readiness("gnina", self.docking.readiness()),
         )
         client_present = bool(
             self.settings.harness_python and self.settings.harness_python.is_file()
@@ -118,6 +125,7 @@ class BackendRouter:
                 "diffsbdd": diff,
                 "harness": harness,
                 "p2rank": pockets,
+                "gnina": docking,
             },
         }
 

@@ -62,6 +62,22 @@ class OutputCatalog:
             if ref and ref.version_id and self.scientific.get(ref.version_id).kind == object_kind:
                 parent = ref.version_id
                 relation = "edited_from" if payload.mode == "edit" else "prepared_from"
+        if job and job.request.operation == "docking":
+            ref = (
+                job.request.receptor
+                if object_kind == "structure"
+                else job.request.search.reference
+                if file.name == "reference-ligand.sdf"
+                and getattr(job.request.search, "kind", None) == "reference_ligand"
+                else job.request.ligand
+            )
+            if ref.version_id and self.scientific.get(ref.version_id).kind == object_kind:
+                parent = ref.version_id
+                relation = (
+                    "prepared_from"
+                    if file.name in {"input-ligand.sdf", "receptor.pdb"}
+                    else "derived_from"
+                )
         entries = []
         for record in range(records):
             suffix = f" · #{record + 1}" if records > 1 else ""

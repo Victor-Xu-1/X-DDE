@@ -1,9 +1,10 @@
 """Versioned scientific references, independent of any viewer or execution engine."""
 
-from typing import Literal, Self
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from typing_extensions import Self
 
 
 class ScientificModel(BaseModel):

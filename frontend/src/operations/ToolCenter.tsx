@@ -15,6 +15,8 @@ import { RegionWorkspace } from "../regions/RegionWorkspace";
 import { PocketForm } from "../pockets/PocketForm";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
 import { DiffForm } from "../diffsbdd/DiffForm";
+import { DockingForm } from "../docking/DockingForm";
+import type { DockingMode } from "../docking/types";
 import type { DiffMode } from "../diffsbdd/types";
 
 export function ToolCenter({
@@ -93,6 +95,13 @@ export function ToolCenter({
             <DiffForm
               key={selected}
               mode={selected.slice(9) as DiffMode}
+              language={language}
+              onCreated={onCreated}
+            />
+          ) : selected?.startsWith("gnina.") ? (
+            <DockingForm
+              key={selected}
+              mode={selected.slice(6) as DockingMode}
               language={language}
               onCreated={onCreated}
             />

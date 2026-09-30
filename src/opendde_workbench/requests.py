@@ -15,6 +15,8 @@ from pydantic import (
 )
 
 from .diffsbdd.contract import DiffTask, references
+from .docking.contract import DockingTask
+from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
 from .pockets.contract import PocketSearch
 from .prediction import Prediction
@@ -129,7 +131,8 @@ TaskRequest = Annotated[
     | Annotated[Properties, Tag("properties")]
     | Annotated[HarnessTask, Tag("harness")]
     | Annotated[DiffTask, Tag("diffsbdd")]
-    | Annotated[PocketSearch, Tag("pocket_search")],
+    | Annotated[PocketSearch, Tag("pocket_search")]
+    | Annotated[DockingTask, Tag("docking")],
     Discriminator(request_kind),
 ]
 TASK_ADAPTER = TypeAdapter(TaskRequest)
@@ -138,6 +141,10 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
+    if isinstance(request, DockingTask):
+        return {str(ref.asset_id) for _, ref in docking_references(request)} | {
+            str(ref.asset_id) for ref in request.scientific_inputs
+        }
     if isinstance(request, PocketSearch):
         return {str(request.protein.asset_id)} | {
             str(ref.asset_id) for ref in request.scientific_inputs

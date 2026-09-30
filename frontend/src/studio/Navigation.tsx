@@ -20,6 +20,7 @@ import type { ToolId } from "../operations/catalog";
 import type { Job, Language } from "../types";
 
 export type View =
+  | "binding-modes"
   | "pockets"
   | "molecule-design"
   | "antibody-design"
@@ -41,6 +42,7 @@ export type View =
 export const coreTools: Readonly<Partial<Record<View, ToolId>>> = Object.freeze(
   {
     pockets: "p2rank.detect",
+    "binding-modes": "gnina.dock",
     "molecule-design": "diffsbdd.generate",
     "antibody-design": "campaign",
     properties: "properties",
@@ -55,6 +57,12 @@ const items = [
     cn: "口袋寻找",
     en: "Pocket discovery",
     icon: SearchOutlined,
+  },
+  {
+    id: "binding-modes",
+    cn: "结合模式",
+    en: "Binding poses",
+    icon: ExperimentOutlined,
   },
   {
     id: "molecule-design",
@@ -226,6 +234,7 @@ export function Navigation({
                   tools: ["能力", "Tools"],
                   home: ["预测", "Predict"],
                   pockets: ["口袋", "Pockets"],
+                  "binding-modes": ["结合", "Poses"],
                   "molecule-design": ["生成", "Generate"],
                   "antibody-design": ["抗体", "Antibody"],
                   properties: ["性质", "Properties"],

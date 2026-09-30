@@ -153,3 +153,29 @@ jobs:
         with:
           name: native-pocket-evidence-${{ github.sha }}
           path: server_tests/evidence/
+  native-docking:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+      - name: Build the installable platform first
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev
+      - name: Actual offline GNINA three-mode execution and immutable pose handoff
+        env:
+          WB_TEST_NATIVE_DOCKING: '1'
+        run: uv run --locked pytest -q -s server_tests/test_native_docking.py
+      - name: Preserve native docking evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-docking-evidence-${{ github.sha }}
+          path: server_tests/evidence/

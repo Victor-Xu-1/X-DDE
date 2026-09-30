@@ -469,5 +469,41 @@ export const tools = [
     modalities: ["biologic", "chemical", "protein", "small_molecule"],
     modality_role: "target_context",
   },
+  {
+    id: "gnina.dock",
+    group: "structure",
+    label: ["探索分子结合模式", "Explore molecular binding poses"],
+    note: [
+      "在明确受体与搜索区域中保留多个原生姿势。",
+      "Retain multiple native poses for an explicit receptor and search region.",
+    ],
+    source: "GNINA",
+    modalities: ["biologic", "chemical", "protein", "small_molecule"],
+    modality_role: "target_context",
+  },
+  {
+    id: "gnina.score",
+    group: "evaluate",
+    label: ["评估已有结合姿势", "Score an existing pose"],
+    note: [
+      "确认坐标参照后计算原生评分，不改变姿势。",
+      "Score a confirmed receptor-frame pose without moving it.",
+    ],
+    source: "GNINA",
+    modalities: ["biologic", "chemical", "protein", "small_molecule"],
+    modality_role: "target_context",
+  },
+  {
+    id: "gnina.minimize",
+    group: "evaluate",
+    label: ["局部最小化结合姿势", "Locally minimize a binding pose"],
+    note: [
+      "保留原姿势并生成局部最小化结果；不是充分诱导契合。",
+      "Retain the original and produce a local minimum; not full induced fit.",
+    ],
+    source: "GNINA",
+    modalities: ["biologic", "chemical", "protein", "small_molecule"],
+    modality_role: "target_context",
+  },
 ] as const;
 export type ToolId = (typeof tools)[number]["id"];

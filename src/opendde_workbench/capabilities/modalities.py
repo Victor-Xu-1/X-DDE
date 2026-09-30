@@ -122,6 +122,9 @@ _MEMBERSHIP = {
     "workflows": _ALL,
     "regions": _SMALL,
     "p2rank.detect": _CONTEXT,
+    "gnina.dock": _CONTEXT,
+    "gnina.score": _CONTEXT,
+    "gnina.minimize": _CONTEXT,
     **{
         "diffsbdd." + mode: _SMALL
         for mode in (
@@ -140,7 +143,14 @@ _MEMBERSHIP = {
     "diffsbdd.prepare": _CONTEXT,
 }
 _SHARED = {"import", "resources", "workflows"}
-_TARGET_CONTEXT = {"p2rank.detect", "diffsbdd.pocket", "diffsbdd.prepare"}
+_TARGET_CONTEXT = {
+    "p2rank.detect",
+    "diffsbdd.pocket",
+    "diffsbdd.prepare",
+    "gnina.dock",
+    "gnina.score",
+    "gnina.minimize",
+}
 
 
 def modality_metadata(identifier: str) -> dict:

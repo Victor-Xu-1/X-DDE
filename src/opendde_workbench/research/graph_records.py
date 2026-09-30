@@ -87,6 +87,10 @@ def project_record(store, kind, row):
                 from ..diffsbdd.contract import references
 
                 refs.extend(ref for _, ref in references(step.request))
+            if step.request.operation == "docking":
+                from ..docking.contract import references
+
+                refs.extend(ref for _, ref in references(step.request))
             edges.extend(
                 ("object:" + str(ref.version_id), identifier, "planned_input")
                 for ref in refs
@@ -117,6 +121,10 @@ def project_record(store, kind, row):
         ("asset:" + value, identifier, "used_as_input") for value in input_identifiers(job.request)
     ]
     refs = list(job.request.scientific_inputs)
+    if job.request.operation == "docking":
+        from ..docking.contract import references
+
+        refs.extend(ref for _, ref in references(job.request))
     if job.request.operation == "pocket_search":
         refs.append(job.request.protein)
     if job.request.operation == "diffsbdd":

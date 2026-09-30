@@ -27,6 +27,7 @@ from .deployment.manager import DeploymentManager
 from .deployment.provisioners import states as provisioner_states
 from .deployment.routes import register_deployments
 from .diffsbdd.runtime import validate as validate_diffsbdd
+from .docking.runtime import validate as validate_docking
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
 from .execution_environment import EnvironmentRecord
@@ -198,6 +199,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await harness_service.invoke(
                     {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
                 )
+            elif value.operation == "docking":
+                assets.validate_bindings(value)
+                validate_docking(value, readiness["engine"].get("backends", {}).get("gnina", {}))
             elif value.operation == "pocket_search":
                 assets.validate_bindings(value)
                 validate_pockets(value, readiness["engine"].get("backends", {}).get("p2rank", {}))

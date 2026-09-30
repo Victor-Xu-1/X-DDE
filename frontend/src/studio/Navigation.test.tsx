@@ -13,6 +13,7 @@ it("keeps all research modules directly accessible", async () => {
   for (const name of [
     "结构预测",
     "口袋寻找",
+    "结合模式",
     "分子生成",
     "抗体设计",
     "性质计算",

@@ -13,6 +13,16 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             if spec.id == "regions"
             else ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
         )
+    elif spec.environment == "gnina":
+        checks = {"runtime": bool(backends.get("gnina", {}).get("ready"))}
+        specific.extend(
+            (
+                "receptor_coordinate_frame",
+                "exact_molecule_state",
+                "search_budget",
+                "native_pose_validation",
+            )
+        )
     elif spec.environment == "p2rank":
         checks = {"runtime": bool(backends.get("p2rank", {}).get("ready"))}
         specific.extend(("structural_input", "structure_source_profile", "native_report"))

@@ -3,6 +3,7 @@ import type { Job, Language } from "../types";
 import type { PocketResult, Site } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { DiffForm } from "../diffsbdd/DiffForm";
+import { DockingForm } from "../docking/DockingForm";
 import { artifactUrl } from "../api";
 export function PocketResults({
   job,
@@ -16,6 +17,7 @@ export function PocketResults({
   const zh = language === "zh",
     [selected, setSelected] = useState<Site | null>(null),
     [continueDesign, setContinue] = useState(false),
+    [continueDocking, setDocking] = useState(false),
     [message, setMessage] = useState("");
   const usable =
     result.protein_artifact.endsWith(".pdb") &&
@@ -50,6 +52,7 @@ export function PocketResults({
               onClick={() => {
                 setSelected(site);
                 setContinue(false);
+                setDocking(false);
               }}
             >
               {zh ? "口袋" : "Pocket"} {site.rank} ·{" "}
@@ -87,6 +90,16 @@ export function PocketResults({
           >
             {zh ? "用这个口袋生成分子" : "Generate molecules in this pocket"}
           </button>
+          <button
+            type="button"
+            disabled={!result.protein_artifact.endsWith(".pdb")}
+            onClick={() => {
+              setDocking(true);
+              setContinue(false);
+            }}
+          >
+            {zh ? "探索这个口袋的结合模式" : "Explore poses in this pocket"}
+          </button>
           {!usable && (
             <p className="field-help">
               {zh
@@ -109,6 +122,30 @@ export function PocketResults({
             )
           }
         />
+      )}
+      {selected && continueDocking && (
+        <>
+          <p className="field-help">
+            {zh
+              ? "中心来自所选口袋；20 Å 是可调整的初始搜索范围，不是测得的口袋边界。"
+              : "The center comes from the selected pocket; 20 Å is an editable starting search range, not a measured pocket boundary."}
+          </p>
+          <DockingForm
+            key={"dock" + selected.rank}
+            language={language}
+            initialReceptor={result.protein}
+            initialBox={{
+              center: [selected.center_x, selected.center_y, selected.center_z],
+              size: [20, 20, 20],
+              unit: "angstrom",
+            }}
+            onCreated={(j) =>
+              setMessage(
+                (zh ? "已创建结合模式任务：" : "Created pose task: ") + j.id,
+              )
+            }
+          />
+        </>
       )}
       {message && <p role="status">{message}</p>}
     </section>

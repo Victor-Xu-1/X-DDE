@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "gnina",
+        "GNINA",
+        "受体内的分子对接、姿势评分与局部最小化 / Docking, pose scoring and minimization",
+        "docker",
+        ("docking",),
+    ),
+    ScientificEngine(
         "p2rank",
         "P2Rank",
         "蛋白位点候选与残基评分 / Protein-site hypotheses and residue scores",

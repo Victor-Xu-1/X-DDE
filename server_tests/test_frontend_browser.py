@@ -117,7 +117,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_text("平台服务就绪", exact=True)).to_be_visible()
             health = page.request.get(base_url + "/api/health").json()
             assert health["platform"] == {"name": "X-DDE", "ready": True}
-            assert set(health["engines"]) == {"opendde", "diffsbdd", "harness", "p2rank"}
+            assert set(health["engines"]) == {"opendde", "diffsbdd", "harness", "p2rank", "gnina"}
             for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
             for width in (390, 768, 1440):
@@ -471,9 +471,10 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
             labels = navigation.get_by_role("button").evaluate_all(
                 "nodes => nodes.map(node => node.getAttribute('aria-label'))"
             )
-            assert labels[:6] == [
+            assert labels[:7] == [
                 "结构预测",
                 "口袋寻找",
+                "结合模式",
                 "分子生成",
                 "抗体设计",
                 "性质计算",
@@ -498,6 +499,40 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
             antibody = next(item for item in catalogue["capabilities"] if item["id"] == "campaign")
             assert antibody["modalities"] == ["biologic", "antibody", "protein"]
             assert page.request.get(base_url + "/api/jobs").json() == []
+            assert errors == []
+        finally:
+            browser.close()
+
+
+def test_binding_pose_entry_presets_and_configuration_limits():
+    base = os.environ["WB_BROWSER_URL"]
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    errors = []
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        try:
+            page.goto(base)
+            page.get_by_role("button", name="结合模式", exact=True).click()
+            expect(page.get_by_role("button", name="探索结合模式", exact=True)).to_be_disabled()
+            expect(page.get_by_role("combobox", name="运行方案", exact=True)).to_have_value("cpu")
+            page.get_by_role("combobox", name="运行方案", exact=True).select_option("expert")
+            page.get_by_role("checkbox", name="使用服务器 GPU", exact=True).check()
+            page.get_by_role("combobox", name="运行方案", exact=True).select_option("cpu")
+            expect(page.get_by_role("checkbox", name="使用服务器 GPU", exact=True)).to_have_count(0)
+            page.get_by_role("combobox", name="在哪里搜索？", exact=True).select_option("box")
+            page.get_by_role("spinbutton", name="中心 X (Å)", exact=True).fill("1.5")
+            page.get_by_role("spinbutton", name="中心 Y (Å)", exact=True).fill("2.5")
+            page.get_by_role("spinbutton", name="中心 Z (Å)", exact=True).fill("3.5")
+            for width in (390, 1440):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert page.evaluate(
+                    "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                )
+                page.screenshot(path=str(evidence / f"binding-pose-input-{width}.png"))
+            assert page.request.get(base + "/api/jobs").json() == []
             assert errors == []
         finally:
             browser.close()

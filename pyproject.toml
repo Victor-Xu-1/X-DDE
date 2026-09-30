@@ -10,6 +10,7 @@ authors = [{name = "Victor Xu"}]
 dependencies = [
     "fastapi==0.141.1",
     "uvicorn==0.54.0",
+    "typing-extensions==4.16.0",
 ]
 
 [project.scripts]
@@ -33,6 +34,10 @@ packages = ["src/opendde_workbench"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.per-file-target-version]
+"src/opendde_workbench/scientific_objects.py" = "py310"
+"src/opendde_workbench/docking/options.py" = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

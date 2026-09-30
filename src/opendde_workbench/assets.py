@@ -182,6 +182,25 @@ class AssetStore:
                 ScientificStore(self.store, self).validate_reference(ref)
             self.path(asset)
             return {asset.id: asset}
+        if getattr(request, "operation", None) == "docking":
+            from .docking.contract import references
+
+            for role, ref in references(request):
+                asset = self.get(ref.asset_id)
+                expected, suffix = (
+                    ("structure", ".pdb") if role == "receptor" else ("ligand", ".sdf")
+                )
+                if asset.kind != expected or asset.suffix != suffix or asset.sha256 != ref.sha256:
+                    raise ValueError(
+                        "GNINA requires exact PDB receptor and SDF molecular versions."
+                    )
+                if ref.version_id:
+                    from .research.storage import ScientificStore
+
+                    ScientificStore(self.store, self).validate_reference(ref)
+                self.path(asset)
+                bindings[asset.id] = asset
+            return bindings
         if getattr(request, "operation", None) == "diffsbdd":
             from .diffsbdd.contract import references
 
@@ -267,6 +286,7 @@ class AssetStore:
             if asset.suffix == ".sdf" and getattr(request, "operation", None) not in {
                 "properties",
                 "diffsbdd",
+                "docking",
             }:
                 records = [
                     part

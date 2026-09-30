@@ -4,6 +4,8 @@ import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
 import { PocketResults } from "../pockets/PocketResults";
 import type { PocketResult } from "../pockets/types";
+import { DockingResults } from "../docking/DockingResults";
+import type { DockingResult } from "../docking/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -58,6 +60,7 @@ export function OperationResults({
     [error, setError] = useState("");
   const supported = [
     "pocket_search",
+    "docking",
     "diffsbdd",
     "properties",
     "inspect",
@@ -216,6 +219,13 @@ export function OperationResults({
         <PocketResults
           job={job}
           result={data as unknown as PocketResult}
+          language={language}
+        />
+      )}
+      {job.request.operation === "docking" && (
+        <DockingResults
+          job={job}
+          result={data as unknown as DockingResult}
           language={language}
         />
       )}

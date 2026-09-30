@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from ..diffsbdd.manifest import MODEL_URL, MODELS, SOURCE_COMMIT, SOURCE_SHA256, SOURCE_URL
+from ..docking.manifest import BINARY_SHA256, BINARY_URL
+from ..docking.manifest import VERSION as GNINA_VERSION
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
 from ..pockets.manifest import VERSION as P2_VERSION
@@ -30,6 +32,18 @@ class Package:
 PACKAGES = {
     p.id: p
     for p in [
+        Package(
+            "gnina",
+            GNINA_VERSION,
+            "GNINA docking environment",
+            "独立对接/评分环境与化学解析器 / Independent docking and chemistry runtime",
+            "约 2.1 GB 下载；至少 8 GiB 安装空间 / 2.1 GB download; 8 GiB staging",
+            url=BINARY_URL,
+            checksum=BINARY_SHA256,
+            license="GNINA GPL-2.0/Apache-2.0 and dependency terms",
+            engine="gnina",
+            kind="runtime",
+        ),
         Package(
             "harness",
             "0.0.4",

@@ -16,9 +16,11 @@ def register_research(app, store, assets, mutation):
 
     @app.get("/api/research/objects", response_model=list[ScientificObject])
     def objects(
-        limit: int = Query(default=100, ge=1, le=200), offset: int = Query(default=0, ge=0)
+        limit: int = Query(default=100, ge=1, le=200),
+        offset: int = Query(default=0, ge=0),
+        source_job: UUID | None = None,
     ):
-        return scientific.list(limit, offset)
+        return scientific.list(limit, offset, source_job)
 
     @app.get("/api/research/objects/{object_id}", response_model=ScientificObject)
     def object_version(object_id: UUID):

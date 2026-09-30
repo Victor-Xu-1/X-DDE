@@ -151,13 +151,15 @@ class ScientificStore:
         )
         return obj
 
-    def list(self, limit=100, offset=0):
+    def list(self, limit=100, offset=0, source_job=None):
         with self.store.connect() as db:
             return [
                 self.decode(row)
                 for row in db.execute(
-                    "SELECT * FROM scientific_objects ORDER BY created_at DESC,id LIMIT ? OFFSET ?",
-                    (limit, offset),
+                    "SELECT * FROM scientific_objects "
+                    + ("WHERE json_extract(body, '$.source_job')=? " if source_job else "")
+                    + "ORDER BY created_at DESC,id LIMIT ? OFFSET ?",
+                    (str(source_job), limit, offset) if source_job else (limit, offset),
                 )
             ]
 

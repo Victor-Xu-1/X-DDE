@@ -79,6 +79,18 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
             runtime["image"]
         )
         matched = matched and installed.get("runtime", {}).get("code") == runtime["code"]
+    elif software == "gnina":
+        from .docking.image import lock_digest
+        from .docking.manifest import BINARY_SHA256
+
+        runtime = {
+            "image": settings.gnina_image or "",
+            "binary_sha256": BINARY_SHA256,
+            "runtime_lock_sha256": lock_digest(),
+        }
+        matched = bool(
+            runtime["image"] and installed.get("gnina", {}).get("image") == runtime["image"]
+        )
     elif software == "p2rank":
         runtime = {
             "source": str(settings.p2rank_home or ""),

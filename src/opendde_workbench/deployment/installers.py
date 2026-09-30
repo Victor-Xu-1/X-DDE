@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from .catalog import PACKAGES
 from .diffsbdd_install import install_model, install_runtime
+from .docking_install import install_docking
 from .paths import environment_root
 from .pocket_install import install_pockets
 from .process import run
@@ -27,7 +28,9 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key in {"p2rank", "p2rank-compute"}:
+    if key == "gnina":
+        metadata.update(install_docking(root, work, execute, report, checkpoint))
+    elif key in {"p2rank", "p2rank-compute"}:
         metadata.update(install_pockets(key, root, work, execute, report, checkpoint))
     elif key == "diffsbdd":
         metadata.update(install_runtime(root, work, report, checkpoint))

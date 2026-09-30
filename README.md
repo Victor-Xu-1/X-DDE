@@ -218,3 +218,6 @@ X-DDE original code is [Apache-2.0](LICENSE), with attribution retained in [NOTI
 The current source uses Apache-2.0. Previously published MIT releases retain the license distributed with those releases; third-party code and models are not relicensed.
 
 能力目录由后端维护。修改能力或 DiffSBDD 参数契约后，在已安装锁定依赖的源码目录执行 `PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py`，CI 使用同一命令的 `--check` 检查前端是否同步。界面支持八个 DiffSBDD 模型和四类设计任务，服务器就绪与科学验收状态分别记录。
+
+
+GNINA binding-pose tasks have independent component management and three entries: bounded docking, existing-pose scoring and local minimization. P2Rank pockets can pass their receptor and center into the search form; selected poses are saved as reusable immutable molecule versions. CPU empirical scoring is the guided default, with explicit coordinate-frame confirmation and expert CNN/GPU budgets. Configuration readiness is separate from scientific benchmark acceptance; see [server acceptance](docs/server-acceptance.md) and the canonical [design contract](docs/design/README.md).

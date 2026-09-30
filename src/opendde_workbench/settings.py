@@ -32,6 +32,7 @@ class Settings:
     diffsbdd_source: Path | None = None
     diffsbdd_home: Path | None = None
     diffsbdd_manifest_sha256: str | None = None
+    gnina_image: str | None = None
     p2rank_home: Path | None = None
     p2rank_image: str | None = None
     p2rank_manifest_sha256: str | None = None
@@ -56,6 +57,7 @@ class Settings:
         diff = installed.get("diffsbdd", {})
         pockets = installed.get("p2rank", {})
         return cls(
+            gnina_image=os.environ.get("WB_GNINA_IMAGE") or installed.get("gnina", {}).get("image"),
             p2rank_home=path("WB_P2RANK_HOME", pockets.get("source", ""))
             if os.environ.get("WB_P2RANK_HOME") or pockets.get("source")
             else None,

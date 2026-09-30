@@ -12,7 +12,15 @@ class Binding(BaseModel):
     from_step: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,31}$")
     artifact: str | None = Field(default=None, min_length=1, max_length=500)
     result_field: (
-        Literal["molecule_artifact", "protein_artifact", "pocket_artifact", "structure"] | None
+        Literal[
+            "molecule_artifact",
+            "protein_artifact",
+            "pocket_artifact",
+            "structure",
+            "pose_artifact",
+            "receptor_artifact",
+        ]
+        | None
     ) = None
 
     @model_validator(mode="after")
@@ -23,7 +31,9 @@ class Binding(BaseModel):
 
     kind: Literal["structure", "ligand"]
     record: int = Field(default=0, ge=0, le=499)
-    target: Literal["protein", "initial", "molecule", "reference_ligand", "property_input"]
+    target: Literal[
+        "protein", "initial", "molecule", "reference_ligand", "property_input", "docking_ligand"
+    ]
 
 
 class Step(BaseModel):
@@ -73,6 +83,13 @@ class PlanInput(BaseModel):
                     )
                 if binding.target == "property_input" and step.request.operation != "properties":
                     raise ValueError("Property bindings require a properties task.")
+                if binding.target == "docking_ligand":
+                    if step.request.operation != "docking" or step.request.mode != "dock":
+                        raise ValueError(
+                            "Dynamic ligand bindings require new docking; "
+                            "existing poses need explicit frame evidence."
+                        )
+                    continue
                 if binding.target != "property_input" and not (
                     step.request.operation == "diffsbdd"
                     or step.request.operation == "pocket_search"

@@ -79,9 +79,12 @@ def network_enabled(request: TaskRequest) -> bool:
 
 
 def needs_gpu(request: TaskRequest) -> bool:
-    return (request.operation == "predict" and request.parameters.device == "cuda") or (
-        request.operation == "harness" and request.tool in {"esm", "esm2", "mpnn", "fold"}
-    ) or (
-        request.operation == "diffsbdd"
-        and request.payload.mode in {"generate", "inpaint", "diversify", "optimize"}
+    return (
+        (request.operation == "predict" and request.parameters.device == "cuda")
+        or (request.operation == "harness" and request.tool in {"esm", "esm2", "mpnn", "fold"})
+        or (request.operation == "docking" and request.options.use_gpu)
+        or (
+            request.operation == "diffsbdd"
+            and request.payload.mode in {"generate", "inpaint", "diversify", "optimize"}
+        )
     )

@@ -107,3 +107,16 @@ Evidence records identify task IDs, exact candidate/native/model versions, input
 研究计划的软件回归使用真实 SQLite、API 和受控本地进程协议在远程 CI 执行。其科学验收仍需在目标服务器完成：DiffSBDD 输出角色 → 指定候选版本 → 真实 RDKit 性质、跨步骤坐标/固定原子失效拒绝、真实 GPU 取消/恢复及条件性外部工具取消。计划暂停只阻止新步骤派发，已派发任务继续；无法确认同步外部调用终止时明确阻塞。
 
 P2Rank 原生验收使用固定发布包、固定 Java 镜像摘要和官方 1fbl 示例，经过实际 Docker 推理、原生 CSV 解析、共享任务/资产入库。版本、报告及软件意义参考 [P2Rank 官方说明](https://github.com/rdk/p2rank/tree/2.5.1) 和 [稳定发布](https://github.com/rdk/p2rank/releases/tag/2.5.1)。该软件验收不构成未知靶点口袋的实验证实，也不代替 R33–R40 的体系/姿势基准。
+
+
+## GNINA native docking gate
+
+On an isolated Linux x86_64 server with Docker and at least 8 GiB staging space, after the documented frontend build and locked platform dependency installation:
+
+```bash
+WB_TEST_NATIVE_DOCKING=1 uv run --locked pytest -q -s server_tests/test_native_docking.py
+```
+
+This downloads the pinned official 2.1 GB executable, builds the hash-locked isolated scientific image and executes actual CPU docking, scoring and local minimization on upstream 184L fixtures. It verifies exact frames, empirical-only scoring, per-pose artifacts, environment fingerprints, original-input/derived-output versions, filtered asset reads and restart persistence. It does not validate docking accuracy, CNN/GPU behavior, experimental potency, special chemistries, full spatial constraints or multi-partner assembly. Run those reviewed target-server benchmarks before asserting scientific suitability. Failure artifacts and native logs remain identifiable under `server_tests/evidence`; CI uploads them, never fabricates successful poses.
+
+Configure the component through Installation & components → GNINA, or set `WB_GNINA_IMAGE` to the immutable reviewed Docker image ID, then restart X-DDE. Readiness requires matching native-version/executable/runtime-lock labels; the actual executable hash is rechecked inside every offline task. No large GNINA installation or scientific execution is authorized on the owner's workstation.
