@@ -14,11 +14,19 @@ export const residueSelection = (r: Residue): AtomSelectionSpec => ({
   // The CIF parser omits absent insertion codes; filtering by an empty string matches nothing.
   ...(r.icode ? { icode: r.icode } : {}),
 });
-export const atomPosition = (atom: AtomSpec) => ({
-  x: atom.x ?? 0,
-  y: atom.y ?? 0,
-  z: atom.z ?? 0,
-});
+export function finiteCoordinates(
+  atom: AtomSpec,
+): [number, number, number] | undefined {
+  const coordinates = [atom.x, atom.y, atom.z];
+  if (!coordinates.every((v) => typeof v === "number" && Number.isFinite(v)))
+    return undefined;
+  return coordinates as [number, number, number];
+}
+export const atomPosition = (atom: AtomSpec) => {
+  const coordinates = finiteCoordinates(atom);
+  if (!coordinates) throw new Error("Structure atom has no finite coordinates");
+  return { x: coordinates[0], y: coordinates[1], z: coordinates[2] };
+};
 
 export const scientificSelectionIdentity = (atom: AtomSpec) => ({
   chain: (atom.chain ?? "").trim(),

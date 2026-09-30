@@ -38,6 +38,7 @@ export interface SelectionInfo {
     is_ligand?: boolean;
   };
   source_atom_index?: number;
+  position?: [number, number, number];
   chain: string;
   residue: string;
   atom: string;

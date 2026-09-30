@@ -37,7 +37,7 @@ PACKAGES = {
             GNINA_VERSION,
             "GNINA docking environment",
             "独立对接/评分环境与化学解析器 / Independent docking and chemistry runtime",
-            "约 3.5 GB 下载；至少 12 GiB 安装空间 / ~3.5 GB download; 12 GiB staging",
+            "约 4.5 GB 下载；至少 12 GiB 安装空间 / ~4.5 GB download; 12 GiB staging",
             url=BINARY_URL,
             checksum=BINARY_SHA256,
             license=(

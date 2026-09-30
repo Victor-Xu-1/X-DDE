@@ -1,9 +1,11 @@
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
+import { SearchPreview } from "./SearchPreview";
 import { Hint } from "../guided/Hint";
 export function SearchRegion({
   language,
+  receptor,
   kind,
   onKind,
   reference,
@@ -14,6 +16,7 @@ export function SearchRegion({
   onSize,
 }: {
   language: Language;
+  receptor: MoleculeRef | null;
   kind: "reference" | "box";
   onKind(v: "reference" | "box"): void;
   reference: MoleculeRef | null;
@@ -53,43 +56,58 @@ export function SearchRegion({
           language={language}
         />
       ) : (
-        <div className="operation-grid">
-          {["X", "Y", "Z"].map((axis, index) => (
-            <div key={axis}>
-              <label className="field">
-                {zh ? "中心" : "Center"} {axis} (Å)
-                <input
-                  type="number"
-                  value={center[index]}
-                  step="0.1"
-                  onChange={(event) =>
-                    onCenter(
-                      center.map((v, n) =>
-                        n === index ? event.target.value : v,
-                      ),
-                    )
-                  }
-                />
-              </label>
-              <label className="field">
-                {zh ? "边长" : "Length"} {axis} (Å)
-                <input
-                  type="number"
-                  min={4}
-                  max={100}
-                  value={size[index]}
-                  onChange={(event) =>
-                    onSize(
-                      size.map((v, n) =>
-                        n === index ? event.target.value : v,
-                      ),
-                    )
-                  }
-                />
-              </label>
-            </div>
-          ))}
-        </div>
+        <>
+          {receptor && (
+            <SearchPreview
+              key={[
+                receptor.asset_id,
+                receptor.sha256,
+                receptor.version_id,
+                receptor.record,
+              ].join(":")}
+              receptor={receptor}
+              language={language}
+              onCenter={onCenter}
+            />
+          )}
+          <div className="operation-grid">
+            {["X", "Y", "Z"].map((axis, index) => (
+              <div key={axis}>
+                <label className="field">
+                  {zh ? "中心" : "Center"} {axis} (Å)
+                  <input
+                    type="number"
+                    value={center[index]}
+                    step="0.1"
+                    onChange={(event) =>
+                      onCenter(
+                        center.map((v, n) =>
+                          n === index ? event.target.value : v,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+                <label className="field">
+                  {zh ? "边长" : "Length"} {axis} (Å)
+                  <input
+                    type="number"
+                    min={4}
+                    max={100}
+                    value={size[index]}
+                    onChange={(event) =>
+                      onSize(
+                        size.map((v, n) =>
+                          n === index ? event.target.value : v,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+        </>
       )}
       <Hint label={zh ? "搜索范围说明" : "Search-region help"}>
         {zh

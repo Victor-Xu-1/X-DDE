@@ -526,6 +526,30 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             page.get_by_role("spinbutton", name="中心 X (Å)", exact=True).fill("1.5")
             page.get_by_role("spinbutton", name="中心 Y (Å)", exact=True).fill("2.5")
             page.get_by_role("spinbutton", name="中心 Z (Å)", exact=True).fill("3.5")
+            csrf = page.request.get(base + "/api/session").json()["csrf_token"]
+            uploaded = page.request.post(
+                base + "/api/assets?kind=structure&name=docking-center.pdb",
+                data=(
+                    b"ATOM      1  CA  ALA A  10    "
+                    b"   1.000   2.000   3.000  1.00 50.00           C  \nEND\n"
+                ),
+                headers={"Content-Type": "application/octet-stream", "X-Workbench-CSRF": csrf},
+            )
+            assert uploaded.status == 201
+            asset = uploaded.json()
+            receptor = page.get_by_role("combobox", name="受体结构", exact=True)
+            receptor.focus()
+            expect(receptor.locator('option[value="' + asset["id"] + '"]')).to_have_count(1)
+            receptor.select_option(asset["id"])
+            page.get_by_text("在三维预览中点选搜索中心", exact=True).click()
+            expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(timeout=30000)
+            page.get_by_text("从列表选择残基", exact=True).click()
+            page.get_by_role("button", name="A:ALA10", exact=True).click()
+            page.get_by_role("button", name="以所选原子为搜索中心", exact=True).click()
+            for axis, value in zip("XYZ", ("1", "2", "3"), strict=True):
+                expect(
+                    page.get_by_role("spinbutton", name=f"中心 {axis} (Å)", exact=True)
+                ).to_have_value(value)
             for width in (390, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(

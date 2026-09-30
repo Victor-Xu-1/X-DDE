@@ -4,6 +4,7 @@ import {
   residueSelection as sel,
   atomPosition as position,
   scientificSelectionIdentity,
+  finiteCoordinates,
 } from "./geometry";
 import * as mol from "3dmol";
 import {
@@ -165,6 +166,11 @@ export class MolecularScene {
   }
   private async pick(atom: mol.AtomSpec) {
     if (this.overlay) return;
+    const coordinates = finiteCoordinates(atom);
+    if (!coordinates) {
+      this.emit("error", "Selected atom has no finite source coordinates");
+      return;
+    }
     const atoms =
       this.options.pick === "residue"
         ? this.viewer.selectedAtoms(sel(ref(atom)))
@@ -184,6 +190,7 @@ export class MolecularScene {
         is_ligand: this.info.ligands.some((r) => r.key === ref(atom).key),
       },
       source_atom_index: atom.serial,
+      position: coordinates,
     });
     if (this.options.pick === "distance") {
       if (this.measurement.length === 2) this.measurement = [];

@@ -120,6 +120,7 @@ export function DockingForm({
         />
         {mode === "dock" && (
           <SearchRegion
+            receptor={receptor}
             language={language}
             kind={kind}
             onKind={(value) => {

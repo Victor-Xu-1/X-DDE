@@ -51,3 +51,17 @@ it("normalizes blank PDB identity columns while retaining real insertion and alt
     alternate_location: "A",
   });
 });
+
+it("uses finite original PDB coordinates and never fabricates zero coordinates", async () => {
+  const { finiteCoordinates, atomPosition } = await import("./geometry");
+  const model = new GLModel(0);
+  model.addMolData(
+    "ATOM      1  CA  LYS B   8       1.000   2.000   3.000  1.00 50.00           C  \nEND\n",
+    "pdb",
+  );
+  const atom = model.selectedAtoms({})[0];
+  expect(finiteCoordinates(atom)).toEqual([1, 2, 3]);
+  expect(atomPosition(atom)).toEqual({ x: 1, y: 2, z: 3 });
+  expect(finiteCoordinates({ x: 1, y: NaN, z: 3 })).toBeUndefined();
+  expect(() => atomPosition({ x: 1, y: 2 })).toThrow(/finite coordinates/);
+});
