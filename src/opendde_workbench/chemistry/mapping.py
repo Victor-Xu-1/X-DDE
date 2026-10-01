@@ -25,6 +25,10 @@ def source_molecule(mol):
         raise ValueError(
             "This state-preparation method does not support metals, radicals or dummy atoms."
         )
+    if any(g.GetGroupType() != Chem.StereoGroupType.STEREO_ABSOLUTE for g in mol.GetStereoGroups()):
+        raise ValueError(
+            "Relative/mixture stereo groups require explicit resolution before state preparation."
+        )
     for atom in mol.GetAtoms():
         atom.SetIntProp(SOURCE, atom.GetIdx())
     return mol

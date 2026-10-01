@@ -37,6 +37,7 @@ class StateCoverage(ScientificModel):
     budget_limited: bool
     enumeration_work: int = Field(ge=0, le=513)
     rejected: int = Field(ge=0, le=513)
+    protonation_rejected: int = Field(ge=0, le=1000000)
     population_probabilities: Literal["not_computed"]
 
 

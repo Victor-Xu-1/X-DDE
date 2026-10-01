@@ -18,18 +18,25 @@ def enumerate_states(source, options):
             "Dimorphite-DL 2.0.2 has a known tertiary-amide protonation limitation. "
             "Disable pH enumeration and retain the supplied charge state for this input."
         )
-    bounded = []
+    bounded, protonation_rejected = [], 0
     if options.protonation:
-        from dimorphite_dl import protonate_smiles
+        from dimorphite_dl.protonate.run import Protonate
 
-        values = protonate_smiles(
-            labelled_smiles(source),
+        protonator = Protonate(
+            smiles_input=labelled_smiles(source),
             ph_min=options.ph_min,
             ph_max=options.ph_max,
             precision=options.precision,
             max_variants=options.max_states + 1,
             validate_output=True,
         )
+        values = protonator.to_list()
+        if protonator.stats.fallback_used:
+            raise ValueError(
+                "The protonation method used a fallback instead of valid state enumeration. "
+                "Inspect native logs or retain the supplied chemical state."
+            )
+        protonation_rejected = protonator.stats.variants_rejected
         bounded = [restore_labels(s, source) for s in values]
     else:
         bounded = [Chem.Mol(source)]
@@ -100,5 +107,6 @@ def enumerate_states(source, options):
         "budget_limited": bool(truncated),
         "enumeration_work": work,
         "rejected": rejected,
+        "protonation_rejected": protonation_rejected,
         "population_probabilities": "not_computed",
     }

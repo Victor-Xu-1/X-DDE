@@ -87,6 +87,14 @@ export function StateResults({
           {data.coverage.rejected}
         </p>
       )}
+      {data.coverage.protonation_rejected > 0 && (
+        <p role="status">
+          {zh
+            ? "质子化方法排除的无效候选："
+            : "Invalid candidates excluded by the protonation method: "}
+          {data.coverage.protonation_rejected}
+        </p>
+      )}
       {loading && !error && (
         <p role="status">
           {zh

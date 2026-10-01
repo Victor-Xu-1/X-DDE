@@ -92,6 +92,7 @@ def test_prepared_result_rejects_inconsistent_mapping_energy_and_per_state_budge
             "budget_limited": False,
             "enumeration_work": 1,
             "rejected": 0,
+            "protonation_rejected": 0,
             "population_probabilities": "not_computed",
         },
         "state_artifact": "states.sdf",

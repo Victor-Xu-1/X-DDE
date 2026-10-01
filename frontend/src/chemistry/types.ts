@@ -35,7 +35,11 @@ export interface StateResult {
   state_artifact: string;
   conformer_artifact: string;
   artifact_sha256: Record<string, string>;
-  coverage: { budget_limited: boolean; rejected: number };
+  coverage: {
+    budget_limited: boolean;
+    rejected: number;
+    protonation_rejected: number;
+  };
   versions: Record<string, string>;
 }
 export interface StateSet {

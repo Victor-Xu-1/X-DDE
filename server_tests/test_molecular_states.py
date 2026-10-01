@@ -138,3 +138,23 @@ def test_defined_stereo_survives_identity_mapping_and_reversal_is_rejected(nativ
         mapping.stereo_preserved(source, row["molecule"], row["source_to_state_atoms"])
         for row in rows
     )
+
+
+def test_protonation_fallback_is_an_explicit_failure_not_a_prepared_state(native, monkeypatch):
+    from types import SimpleNamespace
+
+    from dimorphite_dl.protonate import run
+
+    source = native["mapping"].source_molecule(Chem.MolFromSmiles("CCO"))
+
+    class FallbackBoundary:
+        def __init__(self, **kwargs):
+            self.smiles = kwargs["smiles_input"]
+            self.stats = SimpleNamespace(fallback_used=1, variants_rejected=0)
+
+        def to_list(self):
+            return [self.smiles]
+
+    monkeypatch.setattr(run, "Protonate", FallbackBoundary)
+    with pytest.raises(ValueError, match="fallback"):
+        native["states"].enumerate_states(source, native["options"].StateOptions())
