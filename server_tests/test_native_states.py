@@ -75,6 +75,8 @@ def test_real_offline_state_container_indexes_a_persistent_reusable_collection(t
                 "stereoisomers": False,
                 "max_states": 1,
                 "conformers_per_state": 2,
+                # Preserve two initializations for the downstream native pose matrix.
+                "prune_rmsd": 0,
             },
         }
         response = client.post("/api/jobs", json=body, headers={"Idempotency-Key": str(uuid4())})
