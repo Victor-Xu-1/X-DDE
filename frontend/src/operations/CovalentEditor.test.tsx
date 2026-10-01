@@ -6,7 +6,7 @@ import { defaults } from "../form-model";
 import * as client from "../api";
 import type { Job } from "../types";
 afterEach(() => vi.restoreAllMocks());
-it("inspects only after review and keeps network/template/folding controls out of the native atom task", async () => {
+it("prepares the preview only on explicit request and keeps network/template/folding controls out of the native atom task", async () => {
   vi.spyOn(client, "request").mockResolvedValue({
     availability: { configuration_present: true },
   });
@@ -31,13 +31,7 @@ it("inspects only after review and keeps network/template/folding controls out o
     />,
   );
   await user.click(screen.getByText("Covalent bonds · select actual atoms"));
-  await user.click(
-    screen.getByRole("button", { name: "Inspect inputs and open selector" }),
-  );
-  for (let i = 0; i < 3; i++) {
-    expect(submit).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: "Next" }));
-  }
+  expect(submit).not.toHaveBeenCalled();
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Inspect inputs and open selector" }),

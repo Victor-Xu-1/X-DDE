@@ -237,8 +237,8 @@ drafts but cannot dispatch tasks. Native input validity is rechecked across all 
 pages before forward navigation or submission.
 
 Prediction, all Harness tools, DiffSBDD modes, antibody campaigns, preparation,
-imports, resources, saved research plans and inline chemistry inspection use the same
-questionnaire authority. Saving a plan or region is distinct from starting computation;
+imports, resources, saved research plans use the same questionnaire authority. Native atom inspection is an explicit preparation
+action inside the preview question, without a redundant second wizard. Saving a plan or region is distinct from starting computation;
 results links always use the actual returned job, plan or run. The supplied Boltz Lab
 screenshots informed choice-driven guidance and candidate/3D layout. The referenced
 authenticated new-target wizard redirected to login, so its unseen steps are not claimed

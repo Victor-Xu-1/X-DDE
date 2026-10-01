@@ -1,5 +1,4 @@
 import { useTaskReadiness } from "../guided/useTaskReadiness";
-import { InspectionSteps } from "../guided/InspectionSteps";
 import { useEffect, useRef, useState } from "react";
 import { api, artifactUrl, request } from "../api";
 import type { Component, Job, Language, Parameters } from "../types";
@@ -148,26 +147,28 @@ export function CovalentEditor({
           ? "先检查输入，再在预览中点选两个原子，或搜索下拉列表。该预览用于编辑输入拓扑，不是结合姿势预测。"
           : "Inspect inputs, then pick two atoms in the preview or search the list. This preview edits input topology; it is not a predicted binding pose."}
       </p>
-      {(!job ||
-        readyKey !== key ||
-        (terminal(job.status) && job.status !== "succeeded")) && (
-        <InspectionSteps
-          ready={inspectionReady}
-          key={key}
-          language={language}
-          label={
-            zh ? "检查输入并打开选择器" : "Inspect inputs and open selector"
-          }
-          subject={
-            <p>
-              {zh ? "使用当前输入组分" : "Use the current input components"} ·{" "}
-              {components.length}
-            </p>
-          }
-          busy={busy}
-          error={error || inspectionReadinessError}
-          onSubmit={prepare}
-        />
+      <button
+        type="button"
+        disabled={
+          !inspectionReady || busy || Boolean(job && !terminal(job.status))
+        }
+        onClick={() => void prepare()}
+        title={
+          zh
+            ? "仅解析输入拓扑并准备预览；结构预测仍需在最后一步递交。"
+            : "Parse input topology and prepare a preview only; structure prediction is submitted at the final step."
+        }
+      >
+        {busy || Boolean(job && !terminal(job.status))
+          ? zh
+            ? "正在准备原子列表…"
+            : "Preparing atoms…"
+          : zh
+            ? "检查输入并打开选择器"
+            : "Inspect inputs and open selector"}
+      </button>
+      {inspectionReadinessError && (
+        <p role="alert">{inspectionReadinessError}</p>
       )}
       {error && (
         <p role="alert" className="error-box">

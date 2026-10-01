@@ -18,7 +18,6 @@ export function GuidedSteps<T extends { id: string }>({
   onSubmit,
   renderResult,
   resultTitle,
-  embedded = false,
 }: {
   language: Language;
   steps: readonly [QuestionStep, QuestionStep, QuestionStep, QuestionStep];
@@ -30,7 +29,6 @@ export function GuidedSteps<T extends { id: string }>({
   onSubmit(): Promise<T | undefined>;
   renderResult(result: T): ReactNode;
   resultTitle?: string;
-  embedded?: boolean;
 }) {
   const zh = language === "zh",
     id = useId();
@@ -104,9 +102,8 @@ export function GuidedSteps<T extends { id: string }>({
     ...steps.map((s) => s.title),
     resultTitle ?? (zh ? "查看结果" : "View results"),
   ];
-  const Container = embedded ? "section" : "form";
   return (
-    <Container
+    <form
       className="questionnaire tool-form"
       onSubmit={(e) => {
         e.preventDefault();
@@ -187,8 +184,7 @@ export function GuidedSteps<T extends { id: string }>({
             </button>
           ) : (
             <button
-              type={embedded ? "button" : "submit"}
-              onClick={embedded ? () => void submit() : undefined}
+              type="submit"
               className="primary-button"
               disabled={busy || !complete || !ready}
             >
@@ -197,7 +193,7 @@ export function GuidedSteps<T extends { id: string }>({
           )}
         </div>
       )}
-    </Container>
+    </form>
   );
 }
 

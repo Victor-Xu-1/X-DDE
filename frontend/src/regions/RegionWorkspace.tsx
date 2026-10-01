@@ -1,5 +1,4 @@
 import { GuidedSteps } from "../guided/Questionnaire";
-import { InspectionSteps } from "../guided/InspectionSteps";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
@@ -189,48 +188,58 @@ export function RegionEditor({
             : "Configure the DiffSBDD chemical parsing environment in component management to read atom identities."}
         </p>
       )}
+    </>
+  );
+  const selection = (
+    <>
+      {identity.result && identity.job ? (
+        <>
+          <RegionDrafts
+            values={regions}
+            active={active}
+            onActive={setActive}
+            onChange={change}
+            language={language}
+          />
+          <AtomSelection
+            job={identity.job.id}
+            identity={identity.result}
+            selected={regions[active].atom_indices}
+            onAtom={(atom) => {
+              if (!busy) change(toggleAtom(regions, active, atom));
+            }}
+            language={language}
+          />
+        </>
+      ) : (
+        <p role="status">
+          {zh
+            ? "请先完成原子身份检查。"
+            : "Complete atom identity inspection first."}
+        </p>
+      )}
       {subject && !identity.result && (
-        <InspectionSteps
-          language={language}
-          ready={ready}
-          label={zh ? "读取可选原子" : "Read selectable atoms"}
-          subject={
-            <p>{zh ? "当前完整分子版本" : "Current full-molecule version"}</p>
+        <button
+          type="button"
+          disabled={!ready || identity.running || loading}
+          title={
+            zh
+              ? "读取实际原子身份后，可在预览中点击选区；保持原始分子完整。"
+              : "Read actual atom identities, then select regions in the preview; retain the intact original molecule."
           }
-          busy={identity.running || loading}
-          error={identity.error}
-          onSubmit={identity.inspect}
-        />
+          onClick={() => void identity.inspect()}
+        >
+          {identity.running
+            ? zh
+              ? "正在读取…"
+              : "Reading…"
+            : zh
+              ? "读取可选原子"
+              : "Read selectable atoms"}
+        </button>
       )}
     </>
   );
-  const selection =
-    identity.result && identity.job ? (
-      <>
-        <RegionDrafts
-          values={regions}
-          active={active}
-          onActive={setActive}
-          onChange={change}
-          language={language}
-        />
-        <AtomSelection
-          job={identity.job.id}
-          identity={identity.result}
-          selected={regions[active].atom_indices}
-          onAtom={(atom) => {
-            if (!busy) change(toggleAtom(regions, active, atom));
-          }}
-          language={language}
-        />
-      </>
-    ) : (
-      <p role="status">
-        {zh
-          ? "请先完成原子身份检查。"
-          : "Complete atom identity inspection first."}
-      </p>
-    );
   const settings = (
     <label className="field">
       {zh ? "区域集名称" : "Region set name"}
@@ -267,7 +276,7 @@ export function RegionEditor({
       steps={[
         {
           title: zh ? "选择材料" : "Choose inputs",
-          valid: !loading && Boolean(identity.result),
+          valid: !loading && Boolean(subject),
           content: reuse,
         },
         {

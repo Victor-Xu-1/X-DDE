@@ -1,5 +1,4 @@
 import { useTaskReadiness } from "../guided/useTaskReadiness";
-import { InspectionSteps } from "../guided/InspectionSteps";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -35,19 +34,24 @@ export function FixedAtomPicker({
           : "Read this version with the real chemical parser, then click fixed atoms. Display numbering starts at 1; submission uses parser identities."}
       </p>
       {!result && (
-        <InspectionSteps
-          ready={inspectionReady}
-          language={language}
-          label={zh ? "读取可选原子" : "Read selectable atoms"}
-          subject={
-            <p>
-              {zh ? "使用已选分子版本" : "Use the selected molecule version"}
-            </p>
+        <button
+          type="button"
+          disabled={!inspectionReady || running}
+          onClick={() => void inspect()}
+          title={
+            zh
+              ? "仅读取这个分子版本的原子身份，供预览选区使用；不生成新分子。"
+              : "Read this molecule version's atom identities for preview selection; no molecular generation."
           }
-          busy={running}
-          error={error || inspectionReadinessError}
-          onSubmit={inspect}
-        />
+        >
+          {running
+            ? zh
+              ? "正在读取…"
+              : "Reading…"
+            : zh
+              ? "读取可选原子"
+              : "Read selectable atoms"}
+        </button>
       )}
       {job && !["queued", "running", "succeeded"].includes(job.status) && (
         <p role="alert">
