@@ -318,7 +318,7 @@ export function CampaignForm({ language }: { language: Language }) {
       Object.values(draft.binders).every((v) => Boolean(v.trim())) &&
       Object.values(draft.cdr).some((v) => v.length > 0));
   return (
-    <div className="tool-form">
+    <div>
       <GuidedSteps<Plan>
         language={language}
         busy={busy}

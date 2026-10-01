@@ -329,7 +329,7 @@ export function WorkflowCenter({
     ? Array.isArray(native.steps) && native.steps.length > 0
     : ids.length > 0 && ids.every(Boolean);
   return (
-    <section className="tool-form">
+    <section>
       <GuidedSteps<WorkflowRun>
         language={language}
         busy={busy}
