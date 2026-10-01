@@ -7,6 +7,7 @@ from fastapi import Depends, Header, HTTPException, Query
 
 from ..store import ConflictError
 from .collections import PoseSets
+from .comparison_routes import register_score_comparisons
 from .contracts import ExplorationInput
 from .models import ExplorationPlan, PoseEnsemble
 from .storage import Explorations
@@ -71,3 +72,5 @@ def register_pose_explorations(app, store, assets, settings, mutation):
     @app.get("/api/research/pose-ensembles/{set_id}", response_model=PoseEnsemble)
     def get_set(set_id: UUID):
         return translate(lambda: sets.get(set_id))
+
+    register_score_comparisons(app, sets, mutation, translate)

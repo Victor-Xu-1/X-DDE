@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PoseScoreComparison } from "./PoseScoreComparison";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { PropertyForm } from "../operations/PropertyForm";
@@ -153,6 +154,21 @@ export function PoseResults({
           </tbody>
         </table>
       </div>
+      <PoseScoreComparison
+        value={value}
+        outcomeIndex={index}
+        language={language}
+        onSelect={(stepId, record) => {
+          const target = value.outcomes.findIndex(
+            (o) => o.combination.step_id === stepId,
+          );
+          if (target >= 0) {
+            setIndex(target);
+            setPose(record);
+            setNext(null);
+          }
+        }}
+      />
       {selected?.reference && (
         <>
           <StructureViewer

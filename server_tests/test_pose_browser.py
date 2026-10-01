@@ -137,6 +137,39 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     page.screenshot(
                         path=str(evidence / "pose-paired-rescore-handoff-390.png"), full_page=True
                     )
+                    result.get_by_text("比较原生评分", exact=True).click()
+                    result.get_by_role("combobox", name="比较哪些姿势？", exact=True).select_option(
+                        "all"
+                    )
+                    with page.expect_response(
+                        lambda r: (
+                            r.url.endswith("/api/research/pose-score-comparisons")
+                            and r.request.method == "POST"
+                        )
+                    ) as comparison_created:
+                        result.get_by_role("button", name="比较并保存证据", exact=True).click()
+                    assert comparison_created.value.status == 201, comparison_created.value.text()
+                    compared = comparison_created.value.json()
+                    assert len(compared["groups"]) == 2
+                    view = result.get_by_role("region", name="同条件评分比较", exact=True)
+                    expect(view).to_be_visible()
+                    for width in (1440, 390):
+                        page.set_viewport_size({"width": width, "height": 1000})
+                        assert page.evaluate(
+                            "document.documentElement.scrollWidth<=window.innerWidth+1"
+                        )
+                        view.scroll_into_view_if_needed()
+                        page.screenshot(path=str(evidence / f"pose-score-comparison-{width}.png"))
+                    first = min(compared["groups"][0]["poses"], key=lambda p: p["front"])
+                    view.get_by_role("button").first.click()
+                    chosen = next(
+                        i
+                        for i, o in enumerate(saved["outcomes"])
+                        if o["combination"]["step_id"] == first["selection"]["step_id"]
+                    )
+                    expect(
+                        result.get_by_role("combobox", name="查看哪个组合？", exact=True)
+                    ).to_have_value(str(chosen))
                     assert len(page.request.get(base + "/api/jobs").json()) == before and not errors
                 finally:
                     browser.close()

@@ -217,6 +217,29 @@ def test_cancelled_unattempted_combinations_are_preserved_without_fabricated_pos
         poses = response.json()
         assert poses["qualified_pose_count"] == 0 and poses["collection_status"] == "partial"
         assert all(o["status"] == "not_attempted" and not o["poses"] for o in poses["outcomes"])
+        comparison = {
+            "pose_set_id": poses["id"],
+            "selections": [{"step_id": "pose_000", "record": 0}],
+        }
+        assert (
+            client.post(
+                "/api/research/pose-score-comparisons",
+                json=comparison,
+                headers={"Idempotency-Key": str(uuid4()), "X-Workbench-CSRF": "bad"},
+            ).status_code
+            == 403
+        )
+        assert (
+            client.post(
+                "/api/research/pose-score-comparisons",
+                json=comparison,
+                headers={"Idempotency-Key": str(uuid4())},
+            ).status_code
+            == 422
+        )
+        assert client.get("/api/research/pose-score-comparisons").json() == []
+        assert client.get("/api/jobs").json() == []
+
         assert client.post(endpoint, json={}).json() == poses
         assert client.get("/api/research/pose-ensembles/" + poses["id"]).json() == poses
         graph = client.get("/api/research/graph?focus=pose_set:" + poses["id"]).json()

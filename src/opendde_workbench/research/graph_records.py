@@ -16,11 +16,41 @@ TABLES = {
     "site_set": "research_site_sets",
     "exploration": "research_pose_explorations",
     "pose_set": "research_pose_sets",
+    "score_set": "research_pose_comparisons",
 }
 
 
 def project_record(store, kind, row):
     identifier = kind + ":" + row["id"]
+    if kind == "score_set":
+        from ..pose_ensembles.comparisons import ScoreComparisons
+
+        value = ScoreComparisons.decode(row)
+        edges = [
+            ("pose_set:" + str(value.request.pose_set_id), identifier, "pose_score_comparison")
+        ]
+        edges.extend(
+            ("object:" + str(p.reference.version_id), identifier, "compared_pose")
+            for group in value.groups
+            for p in group.poses
+        )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "pose_score_comparison",
+                "label": "姿势评分比较",
+                "exploration_id": str(value.exploration_id),
+                "pose_set_id": str(value.request.pose_set_id),
+                "score_comparison_id": str(value.id),
+                "created_at": value.created_at,
+                "source": {
+                    "type": "api",
+                    "path": "/api/research/pose-score-comparisons/" + str(value.id),
+                },
+            },
+            edges,
+        )
     if kind == "exploration":
         from ..pose_ensembles.storage import Explorations
 

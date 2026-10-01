@@ -35,7 +35,8 @@ export interface GraphNode {
     | "receptor_ensemble"
     | "binding_site_set"
     | "pose_exploration"
-    | "pose_ensemble";
+    | "pose_ensemble"
+    | "pose_score_comparison";
   label: string;
   asset_id?: string;
   asset_kind?: string;
@@ -66,6 +67,7 @@ export const objectLabels: Record<string, [string, string]> = {
   binding_site_set: ["跨构象位点", "Cross-conformation sites"],
   pose_exploration: ["姿势探索计划", "Pose exploration"],
   pose_ensemble: ["结合姿势集合", "Pose ensemble"],
+  pose_score_comparison: ["姿势评分比较", "Pose score comparison"],
   molecule: ["分子", "Molecule"],
   structure: ["结构", "Structure"],
   sequence: ["序列", "Sequence"],
@@ -79,6 +81,8 @@ export const objectLabels: Record<string, [string, string]> = {
   region: ["分子区域", "Molecular regions"],
 };
 export const edgeLabels: Record<string, [string, string]> = {
+  pose_score_comparison: ["同条件评分比较", "Equal-condition score comparison"],
+  compared_pose: ["参与比较的姿势", "Compared pose"],
   pose_site_selection: ["探索位点", "Explored sites"],
   planned_pose_exploration: ["姿势计划", "Pose plan"],
   pose_ligand_input: ["探索分子", "Exploration ligand"],

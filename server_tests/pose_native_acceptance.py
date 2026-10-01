@@ -156,10 +156,67 @@ def inspect_pose_campaign(settings, image):
                         "/api/research/objects/" + pose["reference"]["version_id"]
                     ).json()
                     assert version["parent_id"] == c["ligand"]["reference"]["version_id"]
+        comparison_body = {
+            "pose_set_id": poses["id"],
+            "selections": [
+                {"step_id": o["combination"]["step_id"], "record": p["evidence"]["record"]}
+                for o in poses["outcomes"]
+                for p in o["poses"]
+                if p["reference"]
+            ],
+            "metrics": ["minimizedAffinity"],
+        }
+        comparison_key = {"Idempotency-Key": str(uuid4())}
+        compared = client.post(
+            "/api/research/pose-score-comparisons", json=comparison_body, headers=comparison_key
+        )
+        assert compared.status_code == 201, compared.text
+        comparison = compared.json()
+        assert len(comparison["groups"]) == 2  # exact receptor/site groups; conformers/seeds vary
+        assert sum(len(g["poses"]) for g in comparison["groups"]) == poses["qualified_pose_count"]
+        assert all(
+            p["front"] is not None and not p["missing_metrics"]
+            for g in comparison["groups"]
+            for p in g["poses"]
+        )
+        assert (
+            client.post(
+                "/api/research/pose-score-comparisons", json=comparison_body, headers=comparison_key
+            ).json()
+            == comparison
+        )
+        absent_body = {**comparison_body, "metrics": ["CNNscore"]}
+        assert (
+            client.post(
+                "/api/research/pose-score-comparisons", json=absent_body, headers=comparison_key
+            ).status_code
+            == 409
+        )
+        absent = client.post(
+            "/api/research/pose-score-comparisons",
+            json=absent_body,
+            headers={"Idempotency-Key": str(uuid4())},
+        )
+        assert absent.status_code == 201, absent.text
+        assert all(
+            p["front"] is None and p["missing_metrics"] == ["CNNscore"]
+            for g in absent.json()["groups"]
+            for p in g["poses"]
+        )
+        assert len(client.get("/api/jobs").json()) == before + 8
+        comparison_graph = client.get(
+            "/api/research/graph?focus=score_set:" + comparison["id"]
+        ).json()
+        assert any(n["kind"] == "pose_score_comparison" for n in comparison_graph["nodes"])
+        assert any(e["relation"] == "pose_score_comparison" for e in comparison_graph["edges"])
         graph = client.get("/api/research/graph?focus=pose_set:" + poses["id"]).json()
         assert any(n["kind"] == "pose_ensemble" for n in graph["nodes"])
     with TestClient(create_app(target), base_url="http://127.0.0.1:4320") as client:
         assert client.get("/api/research/pose-ensembles/" + poses["id"]).json() == poses
+        assert (
+            client.get("/api/research/pose-score-comparisons/" + comparison["id"]).json()
+            == comparison
+        )
     destination = Path("server_tests/evidence/pose-ensemble-fixture")
     destination.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(state / "jobs.sqlite3") as db:
@@ -180,6 +237,7 @@ def inspect_pose_campaign(settings, image):
                 "site_set_id": sites["id"],
                 "state_set_id": prepared["id"],
                 "qualified": poses["qualified_pose_count"],
+                "score_comparison_id": comparison["id"],
                 "scope": (
                     "actual native sampling and paired provenance; "
                     "not biological affinity validation"
