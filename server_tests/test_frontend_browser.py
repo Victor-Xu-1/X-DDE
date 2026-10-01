@@ -60,6 +60,11 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             page.goto(base_url)
             logo = page.get_by_role("img", name="X-DDE 药物研究工作台", exact=True)
             expect(logo).to_be_visible()
+            page.wait_for_function(
+                "node => node.complete && node.naturalWidth > 0",
+                arg=logo.element_handle(),
+                timeout=10000,
+            )
             assert logo.evaluate("node => node.complete && node.naturalWidth > 0")
             favicon = page.locator('link[rel="icon"]').get_attribute("href")
             assert favicon == "/brand/favicon.png"
