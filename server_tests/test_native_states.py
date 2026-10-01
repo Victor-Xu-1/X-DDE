@@ -2,7 +2,6 @@
 
 import json
 import os
-import subprocess
 from pathlib import Path
 from uuid import uuid4
 
@@ -32,16 +31,19 @@ def test_real_offline_state_container_indexes_a_persistent_reusable_collection(t
     from fastapi.testclient import TestClient
 
     from opendde_workbench.api import create_app
-    from opendde_workbench.chemistry.image import prepare_context
+    from opendde_workbench.chemistry.image import lock_digest
+    from opendde_workbench.deployment.installers import install
     from opendde_workbench.settings import Settings
 
-    context = tmp_path / "context"
-    prepare_context(context)
-    tag = "xdde-state-acceptance:" + uuid4().hex
-    subprocess.run(["docker", "build", "--tag", tag, str(context)], check=True, timeout=900)
-    image = subprocess.check_output(
-        ["docker", "image", "inspect", "--format", "{{.Id}}", tag], text=True
-    ).strip()
+    root = tmp_path / "components"
+    root.mkdir()
+    progress = []
+    installed = install("chemistry", root, {}, str(uuid4()), progress.append, lambda: None)
+    image = installed["image"]
+    assert installed["runtime_lock_sha256"] == lock_digest()
+    assert installed["provisioning"]["engine"] == "chemistry"
+    assert (Path(installed["directory"]) / "image-context/requirements.txt").is_file()
+    assert progress
     settings = Settings(
         state_dir=tmp_path / "state",
         image_file=tmp_path / "unused-image",

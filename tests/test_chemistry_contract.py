@@ -135,7 +135,11 @@ def test_free_conformers_cannot_be_bound_as_aligned_generation_inputs():
     first = {"id": "prepare", "request": {"operation": "molecular_states", "molecule": ref}}
     property_step = {
         "id": "measure",
-        "request": {"operation": "properties", "smiles": ["CCO"]},
+        "request": {
+            "operation": "properties",
+            "name": "properties of prepared state",
+            "smiles": ["CCO"],
+        },
         "depends_on": ["prepare"],
         "bindings": [
             {
