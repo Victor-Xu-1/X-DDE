@@ -32,3 +32,24 @@ def test_whole_library_is_not_misrepresented_as_one_query_version():
     ):
         with pytest.raises(ValidationError):
             ScreenOptions(**patch)
+
+
+def test_library_snapshot_keeps_all_records_without_relaxing_prediction_ligands(tmp_path):
+    from opendde_workbench.assets import AssetStore
+    from opendde_workbench.prediction import Prediction
+    from opendde_workbench.store import Store
+
+    assets = AssetStore(Store(tmp_path / "jobs.sqlite3"), tmp_path / "assets")
+    content = b"one\n$$$$\ntwo\n$$$$\n"
+    asset = assets.save("library.sdf", "ligand", content)
+    task = LibraryScreenTask(library={"asset_id": asset.id, "sha256": asset.sha256})
+    directory = tmp_path / "library-job"
+    directory.mkdir()
+    bindings = assets.snapshot(task, directory)
+    assert bindings[asset.id] == "/job/assets/" + asset.id + ".sdf"
+    assert (directory / "assets" / (asset.id + ".sdf")).read_bytes() == content
+    prediction = Prediction(components=[{"kind": "ligand", "ligand_file": asset.id}])
+    directory = tmp_path / "prediction-job"
+    directory.mkdir()
+    with pytest.raises(ValueError, match="prediction ligand"):
+        assets.snapshot(prediction, directory)

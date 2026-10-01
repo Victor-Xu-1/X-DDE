@@ -347,6 +347,7 @@ class AssetStore:
                 "diffsbdd",
                 "docking",
                 "molecular_states",
+                "library_screen",
             }:
                 records = [
                     part
