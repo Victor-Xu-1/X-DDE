@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
+import { LibraryScreenResults } from "../chemistry/LibraryScreenResults";
+import type { LibraryScreenResult } from "../chemistry/screen-types";
 import { StructurePrepareResults } from "../receptors/StructurePrepareResults";
 import type { StructurePrepareResult } from "../receptors/preparation-types";
 import { PocketResults } from "../pockets/PocketResults";
@@ -73,6 +75,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "library_screen",
     "structure_prepare",
     "pocket_search",
     "reference_import",
@@ -119,6 +122,14 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "library_screen" && (
+        <LibraryScreenResults
+          job={job}
+          result={data as unknown as LibraryScreenResult}
+          language={language}
+          onCreated={onCreated}
+        />
+      )}
       {job.request.operation === "structure_prepare" && (
         <StructurePrepareResults
           job={job}

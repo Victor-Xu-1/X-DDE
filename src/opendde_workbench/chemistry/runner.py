@@ -98,9 +98,15 @@ def run(request, bindings, directory, output):
 def main():
     directory, output = Path("/input"), Path("/output")
     request = json.loads((directory / "request.json").read_text())
-    if request["operation"] != "molecular_states":
-        raise ValueError("This adapter only prepares molecular states.")
-    result = run(request, json.loads((directory / "bindings.json").read_text()), directory, output)
+    bindings = json.loads((directory / "bindings.json").read_text())
+    if request["operation"] == "library_screen":
+        from native_screen import run_screen
+
+        result = run_screen(request, bindings, directory, output)
+    elif request["operation"] == "molecular_states":
+        result = run(request, bindings, directory, output)
+    else:
+        raise ValueError("Unsupported operation in the reviewed chemistry adapter.")
     file = output / "result.json.tmp"
     file.write_text(json.dumps(result, indent=2, allow_nan=False), encoding="utf-8")
     file.replace(output / "result.json")

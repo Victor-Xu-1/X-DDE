@@ -119,7 +119,87 @@ def test_real_offline_state_container_indexes_a_persistent_reusable_collection(t
             *(c["artifact"] for c in result["conformers"]),
         ):
             shutil.copyfile(output / name, fixture / name)
+        library_asset_response = client.post(
+            "/api/assets?kind=ligand&name=early-library.sdf",
+            content=(SDF + SDF).encode(),
+            headers={"Content-Type": "application/octet-stream"},
+        )
+        assert library_asset_response.status_code == 201, library_asset_response.text
+        library_asset = library_asset_response.json()
+        screen_ids = []
+        for mode in ("inventory", "similarity", "substructure", "diversity", "filter"):
+            selected_query = (
+                version["reference"] if mode in {"similarity", "substructure"} else None
+            )
+            screen_body = {
+                "operation": "library_screen",
+                "library": {"asset_id": library_asset["id"], "sha256": library_asset["sha256"]},
+                "query": selected_query,
+                "scientific_inputs": [selected_query] if selected_query else [],
+                "options": {"mode": mode},
+            }
+            screen_key = str(uuid4())
+            response = client.post(
+                "/api/jobs", json=screen_body, headers={"Idempotency-Key": screen_key}
+            )
+            assert response.status_code == 201, response.text
+            screen_id = response.json()["id"]
+            assert (
+                client.post(
+                    "/api/jobs", json=screen_body, headers={"Idempotency-Key": screen_key}
+                ).json()["id"]
+                == screen_id
+            )
+            deadline = time.monotonic() + 90
+            while time.monotonic() < deadline:
+                screen_job = client.get(f"/api/jobs/{screen_id}").json()
+                if screen_job["status"] in {"succeeded", "failed"}:
+                    break
+                time.sleep(0.1)
+            assert screen_job["status"] == "succeeded", client.get(
+                f"/api/jobs/{screen_id}/logs"
+            ).json()["text"]
+            response = client.get(f"/api/jobs/{screen_id}/result")
+            assert response.status_code == 200, response.text
+            screen = response.json()
+            assert len(screen["rows"]) == 2 and not screen["rows"][1]["eligible"]
+            assert client.post(f"/api/jobs/{screen_id}/index-assets").json()["state"] == "complete"
+            if mode == "filter":
+                assert not screen["selected_records"]
+                assert {
+                    v["kind"]
+                    for v in client.get(
+                        "/api/research/objects", params={"source_job": screen_id}
+                    ).json()
+                } == {"analysis"}
+            else:
+                assert (
+                    screen["selected_records"] == [0]
+                    and screen["rows"][0]["reference"]["version_id"]
+                )
+                selected_version = screen["rows"][0]["reference"]
+                assert (
+                    selected_version["record"] == 0
+                    and selected_version["sha256"] == screen["sha256"]
+                )
+                if mode == "inventory":
+                    screen_fixture = Path("server_tests/evidence/core-fixture/library-screen")
+                    screen_fixture.mkdir(parents=True, exist_ok=True)
+                    (screen_fixture / "result.json").write_text(json.dumps(screen))
+                    (screen_fixture / "input.sdf").write_text(SDF + SDF)
+                    screened_output = settings.state_dir / "jobs" / screen_id / "output"
+                    shutil.copyfile(
+                        screened_output / screen["artifact"], screen_fixture / screen["artifact"]
+                    )
+            screen_ids.append(screen_id)
+        screen_output = settings.state_dir / "jobs" / screen_ids[0] / "output"
+        original_selected = (screen_output / "selected.sdf").read_bytes()
+        (screen_output / "selected.sdf").write_bytes(b"changed")
+        assert client.get(f"/api/jobs/{screen_ids[0]}/result").status_code == 422
+        (screen_output / "selected.sdf").write_bytes(original_selected)
         (output / "conformers.sdf").write_text("changed")
         assert client.get(f"/api/jobs/{identifier}/result").status_code == 422
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         assert client.get(f"/api/research/state-sets/{original['id']}").json() == original
+        for screen_id in screen_ids:
+            assert client.get(f"/api/jobs/{screen_id}/result").status_code == 200

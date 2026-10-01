@@ -107,10 +107,29 @@ def test_actual_target_sources_persistence_exact_sequence_and_tamper(tmp_path, m
             ]
             == "discovery"
         )
+        from opendde_workbench.discovery.import_contract import ReferenceImportTask
+        from opendde_workbench.discovery.import_provenance import evidence_binding
+
+        evidence_ref = result["analysis_reference"]
+        archive_request = ReferenceImportTask(
+            source="chembl",
+            identifier=result["activities"]["rows"][0]["molecule_chembl_id"],
+            format="sdf",
+            allow_external=True,
+            evidence=evidence_ref,
+            activity_id=result["activities"]["rows"][0]["activity_id"],
+            scientific_inputs=[evidence_ref],
+        )
+        assert evidence_binding(archive_request, assets)
+        mismatched = archive_request.model_copy(update={"activity_id": 987654321})
+        with pytest.raises(ValueError, match="molecule/activity"):
+            evidence_binding(mismatched, assets)
         file = settings.state_dir / "jobs" / identifier / "output/source-01.json"
         original = file.read_bytes()
         file.write_bytes(b"{}")
         assert client.get(f"/api/jobs/{identifier}/result").status_code == 422
+        with pytest.raises(ValueError):
+            evidence_binding(archive_request, assets)
         assert client.post(f"/api/jobs/{identifier}/index-assets").json()["errors"]
         file.write_bytes(original)
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:

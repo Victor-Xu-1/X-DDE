@@ -146,7 +146,7 @@ def test_actual_receptor_environment_and_reusable_persistent_alignment_collectio
             time.sleep(0.1)
         assert prepared_job["status"] == "succeeded", client.get(
             f"/api/jobs/{prepared_id}/logs"
-        ).json()
+        ).json()["text"]
         response = client.get(f"/api/jobs/{prepared_id}/result")
         assert response.status_code == 200, response.text
         prepared = response.json()

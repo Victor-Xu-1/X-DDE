@@ -53,6 +53,15 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
                 "unbound_coordinate_frame",
             )
         )
+        if spec.id == "chemistry.screen":
+            specific = [
+                "whole_sdf_library_up_to_500_records",
+                "exact_query_record",
+                "declared_selection_method",
+                "invalid_records_preserved",
+                "selected_output_budget",
+                "chemical_criteria_not_activity",
+            ]
     elif spec.environment == "gnina":
         checks = {"runtime": bool(backends.get("gnina", {}).get("ready"))}
         specific.extend(

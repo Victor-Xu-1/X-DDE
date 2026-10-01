@@ -5,7 +5,16 @@ from pathlib import Path
 from ..prepared_container import PreparedContainerBackend
 from .runtime import configuration, readiness
 
-FILES = ("runner.py", "states.py", "mapping.py", "conformers.py", "options.py")
+FILES = (
+    "runner.py",
+    "states.py",
+    "mapping.py",
+    "conformers.py",
+    "options.py",
+    "native_screen.py",
+    "screen_io.py",
+    "screen_options.py",
+)
 
 
 class ChemistryBackend(PreparedContainerBackend):

@@ -38,9 +38,9 @@ _DEFINITIONS = (
     ScientificEngine(
         "chemistry",
         "RDKit + Dimorphite-DL",
-        "化学状态与游离构象准备 / Molecular-state and free-conformer preparation",
+        "化学状态、构象与早期分子库筛选 / Molecular states, conformers and early library selection",
         "docker",
-        ("molecular_states",),
+        ("molecular_states", "library_screen"),
     ),
     ScientificEngine(
         "gnina",

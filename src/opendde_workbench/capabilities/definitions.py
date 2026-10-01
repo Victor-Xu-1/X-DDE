@@ -334,6 +334,23 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_LIBRARY_SCREEN = (
+    CapabilitySpec(
+        id="chemistry.screen",
+        **modality_metadata("chemistry.screen"),
+        group="analyze",
+        environment="chemistry",
+        operations=("library_screen",),
+        label=("分子库与早期筛选", "Library and early molecular selection"),
+        note=(
+            "整理、相似性、片段和多样性选择，复用具体分子记录。",
+            "Inventory, similarity, substructure and diversity; reuse exact molecular records.",
+        ),
+        source="RDKit",
+        frontend_form="library_screen",
+        scientific_validation="target_server_pending",
+    ),
+)
 _STRUCTURE_PREPARE = (
     CapabilitySpec(
         id="biopython.prepare",
@@ -369,7 +386,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _STRUCTURE_PREPARE
+    _LIBRARY_SCREEN
+    + _STRUCTURE_PREPARE
     + _REFERENCE_IMPORT
     + _DISCOVERY
     + _BASE

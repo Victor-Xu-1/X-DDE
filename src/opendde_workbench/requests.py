@@ -15,6 +15,7 @@ from pydantic import (
 )
 
 from .chemistry.contract import MolecularStatesTask
+from .chemistry.screen_contract import LibraryScreenTask
 from .diffsbdd.contract import DiffTask, references
 from .discovery.contract import TargetResearchTask
 from .discovery.import_contract import ReferenceImportTask
@@ -140,6 +141,7 @@ TaskRequest = Annotated[
     | Annotated[DiffTask, Tag("diffsbdd")]
     | Annotated[PocketSearch, Tag("pocket_search")]
     | Annotated[DockingTask, Tag("docking")]
+    | Annotated[LibraryScreenTask, Tag("library_screen")]
     | Annotated[MolecularStatesTask, Tag("molecular_states")]
     | Annotated[StructurePrepareTask, Tag("structure_prepare")]
     | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
@@ -159,6 +161,10 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         return {str(item.structure.asset_id) for item in request.inputs} | {
             str(ref.asset_id) for ref in request.scientific_inputs
         }
+    if isinstance(request, LibraryScreenTask):
+        return {str(request.library.asset_id)} | (
+            {str(request.query.asset_id)} if request.query else set()
+        )
     if isinstance(request, MolecularStatesTask):
         return {str(request.molecule.asset_id)} | {
             str(ref.asset_id) for ref in request.scientific_inputs

@@ -78,7 +78,7 @@ jobs:
           uv run --no-project --python 3.10
           --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
           --with pydantic==2.13.5 --with dimorphite-dl==2.0.2 --with biopython==1.86
-          python -m pytest -q server_tests/test_scientific_handoff.py server_tests/test_molecular_states.py server_tests/test_receptor_science.py
+          python -m pytest -q server_tests/test_scientific_handoff.py server_tests/test_molecular_states.py server_tests/test_receptor_science.py server_tests/test_library_science.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -151,7 +151,7 @@ jobs:
           else:
               raise SystemExit('Browser preview did not start')
           PY
-          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py server_tests/test_site_browser.py server_tests/test_pose_browser.py server_tests/test_discovery_browser.py
+          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py server_tests/test_site_browser.py server_tests/test_pose_browser.py server_tests/test_discovery_browser.py server_tests/test_library_browser.py
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v4

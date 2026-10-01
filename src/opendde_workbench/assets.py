@@ -201,6 +201,10 @@ class AssetStore:
                 self.path(asset)
                 bindings[asset.id] = asset
             return bindings
+        if getattr(request, "operation", None) == "library_screen":
+            from .chemistry.screen_bindings import screen_bindings
+
+            return screen_bindings(request, self)
         if getattr(request, "operation", None) == "molecular_states":
             ref = request.molecule
             asset = self.get(ref.asset_id)

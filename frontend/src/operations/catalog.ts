@@ -68,6 +68,18 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "chemistry.screen",
+    group: "analyze",
+    label: ["分子库与早期筛选", "Library and early molecular selection"],
+    note: [
+      "整理、相似性、片段和多样性选择，复用具体分子记录。",
+      "Inventory, similarity, substructure and diversity; reuse exact molecular records.",
+    ],
+    source: "RDKit",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "biopython.prepare",
     group: "prepare",
     label: ["结构准备", "Prepare structure"],

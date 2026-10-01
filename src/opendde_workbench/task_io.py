@@ -51,6 +51,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .receptors.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "library_screen":
+        from .chemistry.screen_result import validate_screen
+
+        validate_screen(result, job.request, output)
     if operation == "molecular_states":
         from .chemistry.result import validate_result
 

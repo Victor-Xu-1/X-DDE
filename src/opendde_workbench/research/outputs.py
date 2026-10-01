@@ -150,6 +150,23 @@ class OutputCatalog:
             raise ValueError("Only the declared prepared structure can be reused.")
         return result
 
+    def screen_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "library_screen":
+            return None
+        from ..chemistry.screen_result import validate_screen
+
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        manifest = contained(root, "result.json")
+        if manifest.stat().st_size > 25 * 1024**2:
+            raise ValueError("Library report exceeds its size limit.")
+        result = validate_screen(json.loads(manifest.read_text()), job.request, root)
+        if file.suffix.lower() == ".sdf" and (
+            file.name != result.artifact or not result.selected_records
+        ):
+            raise ValueError("Only the declared nonempty selected library is reusable.")
+        return result
+
     def preserve(self, job_id, file, kind, *, receptor_result=None):
         job = self.store.get(str(job_id))
         if job and job.request.operation == "reference_import":
@@ -177,6 +194,7 @@ class OutputCatalog:
         states = self.state_output(job_id, file)
         receptors = receptor_result or self.receptor_output(job_id, file)
         preparation = self.preparation_output(job_id, file)
+        self.screen_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -316,6 +334,9 @@ class OutputCatalog:
                         evidence = validate_verification(result, job.request, root)
                         if file.name != evidence.qualified_artifact or not evidence.qualified_count:
                             continue
+                if job.request.operation == "library_screen" and file.suffix.lower() == ".sdf":
+                    if file.name != "selected.sdf" or not file.stat().st_size:
+                        continue
                 if job.request.operation == "molecular_states" and file.suffix.lower() == ".sdf":
                     if file.name not in {"states.sdf", "conformers.sdf"} or not file.stat().st_size:
                         continue
