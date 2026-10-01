@@ -175,6 +175,7 @@ export function GuidedSteps<T extends { id: string }>({
           )}
           {current < 3 ? (
             <button
+              key="next-question"
               type="button"
               className="primary-button"
               disabled={busy || !steps[current].valid}
@@ -184,6 +185,7 @@ export function GuidedSteps<T extends { id: string }>({
             </button>
           ) : (
             <button
+              key="submit-task"
               type="submit"
               className="primary-button"
               disabled={busy || !complete || !ready}

@@ -77,7 +77,14 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                         "0"
                     )
                     workspace.get_by_role("button", name="下一步", exact=True).click()
+                    plans_before_review = len(
+                        page.request.get(base + "/api/research/pose-explorations").json()
+                    )
                     workspace.get_by_role("button", name="下一步", exact=True).click()
+                    assert (
+                        len(page.request.get(base + "/api/research/pose-explorations").json())
+                        == plans_before_review
+                    )
                     page.screenshot(
                         path="server_tests/evidence/pose-plan-before-save.png", full_page=True
                     )

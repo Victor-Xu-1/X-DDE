@@ -354,7 +354,9 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                 page.get_by_role("button", name=title, exact=True).click()
                 expect(page.get_by_role("heading", name=title, exact=True)).to_be_visible()
                 expect(page.get_by_role("button", name="下一步", exact=True)).to_be_visible()
-                expect(page.locator(".questionnaire > fieldset:not([hidden])")).to_have_count(1)
+                expect(
+                    page.locator(".questionnaire:visible > fieldset:not([hidden])")
+                ).to_have_count(1)
                 expect(page.get_by_role("button", name="创建任务", exact=True)).to_have_count(0)
                 if title == "局部重设计":
                     page.get_by_role("radiogroup", name="1. 选择 PDB 受体", exact=True).get_by_role(
@@ -493,8 +495,10 @@ def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_
             page.get_by_role("button", name="下一步", exact=True).click()
             expect(page.get_by_role("heading", name="三维结构与口袋", exact=False)).to_be_visible()
             page.get_by_text("从列表选择残基", exact=True).click()
-            active_panel = page.locator(".questionnaire > fieldset:not([hidden])").bounding_box()
-            footer = page.locator(".questionnaire-actions").bounding_box()
+            active_panel = page.locator(
+                ".questionnaire:visible > fieldset:not([hidden])"
+            ).bounding_box()
+            footer = page.locator(".questionnaire:visible > .questionnaire-actions").bounding_box()
             assert active_panel and footer
             assert footer["y"] >= active_panel["y"] + active_panel["height"] - 1
             page.get_by_role("button", name="A:ALA10", exact=True).click()
@@ -672,8 +676,10 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             page.get_by_text("在三维预览中点选搜索中心", exact=True).click()
             expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(timeout=30000)
             page.get_by_text("从列表选择残基", exact=True).click()
-            active_panel = page.locator(".questionnaire > fieldset:not([hidden])").bounding_box()
-            footer = page.locator(".questionnaire-actions").bounding_box()
+            active_panel = page.locator(
+                ".questionnaire:visible > fieldset:not([hidden])"
+            ).bounding_box()
+            footer = page.locator(".questionnaire:visible > .questionnaire-actions").bounding_box()
             assert active_panel and footer
             assert footer["y"] >= active_panel["y"] + active_panel["height"] - 1
             page.get_by_role("button", name="A:ALA10", exact=True).click()
@@ -1084,16 +1090,20 @@ def test_all_task_entries_show_one_step_and_no_early_dispatch():
                     "button", name="全部能力", exact=True
                 ).click()
                 page.get_by_role("button", name=name, exact=True).click()
-                expect(page.locator(".questionnaire > fieldset:not([hidden])")).to_have_count(1)
+                expect(
+                    page.locator(".questionnaire:visible > fieldset:not([hidden])")
+                ).to_have_count(1)
                 next_button = page.get_by_role("button", name="下一步", exact=True)
                 expect(next_button).to_be_visible()
-                expect(page.locator(".questionnaire button[type=submit]")).to_have_count(0)
+                expect(page.locator(".questionnaire:visible button[type=submit]")).to_have_count(0)
                 for width in (390, 1440):
                     page.set_viewport_size({"width": width, "height": 1000})
                     assert page.evaluate(
                         "document.documentElement.scrollWidth <= window.innerWidth + 1"
                     )
-                    actions = page.locator(".questionnaire-actions").bounding_box()
+                    actions = page.locator(
+                        ".questionnaire:visible > .questionnaire-actions"
+                    ).bounding_box()
                     button = next_button.bounding_box()
                     assert actions and button
                     assert abs(button["x"] + button["width"] - actions["x"] - actions["width"]) < 3
