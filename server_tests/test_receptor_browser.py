@@ -102,6 +102,12 @@ def test_real_receptor_ensemble_overlay_and_pocket_handoff(tmp_path):
                     expect(
                         page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                     ).to_be_visible(timeout=30000)
+                    expect(
+                        page.get_by_text(
+                            "蓝色为参照受体，橙色为所选受体；完全重合时可见颜色会互相遮挡。",
+                            exact=True,
+                        )
+                    ).to_be_visible()
                     page.screenshot(
                         path=str(evidence / "receptor-overlay-1440.png"), full_page=True
                     )

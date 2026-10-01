@@ -172,7 +172,18 @@ export function ReceptorResults({
         </details>
       ))}
       {urls.length > 0 && !next && (
-        <StructureViewer urls={urls} language={language} />
+        <>
+          <p className="field-help">
+            {zh
+              ? "蓝色为参照受体，橙色为所选受体；完全重合时可见颜色会互相遮挡。"
+              : "Blue is the reference and orange is the selected receptor; identical overlays can occlude one another."}
+          </p>
+          <StructureViewer
+            urls={urls}
+            language={language}
+            comparison={urls.length > 1}
+          />
+        </>
       )}
       {saved && member?.quality?.backbone_complete && !next && (
         <button
