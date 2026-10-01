@@ -7,13 +7,15 @@ import pytest
 from opendde_workbench.managed_containers import attached_container, container_name
 
 
-@pytest.mark.parametrize("identifier", ["p2rank", "gnina", "chemistry", "biopython", "anarcii"])
+@pytest.mark.parametrize(
+    "identifier", ["p2rank", "gnina", "chemistry", "biopython", "anarcii", "posebusters"]
+)
 def test_registered_creation_and_attachment_use_same_job_identity(identifier):
     job_id = str(uuid4())
     assert attached_container("xdde-" + identifier + "-", job_id) == container_name(
         identifier, job_id
     )
-    if identifier in {"chemistry", "biopython", "anarcii"}:
+    if identifier in {"chemistry", "biopython", "anarcii", "posebusters"}:
         assert container_name(identifier, job_id, preparation=True) == attached_container(
             "xdde-" + identifier + "-", job_id
         )

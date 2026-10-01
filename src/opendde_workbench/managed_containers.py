@@ -8,6 +8,7 @@ CONTAINER_STYLES = {
     "chemistry": "preparation",
     "biopython": "preparation",
     "anarcii": "preparation",
+    "posebusters": "preparation",
 }
 
 

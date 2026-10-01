@@ -68,6 +68,18 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "posebusters.check",
+    group: "evaluate",
+    label: ["构象与姿势质控", "Conformation and pose quality"],
+    note: [
+      "检查分子几何、蛋白内碰撞和参考姿势；保留未能计算的项目。",
+      "Check molecular geometry, protein clashes and reference poses; retain missing checks.",
+    ],
+    source: "PoseBusters",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "antibody.number",
     group: "prepare",
     label: ["抗体编号与 CDR 标注", "Antibody numbering and CDR annotation"],

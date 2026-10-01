@@ -4,6 +4,7 @@ import { tools, type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { ModalityTags } from "./ModalityTags";
 import { filterCapabilities, type ModalityFilter } from "./filter";
+import { QualityForm } from "../quality/QualityForm";
 import { AntibodyNumberForm } from "../antibodies/AntibodyNumberForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
@@ -89,7 +90,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "antibody.number" ? (
+          {selected === "posebusters.check" ? (
+            <QualityForm language={language} onCreated={onCreated} />
+          ) : selected === "antibody.number" ? (
             <AntibodyNumberForm language={language} onCreated={onCreated} />
           ) : selected === "chemistry.screen" ? (
             <LibraryScreenForm language={language} onCreated={onCreated} />

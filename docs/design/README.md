@@ -904,3 +904,14 @@ VHH使用 antibody 模型，不传上游会错误转为 shark/VNAR 的 vhh 别�
 新增 native-antibodies 远程强制门禁，实际 CPU 两模式/H-K链/失败/scFv/API/SQLite/资产/重启/篡改。
 其他原有七门禁完整保留；本机只有静态/构建/UI，未安装模型或运行推理/测试套件。
 实现代码不代表科学验收通过；精确候选 CI/浏览器状态作为交付证据。
+
+
+### D05 / R21–R24: independent pose plausibility
+
+The X-DDE-owned `pose_quality` task integrates PoseBusters0.6.5 (MIT), frozen upstream `1a5f26aa7270fafba21b7fec8b3633f4c4e45ead`, RDKit2025.9.5, NumPy2.2.6 and Pandas2.3.3 in a separate hash-locked CPU environment. It is a peer of OpenDDE, GNINA, ANARCII and other integrated software; it does not introduce a second job queue or web service. Installation/update/uninstall use the existing component manager and immutable image identity.
+
+The four preparation/review questions are molecule version, one of three native purposes, optional receptor/reference with explicit coordinate confirmation, then final submission; the actual result is the fifth step. Native profiles retain12/22/28 declared binary checks. Missing results stay `unavailable`; only every applicable check passing produces `passes`. Deliberate geometry failures, reference graph/stereo discrepancies and protein/cofactor/water clashes are retained. Energy threads are bounded to1–2; upstream default thresholds, seed42 and50 conformers remain intact. No arbitrary YAML, executable, thresholds or runtime URL are accepted.
+
+Original assets are unchanged. One exact source record and receptor snapshot are copied into digest-validated diagnostic previews, not promoted into new scientific molecule versions. The immutable analysis retains every exact input reference and source record; later preparation/docking/editing reuses the original version. Native checks neither move nor repair coordinates and do not demonstrate affinity, selectivity, activity or experimental validity. Macrocycles, special chemistry and missing force-field coverage require separate scientific validation; a missing check never becomes a pass. This bounded module does not complete pose/contact clustering, receptor flexibility, binding free energies or D05/R38–R76.
+
+The adapter, native installation/API/database regressions and same-run Chromium questionnaire/3D/desktop/narrow checks are authored. Exact remote acceptance and preview promotion must pass before this stage is marked delivered; no native quality computation or scientific installation is performed on the owner workstation.

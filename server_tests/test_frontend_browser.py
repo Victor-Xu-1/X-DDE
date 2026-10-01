@@ -132,6 +132,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 "biopython",
                 "discovery",
                 "anarcii",
+                "posebusters",
             }
             for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()

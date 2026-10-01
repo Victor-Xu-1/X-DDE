@@ -186,6 +186,17 @@ class OutputCatalog:
 
     def preserve(self, job_id, file, kind, *, receptor_result=None, antibody_result=None):
         job = self.store.get(str(job_id))
+        if job and job.request.operation == "pose_quality":
+            from ..quality.result import validate_quality
+
+            root = self.assets.root.parent / "jobs" / job.id / "output"
+            validate_quality(
+                json.loads(contained(root, "result.json").read_text()), job.request, root
+            )
+            if file.name != "result.json":
+                raise ValueError(
+                    "Quality assessment preserves evidence; reuse the original molecular version."
+                )
         if job and job.request.operation == "reference_import":
             from ..discovery.import_runner import validate_import_result
 
@@ -336,6 +347,9 @@ class OutputCatalog:
                 if file.name == "result.json":
                     kind = "config"
                 if not kind:
+                    continue
+                if job.request.operation == "pose_quality" and file.name != "result.json":
+                    # Diagnostic copies support preview; downstream jobs reuse original versions.
                     continue
                 if job.request.operation == "docking":
                     from ..docking.result import DockingResult

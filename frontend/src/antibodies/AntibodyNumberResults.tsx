@@ -110,6 +110,7 @@ export function AntibodyNumberResults({
           {domain.reference && domain.sequence && onDraft && (
             <button
               type="button"
+              className="secondary-button"
               onClick={() =>
                 onDraft({
                   name: domain.id.slice(0, 80),

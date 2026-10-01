@@ -334,6 +334,22 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_POSE_QUALITY = (
+    CapabilitySpec(
+        id="posebusters.check",
+        **modality_metadata("posebusters.check"),
+        group="evaluate",
+        environment="posebusters",
+        operations=("pose_quality",),
+        label=("构象与姿势质控", "Conformation and pose quality"),
+        note=(
+            "检查分子几何、蛋白内碰撞和参考姿势；保留未能计算的项目。",
+            "Check molecular geometry, protein clashes and reference poses; retain missing checks.",
+        ),
+        source="PoseBusters",
+        frontend_form="pose_quality",
+    ),
+)
 _ANTIBODY_NUMBER = (
     CapabilitySpec(
         id="antibody.number",
@@ -403,7 +419,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _ANTIBODY_NUMBER
+    _POSE_QUALITY
+    + _ANTIBODY_NUMBER
     + _LIBRARY_SCREEN
     + _STRUCTURE_PREPARE
     + _REFERENCE_IMPORT

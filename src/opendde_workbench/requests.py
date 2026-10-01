@@ -25,6 +25,8 @@ from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
 from .pockets.contract import PocketSearch
 from .prediction import Prediction
+from .quality.contract import PoseQualityTask
+from .quality.contract import references as quality_references
 from .receptors.contract import ReceptorEnsembleTask
 from .receptors.preparation_contract import StructurePrepareTask
 from .task_metadata import TaskMetadata
@@ -142,6 +144,7 @@ TaskRequest = Annotated[
     | Annotated[DiffTask, Tag("diffsbdd")]
     | Annotated[PocketSearch, Tag("pocket_search")]
     | Annotated[DockingTask, Tag("docking")]
+    | Annotated[PoseQualityTask, Tag("pose_quality")]
     | Annotated[AntibodyNumberTask, Tag("antibody_number")]
     | Annotated[LibraryScreenTask, Tag("library_screen")]
     | Annotated[MolecularStatesTask, Tag("molecular_states")]
@@ -163,6 +166,8 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         return {str(item.structure.asset_id) for item in request.inputs} | {
             str(ref.asset_id) for ref in request.scientific_inputs
         }
+    if isinstance(request, PoseQualityTask):
+        return {str(ref.asset_id) for _, ref in quality_references(request)}
     if isinstance(request, AntibodyNumberTask):
         return {str(request.sequences.asset_id)}
     if isinstance(request, LibraryScreenTask):

@@ -251,3 +251,6 @@ target environment/remote CI; the owner machine does not run scientific jobs.
 
 
 早期发现的新候选入口为 **疾病找靶点** 与 **靶点与研究材料**：名称搜索 → 明确选择 → 内容选择 → 确认查询 → 来源证据/材料复用。使用官方 Open Targets、UniProt、ChEMBL，只发送填写的名称/数据库编号；查询适配器无需模型安装，具体源站可能不可用。规范序列可登记资产并交接结构预测；PDB仅为索引。候选接口/源码不表示已安装发行版更新，当前验收状态见[统一模块路线](docs/design/README.md#早期发现模块与开源选型2026-10-01)。合成/逆合成暂不在实施范围。
+
+
+**Independent conformation/pose quality:** install PoseBusters in *Installation & components*, then open *Conformation and pose quality* from *All capabilities*. Select an exact3D SDF molecular version, choose free conformation / protein pose / cognate reference comparison, confirm the optional receptor frame, and submit after review. The tool preserves original assets and distinguishes native pass, fail and unavailable checks. It evaluates plausibility; it is not an affinity or experimental-activity predictor. Use *Structure preparation* first for multi-model/alternate-location receptors; this adapter accepts a prepared PDB receptor. See [server acceptance](docs/server-acceptance.md) for actual remote verification and its limits.

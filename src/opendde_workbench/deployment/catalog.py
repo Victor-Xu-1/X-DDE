@@ -157,6 +157,16 @@ PACKAGES = {
 }
 
 
+PACKAGES["posebusters"] = Package(
+    "posebusters",
+    "0.6.5-cpu",
+    "PoseBusters",
+    "分子构象与结合姿势质控 / Molecular pose plausibility",
+    "约500 MB / Independent CPU runtime",
+    license="MIT / dependency licenses",
+    engine="posebusters",
+)
+
 PACKAGES["anarcii"] = Package(
     "anarcii",
     "2.0.8-cpu",

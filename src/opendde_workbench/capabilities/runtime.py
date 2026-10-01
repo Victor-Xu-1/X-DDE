@@ -31,6 +31,8 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             "source_availability",
             "bounded_coverage",
         ]
+    elif spec.environment == "posebusters":
+        checks = {"runtime": bool(backends.get("posebusters", {}).get("ready"))}
     elif spec.environment == "anarcii":
         checks = {"runtime": bool(backends.get("anarcii", {}).get("ready"))}
         specific = [

@@ -53,6 +53,15 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Research evidence is invalid or changed; inspect task files."
                     ) from exc
+            if job.request.operation == "pose_quality":
+                from .quality.result import validate_quality
+
+                try:
+                    validate_quality(value, job.request, root / "output")
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(
+                        422, "Pose quality evidence is invalid or changed."
+                    ) from exc
             if job.request.operation == "antibody_number":
                 from .antibodies.presentation import present_numbering
 

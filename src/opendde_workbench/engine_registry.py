@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "posebusters",
+        "PoseBusters",
+        "分子构象与结合姿势独立质控 / Independent molecular pose plausibility",
+        "docker",
+        ("pose_quality",),
+    ),
+    ScientificEngine(
         "anarcii",
         "ANARCII",
         "抗体序列编号、链型和结构域 / Antibody numbering, chain types and domains",

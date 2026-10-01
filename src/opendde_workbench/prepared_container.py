@@ -12,9 +12,16 @@ from .managed_containers import CONTAINER_STYLES, container_name
 
 
 class PreparedContainerBackend:
-    def __init__(self, settings, identifier, root, files, configuration, readiness):
+    def __init__(
+        self, settings, identifier, root, files, configuration, readiness, *, shared_sources=None
+    ):
         if CONTAINER_STYLES.get(identifier) != "preparation":
             raise ValueError("Unknown managed preparation container namespace.")
+        shared_sources = shared_sources or {}
+        if set(files) & set(shared_sources):
+            raise ValueError("Shared adapter file identities must be unique.")
+        files = (*files, *shared_sources)
+        self.shared_sources = {name: Path(path) for name, path in shared_sources.items()}
         if not 1 <= len(files) <= 32 or any(Path(name).name != name for name in files):
             raise ValueError("Preparation adapter files must have bounded, explicit names.")
         self.settings, self.identifier, self.root, self.files = settings, identifier, root, files
@@ -32,7 +39,7 @@ class PreparedContainerBackend:
         adapter.mkdir(exist_ok=False)
         checksums = {}
         for name in self.files:
-            file = self.root / name
+            file = self.shared_sources.get(name, self.root / name)
             if file.is_symlink() or file.stat().st_size > 2 * 1024**2:
                 raise ValueError("Preparation adapter source is unsafe or oversized.")
             content = file.read_bytes()

@@ -28,7 +28,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "anarcii":
+    if key == "posebusters":
+        from .quality_install import install_quality
+
+        metadata.update(install_quality(root, work, execute, report, checkpoint))
+    elif key == "anarcii":
         from .antibody_install import install_antibody
 
         metadata.update(install_antibody(root, work, execute, report, checkpoint))

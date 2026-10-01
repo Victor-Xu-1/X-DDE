@@ -24,7 +24,9 @@ def write_lock(root, check=False):
             lines.append("torch @ " + direct[1] + " --hash=sha256:" + direct[2])
             continue
         name, version = line.split("==")
-        if not re.fullmatch(r"[a-z0-9-]+", name) or not re.fullmatch(r"[0-9.]+", version):
+        if not re.fullmatch(r"[a-z0-9-]+", name) or not re.fullmatch(
+            r"[0-9]+(?:\.[0-9]+)*(?:\.post[0-9]+)?", version
+        ):
             raise ValueError("The runtime lock requires exact trusted package/version pins.")
         with urlopen(f"https://pypi.org/pypi/{name}/{version}/json", timeout=20) as response:
             data = json.load(response)

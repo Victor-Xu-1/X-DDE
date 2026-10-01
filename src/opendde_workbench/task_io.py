@@ -51,6 +51,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .receptors.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "pose_quality":
+        from .quality.result import validate_quality
+
+        validate_quality(result, job.request, output)
     if operation == "antibody_number":
         from .antibodies.result import validate_numbering
 

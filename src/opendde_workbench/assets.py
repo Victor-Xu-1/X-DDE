@@ -201,6 +201,10 @@ class AssetStore:
                 self.path(asset)
                 bindings[asset.id] = asset
             return bindings
+        if getattr(request, "operation", None) == "pose_quality":
+            from .quality.bindings import quality_bindings
+
+            return quality_bindings(request, self)
         if getattr(request, "operation", None) == "antibody_number":
             from .antibodies.bindings import sequence_bindings
 
@@ -352,6 +356,7 @@ class AssetStore:
                 "docking",
                 "molecular_states",
                 "library_screen",
+                "pose_quality",
             }:
                 records = [
                     part

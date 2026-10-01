@@ -137,3 +137,12 @@ The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU t
 远程科学 handoff 门禁使用真实 RDKit SDF 解析与构象验证：非氢平均位置和每个重原子、边界、0–0.1 Å 显式容差、二维/NaN 拒绝、硬失败排除和软加权偏差保留。verify 的 `tests/test_constraints.py` 检查结果支持分类、无公共空间、类型/单位/真实违反记录一致性。真实 browser 门禁保存结果条件，验证 `result_check` 未显示为原生搜索约束，修改/应用后恢复并检查390/1440布局。native-docking门禁必须运行真实 GNINA 正例及已有真实姿势的硬空间失败负例：任务计算正常结束，但没有合格候选；保留原始文件、规范化诊断姿势及坐标报告，空合格集合不登记，原始/诊断/空集合的资产交接API必须422。
 
 前端选择与条件版本、软权重和容差必须一致；未经保存的选择不得悄悄省略。此验收仅证明所选几何条件，不证明整体姿势质量或实验结合。固定核心/键/原子碰撞/复杂空间方向/装配范围仍需各自原生与独立科学验收。新增结果条件不可通过恢复旧数据库丢弃；保留研究数据，优先前向修复代码。完整能力路线仍未完成。
+
+
+PoseBusters quality acceptance runs in the independent CPU environment, not on the owner's workstation:
+
+```bash
+WB_TEST_NATIVE_QUALITY=1 WB_AUTO_DEPLOY=0 uv run --locked pytest -q server_tests/test_native_quality.py
+```
+
+This gate installs the complete reviewed hash lock, runs real `mol`, `dock` and `redock` profiles through the shared API/Router/Worker/SQLite chain, retains the original selected record even after an invalid preceding SDF record, verifies source versions/restart/CSRF/tamper and checks deliberately distorted geometry. The same run's native report and diagnostic copies feed real Chromium result/3D/form/Back/desktop/narrow acceptance. Nine CI gates are now mandatory. Scientific fixtures and packages stay on CI/target servers; only PNG/log evidence is retrieved on the workstation.
