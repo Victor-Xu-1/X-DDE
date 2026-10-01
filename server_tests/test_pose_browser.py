@@ -113,6 +113,7 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     expect(
                         page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                     ).to_be_visible(timeout=30000)
+                    expect(result.get_by_text("经验对接分数:", exact=False).first).to_be_visible()
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
                         assert page.evaluate(

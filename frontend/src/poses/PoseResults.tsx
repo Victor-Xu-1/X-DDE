@@ -2,6 +2,7 @@ import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { PropertyForm } from "../operations/PropertyForm";
+import { scoreLabel } from "../docking/scoreLabels";
 import { DockingForm } from "../docking/DockingForm";
 import type { Language } from "../types";
 import type { PoseSet } from "./types";
@@ -135,7 +136,8 @@ export function PoseResults({
                           : "Native score; not converted to KD or IC50"
                       }
                     >
-                      {s.name}: {s.value.toFixed(3)} {s.unit}{" "}
+                      {scoreLabel(s.name, language)}: {s.value.toFixed(3)}{" "}
+                      {s.unit}{" "}
                     </span>
                   ))}
                 </td>

@@ -1,3 +1,4 @@
+import { scoreLabel } from "./scoreLabels";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
 import { useState } from "react";
@@ -95,18 +96,7 @@ export function DockingResults({
                           : "Native method and units; no direct conversion to KD or IC50"
                       }
                     >
-                      {v.name === "minimizedAffinity"
-                        ? zh
-                          ? "经验对接分数"
-                          : "Empirical docking score"
-                        : v.name === "CNNscore"
-                          ? zh
-                            ? "模型姿势分数"
-                            : "CNN pose score"
-                          : zh
-                            ? "模型结合分数"
-                            : "CNN binding score"}
-                      : {v.value.toFixed(3)}{" "}
+                      {scoreLabel(v.name, language)}: {v.value.toFixed(3)}{" "}
                       {v.unit === "model_output"
                         ? zh
                           ? "模型输出"
