@@ -28,7 +28,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "admet":
+    if key == "sapiens":
+        from .humanization_install import install_humanization
+
+        metadata.update(install_humanization(root, work, execute, report, checkpoint))
+    elif key == "admet":
         from .admet_install import install_admet
 
         metadata.update(install_admet(root, work, execute, report, checkpoint))

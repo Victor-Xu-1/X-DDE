@@ -16,7 +16,7 @@ def region(number):
     )
 
 
-def normalize_domain(native, record, key, index, output):
+def normalize_domain(native, record, key, index, output, *, preserve=True):
     base = {
         "id": key,
         "source_id": record["id"],
@@ -87,15 +87,16 @@ def normalize_domain(native, record, key, index, output):
         position += 1
     artifact = f"domain-{index:03d}.fasta"
     raw = (">" + key + "\n" + sequence + "\n").encode()
-    (output / artifact).write_bytes(raw)
+    if preserve:
+        (output / artifact).write_bytes(raw)
     base.update(
         available=True,
         start=start,
         end=end,
         sequence=sequence,
         numbering=rows,
-        artifact=artifact,
-        sha256=hashlib.sha256(raw).hexdigest(),
+        artifact=artifact if preserve else None,
+        sha256=hashlib.sha256(raw).hexdigest() if preserve else None,
         reason=None,
     )
     return base

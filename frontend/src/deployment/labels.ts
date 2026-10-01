@@ -1,4 +1,5 @@
 export const names: Record<string, string> = {
+  sapiens: "抗体人源参考 · Sapiens / ANARCII / Promb",
   harness: "OpenDDE Harness 客户端",
   runtime: "OpenDDE 科学代码",
   compute: "OpenDDE 计算环境",
@@ -20,6 +21,8 @@ export const states: Record<string, string> = {
 export function stageLabel(stage: string, zh: boolean): string {
   if (!zh) return stage;
   const messages: Record<string, string> = {
+    "Building independent Sapiens/ANARCII/Promb CPU environment":
+      "正在安装独立的抗体 CPU 环境",
     Waiting: "等待开始；依赖未就绪时请先处理前面的安装",
     Starting: "准备安装",
     "Preparing verified release": "校验官方发行包",

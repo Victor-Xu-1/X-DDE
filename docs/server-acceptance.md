@@ -175,3 +175,19 @@ WB_TEST_NATIVE_QUALITY=1 WB_AUTO_DEPLOY=0 uv run --locked pytest -q server_tests
 ```
 
 This gate installs the complete reviewed hash lock, runs real `mol`, `dock` and `redock` profiles through the shared API/Router/Worker/SQLite chain, retains the original selected record even after an invalid preceding SDF record, verifies source versions/restart/CSRF/tamper and checks deliberately distorted geometry. The same run's native report and diagnostic copies feed real Chromium result/3D/form/Back/desktop/narrow acceptance. Nine CI gates are now mandatory. Scientific fixtures and packages stay on CI/target servers; only PNG/log evidence is retrieved on the workstation.
+
+#### Antibody variable-region reference and protected framework proposals
+
+Run on CI or the target server:
+
+```bash
+WB_TEST_NATIVE_HUMANIZATION=1 WB_AUTO_DEPLOY=0 uv run --locked pytest -q server_tests/test_native_humanization.py
+```
+
+The optional Sapiens component locks Sapiens 1.1.0, ANARCII 2.0.8, Promb 1.0.2, Torch 2.8.0 CPU and their complete dependency hashes. Official VH/VL safetensors and tokenizer revisions/files are verified; the packaged human OAS 9-mer, 10%-subject reference is identified independently. Unused SwissProt/reference proteomes are removed in the package installation layer. Tasks run offline in the platform's existing restricted container and single Router/Worker/Store authority. No BioPhi web/Celery/Redis runtime is deployed.
+
+This gate uses real upstream Sapiens vectors and Promb exact matches as an independent reference, then actual API/CSRF/idempotency, shared queue, source snapshots, IMGT numbering, iterative protected proposals, independent candidate numbering, complete original indices, unsupported/empty cases, immutable sequence versions and SQLite restart/tamper checks. A deliberately unusual framework position is an explicit positive-control fixture; no production model values or returned sequences are manufactured. Candidate/framework and CDR/cysteine rules are verified against the exact original sequence. Only declared changed FASTA candidates are indexed; unchanged numbering intermediates are not exported as new research assets.
+
+The same run's actual native output is used in Chromium to inspect separate reference metrics, original/proposed sequences, exact candidate-to-prediction handoff, saved version reuse, one-question pages, Back persistence, VHH scope reset and final review without premature dispatch. Native installation/readiness controls whether submission is enabled. The fixture goes under `WB_CORE_FIXTURE/humanization`; only PNG/log evidence is retrieved to the owner's workstation. All eleven CI gates remain mandatory for the exact candidate and exact main; native software evidence does not establish clinical immunogenicity, affinity retention, paired-chain compatibility, prospective applicability or complete D07 developability.
+
+Sapiens code and fixed model cards use MIT; ANARCII retains BSD-3-Clause; Promb retains MIT. OAS data and underlying studies retain their own attribution/terms and are not relicensed by X-DDE. See [Sapiens](https://github.com/Merck/Sapiens), [Promb](https://github.com/MSDLLCpapers/promb) and [OAS documentation](https://opig.stats.ox.ac.uk/webapps/oas/documentation). This optional environment does not download training datasets or the full OAS database. Broader biological validation and the remaining roadmap continue separately.

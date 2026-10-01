@@ -53,6 +53,15 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Research evidence is invalid or changed; inspect task files."
                     ) from exc
+            if job.request.operation == "antibody_humanize":
+                from .humanization.presentation import present_humanization
+
+                try:
+                    value = present_humanization(value, job, root / "output", store, assets)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(
+                        422, "Antibody sequence evaluation evidence is invalid or changed."
+                    ) from exc
             if job.request.operation == "admet_predict":
                 from .admet.presentation import present_admet
 

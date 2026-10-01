@@ -68,6 +68,21 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "antibody.humanize",
+    group: "design",
+    label: [
+      "抗体人源参考与框架优化",
+      "Antibody human reference and framework proposals",
+    ],
+    note: [
+      "评估确切的抗体可变域，保留 CDR，修改建议保存为独立序列版本。",
+      "Evaluate exact variable regions and preserve CDRs; save changed proposals as new versions.",
+    ],
+    source: "Sapiens / ANARCII / Promb",
+    modalities: ["biologic", "antibody", "protein"],
+    modality_role: "research_object",
+  },
+  {
     id: "admet.predict",
     group: "evaluate",
     label: ["性质与早期安全性预测", "ADMET and early safety predictions"],

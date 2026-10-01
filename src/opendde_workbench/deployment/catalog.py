@@ -157,6 +157,16 @@ PACKAGES = {
 }
 
 
+PACKAGES["sapiens"] = Package(
+    "sapiens",
+    "1.1.0-cpu",
+    "Sapiens / ANARCII / Promb",
+    "抗体人源参考评估与框架建议 / Antibody reference evaluation and framework proposals",
+    "独立 CPU 模型与依赖；至少 6 GiB 安装空间 / Independent CPU models; 6 GiB staging",
+    license="Sapiens MIT; ANARCII BSD-3-Clause; Promb MIT; OAS data terms separately",
+    engine="sapiens",
+)
+
 PACKAGES["admet"] = Package(
     "admet",
     "2.0.1-cpu",

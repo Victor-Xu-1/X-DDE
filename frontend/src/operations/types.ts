@@ -58,6 +58,7 @@ export interface HarnessTask extends BaseTask {
 }
 export type TaskRequest =
   | Prediction
+  | import("../humanization/types").HumanizationTask
   | import("../admet/types").AdmetTask
   | import("../quality/types").PoseQualityTask
   | import("../antibodies/types").AntibodyNumberTask

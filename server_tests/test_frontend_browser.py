@@ -139,6 +139,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 "anarcii",
                 "posebusters",
                 "admet",
+                "sapiens",
             }
             for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
@@ -1101,6 +1102,7 @@ def test_all_task_entries_show_one_step_and_no_early_dispatch():
                 "准备分子状态与构象",
                 "对齐多个受体构象",
                 "性质与早期安全性预测",
+                "抗体人源参考与框架优化",
             ]
             for name in names:
                 page.get_by_role("navigation", name="主导航").get_by_role(

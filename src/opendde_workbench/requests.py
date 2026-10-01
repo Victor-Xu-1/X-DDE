@@ -24,6 +24,7 @@ from .discovery.import_contract import ReferenceImportTask
 from .docking.contract import DockingTask
 from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
+from .humanization.contract import HumanizationTask
 from .pockets.contract import PocketSearch
 from .prediction import Prediction
 from .quality.contract import PoseQualityTask
@@ -132,7 +133,8 @@ def request_kind(value: object) -> str:
 
 
 TaskRequest = Annotated[
-    Annotated[AdmetTask, Tag("admet_predict")]
+    Annotated[HumanizationTask, Tag("antibody_humanize")]
+    | Annotated[AdmetTask, Tag("admet_predict")]
     | Annotated[ReferenceImportTask, Tag("reference_import")]
     | Annotated[TargetResearchTask, Tag("target_research")]
     | Annotated[Prediction, Tag("predict")]
@@ -160,6 +162,8 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
+    if isinstance(request, HumanizationTask):
+        return {str(request.sequences.asset_id)}
     if isinstance(request, AdmetTask):
         return {str(request.source.asset_id)}
     if isinstance(request, ReferenceImportTask):

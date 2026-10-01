@@ -1,0 +1,39 @@
+.humanization-results {
+  min-width: 0;
+}
+.humanization-metrics th {
+  white-space: normal;
+}
+.humanization-metrics td {
+  white-space: nowrap;
+}
+.humanization-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.humanization-sequence span {
+  padding: 2px 3px;
+}
+.humanization-sequence .cdr {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.humanization-sequence .modified {
+  background: #d9eade;
+  color: #173924;
+  font-weight: 700;
+}
+.humanization-legend {
+  font-size: 12px;
+}
+.humanization-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}

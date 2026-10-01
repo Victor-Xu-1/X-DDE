@@ -4,6 +4,8 @@ import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
 import { QualityResults } from "../quality/QualityResults";
 import { AdmetResults } from "../admet/AdmetResults";
+import { HumanizationResults } from "../humanization/HumanizationResults";
+import type { HumanizationResult } from "../humanization/types";
 import type { AdmetResult } from "../admet/types";
 import type { PoseQualityResult } from "../quality/types";
 import { AntibodyNumberResults } from "../antibodies/AntibodyNumberResults";
@@ -81,6 +83,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "antibody_humanize",
     "admet_predict",
     "pose_quality",
     "antibody_number",
@@ -131,6 +134,15 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "antibody_humanize" && (
+        <HumanizationResults
+          job={job}
+          result={data as unknown as HumanizationResult}
+          language={language}
+          onDraft={onDraft}
+          onCreated={onCreated}
+        />
+      )}
       {job.request.operation === "admet_predict" && (
         <AdmetResults
           job={job}

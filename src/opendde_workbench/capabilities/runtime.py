@@ -31,6 +31,16 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             "source_availability",
             "bounded_coverage",
         ]
+    elif spec.environment == "sapiens":
+        checks = {"runtime": bool(backends.get("sapiens", {}).get("ready"))}
+        specific = [
+            "exact_variable_region_fasta",
+            "fixed_native_models_and_human_peptide_reference",
+            "protected_imgt_cdrs_and_original_cysteines",
+            "bounded_framework_change_budget",
+            "independent_candidate_numbering",
+            "clinical_immunogenicity_not_predicted",
+        ]
     elif spec.environment == "admet":
         checks = {"runtime": bool(backends.get("admet", {}).get("ready"))}
         specific = [

@@ -33,6 +33,7 @@ class CapabilitySpec(BaseModel):
         "anarcii",
         "posebusters",
         "admet",
+        "sapiens",
     ]
     operations: tuple[str, ...]
     label: tuple[str, str]

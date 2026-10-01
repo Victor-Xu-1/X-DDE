@@ -10,6 +10,7 @@ CONTAINER_STYLES = {
     "anarcii": "preparation",
     "posebusters": "preparation",
     "admet": "preparation",
+    "sapiens": "preparation",
 }
 
 

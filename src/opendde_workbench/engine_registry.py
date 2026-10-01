@@ -21,6 +21,14 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "sapiens",
+        "Sapiens / ANARCII / Promb",
+        "抗体序列人源参考评估与框架建议 / "
+        "Human antibody reference evaluation and framework proposals",
+        "docker",
+        ("antibody_humanize",),
+    ),
+    ScientificEngine(
         "admet",
         "ADMET-AI",
         "小分子 ADMET 与早期安全性预测 / Early molecular ADMET and safety predictions",

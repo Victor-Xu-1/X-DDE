@@ -201,6 +201,10 @@ class AssetStore:
                 self.path(asset)
                 bindings[asset.id] = asset
             return bindings
+        if getattr(request, "operation", None) == "antibody_humanize":
+            from .humanization.bindings import sequence_bindings
+
+            return sequence_bindings(request, self)
         if getattr(request, "operation", None) == "admet_predict":
             from .admet.bindings import admet_bindings
 

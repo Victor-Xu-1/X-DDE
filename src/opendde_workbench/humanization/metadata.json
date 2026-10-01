@@ -1,0 +1,86 @@
+{
+  "sapiens": "1.1.0",
+  "sapiens_commit": "3d676ecde0b6fc113d3f9c5bcb3721a7d70a85b7",
+  "anarcii": "2.0.8",
+  "promb": "1.0.2",
+  "promb_commit": "d11c24b1557d3368d6508ecb4f14b51facaf8863",
+  "resources": {
+    "vh": {
+      "repo": "prihodad/biophi-sapiens1-vh",
+      "revision": "2caf2a813361918e9152347d119537e8a48bceb5",
+      "license": "MIT",
+      "files": {
+        "config.json": {
+          "size": 631,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-vh/resolve/2caf2a813361918e9152347d119537e8a48bceb5/config.json",
+          "git_blob_sha1": "77d9dbfd9eae19dcb9ff4e540146c88cee14ba12",
+          "sha256": "b1bd42ca7a833c95be24bf32854b6fb1e7536e9260e476820f92db72bdadd1ec"
+        },
+        "model.safetensors": {
+          "size": 2284488,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-vh/resolve/2caf2a813361918e9152347d119537e8a48bceb5/model.safetensors",
+          "sha256": "4a5e4b8fb577b3ca998866cbf3eeeb811e644003a0ff223e88680908df4ef504"
+        }
+      }
+    },
+    "vl": {
+      "repo": "prihodad/biophi-sapiens1-vl",
+      "revision": "4bb31b6841023645811d869cf0af9d1e0fec805e",
+      "license": "MIT",
+      "files": {
+        "config.json": {
+          "size": 631,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-vl/resolve/4bb31b6841023645811d869cf0af9d1e0fec805e/config.json",
+          "git_blob_sha1": "3f17d91fda6511b41691b5c315ff7e48d735a6ad",
+          "sha256": "68d1768a65b20342c36974ca1053551920a18d80667f46941d8b80ff80b15e54"
+        },
+        "model.safetensors": {
+          "size": 2276296,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-vl/resolve/4bb31b6841023645811d869cf0af9d1e0fec805e/model.safetensors",
+          "sha256": "f02b1e46464141c229ed21d4b6682d0a17a4bc32604bb5da637a25f10c239d68"
+        }
+      }
+    },
+    "tokenizer": {
+      "repo": "prihodad/biophi-sapiens1-tokenizer",
+      "revision": "ef6ef1489be29a1cdb0a54f89b6dbf7a47c0ad40",
+      "license": "MIT",
+      "files": {
+        "merges.txt": {
+          "size": 14,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-tokenizer/resolve/ef6ef1489be29a1cdb0a54f89b6dbf7a47c0ad40/merges.txt",
+          "git_blob_sha1": "5e7f1fd94996c8e2b65adea828af1b398eace61f",
+          "sha256": "215a6aba00d27bcd42b8ad1dccc4b4d23f40decc150bdbf0d5ce6bb2410708df"
+        },
+        "special_tokens_map.json": {
+          "size": 958,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-tokenizer/resolve/ef6ef1489be29a1cdb0a54f89b6dbf7a47c0ad40/special_tokens_map.json",
+          "git_blob_sha1": "14f7c9ed7b0bde6d23ee7b6a24ac2996789d1a0b",
+          "sha256": "f23c8e6099631c233c16d9bf8dab198f610826cdd1b358f270f6d55c1863e857"
+        },
+        "tokenizer_config.json": {
+          "size": 1216,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-tokenizer/resolve/ef6ef1489be29a1cdb0a54f89b6dbf7a47c0ad40/tokenizer_config.json",
+          "git_blob_sha1": "1b31d2f12728ef2194a8630f334e478d0e946ef8",
+          "sha256": "11d6a875d0e69396432d0cd356be6977b358df3d82f9f18f56137a4b68d9b5e2"
+        },
+        "vocab.json": {
+          "size": 286,
+          "url": "https://huggingface.co/prihodad/biophi-sapiens1-tokenizer/resolve/ef6ef1489be29a1cdb0a54f89b6dbf7a47c0ad40/vocab.json",
+          "git_blob_sha1": "b288dd426921ebc80297598228037b99244446ba",
+          "sha256": "416629bae67ac448dc4d5187e1e39b780ef52dcddda93d96d5daab39301e406b"
+        }
+      }
+    }
+  },
+  "oas": {
+    "file": "promb/resources/OASis_9mers_v1_10perc_subjects.txt.gz",
+    "size": 14018806,
+    "git_blob_sha1": "fd722ec3a3162eeb96f450771ff607473d6f658d",
+    "peptide_length": 9,
+    "human_subject_threshold": 0.1,
+    "scope": "Exact peptide identity in the fixed packaged human OAS reference"
+  },
+  "proposal_scope": "Sapiens-guided framework proposals with preserved IMGT CDRs and original cysteines",
+  "scoring_scope": "Native residue probabilities and exact9mer content, not clinical immunogenicity or measured developability"
+}

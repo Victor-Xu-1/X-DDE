@@ -21,6 +21,7 @@ from .docking.backend import DockingBackend
 from .engine import DockerEngine
 from .engine_registry import engine_for
 from .execution_environment import capture as capture_environment
+from .humanization.backend import HumanizationBackend
 from .pockets.backend import PocketBackend
 from .quality.backend import QualityBackend
 from .receptors.backend import ReceptorBackend
@@ -40,6 +41,7 @@ class BackendRouter:
         self.anarcii = AntibodyBackend(settings)
         self.posebusters = QualityBackend(settings)
         self.admet = AdmetBackend(settings)
+        self.sapiens = HumanizationBackend(settings)
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
@@ -55,11 +57,14 @@ class BackendRouter:
             "anarcii",
             "posebusters",
             "admet",
+            "sapiens",
         }:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation == "sapiens":
+            return await self.sapiens.start(job, directory)
         if implementation == "admet":
             return await self.admet.start(job, directory)
         if implementation == "posebusters":
@@ -125,7 +130,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "admet":
+        if implementation == "sapiens":
+            await self.sapiens.stop(job.id, directory)
+        elif implementation == "admet":
             await self.admet.stop(job.id, directory)
         elif implementation == "posebusters":
             await self.posebusters.stop(job.id, directory)
@@ -162,6 +169,7 @@ class BackendRouter:
             anarcii,
             quality,
             admet,
+            sapiens,
         ) = await asyncio.gather(
             self._checked_readiness("opendde", self.opendde.readiness()),
             self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
@@ -172,6 +180,7 @@ class BackendRouter:
             self._checked_readiness("anarcii", self.anarcii.readiness()),
             self._checked_readiness("posebusters", self.posebusters.readiness()),
             self._checked_readiness("admet", self.admet.readiness()),
+            self._checked_readiness("sapiens", self.sapiens.readiness()),
         )
         client_present = bool(
             self.settings.harness_python and self.settings.harness_python.is_file()
@@ -196,6 +205,7 @@ class BackendRouter:
                 "anarcii": anarcii,
                 "posebusters": quality,
                 "admet": admet,
+                "sapiens": sapiens,
                 "discovery": await self.discovery.readiness(),
             },
         }

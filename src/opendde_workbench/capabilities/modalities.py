@@ -131,6 +131,7 @@ _MEMBERSHIP = {
     "posebusters.check": _SMALL,
     "admet.predict": _SMALL,
     "antibody.number": ("biologic", "antibody", "protein"),
+    "antibody.humanize": _ANTIBODY,
     "pose_exploration": _CONTEXT,
     "p2rank.detect": _CONTEXT,
     "gnina.dock": _CONTEXT,

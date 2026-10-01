@@ -184,7 +184,33 @@ class OutputCatalog:
             raise ValueError("Only declared numbered domain sequences may be reused.")
         return result
 
-    def preserve(self, job_id, file, kind, *, receptor_result=None, antibody_result=None):
+    def humanization_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "antibody_humanize":
+            return None
+        from ..humanization.result import validate_humanization
+
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        manifest = contained(root, "result.json")
+        if manifest.stat().st_size > 25 * 1024**2:
+            raise ValueError("Antibody evaluation report exceeds its typed limit.")
+        result = validate_humanization(json.loads(manifest.read_text()), job.request, root)
+        if file.name != "result.json" and file.name not in {
+            row.artifact for row in result.rows if row.artifact
+        }:
+            raise ValueError("Only declared changed antibody candidates may be reused.")
+        return result
+
+    def preserve(
+        self,
+        job_id,
+        file,
+        kind,
+        *,
+        receptor_result=None,
+        antibody_result=None,
+        humanization_result=None,
+    ):
         job = self.store.get(str(job_id))
         if job and job.request.operation == "admet_predict":
             from ..admet.result import validate_admet
@@ -235,6 +261,7 @@ class OutputCatalog:
         preparation = self.preparation_output(job_id, file)
         self.screen_output(job_id, file)
         antibodies = antibody_result or self.antibody_output(job_id, file)
+        humanization = humanization_result or self.humanization_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -261,6 +288,13 @@ class OutputCatalog:
             )
             if domain is None or hashlib.sha256(content).hexdigest() != domain.sha256:
                 raise ValueError("Only unchanged declared antibody domain sequences are reusable.")
+        if humanization and file.name != "result.json":
+            candidate = next((row for row in humanization.rows if row.artifact == file.name), None)
+            if (
+                candidate is None
+                or hashlib.sha256(content).hexdigest() != candidate.artifact_sha256
+            ):
+                raise ValueError("Humanized candidate bytes changed before asset registration.")
         asset = self.assets.save(file.name, kind, content)
         object_kind = OBJECT_KINDS.get(kind)
         if not object_kind:
@@ -294,6 +328,9 @@ class OutputCatalog:
         if antibodies and object_kind == "sequence":
             parent = antibodies.source.version_id
             relation = "prepared_from"
+        if humanization and object_kind == "sequence":
+            parent = humanization.source.version_id
+            relation = "edited_from"
         if preparation and object_kind == "structure":
             parent = preparation.source.version_id
             relation = "prepared_from"
@@ -333,7 +370,13 @@ class OutputCatalog:
                     f"artifact:{job_id}:{asset.id}:{kind}:{record}",
                 )
             )
-        objects = self.scientific.create_many(entries, source_job=job_id)
+        objects = self.scientific.create_many(
+            entries,
+            source_job=job_id,
+            validation="native_edited"
+            if humanization and object_kind == "sequence"
+            else "file_integrity_only",
+        )
         return asset, objects
 
     def index(self, job, root):
@@ -341,6 +384,14 @@ class OutputCatalog:
         artifacts = list_artifacts(root)
         receptor_result = None
         antibody_result = None
+        humanization_result = None
+        if job.request.operation == "antibody_humanize":
+            try:
+                humanization_result = self.humanization_output(
+                    job.id, contained(root, "result.json")
+                )
+            except (ValueError, KeyError, OSError, ConflictError) as exc:
+                errors.append({"artifact": "result.json", "reason": str(exc)})
         if job.request.operation == "antibody_number":
             try:
                 antibody_result = self.antibody_output(job.id, contained(root, "result.json"))
@@ -358,6 +409,15 @@ class OutputCatalog:
                 if file.name == "result.json":
                     kind = "config"
                 if not kind:
+                    continue
+                if job.request.operation == "antibody_humanize" and (
+                    humanization_result is None
+                    or (
+                        file.name != "result.json"
+                        and file.name
+                        not in {row.artifact for row in humanization_result.rows if row.artifact}
+                    )
+                ):
                     continue
                 if (
                     job.request.operation in {"pose_quality", "admet_predict"}
@@ -417,6 +477,7 @@ class OutputCatalog:
                     kind,
                     receptor_result=receptor_result,
                     antibody_result=antibody_result,
+                    humanization_result=humanization_result,
                 )
                 count += len(objects)
             except (ValueError, KeyError, OSError, ConflictError) as exc:

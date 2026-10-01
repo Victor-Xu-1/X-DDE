@@ -334,6 +334,23 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_HUMANIZATION = (
+    CapabilitySpec(
+        id="antibody.humanize",
+        **modality_metadata("antibody.humanize"),
+        group="design",
+        environment="sapiens",
+        operations=("antibody_humanize",),
+        label=("抗体人源参考与框架优化", "Antibody human reference and framework proposals"),
+        note=(
+            "评估确切的抗体可变域，保留 CDR，修改建议保存为独立序列版本。",
+            "Evaluate exact variable regions and preserve CDRs; "
+            "save changed proposals as new versions.",
+        ),
+        source="Sapiens / ANARCII / Promb",
+        frontend_form="antibody_humanize",
+    ),
+)
 _ADMET = (
     CapabilitySpec(
         id="admet.predict",
@@ -435,7 +452,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _ADMET
+    _HUMANIZATION
+    + _ADMET
     + _POSE_QUALITY
     + _ANTIBODY_NUMBER
     + _LIBRARY_SCREEN
