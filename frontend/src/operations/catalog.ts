@@ -517,5 +517,24 @@ export const tools = [
     modalities: ["chemical", "small_molecule"],
     modality_role: "research_object",
   },
+  {
+    id: "biopython.ensemble",
+    group: "prepare",
+    label: ["对齐多个受体构象", "Align receptor conformations"],
+    note: [
+      "复用已有蛋白结构，对齐到参照结构并保留对应和质量记录。",
+      "Align existing protein structures to a reference with correspondence and quality evidence.",
+    ],
+    source: "Biopython",
+    modalities: [
+      "biologic",
+      "chemical",
+      "protein",
+      "small_molecule",
+      "antibody",
+      "peptide",
+    ],
+    modality_role: "target_context",
+  },
 ] as const;
 export type ToolId = (typeof tools)[number]["id"];

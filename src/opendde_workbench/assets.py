@@ -167,6 +167,25 @@ class AssetStore:
 
     def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        if getattr(request, "operation", None) == "receptor_ensemble":
+            for item in request.inputs:
+                ref = item.structure
+                asset = self.get(ref.asset_id)
+                if (
+                    asset.kind != "structure"
+                    or asset.suffix not in {".pdb", ".cif"}
+                    or asset.sha256 != ref.sha256
+                ):
+                    raise ValueError(
+                        "Receptor ensembles require exact PDB/mmCIF structure versions."
+                    )
+                if ref.version_id:
+                    from .research.storage import ScientificStore
+
+                    ScientificStore(self.store, self).validate_reference(ref)
+                self.path(asset)
+                bindings[asset.id] = asset
+            return bindings
         if getattr(request, "operation", None) == "molecular_states":
             ref = request.molecule
             asset = self.get(ref.asset_id)

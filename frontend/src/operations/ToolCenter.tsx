@@ -14,6 +14,7 @@ import "./operations.css";
 import { RegionWorkspace } from "../regions/RegionWorkspace";
 import { PocketForm } from "../pockets/PocketForm";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
+import { ReceptorForm } from "../receptors/ReceptorForm";
 import { StateForm } from "../chemistry/StateForm";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
@@ -82,7 +83,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "chemistry.states" ? (
+          {selected === "biopython.ensemble" ? (
+            <ReceptorForm language={language} onCreated={onCreated} />
+          ) : selected === "chemistry.states" ? (
             <StateForm language={language} onCreated={onCreated} />
           ) : selected === "regions" ? (
             <RegionWorkspace language={language} />

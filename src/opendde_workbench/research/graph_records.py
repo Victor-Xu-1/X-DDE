@@ -12,11 +12,36 @@ TABLES = {
     "region": "research_regions",
     "constraint": "research_constraints",
     "state_set": "research_state_sets",
+    "receptor_set": "research_receptor_sets",
 }
 
 
 def project_record(store, kind, row):
     identifier = kind + ":" + row["id"]
+    if kind == "receptor_set":
+        from .receptor_sets import ReceptorSets
+
+        value = ReceptorSets.decode(row)
+        edges = [("task:" + str(value.source_job), identifier, "produced_collection")]
+        edges.extend(
+            ("asset:" + str(item.structure.asset_id), identifier, "aligned_from")
+            for item in value.inputs
+        )
+        edges.extend(
+            (identifier, "object:" + str(m.reference.version_id), "contains")
+            for m in value.members
+            if m.reference and m.reference.version_id
+        )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "receptor_ensemble",
+                "label": "Receptor ensemble · " + str(value.id)[:8],
+                "collection": value.model_dump(mode="json"),
+            },
+            edges,
+        )
     if kind == "state_set":
         from .state_sets import StateSets
 
@@ -144,6 +169,8 @@ def project_record(store, kind, row):
                 from ..diffsbdd.contract import references
 
                 refs.extend(ref for _, ref in references(step.request))
+            if step.request.operation == "receptor_ensemble":
+                refs.extend(item.structure for item in step.request.inputs)
             if step.request.operation == "molecular_states":
                 refs.append(step.request.molecule)
             if step.request.operation == "docking":
@@ -184,6 +211,8 @@ def project_record(store, kind, row):
         from ..docking.contract import references
 
         refs.extend(ref for _, ref in references(job.request))
+    if job.request.operation == "receptor_ensemble":
+        refs.extend(item.structure for item in job.request.inputs)
     if job.request.operation == "molecular_states":
         refs.append(job.request.molecule)
     if job.request.operation == "pocket_search":

@@ -23,6 +23,7 @@ export type View =
   | "binding-modes"
   | "pockets"
   | "molecule-preparation"
+  | "receptor-ensemble"
   | "molecule-design"
   | "antibody-design"
   | "properties"
@@ -43,6 +44,7 @@ export type View =
 export const coreTools: Readonly<Partial<Record<View, ToolId>>> = Object.freeze(
   {
     pockets: "p2rank.detect",
+    "receptor-ensemble": "biopython.ensemble",
     "binding-modes": "gnina.dock",
     "molecule-design": "diffsbdd.generate",
     "molecule-preparation": "chemistry.states",
@@ -54,6 +56,12 @@ export const coreTools: Readonly<Partial<Record<View, ToolId>>> = Object.freeze(
 export const coreToolForView = (view: View) => coreTools[view];
 const items = [
   { id: "home", cn: "结构预测", en: "Structure prediction", icon: HomeFilled },
+  {
+    id: "receptor-ensemble",
+    cn: "受体构象",
+    en: "Receptor conformations",
+    icon: DeploymentUnitOutlined,
+  },
   {
     id: "pockets",
     cn: "口袋寻找",
@@ -242,6 +250,7 @@ export function Navigation({
                   tools: ["能力", "Tools"],
                   home: ["预测", "Predict"],
                   pockets: ["口袋", "Pockets"],
+                  "receptor-ensemble": ["受体", "Receptors"],
                   "binding-modes": ["结合", "Poses"],
                   "molecule-design": ["生成", "Generate"],
                   "molecule-preparation": ["准备", "Prepare"],

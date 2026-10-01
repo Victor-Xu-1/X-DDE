@@ -263,7 +263,24 @@ _CHEMISTRY = (
         frontend_form="molecular_states",
     ),
 )
-_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY
+_RECEPTORS = (
+    CapabilitySpec(
+        id="biopython.ensemble",
+        **modality_metadata("biopython.ensemble"),
+        group="prepare",
+        environment="biopython",
+        operations=("receptor_ensemble",),
+        label=("对齐多个受体构象", "Align receptor conformations"),
+        note=(
+            "复用已有蛋白结构，对齐到参照结构并保留对应和质量记录。",
+            "Align existing protein structures to a reference "
+            "with correspondence and quality evidence.",
+        ),
+        source="Biopython",
+        frontend_form="receptor_ensemble",
+    ),
+)
+_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY + _RECEPTORS
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

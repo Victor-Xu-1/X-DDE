@@ -94,6 +94,23 @@ class OutputCatalog:
             )
         return evidence
 
+    def receptor_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "receptor_ensemble":
+            return None
+        from ..receptors.result import validate_result
+
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        report = contained(root, "result.json")
+        if report.stat().st_size > 25 * 1024**2:
+            raise ValueError("Receptor result exceeds its bounded report size.")
+        result = validate_result(json.loads(report.read_text()), job.request, root)
+        if file.suffix.lower() in {".pdb", ".cif"}:
+            allowed = {m.artifact for m in result.members if m.status != "rejected"}
+            if file.name not in allowed or file.resolve() != contained(root, file.name).resolve():
+                raise ValueError("Only qualified aligned receptor artifacts are reusable.")
+        return result
+
     def state_output(self, job_id, file):
         job = self.store.get(str(job_id))
         if not job or job.request.operation != "molecular_states":
@@ -118,10 +135,11 @@ class OutputCatalog:
                 raise ValueError("Only declared, nonempty state/conformer bundles are reusable.")
         return result
 
-    def preserve(self, job_id, file, kind):
+    def preserve(self, job_id, file, kind, *, receptor_result=None):
         self.docking_output(job_id, file)
         core = self.core_output(job_id, file)
         states = self.state_output(job_id, file)
+        receptors = receptor_result or self.receptor_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -137,6 +155,10 @@ class OutputCatalog:
             and hashlib.sha256(content).hexdigest() != states.artifact_sha256[file.name]
         ):
             raise ValueError("Prepared molecular bytes changed before asset registration.")
+        if receptors and file.suffix.lower() in {".pdb", ".cif"}:
+            member = next(m for m in receptors.members if m.artifact == file.name)
+            if hashlib.sha256(content).hexdigest() != member.artifact_sha256:
+                raise ValueError("Aligned receptor bytes changed before asset registration.")
         asset = self.assets.save(file.name, kind, content)
         object_kind = OBJECT_KINDS.get(kind)
         if not object_kind:
@@ -167,6 +189,10 @@ class OutputCatalog:
             if ref.version_id:
                 parent = ref.version_id
                 relation = "prepared_from"
+        if receptors and object_kind == "structure":
+            member = next(m for m in receptors.members if m.artifact == file.name)
+            parent = member.source.structure.version_id
+            relation = "prepared_from"
         if job and job.request.operation == "docking":
             ref = (
                 job.request.receptor
@@ -205,6 +231,12 @@ class OutputCatalog:
     def index(self, job, root):
         errors, count = [], 0
         artifacts = list_artifacts(root)
+        receptor_result = None
+        if job.request.operation == "receptor_ensemble":
+            try:
+                receptor_result = self.receptor_output(job.id, contained(root, "result.json"))
+            except (ValueError, KeyError, OSError, ConflictError) as exc:
+                errors.append({"artifact": "result.json", "reason": str(exc)})
         for artifact in artifacts:
             try:
                 file = contained(root, artifact.name)
@@ -247,7 +279,14 @@ class OutputCatalog:
                 if job.request.operation == "molecular_states" and file.suffix.lower() == ".sdf":
                     if file.name not in {"states.sdf", "conformers.sdf"} or not file.stat().st_size:
                         continue
-                _, objects = self.preserve(job.id, file, kind)
+                if job.request.operation == "receptor_ensemble":
+                    if receptor_result is None:
+                        continue
+                    if file.suffix.lower() in {".pdb", ".cif"} and file.name not in {
+                        m.artifact for m in receptor_result.members if m.status != "rejected"
+                    }:
+                        continue
+                _, objects = self.preserve(job.id, file, kind, receptor_result=receptor_result)
                 count += len(objects)
             except (ValueError, KeyError, OSError, ConflictError) as exc:
                 errors.append({"artifact": artifact.name, "reason": str(exc)})
@@ -258,6 +297,13 @@ class OutputCatalog:
                 StateSets(self.store, self.assets).ingest(job, root)
             except (ValueError, KeyError, OSError, ConflictError) as exc:
                 errors.append({"artifact": "state_set", "reason": str(exc)})
+        if job.request.operation == "receptor_ensemble" and not errors:
+            from .receptor_sets import ReceptorSets
+
+            try:
+                ReceptorSets(self.store, self.assets).ingest(job, root)
+            except (ValueError, KeyError, OSError, ConflictError) as exc:
+                errors.append({"artifact": "receptor_ensemble", "reason": str(exc)})
         if len(artifacts) == 500:
             errors.append(
                 {

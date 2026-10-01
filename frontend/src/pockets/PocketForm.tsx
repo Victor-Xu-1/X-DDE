@@ -9,13 +9,15 @@ export function PocketForm({
   language,
   onCreated,
   onPredict,
+  initialProtein = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
   onPredict(): void;
+  initialProtein?: MoleculeRef | null;
 }) {
   const zh = language === "zh",
-    [protein, setProtein] = useState<MoleculeRef | null>(null),
+    [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),
     [profile, setProfile] = useState<"experimental" | "predicted" | "">("");
   const [expert, setExpert] = useState(false),
     [ready, setReady] = useState(false),

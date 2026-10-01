@@ -121,6 +121,7 @@ _MEMBERSHIP = {
     "native.inspect": _ALL,
     "workflows": _ALL,
     "regions": _SMALL,
+    "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),
     "chemistry.states": _SMALL,
     "p2rank.detect": _CONTEXT,
     "gnina.dock": _CONTEXT,
@@ -145,6 +146,7 @@ _MEMBERSHIP = {
 }
 _SHARED = {"import", "resources", "workflows"}
 _TARGET_CONTEXT = {
+    "biopython.ensemble",
     "p2rank.detect",
     "diffsbdd.pocket",
     "diffsbdd.prepare",

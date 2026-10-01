@@ -1,0 +1,30 @@
+.receptor-input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-block: 0.75rem;
+  background: var(--surface);
+  min-width: 0;
+}
+.receptor-row-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.receptor-form fieldset {
+  min-width: 0;
+}
+.receptor-results {
+  min-width: 0;
+}
+.receptor-results .receptor-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-block: 0.75rem;
+}
+.receptor-results .receptor-input p {
+  overflow-wrap: anywhere;
+}

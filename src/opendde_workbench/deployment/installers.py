@@ -28,7 +28,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "chemistry":
+    if key == "biopython":
+        from .receptor_install import install_biopython
+
+        metadata.update(install_biopython(root, work, execute, report, checkpoint))
+    elif key == "chemistry":
         from .chemistry_install import install_chemistry
 
         metadata.update(install_chemistry(root, work, execute, report, checkpoint))

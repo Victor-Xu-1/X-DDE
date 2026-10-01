@@ -6,6 +6,8 @@ import { PocketResults } from "../pockets/PocketResults";
 import type { PocketResult } from "../pockets/types";
 import { DockingResults } from "../docking/DockingResults";
 import type { DockingResult } from "../docking/types";
+import { ReceptorResults } from "../receptors/ReceptorResults";
+import type { ReceptorResult } from "../receptors/types";
 import { StateResults } from "../chemistry/StateResults";
 import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
@@ -65,6 +67,7 @@ export function OperationResults({
     "docking",
     "diffsbdd",
     "molecular_states",
+    "receptor_ensemble",
     "properties",
     "inspect",
     "json",
@@ -229,6 +232,13 @@ export function OperationResults({
         <DockingResults
           job={job}
           result={data as unknown as DockingResult}
+          language={language}
+        />
+      )}
+      {job.request.operation === "receptor_ensemble" && (
+        <ReceptorResults
+          job={job}
+          data={data as unknown as ReceptorResult}
           language={language}
         />
       )}

@@ -33,6 +33,18 @@ PACKAGES = {
     p.id: p
     for p in [
         Package(
+            "biopython",
+            "biopython-1.86-numpy-1.26.4",
+            "Biopython 受体构象准备",
+            "独立 CPU 结构解析、对应和刚体对齐 / Independent structural alignment",
+            "约 100 MB 下载；至少 2 GiB 安装空间 / ~100 MB download; 2 GiB staging",
+            license=(
+                "Biopython License Agreement / BSD-3-Clause; NumPy BSD-3-Clause; dependency terms"
+            ),
+            engine="biopython",
+            kind="runtime",
+        ),
+        Package(
             "chemistry",
             "rdkit-2023.9.6-dimorphite-2.0.2",
             "Chemistry preparation environment",

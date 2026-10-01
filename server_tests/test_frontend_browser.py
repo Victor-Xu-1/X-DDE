@@ -124,6 +124,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 "p2rank",
                 "gnina",
                 "chemistry",
+                "biopython",
             }
             for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
@@ -516,8 +517,9 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
             labels = navigation.get_by_role("button").evaluate_all(
                 "nodes => nodes.map(node => node.getAttribute('aria-label'))"
             )
-            assert labels[:8] == [
+            assert labels[:9] == [
                 "结构预测",
+                "受体构象",
                 "口袋寻找",
                 "结合模式",
                 "分子准备",

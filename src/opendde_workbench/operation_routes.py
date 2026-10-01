@@ -44,6 +44,16 @@ def register_operations(app, store, assets, settings, mutation):
                 raise ValueError("Result exceeds the display size limit. Download the artifact.")
             value = json.loads(path.read_text())
             job = store.get(str(job_id))
+            if job.request.operation == "receptor_ensemble":
+                from .receptors.result import validate_result
+
+                try:
+                    validate_result(value, job.request, root / "output")
+                except (ValueError, TypeError, KeyError) as exc:
+                    raise HTTPException(
+                        422,
+                        "Receptor alignment evidence is invalid or changed; inspect task files.",
+                    ) from exc
             if job.request.operation == "molecular_states":
                 from .chemistry.result import validate_result
 

@@ -21,6 +21,7 @@ from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
 from .pockets.contract import PocketSearch
 from .prediction import Prediction
+from .receptors.contract import ReceptorEnsembleTask
 from .task_metadata import TaskMetadata
 
 
@@ -134,7 +135,8 @@ TaskRequest = Annotated[
     | Annotated[DiffTask, Tag("diffsbdd")]
     | Annotated[PocketSearch, Tag("pocket_search")]
     | Annotated[DockingTask, Tag("docking")]
-    | Annotated[MolecularStatesTask, Tag("molecular_states")],
+    | Annotated[MolecularStatesTask, Tag("molecular_states")]
+    | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
     Discriminator(request_kind),
 ]
 TASK_ADAPTER = TypeAdapter(TaskRequest)
@@ -143,6 +145,10 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
+    if isinstance(request, ReceptorEnsembleTask):
+        return {str(item.structure.asset_id) for item in request.inputs} | {
+            str(ref.asset_id) for ref in request.scientific_inputs
+        }
     if isinstance(request, MolecularStatesTask):
         return {str(request.molecule.asset_id)} | {
             str(ref.asset_id) for ref in request.scientific_inputs

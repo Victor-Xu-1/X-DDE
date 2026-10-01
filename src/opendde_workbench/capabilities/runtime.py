@@ -13,6 +13,17 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             if spec.id == "regions"
             else ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
         )
+    elif spec.environment == "biopython":
+        checks = {"runtime": bool(backends.get("biopython", {}).get("ready"))}
+        specific.extend(
+            (
+                "selected_structural_models",
+                "observed_ca_correspondence",
+                "reference_frame",
+                "alignment_budget",
+                "backbone_and_ambiguity_checks",
+            )
+        )
     elif spec.environment == "chemistry":
         checks = {"runtime": bool(backends.get("chemistry", {}).get("ready"))}
         specific.extend(

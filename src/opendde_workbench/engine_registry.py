@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "biopython",
+        "Biopython",
+        "受体构象解析、对应与刚体对齐 / Receptor conformation parsing and rigid alignment",
+        "docker",
+        ("receptor_ensemble",),
+    ),
+    ScientificEngine(
         "chemistry",
         "RDKit + Dimorphite-DL",
         "化学状态与游离构象准备 / Molecular-state and free-conformer preparation",

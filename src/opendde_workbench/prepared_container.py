@@ -1,0 +1,118 @@
+"""Shared bounded preparation-container lifecycle beneath the sole Router/Worker."""
+
+import hashlib
+import json
+import os
+import sys
+from pathlib import Path
+
+from . import local_process
+from .engine import command
+
+
+class PreparedContainerBackend:
+    def __init__(self, settings, identifier, root, files, configuration, readiness):
+        if identifier not in {"chemistry", "biopython"}:
+            raise ValueError("Unknown managed preparation container namespace.")
+        if not 1 <= len(files) <= 32 or any(Path(name).name != name for name in files):
+            raise ValueError("Preparation adapter files must have bounded, explicit names.")
+        self.settings, self.identifier, self.root, self.files = settings, identifier, root, files
+        self.configuration, self.runtime_readiness = configuration, readiness
+
+    async def readiness(self):
+        return await self.runtime_readiness(self.settings)
+
+    def container(self, job_id):
+        from uuid import UUID
+
+        if str(UUID(job_id)) != job_id:
+            raise ValueError("Preparation container requires a canonical task identifier.")
+        return "xdde-" + self.identifier + "-" + job_id
+
+    async def start(self, job, directory):
+        image = self.configuration(self.settings)
+        adapter = directory / "adapter"
+        adapter.mkdir(exist_ok=False)
+        checksums = {}
+        for name in self.files:
+            file = self.root / name
+            if file.is_symlink() or file.stat().st_size > 2 * 1024**2:
+                raise ValueError("Preparation adapter source is unsafe or oversized.")
+            content = file.read_bytes()
+            (adapter / name).write_bytes(content)
+            (adapter / name).chmod(0o444)
+            checksums[name] = hashlib.sha256(content).hexdigest()
+        options = job.request.options
+        args = [
+            "docker",
+            "create",
+            "--name",
+            self.container(job.id),
+            "--network",
+            "none",
+            "--read-only",
+            "--user",
+            f"{os.getuid()}:{os.getgid()}",
+            "--cap-drop",
+            "ALL",
+            "--security-opt",
+            "no-new-privileges",
+            "--pids-limit",
+            "64",
+            "--memory",
+            str(options.memory_mib) + "m",
+            "--cpus",
+            str(options.cpu),
+            "--tmpfs",
+            "/tmp:rw,nosuid,nodev,size=256m",
+            "--env",
+            "HOME=/tmp",
+            "--env",
+            "OMP_NUM_THREADS=" + str(options.cpu),
+        ]
+        for host, target, readonly in [
+            (adapter, "/platform", True),
+            (directory / "assets", "/input/assets", True),
+            (directory / "request.json", "/input/request.json", True),
+            (directory / "bindings.json", "/input/bindings.json", True),
+            (directory / "output", "/output", False),
+        ]:
+            if host.is_symlink() or "," in str(host):
+                raise ValueError("Scientific mount paths must be real paths without commas.")
+            args.extend(
+                [
+                    "--mount",
+                    f"type=bind,source={host},target={target}" + (",readonly" if readonly else ""),
+                ]
+            )
+        args.extend(["--entrypoint", "python", image, "-B", "/platform/runner.py"])
+        code, text = await command(*args)
+        if code:
+            raise RuntimeError("Unable to create the preparation task container: " + text)
+        env = {
+            "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": str(Path(__file__).parent.parent),
+        }
+        try:
+            (directory / (self.identifier + "-execution.json")).write_text(
+                json.dumps({"image": image, "adapter_sha256": checksums}), encoding="utf-8"
+            )
+            return await local_process.start(
+                Path(sys.executable), self.root / "supervise.py", directory, env
+            )
+        except Exception as error:
+            cleanup_code, cleanup_text = await command(
+                "docker", "rm", "--force", self.container(job.id)
+            )
+            if cleanup_code and "No such container" not in cleanup_text:
+                raise RuntimeError(
+                    "Preparation startup failed and owned container cleanup is unconfirmed."
+                ) from error
+            raise
+
+    async def stop(self, job_id, directory):
+        code, text = await command("docker", "rm", "--force", self.container(job_id))
+        if code and "No such container" not in text:
+            raise RuntimeError("Preparation container cancellation is unconfirmed.")
+        await local_process.stop(self.root / "supervise.py", directory)

@@ -76,19 +76,20 @@ jobs:
         run: >-
           uv run --no-project --python 3.10
           --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
-          --with pydantic==2.13.5 --with dimorphite-dl==2.0.2
-          python -m pytest -q server_tests/test_scientific_handoff.py server_tests/test_molecular_states.py
+          --with pydantic==2.13.5 --with dimorphite-dl==2.0.2 --with biopython==1.86
+          python -m pytest -q server_tests/test_scientific_handoff.py server_tests/test_molecular_states.py server_tests/test_receptor_science.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Build host and run the actual independent chemistry container
         env:
           WB_TEST_NATIVE_STATES: '1'
+          WB_TEST_NATIVE_RECEPTORS: '1'
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
           uv sync --locked --group dev
-          uv run --locked pytest -q server_tests/test_native_states.py
+          uv run --locked pytest -q server_tests/test_native_states.py server_tests/test_native_receptors.py
       - name: Preserve actual fixed-core verification fixture for browser integration
         uses: actions/upload-artifact@v4
         with:
@@ -143,7 +144,7 @@ jobs:
           else:
               raise SystemExit('Browser preview did not start')
           PY
-          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py
+          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v4

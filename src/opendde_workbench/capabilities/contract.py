@@ -21,7 +21,7 @@ class CapabilitySpec(BaseModel):
     modalities: tuple[ModalityId, ...] = Field(min_length=1)
     modality_role: Literal["research_object", "target_context", "shared"]
     environment: Literal[
-        "opendde", "harness", "diffsbdd", "platform", "p2rank", "gnina", "chemistry"
+        "opendde", "harness", "diffsbdd", "platform", "p2rank", "gnina", "chemistry", "biopython"
     ]
     operations: tuple[str, ...]
     label: tuple[str, str]
