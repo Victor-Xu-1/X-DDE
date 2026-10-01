@@ -126,9 +126,9 @@ export function FixedAtomPicker({
           </button>
         </>
       )}
-      {error && (
+      {(error || inspectionReadinessError) && (
         <p role="alert" className="error-box">
-          {error}
+          {error || inspectionReadinessError}
           <button type="button" onClick={refresh}>
             {zh ? "重新读取任务状态" : "Refresh task status"}
           </button>

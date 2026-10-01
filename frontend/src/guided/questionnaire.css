@@ -27,17 +27,16 @@
   font-size: 1.05rem;
   outline: none;
 }
-.questionnaire fieldset {
+.questionnaire > fieldset {
   min-width: 0;
   border: 0;
   padding: 0;
   margin: 0;
 }
-.questionnaire fieldset:not([hidden]) {
-  display: grid;
-  gap: 0.75rem;
+.questionnaire > fieldset:not([hidden]) {
+  display: block;
 }
-.questionnaire fieldset[hidden] {
+.questionnaire > fieldset[hidden] {
   display: none;
 }
 .questionnaire-actions {
@@ -124,4 +123,8 @@
 .questionnaire-choices small {
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.questionnaire > fieldset > * + * {
+  margin-top: 0.75rem;
 }

@@ -78,6 +78,12 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     )
                     workspace.get_by_role("button", name="下一步", exact=True).click()
                     workspace.get_by_role("button", name="下一步", exact=True).click()
+                    page.screenshot(
+                        path="server_tests/evidence/pose-plan-before-save.png", full_page=True
+                    )
+                    assert (
+                        workspace.locator(".questionnaire-heading").inner_text() == "4. 确认保存"
+                    ), workspace.locator(".questionnaire").inner_text()
                     with page.expect_response(
                         lambda r: (
                             r.url.endswith("/api/research/pose-explorations")
