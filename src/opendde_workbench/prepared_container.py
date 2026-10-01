@@ -12,7 +12,7 @@ from .engine import command
 
 class PreparedContainerBackend:
     def __init__(self, settings, identifier, root, files, configuration, readiness):
-        if identifier not in {"chemistry", "biopython"}:
+        if identifier not in {"chemistry", "biopython", "anarcii"}:
             raise ValueError("Unknown managed preparation container namespace.")
         if not 1 <= len(files) <= 32 or any(Path(name).name != name for name in files):
             raise ValueError("Preparation adapter files must have bounded, explicit names.")

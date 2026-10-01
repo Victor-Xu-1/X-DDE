@@ -30,6 +30,7 @@ class CapabilitySpec(BaseModel):
         "chemistry",
         "biopython",
         "discovery",
+        "anarcii",
     ]
     operations: tuple[str, ...]
     label: tuple[str, str]

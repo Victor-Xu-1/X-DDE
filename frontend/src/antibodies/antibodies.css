@@ -1,0 +1,18 @@
+.antibody-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 1rem 0;
+}
+.antibody-sequence span {
+  font-family: monospace;
+  padding: 0.25rem 0.3rem;
+  border-radius: 3px;
+}
+.antibody-sequence .framework {
+  background: var(--surface-muted);
+}
+.antibody-sequence .cdr {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

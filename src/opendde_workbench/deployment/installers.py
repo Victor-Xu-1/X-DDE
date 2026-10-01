@@ -28,7 +28,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "biopython":
+    if key == "anarcii":
+        from .antibody_install import install_antibody
+
+        metadata.update(install_antibody(root, work, execute, report, checkpoint))
+    elif key == "biopython":
         from .receptor_install import install_biopython
 
         metadata.update(install_biopython(root, work, execute, report, checkpoint))

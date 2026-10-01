@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
+import { AntibodyNumberResults } from "../antibodies/AntibodyNumberResults";
+import type { AntibodyNumberResult } from "../antibodies/types";
 import { LibraryScreenResults } from "../chemistry/LibraryScreenResults";
 import type { LibraryScreenResult } from "../chemistry/screen-types";
 import { StructurePrepareResults } from "../receptors/StructurePrepareResults";
@@ -75,6 +77,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "antibody_number",
     "library_screen",
     "structure_prepare",
     "pocket_search",
@@ -122,6 +125,14 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "antibody_number" && (
+        <AntibodyNumberResults
+          job={job}
+          result={data as unknown as AntibodyNumberResult}
+          language={language}
+          onDraft={onDraft}
+        />
+      )}
       {job.request.operation === "library_screen" && (
         <LibraryScreenResults
           job={job}

@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "anarcii",
+        "ANARCII",
+        "抗体序列编号、链型和结构域 / Antibody numbering, chain types and domains",
+        "docker",
+        ("antibody_number",),
+    ),
+    ScientificEngine(
         "discovery",
         "Open Targets / UniProt / ChEMBL",
         "早期靶点、疾病、序列、结构索引与已知活性证据 / Early discovery evidence",

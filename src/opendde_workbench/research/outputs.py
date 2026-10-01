@@ -167,7 +167,24 @@ class OutputCatalog:
             raise ValueError("Only the declared nonempty selected library is reusable.")
         return result
 
-    def preserve(self, job_id, file, kind, *, receptor_result=None):
+    def antibody_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "antibody_number":
+            return None
+        from ..antibodies.result import validate_numbering
+
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        manifest = contained(root, "result.json")
+        if manifest.stat().st_size > 25 * 1024**2:
+            raise ValueError("Antibody result exceeds its size limit.")
+        result = validate_numbering(json.loads(manifest.read_text()), job.request, root)
+        if file.suffix in {".fa", ".fasta"} and file.name not in {
+            row.artifact for row in result.domains if row.available
+        }:
+            raise ValueError("Only declared numbered domain sequences may be reused.")
+        return result
+
+    def preserve(self, job_id, file, kind, *, receptor_result=None, antibody_result=None):
         job = self.store.get(str(job_id))
         if job and job.request.operation == "reference_import":
             from ..discovery.import_runner import validate_import_result
@@ -195,6 +212,7 @@ class OutputCatalog:
         receptors = receptor_result or self.receptor_output(job_id, file)
         preparation = self.preparation_output(job_id, file)
         self.screen_output(job_id, file)
+        antibodies = antibody_result or self.antibody_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -214,6 +232,13 @@ class OutputCatalog:
             member = next(m for m in receptors.members if m.artifact == file.name)
             if hashlib.sha256(content).hexdigest() != member.artifact_sha256:
                 raise ValueError("Aligned receptor bytes changed before asset registration.")
+        if antibodies and file.suffix in {".fa", ".fasta"}:
+            domain = next(
+                (row for row in antibodies.domains if row.available and row.artifact == file.name),
+                None,
+            )
+            if domain is None or hashlib.sha256(content).hexdigest() != domain.sha256:
+                raise ValueError("Only unchanged declared antibody domain sequences are reusable.")
         asset = self.assets.save(file.name, kind, content)
         object_kind = OBJECT_KINDS.get(kind)
         if not object_kind:
@@ -244,6 +269,9 @@ class OutputCatalog:
             if ref.version_id:
                 parent = ref.version_id
                 relation = "prepared_from"
+        if antibodies and object_kind == "sequence":
+            parent = antibodies.source.version_id
+            relation = "prepared_from"
         if preparation and object_kind == "structure":
             parent = preparation.source.version_id
             relation = "prepared_from"
@@ -290,6 +318,12 @@ class OutputCatalog:
         errors, count = [], 0
         artifacts = list_artifacts(root)
         receptor_result = None
+        antibody_result = None
+        if job.request.operation == "antibody_number":
+            try:
+                antibody_result = self.antibody_output(job.id, contained(root, "result.json"))
+            except (ValueError, KeyError, OSError, ConflictError) as exc:
+                errors.append({"artifact": "result.json", "reason": str(exc)})
         if job.request.operation == "receptor_ensemble":
             try:
                 receptor_result = self.receptor_output(job.id, contained(root, "result.json"))
@@ -347,7 +381,15 @@ class OutputCatalog:
                         m.artifact for m in receptor_result.members if m.status != "rejected"
                     }:
                         continue
-                _, objects = self.preserve(job.id, file, kind, receptor_result=receptor_result)
+                if job.request.operation == "antibody_number" and antibody_result is None:
+                    continue
+                _, objects = self.preserve(
+                    job.id,
+                    file,
+                    kind,
+                    receptor_result=receptor_result,
+                    antibody_result=antibody_result,
+                )
                 count += len(objects)
             except (ValueError, KeyError, OSError, ConflictError) as exc:
                 errors.append({"artifact": artifact.name, "reason": str(exc)})

@@ -34,6 +34,7 @@ class Settings:
     diffsbdd_manifest_sha256: str | None = None
     chemistry_image: str | None = None
     biopython_image: str | None = None
+    anarcii_image: str | None = None
     gnina_image: str | None = None
     p2rank_home: Path | None = None
     p2rank_image: str | None = None
@@ -59,6 +60,8 @@ class Settings:
         diff = installed.get("diffsbdd", {})
         pockets = installed.get("p2rank", {})
         return cls(
+            anarcii_image=os.environ.get("WB_ANARCII_IMAGE")
+            or installed.get("anarcii", {}).get("image"),
             biopython_image=os.environ.get("WB_BIOPYTHON_IMAGE")
             or installed.get("biopython", {}).get("image"),
             chemistry_image=os.environ.get("WB_CHEMISTRY_IMAGE")

@@ -157,6 +157,16 @@ PACKAGES = {
 }
 
 
+PACKAGES["anarcii"] = Package(
+    "anarcii",
+    "2.0.8-cpu",
+    "ANARCII",
+    "抗体编号与域识别 / Antibody numbering and domain annotation",
+    "约 1 GB / CPU runtime and bundled models",
+    license="BSD-3-Clause / dependency licenses",
+    engine="anarcii",
+)
+
 PACKAGES["diffsbdd"] = Package(
     "diffsbdd",
     SOURCE_COMMIT[:12],

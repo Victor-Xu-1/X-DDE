@@ -208,6 +208,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("discovery", {}))
+            elif value.operation == "antibody_number":
+                from .antibodies.runtime import validate
+
+                assets.validate_bindings(value)
+                validate(value, readiness["engine"].get("backends", {}).get("anarcii", {}))
             elif value.operation in {"receptor_ensemble", "structure_prepare"}:
                 from .receptors.runtime import validate
 

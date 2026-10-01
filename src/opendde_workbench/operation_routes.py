@@ -53,6 +53,15 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Research evidence is invalid or changed; inspect task files."
                     ) from exc
+            if job.request.operation == "antibody_number":
+                from .antibodies.presentation import present_numbering
+
+                try:
+                    value = present_numbering(value, job, root / "output", store, assets)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(
+                        422, "Antibody annotation evidence is invalid or changed."
+                    ) from exc
             if job.request.operation == "library_screen":
                 from .chemistry.screen_presentation import present_screen
 

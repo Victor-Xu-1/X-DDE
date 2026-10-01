@@ -68,6 +68,18 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "antibody.number",
+    group: "prepare",
+    label: ["抗体编号与 CDR 标注", "Antibody numbering and CDR annotation"],
+    note: [
+      "识别抗体链与结构域，保留原始序列位置和 IMGT 编号。",
+      "Identify antibody chains/domains with original sequence positions and IMGT numbering.",
+    ],
+    source: "ANARCII",
+    modalities: ["biologic", "antibody", "protein"],
+    modality_role: "research_object",
+  },
+  {
     id: "chemistry.screen",
     group: "analyze",
     label: ["分子库与早期筛选", "Library and early molecular selection"],

@@ -13,6 +13,16 @@ def write_lock(root, check=False):
     for line in (root / "native-requirements.in").read_text().splitlines():
         if not line or line.startswith("#"):
             continue
+        if line.startswith("torch @ "):
+            direct = re.fullmatch(
+                r"torch @ (https://download\.pytorch\.org/whl/cpu/torch-[0-9.]+%2Bcpu-"
+                r"cp312-cp312-manylinux_2_28_x86_64\.whl)#sha256=([a-f0-9]{64})",
+                line,
+            )
+            if not direct:
+                raise ValueError("Only the reviewed CPython3.12 CPU Torch distribution is allowed.")
+            lines.append("torch @ " + direct[1] + " --hash=sha256:" + direct[2])
+            continue
         name, version = line.split("==")
         if not re.fullmatch(r"[a-z0-9-]+", name) or not re.fullmatch(r"[0-9.]+", version):
             raise ValueError("The runtime lock requires exact trusted package/version pins.")

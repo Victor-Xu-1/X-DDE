@@ -31,6 +31,16 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             "source_availability",
             "bounded_coverage",
         ]
+    elif spec.environment == "anarcii":
+        checks = {"runtime": bool(backends.get("anarcii", {}).get("ready"))}
+        specific = [
+            "exact_fasta_sequence_version",
+            "numbered_domain_interval",
+            "native_chain_type",
+            "imgt_numbering",
+            "bundled_model_digests",
+            "internal_score_not_developability",
+        ]
     elif spec.environment == "biopython":
         checks = {"runtime": bool(backends.get("biopython", {}).get("ready"))}
         specific.extend(

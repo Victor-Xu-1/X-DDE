@@ -11,6 +11,7 @@ import os
 from collections.abc import Awaitable
 
 from . import harness_process, local_process
+from .antibodies.backend import AntibodyBackend
 from .chemistry.backend import ChemistryBackend
 from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
@@ -34,6 +35,7 @@ class BackendRouter:
         self.chemistry = ChemistryBackend(settings)
         self.biopython = ReceptorBackend(settings)
         self.discovery = DiscoveryBackend(settings)
+        self.anarcii = AntibodyBackend(settings)
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
@@ -46,11 +48,14 @@ class BackendRouter:
             "chemistry",
             "biopython",
             "discovery",
+            "anarcii",
         }:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation == "anarcii":
+            return await self.anarcii.start(job, directory)
         if implementation == "discovery":
             return await self.discovery.start(job, directory)
         if implementation == "biopython":
@@ -110,7 +115,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "discovery":
+        if implementation == "anarcii":
+            await self.anarcii.stop(job.id, directory)
+        elif implementation == "discovery":
             await self.discovery.stop(job.id, directory)
         elif implementation == "biopython":
             await self.biopython.stop(job.id, directory)
@@ -131,13 +138,14 @@ class BackendRouter:
 
     async def readiness(self):
         # Preserve the existing OpenDDE health contract; expose other engines independently.
-        opendde, diff, pockets, docking, chemistry, biopython = await asyncio.gather(
+        opendde, diff, pockets, docking, chemistry, biopython, anarcii = await asyncio.gather(
             self._checked_readiness("opendde", self.opendde.readiness()),
             self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
             self._checked_readiness("p2rank", self.pockets.readiness()),
             self._checked_readiness("gnina", self.docking.readiness()),
             self._checked_readiness("chemistry", self.chemistry.readiness()),
             self._checked_readiness("biopython", self.biopython.readiness()),
+            self._checked_readiness("anarcii", self.anarcii.readiness()),
         )
         client_present = bool(
             self.settings.harness_python and self.settings.harness_python.is_file()
@@ -159,6 +167,7 @@ class BackendRouter:
                 "gnina": docking,
                 "chemistry": chemistry,
                 "biopython": biopython,
+                "anarcii": anarcii,
                 "discovery": await self.discovery.readiness(),
             },
         }

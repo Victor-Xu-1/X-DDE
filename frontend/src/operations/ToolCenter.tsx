@@ -4,6 +4,7 @@ import { tools, type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { ModalityTags } from "./ModalityTags";
 import { filterCapabilities, type ModalityFilter } from "./filter";
+import { AntibodyNumberForm } from "../antibodies/AntibodyNumberForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
 import { ReferenceImportForm } from "../discovery/ReferenceImportForm";
@@ -88,7 +89,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "chemistry.screen" ? (
+          {selected === "antibody.number" ? (
+            <AntibodyNumberForm language={language} onCreated={onCreated} />
+          ) : selected === "chemistry.screen" ? (
             <LibraryScreenForm language={language} onCreated={onCreated} />
           ) : selected === "biopython.prepare" ? (
             <StructurePrepareForm language={language} onCreated={onCreated} />

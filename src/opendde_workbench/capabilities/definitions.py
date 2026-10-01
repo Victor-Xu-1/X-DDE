@@ -334,6 +334,23 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_ANTIBODY_NUMBER = (
+    CapabilitySpec(
+        id="antibody.number",
+        **modality_metadata("antibody.number"),
+        group="prepare",
+        environment="anarcii",
+        operations=("antibody_number",),
+        label=("抗体编号与 CDR 标注", "Antibody numbering and CDR annotation"),
+        note=(
+            "识别抗体链与结构域，保留原始序列位置和 IMGT 编号。",
+            "Identify antibody chains/domains with original sequence positions and IMGT numbering.",
+        ),
+        source="ANARCII",
+        frontend_form="antibody_number",
+        scientific_validation="target_server_pending",
+    ),
+)
 _LIBRARY_SCREEN = (
     CapabilitySpec(
         id="chemistry.screen",
@@ -386,7 +403,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _LIBRARY_SCREEN
+    _ANTIBODY_NUMBER
+    + _LIBRARY_SCREEN
     + _STRUCTURE_PREPARE
     + _REFERENCE_IMPORT
     + _DISCOVERY

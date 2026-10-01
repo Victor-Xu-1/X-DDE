@@ -128,6 +128,7 @@ _MEMBERSHIP = {
     "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),
     "chemistry.states": _SMALL,
     "chemistry.screen": _SMALL,
+    "antibody.number": ("biologic", "antibody", "protein"),
     "pose_exploration": _CONTEXT,
     "p2rank.detect": _CONTEXT,
     "gnina.dock": _CONTEXT,
