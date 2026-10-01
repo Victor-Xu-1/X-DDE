@@ -14,6 +14,8 @@ class Binding(BaseModel):
     result_field: (
         Literal[
             "molecule_artifact",
+            "state_artifact",
+            "conformer_artifact",
             "protein_artifact",
             "pocket_artifact",
             "structure",
@@ -77,6 +79,15 @@ class PlanInput(BaseModel):
             if len({binding.target for binding in step.bindings}) != len(step.bindings):
                 raise ValueError("A workflow input slot can have only one binding.")
             for binding in step.bindings:
+                predecessor = next(s for s in self.steps if s.id == binding.from_step)
+                if predecessor.request.operation == "molecular_states" and binding.target not in {
+                    "property_input",
+                    "docking_ligand",
+                }:
+                    raise ValueError(
+                        "Prepared states/conformers require property calculation or new docking; "
+                        "they are not aligned binding poses."
+                    )
                 if (binding.target == "protein") != (binding.kind == "structure"):
                     raise ValueError(
                         "Protein slots require structures; molecular slots require ligands."

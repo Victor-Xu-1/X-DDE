@@ -13,6 +13,29 @@ from .storage import ScientificStore
 
 def register_research(app, store, assets, mutation):
     scientific = ScientificStore(store, assets)
+    from .state_sets import MolecularStateSet, StateSets
+
+    state_sets = StateSets(store, assets)
+
+    @app.get("/api/research/state-sets", response_model=list[MolecularStateSet])
+    def collections(
+        limit: int = Query(default=100, ge=1, le=200),
+        offset: int = Query(default=0, ge=0),
+        source_job: UUID | None = None,
+    ):
+        try:
+            return state_sets.list(limit, offset, source_job)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+    @app.get("/api/research/state-sets/{set_id}", response_model=MolecularStateSet)
+    def collection(set_id: UUID):
+        try:
+            return state_sets.get(set_id)
+        except KeyError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
 
     @app.get("/api/research/objects", response_model=list[ScientificObject])
     def objects(

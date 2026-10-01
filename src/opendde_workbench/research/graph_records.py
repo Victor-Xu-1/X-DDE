@@ -11,11 +11,38 @@ TABLES = {
     "run": "workflow_runs",
     "region": "research_regions",
     "constraint": "research_constraints",
+    "state_set": "research_state_sets",
 }
 
 
 def project_record(store, kind, row):
     identifier = kind + ":" + row["id"]
+    if kind == "state_set":
+        from .state_sets import StateSets
+
+        value = StateSets.decode(row)
+        edges = [
+            ("task:" + str(value.source_job), identifier, "produced_collection"),
+            ("asset:" + str(value.source.asset_id), identifier, "prepared_from"),
+        ]
+        refs = [member.reference for member in value.members] + [
+            c.reference for member in value.members for c in member.conformers
+        ]
+        edges.extend(
+            (identifier, "object:" + str(ref.version_id), "contains")
+            for ref in refs
+            if ref.version_id
+        )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "molecular_state_set",
+                "label": "Molecular states · " + str(value.id)[:8],
+                "collection": value.model_dump(mode="json"),
+            },
+            edges,
+        )
     if kind == "asset":
         return (
             identifier,
@@ -117,6 +144,8 @@ def project_record(store, kind, row):
                 from ..diffsbdd.contract import references
 
                 refs.extend(ref for _, ref in references(step.request))
+            if step.request.operation == "molecular_states":
+                refs.append(step.request.molecule)
             if step.request.operation == "docking":
                 from ..docking.contract import references
 
@@ -155,6 +184,8 @@ def project_record(store, kind, row):
         from ..docking.contract import references
 
         refs.extend(ref for _, ref in references(job.request))
+    if job.request.operation == "molecular_states":
+        refs.append(job.request.molecule)
     if job.request.operation == "pocket_search":
         refs.append(job.request.protein)
     if job.request.operation == "diffsbdd":

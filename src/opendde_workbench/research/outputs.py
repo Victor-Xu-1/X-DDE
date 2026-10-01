@@ -4,7 +4,7 @@ import hashlib
 import json
 
 from ..artifacts import contained, list_artifacts
-from ..store import now
+from ..store import ConflictError, now
 from .contracts import VersionInput
 from .storage import ScientificStore
 
@@ -94,9 +94,34 @@ class OutputCatalog:
             )
         return evidence
 
+    def state_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "molecular_states":
+            return None
+        from ..chemistry.result import validate_result
+
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        report = contained(root, "result.json")
+        if report.stat().st_size > 2 * 1024**2:
+            raise ValueError("Prepared state report exceeds its display limit.")
+        result = validate_result(json.loads(report.read_text()), job.request, root)
+        if file.suffix.lower() == ".sdf":
+            expected = {
+                result.state_artifact: len(result.states),
+                result.conformer_artifact: len(result.conformers),
+            }
+            if (
+                file.name not in expected
+                or file.resolve() != contained(root, file.name).resolve()
+                or not expected[file.name]
+            ):
+                raise ValueError("Only declared, nonempty state/conformer bundles are reusable.")
+        return result
+
     def preserve(self, job_id, file, kind):
         self.docking_output(job_id, file)
         core = self.core_output(job_id, file)
+        states = self.state_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -106,6 +131,12 @@ class OutputCatalog:
             and hashlib.sha256(content).hexdigest() != core.qualified_sha256
         ):
             raise ValueError("Qualified molecule bytes changed before asset registration.")
+        if (
+            states
+            and file.suffix.lower() == ".sdf"
+            and hashlib.sha256(content).hexdigest() != states.artifact_sha256[file.name]
+        ):
+            raise ValueError("Prepared molecular bytes changed before asset registration.")
         asset = self.assets.save(file.name, kind, content)
         object_kind = OBJECT_KINDS.get(kind)
         if not object_kind:
@@ -131,6 +162,11 @@ class OutputCatalog:
             if ref and ref.version_id and self.scientific.get(ref.version_id).kind == object_kind:
                 parent = ref.version_id
                 relation = "edited_from" if payload.mode == "edit" else "prepared_from"
+        if job and job.request.operation == "molecular_states" and object_kind == "molecule":
+            ref = job.request.molecule
+            if ref.version_id:
+                parent = ref.version_id
+                relation = "prepared_from"
         if job and job.request.operation == "docking":
             ref = (
                 job.request.receptor
@@ -208,10 +244,20 @@ class OutputCatalog:
                         evidence = validate_verification(result, job.request, root)
                         if file.name != evidence.qualified_artifact or not evidence.qualified_count:
                             continue
+                if job.request.operation == "molecular_states" and file.suffix.lower() == ".sdf":
+                    if file.name not in {"states.sdf", "conformers.sdf"} or not file.stat().st_size:
+                        continue
                 _, objects = self.preserve(job.id, file, kind)
                 count += len(objects)
-            except (ValueError, KeyError, OSError) as exc:
+            except (ValueError, KeyError, OSError, ConflictError) as exc:
                 errors.append({"artifact": artifact.name, "reason": str(exc)})
+        if job.request.operation == "molecular_states" and not errors:
+            from .state_sets import StateSets
+
+            try:
+                StateSets(self.store, self.assets).ingest(job, root)
+            except (ValueError, KeyError, OSError, ConflictError) as exc:
+                errors.append({"artifact": "state_set", "reason": str(exc)})
         if len(artifacts) == 500:
             errors.append(
                 {

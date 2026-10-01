@@ -6,6 +6,8 @@ import { PocketResults } from "../pockets/PocketResults";
 import type { PocketResult } from "../pockets/types";
 import { DockingResults } from "../docking/DockingResults";
 import type { DockingResult } from "../docking/types";
+import { StateResults } from "../chemistry/StateResults";
+import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -62,6 +64,7 @@ export function OperationResults({
     "pocket_search",
     "docking",
     "diffsbdd",
+    "molecular_states",
     "properties",
     "inspect",
     "json",
@@ -226,6 +229,13 @@ export function OperationResults({
         <DockingResults
           job={job}
           result={data as unknown as DockingResult}
+          language={language}
+        />
+      )}
+      {job.request.operation === "molecular_states" && (
+        <StateResults
+          job={job}
+          data={data as unknown as StateResult}
           language={language}
         />
       )}

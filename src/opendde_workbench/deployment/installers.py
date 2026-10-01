@@ -28,7 +28,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "gnina":
+    if key == "chemistry":
+        from .chemistry_install import install_chemistry
+
+        metadata.update(install_chemistry(root, work, execute, report, checkpoint))
+    elif key == "gnina":
         metadata.update(install_docking(root, work, execute, report, checkpoint))
     elif key in {"p2rank", "p2rank-compute"}:
         metadata.update(install_pockets(key, root, work, execute, report, checkpoint))

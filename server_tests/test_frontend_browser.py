@@ -808,3 +808,127 @@ def test_actual_rdkit_qualification_is_readable_and_only_qualified_candidates_re
         finally:
             process.terminate()
             process.wait(timeout=10)
+
+
+def test_actual_prepared_state_collection_can_be_reviewed_and_reused_without_computing(tmp_path):
+    import json
+    import shutil
+    import socket
+    import subprocess
+    import sys
+    import time
+    from urllib.request import urlopen
+    from uuid import uuid4
+
+    from opendde_workbench.assets import AssetStore
+    from opendde_workbench.models import Status
+    from opendde_workbench.requests import TASK_ADAPTER
+    from opendde_workbench.research.outputs import OutputCatalog
+    from opendde_workbench.store import Store
+
+    fixture = Path(os.environ["WB_CORE_FIXTURE"]) / "molecular-states"
+    state = tmp_path / "state"
+    store = Store(state / "jobs.sqlite3")
+    assets = AssetStore(store, state / "assets")
+    source = assets.save("actual-state-source.sdf", "ligand", (fixture / "input.sdf").read_bytes())
+    result = json.loads((fixture / "result.json").read_text())
+    result["source"] = {
+        "asset_id": source.id,
+        "sha256": source.sha256,
+        "record": 0,
+        "conformer": 0,
+        "version_id": None,
+    }
+    request = TASK_ADAPTER.validate_python(
+        {
+            "operation": "molecular_states",
+            "name": "实际原生化学状态与构象结果",
+            "molecule": result["source"],
+            "options": result["options"],
+        }
+    )
+    job = store.create(request, str(uuid4()), 20, 100)
+    assert store.claim(expected_id=job.id).id == job.id
+    store.finish(job.id, Status.SUCCEEDED)
+    output = state / "jobs" / job.id / "output"
+    output.mkdir(parents=True)
+    for name in (
+        result["state_artifact"],
+        result["conformer_artifact"],
+        *(c["artifact"] for c in result["conformers"]),
+    ):
+        shutil.copyfile(fixture / name, output / name)
+    (output / "result.json").write_text(json.dumps(result))
+    assert OutputCatalog(store, assets).index(job, output)["state"] == "complete"
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        port = listener.getsockname()[1]
+    base = f"http://127.0.0.1:{port}"
+    env = {
+        **os.environ,
+        "WB_STATE_DIR": str(state),
+        "WB_AUTO_DEPLOY": "0",
+        "WB_ALLOWED_ORIGINS": base,
+    }
+    evidence = Path("server_tests/evidence")
+    with (evidence / "state-collection-browser.log").open("w") as log:
+        process = subprocess.Popen(
+            [sys.executable, "-m", "opendde_workbench", "--port", str(port)],
+            env=env,
+            stdout=log,
+            stderr=log,
+        )
+        try:
+            for _ in range(40):
+                try:
+                    with urlopen(base + "/api/health", timeout=2) as response:
+                        assert json.load(response)["worker_ready"]
+                    break
+                except OSError:
+                    time.sleep(0.25)
+            else:
+                raise AssertionError("State collection browser service did not start")
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch()
+                page = browser.new_page(viewport={"width": 1440, "height": 1000})
+                errors = []
+                page.on("pageerror", lambda e: errors.append(str(e)))
+                try:
+                    page.goto(base + "/#task=" + job.id)
+                    expect(
+                        page.get_by_role("region", name="分子状态与构象结果", exact=True)
+                    ).to_be_visible()
+                    page.get_by_text("状态 1 · 电荷 0 · C2H6O", exact=True).click()
+                    button = page.get_by_role("button", name="构象 1", exact=False)
+                    expect(button).to_have_count(1)
+                    button.click()
+                    expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(
+                        timeout=30000
+                    )
+                    expect(
+                        page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
+                    ).to_be_visible(timeout=30000)
+                    page.get_by_role("button", name="用于寻找结合姿势", exact=True).click()
+                    expect(
+                        page.get_by_role(
+                            "combobox", name="选择分子或已有姿势 · 复用研究资产", exact=True
+                        )
+                    ).not_to_have_value("")
+                    expect(
+                        page.get_by_role("button", name="探索结合模式", exact=True)
+                    ).to_be_disabled()
+                    for width in (1440, 390):
+                        page.set_viewport_size({"width": width, "height": 1000})
+                        assert page.evaluate(
+                            "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                        )
+                        page.screenshot(
+                            path=str(evidence / f"prepared-state-reuse-{width}.png"), full_page=True
+                        )
+                    assert len(page.request.get(base + "/api/jobs").json()) == 1
+                    assert not errors
+                finally:
+                    browser.close()
+        finally:
+            process.terminate()
+            process.wait(timeout=10)

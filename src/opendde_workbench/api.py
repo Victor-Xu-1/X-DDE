@@ -201,6 +201,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await harness_service.invoke(
                     {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
                 )
+            elif value.operation == "molecular_states":
+                from .chemistry.runtime import validate
+
+                assets.validate_bindings(value)
+                validate(value, readiness["engine"].get("backends", {}).get("chemistry", {}))
             elif value.operation == "docking":
                 assets.validate_bindings(value)
                 validate_docking(value, readiness["engine"].get("backends", {}).get("gnina", {}))

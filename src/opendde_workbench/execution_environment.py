@@ -79,6 +79,13 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
             runtime["image"]
         )
         matched = matched and installed.get("runtime", {}).get("code") == runtime["code"]
+    elif software == "chemistry":
+        from .chemistry.image import lock_digest
+
+        runtime = {"image": settings.chemistry_image or "", "runtime_lock_sha256": lock_digest()}
+        matched = bool(
+            runtime["image"] and installed.get("chemistry", {}).get("image") == runtime["image"]
+        )
     elif software == "gnina":
         from .docking.image import lock_digest
         from .docking.manifest import BINARY_SHA256

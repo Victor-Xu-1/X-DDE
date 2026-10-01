@@ -505,5 +505,17 @@ export const tools = [
     modalities: ["biologic", "chemical", "protein", "small_molecule"],
     modality_role: "target_context",
   },
+  {
+    id: "chemistry.states",
+    group: "prepare",
+    label: ["准备分子状态与构象", "Prepare molecular states and conformers"],
+    note: [
+      "按 pH、互变和立体条件准备有来源的状态及游离三维构象。",
+      "Prepare traceable pH/tautomer/stereo states and free three-dimensional conformers.",
+    ],
+    source: "RDKit + Dimorphite-DL",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
 ] as const;
 export type ToolId = (typeof tools)[number]["id"];

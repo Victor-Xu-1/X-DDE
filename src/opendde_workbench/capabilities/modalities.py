@@ -121,6 +121,7 @@ _MEMBERSHIP = {
     "native.inspect": _ALL,
     "workflows": _ALL,
     "regions": _SMALL,
+    "chemistry.states": _SMALL,
     "p2rank.detect": _CONTEXT,
     "gnina.dock": _CONTEXT,
     "gnina.score": _CONTEXT,

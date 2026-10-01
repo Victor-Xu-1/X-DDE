@@ -14,6 +14,7 @@ from pydantic import (
     model_validator,
 )
 
+from .chemistry.contract import MolecularStatesTask
 from .diffsbdd.contract import DiffTask, references
 from .docking.contract import DockingTask
 from .docking.contract import references as docking_references
@@ -132,7 +133,8 @@ TaskRequest = Annotated[
     | Annotated[HarnessTask, Tag("harness")]
     | Annotated[DiffTask, Tag("diffsbdd")]
     | Annotated[PocketSearch, Tag("pocket_search")]
-    | Annotated[DockingTask, Tag("docking")],
+    | Annotated[DockingTask, Tag("docking")]
+    | Annotated[MolecularStatesTask, Tag("molecular_states")],
     Discriminator(request_kind),
 ]
 TASK_ADAPTER = TypeAdapter(TaskRequest)
@@ -141,6 +143,10 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
+    if isinstance(request, MolecularStatesTask):
+        return {str(request.molecule.asset_id)} | {
+            str(ref.asset_id) for ref in request.scientific_inputs
+        }
     if isinstance(request, DockingTask):
         return {str(ref.asset_id) for _, ref in docking_references(request)} | {
             str(ref.asset_id) for ref in request.scientific_inputs

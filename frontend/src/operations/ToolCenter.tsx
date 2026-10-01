@@ -14,6 +14,7 @@ import "./operations.css";
 import { RegionWorkspace } from "../regions/RegionWorkspace";
 import { PocketForm } from "../pockets/PocketForm";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
+import { StateForm } from "../chemistry/StateForm";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
 import type { DockingMode } from "../docking/types";
@@ -81,7 +82,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "regions" ? (
+          {selected === "chemistry.states" ? (
+            <StateForm language={language} onCreated={onCreated} />
+          ) : selected === "regions" ? (
             <RegionWorkspace language={language} />
           ) : selected === "p2rank.detect" ? (
             <PocketForm

@@ -7,7 +7,7 @@ from uuid import UUID
 
 def attach(directory, prefix):
     identifier = str(UUID(directory.name))
-    if prefix not in {"xdde-p2rank-", "xdde-gnina-"}:
+    if prefix not in {"xdde-p2rank-", "xdde-gnina-", "xdde-chemistry-"}:
         raise ValueError("Unregistered native container prefix.")
     container = prefix + identifier
     code = subprocess.run(["docker", "start", "--attach", container], check=False).returncode

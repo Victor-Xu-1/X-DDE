@@ -33,6 +33,16 @@ PACKAGES = {
     p.id: p
     for p in [
         Package(
+            "chemistry",
+            "rdkit-2023.9.6-dimorphite-2.0.2",
+            "Chemistry preparation environment",
+            "独立 CPU 化学状态与构象准备 / Independent CPU molecular preparation",
+            "约 150 MB 下载；至少 2 GiB 安装空间 / ~150 MB download; 2 GiB staging",
+            license="RDKit BSD-3-Clause; Dimorphite-DL Apache-2.0; dependency licenses",
+            engine="chemistry",
+            kind="runtime",
+        ),
+        Package(
             "gnina",
             GNINA_VERSION,
             "GNINA docking environment",

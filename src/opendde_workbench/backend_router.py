@@ -11,6 +11,7 @@ import os
 from collections.abc import Awaitable
 
 from . import harness_process, local_process
+from .chemistry.backend import ChemistryBackend
 from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
 from .docking.backend import DockingBackend
@@ -28,14 +29,17 @@ class BackendRouter:
         self.opendde = DockerEngine(settings)
         self.pockets = PocketBackend(settings)
         self.docking = DockingBackend(settings)
+        self.chemistry = ChemistryBackend(settings)
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
-        if implementation not in {"opendde", "diffsbdd", "harness", "p2rank", "gnina"}:
+        if implementation not in {"opendde", "diffsbdd", "harness", "p2rank", "gnina", "chemistry"}:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation == "chemistry":
+            return await self.chemistry.start(job, directory)
         if implementation == "gnina":
             return await self.docking.start(job, directory)
         if implementation == "p2rank":
@@ -89,7 +93,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "gnina":
+        if implementation == "chemistry":
+            await self.chemistry.stop(job.id, directory)
+        elif implementation == "gnina":
             await self.docking.stop(job.id, directory)
         elif implementation == "p2rank":
             await self.pockets.stop(job.id, directory)
@@ -104,11 +110,12 @@ class BackendRouter:
 
     async def readiness(self):
         # Preserve the existing OpenDDE health contract; expose other engines independently.
-        opendde, diff, pockets, docking = await asyncio.gather(
+        opendde, diff, pockets, docking, chemistry = await asyncio.gather(
             self._checked_readiness("opendde", self.opendde.readiness()),
             self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
             self._checked_readiness("p2rank", self.pockets.readiness()),
             self._checked_readiness("gnina", self.docking.readiness()),
+            self._checked_readiness("chemistry", self.chemistry.readiness()),
         )
         client_present = bool(
             self.settings.harness_python and self.settings.harness_python.is_file()
@@ -128,6 +135,7 @@ class BackendRouter:
                 "harness": harness,
                 "p2rank": pockets,
                 "gnina": docking,
+                "chemistry": chemistry,
             },
         }
 

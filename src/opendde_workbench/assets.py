@@ -167,6 +167,22 @@ class AssetStore:
 
     def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        if getattr(request, "operation", None) == "molecular_states":
+            ref = request.molecule
+            asset = self.get(ref.asset_id)
+            if (
+                asset.kind != "ligand"
+                or asset.suffix != ".sdf"
+                or asset.sha256 != ref.sha256
+                or ref.conformer != 0
+            ):
+                raise ValueError("State preparation requires an exact SDF record/version.")
+            if ref.version_id:
+                from .research.storage import ScientificStore
+
+                ScientificStore(self.store, self).validate_reference(ref)
+            self.path(asset)
+            return {asset.id: asset}
         if getattr(request, "operation", None) == "pocket_search":
             ref = request.protein
             asset = self.get(ref.asset_id)
@@ -287,6 +303,7 @@ class AssetStore:
                 "properties",
                 "diffsbdd",
                 "docking",
+                "molecular_states",
             }:
                 records = [
                     part

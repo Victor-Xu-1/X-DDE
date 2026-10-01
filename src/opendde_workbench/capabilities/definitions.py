@@ -247,7 +247,23 @@ _DOCKING = tuple(
         ),
     )
 )
-_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING
+_CHEMISTRY = (
+    CapabilitySpec(
+        id="chemistry.states",
+        **modality_metadata("chemistry.states"),
+        group="prepare",
+        environment="chemistry",
+        operations=("molecular_states",),
+        label=("准备分子状态与构象", "Prepare molecular states and conformers"),
+        note=(
+            "按 pH、互变和立体条件准备有来源的状态及游离三维构象。",
+            "Prepare traceable pH/tautomer/stereo states and free three-dimensional conformers.",
+        ),
+        source="RDKit + Dimorphite-DL",
+        frontend_form="molecular_states",
+    ),
+)
+_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

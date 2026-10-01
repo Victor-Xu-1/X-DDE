@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "chemistry",
+        "RDKit + Dimorphite-DL",
+        "化学状态与游离构象准备 / Molecular-state and free-conformer preparation",
+        "docker",
+        ("molecular_states",),
+    ),
+    ScientificEngine(
         "gnina",
         "GNINA",
         "受体内的分子对接、姿势评分与局部最小化 / Docking, pose scoring and minimization",
