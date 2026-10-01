@@ -31,6 +31,23 @@ export function ReferencePicker({
   const [source, setSource] = useState<"saved" | "file">(() =>
     value && !value.version_id ? "file" : "saved",
   );
+  const selections = useRef<{
+    saved: MoleculeRef | null;
+    file: MoleculeRef | null;
+  }>({
+    saved: value?.version_id ? value : null,
+    file: value && !value.version_id ? value : null,
+  });
+  useEffect(() => {
+    if (value) selections.current[value.version_id ? "saved" : "file"] = value;
+  }, [value]);
+  function changeSource(next: "saved" | "file") {
+    selectionIntent.current++;
+    setSource(next);
+    setLoading(false);
+    setError("");
+    onChange(selections.current[next]);
+  }
   useEffect(() => {
     const c = new AbortController();
     setLoading(true);
@@ -104,7 +121,7 @@ export function ReferencePicker({
       <ChoiceCards<"saved" | "file">
         label={label}
         value={source}
-        onChange={setSource}
+        onChange={changeSource}
         options={[
           {
             value: "saved",

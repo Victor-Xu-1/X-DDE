@@ -65,7 +65,7 @@ def test_actual_quality_three_profiles_reject_distorted_geometry_and_retain_vers
             assert response.status_code == 201, response.text
             asset = response.json()
             version = client.post(
-                "/api/research/versions",
+                "/api/research/objects",
                 json={
                     "asset_id": asset["id"],
                     "kind": "structure" if role == "protein" else "molecule",
@@ -73,6 +73,7 @@ def test_actual_quality_three_profiles_reject_distorted_geometry_and_retain_vers
                     "record": 0 if role == "protein" else 1,
                     "relation": "derived_from",
                 },
+                headers={"Idempotency-Key": str(uuid4())},
             )
             assert version.status_code == 201, version.text
             refs[role] = version.json()["reference"]

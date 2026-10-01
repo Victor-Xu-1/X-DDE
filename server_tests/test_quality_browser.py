@@ -126,6 +126,14 @@ def test_actual_quality_result_preview_and_simple_task_steps(tmp_path):
                 panel.get_by_role(
                     "combobox", name="检查哪个分子版本？ · 复用研究资产", exact=True
                 ).select_option(report["inputs"]["molecule"]["version_id"])
+                page.get_by_role("radio", name="上传或选择文件", exact=True).click()
+                expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
+                page.get_by_role("radio", name="复用研究版本", exact=True).click()
+                expect(
+                    panel.get_by_role(
+                        "combobox", name="检查哪个分子版本？ · 复用研究资产", exact=True
+                    )
+                ).to_have_value(report["inputs"]["molecule"]["version_id"])
                 page.get_by_role("button", name="下一步", exact=True).click()
                 page.get_by_role("radio", name="蛋白内的结合姿势", exact=False).click()
                 page.get_by_role("button", name="下一步", exact=True).click()
