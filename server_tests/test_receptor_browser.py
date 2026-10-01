@@ -116,6 +116,7 @@ def test_real_receptor_ensemble_overlay_and_pocket_handoff(tmp_path):
                         "combobox", name="选择蛋白结构 · 复用研究资产", exact=True
                     )
                     expect(selected).not_to_have_value("")
+                    page.get_by_role("button", name="下一步", exact=True).click()
                     expect(
                         page.get_by_role("combobox", name="这份结构来自哪里？", exact=True)
                     ).to_have_value("")

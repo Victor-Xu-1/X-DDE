@@ -188,7 +188,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             page.get_by_role("button", name="Next", exact=True).click()
             expect(
                 page.get_by_role("button", name="Calculate properties", exact=True)
-            ).to_be_enabled()
+            ).to_be_disabled()
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(
