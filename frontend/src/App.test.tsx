@@ -221,3 +221,37 @@ it("keeps a linked non-prediction task in its task view across both history even
     screen.queryByRole("heading", { name: "Structure prediction" }),
   ).not.toBeInTheDocument();
 });
+
+it("returns to the full catalogue when its navigation entry is chosen inside a task", async () => {
+  vi.spyOn(apiClient, "request").mockImplementation(
+    async (path) =>
+      (path.startsWith("/capabilities/")
+        ? { availability: { configuration_present: true } }
+        : []) as never,
+  );
+  const submit = vi.spyOn(api, "submit"),
+    user = userEvent.setup();
+  render(<App />);
+  const nav = await screen.findByRole("navigation", {
+    name: "Main navigation",
+  });
+  await user.click(
+    within(nav).getByRole("button", { name: "All capabilities" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Calculate molecular properties" }),
+  );
+  expect(
+    screen.getByRole("heading", { name: "1. Choose source" }),
+  ).toBeVisible();
+  await user.click(
+    within(nav).getByRole("button", { name: "All capabilities" }),
+  );
+  expect(
+    screen.getByRole("button", { name: "Calculate molecular properties" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("heading", { name: "1. Choose source" }),
+  ).not.toBeInTheDocument();
+  expect(submit).not.toHaveBeenCalled();
+});

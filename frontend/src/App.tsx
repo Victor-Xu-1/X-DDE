@@ -51,6 +51,7 @@ export function App() {
     };
   }, []);
   const [resultsVersion, setResultsVersion] = useState(0);
+  const [catalogueRevision, setCatalogueRevision] = useState(0);
   useEffect(() => {
     if (view === "editors") setEditorsOpened(true);
   }, [view]);
@@ -187,7 +188,10 @@ export function App() {
       <div className="studio-app">
         <Navigation
           view={view}
-          onView={setView}
+          onView={(next) => {
+            if (next === "tools") setCatalogueRevision((n) => n + 1);
+            setView(next);
+          }}
           language={language}
           jobs={jobs}
         />
@@ -298,7 +302,7 @@ export function App() {
             </div>
             {(view === "tools" || coreToolForView(view)) && (
               <ToolCenter
-                key={view}
+                key={view === "tools" ? view + ":" + catalogueRevision : view}
                 initialTool={coreToolForView(view) ?? null}
                 onBrowse={view === "tools" ? undefined : () => setView("tools")}
                 language={language}
