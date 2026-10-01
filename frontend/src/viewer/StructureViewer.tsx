@@ -26,6 +26,7 @@ interface Props {
   focusModel?: number;
   selectionMode?: PickMode;
   onAtomSelected?(selection: SelectionInfo | null): void;
+  onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewer({
   urls,
@@ -35,6 +36,7 @@ export function StructureViewer({
   focusModel,
   selectionMode,
   onAtomSelected,
+  onSceneLoaded,
 }: Props) {
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
@@ -46,6 +48,8 @@ export function StructureViewer({
   initialPick.current = selectionMode;
   const selectionCallback = useRef(onAtomSelected);
   selectionCallback.current = onAtomSelected;
+  const sceneCallback = useRef(onSceneLoaded);
+  sceneCallback.current = onSceneLoaded;
   const [ready, setReady] = useState(false),
     [status, setStatus] = useState("empty"),
     [error, setError] = useState("");
@@ -85,6 +89,7 @@ export function StructureViewer({
       if (type === "loaded") {
         setStatus("loaded");
         setScene(detail);
+        sceneCallback.current?.(detail);
         if (focusedModel.current !== undefined)
           send("focus-model", focusedModel.current);
         if (initialPick.current) {

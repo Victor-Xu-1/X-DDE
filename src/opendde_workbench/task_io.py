@@ -43,6 +43,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .discovery.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "structure_prepare":
+        from .receptors.preparation_result import validate_preparation
+
+        validate_preparation(result, job.request, output)
     if operation == "receptor_ensemble":
         from .receptors.result import validate_result
 

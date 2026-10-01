@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
+import { StructurePrepareResults } from "../receptors/StructurePrepareResults";
+import type { StructurePrepareResult } from "../receptors/preparation-types";
 import { PocketResults } from "../pockets/PocketResults";
 import type { PocketResult } from "../pockets/types";
 import { DockingResults } from "../docking/DockingResults";
@@ -71,6 +73,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "structure_prepare",
     "pocket_search",
     "reference_import",
     "target_research",
@@ -116,6 +119,14 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "structure_prepare" && (
+        <StructurePrepareResults
+          job={job}
+          result={data as unknown as StructurePrepareResult}
+          language={language}
+          onCreated={onCreated}
+        />
+      )}
       {job.request.operation === "reference_import" && (
         <ReferenceImportResults
           job={job}

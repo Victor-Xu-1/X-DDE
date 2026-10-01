@@ -58,6 +58,7 @@ export interface HarnessTask extends BaseTask {
 }
 export type TaskRequest =
   | Prediction
+  | import("../receptors/preparation-types").StructurePrepareTask
   | import("../discovery/reference-types").ReferenceImportTask
   | import("../discovery/types").TargetResearchTask
   | import("../chemistry/types").MolecularStatesTask

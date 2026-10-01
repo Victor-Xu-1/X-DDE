@@ -28,6 +28,10 @@ def run(request, bindings, directory, output):
     import numpy as np
     from Bio import __version__ as bio_version
 
+    if request["operation"] == "structure_prepare":
+        from native_preparation import run_preparation
+
+        return run_preparation(request, bindings, directory, output)
     if request["operation"] != "receptor_ensemble":
         raise ValueError("This native adapter only aligns receptor ensembles.")
     options = EnsembleOptions.model_validate(request["options"])

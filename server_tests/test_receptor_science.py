@@ -174,3 +174,70 @@ def test_non_rigid_difference_cannot_pass_the_declared_rmsd_gate(native, source,
     assert result["members"][1]["status"] == "rejected"
     assert "RMSD" in result["members"][1]["reason"]
     assert result["members"][1]["artifact"] is None
+
+
+def test_actual_structure_selection_export_and_alternate_locations(
+    native, source, tmp_path, monkeypatch
+):
+    from Bio.PDB import MMCIFParser, PDBParser
+    from Bio.PDB.Atom import DisorderedAtom
+
+    monkeypatch.syspath_prepend(str(Path("src/opendde_workbench/receptors").resolve()))
+    import native_preparation
+    import preparation_options
+
+    folder = tmp_path / "assets"
+    folder.mkdir()
+    file = folder / "source.pdb"
+    file.write_bytes(source.read_bytes())
+    ref = {
+        "asset_id": str(uuid4()),
+        "sha256": hashlib.sha256(file.read_bytes()).hexdigest(),
+        "record": 0,
+        "conformer": 0,
+    }
+    options = preparation_options.PreparationOptions(chains=("A",), format="cif")
+    output = tmp_path / "prepared"
+    output.mkdir()
+    report = native_preparation.run_preparation(
+        {"structure": ref, "options": options.model_dump(mode="json")},
+        {ref["asset_id"]: "/job/assets/source.pdb"},
+        tmp_path,
+        output,
+    )
+    actual = MMCIFParser(QUIET=True).get_structure("prepared", output / report["artifact"])[0]
+    original = PDBParser(QUIET=True).get_structure("original", file)[0]
+    assert len(list(actual.get_atoms())) == len(list(original.get_atoms()))
+    assert np.allclose(
+        np.array([a.coord for a in actual.get_atoms()]),
+        np.array([a.coord for a in original.get_atoms()]),
+        atol=0.001,
+    )
+    assert report["unobserved_atoms"] == "not_generated"
+    with pytest.raises(ValueError, match="chains"):
+        native_preparation.read_selected(
+            file, preparation_options.PreparationOptions(chains=("Z",))
+        )
+    residue = next(original.get_residues())
+    atom = residue["CA"].copy()
+    residue.detach_child("CA")
+    disordered = DisorderedAtom("CA")
+    for tag, offset in (("A", 0), ("B", 1)):
+        candidate = atom.copy()
+        candidate.set_altloc(tag)
+        candidate.set_occupancy(0.5)
+        candidate.set_coord(atom.coord + offset)
+        disordered.disordered_add(candidate)
+    residue.add(disordered)
+    with pytest.raises(ValueError, match="alternate"):
+        native_preparation.select_atoms(original.copy(), preparation_options.PreparationOptions())
+    selected = original.copy()
+    atoms, removed, resolved = native_preparation.select_atoms(
+        selected, preparation_options.PreparationOptions(alternate="B")
+    )
+    assert (
+        len(resolved) == 1
+        and not removed
+        and np.allclose(next(selected.get_residues())["CA"].coord, atom.coord + 1)
+    )
+    assert all(not a.is_disordered() and not a.get_altloc().strip() for a in atoms)

@@ -226,7 +226,13 @@ def test_actual_archive_tasks_original_bytes_parser_assets_restart_and_tamper(
                 if job["status"] not in {"running", "queued"}:
                     break
                 time.sleep(0.2)
-            assert job["status"] == "succeeded", job
+            assert job["status"] == "succeeded", (
+                source,
+                identifier,
+                format,
+                job,
+                client.get(f"/api/jobs/{jid}/logs").json(),
+            )
             response = client.get(f"/api/jobs/{jid}/result")
             assert response.status_code == 200, response.text
             result = response.json()

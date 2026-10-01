@@ -89,3 +89,46 @@ it("focuses the actual ligand source and exposes only supported overlay controls
     screen.queryByText("Selection and display editing", { exact: true }),
   ).toBeNull();
 });
+
+it("reports selection choices only from its own same-origin loaded frame", () => {
+  const loaded = vi.fn();
+  const { unmount } = render(
+    <StructureViewer
+      urls={["/api/assets/input"]}
+      language="en"
+      onSceneLoaded={loaded}
+    />,
+  );
+  const frame = screen
+    .getAllByTitle("Interactive molecular structure")
+    .at(-1) as HTMLIFrameElement;
+  const scene = {
+    chains: ["A"],
+    atoms: 10,
+    ligands: [],
+    residues: [],
+    hasPolymer: true,
+    options: {
+      mode: "cartoon",
+      radius: 5,
+      labels: true,
+      ligand: "",
+      pick: "residue",
+    },
+  };
+  function event(origin: string, source: Window | null) {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin,
+        source,
+        data: { channel: "opendde-viewer", type: "loaded", detail: scene },
+      }),
+    );
+  }
+  act(() => event("https://untrusted.test", frame.contentWindow));
+  act(() => event(location.origin, window));
+  expect(loaded).not.toHaveBeenCalled();
+  act(() => event(location.origin, frame.contentWindow));
+  expect(loaded).toHaveBeenCalledWith(scene);
+  unmount();
+});

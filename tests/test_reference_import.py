@@ -96,3 +96,19 @@ def test_import_api_csrf_validation_and_no_unselected_provenance(client_factory)
             == 422
         )
         assert client.get("/api/jobs").json() == []
+
+
+def test_chembl_single_detail_protocol_preserves_eof_record_and_exact_id():
+    selected = task(source="chembl", identifier="CHEMBL25", format="sdf")
+    # Protocol framing fixture, not a molecule used to claim native scientific validation.
+    raw = b"header\nM  END\n> <chembl_id>\nCHEMBL25\n\n"
+    validate_archive(raw, selected)
+    validate_archive(raw + b"$$$$\n", selected)
+    for changed in (
+        raw.replace(b"CHEMBL25", b"CHEMBL26"),
+        raw + raw,
+        raw + b"$$$$\nextra",
+        raw.replace(b"M  END", b"missing"),
+    ):
+        with pytest.raises(SourceUnavailable):
+            validate_archive(changed, selected)

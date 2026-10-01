@@ -135,6 +135,21 @@ class OutputCatalog:
                 raise ValueError("Only declared, nonempty state/conformer bundles are reusable.")
         return result
 
+    def preparation_output(self, job_id, file):
+        job = self.store.get(str(job_id))
+        if not job or job.request.operation != "structure_prepare":
+            return None
+        from ..receptors.preparation_result import validate_preparation
+
+        root = self.assets.root.parent / "jobs" / job.id / "output"
+        manifest = contained(root, "result.json")
+        if manifest.stat().st_size > 25 * 1024**2:
+            raise ValueError("Prepared structure report exceeds its size limit.")
+        result = validate_preparation(json.loads(manifest.read_text()), job.request, root)
+        if file.suffix.lower() in {".pdb", ".cif"} and file.name != result.artifact:
+            raise ValueError("Only the declared prepared structure can be reused.")
+        return result
+
     def preserve(self, job_id, file, kind, *, receptor_result=None):
         job = self.store.get(str(job_id))
         if job and job.request.operation == "reference_import":
@@ -161,6 +176,7 @@ class OutputCatalog:
         core = self.core_output(job_id, file)
         states = self.state_output(job_id, file)
         receptors = receptor_result or self.receptor_output(job_id, file)
+        preparation = self.preparation_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
@@ -210,6 +226,9 @@ class OutputCatalog:
             if ref.version_id:
                 parent = ref.version_id
                 relation = "prepared_from"
+        if preparation and object_kind == "structure":
+            parent = preparation.source.version_id
+            relation = "prepared_from"
         if receptors and object_kind == "structure":
             member = next(m for m in receptors.members if m.artifact == file.name)
             parent = member.source.structure.version_id

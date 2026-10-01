@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
+import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
 import { PocketForm } from "../pockets/PocketForm";
 import { StateForm } from "../chemistry/StateForm";
 import { Hint } from "../guided/Hint";
@@ -28,14 +29,20 @@ export function ReferenceImportResults({
   onCreated?(job: Job): void;
 }) {
   const zh = language === "zh",
-    [next, setNext] = useState<"pocket" | "states" | null>(null);
+    [next, setNext] = useState<"pocket" | "states" | "prepare" | null>(null);
   if (next && result.reference && onCreated)
     return (
       <section>
         <button type="button" onClick={() => setNext(null)}>
           {zh ? "返回参考材料" : "Back to reference material"}
         </button>
-        {next === "states" ? (
+        {next === "prepare" ? (
+          <StructurePrepareForm
+            language={language}
+            onCreated={onCreated}
+            initialStructure={result.reference}
+          />
+        ) : next === "states" ? (
           <StateForm
             language={language}
             onCreated={onCreated}
@@ -64,6 +71,11 @@ export function ReferenceImportResults({
         language={language}
       />
       <div>
+        {result.reference && onCreated && result.kind === "structure" && (
+          <button type="button" onClick={() => setNext("prepare")}>
+            {zh ? "准备研究结构" : "Prepare research structure"}
+          </button>
+        )}
         <a href={artifactUrl(job.id, result.artifact)} download>
           {zh ? "下载原始材料" : "Download original material"}
         </a>

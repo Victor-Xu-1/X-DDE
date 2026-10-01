@@ -12,6 +12,8 @@ FILES = (
     "correspondence.py",
     "native_fit.py",
     "selection.py",
+    "preparation_options.py",
+    "native_preparation.py",
 )
 
 

@@ -40,5 +40,17 @@ def validate_archive(raw, task):
                 raise ValueError("Nonfinite coordinates")
         except ValueError as exc:
             raise SourceUnavailable("PDB archive has invalid coordinate fields.") from exc
-    elif text.count("$$$$") != 1 or "M  END" not in text:
-        raise SourceUnavailable("Archive requires one complete SDF molecular record.")
+    else:
+        # Official ChEMBL detail serializer returns one mol block and ID, without $$$$.
+        # Preserve those bytes; enforce one CTAB, optional final terminator and exact ID.
+        identifier = re.search(r">\s*<chembl_id>\s*\n\s*(CHEMBL[0-9]+)\s*\n", text)
+        if (
+            text.count("M  END") != 1
+            or text.count("$$$$") > 1
+            or ("$$$$" in text and text.split("$$$$", 1)[1].strip())
+            or identifier is None
+            or identifier[1] != task.identifier
+        ):
+            raise SourceUnavailable(
+                "Archive requires one complete molecular record with its exact ChEMBL ID."
+            )

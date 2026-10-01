@@ -334,6 +334,23 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_STRUCTURE_PREPARE = (
+    CapabilitySpec(
+        id="biopython.prepare",
+        **modality_metadata("biopython.prepare"),
+        group="prepare",
+        environment="biopython",
+        operations=("structure_prepare",),
+        label=("结构准备", "Prepare structure"),
+        note=(
+            "选择模型、链、水和其他成分，保存新的结构版本。",
+            "Select observed model, chains, water and components; save a new version.",
+        ),
+        source="Biopython",
+        frontend_form="structure_prepare",
+        scientific_validation="target_server_pending",
+    ),
+)
 _REFERENCE_IMPORT = (
     CapabilitySpec(
         id="discovery.import",
@@ -352,7 +369,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _REFERENCE_IMPORT
+    _STRUCTURE_PREPARE
+    + _REFERENCE_IMPORT
     + _DISCOVERY
     + _BASE
     + _DIFF

@@ -171,6 +171,17 @@ class AssetStore:
             from .discovery.import_provenance import evidence_binding
 
             return evidence_binding(request, self)
+        if getattr(request, "operation", None) == "structure_prepare":
+            ref = request.structure
+            asset = self.get(ref.asset_id)
+            if (
+                asset.kind != "structure"
+                or asset.suffix not in {".pdb", ".cif"}
+                or asset.sha256 != ref.sha256
+            ):
+                raise ValueError("Structure preparation requires exact PDB/mmCIF input bytes.")
+            self.path(asset)
+            return {asset.id: asset}
         if getattr(request, "operation", None) == "receptor_ensemble":
             for item in request.inputs:
                 ref = item.structure

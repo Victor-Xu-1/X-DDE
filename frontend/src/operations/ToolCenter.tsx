@@ -4,6 +4,7 @@ import { tools, type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { ModalityTags } from "./ModalityTags";
 import { filterCapabilities, type ModalityFilter } from "./filter";
+import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
 import { ReferenceImportForm } from "../discovery/ReferenceImportForm";
 import { TargetResearchForm } from "../discovery/TargetResearchForm";
 import { PropertyForm } from "./PropertyForm";
@@ -86,7 +87,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "discovery.import" ? (
+          {selected === "biopython.prepare" ? (
+            <StructurePrepareForm language={language} onCreated={onCreated} />
+          ) : selected === "discovery.import" ? (
             <ReferenceImportForm language={language} onCreated={onCreated} />
           ) : selected?.startsWith("discovery.") ? (
             <TargetResearchForm

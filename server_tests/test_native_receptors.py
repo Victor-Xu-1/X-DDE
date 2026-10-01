@@ -114,6 +114,62 @@ def test_actual_receptor_environment_and_reusable_persistent_alignment_collectio
             shutil.copyfile(fixture / name, destination / name)
         for row in result["members"]:
             shutil.copyfile(output / row["artifact"], destination / row["artifact"])
+        prepared_body = {
+            "operation": "structure_prepare",
+            "structure": versions[0]["reference"],
+            "scientific_inputs": [versions[0]["reference"]],
+            "options": {
+                "model_index": 0,
+                "chains": ["A"],
+                "waters": False,
+                "heterogens": "keep",
+                "format": "cif",
+            },
+        }
+        prepare_key = str(uuid4())
+        response = client.post(
+            "/api/jobs", json=prepared_body, headers={"Idempotency-Key": prepare_key}
+        )
+        assert response.status_code == 201, response.text
+        prepared_id = response.json()["id"]
+        assert (
+            client.post(
+                "/api/jobs", json=prepared_body, headers={"Idempotency-Key": prepare_key}
+            ).json()["id"]
+            == prepared_id
+        )
+        deadline = time.monotonic() + 90
+        while time.monotonic() < deadline:
+            prepared_job = client.get(f"/api/jobs/{prepared_id}").json()
+            if prepared_job["status"] in {"succeeded", "failed"}:
+                break
+            time.sleep(0.1)
+        assert prepared_job["status"] == "succeeded", client.get(
+            f"/api/jobs/{prepared_id}/logs"
+        ).json()
+        response = client.get(f"/api/jobs/{prepared_id}/result")
+        assert response.status_code == 200, response.text
+        prepared = response.json()
+        assert (
+            prepared["inspection"]["selected_chains"] == ["A"]
+            and prepared["reference"]["version_id"]
+        )
+        saved = client.get("/api/research/objects/" + prepared["reference"]["version_id"]).json()
+        assert saved["parent_id"] == versions[0]["id"] and saved["relation"] == "prepared_from"
+        assert client.post(f"/api/jobs/{prepared_id}/index-assets").json()["state"] == "complete"
+        prepared_output = settings.state_dir / "jobs" / prepared_id / "output"
+        # Independent parsing of the exported format in the already verified native image.
+        prepare_fixture = Path("server_tests/evidence/core-fixture/structure-preparation")
+        prepare_fixture.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(
+            prepared_output / prepared["artifact"], prepare_fixture / prepared["artifact"]
+        )
+        shutil.copyfile(fixture / "reference.pdb", prepare_fixture / "reference.pdb")
+        (prepare_fixture / "result.json").write_text(json.dumps(prepared))
+        original_prepared = (prepared_output / prepared["artifact"]).read_bytes()
+        (prepared_output / prepared["artifact"]).write_bytes(b"changed")
+        assert client.get(f"/api/jobs/{prepared_id}/result").status_code == 422
+        (prepared_output / prepared["artifact"]).write_bytes(original_prepared)
         (output / result["members"][1]["artifact"]).write_text("changed")
         assert client.get(f"/api/jobs/{identifier}/result").status_code == 422
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:

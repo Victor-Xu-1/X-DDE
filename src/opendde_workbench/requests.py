@@ -24,6 +24,7 @@ from .harness_contract import HarnessTask
 from .pockets.contract import PocketSearch
 from .prediction import Prediction
 from .receptors.contract import ReceptorEnsembleTask
+from .receptors.preparation_contract import StructurePrepareTask
 from .task_metadata import TaskMetadata
 
 
@@ -140,6 +141,7 @@ TaskRequest = Annotated[
     | Annotated[PocketSearch, Tag("pocket_search")]
     | Annotated[DockingTask, Tag("docking")]
     | Annotated[MolecularStatesTask, Tag("molecular_states")]
+    | Annotated[StructurePrepareTask, Tag("structure_prepare")]
     | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
     Discriminator(request_kind),
 ]
@@ -151,6 +153,8 @@ def input_identifiers(request: TaskRequest) -> set[str]:
 
     if isinstance(request, ReferenceImportTask):
         return {str(ref.asset_id) for ref in request.scientific_inputs}
+    if isinstance(request, StructurePrepareTask):
+        return {str(request.structure.asset_id)}
     if isinstance(request, ReceptorEnsembleTask):
         return {str(item.structure.asset_id) for item in request.inputs} | {
             str(ref.asset_id) for ref in request.scientific_inputs

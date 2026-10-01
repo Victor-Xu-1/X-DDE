@@ -53,6 +53,15 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Research evidence is invalid or changed; inspect task files."
                     ) from exc
+            if job.request.operation == "structure_prepare":
+                from .receptors.preparation_presentation import present_preparation
+
+                try:
+                    value = present_preparation(value, job, root / "output", store, assets)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(
+                        422, "Prepared structure evidence is invalid or changed."
+                    ) from exc
             if job.request.operation == "receptor_ensemble":
                 from .receptors.result import validate_result
 

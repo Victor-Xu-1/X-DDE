@@ -124,6 +124,7 @@ _MEMBERSHIP = {
     "native.inspect": _ALL,
     "workflows": _ALL,
     "regions": _SMALL,
+    "biopython.prepare": _ALL,
     "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),
     "chemistry.states": _SMALL,
     "pose_exploration": _CONTEXT,

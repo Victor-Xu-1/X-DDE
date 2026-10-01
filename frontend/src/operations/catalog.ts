@@ -68,6 +68,27 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "biopython.prepare",
+    group: "prepare",
+    label: ["结构准备", "Prepare structure"],
+    note: [
+      "选择模型、链、水和其他成分，保存新的结构版本。",
+      "Select observed model, chains, water and components; save a new version.",
+    ],
+    source: "Biopython",
+    modalities: [
+      "biologic",
+      "chemical",
+      "rna",
+      "dna",
+      "antibody",
+      "protein",
+      "peptide",
+      "small_molecule",
+    ],
+    modality_role: "research_object",
+  },
+  {
     id: "discovery.import",
     group: "prepare",
     label: [
