@@ -19,6 +19,7 @@ export function ScoreComparisonResults({
     );
   return (
     <section
+      className="score-comparison-results"
       aria-label={zh ? "同条件评分比较" : "Equal-condition score comparison"}
     >
       <p>
@@ -28,7 +29,7 @@ export function ScoreComparisonResults({
           .join(" · ")}
       </p>
       {result.groups.map((group, index) => (
-        <div key={group.condition_sha256}>
+        <div className="score-comparison-group" key={group.condition_sha256}>
           <strong>
             {zh ? "条件组 " : "Condition group "}
             {index + 1}

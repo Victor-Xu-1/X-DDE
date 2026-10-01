@@ -48,3 +48,20 @@
   max-width: 100%;
   overflow: auto;
 }
+
+/* A nested details/section is a grid item: its table must not define the
+   parent's automatic minimum width. Keep the wide table internally scrollable. */
+.pose-score-comparison,
+.score-comparison-results,
+.score-comparison-group,
+.pose-score-comparison details {
+  min-width: 0;
+  max-width: 100%;
+}
+.pose-score-comparison[open],
+.score-comparison-results,
+.score-comparison-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}

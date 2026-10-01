@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, request } from "../api";
+import { api } from "../api";
 import { ScoreComparisonResults } from "./ScoreComparisonResults";
 import { loadPages } from "../research/loadPages";
 import type { Language } from "../types";
