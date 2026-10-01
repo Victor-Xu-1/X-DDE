@@ -85,7 +85,12 @@ def test_actual_quality_three_profiles_reject_distorted_geometry_and_retain_vers
             "scientific_inputs": [refs["molecule"], refs["protein"]],
             "options": {"profile": "dock"},
         }
-        assert client.post("/api/jobs", json=rejected).status_code == 422
+        assert (
+            client.post(
+                "/api/jobs", json=rejected, headers={"Idempotency-Key": str(uuid4())}
+            ).status_code
+            == 422
+        )
         for profile in ("mol", "dock", "redock"):
             selected = {
                 "molecule": refs["molecule"],
@@ -147,6 +152,7 @@ from io import BytesIO
 from rdkit import Chem
 m=list(Chem.ForwardSDMolSupplier(BytesIO(sys.stdin.buffer.read()),removeHs=False))[0]
 for i in range(m.GetNumAtoms()):m.GetConformer().SetAtomPosition(i,(0.,0.,0.))
+m.GetConformer().SetAtomPosition(0,(0.,0.,0.1))
 print(Chem.MolToMolBlock(m)+'\\n$$$$\\n')
 """
         native = subprocess.run(
@@ -184,6 +190,7 @@ print(Chem.MolToMolBlock(m)+'\\n$$$$\\n')
                 "molecule": source,
                 "scientific_inputs": [source],
             },
+            headers={"Idempotency-Key": str(uuid4())},
         )
         assert response.status_code == 201, response.text
         distorted = response.json()["id"]
@@ -211,7 +218,12 @@ print(Chem.MolToMolBlock(m)+'\\n$$$$\\n')
             )
         )
         client.headers.pop("X-Workbench-CSRF")
-        assert client.post("/api/jobs", json=body).status_code == 403
+        assert (
+            client.post(
+                "/api/jobs", json=body, headers={"Idempotency-Key": str(uuid4())}
+            ).status_code
+            == 403
+        )
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
         assert all(
             client.get(f"/api/jobs/{identifier}/result").status_code == 200
