@@ -265,3 +265,71 @@ def test_saved_workflow_protects_an_uploaded_input_from_deletion(client_factory)
         }
         assert save(client, value).status_code == 201
         assert client.delete("/api/assets/" + asset["id"]).status_code == 409
+
+
+def test_independent_failure_policy_retains_failures_and_executes_other_real_processes(
+    client_factory,
+):
+    script = (
+        "import json; from pathlib import Path; "
+        "request=json.loads(Path('request.json').read_text()); "
+        "name=request['name']; "
+        "raise SystemExit(2) if name=='first' else SystemExit(0)"
+    )
+    # Doctor success materializes the real process log; no synthetic scientific output.
+    body = {
+        "name": "independent failure review",
+        "failure_policy": "continue_independent",
+        "steps": [
+            {"id": "first", "request": {"operation": "doctor", "name": "first"}},
+            {"id": "second", "request": {"operation": "doctor", "name": "second"}},
+        ],
+        "budget": {"max_jobs": 2, "wall_seconds": 60},
+    }
+    with client_factory(ProcessEngine(script)) as client:
+        saved = save(client, body).json()
+        run = client.post(
+            "/api/workflows/plans/" + saved["id"] + "/runs",
+            json={"plan_sha256": saved["sha256"]},
+            headers={"Idempotency-Key": str(uuid4())},
+        ).json()
+        finished = wait_run(client, run["id"], {"failed"})
+        assert len(finished["attempts"]) == 2
+        assert [a["status"] for a in finished["attempts"]] == ["failed", "succeeded"]
+        assert len(client.get("/api/workflows/runs", params={"plan_id": saved["id"]}).json()) == 1
+        assert client.get("/api/workflows/runs", params={"plan_id": str(uuid4())}).json() == []
+    body.pop("failure_policy")
+    with client_factory(ProcessEngine(script)) as client:
+        saved = save(client, body).json()
+        run = client.post(
+            "/api/workflows/plans/" + saved["id"] + "/runs",
+            json={"plan_sha256": saved["sha256"]},
+            headers={"Idempotency-Key": str(uuid4())},
+        ).json()
+        finished = wait_run(client, run["id"], {"failed"})
+        assert len(finished["attempts"]) == 1
+
+
+def test_continue_policy_cannot_hide_dependency_failure_and_legacy_plan_bytes_remain_stable(
+    tmp_path,
+):
+    import hashlib
+    import json
+
+    value = PlanInput.model_validate(plan())
+    assert "failure_policy" not in value.model_dump(mode="json")
+    value_explicit = PlanInput.model_validate({**plan(), "failure_policy": "stop"})
+    assert value.model_dump_json() == value_explicit.model_dump_json()
+    with pytest.raises(ValidationError, match="independent"):
+        PlanInput.model_validate({**plan(), "failure_policy": "continue_independent"})
+    store = Store(tmp_path / "workflow.sqlite3")
+    records = WorkflowRecords(store)
+    key = str(uuid4())
+    saved = records.save_plan(value, key)
+    with store.connect() as db:
+        body = db.execute("SELECT body FROM workflow_plans WHERE id=?", (saved["id"],)).fetchone()[
+            0
+        ]
+        assert hashlib.sha256(body.encode()).hexdigest() == saved["sha256"]
+        assert "failure_policy" not in json.loads(body)
+    assert records.save_plan(value_explicit, key) == saved

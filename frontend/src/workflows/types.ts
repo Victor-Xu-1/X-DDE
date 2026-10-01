@@ -18,6 +18,7 @@ export interface WorkflowPlanInput {
   name: string;
   steps: WorkflowStep[];
   budget: { max_jobs: number; wall_seconds: number };
+  failure_policy?: "stop" | "continue_independent";
 }
 export interface WorkflowPlan {
   id: string;

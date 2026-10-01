@@ -23,30 +23,46 @@ export function RunMonitor({
   const zh = language === "zh",
     [run, setRun] = useState(initial),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [pollFailures, setPollFailures] = useState(0),
+    [refreshNonce, setRefreshNonce] = useState(0);
   useEffect(() => setRun(initial), [initial.id]);
   useEffect(() => {
     onChange?.(run);
   }, [run, onChange]);
   useEffect(() => {
-    if (["succeeded", "failed", "cancelled"].includes(run.state)) return;
+    if (
+      ["succeeded", "failed", "cancelled"].includes(run.state) ||
+      pollFailures >= 3
+    )
+      return;
     const c = new AbortController();
-    const timer = setTimeout(() => {
-      void request<WorkflowRun>(`/workflows/runs/${run.id}`, {
-        signal: c.signal,
-      })
-        .then((value) => {
-          if (!c.signal.aborted) setRun(value);
+    const timer = setTimeout(
+      () => {
+        void request<WorkflowRun>(`/workflows/runs/${run.id}`, {
+          signal: c.signal,
         })
-        .catch((e) => {
-          if (!c.signal.aborted) setError(String(e));
-        });
-    }, 1500);
+          .then((value) => {
+            if (!c.signal.aborted) {
+              setRun(value);
+              setError("");
+              setPollFailures(0);
+            }
+          })
+          .catch((e) => {
+            if (!c.signal.aborted) {
+              setError(String(e));
+              setPollFailures((n) => n + 1);
+            }
+          });
+      },
+      Math.min(12000, 1500 * 2 ** pollFailures),
+    );
     return () => {
       clearTimeout(timer);
       c.abort();
     };
-  }, [run]);
+  }, [run, pollFailures, refreshNonce]);
   async function action(action: "pause" | "resume" | "cancel") {
     setBusy(true);
     setError("");
@@ -115,6 +131,17 @@ export function RunMonitor({
       {error && (
         <p role="alert" className="error-box">
           {error}
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => {
+              setError("");
+              setPollFailures(0);
+              setRefreshNonce((n) => n + 1);
+            }}
+          >
+            {zh ? "重新读取运行状态" : "Reload run status"}
+          </button>
         </p>
       )}
     </section>

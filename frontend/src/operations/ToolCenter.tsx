@@ -13,6 +13,7 @@ import { CampaignForm } from "./CampaignForm";
 import "./operations.css";
 import { RegionWorkspace } from "../regions/RegionWorkspace";
 import { PocketForm } from "../pockets/PocketForm";
+import { PoseWorkspace } from "../poses/PoseWorkspace";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
 import { ReceptorForm } from "../receptors/ReceptorForm";
 import { StateForm } from "../chemistry/StateForm";
@@ -83,7 +84,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "biopython.ensemble" ? (
+          {selected === "pose_exploration" ? (
+            <PoseWorkspace language={language} />
+          ) : selected === "biopython.ensemble" ? (
             <ReceptorForm language={language} onCreated={onCreated} />
           ) : selected === "chemistry.states" ? (
             <StateForm language={language} onCreated={onCreated} />

@@ -536,5 +536,17 @@ export const tools = [
     ],
     modality_role: "target_context",
   },
+  {
+    id: "pose_exploration",
+    group: "structure",
+    label: ["多受体与状态姿势探索", "Multi-receptor/state pose exploration"],
+    note: [
+      "组合真实位点、受体、分子状态和初始化，保留多个原生姿势及来源。",
+      "Combine actual sites, receptors, chemical states and initializations; retain multiple native pose hypotheses and provenance.",
+    ],
+    source: "X-DDE / GNINA",
+    modalities: ["biologic", "chemical", "protein", "small_molecule"],
+    modality_role: "target_context",
+  },
 ] as const;
 export type ToolId = (typeof tools)[number]["id"];

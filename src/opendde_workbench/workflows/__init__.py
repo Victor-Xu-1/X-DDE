@@ -56,8 +56,12 @@ def register_workflows(app, store, assets, worker, preflight, settings, mutation
         return translated(lambda: records.start(plan_id, value.plan_sha256, idempotency_key))
 
     @app.get("/api/workflows/runs")
-    def runs():
-        return translated(records.runs)
+    def runs(
+        limit: int = Query(100, ge=1, le=200),
+        offset: int = Query(0, ge=0),
+        plan_id: UUID | None = None,
+    ):
+        return translated(lambda: records.runs(limit=limit, offset=offset, plan_id=plan_id))
 
     @app.get("/api/workflows/runs/{run_id}")
     def run(run_id: UUID):

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Language } from "../types";
 import { Hint } from "../guided/Hint";
+import { PoseWorkspace } from "../poses/PoseWorkspace";
 import { PocketResults } from "../pockets/PocketResults";
 import type { SiteSet } from "./types";
 export function SiteResults({
@@ -113,6 +114,14 @@ export function SiteResults({
           )}
         </section>
       ))}
+      <details>
+        <summary>
+          {zh
+            ? "用此位点集合探索多个结合姿势"
+            : "Explore multiple poses from this site set"}
+        </summary>
+        <PoseWorkspace language={language} initialSites={value} />
+      </details>
       <details>
         <summary>
           {zh ? "关联证据与阈值" : "Association evidence and thresholds"}

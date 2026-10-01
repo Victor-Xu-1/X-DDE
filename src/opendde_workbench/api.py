@@ -35,6 +35,7 @@ from .harness_routes import register_harness
 from .models import TERMINAL, Job
 from .operation_routes import register_operations
 from .pockets.runtime import validate as validate_pockets
+from .pose_ensembles.routes import register_pose_explorations
 from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
@@ -467,6 +468,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
     register_sites(app, store, assets, settings, mutation)
+    register_pose_explorations(app, store, assets, settings, mutation)
     regions = register_regions(app, store, assets, settings, mutation)
     constraints = register_constraints(app, store, assets, settings, mutation)
     workflows_service = register_workflows(

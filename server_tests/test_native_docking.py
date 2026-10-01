@@ -443,3 +443,7 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         evidence,
         rejected_id,
     )
+
+    from pose_native_acceptance import inspect_pose_campaign
+
+    inspect_pose_campaign(settings, installed["image"])

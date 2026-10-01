@@ -280,7 +280,26 @@ _RECEPTORS = (
         frontend_form="receptor_ensemble",
     ),
 )
-_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY + _RECEPTORS
+_POSES = (
+    CapabilitySpec(
+        id="pose_exploration",
+        **modality_metadata("pose_exploration"),
+        group="structure",
+        environment="platform",
+        operations=(),
+        label=("多受体与状态姿势探索", "Multi-receptor/state pose exploration"),
+        note=(
+            "组合真实位点、受体、分子状态和初始化，保留多个原生姿势及来源。",
+            "Combine actual sites, receptors, chemical states and initializations; "
+            "retain multiple native pose hypotheses and provenance.",
+        ),
+        source="X-DDE / GNINA",
+        frontend_form="pose_exploration",
+        submission="research_plan",
+        contract_source="ExplorationInput",
+    ),
+)
+_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY + _RECEPTORS + _POSES
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

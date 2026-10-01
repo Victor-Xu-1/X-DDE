@@ -14,11 +14,67 @@ TABLES = {
     "state_set": "research_state_sets",
     "receptor_set": "research_receptor_sets",
     "site_set": "research_site_sets",
+    "exploration": "research_pose_explorations",
+    "pose_set": "research_pose_sets",
 }
 
 
 def project_record(store, kind, row):
     identifier = kind + ":" + row["id"]
+    if kind == "exploration":
+        from ..pose_ensembles.storage import Explorations
+
+        value = Explorations.decode(row)
+        edges = [
+            ("site_set:" + str(value.request.site_set_id), identifier, "pose_site_selection"),
+            (identifier, "plan:" + str(value.plan_id), "planned_pose_exploration"),
+        ]
+        for ligand in value.request.ligands:
+            edges.append(
+                ("object:" + str(ligand.reference.version_id), identifier, "pose_ligand_input")
+            )
+            if ligand.state_set_id:
+                edges.append(
+                    ("state_set:" + str(ligand.state_set_id), identifier, "pose_state_input")
+                )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "pose_exploration",
+                "label": value.request.name,
+                "exploration_id": str(value.id),
+                "plan_id": str(value.plan_id),
+            },
+            edges,
+        )
+    if kind == "pose_set":
+        from ..pose_ensembles.collections import PoseSets
+
+        value = PoseSets.decode(row)
+        edges = [
+            ("exploration:" + str(value.exploration_id), identifier, "captured_pose_exploration"),
+            ("run:" + str(value.run_id), identifier, "native_pose_evidence"),
+        ]
+        for outcome in value.outcomes:
+            if outcome.job_id:
+                edges.append(("task:" + str(outcome.job_id), identifier, "pose_attempt"))
+            edges.extend(
+                (identifier, "object:" + str(p.reference.version_id), "contains")
+                for p in outcome.poses
+                if p.reference and p.reference.version_id
+            )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "pose_ensemble",
+                "label": "Pose ensemble · " + str(value.id)[:8],
+                "pose_set_id": str(value.id),
+                "exploration_id": str(value.exploration_id),
+            },
+            edges,
+        )
     if kind == "site_set":
         from ..sites.storage import SiteSets
 

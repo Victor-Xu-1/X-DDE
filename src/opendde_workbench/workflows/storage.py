@@ -24,19 +24,27 @@ class WorkflowRecords:
                 job_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL,
                 PRIMARY KEY(run_id,step_id,attempt))""")
 
-    def save_plan(self, value, key):
+    def insert_plan(self, db, value, key):
+        """Single plan insertion authority, also used by compound scientific records."""
         body = value.model_dump_json()
         digest = hashlib.sha256(body.encode()).hexdigest()
         identifier = str(uuid5(NAMESPACE, "plan:" + str(key)))
+        old = db.execute("SELECT * FROM workflow_plans WHERE id=?", (identifier,)).fetchone()
+        if old:
+            if hashlib.sha256(old["body"].encode()).hexdigest() != old["sha256"]:
+                raise ValueError("Research plan failed integrity verification.")
+            if old["sha256"] != digest or old["body"] != body:
+                raise ConflictError("Plan key already identifies different immutable inputs.")
+        else:
+            db.execute(
+                "INSERT INTO workflow_plans VALUES(?,?,?,?)", (identifier, body, digest, now())
+            )
+        return identifier, digest
+
+    def save_plan(self, value, key):
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            old = db.execute("SELECT * FROM workflow_plans WHERE id=?", (identifier,)).fetchone()
-            if old and old["sha256"] != digest:
-                raise ConflictError("Plan key already identifies different immutable inputs.")
-            if not old:
-                db.execute(
-                    "INSERT INTO workflow_plans VALUES(?,?,?,?)", (identifier, body, digest, now())
-                )
+            identifier, _ = self.insert_plan(db, value, key)
         return self.plan(identifier)
 
     def plan(self, identifier):
@@ -107,20 +115,24 @@ class WorkflowRecords:
             )
         return {**dict(row), "attempts": attempts}
 
-    def runs(self, states=None, limit=100):
+    def runs(self, states=None, limit=100, offset=0, plan_id=None):
+        clauses, parameters = [], []
+        if states:
+            clauses.append("state IN (" + ",".join("?" for _ in states) + ")")
+            parameters.extend(states)
+        if plan_id:
+            clauses.append("plan_id=?")
+            parameters.append(str(plan_id))
+        where = " WHERE " + " AND ".join(clauses) if clauses else ""
+        order = " ORDER BY created_at" if states else " ORDER BY created_at DESC"
         with self.store.connect() as db:
-            if states:
-                placeholders = ",".join("?" for _ in states)
-                rows = db.execute(
-                    f"SELECT id FROM workflow_runs WHERE state IN ({placeholders}) "
-                    "ORDER BY created_at LIMIT ?",
-                    (*states, limit),
+            ids = [
+                r[0]
+                for r in db.execute(
+                    "SELECT id FROM workflow_runs" + where + order + " LIMIT ? OFFSET ?",
+                    (*parameters, limit, offset),
                 )
-            else:
-                rows = db.execute(
-                    "SELECT id FROM workflow_runs ORDER BY created_at DESC LIMIT ?", (limit,)
-                )
-            ids = [row[0] for row in rows]
+            ]
         return [self.run(identifier) for identifier in ids]
 
     def change(self, identifier, state, reason=None, expected=None, strict=True):

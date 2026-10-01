@@ -9,7 +9,16 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
     if spec.environment == "platform":
         checks = {"platform_api": True}
         specific = (
-            ["native_identity_task", "exact_molecule_record", "region_atom_membership"]
+            [
+                "saved_site_set",
+                "exact_state_and_conformer",
+                "plan_digest",
+                "gnina_native_preflight",
+                "paired_receptor_frame",
+                "job_and_wall_budget",
+            ]
+            if spec.id == "pose_exploration"
+            else ["native_identity_task", "exact_molecule_record", "region_atom_membership"]
             if spec.id == "regions"
             else ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
         )

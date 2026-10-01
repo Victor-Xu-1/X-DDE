@@ -2,7 +2,7 @@
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from ..requests import TaskRequest
 
@@ -59,9 +59,22 @@ class PlanInput(BaseModel):
     name: str = Field(min_length=1, max_length=120, pattern=r"^[^\x00-\x1f]+$")
     steps: tuple[Step, ...] = Field(min_length=1, max_length=30)
     budget: Budget = Field(default_factory=Budget)
+    failure_policy: Literal["stop", "continue_independent"] = "stop"
+
+    @model_serializer(mode="wrap")
+    def stable_default_wire(self, handler):
+        data = handler(self)
+        # Existing immutable plans/keys keep their original byte representation.
+        if self.failure_policy == "stop":
+            data.pop("failure_policy", None)
+        return data
 
     @model_validator(mode="after")
     def valid_graph(self) -> Self:
+        if self.failure_policy == "continue_independent" and any(
+            step.depends_on or step.bindings for step in self.steps
+        ):
+            raise ValueError("Continuing after failure is supported only for independent steps.")
         identifiers = {step.id for step in self.steps}
         if len(identifiers) != len(self.steps):
             raise ValueError("Workflow step IDs must be unique.")

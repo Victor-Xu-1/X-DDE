@@ -84,12 +84,31 @@ class WorkflowService:
             ):
                 self.update(run["id"], "succeeded")
                 continue
+            if plan.failure_policy == "continue_independent" and all(
+                step.id in latest
+                and (
+                    latest[step.id]["status"] == "succeeded"
+                    or latest[step.id]["status"] == "failed"
+                    and latest[step.id]["attempt"] >= step.retries
+                )
+                for step in plan.steps
+            ):
+                self.update(
+                    run["id"],
+                    "failed",
+                    "All independent combinations finished; failed attempts are retained.",
+                )
+                continue
             for step in plan.steps:
                 previous = latest.get(step.id)
                 if previous:
                     if previous["status"] not in TERMINAL or previous["status"] == "succeeded":
                         continue
                     if previous["status"] != "failed" or previous["attempt"] >= step.retries:
+                        if previous["status"] == "failed" and (
+                            plan.failure_policy == "continue_independent"
+                        ):
+                            continue
                         self.update(
                             run["id"], "failed", f"Step {step.id} ended as {previous['status']}."
                         )

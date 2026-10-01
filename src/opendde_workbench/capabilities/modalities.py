@@ -123,6 +123,7 @@ _MEMBERSHIP = {
     "regions": _SMALL,
     "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),
     "chemistry.states": _SMALL,
+    "pose_exploration": _CONTEXT,
     "p2rank.detect": _CONTEXT,
     "gnina.dock": _CONTEXT,
     "gnina.score": _CONTEXT,
@@ -146,6 +147,7 @@ _MEMBERSHIP = {
 }
 _SHARED = {"import", "resources", "workflows"}
 _TARGET_CONTEXT = {
+    "pose_exploration",
     "biopython.ensemble",
     "p2rank.detect",
     "diffsbdd.pocket",

@@ -1,3 +1,4 @@
+import { PoseWorkspace } from "../poses/PoseWorkspace";
 import type { Language } from "../types";
 import {
   edgeLabels,
@@ -166,6 +167,18 @@ export function ObjectInspector({
             <button onClick={() => onJob(node.job_id!)}>
               {zh ? "查看任务与结果" : "Open task & results"}
             </button>
+          )}
+          {node.exploration_id && (
+            <details>
+              <summary>
+                {zh ? "打开配套姿势探索" : "Open paired pose exploration"}
+              </summary>
+              <PoseWorkspace
+                key={node.id}
+                language={language}
+                initialExplorationId={node.exploration_id}
+              />
+            </details>
           )}
           <h3>{zh ? "关联来源与去向" : "Sources & downstream use"}</h3>
           {!related.length ? (

@@ -33,7 +33,9 @@ export interface GraphNode {
     | "constraint"
     | "molecular_state_set"
     | "receptor_ensemble"
-    | "binding_site_set";
+    | "binding_site_set"
+    | "pose_exploration"
+    | "pose_ensemble";
   label: string;
   asset_id?: string;
   asset_kind?: string;
@@ -42,6 +44,9 @@ export interface GraphNode {
   status?: string;
   operation?: string;
   object?: ScientificObject;
+  exploration_id?: string;
+  plan_id?: string;
+  pose_set_id?: string;
 }
 export interface GraphEdge {
   source: string;
@@ -59,6 +64,8 @@ export const objectLabels: Record<string, [string, string]> = {
   molecular_state_set: ["分子状态集合", "Molecular state set"],
   receptor_ensemble: ["受体构象集合", "Receptor ensemble"],
   binding_site_set: ["跨构象位点", "Cross-conformation sites"],
+  pose_exploration: ["姿势探索计划", "Pose exploration"],
+  pose_ensemble: ["结合姿势集合", "Pose ensemble"],
   molecule: ["分子", "Molecule"],
   structure: ["结构", "Structure"],
   sequence: ["序列", "Sequence"],
@@ -72,6 +79,13 @@ export const objectLabels: Record<string, [string, string]> = {
   region: ["分子区域", "Molecular regions"],
 };
 export const edgeLabels: Record<string, [string, string]> = {
+  pose_site_selection: ["探索位点", "Explored sites"],
+  planned_pose_exploration: ["姿势计划", "Pose plan"],
+  pose_ligand_input: ["探索分子", "Exploration ligand"],
+  pose_state_input: ["状态依据", "State evidence"],
+  captured_pose_exploration: ["保存姿势", "Captured poses"],
+  native_pose_evidence: ["原生运行依据", "Native run evidence"],
+  pose_attempt: ["姿势尝试", "Pose attempt"],
   produced_collection: ["产生集合", "Produced collection"],
   contains: ["包含成员", "Contains member"],
   aligned_from: ["对齐来源", "Aligned from"],

@@ -5,7 +5,7 @@ import type { ReceptorSet } from "../receptors/types";
 import type { Job, Language } from "../types";
 import { schema } from "./generated";
 import { eligibleJobs, preset } from "./model";
-import { loadPages } from "./load";
+import { loadPages } from "../research/loadPages";
 import { SiteResults } from "./SiteResults";
 import type { SiteOptions, SiteSet } from "./types";
 import "./sites.css";
