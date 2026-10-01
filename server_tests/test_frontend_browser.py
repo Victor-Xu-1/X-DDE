@@ -686,6 +686,7 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             assert len(centers) == 6
             assert abs(centers[0]["top"] - centers[2]["top"]) < 3
             assert centers[2]["left"] > centers[0]["left"] + 100
+            page.get_by_role("button", name="下一步", exact=True).click()
             for width in (390, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(
