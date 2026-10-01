@@ -150,6 +150,8 @@ it("opens core scientific forms directly from the first navigation entries", asy
   render(<App />);
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const core = [
+    "Disease to targets",
+    "Target evidence",
     "Structure prediction",
     "Receptor conformations",
     "Pocket discovery",

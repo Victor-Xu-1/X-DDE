@@ -39,7 +39,9 @@ it.each(["zh", "en"] as const)(
     ).toBeNull();
     await user.click(
       screen.getByRole("button", {
-        name: tools[0].label[language === "zh" ? 0 : 1],
+        name: tools.find((tool) => tool.id === "predict")!.label[
+          language === "zh" ? 0 : 1
+        ],
       }),
     );
     expect(handlers.onPredict).toHaveBeenCalledOnce();
