@@ -1,4 +1,4 @@
-import { BoxFields } from "./BoxFields";
+import { DockingInputs, DockingRegion } from "./DockingQuestions";
 import { outputBoundsDefaults } from "../constraints/generated";
 import type { OutputSettings } from "../constraints/types";
 import { ConstraintPanel } from "../constraints/ConstraintPanel";
@@ -10,11 +10,9 @@ import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
-import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { defaults } from "./generated";
 import { task, parseBox } from "./model";
-import { SearchRegion } from "./SearchRegion";
 import { DockingOptions } from "./DockingOptions";
 import type { DockingMode, SearchBox } from "./types";
 export function DockingForm({
@@ -113,91 +111,47 @@ export function DockingForm({
     }
   }
   const inputs = (
-    <>
-      {" "}
-      <ReferencePicker
-        kind="structure"
-        label={zh ? "受体结构" : "Receptor structure"}
-        value={receptor}
-        language={language}
-        onChange={(value) => {
-          setReceptor(value);
-          setReference(null);
-          setConfirmed(false);
-          setCenter(["", "", ""]);
-        }}
-      />
-      <ReferencePicker
-        kind="ligand"
-        label={zh ? "选择分子或已有姿势" : "Choose a molecule or existing pose"}
-        value={ligand}
-        language={language}
-        onChange={(value) => {
-          setLigand(value);
-          setConfirmed(false);
-        }}
-      />
-    </>
+    <DockingInputs
+      language={language}
+      receptor={receptor}
+      ligand={ligand}
+      onReceptor={(value) => {
+        setReceptor(value);
+        setReference(null);
+        setConfirmed(false);
+        setCenter(["", "", ""]);
+      }}
+      onLigand={(value) => {
+        setLigand(value);
+        setConfirmed(false);
+      }}
+    />
   );
   const region = (
-    <>
-      {" "}
-      {mode === "dock" && (
-        <SearchRegion
-          receptor={receptor}
-          language={language}
-          kind={kind}
-          onKind={(value) => {
-            setKind(value);
-            setConfirmed(false);
-          }}
-          reference={reference}
-          onReference={(value) => {
-            setReference(value);
-            setConfirmed(false);
-          }}
-          center={center}
-          onCenter={setCenter}
-          size={size}
-          onSize={setSize}
-        />
-      )}
-      {mode !== "dock" && (
-        <details className="input-summary">
-          <summary>
-            {zh ? "结果检查范围（可选）" : "Output-check bounds (optional)"}
-          </summary>
-          <p className="field-help">
-            {zh
-              ? "以当前受体版本为坐标参照；仅用于计算后的空间检查，不引导评分或最小化。"
-              : "In the current receptor coordinates, for output verification only; it does not guide scoring or minimization."}
-          </p>
-          <BoxFields
-            language={language}
-            center={center}
-            onCenter={setCenter}
-            size={size}
-            onSize={setSize}
-          />
-        </details>
-      )}
-      {(mode !== "dock" || kind === "reference") && (
-        <label>
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(event) => setConfirmed(event.target.checked)}
-          />
-          {zh
-            ? "我确认参考配体/已有姿势位于所选受体的坐标系中"
-            : "I confirm the reference/existing pose is in the selected receptor coordinate frame"}
-        </label>
-      )}
-    </>
+    <DockingRegion
+      language={language}
+      mode={mode}
+      receptor={receptor}
+      kind={kind}
+      reference={reference}
+      center={center}
+      size={size}
+      confirmed={confirmed}
+      onKind={(value) => {
+        setKind(value);
+        setConfirmed(false);
+      }}
+      onReference={(value) => {
+        setReference(value);
+        setConfirmed(false);
+      }}
+      onCenter={setCenter}
+      onSize={setSize}
+      onConfirmed={setConfirmed}
+    />
   );
   const settings = (
     <>
-      {" "}
       <label className="field">
         {zh ? "运行方案" : "Run preset"}
         <select

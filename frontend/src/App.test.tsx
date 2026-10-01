@@ -179,18 +179,16 @@ it("opens core scientific forms directly from the first navigation entries", asy
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByRole("textbox", { name: "SMILES" })).toBeVisible();
   await user.click(within(nav).getByRole("button", { name: "Binding poses" }));
-  expect(
-    screen.getByRole("button", { name: "Explore binding poses" }),
-  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   await user.click(
     within(nav).getByRole("button", { name: "Molecule preparation" }),
   );
   expect(
-    screen.getByRole("combobox", { name: "What should be prepared?" }),
+    screen.getByRole("combobox", {
+      name: "Choose an SDF molecular version · Reuse research asset",
+    }),
   ).toBeVisible();
-  expect(
-    screen.getByRole("button", { name: "Prepare states and conformers" }),
-  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   expect(screen.queryByText("Install research software")).toBeNull();
   expect(submit).not.toHaveBeenCalled();
 });

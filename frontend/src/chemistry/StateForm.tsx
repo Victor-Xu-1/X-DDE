@@ -53,7 +53,6 @@ export function StateForm({
   }
   const input = (
     <>
-      {" "}
       <ReferencePicker
         kind="ligand"
         value={molecule}
@@ -65,7 +64,6 @@ export function StateForm({
   );
   const purpose = (
     <>
-      {" "}
       <label className="field">
         {zh ? "这次准备什么？" : "What should be prepared?"}
         <select

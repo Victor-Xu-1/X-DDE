@@ -1,27 +1,16 @@
 import { useRef, useState } from "react";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
-import { ReferencePicker } from "../diffsbdd/ReferencePicker";
+import {
+  ReceptorInputs,
+  emptyReceptorSelection as blank,
+  type ReceptorRow as Row,
+} from "./ReceptorInputs";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
-import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import { defaults } from "./generated";
-import type { Selection } from "./types";
 import "./receptors.css";
 
-const blank = (): Selection => ({
-  model_index: 0,
-  chains: [],
-  profile: "unspecified",
-  chain_pairs: [],
-  residue_pairs: [],
-});
-interface Row {
-  key: number;
-  structure: MoleculeRef | null;
-  selection: Selection;
-  raw: string;
-}
 const newRow = (key: number): Row => ({
   key,
   structure: null,
@@ -88,101 +77,20 @@ export function ReceptorForm({
     }
   }
   const inputs = (
-    <>
-      {" "}
-      {rows.map((row, index) => (
-        <section
-          className="receptor-input"
-          key={row.key}
-          aria-label={zh ? `受体 ${index + 1}` : `Receptor ${index + 1}`}
-        >
-          <div className="receptor-row-heading">
-            <strong>
-              {zh ? "受体" : "Receptor"} {index + 1}
-            </strong>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={rows.length <= 2}
-              onClick={() => {
-                setRows((v) => v.filter((r) => r.key !== row.key));
-                setReference(0);
-              }}
-            >
-              {zh ? "移除此结构" : "Remove structure"}
-            </button>
-          </div>
-          <ReferencePicker
-            kind="structure"
-            allowedSuffixes={[".pdb", ".cif"]}
-            value={row.structure}
-            onChange={(structure) =>
-              update(row.key, {
-                structure,
-                selection: blank(),
-                raw: JSON.stringify(blank(), null, 2),
-              })
-            }
-            language={language}
-            label={
-              zh
-                ? `受体 ${index + 1} 结构版本`
-                : `Receptor ${index + 1} structural version`
-            }
-          />
-          <label className="field">
-            {zh ? "结构来源" : "Structure source"}
-            <select
-              value={row.selection.profile}
-              onChange={(e) => {
-                const selection = {
-                  ...row.selection,
-                  profile: e.target.value as Selection["profile"],
-                };
-                update(row.key, {
-                  selection,
-                  raw: JSON.stringify(selection, null, 2),
-                });
-              }}
-            >
-              <option value="unspecified">
-                {zh ? "来源未声明" : "Source not declared"}
-              </option>
-              <option value="experimental">
-                {zh ? "实验结构" : "Experimental structure"}
-              </option>
-              <option value="predicted">
-                {zh ? "预测结构" : "Predicted structure"}
-              </option>
-            </select>
-          </label>
-          {expert && (
-            <label className="field">
-              {zh
-                ? `受体 ${index + 1} 的模型、链与对应参数`
-                : `Model, chain and correspondence settings for receptor ${index + 1}`}
-              <textarea
-                rows={8}
-                value={row.raw}
-                onChange={(e) => update(row.key, { raw: e.target.value })}
-              />
-            </label>
-          )}
-        </section>
-      ))}
-      <button
-        className="secondary-button"
-        type="button"
-        disabled={rows.length >= 16}
-        onClick={() => setRows((v) => [...v, newRow(serial.current++)])}
-      >
-        {zh ? "添加一个受体结构" : "Add receptor structure"}
-      </button>
-    </>
+    <ReceptorInputs
+      language={language}
+      rows={rows}
+      expert={expert}
+      update={update}
+      onRemove={(key) => {
+        setRows((v) => v.filter((r) => r.key !== key));
+        setReference(0);
+      }}
+      onAdd={() => setRows((v) => [...v, newRow(serial.current++)])}
+    />
   );
   const purpose = (
     <>
-      {" "}
       <label className="field">
         {zh
           ? "哪个结构作为对齐参照？"
@@ -240,7 +148,6 @@ export function ReceptorForm({
   );
   const settings = (
     <>
-      {" "}
       <button
         type="button"
         className="secondary-button"

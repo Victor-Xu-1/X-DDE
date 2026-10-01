@@ -969,9 +969,7 @@ def test_actual_prepared_state_collection_can_be_reviewed_and_reused_without_com
                             "combobox", name="选择分子或已有姿势 · 复用研究资产", exact=True
                         )
                     ).not_to_have_value("")
-                    expect(
-                        page.get_by_role("button", name="探索结合模式", exact=True)
-                    ).to_be_disabled()
+                    expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
                         assert page.evaluate(
