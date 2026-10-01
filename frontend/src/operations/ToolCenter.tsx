@@ -4,6 +4,7 @@ import { tools, type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { ModalityTags } from "./ModalityTags";
 import { filterCapabilities, type ModalityFilter } from "./filter";
+import { ReferenceImportForm } from "../discovery/ReferenceImportForm";
 import { TargetResearchForm } from "../discovery/TargetResearchForm";
 import { PropertyForm } from "./PropertyForm";
 import { FeatureForm } from "./FeatureForm";
@@ -85,7 +86,9 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected?.startsWith("discovery.") ? (
+          {selected === "discovery.import" ? (
+            <ReferenceImportForm language={language} onCreated={onCreated} />
+          ) : selected?.startsWith("discovery.") ? (
             <TargetResearchForm
               key={selected}
               entity={selected === "discovery.target" ? "target" : "disease"}

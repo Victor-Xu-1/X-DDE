@@ -44,21 +44,11 @@ def register_operations(app, store, assets, settings, mutation):
                 raise ValueError("Result exceeds the display size limit. Download the artifact.")
             value = json.loads(path.read_text())
             job = store.get(str(job_id))
-            if job.request.operation == "target_research":
-                from .discovery.result import validate_result
-                from .research.storage import ScientificStore
+            if job.request.operation in {"reference_import", "target_research"}:
+                from .discovery.presentation import present_result
 
                 try:
-                    validate_result(value, job.request, root / "output")
-                    versions = ScientificStore(store, assets).list(source_job=job.id)
-                    for material in value["materials"]:
-                        matching = [
-                            v
-                            for v in versions
-                            if v.kind == "sequence" and v.reference.sha256 == material["sha256"]
-                        ]
-                        if len(matching) == 1:
-                            material["reference"] = matching[0].reference.model_dump(mode="json")
+                    value = present_result(value, job, root / "output", store, assets)
                 except (ValueError, TypeError, KeyError, OSError) as exc:
                     raise HTTPException(
                         422, "Research evidence is invalid or changed; inspect task files."

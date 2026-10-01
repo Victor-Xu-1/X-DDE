@@ -25,7 +25,7 @@ _DEFINITIONS = (
         "Open Targets / UniProt / ChEMBL",
         "早期靶点、疾病、序列、结构索引与已知活性证据 / Early discovery evidence",
         "local_process",
-        ("target_research",),
+        ("target_research", "reference_import"),
         role="public_data_service",
     ),
     ScientificEngine(

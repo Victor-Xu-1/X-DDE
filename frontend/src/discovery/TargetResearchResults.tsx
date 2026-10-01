@@ -3,6 +3,10 @@ import { artifactUrl } from "../api";
 import { defaults } from "../form-model";
 import { Hint } from "../guided/Hint";
 import type { Job, Language, Prediction } from "../types";
+import {
+  ReferenceImportForm,
+  type ReferenceSelection,
+} from "./ReferenceImportForm";
 import { TargetResearchForm } from "./TargetResearchForm";
 import type { EvidenceHit, TargetResearchResult } from "./types";
 import "./discovery.css";
@@ -22,11 +26,26 @@ export function TargetResearchResults({
 }) {
   const zh = language === "zh",
     [next, setNext] = useState<EvidenceHit | null>(null),
-    [copied, setCopied] = useState("");
+    [copied, setCopied] = useState(""),
+    [material, setMaterial] = useState<ReferenceSelection | null>(null);
   const association =
     result.entity.associatedTargets ?? result.entity.associatedDiseases;
   const title =
     result.entity.approvedSymbol ?? result.entity.name ?? result.entity.id;
+  if (material && onCreated)
+    return (
+      <section>
+        <button type="button" onClick={() => setMaterial(null)}>
+          {zh ? "返回靶点证据" : "Back to target evidence"}
+        </button>
+        <ReferenceImportForm
+          key={material.identifier}
+          language={language}
+          onCreated={onCreated}
+          initial={material}
+        />
+      </section>
+    );
   if (next && onCreated)
     return (
       <section>
@@ -246,6 +265,20 @@ export function TargetResearchResults({
                     {s.id}
                   </a>{" "}
                   · {s.properties.map((p) => p.value).join(" · ")}
+                  {onCreated && result.analysis_reference && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMaterial({
+                          source: "pdb",
+                          identifier: s.id,
+                          evidence: result.analysis_reference,
+                        })
+                      }
+                    >
+                      {zh ? "导入结构" : "Import structure"}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -299,6 +332,21 @@ export function TargetResearchResults({
                     </td>
                     <td title={a.assay_description}>{a.assay_chembl_id}</td>
                     <td>
+                      {onCreated && result.analysis_reference && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMaterial({
+                              source: "chembl",
+                              identifier: a.molecule_chembl_id,
+                              evidence: result.analysis_reference,
+                              activity_id: a.activity_id,
+                            })
+                          }
+                        >
+                          {zh ? "导入化合物" : "Import compound"}
+                        </button>
+                      )}
                       {a.canonical_smiles && (
                         <button
                           type="button"

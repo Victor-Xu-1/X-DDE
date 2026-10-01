@@ -167,6 +167,10 @@ class AssetStore:
 
     def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        if getattr(request, "operation", None) == "reference_import":
+            from .discovery.import_provenance import evidence_binding
+
+            return evidence_binding(request, self)
         if getattr(request, "operation", None) == "receptor_ensemble":
             for item in request.inputs:
                 ref = item.structure

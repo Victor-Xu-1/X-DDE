@@ -178,3 +178,82 @@ def test_actual_disease_search_and_association_are_distinct_from_target_material
         assert result["entity"]["associatedTargets"]["rows"]
         assert result["materials"] == [] and result["activities"] is None
         assert [row["source"] for row in result["sources"]] == ["Open Targets"]
+
+
+@pytest.mark.skipif(
+    os.environ.get("WB_TEST_PUBLIC_EVIDENCE") != "1",
+    reason="Actual archive downloads run only on CI/target server",
+)
+def test_actual_archive_tasks_original_bytes_parser_assets_restart_and_tamper(
+    tmp_path, monkeypatch
+):
+    from pathlib import Path
+    from uuid import uuid4
+
+    monkeypatch.setenv("WB_AUTO_DEPLOY", "0")
+    settings = Settings(
+        state_dir=tmp_path / "state",
+        image_file=tmp_path / "image",
+        code_file=tmp_path / "code",
+        model_dir=tmp_path / "models",
+        cache_dir=tmp_path / "cache",
+        minimum_free_bytes=0,
+    )
+    jobs = []
+    with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
+        client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        for source, identifier, format in (
+            ("pdb", "1CRN", "cif"),
+            ("pdb", "1CRN", "pdb"),
+            ("chembl", "CHEMBL25", "sdf"),
+        ):
+            payload = {
+                "operation": "reference_import",
+                "source": source,
+                "identifier": identifier,
+                "format": format,
+                "allow_external": True,
+            }
+            client.headers["Idempotency-Key"] = str(uuid4())
+            response = client.post("/api/jobs", json=payload)
+            assert response.status_code == 201, response.text
+            job = response.json()
+            jid = job["id"]
+            assert client.post("/api/jobs", json=payload).json()["id"] == jid
+            deadline = time.monotonic() + 160
+            while time.monotonic() < deadline:
+                job = client.get("/api/jobs/" + jid).json()
+                if job["status"] not in {"running", "queued"}:
+                    break
+                time.sleep(0.2)
+            assert job["status"] == "succeeded", job
+            response = client.get(f"/api/jobs/{jid}/result")
+            assert response.status_code == 200, response.text
+            result = response.json()
+            assert result["reference"]["sha256"] == result["sha256"]
+            assert result["reference"]["version_id"]
+            objects = client.get("/api/research/objects", params={"source_job": jid}).json()
+            assert {obj["kind"] for obj in objects} == {"analysis", result["kind"]}
+            assert client.post(f"/api/jobs/{jid}/index-assets").json()["state"] == "complete"
+            assert len(
+                client.get("/api/research/objects", params={"source_job": jid}).json()
+            ) == len(objects)
+            directory = settings.state_dir / "jobs" / jid / "output"
+            original = (directory / result["artifact"]).read_bytes()
+            assert original == (directory / result["receipts"][-1]["artifact"]).read_bytes()
+            # Export within CI for independent native parser validation.
+            evidence = Path("server_tests/evidence/archive-fixture")
+            evidence.mkdir(parents=True, exist_ok=True)
+            (evidence / result["artifact"]).write_bytes(original)
+            snapshot = directory / result["receipts"][-1]["artifact"]
+            snapshot.write_bytes(b"changed")
+            assert client.get(f"/api/jobs/{jid}/result").status_code == 422
+            assert client.post(f"/api/jobs/{jid}/index-assets").json()["errors"]
+            snapshot.write_bytes(original)
+            jobs.append((jid, len(objects)))
+    with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
+        for jid, count in jobs:
+            assert client.get(f"/api/jobs/{jid}/result").status_code == 200
+            assert (
+                len(client.get("/api/research/objects", params={"source_job": jid}).json()) == count
+            )

@@ -7,9 +7,9 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from opendde_workbench.discovery.contract import TargetResearchTask
 from opendde_workbench.discovery.sources import activities, evidence, protein
 from opendde_workbench.discovery.transport import SourceUnavailable
+from opendde_workbench.requests import TASK_ADAPTER
 
 
 def run(task, output):
@@ -104,9 +104,16 @@ def freeze_sources(result, output):
 
 def main():
     directory = Path(sys.argv[1]).resolve()
-    task = TargetResearchTask.model_validate_json((directory / "request.json").read_text())
-    result = run(task, directory / "output")
-    freeze_sources(result, directory / "output")
+    task = TASK_ADAPTER.validate_json((directory / "request.json").read_text())
+    if task.operation == "reference_import":
+        from opendde_workbench.discovery.import_runner import run_import
+
+        result = run_import(task, directory / "output")
+    elif task.operation == "target_research":
+        result = run(task, directory / "output")
+        freeze_sources(result, directory / "output")
+    else:
+        raise ValueError("This adapter only executes reviewed public-data operations.")
     file = directory / "output/result.json.tmp"
     file.write_text(json.dumps(result, indent=2, allow_nan=False), encoding="utf-8")
     file.replace(directory / "output/result.json")

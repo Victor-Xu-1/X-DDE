@@ -68,6 +68,30 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "discovery.import",
+    group: "prepare",
+    label: [
+      "导入参考结构与化合物",
+      "Import reference structures and compounds",
+    ],
+    note: [
+      "从 PDB/ChEMBL 获取原始记录，保留证据与确切资产版本。",
+      "Retrieve original PDB/ChEMBL records with evidence and exact asset versions.",
+    ],
+    source: "RCSB PDB / ChEMBL",
+    modalities: [
+      "biologic",
+      "chemical",
+      "rna",
+      "dna",
+      "antibody",
+      "protein",
+      "peptide",
+      "small_molecule",
+    ],
+    modality_role: "shared",
+  },
+  {
     id: "discovery.target",
     group: "search",
     label: ["靶点证据与研究材料", "Target evidence and materials"],

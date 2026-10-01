@@ -25,6 +25,7 @@ export interface Association {
 }
 export interface TargetResearchResult {
   operation: "target_research";
+  analysis_reference?: import("../research/types").MoleculeRef;
   request: TargetResearchTask;
   retrieved_at: string;
   entity: {

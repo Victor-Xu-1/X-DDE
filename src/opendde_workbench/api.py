@@ -203,7 +203,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await harness_service.invoke(
                     {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
                 )
-            elif value.operation == "target_research":
+            elif value.operation in {"target_research", "reference_import"}:
                 from .discovery.backend import validate
 
                 assets.validate_bindings(value)

@@ -334,8 +334,34 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_REFERENCE_IMPORT = (
+    CapabilitySpec(
+        id="discovery.import",
+        **modality_metadata("discovery.import"),
+        group="prepare",
+        environment="discovery",
+        operations=("reference_import",),
+        label=("导入参考结构与化合物", "Import reference structures and compounds"),
+        note=(
+            "从 PDB/ChEMBL 获取原始记录，保留证据与确切资产版本。",
+            "Retrieve original PDB/ChEMBL records with evidence and exact asset versions.",
+        ),
+        source="RCSB PDB / ChEMBL",
+        frontend_form="reference_import",
+        scientific_validation="not_applicable",
+    ),
+)
 _ITEMS = (
-    _DISCOVERY + _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY + _RECEPTORS + _POSES
+    _REFERENCE_IMPORT
+    + _DISCOVERY
+    + _BASE
+    + _DIFF
+    + _PLATFORM
+    + _POCKETS
+    + _DOCKING
+    + _CHEMISTRY
+    + _RECEPTORS
+    + _POSES
 )
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")

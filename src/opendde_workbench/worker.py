@@ -162,7 +162,7 @@ class Worker:
                     24 * 3600
                     if job.request.operation == "resources"
                     else 150
-                    if job.request.operation == "target_research"
+                    if job.request.operation in {"target_research", "reference_import"}
                     else self.settings.job_timeout
                 )
                 if time.monotonic() - started > timeout:

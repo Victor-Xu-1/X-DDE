@@ -17,6 +17,7 @@ from pydantic import (
 from .chemistry.contract import MolecularStatesTask
 from .diffsbdd.contract import DiffTask, references
 from .discovery.contract import TargetResearchTask
+from .discovery.import_contract import ReferenceImportTask
 from .docking.contract import DockingTask
 from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
@@ -125,7 +126,8 @@ def request_kind(value: object) -> str:
 
 
 TaskRequest = Annotated[
-    Annotated[TargetResearchTask, Tag("target_research")]
+    Annotated[ReferenceImportTask, Tag("reference_import")]
+    | Annotated[TargetResearchTask, Tag("target_research")]
     | Annotated[Prediction, Tag("predict")]
     | Annotated[Preparation, Tag("features")]
     | Annotated[Inspection, Tag("inspect")]
@@ -147,6 +149,8 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
+    if isinstance(request, ReferenceImportTask):
+        return {str(ref.asset_id) for ref in request.scientific_inputs}
     if isinstance(request, ReceptorEnsembleTask):
         return {str(item.structure.asset_id) for item in request.inputs} | {
             str(ref.asset_id) for ref in request.scientific_inputs

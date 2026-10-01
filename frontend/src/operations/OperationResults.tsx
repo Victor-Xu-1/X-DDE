@@ -8,6 +8,10 @@ import { DockingResults } from "../docking/DockingResults";
 import type { DockingResult } from "../docking/types";
 import { ReceptorResults } from "../receptors/ReceptorResults";
 import type { ReceptorResult } from "../receptors/types";
+import {
+  ReferenceImportResults,
+  type ReferenceImportResult,
+} from "../discovery/ReferenceImportResults";
 import { TargetResearchResults } from "../discovery/TargetResearchResults";
 import type { TargetResearchResult } from "../discovery/types";
 import { StateResults } from "../chemistry/StateResults";
@@ -68,6 +72,7 @@ export function OperationResults({
     [error, setError] = useState("");
   const supported = [
     "pocket_search",
+    "reference_import",
     "target_research",
     "docking",
     "diffsbdd",
@@ -111,6 +116,14 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "reference_import" && (
+        <ReferenceImportResults
+          job={job}
+          result={data as unknown as ReferenceImportResult}
+          language={language}
+          onCreated={onCreated}
+        />
+      )}
       {job.request.operation === "target_research" && (
         <TargetResearchResults
           job={job}

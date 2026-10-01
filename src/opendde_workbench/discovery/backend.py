@@ -7,7 +7,18 @@ from pathlib import Path
 
 from .. import local_process
 
-FILES = ("contract.py", "sources.py", "transport.py", "runner.py")
+FILES = (
+    "contract.py",
+    "sources.py",
+    "transport.py",
+    "runner.py",
+    "result.py",
+    "sequence.py",
+    "import_contract.py",
+    "import_provenance.py",
+    "import_runner.py",
+    "archive.py",
+)
 
 
 class DiscoveryBackend:

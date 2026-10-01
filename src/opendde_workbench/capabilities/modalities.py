@@ -100,6 +100,7 @@ _CONTEXT = ("biologic", "chemical", "protein", "small_molecule")
 
 # No fallback: newly registered capabilities must declare reviewed applicability.
 _MEMBERSHIP = {
+    "discovery.import": _ALL,
     "discovery.target": _ALL,
     "discovery.disease": _ALL,
     "predict": _ALL,
@@ -147,7 +148,7 @@ _MEMBERSHIP = {
     "diffsbdd.pocket": _CONTEXT,
     "diffsbdd.prepare": _CONTEXT,
 }
-_SHARED = {"import", "resources", "workflows"}
+_SHARED = {"import", "resources", "workflows", "discovery.import"}
 _TARGET_CONTEXT = {
     "discovery.target",
     "discovery.disease",

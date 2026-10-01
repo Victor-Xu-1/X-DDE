@@ -35,6 +35,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
     if not manifest.is_file() or manifest.stat().st_size > 25 * 1024**2:
         return False
     result = json.loads(manifest.read_text())
+    if operation == "reference_import":
+        from .discovery.import_runner import validate_import_result
+
+        validate_import_result(result, job.request, output)
     if operation == "target_research":
         from .discovery.result import validate_result
 

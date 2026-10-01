@@ -253,3 +253,8 @@ jobs:
         run: |
           uv sync --locked --group dev
           uv run --locked pytest -q server_tests/test_public_evidence.py
+      - name: Independently parse the actual imported archive bytes (remote only)
+        run: >-
+          uv run --no-project --python 3.12 --with pytest==9.1.1
+          --with biopython==1.86 --with numpy==1.26.4 --with rdkit==2023.9.6
+          python -m pytest -q server_tests/test_archive_parsers.py

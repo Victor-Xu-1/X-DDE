@@ -137,6 +137,14 @@ class OutputCatalog:
 
     def preserve(self, job_id, file, kind, *, receptor_result=None):
         job = self.store.get(str(job_id))
+        if job and job.request.operation == "reference_import":
+            from ..discovery.import_runner import validate_import_result
+
+            root = self.assets.root.parent / "jobs" / job.id / "output"
+            report = json.loads(contained(root, "result.json").read_text())
+            validate_import_result(report, job.request, root)
+            if file.suffix in {".pdb", ".cif", ".sdf"} and file.name != report["artifact"]:
+                raise ValueError("Only the declared archive material can be reused.")
         if job and job.request.operation == "target_research":
             from ..discovery.result import validate_result
 

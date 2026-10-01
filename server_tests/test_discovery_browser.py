@@ -66,3 +66,61 @@ def test_early_target_questionnaire_actual_sources_and_sequence_handoff():
             assert errors == []
         finally:
             browser.close()
+
+
+def test_reference_import_questionnaire_actual_archive_preview_and_persisted_version():
+    base = os.environ["WB_BROWSER_URL"]
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        try:
+            page.goto(base)
+            page.get_by_role("button", name="全部能力", exact=True).click()
+            page.get_by_role("button", name="导入参考结构与化合物", exact=False).click()
+            scope = page.locator(".tool-center .questionnaire:visible")
+            scope.get_by_role("button", name="下一步", exact=True).click()
+            scope.get_by_role("textbox", name="PDB 编号").fill("1CRN")
+            scope.get_by_role("button", name="下一步", exact=True).click()
+            scope.get_by_role("button", name="上一步", exact=True).click()
+            expect(scope.get_by_role("textbox", name="PDB 编号")).to_have_value("1CRN")
+            scope.get_by_role("button", name="下一步", exact=True).click()
+            before = len(page.request.get(base + "/api/jobs").json())
+            scope.get_by_role("button", name="下一步", exact=True).click()
+            assert len(page.request.get(base + "/api/jobs").json()) == before
+            expect(scope.get_by_role("button", name="导入研究材料", exact=True)).to_be_disabled()
+            scope.get_by_role("checkbox").check()
+            for width in (1440, 390):
+                page.set_viewport_size({"width": width, "height": 1000})
+                scope.scroll_into_view_if_needed()
+                page.screenshot(path=str(evidence / f"archive-review-{width}.png"), full_page=True)
+                assert page.evaluate("document.documentElement.scrollWidth<=window.innerWidth")
+            page.set_viewport_size({"width": 1440, "height": 1000})
+            scope.get_by_role("button", name="导入研究材料", exact=True).click()
+            results = page.locator(".discovery-results")
+            expect(results.get_by_role("link", name="下载原始材料")).to_be_visible(timeout=160000)
+            job = next(
+                j
+                for j in page.request.get(base + "/api/jobs").json()
+                if j["request"]["operation"] == "reference_import"
+            )
+            report = page.request.get(base + f"/api/jobs/{job['id']}/result").json()
+            assert (
+                report["reference"]["version_id"]
+                and report["reference"]["sha256"] == report["sha256"]
+            )
+            expect(results.locator("iframe")).to_be_visible()
+            expect(results.get_by_role("button", name="回到全局", exact=True).first).to_be_visible(
+                timeout=30000
+            )
+            page.screenshot(path=str(evidence / "archive-structure-preview.png"), full_page=True)
+            page.reload()
+            expect(
+                page.locator(".discovery-results").get_by_role("link", name="下载原始材料")
+            ).to_be_visible()
+            assert errors == []
+        finally:
+            browser.close()
