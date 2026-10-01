@@ -11,7 +11,8 @@ from opendde_workbench.sites.association import associate
 from opendde_workbench.sites.contracts import NativeSite, SiteInput, SiteObservation, SiteOptions
 
 
-def evidence(ranks=(1, 7), centers=(0, 1), residue_sets=((1, 2, 3), (1, 2, 3))):
+def evidence(ranks=(1, 7), centers=(0, 1), residue_sets=None):
+    residue_sets = residue_sets if residue_sets is not None else ((1, 2, 3),) * len(ranks)
     members, observations = [], []
     for index in range(len(ranks)):
         ref = MoleculeRef(asset_id=uuid4(), sha256=str(index + 1) * 64, version_id=uuid4())

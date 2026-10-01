@@ -28,7 +28,7 @@
 .site-table-wrap td {
   text-align: left;
   padding: 0.45rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 .site-results pre {
   overflow: auto;
