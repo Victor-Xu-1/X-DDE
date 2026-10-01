@@ -104,7 +104,11 @@ it("recovers from a loading failure and saves annotations as a separate version"
 
 it("passes the selected record and version to a property task", async () => {
   vi.spyOn(client, "request").mockImplementation(async (path) =>
-    path === "/research/indexing" ? ([] as never) : (graph() as never),
+    path.startsWith("/capabilities/")
+      ? ({ availability: { configuration_present: true } } as never)
+      : path === "/research/indexing"
+        ? ([] as never)
+        : (graph() as never),
   );
   vi.spyOn(client.api, "assets").mockResolvedValue([
     { id: "file", kind: "ligand", name: "library.sdf" },
@@ -122,9 +126,15 @@ it("passes the selected record and version to a property task", async () => {
   );
   fireEvent.click(await screen.findByRole("button", { name: "分子: ethanol" }));
   fireEvent.click(screen.getByRole("button", { name: "用作性质计算输入" }));
+  fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   expect(
     await screen.findByRole("option", { name: "library.sdf" }),
   ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "下一步" }));
+  fireEvent.click(screen.getByRole("button", { name: "下一步" }));
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "计算性质" })).toBeEnabled(),
+  );
   fireEvent.click(screen.getByRole("button", { name: "计算性质" }));
   await waitFor(() => expect(submit).toHaveBeenCalled());
   expect(submit.mock.calls[0][0]).toMatchObject({

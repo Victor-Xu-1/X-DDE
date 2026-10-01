@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { ToolCenter } from "./ToolCenter";
 import { parsePositions } from "./ScientificInputs";
@@ -107,6 +107,11 @@ it("submits standalone properties without scheduling structure prediction", asyn
   });
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Calculate properties" }),
+    ).toBeEnabled(),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Calculate properties" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "server unavailable",

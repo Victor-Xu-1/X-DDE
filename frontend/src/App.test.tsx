@@ -169,6 +169,14 @@ it("opens core scientific forms directly from the first navigation entries", asy
   await user.click(
     within(nav).getByRole("button", { name: "Molecular properties" }),
   );
+  expect(
+    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
+  ).toBeVisible();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
+    "smiles",
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByRole("textbox", { name: "SMILES" })).toBeVisible();
   await user.click(within(nav).getByRole("button", { name: "Binding poses" }));
   expect(
