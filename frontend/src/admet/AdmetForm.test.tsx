@@ -74,10 +74,7 @@ it("retains exact source and settings through Back and only dispatches after rev
   expect(screen.getByText("single.sdf · #4")).toBeVisible();
   expect(submit).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Back" }));
-  expect(screen.getByRole("radio", { name: "Early safety" })).toHaveAttribute(
-    "aria-checked",
-    "true",
-  );
+  expect(screen.getByRole("radio", { name: "Early safety" })).toBeChecked();
   expect(screen.getByRole("combobox", { name: "CPU" })).toHaveValue("2");
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Predict properties" }));

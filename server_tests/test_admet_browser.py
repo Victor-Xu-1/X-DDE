@@ -157,9 +157,7 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
             assert len(page.request.get(base + "/api/jobs").json()) == 1
             screenshot(page, evidence, "review")
             panel.get_by_role("button", name="上一步", exact=True).click()
-            expect(panel.get_by_role("radio", name="早期安全性", exact=True)).to_have_attribute(
-                "aria-checked", "true"
-            )
+            expect(panel.get_by_role("radio", name="早期安全性", exact=True)).to_be_checked()
             panel.get_by_role("button", name="上一步", exact=True).click()
             expect(picker).to_have_value(version.id)
             panel.get_by_role("button", name="上一步", exact=True).click()

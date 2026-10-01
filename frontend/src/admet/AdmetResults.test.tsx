@@ -8,7 +8,7 @@ import type { AdmetResult, AdmetRow, Endpoint } from "./types";
 
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({ urls }: { urls: string[] }) => (
-    <output aria-label="Selected structure">{urls.join("|")}</output>
+    <span aria-label="Selected structure">{urls.join("|")}</span>
   ),
 }));
 vi.mock("../chemistry/StateForm", () => ({
@@ -137,12 +137,23 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
   render(
     <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
   );
-  expect(screen.getByRole("cell", { name: /hERG meaning/ })).toBeVisible();
-  expect(screen.queryByRole("cell", { name: /Half life meaning/ })).toBeNull();
+  const help = screen.getByRole("button", { name: "hERG meaning" });
+  expect(help).toBeVisible();
+  await user.click(help);
+  expect(screen.getByRole("tooltip")).toHaveTextContent(
+    "Native label1 means hERG blockade.",
+  );
+  expect(
+    screen.queryByRole("button", { name: "Half life meaning" }),
+  ).toBeNull();
   await user.click(
     screen.getByRole("checkbox", { name: "Show every endpoint" }),
   );
-  expect(screen.getByRole("cell", { name: /Half life meaning/ })).toBeVisible();
+  const halfLifeHelp = screen.getByRole("button", {
+    name: "Half life meaning",
+  });
+  expect(halfLifeHelp).toBeVisible();
+  await user.click(halfLifeHelp);
   expect(
     screen.getByText(/Upstream reference R² is negative/),
   ).toBeInTheDocument();

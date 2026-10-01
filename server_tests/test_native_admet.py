@@ -32,7 +32,10 @@ from pathlib import Path
 from rdkit import Chem
 from admet_ai import ADMETModel
 from admet_ai.constants import DEFAULT_DRUGBANK_PATH
+import torch
 assert not DEFAULT_DRUGBANK_PATH.exists()
+torch.set_num_threads(2)
+torch.set_num_interop_threads(1)
 writer = Chem.SDWriter('/output/valid.sdf')
 for smiles,name in [('CCO','=1+1'),('CCO','Duplicate ethanol'),
                     ('CC(=O)Oc1ccccc1C(=O)O','Aspirin'),('CCO.[Na+]','Disconnected input')]:
@@ -55,6 +58,8 @@ Path('/output/direct.json').write_text(json.dumps(expected,allow_nan=False))
             "--network",
             "none",
             "--read-only",
+            "--user",
+            f"{os.getuid()}:{os.getgid()}",
             "--cap-drop",
             "ALL",
             "--security-opt",
