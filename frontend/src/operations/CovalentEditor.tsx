@@ -1,3 +1,4 @@
+import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { InspectionSteps } from "../guided/InspectionSteps";
 import { useEffect, useRef, useState } from "react";
 import { api, artifactUrl, request } from "../api";
@@ -28,6 +29,8 @@ export function CovalentEditor({
   onChange(b: CovalentBond[]): void;
   language: Language;
 }) {
+  const { ready: inspectionReady, error: inspectionReadinessError } =
+    useTaskReadiness("native.inspect");
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
     [atoms, setAtoms] = useState<Atom[]>([]),
@@ -149,6 +152,7 @@ export function CovalentEditor({
         readyKey !== key ||
         (terminal(job.status) && job.status !== "succeeded")) && (
         <InspectionSteps
+          ready={inspectionReady}
           key={key}
           language={language}
           label={
@@ -161,7 +165,7 @@ export function CovalentEditor({
             </p>
           }
           busy={busy}
-          error={error}
+          error={error || inspectionReadinessError}
           onSubmit={prepare}
         />
       )}

@@ -1,3 +1,4 @@
+import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { InspectionSteps } from "../guided/InspectionSteps";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
@@ -19,6 +20,8 @@ export function FixedAtomPicker({
   language: Language;
   onSaved(id: string | null): void;
 }) {
+  const { ready: inspectionReady, error: inspectionReadinessError } =
+    useTaskReadiness("diffsbdd.identity");
   const zh = language === "zh";
   const { job, result, error, running, inspect, refresh } = useNativeIdentity(
     initial,
@@ -33,6 +36,7 @@ export function FixedAtomPicker({
       </p>
       {!result && (
         <InspectionSteps
+          ready={inspectionReady}
           language={language}
           label={zh ? "读取可选原子" : "Read selectable atoms"}
           subject={
@@ -41,7 +45,7 @@ export function FixedAtomPicker({
             </p>
           }
           busy={running}
-          error={error}
+          error={error || inspectionReadinessError}
           onSubmit={inspect}
         />
       )}

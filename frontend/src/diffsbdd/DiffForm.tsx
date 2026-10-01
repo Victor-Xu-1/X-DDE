@@ -7,10 +7,9 @@ import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
-import { ReferencePicker } from "./ReferencePicker";
+import { DiffInputQuestions, DiffSettingQuestions } from "./DiffQuestions";
 import { PocketPicker } from "./PocketPicker";
 import { FixedAtomPicker } from "./FixedAtomPicker";
-import { DesignOptions } from "./DesignOptions";
 import { designPayload, optionsFor, referenceKey } from "./model";
 import { isDesign, type DiffMode, type Pocket } from "./types";
 import { defaults } from "./generated";
@@ -136,73 +135,18 @@ export function DiffForm({
     }
   }
   const inputs = (
-    <>
-      {" "}
-      {needsProtein && (
-        <ReferencePicker
-          kind="structure"
-          value={protein}
-          onChange={selectProtein}
-          language={language}
-          label={zh ? "1. 选择 PDB 受体" : "1. Choose PDB receptor"}
-        />
-      )}
-      {needsMolecule && (
-        <ReferencePicker
-          kind="ligand"
-          value={molecule}
-          onChange={selectMolecule}
-          language={language}
-          label={
-            zh
-              ? "选择与受体对齐的三维 SDF 分子"
-              : "Choose a 3D SDF molecule aligned with the receptor"
-          }
-        />
-      )}
-      {collectionMode && (
-        <>
-          <ReferencePicker
-            kind="ligand"
-            value={molecule}
-            onChange={selectMolecule}
-            language={language}
-            label={zh ? "添加分子候选" : "Add molecular candidates"}
-          />
-          <button
-            type="button"
-            disabled={
-              !molecule ||
-              collection.length >= 100 ||
-              collection.some(
-                (ref) => referenceKey(ref) === referenceKey(molecule),
-              )
-            }
-            onClick={() => {
-              if (molecule) setCollection([...collection, molecule]);
-            }}
-          >
-            {zh ? "加入候选集合" : "Add to collection"}
-          </button>
-          <ul>
-            {collection.map((ref, i) => (
-              <li key={referenceKey(ref)}>
-                {i + 1} · {ref.asset_id.slice(0, 8)} · {zh ? "记录" : "Record"}{" "}
-                {ref.record + 1}{" "}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCollection(collection.filter((_, n) => n !== i))
-                  }
-                >
-                  {zh ? "移除" : "Remove"}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </>
+    <DiffInputQuestions
+      language={language}
+      needsProtein={needsProtein}
+      needsMolecule={needsMolecule}
+      collectionMode={collectionMode}
+      protein={protein}
+      molecule={molecule}
+      collection={collection}
+      selectProtein={selectProtein}
+      selectMolecule={selectMolecule}
+      setCollection={setCollection}
+    />
   );
   const selections = (
     <>
@@ -353,39 +297,16 @@ export function DiffForm({
     </>
   );
   const settings = (
-    <>
-      <button
-        type="button"
-        className="secondary-button"
-        aria-pressed={expert}
-        onClick={() => setExpert(!expert)}
-      >
-        {expert
-          ? zh
-            ? "返回推荐方案"
-            : "Return to recommendation"
-          : zh
-            ? "专家微调"
-            : "Expert settings"}
-      </button>
-      {isDesign(mode) && (
-        <DesignOptions
-          mode={mode}
-          value={options}
-          onChange={setOptions}
-          expert={expert}
-          language={language}
-        />
-      )}
-      <label className="field">
-        {zh ? "任务名称（可选）" : "Task name (optional)"}
-        <input
-          value={name}
-          maxLength={80}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </label>
-    </>
+    <DiffSettingQuestions
+      mode={mode}
+      language={language}
+      expert={expert}
+      setExpert={setExpert}
+      options={options}
+      setOptions={setOptions}
+      name={name}
+      setName={setName}
+    />
   );
   const inputValid =
     (!needsProtein || Boolean(protein)) &&
