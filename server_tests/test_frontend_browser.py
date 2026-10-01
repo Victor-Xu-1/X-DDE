@@ -528,7 +528,7 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
             ]
             for label, heading in (
                 ("口袋寻找", "发现多个候选口袋"),
-                ("分子准备", "分子状态与三维构象"),
+                ("分子准备", "准备分子状态与构象"),
                 ("分子生成", "口袋条件分子生成"),
                 ("性质计算", "计算小分子性质"),
             ):
