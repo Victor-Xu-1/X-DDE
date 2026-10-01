@@ -43,10 +43,14 @@ it("supports guided choices and expert settings without losing drafts on languag
   );
   await user.click(screen.getByRole("button", { name: "Expert settings" }));
   expect(
-    screen.getByRole("textbox", {
-      name: "All preparation parameters (server validated)",
-    }),
-  ).toHaveValue(expect.stringContaining('"ph_min": 6.8'));
+    JSON.parse(
+      (
+        screen.getByRole("textbox", {
+          name: "All preparation parameters (server validated)",
+        }) as HTMLTextAreaElement
+      ).value,
+    ),
+  ).toMatchObject({ ph_min: 6.8, ph_max: 7.8, protonation: true });
   rerender(
     <StateForm language="zh" initialMolecule={ref} onCreated={created} />,
   );

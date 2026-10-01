@@ -56,6 +56,11 @@ def enumerate_states(source, options):
         if options.tautomers:
             truncated |= str(variants.status) != "Completed"
         for tautomer in list(variants)[: options.max_tautomers]:
+            # RDKit 2023 stereo enumeration consumes _ChiralityPossible; tautomer
+            # reassignment clears this computed flag, so discover centers again.
+            Chem.AssignStereochemistry(
+                tautomer, cleanIt=True, force=True, flagPossibleStereoCenters=True
+            )
             candidates = (
                 list(EnumerateStereoisomers(tautomer, options=stereo))
                 if options.stereoisomers

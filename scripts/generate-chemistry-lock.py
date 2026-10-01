@@ -37,7 +37,7 @@ def main():
         if target.read_text() != body:
             raise SystemExit("Chemistry lock differs from its fixed release metadata.")
     else:
-        target.write_text(body, encoding="utf-8")
+        target.write_text(body, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":
