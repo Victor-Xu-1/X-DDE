@@ -10,6 +10,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { Questionnaire } from "./Questionnaire";
 import type { Job } from "../types";
+import { JsonEditor } from "../operations/ScientificInputs";
 afterEach(cleanup);
 function Form({
   onSubmit,
@@ -129,4 +130,101 @@ it("guards rapid duplicate submit and reports unexpected submission errors", asy
   await waitFor(() =>
     expect(screen.getByRole("alert")).toHaveTextContent("Service unavailable"),
   );
+});
+
+it("blocks jumping past an invalid retained expert JSON draft and recovers without sending stale values", async () => {
+  const submit = vi.fn().mockResolvedValue({ id: "validated-draft" } as Job),
+    user = userEvent.setup();
+  const { container } = render(
+    <Questionnaire
+      language="en"
+      busy={false}
+      error=""
+      ready
+      submitLabel="Start actual task"
+      onSubmit={submit}
+      steps={[
+        { title: "Choose input", valid: true, content: <p>Selected input</p> },
+        { title: "Context", valid: true, content: <p>Known context</p> },
+        {
+          title: "Settings",
+          valid: true,
+          content: (
+            <JsonEditor
+              label="Native settings"
+              value={{ cpu: 4 }}
+              onChange={() => {}}
+            />
+          ),
+        },
+        { title: "Review", valid: true, content: <p>Actual input review</p> },
+      ]}
+    />,
+  );
+  for (let i = 0; i < 3; i++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  await user.clear(screen.getByRole("textbox", { name: "Native settings" }));
+  await user.type(
+    screen.getByRole("textbox", { name: "Native settings" }),
+    "malformed",
+  );
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  await user.click(screen.getByRole("button", { name: "Step 4: Review" }));
+  expect(screen.getByRole("heading", { name: "3. Settings" })).toBeVisible();
+  expect(screen.getByRole("textbox", { name: "Native settings" })).toHaveValue(
+    "malformed",
+  );
+  expect(submit).not.toHaveBeenCalled();
+  expect(container.querySelectorAll("fieldset[disabled]")).toHaveLength(3);
+  await user.clear(screen.getByRole("textbox", { name: "Native settings" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Native settings" }), {
+    target: { value: "{}" },
+  });
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Start actual task" }));
+  expect(submit).toHaveBeenCalledTimes(1);
+});
+it("rechecks native range constraints at final submission when retained settings change", async () => {
+  const submit = vi.fn(),
+    user = userEvent.setup();
+  const view = (value: number) => (
+    <Questionnaire
+      language="en"
+      busy={false}
+      error=""
+      ready
+      submitLabel="Start actual task"
+      onSubmit={submit}
+      steps={[
+        { title: "Choose input", valid: true, content: <p>Selected input</p> },
+        { title: "Context", valid: true, content: <p>Known context</p> },
+        {
+          title: "Settings",
+          valid: true,
+          content: (
+            <label>
+              CPU
+              <input
+                type="number"
+                required
+                min={1}
+                max={32}
+                value={value}
+                onChange={() => {}}
+              />
+            </label>
+          ),
+        },
+        { title: "Review", valid: true, content: <p>Actual input review</p> },
+      ]}
+    />
+  );
+  const { rerender } = render(view(4));
+  for (let i = 0; i < 3; i++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  rerender(view(0));
+  await user.click(screen.getByRole("button", { name: "Start actual task" }));
+  expect(screen.getByRole("heading", { name: "3. Settings" })).toBeVisible();
+  expect(submit).not.toHaveBeenCalled();
 });

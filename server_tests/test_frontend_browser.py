@@ -687,6 +687,18 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             assert abs(centers[0]["top"] - centers[2]["top"]) < 3
             assert centers[2]["left"] > centers[0]["left"] + 100
             page.get_by_role("button", name="下一步", exact=True).click()
+            # A visited-step shortcut must recheck retained native range validity.
+            page.get_by_role("button", name="下一步", exact=True).click()
+            expect(page.get_by_role("button", name="探索结合模式", exact=True)).to_be_disabled()
+            page.get_by_role("button", name="上一步", exact=True).click()
+            page.get_by_role("combobox", name="运行方案", exact=True).select_option("expert")
+            page.get_by_role("spinbutton", name="CPU 线程", exact=True).fill("0")
+            page.get_by_role("button", name="上一步", exact=True).click()
+            page.get_by_role("button", name="步骤 4: 确认启动", exact=True).click()
+            expect(page.get_by_role("heading", name="3. 选择方案", exact=True)).to_be_visible()
+            expect(page.get_by_role("spinbutton", name="CPU 线程", exact=True)).to_have_value("0")
+            page.get_by_role("spinbutton", name="CPU 线程", exact=True).fill("4")
+            page.get_by_role("combobox", name="运行方案", exact=True).select_option("cpu")
             for width in (390, 1440):
                 page.set_viewport_size({"width": width, "height": 1000})
                 assert page.evaluate(

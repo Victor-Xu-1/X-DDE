@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Job, Language } from "../types";
 import "./questionnaire.css";
+import { firstInvalidQuestion } from "./questionnaire-validity";
 export interface QuestionStep {
   title: string;
   content: ReactNode;
@@ -34,7 +35,8 @@ export function Questionnaire({
   const form = useRef<HTMLFormElement>(null),
     heading = useRef<HTMLHeadingElement>(null),
     mounted = useRef(true),
-    pending = useRef(false);
+    pending = useRef(false),
+    panels = useRef<(HTMLFieldSetElement | null)[]>([]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -47,17 +49,17 @@ export function Questionnaire({
   const complete = steps.every((s) => s.valid);
   function move(target: number) {
     if (busy || job || target < 0 || target > 3) return;
-    if (
-      target > current &&
-      (!steps.slice(0, target).every((s) => s.valid) ||
-        !form.current?.reportValidity())
-    ) {
-      setNotice(
-        zh
-          ? "请先完成当前步骤的必填内容。"
-          : "Complete this step's required fields first.",
-      );
-      return;
+    if (target > current) {
+      const invalid = firstInvalidQuestion(steps, panels.current, target - 1);
+      if (invalid >= 0) {
+        setCurrent(invalid);
+        setNotice(
+          zh
+            ? `请检查第${invalid + 1}步的必填内容和参数。`
+            : `Check step ${invalid + 1}'s required inputs and settings.`,
+        );
+        return;
+      }
     }
     setNotice("");
     setCurrent(target);
@@ -69,6 +71,16 @@ export function Questionnaire({
       return;
     }
     if (!complete || !ready || busy || pending.current) return;
+    const invalid = firstInvalidQuestion(steps, panels.current, 3);
+    if (invalid >= 0) {
+      setCurrent(invalid);
+      setNotice(
+        zh
+          ? `请检查第${invalid + 1}步的必填内容和参数。`
+          : `Check step ${invalid + 1}'s required inputs and settings.`,
+      );
+      return;
+    }
     pending.current = true;
     try {
       const created = await onSubmit();
@@ -122,6 +134,9 @@ export function Questionnaire({
       </h2>
       {steps.map((step, index) => (
         <fieldset
+          ref={(node) => {
+            panels.current[index] = node;
+          }}
           key={index}
           hidden={current !== index}
           disabled={busy || current !== index}
