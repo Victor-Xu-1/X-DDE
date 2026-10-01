@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
@@ -161,7 +161,9 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
     screen.getByRole("combobox", { name: "Result group" }),
     "Toxicity",
   );
-  expect(screen.getAllByRole("row")).toHaveLength(2);
+  expect(
+    within(screen.getAllByRole("table")[0]).getAllByRole("row"),
+  ).toHaveLength(2);
   expect(
     screen.getByRole("link", { name: "Download prediction table" }),
   ).toHaveAttribute("href", "/api/jobs/job/download?name=predictions.csv");
