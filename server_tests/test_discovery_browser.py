@@ -18,7 +18,7 @@ def test_early_target_questionnaire_actual_sources_and_sequence_handoff():
         try:
             page.goto(base)
             page.get_by_role("button", name="靶点与研究材料", exact=True).click()
-            scope = page.locator(".questionnaire")
+            scope = page.locator(".tool-center .questionnaire:visible")
             scope.get_by_role("textbox", name="靶点名称或基因符号").fill("KRAS")
             expect(scope.get_by_role("button", name="查找", exact=True)).to_be_disabled()
             scope.get_by_role("checkbox").check()
@@ -57,7 +57,7 @@ def test_early_target_questionnaire_actual_sources_and_sequence_handoff():
             result = page.request.get(base + f"/api/jobs/{current['id']}/result").json()
             ref = result["materials"][0]["reference"]
             results.get_by_role("button", name="用这条序列预测结构", exact=True).click()
-            expect(page.locator(".questionnaire fieldset:not([hidden])")).to_be_visible()
+            expect(page.locator(".questionnaire:visible fieldset:not([hidden])")).to_be_visible()
             assert len(page.request.get(base + "/api/jobs").json()) == len(jobs)
             # Only draft handoff, no scientific task or inference is submitted.
             assert ref["sha256"] and ref["version_id"]
