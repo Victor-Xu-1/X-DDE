@@ -1,0 +1,40 @@
+.molecular-state-results {
+  min-width: 0;
+  max-width: 100%;
+}
+.molecular-state-results > p {
+  margin-block: 0.65rem;
+}
+.molecular-state-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-block: 0.75rem;
+  background: var(--surface);
+}
+.molecular-state-card > summary {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.molecular-state-smiles {
+  overflow-wrap: anywhere;
+  margin-block: 0.5rem;
+}
+.molecular-state-card .editor-toolbar {
+  padding: 0.5rem 0;
+  background: transparent;
+}
+.molecular-state-results .secondary-button[aria-pressed="true"] {
+  background: var(--surface-muted);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.molecular-state-results .editor-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.molecular-state-form > .secondary-button {
+  margin-block: 0.5rem;
+}

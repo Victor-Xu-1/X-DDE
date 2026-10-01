@@ -1,3 +1,4 @@
+import "./states.css";
 import { useEffect, useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -64,7 +65,7 @@ export function StateForm({
     }
   }
   return (
-    <form onSubmit={(e) => void submit(e)}>
+    <form className="molecular-state-form" onSubmit={(e) => void submit(e)}>
       <ReferencePicker
         kind="ligand"
         value={molecule}
@@ -114,6 +115,7 @@ export function StateForm({
       </p>
       <button
         type="button"
+        className="secondary-button"
         aria-pressed={expert}
         onClick={() => {
           if (!expert) setRaw(JSON.stringify(options, null, 2));
@@ -155,7 +157,11 @@ export function StateForm({
             : "Install the independent Chemistry preparation environment in Installation & components. No generative-model weights are needed."}
         </p>
       )}
-      {(error || run.error) && <p role="alert">{error || run.error}</p>}
+      {(error || run.error) && (
+        <p role="alert" className="error-box">
+          {error || run.error}
+        </p>
+      )}
       <button
         className="primary-button"
         disabled={!ready || !molecule || run.busy}

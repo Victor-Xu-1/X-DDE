@@ -1,3 +1,4 @@
+import "./states.css";
 import { useEffect, useState } from "react";
 import type { Job, Language } from "../types";
 import { artifactUrl, request } from "../api";
@@ -47,6 +48,8 @@ export function StateResults({
   }, [job.id]);
   return (
     <section
+      className="molecular-state-results"
+      aria-busy={loading}
       aria-label={
         zh ? "分子状态与构象结果" : "Molecular-state and conformer results"
       }
@@ -113,6 +116,7 @@ export function StateResults({
         .flatMap((set) => set.members)
         .map((member) => (
           <details
+            className="molecular-state-card"
             key={`${member.reference.asset_id}:${member.reference.record}`}
           >
             <summary>
@@ -120,9 +124,10 @@ export function StateResults({
               {zh ? "电荷" : "Charge"} {member.evidence.charge} ·{" "}
               {member.evidence.formula}
             </summary>
-            <p>{member.evidence.smiles}</p>
+            <p className="molecular-state-smiles">{member.evidence.smiles}</p>
             <button
               type="button"
+              className="secondary-button"
               onClick={() => {
                 setSelected(member.reference);
                 setNext("properties");
@@ -142,6 +147,7 @@ export function StateResults({
               <div key={c.reference.record} className="editor-toolbar">
                 <button
                   type="button"
+                  className="secondary-button"
                   aria-pressed={
                     selected?.asset_id === c.reference.asset_id &&
                     selected?.record === c.reference.record
@@ -177,10 +183,18 @@ export function StateResults({
         ))}
       {selected && next === null && (
         <div className="editor-toolbar">
-          <button type="button" onClick={() => setNext("properties")}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setNext("properties")}
+          >
             {zh ? "计算性质" : "Calculate properties"}
           </button>
-          <button type="button" onClick={() => setNext("docking")}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setNext("docking")}
+          >
             {zh ? "用于寻找结合姿势" : "Use for binding-pose search"}
           </button>
         </div>
@@ -223,7 +237,11 @@ export function StateResults({
             .join(" · ")}
         </p>
       </details>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert" className="error-box">
+          {error}
+        </p>
+      )}
       {message && (
         <p role="status">
           {zh ? "已创建任务：" : "Created task: "}
