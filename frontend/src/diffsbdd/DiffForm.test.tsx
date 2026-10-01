@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
@@ -10,7 +10,10 @@ const ref = {
   conformer: 0,
   version_id: "v",
 };
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 function boundary(ready = true) {
   vi.spyOn(globalThis, "fetch").mockImplementation(async (raw) => {
     const path = String(raw);
@@ -34,8 +37,18 @@ function boundary(ready = true) {
 }
 it("lets users prepare input but disables dispatch when server configuration is missing", async () => {
   boundary(false);
-  render(<DiffForm mode="generate" language="en" onCreated={vi.fn()} />);
-  await screen.findByText(/The environment is not ready/);
+  const user = userEvent.setup();
+  render(
+    <DiffForm
+      mode="export"
+      language="en"
+      initialMolecule={ref}
+      onCreated={vi.fn()}
+    />,
+  );
+  for (let i = 0; i < 3; i++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  await screen.findByText(/Configure the required DiffSBDD/);
   expect(screen.getByRole("button", { name: "Create task" })).toBeDisabled();
 });
 it("retains exact candidate records through export with a real task envelope", async () => {
@@ -53,6 +66,8 @@ it("retains exact candidate records through export with a real task envelope", a
       onCreated={created}
     />,
   );
+  for (let i = 0; i < 3; i++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Create task" })).toBeEnabled(),
   );
@@ -68,9 +83,17 @@ it("exposes every native option in expert mode while language changes preserve d
   const user = userEvent.setup(),
     created = vi.fn();
   const { rerender } = render(
-    <DiffForm mode="generate" language="en" onCreated={created} />,
+    <DiffForm
+      mode="generate"
+      language="en"
+      initialProtein={{ ...ref, asset_id: "r" }}
+      initialPocket={{ kind: "ligand", ligand: ref }}
+      onCreated={created}
+    />,
   );
-  await user.click(screen.getByRole("button", { name: "Expert mode" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Expert settings" }));
   const parameters = screen.getByRole("textbox", {
     name: "All native parameters (validated by server)",
   });
@@ -85,41 +108,28 @@ it("exposes every native option in expert mode while language changes preserve d
   );
 });
 
-it("retains one fixed-atom picker across repeated draft and mode updates", async () => {
+it("retains one fixed-atom picker and exact inputs when returning and changing language", async () => {
   boundary(false);
-  const created = vi.fn(),
-    user = userEvent.setup();
-  const { rerender } = render(
-    <DiffForm
-      mode="inpaint"
-      language="en"
-      initialMolecule={ref}
-      onCreated={created}
-    />,
-  );
+  const user = userEvent.setup(),
+    created = vi.fn();
+  const props = {
+    mode: "inpaint" as const,
+    initialProtein: { ...ref, asset_id: "r" },
+    initialMolecule: ref,
+    initialPocket: { kind: "ligand" as const, ligand: ref },
+    onCreated: created,
+  };
+  const { rerender } = render(<DiffForm {...props} language="en" />);
+  await user.click(screen.getByRole("button", { name: "Next" }));
   for (let i = 0; i < 5; i++) {
-    await user.click(screen.getByRole("button", { name: "Expert mode" }));
-    await user.type(
-      screen.getByRole("textbox", { name: "Task name (optional)" }),
-      "x",
-    );
-    await user.click(screen.getByRole("button", { name: "Guided mode" }));
-    rerender(
-      <DiffForm
-        mode="inpaint"
-        language="en"
-        initialMolecule={ref}
-        onCreated={created}
-      />,
-    );
     expect(
-      screen.getAllByRole("button", {
-        name: "Read selectable atoms",
-      }),
+      screen.getAllByRole("button", { name: "Read selectable atoms" }),
     ).toHaveLength(1);
-    expect(
-      screen.getByRole("textbox", { name: "Task name (optional)" }),
-    ).toHaveValue("x".repeat(i + 1));
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    rerender(<DiffForm {...props} language="zh" />);
+    await user.click(screen.getByRole("button", { name: "下一步" }));
+    rerender(<DiffForm {...props} language="en" />);
   }
-  expect(screen.getByRole("button", { name: "Create task" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(created).not.toHaveBeenCalled();
 });

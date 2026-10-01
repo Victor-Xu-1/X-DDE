@@ -7,6 +7,8 @@ import { FoldInputs } from "./FoldInputs";
 import { JsonEditor } from "./ScientificInputs";
 import { useTaskSubmit } from "./useTaskSubmit";
 import { canGuide } from "./guided-contract";
+import { Questionnaire } from "../guided/Questionnaire";
+import { harnessInputsComplete } from "./harness-questionnaire-model";
 
 export function HarnessForm({
   tool,
@@ -41,7 +43,9 @@ export function HarnessForm({
   useEffect(() => {
     const c = new AbortController();
     void request<typeof readiness>("/harness/readiness", { signal: c.signal })
-      .then(setReadiness)
+      .then((value) => {
+        if (!c.signal.aborted) setReadiness(value);
+      })
       .catch((e) => {
         if (!c.signal.aborted) setSetupError(String(e));
       });
@@ -82,160 +86,207 @@ export function HarnessForm({
       result.minimize = result.objective_key !== "iptm";
     return result;
   }
-  return (
-    <form
-      className="tool-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        try {
-          void run.submit({
-            operation: "harness",
-            tool,
-            name: name.trim() || `Harness · ${tool}`,
-            payload: normalize(),
-            allow_external: external,
-          });
-        } catch (error) {
-          setSetupError(String(error));
-        }
-      }}
-    >
-      <fieldset disabled={run.busy}>
-        {readiness &&
-          (!readiness.configured ||
-            (tool !== "compare" && !readiness.compute_configured)) && (
-            <p className="notice">
-              {zh
-                ? "服务器尚未配置 Harness。可以先准备输入，配置完成后再提交。所需设置："
-                : "Harness is not configured on the server. Prepare inputs now, then submit after setup. Required settings: "}
-              {readiness.required_settings.join(", ")}
-            </p>
-          )}
-        <div className="segmented">
-          <button
-            type="button"
-            aria-pressed={!expert}
-            onClick={() => {
-              if (canGuide(tool, payload)) {
-                setExpert(false);
-                setSetupError("");
-              } else {
-                setSetupError(
-                  zh
-                    ? "当前原生字段不能由简易表单完整表达，请在专家模式继续编辑。"
-                    : "These native fields cannot be represented losslessly in the guided form. Continue in Expert mode.",
-                );
-              }
-            }}
-          >
-            {zh ? "简易模式" : "Guided mode"}
-          </button>
-          <button
-            type="button"
-            aria-pressed={expert}
-            onClick={() => {
-              try {
-                setPayload(normalize());
-                setExpert(true);
-              } catch (error) {
-                setSetupError(String(error));
-              }
-            }}
-          >
-            {zh ? "专家模式" : "Expert mode"}
-          </button>
-        </div>
-        {!expert ? (
-          tool === "fold" ? (
-            <FoldInputs
-              value={payload}
-              onChange={setPayload}
-              language={language}
-            />
-          ) : (
-            harnessFields[tool]?.map((field) => (
-              <HarnessField
-                key={field.key}
-                field={field}
-                tool={tool}
-                payload={payload}
-                onChange={(v) => setPayload({ ...payload, [field.key]: v })}
-                language={language}
-              />
-            ))
-          )
-        ) : (
-          <>
-            <p className="notice">
-              {zh
-                ? "原生参数中的残基位置从 0 开始。文件字段使用 asset:上传文件ID；连接地址、密钥和执行路径由服务器管理。"
-                : "Native residue indices start at 0. File fields use asset:uploaded-file-ID; endpoints, credentials and executable paths are server-managed."}
-            </p>
-            <JsonEditor
-              value={payload}
-              onChange={setPayload}
-              label={
-                zh ? "完整原生科学参数" : "Full native scientific parameters"
-              }
-            />
-            <button type="button" onClick={() => void loadSchema()}>
-              {zh
-                ? "查看当前 Harness 的参数定义"
-                : "Inspect the installed Harness schema"}
-            </button>
-            {schema != null && (
-              <details>
-                <summary>
-                  {zh ? "原生字段与默认值" : "Native fields and defaults"}
-                </summary>
-                <pre>{JSON.stringify(schema, null, 2)}</pre>
-              </details>
-            )}
-          </>
-        )}
-        {needsExternal && (
-          <label className="network-choice">
-            <input
-              type="checkbox"
-              checked={external}
-              onChange={(e) => setExternal(e.target.checked)}
-            />
-            {zh
-              ? "允许向配置的计算 / 搜索服务发送本次序列或结构。"
-              : "Allow sending this sequence or structure to the configured compute/search service."}
-          </label>
-        )}
-        <label className="field">
-          {zh ? "任务名称（可选）" : "Task name (optional)"}
-          <input
-            value={name}
-            maxLength={80}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </label>
-        {(run.error || setupError) && (
-          <p role="alert" className="error-box">
-            {run.error || setupError}
-          </p>
-        )}
+  const renderFields = (required: boolean) =>
+    harnessFields[tool]
+      ?.filter((field) => Boolean(field.required) === required)
+      .map((field) => (
+        <HarnessField
+          key={field.key}
+          field={field}
+          tool={tool}
+          payload={payload}
+          onChange={(v) => setPayload({ ...payload, [field.key]: v })}
+          language={language}
+        />
+      ));
+  const mode = (
+    <>
+      {" "}
+      <div className="segmented">
         <button
-          className="primary-button"
-          disabled={
-            run.busy ||
-            (needsExternal && !external) ||
-            !readiness?.configured ||
-            (tool !== "compare" && !readiness?.compute_configured)
-          }
+          type="button"
+          aria-pressed={!expert}
+          onClick={() => {
+            if (canGuide(tool, payload)) {
+              setExpert(false);
+              setSetupError("");
+            } else {
+              setSetupError(
+                zh
+                  ? "当前原生字段不能由简易表单完整表达，请在专家模式继续编辑。"
+                  : "These native fields cannot be represented losslessly in the guided form. Continue in Expert mode.",
+              );
+            }
+          }}
         >
-          {run.busy
-            ? zh
-              ? "正在提交…"
-              : "Submitting…"
-            : zh
-              ? "提交计算任务"
-              : "Submit compute task"}
+          {zh ? "简易模式" : "Guided mode"}
         </button>
-      </fieldset>
-    </form>
+        <button
+          type="button"
+          aria-pressed={expert}
+          onClick={() => {
+            try {
+              setPayload(normalize());
+              setExpert(true);
+            } catch (error) {
+              setSetupError(String(error));
+            }
+          }}
+        >
+          {zh ? "专家模式" : "Expert mode"}
+        </button>
+      </div>
+    </>
+  );
+  const inputs = expert ? (
+    <>
+      <p className="notice">
+        {zh
+          ? "原生参数中的残基位置从 0 开始。文件字段使用 asset:上传文件ID；连接地址、密钥和执行路径由服务器管理。"
+          : "Native residue indices start at 0. File fields use asset:uploaded-file-ID; endpoints, credentials and executable paths are server-managed."}
+      </p>
+      <JsonEditor
+        value={payload}
+        onChange={setPayload}
+        label={zh ? "完整原生科学参数" : "Full native scientific parameters"}
+      />
+      <button type="button" onClick={() => void loadSchema()}>
+        {zh
+          ? "查看当前 Harness 的参数定义"
+          : "Inspect the installed Harness schema"}
+      </button>
+      {schema != null && (
+        <details>
+          <summary>
+            {zh ? "原生字段与默认值" : "Native fields and defaults"}
+          </summary>
+          <pre>{JSON.stringify(schema, null, 2)}</pre>
+        </details>
+      )}
+    </>
+  ) : tool === "fold" ? (
+    <FoldInputs value={payload} onChange={setPayload} language={language} />
+  ) : (
+    <>{renderFields(true)}</>
+  );
+  const options = (
+    <>
+      {!expert && (
+        <>
+          <p className="field-help">
+            {zh
+              ? "默认方案已设置。需要调整数量或其他选项时展开下方设置。"
+              : "Defaults are configured. Expand optional settings to change counts or other options."}
+          </p>
+          <details>
+            <summary>
+              {zh ? "调整方案（可选）" : "Adjust settings (optional)"}
+            </summary>
+            {renderFields(false)}
+          </details>
+        </>
+      )}
+      {needsExternal && (
+        <label className="network-choice">
+          <input
+            type="checkbox"
+            checked={external}
+            onChange={(e) => setExternal(e.target.checked)}
+          />
+          {zh
+            ? "允许向配置的计算 / 搜索服务发送本次序列或结构。"
+            : "Allow sending this sequence or structure to the configured compute/search service."}
+        </label>
+      )}
+      <label className="field">
+        {zh ? "任务名称（可选）" : "Task name (optional)"}
+        <input
+          value={name}
+          maxLength={80}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </label>
+    </>
+  );
+  const review = (
+    <dl className="questionnaire-review">
+      <dt>{zh ? "输入" : "Input"}</dt>
+      <dd>
+        {zh
+          ? "使用当前填写的文件、序列与位置"
+          : "Use the entered files, sequences and positions"}
+      </dd>
+      <dt>{zh ? "参数模式" : "Parameter mode"}</dt>
+      <dd>
+        {expert
+          ? zh
+            ? "专家原生参数"
+            : "Expert native parameters"
+          : zh
+            ? "推荐方案及已选可选设置"
+            : "Recommended settings and chosen adjustments"}
+      </dd>
+      <dt>{zh ? "服务调用" : "Service calls"}</dt>
+      <dd>
+        {needsExternal
+          ? zh
+            ? "已确认使用配置的外部服务"
+            : "Configured external services approved"
+          : zh
+            ? "由服务器管理的计算环境"
+            : "Server-managed compute environment"}
+      </dd>
+    </dl>
+  );
+  async function submit() {
+    setSetupError("");
+    try {
+      return await run.submit({
+        operation: "harness",
+        tool,
+        name: name.trim() || `Harness · ${tool}`,
+        payload: normalize(),
+        allow_external: external,
+      });
+    } catch (error) {
+      setSetupError(String(error));
+    }
+  }
+  const ready = Boolean(
+    readiness?.configured &&
+    (tool === "compare" || readiness.compute_configured),
+  );
+  return (
+    <Questionnaire
+      language={language}
+      ready={ready}
+      busy={run.busy}
+      error={run.error || setupError}
+      unavailable={
+        zh
+          ? "请在安装与组件中配置 Harness 及本任务所需的计算服务。当前输入已保留。"
+          : "Configure Harness and this task's compute services in Installation & components. Inputs are retained."
+      }
+      submitLabel={zh ? "提交计算任务" : "Submit compute task"}
+      onSubmit={submit}
+      steps={[
+        { title: zh ? "选择模式" : "Choose mode", content: mode, valid: true },
+        {
+          title: zh ? "填写材料" : "Provide inputs",
+          content: inputs,
+          valid: harnessInputsComplete(tool, payload),
+        },
+        {
+          title: zh ? "选择方案" : "Choose settings",
+          content: options,
+          valid: !needsExternal || external,
+        },
+        {
+          title: zh ? "确认启动" : "Review & start",
+          content: review,
+          valid: !needsExternal || external,
+        },
+      ]}
+    />
   );
 }

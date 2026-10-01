@@ -58,6 +58,7 @@ it("saves overlapping binder regions and native evidence without altering the mo
       }),
     ).toBeEnabled(),
   );
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Region role" }),
     "binder_a",
@@ -70,6 +71,9 @@ it("saves overlapping binder regions and native evidence without altering the mo
   );
   await user.click(screen.getByRole("button", { name: "1 C" }));
   await user.click(screen.getByRole("button", { name: "2 N" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(post).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Save region version" }));
   await waitFor(() => expect(post).toHaveBeenCalledOnce());
   expect(post.mock.calls[0][1]).toMatchObject({
@@ -87,9 +91,13 @@ it("rejects an empty logical region before API mutation", async () => {
   const user = userEvent.setup(),
     post = vi.spyOn(api, "post");
   render(<RegionEditor subject={subject} language="en" />);
-  await user.click(screen.getByRole("button", { name: "Save region version" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Select valid atoms",
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled(),
   );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(
+    screen.queryByRole("button", { name: "Save region version" }),
+  ).not.toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
 });

@@ -170,11 +170,12 @@ it("opens core scientific forms directly from the first navigation entries", asy
     within(nav).getByRole("button", { name: "Molecular properties" }),
   );
   expect(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
+    screen.getByRole("radiogroup", { name: "How will you provide molecules?" }),
   ).toBeVisible();
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
-    "smiles",
+  await user.click(
+    screen.getByRole("radio", {
+      name: "Paste molecular structure text (SMILES)",
+    }),
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByRole("textbox", { name: "SMILES" })).toBeVisible();

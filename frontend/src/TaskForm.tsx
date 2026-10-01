@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { defaults, prediction, validate } from "./form-model";
 import { translator } from "./i18n";
@@ -13,7 +13,8 @@ import { WorkflowChoices } from "./guided/WorkflowChoices";
 import { MolecularInputs } from "./guided/MolecularInputs";
 import { ParameterChoices } from "./guided/ParameterChoices";
 import { Hint } from "./guided/Hint";
-import type { Component, Language, Parameters, Prediction } from "./types";
+import { Questionnaire } from "./guided/Questionnaire";
+import type { Component, Job, Language, Parameters, Prediction } from "./types";
 import { ExpertParameters } from "./operations/ExpertParameters";
 import { CovalentEditor } from "./operations/CovalentEditor";
 import type { CovalentBond } from "./operations/types";
@@ -22,7 +23,7 @@ interface Props {
   ready: boolean;
   abagAvailable?: boolean;
   initialRequest?: Prediction | null;
-  onSubmit(value: Prediction, key: string): Promise<void>;
+  onSubmit(value: Prediction, key: string): Promise<Job>;
 }
 export function TaskForm({
   language,
@@ -80,8 +81,7 @@ export function TaskForm({
     setError("");
     automaticName.current = "";
   }
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  async function submit() {
     if (!automaticName.current)
       automaticName.current =
         taskKinds.find((x) => x.id === kind)!.label[zh ? 0 : 1] +
@@ -126,9 +126,10 @@ export function TaskForm({
     setBusy(true);
     setError("");
     try {
-      await onSubmit(value, request.current.key);
+      const result = await onSubmit(value, request.current.key);
       request.current = { body: "", key: crypto.randomUUID() };
       automaticName.current = "";
+      return result;
     } catch (error) {
       setError(error instanceof Error ? error.message : t("error"));
     } finally {
@@ -146,146 +147,173 @@ export function TaskForm({
     setExample(true);
     setError("");
   }
-  return (
-    <form className="input-panel panel" onSubmit={submit}>
-      <fieldset disabled={busy}>
-        <div className="form-mode-row">
-          <span>{zh ? "新建结构预测" : "New structure prediction"}</span>
-          <div
-            className="segmented"
-            role="group"
-            aria-label={zh ? "操作模式" : "Interaction mode"}
+  const goal = (
+    <>
+      {" "}
+      <div className="form-mode-row">
+        <span>{zh ? "新建结构预测" : "New structure prediction"}</span>
+        <div
+          className="segmented"
+          role="group"
+          aria-label={zh ? "操作模式" : "Interaction mode"}
+        >
+          <button
+            type="button"
+            aria-pressed={!expert}
+            className={!expert ? "selected" : ""}
+            onClick={() => setExpert(false)}
           >
-            <button
-              type="button"
-              aria-pressed={!expert}
-              className={!expert ? "selected" : ""}
-              onClick={() => setExpert(false)}
-            >
-              {zh ? "简易模式" : "Guided mode"}
-            </button>
-            <button
-              type="button"
-              aria-pressed={expert}
-              className={expert ? "selected" : ""}
-              onClick={() => setExpert(true)}
-            >
-              {zh ? "专家微调" : "Expert mode"}
-            </button>
-            <Hint label={zh ? "操作模式说明" : "Mode help"}>
-              {zh
-                ? "简易模式使用预设，专家模式可自由增加组分、调整拷贝数和计算参数。切换模式保留所有输入和参数；选择运行方案才会重设数值。"
-                : "Guided mode uses presets. Expert mode adds arbitrary components, copy counts and numeric parameters. Switching modes preserves your inputs and settings; selecting a preset resets its numeric values."}
-            </Hint>
-          </div>
+            {zh ? "简易模式" : "Guided mode"}
+          </button>
+          <button
+            type="button"
+            aria-pressed={expert}
+            className={expert ? "selected" : ""}
+            onClick={() => setExpert(true)}
+          >
+            {zh ? "专家微调" : "Expert mode"}
+          </button>
+          <Hint label={zh ? "操作模式说明" : "Mode help"}>
+            {zh
+              ? "简易模式使用预设，专家模式可自由增加组分、调整拷贝数和计算参数。切换模式保留所有输入和参数；选择运行方案才会重设数值。"
+              : "Guided mode uses presets. Expert mode adds arbitrary components, copy counts and numeric parameters. Switching modes preserves your inputs and settings; selecting a preset resets its numeric values."}
+          </Hint>
         </div>
-        <WorkflowChoices
-          value={kind}
-          onChange={chooseKind}
+      </div>
+      <WorkflowChoices
+        value={kind}
+        onChange={chooseKind}
+        language={language}
+        abagAvailable={abagAvailable}
+      />
+    </>
+  );
+  const inputs = (
+    <>
+      {" "}
+      <MolecularInputs
+        showHeading={false}
+        items={components}
+        onChange={(items) => {
+          setComponents(items);
+          setExample(false);
+        }}
+        language={language}
+        expert={expert}
+        workflow={kind}
+        features={parameters.feature_mode === "uploaded"}
+      />
+      <button
+        type="button"
+        className="text-button example-button"
+        onClick={exampleInput}
+      >
+        <PlayCircleOutlined />{" "}
+        {zh ? "第一次用？一键填入咖啡因示例" : "First visit? Try caffeine"}
+      </button>
+      {example && <p className="notice small">{t("demoNote")}</p>}
+      {expert && (
+        <CovalentEditor
+          components={components}
+          parameters={parameters}
+          value={bonds}
+          onChange={setBonds}
           language={language}
-          abagAvailable={abagAvailable}
         />
-        <div className="task-setup-grid">
-          <div>
-            <MolecularInputs
-              items={components}
-              onChange={(items) => {
-                setComponents(items);
-                setExample(false);
-              }}
-              language={language}
-              expert={expert}
-              workflow={kind}
-              features={parameters.feature_mode === "uploaded"}
-            />
-            <button
-              type="button"
-              className="text-button example-button"
-              onClick={exampleInput}
-            >
-              <PlayCircleOutlined />{" "}
-              {zh
-                ? "第一次用？一键填入咖啡因示例"
-                : "First visit? Try caffeine"}
-            </button>
-            {example && <p className="notice small">{t("demoNote")}</p>}
-            {expert && (
-              <CovalentEditor
-                components={components}
-                parameters={parameters}
-                value={bonds}
-                onChange={setBonds}
-                language={language}
-              />
-            )}
-          </div>
-          <div className="run-settings">
-            <ParameterChoices
-              abagAvailable={abagAvailable}
-              language={language}
-              value={parameters}
-              onChange={setParameters}
-              hasProtein={components.some((x) => x.kind === "protein")}
-              expert={expert}
-            />
-            <ExpertParameters
-              value={parameters}
-              onChange={setParameters}
-              language={language}
-              expert={expert}
-            />
-            <p className="small model-summary">
-              {zh ? "本次模型：" : "Model: "}
-              {parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
-              {zh ? "本机计算" : "Local computation"}
-            </p>
-            <label className="field task-name">
-              {t("name")}{" "}
-              <span className="muted small">
-                {zh
-                  ? "（可选，留空自动命名）"
-                  : "(optional; automatic if blank)"}
-              </span>
-              <input
-                value={name}
-                maxLength={80}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t("nameHint")}
-              />
-            </label>
-            <div className="submit-area">
-              {!ready && (
-                <p className="notice small">
-                  {zh
-                    ? "正在等待本机引擎。可先填写输入，或到“运行状态”查看原因。"
-                    : "Waiting for the local engine. Prepare inputs or check Runtime status."}
-                </p>
-              )}
-              {error && (
-                <div role="alert" className="error-box">
-                  {error}
-                </div>
-              )}
-              <button
-                className="primary-button"
-                type="submit"
-                aria-label={
-                  busy ? t("submitting") : zh ? "开始预测" : "Run prediction"
-                }
-                disabled={busy || !ready}
-              >
-                {busy ? t("submitting") : zh ? "开始预测" : "Run prediction"}{" "}
-                <PlayCircleOutlined />
-              </button>
-              <p className="muted small">
-                {zh
-                  ? "完成后自动显示结构与结果；页面关闭后任务仍会继续。"
-                  : "Results appear automatically. Tasks continue after this page closes."}
-              </p>
-            </div>
-          </div>
-        </div>
-      </fieldset>
-    </form>
+      )}
+    </>
+  );
+  const settings = (
+    <>
+      {" "}
+      <ParameterChoices
+        abagAvailable={abagAvailable}
+        language={language}
+        value={parameters}
+        onChange={setParameters}
+        hasProtein={components.some((x) => x.kind === "protein")}
+        expert={expert}
+      />
+      <ExpertParameters
+        value={parameters}
+        onChange={setParameters}
+        language={language}
+        expert={expert}
+      />
+      <p className="small model-summary">
+        {zh ? "本次模型：" : "Model: "}
+        {parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
+        {zh ? "服务端计算" : "Server computation"}
+      </p>
+      <label className="field task-name">
+        {t("name")}{" "}
+        <span className="muted small">
+          {zh ? "（可选，留空自动命名）" : "(optional; automatic if blank)"}
+        </span>
+        <input
+          value={name}
+          maxLength={80}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t("nameHint")}
+        />
+      </label>
+    </>
+  );
+  const inputValid =
+    !validate("Structure prediction", components) &&
+    (expert || completeWorkflow(kind, components));
+  const modelReady =
+    parameters.model !== "abag" ||
+    Boolean(parameters.checkpoint_id) ||
+    abagAvailable;
+  const review = (
+    <dl className="questionnaire-review">
+      <dt>{zh ? "研究任务" : "Research task"}</dt>
+      <dd>{taskKinds.find((x) => x.id === kind)?.label[zh ? 0 : 1]}</dd>
+      <dt>{zh ? "输入" : "Inputs"}</dt>
+      <dd>
+        {components.length} {zh ? "个已填组分" : "provided components"}
+      </dd>
+      <dt>{zh ? "模型与构象数" : "Model and samples"}</dt>
+      <dd>
+        {parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
+        {parameters.samples}
+      </dd>
+      <dt>{zh ? "任务名称" : "Task name"}</dt>
+      <dd>{name.trim() || (zh ? "自动命名" : "Automatic")}</dd>
+    </dl>
+  );
+  return (
+    <Questionnaire
+      language={language}
+      ready={ready && modelReady}
+      busy={busy}
+      error={error}
+      unavailable={
+        zh
+          ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
+          : "Configure this task's prediction environment and model in Installation & components. Inputs are retained."
+      }
+      submitLabel={zh ? "开始预测" : "Run prediction"}
+      onSubmit={submit}
+      steps={[
+        { title: zh ? "选择任务" : "Choose task", content: goal, valid: true },
+        {
+          title: zh ? "填写材料" : "Provide inputs",
+          content: inputs,
+          valid: inputValid,
+        },
+        {
+          title: zh ? "选择方案" : "Choose settings",
+          content: settings,
+          valid: true,
+        },
+        {
+          title: zh ? "确认启动" : "Review & start",
+          content: review,
+          valid: inputValid,
+        },
+      ]}
+    />
   );
 }

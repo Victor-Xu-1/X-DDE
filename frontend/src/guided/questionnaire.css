@@ -42,8 +42,17 @@
 }
 .questionnaire-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
+  padding-top: 1rem;
+}
+.questionnaire-actions .primary-button {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 8rem;
+  max-width: 70%;
+  margin-left: auto;
 }
 .questionnaire-actions .secondary-button {
   flex: 0 0 auto;
@@ -71,6 +80,48 @@
     gap: 0.1rem;
   }
   .questionnaire-steps button span:last-child {
-    overflow-wrap: anywhere;
+    display: none;
   }
+}
+
+.aligned-edit-task {
+  min-width: 0;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.questionnaire-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.65rem;
+}
+.questionnaire-choices label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  padding: 1rem;
+  cursor: pointer;
+  background: var(--surface);
+}
+.questionnaire-choices label.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.questionnaire-choices label:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.questionnaire-choices input {
+  width: auto;
+  flex: 0 0 auto;
+}
+.questionnaire-choices span {
+  display: grid;
+  gap: 0.3rem;
+}
+.questionnaire-choices small {
+  color: var(--muted);
+  font-size: 0.8rem;
 }

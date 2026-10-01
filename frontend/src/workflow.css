@@ -224,3 +224,21 @@
   border-color: var(--muted);
   background: var(--line);
 }
+
+.workbench-columns.result-columns {
+  grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.35fr);
+}
+.preview-properties {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.6rem;
+}
+.preview-properties summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .workbench-columns.result-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

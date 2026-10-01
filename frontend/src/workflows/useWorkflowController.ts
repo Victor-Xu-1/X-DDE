@@ -69,6 +69,7 @@ export function useWorkflowController(language: Language, jobs: Job[]) {
         setRun(null);
         setExternal(false);
         runKey.current = crypto.randomUUID();
+        return plan;
       }
     } catch (e) {
       if (mounted.current) setError(String(e));
@@ -89,6 +90,7 @@ export function useWorkflowController(language: Language, jobs: Job[]) {
       if (mounted.current) {
         setRun(value);
         setHistory((old) => [value, ...old.filter((r) => r.id !== value.id)]);
+        return value;
       }
     } catch (e) {
       if (mounted.current) setError(String(e));

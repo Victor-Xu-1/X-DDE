@@ -1,3 +1,4 @@
+import { InspectionSteps } from "../guided/InspectionSteps";
 import { useEffect, useRef, useState } from "react";
 import { api, artifactUrl, request } from "../api";
 import type { Component, Job, Language, Parameters } from "../types";
@@ -115,6 +116,7 @@ export function CovalentEditor({
         if (next.status === "succeeded")
           setAtoms((await api.result(next.id)).atoms ?? []);
       }
+      return next;
     } catch (e) {
       if (live.current) setError(String(e));
     } finally {
@@ -143,19 +145,23 @@ export function CovalentEditor({
           ? "先检查输入，再在预览中点选两个原子，或搜索下拉列表。该预览用于编辑输入拓扑，不是结合姿势预测。"
           : "Inspect inputs, then pick two atoms in the preview or search the list. This preview edits input topology; it is not a predicted binding pose."}
       </p>
-      <button
-        type="button"
-        disabled={busy || Boolean(job && !terminal(job.status))}
-        onClick={() => void prepare()}
-      >
-        {busy || (job && !terminal(job.status))
-          ? zh
-            ? "正在准备原子列表…"
-            : "Preparing atoms…"
-          : zh
-            ? "检查输入并打开选择器"
-            : "Inspect inputs and open selector"}
-      </button>
+      {!job && (
+        <InspectionSteps
+          language={language}
+          label={
+            zh ? "检查输入并打开选择器" : "Inspect inputs and open selector"
+          }
+          subject={
+            <p>
+              {zh ? "使用当前输入组分" : "Use the current input components"} ·{" "}
+              {components.length}
+            </p>
+          }
+          busy={busy}
+          error={error}
+          onSubmit={prepare}
+        />
+      )}
       {error && (
         <p role="alert" className="error-box">
           {error}

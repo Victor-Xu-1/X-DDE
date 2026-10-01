@@ -34,9 +34,10 @@ it("keeps the exact source version and sends no hidden SMILES after selecting fi
       onCreated={vi.fn()}
     />,
   );
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
-    "file",
+  await user.click(
+    screen.getByRole("radio", {
+      name: "Upload or reuse a molecular file (recommended)",
+    }),
   );
   for (let i = 0; i < 3; i++)
     await user.click(screen.getByRole("button", { name: "Next" }));
@@ -65,9 +66,10 @@ it("limits text entries and preserves input across back navigation without launc
   const submit = vi.spyOn(api, "submit"),
     user = userEvent.setup();
   render(<PropertyForm language="en" onCreated={vi.fn()} />);
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
-    "smiles",
+  await user.click(
+    screen.getByRole("radio", {
+      name: "Paste molecular structure text (SMILES)",
+    }),
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.type(screen.getByRole("textbox", { name: "SMILES" }), "CCO");

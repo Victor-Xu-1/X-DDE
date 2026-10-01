@@ -328,6 +328,18 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
             )
             assert uploaded.status == 201
             molecule_id = uploaded.json()["id"]
+            protein_upload = page.request.post(
+                os.environ["WB_BROWSER_URL"] + "/api/assets?kind=structure&name=core-receptor.pdb",
+                data=(
+                    b"ATOM      1  CA  ALA A  10       1.000   2.000   3.000"
+                    b"  1.00 20.00           C\n"
+                    b"END\n"
+                ),
+                headers={"Content-Type": "application/octet-stream", "X-Workbench-CSRF": csrf},
+            )
+            assert protein_upload.status == 201
+            protein_id = protein_upload.json()["id"]
+
             for title in [
                 "口袋条件分子生成",
                 "局部重设计",
@@ -341,8 +353,20 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
             ]:
                 page.get_by_role("button", name=title, exact=True).click()
                 expect(page.get_by_role("heading", name=title, exact=True)).to_be_visible()
-                expect(page.get_by_role("button", name="创建任务", exact=True)).to_be_disabled()
+                expect(page.get_by_role("button", name="下一步", exact=True)).to_be_visible()
+                expect(page.locator(".questionnaire fieldset:not([hidden])")).to_have_count(1)
+                expect(page.get_by_role("button", name="创建任务", exact=True)).to_have_count(0)
                 if title == "局部重设计":
+                    page.get_by_role("combobox", name="1. 选择 PDB 受体", exact=True).focus()
+                    page.get_by_role("combobox", name="1. 选择 PDB 受体", exact=True).select_option(
+                        protein_id
+                    )
+                    molecule_select = page.get_by_role(
+                        "combobox", name="选择与受体对齐的三维 SDF 分子", exact=True
+                    )
+                    molecule_select.focus()
+                    molecule_select.select_option(molecule_id)
+                    page.get_by_role("button", name="下一步", exact=True).click()
                     hint = page.get_by_text(
                         "固定区域会独立复核；违反要求或无法确认的候选不会自动复用。", exact=True
                     )
@@ -356,31 +380,14 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                     molecule_select.select_option(molecule_id)
                     picker = page.get_by_role("button", name="读取可选原子", exact=True)
                     expect(picker).to_have_count(1)
-                    for round_number in range(3):
-                        page.get_by_role("button", name="专家微调", exact=True).click()
-                        page.get_by_role("textbox", name="任务名称（可选）", exact=True).fill(
-                            f"retained draft {round_number}"
-                        )
-                        page.get_by_role("button", name="简易模式", exact=True).click()
+                    for _ in range(3):
+                        page.get_by_role("button", name="上一步", exact=True).click()
+                        page.get_by_role("button", name="下一步", exact=True).click()
                         expect(picker).to_have_count(1)
-                    expect(
-                        page.get_by_role("textbox", name="任务名称（可选）", exact=True)
-                    ).to_have_value("retained draft 2")
                     page.screenshot(
                         path=str(evidence / "fixed-picker-after-updates.png"), full_page=True
                     )
 
-                if title in ["口袋条件分子生成", "局部重设计", "分子多样化", "分子优化"]:
-                    model = page.get_by_role("combobox", name="使用哪个模型？", exact=True)
-                    assert model.locator("option").count() == (
-                        8 if title == "口袋条件分子生成" else 4
-                    )
-                    page.get_by_role("button", name="专家微调", exact=True).click()
-                    expect(
-                        page.get_by_role(
-                            "textbox", name="全部原生参数（服务器逐项校验）", exact=True
-                        )
-                    ).to_be_visible()
                 for width in (390, 768, 1440):
                     page.set_viewport_size({"width": width, "height": 1000})
                     assert page.evaluate(
@@ -404,6 +411,7 @@ def test_research_plan_can_be_saved_reopened_and_reviewed_without_starting_scien
             page.goto(os.environ["WB_BROWSER_URL"])
             page.get_by_role("button", name="研究计划与连续任务", exact=True).click()
             page.get_by_role("button", name="专家完整计划", exact=True).click()
+            page.get_by_role("button", name="下一步", exact=True).click()
             plan = {
                 "name": "Browser saved plan",
                 "steps": [
@@ -421,6 +429,8 @@ def test_research_plan_can_be_saved_reopened_and_reviewed_without_starting_scien
             page.get_by_role("textbox", name="完整计划、依赖、输出角色与预算", exact=True).fill(
                 json.dumps(plan)
             )
+            page.get_by_role("button", name="下一步", exact=True).click()
+            page.get_by_role("button", name="下一步", exact=True).click()
             page.get_by_role("button", name="保存计划（不执行）", exact=True).click()
             expect(
                 page.get_by_role("heading", name="Browser saved plan", exact=True)
@@ -435,9 +445,14 @@ def test_research_plan_can_be_saved_reopened_and_reviewed_without_starting_scien
             page.get_by_role("button", name="研究计划与连续任务", exact=True).click()
             saved = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/workflows/plans").json()
             target = next(p for p in saved if p["body"]["name"] == "Browser saved plan")
+            page.get_by_role("combobox", name="如何准备研究计划？", exact=True).select_option(
+                "saved"
+            )
             page.get_by_role("combobox", name="打开已保存计划", exact=True).select_option(
                 target["id"]
             )
+            for _ in range(3):
+                page.get_by_role("button", name="下一步", exact=True).click()
             expect(
                 page.get_by_role("heading", name="Browser saved plan", exact=True)
             ).to_be_visible()
@@ -472,6 +487,7 @@ def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_
             picker.focus()
             expect(picker.locator('option[value="' + asset["id"] + '"]')).to_have_count(1)
             picker.select_option(asset["id"])
+            page.get_by_role("button", name="下一步", exact=True).click()
             expect(page.get_by_role("heading", name="三维结构与口袋", exact=False)).to_be_visible()
             page.get_by_text("从列表选择残基", exact=True).click()
             page.get_by_role("button", name="A:ALA10", exact=True).click()
@@ -481,7 +497,7 @@ def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_
             expect(chosen).to_have_value("A:10, A:11")
             page.get_by_role("button", name="A:ALA10", exact=True).click()
             expect(chosen).to_have_value("A:11")
-            page.get_by_role("button", name="创建任务", exact=True).is_disabled()
+            expect(page.get_by_role("button", name="创建任务", exact=True)).to_have_count(0)
             assert page.request.get(base + "/api/jobs").json() == []
             page.screenshot(path="server_tests/evidence/pocket-selection.png", full_page=True)
         finally:
@@ -998,3 +1014,72 @@ def test_actual_prepared_state_collection_can_be_reviewed_and_reused_without_com
         finally:
             process.terminate()
             process.wait(timeout=10)
+
+
+def test_all_task_entries_show_one_step_and_no_early_dispatch():
+    base = os.environ["WB_BROWSER_URL"]
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        try:
+            page.goto(base)
+            before = len(page.request.get(base + "/api/jobs").json())
+            names = [
+                "计算小分子性质",
+                "抗体设计与 CDR 优化",
+                "蛋白序列评分",
+                "ESM2 引导序列提案",
+                "结构引导序列设计",
+                "抗体候选折叠与评分",
+                "表位与热点接触",
+                "复合物相互作用分析",
+                "对齐目标后比较结合姿势",
+                "候选进化树",
+                "比较两个候选集",
+                "按蛋白序列检索",
+                "按蛋白结构检索",
+                "准备抗体设计靶标 MSA",
+                "准备 MSA 与模板",
+                "导入结构与批量任务",
+                "模型、数据库与环境检查",
+                "口袋条件分子生成",
+                "局部重设计",
+                "分子多样化",
+                "分子优化",
+                "口袋检查",
+                "准备受体结构",
+                "分子相互作用",
+                "候选描述符",
+                "候选导出",
+                "研究计划与连续任务",
+                "发现多个候选口袋",
+                "探索分子结合模式",
+                "评估已有结合姿势",
+                "局部最小化结合姿势",
+                "准备分子状态与构象",
+                "对齐多个受体构象",
+            ]
+            for name in names:
+                page.get_by_role("navigation", name="主导航").get_by_role(
+                    "button", name="全部能力", exact=True
+                ).click()
+                page.get_by_role("button", name=name, exact=True).click()
+                expect(page.locator(".questionnaire fieldset:not([hidden])")).to_have_count(1)
+                next_button = page.get_by_role("button", name="下一步", exact=True)
+                expect(next_button).to_be_visible()
+                expect(page.locator(".questionnaire button[type=submit]")).to_have_count(0)
+                for width in (390, 1440):
+                    page.set_viewport_size({"width": width, "height": 1000})
+                    assert page.evaluate(
+                        "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                    )
+                    actions = page.locator(".questionnaire-actions").bounding_box()
+                    button = next_button.bounding_box()
+                    assert actions and button
+                    assert abs(button["x"] + button["width"] - actions["x"] - actions["width"]) < 3
+                assert len(page.request.get(base + "/api/jobs").json()) == before
+            assert not errors
+        finally:
+            browser.close()

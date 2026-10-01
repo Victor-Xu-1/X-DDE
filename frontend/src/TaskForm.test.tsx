@@ -1,48 +1,61 @@
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { TaskForm } from "./TaskForm";
-import type { Prediction } from "./types";
-it("shows ready-to-use choices and exposes expert parameters only on request", () => {
+import type { Job, Prediction } from "./types";
+afterEach(cleanup);
+it("offers recommended choices, retains prepared input and blocks unavailable prediction at review", async () => {
+  const user = userEvent.setup();
   const { rerender } = render(
     <TaskForm language="zh" ready={false} onSubmit={vi.fn()} />,
   );
-  expect(screen.getByRole("button", { name: "开始预测" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  expect(screen.getByRole("button", { name: "下一步" })).toBeDisabled();
+  await user.type(screen.getByLabelText("单字母氨基酸序列"), "ACDE");
+  await user.type(screen.getByLabelText("SMILES 或 CCD_ 编号"), "CCO");
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   expect(
     screen.getByLabelText("标准预测 · 推荐", { exact: false }),
   ).toBeChecked();
   expect(screen.queryByLabelText("随机种子")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  expect(screen.getByRole("button", { name: "开始预测" })).toBeDisabled();
   rerender(<TaskForm language="en" ready={true} onSubmit={vi.fn()} />);
   expect(screen.getByRole("button", { name: "Run prediction" })).toBeEnabled();
 });
 it("prevents an empty input from reaching the API", async () => {
-  const submit = vi.fn();
-  render(<TaskForm language="zh" ready onSubmit={submit} />);
-  fireEvent.submit(
-    screen.getByRole("button", { name: "开始预测" }).closest("form")!,
+  const user = userEvent.setup(),
+    submit = vi.fn();
+  const { container } = render(
+    <TaskForm language="en" ready onSubmit={submit} />,
   );
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "请至少填写一个分子组分",
-  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  fireEvent.submit(container.querySelector("form")!);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Check step 2");
   expect(submit).not.toHaveBeenCalled();
 });
-it("uses a task choice to prepare the right fields and a comparison preset", async () => {
+it("keeps native prediction components and comparison preset while submitting only after review", async () => {
   const user = userEvent.setup(),
-    submit = vi.fn().mockResolvedValue(undefined);
+    submit = vi.fn().mockResolvedValue({ id: "predicted" } as Job);
   render(<TaskForm language="en" ready onSubmit={submit} />);
   await user.click(screen.getByLabelText("Protein–ligand complex"));
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.type(
     screen.getByLabelText("One-letter amino-acid sequence"),
     "ACDE",
   );
   await user.type(screen.getByLabelText("SMILES or CCD_ identifier"), "CCO");
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByLabelText(/Compare conformers/));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(submit).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Run prediction" }));
   expect(submit).toHaveBeenCalledOnce();
   expect(submit.mock.calls[0][0]).toMatchObject({
@@ -59,20 +72,26 @@ it("uses a task choice to prepare the right fields and a comparison preset", asy
     },
   });
   expect(submit.mock.calls[0][0].name).toMatch(/^Protein–ligand complex/);
+  expect(
+    await screen.findByRole("link", { name: "Open task progress and results" }),
+  ).toHaveAttribute("href", "/#task=predicted");
 });
-it("submits entered values once and exposes pending state", async () => {
+it("submits native entered values once and retains the pending state until the actual response", async () => {
   const user = userEvent.setup();
-  let resolve!: () => void;
+  let resolve!: (job: Job) => void;
   const submit = vi.fn(
     (_v: Prediction, _key: string) =>
-      new Promise<void>((done) => {
+      new Promise<Job>((done) => {
         resolve = done;
       }),
   );
   render(<TaskForm language="en" ready onSubmit={submit} />);
   await user.click(screen.getByLabelText("Small-molecule structure"));
-  await user.type(screen.getByLabelText(/Task name/), "my experiment");
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.type(screen.getByLabelText("SMILES or CCD_ identifier"), "CCO");
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.type(screen.getByLabelText(/Task name/), "my experiment");
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Run prediction" }));
   expect(screen.getByRole("button", { name: /Submitting/ })).toBeDisabled();
   expect(submit).toHaveBeenCalledOnce();
@@ -80,32 +99,28 @@ it("submits entered values once and exposes pending state", async () => {
     name: "my experiment",
     components: [{ kind: "ligand", value: "CCO", count: 1 }],
   });
-  await act(async () => resolve());
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Run prediction" }),
-    ).toBeEnabled(),
-  );
+  await act(async () => resolve({ id: "pending-response" } as Job));
+  expect(
+    await screen.findByRole("heading", { name: "5. View results" }),
+  ).toBeVisible();
 });
-it("preserves automatic name and idempotency key after uncertain network failure", async () => {
-  const submit = vi.fn().mockRejectedValue(new Error("connection interrupted"));
+it("preserves automatic name and idempotency key after uncertain failure and language changes", async () => {
+  const user = userEvent.setup(),
+    submit = vi.fn().mockRejectedValue(new Error("connection interrupted"));
   const { rerender } = render(
     <TaskForm language="en" ready onSubmit={submit} />,
   );
-  fireEvent.click(screen.getByLabelText("Small-molecule structure"));
-  fireEvent.change(screen.getByLabelText("SMILES or CCD_ identifier"), {
-    target: { value: "CCO" },
-  });
-  fireEvent.submit(
-    screen.getByRole("button", { name: "Run prediction" }).closest("form")!,
-  );
+  await user.click(screen.getByLabelText("Small-molecule structure"));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.type(screen.getByLabelText("SMILES or CCD_ identifier"), "CCO");
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Run prediction" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "connection interrupted",
   );
   rerender(<TaskForm language="zh" ready onSubmit={submit} />);
-  fireEvent.submit(
-    screen.getByRole("button", { name: "开始预测" }).closest("form")!,
-  );
+  await user.click(screen.getByRole("button", { name: "开始预测" }));
   await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
   expect(submit.mock.calls[0][1]).toBe(submit.mock.calls[1][1]);
   expect(submit.mock.calls[0][0].name).toBe(submit.mock.calls[1][0].name);

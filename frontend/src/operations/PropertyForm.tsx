@@ -1,3 +1,4 @@
+import { ChoiceCards } from "../guided/ChoiceCards";
 import { useId, useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -121,27 +122,40 @@ export function PropertyForm({
           title: zh ? "选择方式" : "Choose source",
           valid: true,
           content: (
-            <label className="field">
-              {zh ? "用哪种方式提供分子？" : "How will you provide molecules?"}
-              <select
-                value={mode}
-                onChange={(e) => setMode(e.target.value as typeof mode)}
-              >
-                <option value="file">
-                  {zh
+            <ChoiceCards<"file" | "smiles" | "both">
+              label={
+                zh ? "用哪种方式提供分子？" : "How will you provide molecules?"
+              }
+              value={mode}
+              onChange={setMode}
+              options={[
+                {
+                  value: "file",
+                  title: zh
                     ? "上传或复用分子文件（推荐）"
-                    : "Upload or reuse a molecular file (recommended)"}
-                </option>
-                <option value="smiles">
-                  {zh
+                    : "Upload or reuse a molecular file (recommended)",
+                  note: zh
+                    ? "保留文件和研究版本的来源。"
+                    : "Retain file and research-version provenance.",
+                },
+                {
+                  value: "smiles",
+                  title: zh
                     ? "粘贴分子结构文字（SMILES）"
-                    : "Paste molecular structure text (SMILES)"}
-                </option>
-                <option value="both">
-                  {zh ? "文件和文字一起计算" : "Combine file and text inputs"}
-                </option>
-              </select>
-            </label>
+                    : "Paste molecular structure text (SMILES)",
+                  note: zh
+                    ? "每行输入一个 SMILES。"
+                    : "Enter one SMILES per line.",
+                },
+                {
+                  value: "both",
+                  title: zh
+                    ? "文件和文字一起计算"
+                    : "Combine file and text inputs",
+                  note: zh ? "同时使用两类输入。" : "Use both input sources.",
+                },
+              ]}
+            />
           ),
         },
         {

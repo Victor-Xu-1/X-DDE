@@ -152,7 +152,9 @@ export function App() {
     if (!isPrediction(next.request)) setView("tasks");
   }
   async function submit(value: Prediction, key: string) {
-    changed(await api.submit({ ...value, project_id: projectId }, key));
+    const created = await api.submit({ ...value, project_id: projectId }, key);
+    changed(created);
+    return created;
   }
   function prepareDraft(value: Prediction) {
     chooseJob("");

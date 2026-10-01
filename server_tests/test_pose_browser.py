@@ -66,6 +66,7 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     group = workspace.get_by_role("group", name="探索哪些位点？", exact=True)
                     group.get_by_role("checkbox", name="受体 1 · 口袋 1", exact=True).check()
                     group.get_by_role("checkbox", name="受体 2 · 口袋 1", exact=True).check()
+                    workspace.get_by_role("button", name="下一步", exact=True).click()
                     workspace.get_by_role("combobox", name="分子来源", exact=True).select_option(
                         "states"
                     )
@@ -75,6 +76,8 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     workspace.get_by_role("combobox", name="初始构象", exact=True).select_option(
                         "0"
                     )
+                    workspace.get_by_role("button", name="下一步", exact=True).click()
+                    workspace.get_by_role("button", name="下一步", exact=True).click()
                     with page.expect_response(
                         lambda r: (
                             r.url.endswith("/api/research/pose-explorations")

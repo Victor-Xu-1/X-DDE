@@ -97,9 +97,10 @@ it("submits standalone properties without scheduling structure prediction", asyn
     .spyOn(api, "submit")
     .mockRejectedValue(new Error("server unavailable"));
   render(<PropertyForm language="en" onCreated={vi.fn()} />);
-  fireEvent.change(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
-    { target: { value: "smiles" } },
+  fireEvent.click(
+    screen.getByRole("radio", {
+      name: "Paste molecular structure text (SMILES)",
+    }),
   );
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.change(screen.getByRole("textbox", { name: "SMILES" }), {

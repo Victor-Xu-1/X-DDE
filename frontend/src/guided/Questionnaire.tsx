@@ -7,7 +7,7 @@ export interface QuestionStep {
   content: ReactNode;
   valid: boolean;
 }
-export function Questionnaire({
+export function GuidedSteps<T extends { id: string }>({
   language,
   steps,
   busy,
@@ -16,6 +16,9 @@ export function Questionnaire({
   unavailable,
   submitLabel,
   onSubmit,
+  renderResult,
+  resultTitle,
+  embedded = false,
 }: {
   language: Language;
   steps: readonly [QuestionStep, QuestionStep, QuestionStep, QuestionStep];
@@ -24,16 +27,18 @@ export function Questionnaire({
   ready: boolean;
   unavailable?: ReactNode;
   submitLabel: string;
-  onSubmit(): Promise<Job | undefined>;
+  onSubmit(): Promise<T | undefined>;
+  renderResult(result: T): ReactNode;
+  resultTitle?: string;
+  embedded?: boolean;
 }) {
   const zh = language === "zh",
     id = useId();
   const [current, setCurrent] = useState(0),
     [visited, setVisited] = useState(0),
-    [job, setJob] = useState<Job | null>(null),
+    [job, setJob] = useState<T | null>(null),
     [notice, setNotice] = useState("");
-  const form = useRef<HTMLFormElement>(null),
-    heading = useRef<HTMLHeadingElement>(null),
+  const heading = useRef<HTMLHeadingElement>(null),
     mounted = useRef(true),
     pending = useRef(false),
     panels = useRef<(HTMLFieldSetElement | null)[]>([]);
@@ -97,11 +102,11 @@ export function Questionnaire({
   }
   const titles = [
     ...steps.map((s) => s.title),
-    zh ? "查看结果" : "View results",
+    resultTitle ?? (zh ? "查看结果" : "View results"),
   ];
+  const Container = embedded ? "section" : "form";
   return (
-    <form
-      ref={form}
+    <Container
       className="questionnaire tool-form"
       onSubmit={(e) => {
         e.preventDefault();
@@ -148,21 +153,7 @@ export function Questionnaire({
           {step.content}
         </fieldset>
       ))}
-      {current === 4 && job && (
-        <section aria-label={zh ? "已提交的任务" : "Submitted task"}>
-          <p role="status">
-            {zh
-              ? "任务已提交，结果以实际计算为准。"
-              : "Task submitted. Results depend on the actual calculation."}
-          </p>
-          <a
-            className="primary-button"
-            href={"/#task=" + encodeURIComponent(job.id)}
-          >
-            {zh ? "查看任务进度与结果" : "Open task progress and results"}
-          </a>
-        </section>
-      )}
+      {current === 4 && job && renderResult(job)}
       {(notice || error) && (
         <p role="alert" className="error-box">
           {error || notice}
@@ -196,7 +187,8 @@ export function Questionnaire({
             </button>
           ) : (
             <button
-              type="submit"
+              type={embedded ? "button" : "submit"}
+              onClick={embedded ? () => void submit() : undefined}
               className="primary-button"
               disabled={busy || !complete || !ready}
             >
@@ -205,6 +197,32 @@ export function Questionnaire({
           )}
         </div>
       )}
-    </form>
+    </Container>
+  );
+}
+
+export function Questionnaire(
+  props: Omit<Parameters<typeof GuidedSteps<Job>>[0], "renderResult">,
+) {
+  const zh = props.language === "zh";
+  return (
+    <GuidedSteps<Job>
+      {...props}
+      renderResult={(job) => (
+        <section aria-label={zh ? "已提交的任务" : "Submitted task"}>
+          <p role="status">
+            {zh
+              ? "任务已提交，结果以实际计算为准。"
+              : "Task submitted. Results depend on the actual calculation."}
+          </p>
+          <a
+            className="primary-button"
+            href={"/#task=" + encodeURIComponent(job.id)}
+          >
+            {zh ? "查看任务进度与结果" : "Open task progress and results"}
+          </a>
+        </section>
+      )}
+    />
   );
 }

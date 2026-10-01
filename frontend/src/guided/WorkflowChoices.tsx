@@ -15,9 +15,7 @@ export function WorkflowChoices({
   const i = language === "zh" ? 0 : 1;
   return (
     <section className="workflow-picker">
-      <h2>
-        {i === 0 ? "1 · 你想预测什么？" : "1 · What would you like to predict?"}
-      </h2>
+      <h2>{i === 0 ? "你想预测什么？" : "What would you like to predict?"}</h2>
       <div
         className="workflow-options"
         role="radiogroup"
@@ -46,16 +44,13 @@ export function WorkflowChoices({
             </label>
           ))}
       </div>
-      <p className="workflow-note">
-        {i === 0
-          ? "使用已有序列或化合物进行结构预测。选好任务后，下面会显示需要填写的内容。"
-          : "Predict structures for existing sequences or compounds. Selecting a task prepares the input fields below."}
+      <div className="workflow-note">
         <Hint label={i === 0 ? "预测内容说明" : "Prediction scope help"}>
           {i === 0
             ? "当前流程未使用同源序列比对（MSA）或已知结构模板。输出为结构和模型置信度；抗体模块预测已有抗体的复合物，不生成新抗体序列。"
             : "This local workflow runs without MSA or templates. Outputs are structures and model confidence; the antibody workflow folds existing sequences rather than designing new ones."}
         </Hint>
-      </p>
+      </div>
     </section>
   );
 }

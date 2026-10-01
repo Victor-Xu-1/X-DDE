@@ -48,6 +48,15 @@ it("submits a real edit envelope with the original version rather than overwriti
   });
   await waitFor(() => expect(button).toBeEnabled());
   await user.click(button);
+  expect(submit).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(
+    screen.getByRole("button", { name: "Read current edited structure" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(submit).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Submit 3D edit task" }));
   await waitFor(() => expect(created).toHaveBeenCalled());
   expect(submit.mock.calls[0][0]).toMatchObject({
     operation: "diffsbdd",

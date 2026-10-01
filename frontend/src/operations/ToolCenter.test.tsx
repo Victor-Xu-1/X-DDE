@@ -57,9 +57,10 @@ it("retains form input and overlapping modality navigation across languages", as
     screen.getByRole("button", { name: "Calculate molecular properties" }),
   );
   expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
-    "smiles",
+  await user.click(
+    screen.getByRole("radio", {
+      name: "Paste molecular structure text (SMILES)",
+    }),
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.type(screen.getByRole("textbox", { name: "SMILES" }), "CCO");
@@ -111,7 +112,7 @@ it("returns a direct task entry to the catalogue through the shared navigation",
     <ToolCenter {...props()} initialTool="properties" onBrowse={onBrowse} />,
   );
   expect(
-    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
+    screen.getByRole("radiogroup", { name: "How will you provide molecules?" }),
   ).toBeVisible();
   await user.click(
     screen.getByRole("button", { name: "Back to all capabilities" }),

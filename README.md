@@ -227,3 +227,23 @@ GNINA binding-pose tasks have independent component management and three entries
 受体构象由独立 Biopython 环境处理，可在“安装与组件”安装或设置固定镜像 ID WB_BIOPYTHON_IMAGE 后重启。在“受体构象”选择具体 PDB/mmCIF 版本，完成已有结构刚体对齐后，分别为对齐成员运行口袋寻找。受体结果的“比较各构象的口袋”选择至少两个已成功口袋任务，提供常规/严格/扩大探索及专家阈值，保存可复用的跨构象位点集合。关联基于共同坐标和明确残基对应，未匹配不代表生物学位点消失；体积、可达性和隐蔽位点并未由这个步骤计算。
 
 在“全部能力”的“多受体与状态姿势探索”中，可复用位点集合、保存的 SDF 版本以及准备后的状态/构象，选择探索深度并先保存审阅计划。启动使用独立 GNINA 环境和现有任务队列；缺少环境时保留计划并提示配置。结束后保存全部组合及姿势集合，可预览或继续计算性质、在配套受体上评分/最小化。失败、取消和未尝试组合保留，集合不代表实验结合确证。
+
+
+### Task preparation interface
+Task preparation uses one visible question page at a time: choose inputs or purpose,
+prepare materials, choose recommended settings (expert controls are optional), and
+review before submission. Next is on the right, Back on the left. Hidden panels retain
+drafts but cannot dispatch tasks. Native input validity is rechecked across all prior
+pages before forward navigation or submission.
+
+Prediction, all Harness tools, DiffSBDD modes, antibody campaigns, preparation,
+imports, resources, saved research plans and inline chemistry inspection use the same
+questionnaire authority. Saving a plan or region is distinct from starting computation;
+results links always use the actual returned job, plan or run. The supplied Boltz Lab
+screenshots informed choice-driven guidance and candidate/3D layout. The referenced
+authenticated new-target wizard redirected to login, so its unseen steps are not claimed
+as inspected. X-DDE retains only capabilities supported by its actual integrations.
+
+The structure-results view puts candidates beside their actual 3D preview and collapses
+secondary metrics. Model execution and scientific integration verification run in the
+target environment/remote CI; the owner machine does not run scientific jobs.

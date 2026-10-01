@@ -12,6 +12,8 @@ export function MolecularInputs({
   expert,
   workflow,
   features = false,
+  allowedKinds,
+  showHeading = true,
 }: {
   items: Component[];
   onChange(items: Component[]): void;
@@ -19,6 +21,8 @@ export function MolecularInputs({
   expert: boolean;
   workflow: TaskKind;
   features?: boolean;
+  allowedKinds?: Component["kind"][];
+  showHeading?: boolean;
 }) {
   const t = translator(language),
     zh = language === "zh",
@@ -31,19 +35,23 @@ export function MolecularInputs({
   function add(kind: Component["kind"]) {
     onChange([...items, { kind, value: kind === "ion" ? "MG" : "", count: 1 }]);
   }
-  const allowed: Component["kind"][] = expert
-    ? ["protein", "ligand", "dna", "rna", "ion"]
-    : workflow === "nucleic"
-      ? ["dna", "rna", "protein"]
-      : workflow === "protein-complex"
-        ? ["protein"]
-        : [];
+  const allowed: Component["kind"][] =
+    allowedKinds ??
+    (expert
+      ? ["protein", "ligand", "dna", "rna", "ion"]
+      : workflow === "nucleic"
+        ? ["dna", "rna", "protein"]
+        : workflow === "protein-complex"
+          ? ["protein"]
+          : []);
   const paired =
     workflow === "antibody" &&
     items.filter((x) => x.kind === "protein").length >= 3;
   return (
     <section className="molecular-inputs">
-      <h3>{zh ? "2 · 填写分子信息" : "2 · Enter molecular inputs"}</h3>
+      {showHeading && (
+        <h3>{zh ? "2 · 填写分子信息" : "2 · Enter molecular inputs"}</h3>
+      )}
       {workflow === "antibody" && (
         <p className="small muted">
           {zh

@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { GuidedSteps } from "../guided/Questionnaire";
+import type { WorkflowRun } from "./types";
 import type { Job, Language } from "../types";
 import { JsonEditor } from "../operations/ScientificInputs";
 import { RunMonitor } from "./RunMonitor";
@@ -39,180 +42,250 @@ export function WorkflowCenter({
     save,
     start,
   } = useWorkflowController(language, jobs);
-  return (
-    <section className="tool-form">
-      <p className="notice">
+  const [source, setSource] = useState<"draft" | "saved">("draft");
+  useEffect(() => {
+    if (source === "draft") {
+      setSelected(null);
+      setRun(null);
+      setExternal(false);
+      runKey.current = crypto.randomUUID();
+    }
+  }, [
+    source,
+    name,
+    ids,
+    hours,
+    handoffs,
+    expert,
+    native,
+    setSelected,
+    setRun,
+    setExternal,
+    runKey,
+  ]);
+  const goal = (
+    <>
+      <label className="field">
         {zh
-          ? "选择已准备任务作为模板，保存一个连续研究计划。保存不会执行计算；确认计划后才运行。每一步复用现有任务队列和资产版本。"
-          : "Choose prepared tasks as templates and save a research plan. Saving does not run computation; start after reviewing the plan. Each step uses the existing task queue and asset versions."}
-      </p>
-      <div className="segmented">
-        <button
-          type="button"
-          aria-pressed={!expert}
-          onClick={() => setExpert(false)}
+          ? "如何准备研究计划？"
+          : "How should the research plan be prepared?"}
+        <select
+          value={source}
+          onChange={(e) => setSource(e.target.value as typeof source)}
         >
-          {zh ? "选择任务组装" : "Assemble from tasks"}
-        </button>
-        <button
-          type="button"
-          aria-pressed={expert}
-          onClick={() => {
-            try {
-              setNative(
-                planFromJobs(
-                  name,
-                  ids,
-                  jobs,
-                  handoffs,
-                  hours,
-                ) as unknown as Record<string, unknown>,
-              );
-            } catch (e) {
-              setError(
-                (zh
-                  ? "任务模板尚不完整，可以继续直接编辑专家计划："
-                  : "Task templates are incomplete; edit the expert plan directly: ") +
-                  String(e),
-              );
-            }
-            setExpert(true);
-          }}
-        >
-          {zh ? "专家完整计划" : "Expert plan"}
-        </button>
-      </div>
-      {!expert ? (
+          <option value="draft">
+            {zh ? "组装新计划" : "Assemble a new plan"}
+          </option>
+          <option value="saved">
+            {zh ? "复用已保存计划" : "Reuse a saved plan"}
+          </option>
+        </select>
+      </label>
+      {source === "draft" ? (
         <>
-          <label className="field">
-            {zh ? "计划名称" : "Plan name"}
-            <input
-              value={name}
-              maxLength={120}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-          {ids.map((id, index) => (
-            <section key={index}>
-              <label className="field">
-                {zh ? "步骤" : "Step"} {index + 1}
-                <select
-                  value={id}
-                  onChange={(e) => {
-                    setIds(
-                      ids.map((v, n) => (n === index ? e.target.value : v)),
-                    );
-                    setHandoffs(
-                      new Set([...handoffs].filter((n) => n !== index)),
-                    );
-                  }}
-                >
-                  <option value="">
-                    {zh ? "选择一个已经准备好的任务" : "Choose a prepared task"}
-                  </option>
-                  {jobs.map((j) => (
-                    <option key={j.id} value={j.id}>
-                      {j.request.name} · {j.request.operation ?? "predict"} ·{" "}
-                      {j.id.slice(0, 8)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {index > 0 &&
-                jobs.find((j) => j.id === id)?.request.operation ===
-                  "properties" && (
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={handoffs.has(index)}
-                      onChange={(e) =>
-                        setHandoffs(
-                          e.target.checked
-                            ? new Set([...handoffs, index])
-                            : new Set([...handoffs].filter((n) => n !== index)),
-                        )
-                      }
-                    />
-                    {zh
-                      ? "使用上一步生成的 molecules 输出第一个分子，不使用模板中的旧分子"
-                      : "Use the first molecule from the preceding step's molecular output instead of the template's old input"}
-                  </label>
-                )}
-            </section>
-          ))}
-          <div className="editor-toolbar">
+          {" "}
+          <div className="segmented">
             <button
               type="button"
-              disabled={ids.length >= 30}
-              onClick={() => setIds([...ids, ""])}
+              aria-pressed={!expert}
+              onClick={() => setExpert(false)}
             >
-              {zh ? "添加下一步" : "Add next step"}
+              {zh ? "选择任务组装" : "Assemble from tasks"}
             </button>
             <button
               type="button"
-              disabled={ids.length <= 1}
+              aria-pressed={expert}
               onClick={() => {
-                setIds(ids.slice(0, -1));
-                setHandoffs(
-                  new Set([...handoffs].filter((n) => n < ids.length - 1)),
-                );
+                try {
+                  setNative(
+                    planFromJobs(
+                      name,
+                      ids,
+                      jobs,
+                      handoffs,
+                      hours,
+                    ) as unknown as Record<string, unknown>,
+                  );
+                } catch (e) {
+                  setError(
+                    (zh
+                      ? "任务模板尚不完整，可以继续直接编辑专家计划："
+                      : "Task templates are incomplete; edit the expert plan directly: ") +
+                      String(e),
+                  );
+                }
+                setExpert(true);
               }}
             >
-              {zh ? "移除最后一步" : "Remove last step"}
+              {zh ? "专家完整计划" : "Expert plan"}
             </button>
           </div>
+          {!expert && (
+            <>
+              {" "}
+              <label className="field">
+                {zh ? "计划名称" : "Plan name"}
+                <input
+                  value={name}
+                  maxLength={120}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          {" "}
           <label className="field">
-            {zh ? "整个计划最多运行多久？" : "Maximum elapsed plan time?"}
+            {zh ? "打开已保存计划" : "Open a saved plan"}
             <select
-              value={hours}
-              onChange={(e) => setHours(Number(e.target.value))}
+              value={selected?.id ?? ""}
+              onChange={(e) => {
+                setSelected(plans.find((p) => p.id === e.target.value) ?? null);
+                setRun(null);
+                setExternal(false);
+                runKey.current = crypto.randomUUID();
+              }}
             >
-              {[1, 4, 8, 24].map((n) => (
-                <option value={n} key={n}>
-                  {n} {zh ? "小时" : "hours"}
+              <option value="">—</option>
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.body.name} · {p.id.slice(0, 8)}
                 </option>
               ))}
             </select>
           </label>
         </>
-      ) : (
-        <JsonEditor
-          value={native}
-          onChange={setNative}
-          label={
-            zh
-              ? "完整计划、依赖、输出角色与预算"
-              : "Full plan, dependencies, output roles and budget"
-          }
-        />
       )}
-      <button
-        type="button"
-        className="primary-button"
-        disabled={busy}
-        onClick={() => void save()}
-      >
-        {zh ? "保存计划（不执行）" : "Save plan without running"}
-      </button>
-      <label className="field">
-        {zh ? "打开已保存计划" : "Open a saved plan"}
-        <select
-          value={selected?.id ?? ""}
-          onChange={(e) => {
-            setSelected(plans.find((p) => p.id === e.target.value) ?? null);
-            setRun(null);
-            setExternal(false);
-            runKey.current = crypto.randomUUID();
-          }}
+    </>
+  );
+  const inputs =
+    source === "saved" ? (
+      <p>
+        {zh
+          ? "沿用所选计划的任务、依赖和输入版本。"
+          : "Reuse the selected plan's tasks, dependencies and input versions."}
+      </p>
+    ) : expert ? (
+      <JsonEditor
+        value={native}
+        onChange={setNative}
+        label={
+          zh
+            ? "完整计划、依赖、输出角色与预算"
+            : "Full plan, dependencies, output roles and budget"
+        }
+      />
+    ) : (
+      <>
+        {" "}
+        {ids.map((id, index) => (
+          <section key={index}>
+            <label className="field">
+              {zh ? "步骤" : "Step"} {index + 1}
+              <select
+                value={id}
+                onChange={(e) => {
+                  setIds(ids.map((v, n) => (n === index ? e.target.value : v)));
+                  setHandoffs(
+                    new Set([...handoffs].filter((n) => n !== index)),
+                  );
+                }}
+              >
+                <option value="">
+                  {zh ? "选择一个已经准备好的任务" : "Choose a prepared task"}
+                </option>
+                {jobs.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.request.name} · {j.request.operation ?? "predict"} ·{" "}
+                    {j.id.slice(0, 8)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {index > 0 &&
+              jobs.find((j) => j.id === id)?.request.operation ===
+                "properties" && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={handoffs.has(index)}
+                    onChange={(e) =>
+                      setHandoffs(
+                        e.target.checked
+                          ? new Set([...handoffs, index])
+                          : new Set([...handoffs].filter((n) => n !== index)),
+                      )
+                    }
+                  />
+                  {zh
+                    ? "使用上一步生成的 molecules 输出第一个分子，不使用模板中的旧分子"
+                    : "Use the first molecule from the preceding step's molecular output instead of the template's old input"}
+                </label>
+              )}
+          </section>
+        ))}
+        <div className="editor-toolbar">
+          <button
+            type="button"
+            disabled={ids.length >= 30}
+            onClick={() => setIds([...ids, ""])}
+          >
+            {zh ? "添加下一步" : "Add next step"}
+          </button>
+          <button
+            type="button"
+            disabled={ids.length <= 1}
+            onClick={() => {
+              setIds(ids.slice(0, -1));
+              setHandoffs(
+                new Set([...handoffs].filter((n) => n < ids.length - 1)),
+              );
+            }}
+          >
+            {zh ? "移除最后一步" : "Remove last step"}
+          </button>
+        </div>
+      </>
+    );
+  const settings =
+    source === "draft" && !expert ? (
+      <>
+        {" "}
+        <label className="field">
+          {zh ? "整个计划最多运行多久？" : "Maximum elapsed plan time?"}
+          <select
+            value={hours}
+            onChange={(e) => setHours(Number(e.target.value))}
+          >
+            {[1, 4, 8, 24].map((n) => (
+              <option value={n} key={n}>
+                {n} {zh ? "小时" : "hours"}
+              </option>
+            ))}
+          </select>
+        </label>
+      </>
+    ) : (
+      <p>
+        {zh
+          ? "沿用计划中的预算和设置。"
+          : "Use the plan's budget and settings."}
+      </p>
+    );
+  const review = (
+    <>
+      {source === "draft" && (
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={busy}
+          onClick={() => void save()}
         >
-          <option value="">—</option>
-          {plans.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.body.name} · {p.id.slice(0, 8)}
-            </option>
-          ))}
-        </select>
-      </label>
+          {zh ? "保存计划（不执行）" : "Save plan without running"}
+        </button>
+      )}
       {selected && (
         <section className="setup-card">
           <h2>{selected.body.name}</h2>
@@ -248,60 +321,104 @@ export function WorkflowCenter({
                 : "Confirm this plan may send inputs to configured external services and incur costs."}
             </label>
           )}
-          <button
-            className="primary-button"
-            type="button"
-            disabled={
-              busy || !!run || (hasExternalCalls(selected.body) && !external)
-            }
-            onClick={() => void start()}
-          >
-            {zh ? "运行这个计划" : "Run this plan"}
-          </button>
         </section>
       )}
-      <label className="field">
-        {zh ? "打开历史运行（刷新后仍保留）" : "Open a persisted run"}
-        <select
-          value={run?.id ?? ""}
-          onChange={(e) =>
-            setRun(history.find((r) => r.id === e.target.value) ?? null)
-          }
-        >
-          <option value="">—</option>
-          {history.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.id.slice(0, 8)} · {r.state}
-            </option>
-          ))}
-        </select>
-      </label>
-      {run && ["succeeded", "failed", "cancelled"].includes(run.state) && (
-        <button
-          type="button"
-          onClick={() => {
-            setRun(null);
-            runKey.current = crypto.randomUUID();
-          }}
-        >
-          {zh
-            ? "为所选计划准备一次新运行"
-            : "Prepare a new run of the selected plan"}
-        </button>
-      )}
-      {run && (
-        <RunMonitor
-          key={run.id}
-          initial={run}
-          language={language}
-          onChange={setRun}
-        />
-      )}
-      {error && (
-        <p role="alert" className="error-box">
-          {error}
-        </p>
-      )}
+    </>
+  );
+  const draftValid = expert
+    ? Array.isArray(native.steps) && native.steps.length > 0
+    : ids.length > 0 && ids.every(Boolean);
+  return (
+    <section className="tool-form">
+      <GuidedSteps<WorkflowRun>
+        language={language}
+        busy={busy}
+        error={error}
+        ready={Boolean(
+          selected && !run && (!hasExternalCalls(selected.body) || external),
+        )}
+        unavailable={
+          zh
+            ? "先保存并核对计划；如涉及外部服务，还需确认相关调用。"
+            : "Save and review the plan; approve any external service calls before launch."
+        }
+        submitLabel={zh ? "运行这个计划" : "Run this plan"}
+        onSubmit={start}
+        resultTitle={zh ? "运行与结果" : "Progress and results"}
+        renderResult={(value) => (
+          <p role="status">
+            {zh
+              ? "计划已递交，下方显示实际运行状态与结果。"
+              : "Plan submitted. Actual progress and results appear below."}{" "}
+            {value.id}
+          </p>
+        )}
+        steps={[
+          {
+            title: zh ? "选择方式" : "Choose source",
+            content: goal,
+            valid:
+              source === "saved"
+                ? Boolean(selected)
+                : expert || Boolean(name.trim()),
+          },
+          {
+            title: zh ? "选择任务" : "Choose tasks",
+            content: inputs,
+            valid: source === "saved" || draftValid,
+          },
+          {
+            title: zh ? "选择方案" : "Choose settings",
+            content: settings,
+            valid: true,
+          },
+          {
+            title: zh ? "确认启动" : "Review & start",
+            content: review,
+            valid: source === "saved" || draftValid,
+          },
+        ]}
+      />
+      <details open={Boolean(run)}>
+        <summary>{zh ? "运行记录" : "Run history"}</summary>{" "}
+        <label className="field">
+          {zh ? "打开历史运行（刷新后仍保留）" : "Open a persisted run"}
+          <select
+            value={run?.id ?? ""}
+            onChange={(e) =>
+              setRun(history.find((r) => r.id === e.target.value) ?? null)
+            }
+          >
+            <option value="">—</option>
+            {history.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.id.slice(0, 8)} · {r.state}
+              </option>
+            ))}
+          </select>
+        </label>
+        {run && ["succeeded", "failed", "cancelled"].includes(run.state) && (
+          <button
+            type="button"
+            onClick={() => {
+              setRun(null);
+              runKey.current = crypto.randomUUID();
+            }}
+          >
+            {zh
+              ? "为所选计划准备一次新运行"
+              : "Prepare a new run of the selected plan"}
+          </button>
+        )}
+        {run && (
+          <RunMonitor
+            key={run.id}
+            initial={run}
+            language={language}
+            onChange={setRun}
+          />
+        )}
+      </details>
     </section>
   );
 }

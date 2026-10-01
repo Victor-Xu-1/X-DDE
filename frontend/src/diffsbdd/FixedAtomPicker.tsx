@@ -1,3 +1,4 @@
+import { InspectionSteps } from "../guided/InspectionSteps";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -31,19 +32,29 @@ export function FixedAtomPicker({
           : "Read this version with the real chemical parser, then click fixed atoms. Display numbering starts at 1; submission uses parser identities."}
       </p>
       {!result && (
-        <button type="button" disabled={running} onClick={() => void inspect()}>
-          {running
-            ? zh
-              ? "正在读取…"
-              : "Reading…"
-            : zh
-              ? "读取可选原子"
-              : "Read selectable atoms"}
-        </button>
+        <InspectionSteps
+          language={language}
+          label={zh ? "读取可选原子" : "Read selectable atoms"}
+          subject={
+            <p>
+              {zh ? "使用已选分子版本" : "Use the selected molecule version"}
+            </p>
+          }
+          busy={running}
+          error={error}
+          onSubmit={inspect}
+        />
       )}
       {job && !["queued", "running", "succeeded"].includes(job.status) && (
         <p role="alert">
           {job.status}: {job.error}
+          <button
+            type="button"
+            disabled={running}
+            onClick={() => void inspect()}
+          >
+            {zh ? "重试检查" : "Retry inspection"}
+          </button>
         </p>
       )}
       {job && result && (

@@ -68,7 +68,7 @@ export function useNativeIdentity(initial: MoleculeRef, language: Language) {
         ["queued", "running", "cancelling", "succeeded"].includes(job.status)
       ) {
         setRefresh((value) => value + 1);
-        return;
+        return job;
       }
       if (
         job &&
@@ -90,6 +90,7 @@ export function useNativeIdentity(initial: MoleculeRef, language: Language) {
               attempt.current,
             );
       if (live.current) setJob(created);
+      return created;
     } catch (e) {
       if (live.current) setError(String(e));
     } finally {

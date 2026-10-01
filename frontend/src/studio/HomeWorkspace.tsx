@@ -53,7 +53,7 @@ interface Props {
   onResidue(residue: string): void;
   draft: Prediction | null;
   onReuse(): void;
-  onSubmit(value: Prediction, key: string): Promise<void>;
+  onSubmit(value: Prediction, key: string): Promise<Job>;
 }
 export function HomeWorkspace(p: Props) {
   const [showInput, setShowInput] = useState(
@@ -184,7 +184,11 @@ export function HomeWorkspace(p: Props) {
               </button>
             )}
         </div>
-        <div className="workbench-columns">
+        <div
+          className={
+            "workbench-columns" + (showResults ? " result-columns" : "")
+          }
+        >
           <div className="input-column" hidden={!showInput}>
             <TaskForm
               language={p.language}
@@ -192,21 +196,14 @@ export function HomeWorkspace(p: Props) {
               abagAvailable={Boolean(p.health?.engine.models?.abag)}
               initialRequest={p.draft}
               onSubmit={async (value, key) => {
-                await p.onSubmit(value, key);
+                const created = await p.onSubmit(value, key);
                 setShowInput(false);
+                return created;
               }}
             />
           </div>
           {showResults && (
             <>
-              <div className="viewer-column">
-                <StructureViewer
-                  urls={p.urls}
-                  language={p.language}
-                  focusResidue={p.focusResidue}
-                  comparison={p.compared.length > 1}
-                />
-              </div>
               <div className="candidate-column">
                 <h2 className="result-task-name">
                   {p.job?.request.name}{" "}
@@ -228,17 +225,30 @@ export function HomeWorkspace(p: Props) {
                   onCompare={p.onCompare}
                 />
               </div>
+              <div className="viewer-column">
+                <StructureViewer
+                  urls={p.urls}
+                  language={p.language}
+                  focusResidue={p.focusResidue}
+                  comparison={p.compared.length > 1}
+                />
+              </div>
             </>
           )}
         </div>
         {showResults && (
-          <AnalysisGrid
-            analysis={p.analysis}
-            candidate={p.candidate}
-            language={p.language}
-            onResidue={p.onResidue}
-            components={componentsOf(p.job?.request)}
-          />
+          <details className="preview-properties">
+            <summary>
+              {zh ? "性质与结构指标" : "Properties and structure metrics"}
+            </summary>
+            <AnalysisGrid
+              analysis={p.analysis}
+              candidate={p.candidate}
+              language={p.language}
+              onResidue={p.onResidue}
+              components={componentsOf(p.job?.request)}
+            />
+          </details>
         )}
       </section>
       {showResults &&
