@@ -4,7 +4,7 @@ import hashlib
 
 
 def read_sdf(ref, bindings, directory):
-    from rdkit import Chem
+    from sdf_io import read_records
 
     binding = bindings[str(ref["asset_id"])]
     if not isinstance(binding, str) or not binding.startswith("/job/assets/"):
@@ -20,10 +20,7 @@ def read_sdf(ref, bindings, directory):
         raise ValueError("Choose a bounded SDF file from the actual task snapshot.")
     if hashlib.sha256(file.read_bytes()).hexdigest() != ref["sha256"]:
         raise ValueError("Library/query bytes differ from the selected input digest.")
-    supplier = Chem.SDMolSupplier(str(file), removeHs=False)
-    if not 1 <= len(supplier) <= 500:
-        raise ValueError("Split the library into files of one to 500 records before screening.")
-    return supplier
+    return read_records(file.read_bytes())
 
 
 def valid_molecule(molecule):

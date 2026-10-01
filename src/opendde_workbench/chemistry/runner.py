@@ -34,7 +34,9 @@ def run(request, bindings, directory, output):
         or ref.get("conformer", 0) != 0
     ):
         raise ValueError("State input digest or conformer changed.")
-    supplier = Chem.SDMolSupplier(str(file), removeHs=True)
+    from sdf_io import read_records
+
+    supplier = read_records(file.read_bytes())
     record = ref.get("record", 0)
     if (
         not isinstance(record, int)

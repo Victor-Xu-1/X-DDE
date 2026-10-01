@@ -107,3 +107,21 @@ def test_invalid_and_excessive_library_records_are_not_silently_dropped(native, 
     library["sha256"] = hashlib.sha256(file.read_bytes()).hexdigest()
     with pytest.raises(ValueError, match="500"):
         native["screen_io"].read_sdf(library, bindings, tmp_path)
+
+
+def test_source_record_indices_and_sd_properties_survive_invalid_middle_and_eof(native, tmp_path):
+    library, query, bindings, file = input_library(tmp_path)
+    original = file.read_bytes()
+    parts = original.split(b"$$$$\n")
+    first = parts[0] + b"> <SOURCE_TAG>\noriginal record\n\n"
+    file.write_bytes(first + b"$$$$\ninvalid\n$$$$\n" + parts[1])
+    library["sha256"] = hashlib.sha256(file.read_bytes()).hexdigest()
+    records = native["screen_io"].read_sdf(library, bindings, tmp_path)
+    assert (
+        len(records) == 3
+        and records[0] is not None
+        and records[1] is None
+        and records[2] is not None
+    )
+    assert records[0].GetProp("SOURCE_TAG") == "original record"
+    assert Chem.MolToSmiles(records[2]) == "CCO"

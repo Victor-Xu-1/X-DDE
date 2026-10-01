@@ -13,6 +13,7 @@ FILES = (
     "options.py",
     "native_screen.py",
     "screen_io.py",
+    "sdf_io.py",
     "screen_options.py",
 )
 
