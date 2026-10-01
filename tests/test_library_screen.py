@@ -48,7 +48,9 @@ def test_library_snapshot_keeps_all_records_without_relaxing_prediction_ligands(
     bindings = assets.snapshot(task, directory)
     assert bindings[asset.id] == "/job/assets/" + asset.id + ".sdf"
     assert (directory / "assets" / (asset.id + ".sdf")).read_bytes() == content
-    prediction = Prediction(components=[{"kind": "ligand", "ligand_file": asset.id}])
+    prediction = Prediction(
+        name="Prediction guard regression", components=[{"kind": "ligand", "ligand_file": asset.id}]
+    )
     directory = tmp_path / "prediction-job"
     directory.mkdir()
     with pytest.raises(ValueError, match="prediction ligand"):
