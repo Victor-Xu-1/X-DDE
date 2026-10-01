@@ -13,6 +13,7 @@ AUTHORITIES = frozenset(
 )
 LIMIT = 8 * 1024**2
 MAX_ATTEMPTS = 3
+RESPONSE_BUDGET = 30
 RETRYABLE_STATUS = frozenset({408, 429, 500, 502, 503, 504})
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def request_bytes(url: str, body: dict | None = None, *, require_json=True):
         },
     )
     opener = build_opener(ProxyHandler({}), NoRedirect())
-    deadline = time.monotonic() + 20
+    deadline = time.monotonic() + RESPONSE_BUDGET
     last_error = None
     reason = "response deadline"
     for attempt in range(MAX_ATTEMPTS):

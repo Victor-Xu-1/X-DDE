@@ -80,7 +80,7 @@ def test_permission_or_endpoint_errors_are_not_retried(monkeypatch, status):
 
 def test_expired_budget_does_not_start_another_request(monkeypatch):
     calls = opener_boundary(monkeypatch, [unavailable(503)])
-    timestamps = iter([0, 0, 21])
+    timestamps = iter([0, 0, transport.RESPONSE_BUDGET + 1])
     monkeypatch.setattr(transport.time, "monotonic", lambda: next(timestamps))
     with pytest.raises(transport.SourceUnavailable, match="bounded retries"):
         transport.request_bytes("https://www.ebi.ac.uk/chembl/api/data/target.json")
