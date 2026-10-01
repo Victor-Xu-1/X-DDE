@@ -174,9 +174,10 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
             panel.get_by_role("radio", name="一组候选分子", exact=True).click()
             panel.get_by_role("button", name="下一步", exact=True).click()
             expect(panel.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
-            panel.get_by_role("combobox", name="候选分子 SDF 文件", exact=True).select_option(
-                source.id
-            )
+            library_picker = panel.get_by_role("combobox", name="候选分子 SDF 文件", exact=True)
+            library_picker.focus()
+            expect(library_picker.locator(f'option[value="{source.id}"]')).to_have_count(1)
+            library_picker.select_option(source.id)
             panel.get_by_role("button", name="下一步", exact=True).click()
             panel.get_by_role("button", name="下一步", exact=True).click()
             expect(
