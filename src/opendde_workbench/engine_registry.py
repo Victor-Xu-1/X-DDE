@@ -16,7 +16,7 @@ class ScientificEngine:
     description: str
     execution_backend: Literal["docker", "local_process", "harness_process"]
     operations: tuple[str, ...]
-    role: Literal["integrated_environment"] = "integrated_environment"
+    role: Literal["integrated_environment", "public_data_service"] = "integrated_environment"
 
 
 _DEFINITIONS = (
@@ -26,6 +26,7 @@ _DEFINITIONS = (
         "早期靶点、疾病、序列、结构索引与已知活性证据 / Early discovery evidence",
         "local_process",
         ("target_research",),
+        role="public_data_service",
     ),
     ScientificEngine(
         "biopython",

@@ -62,6 +62,8 @@ def test_real_xdde_server_remains_available_without_scientific_environments(
         assert client.get("/api/research/objects").status_code == 200
         deployment = client.get("/api/deployment").json()
         assert deployment["engines"]["diffsbdd"]["name"] == "DiffSBDD"
+        assert "discovery" not in deployment["engines"]
+        assert deployment["services"]["discovery"]["role"] == "public_data_service"
         assert all("/mnt/c/" not in path for path in deployment["locations"])
 
 

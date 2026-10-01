@@ -73,7 +73,17 @@ class DeploymentManager:
 
     def snapshot(self):
         config = self.store.config()
-        environments = engine_catalogue()
+        definitions = engine_catalogue()
+        environments = {
+            key: value
+            for key, value in definitions.items()
+            if value["role"] == "integrated_environment"
+        }
+        services = {
+            key: value
+            for key, value in definitions.items()
+            if value["role"] == "public_data_service"
+        }
         return {
             "config": config,
             "installed": self.store.installed(),
@@ -81,6 +91,7 @@ class DeploymentManager:
             "packages": catalogue(),
             "environments": environments,
             "engines": environments,
+            "services": services,
             "provisioners": provisioner_states(self.store.installed()),
             "prerequisites": prerequisites(),
             "default_location": str(home() / "components"),
