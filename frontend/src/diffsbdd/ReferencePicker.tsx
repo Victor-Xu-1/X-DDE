@@ -132,9 +132,7 @@ export function ReferencePicker({
             }}
           >
             <option value="">
-              {zh
-                ? "选择已保存版本，或在下方上传"
-                : "Choose a saved version or upload below"}
+              {zh ? "选择已保存的研究版本" : "Choose a saved research version"}
             </option>
             {versions.map((v) => (
               <option key={v.id} value={v.id}>
