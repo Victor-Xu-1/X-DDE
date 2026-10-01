@@ -221,3 +221,5 @@ The current source uses Apache-2.0. Previously published MIT releases retain the
 
 
 GNINA binding-pose tasks have independent component management and three entries: bounded docking, existing-pose scoring and local minimization. P2Rank pockets can pass their receptor and center into the search form; selected poses are saved as reusable immutable molecule versions. CPU empirical scoring is the guided default, with explicit coordinate-frame confirmation and expert CNN/GPU budgets. Configuration readiness is separate from scientific benchmark acceptance; see [server acceptance](docs/server-acceptance.md) and the canonical [design contract](docs/design/README.md).
+
+分子准备由独立的 Chemistry 集成环境提供，复用 X-DDE 的现有任务、资产和环境管理。启动工作台后，在“安装与组件”安装 Chemistry；如由服务器管理员预先构建镜像，可在 `.env` 设置 `WB_CHEMISTRY_IMAGE=sha256:<完整镜像ID>`，然后重启。镜像必须匹配仓库中的固定版本、哈希锁和标签，不接受可变 tag。“分子准备”默认保留当前化学状态并生成游离三维构象，也可选择近生理或更宽 pH 的状态枚举；专家参数由服务端校验。输出为有原子对应和方法版本的状态/构象集合，每个成员可接着计算性质或重新对接。状态数量不代表优势状态比例，力场能量不代表亲和力；自由构象不能作为受体对齐的已有结合姿势。原生库和测试只在 CI/目标服务器安装及运行，本机预览不自动安装该环境。

@@ -37,6 +37,8 @@ jobs:
           from zipfile import ZipFile
           with ZipFile(glob('dist/*.whl')[0]) as wheel:
               files = set(wheel.namelist())
+          assert 'opendde_workbench/chemistry/native-requirements.txt' in files
+          assert 'opendde_workbench/chemistry/runner.py' in files
           assert 'opendde_workbench/web/index.html' in files
           assert 'opendde_workbench/web/viewer.html' in files
           assert 'opendde_workbench/web/theme-init.js' in files
