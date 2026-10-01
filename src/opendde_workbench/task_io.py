@@ -51,6 +51,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .receptors.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "admet_predict":
+        from .admet.result import validate_admet
+
+        validate_admet(result, job.request, output)
     if operation == "pose_quality":
         from .quality.result import validate_quality
 

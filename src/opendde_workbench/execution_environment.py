@@ -91,6 +91,18 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
             runtime["image"]
         )
         matched = matched and installed.get("runtime", {}).get("code") == runtime["code"]
+    elif software == "admet":
+        from .admet.image import lock_digest
+        from .admet.manifest import METADATA_DIGEST
+
+        runtime = {
+            "image": settings.admet_image or "",
+            "runtime_lock_sha256": lock_digest(),
+            "endpoint_metadata_sha256": METADATA_DIGEST,
+        }
+        matched = bool(
+            runtime["image"] and installed.get("admet", {}).get("image") == runtime["image"]
+        )
     elif software == "posebusters":
         from .quality.image import lock_digest
 

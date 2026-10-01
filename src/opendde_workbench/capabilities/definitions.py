@@ -334,6 +334,22 @@ _DISCOVERY = tuple(
         ),
     )
 )
+_ADMET = (
+    CapabilitySpec(
+        id="admet.predict",
+        **modality_metadata("admet.predict"),
+        group="evaluate",
+        environment="admet",
+        operations=("admet_predict",),
+        label=("性质与早期安全性预测", "ADMET and early safety predictions"),
+        note=(
+            "独立模型预测 41 个终点，保留原始分子、单位、物种与适用范围。",
+            "Predict 41 native endpoints with original molecules, units, species and scope.",
+        ),
+        source="ADMET-AI / Chemprop",
+        frontend_form="admet_predict",
+    ),
+)
 _POSE_QUALITY = (
     CapabilitySpec(
         id="posebusters.check",
@@ -419,7 +435,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _POSE_QUALITY
+    _ADMET
+    + _POSE_QUALITY
     + _ANTIBODY_NUMBER
     + _LIBRARY_SCREEN
     + _STRUCTURE_PREPARE

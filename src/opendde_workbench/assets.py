@@ -201,6 +201,10 @@ class AssetStore:
                 self.path(asset)
                 bindings[asset.id] = asset
             return bindings
+        if getattr(request, "operation", None) == "admet_predict":
+            from .admet.bindings import admet_bindings
+
+            return admet_bindings(request, self)
         if getattr(request, "operation", None) == "pose_quality":
             from .quality.bindings import quality_bindings
 
@@ -357,6 +361,7 @@ class AssetStore:
                 "molecular_states",
                 "library_screen",
                 "pose_quality",
+                "admet_predict",
             }:
                 records = [
                     part

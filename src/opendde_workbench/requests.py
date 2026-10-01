@@ -14,6 +14,7 @@ from pydantic import (
     model_validator,
 )
 
+from .admet.contract import AdmetTask
 from .antibodies.contract import AntibodyNumberTask
 from .chemistry.contract import MolecularStatesTask
 from .chemistry.screen_contract import LibraryScreenTask
@@ -131,7 +132,8 @@ def request_kind(value: object) -> str:
 
 
 TaskRequest = Annotated[
-    Annotated[ReferenceImportTask, Tag("reference_import")]
+    Annotated[AdmetTask, Tag("admet_predict")]
+    | Annotated[ReferenceImportTask, Tag("reference_import")]
     | Annotated[TargetResearchTask, Tag("target_research")]
     | Annotated[Prediction, Tag("predict")]
     | Annotated[Preparation, Tag("features")]
@@ -158,6 +160,8 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
+    if isinstance(request, AdmetTask):
+        return {str(request.source.asset_id)}
     if isinstance(request, ReferenceImportTask):
         return {str(ref.asset_id) for ref in request.scientific_inputs}
     if isinstance(request, StructurePrepareTask):

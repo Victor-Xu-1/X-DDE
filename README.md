@@ -131,6 +131,7 @@ cp .env.example .env
 | `WB_HARNESS_SHARED_DIR` | 工作台主机上可访问的 Harness 计算输出根目录。文件工具需共享挂载，并以相同服务 UID 读写共享输入。 |
 | `WB_HARNESS_REMOTE_DIR` | 同一个目录在计算服务主机/容器内的绝对路径；同路径时可留空。 |
 | `WB_ANARCII_IMAGE` | 管理器安装的固定 ANARCII CPU 镜像 ID；可独立编号抗体，模型来自固定 wheel，无需 OpenDDE。 |
+| `WB_ADMET_IMAGE` | 管理器安装的固定 ADMET-AI CPU 镜像 ID；预测 41 个原始性质/早期安全性终点，无需 OpenDDE。 |
 | `WB_DIFFSBDD_PYTHON` / `WB_DIFFSBDD_SOURCE` | DiffSBDD 独立解释器与经过审查的原生源码；安装管理会自动记录。 |
 | `WB_DIFFSBDD_HOME` / `WB_DIFFSBDD_MANIFEST_SHA256` | DiffSBDD 运行根目录与可信安装清单摘要；仅管理员覆盖，不接受浏览器任意路径。 |
 
@@ -254,3 +255,5 @@ target environment/remote CI; the owner machine does not run scientific jobs.
 
 
 **Independent conformation/pose quality:** install PoseBusters in *Installation & components*, then open *Conformation and pose quality* from *All capabilities*. Select an exact3D SDF molecular version, choose free conformation / protein pose / cognate reference comparison, confirm the optional receptor frame, and submit after review. The tool preserves original assets and distinguishes native pass, fail and unavailable checks. It evaluates plausibility; it is not an affinity or experimental-activity predictor. Use *Structure preparation* first for multi-model/alternate-location receptors; this adapter accepts a prepared PDB receptor. See [server acceptance](docs/server-acceptance.md) for actual remote verification and its limits.
+
+**性质与早期安全性预测 / ADMET predictions:** 在“安装与组件”安装独立 ADMET-AI CPU 环境。从“全部能力”进入“性质与早期安全性预测”，依次选择单个研究分子或一组 SDF 候选、具体来源、结果分组，再确认提交。单个分子可复用确切版本；整组最多 50 条原始记录，文件最多 8 MiB，每分子最多 256 个非氢原子。模型始终计算 41 个原始终点，分组只改变显示。无效记录和重复项保留编号；点击结果行预览对应原始结构，并可继续复用原分子进行准备。ADMET-AI 2.0.1 / Chemprop 2.2.2 独立安装，至少留 6 GiB 暂存空间；CPU 无需 GPU。结果显示上游单位、物种、标签说明和参考指标，不提供未经验证的适用域、可靠性区间或临床判断。DrugBank 参考/百分位关闭且参考文件从镜像安装层移除。环境、模型、第三方数据的条款独立于 X-DDE Apache-2.0。真实推理与浏览器验收命令见 [server acceptance](docs/server-acceptance.md)。

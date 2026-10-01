@@ -11,6 +11,7 @@ import os
 from collections.abc import Awaitable
 
 from . import harness_process, local_process
+from .admet.backend import AdmetBackend
 from .antibodies.backend import AntibodyBackend
 from .chemistry.backend import ChemistryBackend
 from .diffsbdd.runtime import configuration
@@ -38,6 +39,7 @@ class BackendRouter:
         self.discovery = DiscoveryBackend(settings)
         self.anarcii = AntibodyBackend(settings)
         self.posebusters = QualityBackend(settings)
+        self.admet = AdmetBackend(settings)
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
@@ -52,11 +54,14 @@ class BackendRouter:
             "discovery",
             "anarcii",
             "posebusters",
+            "admet",
         }:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation == "admet":
+            return await self.admet.start(job, directory)
         if implementation == "posebusters":
             return await self.posebusters.start(job, directory)
         if implementation == "anarcii":
@@ -120,7 +125,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "posebusters":
+        if implementation == "admet":
+            await self.admet.stop(job.id, directory)
+        elif implementation == "posebusters":
             await self.posebusters.stop(job.id, directory)
         elif implementation == "anarcii":
             await self.anarcii.stop(job.id, directory)
@@ -154,6 +161,7 @@ class BackendRouter:
             biopython,
             anarcii,
             quality,
+            admet,
         ) = await asyncio.gather(
             self._checked_readiness("opendde", self.opendde.readiness()),
             self._checked_readiness("diffsbdd", asyncio.to_thread(diff_readiness, self.settings)),
@@ -163,6 +171,7 @@ class BackendRouter:
             self._checked_readiness("biopython", self.biopython.readiness()),
             self._checked_readiness("anarcii", self.anarcii.readiness()),
             self._checked_readiness("posebusters", self.posebusters.readiness()),
+            self._checked_readiness("admet", self.admet.readiness()),
         )
         client_present = bool(
             self.settings.harness_python and self.settings.harness_python.is_file()
@@ -186,6 +195,7 @@ class BackendRouter:
                 "biopython": biopython,
                 "anarcii": anarcii,
                 "posebusters": quality,
+                "admet": admet,
                 "discovery": await self.discovery.readiness(),
             },
         }

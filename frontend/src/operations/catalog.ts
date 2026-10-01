@@ -68,6 +68,18 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "admet.predict",
+    group: "evaluate",
+    label: ["性质与早期安全性预测", "ADMET and early safety predictions"],
+    note: [
+      "独立模型预测 41 个终点，保留原始分子、单位、物种与适用范围。",
+      "Predict 41 native endpoints with original molecules, units, species and scope.",
+    ],
+    source: "ADMET-AI / Chemprop",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "posebusters.check",
     group: "evaluate",
     label: ["构象与姿势质控", "Conformation and pose quality"],

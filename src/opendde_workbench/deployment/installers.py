@@ -28,7 +28,11 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "posebusters":
+    if key == "admet":
+        from .admet_install import install_admet
+
+        metadata.update(install_admet(root, work, execute, report, checkpoint))
+    elif key == "posebusters":
         from .quality_install import install_quality
 
         metadata.update(install_quality(root, work, execute, report, checkpoint))

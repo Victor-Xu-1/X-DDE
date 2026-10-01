@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "admet",
+        "ADMET-AI",
+        "小分子 ADMET 与早期安全性预测 / Early molecular ADMET and safety predictions",
+        "docker",
+        ("admet_predict",),
+    ),
+    ScientificEngine(
         "posebusters",
         "PoseBusters",
         "分子构象与结合姿势独立质控 / Independent molecular pose plausibility",

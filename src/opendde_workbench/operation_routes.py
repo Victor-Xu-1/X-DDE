@@ -53,6 +53,15 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Research evidence is invalid or changed; inspect task files."
                     ) from exc
+            if job.request.operation == "admet_predict":
+                from .admet.presentation import present_admet
+
+                try:
+                    value = present_admet(value, job, root / "output", assets)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(
+                        422, "ADMET prediction evidence is invalid or changed."
+                    ) from exc
             if job.request.operation == "pose_quality":
                 from .quality.result import validate_quality
 

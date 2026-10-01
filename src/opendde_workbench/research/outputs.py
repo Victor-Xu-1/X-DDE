@@ -186,6 +186,17 @@ class OutputCatalog:
 
     def preserve(self, job_id, file, kind, *, receptor_result=None, antibody_result=None):
         job = self.store.get(str(job_id))
+        if job and job.request.operation == "admet_predict":
+            from ..admet.result import validate_admet
+
+            root = self.assets.root.parent / "jobs" / job.id / "output"
+            validate_admet(
+                json.loads(contained(root, "result.json").read_text()), job.request, root
+            )
+            if file.name != "result.json":
+                raise ValueError(
+                    "Predictions preserve analysis; reuse the original molecular record."
+                )
         if job and job.request.operation == "pose_quality":
             from ..quality.result import validate_quality
 
@@ -348,7 +359,10 @@ class OutputCatalog:
                     kind = "config"
                 if not kind:
                     continue
-                if job.request.operation == "pose_quality" and file.name != "result.json":
+                if (
+                    job.request.operation in {"pose_quality", "admet_predict"}
+                    and file.name != "result.json"
+                ):
                     # Diagnostic copies support preview; downstream jobs reuse original versions.
                     continue
                 if job.request.operation == "docking":

@@ -40,6 +40,7 @@ class Settings:
     p2rank_home: Path | None = None
     p2rank_image: str | None = None
     p2rank_manifest_sha256: str | None = None
+    admet_image: str | None = None
 
     @classmethod
     def from_env(cls):
@@ -61,6 +62,7 @@ class Settings:
         diff = installed.get("diffsbdd", {})
         pockets = installed.get("p2rank", {})
         return cls(
+            admet_image=os.environ.get("WB_ADMET_IMAGE") or installed.get("admet", {}).get("image"),
             posebusters_image=os.environ.get("WB_POSEBUSTERS_IMAGE")
             or installed.get("posebusters", {}).get("image"),
             anarcii_image=os.environ.get("WB_ANARCII_IMAGE")

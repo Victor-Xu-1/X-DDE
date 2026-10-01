@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { request } from "../api";
+import { useState } from "react";
 import { AssetPicker } from "../operations/AssetPicker";
-import type { Asset } from "../operations/types";
+import { useSdfAsset } from "../research/useSdfAsset";
 import { Questionnaire } from "../guided/Questionnaire";
 import { Hint } from "../guided/Hint";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
@@ -29,50 +28,21 @@ export function LibraryScreenForm({
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("chemistry.screen"),
-    intent = useRef(0);
-  const [library, setLibrary] = useState<LibraryRef | null>(null),
-    [libraryName, setLibraryName] = useState(""),
-    [loading, setLoading] = useState(false),
-    [error, setError] = useState(""),
-    [query, setQuery] = useState<MoleculeRef | null>(null),
+    input = useSdfAsset(language);
+  const library: LibraryRef | null = input.asset
+      ? { asset_id: input.asset.id, sha256: input.asset.sha256 }
+      : null,
+    libraryName = input.asset?.name ?? "",
+    loading = input.loading,
+    error = input.error;
+  const [query, setQuery] = useState<MoleculeRef | null>(null),
     [options, setOptions] = useState<ScreenOptions>({ ...screenDefaults }),
     [name, setName] = useState("");
-  useEffect(
-    () => () => {
-      intent.current++;
-    },
-    [],
-  );
   const requiresQuery =
       options.mode === "similarity" || options.mode === "substructure",
     selectedQuery = requiresQuery ? query : null;
   function configure(change: Partial<ScreenOptions>) {
     setOptions((value) => ({ ...value, ...change }));
-  }
-  async function choose(id: string) {
-    const sequence = ++intent.current;
-    setError("");
-    setLibrary(null);
-    setLibraryName("");
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const asset = await request<Asset>(`/assets/${id}/metadata`);
-      if (sequence !== intent.current) return;
-      if (asset.kind !== "ligand" || asset.suffix !== ".sdf")
-        throw new Error(
-          zh ? "请选择 SDF 分子库。" : "Choose an SDF molecular library.",
-        );
-      setLibrary({ asset_id: asset.id, sha256: asset.sha256 });
-      setLibraryName(asset.name);
-    } catch (e) {
-      if (sequence === intent.current) setError(String(e));
-    } finally {
-      if (sequence === intent.current) setLoading(false);
-    }
   }
   const settingsValid =
     Number.isInteger(options.max_selected) &&
@@ -120,7 +90,7 @@ export function LibraryScreenForm({
                 kind="ligand"
                 allowedSuffixes={[".sdf"]}
                 value={library?.asset_id ?? ""}
-                onChange={(id) => void choose(id)}
+                onChange={(id) => void input.choose(id)}
               />
               <Hint
                 label={

@@ -208,6 +208,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("discovery", {}))
+            elif value.operation == "admet_predict":
+                from .admet.runtime import validate
+
+                assets.validate_bindings(value)
+                validate(value, readiness["engine"].get("backends", {}).get("admet", {}))
             elif value.operation == "pose_quality":
                 from .quality.runtime import validate
 

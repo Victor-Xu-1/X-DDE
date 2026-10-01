@@ -63,7 +63,7 @@ The basic script invokes native doctor and atom parsing, and checks real RDKit e
 | Native lifecycle | Competing controller, hidden orphan work, stale UI | Native phase/cycle/candidates/stop/adjust are reflected accurately, persist through reload and use native IDs. Queued core GPU work waits for app-launched campaigns; uncertain launch is visible and recoverable. |
 | Native LLM | Credentials, invalid outputs, tools, timeout/retry and cost/token limits | One approved small real campaign reaches candidates; malformed/unavailable provider behavior yields visible native failure; retry and token limits match the configured native policy; no duplicate campaign is launched. Record actual provider/model/usage, not secrets. |
 | Candidate analysis | Loss of original history/structure context | Campaign reports use native in-memory history and original task paths; top candidates open real structures; population JSON can be compared through native compare_runs. |
-| UI | Dead modules, language, focus, empty/error/loading behavior | Browser journey below passes at desktop and narrow widths; no unsupported developability/ADMET/de novo/affinity button appears. |
+| UI | Dead modules, language, focus, empty/error/loading behavior | Browser journey below passes at desktop and narrow widths; enabled controls use actual reviewed adapters, and unavailable environments remain explicit. |
 
 ## Real browser journey
 
@@ -121,6 +121,33 @@ WB_TEST_NATIVE_DOCKING=1 uv run --locked --group browser pytest -q -s server_tes
 This downloads the pinned official 2.1 GB executable, builds the hash-locked isolated scientific image and executes actual CPU docking, scoring and local minimization on upstream 184L fixtures. It verifies exact frames, empirical-only scoring, per-pose artifacts, environment fingerprints, original-input/derived-output versions, filtered asset reads restart persistence, actual native cancellation and rendered exact-pose reuse in Chromium. It does not validate docking accuracy, CNN/GPU behavior, experimental potency, special chemistries, full spatial constraints or multi-partner assembly. Run those reviewed target-server benchmarks before asserting scientific suitability. Failure artifacts and native logs remain identifiable under `server_tests/evidence`; CI uploads them, never fabricates successful poses.
 
 Configure the component through Installation & components → GNINA, or set `WB_GNINA_IMAGE` to the immutable reviewed Docker image ID, then restart X-DDE. Readiness requires matching native-version/executable/runtime-lock labels; the actual executable hash is rechecked inside every offline task. No large GNINA installation or scientific execution is authorized on the owner's workstation.
+
+## Independent native property-prediction acceptance
+
+On an isolated Linux x86_64 Docker server, build the packaged frontend and sync the platform's locked development dependencies first. Leave at least 6 GiB for the optional ADMET-AI CPU environment. Install through *Installation & components*; `WB_ADMET_IMAGE` may identify an already installed immutable image. This does not require OpenDDE, a GPU, an LLM service or the upstream Flask application.
+
+```bash
+npm ci --prefix frontend
+npm run build --prefix frontend
+uv sync --locked --group dev
+WB_TEST_NATIVE_ADMET=1 WB_AUTO_DEPLOY=0 uv run --locked pytest -q server_tests/test_native_admet.py
+```
+
+The mandatory `native-admet` CI job runs this actual installation and offline inference. It compares every endpoint against a direct upstream ADMET-AI 2.0.1 call using the same Chemprop 2.2.2 models, checks exact original single-record and whole-file inputs, invalid and disconnected records, duplicate identities, immutable previews, CSV safety, API validation/CSRF/idempotency, SQLite restart and tamper rejection. The same-run browser job consumes these real outputs, exercises row selection, actual structure loading, exact original-record reuse, one active question, Back, empty inputs, model-unavailable state and desktop/narrow layout. The native fixture remains on CI/target storage; the owner workstation receives only visual PNG evidence and diagnostic logs.
+
+For the browser check on that same isolated server:
+
+```bash
+uv sync --locked --group dev --group browser
+uv run --locked --group browser python -m playwright install --with-deps chromium
+mkdir -p server_tests/evidence/admet
+cp -a server_tests/evidence/admet-fixture/. server_tests/evidence/admet/
+WB_CORE_FIXTURE=server_tests/evidence WB_AUTO_DEPLOY=0 uv run --locked --group browser pytest -q server_tests/test_admet_browser.py
+```
+
+The source SDF, CSV and native diagnostic previews must stay together. CI downloads the exact preceding native job's fixture into that layout automatically.
+
+Prediction values use upstream endpoint units and species. Classification scores refer to original training labels and are not a universal risk percentage. Distribution-volume and half-life endpoints have negative upstream reference R² and carry an explicit caution. Native models do not establish applicability to new chemotypes, individual confidence intervals, dose selection, efficacy or measured safety. No experimental measurements, DrugBank percentiles or uncertainty values are invented. Dataset licenses are not changed by the model's MIT license; no training datasets are downloaded or redistributed by X-DDE.
 
 The reviewed GNINA executable dynamically links cuDNN 9 even for empirical CPU tasks. Its isolated runtime locks NVIDIA cuDNN 9.8.0.87, cuBLAS 12.8.4.1 and CUDA runtime 12.8.90, cuSPARSE 12.5.8.93, cuFFT 11.3.3.83, cuSOLVER 11.7.3.90 and nvJitLink 12.8.93 by package hashes. These libraries have NVIDIA proprietary software terms, separate from X-DDE Apache-2.0 and GNINA upstream licenses; they are downloaded by the operator's optional environment installation, not vendored into the platform wheel or repository. Installation requires approximately 4.5 GB of downloads and at least 12 GiB free staging space. The image build checks actual native linker dependencies before activation. GPU/CNN performance and scientific accuracy still require separate target-server evidence.
 

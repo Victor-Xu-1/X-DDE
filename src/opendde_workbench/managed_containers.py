@@ -9,6 +9,7 @@ CONTAINER_STYLES = {
     "biopython": "preparation",
     "anarcii": "preparation",
     "posebusters": "preparation",
+    "admet": "preparation",
 }
 
 

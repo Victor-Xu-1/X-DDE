@@ -157,6 +157,16 @@ PACKAGES = {
 }
 
 
+PACKAGES["admet"] = Package(
+    "admet",
+    "2.0.1-cpu",
+    "ADMET-AI",
+    "小分子性质与早期安全性预测 / Molecular ADMET and early safety predictions",
+    "独立 CPU 模型与依赖；至少 6 GiB 安装空间 / Independent CPU models; 6 GiB staging",
+    license="ADMET-AI MIT; Chemprop MIT; dependency licenses; DrugBank reference disabled",
+    engine="admet",
+)
+
 PACKAGES["posebusters"] = Package(
     "posebusters",
     "0.6.5-cpu",

@@ -129,6 +129,7 @@ _MEMBERSHIP = {
     "chemistry.states": _SMALL,
     "chemistry.screen": _SMALL,
     "posebusters.check": _SMALL,
+    "admet.predict": _SMALL,
     "antibody.number": ("biologic", "antibody", "protein"),
     "pose_exploration": _CONTEXT,
     "p2rank.detect": _CONTEXT,

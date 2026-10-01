@@ -1,0 +1,58 @@
+.admet-result-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.admet-result-toolbar .field {
+  margin: 0;
+}
+.admet-results-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.6fr) minmax(0, 1.4fr);
+  gap: 16px;
+}
+.admet-records {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 36rem;
+  overflow: auto;
+  align-self: start;
+}
+.admet-records button {
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.admet-records button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.admet-records span,
+.admet-records small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.admet-selected-record {
+  min-width: 0;
+}
+.admet-selected-record > h3 {
+  margin-bottom: 12px;
+}
+@media (max-width: 800px) {
+  .admet-results-layout {
+    grid-template-columns: 1fr;
+  }
+  .admet-records {
+    max-height: 14rem;
+  }
+}

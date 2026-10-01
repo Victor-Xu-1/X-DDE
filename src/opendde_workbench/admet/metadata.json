@@ -1,0 +1,792 @@
+{
+  "upstream_commit": "c65bf0418e19c65d7228f9e40da5d0152aade756",
+  "version": "2.0.1",
+  "endpoint_csv_sha256": "32d46092deab7a553e319bdecaaed5e7dc2300c992d74d0a68c13c37f4af9d2d",
+  "endpoints": [
+    {
+      "id": "HIA_Hou",
+      "name": "Human Intestinal Absorption",
+      "category": "Absorption",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 578,
+      "reference_metrics": {
+        "AUPRC": 0.9994842348250168,
+        "AUROC": 0.9940232101885412
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#hia-human-intestinal-absorption-hou-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Bioavailability_Ma",
+      "name": "Oral Bioavailability",
+      "category": "Absorption",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 640,
+      "reference_metrics": {
+        "AUPRC": 0.8699950216268804,
+        "AUROC": 0.7163512034578641
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#bioavailability-ma-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Solubility_AqSolDB",
+      "name": "Aqueous Solubility",
+      "category": "Absorption",
+      "task_type": "regression",
+      "unit": "log(mol/L)",
+      "species": "-",
+      "minimum": null,
+      "maximum": null,
+      "source_dataset_size": 9980,
+      "reference_metrics": {
+        "R^2": 0.8166316273439673,
+        "MAE": 0.6921369647155847
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#solubility-aqsoldb",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Lipophilicity_AstraZeneca",
+      "name": "Lipophilicity",
+      "category": "Absorption",
+      "task_type": "regression",
+      "unit": "log-ratio",
+      "species": "-",
+      "minimum": null,
+      "maximum": null,
+      "source_dataset_size": 4200,
+      "reference_metrics": {
+        "R^2": 0.7711741108080836,
+        "MAE": 0.4069769084746869
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#lipophilicity-astrazeneca",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "HydrationFreeEnergy_FreeSolv",
+      "name": "Hydration Free Energy",
+      "category": "Absorption",
+      "task_type": "regression",
+      "unit": "kcal/mol",
+      "species": "-",
+      "minimum": null,
+      "maximum": null,
+      "source_dataset_size": 642,
+      "reference_metrics": {
+        "R^2": 0.8876539579865786,
+        "MAE": 0.7826281766672228
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#hydration-free-energy-freesolv",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Caco2_Wang",
+      "name": "Cell Effective Permeability",
+      "category": "Absorption",
+      "task_type": "regression",
+      "unit": "log(10^-6 cm/s)",
+      "species": "human",
+      "minimum": null,
+      "maximum": null,
+      "source_dataset_size": 906,
+      "reference_metrics": {
+        "R^2": 0.7065060857230016,
+        "MAE": 0.3114522384781544
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#caco-2-cell-effective-permeability-wang-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "PAMPA_NCATS",
+      "name": "PAMPA Permeability",
+      "category": "Absorption",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "artificial membrane",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 2034,
+      "reference_metrics": {
+        "AUPRC": 0.9549333833403232,
+        "AUROC": 0.7863669156852404
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#pampa-permeability-ncats",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Pgp_Broccatelli",
+      "name": "P-glycoprotein Inhibition",
+      "category": "Absorption",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human pgp / mouse cells",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 1212,
+      "reference_metrics": {
+        "AUPRC": 0.9580859888617924,
+        "AUROC": 0.9474505385046356
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#pgp-p-glycoprotein-inhibition-broccatelli-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "BBB_Martins",
+      "name": "Blood-Brain Barrier Penetration",
+      "category": "Distribution",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 1975,
+      "reference_metrics": {
+        "AUPRC": 0.9589556717958928,
+        "AUROC": 0.9003816994239712
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#bbb-blood-brain-barrier-martins-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "PPBR_AZ",
+      "name": "Plasma Protein Binding Rate",
+      "category": "Distribution",
+      "task_type": "regression",
+      "unit": "%",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "source_dataset_size": 1614,
+      "reference_metrics": {
+        "R^2": 0.5888679381304678,
+        "MAE": 6.851690451293895
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#ppbr-plasma-protein-binding-rate-astrazeneca",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "VDss_Lombardo",
+      "name": "Volume of Distribution at Steady State",
+      "category": "Distribution",
+      "task_type": "regression",
+      "unit": "L/kg",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": null,
+      "source_dataset_size": 1111,
+      "reference_metrics": {
+        "R^2": -1.2107082831685434,
+        "MAE": 5.039386413798697
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#vdss-volumn-of-distribution-at-steady-state-lombardo-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Half_Life_Obach",
+      "name": "Half Life",
+      "category": "Excretion",
+      "task_type": "regression",
+      "unit": "hr",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": null,
+      "source_dataset_size": 665,
+      "reference_metrics": {
+        "R^2": -2.385712736530985,
+        "MAE": 31.847395032315593
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#half-life-obach-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Clearance_Hepatocyte_AZ",
+      "name": "Drug Clearance (Hepatocyte)",
+      "category": "Excretion",
+      "task_type": "regression",
+      "unit": "uL/min/10^6 cells",
+      "species": "human & rat",
+      "minimum": 0.0,
+      "maximum": null,
+      "source_dataset_size": 1020,
+      "reference_metrics": {
+        "R^2": 0.2639755817093195,
+        "MAE": 32.72573699277887
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Clearance_Microsome_AZ",
+      "name": "Drug Clearance (Microsome)",
+      "category": "Excretion",
+      "task_type": "regression",
+      "unit": "uL/min/mg",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": null,
+      "source_dataset_size": 1102,
+      "reference_metrics": {
+        "R^2": 0.276741790995323,
+        "MAE": 26.73759681256409
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP1A2_Veith",
+      "name": "CYP1A2 Inhibition",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 12579,
+      "reference_metrics": {
+        "AUPRC": 0.9352310814957951,
+        "AUROC": 0.9410729533100876
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-1a2-inhibition-veith-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP2C19_Veith",
+      "name": "CYP2C19 Inhibition",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 12665,
+      "reference_metrics": {
+        "AUPRC": 0.875286685765493,
+        "AUROC": 0.9062325677287462
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c19-inhibition-veith-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP2C9_Veith",
+      "name": "CYP2C9 Inhibition",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 12092,
+      "reference_metrics": {
+        "AUPRC": 0.8223621973733012,
+        "AUROC": 0.9076776897689186
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c9-inhibition-veith-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP2D6_Veith",
+      "name": "CYP2D6 Inhibition",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 13130,
+      "reference_metrics": {
+        "AUPRC": 0.7255343259283761,
+        "AUROC": 0.8861374248891597
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2d6-inhibition-veith-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP3A4_Veith",
+      "name": "CYP3A4 Inhibition",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 12328,
+      "reference_metrics": {
+        "AUPRC": 0.8733639396410531,
+        "AUROC": 0.9116457077306306
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-3a4-inhibition-veith-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP2C9_Substrate_CarbonMangels",
+      "name": "CYP2C9 Substrate",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 666,
+      "reference_metrics": {
+        "AUPRC": 0.3696343498175162,
+        "AUROC": 0.6278973930359049
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp2c9-substrate-carbon-mangels-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP2D6_Substrate_CarbonMangels",
+      "name": "CYP2D6 Substrate",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 664,
+      "reference_metrics": {
+        "AUPRC": 0.6602305465449196,
+        "AUROC": 0.8200422282192378
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp2d6-substrate-carbon-mangels-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "CYP3A4_Substrate_CarbonMangels",
+      "name": "CYP3A4 Substrate",
+      "category": "Metabolism",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 667,
+      "reference_metrics": {
+        "AUPRC": 0.7271589946144282,
+        "AUROC": 0.7048194823279468
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/adme/#cyp3a4-substrate-carbon-mangels-et-al",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "hERG",
+      "name": "hERG Blocking",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 648,
+      "reference_metrics": {
+        "AUPRC": 0.9061997857102244,
+        "AUROC": 0.8387915076676851
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#herg-blockers",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "ClinTox",
+      "name": "Clinical Toxicity",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 1459,
+      "reference_metrics": {
+        "AUPRC": 0.6069354051558659,
+        "AUROC": 0.9275087330093084
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#clintox",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "AMES",
+      "name": "Mutagenicity",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "salmonella typhimurium",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 7255,
+      "reference_metrics": {
+        "AUPRC": 0.8957980386551526,
+        "AUROC": 0.8815869913780047
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#ames-mutagenicity",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "DILI",
+      "name": "Drug Induced Liver Injury",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 475,
+      "reference_metrics": {
+        "AUPRC": 0.8777146999563998,
+        "AUROC": 0.8814562005384994
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#dili-drug-induced-liver-injury",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Carcinogens_Lagunin",
+      "name": "Carcinogenicity",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "rodent",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 278,
+      "reference_metrics": {
+        "AUPRC": 0.608283704744014,
+        "AUROC": 0.7722614379084967
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#carcinogens",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "LD50_Zhu",
+      "name": "Acute Toxicity LD50",
+      "category": "Toxicity",
+      "task_type": "regression",
+      "unit": "log(1/(mol/kg))",
+      "species": "rat",
+      "minimum": null,
+      "maximum": null,
+      "source_dataset_size": 7342,
+      "reference_metrics": {
+        "R^2": 0.5959243623284032,
+        "MAE": 0.4515061714343698
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#acute-toxicity-ld50",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "Skin_Reaction",
+      "name": "Skin Reaction",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "mouse",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 404,
+      "reference_metrics": {
+        "AUPRC": 0.8730032877355487,
+        "AUROC": 0.7179946827366182
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#skin-reaction",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-AR",
+      "name": "Androgen Receptor (Full Length)",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 7258,
+      "reference_metrics": {
+        "AUPRC": 0.5151499066330999,
+        "AUROC": 0.7794796279772097
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-AR-LBD",
+      "name": "Androgen Receptor (Ligand Binding Domain)",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6751,
+      "reference_metrics": {
+        "AUPRC": 0.6721736896162589,
+        "AUROC": 0.8833775261961652
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-AhR",
+      "name": "Aryl Hydrocarbon Receptor",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6542,
+      "reference_metrics": {
+        "AUPRC": 0.6359797022426139,
+        "AUROC": 0.9043922118028404
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-Aromatase",
+      "name": "Aromatase",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 5815,
+      "reference_metrics": {
+        "AUPRC": 0.4747761622876256,
+        "AUROC": 0.9055872473619092
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-ER",
+      "name": "Estrogen Receptor (Full Length)",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6186,
+      "reference_metrics": {
+        "AUPRC": 0.4583187668558939,
+        "AUROC": 0.7488198624538707
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-ER-LBD",
+      "name": "Estrogen Receptor (Ligand Binding Domain)",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6948,
+      "reference_metrics": {
+        "AUPRC": 0.4838179820849542,
+        "AUROC": 0.826487896094781
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "NR-PPAR-gamma",
+      "name": "Peroxisome Proliferator-Activated Receptor Gamma",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6443,
+      "reference_metrics": {
+        "AUPRC": 0.4390021749117615,
+        "AUROC": 0.9163781570174218
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "SR-ARE",
+      "name": "Nuclear Factor (Erythroid-Derived 2)-Like 2/Antioxidant Responsive Element",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 5825,
+      "reference_metrics": {
+        "AUPRC": 0.519545643846884,
+        "AUROC": 0.8377680366814685
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "SR-ATAD5",
+      "name": "ATPase Family AAA Domain-Containing Protein 5 (ATAD5)",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 7065,
+      "reference_metrics": {
+        "AUPRC": 0.3116413438983285,
+        "AUROC": 0.8790823594219473
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "SR-HSE",
+      "name": "Heat Shock Factor Response Element",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6460,
+      "reference_metrics": {
+        "AUPRC": 0.4274974106278428,
+        "AUROC": 0.8426772634912544
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "SR-MMP",
+      "name": "Mitochondrial Membrane Potential",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 5804,
+      "reference_metrics": {
+        "AUPRC": 0.6983247428958566,
+        "AUROC": 0.92474050186623
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    },
+    {
+      "id": "SR-p53",
+      "name": "Tumor Protein p53",
+      "category": "Toxicity",
+      "task_type": "classification",
+      "unit": "-",
+      "species": "human",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "source_dataset_size": 6767,
+      "reference_metrics": {
+        "AUPRC": 0.4411030404695476,
+        "AUROC": 0.880314338237026
+      },
+      "source_url": "https://tdcommons.ai/single_pred_tasks/tox/#tox21",
+      "interpretation": "native_model_prediction_not_experimental_measurement",
+      "benchmark_origin": "upstream_version2_endpoint_metadata_not_prospective_validation"
+    }
+  ],
+  "weights": {
+    "admet_classification/model_0.pt": {
+      "git_blob_sha1": "a0e9f89d7e90e9f05c7048396516362d4ec08321",
+      "size": 1320249
+    },
+    "admet_classification/model_1.pt": {
+      "git_blob_sha1": "83e69728405e30fd1c510d38a6295b19c02e9d5c",
+      "size": 1320249
+    },
+    "admet_classification/model_2.pt": {
+      "git_blob_sha1": "d894a4ebf5d1e60474eff2e22b560889533689c7",
+      "size": 1320249
+    },
+    "admet_classification/model_3.pt": {
+      "git_blob_sha1": "2abdcc5ab00b1ece6d9e28c9283c3a23cff6d57e",
+      "size": 1320249
+    },
+    "admet_classification/model_4.pt": {
+      "git_blob_sha1": "e4bbc35650fc6b2fe572883e8c76be7dfcdf1ead",
+      "size": 1320249
+    },
+    "admet_regression/model_0.pt": {
+      "git_blob_sha1": "de7cf53df652493bdf063d7531bdfa4b1e6bacbd",
+      "size": 1300041
+    },
+    "admet_regression/model_1.pt": {
+      "git_blob_sha1": "974c78b40a0604c1aa75a838a7c08d4017857ce9",
+      "size": 1300041
+    },
+    "admet_regression/model_2.pt": {
+      "git_blob_sha1": "3324253d199a37c742045f5f65095599fd3afeed",
+      "size": 1300041
+    },
+    "admet_regression/model_3.pt": {
+      "git_blob_sha1": "c7d9f86b03291bbd9ecccb437b275e7e9d96779f",
+      "size": 1300041
+    },
+    "admet_regression/model_4.pt": {
+      "git_blob_sha1": "9e78f60c450dc12d31fe9815874374b8cca9f79e",
+      "size": 1300041
+    }
+  },
+  "drugbank_reference": "disabled",
+  "physchem": "existing descriptor module remains separate",
+  "uncertainty": "not exposed by the upstream API; not fabricated",
+  "applicability_domain": "not established for new compounds",
+  "clinical_decisions": "unsupported"
+}

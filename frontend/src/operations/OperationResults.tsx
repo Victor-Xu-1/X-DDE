@@ -3,6 +3,8 @@ import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { defaults } from "../form-model";
 import { QualityResults } from "../quality/QualityResults";
+import { AdmetResults } from "../admet/AdmetResults";
+import type { AdmetResult } from "../admet/types";
 import type { PoseQualityResult } from "../quality/types";
 import { AntibodyNumberResults } from "../antibodies/AntibodyNumberResults";
 import type { AntibodyNumberResult } from "../antibodies/types";
@@ -79,6 +81,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "admet_predict",
     "pose_quality",
     "antibody_number",
     "library_screen",
@@ -128,6 +131,14 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "admet_predict" && (
+        <AdmetResults
+          job={job}
+          result={data as unknown as AdmetResult}
+          language={language}
+          onCreated={onCreated}
+        />
+      )}
       {job.request.operation === "pose_quality" && (
         <QualityResults
           job={job}

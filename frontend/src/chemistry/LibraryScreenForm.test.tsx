@@ -42,6 +42,7 @@ it("requires a query only for query-based methods and removes unused query befor
           name: "library.sdf",
           kind: "ligand",
           suffix: ".sdf",
+          size: 100,
           sha256: "a".repeat(64),
         },
   );

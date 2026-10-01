@@ -1099,6 +1099,7 @@ def test_all_task_entries_show_one_step_and_no_early_dispatch():
                 "局部最小化结合姿势",
                 "准备分子状态与构象",
                 "对齐多个受体构象",
+                "性质与早期安全性预测",
             ]
             for name in names:
                 page.get_by_role("navigation", name="主导航").get_by_role(
