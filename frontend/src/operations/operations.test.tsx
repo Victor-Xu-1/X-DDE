@@ -7,6 +7,7 @@ import { PropertyForm } from "./PropertyForm";
 import { ExpertParameters } from "./ExpertParameters";
 import { HarnessField } from "./HarnessField";
 import { api } from "../api";
+import * as client from "../api";
 import { defaults, prediction, validate } from "../form-model";
 
 it("finds real capabilities by research goal without exposing the upstream stub", () => {
@@ -89,13 +90,23 @@ it("accepts uploaded ligand input and preserves extended controls when compiling
 });
 
 it("submits standalone properties without scheduling structure prediction", async () => {
+  const readiness = vi
+    .spyOn(client, "request")
+    .mockResolvedValue({ availability: { configuration_present: true } });
   const submit = vi
     .spyOn(api, "submit")
     .mockRejectedValue(new Error("server unavailable"));
   render(<PropertyForm language="en" onCreated={vi.fn()} />);
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "How will you provide molecules?" }),
+    { target: { value: "smiles" } },
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.change(screen.getByRole("textbox", { name: "SMILES" }), {
     target: { value: "CCO\nCC(=O)O" },
   });
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.click(screen.getByRole("button", { name: "Calculate properties" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "server unavailable",
@@ -109,6 +120,7 @@ it("submits standalone properties without scheduling structure prediction", asyn
     expect.any(String),
   );
   submit.mockRestore();
+  readiness.mockRestore();
 });
 
 it("keeps form labels attached to scientific inputs when help buttons are present", () => {

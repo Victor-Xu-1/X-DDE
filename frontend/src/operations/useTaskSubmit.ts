@@ -18,6 +18,7 @@ export function useTaskSubmit(onCreated: (job: Job) => void) {
       const job = await api.submit(value, request.current.key);
       request.current = { body: "", key: crypto.randomUUID() };
       onCreated(job);
+      return job;
     } catch (e) {
       setError(String(e));
     } finally {

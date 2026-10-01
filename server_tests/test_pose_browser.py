@@ -122,6 +122,7 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                         result.scroll_into_view_if_needed()
                         page.screenshot(path=str(evidence / f"pose-ensemble-{width}.png"))
                     result.get_by_role("button", name="计算此姿势分子性质", exact=True).click()
+                    result.get_by_role("button", name="下一步", exact=True).click()
                     expect(
                         result.get_by_role("combobox", name="分子文件（可含多个记录）", exact=True)
                     ).to_have_value(reference["asset_id"])

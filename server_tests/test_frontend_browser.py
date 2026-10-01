@@ -170,9 +170,40 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 current["notes"]
             )
             page.get_by_role("button", name="Use for properties", exact=True).click()
-            expect(page.get_by_text("Only this record is calculated", exact=False)).to_be_visible()
+            page.get_by_role("button", name="Next", exact=True).click()
+            expect(page.get_by_text("only this record is calculated", exact=False)).to_be_visible()
             expect(
                 page.get_by_role("combobox", name="Molecule file (multiple records allowed)")
+            ).to_have_value(current["reference"]["asset_id"])
+            for width in (1440, 390):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert page.evaluate(
+                    "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                )
+                page.screenshot(path=str(evidence / f"guided-property-input-{width}.png"))
+            page.get_by_role("button", name="Next", exact=True).click()
+            page.get_by_role("textbox", name="Task name (optional)", exact=True).fill(
+                "Guided property review"
+            )
+            page.get_by_role("button", name="Next", exact=True).click()
+            expect(
+                page.get_by_role("button", name="Calculate properties", exact=True)
+            ).to_be_enabled()
+            for width in (1440, 390):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert page.evaluate(
+                    "document.documentElement.scrollWidth <= window.innerWidth + 1"
+                )
+                page.screenshot(path=str(evidence / f"guided-property-review-{width}.png"))
+            page.get_by_role("button", name="Back", exact=True).click()
+            expect(
+                page.get_by_role("textbox", name="Task name (optional)", exact=True)
+            ).to_have_value("Guided property review")
+            page.get_by_role("button", name="Back", exact=True).click()
+            expect(
+                page.get_by_role(
+                    "combobox", name="Molecule file (multiple records allowed)", exact=True
+                )
             ).to_have_value(current["reference"]["asset_id"])
             assert page.request.get(base_url + "/api/jobs").json() == []
             assert not errors
