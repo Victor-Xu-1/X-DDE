@@ -66,6 +66,14 @@ def screenshot(page, evidence, name):
     for width in (1440, 390):
         page.set_viewport_size({"width": width, "height": 1000})
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
+        results = page.locator(".operation-results")
+        artifacts = page.locator(".detail-panel > .artifacts")
+        result_box, artifact_box = results.bounding_box(), artifacts.bounding_box()
+        assert result_box and artifact_box
+        assert artifact_box["y"] >= result_box["y"] + result_box["height"] - 1
+        if name == "results":
+            stage = page.locator(".admet-selected-record .molecular-stage").bounding_box()
+            assert stage and 250 <= stage["height"] <= 410
         page.screenshot(path=str(evidence / f"admet-{name}-{width}.png"), full_page=True)
     page.set_viewport_size({"width": 1440, "height": 1000})
 

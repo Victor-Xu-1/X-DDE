@@ -484,9 +484,6 @@ body {
   font-size: var(--text-small, 13px);
   color: var(--muted);
 }
-.viewer-panel {
-  height: 410px;
-}
 .viewer-modes {
   display: flex;
   gap: 4px;
@@ -503,18 +500,6 @@ body {
 .viewer-modes button.selected {
   background: var(--line);
   color: var(--accent);
-}
-.molecular-stage {
-  height: 315px;
-  background: var(--canvas);
-  position: relative;
-  overflow: hidden;
-  border-radius: 4px;
-}
-.molecular-stage iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
 }
 .viewer-message {
   position: absolute;

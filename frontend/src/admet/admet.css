@@ -48,6 +48,9 @@
 .admet-selected-record > h3 {
   margin-bottom: 12px;
 }
+.admet-selected-record .table-scroll {
+  max-height: 32rem;
+}
 @media (max-width: 800px) {
   .admet-results-layout {
     grid-template-columns: 1fr;
