@@ -2,8 +2,8 @@
 :root {
   --text-body: 14px;
   --text-small: 13px;
-  --content-width: 1200px;
-  --radius: 12px;
+  --content-width: 1440px;
+  --radius: 8px;
 }
 html {
   scrollbar-color: var(--line) transparent;
@@ -34,7 +34,7 @@ button:disabled {
   color: var(--ink);
 }
 .studio-app {
-  grid-template-columns: 232px minmax(0, 1fr);
+  grid-template-columns: 216px minmax(0, 1fr);
   background: var(--canvas);
   color: var(--ink);
 }
@@ -85,16 +85,16 @@ button:disabled {
   gap: 4px;
 }
 .studio-sidebar nav button {
-  min-height: 43px;
-  padding: 10px 12px;
+  min-height: 38px;
+  padding: 8px 12px;
   gap: 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
 }
 .studio-sidebar nav button.active {
-  background: var(--surface-hover);
-  color: var(--ink);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 600;
 }
 .studio-sidebar nav button:hover {
@@ -117,9 +117,9 @@ button:disabled {
   display: none;
 }
 .studio-topbar {
-  height: 64px;
-  padding: 0 32px;
-  background: var(--canvas);
+  height: 56px;
+  padding: 0 24px;
+  background: var(--surface);
   border-bottom-color: var(--line);
   gap: 24px;
 }
@@ -134,7 +134,7 @@ button:disabled {
   margin-left: auto;
   height: 36px;
   border-color: var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface);
 }
 .global-search input {
@@ -176,7 +176,7 @@ button:disabled {
 .studio-content {
   width: 100%;
   max-width: var(--content-width);
-  padding: 32px 36px 20px;
+  padding: 24px 28px 20px;
   min-width: 0;
 }
 .studio-content > [hidden] {
@@ -194,10 +194,10 @@ button:disabled {
 .utility-page > h1,
 .project-workspace > header h1 {
   font-family: var(--font);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.35;
   font-weight: 600;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.015em;
   color: var(--ink);
 }
 .studio-content h2 {

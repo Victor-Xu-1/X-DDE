@@ -47,7 +47,7 @@
 }
 .theme-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 .theme-option {
@@ -78,14 +78,11 @@
   border-radius: 6px;
   background: var(--surface-muted);
 }
-.theme-option[data-theme-preview="warm"] .theme-swatch {
-  background: #f6f4ee;
-}
 .theme-option[data-theme-preview="light"] .theme-swatch {
   background: #ffffff;
 }
 .theme-option[data-theme-preview="dark"] .theme-swatch {
-  background: #191918;
+  background: #141b18;
 }
 .theme-preference {
   padding: 0;
@@ -136,7 +133,7 @@
 .theme-swatch-sidebar {
   width: 26%;
   height: 100%;
-  background: #e7e4dc;
+  background: #eef3f0;
 }
 .theme-swatch-content {
   flex: 1;
@@ -147,7 +144,7 @@
   height: 4px;
   margin-bottom: 6px;
   border-radius: 3px;
-  background: #c4bfb3;
+  background: #a7b6ad;
 }
 .theme-swatch-content i:first-child {
   width: 60%;
@@ -159,10 +156,10 @@
   background: #d4d4d4;
 }
 .theme-option[data-theme-preview="dark"] .theme-swatch-sidebar {
-  background: #30302e;
+  background: #243229;
 }
 .theme-option[data-theme-preview="dark"] .theme-swatch-content i {
-  background: #54534d;
+  background: #8eaa98;
 }
 .preference-warning {
   color: var(--warning);

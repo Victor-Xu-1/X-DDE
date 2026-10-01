@@ -11,7 +11,7 @@ beforeEach(() => {
   sessionStorage.clear();
   for (const key of ["theme", "themeReady", "themeStorageWarning"])
     delete document.documentElement.dataset[key];
-  document.head.innerHTML = '<meta name="theme-color" content="#f5f3ed" />';
+  document.head.innerHTML = '<meta name="theme-color" content="#f8faf9" />';
   const style = document.createElement("style");
   style.textContent = tokenStyles;
   document.head.append(style);
@@ -32,9 +32,8 @@ async function startTheme() {
 
 describe("theme persistence", () => {
   it.each([
-    ["warm", "#f5f3ed"],
-    ["light", "#ffffff"],
-    ["dark", "#181817"],
+    ["light", "#f8faf9"],
+    ["dark", "#141b18"],
   ])("restores the saved %s theme", async (saved, color) => {
     localStorage.setItem("x-dde-theme", saved);
     const theme = await startTheme();
@@ -49,13 +48,13 @@ describe("theme persistence", () => {
     );
   });
 
-  it.each([null, "", "sepia", "DARK"])(
-    "defaults to warm for an absent or invalid preference (%s)",
+  it.each([null, "", "warm", "sepia", "DARK"])(
+    "uses light for an absent, invalid or retired preference (%s)",
     async (saved) => {
       if (saved !== null) localStorage.setItem("x-dde-theme", saved);
       const theme = await startTheme();
       expect(theme.getThemeSnapshot()).toEqual({
-        theme: "warm",
+        theme: "light",
         storageWarning: false,
       });
     },
@@ -72,7 +71,7 @@ describe("theme persistence", () => {
     });
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
       "content",
-      "#181817",
+      "#141b18",
     );
   });
 
@@ -82,7 +81,7 @@ describe("theme persistence", () => {
     });
     const theme = await startTheme();
     expect(theme.getThemeSnapshot()).toEqual({
-      theme: "warm",
+      theme: "light",
       storageWarning: true,
     });
     theme.setTheme("dark");
@@ -138,7 +137,7 @@ describe("theme persistence", () => {
     window.dispatchEvent(
       new StorageEvent("storage", { key: null, storageArea: localStorage }),
     );
-    expect(theme.getThemeSnapshot().theme).toBe("warm");
+    expect(theme.getThemeSnapshot().theme).toBe("light");
     expect(write).not.toHaveBeenCalled();
   });
 
@@ -152,7 +151,7 @@ describe("theme persistence", () => {
         storageArea: localStorage,
       }),
     );
-    expect(theme.getThemeSnapshot().theme).toBe("warm");
+    expect(theme.getThemeSnapshot().theme).toBe("light");
     stopSync?.();
     stopSync = undefined;
     window.dispatchEvent(
@@ -162,12 +161,12 @@ describe("theme persistence", () => {
         storageArea: localStorage,
       }),
     );
-    expect(theme.getThemeSnapshot().theme).toBe("warm");
+    expect(theme.getThemeSnapshot().theme).toBe("light");
   });
 });
 
 describe("theme before the app loads", () => {
-  it.each(["warm", "light", "dark"])(
+  it.each(["light", "dark"])(
     "restores %s in the synchronous bootstrap and hands it to React",
     async (saved) => {
       localStorage.setItem("x-dde-theme", saved);
@@ -183,18 +182,21 @@ describe("theme before the app loads", () => {
     },
   );
 
-  it("uses the default for invalid bootstrap data", () => {
-    localStorage.setItem("x-dde-theme", "unsupported");
-    new Function(bootstrapScript)();
-    expect(document.documentElement.dataset.theme).toBe("warm");
-  });
+  it.each(["unsupported", "warm"])(
+    "uses the light default for invalid bootstrap data (%s)",
+    (saved) => {
+      localStorage.setItem("x-dde-theme", saved);
+      new Function(bootstrapScript)();
+      expect(document.documentElement.dataset.theme).toBe("light");
+    },
+  );
 
   it("preserves an initial storage error so settings can explain it", async () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new DOMException("Storage is disabled", "SecurityError");
     });
     new Function(bootstrapScript)();
-    expect(document.documentElement.dataset.theme).toBe("warm");
+    expect(document.documentElement.dataset.theme).toBe("light");
     const theme = await startTheme();
     expect(theme.getThemeSnapshot().storageWarning).toBe(true);
   });
@@ -226,7 +228,7 @@ function luminance(hex: string) {
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
 }
 
-it.each(["warm", "light", "dark"])(
+it.each(["light", "dark"])(
   "%s text, actions and status colors meet normal-text contrast",
   (theme) => {
     document.documentElement.dataset.theme = theme;

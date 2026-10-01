@@ -13,16 +13,14 @@ export function AccountSettings({
   const zh = language === "zh";
   const { theme, setTheme, storageWarning: themeStorageWarning } = useTheme();
   const themeLabels = {
-    warm: {
-      name: zh ? "暖色" : "Warm",
-      description: zh ? "柔和纸色，默认主题" : "Soft paper tones · Default",
-    },
     light: {
-      name: zh ? "纯白" : "Pure white",
-      description: zh ? "清晰明亮的白色界面" : "A clean, bright workspace",
+      name: zh ? "浅色" : "Light",
+      description: zh
+        ? "浅灰背景与白色工作区，默认主题"
+        : "Light gray canvas and white workspaces · Default",
     },
     dark: {
-      name: zh ? "夜间黑" : "Night",
+      name: zh ? "深色" : "Dark",
       description: zh
         ? "深色背景，适合暗光环境"
         : "Dark surfaces for low light",

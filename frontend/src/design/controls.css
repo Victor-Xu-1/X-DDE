@@ -13,7 +13,7 @@
 .studio-app .panel,
 .tool-form,
 .management-card {
-  padding: 24px;
+  padding: 20px;
 }
 .studio-heading {
   margin-bottom: 16px;
@@ -29,7 +29,7 @@
   border-radius: 7px;
 }
 .studio-app .input-panel {
-  padding: 24px;
+  padding: 20px;
   min-height: 0;
 }
 .studio-app .input-panel .panel-heading {
@@ -56,7 +56,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
 select,
 textarea {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 10px 12px;
   background: var(--surface);
   color: var(--ink);
@@ -113,7 +113,7 @@ textarea {
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--accent-contrast);
-  border-radius: 8px;
+  border-radius: 6px;
   min-height: 40px;
   font-size: 14px;
   padding: 9px 16px;
@@ -124,7 +124,7 @@ textarea {
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   min-height: 38px;
   font-size: 13px;
   padding: 8px 14px;
@@ -136,7 +136,7 @@ textarea {
   color: var(--danger);
   background: var(--danger-soft);
   border: 1px solid var(--danger);
-  border-radius: 8px;
+  border-radius: 6px;
   min-height: 38px;
   padding: 8px 14px;
 }
@@ -148,7 +148,7 @@ textarea {
   color: var(--danger);
   font-size: 13px;
   line-height: 1.7;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow-wrap: anywhere;
 }
 .notice,
@@ -159,7 +159,7 @@ textarea {
   border-color: var(--warning);
   font-size: 13px;
   line-height: 1.7;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 .ready-indicator {
   font-size: 12px;
@@ -219,14 +219,14 @@ textarea {
 }
 .project-row {
   padding: 14px;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 .project-row small {
   font-size: 12px;
 }
 .report-panel > a {
   margin: 8px 8px 8px 0;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 .empty-state,
 .tool-empty-state {

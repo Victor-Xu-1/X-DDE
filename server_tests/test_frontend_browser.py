@@ -58,6 +58,11 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
         page.on("pageerror", lambda error: errors.append(str(error)))
         try:
             page.goto(base_url)
+            expect(page.locator("html")).to_have_attribute("data-theme", "light")
+            page.evaluate("localStorage.setItem('x-dde-theme', 'warm')")
+            page.reload()
+            expect(page.locator("html")).to_have_attribute("data-theme", "light")
+            expect(page.locator('meta[name="theme-color"]')).to_have_attribute("content", "#f8faf9")
             logo = page.get_by_role("img", name="X-DDE 药物研究工作台", exact=True)
             expect(logo).to_be_visible()
             page.wait_for_function(
@@ -90,7 +95,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             assert current["parent_id"] == original["id"]
             assert current["reference"]["sha256"] == original["reference"]["sha256"]
 
-            for theme, label in (("warm", "暖色"), ("light", "纯白"), ("dark", "夜间黑")):
+            for theme, label in (("light", "浅色"), ("dark", "深色")):
                 open_settings(page)
                 page.get_by_role("radio", name=label, exact=True).check()
                 expect(page.locator("html")).to_have_attribute("data-theme", theme)
@@ -272,7 +277,7 @@ def test_compact_transparent_brand():
                 assert alpha["corners"] == [0, 0, 0, 0], asset
                 assert alpha["clear"] > 0.25, asset
                 assert alpha["solid"] > 0.1, asset
-            for theme, label in (("warm", "暖色"), ("light", "纯白"), ("dark", "夜间黑")):
+            for theme, label in (("light", "浅色"), ("dark", "深色")):
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 open_settings(page)
                 page.get_by_role("radio", name=label, exact=True).check()

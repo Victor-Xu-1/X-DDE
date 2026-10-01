@@ -1,6 +1,6 @@
 # Design direction and capability contract
 
-The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction supersedes its blue palette with warm paper surfaces, charcoal typography and restrained clay accents inspired by Claude Science. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
+The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction uses Boltz Lab as interaction and visual inspiration: a light gray canvas, white workspaces, subtle borders, dark green primary actions and compact typography. It supersedes the previous palette. Private reference projects and screenshots are not distributed with X-DDE. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
 
 ## Product hierarchy
 
@@ -915,3 +915,21 @@ The four preparation/review questions are molecule version, one of three native 
 Original assets are unchanged. One exact source record and receptor snapshot are copied into digest-validated diagnostic previews, not promoted into new scientific molecule versions. The immutable analysis retains every exact input reference and source record; later preparation/docking/editing reuses the original version. Native checks neither move nor repair coordinates and do not demonstrate affinity, selectivity, activity or experimental validity. Macrocycles, special chemistry and missing force-field coverage require separate scientific validation; a missing check never becomes a pass. This bounded module does not complete pose/contact clustering, receptor flexibility, binding free energies or D05/R38–R76.
 
 The adapter, native installation/API/database regressions and same-run Chromium questionnaire/3D/desktop/narrow checks are authored. Exact remote acceptance and preview promotion must pass before this stage is marked delivered; no native quality computation or scientific installation is performed on the owner workstation.
+
+## Shared research workspace presentation
+
+The light and dark themes share one token authority in `frontend/src/tokens.css`.
+Retired appearance preferences resolve to light before the first paint, including
+when storage is unavailable. Existing dark preferences remain valid. There is no
+second palette or extra stylesheet for the retired appearance.
+
+Every task keeps a single active question, exact input versions, recommended
+choices, optional expert controls, and a final review before submission. Empty
+inputs cannot advance. A compact navigation rail gives the core research actions
+direct access; user assets and environment readiness remain explicit.
+
+Changes affect all shared navigation, forms, result panels, editors and settings.
+CI therefore verifies theme bootstrap/persistence/storage errors, keyboard theme
+selection, normal-text contrast, and the existing real-browser task/asset flows
+at desktop and narrow widths. Scientific gates are retained without change.
+No owner-workstation scientific inference or test-suite execution is required.

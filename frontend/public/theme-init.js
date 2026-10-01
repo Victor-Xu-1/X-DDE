@@ -2,12 +2,11 @@
 // theme is applied before the first paint, including under the production CSP.
 (() => {
   const root = document.documentElement;
-  let theme = "warm";
+  let theme = "light";
   let storageWarning = false;
   try {
     const saved = window.localStorage.getItem("x-dde-theme");
-    if (saved === "warm" || saved === "light" || saved === "dark")
-      theme = saved;
+    if (saved === "light" || saved === "dark") theme = saved;
   } catch {
     storageWarning = true;
   }
