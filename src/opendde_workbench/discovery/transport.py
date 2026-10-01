@@ -50,6 +50,7 @@ def request_bytes(url: str, body: dict | None = None, *, require_json=True):
     opener = build_opener(ProxyHandler({}), NoRedirect())
     deadline = time.monotonic() + 20
     last_error = None
+    reason = "response deadline"
     for attempt in range(MAX_ATTEMPTS):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -88,7 +89,7 @@ def request_bytes(url: str, body: dict | None = None, *, require_json=True):
         )
         time.sleep(delay)
     raise SourceUnavailable(
-        "Public source is unavailable after bounded retries; retry this task later."
+        f"Public source is unavailable after bounded retries ({reason}); retry this task later."
     ) from last_error
 
 

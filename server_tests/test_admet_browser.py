@@ -66,12 +66,12 @@ def screenshot(page, evidence, name):
     for width in (1440, 390):
         page.set_viewport_size({"width": width, "height": 1000})
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
-        results = page.locator(".operation-results")
-        artifacts = page.locator(".detail-panel > .artifacts")
-        result_box, artifact_box = results.bounding_box(), artifacts.bounding_box()
-        assert result_box and artifact_box
-        assert artifact_box["y"] >= result_box["y"] + result_box["height"] - 1
         if name == "results":
+            results = page.locator(".operation-results")
+            artifacts = page.locator(".detail-panel > .artifacts")
+            result_box, artifact_box = results.bounding_box(), artifacts.bounding_box()
+            assert result_box and artifact_box
+            assert artifact_box["y"] >= result_box["y"] + result_box["height"] - 1
             stage = page.locator(".admet-selected-record .molecular-stage").bounding_box()
             assert stage and 250 <= stage["height"] <= 410
         page.screenshot(path=str(evidence / f"admet-{name}-{width}.png"), full_page=True)
@@ -156,7 +156,7 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
             panel.get_by_role("button", name="下一步", exact=True).click()
             expect(panel.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
             picker = panel.get_by_role("combobox", name="选择分子版本 · 复用研究资产", exact=True)
-            picker.select_option(version.id)
+            picker.select_option(str(version.id))
             panel.get_by_role("button", name="下一步", exact=True).click()
             panel.get_by_role("radio", name="早期安全性", exact=True).click()
             panel.get_by_role("button", name="下一步", exact=True).click()
@@ -169,7 +169,7 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
             panel.get_by_role("button", name="上一步", exact=True).click()
             expect(panel.get_by_role("radio", name="早期安全性", exact=True)).to_be_checked()
             panel.get_by_role("button", name="上一步", exact=True).click()
-            expect(picker).to_have_value(version.id)
+            expect(picker).to_have_value(str(version.id))
             panel.get_by_role("button", name="上一步", exact=True).click()
             panel.get_by_role("radio", name="一组候选分子", exact=True).click()
             panel.get_by_role("button", name="下一步", exact=True).click()

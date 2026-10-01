@@ -42,6 +42,17 @@ def test_early_target_questionnaire_actual_sources_and_sequence_handoff():
             scope.get_by_role("button", name="获取研究证据", exact=True).click()
             expect(page.get_by_text("可复用研究材料", exact=False)).to_be_visible(timeout=160000)
             results = page.locator(".discovery-results")
+            retrieved = page.request.get(base + "/api/jobs").json()
+            created = [
+                item
+                for item in retrieved
+                if item["id"] not in {x["id"] for x in jobs_before}
+                and item["request"]["operation"] == "target_research"
+            ]
+            assert len(created) == 1
+            response = page.request.get(base + f"/api/jobs/{created[0]['id']}/result").json()
+            source = next(item for item in response["sources"] if item["source"] == "ChEMBL")
+            assert source["status"] == "ok", source
             expect(results.get_by_text("Open Targets: 已获取", exact=True)).to_be_visible()
             expect(results.get_by_text("UniProt: 已获取", exact=True)).to_be_visible()
             expect(results.get_by_text("ChEMBL: 已获取", exact=True)).to_be_visible()
