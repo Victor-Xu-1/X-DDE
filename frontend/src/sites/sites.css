@@ -36,3 +36,12 @@
   overflow: auto;
   max-width: 100%;
 }
+
+.site-results {
+  min-width: 0;
+  max-width: 100%;
+}
+.site-table-wrap {
+  min-width: 0;
+  width: 100%;
+}

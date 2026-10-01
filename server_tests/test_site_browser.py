@@ -96,9 +96,16 @@ def test_real_site_choices_saved_evidence_and_exact_downstream_version(tmp_path)
                     page.keyboard.press("Escape")
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
-                        assert page.evaluate(
-                            "document.documentElement.scrollWidth<=window.innerWidth+1"
-                        )
+                        layout = page.evaluate("""() => ({
+                            width:window.innerWidth, scroll:document.documentElement.scrollWidth,
+                            panels:Array.from(document.querySelectorAll(
+                                '.site-workspace,.site-results,.site-table-wrap')).map(e=>({
+                                cls:e.className,width:e.getBoundingClientRect().width,
+                                scroll:e.scrollWidth}))
+                        })""")
+                        (evidence / f"site-layout-{width}.json").write_text(json.dumps(layout))
+                        page.screenshot(path=str(evidence / f"site-layout-viewport-{width}.png"))
+                        assert layout["scroll"] <= layout["width"] + 1, layout
                         if width == 390:
                             assert workspace.locator("table").evaluate(
                                 "e => e.scrollWidth > e.parentElement.clientWidth"
