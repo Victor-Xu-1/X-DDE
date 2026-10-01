@@ -194,6 +194,15 @@ export function TargetResearchResults({
           {onDraft && (
             <button
               type="button"
+              disabled={
+                !m.reference ||
+                !/^[ACDEFGHIKLMNPQRSTVWYX]{1,5000}$/.test(m.sequence)
+              }
+              title={
+                zh
+                  ? "需要已登记的序列版本；当前预测仅接受支持的氨基酸与最多5000字符。"
+                  : "Requires a saved sequence version, supported amino acids and at most5000 characters."
+              }
               onClick={() =>
                 onDraft({
                   name: title.slice(0, 80),

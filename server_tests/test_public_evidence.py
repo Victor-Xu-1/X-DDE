@@ -118,3 +118,63 @@ def test_actual_target_sources_persistence_exact_sequence_and_tamper(tmp_path, m
         assert len(
             client.get("/api/research/objects", params={"source_job": identifier}).json()
         ) == len(objects)
+
+
+@pytest.mark.skipif(
+    os.environ.get("WB_TEST_PUBLIC_EVIDENCE") != "1",
+    reason="Public protocol acceptance runs only on CI/target server",
+)
+def test_actual_disease_search_and_association_are_distinct_from_target_materials(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("WB_AUTO_DEPLOY", "0")
+    settings = Settings(
+        state_dir=tmp_path / "state",
+        image_file=tmp_path / "image",
+        code_file=tmp_path / "code",
+        model_dir=tmp_path / "models",
+        cache_dir=tmp_path / "cache",
+        minimum_free_bytes=0,
+    )
+    with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
+        client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        response = client.post(
+            "/api/discovery/lookup",
+            json={
+                "entity": "disease",
+                "query": "lung carcinoma",
+                "allow_external": True,
+            },
+        )
+        assert response.status_code == 200, response.text
+        hits = response.json()["hits"]
+        assert hits and all(hit["entity"] == "disease" for hit in hits)
+        selected = hits[0]["id"]
+        client.headers["Idempotency-Key"] = "fc3d50bc-e5b5-4984-a7f0-d8b1f4dbe392"
+        response = client.post(
+            "/api/jobs",
+            json={
+                "operation": "target_research",
+                "entity": "disease",
+                "identifier": selected,
+                "include_materials": False,
+                "limit": 5,
+                "allow_external": True,
+            },
+        )
+        assert response.status_code == 201, response.text
+        identifier = response.json()["id"]
+        deadline = time.monotonic() + 160
+        while time.monotonic() < deadline:
+            job = client.get("/api/jobs/" + identifier).json()
+            if job["status"] not in {"running", "queued"}:
+                break
+            time.sleep(0.2)
+        assert job["status"] == "succeeded", job
+        response = client.get(f"/api/jobs/{identifier}/result")
+        assert response.status_code == 200, response.text
+        result = response.json()
+        assert result["entity"]["id"] == selected
+        assert result["entity"]["associatedTargets"]["rows"]
+        assert result["materials"] == [] and result["activities"] is None
+        assert [row["source"] for row in result["sources"]] == ["Open Targets"]
