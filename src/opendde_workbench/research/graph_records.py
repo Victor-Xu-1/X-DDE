@@ -13,11 +13,35 @@ TABLES = {
     "constraint": "research_constraints",
     "state_set": "research_state_sets",
     "receptor_set": "research_receptor_sets",
+    "site_set": "research_site_sets",
 }
 
 
 def project_record(store, kind, row):
     identifier = kind + ":" + row["id"]
+    if kind == "site_set":
+        from ..sites.storage import SiteSets
+
+        value = SiteSets.decode(row)
+        edges = [("receptor_set:" + str(value.request.ensemble_id), identifier, "site_association")]
+        edges.extend(
+            ("task:" + str(o.source_job), identifier, "pocket_evidence") for o in value.observations
+        )
+        edges.extend(
+            ("object:" + str(o.protein.version_id), identifier, "aligned_site_context")
+            for o in value.observations
+            if o.protein.version_id
+        )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "binding_site_set",
+                "label": value.request.name,
+                "collection": value.model_dump(mode="json"),
+            },
+            edges,
+        )
     if kind == "receptor_set":
         from .receptor_sets import ReceptorSets
 

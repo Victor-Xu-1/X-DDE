@@ -44,6 +44,7 @@ from .research.region_routes import register_regions
 from .research.routes import register_research
 from .science_routes import register_science
 from .settings import Settings
+from .sites.routes import register_sites
 from .store import CapacityError, ConflictError, Store
 from .worker import Worker
 from .workflows import register_workflows
@@ -465,6 +466,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     worker.gate = harness_service.queue_gate
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
+    register_sites(app, store, assets, settings, mutation)
     regions = register_regions(app, store, assets, settings, mutation)
     constraints = register_constraints(app, store, assets, settings, mutation)
     workflows_service = register_workflows(

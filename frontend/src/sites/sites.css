@@ -1,0 +1,36 @@
+.site-workspace {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+.site-workspace fieldset {
+  display: grid;
+  gap: 0.75rem;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.site-workspace .field {
+  min-width: 0;
+}
+.site-workspace select {
+  max-width: 100%;
+}
+.site-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.site-table-wrap table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.site-table-wrap th,
+.site-table-wrap td {
+  text-align: left;
+  padding: 0.45rem;
+  border-bottom: 1px solid var(--border);
+}
+.site-results pre {
+  overflow: auto;
+  max-width: 100%;
+}

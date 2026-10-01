@@ -85,11 +85,12 @@ jobs:
         env:
           WB_TEST_NATIVE_STATES: '1'
           WB_TEST_NATIVE_RECEPTORS: '1'
+          WB_TEST_NATIVE_SITES: '1'
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
           uv sync --locked --group dev
-          uv run --locked pytest -q server_tests/test_native_states.py server_tests/test_native_receptors.py
+          uv run --locked pytest -q server_tests/test_native_states.py server_tests/test_native_receptors.py server_tests/test_native_sites.py
       - name: Preserve actual fixed-core verification fixture for browser integration
         uses: actions/upload-artifact@v4
         with:
@@ -144,7 +145,7 @@ jobs:
           else:
               raise SystemExit('Browser preview did not start')
           PY
-          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py
+          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py server_tests/test_site_browser.py
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v4

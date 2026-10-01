@@ -9,13 +9,17 @@ export function PocketResults({
   job,
   result,
   language,
+  initialRank,
 }: {
-  job: Job;
+  job: Pick<Job, "id">;
   result: PocketResult;
   language: Language;
+  initialRank?: number;
 }) {
   const zh = language === "zh",
-    [selected, setSelected] = useState<Site | null>(null),
+    [selected, setSelected] = useState<Site | null>(
+      () => result.pockets.find((p) => p.rank === initialRank) ?? null,
+    ),
     [continueDesign, setContinue] = useState(false),
     [continueDocking, setDocking] = useState(false),
     [message, setMessage] = useState("");

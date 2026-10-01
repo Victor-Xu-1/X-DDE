@@ -5,6 +5,7 @@ import { PocketForm } from "../pockets/PocketForm";
 import type { Job, Language } from "../types";
 import type { ReceptorResult, ReceptorSet } from "./types";
 import "./receptors.css";
+import { SiteWorkspace } from "../sites/SiteWorkspace";
 
 export function ReceptorResults({
   job,
@@ -208,6 +209,14 @@ export function ReceptorResults({
             )
           }
         />
+      )}
+      {!loading && sets.length > 0 && data.qualified_count >= 2 && (
+        <details>
+          <summary>
+            {zh ? "比较各构象的口袋" : "Compare pockets across conformations"}
+          </summary>
+          <SiteWorkspace ensemble={sets[0]} language={language} />
+        </details>
       )}
       <details>
         <summary>{zh ? "方法版本" : "Method versions"}</summary>
