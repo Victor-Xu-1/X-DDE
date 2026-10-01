@@ -20,6 +20,8 @@ import type { ToolId } from "../operations/catalog";
 import type { Job, Language } from "../types";
 
 export type View =
+  | "target-evidence"
+  | "disease-targets"
   | "binding-modes"
   | "pockets"
   | "molecule-preparation"
@@ -43,6 +45,8 @@ export type View =
   | "overview";
 export const coreTools: Readonly<Partial<Record<View, ToolId>>> = Object.freeze(
   {
+    "target-evidence": "discovery.target",
+    "disease-targets": "discovery.disease",
     pockets: "p2rank.detect",
     "receptor-ensemble": "biopython.ensemble",
     "binding-modes": "gnina.dock",
@@ -55,6 +59,18 @@ export const coreTools: Readonly<Partial<Record<View, ToolId>>> = Object.freeze(
 );
 export const coreToolForView = (view: View) => coreTools[view];
 const items = [
+  {
+    id: "disease-targets",
+    cn: "疾病找靶点",
+    en: "Disease to targets",
+    icon: SearchOutlined,
+  },
+  {
+    id: "target-evidence",
+    cn: "靶点与研究材料",
+    en: "Target evidence",
+    icon: SearchOutlined,
+  },
   { id: "home", cn: "结构预测", en: "Structure prediction", icon: HomeFilled },
   {
     id: "receptor-ensemble",
@@ -246,6 +262,8 @@ export function Navigation({
             <small className="nav-short" aria-hidden="true">
               {
                 {
+                  "target-evidence": ["靶点", "Targets"],
+                  "disease-targets": ["疾病", "Disease"],
                   research: ["资产", "Assets"],
                   tools: ["能力", "Tools"],
                   home: ["预测", "Predict"],

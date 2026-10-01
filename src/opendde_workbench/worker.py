@@ -159,7 +159,11 @@ class Worker:
                     await self.engine.stop(job.id)
                     break
                 timeout = (
-                    24 * 3600 if job.request.operation == "resources" else self.settings.job_timeout
+                    24 * 3600
+                    if job.request.operation == "resources"
+                    else 150
+                    if job.request.operation == "target_research"
+                    else self.settings.job_timeout
                 )
                 if time.monotonic() - started > timeout:
                     error = "Task exceeded its execution time limit."

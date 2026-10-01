@@ -247,3 +247,6 @@ as inspected. X-DDE retains only capabilities supported by its actual integratio
 The structure-results view puts candidates beside their actual 3D preview and collapses
 secondary metrics. Model execution and scientific integration verification run in the
 target environment/remote CI; the owner machine does not run scientific jobs.
+
+
+早期发现的新候选入口为 **疾病找靶点** 与 **靶点与研究材料**：名称搜索 → 明确选择 → 内容选择 → 确认查询 → 来源证据/材料复用。使用官方 Open Targets、UniProt、ChEMBL，只发送填写的名称/数据库编号；查询适配器无需模型安装，具体源站可能不可用。规范序列可登记资产并交接结构预测；PDB仅为索引。候选接口/源码不表示已安装发行版更新，当前验收状态见[统一模块路线](docs/design/README.md#早期发现模块与开源选型2026-10-01)。合成/逆合成暂不在实施范围。

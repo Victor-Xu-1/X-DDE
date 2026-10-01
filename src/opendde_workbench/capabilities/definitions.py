@@ -299,7 +299,44 @@ _POSES = (
         contract_source="ExplorationInput",
     ),
 )
-_ITEMS = _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY + _RECEPTORS + _POSES
+_DISCOVERY = tuple(
+    CapabilitySpec(
+        id="discovery." + mode,
+        **modality_metadata("discovery." + mode),
+        group="search",
+        environment="discovery",
+        operations=("target_research",),
+        label=label,
+        note=note,
+        source="Open Targets / UniProt / ChEMBL",
+        frontend_form="target_research",
+        native_mode=mode,
+        scientific_validation="not_applicable",
+    )
+    for mode, label, note in (
+        (
+            "target",
+            ("靶点证据与研究材料", "Target evidence and materials"),
+            (
+                "查询疾病关联、干预线索、序列、结构索引和已有实测活性。",
+                "Retrieve disease associations, tractability, sequence, "
+                "structure references and measured activities.",
+            ),
+        ),
+        (
+            "disease",
+            ("从疾病寻找靶点", "Find targets for a disease"),
+            (
+                "查看人类靶点关联及来源，选择下一步研究对象。",
+                "Review human target associations and provenance "
+                "before selecting a research target.",
+            ),
+        ),
+    )
+)
+_ITEMS = (
+    _DISCOVERY + _BASE + _DIFF + _PLATFORM + _POCKETS + _DOCKING + _CHEMISTRY + _RECEPTORS + _POSES
+)
 if len({item.id for item in _ITEMS}) != len(_ITEMS):
     raise RuntimeError("Capability IDs must be unique.")
 for item in _ITEMS:

@@ -100,6 +100,8 @@ _CONTEXT = ("biologic", "chemical", "protein", "small_molecule")
 
 # No fallback: newly registered capabilities must declare reviewed applicability.
 _MEMBERSHIP = {
+    "discovery.target": _ALL,
+    "discovery.disease": _ALL,
     "predict": _ALL,
     "properties": _SMALL,
     "campaign": _ANTIBODY,
@@ -147,6 +149,8 @@ _MEMBERSHIP = {
 }
 _SHARED = {"import", "resources", "workflows"}
 _TARGET_CONTEXT = {
+    "discovery.target",
+    "discovery.disease",
     "pose_exploration",
     "biopython.ensemble",
     "p2rank.detect",

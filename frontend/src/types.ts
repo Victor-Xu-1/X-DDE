@@ -14,6 +14,7 @@ export interface Component {
   count: number;
   chain_ids?: string[];
   modifications?: { position: number; ccd: string }[];
+  source_sequence?: string | null;
   ligand_file?: string | null;
   paired_msa?: string | null;
   unpaired_msa?: string | null;

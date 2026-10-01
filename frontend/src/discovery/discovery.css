@@ -1,0 +1,36 @@
+.discovery-results {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+.discovery-results section,
+.discovery-results details {
+  min-width: 0;
+}
+.discovery-results .table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.discovery-results table {
+  width: 100%;
+  min-width: 520px;
+}
+.discovery-results td,
+.discovery-results th {
+  padding: 8px;
+  text-align: left;
+}
+.discovery-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.discovery-sources span {
+  font-size: 12px;
+  border: 1px solid var(--border, #dedad1);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.discovery-results h4 {
+  margin: 6px 0;
+}

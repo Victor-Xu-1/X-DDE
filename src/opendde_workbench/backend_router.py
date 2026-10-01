@@ -14,6 +14,7 @@ from . import harness_process, local_process
 from .chemistry.backend import ChemistryBackend
 from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
+from .discovery.backend import DiscoveryBackend
 from .docking.backend import DockingBackend
 from .engine import DockerEngine
 from .engine_registry import engine_for
@@ -32,6 +33,7 @@ class BackendRouter:
         self.docking = DockingBackend(settings)
         self.chemistry = ChemistryBackend(settings)
         self.biopython = ReceptorBackend(settings)
+        self.discovery = DiscoveryBackend(settings)
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
@@ -43,11 +45,14 @@ class BackendRouter:
             "gnina",
             "chemistry",
             "biopython",
+            "discovery",
         }:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation == "discovery":
+            return await self.discovery.start(job, directory)
         if implementation == "biopython":
             return await self.biopython.start(job, directory)
         if implementation == "chemistry":
@@ -105,7 +110,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "biopython":
+        if implementation == "discovery":
+            await self.discovery.stop(job.id, directory)
+        elif implementation == "biopython":
             await self.biopython.stop(job.id, directory)
         elif implementation == "chemistry":
             await self.chemistry.stop(job.id, directory)
@@ -152,6 +159,7 @@ class BackendRouter:
                 "gnina": docking,
                 "chemistry": chemistry,
                 "biopython": biopython,
+                "discovery": await self.discovery.readiness(),
             },
         }
 

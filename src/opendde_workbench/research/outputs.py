@@ -136,6 +136,19 @@ class OutputCatalog:
         return result
 
     def preserve(self, job_id, file, kind, *, receptor_result=None):
+        job = self.store.get(str(job_id))
+        if job and job.request.operation == "target_research":
+            from ..discovery.result import validate_result
+
+            root = self.assets.root.parent / "jobs" / job.id / "output"
+            manifest = contained(root, "result.json")
+            if manifest.stat().st_size > 25 * 1024**2:
+                raise ValueError("Evidence report exceeds its limit.")
+            report = validate_result(json.loads(manifest.read_text()), job.request, root)
+            if file.suffix in {".fa", ".fasta"} and file.name not in {
+                m["artifact"] for m in report.materials
+            }:
+                raise ValueError("Sequence artifact was not declared by the evidence report.")
         self.docking_output(job_id, file)
         core = self.core_output(job_id, file)
         states = self.state_output(job_id, file)

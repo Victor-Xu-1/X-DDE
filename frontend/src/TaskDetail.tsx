@@ -176,6 +176,7 @@ export function TaskDetail({
             job={job}
             language={language}
             onDraft={onDraft}
+            onCreated={onChange}
           />
         )}
       <div className="artifacts">

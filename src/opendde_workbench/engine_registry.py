@@ -21,6 +21,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "discovery",
+        "Open Targets / UniProt / ChEMBL",
+        "早期靶点、疾病、序列、结构索引与已知活性证据 / Early discovery evidence",
+        "local_process",
+        ("target_research",),
+    ),
+    ScientificEngine(
         "biopython",
         "Biopython",
         "受体构象解析、对应与刚体对齐 / Receptor conformation parsing and rigid alignment",

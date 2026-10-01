@@ -16,6 +16,7 @@ from pydantic import (
 
 from .chemistry.contract import MolecularStatesTask
 from .diffsbdd.contract import DiffTask, references
+from .discovery.contract import TargetResearchTask
 from .docking.contract import DockingTask
 from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
@@ -124,7 +125,8 @@ def request_kind(value: object) -> str:
 
 
 TaskRequest = Annotated[
-    Annotated[Prediction, Tag("predict")]
+    Annotated[TargetResearchTask, Tag("target_research")]
+    | Annotated[Prediction, Tag("predict")]
     | Annotated[Preparation, Tag("features")]
     | Annotated[Inspection, Tag("inspect")]
     | Annotated[Conversion, Tag("json")]
@@ -171,7 +173,13 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         for value in getattr(request, "assets", []) + getattr(request, "ligand_files", [])
     }
     for component in getattr(request, "components", []):
-        for name in ("ligand_file", "unpaired_msa", "paired_msa", "template_hits"):
+        for name in (
+            "source_sequence",
+            "ligand_file",
+            "unpaired_msa",
+            "paired_msa",
+            "template_hits",
+        ):
             value = getattr(component, name, None)
             if value:
                 identifiers.add(str(value))

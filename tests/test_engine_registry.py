@@ -52,7 +52,11 @@ def test_real_xdde_server_remains_available_without_scientific_environments(
         health = client.get("/api/health").json()
         assert health["platform"] == {"name": "X-DDE", "ready": True}
         assert set(health["engines"]) == set(ENGINES)
-        assert not any(engine["ready"] for engine in health["engines"].values())
+        assert not any(
+            state["ready"] for key, state in health["engines"].items() if key != "discovery"
+        )
+        assert health["engines"]["discovery"]["ready"]
+        assert health["engines"]["discovery"]["connectivity"] == "checked_on_request"
         assert "Harness interpreter" in health["engines"]["harness"]["reason"]
         assert client.get("/api/assets").status_code == 200
         assert client.get("/api/research/objects").status_code == 200

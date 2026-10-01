@@ -35,6 +35,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
     if not manifest.is_file() or manifest.stat().st_size > 25 * 1024**2:
         return False
     result = json.loads(manifest.read_text())
+    if operation == "target_research":
+        from .discovery.result import validate_result
+
+        validate_result(result, job.request, output)
     if operation == "receptor_ensemble":
         from .receptors.result import validate_result
 

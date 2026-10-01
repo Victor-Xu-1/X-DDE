@@ -22,6 +22,15 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             if spec.id == "regions"
             else ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
         )
+    elif spec.environment == "discovery":
+        checks = {"public_query_adapter": bool(backends.get("discovery", {}).get("ready"))}
+        specific = [
+            "explicit_identifier_selection",
+            "public_query_consent",
+            "source_response_limits",
+            "source_availability",
+            "bounded_coverage",
+        ]
     elif spec.environment == "biopython":
         checks = {"runtime": bool(backends.get("biopython", {}).get("ready"))}
         specific.extend(

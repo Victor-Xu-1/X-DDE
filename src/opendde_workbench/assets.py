@@ -262,6 +262,7 @@ class AssetStore:
                 bindings[asset.id] = asset
             return bindings
         fields = {
+            "source_sequence": "sequences",
             "ligand_file": "ligand",
             "paired_msa": "msa",
             "unpaired_msa": "msa",
@@ -275,6 +276,10 @@ class AssetStore:
                 asset = self.get(identifier)
                 if asset.kind != expected:
                     raise ValueError(f"{field} requires an uploaded {expected} file.")
+                if field == "source_sequence":
+                    from .discovery.sequence import validate_sequence_source
+
+                    validate_sequence_source(self.path(asset), component.value)
                 self.path(asset)
                 bindings[asset.id] = asset
         for identifier in getattr(request, "assets", []):

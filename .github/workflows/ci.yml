@@ -151,7 +151,7 @@ jobs:
           else:
               raise SystemExit('Browser preview did not start')
           PY
-          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py server_tests/test_site_browser.py server_tests/test_pose_browser.py
+          uv run --locked --group browser python -m pytest -q server_tests/test_frontend_browser.py server_tests/test_receptor_browser.py server_tests/test_site_browser.py server_tests/test_pose_browser.py server_tests/test_discovery_browser.py
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -228,3 +228,21 @@ jobs:
         with:
           name: native-docking-evidence-${{ github.sha }}
           path: server_tests/evidence/
+
+
+  early-discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify actual public sources, persisted assets and source-version handoff
+        env:
+          WB_TEST_PUBLIC_EVIDENCE: '1'
+          WB_AUTO_DEPLOY: '0'
+        run: |
+          uv sync --locked --group dev
+          uv run --locked pytest -q server_tests/test_public_evidence.py

@@ -8,6 +8,8 @@ import { DockingResults } from "../docking/DockingResults";
 import type { DockingResult } from "../docking/types";
 import { ReceptorResults } from "../receptors/ReceptorResults";
 import type { ReceptorResult } from "../receptors/types";
+import { TargetResearchResults } from "../discovery/TargetResearchResults";
+import type { TargetResearchResult } from "../discovery/types";
 import { StateResults } from "../chemistry/StateResults";
 import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
@@ -54,16 +56,19 @@ export function OperationResults({
   job,
   language,
   onDraft,
+  onCreated,
 }: {
   job: Job;
   language: Language;
   onDraft?(request: Prediction): void;
+  onCreated?(job: Job): void;
 }) {
   const zh = language === "zh";
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
     "pocket_search",
+    "target_research",
     "docking",
     "diffsbdd",
     "molecular_states",
@@ -106,6 +111,15 @@ export function OperationResults({
       className="operation-results"
       aria-label={zh ? "计算结果" : "Computed results"}
     >
+      {job.request.operation === "target_research" && (
+        <TargetResearchResults
+          job={job}
+          result={data as unknown as TargetResearchResult}
+          language={language}
+          onDraft={onDraft}
+          onCreated={onCreated}
+        />
+      )}
       {data.notes && job.request.operation !== "docking" && (
         <p className="notice">
           {zh && job.request.operation === "properties"

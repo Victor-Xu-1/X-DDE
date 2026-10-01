@@ -203,6 +203,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await harness_service.invoke(
                     {"operation": "validate_tool", "tool": value.tool, "payload": value.payload}
                 )
+            elif value.operation == "target_research":
+                from .discovery.backend import validate
+
+                assets.validate_bindings(value)
+                validate(value, readiness["engine"].get("backends", {}).get("discovery", {}))
             elif value.operation == "receptor_ensemble":
                 from .receptors.runtime import validate
 
@@ -465,6 +470,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return {"busy": False}
 
     worker.gate = harness_service.queue_gate
+    from .discovery.routes import register_discovery
+
+    register_discovery(app, mutation)
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
     register_sites(app, store, assets, settings, mutation)

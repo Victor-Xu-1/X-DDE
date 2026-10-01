@@ -23,6 +23,7 @@ class Component(BaseModel):
     count: int = Field(default=1, ge=1, le=4)
     chain_ids: list[str] = Field(default_factory=list, max_length=4)
     modifications: list[Modification] = Field(default_factory=list, max_length=100)
+    source_sequence: UUID | None = None
     ligand_file: UUID | None = None
     paired_msa: UUID | None = None
     unpaired_msa: UUID | None = None
@@ -30,6 +31,8 @@ class Component(BaseModel):
 
     @model_validator(mode="after")
     def validate_value(self) -> Self:
+        if self.source_sequence and self.kind not in {"protein", "rna", "dna"}:
+            raise ValueError("Sequence provenance requires a polymer component.")
         self.value = self.value.strip()
         if self.chain_ids and (
             len(self.chain_ids) != self.count

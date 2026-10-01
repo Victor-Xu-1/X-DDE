@@ -67,7 +67,19 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
     definition = ENGINES[software]
     config = read_json(settings.state_dir / "deployment.json")
     installed = read_json(Path(config["root"]) / "installed.json") if config else {}
-    if software == "opendde":
+    if software == "discovery":
+        import sys
+
+        from .discovery.sources import ENDPOINT
+
+        runtime = {
+            "python": sys.version.split()[0],
+            "open_targets_endpoint": ENDPOINT,
+            "uniprot_endpoint": "https://rest.uniprot.org",
+            "chembl_endpoint": "https://www.ebi.ac.uk/chembl/api/data",
+        }
+        matched = False
+    elif software == "opendde":
         runtime = {
             "image": settings.image_file.read_text().strip()
             if settings.image_file.is_file()

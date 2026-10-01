@@ -68,6 +68,48 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "discovery.target",
+    group: "search",
+    label: ["靶点证据与研究材料", "Target evidence and materials"],
+    note: [
+      "查询疾病关联、干预线索、序列、结构索引和已有实测活性。",
+      "Retrieve disease associations, tractability, sequence, structure references and measured activities.",
+    ],
+    source: "Open Targets / UniProt / ChEMBL",
+    modalities: [
+      "biologic",
+      "chemical",
+      "rna",
+      "dna",
+      "antibody",
+      "protein",
+      "peptide",
+      "small_molecule",
+    ],
+    modality_role: "target_context",
+  },
+  {
+    id: "discovery.disease",
+    group: "search",
+    label: ["从疾病寻找靶点", "Find targets for a disease"],
+    note: [
+      "查看人类靶点关联及来源，选择下一步研究对象。",
+      "Review human target associations and provenance before selecting a research target.",
+    ],
+    source: "Open Targets / UniProt / ChEMBL",
+    modalities: [
+      "biologic",
+      "chemical",
+      "rna",
+      "dna",
+      "antibody",
+      "protein",
+      "peptide",
+      "small_molecule",
+    ],
+    modality_role: "target_context",
+  },
+  {
     id: "predict",
     group: "structure",
     label: ["预测分子与复合物结构", "Predict structures and complexes"],

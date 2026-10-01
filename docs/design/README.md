@@ -797,3 +797,30 @@ SQLite/API 与同次远程 GNINA 的 8 个组合产物和 Chromium 精确版本�
 受体对齐问卷保留多个真实结构版本、参照成员、保守/相似序列/几何比较方案，以及专家链/残基对应参数；移除成员后参照重置到现存结构。分子准备保留原状态/近生理 pH/扩大范围的原生预设，结果使用现有任务与资产交接。GNINA 三种任务在第一步选材料，第二步确定搜索区域或确认已有姿势的坐标参照，第三步选择推荐 CPU 方案与可选条件/专家参数；第四步才提交，真实返回任务进入第五步。隐藏参数、坐标确认、搜索框和保存条件仍按原有契约验证，专家 GPU 参数切回推荐方案时重置。
 
 前进与确认提交还会逐步检查各个已保留面板的原生 HTML 约束及 JSON 编辑器的自定义有效性。隐藏面板仅在同步检查期间恢复验证能力，并在 finally 中恢复原禁用状态；不对隐藏控件弹出焦点提示。发现错误会返回对应步骤，避免返回导航或旧有效 JSON 绕过校验。此行为包含组件回归和真实浏览器中的专家数值/步骤快捷跳转回归。
+
+
+## 早期发现模块与开源选型（2026-10-01）
+
+本节延伸现有 R01–R76，只有一个路线与资产权威。用户最新范围：暂不做合成路线或逆合成；优先从疾病、靶点和研究材料开始。以下为明确选型/边界，未接入的软件不会增加可点击空模块。代码实现、协议验收、安装就绪和科学校准分开记录。
+
+| 顺序 / 模块 | 首选实现或数据源 | 当前实施边界与后续验收 |
+| --- | --- | --- |
+| D01 疾病找靶点 / 靶点证据 | Open Targets 官方 GraphQL；UniProt；ChEMBL | **实施中**：名称查找与明确选择、人类关联/干预证据、有上限的序列/结构索引/活性检索、原始响应摘要、SQLite/资产/下一步；这不是因果验证或完整疾病组学分析 |
+| D02 靶点材料与结构准备 | UniProt + RCSB PDB；现有 OpenDDE/Biopython | D01 给出真实规范序列和 PDB 索引；待补选择结构直接导入、异构体/突变体/实验构建体、装配及辅因子策略。结构索引不是结构已下载或口袋已准备 |
+| D03 已知配体与早期库筛选 | ChEMBL；RDKit；现有 GNINA | D01 保留限定人类单蛋白的实测记录及端点/条件；待补分子库检索、相似性/子结构、多样性、分层批量筛选及反筛。不能按异质 IC50/Ki/Kd 直接排序 |
+| D04 生物药参考与抗体标注 | SAbDab/参考序列；ANARCII | 待核对固定发布、权重/许可证与真实编号/域/链型契约，接统一序列版本。不把编号模型当作表达、结合或成药性模型 |
+| D05 位点和结合假设 | 已集成 P2Rank/GNINA + PoseBusters 独立质量检查 | 继续 R30–R40：已知/未知位点、受体集合、真实姿势、几何和接触分群、独立质控；隐蔽位点需要额外采样，不能由静态口袋分数推断 |
+| D06 小分子早期风险 | ADMET-AI 2.0.1 / Chemprop 2.2.2 | 待独立 hash 锁环境与完整原生验收；端点单位/物种/条件、训练来源、适用域和基准分别核对。只展示其真实模型输出，不称完整 ADMET 或实验毒性；V1/V2 结果不可直接混比 |
+| D07 抗体人源化与早期成药性 | ANARCII；BioPhi/Sapiens/OASis；AbNatiV 与 TAP 作为需进一步许可/适用格式审查的候选 | 待真实适配；只调用科学接口/CLI，不引入上游 Web/Celery/Redis 第二套任务平台。人源化/天然性、序列风险、表面性质与实验成药性分别显示；VHH 不套用 IgG/Fv 未验证阈值 |
+| D08 蛋白/肽命中物设计 | RFdiffusion 系列骨架生成 + 现有 MPNN/OpenDDE 复核 | 待固定模型版本与权重许可、热点/保留位点/长度/骨架资产契约及服务器实证；与现有抗体 campaign 不互相替代。特殊肽单独处理 |
+| D09 RNA 早期序列与可及性 | RNAstructure/OligoWalk | 待独立 GPL 环境/参数许可审查与真实结构/热力学结果；补转录本、靶序列和脱靶，不将结构分析称为完整 siRNA/ASO/mRNA 设计 |
+| D10 早期实验反馈与候选比较 | 平台自有实验数据契约；真实 CSV/表格/SQLite；RDKit 与经过验证的统计方法 | 继续 R57–R60：端点/关系/单位/条件/重复/批次、剂量响应与系列比较、多目标取舍及下一轮；数据充分才加入主动学习 |
+| D11 双功能与高级复核 | 现有 WP4–WP7 + 后续 OpenMM/OpenFE | 保留原计划，不删除；在早期证据/材料/命中物入口后推进。动力学、自由能、三元装配和功能验证分别验收 |
+
+选型依据是任务适用性、原生接口、版本可复现、许可证、维护/依赖与基准；不宣称某个工具在所有体系上“最强”。数据源/原生接口参考：[Open Targets](https://platform-docs.opentargets.org/data-access/graphql-api)、[UniProt](https://www.uniprot.org/help/api_queries)、[ChEMBL](https://www.ebi.ac.uk/chembl/api/data/docs)、[RCSB](https://search.rcsb.org/)、[ADMET-AI](https://github.com/swansonk14/admet_ai)、[ANARCII](https://github.com/oxpig/ANARCII)、[BioPhi](https://github.com/Merck/BioPhi)、[AbNatiV 原论文及代码](https://www.nature.com/articles/s42256-023-00778-3)、[TAP](https://opig.stats.ox.ac.uk/webapps/sabdab-sabpred/sabpred/tap)、[PoseBusters](https://github.com/maabuu/posebusters)、[RFdiffusion](https://github.com/RosettaCommons/RFdiffusion)、[RNAstructure](https://rna.urmc.rochester.edu/RNAstructure.html)。公开数据的许可/归属与开源代码许可分开；下游模型和数据不继承 X-DDE Apache-2.0。
+
+D01 实现采用同一个 TaskRequest → API/CSRF → Store/Worker → BackendRouter → 只读公共数据进程 → 原始响应/规范结果 → AssetStore/ScientificStore → 五步界面。无需用户安装模型，readiness 只表示查询适配器可用，网络/源站在具体查询时检查。只发送名字/编号，不上传用户研究文件；HTTPS 固定域名，无浏览器 URL/命令，无重定向/继承代理或密钥；查询20秒预算、8MiB源响应上限、任务150秒、有限条数/并发。公开数据库变化与缺源/空/歧义均如实保留。疾病模式不擅自挑一个靶点，单靶点模式不把蛋白家族/复合物测量混进单蛋白结果。
+
+序列生成原始 FASTA 资产并登记不可变版本。进入结构预测时传 source_sequence 和 scientific_inputs，服务端核对文件、摘要/版本和确切序列，新增关系保留来源任务。更改序列必须另存版本，不以已有规范序列的来源证明新构建体。结果在共享资产层登记，单纯结构/SMILES复制不冒充已完成构象对齐或实验校准。
+
+验证映射：新增请求/路由/外部查询边界→类型、CSRF、错误/空/歧义、固定URL与取消；原始快照/序列→真实文件摘要/版本/修改拒绝；持久化/重复→实际SQLite/API/重启/幂等；UI→真实Chromium分步、无提前任务、返回保留、1440/390无溢出、结果与序列交接。既有六项强制CI仍完整保留，新增 early-discovery 原生公共协议门禁；本机不执行测试/模型/科学安装。当前新增D01候选尚未完成CI/浏览器/上线验收，不宣称已部署；D02–D11仍为待实施范围。
