@@ -30,12 +30,12 @@ def wait_job(client, identifier):
 
 def test_actual_quality_three_profiles_reject_distorted_geometry_and_retain_versions(tmp_path):
     from fastapi.testclient import TestClient
+    from test_native_docking import upstream_fixture
 
     from opendde_workbench.api import create_app
     from opendde_workbench.deployment.installers import install
     from opendde_workbench.quality.manifest import CHECKS
     from opendde_workbench.settings import Settings
-    from server_tests.test_native_docking import upstream_fixture
 
     root = tmp_path / "components"
     root.mkdir()
