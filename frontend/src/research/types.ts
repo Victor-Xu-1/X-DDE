@@ -23,7 +23,17 @@ export interface ScientificObject {
 }
 export interface GraphNode {
   id: string;
-  kind: ObjectKind | "file" | "task" | "plan" | "run" | "region" | "constraint";
+  kind:
+    | ObjectKind
+    | "file"
+    | "task"
+    | "plan"
+    | "run"
+    | "region"
+    | "constraint"
+    | "molecular_state_set"
+    | "receptor_ensemble"
+    | "binding_site_set";
   label: string;
   asset_id?: string;
   asset_kind?: string;
@@ -46,6 +56,9 @@ export interface ResearchGraph {
   limit: number;
 }
 export const objectLabels: Record<string, [string, string]> = {
+  molecular_state_set: ["分子状态集合", "Molecular state set"],
+  receptor_ensemble: ["受体构象集合", "Receptor ensemble"],
+  binding_site_set: ["跨构象位点", "Cross-conformation sites"],
   molecule: ["分子", "Molecule"],
   structure: ["结构", "Structure"],
   sequence: ["序列", "Sequence"],
@@ -59,6 +72,12 @@ export const objectLabels: Record<string, [string, string]> = {
   region: ["分子区域", "Molecular regions"],
 };
 export const edgeLabels: Record<string, [string, string]> = {
+  produced_collection: ["产生集合", "Produced collection"],
+  contains: ["包含成员", "Contains member"],
+  aligned_from: ["对齐来源", "Aligned from"],
+  site_association: ["关联位点", "Associated sites"],
+  pocket_evidence: ["口袋依据", "Pocket evidence"],
+  aligned_site_context: ["位点受体", "Site receptor"],
   constrained_input: ["约束参照", "Constraint reference"],
   constraint_selection: ["约束选区", "Constraint selection"],
   revised_conditions: ["修改条件为", "Revised conditions"],

@@ -127,6 +127,15 @@ def test_real_site_choices_saved_evidence_and_exact_downstream_version(tmp_path)
                     expect(
                         workspace.get_by_role("region", name="跨构象位点结果", exact=True)
                     ).to_be_visible()
+                    page.get_by_role("button", name="研究资产", exact=True).click()
+                    graph = page.get_by_role("group", name="科学资产关系图", exact=True)
+                    graph.get_by_role(
+                        "button", name="跨构象位点: " + record["request"]["name"], exact=True
+                    ).click()
+                    page.get_by_role("button", name="查看任务与结果", exact=True).click()
+                    expect(
+                        page.get_by_role("region", name="受体构象集合结果", exact=True)
+                    ).to_be_visible()
                     assert not errors
                 finally:
                     browser.close()

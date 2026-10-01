@@ -37,6 +37,7 @@ def project_record(store, kind, row):
             {
                 "id": identifier,
                 "kind": "binding_site_set",
+                "job_id": str(value.alignment_job),
                 "label": value.request.name,
                 "collection": value.model_dump(mode="json"),
             },
@@ -61,6 +62,7 @@ def project_record(store, kind, row):
             {
                 "id": identifier,
                 "kind": "receptor_ensemble",
+                "job_id": str(value.source_job),
                 "label": "Receptor ensemble · " + str(value.id)[:8],
                 "collection": value.model_dump(mode="json"),
             },
@@ -87,6 +89,7 @@ def project_record(store, kind, row):
             {
                 "id": identifier,
                 "kind": "molecular_state_set",
+                "job_id": str(value.source_job),
                 "label": "Molecular states · " + str(value.id)[:8],
                 "collection": value.model_dump(mode="json"),
             },

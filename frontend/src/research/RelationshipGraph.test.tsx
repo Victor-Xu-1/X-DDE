@@ -38,3 +38,52 @@ it("shows real immediate dependencies and supports keyboard asset selection", ()
   expect(onSelect).toHaveBeenCalledWith("task:c");
   expect(screen.queryByRole("button", { name: "任务: unrelated" })).toBeNull();
 });
+
+it("names scientific collections and their source relationships in both languages", () => {
+  const collections: ResearchGraph = {
+    schema: 1,
+    limit: 200,
+    truncated: false,
+    nodes: [
+      { id: "state_set:a", kind: "molecular_state_set", label: "states" },
+      { id: "receptor_set:b", kind: "receptor_ensemble", label: "receptors" },
+      { id: "site_set:c", kind: "binding_site_set", label: "sites" },
+    ],
+    edges: [
+      {
+        source: "receptor_set:b",
+        target: "site_set:c",
+        relation: "site_association",
+      },
+    ],
+  };
+  const { rerender } = render(
+    <RelationshipGraph
+      graph={collections}
+      selected={null}
+      language="zh"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(
+    screen.getByRole("button", { name: "分子状态集合: states" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "受体构象集合: receptors" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "跨构象位点: sites" }),
+  ).toBeVisible();
+  expect(screen.getByText("关联位点")).toBeInTheDocument();
+  rerender(
+    <RelationshipGraph
+      graph={collections}
+      selected={null}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(
+    screen.getByRole("button", { name: "Cross-conformation sites: sites" }),
+  ).toBeVisible();
+});
