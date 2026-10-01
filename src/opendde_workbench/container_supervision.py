@@ -2,14 +2,12 @@
 
 import json
 import subprocess
-from uuid import UUID
+
+from .managed_containers import attached_container
 
 
 def attach(directory, prefix):
-    identifier = str(UUID(directory.name))
-    if prefix not in {"xdde-p2rank-", "xdde-gnina-", "xdde-chemistry-", "xdde-biopython-"}:
-        raise ValueError("Unregistered native container prefix.")
-    container = prefix + identifier
+    container = attached_container(prefix, directory.name)
     code = subprocess.run(["docker", "start", "--attach", container], check=False).returncode
     inspection = subprocess.run(
         ["docker", "inspect", "--format", "{{json .State}}", container],

@@ -8,11 +8,12 @@ from pathlib import Path
 
 from . import local_process
 from .engine import command
+from .managed_containers import CONTAINER_STYLES, container_name
 
 
 class PreparedContainerBackend:
     def __init__(self, settings, identifier, root, files, configuration, readiness):
-        if identifier not in {"chemistry", "biopython", "anarcii"}:
+        if CONTAINER_STYLES.get(identifier) != "preparation":
             raise ValueError("Unknown managed preparation container namespace.")
         if not 1 <= len(files) <= 32 or any(Path(name).name != name for name in files):
             raise ValueError("Preparation adapter files must have bounded, explicit names.")
@@ -23,11 +24,7 @@ class PreparedContainerBackend:
         return await self.runtime_readiness(self.settings)
 
     def container(self, job_id):
-        from uuid import UUID
-
-        if str(UUID(job_id)) != job_id:
-            raise ValueError("Preparation container requires a canonical task identifier.")
-        return "xdde-" + self.identifier + "-" + job_id
+        return container_name(self.identifier, job_id, preparation=True)
 
     async def start(self, job, directory):
         image = self.configuration(self.settings)
