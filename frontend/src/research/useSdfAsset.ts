@@ -5,6 +5,8 @@ import type { Language } from "../types";
 
 export function useSdfAsset(language: Language, maxBytes = 25 * 1024 ** 2) {
   const intent = useRef(0);
+  const languageRef = useRef(language);
+  languageRef.current = language;
   const [asset, setAsset] = useState<Asset | null>(null);
   const [loading, setLoading] = useState(false),
     [error, setError] = useState("");
@@ -36,7 +38,7 @@ export function useSdfAsset(language: Language, maxBytes = 25 * 1024 ** 2) {
           !/^[a-f0-9]{64}$/.test(value.sha256)
         )
           throw new Error(
-            language === "zh"
+            languageRef.current === "zh"
               ? `请选择不超过 ${maxBytes / 1024 ** 2} MB 的 SDF 文件。`
               : `Choose an SDF file no larger than ${maxBytes / 1024 ** 2} MB.`,
           );
@@ -49,7 +51,7 @@ export function useSdfAsset(language: Language, maxBytes = 25 * 1024 ** 2) {
         if (current === intent.current) setLoading(false);
       }
     },
-    [language, maxBytes],
+    [maxBytes],
   );
   return { asset, loading, error, choose };
 }

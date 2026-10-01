@@ -147,3 +147,23 @@ it("reports input metadata failure and prevents advancing to settings", async ()
   );
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 });
+
+it("keeps the user's replacement record when switching language after an initial handoff", async () => {
+  boundary();
+  const user = userEvent.setup(),
+    onCreated = vi.fn();
+  const initial = { ...ref, record: 0 };
+  const view = render(
+    <AdmetForm language="en" onCreated={onCreated} initialMolecule={initial} />,
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(
+    screen.getByRole("button", { name: "Choose saved molecule" }),
+  );
+  view.rerender(
+    <AdmetForm language="zh" onCreated={onCreated} initialMolecule={initial} />,
+  );
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  expect(screen.getByText("single.sdf · #4")).toBeVisible();
+});

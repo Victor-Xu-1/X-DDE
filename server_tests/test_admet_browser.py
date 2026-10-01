@@ -80,12 +80,14 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.add_init_script("""
-            window.acceptedViewerScenes = [];
             window.addEventListener('message', event => {
+                    const frame = document.querySelector('.admet-selected-record iframe');
                 if (event.origin === location.origin &&
+                        event.source === frame?.contentWindow &&
                     event.data?.channel === 'opendde-viewer' &&
                     event.data.type === 'loaded')
-                    window.acceptedViewerScenes.push(event.data.detail.atoms);
+                        document.documentElement.dataset.admetViewerAtoms =
+                            String(event.data.detail.atoms);
             });
         """)
         errors = []
@@ -97,7 +99,7 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
             expect(results.get_by_role("status")).to_have_text("已预测 3 / 5")
             expect(results.get_by_role("heading", name="#2 · =1+1", exact=True)).to_be_visible()
             expect(page.locator("iframe").first).to_be_visible()
-            page.wait_for_function("window.acceptedViewerScenes.at(-1) === 3")
+            expect(page.locator("html")).to_have_attribute("data-admet-viewer-atoms", "3")
             report = page.request.get(base + f"/api/jobs/{job.id}/result").json()
             assert report["rows"][1]["reference"]["record"] == 1
             assert report["rows"][1]["reference"]["sha256"] == source.sha256
@@ -111,7 +113,7 @@ def test_actual_predictions_preview_original_record_reuse_and_single_question_fl
             results.get_by_role("button", name="#4 · Aspirin", exact=False).click()
             expect(results.get_by_role("heading", name="#4 · Aspirin", exact=True)).to_be_visible()
             expect(results.locator("iframe")).to_be_visible()
-            page.wait_for_function("window.acceptedViewerScenes.at(-1) === 13")
+            expect(page.locator("html")).to_have_attribute("data-admet-viewer-atoms", "13")
             results.get_by_role("checkbox", name="显示全部终点", exact=True).check()
             endpoint_region = results.get_by_role("region", name="性质预测", exact=True)
             expect(endpoint_region.locator("table").first.locator("tbody tr")).to_have_count(41)

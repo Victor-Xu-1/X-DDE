@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
@@ -11,6 +12,9 @@ AUTHORITIES = frozenset(
     {"api.platform.opentargets.org", "rest.uniprot.org", "www.ebi.ac.uk", "files.rcsb.org"}
 )
 LIMIT = 8 * 1024**2
+MAX_ATTEMPTS = 3
+RETRYABLE_STATUS = frozenset({408, 429, 500, 502, 503, 504})
+logger = logging.getLogger(__name__)
 
 
 class SourceUnavailable(RuntimeError):
@@ -45,37 +49,70 @@ def request_bytes(url: str, body: dict | None = None, *, require_json=True):
     )
     opener = build_opener(ProxyHandler({}), NoRedirect())
     deadline = time.monotonic() + 20
-    try:
-        with opener.open(request, timeout=20) as response:
-            if response.status != 200 or (
-                require_json and "json" not in response.headers.get("Content-Type", "")
-            ):
-                raise SourceUnavailable("Public source returned an unexpected response type.")
-            chunks, size = [], 0
-            while True:
-                if time.monotonic() > deadline:
-                    raise SourceUnavailable("Public source exceeded its response time budget.")
-                chunk = response.read1(min(65536, LIMIT + 1 - size))
-                if not chunk:
-                    break
-                chunks.append(chunk)
-                size += len(chunk)
-                if size > LIMIT:
-                    raise SourceUnavailable("Public response exceeds the bounded evidence limit.")
-            raw = b"".join(chunks)
-            if len(raw) > LIMIT:
+    last_error = None
+    for attempt in range(MAX_ATTEMPTS):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        try:
+            raw, release = read_response(
+                opener, request, deadline, min(20, remaining), require_json
+            )
+            return raw, {
+                "url": url,
+                "response_sha256": hashlib.sha256(raw).hexdigest(),
+                "release": release,
+                "raw_document": raw,
+            }
+        except HTTPError as exc:
+            status = exc.code
+            exc.close()
+            last_error = exc
+            if status not in RETRYABLE_STATUS:
+                raise SourceUnavailable(
+                    f"Public source returned HTTP {status}; its access or endpoint needs review."
+                ) from exc
+            reason = f"HTTP {status}"
+        except (URLError, TimeoutError, OSError) as exc:
+            last_error = exc
+            reason = type(exc).__name__
+        delay = 0.25 * 2**attempt
+        if attempt + 1 >= MAX_ATTEMPTS or time.monotonic() + delay >= deadline:
+            break
+        logger.warning(
+            "Retrying public source %s after %s; attempt %d/%d within its time budget",
+            parsed.hostname,
+            reason,
+            attempt + 2,
+            MAX_ATTEMPTS,
+        )
+        time.sleep(delay)
+    raise SourceUnavailable(
+        "Public source is unavailable after bounded retries; retry this task later."
+    ) from last_error
+
+
+def read_response(opener, request, deadline, timeout, require_json):
+    with opener.open(request, timeout=timeout) as response:
+        if response.status != 200 or (
+            require_json and "json" not in response.headers.get("Content-Type", "")
+        ):
+            raise SourceUnavailable("Public source returned an unexpected response type.")
+        chunks, size = [], 0
+        while True:
+            if time.monotonic() > deadline:
+                raise SourceUnavailable("Public source exceeded its response time budget.")
+            chunk = response.read1(min(65536, LIMIT + 1 - size))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+            if size > LIMIT:
                 raise SourceUnavailable("Public response exceeds the bounded evidence limit.")
-            release = response.headers.get("X-UniProt-Release", "")[:80]
-    except (HTTPError, URLError, TimeoutError, OSError) as exc:
-        raise SourceUnavailable(
-            "Public source is unavailable or timed out; retry this task later."
-        ) from exc
-    return raw, {
-        "url": url,
-        "response_sha256": hashlib.sha256(raw).hexdigest(),
-        "release": release,
-        "raw_document": raw,
-    }
+        raw = b"".join(chunks)
+        if len(raw) > LIMIT:
+            raise SourceUnavailable("Public response exceeds the bounded evidence limit.")
+        return raw, response.headers.get("X-UniProt-Release", "")[:80]
 
 
 def fetch(url: str, body: dict | None = None) -> tuple[dict, dict]:

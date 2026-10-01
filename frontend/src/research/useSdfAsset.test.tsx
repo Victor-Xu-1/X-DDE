@@ -81,3 +81,21 @@ it("shows metadata service errors and recovers on a new selection", async () => 
   await waitFor(() => expect(result.current.asset?.id).toBe("recovered"));
   expect(result.current.error).toBe("");
 });
+
+it("retains the selected asset and stable selection intent when the interface language changes", async () => {
+  const request = vi
+    .spyOn(client, "request")
+    .mockResolvedValue(asset("selected"));
+  const { result, rerender } = renderHook(
+    ({ language }: { language: "en" | "zh" }) => useSdfAsset(language),
+    { initialProps: { language: "en" } },
+  );
+  await act(async () => {
+    await result.current.choose("selected");
+  });
+  const choose = result.current.choose;
+  rerender({ language: "zh" });
+  expect(result.current.asset?.id).toBe("selected");
+  expect(result.current.choose).toBe(choose);
+  expect(request).toHaveBeenCalledTimes(1);
+});
