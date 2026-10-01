@@ -47,7 +47,7 @@ def test_actual_target_sources_persistence_exact_sequence_and_tamper(tmp_path, m
             "limit": 5,
             "allow_external": True,
         }
-        client.headers["Idempotency-Key"] = "public-evidence-target-v1"
+        client.headers["Idempotency-Key"] = "b3578714-57ca-4a20-8eac-a3e49dc834ef"
         response = client.post("/api/jobs", json=payload)
         assert response.status_code == 201, response.text
         job = response.json()
