@@ -117,7 +117,14 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_text("平台服务就绪", exact=True)).to_be_visible()
             health = page.request.get(base_url + "/api/health").json()
             assert health["platform"] == {"name": "X-DDE", "ready": True}
-            assert set(health["engines"]) == {"opendde", "diffsbdd", "harness", "p2rank", "gnina"}
+            assert set(health["engines"]) == {
+                "opendde",
+                "diffsbdd",
+                "harness",
+                "p2rank",
+                "gnina",
+                "chemistry",
+            }
             for name in ("OpenDDE · 集成环境", "DiffSBDD · 集成环境", "OpenDDE Harness · 集成环境"):
                 expect(page.get_by_role("heading", name=name, exact=True)).to_be_visible()
             for width in (390, 768, 1440):
@@ -509,10 +516,11 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
             labels = navigation.get_by_role("button").evaluate_all(
                 "nodes => nodes.map(node => node.getAttribute('aria-label'))"
             )
-            assert labels[:7] == [
+            assert labels[:8] == [
                 "结构预测",
                 "口袋寻找",
                 "结合模式",
+                "分子准备",
                 "分子生成",
                 "抗体设计",
                 "性质计算",
@@ -520,6 +528,7 @@ def test_compact_core_navigation_and_overlapping_drug_modalities(tmp_path):
             ]
             for label, heading in (
                 ("口袋寻找", "发现多个候选口袋"),
+                ("分子准备", "分子状态与三维构象"),
                 ("分子生成", "口袋条件分子生成"),
                 ("性质计算", "计算小分子性质"),
             ):

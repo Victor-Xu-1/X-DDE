@@ -126,3 +126,49 @@ def test_prepared_result_rejects_inconsistent_mapping_energy_and_per_state_budge
             bad["states"][0]["conformer_status"] = "not_requested"
         with pytest.raises(ValidationError):
             MolecularStatesResult.model_validate(bad)
+
+
+def test_free_conformers_cannot_be_bound_as_aligned_generation_inputs():
+    from opendde_workbench.workflows.contracts import PlanInput
+
+    ref = {"asset_id": str(uuid4()), "sha256": "a" * 64}
+    first = {"id": "prepare", "request": {"operation": "molecular_states", "molecule": ref}}
+    property_step = {
+        "id": "measure",
+        "request": {"operation": "properties", "smiles": ["CCO"]},
+        "depends_on": ["prepare"],
+        "bindings": [
+            {
+                "from_step": "prepare",
+                "kind": "ligand",
+                "target": "property_input",
+                "result_field": "state_artifact",
+            }
+        ],
+    }
+    assert PlanInput.model_validate(
+        {"name": "valid chemical reuse", "steps": [first, property_step]}
+    )
+    aligned = {
+        "id": "generate",
+        "request": {
+            "operation": "diffsbdd",
+            "name": "aligned generation",
+            "payload": {
+                "mode": "generate",
+                "protein": ref,
+                "pocket": {"kind": "ligand", "ligand": ref},
+            },
+        },
+        "depends_on": ["prepare"],
+        "bindings": [
+            {
+                "from_step": "prepare",
+                "kind": "ligand",
+                "target": "reference_ligand",
+                "result_field": "conformer_artifact",
+            }
+        ],
+    }
+    with pytest.raises(ValidationError, match="not aligned binding poses"):
+        PlanInput.model_validate({"name": "invalid frame reuse", "steps": [first, aligned]})

@@ -153,6 +153,7 @@ it("opens core scientific forms directly from the first navigation entries", asy
     "Structure prediction",
     "Pocket discovery",
     "Binding poses",
+    "Molecule preparation",
     "Molecule generation",
     "Antibody design",
     "Molecular properties",
@@ -161,7 +162,7 @@ it("opens core scientific forms directly from the first navigation entries", asy
   expect(
     within(nav)
       .getAllByRole("button")
-      .slice(0, 7)
+      .slice(0, core.length)
       .map((button) => button.getAttribute("aria-label")),
   ).toEqual(core);
   await user.click(
@@ -171,6 +172,15 @@ it("opens core scientific forms directly from the first navigation entries", asy
   await user.click(within(nav).getByRole("button", { name: "Binding poses" }));
   expect(
     screen.getByRole("button", { name: "Explore binding poses" }),
+  ).toBeDisabled();
+  await user.click(
+    within(nav).getByRole("button", { name: "Molecule preparation" }),
+  );
+  expect(
+    screen.getByRole("combobox", { name: "What should be prepared?" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Prepare states and conformers" }),
   ).toBeDisabled();
   expect(screen.queryByText("Install research software")).toBeNull();
   expect(submit).not.toHaveBeenCalled();
