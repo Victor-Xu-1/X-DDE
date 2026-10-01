@@ -1,3 +1,4 @@
+import { ChoiceCards } from "../guided/ChoiceCards";
 import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
 import { AssetPicker } from "../operations/AssetPicker";
@@ -27,6 +28,9 @@ export function ReferencePicker({
   const formats =
     allowedSuffixes ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
   const [loading, setLoading] = useState(false);
+  const [source, setSource] = useState<"saved" | "file">(() =>
+    value && !value.version_id ? "file" : "saved",
+  );
   useEffect(() => {
     const c = new AbortController();
     setLoading(true);
@@ -97,40 +101,59 @@ export function ReferencePicker({
   }
   return (
     <section className="diff-reference">
-      <label className="field">
-        {label} · {zh ? "复用研究资产" : "Reuse research asset"}
-        <select
-          value={value?.version_id ?? ""}
-          disabled={loading}
-          onChange={(e) => {
-            const v = versions.find((v) => v.id === e.target.value);
-            if (v) void choose(v.reference.asset_id, v.reference);
-            else {
-              selectionIntent.current++;
-              onChange(null);
-            }
-          }}
-        >
-          <option value="">
-            {zh
-              ? "选择已保存版本，或在下方上传"
-              : "Choose a saved version or upload below"}
-          </option>
-          {versions.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.label} · {v.id.slice(0, 8)} · {v.reference.record + 1}
-            </option>
-          ))}
-        </select>
-      </label>
-      <AssetPicker
-        kind={kind}
-        allowedSuffixes={formats}
-        value={value?.asset_id ?? ""}
-        onChange={(id) => void choose(id)}
-        language={language}
+      <ChoiceCards<"saved" | "file">
         label={label}
+        value={source}
+        onChange={setSource}
+        options={[
+          {
+            value: "saved",
+            title: zh ? "复用研究版本" : "Reuse a research version",
+          },
+          {
+            value: "file",
+            title: zh ? "上传或选择文件" : "Upload or choose a file",
+          },
+        ]}
       />
+      <div hidden={source !== "saved"}>
+        <label className="field">
+          {label} · {zh ? "复用研究资产" : "Reuse research asset"}
+          <select
+            value={value?.version_id ?? ""}
+            disabled={loading}
+            onChange={(e) => {
+              const v = versions.find((v) => v.id === e.target.value);
+              if (v) void choose(v.reference.asset_id, v.reference);
+              else {
+                selectionIntent.current++;
+                onChange(null);
+              }
+            }}
+          >
+            <option value="">
+              {zh
+                ? "选择已保存版本，或在下方上传"
+                : "Choose a saved version or upload below"}
+            </option>
+            {versions.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label} · {v.id.slice(0, 8)} · {v.reference.record + 1}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div hidden={source !== "file"}>
+        <AssetPicker
+          kind={kind}
+          allowedSuffixes={formats}
+          value={value?.asset_id ?? ""}
+          onChange={(id) => void choose(id)}
+          language={language}
+          label={label}
+        />
+      </div>
       {kind === "ligand" && value && !value.version_id && (
         <label className="field">
           {zh

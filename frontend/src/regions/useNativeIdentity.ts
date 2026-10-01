@@ -5,7 +5,10 @@ import type { MoleculeRef } from "../research/types";
 import type { IdentityResult } from "../diffsbdd/types";
 import { validIdentity } from "./model";
 // Callers key this hook's component by the complete immutable subject reference.
-export function useNativeIdentity(initial: MoleculeRef, language: Language) {
+export function useNativeIdentity(
+  initial: MoleculeRef | null,
+  language: Language,
+) {
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
     [result, setResult] = useState<IdentityResult | null>(null);
@@ -40,7 +43,7 @@ export function useNativeIdentity(initial: MoleculeRef, language: Language) {
     };
   }, [job, refresh]);
   useEffect(() => {
-    if (job?.status !== "succeeded") return;
+    if (!initial || job?.status !== "succeeded") return;
     const c = new AbortController();
     void api
       .result(job.id, c.signal)
@@ -60,6 +63,7 @@ export function useNativeIdentity(initial: MoleculeRef, language: Language) {
   const running =
     busy || (!!job && ["queued", "running", "cancelling"].includes(job.status));
   async function inspect() {
+    if (!initial) return;
     setBusy(true);
     setError("");
     try {

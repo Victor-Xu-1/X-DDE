@@ -357,10 +357,16 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                 expect(page.locator(".questionnaire fieldset:not([hidden])")).to_have_count(1)
                 expect(page.get_by_role("button", name="创建任务", exact=True)).to_have_count(0)
                 if title == "局部重设计":
+                    page.get_by_role("radiogroup", name="1. 选择 PDB 受体", exact=True).get_by_role(
+                        "radio", name="上传或选择文件", exact=True
+                    ).check()
                     page.get_by_role("combobox", name="1. 选择 PDB 受体", exact=True).focus()
                     page.get_by_role("combobox", name="1. 选择 PDB 受体", exact=True).select_option(
                         protein_id
                     )
+                    page.get_by_role(
+                        "radiogroup", name="选择与受体对齐的三维 SDF 分子", exact=True
+                    ).get_by_role("radio", name="上传或选择文件", exact=True).check()
                     molecule_select = page.get_by_role(
                         "combobox", name="选择与受体对齐的三维 SDF 分子", exact=True
                     )
@@ -372,12 +378,6 @@ def test_diffsbdd_forms_expose_real_contracts_without_dispatch():
                     )
                     expect(hint).to_be_visible()
                     assert "0.5 Å" in hint.get_attribute("title")
-                    molecule_select = page.get_by_role(
-                        "combobox", name="选择与受体对齐的三维 SDF 分子", exact=True
-                    )
-                    # Uploaded-file choices load on focus, as in a real user interaction.
-                    molecule_select.focus()
-                    molecule_select.select_option(molecule_id)
                     picker = page.get_by_role("button", name="读取可选原子", exact=True)
                     expect(picker).to_have_count(1)
                     for _ in range(3):
@@ -483,6 +483,9 @@ def test_real_pdb_preview_selects_version_bound_pocket_residues_without_running_
             assert response.status == 201
             asset = response.json()
             page.get_by_role("button", name="口袋条件分子生成", exact=True).click()
+            page.get_by_role("radiogroup", name="1. 选择 PDB 受体", exact=True).get_by_role(
+                "radio", name="上传或选择文件", exact=True
+            ).check()
             picker = page.get_by_role("combobox", name="1. 选择 PDB 受体", exact=True)
             picker.focus()
             expect(picker.locator('option[value="' + asset["id"] + '"]')).to_have_count(1)
@@ -630,6 +633,9 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             )
             assert uploaded.status == 201
             asset = uploaded.json()
+            page.get_by_role("radiogroup", name="受体结构", exact=True).get_by_role(
+                "radio", name="上传或选择文件", exact=True
+            ).check()
             receptor = page.get_by_role("combobox", name="受体结构", exact=True)
             receptor.focus()
             expect(receptor.locator('option[value="' + asset["id"] + '"]')).to_have_count(1)
@@ -645,6 +651,9 @@ def test_binding_pose_entry_presets_and_configuration_limits():
                 headers={"Content-Type": "application/octet-stream", "X-Workbench-CSRF": csrf},
             )
             assert ligand_upload.status == 201
+            page.get_by_role("radiogroup", name="选择分子或已有姿势", exact=True).get_by_role(
+                "radio", name="上传或选择文件", exact=True
+            ).check()
             ligand_choice = page.get_by_role("combobox", name="选择分子或已有姿势", exact=True)
             ligand_choice.focus()
             expect(
@@ -1054,6 +1063,7 @@ def test_all_task_entries_show_one_step_and_no_early_dispatch():
                 "候选描述符",
                 "候选导出",
                 "研究计划与连续任务",
+                "定义完整分子的区域",
                 "发现多个候选口袋",
                 "探索分子结合模式",
                 "评估已有结合姿势",

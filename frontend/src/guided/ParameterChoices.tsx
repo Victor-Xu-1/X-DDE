@@ -42,7 +42,7 @@ export function ParameterChoices({
   return (
     <section className="run-choices">
       <h3>
-        {zh ? "3 · 选择运行方案" : "3 · Choose a run preset"}{" "}
+        {zh ? "选择运行方案" : "Choose a run preset"}{" "}
         <Hint label={zh ? "运行方案说明" : "Run preset help"}>
           {zh
             ? "默认已调好参数。快速试跑计算较少，不适合据此作研究结论；标准和多构象使用同样的单构象设置。"

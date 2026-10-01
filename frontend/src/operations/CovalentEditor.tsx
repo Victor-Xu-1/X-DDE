@@ -145,8 +145,11 @@ export function CovalentEditor({
           ? "先检查输入，再在预览中点选两个原子，或搜索下拉列表。该预览用于编辑输入拓扑，不是结合姿势预测。"
           : "Inspect inputs, then pick two atoms in the preview or search the list. This preview edits input topology; it is not a predicted binding pose."}
       </p>
-      {!job && (
+      {(!job ||
+        readyKey !== key ||
+        (terminal(job.status) && job.status !== "succeeded")) && (
         <InspectionSteps
+          key={key}
           language={language}
           label={
             zh ? "检查输入并打开选择器" : "Inspect inputs and open selector"

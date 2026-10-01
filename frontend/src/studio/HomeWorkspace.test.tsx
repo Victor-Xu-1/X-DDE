@@ -51,6 +51,7 @@ const props: ComponentProps<typeof HomeWorkspace> = {
 };
 it("separates task entry from structure review while preserving the draft", () => {
   const { rerender } = render(<HomeWorkspace {...props} />);
+  fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   const sequence = screen.getByLabelText("单字母氨基酸序列");
   fireEvent.change(sequence, { target: { value: "ACDE" } });
   fireEvent.click(screen.getByRole("button", { name: "结构与结果" }));

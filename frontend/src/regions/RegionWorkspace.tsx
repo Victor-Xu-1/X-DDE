@@ -1,6 +1,6 @@
 import { GuidedSteps } from "../guided/Questionnaire";
 import { InspectionSteps } from "../guided/InspectionSteps";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -21,29 +21,30 @@ export function RegionWorkspace({ language }: { language: Language }) {
   const [subject, setSubject] = useState<MoleculeRef | null>(null),
     zh = language === "zh";
   return (
-    <section className="tool-form">
-      <ReferencePicker
-        kind="ligand"
-        value={subject}
-        onChange={setSubject}
-        language={language}
-        label={zh ? "选择完整分子版本" : "Select the full molecule version"}
-      />
-      {subject && (
-        <RegionEditor
-          key={referenceKey(subject)}
-          subject={subject}
+    <RegionEditor
+      key={subject ? referenceKey(subject) : "empty"}
+      subject={subject}
+      language={language}
+      inputs={
+        <ReferencePicker
+          kind="ligand"
+          value={subject}
+          onChange={setSubject}
           language={language}
+          label={zh ? "选择完整分子版本" : "Select the full molecule version"}
         />
-      )}
-    </section>
+      }
+    />
   );
 }
+
 export function RegionEditor({
   subject,
   language,
+  inputs,
 }: {
-  subject: MoleculeRef;
+  inputs?: ReactNode;
+  subject: MoleculeRef | null;
   language: Language;
 }) {
   const zh = language === "zh",
@@ -78,7 +79,7 @@ export function RegionEditor({
     setLoading(true);
     setError("");
     void Promise.all([
-      savedRegions(subject, controller.signal),
+      subject ? savedRegions(subject, controller.signal) : Promise.resolve([]),
       request<{ availability: { configuration_present: boolean } }>(
         "/capabilities/diffsbdd.identity",
         { signal: controller.signal },
@@ -103,7 +104,7 @@ export function RegionEditor({
     setSaved(null);
   }
   async function save() {
-    if (!identity.result || !identity.job) return;
+    if (!subject || !identity.result || !identity.job) return;
     setError("");
     setBusy(true);
     try {
@@ -144,6 +145,7 @@ export function RegionEditor({
   }
   const reuse = (
     <>
+      {inputs}
       <label className="field">
         {zh
           ? "复用已有区域（同一分子版本）"
@@ -187,7 +189,7 @@ export function RegionEditor({
             : "Configure the DiffSBDD chemical parsing environment in component management to read atom identities."}
         </p>
       )}
-      {!identity.result && (
+      {subject && !identity.result && (
         <InspectionSteps
           language={language}
           ready={ready}
@@ -265,7 +267,7 @@ export function RegionEditor({
       steps={[
         {
           title: zh ? "选择材料" : "Choose inputs",
-          valid: !loading,
+          valid: !loading && Boolean(identity.result),
           content: reuse,
         },
         {

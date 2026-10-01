@@ -6,13 +6,16 @@ import { componentsFor } from "./presets";
 import { defaults, prediction, validate } from "../form-model";
 it("prepares distinct protein chains and automatically dispatches antibody tasks to ABAG", async () => {
   const user = userEvent.setup(),
-    submit = vi.fn().mockResolvedValue(undefined);
+    submit = vi.fn().mockResolvedValue({ id: "actual-prediction" });
   render(<TaskForm language="zh" ready abagAvailable onSubmit={submit} />);
   await user.click(screen.getByLabelText("抗体–抗原复合物"));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   const fields = screen.getAllByLabelText("单字母氨基酸序列");
   await user.type(fields[0], "ACDE");
   await user.type(fields[1], "FGHI");
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   await user.click(screen.getByLabelText("多构象比较"));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   await user.click(screen.getByRole("button", { name: "开始预测" }));
   expect(submit.mock.calls[0][0]).toMatchObject({
     components: [
@@ -35,19 +38,26 @@ it("does not advertise an unavailable antibody model", () => {
 });
 it("retains edits across expert/guided mode and workflow switches", async () => {
   const user = userEvent.setup(),
-    submit = vi.fn().mockResolvedValue(undefined);
+    submit = vi.fn().mockResolvedValue({ id: "actual-prediction" });
   render(<TaskForm language="zh" ready onSubmit={submit} />);
   await user.click(screen.getByLabelText("DNA / RNA 结构"));
-  await user.type(screen.getByLabelText("RNA 序列"), "GUAC");
   await user.click(screen.getByRole("button", { name: "专家微调" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.type(screen.getByLabelText("RNA 序列"), "GUAC");
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   fireEvent.change(screen.getByLabelText("扩散步数"), {
     target: { value: "80" },
   });
+  await user.click(screen.getByRole("button", { name: "上一步" }));
+  await user.click(screen.getByRole("button", { name: "上一步" }));
   await user.click(screen.getByRole("button", { name: "简易模式" }));
   expect(screen.queryByLabelText("扩散步数")).not.toBeInTheDocument();
   await user.click(screen.getByLabelText("蛋白结构"));
   await user.click(screen.getByLabelText("DNA / RNA 结构"));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   expect(screen.getByLabelText("RNA 序列")).toHaveValue("GUAC");
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
   await user.click(screen.getByRole("button", { name: "开始预测" }));
   await waitFor(() => expect(submit).toHaveBeenCalledOnce());
   expect(submit.mock.calls[0][0]).toMatchObject({
@@ -78,17 +88,20 @@ it("validates nucleic alphabets without silently converting T/U and preserves li
 });
 it("honors an explicit expert checkpoint override instead of silently forcing ABAG", async () => {
   const user = userEvent.setup(),
-    submit = vi.fn().mockResolvedValue(undefined);
+    submit = vi.fn().mockResolvedValue({ id: "actual-prediction" });
   render(<TaskForm language="en" ready abagAvailable onSubmit={submit} />);
   await user.click(screen.getByLabelText("Antibody–antigen complex"));
   await user.click(screen.getByRole("button", { name: "Expert mode" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  const fields = screen.getAllByLabelText("One-letter amino-acid sequence");
+  await user.type(fields[0], "ACDE");
+  await user.type(fields[1], "FGHI");
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.selectOptions(
     screen.getByLabelText("Structure model"),
     "standard",
   );
-  const fields = screen.getAllByLabelText("One-letter amino-acid sequence");
-  await user.type(fields[0], "ACDE");
-  await user.type(fields[1], "FGHI");
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Run prediction" }));
   expect(submit.mock.calls[0][0].parameters.model).toBe("standard");
 });

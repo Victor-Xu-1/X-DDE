@@ -166,6 +166,7 @@ it("changing an imported source clears stale predictions and a reviewed batch re
   const input = screen.getByRole("combobox", {
     name: "Existing native OpenDDE JSON",
   });
+  await user.click(input);
   await waitFor(() => expect(input).toContainHTML('value="config1"'));
   await user.selectOptions(input, "config1");
   await user.click(screen.getByRole("button", { name: "Import file" }));
