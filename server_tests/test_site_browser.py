@@ -91,14 +91,26 @@ def test_real_site_choices_saved_evidence_and_exact_downstream_version(tmp_path)
                     ).to_be_visible()
                     workspace.get_by_text("关联证据与阈值", exact=True).click()
                     expect(workspace.locator("table tbody tr").first).to_be_visible()
+                    workspace.get_by_role("button", name="残基重叠率说明", exact=True).click()
+                    expect(page.get_by_role("tooltip")).to_contain_text("不代表亲和力")
+                    page.keyboard.press("Escape")
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
                         assert page.evaluate(
                             "document.documentElement.scrollWidth<=window.innerWidth+1"
                         )
+                        if width == 390:
+                            assert workspace.locator("table").evaluate(
+                                "e => e.scrollWidth > e.parentElement.clientWidth"
+                            )
+                            expect(
+                                workspace.get_by_role("columnheader", name="残基重叠率", exact=True)
+                            ).to_be_visible()
                         page.screenshot(
                             path=str(evidence / f"site-association-{width}.png"), full_page=True
                         )
+                        workspace.locator(".site-table-wrap").scroll_into_view_if_needed()
+                        page.screenshot(path=str(evidence / f"site-evidence-viewport-{width}.png"))
                     choice = workspace.get_by_role(
                         "button", name="受体 2 · 口袋 1 · 查看并复用", exact=True
                     )
@@ -128,6 +140,12 @@ def test_real_site_choices_saved_evidence_and_exact_downstream_version(tmp_path)
                         workspace.get_by_role("region", name="跨构象位点结果", exact=True)
                     ).to_be_visible()
                     page.get_by_role("button", name="研究资产", exact=True).click()
+                    page.get_by_role("searchbox", name="查找资产或任务", exact=True).fill(
+                        record["request"]["name"]
+                    )
+                    page.locator(".research-node-list").get_by_role("button").filter(
+                        has_text=record["request"]["name"]
+                    ).click()
                     graph = page.get_by_role("group", name="科学资产关系图", exact=True)
                     graph.get_by_role(
                         "button", name="跨构象位点: " + record["request"]["name"], exact=True

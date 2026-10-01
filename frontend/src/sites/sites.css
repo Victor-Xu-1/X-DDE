@@ -23,10 +23,12 @@
 .site-table-wrap table {
   border-collapse: collapse;
   width: 100%;
+  min-width: 620px;
 }
 .site-table-wrap th,
 .site-table-wrap td {
   text-align: left;
+  white-space: nowrap;
   padding: 0.45rem;
   border-bottom: 1px solid var(--line);
 }
