@@ -180,6 +180,9 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 assert page.evaluate(
                     "document.documentElement.scrollWidth <= window.innerWidth + 1"
                 )
+                page.get_by_role(
+                    "heading", name="2. Provide molecules", exact=True
+                ).scroll_into_view_if_needed()
                 page.screenshot(path=str(evidence / f"guided-property-input-{width}.png"))
             page.get_by_role("button", name="Next", exact=True).click()
             page.get_by_role("textbox", name="Task name (optional)", exact=True).fill(
@@ -194,6 +197,9 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
                 assert page.evaluate(
                     "document.documentElement.scrollWidth <= window.innerWidth + 1"
                 )
+                page.get_by_role(
+                    "heading", name="4. Review & start", exact=True
+                ).scroll_into_view_if_needed()
                 page.screenshot(path=str(evidence / f"guided-property-review-{width}.png"))
             page.get_by_role("button", name="Back", exact=True).click()
             expect(
@@ -596,16 +602,7 @@ def test_binding_pose_entry_presets_and_configuration_limits():
         try:
             page.goto(base)
             page.get_by_role("button", name="结合模式", exact=True).click()
-            expect(page.get_by_role("button", name="探索结合模式", exact=True)).to_be_disabled()
-            expect(page.get_by_role("combobox", name="运行方案", exact=True)).to_have_value("cpu")
-            page.get_by_role("combobox", name="运行方案", exact=True).select_option("expert")
-            page.get_by_role("checkbox", name="使用服务器 GPU", exact=True).check()
-            page.get_by_role("combobox", name="运行方案", exact=True).select_option("cpu")
-            expect(page.get_by_role("checkbox", name="使用服务器 GPU", exact=True)).to_have_count(0)
-            page.get_by_role("combobox", name="在哪里搜索？", exact=True).select_option("box")
-            page.get_by_role("spinbutton", name="中心 X (Å)", exact=True).fill("1.5")
-            page.get_by_role("spinbutton", name="中心 Y (Å)", exact=True).fill("2.5")
-            page.get_by_role("spinbutton", name="中心 Z (Å)", exact=True).fill("3.5")
+            expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
             csrf = page.request.get(base + "/api/session").json()["csrf_token"]
             uploaded = page.request.post(
                 base + "/api/assets?kind=structure&name=docking-center.pdb",
@@ -621,15 +618,6 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             receptor.focus()
             expect(receptor.locator('option[value="' + asset["id"] + '"]')).to_have_count(1)
             receptor.select_option(asset["id"])
-            page.get_by_text("在三维预览中点选搜索中心", exact=True).click()
-            expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(timeout=30000)
-            page.get_by_text("从列表选择残基", exact=True).click()
-            page.get_by_role("button", name="A:ALA10", exact=True).click()
-            page.get_by_role("button", name="以所选原子为搜索中心", exact=True).click()
-            for axis, value in zip("XYZ", ("1", "2", "3"), strict=True):
-                expect(
-                    page.get_by_role("spinbutton", name=f"中心 {axis} (Å)", exact=True)
-                ).to_have_value(value)
             # Save/reuse a real task condition through API/SQLite without dispatching science.
             ligand_upload = page.request.post(
                 base + "/api/assets?kind=ligand&name=constraint-carbon.sdf",
@@ -647,6 +635,26 @@ def test_binding_pose_entry_presets_and_configuration_limits():
                 ligand_choice.locator('option[value="' + ligand_upload.json()["id"] + '"]')
             ).to_have_count(1)
             ligand_choice.select_option(ligand_upload.json()["id"])
+            page.get_by_role("button", name="下一步", exact=True).click()
+            page.get_by_role("combobox", name="在哪里搜索？", exact=True).select_option("box")
+            page.get_by_role("spinbutton", name="中心 X (Å)", exact=True).fill("1.5")
+            page.get_by_role("spinbutton", name="中心 Y (Å)", exact=True).fill("2.5")
+            page.get_by_role("spinbutton", name="中心 Z (Å)", exact=True).fill("3.5")
+            page.get_by_text("在三维预览中点选搜索中心", exact=True).click()
+            expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(timeout=30000)
+            page.get_by_text("从列表选择残基", exact=True).click()
+            page.get_by_role("button", name="A:ALA10", exact=True).click()
+            page.get_by_role("button", name="以所选原子为搜索中心", exact=True).click()
+            for axis, value in zip("XYZ", ("1", "2", "3"), strict=True):
+                expect(
+                    page.get_by_role("spinbutton", name=f"中心 {axis} (Å)", exact=True)
+                ).to_have_value(value)
+            page.get_by_role("button", name="下一步", exact=True).click()
+            expect(page.get_by_role("combobox", name="运行方案", exact=True)).to_have_value("cpu")
+            page.get_by_role("combobox", name="运行方案", exact=True).select_option("expert")
+            page.get_by_role("checkbox", name="使用服务器 GPU", exact=True).check()
+            page.get_by_role("combobox", name="运行方案", exact=True).select_option("cpu")
+            expect(page.get_by_role("checkbox", name="使用服务器 GPU", exact=True)).to_have_count(0)
             page.get_by_text("保存与复用任务条件（可选）", exact=True).click()
             page.get_by_role("combobox", name="计算结束后检查什么？", exact=True).select_option(
                 "heavy_atom_centroid"
@@ -655,11 +663,15 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             expect(page.get_by_role("button", name="应用所选条件", exact=True)).to_be_enabled()
             page.get_by_role("button", name="检查引擎支持", exact=True).click()
             expect(page.get_by_text("条件与任务匹配", exact=True)).to_be_visible()
+            page.get_by_role("button", name="上一步", exact=True).click()
             page.get_by_role("spinbutton", name="中心 X (Å)", exact=True).fill("9")
+            page.get_by_role("button", name="下一步", exact=True).click()
             page.get_by_role("button", name="检查引擎支持", exact=True).click()
             expect(page.get_by_text("条件不能用于当前任务", exact=True)).to_be_visible()
             page.get_by_role("button", name="应用所选条件", exact=True).click()
+            page.get_by_role("button", name="上一步", exact=True).click()
             expect(page.get_by_role("spinbutton", name="中心 X (Å)", exact=True)).to_have_value("1")
+            page.get_by_role("button", name="下一步", exact=True).click()
             page.get_by_role("button", name="检查引擎支持", exact=True).click()
             expect(page.get_by_text("条件与任务匹配", exact=True)).to_be_visible()
             saved_conditions = page.request.get(base + "/api/research/constraints").json()
@@ -667,6 +679,7 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             assert saved_conditions[0]["body"]["conditions"][1]["kind"] == "spatial_bounds"
             assert saved_conditions[0]["body"]["conditions"][1]["tolerance_angstrom"] == 0.001
             expect(page.get_by_text("仅结果检查", exact=False)).to_be_visible()
+            page.get_by_role("button", name="上一步", exact=True).click()
             centers = page.locator('.operation-grid label:has(input[type="number"])').evaluate_all(
                 "labels=>labels.map(l=>({left:l.getBoundingClientRect().left,top:l.getBoundingClientRect().top}))"
             )

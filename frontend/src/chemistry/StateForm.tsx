@@ -1,10 +1,12 @@
 import "./states.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
-import { request } from "../api";
+import { Questionnaire } from "../guided/Questionnaire";
+import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { Hint } from "../guided/Hint";
 import { optionsFor, type PreparationChoice } from "./model";
 import type { StateOptions } from "./types";
 
@@ -27,24 +29,9 @@ export function StateForm({
   const [expert, setExpert] = useState(false),
     [raw, setRaw] = useState(""),
     [name, setName] = useState(""),
-    [error, setError] = useState(""),
-    [ready, setReady] = useState(false);
-  useEffect(() => {
-    const c = new AbortController();
-    void request<{ availability: { configuration_present: boolean } }>(
-      "/capabilities/chemistry.states",
-      { signal: c.signal },
-    )
-      .then((v) => {
-        if (!c.signal.aborted) setReady(v.availability.configuration_present);
-      })
-      .catch((e) => {
-        if (!c.signal.aborted) setError(String(e));
-      });
-    return () => c.abort();
-  }, []);
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+    [error, setError] = useState("");
+  const { ready, error: readinessError } = useTaskReadiness("chemistry.states");
+  async function submit() {
     setError("");
     try {
       const selected = expert ? JSON.parse(raw) : options;
@@ -52,7 +39,7 @@ export function StateForm({
         throw new Error(
           zh ? "请选择分子版本。" : "Choose a molecular version.",
         );
-      await run.submit({
+      return await run.submit({
         operation: "molecular_states",
         name:
           name.trim() ||
@@ -64,8 +51,9 @@ export function StateForm({
       setError(String(e));
     }
   }
-  return (
-    <form className="molecular-state-form" onSubmit={(e) => void submit(e)}>
+  const input = (
+    <>
+      {" "}
       <ReferencePicker
         kind="ligand"
         value={molecule}
@@ -73,6 +61,11 @@ export function StateForm({
         language={language}
         label={zh ? "选择 SDF 分子版本" : "Choose an SDF molecular version"}
       />
+    </>
+  );
+  const purpose = (
+    <>
+      {" "}
       <label className="field">
         {zh ? "这次准备什么？" : "What should be prepared?"}
         <select
@@ -113,6 +106,20 @@ export function StateForm({
           ? "新构象用于后续搜索；已有区域和空间条件需在新版本上复核。"
           : "Use new conformers for subsequent searches; review existing regions and spatial conditions on the new versions."}
       </p>
+    </>
+  );
+  const settings = (
+    <>
+      <div className="field">
+        <span>
+          {zh ? "采用推荐参数" : "Use recommended settings"}{" "}
+          <Hint label={zh ? "准备方案说明" : "Preparation settings help"}>
+            {zh
+              ? "简易模式自动设置状态数量、pH 范围和三维构象数量。需要指定力场、枚举上限或资源时再打开专家微调。"
+              : "Guided mode sets the state limit, pH range and conformer count. Open expert settings only to change force fields, enumeration limits or resources."}
+          </Hint>
+        </span>
+      </div>
       <button
         type="button"
         className="secondary-button"
@@ -142,6 +149,7 @@ export function StateForm({
           />
         </label>
       )}
+
       <label className="field">
         {zh ? "任务名称（可选）" : "Task name (optional)"}
         <input
@@ -150,30 +158,81 @@ export function StateForm({
           onChange={(e) => setName(e.target.value)}
         />
       </label>
-      {!ready && (
-        <p className="notice">
-          {zh
-            ? "请在安装与组件中部署独立的化学准备环境；无需生成模型权重。"
-            : "Install the independent Chemistry preparation environment in Installation & components. No generative-model weights are needed."}
-        </p>
-      )}
-      {(error || run.error) && (
-        <p role="alert" className="error-box">
-          {error || run.error}
-        </p>
-      )}
-      <button
-        className="primary-button"
-        disabled={!ready || !molecule || run.busy}
-      >
-        {run.busy
+    </>
+  );
+  const summary = (
+    <dl className="questionnaire-review">
+      <dt>{zh ? "分子材料" : "Molecular input"}</dt>
+      <dd>
+        {molecule
           ? zh
-            ? "提交中…"
-            : "Submitting…"
+            ? `已选择具体版本，记录 ${molecule.record + 1}`
+            : `Exact version selected, record ${molecule.record + 1}`
+          : "—"}
+      </dd>
+      <dt>{zh ? "准备方案" : "Preparation plan"}</dt>
+      <dd>
+        {choice === "supplied"
+          ? zh
+            ? "保留当前状态，生成构象"
+            : "Keep supplied state; generate conformers"
+          : choice === "physiological"
+            ? zh
+              ? "近生理 pH 状态与构象"
+              : "States and conformers near physiological pH"
+            : zh
+              ? "扩大 pH 范围探索"
+              : "Explore a wider pH range"}
+      </dd>
+      <dt>{zh ? "参数模式" : "Parameter mode"}</dt>
+      <dd>
+        {expert
+          ? zh
+            ? "专家微调"
+            : "Expert settings"
           : zh
-            ? "准备状态与构象"
-            : "Prepare states and conformers"}
-      </button>
-    </form>
+            ? "推荐参数"
+            : "Recommended settings"}
+      </dd>
+      <dt>{zh ? "任务名称" : "Task name"}</dt>
+      <dd>{name.trim() || (zh ? "自动命名" : "Automatic")}</dd>
+    </dl>
+  );
+  return (
+    <Questionnaire
+      language={language}
+      busy={run.busy}
+      error={error || run.error || readinessError}
+      ready={ready}
+      unavailable={
+        zh
+          ? "请在安装与组件中部署化学准备环境。当前选择已保留，可稍后启动。"
+          : "Install the Chemistry preparation environment in Installation & components. Your choices are retained for a later start."
+      }
+      submitLabel={zh ? "准备状态与构象" : "Prepare states and conformers"}
+      onSubmit={submit}
+      steps={[
+        {
+          title: zh ? "选择分子" : "Choose molecule",
+          content: input,
+          valid: Boolean(molecule),
+        },
+        {
+          title: zh ? "选择用途" : "Choose purpose",
+          content: purpose,
+          valid: true,
+        },
+        {
+          title: zh ? "选择方案" : "Choose settings",
+          content: settings,
+          valid: true,
+        },
+        {
+          title: zh ? "确认启动" : "Review & start",
+          content: summary,
+          valid: Boolean(molecule),
+        },
+      ]}
+    />
   );
 }

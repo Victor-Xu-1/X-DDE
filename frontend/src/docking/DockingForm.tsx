@@ -6,7 +6,8 @@ import { withConstraints } from "../constraints/model";
 import type { ConstraintReference } from "../constraints/types";
 import { referenceKey } from "../diffsbdd/model";
 import { useEffect, useState } from "react";
-import { request } from "../api";
+import { Questionnaire } from "../guided/Questionnaire";
+import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
@@ -51,23 +52,8 @@ export function DockingForm({
   const [confirmed, setConfirmed] = useState(false),
     [expert, setExpert] = useState(false),
     [name, setName] = useState("");
-  const [ready, setReady] = useState(false),
-    [error, setError] = useState("");
-  useEffect(() => {
-    const controller = new AbortController();
-    void request<{ availability: { configuration_present: boolean } }>(
-      `/capabilities/gnina.${mode}`,
-      { signal: controller.signal },
-    )
-      .then((value) => {
-        if (!controller.signal.aborted)
-          setReady(value.availability.configuration_present);
-      })
-      .catch((failure) => {
-        if (!controller.signal.aborted) setError(String(failure));
-      });
-    return () => controller.abort();
-  }, [mode]);
+  const [error, setError] = useState("");
+  const { ready, error: readinessError } = useTaskReadiness(`gnina.${mode}`);
   const [outputSettings, setOutputSettings] = useState<OutputSettings>({
     ...outputBoundsDefaults,
   });
@@ -98,209 +84,281 @@ export function DockingForm({
       language,
     );
   }
-  return (
-    <form
-      className="tool-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setError("");
-        try {
-          void withConstraints(
-            buildTask(),
-            constraints,
-            language,
-            outputChoice,
-            outputSettings,
-          )
-            .then(run.submit)
-            .catch((failure) => setError(String(failure)));
-        } catch (failure) {
-          setError(String(failure));
-        }
-      }}
-    >
-      <fieldset disabled={run.busy}>
-        <ReferencePicker
-          kind="structure"
-          label={zh ? "受体结构" : "Receptor structure"}
-          value={receptor}
+  let regionValid = false;
+  try {
+    if (mode !== "dock") regionValid = confirmed;
+    else if (kind === "reference")
+      regionValid = Boolean(reference && confirmed);
+    else {
+      parseBox(center, size, language);
+      regionValid = true;
+    }
+  } catch {
+    regionValid = false;
+  }
+  async function submit() {
+    setError("");
+    try {
+      return await run.submit(
+        await withConstraints(
+          buildTask(),
+          constraints,
+          language,
+          outputChoice,
+          outputSettings,
+        ),
+      );
+    } catch (failure) {
+      setError(String(failure));
+    }
+  }
+  const inputs = (
+    <>
+      {" "}
+      <ReferencePicker
+        kind="structure"
+        label={zh ? "受体结构" : "Receptor structure"}
+        value={receptor}
+        language={language}
+        onChange={(value) => {
+          setReceptor(value);
+          setReference(null);
+          setConfirmed(false);
+          setCenter(["", "", ""]);
+        }}
+      />
+      <ReferencePicker
+        kind="ligand"
+        label={zh ? "选择分子或已有姿势" : "Choose a molecule or existing pose"}
+        value={ligand}
+        language={language}
+        onChange={(value) => {
+          setLigand(value);
+          setConfirmed(false);
+        }}
+      />
+    </>
+  );
+  const region = (
+    <>
+      {" "}
+      {mode === "dock" && (
+        <SearchRegion
+          receptor={receptor}
           language={language}
-          onChange={(value) => {
-            setReceptor(value);
-            setReference(null);
-            setConfirmed(false);
-            setCenter(["", "", ""]);
-          }}
-        />
-        <ReferencePicker
-          kind="ligand"
-          label={
-            zh ? "选择分子或已有姿势" : "Choose a molecule or existing pose"
-          }
-          value={ligand}
-          language={language}
-          onChange={(value) => {
-            setLigand(value);
+          kind={kind}
+          onKind={(value) => {
+            setKind(value);
             setConfirmed(false);
           }}
+          reference={reference}
+          onReference={(value) => {
+            setReference(value);
+            setConfirmed(false);
+          }}
+          center={center}
+          onCenter={setCenter}
+          size={size}
+          onSize={setSize}
         />
-        {mode === "dock" && (
-          <SearchRegion
-            receptor={receptor}
+      )}
+      {mode !== "dock" && (
+        <details className="input-summary">
+          <summary>
+            {zh ? "结果检查范围（可选）" : "Output-check bounds (optional)"}
+          </summary>
+          <p className="field-help">
+            {zh
+              ? "以当前受体版本为坐标参照；仅用于计算后的空间检查，不引导评分或最小化。"
+              : "In the current receptor coordinates, for output verification only; it does not guide scoring or minimization."}
+          </p>
+          <BoxFields
             language={language}
-            kind={kind}
-            onKind={(value) => {
-              setKind(value);
-              setConfirmed(false);
-            }}
-            reference={reference}
-            onReference={(value) => {
-              setReference(value);
-              setConfirmed(false);
-            }}
             center={center}
             onCenter={setCenter}
             size={size}
             onSize={setSize}
           />
-        )}
-        {mode !== "dock" && (
-          <details className="input-summary">
-            <summary>
-              {zh ? "结果检查范围（可选）" : "Output-check bounds (optional)"}
-            </summary>
-            <p className="field-help">
-              {zh
-                ? "以当前受体版本为坐标参照；仅用于计算后的空间检查，不引导评分或最小化。"
-                : "In the current receptor coordinates, for output verification only; it does not guide scoring or minimization."}
-            </p>
-            <BoxFields
-              language={language}
-              center={center}
-              onCenter={setCenter}
-              size={size}
-              onSize={setSize}
-            />
-          </details>
-        )}
-        {(mode !== "dock" || kind === "reference") && (
-          <label>
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(event) => setConfirmed(event.target.checked)}
-            />
-            {zh
-              ? "我确认参考配体/已有姿势位于所选受体的坐标系中"
-              : "I confirm the reference/existing pose is in the selected receptor coordinate frame"}
-          </label>
-        )}
-        <label className="field">
-          {zh ? "运行方案" : "Run preset"}
-          <select
-            value={expert ? "expert" : "cpu"}
-            onChange={(event) => {
-              const advanced = event.target.value === "expert";
-              setExpert(advanced);
-              if (!advanced) {
-                setOptions(structuredClone(defaults));
-                setOutputSettings({ ...outputBoundsDefaults });
-              }
-            }}
-          >
-            <option value="cpu">
-              {zh
-                ? "CPU · 经验评分 · 有限搜索"
-                : "CPU · empirical scoring · bounded search"}
-            </option>
-            <option value="expert">{zh ? "专家微调" : "Expert tuning"}</option>
-          </select>
-        </label>
-        {expert && (
-          <DockingOptions
-            language={language}
-            mode={mode}
-            value={options}
-            onChange={setOptions}
-          />
-        )}
-        {ligand && (
-          <ConstraintPanel
-            key={referenceKey(ligand)}
-            subject={ligand}
-            language={language}
-            getTask={buildTask}
-            value={constraints}
-            onChange={setConstraints}
-            outputChoice={outputChoice}
-            onOutputChoice={setOutputChoice}
-            outputSettings={outputSettings}
-            onOutputSettings={setOutputSettings}
-            expert={expert}
-            getOutputBox={() => parseBox(center, size, language)}
-            boxFingerprint={JSON.stringify([center, size])}
-            onApply={(doc) => {
-              const box = doc.conditions.find(
-                (c) =>
-                  c.kind ===
-                  (mode === "dock" ? "search_box" : "spatial_bounds"),
-              );
-              if (!box || box.kind === "fixed_region" || !doc.frame)
-                throw new Error(
-                  zh
-                    ? "所选条件不包含搜索范围"
-                    : "Selected conditions do not contain a search box",
-                );
-              const post = doc.conditions.find(
-                (c) => c.kind === "spatial_bounds",
-              );
-              setOutputChoice(
-                post?.kind === "spatial_bounds" ? post.selection : "none",
-              );
-              if (post?.kind === "spatial_bounds")
-                setOutputSettings({
-                  strength: post.strength,
-                  tolerance_angstrom:
-                    post.tolerance_angstrom ??
-                    outputBoundsDefaults.tolerance_angstrom,
-                  weight: post.weight ?? 1,
-                });
-              setReceptor(doc.frame.reference);
-              setKind("box");
-              setReference(null);
-              setConfirmed(false);
-              setCenter(box.box.center.map(String));
-              setSize(box.box.size.map(String));
-            }}
-          />
-        )}
-        <label className="field">
-          {zh ? "任务名称（可选）" : "Task name (optional)"}
+        </details>
+      )}
+      {(mode !== "dock" || kind === "reference") && (
+        <label>
           <input
-            value={name}
-            maxLength={80}
-            onChange={(event) => setName(event.target.value)}
+            type="checkbox"
+            checked={confirmed}
+            onChange={(event) => setConfirmed(event.target.checked)}
           />
+          {zh
+            ? "我确认参考配体/已有姿势位于所选受体的坐标系中"
+            : "I confirm the reference/existing pose is in the selected receptor coordinate frame"}
         </label>
-        {!ready && (
-          <p className="field-help">
-            {zh
-              ? "请先在集成环境管理中配置 GNINA；现在可以准备输入。"
-              : "Configure GNINA in component management first; inputs can be prepared now."}
-          </p>
-        )}
-        {(error || run.error) && (
-          <p role="alert" className="error-box">
-            {error || run.error}
-          </p>
-        )}
-        <button
-          className="primary-button"
-          disabled={!ready || run.busy || !receptor || !ligand}
+      )}
+    </>
+  );
+  const settings = (
+    <>
+      {" "}
+      <label className="field">
+        {zh ? "运行方案" : "Run preset"}
+        <select
+          value={expert ? "expert" : "cpu"}
+          onChange={(event) => {
+            const advanced = event.target.value === "expert";
+            setExpert(advanced);
+            if (!advanced) {
+              setOptions(structuredClone(defaults));
+              setOutputSettings({ ...outputBoundsDefaults });
+            }
+          }}
         >
-          {labels[mode][zh ? 0 : 1]}
-        </button>
-      </fieldset>
-    </form>
+          <option value="cpu">
+            {zh
+              ? "CPU · 经验评分 · 有限搜索"
+              : "CPU · empirical scoring · bounded search"}
+          </option>
+          <option value="expert">{zh ? "专家微调" : "Expert tuning"}</option>
+        </select>
+      </label>
+      {expert && (
+        <DockingOptions
+          language={language}
+          mode={mode}
+          value={options}
+          onChange={setOptions}
+        />
+      )}
+      {ligand && (
+        <ConstraintPanel
+          key={referenceKey(ligand)}
+          subject={ligand}
+          language={language}
+          getTask={buildTask}
+          value={constraints}
+          onChange={setConstraints}
+          outputChoice={outputChoice}
+          onOutputChoice={setOutputChoice}
+          outputSettings={outputSettings}
+          onOutputSettings={setOutputSettings}
+          expert={expert}
+          getOutputBox={() => parseBox(center, size, language)}
+          boxFingerprint={JSON.stringify([center, size])}
+          onApply={(doc) => {
+            const box = doc.conditions.find(
+              (c) =>
+                c.kind === (mode === "dock" ? "search_box" : "spatial_bounds"),
+            );
+            if (!box || box.kind === "fixed_region" || !doc.frame)
+              throw new Error(
+                zh
+                  ? "所选条件不包含搜索范围"
+                  : "Selected conditions do not contain a search box",
+              );
+            const post = doc.conditions.find(
+              (c) => c.kind === "spatial_bounds",
+            );
+            setOutputChoice(
+              post?.kind === "spatial_bounds" ? post.selection : "none",
+            );
+            if (post?.kind === "spatial_bounds")
+              setOutputSettings({
+                strength: post.strength,
+                tolerance_angstrom:
+                  post.tolerance_angstrom ??
+                  outputBoundsDefaults.tolerance_angstrom,
+                weight: post.weight ?? 1,
+              });
+            setReceptor(doc.frame.reference);
+            setKind("box");
+            setReference(null);
+            setConfirmed(false);
+            setCenter(box.box.center.map(String));
+            setSize(box.box.size.map(String));
+          }}
+        />
+      )}
+      <label className="field">
+        {zh ? "任务名称（可选）" : "Task name (optional)"}
+        <input
+          value={name}
+          maxLength={80}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </label>
+    </>
+  );
+  const review = (
+    <dl className="questionnaire-review">
+      <dt>{zh ? "任务" : "Task"}</dt>
+      <dd>{labels[mode][zh ? 0 : 1]}</dd>
+      <dt>{zh ? "受体和分子" : "Receptor and molecule"}</dt>
+      <dd>
+        {zh
+          ? "沿用已选文件、记录与版本"
+          : "Use the selected files, records and versions"}
+      </dd>
+      <dt>{zh ? "计算范围" : "Calculation region"}</dt>
+      <dd>
+        {mode !== "dock"
+          ? zh
+            ? "已有姿势的原坐标系"
+            : "Original coordinate frame of the existing pose"
+          : kind === "reference"
+            ? zh
+              ? "参考配体周围"
+              : "Around the reference ligand"
+            : zh
+              ? "所选口袋或指定区域"
+              : "Selected pocket or specified region"}
+      </dd>
+      <dt>{zh ? "参数模式" : "Parameter mode"}</dt>
+      <dd>
+        {expert
+          ? zh
+            ? "专家微调"
+            : "Expert tuning"
+          : zh
+            ? "推荐的有限 CPU 方案"
+            : "Recommended bounded CPU settings"}
+      </dd>
+      <dt>{zh ? "任务名称" : "Task name"}</dt>
+      <dd>{name.trim() || labels[mode][zh ? 0 : 1]}</dd>
+    </dl>
+  );
+  return (
+    <Questionnaire
+      language={language}
+      busy={run.busy}
+      error={error || run.error || readinessError}
+      ready={ready}
+      unavailable={
+        zh
+          ? "请在安装与组件中配置 GNINA。当前选择已保留，可稍后启动。"
+          : "Configure GNINA in Installation & components. Your choices are retained for a later start."
+      }
+      submitLabel={labels[mode][zh ? 0 : 1]}
+      onSubmit={submit}
+      steps={[
+        {
+          title: zh ? "选择材料" : "Choose inputs",
+          content: inputs,
+          valid: Boolean(receptor && ligand),
+        },
+        {
+          title: zh ? "选择区域" : "Choose region",
+          content: region,
+          valid: regionValid,
+        },
+        {
+          title: zh ? "选择方案" : "Choose settings",
+          content: settings,
+          valid: true,
+        },
+        {
+          title: zh ? "确认启动" : "Review & start",
+          content: review,
+          valid: Boolean(receptor && ligand) && regionValid,
+        },
+      ]}
+    />
   );
 }
