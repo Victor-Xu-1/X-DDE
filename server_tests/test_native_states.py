@@ -41,7 +41,7 @@ def test_real_offline_state_container_indexes_a_persistent_reusable_collection(t
     installed = install("chemistry", root, {}, str(uuid4()), progress.append, lambda: None)
     image = installed["image"]
     assert installed["runtime_lock_sha256"] == lock_digest()
-    assert installed["provisioning"]["engine"] == "chemistry"
+    assert installed["provisioning"]["engine"] == "x-dde"
     assert (Path(installed["directory"]) / "image-context/requirements.txt").is_file()
     assert progress
     settings = Settings(
