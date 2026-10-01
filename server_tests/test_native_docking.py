@@ -59,16 +59,33 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     work.mkdir()
 
     def execute(args, timeout=3600):
-        result = subprocess.run(
-            [str(a) for a in args], capture_output=True, text=True, timeout=timeout
-        )
+        command = [str(a) for a in args]
+        build = command[:2] == ["docker", "build"]
+        deadline = min(timeout, 480) if build else timeout
+        print("Native installer stage:", " ".join(command[:2]), "limit", deadline, flush=True)
+        if build:
+            command.insert(2, "--progress=plain")
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=deadline)
+        except subprocess.TimeoutExpired as exc:
+            tail = b"\n".join(v for v in (exc.stdout, exc.stderr) if isinstance(v, bytes))[-12000:]
+            evidence = Path("server_tests/evidence")
+            evidence.mkdir(exist_ok=True)
+            (evidence / "native-install-timeout.log").write_bytes(tail)
+            raise RuntimeError(
+                "Native installer exceeded its declared stage budget; actual build log: "
+                + tail.decode("utf-8", errors="replace")
+            ) from exc
+        print("Native installer stage completed:", " ".join(command[:2]), flush=True)
         if result.returncode:
             raise RuntimeError(
                 "Native installation failed: " + result.stdout[-3000:] + result.stderr[-3000:]
             )
         return result.stdout
 
-    installed = install_docking(root, work, execute, print, lambda: None)
+    installed = install_docking(
+        root, work, execute, lambda message: print(message, flush=True), lambda: None
+    )
     settings = Settings(
         state_dir=tmp_path / "state",
         image_file=tmp_path / "missing-opendde-image",
