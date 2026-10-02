@@ -148,7 +148,7 @@ export class MolecularScene {
     }
     await paintBase(v, this.info, this.options, [...this.hidden]);
     if (this.highlighted.length)
-      v.addStyle(
+      v.setStyle(
         { index: this.highlighted },
         {
           stick: { radius: 0.2, color: "#dc8e25" },
