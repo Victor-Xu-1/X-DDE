@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { SequencePicker } from "../research/SequencePicker";
 import type { MoleculeRef } from "../research/types";
 import { ChoiceCards } from "../guided/ChoiceCards";
@@ -24,6 +25,9 @@ export function HumanizationForm({
   onCreated(job: Job): void;
   initialSequence?: MoleculeRef;
 }) {
+  const example = useExampleReference("variable_domains");
+  const preset = useExampleTask("antibody_humanize");
+  initialSequence ??= example ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("antibody.humanize");
@@ -32,6 +36,7 @@ export function HumanizationForm({
     ),
     [options, setOptions] = useState<HumanizationOptions>({
       ...humanizationDefaults,
+      ...preset?.options,
     }),
     [name, setName] = useState("");
   const validOptions =

@@ -6,6 +6,7 @@ import { JsonEditor } from "../operations/ScientificInputs";
 import { RunMonitor } from "./RunMonitor";
 import { hasExternalCalls, planFromJobs } from "./model";
 import { useWorkflowController } from "./useWorkflowController";
+import { useExample } from "../examples/context";
 export function WorkflowCenter({
   language,
   jobs,
@@ -13,6 +14,10 @@ export function WorkflowCenter({
   language: Language;
   jobs: Job[];
 }) {
+  const example = useExample();
+  const [source, setSource] = useState<"draft" | "saved" | "case">(
+    example?.workflow_plan ? "case" : "draft",
+  );
   const {
     zh,
     name,
@@ -41,10 +46,13 @@ export function WorkflowCenter({
     runKey,
     save,
     start,
-  } = useWorkflowController(language, jobs);
-  const [source, setSource] = useState<"draft" | "saved">("draft");
+  } = useWorkflowController(
+    language,
+    jobs,
+    source === "case" ? (example?.workflow_plan ?? null) : null,
+  );
   useEffect(() => {
-    if (source === "draft") {
+    if (source !== "saved") {
       setSelected(null);
       setRun(null);
       setExternal(false);
@@ -73,6 +81,13 @@ export function WorkflowCenter({
           value={source}
           onChange={(e) => setSource(e.target.value as typeof source)}
         >
+          {example?.workflow_plan && (
+            <option value="case">
+              {zh
+                ? "复用固定研发案例（推荐）"
+                : "Use the fixed research example"}
+            </option>
+          )}
           <option value="draft">
             {zh ? "组装新计划" : "Assemble a new plan"}
           </option>
@@ -81,7 +96,13 @@ export function WorkflowCenter({
           </option>
         </select>
       </label>
-      {source === "draft" ? (
+      {source === "case" ? (
+        <p className="field-help">
+          {zh
+            ? "先探索 BRD4–JQ1 结合姿势，再自动把首个真实姿势交接给性质计算。"
+            : "Dock BRD4–JQ1, then hand the first real pose to molecular-property calculation."}
+        </p>
+      ) : source === "draft" ? (
         <>
           {" "}
           <div className="segmented">
@@ -167,6 +188,28 @@ export function WorkflowCenter({
           ? "沿用所选计划的任务、依赖和输入版本。"
           : "Reuse the selected plan's tasks, dependencies and input versions."}
       </p>
+    ) : source === "case" && !expert ? (
+      <>
+        <ol>
+          <li>
+            {zh
+              ? "BRD4 与 JQ1 的真实输入版本"
+              : "Exact BRD4 and JQ1 input versions"}
+          </li>
+          <li>
+            {zh
+              ? "对接输出自动成为性质计算输入"
+              : "Docking output becomes the property input"}
+          </li>
+        </ol>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setExpert(true)}
+        >
+          {zh ? "专家微调" : "Expert settings"}
+        </button>
+      </>
     ) : expert ? (
       <JsonEditor
         value={native}
@@ -276,7 +319,7 @@ export function WorkflowCenter({
     );
   const review = (
     <>
-      {source === "draft" && (
+      {source !== "saved" && (
         <button
           type="button"
           className="secondary-button"
@@ -325,9 +368,12 @@ export function WorkflowCenter({
       )}
     </>
   );
-  const draftValid = expert
-    ? Array.isArray(native.steps) && native.steps.length > 0
-    : ids.length > 0 && ids.every(Boolean);
+  const draftValid =
+    source === "case" && !expert
+      ? Boolean(example?.workflow_plan)
+      : expert
+        ? Array.isArray(native.steps) && native.steps.length > 0
+        : ids.length > 0 && ids.every(Boolean);
   return (
     <section>
       <GuidedSteps<WorkflowRun>

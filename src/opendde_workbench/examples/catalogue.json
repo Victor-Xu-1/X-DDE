@@ -1,0 +1,549 @@
+{
+  "schema_version": 1,
+  "files": {
+    "brd4": {
+      "key": "brd4",
+      "name": "3MXF.pdb",
+      "url": "https://files.rcsb.org/download/3MXF.pdb",
+      "sha256": "534dcb8ea9fa29956249b5133b22187c3867363b16a6b98dd8219c18c5d3250f",
+      "bytes": 235143,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "her2": {
+      "key": "her2",
+      "name": "1N8Z.pdb",
+      "url": "https://files.rcsb.org/download/1N8Z.pdb",
+      "sha256": "ed934d36503335c6764b08880f9e50933d99eb13b9bf145339cfcaee150eb21e",
+      "bytes": 703809,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "mz1": {
+      "key": "mz1",
+      "name": "5T35.pdb",
+      "url": "https://files.rcsb.org/download/5T35.pdb",
+      "sha256": "d5bee17246fa783303c117e357c2f7b91a486fcd95d196b5099a9b88bc714947",
+      "bytes": 1252341,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "rna": {
+      "key": "rna",
+      "name": "2GDI.cif",
+      "url": "https://files.rcsb.org/download/2GDI.cif",
+      "sha256": "6bb6454ce216b0343097d5fdda0ed006a03ce9bd5aa03ee820530ec7f05ff85c",
+      "bytes": 501695,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "jq1": {
+      "key": "jq1",
+      "name": "3MXF-JQ1-A1.sdf",
+      "url": "https://models.rcsb.org/v1/3mxf/ligand?auth_asym_id=A&auth_seq_id=1&encoding=sdf",
+      "sha256": "686274c168215818ac3a7bfede2980459f1edfe449f0d6510ec0cde5cca77533",
+      "bytes": 3632,
+      "kind": "ligand",
+      "license": "CC0-1.0"
+    },
+    "imatinib": {
+      "key": "imatinib",
+      "name": "CHEMBL941.sdf",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL941.sdf",
+      "sha256": "230c9d1a20b624419710056f275197da16e4f3e7f8adea7e4586d70313b8257d",
+      "bytes": 3250,
+      "kind": "ligand",
+      "license": "CC-BY-SA-3.0"
+    },
+    "dasatinib": {
+      "key": "dasatinib",
+      "name": "CHEMBL1421.sdf",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL1421.sdf",
+      "sha256": "fc6886401bbddc1604e3b9420e5607579906bd463a3c58d5056f7d4103a90403",
+      "bytes": 2917,
+      "kind": "ligand",
+      "license": "CC-BY-SA-3.0"
+    },
+    "nilotinib": {
+      "key": "nilotinib",
+      "name": "CHEMBL255863.sdf",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL255863.sdf",
+      "sha256": "d36f670b68504d056110f6455e71748acb162ac45ad663d0819157941363195e",
+      "bytes": 3420,
+      "kind": "ligand",
+      "license": "CC-BY-SA-3.0"
+    },
+    "brd4_apo": {
+      "key": "brd4_apo",
+      "name": "4LYI.pdb",
+      "url": "https://files.rcsb.org/download/4LYI.pdb",
+      "sha256": "6ab1d48adc5fa415421205d290d1e4e6604ba0038c65aa899e3145f756df93af",
+      "bytes": 243972,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "her2_pertuzumab": {
+      "key": "her2_pertuzumab",
+      "name": "1S78.pdb",
+      "url": "https://files.rcsb.org/download/1S78.pdb",
+      "sha256": "7a363355cf2c54d4aecd11ceec12ee49d35ae43024e86b1788e3c5b9ca034e26",
+      "bytes": 1397331,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "trastuzumab_fv": {
+      "key": "trastuzumab_fv",
+      "name": "1FVC.pdb",
+      "url": "https://files.rcsb.org/download/1FVC.pdb",
+      "sha256": "e8caa952e5ac39f92078fc5bf63eb3165d9092ea3cd0c9021e90ba54b4c4b550",
+      "bytes": 343359,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "mz1_molecule": {
+      "key": "mz1_molecule",
+      "name": "5T35-MZ1-D301.sdf",
+      "url": "https://models.rcsb.org/v1/5t35/ligand?auth_asym_id=D&auth_seq_id=301&encoding=sdf",
+      "sha256": "0926b1ef39c1c6cb047ed0ea89470599d935e5e39b3b6d2e16676de40c118ca9",
+      "bytes": 7199,
+      "kind": "ligand",
+      "license": "CC0-1.0"
+    }
+  },
+  "polymers": {
+    "3MXF.polymer-1.json": {
+      "sequence": "SMNPPPPETSNPNKPKRQTNQLQYLLRVVLKTLWKHQFAWPFQQPVDAVKLNLPDYYKIIKTPMDMGTIKKRLENNYYWNAQECIQDFNTMFTNCYIYNKPGDDIVLMAEALEKLFLQKINELPTEE",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/3MXF/1",
+      "sha256": "166bb29d57c0463e8644422f10904de8b397cac3b6a43466c4f9818bba1d81c8",
+      "chains": [
+        "A"
+      ]
+    },
+    "1N8Z.polymer-1.json": {
+      "sequence": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAPSVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/1N8Z/1",
+      "sha256": "85f11094b6437e3a00cb086dedba7e14174e02b82bc863d11122b3efc3d0fab6",
+      "chains": [
+        "A"
+      ]
+    },
+    "1N8Z.polymer-2.json": {
+      "sequence": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIHWVRQAPGKGLEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGFYAMDYWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEP",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/1N8Z/2",
+      "sha256": "ae939b165191b8cfb785860f8425eb28df388dbe6c469f5daf6e80723511aff3",
+      "chains": [
+        "B"
+      ]
+    },
+    "1N8Z.polymer-3.json": {
+      "sequence": "TQVCTGTDMKLRLPASPETHLDMLRHLYQGCQVVQGNLELTYLPTNASLSFLQDIQEVQGYVLIAHNQVRQVPLQRLRIVRGTQLFEDNYALAVLDNGDPLNNTTPVTGASPGGLRELQLRSLTEILKGGVLIQRNPQLCYQDTILWKDIFHKNNQLALTLIDTNRSRACHPCSPMCKGSRCWGESSEDCQSLTRTVCAGGCARCKGPLPTDCCHEQCAAGCTGPKHSDCLACLHFNHSGICELHCPALVTYNTDTFESMPNPEGRYTFGASCVTACPYNYLSTDVGSCTLVCPLHNQEVTAEDGTQRCEKCSKPCARVCYGLGMEHLREVRAVTSANIQEFAGCKKIFGSLAFLPESFDGDPASNTAPLQPEQLQVFETLEEITGYLYISAWPDSLPDLSVFQNLQVIRGRILHNGAYSLTLQGLGISWLGLRSLRELGSGLALIHHNTHLCFVHTVPWDQLFRNPHQALLHTANRPEDECVGEGLACHQLCARGHCWGPGPTQCVNCSQFLRGQECVEECRVLQGLPREYVNARHCLPCHPECQPQNGSVTCFGPEADQCVACAHYKDPPFCVARCPSGVKPDLSYMPIWKFPDEEGACQPCPIN",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/1N8Z/3",
+      "sha256": "c69873f9fa5112925cb3e19bf90976e201dc0753e3e1cec8f7d15e648a836d87",
+      "chains": [
+        "C"
+      ]
+    },
+    "2GDI.polymer-1.json": {
+      "sequence": "GGACUCGGGGUGCCCUUCUGCGUGAAGGCUGAGAAAUACCCGUAUCACCUGAUCUGGAUAAUGCCAGCGUAGGGAAGUUC",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/2GDI/1",
+      "sha256": "4211a1fbede2f0da4e9399edd1fe9980a238412b905507545e5cdb2831ab392a",
+      "chains": [
+        "X",
+        "Y"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "brd4-jq1",
+      "revision": 1,
+      "label": [
+        "BRD4–JQ1 结合口袋与先导探索",
+        "BRD4–JQ1 pocket and lead exploration"
+      ],
+      "files": [
+        "brd4",
+        "jq1",
+        "brd4_apo"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/3MXF",
+        "https://doi.org/10.1038/nature09504",
+        "https://www.rcsb.org/structure/4LYI"
+      ],
+      "description": [
+        "使用人 BRD4 第一溴结构域与 JQ1 的实验复合物，准备受体、寻找口袋、检查姿势，再进行分子探索。",
+        "Prepare the human BRD4 first bromodomain/JQ1 experimental complex, locate its pocket, evaluate poses and explore molecules."
+      ],
+      "evidence_entities": {
+        "disease": {
+          "name": "nut midline carcinoma",
+          "description": "A rare, highly aggressive and lethal carcinoma that affects children and young adults. It arises from midline epithelial structures, most commonly the head, neck, and mediastinum. It is a poorly differentiated carcinoma and is characterized by mutations and rearrangement of the NUT gene. A balanced translocation t(15;19) is present that results in the creation of a fusion gene involving the NUT gene, most commonly BRD4-NUT fusion gene.",
+          "id": "MONDO_0005563"
+        },
+        "target": {
+          "name": "BRD4",
+          "description": "bromodomain containing 4",
+          "id": "ENSG00000141867"
+        }
+      }
+    },
+    {
+      "id": "trastuzumab-her2",
+      "revision": 1,
+      "label": [
+        "曲妥珠单抗–HER2 抗体研究",
+        "Trastuzumab–HER2 antibody research"
+      ],
+      "files": [
+        "her2",
+        "her2_pertuzumab",
+        "trastuzumab_fv"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/1N8Z",
+        "https://doi.org/10.1038/nature01392",
+        "https://www.rcsb.org/structure/1S78",
+        "https://www.rcsb.org/structure/1FVC"
+      ],
+      "description": [
+        "使用真实 Fab–HER2 复合物和公开重、轻链序列；先识别可变域，再进行编号、参考评估与结构分析。",
+        "Use the real Fab–HER2 complex and published heavy/light chains; identify variable domains before numbering, reference evaluation and structural analysis."
+      ]
+    },
+    {
+      "id": "abl-inhibitors",
+      "revision": 1,
+      "label": [
+        "ABL 抑制剂系列性质比较",
+        "ABL inhibitor property comparison"
+      ],
+      "files": [
+        "imatinib",
+        "dasatinib",
+        "nilotinib"
+      ],
+      "sources": [
+        "https://www.ebi.ac.uk/chembl/explore/compound/CHEMBL941",
+        "https://www.ebi.ac.uk/chembl/explore/compound/CHEMBL1421",
+        "https://www.ebi.ac.uk/chembl/explore/compound/CHEMBL255863"
+      ],
+      "description": [
+        "比较伊马替尼、达沙替尼和尼洛替尼的分子结构、描述符和模型预测，保留化合物记录与单位。",
+        "Compare imatinib, dasatinib and nilotinib structures, descriptors and model predictions with compound identity and units."
+      ]
+    },
+    {
+      "id": "mz1-ternary",
+      "revision": 1,
+      "label": [
+        "MZ1–BRD4–VHL 双功能分子体系",
+        "MZ1–BRD4–VHL bifunctional complex"
+      ],
+      "files": [
+        "mz1",
+        "mz1_molecule"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/5T35",
+        "https://doi.org/10.1038/nchembio.2329"
+      ],
+      "description": [
+        "在真实 PROTAC 三元复合物中检查两个结合端、连接区、蛋白接触与复用关系。",
+        "Inspect both binding ends, linker, protein contacts and asset relationships in a real PROTAC ternary complex."
+      ]
+    },
+    {
+      "id": "tpp-riboswitch",
+      "revision": 1,
+      "label": [
+        "RNA–TPP 识别复合物",
+        "RNA–TPP recognition complex"
+      ],
+      "files": [
+        "rna"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/2GDI",
+        "https://doi.org/10.1038/nature04740"
+      ],
+      "description": [
+        "公开 RNA–配体结构参考，用于核酸输入和结构预览；该体系不标记为已批准的 RNA 药物。",
+        "A public RNA/ligand structural reference for nucleic-acid input and visualization; not labeled as an approved RNA drug."
+      ]
+    }
+  ],
+  "modules": {
+    "antibody.humanize": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "antibody.humanize",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "admet.predict": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "admet.predict",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "posebusters.check": {
+      "case_id": "brd4-jq1",
+      "capability_id": "posebusters.check",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "antibody.number": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "antibody.number",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "chemistry.screen": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "chemistry.screen",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "biopython.prepare": {
+      "case_id": "brd4-jq1",
+      "capability_id": "biopython.prepare",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "discovery.import": {
+      "case_id": "brd4-jq1",
+      "capability_id": "discovery.import",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "discovery.target": {
+      "case_id": "brd4-jq1",
+      "capability_id": "discovery.target",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "discovery.disease": {
+      "case_id": "brd4-jq1",
+      "capability_id": "discovery.disease",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "predict": {
+      "case_id": "brd4-jq1",
+      "capability_id": "predict",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "properties": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "properties",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "campaign": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "campaign",
+      "revision": 1,
+      "pinned_run_required": false
+    },
+    "esm": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "esm",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "esm2": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "esm2",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "mpnn": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "mpnn",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "fold": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "fold",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "epitope": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "epitope",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "structure": {
+      "case_id": "mz1-ternary",
+      "capability_id": "structure",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "rmsd": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "rmsd",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "evolution": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "evolution",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "compare": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "compare",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "protrek-sequence": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "protrek-sequence",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "protrek-structure": {
+      "case_id": "trastuzumab-her2",
+      "capability_id": "protrek-structure",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "target-msa": {
+      "case_id": "brd4-jq1",
+      "capability_id": "target-msa",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "features": {
+      "case_id": "brd4-jq1",
+      "capability_id": "features",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "import": {
+      "case_id": "brd4-jq1",
+      "capability_id": "import",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "resources": {
+      "case_id": "brd4-jq1",
+      "capability_id": "resources",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.generate": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.generate",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.inpaint": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.inpaint",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.diversify": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.diversify",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.optimize": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.optimize",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.pocket": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.pocket",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.prepare": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.prepare",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.interactions": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.interactions",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.properties": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.properties",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "diffsbdd.export": {
+      "case_id": "brd4-jq1",
+      "capability_id": "diffsbdd.export",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "regions": {
+      "case_id": "mz1-ternary",
+      "capability_id": "regions",
+      "revision": 1,
+      "pinned_run_required": false
+    },
+    "workflows": {
+      "case_id": "brd4-jq1",
+      "capability_id": "workflows",
+      "revision": 1,
+      "pinned_run_required": false
+    },
+    "p2rank.detect": {
+      "case_id": "brd4-jq1",
+      "capability_id": "p2rank.detect",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "gnina.dock": {
+      "case_id": "brd4-jq1",
+      "capability_id": "gnina.dock",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "gnina.score": {
+      "case_id": "brd4-jq1",
+      "capability_id": "gnina.score",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "gnina.minimize": {
+      "case_id": "brd4-jq1",
+      "capability_id": "gnina.minimize",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "chemistry.states": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "chemistry.states",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "biopython.ensemble": {
+      "case_id": "brd4-jq1",
+      "capability_id": "biopython.ensemble",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "pose_exploration": {
+      "case_id": "brd4-jq1",
+      "capability_id": "pose_exploration",
+      "revision": 1,
+      "pinned_run_required": false
+    }
+  },
+  "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."
+}

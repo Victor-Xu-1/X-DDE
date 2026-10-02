@@ -1,4 +1,5 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
+import { useExampleReference } from "../examples/context";
 import { useId, useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -20,6 +21,8 @@ export function PropertyForm({
   initialFile?: string;
   scientificInput?: MoleculeRef;
 }) {
+  const example = useExampleReference("library");
+  initialFile ||= example?.asset_id ?? "";
   const id = useId(),
     zh = language === "zh",
     [smiles, setSmiles] = useState(initialSmiles),

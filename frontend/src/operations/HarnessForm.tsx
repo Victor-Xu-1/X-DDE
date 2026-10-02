@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import { useExample } from "../examples/context";
+import {
+  exampleHarnessPayload,
+  exampleHarnessInputs,
+} from "../examples/harness";
 import { request } from "../api";
 import type { Job, Language } from "../types";
 import { harnessDefaults, harnessFields } from "./harness-fields";
@@ -19,9 +24,10 @@ export function HarnessForm({
   language: Language;
   onCreated(j: Job): void;
 }) {
+  const example = useExample();
   const zh = language === "zh",
     [payload, setPayload] = useState<Record<string, unknown>>(() =>
-      structuredClone(harnessDefaults[tool]),
+      exampleHarnessPayload(tool, harnessDefaults[tool], example),
     ),
     [expert, setExpert] = useState(false),
     [external, setExternal] = useState(false),
@@ -241,11 +247,13 @@ export function HarnessForm({
   async function submit() {
     setSetupError("");
     try {
+      const normalized = normalize();
       return await run.submit({
         operation: "harness",
         tool,
         name: name.trim() || `Harness · ${tool}`,
-        payload: normalize(),
+        payload: normalized,
+        scientific_inputs: exampleHarnessInputs(tool, normalized, example),
         allow_external: external,
       });
     } catch (error) {

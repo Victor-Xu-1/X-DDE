@@ -28,12 +28,15 @@ export function DesignOptions({
             onChange({ ...value, count: Number(e.target.value) })
           }
         >
-          {[1, 3, 10, 20, 50, 100].map((n) => (
-            <option key={n} value={n}>
-              {n}
-              {zh ? " 个" : " candidates"}
-            </option>
-          ))}
+          {[...new Set([Number(value.count), 1, 3, 10, 20, 50, 100])]
+            .filter((n) => Number.isInteger(n) && n >= 1 && n <= 100)
+            .sort((a, b) => a - b)
+            .map((n) => (
+              <option key={n} value={n}>
+                {n}
+                {zh ? " 个" : " candidates"}
+              </option>
+            ))}
         </select>
       </label>
       <Hint label={zh ? "候选数量说明" : "Candidate count help"}>

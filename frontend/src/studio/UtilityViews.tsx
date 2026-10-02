@@ -443,7 +443,7 @@ export function UtilityViews(p: Props) {
                 ],
                 [
                   "填输入",
-                  "复制 SMILES 或序列，每条链分别填写。DNA 使用 T，RNA 使用 U。专家模式可添加离子与其他组分；首次可填入咖啡因示例。",
+                  "首次可点击模块中的“加载案例”，按步骤准备真实研发输入。DNA 使用 T，RNA 使用 U；专家模式可调整离子、组分与原生参数。",
                 ],
                 [
                   "选方案",
@@ -461,7 +461,7 @@ export function UtilityViews(p: Props) {
                 ],
                 [
                   "Enter molecules",
-                  "Copy SMILES or sequences, one chain per field. DNA uses T and RNA uses U. Expert mode adds ions and custom assemblies; try caffeine to check the workflow.",
+                  "Start with Load example in a task module and follow the steps with real research inputs. DNA uses T and RNA uses U; Expert mode adjusts ions, assemblies and native settings.",
                 ],
                 [
                   "Choose a preset",

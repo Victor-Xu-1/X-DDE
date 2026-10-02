@@ -44,11 +44,6 @@ export const messages = {
   ],
   submit: ["提交预测任务", "Run prediction"],
   submitting: ["正在提交…", "Submitting…"],
-  demo: ["载入咖啡因验证输入", "Load caffeine test input"],
-  demoNote: [
-    "验证输入仅用于检查安装，不代表生物活性或药物效果。",
-    "Test input checks the installation; it is not evidence of biological activity.",
-  ],
   empty: ["还没有任务", "No tasks yet"],
   emptyNote: [
     "填写左侧分子输入，开始第一次预测。",

@@ -30,6 +30,7 @@ from .diffsbdd.runtime import validate as validate_diffsbdd
 from .docking.runtime import validate as validate_docking
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
+from .examples.routes import register_examples
 from .execution_environment import EnvironmentRecord
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
@@ -495,6 +496,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     register_discovery(app, mutation)
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
+    register_examples(app, store, assets, settings, mutation)
     register_sites(app, store, assets, settings, mutation)
     register_pose_explorations(app, store, assets, settings, mutation)
     regions = register_regions(app, store, assets, settings, mutation)

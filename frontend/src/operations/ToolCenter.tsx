@@ -27,6 +27,9 @@ import { ReceptorForm } from "../receptors/ReceptorForm";
 import { StateForm } from "../chemistry/StateForm";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
+import { ExampleActions } from "../examples/ExampleActions";
+import { ExampleContext } from "../examples/context";
+import type { PreparedExample } from "../examples/types";
 import type { DockingMode } from "../docking/types";
 import type { DiffMode } from "../diffsbdd/types";
 
@@ -64,6 +67,8 @@ export function ToolCenter({
       cards.current[lastOpenedTool.current]?.focus();
   }, [selected]);
   const filteredTools = filterCapabilities(modality);
+  const [example, setExample] = useState<PreparedExample | null>(null);
+  const [exampleLoad, setExampleLoad] = useState(0);
   return (
     <section className="tool-center" aria-labelledby={headingId}>
       {current && (
@@ -92,84 +97,100 @@ export function ToolCenter({
       </h1>
       {current ? (
         <>
-          {selected === "antibody.humanize" ? (
-            <HumanizationForm language={language} onCreated={onCreated} />
-          ) : selected === "admet.predict" ? (
-            <AdmetForm language={language} onCreated={onCreated} />
-          ) : selected === "posebusters.check" ? (
-            <QualityForm language={language} onCreated={onCreated} />
-          ) : selected === "antibody.number" ? (
-            <AntibodyNumberForm language={language} onCreated={onCreated} />
-          ) : selected === "chemistry.screen" ? (
-            <LibraryScreenForm language={language} onCreated={onCreated} />
-          ) : selected === "biopython.prepare" ? (
-            <StructurePrepareForm language={language} onCreated={onCreated} />
-          ) : selected === "discovery.import" ? (
-            <ReferenceImportForm language={language} onCreated={onCreated} />
-          ) : selected?.startsWith("discovery.") ? (
-            <TargetResearchForm
-              key={selected}
-              entity={selected === "discovery.target" ? "target" : "disease"}
-              language={language}
-              onCreated={onCreated}
-            />
-          ) : selected === "pose_exploration" ? (
-            <PoseWorkspace language={language} />
-          ) : selected === "biopython.ensemble" ? (
-            <ReceptorForm language={language} onCreated={onCreated} />
-          ) : selected === "chemistry.states" ? (
-            <StateForm language={language} onCreated={onCreated} />
-          ) : selected === "regions" ? (
-            <RegionWorkspace language={language} />
-          ) : selected === "p2rank.detect" ? (
-            <PocketForm
-              language={language}
-              onCreated={onCreated}
-              onPredict={onPredict}
-            />
-          ) : selected === "workflows" ? (
-            <WorkflowCenter language={language} jobs={jobs} />
-          ) : selected?.startsWith("diffsbdd.") ? (
-            <DiffForm
-              key={selected}
-              mode={selected.slice(9) as DiffMode}
-              language={language}
-              onCreated={onCreated}
-            />
-          ) : selected?.startsWith("gnina.") ? (
-            <DockingForm
-              key={selected}
-              mode={selected.slice(6) as DockingMode}
-              language={language}
-              onCreated={onCreated}
-            />
-          ) : selected === "properties" ? (
-            <PropertyForm language={language} onCreated={onCreated} />
-          ) : selected === "features" ? (
-            <FeatureForm language={language} onCreated={onCreated} />
-          ) : selected === "import" ? (
-            <ImportForm
-              language={language}
-              jobs={jobs}
-              onCreated={onCreated}
-              onDraft={onDraft}
-            />
-          ) : selected === "resources" ? (
-            <ResourceForm
-              language={language}
-              health={health}
-              onCreated={onCreated}
-            />
-          ) : selected === "campaign" ? (
-            <CampaignForm language={language} />
-          ) : (
-            <HarnessForm
-              key={selected}
-              tool={selected!}
-              language={language}
-              onCreated={onCreated}
-            />
-          )}
+          <ExampleActions
+            capability={current.id}
+            language={language}
+            onLoad={(value) => {
+              setExample(value);
+              setExampleLoad((n) => n + 1);
+            }}
+            onResult={onCreated}
+          />
+          <ExampleContext.Provider
+            key={current.id + ":" + exampleLoad}
+            value={
+              example?.module.capability_id === current.id ? example : null
+            }
+          >
+            {selected === "antibody.humanize" ? (
+              <HumanizationForm language={language} onCreated={onCreated} />
+            ) : selected === "admet.predict" ? (
+              <AdmetForm language={language} onCreated={onCreated} />
+            ) : selected === "posebusters.check" ? (
+              <QualityForm language={language} onCreated={onCreated} />
+            ) : selected === "antibody.number" ? (
+              <AntibodyNumberForm language={language} onCreated={onCreated} />
+            ) : selected === "chemistry.screen" ? (
+              <LibraryScreenForm language={language} onCreated={onCreated} />
+            ) : selected === "biopython.prepare" ? (
+              <StructurePrepareForm language={language} onCreated={onCreated} />
+            ) : selected === "discovery.import" ? (
+              <ReferenceImportForm language={language} onCreated={onCreated} />
+            ) : selected?.startsWith("discovery.") ? (
+              <TargetResearchForm
+                key={selected}
+                entity={selected === "discovery.target" ? "target" : "disease"}
+                language={language}
+                onCreated={onCreated}
+              />
+            ) : selected === "pose_exploration" ? (
+              <PoseWorkspace language={language} />
+            ) : selected === "biopython.ensemble" ? (
+              <ReceptorForm language={language} onCreated={onCreated} />
+            ) : selected === "chemistry.states" ? (
+              <StateForm language={language} onCreated={onCreated} />
+            ) : selected === "regions" ? (
+              <RegionWorkspace language={language} />
+            ) : selected === "p2rank.detect" ? (
+              <PocketForm
+                language={language}
+                onCreated={onCreated}
+                onPredict={onPredict}
+              />
+            ) : selected === "workflows" ? (
+              <WorkflowCenter language={language} jobs={jobs} />
+            ) : selected?.startsWith("diffsbdd.") ? (
+              <DiffForm
+                key={selected}
+                mode={selected.slice(9) as DiffMode}
+                language={language}
+                onCreated={onCreated}
+              />
+            ) : selected?.startsWith("gnina.") ? (
+              <DockingForm
+                key={selected}
+                mode={selected.slice(6) as DockingMode}
+                language={language}
+                onCreated={onCreated}
+              />
+            ) : selected === "properties" ? (
+              <PropertyForm language={language} onCreated={onCreated} />
+            ) : selected === "features" ? (
+              <FeatureForm language={language} onCreated={onCreated} />
+            ) : selected === "import" ? (
+              <ImportForm
+                language={language}
+                jobs={jobs}
+                onCreated={onCreated}
+                onDraft={onDraft}
+              />
+            ) : selected === "resources" ? (
+              <ResourceForm
+                language={language}
+                health={health}
+                onCreated={onCreated}
+              />
+            ) : selected === "campaign" ? (
+              <CampaignForm language={language} />
+            ) : (
+              <HarnessForm
+                key={selected}
+                tool={selected!}
+                language={language}
+                onCreated={onCreated}
+              />
+            )}
+          </ExampleContext.Provider>
         </>
       ) : (
         <>

@@ -1,5 +1,27 @@
 import type { Job } from "../types";
 import type { WorkflowPlanInput, WorkflowStep } from "./types";
+function moleculeOutput(
+  job: Job,
+):
+  | "molecule_artifact"
+  | "pose_artifact"
+  | "state_artifact"
+  | "conformer_artifact" {
+  const task = job.request;
+  if (task.operation === "docking") return "pose_artifact";
+  if (task.operation === "molecular_states")
+    return task.options.conformers_per_state
+      ? "conformer_artifact"
+      : "state_artifact";
+  if (
+    task.operation === "diffsbdd" &&
+    ["generate", "inpaint", "diversify", "optimize", "export"].includes(
+      task.payload.mode,
+    )
+  )
+    return "molecule_artifact";
+  throw new Error("Choose a predecessor that declares real molecular outputs.");
+}
 export function planFromJobs(
   name: string,
   jobIds: string[],
@@ -32,7 +54,9 @@ export function planFromJobs(
               target: "property_input",
               kind: "ligand",
               record: 0,
-              result_field: "molecule_artifact",
+              result_field: moleculeOutput(
+                jobs.find((j) => j.id === jobIds[index - 1])!,
+              ),
             },
           ]
         : [],

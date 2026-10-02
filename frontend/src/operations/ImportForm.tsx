@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { api } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { AssetPicker } from "./AssetPicker";
@@ -17,11 +18,13 @@ export function ImportForm({
   onCreated(j: Job): void;
   onDraft(p: Prediction): void;
 }) {
+  const example = useExampleReference("brd4", "her2", "mz1", "rna");
+  const preset = useExampleTask("json");
   const zh = language === "zh",
-    [structure, setStructure] = useState(""),
+    [structure, setStructure] = useState(example?.asset_id ?? ""),
     [structures, setStructures] = useState<string[]>([]),
     [config, setConfig] = useState(""),
-    [altloc, setAltloc] = useState("first"),
+    [altloc, setAltloc] = useState(preset?.altloc ?? "first"),
     [assembly, setAssembly] = useState(""),
     [bonds, setBonds] = useState(false),
     [source, setSource] = useState(""),

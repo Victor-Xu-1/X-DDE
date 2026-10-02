@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useExample, useExampleTask } from "../examples/context";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import {
@@ -24,21 +25,38 @@ export function ReceptorForm({
   language: Language;
   onCreated(job: Job): void;
 }) {
+  const example = useExample();
+  const preset = useExampleTask("receptor_ensemble");
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     serial = useRef(2);
-  const [rows, setRows] = useState<Row[]>(() => [newRow(0), newRow(1)]),
-    [reference, setReference] = useState(0),
+  const [rows, setRows] = useState<Row[]>(() =>
+      preset
+        ? preset.inputs.map((input, index) => ({
+            key: index,
+            structure: input.structure,
+            selection: input.selection,
+            raw: JSON.stringify(input.selection, null, 2),
+          }))
+        : [newRow(0), newRow(1)].map((row, index) => ({
+            ...row,
+            structure:
+              example?.objects[index ? "brd4_apo" : "brd4"]?.reference ?? null,
+          })),
+    ),
+    [reference, setReference] = useState(preset?.options.reference_index ?? 0),
     [choice, setChoice] = useState("same"),
     [expert, setExpert] = useState(false),
     [name, setName] = useState(""),
     [error, setError] = useState(""),
-    [raw, setRaw] = useState(JSON.stringify(defaults, null, 2));
+    [raw, setRaw] = useState(
+      JSON.stringify(preset?.options ?? defaults, null, 2),
+    );
   const { ready, error: readinessError } =
     useTaskReadiness("biopython.ensemble");
   function options(value = choice) {
     return {
-      ...defaults,
+      ...(preset?.options ?? defaults),
       reference_index: reference,
       minimum_identity: value === "similar" ? 0.95 : 1,
       maximum_rmsd_angstrom: value === "similar" ? 5 : 3,

@@ -1,0 +1,47 @@
+name: Public research example checks
+on:
+  push:
+    paths:
+      - 'src/opendde_workbench/examples/**'
+      - 'frontend/src/examples/**'
+      - 'tests/test_examples.py'
+      - 'tests/test_example_pins.py'
+      - '.github/workflows/examples-checks.yml'
+  pull_request:
+    paths:
+      - 'src/opendde_workbench/examples/**'
+      - 'frontend/src/examples/**'
+      - 'tests/test_examples.py'
+      - 'tests/test_example_pins.py'
+      - '.github/workflows/examples-checks.yml'
+permissions:
+  contents: read
+jobs:
+  example-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Verify example provenance, immutable results and direct API boundaries
+        run: uv run --locked pytest -q tests/test_examples.py tests/test_example_pins.py tests/test_research_assets.py tests/test_api_security.py tests/test_workflows.py
+      - name: Verify changed example controls and questionnaire consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run
+          src/examples/ExampleActions.test.tsx src/examples/harness.test.ts
+          src/TaskForm.test.tsx src/diffsbdd/DesignOptions.test.tsx
+          src/diffsbdd/DiffForm.test.tsx src/docking/DockingForm.test.tsx
+          src/pockets/PocketForm.test.tsx src/receptors/StructurePrepareForm.test.tsx
+          src/receptors/ReceptorForm.test.tsx src/chemistry/StateForm.test.tsx
+          src/antibodies/AntibodyNumberForm.test.tsx src/admet/AdmetForm.test.tsx
+          src/humanization/HumanizationForm.test.tsx src/quality/tests/QualityForm.test.tsx
+          src/operations/CampaignForm.test.tsx src/operations/PropertyForm.test.tsx
+          src/operations/ToolQuestionnaires.test.tsx src/operations/operations.test.tsx
+          src/discovery/TargetResearchForm.test.tsx src/discovery/ReferenceImportForm.test.tsx
+          src/regions/RegionWorkspace.test.tsx
+          src/workflows/WorkflowCenter.test.tsx src/workflows/model.test.ts

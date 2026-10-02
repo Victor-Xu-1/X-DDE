@@ -1,4 +1,5 @@
 import { GuidedSteps } from "../guided/Questionnaire";
+import { useExampleReference } from "../examples/context";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
@@ -17,7 +18,8 @@ import { RegionDrafts } from "./RegionDrafts";
 import { AtomSelection } from "./AtomSelection";
 
 export function RegionWorkspace({ language }: { language: Language }) {
-  const [subject, setSubject] = useState<MoleculeRef | null>(null),
+  const example = useExampleReference("mz1_molecule", "jq1");
+  const [subject, setSubject] = useState<MoleculeRef | null>(example),
     zh = language === "zh";
   return (
     <RegionEditor

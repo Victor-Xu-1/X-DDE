@@ -1,0 +1,33 @@
+.example-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+  font-size: 13px;
+}
+.example-actions > span {
+  flex: 1 1 240px;
+  color: var(--text-secondary);
+}
+.example-actions button {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.example-actions details {
+  position: relative;
+}
+.example-actions details[open] {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.example-actions ul {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+.example-actions > .error {
+  flex-basis: 100%;
+  margin: 0;
+}

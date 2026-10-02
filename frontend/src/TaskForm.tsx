@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { PlayCircleOutlined } from "@ant-design/icons";
+import { ExampleActions } from "./examples/ExampleActions";
+import { examplePrediction } from "./examples/prediction";
 import { defaults, prediction, validate } from "./form-model";
 import { translator } from "./i18n";
 import {
@@ -18,18 +19,21 @@ import type { Component, Job, Language, Parameters, Prediction } from "./types";
 import { ExpertParameters } from "./operations/ExpertParameters";
 import { CovalentEditor } from "./operations/CovalentEditor";
 import type { CovalentBond } from "./operations/types";
+import type { MoleculeRef } from "./research/types";
 interface Props {
   language: Language;
   ready: boolean;
   abagAvailable?: boolean;
   initialRequest?: Prediction | null;
   onSubmit(value: Prediction, key: string): Promise<Job>;
+  onExampleResult?(job: Job): void;
 }
 export function TaskForm({
   language,
   ready,
   initialRequest,
   onSubmit,
+  onExampleResult,
   abagAvailable = false,
 }: Props) {
   const t = translator(language),
@@ -45,8 +49,8 @@ export function TaskForm({
     model: "standard",
   });
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [example, setExample] = useState(false);
+    [error, setError] = useState("");
+  const [inputReferences, setInputReferences] = useState<MoleculeRef[]>([]);
   const drafts = useRef<Partial<Record<TaskKind, Component[]>>>({});
   const request = useRef({ body: "", key: crypto.randomUUID() });
   const automaticName = useRef("");
@@ -65,7 +69,7 @@ export function TaskForm({
     automaticName.current = "";
     setParameters({ ...initialRequest.parameters });
     setBonds(initialRequest.covalent_bonds ?? []);
-    setExample(false);
+    setInputReferences(initialRequest.scientific_inputs ?? []);
     setError("");
   }, [initialRequest]);
   function chooseKind(next: TaskKind) {
@@ -77,7 +81,6 @@ export function TaskForm({
       ...p,
       model: next === "antibody" ? "abag" : "standard",
     }));
-    setExample(false);
     setError("");
     automaticName.current = "";
   }
@@ -120,6 +123,13 @@ export function TaskForm({
       return;
     }
     value.covalent_bonds = bonds;
+    value.scientific_inputs = inputReferences.filter((reference) =>
+      components.some(
+        (component) =>
+          component.ligand_file === reference.asset_id ||
+          component.source_sequence === reference.asset_id,
+      ),
+    );
     const body = JSON.stringify(value);
     if (request.current.body !== body)
       request.current = { body, key: crypto.randomUUID() };
@@ -135,17 +145,6 @@ export function TaskForm({
     } finally {
       setBusy(false);
     }
-  }
-  function exampleInput() {
-    drafts.current[kind] = components;
-    setName(zh ? "试用 · 咖啡因" : "Try it · Caffeine");
-    setKind("ligand");
-    setComponents([
-      { kind: "ligand", value: "Cn1c(=O)c2c(ncn2C)n(C)c1=O", count: 1 },
-    ]);
-    setParameters({ ...defaults, steps: 50, cycles: 4, model: "standard" });
-    setExample(true);
-    setError("");
   }
   const goal = (
     <>
@@ -196,22 +195,12 @@ export function TaskForm({
         items={components}
         onChange={(items) => {
           setComponents(items);
-          setExample(false);
         }}
         language={language}
         expert={expert}
         workflow={kind}
         features={parameters.feature_mode === "uploaded"}
       />
-      <button
-        type="button"
-        className="text-button example-button"
-        onClick={exampleInput}
-      >
-        <PlayCircleOutlined />{" "}
-        {zh ? "第一次用？一键填入咖啡因示例" : "First visit? Try caffeine"}
-      </button>
-      {example && <p className="notice small">{t("demoNote")}</p>}
       {expert && (
         <CovalentEditor
           components={components}
@@ -284,36 +273,57 @@ export function TaskForm({
     </dl>
   );
   return (
-    <Questionnaire
-      language={language}
-      ready={ready && modelReady}
-      busy={busy}
-      error={error}
-      unavailable={
-        zh
-          ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
-          : "Configure this task's prediction environment and model in Installation & components. Inputs are retained."
-      }
-      submitLabel={zh ? "开始预测" : "Run prediction"}
-      onSubmit={submit}
-      steps={[
-        { title: zh ? "选择任务" : "Choose task", content: goal, valid: true },
-        {
-          title: zh ? "填写材料" : "Provide inputs",
-          content: inputs,
-          valid: inputValid,
-        },
-        {
-          title: zh ? "选择方案" : "Choose settings",
-          content: settings,
-          valid: true,
-        },
-        {
-          title: zh ? "确认启动" : "Review & start",
-          content: review,
-          valid: inputValid,
-        },
-      ]}
-    />
+    <>
+      <ExampleActions
+        capability="predict"
+        language={language}
+        onResult={(job) => onExampleResult?.(job)}
+        onLoad={(prepared) => {
+          const value = examplePrediction(prepared);
+          setName(value.name);
+          setKind(kindFor(value.components, value.parameters.model));
+          setComponents(value.components);
+          setParameters(value.parameters);
+          setBonds([]);
+          setInputReferences(value.scientific_inputs ?? []);
+          setError("");
+        }}
+      />
+      <Questionnaire
+        language={language}
+        ready={ready && modelReady}
+        busy={busy}
+        error={error}
+        unavailable={
+          zh
+            ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
+            : "Configure this task's prediction environment and model in Installation & components. Inputs are retained."
+        }
+        submitLabel={zh ? "开始预测" : "Run prediction"}
+        onSubmit={submit}
+        steps={[
+          {
+            title: zh ? "选择任务" : "Choose task",
+            content: goal,
+            valid: true,
+          },
+          {
+            title: zh ? "填写材料" : "Provide inputs",
+            content: inputs,
+            valid: inputValid,
+          },
+          {
+            title: zh ? "选择方案" : "Choose settings",
+            content: settings,
+            valid: true,
+          },
+          {
+            title: zh ? "确认启动" : "Review & start",
+            content: review,
+            valid: inputValid,
+          },
+        ]}
+      />
+    </>
   );
 }

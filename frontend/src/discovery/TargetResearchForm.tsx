@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { useExample } from "../examples/context";
 import { api } from "../api";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
@@ -19,9 +20,16 @@ export function TargetResearchForm({
   entity: "target" | "disease";
   initialSelection?: EvidenceHit;
 }) {
+  const example = useExample();
+  initialSelection ??= example?.case.evidence_entities?.[entity]
+    ? { ...example.case.evidence_entities[entity], entity }
+    : undefined;
   const zh = language === "zh",
     id = useId();
-  const [query, setQuery] = useState(initialSelection?.name ?? ""),
+  const [query, setQuery] = useState(
+      initialSelection?.name ??
+        (example ? (entity === "target" ? "BRD4" : "NUT carcinoma") : ""),
+    ),
     [hits, setHits] = useState<EvidenceHit[]>(
       initialSelection ? [initialSelection] : [],
     ),

@@ -1,4 +1,5 @@
 import { numberingDefaults } from "./generated";
+import { useExampleReference } from "../examples/context";
 import { useState } from "react";
 import { SequencePicker } from "../research/SequencePicker";
 import { Questionnaire } from "../guided/Questionnaire";
@@ -19,6 +20,8 @@ export function AntibodyNumberForm({
   onCreated(job: Job): void;
   initialSequence?: MoleculeRef;
 }) {
+  const example = useExampleReference("antibody_chains");
+  initialSequence ??= example ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("antibody.number");

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useExample } from "../examples/context";
 import type { Component, Job, Language, Parameters } from "../types";
 import { MolecularInputs } from "../guided/MolecularInputs";
 import { defaults, validate } from "../form-model";
@@ -14,10 +15,16 @@ export function FeatureForm({
   language: Language;
   onCreated(j: Job): void;
 }) {
+  const example = useExample();
   const zh = language === "zh",
     [operation, setOperation] = useState<"msa" | "mt" | "prep">("msa"),
     [components, setComponents] = useState<Component[]>([
-      { kind: "protein", value: "", count: 1 },
+      {
+        kind: "protein",
+        value: example?.sequences.protein ?? "",
+        count: 1,
+        source_sequence: example?.objects.protein_sequence?.reference.asset_id,
+      },
     ]),
     [consent, setConsent] = useState(false),
     [cpus, setCpus] = useState(4),
@@ -161,6 +168,15 @@ export function FeatureForm({
           operation,
           name: zh ? "准备进化特征" : "Prepare evolutionary features",
           components,
+          scientific_inputs:
+            example?.objects.protein_sequence &&
+            components.some(
+              (c) =>
+                c.source_sequence ===
+                example.objects.protein_sequence.reference.asset_id,
+            )
+              ? [example.objects.protein_sequence.reference]
+              : [],
           parameters,
         })
       }

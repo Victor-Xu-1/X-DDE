@@ -1,4 +1,5 @@
 import { ConstraintPanel } from "../constraints/ConstraintPanel";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { withConstraints } from "../constraints/model";
 import type { ConstraintReference } from "../constraints/types";
 import { useState } from "react";
@@ -30,30 +31,59 @@ export function DiffForm({
   initialMolecule?: MoleculeRef | null;
   initialPocket?: Pocket | null;
 }) {
+  const exampleTask = useExampleTask("diffsbdd");
+  const preset =
+    exampleTask?.payload.mode === mode ? exampleTask.payload : null;
+  const exampleProtein = useExampleReference("receptor", "brd4");
+  const exampleMolecule = useExampleReference("jq1");
+  initialProtein ??=
+    (preset?.protein as MoleculeRef | undefined) ?? exampleProtein;
+  initialMolecule ??=
+    ((preset?.initial ?? preset?.molecule) as MoleculeRef | undefined) ??
+    exampleMolecule;
+  initialPocket ??=
+    (preset?.pocket as Pocket | undefined) ??
+    (exampleMolecule ? { kind: "ligand", ligand: exampleMolecule } : null);
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
   const [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),
     [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule);
   const [pocket, setPocket] = useState<Pocket | null>(initialPocket),
-    [fixed, setFixed] = useState<number[]>([]);
+    [fixed, setFixed] = useState<number[]>(
+      (preset?.options as { fixed_atoms?: number[] } | undefined)
+        ?.fixed_atoms ?? [],
+    );
   const [constraints, setConstraints] = useState<ConstraintReference | null>(
     null,
   );
   const [savedRegions, setSavedRegions] = useState<string | null>(null);
   const [expert, setExpert] = useState(false),
     [options, setOptions] = useState<Record<string, unknown>>(() =>
-      isDesign(mode) ? optionsFor(mode) : structuredClone(defaults),
+      isDesign(mode)
+        ? structuredClone(
+            (preset?.options as Record<string, unknown>) ?? optionsFor(mode),
+          )
+        : structuredClone(defaults),
     );
   const [collection, setCollection] = useState<MoleculeRef[]>(
-      initialMolecule ? [initialMolecule] : [],
+      (preset?.molecules as MoleculeRef[]) ??
+        (initialMolecule ? [initialMolecule] : []),
     ),
     [name, setName] = useState("");
   const [error, setError] = useState("");
   const { ready, error: readinessError } = useTaskReadiness(`diffsbdd.${mode}`);
-  const [chains, setChains] = useState(""),
-    [removeWater, setRemoveWater] = useState(true),
-    [keepLigands, setKeepLigands] = useState(true),
-    [removeH, setRemoveH] = useState(false);
+  const [chains, setChains] = useState(
+      (preset?.chains as string[] | undefined)?.join(", ") ?? "",
+    ),
+    [removeWater, setRemoveWater] = useState(
+      Boolean(preset?.remove_water ?? true),
+    ),
+    [keepLigands, setKeepLigands] = useState(
+      Boolean(preset?.keep_ligands ?? true),
+    ),
+    [removeH, setRemoveH] = useState(
+      Boolean(preset?.remove_hydrogens ?? false),
+    );
   const needsProtein =
     isDesign(mode) || ["pocket", "prepare", "interactions"].includes(mode);
   const needsMolecule =

@@ -10,6 +10,33 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { TaskForm } from "./TaskForm";
 import type { Job, Prediction } from "./types";
+vi.mock("./api", async (original) => {
+  const actual = await original<typeof import("./api")>();
+  return {
+    ...actual,
+    request: vi.fn((path: string, options?: RequestInit) => {
+      if (path === "/examples/predict")
+        return Promise.resolve({
+          module: {
+            capability_id: "predict",
+            case_id: "brd4-jq1",
+            revision: 1,
+          },
+          case: {
+            id: "brd4-jq1",
+            revision: 1,
+            label: ["BRD4–JQ1", "BRD4–JQ1"],
+            description: ["公开复合物", "Public complex"],
+            sources: [],
+          },
+          files: [],
+          pin: null,
+          computed_result_available: false,
+        });
+      return actual.request(path, options);
+    }),
+  };
+});
 afterEach(cleanup);
 it("offers recommended choices, retains prepared input and blocks unavailable prediction at review", async () => {
   const user = userEvent.setup();

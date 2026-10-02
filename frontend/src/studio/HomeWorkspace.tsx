@@ -195,6 +195,7 @@ export function HomeWorkspace(p: Props) {
               ready={p.ready}
               abagAvailable={Boolean(p.health?.engine.models?.abag)}
               initialRequest={p.draft}
+              onExampleResult={p.onChanged}
               onSubmit={async (value, key) => {
                 const created = await p.onSubmit(value, key);
                 setShowInput(false);

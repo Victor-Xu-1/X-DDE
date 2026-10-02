@@ -2,19 +2,27 @@ import { useEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import type { Job, Language } from "../types";
 import { planFromJobs } from "./model";
-import type { WorkflowPlan, WorkflowRun } from "./types";
-export function useWorkflowController(language: Language, jobs: Job[]) {
+import type { WorkflowPlan, WorkflowRun, WorkflowPlanInput } from "./types";
+export function useWorkflowController(
+  language: Language,
+  jobs: Job[],
+  preset: WorkflowPlanInput | null = null,
+) {
   const zh = language === "zh",
-    [name, setName] = useState(""),
+    [name, setName] = useState(preset?.name ?? ""),
     [ids, setIds] = useState<string[]>([""]);
   const [hours, setHours] = useState(1),
     [handoffs, setHandoffs] = useState<Set<number>>(new Set());
   const [expert, setExpert] = useState(false),
-    [native, setNative] = useState<Record<string, unknown>>({
-      name: "Research plan",
-      steps: [],
-      budget: { max_jobs: 30, wall_seconds: 3600 },
-    });
+    [native, setNative] = useState<Record<string, unknown>>(
+      preset
+        ? (structuredClone(preset) as unknown as Record<string, unknown>)
+        : {
+            name: "Research plan",
+            steps: [],
+            budget: { max_jobs: 30, wall_seconds: 3600 },
+          },
+    );
   const [plans, setPlans] = useState<WorkflowPlan[]>([]),
     [selected, setSelected] = useState<WorkflowPlan | null>(null);
   const [run, setRun] = useState<WorkflowRun | null>(null),
@@ -54,7 +62,16 @@ export function useWorkflowController(language: Language, jobs: Job[]) {
     try {
       const value = expert
           ? native
-          : planFromJobs(name, ids, jobs, handoffs, hours),
+          : preset
+            ? {
+                ...preset,
+                name: name.trim() || preset.name,
+                budget: {
+                  ...preset.budget,
+                  wall_seconds: Math.round(hours * 3600),
+                },
+              }
+            : planFromJobs(name, ids, jobs, handoffs, hours),
         body = JSON.stringify(value);
       if (intent.current.body !== body)
         intent.current = { body, key: crypto.randomUUID() };

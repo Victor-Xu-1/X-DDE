@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useExample } from "../examples/context";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Questionnaire } from "../guided/Questionnaire";
 import { Hint } from "../guided/Hint";
@@ -22,6 +23,13 @@ export function ReferenceImportForm({
   onCreated(job: Job): void;
   initial?: ReferenceSelection;
 }) {
+  const example = useExample();
+  initial ??= example
+    ? {
+        source: "pdb",
+        identifier: example.case.id === "trastuzumab-her2" ? "1N8Z" : "3MXF",
+      }
+    : undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     { ready, error } = useTaskReadiness("discovery.import");

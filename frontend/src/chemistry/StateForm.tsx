@@ -1,4 +1,5 @@
 import "./states.css";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -19,12 +20,17 @@ export function StateForm({
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
 }) {
+  const preset = useExampleTask("molecular_states");
+  const example = useExampleReference("imatinib", "jq1");
+  initialMolecule ??= example;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
   const [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule),
-    [choice, setChoice] = useState<PreparationChoice>("supplied"),
-    [options, setOptions] = useState<StateOptions>(() =>
-      optionsFor("supplied"),
+    [choice, setChoice] = useState<PreparationChoice>(
+      preset ? "physiological" : "supplied",
+    ),
+    [options, setOptions] = useState<StateOptions>(
+      () => preset?.options ?? optionsFor("supplied"),
     );
   const [expert, setExpert] = useState(false),
     [raw, setRaw] = useState(""),

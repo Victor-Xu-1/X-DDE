@@ -1,4 +1,5 @@
 import { DockingInputs, DockingRegion } from "./DockingQuestions";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { outputBoundsDefaults } from "../constraints/generated";
 import type { OutputSettings } from "../constraints/types";
 import { ConstraintPanel } from "../constraints/ConstraintPanel";
@@ -30,11 +31,16 @@ export function DockingForm({
   initialLigand?: MoleculeRef | null;
   initialBox?: SearchBox | null;
 }) {
+  const exampleReceptor = useExampleReference("receptor", "brd4");
+  const exampleLigand = useExampleReference("jq1");
+  const preset = useExampleTask("docking");
+  initialReceptor ??= exampleReceptor;
+  initialLigand ??= exampleLigand;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
   const [receptor, setReceptor] = useState(initialReceptor),
     [ligand, setLigand] = useState(initialLigand),
-    [reference, setReference] = useState<MoleculeRef | null>(null);
+    [reference, setReference] = useState<MoleculeRef | null>(exampleLigand);
   const [kind, setKind] = useState<"reference" | "box">(
     initialBox ? "box" : "reference",
   );
@@ -44,9 +50,10 @@ export function DockingForm({
     [size, setSize] = useState(
       initialBox ? initialBox.size.map(String) : ["20", "20", "20"],
     );
-  const [options, setOptions] = useState<Record<string, unknown>>(() =>
-    structuredClone(defaults),
-  );
+  const [options, setOptions] = useState<Record<string, unknown>>(() => ({
+    ...structuredClone(defaults),
+    ...preset?.options,
+  }));
   const [confirmed, setConfirmed] = useState(false),
     [expert, setExpert] = useState(false),
     [name, setName] = useState("");

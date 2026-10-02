@@ -1,14 +1,21 @@
 import { useRef, useState } from "react";
+import { useExample } from "../examples/context";
 import { api } from "../api";
 import type { Language } from "../types";
 import { campaignConfig, type DesignDraft, type Plan } from "./campaign-model";
 export function useCampaignController(language: Language) {
+  const example = useExample();
   const zh = language === "zh",
     [draft, setDraft] = useState<DesignDraft>({
-      targetName: "",
-      targets: { A: "" },
-      format: "VHH",
-      binders: { B: "" },
+      targetName: example ? "HER2 · trastuzumab reference" : "",
+      targets: example?.sequences.antigen
+        ? { C: example.sequences.antigen }
+        : { A: "" },
+      format: example ? "VHVL" : "VHH",
+      binders:
+        example?.sequences.heavy && example.sequences.light
+          ? { B: example.sequences.heavy, A: example.sequences.light }
+          : { B: "" },
       cdr: {},
       fixed: {},
       budget: "standard",

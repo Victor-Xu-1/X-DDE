@@ -11,7 +11,11 @@ export interface WorkflowStep {
     kind: "ligand";
     record: number;
     artifact?: string;
-    result_field?: "molecule_artifact";
+    result_field?:
+      | "molecule_artifact"
+      | "pose_artifact"
+      | "state_artifact"
+      | "conformer_artifact";
   }[];
 }
 export interface WorkflowPlanInput {

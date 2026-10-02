@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useExampleReference } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
@@ -21,6 +22,10 @@ export function QualityForm({
   initialMolecule?: MoleculeRef | null;
   initialProtein?: MoleculeRef | null;
 }) {
+  const exampleMolecule = useExampleReference("jq1");
+  const exampleProtein = useExampleReference("receptor", "brd4");
+  initialMolecule ??= exampleMolecule;
+  initialProtein ??= exampleProtein;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("posebusters.check");

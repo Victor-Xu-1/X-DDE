@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
@@ -18,16 +19,21 @@ export function PocketForm({
   onPredict(): void;
   initialProtein?: MoleculeRef | null;
 }) {
+  const example = useExampleReference("receptor", "brd4");
+  const preset = useExampleTask("pocket_search");
+  initialProtein ??= example;
   const zh = language === "zh",
     [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),
-    [profile, setProfile] = useState<"experimental" | "predicted" | "">("");
+    [profile, setProfile] = useState<"experimental" | "predicted" | "">(
+      preset?.profile ?? "",
+    );
   const [expert, setExpert] = useState(false);
   const { ready, error } = useTaskReadiness("p2rank.detect");
-  const [threads, setThreads] = useState(4),
-    [memory, setMemory] = useState(2048),
-    [threshold, setThreshold] = useState(0.4),
-    [minimum, setMinimum] = useState(3),
-    [limit, setLimit] = useState(20);
+  const [threads, setThreads] = useState(preset?.threads ?? 4),
+    [memory, setMemory] = useState(preset?.memory_mib ?? 2048),
+    [threshold, setThreshold] = useState(preset?.point_threshold ?? 0.4),
+    [minimum, setMinimum] = useState(preset?.minimum_cluster ?? 3),
+    [limit, setLimit] = useState(preset?.review_limit ?? 20);
   const run = useTaskSubmit(onCreated);
   const ranges = [
     [threads, 1, 32],

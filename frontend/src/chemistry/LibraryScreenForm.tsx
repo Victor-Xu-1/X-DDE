@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useExampleReference } from "../examples/context";
 import { AssetPicker } from "../operations/AssetPicker";
 import { useSdfAsset } from "../research/useSdfAsset";
 import { Questionnaire } from "../guided/Questionnaire";
@@ -25,10 +26,14 @@ export function LibraryScreenForm({
   language: Language;
   onCreated(job: Job): void;
 }) {
+  const exampleLibrary = useExampleReference("library");
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
+  useEffect(() => {
+    if (exampleLibrary) void input.choose(exampleLibrary.asset_id);
+  }, [exampleLibrary?.asset_id, input.choose]);
   const library: LibraryRef | null = input.asset
       ? { asset_id: input.asset.id, sha256: input.asset.sha256 }
       : null,

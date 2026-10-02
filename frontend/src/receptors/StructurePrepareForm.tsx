@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { Questionnaire } from "../guided/Questionnaire";
@@ -22,20 +23,27 @@ export function StructurePrepareForm({
   onCreated(job: Job): void;
   initialStructure?: MoleculeRef;
 }) {
+  const example = useExampleReference("brd4", "her2", "mz1", "rna");
+  const preset = useExampleTask("structure_prepare")?.options;
+  initialStructure ??= example ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("biopython.prepare");
   const [structure, setStructure] = useState<MoleculeRef | null>(
       initialStructure ?? null,
     ),
-    [chainMode, setChainMode] = useState<"all" | "select">("all"),
-    [chains, setChains] = useState<string[]>([]),
+    [chainMode, setChainMode] = useState<"all" | "select">(
+      preset?.chains.length ? "select" : "all",
+    ),
+    [chains, setChains] = useState<string[]>(preset?.chains ?? []),
     [availableChains, setAvailableChains] = useState<string[]>([]),
     [water, setWater] = useState(false),
-    [heterogens, setHeterogens] = useState<"keep" | "remove">("keep"),
+    [heterogens, setHeterogens] = useState<"keep" | "remove">(
+      preset?.heterogens ?? "keep",
+    ),
     [format, setFormat] = useState<"pdb" | "cif">("pdb"),
     [model, setModel] = useState(0),
-    [alternate, setAlternate] = useState("reject"),
+    [alternate, setAlternate] = useState(preset?.alternate ?? "reject"),
     [name, setName] = useState("");
   const options: PreparationOptions = {
     ...preparationDefaults,

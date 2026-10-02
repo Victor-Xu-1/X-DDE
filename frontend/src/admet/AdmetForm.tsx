@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { AssetPicker } from "../operations/AssetPicker";
 import { ChoiceCards } from "../guided/ChoiceCards";
@@ -22,15 +23,25 @@ export function AdmetForm({
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
 }) {
+  const exampleLibrary = useExampleReference("library");
+  const preset = useExampleTask("admet_predict");
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("admet.predict");
   const single = useSdfAsset(language, admetLimits.maxInputBytes),
     library = useSdfAsset(language, admetLimits.maxInputBytes);
-  const [sourceKind, setSourceKind] = useState<SourceKind>("molecule"),
+  const [sourceKind, setSourceKind] = useState<SourceKind>(
+      exampleLibrary ? "library" : "molecule",
+    ),
     [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule);
-  const [options, setOptions] = useState<AdmetOptions>({ ...admetDefaults }),
+  const [options, setOptions] = useState<AdmetOptions>({
+      ...admetDefaults,
+      ...preset?.options,
+    }),
     [name, setName] = useState("");
+  useEffect(() => {
+    if (exampleLibrary) void library.choose(exampleLibrary.asset_id);
+  }, [exampleLibrary?.asset_id, library.choose]);
   useEffect(() => {
     if (initialMolecule) {
       setMolecule(initialMolecule);
