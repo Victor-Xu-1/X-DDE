@@ -1,0 +1,30 @@
+name: Native utility integration checks
+on:
+  push:
+    paths:
+      - 'src/opendde_workbench/native_runtime/**'
+      - 'src/opendde_workbench/native_arguments.py'
+      - 'src/opendde_workbench/analysis.py'
+      - 'tests/test_native_entrypoints.py'
+      - '.github/workflows/native-utilities.yml'
+  pull_request:
+    paths:
+      - 'src/opendde_workbench/native_runtime/**'
+      - 'src/opendde_workbench/native_arguments.py'
+      - 'src/opendde_workbench/analysis.py'
+      - 'tests/test_native_entrypoints.py'
+      - '.github/workflows/native-utilities.yml'
+permissions:
+  contents: read
+jobs:
+  native-utilities:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - run: uv run --locked pytest -q tests/test_native_entrypoints.py tests/test_operations.py

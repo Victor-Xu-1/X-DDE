@@ -10,7 +10,7 @@ def native_arguments(request: TaskRequest, checkpoint_path: str | None = None) -
         # Use the lightweight public entry point even if inference dependencies are broken.
         return ["python", "-c", "from runner.cli import opendde_cli; opendde_cli()", "doctor"]
     if operation in {"properties", "inspect", "resources", "json", "msa", "mt", "prep"}:
-        return ["python", "/adapter/native_task.py"]
+        return ["python", "/adapter/native_runtime/task.py"]
     if operation != "predict":
         raise ValueError("This operation does not use the OpenDDE CLI adapter.")
     p = request.parameters

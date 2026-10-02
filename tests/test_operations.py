@@ -157,7 +157,7 @@ def test_legacy_and_every_operation_decode_without_starting_runtime():
                 },
             }
         )
-        assert native_arguments(req) == ["python", "/adapter/native_task.py"]
+        assert native_arguments(req) == ["python", "/adapter/native_runtime/task.py"]
     assert (
         json.loads(
             TASK_ADAPTER.validate_python(

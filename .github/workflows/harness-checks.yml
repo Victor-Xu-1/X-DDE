@@ -6,6 +6,8 @@ on:
       - 'tests/test_harness_standalone.py'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_interpreter_paths.py'
+      - 'tests/test_harness_sequences.py'
+      - 'src/opendde_workbench/assets.py'
       - '.github/workflows/harness-checks.yml'
   pull_request:
     paths:
@@ -13,6 +15,8 @@ on:
       - 'tests/test_harness_standalone.py'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_interpreter_paths.py'
+      - 'tests/test_harness_sequences.py'
+      - 'src/opendde_workbench/assets.py'
       - '.github/workflows/harness-checks.yml'
   workflow_dispatch:
 jobs:
@@ -32,4 +36,4 @@ jobs:
       - name: Verify standalone contracts and related Harness dispatch
         run: |
           uv run --locked ruff check src/opendde_workbench/harness_contract.py src/opendde_workbench/harness_tools.py src/opendde_workbench/harness_bridge.py src/opendde_workbench/harness_compute.py tests/test_harness_standalone.py
-          uv run --locked pytest -q tests/test_harness_standalone.py tests/test_operations.py tests/test_environment_roles.py tests/test_interpreter_paths.py
+          uv run --locked pytest -q tests/test_harness_standalone.py tests/test_operations.py tests/test_environment_roles.py tests/test_interpreter_paths.py tests/test_harness_sequences.py

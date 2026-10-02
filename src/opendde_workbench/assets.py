@@ -153,6 +153,10 @@ class AssetStore:
 
     def validate_bindings(self, request) -> dict[str, Asset]:
         bindings = self._validate_bindings(request)
+        if getattr(request, "operation", None) == "harness":
+            from .harness_sequences import sequence_bindings
+
+            bindings.update(sequence_bindings(request, self))
         for ref in getattr(request, "scientific_inputs", []):
             asset = bindings.get(str(ref.asset_id))
             if asset is None or asset.sha256 != ref.sha256:

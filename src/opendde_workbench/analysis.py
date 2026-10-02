@@ -46,7 +46,7 @@ class AnalysisService:
                     "--entrypoint",
                     "python",
                     image,
-                    "/adapter/compute_analysis.py",
+                    "/adapter/native_runtime/analysis.py",
                     timeout=60,
                 )
             finally:
