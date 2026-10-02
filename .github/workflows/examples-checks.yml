@@ -1,9 +1,12 @@
 name: Public research example checks
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'src/opendde_workbench/examples/**'
       - 'frontend/src/examples/**'
+      - 'frontend/src/App.tsx'
+      - 'frontend/src/App.test.tsx'
       - 'tests/test_examples.py'
       - 'tests/test_example_pins.py'
       - '.github/workflows/examples-checks.yml'
