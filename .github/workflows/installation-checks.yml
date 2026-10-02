@@ -3,12 +3,14 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/deployment/**'
+      - 'frontend/src/deployment/**'
       - 'tests/test_deployment.py'
       - 'tests/test_install_network.py'
       - '.github/workflows/installation-checks.yml'
   pull_request:
     paths:
       - 'src/opendde_workbench/deployment/**'
+      - 'frontend/src/deployment/**'
       - 'tests/test_deployment.py'
       - 'tests/test_install_network.py'
       - '.github/workflows/installation-checks.yml'
@@ -26,6 +28,9 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
+      - name: Check installation activity and component controls
+        working-directory: frontend
+        run: npx vitest run src/deployment/DeploymentActivity.test.tsx src/deployment/deployment.test.tsx
       - name: Check changed installer and related deployment behavior
         run: |
           uv sync --locked --group dev

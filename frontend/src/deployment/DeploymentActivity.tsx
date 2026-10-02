@@ -26,10 +26,14 @@ export function DeploymentActivity({
         </p>
       )}
       <div className="deployment-activity">
-        {data.operations.slice(0, 20).map((o) => (
+        {data.operations.map((o) => (
           <article key={o.id}>
             <div>
-              <strong>{zh ? names[o.package] : o.package}</strong>
+              <strong>
+                {(zh && names[o.package]) ||
+                  data.packages.find((p) => p.id === o.package)?.name ||
+                  o.package}
+              </strong>
               <span className="status-pill">
                 {zh ? states[o.state] : o.state}
               </span>
