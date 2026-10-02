@@ -1,10 +1,15 @@
-name: CI
+name: Full validation (explicit opt-in)
 on:
   workflow_dispatch:
-  push:
-  pull_request:
+    inputs:
+      full_suite:
+        description: Explicitly authorize all scientific, browser and regression suites
+        type: boolean
+        required: true
+        default: false
 jobs:
   verify:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -65,6 +70,7 @@ jobs:
           PY
 
   windows-installer:
+    if: ${{ inputs.full_suite }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -73,6 +79,7 @@ jobs:
         run: ./tests/test_windows_installer.ps1
 
   scientific-handoffs:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -106,6 +113,7 @@ jobs:
           if-no-files-found: error
 
   browser:
+    if: ${{ inputs.full_suite }}
     needs: [scientific-handoffs, native-docking, native-antibodies, native-quality, native-admet, native-humanization]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -188,6 +196,7 @@ jobs:
             server_tests/evidence-browser.log
 
   native-pockets:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -215,6 +224,7 @@ jobs:
           name: native-pocket-evidence-${{ github.sha }}
           path: server_tests/evidence/
   native-docking:
+    if: ${{ inputs.full_suite }}
     needs: scientific-handoffs
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -257,6 +267,7 @@ jobs:
 
 
   early-discovery:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -287,6 +298,7 @@ jobs:
 
 
   native-antibodies:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -317,6 +329,7 @@ jobs:
 
 
   native-quality:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -346,6 +359,7 @@ jobs:
           if-no-files-found: error
 
   native-admet:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -375,6 +389,7 @@ jobs:
           if-no-files-found: error
 
   native-humanization:
+    if: ${{ inputs.full_suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:

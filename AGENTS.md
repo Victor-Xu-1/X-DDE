@@ -39,3 +39,13 @@
   versions when editing; never turn unavailable calculations into fabricated data.
 - CI uses its isolated runner workspace. Do not hard-code owner-machine paths
   into scientific algorithms or application runtime contracts.
+
+## Verification scope
+
+- Test changed modules and their direct consumers only. Do not run or trigger a
+  global suite without the owner's explicit permission. This also applies to CI.
+- Capability installation and actual public research examples are now authorized
+  on the owner's E-backed environment. Preserve existing applications and data;
+  do not restart the shared WSL distribution without explicit permission.
+- Keep real native results distinct from public experimental references and
+  runnable inputs. A download, installation or example preset is not a computed result.

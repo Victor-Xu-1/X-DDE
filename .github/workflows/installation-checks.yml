@@ -1,0 +1,26 @@
+name: Installation checks
+on:
+  push:
+    paths:
+      - 'src/opendde_workbench/deployment/**'
+      - 'tests/test_deployment.py'
+      - 'tests/test_install_network.py'
+      - '.github/workflows/installation-checks.yml'
+  pull_request:
+    paths:
+      - 'src/opendde_workbench/deployment/**'
+      - 'tests/test_deployment.py'
+      - 'tests/test_install_network.py'
+      - '.github/workflows/installation-checks.yml'
+  workflow_dispatch:
+jobs:
+  deployment:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Check changed installer and related deployment behavior
+        run: |
+          uv sync --locked --group dev
+          uv run --locked ruff check src/opendde_workbench/deployment/network.py src/opendde_workbench/deployment/process.py tests/test_install_network.py
+          uv run --locked pytest -q tests/test_install_network.py tests/test_deployment.py

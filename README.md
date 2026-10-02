@@ -75,6 +75,10 @@ Ubuntu 系统依赖：`sudo $(command -v xdde) setup system` 安装 Docker 与�
 
 改名保留原内部模块与数据目录，已有记录不需要迁移。安装状态和数据默认保存在 `~/.local/share/opendde-workbench`，可用 `WB_HOME` 和 `WB_STATE_DIR` 覆盖。计算组件更改后执行 `xdde restart`；显式 `WB_*` 设置优先于组件管理器。仅监听本机环回地址，服务器远程使用请通过 SSH 隧道。
 
+容器安装网络：默认保留 Docker 的网络配置。若管理员关闭了 Docker 桥接，或代理只监听本机环回地址，在启动平台的环境中设置 `WB_INSTALL_BUILD_NETWORK=host`，并设置现有的 `HTTP_PROXY`、`HTTPS_PROXY` 和 `NO_PROXY`。这只影响受审查的软件安装步骤；科学任务继续使用其离线网络设置。代理凭据不放入命令行参数、案例或仓库。
+
+验证范围：自动 CI 只运行改动模块和直接相关检查；全局科学、浏览器和回归套件保留在手动工作流中，必须明确勾选 `full_suite` 才会执行。安装网络改动对应 `tests/test_install_network.py` 和 `tests/test_deployment.py`，不会触发其他科学模型验收。
+
 ## 中文
 
 ### 从研究目标进入

@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 
 from ..locations import atomic_json, read_json
+from .network import build_command
 
 
 class Paused(Exception):
@@ -32,6 +33,8 @@ def reap(path: Path):
 
 
 def run(args, directory: Path, checkpoint, report, *, timeout=3600, env=None):
+    environment = os.environ.copy() if env is None else dict(env)
+    args = build_command(args, environment)
     directory.mkdir(parents=True, exist_ok=True)
     pidfile = directory / "process.json"
     log = directory / "install.log"
@@ -42,7 +45,7 @@ def run(args, directory: Path, checkpoint, report, *, timeout=3600, env=None):
             stdout=output,
             stderr=subprocess.STDOUT,
             start_new_session=True,
-            env=env,
+            env=environment,
         )
         try:
             atomic_json(pidfile, {"pid": process.pid, "start": identity(process.pid)})
