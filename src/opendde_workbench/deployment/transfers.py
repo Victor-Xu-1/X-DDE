@@ -62,7 +62,7 @@ def verify(path: Path, expected: str):
     return actual == expected.removeprefix("sha512:")
 
 
-def extract(archive: Path, destination: Path, checkpoint):
+def extract(archive: Path, destination: Path, checkpoint, *, skipped_links=None):
     destination.mkdir(parents=True, exist_ok=True)
     total = 0
     names = set()
@@ -97,6 +97,11 @@ def extract(archive: Path, destination: Path, checkpoint):
         with tarfile.open(archive, "r:gz") as source:
             for item in source:
                 if item.isdir():
+                    continue
+                # A checksum-reviewed recipe may omit named upstream test aliases.
+                # Links are never created, followed or accepted by other recipes.
+                if item.issym() and (skipped_links or {}).get(item.name) == item.linkname:
+                    checkpoint()
                     continue
                 if not item.isfile():
                     raise ValueError("Archive links and special files are not allowed.")

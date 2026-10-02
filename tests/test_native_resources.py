@@ -36,6 +36,10 @@ def test_tool_recipe_uses_the_interruptible_archive_and_preserves_the_license(
                 item = tarfile.TarInfo("zstd-1.5.7/" + name)
                 item.size = len(data)
                 archive.addfile(item, io.BytesIO(data))
+            link = tarfile.TarInfo("zstd-1.5.7/tests/cli-tests/bin/unzstd")
+            link.type = tarfile.SYMTYPE
+            link.linkname = "zstd"
+            archive.addfile(link)
 
     monkeypatch.setattr(native_tools, "download", download)
 
