@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, request } from "../api";
 import type { Job, Language } from "../types";
 import type { ExampleInfo, PreparedExample } from "./types";
+import { reviewedExample } from "./metadata";
 import "./examples.css";
 
 export function ExampleActions({
@@ -27,6 +28,12 @@ export function ExampleActions({
       signal: controller.signal,
     })
       .then((value) => {
+        if (!reviewedExample(value, capability))
+          throw new Error(
+            zh
+              ? "无法读取已验证的案例信息。"
+              : "Reviewed example metadata is unavailable.",
+          );
         if (!controller.signal.aborted) setInfo(value);
       })
       .catch((failure) => {

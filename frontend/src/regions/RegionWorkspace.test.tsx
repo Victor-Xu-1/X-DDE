@@ -46,10 +46,14 @@ function ready() {
 it("saves overlapping binder regions and native evidence without altering the molecular reference", async () => {
   ready();
   const user = userEvent.setup(),
-    post = vi.spyOn(api, "post").mockResolvedValue({
-      id: "regions",
-      body: { name: "test", subject, regions: [] },
-    } as never);
+    post = vi.spyOn(api, "post").mockImplementation(
+      async (_, body) =>
+        ({
+          id: "regions",
+          sha256: "b".repeat(64),
+          body,
+        }) as never,
+    );
   render(<RegionEditor subject={subject} language="en" />);
   await waitFor(() =>
     expect(

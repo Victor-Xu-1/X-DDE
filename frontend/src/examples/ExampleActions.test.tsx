@@ -92,6 +92,7 @@ describe("source-backed example controls", () => {
     };
     transport.request.mockResolvedValue({
       ...info,
+      module: { ...info.module, capability_id: "regions" },
       record_pin: {
         record_id: "saved-region",
         computed_result_available: true,
@@ -122,5 +123,21 @@ describe("source-backed example controls", () => {
       "/examples/regions/prepare",
       {},
     );
+  });
+
+  it("reports malformed metadata without crashing the task form", async () => {
+    transport.request.mockResolvedValue([]);
+    render(
+      <ExampleActions
+        capability="gnina.dock"
+        language="en"
+        onLoad={vi.fn()}
+        onResult={vi.fn()}
+      />,
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Reviewed example metadata is unavailable",
+    );
+    expect(screen.queryByRole("button", { name: "Load example" })).toBeNull();
   });
 });

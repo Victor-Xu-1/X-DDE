@@ -249,7 +249,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
     within(nav).getByRole("button", { name: "Structure prediction" }),
   );
   expect(
-    await screen.findByRole("heading", { name: "Structure prediction" }),
+    await screen.findByRole("heading", { name: /^Structure prediction/ }),
   ).toBeVisible();
   expect(
     screen.queryByRole("heading", { name: "Task history" }),
