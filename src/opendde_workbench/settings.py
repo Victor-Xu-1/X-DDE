@@ -48,6 +48,11 @@ class Settings:
         def path(key: str, default: str) -> Path:
             return Path(os.environ.get(key, default)).expanduser().resolve()
 
+        def interpreter(key: str, default: str) -> Path:
+            # Python discovers a virtual environment from the invoked executable path.
+            # Resolving its symlink selects the base interpreter and loses installed packages.
+            return Path(os.environ.get(key, default)).expanduser().absolute()
+
         state = path("WB_STATE_DIR", str(home() / "state"))
         deployment = read_json(state / "deployment.json")
         root = Path(deployment["root"]) if deployment else None
@@ -82,7 +87,7 @@ class Settings:
             or installed.get("p2rank-compute", {}).get("image"),
             p2rank_manifest_sha256=os.environ.get("WB_P2RANK_MANIFEST_SHA256")
             or pockets.get("manifest_sha256"),
-            diffsbdd_python=path("WB_DIFFSBDD_PYTHON", diff.get("python", ""))
+            diffsbdd_python=interpreter("WB_DIFFSBDD_PYTHON", diff.get("python", ""))
             if os.environ.get("WB_DIFFSBDD_PYTHON") or diff.get("python")
             else None,
             diffsbdd_source=path("WB_DIFFSBDD_SOURCE", diff.get("source", ""))
@@ -111,7 +116,7 @@ class Settings:
             cache_dir=path("WB_CACHE_DIR", str(state / "cache")),
             capacity_dir=path("WB_CAPACITY_DIR", str(state)),
             msa_url=os.environ.get("WB_MSA_URL") or None,
-            harness_python=path("WB_HARNESS_PYTHON", harness or "")
+            harness_python=interpreter("WB_HARNESS_PYTHON", harness or "")
             if os.environ.get("WB_HARNESS_PYTHON") or harness
             else None,
             harness_shared_dir=path("WB_HARNESS_SHARED_DIR", "")
