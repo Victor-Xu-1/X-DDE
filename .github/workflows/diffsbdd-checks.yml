@@ -1,0 +1,29 @@
+name: DiffSBDD integration checks
+on:
+  push:
+    paths:
+      - 'src/opendde_workbench/diffsbdd/**'
+      - 'tests/test_diffsbdd_*.py'
+      - '.github/workflows/diffsbdd-checks.yml'
+  pull_request:
+    paths:
+      - 'src/opendde_workbench/diffsbdd/**'
+      - 'tests/test_diffsbdd_*.py'
+      - '.github/workflows/diffsbdd-checks.yml'
+permissions:
+  contents: read
+jobs:
+  diffsbdd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - run: python -m pip install -e '.[test]'
+      - run: python -m pytest -q tests/test_diffsbdd_runner.py tests/test_diffsbdd_contract.py tests/test_diffsbdd_quality.py

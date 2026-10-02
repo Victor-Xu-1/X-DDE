@@ -53,7 +53,9 @@ def generate(payload, bindings, directory, output):
                 atoms=native.options.atoms,
                 seed=native.options.seed,
                 reference=prepared.reference,
-                residues=tuple(prepared.residues),
+                # The native preview resolves residues even for a ligand-defined
+                # pocket. Execution requires exactly one of those definitions.
+                residues=() if prepared.reference else tuple(prepared.residues),
                 initial_ligand=prepared.initial,
                 objective=native.options.objective,
                 settings=native.options,
