@@ -65,7 +65,7 @@ def install_runtime(root, work, report, checkpoint):
         "models.json",
         "LICENSE",
         "UPSTREAM-LICENSE",
-        "THIRD_PARTY_NOTICES",
+        "THIRD_PARTY_NOTICES.md",
     ):
         shutil.copyfile(package / file, native / file)
     shutil.copytree(package / "patches", native / "patches")
