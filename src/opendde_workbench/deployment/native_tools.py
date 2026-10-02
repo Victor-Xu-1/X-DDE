@@ -15,7 +15,7 @@ def install_tools(root, work, installed, execute, report, checkpoint):
     archive = work / "zstd.tar.gz"
     download(URL, archive, SHA256, report, checkpoint)
     source = work / "source"
-    extract(archive, source)
+    extract(archive, source, checkpoint)
     image = installed["compute"]["image"]
     report("Building verified Zstandard in the existing scientific image")
     execute(

@@ -1,15 +1,62 @@
 """Network consent and native database completeness at the execution boundary."""
 
+import io
+import tarfile
 from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
 
+from opendde_workbench.deployment.native_tools import install_tools
 from opendde_workbench.deployment.search_databases import install_search
 from opendde_workbench.engine import DockerEngine
 from opendde_workbench.models import Prediction
 from opendde_workbench.requests import ResourceTask
 from opendde_workbench.resources import DATABASES
+
+
+def test_tool_recipe_uses_the_interruptible_archive_and_preserves_the_license(
+    tmp_path, monkeypatch
+):
+    from opendde_workbench.deployment import native_tools
+
+    work = tmp_path / "operation"
+    work.mkdir()
+    root = tmp_path / "managed"
+    root.mkdir()
+    checkpoints = []
+
+    def download(url, destination, checksum, report, checkpoint):
+        assert checksum == native_tools.SHA256
+        with tarfile.open(destination, "w:gz") as archive:
+            for name, data in {
+                "LICENSE": b"controlled license fixture",
+                "programs/Makefile": b"controlled recipe fixture",
+            }.items():
+                item = tarfile.TarInfo("zstd-1.5.7/" + name)
+                item.size = len(data)
+                archive.addfile(item, io.BytesIO(data))
+
+    monkeypatch.setattr(native_tools, "download", download)
+
+    def execute(args):
+        assert args[args.index("--network") + 1] == "none"
+        if args[args.index("--entrypoint") + 1] == "make":
+            (work / "source/zstd-1.5.7/programs/zstd").write_bytes(b"controlled binary fixture")
+
+    record = install_tools(
+        root,
+        work,
+        {"compute": {"image": "example@sha256:" + "a" * 64}},
+        execute,
+        lambda _: None,
+        lambda: checkpoints.append(True),
+    )
+    assert checkpoints
+    assert (
+        root / "tools/opendde/1.5.7-operation/LICENSE"
+    ).read_bytes() == b"controlled license fixture"
+    assert record["source_sha256"] == native_tools.SHA256
 
 
 def test_host_network_is_operator_configured_and_never_enables_an_offline_task(
