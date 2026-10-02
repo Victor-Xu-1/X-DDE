@@ -8,7 +8,7 @@ import signal
 import sys
 from pathlib import Path
 
-from harness_contract import FILE_FIELDS, TOOLS
+from harness_tools import FILE_FIELDS, TOOLS
 from managed_files import publish_shared
 
 
@@ -90,7 +90,7 @@ async def main(directory):
     bindings = json.loads((directory / "bindings.json").read_text())
     tool = request["tool"]
     if tool == "compare":
-        from harness_contract import PopulationComparison
+        from harness_tools import PopulationComparison
         from opendde_harness.plugin.protein_design.core.validation import (
             compare_runs,
             load_candidates,

@@ -20,7 +20,7 @@ def existing_plan(store, plan_id):
 
 
 async def execute(message):
-    from harness_contract import LOCAL_MODELS, TOOLS, validate_identifier
+    from harness_tools import LOCAL_MODELS, TOOLS, validate_identifier
     from opendde_harness.cli.protein_design_commands import _load_plugin_config, _workflow_summary
     from opendde_harness.plugin.protein_design.core import contracts
     from opendde_harness.plugin.protein_design.core.contracts import WorkflowConfig
@@ -34,7 +34,7 @@ async def execute(message):
     operation = message["operation"]
     if operation == "import_config":
         import yaml
-        from harness_contract import validate_payload
+        from harness_tools import validate_payload
 
         text = Path(message["path"]).read_text(encoding="utf-8-sig")
         if len(text) > 262144:
