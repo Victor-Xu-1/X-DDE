@@ -18,7 +18,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: astral-sh/setup-uv@v6
+      - name: Build web assets required by the installable platform package
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
       - name: Check changed installer and related deployment behavior
         run: |
           uv sync --locked --group dev
