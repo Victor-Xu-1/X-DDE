@@ -11,6 +11,9 @@ from ..docking.manifest import VERSION as GNINA_VERSION
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
 from ..pockets.manifest import VERSION as P2_VERSION
+from .native_tools import SHA256 as ZSTD_SHA
+from .native_tools import URL as ZSTD_URL
+from .native_tools import VERSION as ZSTD_VERSION
 
 
 @dataclass(frozen=True)
@@ -156,6 +159,30 @@ PACKAGES = {
     ]
 }
 
+
+PACKAGES["opendde-tools"] = Package(
+    "opendde-tools",
+    ZSTD_VERSION,
+    "OpenDDE 搜索数据库解压工具 / Search archive tools",
+    "固定源码的 Zstandard，独立安装 / Checksum-pinned Zstandard",
+    "约 2.5 MB 下载，100 MB 编译空间 / download and build space",
+    ("compute",),
+    url=ZSTD_URL,
+    checksum=ZSTD_SHA,
+    license="BSD-3-Clause",
+    engine="opendde",
+)
+PACKAGES["opendde-search"] = Package(
+    "opendde-search",
+    "alphafold-v3.0",
+    "模板与 RNA 搜索数据库 / Template and RNA databases",
+    "PDB SEQRES、Rfam、RNAcentral 和 NT-RNA / Four native search databases",
+    "至少 110 GiB 空间；下载时间较长 / At least 110 GiB; large download",
+    ("runtime", "compute", "opendde-tools"),
+    license="Upstream database terms",
+    engine="opendde",
+    kind="model",
+)
 
 PACKAGES["sapiens"] = Package(
     "sapiens",

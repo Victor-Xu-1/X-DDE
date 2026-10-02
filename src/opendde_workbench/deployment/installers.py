@@ -28,7 +28,15 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "sapiens":
+    if key == "opendde-tools":
+        from .native_tools import install_tools
+
+        metadata.update(install_tools(root, work, installed, execute, report, checkpoint))
+    elif key == "opendde-search":
+        from .search_databases import install_search
+
+        metadata.update(install_search(root, work, installed, execute, report, checkpoint))
+    elif key == "sapiens":
         from .humanization_install import install_humanization
 
         metadata.update(install_humanization(root, work, execute, report, checkpoint))

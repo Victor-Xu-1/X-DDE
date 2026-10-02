@@ -42,6 +42,8 @@ class Settings:
     p2rank_manifest_sha256: str | None = None
     admet_image: str | None = None
     sapiens_image: str | None = None
+    native_tools_dir: Path | None = None
+    engine_network: str = "bridge"
 
     @classmethod
     def from_env(cls):
@@ -67,7 +69,15 @@ class Settings:
         harness = installed.get("harness", {}).get("python")
         diff = installed.get("diffsbdd", {})
         pockets = installed.get("p2rank", {})
+        network = os.environ.get("WB_ENGINE_NETWORK", "bridge")
+        if network not in {"bridge", "host"}:
+            raise ValueError("WB_ENGINE_NETWORK must be bridge or host.")
+        tools = installed.get("opendde-tools", {}).get("directory")
         return cls(
+            engine_network=network,
+            native_tools_dir=path("WB_NATIVE_TOOLS_DIR", tools or "")
+            if os.environ.get("WB_NATIVE_TOOLS_DIR") or tools
+            else None,
             sapiens_image=os.environ.get("WB_SAPIENS_IMAGE")
             or installed.get("sapiens", {}).get("image"),
             admet_image=os.environ.get("WB_ADMET_IMAGE") or installed.get("admet", {}).get("image"),

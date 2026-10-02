@@ -79,6 +79,10 @@ Ubuntu 系统依赖：`sudo $(command -v xdde) setup system` 安装 Docker 与�
 
 验证范围：自动 CI 只运行改动模块和直接相关检查；全局科学、浏览器和回归套件保留在手动工作流中，必须明确勾选 `full_suite` 才会执行。安装网络改动对应 `tests/test_install_network.py` 和 `tests/test_deployment.py`，不会触发其他科学模型验收。
 
+模板与 RNA 数据库可在组件管理中安装“模板与 RNA 搜索数据库”。它会先安装固定源码摘要的 Zstandard，然后调用既有 OpenDDE 下载器安装 PDB SEQRES、NT-RNA、Rfam 和 RNAcentral。至少保留 110 GiB 安装空间；数据库保留在组件安装目录的 `models/opendde/search_database`，不写入 Windows 用户目录。数据库完成状态核对原生解压和文件清单，不冒充上游公布了每个 FASTA 的 SHA-256。
+
+对于管理员关闭 Docker 桥接的主机，可以额外设置 `WB_ENGINE_NETWORK=host`。仅用户明确允许网络的 MSA、模板或资源任务使用它并继承已配置的代理；离线预测仍为 `--network none`。压缩工具由组件管理器配置，无需普通用户自行设置命令路径。
+
 ## 中文
 
 ### 从研究目标进入

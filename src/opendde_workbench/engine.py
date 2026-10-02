@@ -68,7 +68,7 @@ class DockerEngine:
             "--name",
             self.container(job.id),
             "--network",
-            "bridge" if network_enabled(job.request) else "none",
+            self.settings.engine_network if network_enabled(job.request) else "none",
             "--shm-size",
             "2g",
             "--user",
@@ -96,6 +96,19 @@ class DockerEngine:
         }
         if self.settings.msa_url:
             env["MMSEQS_SERVICE_HOST_URL"] = self.settings.msa_url
+        if self.settings.native_tools_dir:
+            env["PATH"] = "/native-tools/bin:/opt/runtime/bin:/usr/local/bin:/usr/bin:/bin"
+        if network_enabled(job.request):
+            for key in (
+                "HTTP_PROXY",
+                "HTTPS_PROXY",
+                "NO_PROXY",
+                "http_proxy",
+                "https_proxy",
+                "no_proxy",
+            ):
+                if os.environ.get(key):
+                    args += ["--env", key]
         for key, value in env.items():
             args += ["--env", f"{key}={value}"]
         for host, guest, readonly in [
@@ -112,6 +125,11 @@ class DockerEngine:
                 f"type=bind,source={host},target={guest}" + (",readonly" if readonly else ""),
             ]
         checkpoint = None
+        if self.settings.native_tools_dir:
+            tools = self.settings.native_tools_dir
+            if not (tools / "bin/zstd").is_file() or tools.is_symlink() or "," in str(tools):
+                raise ValueError("Managed native compression tools are unavailable.")
+            args += ["--mount", f"type=bind,source={tools},target=/native-tools,readonly"]
         if job.request.operation == "predict" and job.request.parameters.checkpoint_id:
             from .checkpoints import resolve
 
