@@ -291,5 +291,7 @@ then configures `LIBRARY_PATH` only in the owned service. Host networking is use
 when the saved instance configuration selects it, and listens on 127.0.0.1; X-DDE
 never rewrites Docker networking or restarts the shared WSL distribution. Existing
 owned containers can be adopted by their exact Docker ID; arbitrary containers
-sharing a name or an owner label are not enough. If an environment revision changes,
-its service must be explicitly reconfigured rather than silently replaced.
+sharing a name or an owner label are not enough. When an installed environment revision changes, the service panel offers Apply
+environment update. It retires only the proven idle, owned container, preserves
+its storage and private connection, then starts the reviewed new image/code.
+Restart X-DDE after component changes to refresh the platform execution settings.

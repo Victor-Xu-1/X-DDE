@@ -28,6 +28,7 @@ export interface Deployment {
     license: string;
   }[];
   compute_service?: {
+    restart_required?: boolean;
     configured: boolean;
     running: boolean;
     ready: boolean;

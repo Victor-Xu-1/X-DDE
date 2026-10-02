@@ -46,14 +46,25 @@ export function ComputeServicePanel({
       {service.reason && <p className="field-help">{service.reason}</p>}
       <div className="component-actions">
         <button
-          disabled={busy || !service.configured || service.running}
+          disabled={
+            busy ||
+            working ||
+            !service.configured ||
+            (service.running && !service.restart_required)
+          }
           onClick={() =>
             void execute(() =>
               api.post("/deployment/compute/start", {}, undefined, 120000),
             )
           }
         >
-          {zh ? "启动计算服务" : "Start compute"}
+          {service.restart_required
+            ? zh
+              ? "应用环境更新"
+              : "Apply environment update"
+            : zh
+              ? "启动计算服务"
+              : "Start compute"}
         </button>
         <button
           className="secondary-button"

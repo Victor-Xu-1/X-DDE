@@ -34,14 +34,23 @@ class ComputeService:
             python = installed.get("harness", {}).get("python")
             if not python or not Path(python).is_file():
                 raise ValueError("The managed Harness interpreter is unavailable.")
-            if (
+            changed = (
                 installed.get("compute", {}).get("image") != connection.image
                 or installed.get("runtime", {}).get("code") != connection.code
-            ):
-                raise ValueError(
-                    "The installed native environment changed; "
-                    "stop and reconfigure its service before starting."
+            )
+            if changed and action == "start":
+                # Retire only this instance, with native queue/identity proof, before replacing it.
+                self.invoke("retire")
+                replacement = connection.model_copy(
+                    update={
+                        "image": installed["compute"]["image"],
+                        "code": installed["runtime"]["code"],
+                        "container_id": None,
+                    }
                 )
+                replacement = type(connection).model_validate(replacement.model_dump())
+                atomic_json(self.state / "compute-service.json", replacement.model_dump())
+                return self.invoke("start")
             message = {
                 "action": action,
                 "connection": connection.model_dump(),
@@ -89,6 +98,12 @@ class ComputeService:
                 atomic_json(
                     self.state / "compute-service.json",
                     connection.model_copy(update={"automatic": action == "start"}).model_dump(),
+                )
+            if changed:
+                reply["result"].update(
+                    ready=False,
+                    restart_required=True,
+                    reason="The installed environment changed. Apply its update before new tasks.",
                 )
             status = {
                 "configured": True,

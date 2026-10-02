@@ -158,7 +158,7 @@ def execute(message):
     owned(current, connection)
     running = bool(current and current.get("State", {}).get("Running"))
     value = health(connection) if running else None
-    if action == "stop" and running:
+    if action in {"stop", "retire"} and running:
         idle(value)
         docker("stop", name)
         running, value = False, None
@@ -170,8 +170,11 @@ def execute(message):
             docker(*args, env=env)
         wait_for_service(connection["url"], connection["token"], "local", timeout=65)
         running, value = True, health(connection)
-    elif action not in {"status", "start", "stop"}:
+    elif action not in {"status", "start", "stop", "retire"}:
         raise ValueError("Unknown native compute lifecycle action.")
+    if action == "retire" and current is not None:
+        # A stopped instance can be removed only after the ownership check above.
+        docker("rm", name)
     backend = (value or {}).get("workers", {}).get("backend", {})
     ready = bool(value) and all(
         backend.get(key) is True

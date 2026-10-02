@@ -79,3 +79,85 @@ def test_busy_or_unknown_native_queue_cannot_be_stopped(queue):
 
 def test_idle_native_count_response_is_allowed():
     idle({"workers": {"queue": {"running": 0, "queued": 0}}})
+
+
+def test_service_update_retires_only_its_exact_owned_instance(tmp_path, monkeypatch):
+    import json
+    import subprocess
+
+    from opendde_workbench.deployment.compute_service import ComputeService
+
+    config = connection(tmp_path)
+    atomic_json(tmp_path / "compute-service.json", config.model_dump())
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    interpreter = runtime / "python"
+    interpreter.write_text("Protocol interpreter fixture")
+    atomic_json(tmp_path / "deployment.json", {"root": str(runtime)})
+    new_image = "aurekaresearch/opendde-harness@sha256:" + "b" * 64
+    atomic_json(
+        runtime / "installed.json",
+        {
+            "harness": {"python": str(interpreter)},
+            "compute": {"image": new_image},
+            "runtime": {"code": str(runtime / "new-code")},
+            "abag": {},
+        },
+    )
+    calls = []
+
+    def native(args, **kwargs):
+        message = json.loads(kwargs["input"])
+        calls.append((message["action"], message["connection"]["image"]))
+        return subprocess.CompletedProcess(
+            args,
+            0,
+            json.dumps(
+                {
+                    "ok": True,
+                    "result": {
+                        "running": message["action"] == "start",
+                        "ready": message["action"] == "start",
+                    },
+                }
+            ),
+            "",
+        )
+
+    monkeypatch.setattr(subprocess, "run", native)
+    assert ComputeService(tmp_path).invoke("start")["ready"]
+    assert calls == [("retire", config.image), ("start", new_image)]
+    assert read_connection(tmp_path).image == new_image
+
+
+def test_busy_retirement_cannot_update_private_configuration(tmp_path, monkeypatch):
+    import json
+    import subprocess
+
+    from opendde_workbench.deployment.compute_service import ComputeService
+
+    config = connection(tmp_path)
+    atomic_json(tmp_path / "compute-service.json", config.model_dump())
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    interpreter = runtime / "python"
+    interpreter.write_text("Protocol interpreter fixture")
+    atomic_json(tmp_path / "deployment.json", {"root": str(runtime)})
+    atomic_json(
+        runtime / "installed.json",
+        {
+            "harness": {"python": str(interpreter)},
+            "compute": {"image": "aurekaresearch/opendde-harness@sha256:" + "b" * 64},
+            "runtime": {"code": str(runtime / "new-code")},
+        },
+    )
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda args, **kwargs: subprocess.CompletedProcess(
+            args, 0, json.dumps({"ok": False, "error": "Finish native compute tasks"}), ""
+        ),
+    )
+    with pytest.raises(ValueError, match="Finish"):
+        ComputeService(tmp_path).invoke("start")
+    assert read_connection(tmp_path) == config

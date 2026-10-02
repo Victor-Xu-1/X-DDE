@@ -64,3 +64,23 @@ it("requires installation before offering a service start", () => {
   );
   expect(screen.getByRole("button", { name: "启动计算服务" })).toBeDisabled();
 });
+
+it("offers a guarded update for a changed installed environment", () => {
+  render(
+    <ComputeServicePanel
+      data={{
+        ...data,
+        compute_service: {
+          configured: true,
+          running: true,
+          ready: false,
+          restart_required: true,
+        },
+      }}
+      zh={true}
+      busy={false}
+      execute={vi.fn()}
+    />,
+  );
+  expect(screen.getByRole("button", { name: "应用环境更新" })).toBeEnabled();
+});
