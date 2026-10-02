@@ -15,46 +15,25 @@ from opendde_workbench.requests import ResourceTask
 from opendde_workbench.resources import DATABASES
 
 
-def test_pausing_database_installation_always_cleans_its_owned_container(tmp_path, monkeypatch):
+def test_database_installation_uses_supervised_host_process_and_propagates_pause(
+    tmp_path, monkeypatch
+):
     from opendde_workbench.deployment.process import Paused
 
     monkeypatch.setattr(
         "opendde_workbench.deployment.search_databases.shutil.disk_usage",
         lambda _: SimpleNamespace(free=120 * 1024**3),
     )
-    cleaned = []
-    monkeypatch.setattr(
-        "opendde_workbench.deployment.search_databases.cleanup_install_container",
-        lambda *args: cleaned.append(args),
-    )
-    installed = {
-        "compute": {"image": "example@sha256:" + "a" * 64},
-        "runtime": {"code": str(tmp_path)},
-        "opendde-tools": {"directory": str(tmp_path)},
-    }
+    installed = {"runtime": {"code": str(tmp_path)}, "opendde-tools": {"directory": str(tmp_path)}}
 
     def interrupted(args, timeout):
-        assert "org.xdde.install.operation=" + tmp_path.name in args
+        assert args[0] == "env" and "docker" not in args
+        assert str(tmp_path / "models/opendde") in [str(arg) for arg in args]
+        assert "--skip-model" in args and "--skip-common" in args
         raise Paused()
 
     with pytest.raises(Paused):
         install_search(tmp_path, tmp_path, installed, interrupted, lambda _: None, lambda: None)
-    assert cleaned == [("xdde-install-" + tmp_path.name, tmp_path.name)]
-
-
-def test_container_cleanup_refuses_other_app_ownership(monkeypatch):
-    from opendde_workbench.deployment.container_cleanup import cleanup_install_container
-
-    calls = []
-
-    def execute(args, **kwargs):
-        calls.append(args)
-        return SimpleNamespace(returncode=0, stdout="another-app\n")
-
-    monkeypatch.setattr("opendde_workbench.deployment.container_cleanup.subprocess.run", execute)
-    with pytest.raises(RuntimeError, match="ownership changed"):
-        cleanup_install_container("xdde-install-fixture", "fixture")
-    assert len(calls) == 1 and "inspect" in calls[0]
 
 
 def test_tool_recipe_uses_the_interruptible_archive_and_preserves_the_license(
@@ -132,9 +111,6 @@ def test_host_network_is_operator_configured_and_never_enables_an_offline_task(
 
 @pytest.mark.parametrize("complete", [False, True])
 def test_search_installation_requires_all_native_databases(tmp_path, complete, monkeypatch):
-    monkeypatch.setattr(
-        "opendde_workbench.deployment.search_databases.cleanup_install_container", lambda *_: None
-    )
     monkeypatch.setattr(
         "opendde_workbench.deployment.search_databases.shutil.disk_usage",
         lambda _: SimpleNamespace(free=120 * 1024**3),

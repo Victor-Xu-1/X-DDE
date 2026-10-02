@@ -1,10 +1,7 @@
 """Run the pinned native archive installer in the managed scientific image."""
 
-import os
 import shutil
 from pathlib import Path
-
-from .container_cleanup import cleanup_install_container
 
 
 def install_search(root, work, installed, execute, report, checkpoint):
@@ -16,50 +13,25 @@ def install_search(root, work, installed, execute, report, checkpoint):
     model_root.mkdir(parents=True, exist_ok=True)
     code = Path(installed["runtime"]["code"])
     tools = Path(installed["opendde-tools"]["directory"])
+    if not shutil.which("curl") and not shutil.which("wget"):
+        raise RuntimeError("Install system prerequisites with xdde setup system, then retry.")
     checkpoint()
     report("Installing four template/RNA databases; existing files are retained")
-    container = "xdde-install-" + work.name
-    args = [
-        "docker",
-        "run",
-        "--rm",
-        "--name",
-        container,
-        "--label",
-        "org.xdde.install.operation=" + work.name,
-        "--network",
-        "host",
-        "--user",
-        f"{os.getuid()}:{os.getgid()}",
-        "--mount",
-        f"type=bind,source={model_root},target=/opendde",
-        "--mount",
-        f"type=bind,source={code},target=/runtime,readonly",
-        "--mount",
-        f"type=bind,source={tools},target=/native-tools,readonly",
-        "--env",
-        "PATH=/native-tools/bin:/opt/runtime/bin:/usr/local/bin:/usr/bin:/bin",
-        "--entrypoint",
-        "bash",
-    ]
-    for key in ("HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy"):
-        if os.environ.get(key):
-            args += ["--env", key]
-    try:
-        execute(
-            [
-                *args,
-                installed["compute"]["image"],
-                "/runtime/external/opendde/scripts/download_opendde_data.sh",
-                "--root",
-                "/opendde",
-                "--skip-model",
-                "--skip-common",
-            ],
-            timeout=43200,
-        )
-    finally:
-        cleanup_install_container(container, work.name)
+    # Archive configuration uses the existing installer process supervisor.
+    # Native models still execute in their isolated scientific environments.
+    execute(
+        [
+            "env",
+            "PATH=" + str(tools / "bin") + ":/usr/local/bin:/usr/bin:/bin",
+            "bash",
+            code / "external/opendde/scripts/download_opendde_data.sh",
+            "--root",
+            model_root,
+            "--skip-model",
+            "--skip-common",
+        ],
+        timeout=43200,
+    )
     inventory = resource_inventory(model_root)
     if not inventory["templates"] or not inventory["rna"]:
         raise ValueError("The native download did not produce all required search databases.")

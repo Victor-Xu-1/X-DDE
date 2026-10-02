@@ -28,6 +28,7 @@ def install_system():
             "ca-certificates",
             "git",
             "build-essential",
+            "curl",
         ],
         ["systemctl", "enable", "--now", "docker"],
     ):
