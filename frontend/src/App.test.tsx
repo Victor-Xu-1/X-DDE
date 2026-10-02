@@ -74,9 +74,12 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 it("opens the shared asset workspace through the integrated navigation", async () => {
-  vi.spyOn(apiClient, "request")
-    .mockResolvedValueOnce({ nodes: [], edges: [], truncated: false })
-    .mockResolvedValueOnce([]);
+  vi.spyOn(apiClient, "request").mockImplementation(
+    async (path) =>
+      (path.startsWith("/research/graph")
+        ? { nodes: [], edges: [], truncated: false }
+        : []) as never,
+  );
   const user = userEvent.setup();
   render(<App />);
   await user.click(screen.getByRole("button", { name: "Research assets" }));
