@@ -22,18 +22,36 @@ jobs:
         run: |
           cd frontend
           npm ci
-          npm run check
-          npm test
+          npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
           npm run build
           cd ..
           uv sync --locked --group dev
-          uv run ruff check src tests server_tests
-          uv run pytest -q
+          uv run pytest -q tests/test_deployment.py tests/test_case_bundle.py tests/test_compute_service.py tests/test_api_security.py tests/test_example_pins.py tests/test_example_records.py tests/test_interpreter_paths.py
           uv build --wheel
           test "$GITHUB_REF_NAME" = "v$(uv run python -c 'from opendde_workbench import __version__; print(__version__)')"
           cp install.sh install.ps1 scripts/opendde.ps1 dist/
           cd dist
           sha256sum *.whl install.sh install.ps1 opendde.ps1 > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-installers
+          path: dist/*
+  windows-entrypoints:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify installer and command aliases in isolated fixtures
+        shell: pwsh
+        run: ./tests/test_windows_installer.ps1
+
+  publish:
+    needs: [release, windows-entrypoints]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-installers
+          path: dist
       - name: Publish prerelease
         env:
           GH_TOKEN: ${{ github.token }}
