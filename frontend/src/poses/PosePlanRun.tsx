@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useExample } from "../examples/context";
 import { api, request } from "../api";
 import { loadPages } from "../research/loadPages";
 import { RunMonitor } from "../workflows/RunMonitor";
@@ -14,10 +15,16 @@ export function PosePlanRun({
   language: Language;
 }) {
   const zh = language === "zh";
-  const [run, setRun] = useState<WorkflowRun | null>(null),
+  const example = useExample(),
+    preset =
+      example?.record?.kind === "pose_exploration" &&
+      example.record.value.id === value.id
+        ? example.record
+        : null;
+  const [run, setRun] = useState<WorkflowRun | null>(preset?.run ?? null),
     [history, setHistory] = useState<WorkflowRun[]>([]),
-    [sets, setSets] = useState<PoseSet[]>([]),
-    [selected, setSelected] = useState(""),
+    [sets, setSets] = useState<PoseSet[]>(preset?.poses ?? []),
+    [selected, setSelected] = useState(preset?.poses[0]?.id ?? ""),
     [ready, setReady] = useState(false),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),

@@ -1,5 +1,5 @@
 import { GuidedSteps } from "../guided/Questionnaire";
-import { useExampleReference } from "../examples/context";
+import { useExample, useExampleReference } from "../examples/context";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
@@ -16,16 +16,26 @@ import {
 } from "./model";
 import { RegionDrafts } from "./RegionDrafts";
 import { AtomSelection } from "./AtomSelection";
+import { RegionResult } from "./RegionResult";
 
 export function RegionWorkspace({ language }: { language: Language }) {
-  const example = useExampleReference("mz1_molecule", "jq1");
-  const [subject, setSubject] = useState<MoleculeRef | null>(example),
+  const example = useExample();
+  const reference = useExampleReference("mz1_molecule", "jq1");
+  const [subject, setSubject] = useState<MoleculeRef | null>(reference),
     zh = language === "zh";
+  const record =
+    example?.record?.kind === "regions" &&
+    subject &&
+    referenceKey(example.record.value.body.subject) === referenceKey(subject)
+      ? example.record.value
+      : undefined;
   return (
     <RegionEditor
       key={subject ? referenceKey(subject) : "empty"}
       subject={subject}
       language={language}
+      initialRecord={record}
+      showResult={example?.result_requested ?? false}
       inputs={
         <ReferencePicker
           kind="ligand"
@@ -43,24 +53,38 @@ export function RegionEditor({
   subject,
   language,
   inputs,
+  initialRecord,
+  showResult = false,
 }: {
   inputs?: ReactNode;
   subject: MoleculeRef | null;
   language: Language;
+  initialRecord?: SavedRegion;
+  showResult?: boolean;
 }) {
   const zh = language === "zh",
-    identity = useNativeIdentity(subject, language);
-  const [regions, setRegions] = useState<Region[]>([
-    {
-      name: zh ? "固定核心" : "Fixed core",
-      role: "fixed_core",
-      atom_indices: [],
-    },
-  ]);
+    identity = useNativeIdentity(
+      subject,
+      language,
+      initialRecord?.body.identity_job,
+    );
+  const [regions, setRegions] = useState<Region[]>(
+    initialRecord
+      ? structuredClone(initialRecord.body.regions)
+      : [
+          {
+            name: zh ? "固定核心" : "Fixed core",
+            role: "fixed_core",
+            atom_indices: [],
+          },
+        ],
+  );
   const [active, setActive] = useState(0),
-    [name, setName] = useState(""),
+    [name, setName] = useState(initialRecord?.body.name ?? ""),
     [values, setValues] = useState<SavedRegion[]>([]);
-  const [parent, setParent] = useState<string | null>(null),
+  const [parent, setParent] = useState<string | null>(
+      initialRecord?.id ?? null,
+    ),
     [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -269,6 +293,7 @@ export function RegionEditor({
   }
   return (
     <GuidedSteps<SavedRegion>
+      initialResult={showResult ? initialRecord : null}
       language={language}
       busy={busy || loading || identity.running}
       error={error || identity.error || identity.job?.error || ""}
@@ -304,8 +329,13 @@ export function RegionEditor({
           ),
         },
       ]}
-      renderResult={() => (
+      renderResult={(record) => (
         <>
+          <RegionResult
+            record={record}
+            identity={identity.result}
+            language={language}
+          />
           {saved && (
             <p role="status">
               {zh

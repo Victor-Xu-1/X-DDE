@@ -100,6 +100,7 @@ async function command(type: string, value: unknown) {
       await scene.action(value);
     if (type === "residue" && typeof value === "string")
       await scene.selectResidue(value);
+    if (type === "atom-region") await scene.highlightAtoms(value);
   } catch {
     notify("error", "Could not update structure display.");
   }
@@ -121,7 +122,7 @@ window.addEventListener("message", (event) => {
   }
   if (type === "load" && Array.isArray(value))
     void load(value.filter((item) => typeof item === "string"));
-  if (["options", "selection-action", "residue"].includes(type))
+  if (["options", "selection-action", "residue", "atom-region"].includes(type))
     void command(type, value);
   if (
     type === "focus-model" &&

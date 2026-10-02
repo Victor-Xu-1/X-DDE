@@ -224,6 +224,40 @@ it("keeps a linked non-prediction task in its task view across both history even
   ).not.toBeInTheDocument();
 });
 
+it("opens a fresh prediction form when the current task belongs to another engine", async () => {
+  const submit = vi.spyOn(api, "submit");
+  const linked = {
+    ...jobs[0],
+    request: {
+      operation: "properties",
+      name: "Descriptors",
+      smiles: [],
+      ligand_files: [],
+    },
+  } as Job;
+  vi.mocked(api.jobs).mockResolvedValue([linked]);
+  window.history.replaceState(null, "", "/#task=" + linked.id);
+  const user = userEvent.setup();
+  render(<App />);
+  const nav = await screen.findByRole("navigation", {
+    name: "Main navigation",
+  });
+  expect(
+    await screen.findByRole("heading", { name: "Task history" }),
+  ).toBeVisible();
+  await user.click(
+    within(nav).getByRole("button", { name: "Structure prediction" }),
+  );
+  expect(
+    await screen.findByRole("heading", { name: "Structure prediction" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("heading", { name: "Task history" }),
+  ).not.toBeInTheDocument();
+  expect(window.location.hash).toBe("#task=");
+  expect(submit).not.toHaveBeenCalled();
+});
+
 it("returns to the full catalogue when its navigation entry is chosen inside a task", async () => {
   vi.spyOn(apiClient, "request").mockImplementation(
     async (path) =>

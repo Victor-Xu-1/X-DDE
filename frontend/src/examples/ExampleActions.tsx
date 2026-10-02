@@ -78,25 +78,34 @@ export function ExampleActions({
                 ? "加载案例"
                 : "Load example"}
           </button>
-          <button
-            className="secondary-button"
-            disabled={busy || !info.pin}
-            title={
-              !info.pin
+          {(info.pin || info.record_pin) && (
+            <button
+              className="secondary-button"
+              disabled={busy}
+              onClick={() =>
+                void act(async () => {
+                  if (info.pin) {
+                    const job = await request<Job>(`/jobs/${info.pin.job_id}`);
+                    onResult(job);
+                  } else {
+                    const prepared = await api.post<PreparedExample>(
+                      `/examples/${capability}/prepare`,
+                      {},
+                    );
+                    onLoad({ ...prepared, result_requested: true });
+                  }
+                })
+              }
+            >
+              {info.record_pin && !info.record_pin.computed_result_available
                 ? zh
-                  ? "真实计算完成并固定后，才能查看此模块结果。"
-                  : "Available after a real successful computation is pinned."
-                : undefined
-            }
-            onClick={() =>
-              void act(async () => {
-                const job = await request<Job>(`/jobs/${info.pin!.job_id}`);
-                onResult(job);
-              })
-            }
-          >
-            {zh ? "查看真实结果" : "View real results"}
-          </button>
+                  ? "查看配置示例"
+                  : "View validated setup"
+                : zh
+                  ? "查看真实结果"
+                  : "View real results"}
+            </button>
+          )}
           <details>
             <summary>{zh ? "来源" : "Sources"}</summary>
             <ul>

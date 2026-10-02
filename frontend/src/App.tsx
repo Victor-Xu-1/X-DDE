@@ -190,6 +190,8 @@ export function App() {
           view={view}
           onView={(next) => {
             if (next === "tools") setCatalogueRevision((n) => n + 1);
+            if (next === "home" && job && !isPrediction(job.request))
+              chooseJob("");
             setView(next);
           }}
           language={language}

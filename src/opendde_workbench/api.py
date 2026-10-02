@@ -419,7 +419,17 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         if job.status not in TERMINAL:
             raise HTTPException(409, "Wait for the task to finish before downloading results.")
         try:
-            path = contained(settings.state_dir / "jobs" / str(job_id) / "output", name)
+            directory = settings.state_dir / "jobs" / str(job_id)
+            if name.startswith("analysis/"):
+                import re
+
+                if job.request.operation != "predict" or not re.fullmatch(
+                    r"analysis/workbench-aligned/[A-Za-z0-9_-]+\.cif", name
+                ):
+                    raise ValueError("Unsupported derived analysis artifact.")
+                path = contained(directory, name)
+            else:
+                path = contained(directory / "output", name)
         except (ValueError, FileNotFoundError) as error:
             raise HTTPException(404, "Artifact not found.") from error
         return FileResponse(path, filename=path.name, media_type="application/octet-stream")

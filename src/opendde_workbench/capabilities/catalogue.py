@@ -68,7 +68,7 @@ _ROWS = (
     (
         "fold",
         "structure",
-        ("抗体候选折叠与评分", "Fold and score antibody candidates"),
+        ("结合体折叠与界面评分", "Binder folding and interface scoring"),
         (
             "Harness 原生候选折叠、界面指标与目标评分。",
             "Native candidate folding, interface metrics and objectives.",

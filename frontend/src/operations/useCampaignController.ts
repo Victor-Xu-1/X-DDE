@@ -6,20 +6,22 @@ import { campaignConfig, type DesignDraft, type Plan } from "./campaign-model";
 export function useCampaignController(language: Language) {
   const example = useExample();
   const zh = language === "zh",
-    [draft, setDraft] = useState<DesignDraft>({
-      targetName: example ? "HER2 · trastuzumab reference" : "",
-      targets: example?.sequences.antigen
-        ? { C: example.sequences.antigen }
-        : { A: "" },
-      format: example ? "VHVL" : "VHH",
-      binders:
-        example?.sequences.heavy && example.sequences.light
-          ? { B: example.sequences.heavy, A: example.sequences.light }
-          : { B: "" },
-      cdr: {},
-      fixed: {},
-      budget: "standard",
-    }),
+    [draft, setDraft] = useState<DesignDraft>(
+      example?.campaign_draft ?? {
+        targetName: example ? "HER2 · trastuzumab reference" : "",
+        targets: example?.sequences.antigen
+          ? { C: example.sequences.antigen }
+          : { A: "" },
+        format: example ? "VHVL" : "VHH",
+        binders:
+          example?.sequences.heavy && example.sequences.light
+            ? { B: example.sequences.heavy, A: example.sequences.light }
+            : { B: "" },
+        cdr: {},
+        fixed: {},
+        budget: "standard",
+      },
+    ),
     [expert, setExpert] = useState(false),
     [raw, setRaw] = useState<Record<string, unknown> | null>(null),
     [plan, setPlan] = useState<Plan | null>(null),

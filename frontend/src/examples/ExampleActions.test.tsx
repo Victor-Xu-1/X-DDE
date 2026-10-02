@@ -48,7 +48,7 @@ describe("source-backed example controls", () => {
       />,
     );
     const load = await screen.findByRole("button", { name: "加载案例" });
-    expect(screen.getByRole("button", { name: "查看真实结果" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "查看真实结果" })).toBeNull();
     fireEvent.click(load);
     await waitFor(() => expect(onLoad).toHaveBeenCalledWith(prepared));
     expect(transport.post).toHaveBeenCalledExactlyOnceWith(
@@ -83,5 +83,44 @@ describe("source-backed example controls", () => {
     );
     await waitFor(() => expect(onResult).toHaveBeenCalledWith(job));
     expect(transport.request).toHaveBeenLastCalledWith("/jobs/real-task");
+  });
+
+  it("opens a verified compound record without submitting or launching a task", async () => {
+    const prepared = {
+      module: info.module,
+      record: { kind: "regions", value: { id: "saved-region" } },
+    };
+    transport.request.mockResolvedValue({
+      ...info,
+      record_pin: {
+        record_id: "saved-region",
+        computed_result_available: true,
+      },
+    });
+    transport.post.mockResolvedValue(prepared);
+    const onLoad = vi.fn(),
+      onResult = vi.fn();
+    render(
+      <ExampleActions
+        capability="regions"
+        language="en"
+        onLoad={onLoad}
+        onResult={onResult}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "View real results" }),
+    );
+    await waitFor(() =>
+      expect(onLoad).toHaveBeenCalledWith({
+        ...prepared,
+        result_requested: true,
+      }),
+    );
+    expect(onResult).not.toHaveBeenCalled();
+    expect(transport.post).toHaveBeenCalledExactlyOnceWith(
+      "/examples/regions/prepare",
+      {},
+    );
   });
 });

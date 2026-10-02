@@ -44,7 +44,18 @@ def variable_domains(scientific, state, original):
         raise ValueError("The antibody example requires two verified variable domains.")
     data = b"".join(contained(output, domain.artifact).read_bytes() for domain in domains)
     asset = scientific.assets.save("trastuzumab-variable-domains.fasta", "sequences", data)
-    key = uuid5(NAMESPACE, str(pin.job_id) + hashlib.sha256(data).hexdigest())
+    matches = [
+        value
+        for value in scientific.list(source_job=pin.job_id)
+        if value.kind == "sequence"
+        and value.parent_id == original.id
+        and value.reference.sha256 == asset.sha256
+    ]
+    if len(matches) > 1:
+        raise ValueError("The domain source has ambiguous retained sequence versions.")
+    if matches:
+        return matches[0]
+    key = uuid5(NAMESPACE, str(pin.job_id) + hashlib.sha256(data).hexdigest() + str(original.id))
     return scientific.create(
         VersionInput(
             asset_id=asset.id,

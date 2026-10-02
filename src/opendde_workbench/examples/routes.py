@@ -5,14 +5,16 @@ from fastapi import Depends, HTTPException
 from ..research.storage import ScientificStore
 from ..store import ConflictError
 from .catalogue import CASES, FILES, MODULES
-from .contracts import PinRequest, PreparedExample
+from .contracts import PinRequest, PreparedExample, RecordPinRequest
 from .pins import ExamplePins
 from .preparation import prepare_example
+from .records import ExampleRecords
 
 
 def register_examples(app, store, assets, settings, mutation):
     scientific = ScientificStore(store, assets)
     pins = ExamplePins(store, settings.state_dir)
+    records = ExampleRecords(store, assets, settings)
     cache = settings.state_dir / "public-example-cache"
 
     def detail(capability_id, *, verify=False):
@@ -22,6 +24,7 @@ def register_examples(app, store, assets, settings, mutation):
         case = CASES[module.case_id]
         try:
             record = pins.get(capability_id, verify=verify)
+            compound = records.get(capability_id, verify=verify)
         except (ValueError, OSError) as exc:
             raise HTTPException(409, str(exc)) from exc
         return {
@@ -29,7 +32,9 @@ def register_examples(app, store, assets, settings, mutation):
             "case": case,
             "files": [FILES[key] for key in case.files],
             "pin": record,
-            "computed_result_available": record is not None,
+            "record_pin": compound,
+            "computed_result_available": record is not None
+            or bool(compound and compound.computed_result_available),
         }
 
     @app.get("/api/examples")
@@ -48,7 +53,7 @@ def register_examples(app, store, assets, settings, mutation):
     def prepare(capability_id: str):
         detail(capability_id)
         try:
-            return prepare_example(capability_id, scientific, cache)
+            return prepare_example(capability_id, scientific, cache, records=records)
         except (ValueError, OSError, ConflictError) as exc:
             raise HTTPException(409, str(exc)) from exc
 
@@ -56,9 +61,18 @@ def register_examples(app, store, assets, settings, mutation):
     def pin(capability_id: str, value: PinRequest):
         detail(capability_id)
         try:
-            prepared = prepare_example(capability_id, scientific, cache)
+            prepared = prepare_example(capability_id, scientific, cache, records=records)
             return pins.pin(capability_id, value.job_id, prepared)
         except (ValueError, OSError, ConflictError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/api/examples/{capability_id}/record-pin", dependencies=[Depends(mutation)])
+    def record_pin(capability_id: str, value: RecordPinRequest):
+        detail(capability_id)
+        try:
+            prepared = prepare_example(capability_id, scientific, cache, records=records)
+            return records.pin(capability_id, value.record_id, value.run_id, prepared)
+        except (ValueError, OSError, KeyError, ConflictError) as exc:
             raise HTTPException(409, str(exc)) from exc
 
     return pins

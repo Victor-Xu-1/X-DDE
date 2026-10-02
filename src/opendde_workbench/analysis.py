@@ -16,12 +16,14 @@ class AnalysisService:
 
     async def get(self, job: Job) -> dict:
         directory = self.jobs_root / job.id
-        target = directory / "output/workbench-analysis.json"
+        derived = directory / "analysis"
+        target = derived / "workbench-analysis.json"
         async with self.lock:
             if target.is_file():
                 cached = json.loads(target.read_text())
-                if cached.get("schema_version") == 3:
+                if cached.get("schema_version") == 4:
                     return cached
+            derived.mkdir(exist_ok=True)
             image, _ = self.engine.runtime()
             script = Path(__file__).parent
             name = "opendde-wb-analysis-" + job.id
@@ -40,7 +42,9 @@ class AnalysisService:
                     "--user",
                     f"{os.getuid()}:{os.getgid()}",
                     "--mount",
-                    f"type=bind,source={directory},target=/job",
+                    f"type=bind,source={directory},target=/job,readonly",
+                    "--mount",
+                    f"type=bind,source={derived},target=/job/analysis",
                     "--mount",
                     f"type=bind,source={script},target=/adapter,readonly",
                     "--entrypoint",

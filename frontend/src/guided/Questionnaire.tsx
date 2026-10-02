@@ -18,6 +18,7 @@ export function GuidedSteps<T extends { id: string }>({
   onSubmit,
   renderResult,
   resultTitle,
+  initialResult = null,
 }: {
   language: Language;
   steps: readonly [QuestionStep, QuestionStep, QuestionStep, QuestionStep];
@@ -29,12 +30,13 @@ export function GuidedSteps<T extends { id: string }>({
   onSubmit(): Promise<T | undefined>;
   renderResult(result: T): ReactNode;
   resultTitle?: string;
+  initialResult?: T | null;
 }) {
   const zh = language === "zh",
     id = useId();
-  const [current, setCurrent] = useState(0),
-    [visited, setVisited] = useState(0),
-    [job, setJob] = useState<T | null>(null),
+  const [current, setCurrent] = useState(initialResult ? 4 : 0),
+    [visited, setVisited] = useState(initialResult ? 3 : 0),
+    [job, setJob] = useState<T | null>(initialResult),
     [notice, setNotice] = useState("");
   const heading = useRef<HTMLHeadingElement>(null),
     mounted = useRef(true),

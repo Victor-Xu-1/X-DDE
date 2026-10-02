@@ -38,6 +38,22 @@ export function exampleHarnessPayload(
       binder_chain_ids: ["B", "A"],
     };
   }
+  if (tool === "fold" && example.sequences.binder && example.sequences.target) {
+    payload.candidates = [
+      { candidate_id: "Rb-H2-6LBX", chains: { A: example.sequences.binder } },
+    ];
+    payload.options = {
+      target_chains: { B: example.sequences.target },
+      target_chain_ids: ["B"],
+      binder_chain_ids: ["A"],
+      use_msa: false,
+      enable_msa_search: false,
+      seeds: [101],
+      recycling_cycles: 10,
+      diffusion_steps: 200,
+      diffusion_samples: 1,
+    };
+  }
   if (tool === "epitope" && structure) {
     payload.structure_path = structure;
     payload.antibody_chains = ["B", "A"];
@@ -130,10 +146,24 @@ export function exampleHarnessInputs(
       values.every((sequence) => sequences.includes(sequence)),
     )
     .map(([key]) => key);
-  return Object.entries(example.objects)
+  const references = Object.entries(example.objects)
     .filter(
       ([key, obj]) =>
         files.has(obj.reference.asset_id) || sources.includes(key),
     )
     .map(([, obj]) => obj.reference);
+  if (
+    example.request?.operation === "harness" &&
+    example.request.tool === tool
+  ) {
+    for (const reference of example.request.scientific_inputs ?? [])
+      if (
+        files.has(reference.asset_id) &&
+        !references.some(
+          (value) => JSON.stringify(value) === JSON.stringify(reference),
+        )
+      )
+        references.push(reference);
+  }
+  return references;
 }

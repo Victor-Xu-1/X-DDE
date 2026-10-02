@@ -6,8 +6,11 @@ import { type DesignDraft, type Plan } from "./campaign-model";
 import { ResultTree } from "./OperationResults";
 import { CampaignMonitor } from "./CampaignMonitor";
 import { AssetPicker } from "./AssetPicker";
+import { useExample } from "../examples/context";
+import { CampaignCasePreview } from "../examples/CampaignCasePreview";
 
 export function CampaignForm({ language }: { language: Language }) {
+  const example = useExample();
   const {
     zh,
     draft,
@@ -32,6 +35,8 @@ export function CampaignForm({ language }: { language: Language }) {
     validate,
     start,
   } = useCampaignController(language);
+  if (example?.result_requested && example.record?.kind === "campaign")
+    return <CampaignCasePreview language={language} />;
   const goal = (
     <>
       {" "}

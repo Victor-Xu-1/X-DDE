@@ -4,6 +4,7 @@ from uuid import UUID, uuid5
 
 from ..harness_sequences import fasta_sequences
 from ..research.contracts import VersionInput
+from .campaign import campaign_draft
 from .catalogue import CASES, FILES, MODULES, POLYMERS
 from .collections import sdf_collection
 from .contracts import PreparedExample
@@ -16,7 +17,7 @@ from .workflow import example_workflow
 NAMESPACE = UUID("d2f5485c-9384-49e8-9c41-6b316a14c932")
 
 
-def prepare_example(capability_id, scientific, cache):
+def prepare_example(capability_id, scientific, cache, *, records=None):
     module = MODULES[capability_id]
     case = CASES[module.case_id]
     objects = {}
@@ -40,7 +41,7 @@ def prepare_example(capability_id, scientific, cache):
         file = FILES[key]
         register(key, file.name, file.kind, verified_file(cache, file), file.url)
     sequences, sequence_sources = {}, {}
-    if case.id == "trastuzumab-her2":
+    if case.id in {"trastuzumab-her2", "trastuzumab-domainiv"}:
         for key, number in (("light", 1), ("heavy", 2), ("antigen", 3)):
             polymer = POLYMERS[f"1N8Z.polymer-{number}.json"]
             sequences[key] = polymer["sequence"]
@@ -74,6 +75,17 @@ def prepare_example(capability_id, scientific, cache):
             )
         if capability_id in {"evolution", "compare"}:
             objects.update(proposal_populations(scientific, cache.parent, sequences))
+        if case.id == "trastuzumab-domainiv":
+            polymer = POLYMERS["6LBX.polymer-2.json"]
+            sequences["antigen"] = polymer["sequence"]
+            register(
+                "target_construct",
+                "6LBX-HER2-domain-IV.fasta",
+                "sequences",
+                f">6LBX_HER2_domain_IV\n{sequences['antigen']}\n".encode(),
+                polymer["url"],
+            )
+            sequence_sources["target_construct"] = (sequences["antigen"],)
     if case.id == "brd4-jq1":
         sequences["protein"] = POLYMERS["3MXF.polymer-1.json"]["sequence"]
         register(
@@ -87,6 +99,18 @@ def prepare_example(capability_id, scientific, cache):
         receptor = prepared_receptor(scientific, cache.parent, objects["brd4"])
         if receptor is not None:
             objects["receptor"] = receptor
+    if case.id == "her2-repebody":
+        for key, number in (("binder", 1), ("target", 2)):
+            polymer = POLYMERS[f"6LBX.polymer-{number}.json"]
+            sequences[key] = polymer["sequence"]
+            register(
+                key + "_sequence",
+                "6LBX-" + key + ".fasta",
+                "sequences",
+                f">6LBX_{key}\n{sequences[key]}\n".encode(),
+                polymer["url"],
+            )
+            sequence_sources[key + "_sequence"] = (sequences[key],)
     if case.id == "abl-inhibitors":
         data = sdf_collection([verified_file(cache, FILES[key]) for key in case.files])
         register(
@@ -103,4 +127,8 @@ def prepare_example(capability_id, scientific, cache):
         sources=case.sources,
         request=request,
         workflow_plan=example_workflow(objects) if capability_id == "workflows" else None,
+        record=records.prepared(capability_id) if records is not None else None,
+        campaign_draft=campaign_draft(scientific, cache.parent, objects, sequences)
+        if capability_id == "campaign"
+        else None,
     )

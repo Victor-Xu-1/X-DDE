@@ -46,6 +46,8 @@ class PreparedExample(ExampleModel):
     sources: tuple[str, ...]
     request: dict | None = None
     workflow_plan: dict | None = None
+    record: dict | None = None
+    campaign_draft: dict | None = None
 
 
 class PinRequest(ExampleModel):
@@ -60,4 +62,28 @@ class ExamplePin(ExampleModel):
     request_sha256: str
     environment_sha256: str
     artifact_sha256: dict[str, str]
+    created_at: str
+
+
+class RecordPinRequest(ExampleModel):
+    record_id: UUID
+    run_id: UUID | None = None
+
+
+class JobEvidence(ExampleModel):
+    job_id: UUID
+    request_sha256: str
+    environment_sha256: str
+    artifact_sha256: dict[str, str]
+
+
+class ExampleRecordPin(ExampleModel):
+    capability_id: Literal["regions", "workflows", "pose_exploration", "campaign"]
+    case_id: str
+    revision: int
+    record_id: UUID
+    record_sha256: str
+    run_id: UUID | None = None
+    evidence: tuple[JobEvidence, ...]
+    computed_result_available: bool
     created_at: str

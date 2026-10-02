@@ -52,6 +52,32 @@ const example: PreparedExample = {
   sources: [],
 };
 describe("native example input provenance", () => {
+  it("keeps pinned native structural input versions and removes them when the file selection changes", () => {
+    const pinned = {
+      ...example,
+      request: {
+        operation: "harness" as const,
+        tool: "rmsd",
+        name: "Protocol comparison",
+        payload: {
+          reference_path: `asset:${unused.reference.asset_id}`,
+          mobile_path: `asset:${structure.reference.asset_id}`,
+        },
+        scientific_inputs: [unused.reference, structure.reference],
+        allow_external: false,
+      },
+    };
+    const values = exampleHarnessInputs("rmsd", pinned.request.payload, pinned);
+    expect(values).toContainEqual(unused.reference);
+    expect(values).toContainEqual(structure.reference);
+    expect(
+      exampleHarnessInputs(
+        "rmsd",
+        { reference_path: `asset:${structure.reference.asset_id}` },
+        pinned,
+      ),
+    ).not.toContainEqual(unused.reference);
+  });
   it("uses a real asset token and does not attach unused experimental structures", () => {
     const payload = exampleHarnessPayload(
       "epitope",

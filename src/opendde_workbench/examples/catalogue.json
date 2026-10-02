@@ -108,6 +108,15 @@
       "bytes": 7199,
       "kind": "ligand",
       "license": "CC0-1.0"
+    },
+    "her2_domain_iv": {
+      "key": "her2_domain_iv",
+      "name": "6LBX.pdb",
+      "url": "https://files.rcsb.org/download/6LBX.pdb",
+      "sha256": "dd32d534702c1122b7d1e5120dde790810255a6324ce18ab3734dc01d72ced5c",
+      "bytes": 264708,
+      "kind": "structure",
+      "license": "CC0-1.0"
     }
   },
   "polymers": {
@@ -150,6 +159,20 @@
       "chains": [
         "X",
         "Y"
+      ]
+    },
+    "6LBX.polymer-1.json": {
+      "sequence": "METITVSTPIKQIFPDDAFAETIKANLKKKSVTDAVTQNELNSIDLISAPHSDIKSVQGIQYLPNVRLLYLGGNKLHDISALKELTNLTTLILSGNQLQSLPNGVFDKLTNLKVLWLSVNQLQSLPDGVFDKLTNLTSLRLHRNQLQSLPKGVFDKLTNLTVLRLSENQLQSLPEGVFDKLTQLKVLWLGRNQLKSVPDGVFDRLTSLQYIWLHDNPWDCTCPGIRYLSEWINKHSGVVRNSAGSVAPDSAKCSGSGKPVRSIICPTLEHHHHHH",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6LBX/1",
+      "auth_chains": [
+        "A"
+      ]
+    },
+    "6LBX.polymer-2.json": {
+      "sequence": "QCSQFLRGQECVEECRVLQGLPREYVNARHCLPCHPECQPQNGSVTCFGPEADQCVACAHYKDPPFCVARCPSGVKPDLSYMPIWKFPDEEGACQPC",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6LBX/2",
+      "auth_chains": [
+        "B"
       ]
     }
   },
@@ -271,6 +294,46 @@
         "公开 RNA–配体结构参考，用于核酸输入和结构预览；该体系不标记为已批准的 RNA 药物。",
         "A public RNA/ligand structural reference for nucleic-acid input and visualization; not labeled as an approved RNA drug."
       ]
+    },
+    {
+      "id": "her2-repebody",
+      "revision": 1,
+      "label": [
+        "HER2 结构域 IV–Rb-H2 蛋白结合体研究",
+        "HER2 domain IV–Rb-H2 protein binder research"
+      ],
+      "description": [
+        "使用 6LBX 完整沉积蛋白序列（Rb-H2 275 aa、HER2 构建体 97 aa），预测双蛋白复合物并比较原生预测姿势；不把构建体当成完整 HER2，也不把模型评分当成实测亲和力。",
+        "Use the complete deposited 6LBX protein sequences (275-aa Rb-H2 and 97-aa HER2 construct), predict the protein complex and compare native predicted poses. The construct is not full-length HER2; model scores are not measured affinity."
+      ],
+      "files": [
+        "her2_domain_iv"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/6LBX",
+        "https://doi.org/10.1016/j.csbj.2021.02.013"
+      ]
+    },
+    {
+      "id": "trastuzumab-domainiv",
+      "revision": 1,
+      "label": [
+        "曲妥珠单抗–HER2 设计向导",
+        "Trastuzumab–HER2 design workflow"
+      ],
+      "description": [
+        "重、轻链复用真实 ANARCII 可变域与 CDR 标注；靶标使用 6LBX 完整沉积的 97 aa HER2 构建体。配置已通过原生校验；对话模型由用户配置后才执行代理设计。",
+        "Reuse actual ANARCII variable domains and CDR annotations, with the complete deposited 97-aa HER2 construct from 6LBX. Native configuration validation is retained; agent design requires the user-configured language model."
+      ],
+      "files": [
+        "her2",
+        "her2_domain_iv"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/1N8Z",
+        "https://www.rcsb.org/structure/6LBX",
+        "https://doi.org/10.1038/nature01392"
+      ]
     }
   ],
   "modules": {
@@ -341,9 +404,9 @@
       "pinned_run_required": true
     },
     "campaign": {
-      "case_id": "trastuzumab-her2",
+      "case_id": "trastuzumab-domainiv",
       "capability_id": "campaign",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": false
     },
     "esm": {
@@ -365,9 +428,9 @@
       "pinned_run_required": true
     },
     "fold": {
-      "case_id": "trastuzumab-her2",
+      "case_id": "her2-repebody",
       "capability_id": "fold",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "epitope": {
@@ -383,9 +446,9 @@
       "pinned_run_required": true
     },
     "rmsd": {
-      "case_id": "trastuzumab-her2",
+      "case_id": "her2-repebody",
       "capability_id": "rmsd",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "evolution": {

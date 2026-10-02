@@ -7,6 +7,7 @@ export function useWorkflowController(
   language: Language,
   jobs: Job[],
   preset: WorkflowPlanInput | null = null,
+  initial: { plan: WorkflowPlan; run: WorkflowRun } | null = null,
 ) {
   const zh = language === "zh",
     [name, setName] = useState(preset?.name ?? ""),
@@ -24,8 +25,10 @@ export function useWorkflowController(
           },
     );
   const [plans, setPlans] = useState<WorkflowPlan[]>([]),
-    [selected, setSelected] = useState<WorkflowPlan | null>(null);
-  const [run, setRun] = useState<WorkflowRun | null>(null),
+    [selected, setSelected] = useState<WorkflowPlan | null>(
+      initial?.plan ?? null,
+    );
+  const [run, setRun] = useState<WorkflowRun | null>(initial?.run ?? null),
     [history, setHistory] = useState<WorkflowRun[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),

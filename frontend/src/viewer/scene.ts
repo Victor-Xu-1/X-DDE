@@ -1,4 +1,5 @@
 import { paintBase } from "./style";
+import { regionAtomIndices } from "./atom-region";
 import {
   residueRef as ref,
   residueSelection as sel,
@@ -38,6 +39,7 @@ export class MolecularScene {
     hasPolymer: false,
   };
   private selected: number[] = [];
+  private highlighted: number[] = [];
   private hidden = new Set<number>();
   private edits = new Map<
     string,
@@ -54,6 +56,7 @@ export class MolecularScene {
   resetState() {
     this.revision++;
     this.selected = [];
+    this.highlighted = [];
     this.hidden.clear();
     this.edits.clear();
     this.measurement = [];
@@ -115,6 +118,14 @@ export class MolecularScene {
     await this.paint();
     if (value.mode === "pocket" || value.ligand) this.focusLigand();
   }
+  async highlightAtoms(value: unknown) {
+    if (this.overlay) return;
+    this.highlighted = regionAtomIndices(
+      value,
+      this.viewer.selectedAtoms({ model: 0 }),
+    );
+    await this.paint();
+  }
   paint(): Promise<void> {
     const revision = this.revision;
     // Surface generation is asynchronous. Serialize style updates to avoid stale layers.
@@ -136,6 +147,14 @@ export class MolecularScene {
       return;
     }
     await paintBase(v, this.info, this.options, [...this.hidden]);
+    if (this.highlighted.length)
+      v.addStyle(
+        { index: this.highlighted },
+        {
+          stick: { radius: 0.2, color: "#dc8e25" },
+          sphere: { scale: 0.29, color: "#dc8e25" },
+        },
+      );
     for (const edit of this.edits.values())
       v.setStyle({ index: edit.indices }, edit.style);
     if (this.selected.length)

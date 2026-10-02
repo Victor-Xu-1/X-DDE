@@ -8,6 +8,7 @@ import { validIdentity } from "./model";
 export function useNativeIdentity(
   initial: MoleculeRef | null,
   language: Language,
+  existingJobId?: string,
 ) {
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
@@ -24,6 +25,18 @@ export function useNativeIdentity(
       live.current = false;
     };
   }, []);
+  useEffect(() => {
+    if (!existingJobId) return;
+    const controller = new AbortController();
+    void request<Job>(`/jobs/${existingJobId}`, { signal: controller.signal })
+      .then((value) => {
+        if (!controller.signal.aborted) setJob(value);
+      })
+      .catch((failure) => {
+        if (!controller.signal.aborted) setError(String(failure));
+      });
+    return () => controller.abort();
+  }, [existingJobId]);
   useEffect(() => {
     if (!job || !["queued", "running", "cancelling"].includes(job.status))
       return;

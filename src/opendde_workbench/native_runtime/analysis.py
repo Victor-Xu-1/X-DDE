@@ -99,12 +99,12 @@ def analyze(root: Path) -> dict:
         elif signature == reference[0]:
             fitted, _ = structure.superimpose(reference[1], atoms)
             rmsd = float(structure.rmsd(reference[1], fitted))
-            aligned = root / "output/workbench-aligned" / f"{candidate_id}.cif"
+            aligned = root / "analysis/workbench-aligned" / f"{candidate_id}.cif"
             aligned.parent.mkdir(exist_ok=True)
             aligned_file = CIFFile()
             set_structure(aligned_file, fitted)
             aligned_file.write(aligned)
-            aligned_relative = aligned.relative_to(root / "output").as_posix()
+            aligned_relative = aligned.relative_to(root).as_posix()
         candidates.append(
             {
                 "id": candidate_id,
@@ -123,7 +123,7 @@ def analyze(root: Path) -> dict:
             }
         )
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "ligands": ligands,
         "candidates": candidates,
         "metric_notes": {
@@ -138,7 +138,7 @@ def analyze(root: Path) -> dict:
 if __name__ == "__main__":
     root = Path("/job")
     result = analyze(root)
-    destination = root / "output/workbench-analysis.json"
+    destination = root / "analysis/workbench-analysis.json"
     temporary = destination.with_suffix(".tmp")
     temporary.write_text(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
     temporary.replace(destination)

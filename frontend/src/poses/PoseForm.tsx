@@ -8,27 +8,40 @@ import type { SiteSet } from "../sites/types";
 import type { Language } from "../types";
 import { defaults } from "./generated";
 import { LigandChoice } from "./LigandChoice";
-import type { Exploration, LigandSelection, Options } from "./types";
+import type {
+  Exploration,
+  ExplorationInput,
+  LigandSelection,
+  Options,
+} from "./types";
 export function PoseForm({
   sites,
   states,
   language,
   onSaved,
+  initial,
 }: {
   sites: SiteSet;
   states: StateSet[];
   language: Language;
   onSaved(v: Exploration): void;
+  initial?: ExplorationInput;
 }) {
   const zh = language === "zh";
-  const [ids, setIds] = useState<string[]>([]),
+  const [ids, setIds] = useState<string[]>(initial?.site_ids ?? []),
     [ligands, setLigands] = useState<
       { key: number; value: LigandSelection | null }[]
-    >([{ key: 0, value: null }]),
-    [name, setName] = useState(""),
-    [choice, setChoice] = useState("quick"),
+    >(
+      initial
+        ? initial.ligands.map((value, key) => ({ key, value }))
+        : [{ key: 0, value: null }],
+    ),
+    [name, setName] = useState(initial?.name ?? ""),
+    [choice, setChoice] = useState(initial ? "case" : "quick"),
     [expert, setExpert] = useState(false),
-    [raw, setRaw] = useState<Record<string, unknown>>({ ...defaults }),
+    [raw, setRaw] = useState<Record<string, unknown>>({
+      ...(initial?.options ?? defaults),
+    }),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const mounted = useRef(false);
@@ -38,9 +51,10 @@ export function PoseForm({
       mounted.current = false;
     };
   }, []);
-  const serial = useRef(1),
+  const serial = useRef(initial?.ligands.length ?? 1),
     intent = useRef({ body: "", key: crypto.randomUUID() });
   function options(kind = choice): Options {
+    if (kind === "case" && initial) return structuredClone(initial.options);
     return {
       ...defaults,
       docking: {
@@ -184,6 +198,11 @@ export function PoseForm({
             setRaw(options(e.target.value));
           }}
         >
+          {initial && (
+            <option value="case">
+              {zh ? "复用真实案例方案" : "Reuse the real case settings"}
+            </option>
+          )}
           <option value="quick">
             {zh ? "先做小规模探索" : "Small initial exploration"}
           </option>

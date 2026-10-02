@@ -25,6 +25,7 @@ interface Props {
   comparison?: boolean;
   focusModel?: number;
   selectionMode?: PickMode;
+  highlightedAtoms?: number[];
   onAtomSelected?(selection: SelectionInfo | null): void;
   onSceneLoaded?(scene: SceneInfo): void;
 }
@@ -35,6 +36,7 @@ export function StructureViewer({
   comparison = false,
   focusModel,
   selectionMode,
+  highlightedAtoms,
   onAtomSelected,
   onSceneLoaded,
 }: Props) {
@@ -118,6 +120,11 @@ export function StructureViewer({
   useEffect(() => {
     if (ready && focusResidue) send("residue", focusResidue.residue);
   }, [ready, focusResidue]);
+  const regionKey = highlightedAtoms?.join(",") ?? "";
+  useEffect(() => {
+    if (ready && status === "loaded")
+      send("atom-region", highlightedAtoms ?? []);
+  }, [ready, status, key, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
     setOptions((o) => ({ ...o, ...value }));
     send("options", value);

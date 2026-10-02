@@ -25,6 +25,7 @@ export function AtomSelection({
         urls={[artifactUrl(job, identity.molecule_artifact)]}
         language={language}
         selectionMode="atom"
+        highlightedAtoms={selected}
         onAtomSelected={(selection) => {
           if (selection?.pick_mode === "distance") return;
           const atom = atoms.find(

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useExample } from "../examples/context";
 import { request } from "../api";
 import { loadPages } from "../research/loadPages";
 import type { StateSet } from "../chemistry/types";
@@ -18,13 +19,19 @@ export function PoseWorkspace({
   initialExplorationId?: string;
 }) {
   const zh = language === "zh";
+  const example = useExample(),
+    preset =
+      example?.record?.kind === "pose_exploration" ? example.record : null;
+  const selectedId =
+    initialExplorationId ??
+    (example?.result_requested ? preset?.value.id : undefined);
   const [sites, setSites] = useState<SiteSet[]>(
-      initialSites ? [initialSites] : [],
+      initialSites ? [initialSites] : preset ? [preset.sites] : [],
     ),
     [states, setStates] = useState<StateSet[]>([]),
     [plans, setPlans] = useState<Exploration[]>([]),
-    [siteId, setSiteId] = useState(initialSites?.id ?? ""),
-    [selected, setSelected] = useState(initialExplorationId ?? ""),
+    [siteId, setSiteId] = useState(initialSites?.id ?? preset?.sites.id ?? ""),
+    [selected, setSelected] = useState(selectedId ?? ""),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [reload, setReload] = useState(0);
@@ -38,13 +45,10 @@ export function PoseWorkspace({
       loadPages<Exploration>("/research/pose-explorations", c.signal),
     ])
       .then(async ([s, m, p]) => {
-        if (
-          initialExplorationId &&
-          !p.some((v) => v.id === initialExplorationId)
-        )
+        if (selectedId && !p.some((v) => v.id === selectedId))
           p.push(
             await request<Exploration>(
-              "/research/pose-explorations/" + initialExplorationId,
+              "/research/pose-explorations/" + selectedId,
               { signal: c.signal },
             ),
           );
@@ -61,7 +65,7 @@ export function PoseWorkspace({
         if (!c.signal.aborted) setLoading(false);
       });
     return () => c.abort();
-  }, [initialExplorationId, reload]);
+  }, [selectedId, reload]);
   const site = sites.find((s) => s.id === siteId),
     plan = plans.find((p) => p.id === selected);
   return (
@@ -106,12 +110,15 @@ export function PoseWorkspace({
           ))}
         </select>
       </label>
-      {site && !loading && (
+      {site && !loading && !plan && (
         <PoseForm
           key={site.id}
           sites={site}
           states={states}
           language={language}
+          initial={
+            preset?.sites.id === site.id ? preset.value.request : undefined
+          }
           onSaved={(p) => {
             setPlans((v) => [p, ...v.filter((old) => old.id !== p.id)]);
             setSelected(p.id);

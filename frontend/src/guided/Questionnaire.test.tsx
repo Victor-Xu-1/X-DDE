@@ -8,8 +8,38 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { useState } from "react";
-import { Questionnaire } from "./Questionnaire";
+import { GuidedSteps, Questionnaire } from "./Questionnaire";
 import type { Job } from "../types";
+
+it("opens a verified existing result without running the questionnaire or submitting again", () => {
+  const submit = vi.fn();
+  render(
+    <GuidedSteps
+      language="en"
+      steps={[
+        {
+          title: "Inputs",
+          valid: true,
+          content: <input aria-label="Protocol input" />,
+        },
+        { title: "Choices", valid: true, content: <p>Choices</p> },
+        { title: "Settings", valid: true, content: <p>Settings</p> },
+        { title: "Review", valid: true, content: <p>Review</p> },
+      ]}
+      busy={false}
+      error=""
+      ready={false}
+      submitLabel="Launch"
+      onSubmit={submit}
+      initialResult={{ id: "retained-record" }}
+      renderResult={(value) => <p>Verified result {value.id}</p>}
+    />,
+  );
+  expect(screen.getByText("Verified result retained-record")).toBeVisible();
+  expect(screen.queryByRole("textbox", { name: "Protocol input" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+  expect(submit).not.toHaveBeenCalled();
+});
 import { JsonEditor } from "../operations/ScientificInputs";
 afterEach(cleanup);
 function Form({
