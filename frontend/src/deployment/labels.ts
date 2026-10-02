@@ -1,4 +1,5 @@
 export const names: Record<string, string> = {
+  "public-examples": "公开研发案例",
   sapiens: "抗体人源参考 · Sapiens / ANARCII / Promb",
   harness: "OpenDDE Harness 客户端",
   runtime: "OpenDDE 科学代码",
