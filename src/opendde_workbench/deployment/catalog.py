@@ -8,6 +8,9 @@ from typing import Literal
 from ..diffsbdd.manifest import MODEL_URL, MODELS, SOURCE_COMMIT, SOURCE_SHA256, SOURCE_URL
 from ..docking.manifest import BINARY_SHA256, BINARY_URL
 from ..docking.manifest import VERSION as GNINA_VERSION
+from ..examples.bundle_release import SHA256 as CASE_SHA
+from ..examples.bundle_release import URL as CASE_URL
+from ..examples.bundle_release import VERSION as CASE_VERSION
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
 from ..pockets.manifest import VERSION as P2_VERSION
@@ -29,7 +32,7 @@ class Package:
     checksum: str = ""
     license: str = ""
     engine: str | None = None
-    kind: Literal["runtime", "model", "editor"] = "runtime"
+    kind: Literal["runtime", "model", "editor", "data"] = "runtime"
 
 
 PACKAGES = {
@@ -272,6 +275,21 @@ PACKAGES["p2rank"] = Package(
     checksum=P2_SHA,
     license="MIT / bundled library terms",
     engine="p2rank",
+)
+
+
+PACKAGES["public-examples"] = Package(
+    "public-examples",
+    CASE_VERSION,
+    "Public research cases",
+    "45 个模块的真实输入与结果 / Real inputs and results for 45 modules",
+    "5.5 MB",
+    automatic=True,
+    url=CASE_URL,
+    checksum=CASE_SHA,
+    license="RCSB CC0-1.0; ChEMBL CC-BY-SA-3.0; UniProt CC-BY-4.0; computed output notices",
+    engine="x-dde",
+    kind="data",
 )
 
 

@@ -1,5 +1,6 @@
 """Loopback deployment control and managed editor distribution serving."""
 
+import asyncio
 from pathlib import Path
 from uuid import UUID
 
@@ -20,6 +21,24 @@ def register_deployments(app, manager, mutation, busy):
     @app.get("/api/deployment")
     def status():
         return manager.snapshot()
+
+    @app.post("/api/deployment/compute/{action}", dependencies=[Depends(mutation)])
+    async def compute(action: str):
+        if action not in {"start", "stop"}:
+            raise HTTPException(404, "Unknown native compute action.")
+        if app.state.quiescing:
+            raise HTTPException(409, "X-DDE is already changing service state.")
+        app.state.quiescing = True
+        try:
+            if await busy():
+                raise HTTPException(
+                    409, "Finish scientific tasks before changing compute services."
+                )
+            return await asyncio.to_thread(manager.compute.invoke, action)
+        except (ValueError, OSError, RuntimeError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+        finally:
+            app.state.quiescing = False
 
     @app.post("/api/deployment/config", dependencies=[Depends(mutation)])
     def configure(value: Configuration):

@@ -74,3 +74,22 @@ scientific storage and task authority. There is no separate scientific queue or
 example file authority. Verification targets this feature, changed forms and
 their direct consumers. Global regression/scientific suites are not required
 or automatically triggered by this work.
+
+
+### 可移植真实结果 / Portable native results
+
+组件库中的「公开研发案例」下载 `examples-v1/x-dde-public-cases-v1.zip`，
+按工作台内固定 SHA-256 验证，在临时状态中检查任务、环境和原始输出，最后事务合入
+当前 X-DDE 数据库。当前数据版包含 45 个模块：44 个计算结果，以及 1 个原生校验通过、
+尚未运行模型代理的配置示例；50 次原生任务和 44 份必要资产。它包含已有任务的原始
+请求、来源、结果及可复用版本，不启动历史任务，也不下载模型。
+
+首次自动安装在编辑器之后安装此小型案例包；组件库也可以手动安装或重新安装。
+重复导入保持同一任务与资产身份；任何已有记录或文件不一致都会拒绝覆盖。
+卸载组件记录会保留研究资产和历史。数据库整体、用户项目、凭据、日志和模型权重
+不属于公开包。RCSB、ChEMBL、UniProt 来源条款分别保留；计算结果不等同实验活性。
+
+`examples/bundle_projection.py` 只沿类型化 ID 和当前修订的固定案例关系选取记录，
+不会把备注或名称中的 UUID 当作引用。`bundle_archive.py` 限制大小、数量和路径；
+`bundle_restore.py` 负责校验、冲突处理和事务恢复。新案例数据必须创建新数据版本，
+更新内容摘要；数据版与 X-DDE 软件版本独立。

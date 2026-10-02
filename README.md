@@ -267,3 +267,29 @@ target environment/remote CI; the owner machine does not run scientific jobs.
 **性质与早期安全性预测 / ADMET predictions:** 在“安装与组件”安装独立 ADMET-AI CPU 环境。从“全部能力”进入“性质与早期安全性预测”，依次选择单个研究分子或一组 SDF 候选、具体来源、结果分组，再确认提交。单个分子可复用确切版本；整组最多 50 条原始记录，文件最多 8 MiB，每分子最多 256 个非氢原子。模型始终计算 41 个原始终点，分组只改变显示。无效记录和重复项保留编号；点击结果行预览对应原始结构，并可继续复用原分子进行准备。ADMET-AI 2.0.1 / Chemprop 2.2.2 独立安装，至少留 6 GiB 暂存空间；CPU 无需 GPU。结果显示上游单位、物种、标签说明和参考指标，不提供未经验证的适用域、可靠性区间或临床判断。DrugBank 参考/百分位关闭且参考文件从镜像安装层移除。环境、模型、第三方数据的条款独立于 X-DDE Apache-2.0。真实推理与浏览器验收命令见 [server acceptance](docs/server-acceptance.md)。
 
 **抗体人源参考与框架优化 / Antibody reference and framework proposals:** 在“安装与组件”部署独立 Sapiens / ANARCII / Promb CPU 环境。从“全部能力”进入抗体模块，按四步提供完整可变域、选择常规 VH/VL 或探索性 VHH、选择只评估或保留 CDR 的框架建议、确认递交。支持最多 20 条 70–200 残基可变域，文件最多 2 MiB；完整链/scFv 先通过抗体编号模块提取域。推荐少量改动，专家可调整总修改位置、轮数和资源预算。原始序列不覆盖；真正变化的候选保存为新版本并与原始输入关联，可复用到结构预测或再次评估。模型原生残基概率与固定人类 OAS 9 肽匹配分开显示，VHH 只作人类重链参考探索。软件验收、结合保留、重轻链配对与临床免疫原性是不同结论；后者没有被本模块预测。固定依赖、模型资源和参考身份见包内 manifest；上游软件/模型/数据条款各自保留。服务器验收见 [server acceptance](docs/server-acceptance.md)。
+
+
+### Managed native compute service
+
+X-DDE owns the loopback native scientific service lifecycle. The reviewed Harness
+factory supplies Docker arguments; it remains one integrated environment among others.
+After installing Harness, runtime, compute image and a checkpoint, restart X-DDE.
+Startup creates a private `state/compute-service.json` (0600), then starts only the
+container tied to that state. Installation & components offers Start/Stop and separate
+running/resource-ready states. A stop is refused while platform or native tasks are
+active; user assets, other containers and the shared WSL/Docker daemon are preserved.
+Stopping explicitly disables automatic service start until the user starts it again.
+
+No LLM provider or API key is required for local scientific tools. Model providers
+for conversational campaigns remain a separate account configuration. Explicit
+`WB_HARNESS_*` settings can still connect an operator-managed service; X-DDE never
+starts or stops it unless it has an owned private service record. Service tokens are
+passed over private subprocess input/environment and never returned by public APIs.
+
+WSL native kernel compilation probes the actual CUDA loader in the installed image,
+then configures `LIBRARY_PATH` only in the owned service. Host networking is used only
+when the saved instance configuration selects it, and listens on 127.0.0.1; X-DDE
+never rewrites Docker networking or restarts the shared WSL distribution. Existing
+owned containers can be adopted by their exact Docker ID; arbitrary containers
+sharing a name or an owner label are not enough. If an environment revision changes,
+its service must be explicitly reconfigured rather than silently replaced.

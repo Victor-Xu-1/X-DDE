@@ -11,6 +11,7 @@ from ..engine_registry import ENGINES
 from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
 from .catalog import PACKAGES, catalogue, prerequisites
+from .compute_service import ComputeService
 from .installers import install
 from .paths import environment_root
 from .process import Paused, reap
@@ -21,11 +22,14 @@ from .storage import ACTIVE, DeployStore, managed_root
 class DeploymentManager:
     def __init__(self, state: Path):
         self.store = DeployStore(state)
+        self.compute = ComputeService(state)
         self.closing = threading.Event()
         self.mutex = threading.RLock()
         self.task = None
         self.activated = {
-            k: v for k, v in self.store.installed().items() if k not in {"ketcher", "molstar"}
+            k: v
+            for k, v in self.store.installed().items()
+            if PACKAGES.get(k) is None or PACKAGES[k].kind not in {"editor", "data"}
         }
 
     async def start(self):
@@ -41,7 +45,7 @@ class DeploymentManager:
         if not config and os.environ.get("WB_AUTO_DEPLOY") == "1":
             self.configure(str(home() / "components"), True)
             # Editors first so a large compute image never blocks the first useful screen.
-            for key in ("ketcher", "molstar", "harness", "runtime", "compute"):
+            for key in ("ketcher", "molstar", "public-examples", "harness", "runtime", "compute"):
                 self.enqueue(key, "install")
         self.task = asyncio.create_task(self.loop())
 
@@ -88,6 +92,7 @@ class DeploymentManager:
             "config": config,
             "installed": self.store.installed(),
             "operations": self.store.rows(),
+            "compute_service": self.compute.snapshot(),
             "packages": catalogue(),
             "environments": environments,
             "engines": environments,
@@ -98,7 +103,11 @@ class DeploymentManager:
             "locations": [str(home() / "components")]
             + (["/mnt/e/WSL/apps/x-dde"] if Path("/mnt/e").is_dir() else []),
             "restart_required": self.activated
-            != {k: v for k, v in self.store.installed().items() if k not in {"ketcher", "molstar"}},
+            != {
+                k: v
+                for k, v in self.store.installed().items()
+                if PACKAGES.get(k) is None or PACKAGES[k].kind not in {"editor", "data"}
+            },
         }
 
     def enqueue(self, package, action):
@@ -184,7 +193,12 @@ class DeploymentManager:
                         shutil.rmtree(directory)
                 installed.pop(key, None)
             else:
-                installed[key] = install(key, root, installed, identifier, report, checkpoint)
+                if key == "public-examples":
+                    installed[key] = install(
+                        key, root, installed, identifier, report, checkpoint, state=self.store.state
+                    )
+                else:
+                    installed[key] = install(key, root, installed, identifier, report, checkpoint)
             with self.mutex:
                 atomic_json(root / "installed.json", installed)
                 self.store.update(

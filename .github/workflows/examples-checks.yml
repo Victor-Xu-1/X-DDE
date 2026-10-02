@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/examples/**'
+      - '!src/opendde_workbench/examples/bundle*.py'
       - 'frontend/src/examples/**'
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
@@ -13,6 +14,7 @@ on:
   pull_request:
     paths:
       - 'src/opendde_workbench/examples/**'
+      - '!src/opendde_workbench/examples/bundle*.py'
       - 'frontend/src/examples/**'
       - 'tests/test_examples.py'
       - 'tests/test_example_pins.py'

@@ -1,3 +1,4 @@
+import { ComputeServicePanel } from "./ComputeServicePanel";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { DeploymentActivity } from "./DeploymentActivity";
 import { useEffect, useState } from "react";
@@ -194,6 +195,12 @@ export function DeploymentPanel({
                 : "After compute changes, pause remaining installations and run xdde restart. Editors open immediately. Installed does not imply models, GPU or Harness service are ready."}
             </p>
           )}
+          <ComputeServicePanel
+            data={data}
+            zh={zh}
+            busy={busy}
+            execute={execute}
+          />
           <ComponentLibrary
             data={data}
             zh={zh}

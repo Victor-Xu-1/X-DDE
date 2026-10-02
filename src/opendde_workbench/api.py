@@ -68,6 +68,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     async def lifespan(app: FastAPI):
         with (settings.state_dir / "worker.lock").open("w") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # Service bootstrap is isolated from LLM configuration and other environments.
+            try:
+                await asyncio.to_thread(deployments.compute.ensure)
+            except (ValueError, OSError, RuntimeError) as exc:
+                deployments.compute.cached = (
+                    time.monotonic() + 10,
+                    {"configured": True, "running": False, "ready": False, "reason": str(exc)},
+                )
             await worker.start()
             await deployments.start()
             try:

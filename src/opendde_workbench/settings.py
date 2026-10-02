@@ -69,9 +69,15 @@ class Settings:
         harness = installed.get("harness", {}).get("python")
         diff = installed.get("diffsbdd", {})
         pockets = installed.get("p2rank", {})
-        network = os.environ.get("WB_ENGINE_NETWORK", "bridge")
+        from .deployment.compute_config import prepare_connection, read_connection
+
+        connection = read_connection(state)
+        network = os.environ.get(
+            "WB_ENGINE_NETWORK", connection.network if connection else "bridge"
+        )
         if network not in {"bridge", "host"}:
             raise ValueError("WB_ENGINE_NETWORK must be bridge or host.")
+        connection = prepare_connection(state, root, installed, network) if root else connection
         tools = installed.get("opendde-tools", {}).get("directory")
         return cls(
             engine_network=network,
@@ -129,12 +135,17 @@ class Settings:
             harness_python=interpreter("WB_HARNESS_PYTHON", harness or "")
             if os.environ.get("WB_HARNESS_PYTHON") or harness
             else None,
-            harness_shared_dir=path("WB_HARNESS_SHARED_DIR", "")
-            if os.environ.get("WB_HARNESS_SHARED_DIR")
+            harness_shared_dir=path(
+                "WB_HARNESS_SHARED_DIR", connection.shared_dir if connection else ""
+            )
+            if os.environ.get("WB_HARNESS_SHARED_DIR") or connection
             else None,
-            harness_remote_dir=os.environ.get("WB_HARNESS_REMOTE_DIR") or None,
-            harness_url=os.environ.get("WB_HARNESS_URL") or None,
-            harness_token=os.environ.get("WB_HARNESS_TOKEN") or None,
+            harness_remote_dir=os.environ.get("WB_HARNESS_REMOTE_DIR")
+            or (connection.remote_dir if connection else None),
+            harness_url=os.environ.get("WB_HARNESS_URL")
+            or (connection.url if connection else None),
+            harness_token=os.environ.get("WB_HARNESS_TOKEN")
+            or (connection.token if connection else None),
             checkpoints_file=path("WB_CHECKPOINTS_FILE", "")
             if os.environ.get("WB_CHECKPOINTS_FILE")
             else None,

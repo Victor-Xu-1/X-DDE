@@ -24,9 +24,18 @@ export interface Deployment {
     size: string;
     automatic: boolean;
     engine: string | null;
-    kind: "runtime" | "model" | "editor";
+    kind: "runtime" | "model" | "editor" | "data";
     license: string;
   }[];
+  compute_service?: {
+    configured: boolean;
+    running: boolean;
+    ready: boolean;
+    automatic?: boolean;
+    active?: number;
+    queued?: number;
+    reason?: string | null;
+  };
   operations: {
     id: string;
     package: string;

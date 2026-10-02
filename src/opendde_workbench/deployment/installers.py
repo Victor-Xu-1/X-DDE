@@ -17,7 +17,7 @@ CONSTRAINTS = "https://github.com/aurekaresearch/OpenDDE-Harness/releases/downlo
 CONSTRAINTS_SHA = "2659c7b3fc403f165799f3ed9b66b2cd7d9bd2b18b6982c38a86e8f8e74b509b"
 
 
-def install(key, root, installed, operation, report, checkpoint):
+def install(key, root, installed, operation, report, checkpoint, *, state=None):
     spec = PACKAGES[key]
     work = root / "operations" / operation
     work.mkdir(parents=True, exist_ok=True)
@@ -28,7 +28,25 @@ def install(key, root, installed, operation, report, checkpoint):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "opendde-tools":
+    if key == "public-examples":
+        from ..examples.bundle import restore_bundle
+        from ..settings import Settings
+
+        if state is None:
+            raise ValueError("Public cases require the current X-DDE scientific state directory.")
+        archive = root / "downloads" / "x-dde-public-cases-v1.zip"
+        download(spec.url, archive, spec.checksum, report, checkpoint)
+        report("Verifying and restoring fixed public scientific results")
+        settings = Settings(
+            state_dir=state,
+            image_file=state / "managed-references/image",
+            code_file=state / "managed-references/code",
+            model_dir=root / "models/opendde",
+            cache_dir=state / "cache",
+        )
+        metadata.update(restore_bundle(archive, settings, spec.checksum, checkpoint))
+        metadata["bundle_sha256"] = spec.checksum
+    elif key == "opendde-tools":
         from .native_tools import install_tools
 
         metadata.update(install_tools(root, work, installed, execute, report, checkpoint))

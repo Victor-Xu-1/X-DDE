@@ -41,15 +41,19 @@ export function ComponentLibrary({
           aria-labelledby={"component-group-" + group.id}
         >
           <h3 id={"component-group-" + group.id}>
-            {group.id === "editors"
+            {group.id === "x-dde"
               ? zh
-                ? "编辑与预览工具"
-                : "Editing & inspection tools"
-              : ((data.environments ?? data.engines)[group.id]?.name ??
-                  group.id) +
-                (zh
-                  ? " · 集成环境与模型"
-                  : " · Integrated environment & models")}
+                ? "公开研发案例"
+                : "Public research examples"
+              : group.id === "editors"
+                ? zh
+                  ? "编辑与预览工具"
+                  : "Editing & inspection tools"
+                : ((data.environments ?? data.engines)[group.id]?.name ??
+                    group.id) +
+                  (zh
+                    ? " · 集成环境与模型"
+                    : " · Integrated environment & models")}
           </h3>
           <div className="component-grid">
             {group.packages.map((p) => {

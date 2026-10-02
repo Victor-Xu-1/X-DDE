@@ -1,0 +1,34 @@
+name: Case bundle and managed compute checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/examples/bundle*.py'
+      - 'src/opendde_workbench/deployment/**'
+      - 'src/opendde_workbench/settings.py'
+      - 'tests/test_case_bundle.py'
+      - 'tests/test_compute_service.py'
+      - 'frontend/src/deployment/**'
+      - '.github/workflows/case-bundle-checks.yml'
+  pull_request:
+    paths:
+      - 'src/opendde_workbench/examples/bundle*.py'
+      - 'src/opendde_workbench/deployment/**'
+      - 'src/opendde_workbench/settings.py'
+      - 'frontend/src/deployment/**'
+permissions:
+  contents: read
+jobs:
+  scoped-delivery:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - run: uv run --locked pytest -q tests/test_case_bundle.py tests/test_compute_service.py tests/test_deployment.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - working-directory: frontend
+        run: npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
