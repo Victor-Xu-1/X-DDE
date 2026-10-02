@@ -19,7 +19,16 @@ def install_system():
     env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
     for args in (
         ["apt-get", "update"],
-        ["apt-get", "install", "-y", "docker.io", "python3-venv", "ca-certificates", "git"],
+        [
+            "apt-get",
+            "install",
+            "-y",
+            "docker.io",
+            "python3-venv",
+            "ca-certificates",
+            "git",
+            "build-essential",
+        ],
         ["systemctl", "enable", "--now", "docker"],
     ):
         subprocess.run(args, check=True, timeout=900, env=env)

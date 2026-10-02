@@ -44,8 +44,10 @@ def test_tool_recipe_uses_the_interruptible_archive_and_preserves_the_license(
     monkeypatch.setattr(native_tools, "download", download)
 
     def execute(args):
-        assert args[args.index("--network") + 1] == "none"
-        if args[args.index("--entrypoint") + 1] == "make":
+        if "--network" in args:
+            assert args[args.index("--network") + 1] == "none"
+        else:
+            assert "-C" in args and "zstd-release" in args
             (work / "source/zstd-1.5.7/programs/zstd").write_bytes(b"controlled binary fixture")
 
     record = install_tools(

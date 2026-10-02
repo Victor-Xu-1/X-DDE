@@ -1,7 +1,6 @@
 """Checksum-pinned compression tooling for native template/RNA databases."""
 
 import hashlib
-import os
 import shutil
 
 from .transfers import download, extract
@@ -25,23 +24,17 @@ def install_tools(root, work, installed, execute, report, checkpoint):
         },
     )
     image = installed["compute"]["image"]
-    report("Building verified Zstandard in the existing scientific image")
+    make = shutil.which("make")
+    if not make or not shutil.which("cc"):
+        raise RuntimeError(
+            "Install the reviewed system prerequisites with xdde setup system, then retry."
+        )
+    report("Building verified Zstandard; the scientific image remains unchanged")
     execute(
         [
-            "docker",
-            "run",
-            "--rm",
-            "--network",
-            "none",
-            "--user",
-            f"{os.getuid()}:{os.getgid()}",
-            "--mount",
-            f"type=bind,source={source},target=/source",
-            "--entrypoint",
-            "make",
-            image,
+            make,
             "-C",
-            f"/source/zstd-{VERSION}/programs",
+            str(source / f"zstd-{VERSION}" / "programs"),
             "-j2",
             "zstd-release",
             "ZSTD_LEGACY_SUPPORT=0",
