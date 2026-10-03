@@ -49,3 +49,11 @@
   do not restart the shared WSL distribution without explicit permission.
 - Keep real native results distinct from public experimental references and
   runnable inputs. A download, installation or example preset is not a computed result.
+
+## Publication versions
+
+- Every publishable update pushed to main advances the three-number product counter exactly once. PATCH is 0..100 inclusive; after 100 increment MINOR and reset PATCH to 0. MINOR is 0..10 inclusive; after 0.10.100 advance to 1.0.0. Apply the same carries after 1.x.
+- Use plain numeric versions and tags, with no new rc suffix. Preserve historical tags. The migration baseline 0.4.0rc6 advances to 0.4.1; do not downgrade to 0.1.x.
+- pyproject.toml is the sole authority. Run `uv run python scripts/release-version.py bump` once per publication batch; it synchronizes frontend metadata, installer defaults and uv.lock. Fix-up commits in a candidate batch retain that batch's version.
+- Before updating main, check exactly one increment against its current full commit SHA with `uv run python scripts/release-version.py check --base SHA`. Feature-specific CI and version CI must pass, then publish the matching vMAJOR.MINOR.PATCH tag and installer release.
+- Release packaging checks versions, immutable checksums and Windows entrypoints. Scientific and frontend feature tests belong to the affected feature CI, not an automatic global release suite. Protocol, data schema and example-bundle versions remain independent.

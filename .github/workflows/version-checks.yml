@@ -1,0 +1,25 @@
+name: Publication version checks
+on:
+  push:
+    branches: [main, feat/platform-integration]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  version-policy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Verify one increment from the published main revision
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || (github.ref == 'refs/heads/main' && github.event.before) || '' }}
+        run: |
+          if [ -z "$BASE_SHA" ]; then BASE_SHA=$(git rev-parse origin/main); fi
+          uv run --locked python scripts/release-version.py check --base "$BASE_SHA"
+      - name: Test only the publication counter and manifest boundaries
+        run: uv run --locked pytest -q tests/test_versioning.py

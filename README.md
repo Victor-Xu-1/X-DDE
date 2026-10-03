@@ -20,6 +20,14 @@ X-DDE is an independent Apache-2.0 drug research platform. X-DDE owns both its f
 
 **0.4 release candidate:** guided installation, background component management, terminal start/stop, Ketcher and Mol* are available. Scientific GPU, multi-GPU, MSA/template databases, remote services and real LLM campaigns still require target-server acceptance. Installation success is not scientific readiness.
 
+## 更新编号 / Publication counter
+
+每次向主分支推送可发布更新，末位递增一次：`v0.1.99 → v0.1.100 → v0.2.0`。末位上限为 100（包含 100），中间位上限为 10（包含 10）；`v0.10.100 → v1.0.0`，之后继续使用相同进位规则。该规则由 `v0.4.0rc6` 升级至 `v0.4.1` 时引入，保留历史版本，不再新增 `rc` 编号。版本计数不改变科学验收、API 或数据迁移规则。
+
+发布前执行 `uv run python scripts/release-version.py bump`，统一更新 Python、前端、锁文件与安装器。候选批次内修正不重复递增；主分支每次发布必须通过版本递增及当前改动的专项 CI，之后创建对应版本标签。`check --base 完整SHA` 会拒绝漏增、跳号或镜像版本不一致。
+
+Each publication to main increments PATCH once (0..100); carry to MINOR (0..10), then MAJOR. Historical releases remain intact. The numeric counter is separate from compatibility contracts and scientific acceptance.
+
 ## 简单安装 / Quick installation
 
 从 [GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases) 下载 `install.ps1`（Windows）或 `install.sh`（Linux）。安装器下载带校验和的发行包，不需要编译前端，也不要求安装 Node.js。
