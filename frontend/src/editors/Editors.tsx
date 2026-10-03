@@ -1,3 +1,4 @@
+import { configureKetcherPreview } from "./ketcher-appearance";
 import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
@@ -43,6 +44,19 @@ export function Editors({
   const saveIntent = useRef(new MoleculeSaveIntent());
   const loadQueue = useRef<Promise<void>>(Promise.resolve());
   const actionRunning = useRef(false);
+  useEffect(() => {
+    if (!loaded) return;
+    const controller = new AbortController();
+    void editorReady(frame.current, controller.signal)
+      .then((editor) => {
+        if (!controller.signal.aborted) configureKetcherPreview(editor);
+      })
+      .catch((failure) => {
+        if (!controller.signal.aborted) setError(String(failure));
+      });
+    return () => controller.abort();
+  }, [loaded]);
+
   useEffect(() => {
     if (!initialObject || !loaded) return;
     const controller = new AbortController();

@@ -2,6 +2,7 @@ import { api } from "../api";
 import type { ScientificObject } from "../research/types";
 
 export interface Ketcher {
+  editor?: { setOptions(options: string): unknown };
   getSmiles(): Promise<string>;
   getMolfile(): Promise<string>;
   setMolecule(value: string): Promise<void>;
