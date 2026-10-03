@@ -102,14 +102,6 @@ export function ScoreComparisonResults({
               </tbody>
             </table>
           </div>
-          <details>
-            <summary>
-              {zh
-                ? "核对本组计算条件"
-                : "Inspect this group's computation conditions"}
-            </summary>
-            <pre>{JSON.stringify(group.conditions, null, 2)}</pre>
-          </details>
         </div>
       ))}
     </section>

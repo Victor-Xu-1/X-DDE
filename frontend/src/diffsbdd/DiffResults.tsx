@@ -6,6 +6,7 @@ import type { OperationResult } from "../operations/types";
 import { DiffForm } from "./DiffForm";
 import { CoreVerification } from "./CoreVerification";
 import { PropertyForm } from "../operations/PropertyForm";
+import { isResearchFile } from "../presentation/research-files";
 import { StructureViewer } from "../viewer/StructureViewer";
 
 export function DiffResults({
@@ -67,7 +68,9 @@ export function DiffResults({
     "report_artifact",
     "artifact",
   ].flatMap((key) =>
-    typeof data[key] === "string" ? [{ key, name: data[key] as string }] : [],
+    typeof data[key] === "string" && isResearchFile(data[key] as string)
+      ? [{ key, name: data[key] as string }]
+      : [],
   );
   const protein =
     typeof data.protein_artifact === "string" ? data.protein_artifact : null;
@@ -79,8 +82,8 @@ export function DiffResults({
     >
       <p className="notice">
         {zh
-          ? "结果保留输入版本、原生报告及计算来源。有效分子数量表示解析与生成状态，不表示实验活性或预测亲和力。"
-          : "Results retain input versions, native reports and provenance. Valid molecule counts describe parsing and generation, not experimental activity or predicted affinity."}
+          ? "生成数量不代表活性或亲和力；请继续比较性质和结合姿势。"
+          : "Generated counts do not establish activity or affinity; compare properties and binding poses next."}
       </p>
       {typeof data.valid === "number" && (
         <p>
@@ -124,7 +127,7 @@ export function DiffResults({
       {objects.length > 0 && (
         <>
           <label className="field">
-            {zh ? "筛选已登记候选" : "Filter registered candidates"}
+            {zh ? "查找候选分子" : "Find candidates"}
             <input
               type="search"
               value={query}
@@ -251,12 +254,6 @@ export function DiffResults({
           {error}
         </p>
       )}
-      <details>
-        <summary>
-          {zh ? "原生结果与来源详情" : "Native result and provenance details"}
-        </summary>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      </details>
     </section>
   );
 }

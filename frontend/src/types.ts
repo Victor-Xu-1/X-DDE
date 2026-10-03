@@ -166,7 +166,6 @@ export interface Artifact {
 }
 export interface Detail {
   id: string;
-  log: { text: string; truncated: boolean };
   artifacts: Artifact[];
 }
 export const terminal = (status: Status) =>

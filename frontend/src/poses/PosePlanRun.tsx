@@ -141,7 +141,6 @@ export function PosePlanRun({
             </li>
           ))}
         </ul>
-        <pre>{JSON.stringify(value.request.options, null, 2)}</pre>
       </details>
       {loading && (
         <p role="status">

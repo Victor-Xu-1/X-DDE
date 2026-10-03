@@ -10,6 +10,7 @@ import {
   type Prediction,
 } from "./types";
 import { OperationResults } from "./operations/OperationResults";
+import { isResearchFile } from "./presentation/research-files";
 
 interface Props {
   job: Job | null;
@@ -60,6 +61,8 @@ export function TaskDetail({
       </section>
     );
   const shown = detail?.id === job.id ? detail : null;
+  const files =
+    shown?.artifacts.filter((file) => isResearchFile(file.name)) ?? [];
   const elapsed = job.started_at
     ? Math.max(
         0,
@@ -74,7 +77,6 @@ export function TaskDetail({
     <section className="panel detail-panel" aria-label={t("selected")}>
       <div className="panel-heading">
         <div>
-          <span className="eyebrow">03 / INSPECT</span>
           <h2>{job.request.name}</h2>
         </div>
         <span className={`status ${job.status}`}>{t(job.status)}</span>
@@ -95,32 +97,10 @@ export function TaskDetail({
           </strong>
         </div>
       </div>
-      <details className="input-summary">
-        <summary>
-          {!job.request.operation || job.request.operation === "predict"
-            ? t("parameters")
-            : language === "zh"
-              ? "任务参数"
-              : "Task parameters"}
-          {"parameters" in job.request &&
-            ` · ${job.request.parameters.dtype.toUpperCase()} · ${job.request.parameters.samples} ${t("samples")}`}
-        </summary>
-        <p className="muted small">
-          {t("taskId")}: {job.id}
-        </p>
-        <pre>{JSON.stringify(job.request, null, 2)}</pre>
-      </details>
       {job.request.constraints && (
         <ConstraintReceipt key={job.id} job={job} language={language} />
       )}
       <div className="task-actions">
-        <a
-          className="secondary-button"
-          href={`/api/jobs/${job.id}/input`}
-          download
-        >
-          {t("inputJson")} ↓
-        </a>
         {terminal(job.status) ? (
           <button
             className="secondary-button"
@@ -166,7 +146,7 @@ export function TaskDetail({
       )}
       <div className="section-heading">
         <h3>{t("results")}</h3>
-        <span className="count">{shown?.artifacts.length ?? 0}</span>
+        <span className="count">{files.length}</span>
       </div>
       {job.status === "succeeded" &&
         job.request.operation &&
@@ -180,8 +160,8 @@ export function TaskDetail({
           />
         )}
       <div className="artifacts">
-        {shown?.artifacts.length ? (
-          shown.artifacts.map((file) => (
+        {files.length ? (
+          files.map((file) => (
             <a key={file.name} href={artifactUrl(job.id, file.name)} download>
               <span className="file-icon">
                 {file.name.split(".").pop()?.toUpperCase()}
@@ -192,19 +172,13 @@ export function TaskDetail({
             </a>
           ))
         ) : (
-          <p className="muted small">{t("noResults")}</p>
+          <p className="muted small">
+            {language === "zh"
+              ? "暂无可下载的结构或表格文件。"
+              : "No structure or table files to download yet."}
+          </p>
         )}
       </div>
-      <div className="section-heading log-heading">
-        <h3>{t("logs")}</h3>
-        {job.status === "running" && (
-          <span className="live-dot" aria-label={t("running")} />
-        )}
-      </div>
-      {shown?.log.truncated && <p className="muted small">{t("logTail")}</p>}
-      <pre className="terminal" tabIndex={0} aria-label={t("logs")}>
-        {shown?.log.text || t("noLogs")}
-      </pre>
     </section>
   );
 }

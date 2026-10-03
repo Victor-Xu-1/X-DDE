@@ -146,9 +146,6 @@ export function AntibodyNumberResults({
             <p>
               {zh ? "编号内部值" : "Internal numbering score"}: {domain.score}
             </p>
-            <a href={artifactUrl(job.id, "result.json")} download>
-              {zh ? "下载完整证据" : "Download full evidence"}
-            </a>
           </details>
         </>
       ) : (

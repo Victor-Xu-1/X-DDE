@@ -31,6 +31,7 @@ import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
+import { isResearchField } from "../presentation/research-files";
 
 const labels: Record<string, string> = {
   available: "是否可用",
@@ -371,7 +372,7 @@ export function ResultTree({
   if (value == null) return <span>—</span>;
   if (typeof value !== "object")
     return <span className="result-value">{String(value)}</span>;
-  if (depth > 4) return <pre>{JSON.stringify(value, null, 2)}</pre>;
+  if (depth > 4) return null;
   if (Array.isArray(value))
     return (
       <div>
@@ -391,14 +392,16 @@ export function ResultTree({
     );
   return (
     <dl className="result-tree">
-      {Object.entries(value).map(([key, entry]) => (
-        <div key={key}>
-          <dt title={key}>{zh ? (labels[key] ?? key) : key}</dt>
-          <dd>
-            <ResultTree value={entry} zh={zh} depth={depth + 1} />
-          </dd>
-        </div>
-      ))}
+      {Object.entries(value)
+        .filter(([key]) => isResearchField(key))
+        .map(([key, entry]) => (
+          <div key={key}>
+            <dt title={key}>{zh ? (labels[key] ?? key) : key}</dt>
+            <dd>
+              <ResultTree value={entry} zh={zh} depth={depth + 1} />
+            </dd>
+          </div>
+        ))}
     </dl>
   );
 }

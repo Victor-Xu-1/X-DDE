@@ -78,16 +78,6 @@ export function QualityResults({
           ? "先复核输入和三维姿势，必要时另建准备、对接或优化任务。原始分子保持原样。未能计算需查看原生诊断，不能自动视为合格；质控不是活性或亲和力预测。"
           : "Review inputs and coordinates, then create a separate preparation, docking or refinement task if needed. Original molecules remain unchanged. Missing checks need native diagnostic review and never qualify automatically. This is not activity or affinity prediction."}
       </Hint>
-      <details>
-        <summary>
-          {zh ? "完整证据与原生诊断" : "Full evidence and native diagnostics"}
-        </summary>
-        <p>PoseBusters 0.6.5 · {result.options.profile}</p>
-        <a href={artifactUrl(job.id, "result.json")} download>
-          {zh ? "下载质控报告" : "Download quality report"}
-        </a>
-        <pre>{JSON.stringify(result.metrics, null, 2)}</pre>
-      </details>
     </section>
   );
 }

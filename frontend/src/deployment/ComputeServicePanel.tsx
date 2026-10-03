@@ -17,11 +17,11 @@ export function ComputeServicePanel({
   const working = (service.active ?? 0) + (service.queued ?? 0) > 0;
   return (
     <section
-      className="setup-card"
+      className="setup-card compute-service-panel"
       aria-label={zh ? "原生计算服务" : "Native compute service"}
     >
       <div className="section-heading">
-        <h2>{zh ? "本地科学计算" : "Local scientific compute"}</h2>
+        <h2>{zh ? "计算服务" : "Compute service"}</h2>
         <span
           className={service.ready ? "status-pill installed" : "status-pill"}
         >
@@ -38,11 +38,6 @@ export function ComputeServicePanel({
                 : "Stopped"}
         </span>
       </div>
-      <p className="field-help">
-        {zh
-          ? "原生科学计算使用本地模型。对话代理的模型服务在账户设置中另外配置。"
-          : "Native scientific tools use local models. Configure the conversational agent provider separately in account settings."}
-      </p>
       {service.reason && <p className="field-help">{service.reason}</p>}
       <div className="component-actions">
         <button

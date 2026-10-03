@@ -72,10 +72,6 @@ export const api = {
   },
   jobs: (signal?: AbortSignal) => request<Job[]>("/jobs", { signal }),
   health: (signal?: AbortSignal) => request<Health>("/health", { signal }),
-  logs: (id: string, signal?: AbortSignal) =>
-    request<{ text: string; truncated: boolean }>(`/jobs/${id}/logs`, {
-      signal,
-    }),
   artifacts: (id: string, signal?: AbortSignal) =>
     request<Artifact[]>(`/jobs/${id}/artifacts`, { signal }),
   analysis: (id: string, signal?: AbortSignal) =>

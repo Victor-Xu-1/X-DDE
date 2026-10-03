@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { Language } from "../types";
 import { ComponentLibrary } from "./ComponentLibrary";
-import { ComponentSettings } from "./ComponentSettings";
+import { InstallLocation } from "./InstallLocation";
+import { ComputeServicePanel } from "./ComputeServicePanel";
 import { DeploymentActivity } from "./DeploymentActivity";
-import { TerminalCommands } from "./TerminalCommands";
 import { linuxLocation, type Deployment } from "./client";
 import { installComponents } from "./installation";
 import "./deployment.css";
@@ -15,27 +15,27 @@ export function DeploymentPanel({
   error,
   refresh,
   language,
-  onEditors,
 }: {
   data: Deployment | null;
   error: string;
   refresh(): void;
   language: Language;
-  onEditors(): void;
 }) {
   const zh = language === "zh";
   const [location, setLocation] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [saved, setSaved] = useState(false);
+  const initialized = useRef(false);
   const inFlight = useRef(false);
   useEffect(() => {
-    if (data)
+    if (data && !initialized.current) {
+      initialized.current = true;
       setLocation(
-        (previous) =>
-          previous ||
-          data.config.root?.replace(/\/(?:x-dde|opendde)-managed$/, "") ||
+        data.config.root?.replace(/\/(?:x-dde|opendde)-managed$/, "") ||
           data.default_location,
       );
+    }
   }, [data]);
   async function execute(action: () => Promise<unknown>) {
     if (inFlight.current) return;
@@ -57,6 +57,7 @@ export function DeploymentPanel({
       location: linuxLocation(location),
       automatic: true,
     });
+    setSaved(true);
   }
   return (
     <section className="deployment-workspace">
@@ -85,23 +86,28 @@ export function DeploymentPanel({
         </p>
       ) : (
         <>
-          <ComponentSettings
+          <InstallLocation
             data={data}
             zh={zh}
             location={location}
-            setLocation={setLocation}
+            onChange={(value) => {
+              setSaved(false);
+              setLocation(value);
+            }}
             busy={busy}
-            execute={execute}
-            save={save}
-            onEditors={onEditors}
+            onSave={() => void execute(save)}
           />
-          {data.restart_required && (
-            <p className="notice">
-              {zh
-                ? "组件已变更；空闲时执行 xdde restart 应用配置。安装状态与计算就绪状态分别显示。"
-                : "Components changed. Run xdde restart when idle to apply configuration; installation and compute readiness are separate."}
+          {saved && (
+            <p className="field-help" role="status">
+              {zh ? "安装目录已确认。" : "Install location confirmed."}
             </p>
           )}
+          <ComputeServicePanel
+            data={data}
+            zh={zh}
+            busy={busy}
+            execute={execute}
+          />
           <ComponentLibrary
             data={data}
             zh={zh}
@@ -117,7 +123,6 @@ export function DeploymentPanel({
             busy={busy}
             execute={execute}
           />
-          <TerminalCommands zh={zh} />
         </>
       )}
     </section>

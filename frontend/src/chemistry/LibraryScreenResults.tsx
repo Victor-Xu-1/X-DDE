@@ -162,9 +162,6 @@ export function LibraryScreenResults({
             ? "完整来源与未选中记录"
             : "Full provenance and unselected records"}
         </summary>
-        <a href={artifactUrl(job.id, "result.json")} download>
-          {zh ? "下载完整结果" : "Download full report"}
-        </a>
       </details>
     </div>
   );

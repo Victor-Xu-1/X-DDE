@@ -3,7 +3,6 @@ import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import type { DesignMode } from "./types";
 import { compatibleModels, optionsFor } from "./model";
-import { optionSchema } from "./generated";
 export function DesignOptions({
   mode,
   value,
@@ -93,14 +92,6 @@ export function DesignOptions({
             value={value}
             onChange={onChange}
           />
-          <details>
-            <summary>
-              {zh
-                ? "参数定义、范围与默认值"
-                : "Parameter definitions, bounds and defaults"}
-            </summary>
-            <pre>{JSON.stringify(optionSchema, null, 2)}</pre>
-          </details>
         </>
       )}
       <button type="button" onClick={() => onChange(optionsFor(mode))}>

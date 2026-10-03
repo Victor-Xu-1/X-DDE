@@ -246,19 +246,12 @@ export function DockingResults({
       {assets.error && <p role="alert">{assets.error}</p>}
       {message && <p role="status">{message}</p>}
       <details>
-        <summary>
-          {zh
-            ? "方法、来源与原始文件"
-            : "Method, provenance and original files"}
-        </summary>
+        <summary>{zh ? "完整姿势集" : "Complete pose set"}</summary>
         <p>
           {zh
-            ? "科学基准：待服务器验证；保存受体与分子版本、搜索范围、预算、种子、原生软件和解析器来源。"
-            : "Scientific benchmark: pending target-server validation. Receptor/molecule versions, search region, budget, seed and native/parser provenance are retained."}
+            ? "同一任务的全部候选姿势，可用于进一步筛选和比较。"
+            : "All candidate poses from this task, available for further selection and comparison."}
         </p>
-        <a href={artifactUrl(job.id, "result.json")} download>
-          {zh ? "完整结果与来源" : "Complete result and provenance"}
-        </a>{" "}
         <a href={artifactUrl(job.id, result.pose_artifact)} download>
           {zh ? "完整姿势集" : "Complete pose set"}
         </a>

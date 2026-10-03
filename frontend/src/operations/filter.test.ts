@@ -16,7 +16,7 @@ it("uses overlapping actual memberships and includes shared tools for every moda
   }
   for (const modality of ["rna", "dna", "peptide", "small_molecule"] as const) {
     expect(ids(modality)).toEqual(
-      expect.arrayContaining(["predict", "import", "resources", "workflows"]),
+      expect.arrayContaining(["predict", "import", "workflows"]),
     );
   }
   expect(ids("rna")).toContain("features");
@@ -26,6 +26,8 @@ it("uses overlapping actual memberships and includes shared tools for every moda
 
 it("keeps one canonical entry per capability even with overlapping memberships", () => {
   const all = filterCapabilities("all");
-  expect(all).toHaveLength(tools.length);
+  expect(all).toHaveLength(tools.filter((t) => t.group !== "system").length);
+  expect(ids("all")).not.toContain("resources");
+  expect(tools.find((t) => t.id === "resources")).toBeDefined();
   expect(new Set(all.map((tool) => tool.id)).size).toBe(all.length);
 });

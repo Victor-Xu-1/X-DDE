@@ -88,10 +88,7 @@ export function PropertyForm({
         />
       )}
       {bound && (
-        <p
-          className="field-help"
-          title={`Version: ${scientificInput!.version_id ?? "file"}; SHA256: ${scientificInput!.sha256}`}
-        >
+        <p className="field-help">
           {zh
             ? `已复用第${scientificInput!.record + 1}个分子记录，仅计算此记录。`
             : `Reusing molecule record ${scientificInput!.record + 1}; only this record is calculated.`}

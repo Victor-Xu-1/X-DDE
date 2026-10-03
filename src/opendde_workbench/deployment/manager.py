@@ -57,7 +57,7 @@ class DeploymentManager:
     def configure(self, location: str, automatic: bool):
         with self.mutex:
             config = self.store.config()
-            root = managed_root(location)
+            root = managed_root(location, create=False)
             if (
                 config
                 and config["root"] != str(root)
@@ -70,6 +70,7 @@ class DeploymentManager:
                     "Uninstall components and cancel queued installs before changing location. "
                     "Models and results are retained at the old location."
                 )
+            root = managed_root(location)
             atomic_json(
                 self.store.state / "deployment.json", {"root": str(root), "automatic": automatic}
             )
@@ -102,6 +103,8 @@ class DeploymentManager:
             "default_location": str(home() / "components"),
             "locations": [str(home() / "components")]
             + (["/mnt/e/WSL/apps/x-dde"] if Path("/mnt/e").is_dir() else []),
+            "location_locked": bool(self.store.installed())
+            or any(r["state"] in ACTIVE | {"paused"} for r in self.store.rows()),
             "restart_required": self.activated
             != {
                 k: v

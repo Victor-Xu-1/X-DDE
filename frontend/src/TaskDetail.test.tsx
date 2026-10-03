@@ -30,21 +30,29 @@ it("shows an honest empty state", () => {
   );
   expect(screen.getByText("Select a task to inspect")).toBeVisible();
 });
-it("preserves raw logs as text and builds a contained download URL", () => {
+it("shows scientific downloads without internal engineering files", () => {
   render(
     <TaskDetail
       job={job}
       detail={{
         id: "abc",
-        log: { text: "<script>alert(1)</script>", truncated: false },
-        artifacts: [{ name: "result/a b.cif", size: 100 }],
+        artifacts: [
+          { name: "result/a b.cif", size: 100 },
+          { name: "manifest.json", size: 100 },
+          { name: "stdout.log", size: 100 },
+          { name: "runtime-lock.csv", size: 100 },
+        ],
       }}
       failed={false}
       language="en"
       onChange={vi.fn()}
     />,
   );
-  expect(screen.getByText("<script>alert(1)</script>")).toBeVisible();
+  expect(
+    screen.queryByText(/manifest.json|stdout.log|runtime-lock.csv/),
+  ).toBeNull();
+  expect(screen.queryByRole("heading", { name: /Logs|输入摘要/ })).toBeNull();
+  expect(screen.queryByRole("link", { name: /Input JSON/ })).toBeNull();
   expect(document.querySelector("script")).toBeNull();
   expect(screen.getByRole("link", { name: /result\/a b.cif/ })).toHaveAttribute(
     "href",
@@ -57,7 +65,6 @@ it("never shows artifacts belonging to the previous selection", () => {
       job={job}
       detail={{
         id: "other",
-        log: { text: "stale text", truncated: false },
         artifacts: [{ name: "wrong.cif", size: 100 }],
       }}
       failed={true}

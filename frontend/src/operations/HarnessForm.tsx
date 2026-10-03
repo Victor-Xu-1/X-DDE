@@ -37,7 +37,6 @@ export function HarnessForm({
       required_settings: string[];
     } | null>(null),
     [setupError, setSetupError] = useState(""),
-    [schema, setSchema] = useState<unknown>(null),
     [name, setName] = useState(""),
     run = useTaskSubmit(onCreated);
   const needsExternal = [
@@ -57,16 +56,6 @@ export function HarnessForm({
       });
     return () => c.abort();
   }, []);
-  async function loadSchema() {
-    try {
-      const data = await request<{ tools: Record<string, unknown> }>(
-        "/harness/schemas",
-      );
-      setSchema(data.tools[tool]);
-    } catch (e) {
-      setSetupError(String(e));
-    }
-  }
   function normalize() {
     const result = structuredClone(payload);
     if (tool === "esm")
@@ -156,19 +145,6 @@ export function HarnessForm({
         onChange={setPayload}
         label={zh ? "完整原生科学参数" : "Full native scientific parameters"}
       />
-      <button type="button" onClick={() => void loadSchema()}>
-        {zh
-          ? "查看当前 Harness 的参数定义"
-          : "Inspect the installed Harness schema"}
-      </button>
-      {schema != null && (
-        <details>
-          <summary>
-            {zh ? "原生字段与默认值" : "Native fields and defaults"}
-          </summary>
-          <pre>{JSON.stringify(schema, null, 2)}</pre>
-        </details>
-      )}
     </>
   ) : tool === "fold" ? (
     <FoldInputs value={payload} onChange={setPayload} language={language} />

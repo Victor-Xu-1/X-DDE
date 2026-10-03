@@ -30,7 +30,6 @@ function panel(
       error=""
       refresh={refresh}
       language={language}
-      onEditors={vi.fn()}
     />,
   );
 }
@@ -70,8 +69,10 @@ it("saves location before scheduling the selected viewer bundle", async () => {
   fresh(data);
   const post = vi.spyOn(api, "post").mockResolvedValue({});
   panel();
-  fireEvent.click(screen.getByText("安装位置与运行服务"));
-  fireEvent.change(screen.getByLabelText("安装位置"), {
+  fireEvent.change(screen.getByLabelText("选择安装目录"), {
+    target: { value: "custom" },
+  });
+  fireEvent.change(screen.getByLabelText("自定义安装目录"), {
     target: { value: "E:\\OpenDDE" },
   });
   fireEvent.click(screen.getByRole("button", { name: "部署推荐组合" }));
@@ -100,7 +101,7 @@ it("explains location failures without creating an installation", async () => {
   );
   expect(post).toHaveBeenCalledTimes(1);
 });
-it("installed status cannot trigger reinstall and configuration is folded", () => {
+it("installed status cannot trigger reinstall and location is visible", () => {
   const post = vi.spyOn(api, "post").mockResolvedValue({});
   panel({
     ...data,
@@ -114,7 +115,9 @@ it("installed status cannot trigger reinstall and configuration is folded", () =
   });
   expect(screen.getByRole("button", { name: "组合已安装" })).toBeDisabled();
   expect(screen.queryByRole("button", { name: "重新安装" })).toBeNull();
-  expect(screen.getByLabelText("安装位置")).not.toBeVisible();
+  expect(screen.getByLabelText("选择安装目录")).toBeVisible();
+  expect(screen.queryByText("安装历史")).toBeNull();
+  expect(screen.queryByText("终端命令")).toBeNull();
   expect(post).not.toHaveBeenCalled();
 });
 it("group filters retain native model choices and fallback components", () => {
@@ -188,11 +191,10 @@ it("installs DiffSBDD independently without an OpenDDE request", async () => {
 it("saves an existing managed location base without nesting it", async () => {
   const post = vi.spyOn(api, "post").mockResolvedValue({});
   panel({ ...data, config: { root: "/srv/components/x-dde-managed" } }, "en");
-  fireEvent.click(screen.getByText("Location & compute service"));
-  expect(screen.getByLabelText("Installation location")).toHaveValue(
+  expect(screen.getByLabelText("Choose install location")).toHaveValue(
     "/srv/components",
   );
-  fireEvent.click(screen.getByRole("button", { name: "Save location" }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirm location" }));
   await waitFor(() => expect(post).toHaveBeenCalledOnce());
   expect(post.mock.calls[0][1]).toMatchObject({ location: "/srv/components" });
 });
@@ -219,4 +221,32 @@ it("guards double clicks and refreshes partial failed bundles", async () => {
   );
   expect(post).toHaveBeenCalledTimes(3);
   expect(refresh).toHaveBeenCalledOnce();
+});
+
+it("keeps an empty custom-location draft across polling and protects installed environments", async () => {
+  const post = vi.spyOn(api, "post").mockResolvedValue({});
+  const snapshot = {
+    ...data,
+    config: { root: "/srv/current/x-dde-managed" },
+    installed: { ketcher: { version: "1" } },
+  };
+  const props = {
+    data: snapshot,
+    error: "",
+    refresh: vi.fn(),
+    language: "zh" as const,
+  };
+  const { rerender } = render(<DeploymentPanel {...props} />);
+  fireEvent.change(screen.getByLabelText("选择安装目录"), {
+    target: { value: "custom" },
+  });
+  expect(screen.getByLabelText("自定义安装目录")).toHaveValue("");
+  rerender(<DeploymentPanel {...props} data={{ ...snapshot }} />);
+  expect(screen.getByLabelText("自定义安装目录")).toHaveValue("");
+  fireEvent.change(screen.getByLabelText("自定义安装目录"), {
+    target: { value: "E:\\WSL\\apps\\new-location" },
+  });
+  expect(screen.getByRole("button", { name: "保存目录" })).toBeDisabled();
+  expect(screen.getByText(/现有文件保持原位/)).toBeVisible();
+  expect(post).not.toHaveBeenCalled();
 });

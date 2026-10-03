@@ -179,7 +179,7 @@ export function SiteResults({
             </tbody>
           </table>
         </div>
-        <pre>{JSON.stringify(value.request.options, null, 2)}</pre>
+
         {value.sites.map((s) => (
           <p key={s.id}>
             {s.id} · {zh ? "残基映射覆盖" : "Residue mapping coverage"}{" "}

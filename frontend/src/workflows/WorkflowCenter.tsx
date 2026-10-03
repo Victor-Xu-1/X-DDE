@@ -341,15 +341,7 @@ export function WorkflowCenter({
               </li>
             ))}
           </ol>
-          <details>
-            <summary>
-              {zh
-                ? "查看不可变计划与校验摘要"
-                : "Inspect immutable plan and digest"}
-            </summary>
-            <pre>{JSON.stringify(selected.body, null, 2)}</pre>
-            <p>{selected.sha256}</p>
-          </details>
+
           {hasExternalCalls(selected.body) && (
             <label>
               <input

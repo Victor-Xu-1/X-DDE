@@ -1,0 +1,54 @@
+name: User interface checks
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'frontend/src/presentation/**'
+      - 'frontend/src/TaskDetail*'
+      - 'frontend/src/useWorkbench*'
+      - 'frontend/src/studio/RuntimeStatus*'
+      - 'frontend/src/operations/filter*'
+      - '.github/workflows/user-interface-checks.yml'
+  pull_request:
+    paths:
+      - 'frontend/src/presentation/**'
+      - 'frontend/src/TaskDetail*'
+      - 'frontend/src/useWorkbench*'
+      - 'frontend/src/studio/RuntimeStatus*'
+      - 'frontend/src/operations/filter*'
+      - '.github/workflows/user-interface-checks.yml'
+  workflow_dispatch:
+jobs:
+  presentation:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked frontend dependencies and build
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+      - name: Check changed presentation and direct user-page consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run
+          src/presentation/research-files.test.tsx
+          src/presentation/research-graph.test.ts
+          src/research/ResearchWorkspace.test.tsx
+          src/TaskDetail.test.tsx
+          src/useWorkbench.test.ts
+          src/App.test.tsx
+          src/studio/RuntimeStatus.test.tsx
+          src/studio/HomeWorkspace.test.tsx
+          src/operations/ToolCenter.test.tsx
+          src/operations/filter.test.ts
+          src/operations/ToolQuestionnaires.test.tsx
+          src/admet/AdmetResults.test.tsx
+          src/quality/tests/QualityResults.test.tsx
+          src/antibodies/AntibodyNumberResults.test.tsx
+          src/chemistry/LibraryScreenResults.test.tsx
+          src/chemistry/StateResults.test.tsx
+          src/humanization/HumanizationResults.test.tsx
+          src/docking/DockingResults.test.tsx

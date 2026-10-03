@@ -383,9 +383,6 @@ export function TargetResearchResults({
           )}
         </details>
       )}
-      <a href={artifactUrl(job.id, "result.json")} download>
-        {zh ? "下载完整证据与来源记录" : "Download evidence and provenance"}
-      </a>
     </div>
   );
 }

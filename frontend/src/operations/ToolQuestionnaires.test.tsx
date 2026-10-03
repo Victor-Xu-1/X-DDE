@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { HarnessForm } from "./HarnessForm";
 import { FeatureForm } from "./FeatureForm";
-import { ResourceForm } from "./ResourceForm";
 import { ImportForm } from "./ImportForm";
 import * as client from "../api";
 import { defaults } from "../form-model";
@@ -90,29 +89,6 @@ it("limits guided MSA inputs to supported sequence kinds and requires service co
       use_rna_msa: false,
       search_cpus: 4,
     },
-  });
-});
-it("doctor mode excludes retained resource/download choices from the real request", async () => {
-  boundary();
-  const user = userEvent.setup(),
-    submit = vi
-      .spyOn(client.api, "submit")
-      .mockResolvedValue({ id: "doctor" } as Job);
-  render(<ResourceForm language="en" health={null} onCreated={vi.fn()} />);
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "What should be done?" }),
-    "doctor",
-  );
-  for (let i = 0; i < 3; i++)
-    await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(submit).not.toHaveBeenCalled();
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Run doctor" })).toBeEnabled(),
-  );
-  await user.click(screen.getByRole("button", { name: "Run doctor" }));
-  expect(submit.mock.calls[0][0]).toEqual({
-    operation: "doctor",
-    name: "Environment diagnostics",
   });
 });
 it("changing an imported source clears stale predictions and a reviewed batch returns actual jobs", async () => {

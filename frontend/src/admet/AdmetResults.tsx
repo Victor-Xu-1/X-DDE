@@ -134,21 +134,6 @@ export function AdmetResults({
           )}
         </div>
       </div>
-      <details>
-        <summary>
-          {zh ? "模型与完整记录" : "Model and complete records"}
-        </summary>
-        <p>ADMET-AI 2.0.1 · Chemprop 2.2.2 · {result.source_name}</p>
-        <p>
-          {zh
-            ? "使用原始分子记录；预览是原始字节的诊断复制，不生成新分子。"
-            : "Uses original records; preview copies preserve source bytes and do not generate new molecules."}
-        </p>
-        <a href={artifactUrl(job.id, "result.json")} download>
-          {zh ? "下载完整报告" : "Download full report"}
-        </a>
-        <pre>{JSON.stringify(result.versions, null, 2)}</pre>
-      </details>
     </section>
   );
 }

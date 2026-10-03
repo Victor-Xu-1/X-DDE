@@ -225,15 +225,7 @@ export function PoseResults({
           )}
         </>
       )}
-      {outcome.job_id && outcome.status === "succeeded" && (
-        <a href={artifactUrl(outcome.job_id, "result.json")} download>
-          {zh ? "此组合原始报告" : "Original report for this combination"}
-        </a>
-      )}
-      <details>
-        <summary>{zh ? "来源与初始化" : "Source and initialization"}</summary>
-        <pre>{JSON.stringify(combination, null, 2)}</pre>
-      </details>
+
       {message && <p role="status">{message}</p>}
     </section>
   );

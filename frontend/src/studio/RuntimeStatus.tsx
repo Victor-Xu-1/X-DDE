@@ -70,34 +70,12 @@ export function RuntimeStatus({
                     ? "平台服务未就绪"
                     : "Platform service unavailable"}
           </span>
-          <p>
-            {zh
-              ? "任务队列、科学资产版本、来源关系与软件部署由同一个服务管理。某个集成环境缺失，只影响依赖该环境的任务。"
-              : "One service owns the task queue, scientific asset versions, provenance and deployment. Missing integrated environments affect only tasks that require them."}
-          </p>
-          {health?.worker_error && <p role="alert">{health.worker_error}</p>}
-          {health?.provisioners?.opendde && (
-            <details>
-              <summary>
-                {zh ? "环境准备工具与来源" : "Environment preparation tools"}
-              </summary>
-              <p>
-                OpenDDE · {zh ? "环境配置接口" : "Provisioning interface"} ·{" "}
-                {health.provisioners.opendde.ready
-                  ? zh
-                    ? "客户端已配置"
-                    : "Client configured"
-                  : zh
-                    ? "客户端待配置"
-                    : "Client not configured"}
-              </p>
-              <p>{health.provisioners.opendde.implementation}</p>
-              <p>
-                {zh
-                  ? "仅处理其支持的新环境准备；科学任务调用已准备环境中的真实程序，平台服务和其他可用环境独立检查。"
-                  : "Prepares supported components only. Scientific tasks use real programs in prepared environments; platform and other environment readiness are independent."}
-              </p>
-            </details>
+          {health?.worker_error && (
+            <p role="alert">
+              {zh
+                ? "任务服务暂不可用，请检查安装状态。"
+                : "Task service unavailable; check installation status."}
+            </p>
           )}
 
           <button className="secondary-button" onClick={onSetup}>
@@ -144,14 +122,12 @@ export function RuntimeStatus({
                       : "Environment unavailable"}
               </span>
               {connected && !engine.ready && (
-                <p>
+                <p className="field-help">
                   {zh
-                    ? "打开集成环境管理，检查当前环境的依赖、模型与服务配置；修改后重启工作台。"
-                    : "Open integrated environment management to check dependencies, models and services; restart after configuration changes."}
+                    ? "在安装与组件中完成配置。"
+                    : "Complete setup in Installation & components."}
                 </p>
               )}
-              {engine.reason && <p role="alert">{engine.reason}</p>}
-              {engine.gpu && <p>GPU · {engine.gpu.split(",")[0]}</p>}
               {modelFiles.length > 0 && (
                 <p
                   title={
@@ -184,18 +160,8 @@ export function RuntimeStatus({
           <p>
             {health?.free_disk_gib ?? "—"} GiB {zh ? "可用" : "free"}
           </p>
-          <p>
-            {zh
-              ? "结构、分子和结果统一登记为可复用资产；编辑保留原版本。外部原生结果保留其真实来源。"
-              : "Structures, molecules and results become reusable assets. Edits preserve prior versions; native results retain their provenance."}
-          </p>
         </article>
       </div>
-      <p className="field-help">
-        {zh
-          ? "环境检查通过表示运行配置已通过检查；模型、GPU、远程服务与科学准确性仍按所选任务分别验收。"
-          : "Runtime checks establish configuration only. Models, GPUs, remote services and scientific validity require task-specific acceptance."}
-      </p>
     </section>
   );
 }

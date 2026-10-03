@@ -273,7 +273,7 @@ export function HomeWorkspace(p: Props) {
       {showResults && p.job && (
         <details className="execution-detail">
           <summary>
-            {zh ? "任务详情与运行日志" : "Task details and execution log"}{" "}
+            {zh ? "任务结果与文件" : "Task results and files"}{" "}
             <span className={"status " + p.job.status}>{t(p.job.status)}</span>
           </summary>
           <TaskDetail

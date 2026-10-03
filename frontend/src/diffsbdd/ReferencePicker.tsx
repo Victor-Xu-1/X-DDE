@@ -180,7 +180,7 @@ export function ReferencePicker({
         </label>
       )}
       {value && (
-        <small title={`SHA256: ${value.sha256}`}>
+        <small>
           {zh
             ? "已绑定具体文件和记录；更改输入会清除旧选择。"
             : "Bound to the exact file and record. Changing input clears prior selections."}

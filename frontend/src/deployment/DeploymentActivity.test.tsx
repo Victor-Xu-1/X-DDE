@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DeploymentActivity } from "./DeploymentActivity";
 import type { Deployment } from "./client";
@@ -26,26 +26,28 @@ describe("complete installation activity", () => {
   });
 });
 
-it("folds completed history without discarding any operations", () => {
+it("removes completed installation history and log controls from the user interface", () => {
   const data = deploymentFixture([], {
-    operations: Array.from({ length: 30 }, (_, i) => ({
-      id: String(i),
-      package: `done-${i}`,
-      state: "succeeded",
-      stage: "Done",
-      action: "install",
-      error: null,
-    })),
+    operations: [
+      {
+        id: "completed",
+        package: "ketcher",
+        state: "succeeded",
+        stage: "Done",
+        action: "install",
+        error: null,
+      },
+    ],
   });
-  render(<DeploymentActivity data={data} zh busy={false} execute={vi.fn()} />);
-  expect(screen.getByText("done-29")).not.toBeVisible();
-  expect(screen.queryByRole("heading", { name: /安装进度/ })).toBeNull();
-  fireEvent.click(screen.getByText("安装历史"));
-  expect(screen.getByText("done-29")).toBeVisible();
-  expect(screen.getAllByRole("button", { name: "日志" })).toHaveLength(30);
+  const { container } = render(
+    <DeploymentActivity data={data} zh busy={false} execute={vi.fn()} />,
+  );
+  expect(container).toBeEmptyDOMElement();
+  expect(screen.queryByText("安装历史")).toBeNull();
+  expect(screen.queryByRole("button", { name: "日志" })).toBeNull();
 });
 
-it("keeps paused and unresolved latest failures visible while folding superseded failures", () => {
+it("keeps paused and unresolved latest failures visible without displaying superseded failures", () => {
   const operation = (
     id: string,
     component: string,
@@ -69,12 +71,9 @@ it("keeps paused and unresolved latest failures visible while folding superseded
   });
   render(<DeploymentActivity data={data} zh busy={false} execute={vi.fn()} />);
   expect(screen.getByText("Unresolved failure")).toBeVisible();
-  expect(screen.getByText("Superseded failure")).not.toBeVisible();
+  expect(screen.queryByText("Superseded failure")).toBeNull();
   const retries = screen.getAllByRole("button", { name: "继续 / 重试" });
-  expect(retries).toHaveLength(3);
+  expect(retries).toHaveLength(2);
   expect(retries[0]).toBeVisible();
   expect(retries[1]).toBeVisible();
-  expect(retries[2]).not.toBeVisible();
-  fireEvent.click(screen.getByText("安装历史"));
-  expect(screen.getByText("Superseded failure")).toBeVisible();
 });

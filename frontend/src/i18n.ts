@@ -124,10 +124,7 @@ export const messages = {
   freeDisk: ["可用磁盘", "Free disk"],
   taskId: ["任务 ID", "Task ID"],
   version: ["版本", "Version"],
-  footer: [
-    "药物研究平台 · X-DDE 服务端统一管理任务、资产与集成环境",
-    "Drug research platform · X-DDE server manages tasks, assets and integrated environments",
-  ],
+  footer: ["药物研究平台", "Drug research platform"],
 } as const;
 
 export type MessageKey = keyof typeof messages;

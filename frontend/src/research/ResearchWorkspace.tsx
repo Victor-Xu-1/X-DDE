@@ -9,6 +9,8 @@ import { objectLabels, type ObjectKind, type ScientificObject } from "./types";
 import "./research.css";
 import { ObjectInspector } from "./ObjectInspector";
 import { useResearchGraph } from "./useResearchGraph";
+import { researchGraphForDisplay } from "../presentation/research-graph";
+import { isResearchFile } from "../presentation/research-files";
 
 export function ResearchWorkspace({
   language,
@@ -23,7 +25,7 @@ export function ResearchWorkspace({
 }) {
   const zh = language === "zh";
   const {
-    graph,
+    graph: sourceGraph,
     selected,
     setSelected,
     error,
@@ -34,6 +36,7 @@ export function ResearchWorkspace({
     older,
     select,
   } = useResearchGraph();
+  const graph = sourceGraph ? researchGraphForDisplay(sourceGraph) : null;
   const [query, setQuery] = useState(""),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
@@ -107,11 +110,9 @@ export function ResearchWorkspace({
 
   return (
     <section className="research-workspace">
-      <header className="research-heading">
-        <h1 className="sr-only">
-          {zh ? "科学研究资产网络" : "Scientific assets & relationships"}
-        </h1>
-      </header>
+      <h1 className="sr-only">
+        {zh ? "科学研究资产网络" : "Scientific assets & relationships"}
+      </h1>
       <div className="editor-toolbar">
         <button onClick={() => void load()} disabled={busy}>
           {zh ? "刷新关系" : "Refresh relationships"}
@@ -176,7 +177,11 @@ export function ResearchWorkspace({
         </p>
       )}
       {indexing
-        .filter((item) => item.state === "partial")
+        .filter(
+          (item) =>
+            item.state === "partial" &&
+            item.errors.some((e) => isResearchFile(e.artifact)),
+        )
         .map((item) => (
           <div className="notice" role="alert" key={item.job_id}>
             <p>
@@ -185,11 +190,13 @@ export function ResearchWorkspace({
                 : "Task outputs are preserved, but these files could not be registered as shared assets:"}
             </p>
             <ul>
-              {item.errors.map((e, i) => (
-                <li key={i}>
-                  {e.artifact}: {e.reason}
-                </li>
-              ))}
+              {item.errors
+                .filter((e) => isResearchFile(e.artifact))
+                .map((e, i) => (
+                  <li key={i}>
+                    {e.artifact}: {e.reason}
+                  </li>
+                ))}
             </ul>
             <button
               disabled={busy}

@@ -244,7 +244,6 @@ export function App() {
                 error={deployment.error}
                 refresh={deployment.refresh}
                 language={language}
-                onEditors={() => setView("editors")}
               />
             )}
             <div hidden={view !== "editors"}>

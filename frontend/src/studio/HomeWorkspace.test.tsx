@@ -108,9 +108,8 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
   expect(within(service).getByText("平台服务就绪")).toBeVisible();
   expect(within(service).queryByRole("alert")).not.toBeInTheDocument();
   expect(within(backend).getByText("环境未就绪")).toBeVisible();
-  expect(within(backend).getByRole("alert")).toHaveTextContent(
-    "Missing OpenDDE weights",
-  );
+  expect(within(backend).getByText("在安装与组件中完成配置。")).toBeVisible();
+  expect(screen.queryByText("Missing OpenDDE weights")).toBeNull();
   rerender(
     <UtilityViews
       {...runtimeProps}
@@ -125,7 +124,10 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
   );
   expect(screen.getByText("Platform service unavailable")).toBeVisible();
   expect(screen.getByText("Environment checks passed")).toBeVisible();
-  expect(screen.getByRole("alert")).toHaveTextContent("Queue recovery failed");
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Task service unavailable",
+  );
+  expect(screen.queryByText("Queue recovery failed")).toBeNull();
 });
 
 it("does not render duplicate task results in an inactive prediction workspace", () => {

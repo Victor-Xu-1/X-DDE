@@ -130,11 +130,6 @@ export function UtilityViews(p: Props) {
             </div>
           )}
         </div>
-        <p>
-          {zh
-            ? "跟踪研究进度，查看结果与运行记录。"
-            : "Track research progress, inspect results and review execution records."}
-        </p>
         {p.connectionError && taskJobs.length > 0 && (
           <p className="error-box" role="alert">
             {zh
@@ -378,14 +373,12 @@ export function UtilityViews(p: Props) {
                   </button>
                 </div>
               )}
-              <a href={"/api/jobs/" + p.job.id + "/input"} download>
-                <DownloadOutlined aria-hidden="true" /> {t("inputJson")}
-              </a>
+
               <details className="execution-detail">
                 <summary>
                   {zh
-                    ? "原始文件与任务详情"
-                    : "Original files and task details"}
+                    ? "结构文件与任务结果"
+                    : "Structure files and task results"}
                 </summary>
                 <TaskDetail
                   key={p.job.id}

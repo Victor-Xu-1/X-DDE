@@ -63,9 +63,6 @@ export function StructurePrepareResults({
             {message}
           </p>
         ))}
-        <a href={artifactUrl(job.id, "result.json")} download>
-          {zh ? "完整来源和选择记录" : "Full provenance and selections"}
-        </a>
       </details>
     </div>
   );

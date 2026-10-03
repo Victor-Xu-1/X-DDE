@@ -167,23 +167,15 @@ export function HumanizationResults({
       )}
       <details>
         <summary>
-          {zh ? "模型、参考与完整记录" : "Models, reference and full record"}
+          {zh ? "评估方法与参考" : "Evaluation method and reference"}
         </summary>
-        <p>
-          Sapiens {result.versions.sapiens} · ANARCII {result.versions.anarcii}{" "}
-          · Promb {result.versions.promb}
-        </p>
+        <p>Sapiens · ANARCII · Promb</p>
         <p>
           {zh
             ? "固定 OAS 人类参考：精确 9 肽匹配，参考肽段在至少 10% 人类受试者中出现。"
             : "Fixed human OAS reference: exact 9-mer identity; reference peptides observed in at least 10% of human subjects."}
         </p>
         {row?.reason && <p>{row.reason}</p>}
-        <a href={artifactUrl(job.id, "result.json")} download>
-          {zh
-            ? "下载原生概率、每轮修改与来源证据"
-            : "Download native probabilities, proposal rounds and provenance"}
-        </a>
       </details>
       {reuse && onCreated && (
         <section aria-label={zh ? "候选复用" : "Candidate reuse"}>

@@ -80,13 +80,12 @@ export function useWorkbench() {
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
       try {
-        const [log, artifacts, job] = await Promise.all([
-          api.logs(selected, controller.signal),
+        const [artifacts, job] = await Promise.all([
           api.artifacts(selected, controller.signal),
           request<Job>(`/jobs/${selected}`, { signal: controller.signal }),
         ]);
         if (controller.signal.aborted) return;
-        setDetail({ id: selected, log, artifacts });
+        setDetail({ id: selected, artifacts });
         setSelectedJob(job);
         setDetailError(false);
       } catch {

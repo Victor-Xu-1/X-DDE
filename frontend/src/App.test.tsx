@@ -54,7 +54,6 @@ beforeEach(() => {
   vi.spyOn(api, "initialize").mockResolvedValue();
   vi.spyOn(api, "jobs").mockResolvedValue(jobs);
   vi.spyOn(api, "health").mockResolvedValue(health);
-  vi.spyOn(api, "logs").mockResolvedValue({ text: "", truncated: false });
   vi.spyOn(api, "artifacts").mockResolvedValue([]);
   vi.spyOn(api, "projects").mockResolvedValue([
     {

@@ -15,7 +15,6 @@ import { TargetResearchForm } from "../discovery/TargetResearchForm";
 import { PropertyForm } from "./PropertyForm";
 import { FeatureForm } from "./FeatureForm";
 import { ImportForm } from "./ImportForm";
-import { ResourceForm } from "./ResourceForm";
 import { HarnessForm } from "./HarnessForm";
 import { CampaignForm } from "./CampaignForm";
 import "./operations.css";
@@ -35,7 +34,6 @@ import type { DiffMode } from "../diffsbdd/types";
 
 export function ToolCenter({
   language,
-  health,
   jobs,
   onCreated,
   onPredict,
@@ -55,7 +53,7 @@ export function ToolCenter({
   const zh = language === "zh",
     [selected, setSelected] = useState<ToolId | null>(initialTool),
     [modality, setModality] = useState<ModalityFilter>("all");
-  const current = tools.find((t) => t.id === selected),
+  const current = filterCapabilities("all").find((t) => t.id === selected),
     index = zh ? 0 : 1;
   const headingId = useId(),
     heading = useRef<HTMLHeadingElement>(null),
@@ -188,12 +186,6 @@ export function ToolCenter({
                   onCreated={onCreated}
                   onDraft={onDraft}
                 />
-              ) : selected === "resources" ? (
-                <ResourceForm
-                  language={language}
-                  health={health}
-                  onCreated={onCreated}
-                />
               ) : selected === "campaign" ? (
                 <CampaignForm language={language} />
               ) : (
@@ -221,8 +213,8 @@ export function ToolCenter({
             aria-atomic="true"
           >
             {zh
-              ? `显示 ${filteredTools.length} / ${tools.length} 项能力`
-              : `Showing ${filteredTools.length} of ${tools.length} capabilities`}
+              ? `显示 ${filteredTools.length} / ${filterCapabilities("all").length} 项能力`
+              : `Showing ${filteredTools.length} of ${filterCapabilities("all").length} capabilities`}
           </p>
           {
             <div className="tool-grid">

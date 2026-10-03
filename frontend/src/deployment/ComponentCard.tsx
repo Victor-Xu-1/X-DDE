@@ -38,9 +38,6 @@ export function ComponentCard({
     <article className="component-card" aria-label={title}>
       <div className="component-top">
         <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
-        <small title={p.version}>
-          {kind === "model" ? (zh ? "固定权重" : "Pinned weights") : p.version}
-        </small>
       </div>
       <h3 title={p.name}>{title}</h3>
       <p title={description}>{description}</p>

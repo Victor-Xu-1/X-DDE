@@ -236,3 +236,39 @@ def test_new_platform_storage_does_not_adopt_a_legacy_owner_marker(tmp_path):
     atomic_json(new / ".workbench-owner.json", {"owner": "opendde-workbench"})
     with pytest.raises(ValueError, match="does not belong to X-DDE"):
         managed_root(str(tmp_path))
+
+@pytest.mark.parametrize("state", ["installed", "queued", "paused"])
+def test_rejected_location_change_never_creates_an_unselected_directory(tmp_path, state):
+    manager = DeploymentManager(tmp_path / "state")
+    first = tmp_path / "current"
+    manager.configure(str(first), False)
+    root = first / "x-dde-managed"
+    retained = root / "original-model.bin"
+    retained.write_bytes(b"existing resource")
+    if state == "installed":
+        atomic_json(root / "installed.json", {"ketcher": {"version": "3.18.0"}})
+    else:
+        operation = manager.enqueue("ketcher", "install")[0]
+        if state == "paused":
+            manager.control(operation, "pause")
+    target = tmp_path / "new-location"
+    assert manager.snapshot()["location_locked"]
+    with pytest.raises(ValueError, match="before changing location"):
+        manager.configure(str(target), False)
+    assert not target.exists()
+    assert manager.store.config()["root"] == str(root)
+    assert retained.read_bytes() == b"existing resource"
+    assert manager.configure(str(first), False)["config"]["root"] == str(root)
+
+
+def test_location_preflight_is_read_only_and_first_install_persists(tmp_path):
+    base = tmp_path / "chosen"
+    root = managed_root(str(base), create=False)
+    assert root == base / "x-dde-managed"
+    assert not base.exists()
+    manager = DeploymentManager(tmp_path / "state")
+    assert not manager.snapshot()["location_locked"]
+    manager.configure(str(base), False)
+    restored = DeploymentManager(tmp_path / "state")
+    assert restored.store.config()["root"] == str(root)
+    assert read_json(root / ".workbench-owner.json")["owner"] == "X-DDE"

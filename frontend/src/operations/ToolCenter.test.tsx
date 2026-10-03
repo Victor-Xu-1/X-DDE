@@ -24,9 +24,9 @@ it.each(["zh", "en"] as const)(
       submit = vi.spyOn(api, "submit");
     render(<ToolCenter {...handlers} />);
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
-      tools.length,
+      tools.filter((t) => t.group !== "system").length,
     );
-    for (const tool of tools)
+    for (const tool of tools.filter((t) => t.group !== "system"))
       expect(
         screen.getByRole("button", {
           name: tool.label[language === "zh" ? 0 : 1],

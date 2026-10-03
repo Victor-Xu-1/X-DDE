@@ -152,24 +152,6 @@ export function ReceptorResults({
               </a>
             </div>
           )}
-          <details>
-            <summary>
-              {zh
-                ? "来源、对应与变换"
-                : "Source, correspondence and transformation"}
-            </summary>
-            <pre>
-              {JSON.stringify(
-                {
-                  source: row.source,
-                  transformation: row.transformation,
-                  quality: row.quality,
-                },
-                null,
-                2,
-              )}
-            </pre>
-          </details>
         </details>
       ))}
       {urls.length > 0 && !next && (
@@ -218,14 +200,7 @@ export function ReceptorResults({
           <SiteWorkspace ensemble={sets[0]} language={language} />
         </details>
       )}
-      <details>
-        <summary>{zh ? "方法版本" : "Method versions"}</summary>
-        <p>
-          {Object.entries(data.versions)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(" · ")}
-        </p>
-      </details>
+
       {error && (
         <p role="alert" className="error-box">
           {error}

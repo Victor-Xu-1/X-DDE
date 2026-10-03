@@ -6,6 +6,7 @@ export interface Deployment {
   config: { root?: string; automatic?: boolean };
   default_location: string;
   locations: string[];
+  location_locked?: boolean;
   restart_required: boolean;
   prerequisites: {
     docker: boolean;

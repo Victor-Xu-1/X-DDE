@@ -229,14 +229,7 @@ export function StateResults({
           onCreated={(j) => setMessage(j.id)}
         />
       )}
-      <details>
-        <summary>{zh ? "方法与版本" : "Methods and versions"}</summary>
-        <p>
-          {Object.entries(data.versions)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(" · ")}
-        </p>
-      </details>
+
       {error && (
         <p role="alert" className="error-box">
           {error}

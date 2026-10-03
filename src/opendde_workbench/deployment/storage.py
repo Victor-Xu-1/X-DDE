@@ -12,7 +12,7 @@ from .catalog import PACKAGES, dependencies
 ACTIVE = {"queued", "running", "pausing"}
 
 
-def managed_root(value: str) -> Path:
+def managed_root(value: str, *, create: bool = True) -> Path:
     # A selected base directory is never itself owned or removed by this app.
     base = Path(value).expanduser()
     if not base.is_absolute() or any(c in str(base) for c in ("\x00", "\n", "\r", ",")):
@@ -44,12 +44,18 @@ def managed_root(value: str) -> Path:
         root = legacy
     if root.is_symlink():
         raise ValueError("The managed directory cannot be a symlink.")
-    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if not root.exists():
+        if not create:
+            return root
+        root.mkdir(parents=True, exist_ok=True, mode=0o700)
     marker = root / ".workbench-owner.json"
     if not marker.exists():
         if any(root.iterdir()):
             raise ValueError("This directory contains unowned files; choose another location.")
-        atomic_json(marker, {"owner": "X-DDE", "id": str(uuid4())})
+        if create:
+            atomic_json(marker, {"owner": "X-DDE", "id": str(uuid4())})
+        else:
+            return root
     owners = {"X-DDE"}
     if root.name == "opendde-managed":
         owners.add("opendde-workbench")
