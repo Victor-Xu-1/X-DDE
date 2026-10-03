@@ -65,7 +65,7 @@ export class MolecularScene {
     this.emit("selected", null);
     this.emit("distance", null);
   }
-  inspect(overlay: boolean) {
+  inspect(overlay: boolean, molecular = false) {
     this.resetState();
     this.overlay = overlay;
     const atoms = this.viewer.selectedAtoms({ model: 0 });
@@ -84,6 +84,7 @@ export class MolecularScene {
     for (const { residue, atoms: group } of groups.values()) {
       if (water.has(residue.resn)) continue;
       if (
+        !molecular &&
         residue.resn &&
         (group.some((a) => !a.hetflag) || nucleic.has(residue.resn))
       )

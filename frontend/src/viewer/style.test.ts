@@ -14,10 +14,11 @@ import { MolecularScene } from "./scene";
 import { paintOverlayModel } from "./style";
 import { ligandBondRadius } from "./appearance";
 const sdf =
-  "Display protocol\n  RDKit          3D\n\n  3  2  0  0  0  0  0  0  0  0  0999 V2000\n    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    1.2000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n   -1.2000    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n  1  2  2  0  0  0  0\n  1  3  1  0  0  0  0\nM  END\n$$$$\n";
+  "Display protocol\n  RDKit          3D\n\n  3  2  0  0  0  0  0  0  0  0999 V2000\n    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    1.2000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n   -1.2000    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n  1  2  2  0  0  0  0\n  1  3  1  0  0  0  0\nM  END\n$$$$\n";
 function fixture(data = sdf, format = "sdf") {
   const model = new GLModel(0);
   model.addMolData(data, format);
+  expect(model.selectedAtoms({}).length).toBeGreaterThan(0);
   const clicks = vi.fn();
   const viewer = {
     selectedAtoms: model.selectedAtoms.bind(model),
@@ -33,7 +34,7 @@ function fixture(data = sdf, format = "sdf") {
     render: vi.fn(),
   } as unknown as GLViewer;
   const scene = new MolecularScene(viewer, vi.fn());
-  scene.inspect(false);
+  scene.inspect(false, ["sdf", "mol", "mol2"].includes(format));
   return { model, scene, clicks };
 }
 function source(atoms: AtomSpec[]) {
@@ -76,7 +77,12 @@ it("molecule overlays use the same thin representation without atom balls", () =
 it("region and point-selection highlights cannot inflate the molecule into balls", async () => {
   const { model, scene, clicks } = fixture(),
     before = source(model.selectedAtoms({}));
-  await scene.highlightAtoms([0, 1]);
+  await scene.highlightAtoms(
+    model
+      .selectedAtoms({})
+      .slice(0, 2)
+      .map((atom) => atom.serial!),
+  );
   expectSticks(model.selectedAtoms({}));
   const pick = clicks.mock.calls[0][2] as (atom: AtomSpec) => void;
   pick(model.selectedAtoms({})[2]);
@@ -102,3 +108,14 @@ it.each(["cartoon", "pocket", "surface"] as const)(
     expect(source(model.selectedAtoms({}))).toEqual(before);
   },
 );
+
+it("named MOL2 ligand substructures cannot be mistaken for polymer cartoons", async () => {
+  const mol2 =
+    "@<TRIPOS>MOLECULE\nDisplay protocol\n3 2 1 0 0\nSMALL\nNO_CHARGES\n\n@<TRIPOS>ATOM\n1 C1 0.0000 0.0000 0.0000 C.2 1 LIG 0.0000\n2 O1 1.2000 0.0000 0.0000 O.2 1 LIG 0.0000\n3 N1 -1.2000 0.0000 0.0000 N.3 1 LIG 0.0000\n@<TRIPOS>BOND\n1 1 2 2\n2 1 3 1\n@<TRIPOS>SUBSTRUCTURE\n1 LIG 1\n";
+  const { model, scene } = fixture(mol2, "mol2");
+  expect(scene.info.hasPolymer).toBe(false);
+  await scene.paint();
+  expectSticks(model.selectedAtoms({}));
+  for (const atom of model.selectedAtoms({}))
+    expect(atom.style?.cartoon).toBeUndefined();
+});

@@ -18,7 +18,7 @@ export async function paintBase(
   hidden: number[],
 ) {
   v.setStyle({}, thinSticks(info.hasPolymer ? "Jmol" : "greenCarbon"));
-  for (const [i, chain] of info.chains.entries()) {
+  for (const [i, chain] of (info.hasPolymer ? info.chains : []).entries()) {
     v.setStyle(
       { chain, hetflag: false },
       {

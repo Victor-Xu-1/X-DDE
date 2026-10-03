@@ -47,6 +47,7 @@ async function load(urls: string[]) {
   notify("loading");
   viewer.clear();
   try {
+    let molecular = false;
     for (const [index, raw] of urls.slice(0, 3).entries()) {
       const response = await fetch(validSource(raw, location.origin), {
         signal: request.signal,
@@ -68,6 +69,7 @@ async function load(urls: string[]) {
       if (!["pdb", "cif", "sdf", "mol", "mol2"].includes(suffix))
         throw new Error("Unsupported molecular display format");
       const format = suffix;
+      molecular = urls.length === 1 && ["sdf", "mol", "mol2"].includes(format);
       const model = viewer.addModel(text, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
@@ -78,7 +80,7 @@ async function load(urls: string[]) {
           ["sdf", "mol", "mol2"].includes(format),
         );
     }
-    scene.inspect(urls.length > 1);
+    scene.inspect(urls.length > 1, molecular);
     await scene.paint();
     if (current !== generation) return;
     reset();
