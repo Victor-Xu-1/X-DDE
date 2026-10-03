@@ -9,7 +9,7 @@ it("uses the native thin-stick mode without replacing molecule data or unrelated
     setMolecule,
   } as unknown as Ketcher);
   expect(JSON.parse(setOptions.mock.calls[0][0])).toEqual({
-    miewMode: "LC",
+    miewMode: "LN",
     miewAtomLabel: "no",
   });
   expect(setMolecule).not.toHaveBeenCalled();

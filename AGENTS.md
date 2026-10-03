@@ -60,5 +60,5 @@
 
 ## Molecular display
 
-- Default ligand previews use thin sticks with elemental colors and no large atom spheres, both standalone and with protein. Apply the shared appearance policy to overlays, native results, regions, selections and the integrated Mol* editor.
+- Default ligand previews use thin sticks with elemental colors and no large atom spheres, both standalone and with protein. Apply the shared appearance policy to overlays, native results, regions, selections and the integrated Mol* editor. Ketcher's native 3D editor uses Lines mode; its fixed-radius Licorice is too thick for the default.
 - Selection or region highlights change color without inflating atoms. Explicit expert space-fill remains an intentional representation; isolated ions stay visible. Display styling must preserve source coordinates, atom identities and bond orders.
