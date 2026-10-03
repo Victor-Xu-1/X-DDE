@@ -43,6 +43,7 @@ it("keeps creation out of the list and only creates after an explicit valid subm
   ).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /New project/ }));
   expect(screen.getByRole("dialog")).toBeVisible();
+  expect(screen.getByRole("textbox", { name: "Project name" })).toHaveFocus();
   expect(screen.getByRole("button", { name: "Create project" })).toBeDisabled();
   await user.type(
     screen.getByRole("textbox", { name: "Project name" }),

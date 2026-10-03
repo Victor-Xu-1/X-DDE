@@ -64,3 +64,9 @@
     padding: 18px;
   }
 }
+
+.project-create-dialog footer > button {
+  flex: 0 0 auto;
+  min-width: 80px;
+  white-space: nowrap;
+}

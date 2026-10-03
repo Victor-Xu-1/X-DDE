@@ -12,13 +12,15 @@ export function ProjectCreateDialog({
 }) {
   const zh = language === "zh",
     id = useId(),
-    dialog = useRef<HTMLDialogElement>(null);
+    dialog = useRef<HTMLDialogElement>(null),
+    nameInput = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(""),
     [description, setDescription] = useState(""),
     [saving, setSaving] = useState(false),
     [error, setError] = useState("");
   useEffect(() => {
     dialog.current?.showModal();
+    nameInput.current?.focus();
   }, []);
   async function create(e: FormEvent) {
     e.preventDefault();
@@ -59,6 +61,7 @@ export function ProjectCreateDialog({
         <label className="field">
           {zh ? "项目名称" : "Project name"}
           <input
+            ref={nameInput}
             autoFocus
             value={name}
             maxLength={80}

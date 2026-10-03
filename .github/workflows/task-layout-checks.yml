@@ -41,7 +41,7 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
-          uv sync --locked --group dev --extra browser
+          uv sync --locked --group dev --group browser
       - name: Focused task layout, input identity and presentation regressions
         working-directory: frontend
         run: >-
@@ -65,13 +65,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
-          uv run --locked python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          uv run --locked --group browser python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
       - name: Check every task and archived example in real Chromium
         run: |
-          uv run --locked python -m playwright install --with-deps chromium
-          uv run --locked python -m opendde_workbench --host 127.0.0.1 --port 4330 > "$RUNNER_TEMP/x-dde-layout-service.log" 2>&1 &
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+          uv run --locked --group browser python -m opendde_workbench --host 127.0.0.1 --port 4330 > "$RUNNER_TEMP/x-dde-layout-service.log" 2>&1 &
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
-          uv run --locked pytest -q server_tests/test_task_layout_browser.py
+          uv run --locked --group browser pytest -q server_tests/test_task_layout_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

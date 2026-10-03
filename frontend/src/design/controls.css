@@ -109,6 +109,8 @@ textarea {
 }
 .primary-button,
 .studio-app .primary-button {
+  width: auto;
+  margin-top: 0;
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--accent-contrast);

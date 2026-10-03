@@ -44,6 +44,16 @@ def test_every_task_page_and_native_case_layout():
             for label in ("研究资产","研究项目","任务记录","分子编辑"):
                 page.get_by_role("navigation",name="主导航").get_by_role("button",name=label,exact=True).click()
                 rows.append(capture(page,evidence,label,"utility"))
+                if label=="研究项目":
+                    page.locator(".project-toolbar .primary-button").click()
+                    dialog=page.get_by_role("dialog",name="新建项目",exact=True)
+                    expect(dialog).to_be_visible()
+                    expect(page.get_by_role("textbox",name="项目名称",exact=True)).to_be_focused()
+                    confirm=dialog.locator("footer .primary-button").bounding_box()
+                    bounds=dialog.bounding_box()
+                    assert confirm["width"] < bounds["width"]*.6
+                    rows.append(capture(page,evidence,label,"create-dialog"))
+                    page.get_by_role("button",name="取消",exact=True).click()
             page.get_by_role("button",name="账户与设置",exact=True).click()
             menu=("账户与设置","结果解读","导出结果","工作空间概况","安装与组件","运行状态","帮助中心")
             for label in menu:

@@ -302,3 +302,8 @@ dialog::backdrop {
   margin: 8px 0;
   line-height: 1.7;
 }
+
+.help-workspace > .primary-button {
+  display: block;
+  margin-left: auto;
+}
