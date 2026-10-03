@@ -32,17 +32,14 @@ export function ComponentCard({
   const installed = data.installed[p.id];
   const pending = pendingOperation(data, p.id);
   const title = componentName(p, zh);
+  const kind = p.id === "opendde-search" ? "data" : p.kind;
   const description = p.description.split(" / ")[zh ? 0 : 1] ?? p.description;
   return (
     <article className="component-card" aria-label={title}>
       <div className="component-top">
-        <span className="component-kind">{kinds[p.kind][zh ? 0 : 1]}</span>
+        <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
         <small title={p.version}>
-          {p.kind === "model"
-            ? zh
-              ? "固定权重"
-              : "Pinned weights"
-            : p.version}
+          {kind === "model" ? (zh ? "固定权重" : "Pinned weights") : p.version}
         </small>
       </div>
       <h3 title={p.name}>{title}</h3>
