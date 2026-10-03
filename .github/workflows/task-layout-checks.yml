@@ -50,6 +50,7 @@ jobs:
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx
           src/diffsbdd/ReferencePicker.test.tsx
+          src/research/HistoricalFileSelect.test.tsx
           src/research/SequencePicker.test.tsx
           src/research/ResearchWorkspace.test.tsx
           src/poses/PoseForm.test.tsx

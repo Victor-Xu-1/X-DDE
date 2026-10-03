@@ -21,8 +21,8 @@ export function HistoricalFileSelect({
   onSelect(assetId: string, reference?: MoleculeRef): void;
 }) {
   const zh = language === "zh";
-  const represented = new Set(versions.map((v) => v.reference.asset_id));
-  const uploads = files.filter((file) => !represented.has(file.id));
+  // A file collection and an immutable record are distinct usable inputs.
+  const uploads = files;
   const selected = value?.version_id
     ? "version:" + value.version_id
     : value
