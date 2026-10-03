@@ -68,10 +68,14 @@ jobs:
           uv run --locked --group browser python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
       - name: Check every task and archived example in real Chromium
         run: |
-          uv run --locked --group browser python -m playwright install --with-deps chromium
-          uv run --locked --group browser python -m opendde_workbench --host 127.0.0.1 --port 4330 > "$RUNNER_TEMP/x-dde-layout-service.log" 2>&1 &
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/task-layout
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/task-layout/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
-          uv run --locked --group browser pytest -q server_tests/test_task_layout_browser.py
+          if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
+          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
