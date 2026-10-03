@@ -1,3 +1,4 @@
+import { historyChoiceLabel } from "../presentation/history-choice";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { Hint } from "../guided/Hint";
@@ -144,9 +145,14 @@ export function SiteWorkspace({
                   <option value="">
                     {zh ? "不参与此次比较" : "Exclude from this comparison"}
                   </option>
-                  {matches.map((j) => (
+                  {matches.map((j, index) => (
                     <option key={j.id} value={j.id}>
-                      {j.request.name} · {j.id.slice(0, 8)}
+                      {historyChoiceLabel(
+                        j.request.name,
+                        index,
+                        zh,
+                        j.created_at,
+                      )}
                     </option>
                   ))}
                 </select>
@@ -276,9 +282,9 @@ export function SiteWorkspace({
             onChange={(e) => setSelected(e.target.value || null)}
           >
             <option value="">{zh ? "选择查看" : "Choose a set"}</option>
-            {sets.map((s) => (
+            {sets.map((s, index) => (
               <option value={s.id} key={s.id}>
-                {s.request.name} · {s.id.slice(0, 8)}
+                {historyChoiceLabel(s.request.name, index, zh, s.created_at)}
               </option>
             ))}
           </select>

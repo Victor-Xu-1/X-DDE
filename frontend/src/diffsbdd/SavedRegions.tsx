@@ -1,3 +1,4 @@
+import { historyChoiceLabel } from "../presentation/history-choice";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { MoleculeRef } from "../research/types";
@@ -131,9 +132,9 @@ export function SavedRegions({
           <option value="">—</option>
           {values
             .filter((v) => v.body.regions.some((r) => r.role === "fixed_core"))
-            .map((v) => (
+            .map((v, index) => (
               <option key={v.id} value={v.id}>
-                {v.body.name} · {v.id.slice(0, 8)}
+                {historyChoiceLabel(v.body.name, index, zh)}
               </option>
             ))}
         </select>

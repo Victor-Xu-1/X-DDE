@@ -58,8 +58,10 @@ def test_researcher_result_decisions_and_handoffs():
             expect(page.locator(".viewer-panel iframe")).to_be_visible()
             record("interactions")
             result("蛋白序列评分")
-            expect(page.get_by_text("序列 1",exact=True)).to_be_visible()
-            expect(page.get_by_text("-0.6953",exact=True)).to_be_visible()
+            scores=page.get_by_role("table",name=re.compile(r"^输入序列的模型评分"))
+            expect(scores.get_by_role("rowheader").first).to_have_text(re.compile(r"^序列\s*1"))
+            expect(scores.get_by_role("cell",name="220 aa",exact=True)).to_be_visible()
+            expect(scores.get_by_role("cell",name="-0.6953",exact=True)).to_be_visible()
             record("sequence-scores")
             assert not submitted,submitted
             assert not errors,errors

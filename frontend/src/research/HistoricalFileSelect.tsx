@@ -1,3 +1,4 @@
+import { historyChoiceLabel, nameCounts } from "../presentation/history-choice";
 import type { Asset } from "../operations/types";
 import type { Language } from "../types";
 import type { MoleculeRef, ScientificObject } from "./types";
@@ -21,6 +22,8 @@ export function HistoricalFileSelect({
   onSelect(assetId: string, reference?: MoleculeRef): void;
 }) {
   const zh = language === "zh";
+  const versionNames = nameCounts(versions.map((v) => v.label));
+  const fileNames = nameCounts(files.map((v) => v.name));
   // A file collection and an immutable record are distinct usable inputs.
   const uploads = files;
   const selected = value?.version_id
@@ -45,9 +48,11 @@ export function HistoricalFileSelect({
           {zh ? "选择历史文件" : "Choose a historical file"}
         </option>
         <optgroup label={zh ? "研究结果" : "Research results"}>
-          {versions.map((v) => (
+          {versions.map((v, index) => (
             <option key={v.id} value={"version:" + v.id}>
-              {v.label}
+              {(versionNames.get(v.label) ?? 0) > 1
+                ? historyChoiceLabel(v.label, index, zh, v.created_at)
+                : v.label}
               {v.kind === "molecule"
                 ? ` · ${zh ? "记录" : "record"} ${v.reference.record + 1}`
                 : ""}
@@ -55,9 +60,11 @@ export function HistoricalFileSelect({
           ))}
         </optgroup>
         <optgroup label={zh ? "上传文件" : "Uploaded files"}>
-          {uploads.map((f) => (
+          {uploads.map((f, index) => (
             <option key={f.id} value={"file:" + f.id}>
-              {f.name}
+              {(fileNames.get(f.name) ?? 0) > 1
+                ? historyChoiceLabel(f.name, index, zh, f.created_at)
+                : f.name}
             </option>
           ))}
         </optgroup>

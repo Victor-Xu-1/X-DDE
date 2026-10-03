@@ -1,3 +1,4 @@
+import { historyChoiceLabel } from "../presentation/history-choice";
 import type { SearchBox } from "../docking/types";
 import { ConstraintSupportSummary } from "./ConstraintSupportSummary";
 import { OutputConditionControls } from "./OutputConditionControls";
@@ -214,9 +215,9 @@ export function ConstraintPanel({
           <option value="">
             {zh ? "仅使用当前参数" : "Current parameters only"}
           </option>
-          {values.map((v) => (
+          {values.map((v, index) => (
             <option value={v.id} key={v.id}>
-              {v.body.name} · {v.id.slice(0, 8)}
+              {historyChoiceLabel(v.body.name, index, zh)}
             </option>
           ))}
         </select>

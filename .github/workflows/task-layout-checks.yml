@@ -71,6 +71,10 @@ jobs:
           src/research/ResearchWorkspace.test.tsx
           src/poses/PoseForm.test.tsx
           src/poses/PoseWorkspace.test.tsx
+          src/sites/SiteWorkspace.test.tsx
+          src/constraints/ConstraintPanel.test.tsx
+          src/workflows/WorkflowCenter.test.tsx
+          src/workflows/RunMonitor.test.tsx
           src/regions/RegionWorkspace.test.tsx
           src/studio/ProjectPanel.test.tsx
           src/studio/HomeWorkspace.test.tsx

@@ -1,8 +1,9 @@
+import { historyChoiceLabel } from "../presentation/history-choice";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useExample } from "../examples/context";
 import { api, request } from "../api";
 import { loadPages } from "../research/loadPages";
-import { RunMonitor } from "../workflows/RunMonitor";
+import { RunMonitor, workflowStateLabel } from "../workflows/RunMonitor";
 import type { WorkflowRun } from "../workflows/types";
 import type { Language } from "../types";
 import { PoseResults } from "./PoseResults";
@@ -188,9 +189,15 @@ export function PosePlanRun({
             }}
           >
             <option value="">{zh ? "选择运行记录" : "Choose a run"}</option>
-            {history.map((r) => (
+            {history.map((r, index) => (
               <option key={r.id} value={r.id}>
-                {r.id.slice(0, 8)} · {r.state}
+                {historyChoiceLabel(
+                  zh ? "运行" : "Run",
+                  index,
+                  zh,
+                  r.created_at,
+                )}{" "}
+                · {workflowStateLabel(r.state, zh)}
               </option>
             ))}
           </select>
@@ -224,9 +231,10 @@ export function PosePlanRun({
             <option value="">
               {zh ? "选择结果集合" : "Choose a pose set"}
             </option>
-            {sets.map((s) => (
+            {sets.map((s, index) => (
               <option value={s.id} key={s.id}>
-                {s.id.slice(0, 8)} · {s.qualified_pose_count}{" "}
+                {zh ? "结果集" : "Result set"} {index + 1} ·{" "}
+                {s.qualified_pose_count}{" "}
                 {zh ? "个可复用姿势" : "reusable poses"}
               </option>
             ))}

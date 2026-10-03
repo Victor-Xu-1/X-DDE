@@ -341,8 +341,7 @@ export function RegionEditor({
             <p role="status">
               {zh
                 ? "已保存，可在局部重设计的固定区域中复用"
-                : "Saved; fixed cores can be reused in inpainting"}{" "}
-              · {saved.slice(0, 8)}
+                : "Saved; fixed cores can be reused in inpainting"}
             </p>
           )}
           {(error || identity.error || identity.job?.error) && (

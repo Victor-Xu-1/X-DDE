@@ -81,7 +81,7 @@ export function DiffInputQuestions({
           <ul>
             {collection.map((ref, i) => (
               <li key={referenceKey(ref)}>
-                {i + 1} · {ref.asset_id.slice(0, 8)} · {zh ? "记录" : "Record"}{" "}
+                {zh ? "分子" : "Molecule"} {i + 1} · {zh ? "记录" : "Record"}{" "}
                 {ref.record + 1}{" "}
                 <button
                   type="button"

@@ -1,3 +1,4 @@
+import { historyChoiceLabel } from "../presentation/history-choice";
 import {
   HomeFilled,
   FolderOutlined,
@@ -474,7 +475,7 @@ export function Header({
             aria-label={zh ? "任务搜索结果" : "Task search results"}
           >
             {matches.length ? (
-              matches.map((job) => (
+              matches.map((job, index) => (
                 <button
                   key={job.id}
                   onClick={() => {
@@ -482,8 +483,12 @@ export function Header({
                     setQuery("");
                   }}
                 >
-                  {job.request.name}
-                  <small>{job.id.slice(0, 8)}</small>
+                  {historyChoiceLabel(
+                    job.request.name,
+                    index,
+                    zh,
+                    job.created_at,
+                  )}
                 </button>
               ))
             ) : (

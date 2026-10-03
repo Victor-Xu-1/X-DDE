@@ -1,9 +1,10 @@
+import { historyChoiceLabel } from "../presentation/history-choice";
 import { useEffect, useState } from "react";
 import { GuidedSteps } from "../guided/Questionnaire";
 import type { WorkflowRun } from "./types";
 import type { Job, Language } from "../types";
 import { JsonEditor } from "../operations/ScientificInputs";
-import { RunMonitor } from "./RunMonitor";
+import { RunMonitor, workflowStateLabel } from "./RunMonitor";
 import { hasExternalCalls, planFromJobs } from "./model";
 import { useWorkflowController } from "./useWorkflowController";
 import { useExample } from "../examples/context";
@@ -168,9 +169,9 @@ export function WorkflowCenter({
               }}
             >
               <option value="">—</option>
-              {plans.map((p) => (
+              {plans.map((p, index) => (
                 <option key={p.id} value={p.id}>
-                  {p.body.name} · {p.id.slice(0, 8)}
+                  {historyChoiceLabel(p.body.name, index, zh, p.created_at)}
                 </option>
               ))}
             </select>
@@ -237,10 +238,14 @@ export function WorkflowCenter({
                 <option value="">
                   {zh ? "选择一个已经准备好的任务" : "Choose a prepared task"}
                 </option>
-                {jobs.map((j) => (
+                {jobs.map((j, index) => (
                   <option key={j.id} value={j.id}>
-                    {j.request.name} · {j.request.operation ?? "predict"} ·{" "}
-                    {j.id.slice(0, 8)}
+                    {historyChoiceLabel(
+                      j.request.name,
+                      index,
+                      zh,
+                      j.created_at,
+                    )}
                   </option>
                 ))}
               </select>
@@ -426,9 +431,15 @@ export function WorkflowCenter({
             }
           >
             <option value="">—</option>
-            {history.map((r) => (
+            {history.map((r, index) => (
               <option key={r.id} value={r.id}>
-                {r.id.slice(0, 8)} · {r.state}
+                {historyChoiceLabel(
+                  zh ? "运行" : "Run",
+                  index,
+                  zh,
+                  r.created_at,
+                )}{" "}
+                · {workflowStateLabel(r.state, zh)}
               </option>
             ))}
           </select>

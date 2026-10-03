@@ -180,10 +180,10 @@ export function LigandChoice({
               <option value="">
                 {zh ? "选择已有准备结果" : "Choose a preparation result"}
               </option>
-              {states.map((s) => (
+              {states.map((s, index) => (
                 <option key={s.id} value={s.id}>
-                  {s.id.slice(0, 8)} · {s.members.length}{" "}
-                  {zh ? "种状态" : "states"}
+                  {zh ? "准备结果" : "Preparation"} {index + 1} ·{" "}
+                  {s.members.length} {zh ? "种状态" : "states"}
                 </option>
               ))}
             </select>

@@ -47,3 +47,42 @@ it("keeps the original multi-record collection selectable alongside its exact sa
   expect(choose).toHaveBeenLastCalledWith("library", reference);
   expect(reference.record).toBe(12);
 });
+
+it("distinguishes same-named outputs without changing the selected immutable record", async () => {
+  const refs = [0, 7].map((record) => ({
+    asset_id: `asset-${record}`,
+    version_id: `version-${record}`,
+    sha256: "b".repeat(64),
+    record,
+    conformer: 0,
+  }));
+  const choose = vi.fn(),
+    user = userEvent.setup();
+  render(
+    <HistoricalFileSelect
+      language="en"
+      label="Receptor"
+      value={null}
+      versions={
+        refs.map((reference) => ({
+          id: reference.version_id,
+          kind: "structure",
+          label: "receptor.pdb",
+          created_at: "2026-10-01T00:00:00Z",
+          reference,
+        })) as never
+      }
+      files={[]}
+      busy={false}
+      onSelect={choose}
+    />,
+  );
+  const labels = screen
+    .getAllByRole("option")
+    .slice(1)
+    .map((option) => option.textContent);
+  expect(new Set(labels).size).toBe(2);
+  expect(labels.join(" ")).not.toContain("version-");
+  await user.selectOptions(screen.getByRole("combobox"), "version:version-7");
+  expect(choose).toHaveBeenLastCalledWith("asset-7", refs[1]);
+});
