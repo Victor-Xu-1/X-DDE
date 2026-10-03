@@ -52,6 +52,17 @@
   grid-template-columns: minmax(260px, 1fr) minmax(340px, 1.4fr);
   gap: 16px;
 }
+.template-result-grid > * {
+  min-width: 0;
+}
+.template-result-grid .studio-heading {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.template-result-grid .candidate-actions {
+  flex-wrap: wrap;
+  min-width: 0;
+}
 .template-step-help {
   padding: 8px 12px;
   border-left: 3px solid var(--accent);

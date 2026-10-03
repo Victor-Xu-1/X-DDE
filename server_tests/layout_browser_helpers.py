@@ -11,6 +11,10 @@ def capture(page, evidence, name, stage):
     panels=page.locator("main .questionnaire > fieldset:visible")
     assert panels.count()<=1, f"{name}: more than one question page visible"
     measurements=page.evaluate("""() => ({width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth+1,panels:[...document.querySelectorAll('main .questionnaire,main .module-template')].filter(e=>e.getBoundingClientRect().height>0).map(e=>({kind:e.className,x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))})""")
+    if measurements["overflow"]:
+        page.screenshot(path=str(evidence/"layout-overflow.jpg"),type="jpeg",quality=85)
+        debug=page.evaluate("""() => [...document.querySelectorAll('main *')].map(e=>({tag:e.tagName,cls:e.className,x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right})).filter(e=>e.width>0 && e.right>innerWidth+1).slice(0,30)""")
+        (evidence/"layout-overflow.json").write_text(json.dumps({"module":name,"stage":stage,**measurements,"overflow_elements":debug},ensure_ascii=False,indent=2))
     assert not measurements["overflow"], f"{name} {stage}: horizontal page overflow"
     if panels.count():
         form=page.locator("main .questionnaire:visible").bounding_box()

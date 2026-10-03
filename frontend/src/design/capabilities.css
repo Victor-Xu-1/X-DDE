@@ -202,13 +202,10 @@
   margin-top: 0;
 }
 
-.task-workspace .structure-viewer {
+.task-workspace .viewer-panel {
   padding: 16px;
 }
-.task-workspace.is-input .viewer-stage {
+.studio-app .task-workspace.is-input .viewer-panel .molecular-stage {
   height: 320px;
   min-height: 0;
-}
-.task-workspace.is-input .structure-viewer .section-heading {
-  margin-top: 0;
 }
