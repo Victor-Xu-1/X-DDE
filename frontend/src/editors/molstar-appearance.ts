@@ -23,6 +23,8 @@ export interface AppearancePlugin {
   };
 }
 export async function applyThinLigands(plugin: AppearancePlugin) {
+  // Uniform size and aspect ratio 1 make atom caps equal to bond radii.
+  // Bond junctions stay smooth and isolated ions remain visible.
   const update = plugin.state.data.build();
   let changed = false;
   for (const cell of plugin.state.data.cells.values()) {
@@ -35,7 +37,8 @@ export async function applyThinLigands(plugin: AppearancePlugin) {
       params.sizeAspectRatio === 1 &&
       params.adjustCylinderLength === false &&
       Array.isArray(visuals) &&
-      visuals.length === 2 &&
+      visuals.length === 3 &&
+      visuals.includes("element-sphere") &&
       visuals.includes("intra-bond") &&
       visuals.includes("inter-bond")
     )
@@ -49,7 +52,7 @@ export async function applyThinLigands(plugin: AppearancePlugin) {
           sizeFactor: ligandBondRadius,
           sizeAspectRatio: 1,
           adjustCylinderLength: false,
-          visuals: ["intra-bond", "inter-bond"],
+          visuals: ["element-sphere", "intra-bond", "inter-bond"],
         },
       },
       sizeTheme: { name: "uniform", params: { value: 1 } },

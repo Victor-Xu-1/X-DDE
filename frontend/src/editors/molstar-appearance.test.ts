@@ -33,8 +33,14 @@ it("restyles native ball-and-stick cells, including focused ligands, without tou
   } as AppearancePlugin;
   await applyThinLigands(plugin);
   const value = updates.mock.calls[0][0];
-  expect(value.type.params.visuals).toEqual(["intra-bond", "inter-bond"]);
+  expect(value.type.params.visuals).toEqual([
+    "element-sphere",
+    "intra-bond",
+    "inter-bond",
+  ]);
   expect(value.type.params.sizeFactor).toBe(ligandBondRadius);
+  expect(value.type.params.sizeAspectRatio).toBe(1);
+  expect(value.sizeTheme).toEqual({ name: "uniform", params: { value: 1 } });
   expect(value.type.params.adjustCylinderLength).toBe(false);
   expect(value.marker).toBe("source-identity");
   expect(protein.transform.params).toEqual(cartoon);
