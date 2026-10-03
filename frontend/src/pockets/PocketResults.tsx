@@ -6,6 +6,7 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
 import { artifactUrl } from "../api";
+import { ResearchHandoff } from "../guided/ResearchHandoff";
 export function PocketResults({
   job,
   result,
@@ -19,7 +20,10 @@ export function PocketResults({
 }) {
   const zh = language === "zh",
     [selected, setSelected] = useState<Site | null>(
-      () => result.pockets.find((p) => p.rank === initialRank) ?? null,
+      () =>
+        result.pockets.find((p) => p.rank === initialRank) ??
+        result.pockets[0] ??
+        null,
     ),
     [continueDesign, setContinue] = useState(false),
     [continueDocking, setDocking] = useState(false),
@@ -30,16 +34,71 @@ export function PocketResults({
     selected.residues.every(
       (r) => r.chain.length === 1 && !r.insertion_code && !r.alternate_location,
     );
+  if (selected && (continueDesign || continueDocking))
+    return (
+      <ResearchHandoff
+        language={language}
+        onBack={() => {
+          setContinue(false);
+          setDocking(false);
+        }}
+      >
+        {continueDesign ? (
+          <DiffForm
+            key={selected.rank}
+            mode="generate"
+            language={language}
+            initialProtein={result.protein}
+            initialPocket={{ kind: "residues", residues: selected.residues }}
+            onCreated={() =>
+              setMessage(
+                zh
+                  ? "生成任务已创建，可在任务记录中查看。"
+                  : "Generation task created; view it in Task history.",
+              )
+            }
+          />
+        ) : (
+          <>
+            <p className="field-help">
+              {zh
+                ? "以所选口袋为中心；20 Å 为可调整的初始搜索范围。"
+                : "The selected pocket defines the center; 20 Å is an editable initial search size."}
+            </p>
+            <DockingForm
+              key={selected.rank}
+              language={language}
+              initialReceptor={result.protein}
+              initialBox={{
+                center: [
+                  selected.center_x,
+                  selected.center_y,
+                  selected.center_z,
+                ],
+                size: [20, 20, 20],
+                unit: "angstrom",
+              }}
+              onCreated={() =>
+                setMessage(
+                  zh
+                    ? "结合模式任务已创建，可在任务记录中查看。"
+                    : "Binding pose task created; view it in Task history.",
+                )
+              }
+            />
+          </>
+        )}
+      </ResearchHandoff>
+    );
   return (
     <section className="operation-results">
-      <p className="notice">
+      <p className="field-help">
         {zh
-          ? "保留多个位点假设。原生位点概率不是药物结合概率，不能替代对接、结合模式验证或实验测量。"
-          : "Retain multiple site hypotheses. Native site probabilities are not drug-binding probabilities and do not replace docking, pose validation or experiments."}
+          ? "位点概率用于比较候选口袋，不是药物结合概率。"
+          : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
       </p>
       <p>
-        {zh ? "原生预测位点数" : "Native site count"}:{" "}
-        {result.native_pocket_count}
+        {zh ? "候选口袋" : "Candidate pockets"}: {result.native_pocket_count}
       </p>
       {!result.pockets.length && (
         <p>
@@ -65,8 +124,8 @@ export function PocketResults({
               </strong>
               <span>
                 {zh ? "模型概率" : "Model probability"}{" "}
-                {site.probability.toFixed(3)} ·{" "}
-                {zh ? "原生分数" : "Native score"} {site.score.toFixed(2)}
+                {site.probability.toFixed(3)} · {zh ? "位点评分" : "Site score"}{" "}
+                {site.score.toFixed(2)}
               </span>
               <small>
                 {site.residues.length} {zh ? "个残基" : "residues"}
@@ -85,6 +144,7 @@ export function PocketResults({
       <StructureViewer
         urls={[artifactUrl(job.id, result.protein_artifact)]}
         language={language}
+        residueRegion={selected?.residues}
       />
       {selected && (
         <>
@@ -125,44 +185,6 @@ export function PocketResults({
                 : "DiffSBDD requires PDB, single-character chains and unambiguous residue numbering. Convert explicitly while preserving identity mappings."}
             </p>
           )}
-        </>
-      )}
-      {selected && continueDesign && (
-        <DiffForm
-          key={String(selected.rank)}
-          mode="generate"
-          language={language}
-          initialProtein={result.protein}
-          initialPocket={{ kind: "residues", residues: selected.residues }}
-          onCreated={(j) =>
-            setMessage(
-              (zh ? "已创建生成任务：" : "Created generation task: ") + j.id,
-            )
-          }
-        />
-      )}
-      {selected && continueDocking && (
-        <>
-          <p className="field-help">
-            {zh
-              ? "中心来自所选口袋；20 Å 是可调整的初始搜索范围，不是测得的口袋边界。"
-              : "The center comes from the selected pocket; 20 Å is an editable starting search range, not a measured pocket boundary."}
-          </p>
-          <DockingForm
-            key={"dock" + selected.rank}
-            language={language}
-            initialReceptor={result.protein}
-            initialBox={{
-              center: [selected.center_x, selected.center_y, selected.center_z],
-              size: [20, 20, 20],
-              unit: "angstrom",
-            }}
-            onCreated={(j) =>
-              setMessage(
-                (zh ? "已创建结合模式任务：" : "Created pose task: ") + j.id,
-              )
-            }
-          />
         </>
       )}
       {message && <p role="status">{message}</p>}

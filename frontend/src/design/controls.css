@@ -162,17 +162,6 @@ textarea {
   line-height: 1.7;
   border-radius: 6px;
 }
-.ready-indicator {
-  font-size: 12px;
-  background: var(--warning-soft);
-  color: var(--warning);
-  padding: 6px 10px;
-  margin-top: 4px;
-}
-.ready-indicator.ok {
-  background: var(--success-soft);
-  color: var(--success);
-}
 .status {
   font-size: 12px;
   padding: 3px 8px;

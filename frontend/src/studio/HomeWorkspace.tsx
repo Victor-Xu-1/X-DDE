@@ -1,10 +1,6 @@
 import { componentsOf, isPrediction } from "../operations/types";
 import { useEffect, useState } from "react";
-import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 import { TaskForm } from "../TaskForm";
 import { ConfidencePanel } from "../operations/ConfidencePanel";
 import { TaskDetail } from "../TaskDetail";
@@ -22,6 +18,7 @@ import type {
   Prediction,
   Project,
 } from "../types";
+import { useTaskLabel } from "../examples/useTaskLabel";
 interface Props {
   active: boolean;
   resultsVersion: number;
@@ -56,6 +53,7 @@ interface Props {
   onSubmit(value: Prediction, key: string): Promise<Job>;
 }
 export function HomeWorkspace(p: Props) {
+  const taskLabel = useTaskLabel(p.job, p.language);
   const [showInput, setShowInput] = useState(
     () => !/^#task=[0-9a-f-]+$/.test(location.hash),
   );
@@ -76,21 +74,7 @@ export function HomeWorkspace(p: Props) {
     <div
       className={`prediction-workspace task-workspace ${showResults ? "is-result" : "is-input"}`}
     >
-      <header className="workbench-status-row">
-        <div>
-          <h1 className="sr-only">
-            {zh ? "结构预测 · OpenDDE" : "Structure prediction · OpenDDE"}
-          </h1>
-        </div>
-        <div className={"ready-indicator " + (p.ready ? "ok" : "off")}>
-          {p.ready ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-          {!p.health
-            ? t("connecting")
-            : p.ready
-              ? t("ready")
-              : t("unavailable")}
-        </div>
-      </header>
+      <h1 className="sr-only">{zh ? "结构预测" : "Structure prediction"}</h1>
       {p.connectionError && (
         <div className="error-box" role="alert">
           {t("connectionError")}{" "}
@@ -101,15 +85,9 @@ export function HomeWorkspace(p: Props) {
         <aside className="notice engine-notice">
           <p>
             {zh
-              ? "OpenDDE 预测环境尚未就绪。你可以先准备输入，再到运行状态查看该引擎需要的组件。"
-              : "The OpenDDE prediction environment is not ready. Prepare inputs now and check Runtime status for this engine’s prerequisites."}
+              ? "可以先填写任务；计算前请在安装与组件中完成结构预测配置。"
+              : "Prepare your inputs now; complete structure prediction setup in Installation & components before calculating."}
           </p>
-          <details>
-            <summary>
-              {zh ? "查看环境诊断" : "View environment diagnostics"}
-            </summary>
-            <p>{p.health.worker_error || p.health.engine.reason}</p>
-          </details>
         </aside>
       )}
       <section className="workbench-section">
@@ -135,17 +113,13 @@ export function HomeWorkspace(p: Props) {
           </button>
         </div>
         <div className="workbench-toolbar guided-toolbar">
-          <label>
+          <label hidden={!p.projects.length}>
             {zh ? "研究项目" : "Project"}
             <select
               value={p.projectId ?? ""}
               onChange={(e) => p.onProject(e.target.value || null)}
             >
-              <option value="">
-                {zh
-                  ? "全部任务（新任务不分组）"
-                  : "All tasks (new tasks ungrouped)"}
-              </option>
+              <option value="">{zh ? "不指定项目" : "No project"}</option>
               {p.projects.map((x) => (
                 <option key={x.id} value={x.id}>
                   {x.name}
@@ -182,7 +156,8 @@ export function HomeWorkspace(p: Props) {
                   setShowInput(true);
                 }}
               >
-                <ReloadOutlined /> {zh ? "复用此任务输入" : "Reuse inputs"}
+                <ReloadOutlined />{" "}
+                {zh ? "使用这份历史输入" : "Use these historical inputs"}
               </button>
             )}
         </div>
@@ -209,7 +184,7 @@ export function HomeWorkspace(p: Props) {
             <>
               <div className="candidate-column">
                 <h2 className="result-task-name">
-                  {p.job?.request.name}{" "}
+                  {taskLabel}{" "}
                   <span className={"status " + p.job?.status}>
                     {p.job ? t(p.job.status) : ""}
                   </span>
@@ -262,8 +237,8 @@ export function HomeWorkspace(p: Props) {
           <details className="confidence-details">
             <summary>
               {zh
-                ? "查看 PAE / PDE / 接触概率 / 逐原子置信度"
-                : "Inspect PAE / PDE / contact probability / atom confidence"}
+                ? "详细置信度分析（PAE / PDE）"
+                : "Detailed confidence analysis (PAE / PDE)"}
             </summary>
             <ConfidencePanel
               jobId={p.job.id}

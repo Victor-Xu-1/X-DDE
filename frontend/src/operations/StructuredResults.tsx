@@ -2,12 +2,19 @@ import "./structured-results.css";
 import { isResearchField } from "../presentation/research-files";
 
 import { resultTitle } from "./native-result-labels";
+import { unwrapResult, researchText } from "../presentation/research-content";
 
 function scalar(value: unknown, zh: boolean) {
   if (value == null) return "—";
   if (typeof value === "boolean")
     return value ? (zh ? "是" : "Yes") : zh ? "否" : "No";
-  return String(value);
+  if (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    !Number.isInteger(value)
+  )
+    return String(Number(value.toPrecision(6)));
+  return researchText(String(value), zh);
 }
 function isScalar(value: unknown) {
   return value == null || typeof value !== "object";
@@ -15,10 +22,20 @@ function isScalar(value: unknown) {
 
 /** One presentation path for native scientific records; details preserve exact values. */
 export function ResultTree({ value, zh }: { value: unknown; zh: boolean }) {
+  value = unwrapResult(value);
   if (typeof value === "string" && value.length > 240)
-    return <pre className="native-result-report">{value}</pre>;
+    return (
+      <pre className="native-result-report">{researchText(value, zh)}</pre>
+    );
   if (isScalar(value))
-    return <span className="result-value">{scalar(value, zh)}</span>;
+    return (
+      <span
+        className="result-value"
+        title={typeof value === "number" ? String(value) : undefined}
+      >
+        {scalar(value, zh)}
+      </span>
+    );
   if (Array.isArray(value)) {
     if (!value.length)
       return <span className="muted">{zh ? "无条目" : "No entries"}</span>;
@@ -84,7 +101,16 @@ export function ResultTree({ value, zh }: { value: unknown; zh: boolean }) {
   const entries = Object.entries(value as Record<string, unknown>).filter(
     ([key, value]) =>
       isResearchField(key) &&
-      !(value == null && ["error", "service", "endpoint"].includes(key)),
+      !(key === "structure" && typeof value === "string") &&
+      !(
+        value == null &&
+        ["error", "reason", "service", "endpoint"].includes(key)
+      ) &&
+      !(
+        Array.isArray(value) &&
+        value.length === 0 &&
+        ["warnings", "errors"].includes(key)
+      ),
   );
   const simple = entries.filter(
     ([, v]) =>
@@ -110,7 +136,14 @@ export function ResultTree({ value, zh }: { value: unknown; zh: boolean }) {
         <details
           className="native-result-group"
           key={key}
-          open={key === "result" || key === "summary" || key === "metrics"}
+          open={[
+            "result",
+            "summary",
+            "metrics",
+            "candidates",
+            "soluble_mpnn_scores",
+            "soluble_mpnn_seqids",
+          ].includes(key)}
         >
           <summary>
             {resultTitle(key, zh)}

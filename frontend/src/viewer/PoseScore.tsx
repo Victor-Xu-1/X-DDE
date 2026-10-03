@@ -21,6 +21,7 @@ export function PoseScore({
     value.unit === "kcal/mol" &&
     Number.isFinite(value.value) &&
     value.method;
+  if (!valid) return null;
   return (
     <div className="pose-score">
       {valid && (
@@ -35,9 +36,6 @@ export function PoseScore({
           </small>
         </span>
       )}
-      <span className="muted">
-        {zh ? "逐残基作用能：未计算" : "Per-residue energy: not calculated"}
-      </span>
       <Hint label={zh ? "作用大小说明" : "Interaction magnitude help"}>
         {zh
           ? "整体对接评分是原生模型对这一个姿势的评分，数值越低通常表示该模型评分越有利，只适用于相同方法和条件下比较候选。它不是每个氨基酸的作用能，也不是实测结合力或亲和力。当前没有逐残基能量分解结果；距离不转换成强、中、弱。"

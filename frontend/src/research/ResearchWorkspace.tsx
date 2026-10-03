@@ -11,6 +11,7 @@ import { ObjectInspector } from "./ObjectInspector";
 import { useResearchGraph } from "./useResearchGraph";
 import { researchGraphForDisplay } from "../presentation/research-graph";
 import { isResearchFile } from "../presentation/research-files";
+import { visibleAssetNodes, type AssetFilter } from "./asset-list";
 
 export function ResearchWorkspace({
   language,
@@ -40,6 +41,10 @@ export function ResearchWorkspace({
   const [query, setQuery] = useState(""),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
+  const [assetFilter, setAssetFilter] = useState<AssetFilter>("research"),
+    [page, setPage] = useState(0);
+  const rows = visibleAssetNodes(graph?.nodes ?? [], assetFilter, query),
+    pageSize = 30;
   const [uploadKind, setUploadKind] = useState<ObjectKind>("molecule"),
     [properties, setProperties] = useState<ScientificObject | null>(null);
   const [label, setLabel] = useState(""),
@@ -141,7 +146,7 @@ export function ResearchWorkspace({
           </button>
         )}
         <label>
-          {zh ? "上传资产类型" : "Upload type"}{" "}
+          {zh ? "材料类型" : "Upload type"}{" "}
           <select
             value={uploadKind}
             onChange={(e) => setUploadKind(e.target.value as ObjectKind)}
@@ -154,7 +159,7 @@ export function ResearchWorkspace({
           </select>
         </label>
         <label className="file-choice">
-          {zh ? "上传并登记" : "Upload & register"}
+          {zh ? "上传材料" : "Upload material"}
           <input
             type="file"
             disabled={busy}
@@ -257,32 +262,103 @@ export function ResearchWorkspace({
                 <input
                   type="search"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(0);
+                  }}
                 />
               </label>
+              <label className="field">
+                {zh ? "显示内容" : "Show"}
+                <select
+                  value={assetFilter}
+                  onChange={(e) => {
+                    setAssetFilter(e.target.value as AssetFilter);
+                    setPage(0);
+                  }}
+                >
+                  {(
+                    [
+                      "research",
+                      "molecule",
+                      "structure",
+                      "sequence",
+                      "file",
+                      "task",
+                      "all",
+                    ] as const
+                  ).map((id, i) => (
+                    <option key={id} value={id}>
+                      {
+                        (zh
+                          ? [
+                              "研究结果",
+                              "分子",
+                              "蛋白与复合物",
+                              "序列",
+                              "原始文件",
+                              "任务",
+                              "全部",
+                            ]
+                          : [
+                              "Research results",
+                              "Molecules",
+                              "Proteins & complexes",
+                              "Sequences",
+                              "Source files",
+                              "Tasks",
+                              "All",
+                            ])[i]
+                      }
+                    </option>
+                  ))}
+                </select>
+              </label>
               <ul
+                data-asset-view={assetFilter}
                 className="research-node-list"
                 aria-label={zh ? "资产与任务" : "Assets and tasks"}
               >
-                {graph.nodes
-                  .filter((n) =>
-                    `${n.label} ${n.kind} ${n.operation ?? ""}`
-                      .toLowerCase()
-                      .includes(query.toLowerCase()),
-                  )
-                  .map((n) => (
-                    <li key={n.id}>
-                      <button
-                        className={selected === n.id ? "selected" : ""}
-                        aria-label={`${objectLabels[n.kind]?.[zh ? 0 : 1]}: ${n.label}`}
-                        onClick={() => void select(n.id)}
-                      >
-                        <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
-                        <strong>{n.label}</strong>
-                      </button>
-                    </li>
-                  ))}
+                {rows.slice(page * pageSize, (page + 1) * pageSize).map((n) => (
+                  <li key={n.id}>
+                    <button
+                      className={selected === n.id ? "selected" : ""}
+                      aria-label={`${objectLabels[n.kind]?.[zh ? 0 : 1]}: ${n.label}`}
+                      onClick={() => void select(n.id)}
+                    >
+                      <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
+                      <strong>{n.label}</strong>
+                    </button>
+                  </li>
+                ))}
               </ul>
+
+              {!rows.length && (
+                <p className="field-help">
+                  {zh
+                    ? "没有符合条件的资产，请切换显示内容或搜索词。"
+                    : "No matching assets. Change the view or search."}
+                </p>
+              )}
+              {rows.length > pageSize && (
+                <div className="asset-pagination">
+                  <button
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    {zh ? "上一页" : "Previous"}
+                  </button>
+                  <span>
+                    {page + 1} / {Math.ceil(rows.length / pageSize)}
+                  </span>
+                  <button
+                    disabled={(page + 1) * pageSize >= rows.length}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    {zh ? "下一页" : "Next"}
+                  </button>
+                </div>
+              )}
               {graph.truncated && hasOlder && (
                 <button
                   disabled={busy}

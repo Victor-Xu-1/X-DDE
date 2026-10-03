@@ -8,8 +8,19 @@ on:
       - 'frontend/src/research/**'
       - 'frontend/src/studio/**'
       - 'frontend/src/design/**'
-      - 'frontend/src/viewer/ViewerControls*'
+      - 'frontend/src/viewer/**'
+      - 'frontend/src/presentation/**'
+      - 'frontend/src/docking/DockingResults*'
+      - 'frontend/src/editors/scientificEditor*'
+      - 'frontend/src/antibodies/AntibodyNumberResults*'
+      - 'frontend/src/quality/QualityResults*'
+      - 'frontend/src/examples/ExampleActions*'
+      - 'frontend/src/examples/guide-data.json'
+      - 'frontend/src/App.tsx'
+      - 'frontend/src/TaskDetail.tsx'
+      - 'frontend/src/styles.css'
       - 'frontend/src/deployment/*css'
+      - 'frontend/src/deployment/ComponentLibrary*'
       - 'frontend/src/diffsbdd/ReferencePicker*'
       - 'frontend/src/diffsbdd/DiffResults*'
       - 'frontend/src/examples/examples.css'
@@ -17,6 +28,7 @@ on:
       - 'frontend/src/poses/poses.css'
       - 'frontend/src/workflow.css'
       - 'server_tests/*layout*'
+      - 'server_tests/*researcher*'
       - '.github/workflows/task-layout-checks.yml'
   workflow_dispatch:
 permissions:
@@ -63,6 +75,23 @@ jobs:
           src/operations/ToolCenter.test.tsx
           src/viewer/ViewerControls.test.tsx
           src/presentation/research-files.test.tsx
+          src/presentation/molecular-record.test.ts
+          src/presentation/research-content.test.ts
+          src/presentation/task-sources.test.ts
+          src/operations/EpitopeResults.test.tsx
+          src/examples/useTaskLabel.test.tsx
+          src/viewer/residue-region.test.ts
+          src/viewer/source-layout.test.ts
+          src/viewer/PoseScore.test.tsx
+          src/operations/HarnessResults.test.tsx
+          src/operations/native-report.test.ts
+          src/operations/sequence-result.test.ts
+          src/research/asset-list.test.ts
+          src/studio/RuntimeStatus.test.tsx
+          src/docking/DockingResults.test.tsx
+          src/editors/scientificEditor.test.ts
+          src/antibodies/AntibodyNumberForm.test.tsx
+          src/deployment/deployment.test.tsx
       - name: Restore fixed native case evidence without scientific execution
         env:
           GH_TOKEN: ${{ github.token }}
@@ -78,7 +107,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
-          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py
+          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py server_tests/test_researcher_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

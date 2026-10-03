@@ -464,7 +464,7 @@ export function Header({
           aria-expanded={Boolean(query.trim())}
           aria-controls={query.trim() ? "task-search-results" : undefined}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={zh ? "搜索任务名称或 ID" : "Search tasks by name or ID"}
+          placeholder={zh ? "搜索任务名称" : "Search tasks by name or ID"}
         />
         {query.trim() && (
           <div

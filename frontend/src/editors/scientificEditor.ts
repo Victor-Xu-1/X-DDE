@@ -1,4 +1,5 @@
 import { api } from "../api";
+import { molecularRecordText } from "../presentation/molecular-record";
 import type { ScientificObject } from "../research/types";
 
 export interface Ketcher {
@@ -54,11 +55,7 @@ export async function molecularRecord(
     );
   const text = await response.text();
   if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum");
-  const record = text.split("$$$$").filter((value) => value.trim())[
-    object.reference.record
-  ];
-  if (!record) throw new Error("Selected molecular record is missing.");
-  return record;
+  return molecularRecordText(text, object.reference.record, format);
 }
 
 /** Retain the intent across uncertain HTTP outcomes; a retry cannot create another version. */

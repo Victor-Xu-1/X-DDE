@@ -763,8 +763,8 @@
       ]
     ],
     "interpretation": [
-      "点击口袋看位置和邻近残基；预测口袋是候选位置。",
-      "Select a pocket to inspect its position and surrounding residues."
+      "查看所选区域包含哪些残基，再决定是否用于分子生成或对接。",
+      "Inspect the residues in the selected region before using it for generation or docking."
     ]
   },
   "diffsbdd.prepare": {
@@ -787,8 +787,8 @@
       ]
     ],
     "interpretation": [
-      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
-      "Inspect actual prepared files and resource reports."
+      "核对保留的链和成分，下载准备好的受体用于下一步。",
+      "Review retained chains and components, then download the prepared receptor for the next task."
     ]
   },
   "diffsbdd.interactions": {
@@ -811,8 +811,8 @@
       ]
     ],
     "interpretation": [
-      "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
-      "Inspect validity, structures and diversity before downstream evaluation."
+      "核对接触类型、残基和距离；几何接触不等于作用能或实验亲和力。",
+      "Review contact types, residues and distances; contacts are not energy or measured affinity."
     ]
   },
   "diffsbdd.properties": {
@@ -835,8 +835,8 @@
       ]
     ],
     "interpretation": [
-      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
-      "Compare units, missing values and alerts; predictions differ from experiments."
+      "比较分子描述符及其单位；这些结果不是 ADMET 或结合活性预测。",
+      "Compare descriptors and units; these are not ADMET or binding activity predictions."
     ]
   },
   "diffsbdd.export": {
@@ -859,8 +859,8 @@
       ]
     ],
     "interpretation": [
-      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
-      "Inspect actual prepared files and resource reports."
+      "下载所选分子文件；表格描述符只用于结构性质比较。",
+      "Download the selected molecules; descriptors compare structural properties only."
     ]
   },
   "regions": {

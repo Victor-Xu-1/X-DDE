@@ -95,6 +95,33 @@ Object.assign(labels, {
   identity: "序列一致性",
   rank: "排名",
 });
+Object.assign(labels, {
+  matched_target_atoms: "用于对齐的靶标原子数",
+  matched_binder_atoms: "参与比较的结合体原子数",
+  alignment_depth: "比对序列数",
+  target_name: "靶标",
+  chain_id: "链",
+  cdr_regions: "CDR 范围",
+  residue_id: "残基编号",
+  ranking_score: "结构排序分数",
+  ipsae: "ipSAE",
+  gate_passed: "预设界面条件是否满足",
+  cdr_contact_fraction: "CDR 接触比例",
+  framework_contact_fraction: "框架接触比例",
+  cdr3_gate_passed: "CDR3 条件是否满足",
+  cdr_contact_fraction_gate_passed: "CDR 接触比例条件是否满足",
+  risk_level: "模型风险标注",
+  strategy: "设计依据",
+  parent_id: "来源候选",
+  design_positions: "设计位置",
+  soluble_mpnn_scores: "各链设计分数",
+  soluble_mpnn_seqids: "各链序列一致性",
+  esm2_llr: "ESM2 突变对数似然比",
+  new_structure_count: "新增可比较结构数",
+  region: "区域",
+  sequence_positions: "序列位置",
+  gate_evidence: "界面条件详情",
+});
 export function resultTitle(key: string, zh: boolean) {
   return zh ? (labels[key] ?? key) : key.replaceAll("_", " ");
 }

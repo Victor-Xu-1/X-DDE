@@ -86,7 +86,6 @@ export function ToolCenter({
             <span aria-hidden="true">← </span>
             {zh ? "返回全部能力" : "Back to all capabilities"}
           </button>
-          <span className="source-badge">{current.source}</span>
         </div>
       )}
       <h1
@@ -237,9 +236,8 @@ export function ToolCenter({
                     }
                   }}
                   aria-label={t.label[index]}
-                  title={t.note[index]}
+                  title={t.note[index] + " · " + t.source}
                 >
-                  <span className="source-badge">{t.source}</span>
                   <h2>{t.label[index]}</h2>
                   <p>{t.note[index]}</p>
                   <ModalityTags tool={t} language={language} />

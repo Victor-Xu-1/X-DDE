@@ -284,9 +284,7 @@ export function CampaignForm({ language }: { language: Language }) {
       {plan && (
         <>
           <details>
-            <summary>
-              {zh ? "查看服务器任务摘要" : "Inspect server plan summary"}
-            </summary>
+            <summary>{zh ? "任务方案详情" : "Design plan details"}</summary>
             <ResultTree value={plan.summary} zh={zh} />
           </details>
           {plan.state === "validated" && (
@@ -331,7 +329,7 @@ export function CampaignForm({ language }: { language: Language }) {
         )}
         unavailable={
           zh
-            ? "请先检查服务器配置、核对任务摘要，再确认启动。"
+            ? "请先检查设计配置并确认方案，再启动任务。"
             : "Validate server configuration and confirm the plan before launch."
         }
         submitLabel={
@@ -350,7 +348,6 @@ export function CampaignForm({ language }: { language: Language }) {
             {zh
               ? "设计任务已派发。下方可查看实际运行状态和结果。"
               : "Campaign dispatched. Inspect its actual progress and results below."}{" "}
-            {value.task_id}
           </p>
         )}
         steps={[
@@ -376,21 +373,16 @@ export function CampaignForm({ language }: { language: Language }) {
           },
         ]}
       />
-      <details open={Boolean(plan?.task_id)}>
-        <summary>
-          {zh ? "已保存设计任务与运行记录" : "Saved campaigns and run history"}
-        </summary>{" "}
-        <CampaignMonitor
-          language={language}
-          revision={revision}
-          onRestore={(p) => {
-            if (p.config) setRaw(p.config);
-            setExpert(true);
-            setPlan(p);
-            setReviewed(false);
-          }}
-        />
-      </details>
+      <CampaignMonitor
+        language={language}
+        revision={revision}
+        onRestore={(p) => {
+          if (p.config) setRaw(p.config);
+          setExpert(true);
+          setPlan(p);
+          setReviewed(false);
+        }}
+      />
     </div>
   );
 }

@@ -106,12 +106,6 @@
   margin: 0 0 12px;
 }
 
-.workbench-status-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
-}
-
 /* Input and output surfaces use one width authority. */
 .studio-content .task-workspace {
   --task-width: 1040px;
@@ -142,11 +136,6 @@
 }
 .prediction-workspace {
   position: relative;
-}
-.prediction-workspace .workbench-status-row {
-  position: absolute;
-  top: 0;
-  right: 0;
 }
 .prediction-workspace .workspace-mode {
   margin-bottom: 14px;
@@ -184,10 +173,6 @@
   .task-workspace .questionnaire {
     padding: 18px;
   }
-  .prediction-workspace .workbench-status-row {
-    position: static;
-    justify-content: flex-start;
-  }
 }
 
 .task-mode-controls {
@@ -208,4 +193,26 @@
 .studio-app .task-workspace.is-input .viewer-panel .molecular-stage {
   height: 320px;
   min-height: 0;
+}
+
+.input-purpose {
+  font-size: 14px;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.prediction-workspace .workbench-toolbar:empty {
+  display: none;
+}
+.prediction-workspace .result-columns {
+  align-items: start;
+}
+.prediction-workspace .candidate-panel {
+  min-height: 0;
+}
+.candidate-panel .candidate-scroll {
+  min-height: 0;
+  max-height: 390px;
+}
+.candidate-panel .candidate-foot {
+  margin-top: 12px;
 }

@@ -8,6 +8,10 @@ import { CoreVerification } from "./CoreVerification";
 import { PropertyForm } from "../operations/PropertyForm";
 import { isResearchFile } from "../presentation/research-files";
 import { StructureViewer } from "../viewer/StructureViewer";
+import { ResultTree } from "../operations/StructuredResults";
+import { isDesign } from "./types";
+import { ScientificDetails } from "./ScientificDetails";
+import { ResearchHandoff } from "../guided/ResearchHandoff";
 
 export function DiffResults({
   job,
@@ -28,6 +32,15 @@ export function DiffResults({
   >(null);
   const [query, setQuery] = useState(""),
     [message, setMessage] = useState("");
+  const targetArtifact =
+    typeof data.molecule_artifact === "string"
+      ? data.molecule_artifact
+      : typeof data.artifact === "string"
+        ? data.artifact
+        : null;
+  const mode =
+    job.request.operation === "diffsbdd" ? job.request.payload.mode : "";
+  const designing = isDesign(mode);
   useEffect(() => {
     const c = new AbortController();
     setObjects([]);
@@ -35,6 +48,17 @@ export function DiffResults({
     setSelected(null);
     setAction(null);
     async function load() {
+      if (!targetArtifact || data.valid === 0) return;
+      const outputFiles = await api.assets(c.signal);
+      const outputIds = new Set(
+        outputFiles
+          .filter(
+            (f) =>
+              f.name === targetArtifact ||
+              f.name === targetArtifact.split("/").at(-1),
+          )
+          .map((f) => f.id),
+      );
       const all: ScientificObject[] = [];
       for (let offset = 0; offset < 10000; offset += 200) {
         const page = await request<ScientificObject[]>(
@@ -46,6 +70,7 @@ export function DiffResults({
             (v) =>
               v.source_job === job.id &&
               v.kind === "molecule" &&
+              outputIds.has(v.reference.asset_id) &&
               (!data.core_verification ||
                 (v.reference.sha256 ===
                   data.core_verification.qualified_sha256 &&
@@ -54,13 +79,17 @@ export function DiffResults({
         );
         if (page.length < 200) break;
       }
-      if (!c.signal.aborted) setObjects(all);
+      if (!c.signal.aborted) {
+        all.sort((a, b) => a.reference.record - b.reference.record);
+        setObjects(all);
+        setSelected(all[0] ?? null);
+      }
     }
     void load().catch((e) => {
       if (!c.signal.aborted) setError(String(e));
     });
     return () => c.abort();
-  }, [job.id, data.core_verification]);
+  }, [job.id, data.core_verification, targetArtifact, data.valid]);
   const names = [
     "protein_artifact",
     "pocket_artifact",
@@ -68,7 +97,9 @@ export function DiffResults({
     "report_artifact",
     "artifact",
   ].flatMap((key) =>
-    typeof data[key] === "string" && isResearchFile(data[key] as string)
+    typeof data[key] === "string" &&
+    isResearchFile(data[key] as string) &&
+    !(key === "molecule_artifact" && data.valid === 0)
       ? [{ key, name: data[key] as string }]
       : [],
   );
@@ -86,17 +117,72 @@ export function DiffResults({
       : null;
   const protein =
     typeof data.protein_artifact === "string" ? data.protein_artifact : null;
+  if (
+    selected &&
+    (action ||
+      (designMode &&
+        job.request.operation === "diffsbdd" &&
+        "protein" in job.request.payload))
+  )
+    return (
+      <ResearchHandoff
+        language={language}
+        onBack={() => {
+          setAction(null);
+          setDesignMode(null);
+        }}
+      >
+        {action === "properties" ? (
+          <PropertyForm
+            key={selected.id + action}
+            language={language}
+            initialFile={selected.reference.asset_id}
+            scientificInput={selected.reference}
+            onCreated={() =>
+              setMessage(
+                zh
+                  ? "性质任务已创建，可在任务记录中查看。"
+                  : "Properties task created; view it in Task history.",
+              )
+            }
+          />
+        ) : (
+          <DiffForm
+            key={selected.id + (action ?? designMode)}
+            mode={action === "export" ? "export" : designMode!}
+            language={language}
+            initialMolecule={selected.reference}
+            initialProtein={
+              job.request.operation === "diffsbdd"
+                ? (job.request.payload
+                    .protein as import("../research/types").MoleculeRef)
+                : null
+            }
+            onCreated={() =>
+              setMessage(
+                zh
+                  ? "新任务已创建，可在任务记录中查看。"
+                  : "New task created; view it in Task history.",
+              )
+            }
+          />
+        )}
+      </ResearchHandoff>
+    );
   return (
     <section
       aria-label={
         zh ? "DiffSBDD 结果与下一步" : "DiffSBDD results and next steps"
       }
     >
-      <p className="notice">
-        {zh
-          ? "生成数量不代表活性或亲和力；请继续比较性质和结合姿势。"
-          : "Generated counts do not establish activity or affinity; compare properties and binding poses next."}
-      </p>
+      {designing && (
+        <p className="field-help">
+          {zh
+            ? "生成数量不代表活性或亲和力；请继续比较性质和结合姿势。"
+            : "Generated counts do not establish activity or affinity; compare properties and binding poses next."}
+        </p>
+      )}
+      <ScientificDetails job={job} data={data} language={language} />
       {typeof data.valid === "number" && (
         <p>
           {data.core_verification
@@ -116,6 +202,26 @@ export function DiffResults({
           language={language}
         />
       )}
+      {data.valid === 0 && (
+        <p className="notice" role="status">
+          {zh
+            ? "此次没有得到符合要求的候选。请检查起始分子和固定区域，或调整生成方案后重新尝试。"
+            : "No qualified candidates were returned. Review the starting molecule and fixed region, or adjust the design settings before retrying."}
+        </p>
+      )}
+      {data.valid === 0 && Boolean(data.report) && (
+        <details>
+          <summary>
+            {zh ? "为什么没有有效候选？" : "Why were no candidates accepted?"}
+          </summary>
+          <ResultTree
+            value={{
+              rejected: (data.report as Record<string, unknown>).rejected,
+            }}
+            zh={zh}
+          />
+        </details>
+      )}
       {names.length > 0 && (
         <ul>
           {names.map((v) => (
@@ -133,10 +239,17 @@ export function DiffResults({
           ))}
         </ul>
       )}
-      {!selected && molecule && (
+      {!selected && molecule && data.valid !== 0 && (
         <StructureViewer
           urls={[artifactUrl(job.id, molecule)]}
           language={language}
+        />
+      )}
+      {selected && selected.reference.conformer === 0 && (
+        <StructureViewer
+          language={language}
+          urls={["/api/assets/" + selected.reference.asset_id]}
+          records={[selected.reference.record]}
         />
       )}
       {protein && (
@@ -158,7 +271,7 @@ export function DiffResults({
               onChange={(e) => setQuery(e.target.value)}
             />
           </label>
-          <ul>
+          <ul className="diff-candidate-choices">
             {objects
               .filter((v) =>
                 `${v.label} ${v.reference.record + 1}`
@@ -178,7 +291,7 @@ export function DiffResults({
                   >
                     {data.core_verification
                       ? `${zh ? "候选" : "Candidate"} ${(data.core_verification.candidates.find((c) => c.qualified_record === v.reference.record)?.record ?? v.reference.record) + 1} · ${zh ? "固定区域检查通过" : "Fixed-region checks passed"}`
-                      : `${v.label} · ${zh ? "记录" : "Record"} ${v.reference.record + 1}`}
+                      : `${zh ? "候选" : "Candidate"} ${v.reference.record + 1}`}
                   </button>
                 </li>
               ))}
@@ -225,53 +338,6 @@ export function DiffResults({
           )}
         </>
       )}
-      {selected && action === "properties" && (
-        <PropertyForm
-          key={selected.id}
-          language={language}
-          initialFile={selected.reference.asset_id}
-          scientificInput={selected.reference}
-          onCreated={(j) =>
-            setMessage(
-              (zh ? "已创建性质任务：" : "Created properties task: ") + j.id,
-            )
-          }
-        />
-      )}
-      {selected && action === "export" && (
-        <DiffForm
-          key={selected.id}
-          mode="export"
-          language={language}
-          initialMolecule={selected.reference}
-          onCreated={(j) =>
-            setMessage(
-              (zh ? "已创建导出任务：" : "Created export task: ") + j.id,
-            )
-          }
-        />
-      )}
-      {selected &&
-        designMode &&
-        job.request.operation === "diffsbdd" &&
-        "protein" in job.request.payload && (
-          <DiffForm
-            key={selected.id + designMode}
-            mode={designMode}
-            language={language}
-            initialProtein={
-              job.request.payload
-                .protein as import("../research/types").MoleculeRef
-            }
-            initialMolecule={selected.reference}
-            onCreated={(j) =>
-              setMessage(
-                (zh ? "已创建下一轮任务：" : "Created next-round task: ") +
-                  j.id,
-              )
-            }
-          />
-        )}
       {message && <p role="status">{message}</p>}
       {error && (
         <p role="alert" className="error-box">

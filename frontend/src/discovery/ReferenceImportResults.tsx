@@ -63,7 +63,7 @@ export function ReferenceImportResults({
       <h3>{result.identifier}</h3>
       <p className="field-help">
         {zh
-          ? "原始参考材料已保存，保留来源和字节摘要；尚未完成后续结构或分子准备。"
+          ? "已保存原始参考材料。用于计算前，请按需要完成结构或分子准备。"
           : "Original reference saved with provenance/digest; subsequent structure or molecule preparation is separate."}
       </p>
       <StructureViewer

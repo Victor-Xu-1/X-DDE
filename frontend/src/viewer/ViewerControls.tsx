@@ -35,7 +35,7 @@ export function ViewerControls({
     .slice(0, 80);
   return (
     <fieldset className="viewer-controls" disabled={disabled}>
-      {scene.ligands.length > 0 && (
+      {scene.hasPolymer && scene.ligands.length > 0 && (
         <div className="pocket-controls">
           <label>
             {zh ? "中心配体" : "Central ligand"}

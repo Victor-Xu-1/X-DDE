@@ -2,6 +2,7 @@ import { thinSticks, regionStyle, selectionStyle } from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
+import { residueRegion } from "./residue-region";
 import {
   residueRef as ref,
   residueSelection as sel,
@@ -42,6 +43,7 @@ export class MolecularScene {
   };
   private selected: number[] = [];
   private highlighted: number[] = [];
+  private siteRegion: number[] = [];
   private hidden = new Set<number>();
   private edits = new Map<
     string,
@@ -61,6 +63,7 @@ export class MolecularScene {
     this.revision++;
     this.selected = [];
     this.highlighted = [];
+    this.siteRegion = [];
     this.hidden.clear();
     this.edits.clear();
     this.measurement = [];
@@ -154,6 +157,24 @@ export class MolecularScene {
     );
     await this.paint();
   }
+  async highlightResidues(value: unknown) {
+    if (this.overlay) return;
+    const region = residueRegion(
+      value,
+      this.viewer.selectedAtoms({ model: 0 }),
+    );
+    this.siteRegion = region.indices;
+    await this.paint();
+    if (region.indices.length) {
+      this.viewer.zoomTo({ model: 0, index: region.indices });
+      this.viewer.zoom(0.85);
+      this.viewer.render();
+    }
+    this.emit("site-region", {
+      requested: region.requested,
+      matched: region.matched,
+    });
+  }
   paint(): Promise<void> {
     const revision = this.revision;
     // Surface generation is asynchronous. Serialize style updates to avoid stale layers.
@@ -183,6 +204,13 @@ export class MolecularScene {
       return;
     }
     await paintBase(v, this.info, this.options, [...this.hidden]);
+    if (this.siteRegion.length) {
+      v.setStyle(
+        { hetflag: false },
+        { cartoon: { color: "#9baeb2", opacity: 0.18 } },
+      );
+      v.setStyle({ model: 0, index: this.siteRegion }, regionStyle());
+    }
     this.drawContacts();
     if (this.highlighted.length)
       v.setStyle({ index: this.highlighted }, regionStyle());

@@ -6,6 +6,7 @@ import {
   componentGroups,
   missingComponents,
   pendingOperation,
+  visibleDeploymentActivity,
 } from "./component-groups";
 import { componentName } from "./labels";
 
@@ -74,6 +75,12 @@ export function ComponentLibrary({
           const complete =
             recommended.length > 0 &&
             recommended.every((id) => data.installed[id]);
+          const mainPackages = group.packages.filter((p) =>
+            recommended.includes(p.id),
+          );
+          const additional = group.packages.filter(
+            (p) => !recommended.includes(p.id),
+          );
           return (
             <section
               key={group.id}
@@ -115,19 +122,54 @@ export function ComponentLibrary({
                 )}
               </header>
               <div className="component-grid">
-                {group.packages.map((p) => (
-                  <ComponentCard
-                    key={p.id}
-                    p={p}
-                    data={data}
-                    zh={zh}
-                    busy={busy}
-                    execute={execute}
-                    install={install}
-                    onRemove={setRemove}
-                  />
-                ))}
+                {(mainPackages.length ? mainPackages : group.packages).map(
+                  (p) => (
+                    <ComponentCard
+                      key={p.id}
+                      p={p}
+                      data={data}
+                      zh={zh}
+                      busy={busy}
+                      execute={execute}
+                      install={install}
+                      onRemove={setRemove}
+                    />
+                  ),
+                )}
               </div>
+              {mainPackages.length > 0 && additional.length > 0 && (
+                <details
+                  className="component-additions"
+                  open={additional.some(
+                    (p) =>
+                      pendingOperation(data, p.id) ||
+                      visibleDeploymentActivity(data).some(
+                        (o) => o.package === p.id && o.state === "failed",
+                      ),
+                  )}
+                >
+                  <summary>
+                    {zh
+                      ? "可选模型与配套组件"
+                      : "Optional models & supporting components"}{" "}
+                    · {additional.length}
+                  </summary>
+                  <div className="component-grid">
+                    {additional.map((p) => (
+                      <ComponentCard
+                        key={p.id}
+                        p={p}
+                        data={data}
+                        zh={zh}
+                        busy={busy}
+                        execute={execute}
+                        install={install}
+                        onRemove={setRemove}
+                      />
+                    ))}
+                  </div>
+                </details>
+              )}
             </section>
           );
         })}

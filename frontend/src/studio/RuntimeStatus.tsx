@@ -1,5 +1,22 @@
 import { DatabaseOutlined, DeploymentUnitOutlined } from "@ant-design/icons";
 import type { EngineStatus, Health, Language } from "../types";
+const researchUses: Record<string, [string, string]> = {
+  opendde: ["结构与复合物预测", "Structure & complex prediction"],
+  diffsbdd: ["小分子生成与优化", "Small-molecule generation & optimization"],
+  harness: ["蛋白与抗体工具", "Protein & antibody tools"],
+  p2rank: ["口袋寻找", "Pocket finding"],
+  gnina: ["对接与姿势评估", "Docking & pose evaluation"],
+  chemistry: ["分子状态与构象准备", "Molecular states & conformers"],
+  biopython: ["受体结构准备与对齐", "Receptor preparation & alignment"],
+  anarcii: ["抗体编号与 CDR 标注", "Antibody numbering & CDR annotation"],
+  sapiens: [
+    "抗体人源参考与框架建议",
+    "Antibody human reference & framework proposals",
+  ],
+  admet: ["性质与早期安全性", "Properties & early safety"],
+  posebusters: ["构象与姿势质控", "Conformer & pose quality"],
+  discovery: ["靶点与公共研究材料", "Targets & public research materials"],
+};
 
 export function RuntimeStatus({
   language,
@@ -48,7 +65,7 @@ export function RuntimeStatus({
       <div className="model-grid">
         <article className="studio-panel">
           <DeploymentUnitOutlined />
-          <h3>{zh ? "X-DDE 平台后端" : "X-DDE platform server"}</h3>
+          <h3>{zh ? "工作台服务" : "Workbench service"}</h3>
           <span
             className={
               "status " + (platformReady ? "succeeded" : "interrupted")
@@ -88,13 +105,8 @@ export function RuntimeStatus({
           return (
             <article className="studio-panel" key={engine.id}>
               <DeploymentUnitOutlined />
-              <h3>
-                {engine.name} · {zh ? "集成环境" : "Integrated environment"}
-              </h3>
-              <p>
-                {engine.description.split(" / ")[zh ? 0 : 1] ??
-                  engine.description}
-              </p>
+              <h3>{researchUses[engine.id]?.[zh ? 0 : 1] ?? engine.name}</h3>
+              <small>{engine.name}</small>
               <span
                 className={
                   "status " +
@@ -112,8 +124,12 @@ export function RuntimeStatus({
                   : engine.ready
                     ? harness
                       ? zh
-                        ? "客户端已配置"
-                        : "Client configured"
+                        ? engine.compute_configured
+                          ? "任务服务已配置"
+                          : "需配置计算服务"
+                        : engine.compute_configured
+                          ? "Task services configured"
+                          : "Compute setup required"
                       : zh
                         ? "环境检查通过"
                         : "Environment checks passed"
@@ -129,26 +145,29 @@ export function RuntimeStatus({
                 </p>
               )}
               {modelFiles.length > 0 && (
-                <p
-                  title={
-                    zh
-                      ? "文件存在检查不等于模型推理或科学基准通过。"
-                      : "File checks do not establish inference or scientific validity."
-                  }
-                >
-                  {zh ? "模型文件：" : "Model files: "}
-                  {modelFiles.filter(Boolean).length} / {modelFiles.length}
-                </p>
+                <details>
+                  <summary>{zh ? "模型资源" : "Model resources"}</summary>
+                  <p
+                    title={
+                      zh
+                        ? "文件存在检查不等于模型推理或科学基准通过。"
+                        : "File checks do not establish inference or scientific validity."
+                    }
+                  >
+                    {zh ? "模型文件：" : "Model files: "}
+                    {modelFiles.filter(Boolean).length} / {modelFiles.length}
+                  </p>
+                </details>
               )}
               {harness && (
                 <p>
                   {engine.compute_configured
                     ? zh
-                      ? "计算服务地址已配置"
-                      : "Compute service address configured"
+                      ? "提交任务时会检查相应的计算或检索服务。"
+                      : "Each task checks its required compute or search service before submission."
                     : zh
-                      ? "计算服务尚未配置"
-                      : "Compute service not configured"}
+                      ? "在安装与组件中完成服务配置后，可提交需要计算服务的任务。"
+                      : "Configure the service in Installation & components before submitting compute-dependent tasks."}
                 </p>
               )}
             </article>

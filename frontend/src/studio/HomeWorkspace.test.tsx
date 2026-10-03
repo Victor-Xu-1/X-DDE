@@ -100,10 +100,10 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
   };
   const { rerender } = render(<UtilityViews {...runtimeProps} />);
   const service = screen.getByRole("heading", {
-    name: "X-DDE 平台后端",
+    name: "工作台服务",
   }).parentElement!;
   const backend = screen.getByRole("heading", {
-    name: "OpenDDE · 集成环境",
+    name: "结构与复合物预测",
   }).parentElement!;
   expect(within(service).getByText("平台服务就绪")).toBeVisible();
   expect(within(service).queryByRole("alert")).not.toBeInTheDocument();
@@ -163,4 +163,31 @@ it("does not send non-prediction tasks to the prediction result workspace", () =
     screen.queryByRole("region", { name: "任务详情", hidden: true }),
   ).toBeNull();
   expect(screen.queryByTitle("可交互分子结构")).toBeNull();
+});
+
+it("offers preparation without exposing worker exceptions or empty history controls", () => {
+  const health = {
+    version: "test",
+    worker_ready: false,
+    worker_error: "ModuleNotFoundError /opt/internal",
+    engine: { ready: false, gpu: null, reason: "private diagnostic" },
+    free_disk_gib: 1,
+    disk_total_gib: 2,
+    capabilities: {
+      prediction: false,
+      msa: false,
+      templates: false,
+      llm: false,
+    },
+  } as Health;
+  render(<HomeWorkspace {...props} ready={false} health={health} />);
+  expect(
+    screen.queryByText(/ModuleNotFoundError|private diagnostic/),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("combobox", { name: "研究项目" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("combobox", { name: "查看任务结果" }),
+  ).not.toBeInTheDocument();
 });

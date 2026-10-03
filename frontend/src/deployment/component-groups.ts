@@ -115,6 +115,17 @@ export function pendingOperation(data: Deployment, id: string) {
     (o) => o.package === id && pendingStates.has(o.state),
   );
 }
+export function visibleDeploymentActivity(data: Deployment) {
+  const latest = new Set<string>();
+  return data.operations.filter((operation) => {
+    const first = !latest.has(operation.package);
+    latest.add(operation.package);
+    return (
+      pendingStates.has(operation.state) ||
+      (first && operation.state === "failed")
+    );
+  });
+}
 
 export function missingComponents(
   data: Deployment,

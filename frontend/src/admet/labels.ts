@@ -66,9 +66,15 @@ export function endpointName(e: Endpoint, zh: boolean) {
 }
 export function speciesName(species: string, zh: boolean) {
   return zh
-    ? (({ human: "人", rat: "大鼠", "-": "不适用" } as Record<string, string>)[
-        species
-      ] ?? species)
+    ? ((
+        {
+          human: "人",
+          rat: "大鼠",
+          "artificial membrane": "人工膜",
+          "salmonella typhimurium": "鼠伤寒沙门菌",
+          "-": "不适用",
+        } as Record<string, string>
+      )[species] ?? species)
     : species === "-"
       ? "Not applicable"
       : species;

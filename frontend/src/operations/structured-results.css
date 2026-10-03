@@ -1,6 +1,34 @@
 .native-results {
   min-width: 0;
 }
+.research-candidate-list {
+  display: grid;
+  gap: 16px;
+}
+.research-candidate {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.research-candidate h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+.research-candidate details {
+  margin-top: 12px;
+}
+.prepared-research-inputs ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sequence-cell {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .native-result-metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));

@@ -24,18 +24,6 @@
   padding: 14px 18px;
   margin-bottom: 22px;
 }
-.engine-notice details {
-  margin-top: 6px;
-}
-.engine-notice summary {
-  cursor: pointer;
-}
-.engine-notice details p {
-  overflow-wrap: anywhere;
-  margin-top: 8px;
-  font-family: var(--mono);
-  font-size: 12px;
-}
 .task-page-list button.active {
   background: var(--accent-soft);
 }
@@ -60,14 +48,6 @@
   .theme-option > .theme-swatch {
     grid-row: 1 / span 2;
   }
-}
-.studio-footer {
-  border-top: 1px solid var(--line);
-  margin-top: 40px;
-  padding: 20px 0;
-  color: var(--muted);
-  font-size: 11px;
-  text-align: left;
 }
 .studio-app .terminal {
   background: var(--code-bg);
@@ -264,9 +244,6 @@ dialog::backdrop {
   }
   .studio-content .parameter-grid {
     grid-template-columns: 1fr;
-  }
-  .ready-indicator {
-    white-space: normal;
   }
 }
 @media (prefers-reduced-motion: reduce) {

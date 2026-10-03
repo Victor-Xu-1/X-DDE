@@ -7,6 +7,7 @@ import { ExampleJobResult } from "./ExampleJobResult";
 import { ExampleRecordResult } from "./ExampleRecordResult";
 import { TemplatePreviewContext } from "./context";
 import "./examples.css";
+import { Hint } from "../guided/Hint";
 export function ExampleActions(options: ExampleTemplateOptions) {
   const { capability, language } = options;
   const zh = language === "zh";
@@ -109,7 +110,12 @@ export function ExampleActions(options: ExampleTemplateOptions) {
           aria-label={zh ? "模块内示例结果" : "In-module example results"}
         >
           <div className="section-heading">
-            <h2>{zh ? "示例结果" : "Example results"}</h2>
+            <h2>
+              {zh ? "示例结果" : "Example results"}
+              <Hint label={zh ? "结果解读说明" : "Result interpretation help"}>
+                {templateGuide(capability, language).interpretation}
+              </Hint>
+            </h2>
             <button
               type="button"
               className="secondary-button"
@@ -118,9 +124,6 @@ export function ExampleActions(options: ExampleTemplateOptions) {
               {zh ? "返回任务填写" : "Return to task form"}
             </button>
           </div>
-          <p className="field-help">
-            {templateGuide(capability, language).interpretation}
-          </p>
           <TemplatePreviewContext.Provider value={true}>
             {result.job && (
               <ExampleJobResult job={result.job} language={language} />

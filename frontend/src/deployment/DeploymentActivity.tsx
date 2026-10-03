@@ -1,6 +1,7 @@
 import { api } from "../api";
 import type { Deployment } from "./client";
-import { pendingStates } from "./component-groups";
+import { visibleDeploymentActivity } from "./component-groups";
+import { researchError } from "../presentation/research-content";
 import { componentName, names, states, stageLabel } from "./labels";
 
 export function DeploymentActivity({
@@ -14,15 +15,7 @@ export function DeploymentActivity({
   busy: boolean;
   execute(action: () => Promise<unknown>): Promise<void>;
 }) {
-  const latest = new Map<string, string>();
-  data.operations.forEach((o) => {
-    if (!latest.has(o.package)) latest.set(o.package, o.id);
-  });
-  const current = data.operations.filter(
-    (o) =>
-      pendingStates.has(o.state) ||
-      (o.state === "failed" && latest.get(o.package) === o.id),
-  );
+  const current = visibleDeploymentActivity(data);
   if (!current.length) return null;
   return (
     <section className="deployment-progress">
@@ -42,7 +35,9 @@ export function DeploymentActivity({
                   {zh ? states[o.state] : o.state}
                 </span>
                 <p role="status">{stageLabel(o.stage, zh)}</p>
-                {o.error && <p className="error">{o.error}</p>}
+                {o.error && (
+                  <p className="error">{researchError(o.error, zh)}</p>
+                )}
               </div>
               <div className="component-actions">
                 {["queued", "running"].includes(o.state) && (

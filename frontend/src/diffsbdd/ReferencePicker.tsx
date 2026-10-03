@@ -102,7 +102,7 @@ export function ReferencePicker({
       if (!formats.includes(asset.suffix))
         throw new Error(
           zh
-            ? "此适配器需要 PDB 受体或 SDF 分子，请先明确转换格式。"
+            ? "请选择本任务支持的结构格式。受体使用 PDB，分子使用 SDF。"
             : "This adapter requires PDB receptors or SDF molecules. Convert the format explicitly first.",
         );
       if (intent !== selectionIntent.current) return;
@@ -126,6 +126,7 @@ export function ReferencePicker({
   }
   return (
     <section className="diff-reference">
+      <h3 className="input-purpose">{label}</h3>
       <ChoiceCards<"saved" | "file">
         label={label}
         value={source}
@@ -172,13 +173,6 @@ export function ReferencePicker({
             }
           />
         </label>
-      )}
-      {value && (
-        <small>
-          {zh
-            ? "已绑定具体文件和记录；更改输入会清除旧选择。"
-            : "Bound to the exact file and record. Changing input clears prior selections."}
-        </small>
       )}
       {loading && <p role="status">{zh ? "读取资产…" : "Loading assets…"}</p>}
       {error && (

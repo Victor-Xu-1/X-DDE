@@ -22,7 +22,9 @@ export function DockingResults({
   const zh = language === "zh",
     assets = usePoseAssets(job.id);
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
-  const [record, setRecord] = useState<number | null>(null),
+  const [record, setRecord] = useState<number | null>(
+      () => result.poses.find((p) => p.valid && p.artifact)?.record ?? null,
+    ),
     [next, setNext] = useState<"properties" | "score" | "minimize" | null>(
       null,
     ),

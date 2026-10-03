@@ -1,4 +1,5 @@
 import * as mol from "3dmol";
+import { molecularRecordText } from "../presentation/molecular-record";
 import {
   complexLigandModel,
   viewerLoad,
@@ -54,7 +55,7 @@ async function load(input: ViewerLoad) {
   try {
     let molecular = false;
     const formats: string[] = [];
-    for (const raw of urls) {
+    for (const [sourceIndex, raw] of urls.entries()) {
       const response = await fetch(validSource(raw, location.origin), {
         signal: request.signal,
       });
@@ -77,7 +78,10 @@ async function load(input: ViewerLoad) {
       const format = suffix;
       formats.push(format);
       molecular = urls.length === 1 && ["sdf", "mol", "mol2"].includes(format);
-      const model = viewer.addModel(text, format);
+      const model = viewer.addModel(
+        molecularRecordText(text, input.records?.[sourceIndex] ?? 0, format),
+        format,
+      );
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
     }
@@ -109,6 +113,7 @@ async function command(type: string, value: unknown) {
     if (type === "residue" && typeof value === "string")
       await scene.selectResidue(value);
     if (type === "atom-region") await scene.highlightAtoms(value);
+    if (type === "site-region") await scene.highlightResidues(value);
   } catch {
     notify("error", "Could not update structure display.");
   }
@@ -135,7 +140,15 @@ window.addEventListener("message", (event) => {
       notify("error", "Invalid structure request.");
     }
   }
-  if (["options", "selection-action", "residue", "atom-region"].includes(type))
+  if (
+    [
+      "options",
+      "selection-action",
+      "residue",
+      "atom-region",
+      "site-region",
+    ].includes(type)
+  )
     void command(type, value);
   if (
     type === "focus-model" &&

@@ -218,7 +218,6 @@ export function CandidatePanel({
           {zh
             ? "结果分析暂未完成。原始结构可从任务记录下载。"
             : "Analysis could not complete. Download original structures from Task history."}{" "}
-          {error}{" "}
           {onRetry && (
             <button onClick={onRetry}>
               {zh ? "重新读取结果" : "Retry analysis"}
@@ -238,9 +237,6 @@ export function CandidatePanel({
         </p>
       )}
       <div className="candidate-foot">
-        <span>
-          {zh ? "来源：OpenDDE 实际输出" : "Source: actual OpenDDE output"}
-        </span>
         {compared.length > 1 && (
           <span>
             {zh ? "正在叠加" : "Overlaying"} {compared.length}

@@ -150,7 +150,7 @@ export function HumanizationResults({
           {row?.reason && reasons[row.reason]
             ? reasons[row.reason][zh ? 0 : 1]
             : zh
-              ? "原生模型未能评估该序列，请检查可变域输入。完整结果中保留了失败原因。"
+              ? "此序列未能完成参考评估，请检查可变域输入。完整结果中保留了失败原因。"
               : "The native model could not evaluate this sequence; check the variable-region input. The reason is retained in the full result."}
         </p>
       )}

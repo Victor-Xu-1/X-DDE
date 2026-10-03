@@ -31,9 +31,11 @@ import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
+import { HarnessResults } from "./HarnessResults";
+import { MetricHelp, type metrics } from "../guided/MetricHelp";
+import { researchError } from "../presentation/research-content";
 
 export { ResultTree } from "./StructuredResults";
-import { ResultTree } from "./StructuredResults";
 
 export function OperationResults({
   job,
@@ -91,7 +93,7 @@ export function OperationResults({
   if (error)
     return (
       <p role="alert" className="error-box">
-        {error}
+        {researchError(error, zh)}
       </p>
     );
   if (!data)
@@ -168,7 +170,7 @@ export function OperationResults({
       )}
       {data.notes &&
         !["docking", "pocket_search"].includes(job.request.operation ?? "") &&
-        (job.request.operation === "diffsbdd" ? (
+        (["diffsbdd", "properties"].includes(job.request.operation ?? "") ? (
           <details className="result-method-notes">
             <summary>{zh ? "方法与结果范围" : "Method & result scope"}</summary>
             <p>{data.notes}</p>
@@ -202,17 +204,29 @@ export function OperationResults({
               <tr>
                 {[
                   zh ? "分子" : "Molecule",
-                  "MW",
+                  "MW (g/mol)",
                   "LogP",
-                  "TPSA",
+                  "TPSA (Å²)",
                   "QED",
                   "SA",
                   "HBD",
                   "HBA",
                   zh ? "可旋转键" : "Rotatable bonds",
                   ...(onDraft ? [zh ? "下一步" : "Next step"] : []),
-                ].map((x) => (
-                  <th key={x}>{x}</th>
+                ].map((x, i) => (
+                  <th key={x}>
+                    {x}
+                    {i >= 1 && i <= 5 && (
+                      <MetricHelp
+                        metric={
+                          ["mw", "logp", "tpsa", "qed", "sa"][
+                            i - 1
+                          ] as keyof typeof metrics
+                        }
+                        language={language}
+                      />
+                    )}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -289,9 +303,11 @@ export function OperationResults({
       {Array.isArray(data.structures) &&
         data.structures
           .filter((v): v is string => typeof v === "string")
-          .map((name) => (
+          .map((name, i) => (
             <details key={name}>
-              <summary>{name}</summary>
+              <summary>
+                {zh ? "三维结构" : "3D structure"} {i + 1}
+              </summary>
               <StructureViewer
                 urls={[artifactUrl(job.id, name)]}
                 language={language}
@@ -330,14 +346,30 @@ export function OperationResults({
         <DiffResults job={job} data={data} language={language} />
       )}
       {job.request.operation === "harness" && (
-        <ResultTree value={data.result ?? data} zh={zh} />
+        <HarnessResults job={job} data={data} language={language} />
       )}
-      {data.documents && (
-        <p>
-          {zh
-            ? "转换后的输入文件已列在下方，可在工具中心导入后预测。"
-            : "Converted input files are listed below. Import them from the tool center to predict."}
-        </p>
+      {data.documents && data.documents.length > 0 && (
+        <section className="prepared-research-inputs">
+          <h3>{zh ? "准备好的预测输入" : "Prepared prediction inputs"}</h3>
+          <ul>
+            {data.documents.map((name, i) => (
+              <li key={name}>
+                <a
+                  className="research-download"
+                  href={artifactUrl(job.id, name)}
+                  download
+                >
+                  {zh ? "预测输入" : "Prediction input"} {i + 1} · JSON
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="field-help">
+            {zh
+              ? "将下载的文件带入“导入结构与批量任务”，审阅后可提交预测。"
+              : "Import these files in Structure & batch import, then review and submit a prediction."}
+          </p>
+        </section>
       )}
     </section>
   );

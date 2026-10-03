@@ -133,6 +133,7 @@ export function SequencePicker({
   }
   return (
     <section className="diff-reference">
+      <h3 className="input-purpose">{label}</h3>
       <ChoiceCards<"saved" | "file" | "paste">
         label={label}
         value={source}
@@ -186,8 +187,8 @@ export function SequencePicker({
                 ? "正在保存…"
                 : "Saving…"
               : zh
-                ? "保存序列版本"
-                : "Save sequence version"}
+                ? "确认序列"
+                : "Confirm sequences"}
           </button>
           {value && (
             <p role="status">

@@ -11,6 +11,7 @@ import "./questionnaire.css";
 import { TemplatePreviewContext } from "../examples/context";
 import { TemplateStepHelp } from "../examples/TemplateStepHelp";
 import { firstInvalidQuestion } from "./questionnaire-validity";
+import { researchError } from "../presentation/research-content";
 export interface QuestionStep {
   title: string;
   content: ReactNode;
@@ -167,7 +168,7 @@ export function GuidedSteps<T extends { id: string }>({
       {current === 4 && job && renderResult(job)}
       {(notice || error) && (
         <p role="alert" className="error-box">
-          {error || notice}
+          {researchError(error || notice, zh)}
         </p>
       )}
       {current === 3 && !ready && (

@@ -2,6 +2,7 @@ export interface ViewerLoad {
   urls: string[];
   comparison: boolean;
   focusModel?: number;
+  records?: number[];
 }
 /** A receptor and its separately stored pose are one complex, not a comparison. */
 export function complexLigandModel(
@@ -35,8 +36,16 @@ export function viewerLoad(value: unknown): ViewerLoad {
         Number(v.focusModel) >= v.urls.length))
   )
     throw new Error("Invalid structure layout");
+  if (
+    v.records !== undefined &&
+    (!Array.isArray(v.records) ||
+      v.records.length !== v.urls.length ||
+      v.records.some((n) => !Number.isInteger(n) || n < 0 || n > 9999))
+  )
+    throw new Error("Invalid molecular records");
   return {
     urls: v.urls as string[],
+    ...(v.records === undefined ? {} : { records: v.records as number[] }),
     comparison: v.comparison,
     ...(v.focusModel === undefined ? {} : { focusModel: Number(v.focusModel) }),
   };

@@ -10,7 +10,12 @@ import {
   type Prediction,
 } from "./types";
 import { OperationResults } from "./operations/OperationResults";
-import { isResearchFile } from "./presentation/research-files";
+import { researchError } from "./presentation/research-content";
+import { useTaskLabel } from "./examples/useTaskLabel";
+import {
+  isResearchFile,
+  researchFileLabel,
+} from "./presentation/research-files";
 
 interface Props {
   job: Job | null;
@@ -29,6 +34,7 @@ export function TaskDetail({
   onDraft,
 }: Props) {
   const t = translator(language);
+  const taskLabel = useTaskLabel(job, language);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const retryKeys = useRef(new Map<string, string>());
@@ -77,7 +83,7 @@ export function TaskDetail({
     <section className="panel detail-panel" aria-label={t("selected")}>
       <div className="panel-heading">
         <div>
-          <h2>{job.request.name}</h2>
+          <h2>{taskLabel}</h2>
         </div>
         <span className={`status ${job.status}`}>{t(job.status)}</span>
       </div>
@@ -136,7 +142,7 @@ export function TaskDetail({
       </div>
       {(error || job.error) && (
         <div className="error-box" role="alert">
-          {error || job.error}
+          {researchError(error || job.error || "", language === "zh")}
         </div>
       )}
       {failed && (
@@ -166,7 +172,9 @@ export function TaskDetail({
               <span className="file-icon">
                 {file.name.split(".").pop()?.toUpperCase()}
               </span>
-              <span className="file-name">{file.name}</span>
+              <span className="file-name">
+                {researchFileLabel(file.name, language === "zh")}
+              </span>
               <span className="muted">{(file.size / 1024).toFixed(1)} KB</span>
               <span aria-hidden="true">↓</span>
             </a>

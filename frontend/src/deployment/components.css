@@ -283,3 +283,17 @@
     flex-basis: 100%;
   }
 }
+
+.component-additions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.component-additions > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+}
+.component-additions .component-grid {
+  margin-top: 16px;
+}

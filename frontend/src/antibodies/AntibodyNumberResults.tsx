@@ -2,7 +2,6 @@ import "./antibodies.css";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { defaults } from "../form-model";
-import { Hint } from "../guided/Hint";
 import type { Job, Language, Prediction } from "../types";
 import type { AntibodyNumberResult } from "./types";
 
@@ -130,29 +129,48 @@ export function AntibodyNumberResults({
               {zh ? "用这个域预测结构" : "Predict this domain structure"}
             </button>
           )}
-          <Hint
-            label={zh ? "如何理解模型分数？" : "How to read the model score?"}
-          >
-            {zh
-              ? "编号模型内部值，仅用于本方法的诊断，不代表结合、人源化或可开发性；不同序列上下文不能直接混排。"
-              : "An internal numbering diagnostic, not binding, humanization or developability; different sequence contexts cannot be freely ranked."}
-          </Hint>
           <details>
             <summary>
-              {zh
-                ? "完整编号与模型诊断"
-                : "Full numbering and model diagnostics"}
+              {zh ? "完整 IMGT 编号" : "Complete IMGT numbering"}
             </summary>
-            <p>
-              {zh ? "编号内部值" : "Internal numbering score"}: {domain.score}
-            </p>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{zh ? "IMGT 编号" : "IMGT position"}</th>
+                    <th>{zh ? "原始序列位置" : "Source sequence position"}</th>
+                    <th>{zh ? "氨基酸" : "Amino acid"}</th>
+                    <th>{zh ? "区域" : "Region"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {domain.numbering.map((row) => (
+                    <tr key={row.number + row.insertion}>
+                      <td>
+                        {row.number}
+                        {row.insertion}
+                      </td>
+                      <td>{row.source_position}</td>
+                      <td>{row.amino_acid}</td>
+                      <td>
+                        {row.region === "framework"
+                          ? zh
+                            ? "框架"
+                            : "Framework"
+                          : row.region}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </details>
         </>
       ) : (
         <p role="status">
           {zh
-            ? "原生模型未能编号此输入。可检查序列和分子形式，失败原因已保留在完整结果中。"
-            : "Native model could not number this input. Check the sequence and format; the reason is retained in the full result."}
+            ? "此输入未能完成抗体编号。可检查序列和分子形式，失败原因已保留在完整结果中。"
+            : "This input could not be numbered. Check the sequence and format; the reason is retained in the full result."}
           <small title={domain?.reason ?? undefined}>{domain?.reason}</small>
         </p>
       )}

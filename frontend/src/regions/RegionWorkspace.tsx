@@ -41,7 +41,7 @@ export function RegionWorkspace({ language }: { language: Language }) {
           value={subject}
           onChange={setSubject}
           language={language}
-          label={zh ? "选择完整分子版本" : "Select the full molecule version"}
+          label={zh ? "完整分子" : "Full molecule"}
         />
       }
     />
@@ -170,46 +170,48 @@ export function RegionEditor({
   const reuse = (
     <>
       {inputs}
-      <label className="field">
-        {zh
-          ? "复用已有区域（同一分子版本）"
-          : "Reuse saved regions (this molecule version)"}
-        <select
-          value={parent ?? ""}
-          disabled={loading || busy}
-          onChange={(event) => {
-            const value = values.find((item) => item.id === event.target.value);
-            if (value) {
-              setRegions(structuredClone(value.body.regions));
-              setName(value.body.name);
-              setParent(value.id);
-              setSaved(null);
-              setActive(0);
-            } else {
-              setParent(null);
-              setSaved(null);
-            }
-          }}
-        >
-          <option value="">
-            {zh ? "新区域定义" : "New region definition"}
-          </option>
-          {values.map((value) => (
-            <option key={value.id} value={value.id}>
-              {value.body.name} · {value.id.slice(0, 8)}
+      {values.length > 0 && (
+        <label className="field">
+          {zh ? "历史区域（同一分子）" : "Historical regions (this molecule)"}
+          <select
+            value={parent ?? ""}
+            disabled={loading || busy}
+            onChange={(event) => {
+              const value = values.find(
+                (item) => item.id === event.target.value,
+              );
+              if (value) {
+                setRegions(structuredClone(value.body.regions));
+                setName(value.body.name);
+                setParent(value.id);
+                setSaved(null);
+                setActive(0);
+              } else {
+                setParent(null);
+                setSaved(null);
+              }
+            }}
+          >
+            <option value="">
+              {zh ? "新区域定义" : "New region definition"}
             </option>
-          ))}
-        </select>
-      </label>
-      {loading && (
+            {values.map((value) => (
+              <option key={value.id} value={value.id}>
+                {value.body.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {loading && subject && (
         <p role="status">
-          {zh ? "正在读取版本和区域…" : "Loading versions and regions…"}
+          {zh ? "正在读取分子区域…" : "Loading molecular regions…"}
         </p>
       )}
       {!loading && !ready && (
         <p className="field-help">
           {zh
-            ? "在集成环境管理中配置 DiffSBDD 化学解析环境后，可读取原子身份。"
+            ? "请先在安装与组件中安装分子生成环境，然后选择分子。"
             : "Configure the DiffSBDD chemical parsing environment in component management to read atom identities."}
         </p>
       )}

@@ -12,6 +12,7 @@ import { FoldInputs } from "./FoldInputs";
 import { JsonEditor } from "./ScientificInputs";
 import { useTaskSubmit } from "./useTaskSubmit";
 import { canGuide } from "./guided-contract";
+import { tools } from "./catalog";
 import { Questionnaire } from "../guided/Questionnaire";
 import {
   harnessInputsComplete,
@@ -238,8 +239,8 @@ export function HarnessForm({
       <dd>
         {expert
           ? zh
-            ? "专家原生参数"
-            : "Expert native parameters"
+            ? "专家参数"
+            : "Expert parameters"
           : zh
             ? "推荐方案及已选可选设置"
             : "Recommended settings and chosen adjustments"}
@@ -263,7 +264,10 @@ export function HarnessForm({
       return await run.submit({
         operation: "harness",
         tool,
-        name: name.trim() || `Harness · ${tool}`,
+        name:
+          name.trim() ||
+          tools.find((t) => t.id === tool)?.label[zh ? 0 : 1] ||
+          (zh ? "蛋白与抗体任务" : "Protein & antibody task"),
         payload: normalized,
         scientific_inputs: exampleHarnessInputs(tool, normalized, example),
         allow_external: external,
@@ -284,7 +288,7 @@ export function HarnessForm({
       error={run.error || setupError}
       unavailable={
         zh
-          ? "请在安装与组件中配置 Harness 及本任务所需的计算服务。当前输入已保留。"
+          ? "请在安装与组件中完成蛋白与抗体工具的配置。当前输入已保留。"
           : "Configure Harness and this task's compute services in Installation & components. Inputs are retained."
       }
       submitLabel={zh ? "提交计算任务" : "Submit compute task"}

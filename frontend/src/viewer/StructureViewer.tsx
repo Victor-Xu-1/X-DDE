@@ -20,6 +20,8 @@ import {
   type ContactSummary,
 } from "./protocol";
 import type { Language } from "../types";
+import type { DisplayResidue } from "./residue-region";
+import { researchError } from "../presentation/research-content";
 import "./viewer.css";
 interface Props {
   urls: string[];
@@ -27,6 +29,8 @@ interface Props {
   focusResidue?: { residue: string; nonce: number } | null;
   comparison?: boolean;
   focusModel?: number;
+  records?: number[];
+  residueRegion?: DisplayResidue[];
   selectionMode?: PickMode;
   highlightedAtoms?: number[];
   nativeScore?: NativePoseScore | null;
@@ -39,6 +43,8 @@ export function StructureViewer({
   focusResidue,
   comparison = false,
   focusModel,
+  records,
+  residueRegion,
   selectionMode,
   highlightedAtoms,
   nativeScore,
@@ -47,7 +53,7 @@ export function StructureViewer({
 }: Props) {
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
-    key = urls.join("|");
+    key = urls.join("|") + ":" + (records?.join(",") ?? "");
   const overlay = urls.length > 1;
   const focusedModel = useRef(focusModel);
   focusedModel.current = focusModel;
@@ -65,6 +71,10 @@ export function StructureViewer({
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
+  const [siteStatus, setSiteStatus] = useState<{
+    requested: number;
+    matched: number;
+  } | null>(null);
   function send(type: string, value?: unknown) {
     frame.current?.contentWindow?.postMessage(
       { channel: "opendde-viewer", type, value },
@@ -86,6 +96,7 @@ export function StructureViewer({
         selectionCallback.current?.(detail);
       }
       if (type === "contacts") setContacts(detail);
+      if (type === "site-region") setSiteStatus(detail);
       if (type === "distance")
         setDistance(
           typeof detail === "number" && Number.isFinite(detail) ? detail : null,
@@ -114,11 +125,12 @@ export function StructureViewer({
     setSelection(null);
     setDistance(null);
     setContacts(null);
+    setSiteStatus(null);
     setError("");
     setScene(emptyScene);
     setOptions(defaultOptions);
     if (ready && urls.length) {
-      send("load", { urls, comparison, focusModel });
+      send("load", { urls, comparison, focusModel, records });
       setStatus("loading");
     } else if (!urls.length) {
       if (ready) send("clear");
@@ -129,6 +141,11 @@ export function StructureViewer({
     if (ready && focusResidue) send("residue", focusResidue.residue);
   }, [ready, focusResidue]);
   const regionKey = highlightedAtoms?.join(",") ?? "";
+  const siteKey = JSON.stringify(residueRegion ?? []);
+  useEffect(() => {
+    if (ready && status === "loaded" && residueRegion !== undefined)
+      send("site-region", residueRegion);
+  }, [ready, status, key, siteKey]);
   useEffect(() => {
     if (ready && status === "loaded")
       send("atom-region", highlightedAtoms ?? []);
@@ -142,7 +159,13 @@ export function StructureViewer({
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
         <h3>
-          {zh ? "三维结构与口袋" : "3D structure and pocket"}
+          {scene.hasPolymer
+            ? zh
+              ? "三维结构"
+              : "3D structure"
+            : zh
+              ? "分子三维预览"
+              : "3D molecule"}
           <Hint label={zh ? "三维预览说明" : "3D preview help"}>
             {zh
               ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
@@ -210,24 +233,24 @@ export function StructureViewer({
           <div className="viewer-message">
             <strong>
               {zh
-                ? "预测完成后，结构会显示在这里"
-                : "Your structure appears here after prediction"}
+                ? "选择文件或构象后，三维结构会显示在这里"
+                : "Select a file or conformer to view its 3D structure"}
             </strong>
             <span>
               {zh
-                ? "也可以在上方选择一个已完成的任务"
-                : "Or choose a completed task above"}
+                ? "可拖动旋转、缩放并点选检查"
+                : "Rotate, zoom and select atoms to inspect"}
             </span>
           </div>
         )}
         {error && (
           <div className="viewer-error" role="alert">
-            {error}
+            {researchError(error, zh)}
             <button
               type="button"
               onClick={() => {
                 setError("");
-                send("load", { urls, comparison, focusModel });
+                send("load", { urls, comparison, focusModel, records });
               }}
             >
               {zh ? "重新加载" : "Reload"}
@@ -263,6 +286,17 @@ export function StructureViewer({
       </div>
       {loaded && (
         <>
+          {siteStatus && siteStatus.requested > 0 && (
+            <p className="field-help" role="status">
+              {zh ? "已定位区域残基：" : "Region residues located: "}
+              {siteStatus.matched} / {siteStatus.requested}
+              {siteStatus.matched < siteStatus.requested
+                ? zh
+                  ? " · 部分残基在当前结构中无法精确对应"
+                  : " · Some residues could not be matched exactly"
+                : ""}
+            </p>
+          )}
           <div className="viewer-footer">
             <button type="button" onClick={() => send("reset")}>
               {zh ? "回到全局" : "Full structure"}
@@ -275,16 +309,19 @@ export function StructureViewer({
                 {zh ? "定位所选配体" : "Focus selected ligand"}
               </button>
             )}
-            {scene.chains.slice(0, 8).map((chain) => (
-              <button
-                type="button"
-                key={chain}
-                onClick={() => send("chain", chain)}
-              >
-                {zh ? "链 " : "Chain "}
-                {chain}
-              </button>
-            ))}
+            {scene.chains
+              .filter((chain) => chain.trim())
+              .slice(0, 8)
+              .map((chain) => (
+                <button
+                  type="button"
+                  key={chain}
+                  onClick={() => send("chain", chain)}
+                >
+                  {zh ? "链 " : "Chain "}
+                  {chain}
+                </button>
+              ))}
             <span>
               {zh ? "拖动旋转 · 滚轮缩放" : "Drag to rotate · Scroll to zoom"}
             </span>

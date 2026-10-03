@@ -259,10 +259,11 @@ export function App() {
                 />
               )}
             </div>
-            {health?.queue_wait_reason && (
+            {health?.queue_wait_reason && view === "tasks" && (
               <p className="notice" role="status">
-                {zh ? "计算队列正在等待：" : "Compute queue is waiting: "}
-                {health.queue_wait_reason}
+                {zh
+                  ? "计算资源暂不可用，已提交的任务会继续等待。"
+                  : "Compute resources are unavailable; submitted tasks remain queued."}
               </p>
             )}
             <div hidden={view !== "home"}>
@@ -354,7 +355,6 @@ export function App() {
                   reloadProjects={science.reloadProjects}
                 />
               )}
-            <footer className="studio-footer">X-DDE · {t("footer")}</footer>
           </main>
         </div>
       </div>

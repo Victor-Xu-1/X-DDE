@@ -16,7 +16,7 @@ it("shows the exact native whole-pose score and explains that per-residue energy
   );
   expect(screen.getByText("-9.316 kcal/mol")).toBeVisible();
   expect(screen.getByText("GNINA 1.3.3 · vina")).toBeVisible();
-  expect(screen.getByText("逐残基作用能：未计算")).toBeVisible();
+  expect(screen.queryByText("逐残基作用能：未计算")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "作用大小说明" }));
   expect(screen.getByRole("tooltip")).toHaveTextContent(
     "不是每个氨基酸的作用能",

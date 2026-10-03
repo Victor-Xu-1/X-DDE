@@ -313,21 +313,6 @@ body {
   color: var(--muted);
   padding: 0 4px;
 }
-.ready-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 9px;
-  font-size: var(--text-small, 13px);
-  border-radius: 20px;
-  color: var(--danger);
-  background: var(--danger-soft);
-  white-space: nowrap;
-}
-.ready-indicator.ok {
-  color: var(--success);
-  background: var(--success-soft);
-}
 .workbench-toolbar {
   grid-column: 1/-1;
   display: flex;
@@ -946,9 +931,6 @@ body {
   }
   .studio-content {
     padding: 11px;
-  }
-  .ready-indicator {
-    margin: 8px 0;
   }
   .task-page-grid,
   .guide-grid,

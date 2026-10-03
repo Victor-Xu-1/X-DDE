@@ -47,26 +47,32 @@ export function QualityResults({
         )}
         language={language}
       />
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>{zh ? "检查项目" : "Check"}</th>
-              <th>{zh ? "结果" : "Outcome"}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.checks.map((row) => (
-              <tr key={row.id}>
-                <td title={row.id}>
-                  {checkLabels[row.id]?.[zh ? 0 : 1] ?? row.id}
-                </td>
-                <td>{outcome[row.outcome]}</td>
+      <details open={counts.fail > 0 || counts.unavailable > 0}>
+        <summary>
+          {zh ? "查看全部质控项目" : "Inspect all quality checks"} ·{" "}
+          {result.checks.length}
+        </summary>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>{zh ? "检查项目" : "Check"}</th>
+                <th>{zh ? "结果" : "Outcome"}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {result.checks.map((row) => (
+                <tr key={row.id}>
+                  <td title={row.id}>
+                    {checkLabels[row.id]?.[zh ? 0 : 1] ?? row.id}
+                  </td>
+                  <td>{outcome[row.outcome]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
       <Hint
         label={
           zh
@@ -75,8 +81,8 @@ export function QualityResults({
         }
       >
         {zh
-          ? "先复核输入和三维姿势，必要时另建准备、对接或优化任务。原始分子保持原样。未能计算需查看原生诊断，不能自动视为合格；质控不是活性或亲和力预测。"
-          : "Review inputs and coordinates, then create a separate preparation, docking or refinement task if needed. Original molecules remain unchanged. Missing checks need native diagnostic review and never qualify automatically. This is not activity or affinity prediction."}
+          ? "先复核输入和三维姿势，必要时另建准备、对接或优化任务。原始分子保持原样。未能计算时需要复核输入或计算条件，不能自动视为合格；质控不是活性或亲和力预测。"
+          : "Review inputs and coordinates, then create a separate preparation, docking or refinement task if needed. Original molecules remain unchanged. Missing checks need input or compute-condition review and never qualify automatically. This is not activity or affinity prediction."}
       </Hint>
     </section>
   );

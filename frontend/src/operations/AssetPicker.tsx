@@ -57,6 +57,7 @@ export function AssetPicker({
   }, [value, opened]);
   return (
     <div className="asset-picker">
+      {showHistory && <h3 className="input-purpose">{label}</h3>}
       <label className="file-upload">
         {busy
           ? zh
@@ -66,6 +67,7 @@ export function AssetPicker({
             ? "上传文件"
             : "Upload file"}
         <input
+          aria-label={(zh ? "上传 " : "Upload ") + label}
           type="file"
           accept={accepted}
           disabled={busy}
@@ -123,12 +125,14 @@ export function AssetPicker({
                     {assets.filter(
                       (other) => other.kind === kind && other.name === a.name,
                     ).length > 1
-                      ? ` · ${a.id.slice(0, 8)}`
+                      ? ` · ${new Date(a.created_at).toLocaleString(zh ? "zh-CN" : "en-US")}`
                       : ""}
                   </option>
                 ))}
               {value && !assets.some((a) => a.id === value) && (
-                <option value={value}>{value}</option>
+                <option value={value}>
+                  {zh ? "已选择的文件" : "Selected file"}
+                </option>
               )}
             </select>
           </label>

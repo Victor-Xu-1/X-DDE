@@ -54,19 +54,19 @@ it("shows an available X-DDE server independently of its scientific engines", ()
       onSetup={setup}
     />,
   );
-  expect(screen.getByRole("heading", { name: "X-DDE 平台后端" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "工作台服务" })).toBeVisible();
   expect(screen.getByText("平台服务就绪", { exact: true })).toBeVisible();
   const open = screen
-    .getByRole("heading", { name: "OpenDDE · 集成环境" })
+    .getByRole("heading", { name: "结构与复合物预测" })
     .closest("article")!;
   const diff = screen
-    .getByRole("heading", { name: "DiffSBDD · 集成环境" })
+    .getByRole("heading", { name: "小分子生成与优化" })
     .closest("article")!;
   expect(within(open).getByText("环境未就绪", { exact: true })).toBeVisible();
   expect(within(diff).getByText("环境检查通过", { exact: true })).toBeVisible();
   expect(
     within(diff).getByText("模型文件：1 / 2", { exact: true }),
-  ).toBeVisible();
+  ).toBeInTheDocument();
   expect(screen.queryByText("OpenDDE 后端", { exact: true })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "管理集成环境" }));
   expect(setup).toHaveBeenCalledOnce();
@@ -83,19 +83,20 @@ it("does not confuse the Harness client with its remote compute service", () => 
     />,
   );
   const harness = screen
-    .getByRole("heading", { name: "OpenDDE Harness · Integrated environment" })
+    .getByRole("heading", { name: "Protein & antibody tools" })
     .closest("article")!;
   expect(
-    within(harness).getByText("Client configured", { exact: true }),
+    within(harness).getByText("Compute setup required", { exact: true }),
   ).toBeVisible();
   expect(
-    within(harness).getByText("Compute service not configured", {
-      exact: true,
-    }),
+    within(harness).getByText(
+      "Configure the service in Installation & components before submitting compute-dependent tasks.",
+      {
+        exact: true,
+      },
+    ),
   ).toBeVisible();
-  expect(
-    screen.getByText("X-DDE platform server", { exact: true }),
-  ).toBeVisible();
+  expect(screen.getByText("Workbench service", { exact: true })).toBeVisible();
 });
 
 it("shows a loading state before the server responds", () => {
@@ -147,9 +148,9 @@ it("can inspect existing server snapshots without inventing engine availability"
   );
   expect(screen.getByText("平台服务就绪", { exact: true })).toBeVisible();
   expect(
-    screen.getByRole("heading", { name: "OpenDDE · 集成环境" }),
+    screen.getByRole("heading", { name: "结构与复合物预测" }),
   ).toBeVisible();
   expect(
-    screen.queryByRole("heading", { name: "DiffSBDD · 集成环境" }),
+    screen.queryByRole("heading", { name: "小分子生成与优化" }),
   ).toBeNull();
 });

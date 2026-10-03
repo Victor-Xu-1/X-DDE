@@ -15,6 +15,7 @@ afterEach(() => {
 });
 it("previews the retained native molecule file even before scientific objects are registered", async () => {
   vi.spyOn(client, "request").mockResolvedValue([]);
+  vi.spyOn(api, "assets").mockResolvedValue([]);
   const submit = vi.spyOn(api, "submit"),
     name = "native/20261002T021243Z_reviewed/molecules.sdf";
   render(
@@ -23,7 +24,7 @@ it("previews the retained native molecule file even before scientific objects ar
       job={
         {
           id: "case",
-          request: { operation: "diffsbdd", mode: "generate" },
+          request: { operation: "diffsbdd", payload: { mode: "generate" } },
         } as unknown as Job
       }
       data={{
@@ -34,11 +35,38 @@ it("previews the retained native molecule file even before scientific objects ar
       }}
     />,
   );
-  expect(screen.getAllByTestId("native-preview").map(node=>node.textContent)).toContain(artifactUrl("case",name));
+  expect(
+    screen.getAllByTestId("native-preview").map((node) => node.textContent),
+  ).toContain(artifactUrl("case", name));
   const link = screen.getByRole("link", { name: "分子结构 · SDF" });
   expect(link).toHaveAttribute("href", artifactUrl("case", name));
   expect(link).toHaveAttribute("title", "molecules.sdf");
   expect(screen.queryByText(name, { exact: true })).not.toBeInTheDocument();
   await waitFor(() => expect(client.request).toHaveBeenCalled());
   expect(submit).not.toHaveBeenCalled();
+});
+
+it("does not open an empty SDF when no candidate passed scientific checks", () => {
+  render(
+    <DiffResults
+      language="zh"
+      job={
+        {
+          id: "empty",
+          request: { operation: "diffsbdd", payload: { mode: "inpaint" } },
+        } as unknown as Job
+      }
+      data={{
+        operation: "diffsbdd",
+        complete: true,
+        valid: 0,
+        attempted: 3,
+        molecule_artifact: "qualified-molecules.sdf",
+      }}
+    />,
+  );
+  expect(screen.queryByTestId("native-preview")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "没有得到符合要求的候选",
+  );
 });
