@@ -11,6 +11,7 @@ on:
       - 'frontend/src/viewer/ViewerControls*'
       - 'frontend/src/deployment/*css'
       - 'frontend/src/diffsbdd/ReferencePicker*'
+      - 'frontend/src/diffsbdd/DiffResults*'
       - 'frontend/src/examples/examples.css'
       - 'frontend/src/poses/PoseWorkspace*'
       - 'frontend/src/poses/poses.css'
