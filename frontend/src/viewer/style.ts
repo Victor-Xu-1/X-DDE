@@ -53,7 +53,7 @@ export async function paintBase(
         linewidth: 1.4,
       },
     });
-    if (options.labels) {
+    if (options.labels && !options.interactions) {
       const unique = new Map(
         v.selectedAtoms(near).map((atom) => [ref(atom).key, ref(atom)]),
       );

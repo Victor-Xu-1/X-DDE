@@ -6,6 +6,7 @@ export interface ViewerOptions {
   labels: boolean;
   ligand: string;
   pick: PickMode;
+  interactions: boolean;
 }
 export const defaultOptions: ViewerOptions = {
   mode: "cartoon",
@@ -13,6 +14,7 @@ export const defaultOptions: ViewerOptions = {
   labels: true,
   ligand: "",
   pick: "residue",
+  interactions: true,
 };
 export interface Residue {
   key: string;
@@ -27,6 +29,12 @@ export interface SceneInfo {
   residues: Residue[];
   atoms: number;
   hasPolymer: boolean;
+  hasInteractionContext?: boolean;
+}
+export interface ContactSummary {
+  cutoff: number;
+  total: number;
+  shown: number;
 }
 export interface SelectionInfo {
   pick_mode?: PickMode;

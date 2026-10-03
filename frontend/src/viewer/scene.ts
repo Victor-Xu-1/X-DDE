@@ -1,5 +1,6 @@
 import { thinSticks, regionStyle, selectionStyle } from "./appearance";
-import { paintBase } from "./style";
+import { paintBase, paintOverlayModel } from "./style";
+import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import {
   residueRef as ref,
@@ -48,6 +49,8 @@ export class MolecularScene {
   >();
   private measurement: mol.AtomSpec[] = [];
   private overlay = false;
+  private formats: string[] = [];
+  private complexModel: number | null = null;
   private painting = Promise.resolve();
   private revision = 0;
   constructor(
@@ -64,10 +67,18 @@ export class MolecularScene {
     this.options = { ...defaultOptions };
     this.emit("selected", null);
     this.emit("distance", null);
+    this.emit("contacts", null);
   }
-  inspect(overlay: boolean, molecular = false) {
+  inspect(
+    overlay: boolean,
+    molecular = false,
+    formats: string[] = [],
+    complexModel: number | null = null,
+  ) {
     this.resetState();
     this.overlay = overlay;
+    this.formats = formats;
+    this.complexModel = complexModel;
     const atoms = this.viewer.selectedAtoms({ model: 0 });
     const groups = new Map<
       string,
@@ -98,6 +109,9 @@ export class MolecularScene {
       ligands,
       residues,
       hasPolymer: residues.length > 0,
+      hasInteractionContext:
+        residues.length > 0 &&
+        (complexModel !== null || (!overlay && ligands.length > 0)),
     };
     this.options.ligand = ligands[0]?.key ?? "";
     this.options.pick = this.info.hasPolymer ? "residue" : "atom";
@@ -114,6 +128,8 @@ export class MolecularScene {
     if (value.radius && [3, 4, 5, 6, 8].includes(value.radius))
       this.options.radius = value.radius;
     if (typeof value.labels === "boolean") this.options.labels = value.labels;
+    if (typeof value.interactions === "boolean")
+      this.options.interactions = value.interactions;
     if (value.ligand && this.info.ligands.some((r) => r.key === value.ligand))
       this.options.ligand = value.ligand;
     if (value.pick && ["residue", "atom", "distance"].includes(value.pick)) {
@@ -149,10 +165,18 @@ export class MolecularScene {
     v.removeAllLabels();
     v.removeAllShapes();
     if (this.overlay) {
+      for (const [index, format] of this.formats.entries())
+        paintOverlayModel(
+          v.getModel(index),
+          index,
+          ["sdf", "mol", "mol2"].includes(format),
+        );
+      this.drawContacts();
       v.render();
       return;
     }
     await paintBase(v, this.info, this.options, [...this.hidden]);
+    this.drawContacts();
     if (this.highlighted.length)
       v.setStyle({ index: this.highlighted }, regionStyle());
     for (const edit of this.edits.values())
@@ -179,6 +203,33 @@ export class MolecularScene {
       });
     }
     v.render();
+  }
+  private drawContacts() {
+    if (!this.options.interactions || !this.info.hasInteractionContext) {
+      this.emit("contacts", null);
+      return;
+    }
+    const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);
+    const ligandAtoms =
+      this.complexModel === null
+        ? ligand
+          ? this.viewer.selectedAtoms({ model: 0, ...sel(ligand) })
+          : []
+        : this.viewer.selectedAtoms({ model: this.complexModel });
+    const residueKeys = new Set(this.info.residues.map((r) => r.key));
+    const protein = this.viewer
+      .selectedAtoms({ model: 0 })
+      .filter((a) => residueKeys.has(ref(a).key) && !this.hidden.has(a.index!));
+    const contacts = residueContacts(
+      protein,
+      ligandAtoms.filter(
+        (a) => this.complexModel !== null || !this.hidden.has(a.index!),
+      ),
+    );
+    this.emit(
+      "contacts",
+      paintContacts(this.viewer, contacts, this.options.labels),
+    );
   }
   private async pick(atom: mol.AtomSpec) {
     if (this.overlay) return;

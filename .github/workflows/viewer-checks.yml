@@ -28,5 +28,6 @@ jobs:
           npx vitest run src/viewer/atom-region.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/geometry.test.ts
           src/viewer/ViewerControls.test.tsx src/viewer/style.test.ts
+          src/viewer/contacts.test.ts src/viewer/source-layout.test.ts
           src/editors/molstar-appearance.test.ts src/editors/ketcher-appearance.test.ts
           src/editors/scientificEditor.test.ts

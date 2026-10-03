@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
+import { InteractionControls } from "./InteractionControls";
 import {
   defaultOptions,
   emptyScene,
@@ -15,6 +16,7 @@ import {
   type SelectionInfo,
   type ViewerOptions,
   type PickMode,
+  type ContactSummary,
 } from "./protocol";
 import type { Language } from "../types";
 import "./viewer.css";
@@ -59,6 +61,7 @@ export function StructureViewer({
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
+  const [contacts, setContacts] = useState<ContactSummary | null>(null);
   function send(type: string, value?: unknown) {
     frame.current?.contentWindow?.postMessage(
       { channel: "opendde-viewer", type, value },
@@ -79,6 +82,7 @@ export function StructureViewer({
         setSelection(detail);
         selectionCallback.current?.(detail);
       }
+      if (type === "contacts") setContacts(detail);
       if (type === "distance")
         setDistance(
           typeof detail === "number" && Number.isFinite(detail) ? detail : null,
@@ -106,17 +110,18 @@ export function StructureViewer({
   useEffect(() => {
     setSelection(null);
     setDistance(null);
+    setContacts(null);
     setError("");
     setScene(emptyScene);
     setOptions(defaultOptions);
     if (ready && urls.length) {
-      send("load", urls);
+      send("load", { urls, comparison, focusModel });
       setStatus("loading");
     } else if (!urls.length) {
       if (ready) send("clear");
       setStatus("empty");
     }
-  }, [ready, key]);
+  }, [ready, key, comparison, focusModel]);
   useEffect(() => {
     if (ready && focusResidue) send("residue", focusResidue.residue);
   }, [ready, focusResidue]);
@@ -219,7 +224,7 @@ export function StructureViewer({
               type="button"
               onClick={() => {
                 setError("");
-                send("load", urls);
+                send("load", { urls, comparison, focusModel });
               }}
             >
               {zh ? "重新加载" : "Reload"}
@@ -281,6 +286,15 @@ export function StructureViewer({
               {zh ? "拖动旋转 · 滚轮缩放" : "Drag to rotate · Scroll to zoom"}
             </span>
           </div>
+          {scene.hasInteractionContext && !comparison && (
+            <InteractionControls
+              language={language}
+              enabled={options.interactions}
+              labels={options.labels}
+              summary={contacts}
+              onChange={configure}
+            />
+          )}
           {!overlay && (
             <ViewerControls
               language={language}

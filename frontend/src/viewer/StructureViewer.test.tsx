@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 
@@ -24,7 +24,11 @@ it("clears the prior structure when switching to a task without a result", () =>
     {
       channel: "opendde-viewer",
       type: "load",
-      value: ["/api/jobs/abc/download?name=result.cif"],
+      value: {
+        urls: ["/api/jobs/abc/download?name=result.cif"],
+        comparison: false,
+        focusModel: undefined,
+      },
     },
     location.origin,
   );
@@ -36,7 +40,7 @@ it("clears the prior structure when switching to a task without a result", () =>
   expect(screen.getByText("预测完成后，结构会显示在这里")).toBeVisible();
 });
 
-it("focuses the actual ligand source and exposes only supported overlay controls", () => {
+it("focuses the actual pose and enables interactions without pretending comparison selection is supported", () => {
   render(
     <StructureViewer
       urls={[
@@ -65,12 +69,14 @@ it("focuses the actual ligand source and exposes only supported overlay controls
             ligands: [],
             residues: [],
             hasPolymer: true,
+            hasInteractionContext: true,
             options: {
               mode: "cartoon",
               radius: 5,
               labels: true,
               ligand: "",
               pick: "residue",
+              interactions: true,
             },
           },
         },
@@ -88,6 +94,17 @@ it("focuses the actual ligand source and exposes only supported overlay controls
   expect(
     screen.queryByText("Selection and display editing", { exact: true }),
   ).toBeNull();
+  const toggle = screen.getByLabelText("Show interactions");
+  expect(toggle).toBeChecked();
+  fireEvent.click(toggle);
+  expect(post).toHaveBeenCalledWith(
+    {
+      channel: "opendde-viewer",
+      type: "options",
+      value: { interactions: false },
+    },
+    location.origin,
+  );
 });
 
 it("reports selection choices only from its own same-origin loaded frame", () => {

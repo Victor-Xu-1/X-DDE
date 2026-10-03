@@ -78,14 +78,16 @@ export function ViewerControls({
                   ? "显示距离所选配体任一原子在此范围内的整个残基。这是几何邻域，不是自动识别出的结合位点。"
                   : "Show complete residues within this distance of any atom in the selected ligand. This is a geometric neighborhood, not an automatically identified binding site."}
               </Hint>
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={options.labels}
-                  onChange={(e) => onOptions({ labels: e.target.checked })}
-                />
-                {zh ? "残基名称" : "Residue labels"}
-              </label>
+              {!scene.hasInteractionContext && (
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={options.labels}
+                    onChange={(e) => onOptions({ labels: e.target.checked })}
+                  />
+                  {zh ? "残基名称" : "Residue labels"}
+                </label>
+              )}
             </>
           )}
         </div>

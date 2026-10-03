@@ -1,5 +1,9 @@
 import * as mol from "3dmol";
-import { paintOverlayModel } from "./style";
+import {
+  complexLigandModel,
+  viewerLoad,
+  type ViewerLoad,
+} from "./source-layout";
 import { MolecularScene } from "./scene";
 import { validSource } from "./protocol";
 import { initializeTheme } from "../theme";
@@ -38,7 +42,8 @@ function reset() {
   viewer.zoom(0.85);
   viewer.render();
 }
-async function load(urls: string[]) {
+async function load(input: ViewerLoad) {
+  const { urls } = input;
   controller?.abort();
   controller = new AbortController();
   const request = controller,
@@ -48,7 +53,8 @@ async function load(urls: string[]) {
   viewer.clear();
   try {
     let molecular = false;
-    for (const [index, raw] of urls.slice(0, 3).entries()) {
+    const formats: string[] = [];
+    for (const raw of urls) {
       const response = await fetch(validSource(raw, location.origin), {
         signal: request.signal,
       });
@@ -69,18 +75,18 @@ async function load(urls: string[]) {
       if (!["pdb", "cif", "sdf", "mol", "mol2"].includes(suffix))
         throw new Error("Unsupported molecular display format");
       const format = suffix;
+      formats.push(format);
       molecular = urls.length === 1 && ["sdf", "mol", "mol2"].includes(format);
       const model = viewer.addModel(text, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
-      if (urls.length > 1)
-        paintOverlayModel(
-          model,
-          index,
-          ["sdf", "mol", "mol2"].includes(format),
-        );
     }
-    scene.inspect(urls.length > 1, molecular);
+    scene.inspect(
+      urls.length > 1,
+      molecular,
+      formats,
+      complexLigandModel(formats, input),
+    );
     await scene.paint();
     if (current !== generation) return;
     reset();
@@ -122,8 +128,13 @@ window.addEventListener("message", (event) => {
     viewer.clear();
     viewer.render();
   }
-  if (type === "load" && Array.isArray(value))
-    void load(value.filter((item) => typeof item === "string"));
+  if (type === "load") {
+    try {
+      void load(viewerLoad(value));
+    } catch {
+      notify("error", "Invalid structure request.");
+    }
+  }
   if (["options", "selection-action", "residue", "atom-region"].includes(type))
     void command(type, value);
   if (

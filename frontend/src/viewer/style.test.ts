@@ -30,6 +30,7 @@ function fixture(data = sdf, format = "sdf") {
     removeAllLabels: vi.fn(),
     removeAllShapes: vi.fn(),
     addLabel: vi.fn(),
+    addCylinder: vi.fn(),
     addSurface: vi.fn().mockResolvedValue({}),
     render: vi.fn(),
   } as unknown as GLViewer;

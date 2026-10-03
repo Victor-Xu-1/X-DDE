@@ -1,7 +1,7 @@
 import type { AtomStyleSpec } from "3dmol";
 
 // One display policy for ligands, overlays and selection highlights.
-export const ligandBondRadius = 0.09;
+export const ligandBondRadius = 0.14;
 export const ligandCarbonColor = 0x00ff00;
 export function thinSticks(
   colorscheme = "greenCarbon",

@@ -62,3 +62,5 @@
 
 - Default ligand previews use thin sticks with elemental colors and no large atom spheres, both standalone and with protein. Apply the shared appearance policy to overlays, native results, regions, selections and the integrated Mol* editor. Ketcher's native 3D editor uses Lines mode; its fixed-radius Licorice is too thick for the default.
 - Selection or region highlights change color without inflating atoms. Explicit expert space-fill remains an intentional representation; isolated ions stay visible. Display styling must preserve source coordinates, atom identities and bond orders.
+
+- Use the shared moderate ligand stick radius (0.14). Display residue-contact dashes by default for a real single complex or explicitly aligned receptor-plus-pose pair. True comparisons never fabricate cross-model contacts. Geometric distances retain source coordinates and must not be mislabeled as hydrogen bonds or affinity.

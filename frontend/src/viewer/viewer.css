@@ -103,3 +103,21 @@
   height: 100%;
   border: 0;
 }
+
+.interaction-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: var(--text-small, 13px);
+  color: var(--muted);
+}
+.interaction-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.interaction-summary {
+  font-size: 12px;
+}
