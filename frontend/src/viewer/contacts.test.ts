@@ -10,7 +10,7 @@ import {
   type AtomSelectionSpec,
   type AtomStyleSpec,
 } from "3dmol";
-import { residueContacts, paintContacts } from "./contacts";
+import { residueContacts, paintContacts, visibleContacts } from "./contacts";
 import { MolecularScene } from "./scene";
 const atom = (x: number, resi = 1, elem = "C", resn = "ASN"): AtomSpec => ({
   x,
@@ -67,12 +67,12 @@ it("bounds the visual layer and labels actual distances without assigning chemic
     ligand: atom(0),
     distance: 2,
   }));
-  expect(paintContacts(viewer, contacts, true)).toEqual({
+  expect(paintContacts(viewer, contacts, true)).toMatchObject({
     cutoff: 4,
     total: 20,
-    shown: 12,
+    shown: 5,
   });
-  expect(viewer.addLabel).toHaveBeenCalledTimes(12);
+  expect(viewer.addLabel).toHaveBeenCalledTimes(5);
   expect(vi.mocked(viewer.addLabel).mock.calls[0][0]).toContain("2.00 Å");
   expect(
     vi
@@ -130,17 +130,15 @@ function fixture() {
   expect(ligand.selectedAtoms({})).toHaveLength(2);
   const source = () =>
     models.map((m) =>
-      m
-        .selectedAtoms({})
-        .map((a) => ({
-          x: a.x,
-          y: a.y,
-          z: a.z,
-          index: a.index,
-          serial: a.serial,
-          bonds: a.bonds,
-          orders: a.bondOrder,
-        })),
+      m.selectedAtoms({}).map((a) => ({
+        x: a.x,
+        y: a.y,
+        z: a.z,
+        index: a.index,
+        serial: a.serial,
+        bonds: a.bonds,
+        orders: a.bondOrder,
+      })),
     );
   return { scene, emit, cylinders, source, protein };
 }
@@ -151,11 +149,15 @@ it("draws separate-model receptor-pose contacts by default and completely remove
   expect(scene.info.hasInteractionContext).toBe(true);
   await scene.paint();
   expect(cylinders.length).toBeGreaterThan(0);
-  expect(emit).toHaveBeenCalledWith("contacts", {
-    cutoff: 4,
-    total: 1,
-    shown: 1,
-  });
+  expect(emit).toHaveBeenCalledWith(
+    "contacts",
+    expect.objectContaining({
+      cutoff: 4,
+      total: 1,
+      shown: 1,
+      residues: [{ label: "A:ASN140", distance: 2, tooClose: false }],
+    }),
+  );
   expect(protein.selectedAtoms({})[0].style?.stick).toBeDefined();
   await scene.configure({ interactions: false });
   expect(cylinders).toHaveLength(0);
@@ -169,4 +171,38 @@ it("does not invent cross-model interactions in a true comparison", async () => 
   expect(scene.info.hasInteractionContext).toBe(false);
   expect(cylinders).toHaveLength(0);
   expect(emit).toHaveBeenCalledWith("contacts", null);
+});
+
+it("uses 3/5/all viewing choices without turning distances into importance or energy", () => {
+  const contacts = Array.from({ length: 80 }, (_, i) => ({
+    protein: atom(2, i),
+    ligand: atom(0),
+    distance: 2,
+  }));
+  expect(visibleContacts(contacts, 3)).toEqual(contacts.slice(0, 3));
+  expect(visibleContacts(contacts, 5)).toEqual(contacts.slice(0, 5));
+  expect(visibleContacts(contacts, "all")).toHaveLength(60);
+  const viewer = {
+    addStyle: vi.fn(),
+    addCylinder: vi.fn(),
+    addLabel: vi.fn(),
+  } as unknown as GLViewer;
+  const result = paintContacts(viewer, contacts, true, 0, 3);
+  expect(result.residues).toHaveLength(3);
+  expect(
+    result.residues.every((r) => !("energy" in r) && !("strength" in r)),
+  ).toBe(true);
+});
+it("keeps source identities while switching back from all to three contacts", async () => {
+  const { scene, source } = fixture(),
+    before = structuredClone(source());
+  scene.inspect(true, false, ["pdb", "sdf"], 1);
+  expect(scene.options.contactLimit).toBe(5);
+  await scene.configure({ contactLimit: "all" });
+  expect(scene.options.contactLimit).toBe("all");
+  await scene.configure({ contactLimit: 3 });
+  expect(scene.options.contactLimit).toBe(3);
+  await scene.configure({ contactLimit: 200 as 3 });
+  expect(scene.options.contactLimit).toBe(3);
+  expect(source()).toEqual(before);
 });

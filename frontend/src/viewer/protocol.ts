@@ -1,4 +1,5 @@
 export type ViewMode = "cartoon" | "pocket" | "surface";
+export type ContactLimit = 3 | 5 | "all";
 export type PickMode = "residue" | "atom" | "distance";
 export interface ViewerOptions {
   mode: ViewMode;
@@ -7,6 +8,7 @@ export interface ViewerOptions {
   ligand: string;
   pick: PickMode;
   interactions: boolean;
+  contactLimit: ContactLimit;
 }
 export const defaultOptions: ViewerOptions = {
   mode: "cartoon",
@@ -15,6 +17,7 @@ export const defaultOptions: ViewerOptions = {
   ligand: "",
   pick: "residue",
   interactions: true,
+  contactLimit: 5,
 };
 export interface Residue {
   key: string;
@@ -35,6 +38,7 @@ export interface ContactSummary {
   cutoff: number;
   total: number;
   shown: number;
+  residues: { label: string; distance: number; tooClose: boolean }[];
 }
 export interface SelectionInfo {
   pick_mode?: PickMode;

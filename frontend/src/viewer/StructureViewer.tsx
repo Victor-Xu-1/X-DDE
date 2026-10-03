@@ -9,6 +9,7 @@ import {
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
 import { InteractionControls } from "./InteractionControls";
+import { PoseScore, type NativePoseScore } from "./PoseScore";
 import {
   defaultOptions,
   emptyScene,
@@ -28,6 +29,7 @@ interface Props {
   focusModel?: number;
   selectionMode?: PickMode;
   highlightedAtoms?: number[];
+  nativeScore?: NativePoseScore | null;
   onAtomSelected?(selection: SelectionInfo | null): void;
   onSceneLoaded?(scene: SceneInfo): void;
 }
@@ -39,6 +41,7 @@ export function StructureViewer({
   focusModel,
   selectionMode,
   highlightedAtoms,
+  nativeScore,
   onAtomSelected,
   onSceneLoaded,
 }: Props) {
@@ -287,10 +290,14 @@ export function StructureViewer({
             </span>
           </div>
           {scene.hasInteractionContext && !comparison && (
+            <PoseScore value={nativeScore} language={language} />
+          )}
+          {scene.hasInteractionContext && !comparison && (
             <InteractionControls
               language={language}
               enabled={options.interactions}
               labels={options.labels}
+              limit={options.contactLimit}
               summary={contacts}
               onChange={configure}
             />

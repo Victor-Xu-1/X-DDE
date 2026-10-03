@@ -120,3 +120,17 @@ it("named MOL2 ligand substructures cannot be mistaken for polymer cartoons", as
   for (const atom of model.selectedAtoms({}))
     expect(atom.style?.cartoon).toBeUndefined();
 });
+
+it("fades background polymers in the concise complex view and restores full context on request", () => {
+  const { model } = fixture(
+    "ATOM      1  CA  ASN A 140       2.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ASN A 140       3.300   0.000   0.000  1.00 20.00           N  \nEND\n",
+    "pdb",
+  );
+  const before = source(model.selectedAtoms({}));
+  paintOverlayModel(model, 0, false, true);
+  expect(model.selectedAtoms({})[0].style?.cartoon?.opacity).toBeLessThan(0.2);
+  expect(model.selectedAtoms({})[0].style?.stick).toBeUndefined();
+  paintOverlayModel(model, 0, false, false);
+  expect(model.selectedAtoms({})[0].style?.cartoon?.opacity).toBe(1);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});

@@ -5,9 +5,19 @@ import {
   residueRef,
   residueSelection,
 } from "./geometry";
-import { residueLabel, type ContactSummary } from "./protocol";
+import {
+  residueLabel,
+  type ContactSummary,
+  type ContactLimit,
+} from "./protocol";
 export const contactCutoff = 4;
-const displayLimit = 12;
+const displaySafetyLimit = 60;
+export function visibleContacts(
+  contacts: ResidueContact[],
+  limit: ContactLimit,
+) {
+  return contacts.slice(0, limit === "all" ? displaySafetyLimit : limit);
+}
 export interface ResidueContact {
   protein: AtomSpec;
   ligand: AtomSpec;
@@ -59,8 +69,9 @@ export function paintContacts(
   contacts: ResidueContact[],
   labels: boolean,
   proteinModel = 0,
+  limit: ContactLimit = 5,
 ): ContactSummary {
-  const visible = contacts.slice(0, displayLimit);
+  const visible = visibleContacts(contacts, limit);
   for (const contact of visible) {
     const start = atomPosition(contact.ligand),
       end = atomPosition(contact.protein);
@@ -92,8 +103,8 @@ export function paintContacts(
         `${residueLabel(residueRef(contact.protein))} · ${contact.distance.toFixed(2)} Å`,
         {
           position: end,
-          fontSize: 11,
-          fontColor: color,
+          fontSize: 12,
+          fontColor: "#445954",
           backgroundColor: "white",
           backgroundOpacity: 0.8,
           showBackground: true,
@@ -105,5 +116,10 @@ export function paintContacts(
     cutoff: contactCutoff,
     total: contacts.length,
     shown: visible.length,
+    residues: visible.map((contact) => ({
+      label: residueLabel(residueRef(contact.protein)),
+      distance: contact.distance,
+      tooClose: contact.distance < 1.5,
+    })),
   };
 }

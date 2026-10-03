@@ -17,13 +17,21 @@ export async function paintBase(
   options: ViewerOptions,
   hidden: number[],
 ) {
+  const concise = info.hasInteractionContext && options.contactLimit !== "all";
   v.setStyle({}, thinSticks(info.hasPolymer ? "Jmol" : "greenCarbon"));
   for (const [i, chain] of (info.hasPolymer ? info.chains : []).entries()) {
     v.setStyle(
       { chain, hetflag: false },
       {
-        cartoon: { color: palette[i % palette.length], opacity: 0.65 },
-        line: { colorscheme: { prop: "elem", map: gray }, opacity: 0.2 },
+        cartoon: {
+          color: concise ? "#b9c5c1" : palette[i % palette.length],
+          opacity: concise ? 0.16 : 0.65,
+        },
+        ...(concise
+          ? {}
+          : {
+              line: { colorscheme: { prop: "elem", map: gray }, opacity: 0.2 },
+            }),
       },
     );
   }
@@ -39,7 +47,7 @@ export async function paintBase(
     );
   v.setStyle({ or: [{ resn: "HOH" }, { resn: "WAT" }] }, {});
   const ligand = info.ligands.find((r) => r.key === options.ligand);
-  if (ligand && options.mode === "pocket") {
+  if (ligand && options.mode === "pocket" && !concise) {
     const near = {
       hetflag: false,
       not: { index: hidden },
@@ -82,6 +90,7 @@ export function paintOverlayModel(
   model: mol.GLModel,
   index: number,
   molecular = false,
+  subdued = false,
 ) {
   model.setStyle(
     {},
@@ -100,6 +109,11 @@ export function paintOverlayModel(
   if (polymers.length)
     model.setStyle(
       { index: polymers },
-      { cartoon: { color: ["#478dff", "#ffb266", "#aa84ef"][index] } },
+      {
+        cartoon: {
+          color: subdued ? "#b9c5c1" : ["#478dff", "#ffb266", "#aa84ef"][index],
+          opacity: subdued ? 0.16 : 1,
+        },
+      },
     );
 }

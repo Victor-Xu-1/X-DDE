@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'frontend/src/viewer/**'
+      - 'frontend/src/docking/poseScore*'
+      - 'frontend/src/docking/DockingResults*'
+      - 'frontend/src/docking/types.ts'
       - 'frontend/src/editors/molstar*'
       - 'frontend/src/editors/ketcher*'
       - 'frontend/src/editors/Editors.tsx'
@@ -29,5 +32,7 @@ jobs:
           src/viewer/StructureViewer.test.tsx src/viewer/geometry.test.ts
           src/viewer/ViewerControls.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/source-layout.test.ts
+          src/viewer/InteractionControls.test.tsx src/viewer/PoseScore.test.tsx
+          src/docking/poseScore.test.ts src/docking/DockingResults.test.tsx
           src/editors/molstar-appearance.test.ts src/editors/ketcher-appearance.test.ts
           src/editors/scientificEditor.test.ts

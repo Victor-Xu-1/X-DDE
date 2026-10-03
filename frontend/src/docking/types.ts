@@ -62,6 +62,7 @@ export interface DockingResult {
   receptor: MoleculeRef;
   ligand: MoleculeRef;
   software_version: string;
+  options?: { scoring?: string };
   pose_artifact: string;
   raw_pose_artifact?: string | null;
   receptor_artifact: string;

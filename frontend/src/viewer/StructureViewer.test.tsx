@@ -77,6 +77,7 @@ it("focuses the actual pose and enables interactions without pretending comparis
               ligand: "",
               pick: "residue",
               interactions: true,
+              contactLimit: 5,
             },
           },
         },

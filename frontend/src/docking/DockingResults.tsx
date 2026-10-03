@@ -1,3 +1,4 @@
+import { poseScore } from "./poseScore";
 import { scoreLabel } from "./scoreLabels";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
@@ -174,6 +175,7 @@ export function DockingResults({
         <>
           <StructureViewer
             key={selected.artifact}
+            nativeScore={poseScore(result, selected)}
             urls={[
               artifactUrl(job.id, result.receptor_artifact),
               artifactUrl(job.id, selected.artifact),

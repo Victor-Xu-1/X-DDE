@@ -11,8 +11,17 @@ vi.mock("../api", () => ({
   artifactUrl: (job: string, file: string) => `/artifact/${job}/${file}`,
 }));
 vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: ({ urls }: { urls: string[] }) => (
-    <div data-testid="viewer">{urls.join(";")}</div>
+  StructureViewer: ({
+    urls,
+    nativeScore,
+  }: {
+    urls: string[];
+    nativeScore?: unknown;
+  }) => (
+    <div data-testid="viewer">
+      {urls.join(";")}
+      <span data-testid="native-score">{JSON.stringify(nativeScore)}</span>
+    </div>
   ),
 }));
 vi.mock("../operations/PropertyForm", () => ({
@@ -88,6 +97,10 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
     "/artifact/j/poses.sdf",
   );
   expect(screen.getByText("重选原子区域")).toBeVisible();
+  expect(screen.getByTestId("native-score")).toHaveTextContent('"value":-7');
+  expect(screen.getByTestId("native-score")).toHaveTextContent(
+    '"scope":"whole_pose"',
+  );
   await user.click(await screen.findByRole("button", { name: "计算性质" }));
   expect(screen.getByText("property:selected")).toBeVisible();
   expect(mocks.request).toHaveBeenCalledWith(

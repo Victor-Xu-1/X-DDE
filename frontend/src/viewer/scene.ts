@@ -130,6 +130,12 @@ export class MolecularScene {
     if (typeof value.labels === "boolean") this.options.labels = value.labels;
     if (typeof value.interactions === "boolean")
       this.options.interactions = value.interactions;
+    if (
+      value.contactLimit === 3 ||
+      value.contactLimit === 5 ||
+      value.contactLimit === "all"
+    )
+      this.options.contactLimit = value.contactLimit;
     if (value.ligand && this.info.ligands.some((r) => r.key === value.ligand))
       this.options.ligand = value.ligand;
     if (value.pick && ["residue", "atom", "distance"].includes(value.pick)) {
@@ -170,6 +176,7 @@ export class MolecularScene {
           v.getModel(index),
           index,
           ["sdf", "mol", "mol2"].includes(format),
+          this.complexModel !== null && this.options.contactLimit !== "all",
         );
       this.drawContacts();
       v.render();
@@ -228,7 +235,13 @@ export class MolecularScene {
     );
     this.emit(
       "contacts",
-      paintContacts(this.viewer, contacts, this.options.labels),
+      paintContacts(
+        this.viewer,
+        contacts,
+        this.options.labels,
+        0,
+        this.options.contactLimit,
+      ),
     );
   }
   private async pick(atom: mol.AtomSpec) {
