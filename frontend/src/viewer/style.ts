@@ -1,4 +1,4 @@
-import { thinSticks } from "./appearance";
+import { thinSticks, proteinBackbone } from "./appearance";
 import * as mol from "3dmol";
 import { residueRef as ref, residueSelection as sel } from "./geometry";
 import { residueLabel, type SceneInfo, type ViewerOptions } from "./protocol";
@@ -23,10 +23,7 @@ export async function paintBase(
     v.setStyle(
       { chain, hetflag: false },
       {
-        cartoon: {
-          color: concise ? "#b9c5c1" : palette[i % palette.length],
-          opacity: concise ? 0.16 : 0.65,
-        },
+        ...proteinBackbone(palette[i % palette.length]),
         ...(concise
           ? {}
           : {
@@ -90,7 +87,6 @@ export function paintOverlayModel(
   model: mol.GLModel,
   index: number,
   molecular = false,
-  subdued = false,
 ) {
   model.setStyle(
     {},
@@ -109,11 +105,6 @@ export function paintOverlayModel(
   if (polymers.length)
     model.setStyle(
       { index: polymers },
-      {
-        cartoon: {
-          color: subdued ? "#b9c5c1" : ["#478dff", "#ffb266", "#aa84ef"][index],
-          opacity: subdued ? 0.16 : 1,
-        },
-      },
+      proteinBackbone(["#478dff", "#ffb266", "#aa84ef"][index]),
     );
 }

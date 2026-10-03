@@ -197,7 +197,6 @@ export class MolecularScene {
           v.getModel(index),
           index,
           ["sdf", "mol", "mol2"].includes(format),
-          this.complexModel !== null && this.options.contactLimit !== "all",
         );
       this.drawContacts();
       v.render();
@@ -205,11 +204,7 @@ export class MolecularScene {
     }
     await paintBase(v, this.info, this.options, [...this.hidden]);
     if (this.siteRegion.length) {
-      v.setStyle(
-        { hetflag: false },
-        { cartoon: { color: "#9baeb2", opacity: 0.18 } },
-      );
-      v.setStyle({ model: 0, index: this.siteRegion }, regionStyle());
+      v.addStyle({ model: 0, index: this.siteRegion }, regionStyle());
     }
     this.drawContacts();
     if (this.highlighted.length)

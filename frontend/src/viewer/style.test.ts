@@ -33,6 +33,8 @@ function fixture(data = sdf, format = "sdf") {
     addCylinder: vi.fn(),
     addSurface: vi.fn().mockResolvedValue({}),
     render: vi.fn(),
+    zoomTo: vi.fn(),
+    zoom: vi.fn(),
   } as unknown as GLViewer;
   const scene = new MolecularScene(viewer, vi.fn());
   scene.inspect(false, ["sdf", "mol", "mol2"].includes(format));
@@ -101,12 +103,16 @@ it.each(["cartoon", "pocket", "surface"] as const)(
     const { model, scene } = fixture(pdb, "pdb"),
       before = source(model.selectedAtoms({}));
     scene.options.mode = mode;
-    await scene.paint();
-    expectSticks(model.selectedAtoms({ hetflag: true }));
-    expect(
-      model.selectedAtoms({ hetflag: false })[0].style?.cartoon,
-    ).toBeDefined();
-    expect(source(model.selectedAtoms({}))).toEqual(before);
+    for (const limit of [3, 5, "all"] as const) {
+      scene.options.contactLimit = limit;
+      await scene.paint();
+      expectSticks(model.selectedAtoms({ hetflag: true }));
+      const backbone = model.selectedAtoms({ hetflag: false })[0].style
+        ?.cartoon;
+      expect(backbone?.opacity).toBeGreaterThanOrEqual(0.8);
+      expect(backbone?.color).not.toBe("#b9c5c1");
+      expect(source(model.selectedAtoms({}))).toEqual(before);
+    }
   },
 );
 
@@ -121,16 +127,40 @@ it("named MOL2 ligand substructures cannot be mistaken for polymer cartoons", as
     expect(atom.style?.cartoon).toBeUndefined();
 });
 
-it("fades background polymers in the concise complex view and restores full context on request", () => {
+it("receptor overlays keep a visible colored backbone without sidechain clutter", () => {
   const { model } = fixture(
     "ATOM      1  CA  ASN A 140       2.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ASN A 140       3.300   0.000   0.000  1.00 20.00           N  \nEND\n",
     "pdb",
   );
   const before = source(model.selectedAtoms({}));
-  paintOverlayModel(model, 0, false, true);
-  expect(model.selectedAtoms({})[0].style?.cartoon?.opacity).toBeLessThan(0.2);
+  paintOverlayModel(model, 0, false);
+  expect(
+    model.selectedAtoms({})[0].style?.cartoon?.opacity,
+  ).toBeGreaterThanOrEqual(0.8);
   expect(model.selectedAtoms({})[0].style?.stick).toBeUndefined();
-  paintOverlayModel(model, 0, false, false);
-  expect(model.selectedAtoms({})[0].style?.cartoon?.opacity).toBe(1);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
+
+it("pocket highlights retain the continuous backbone and original coordinates", async () => {
+  const { model, scene } = fixture(
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CA  GLY A   2       3.800   0.000   0.000  1.00 20.00           C  \nEND\n",
+    "pdb",
+  );
+  const before = source(model.selectedAtoms({}));
+  await scene.highlightResidues([
+    {
+      model: 0,
+      chain: "A",
+      number: 1,
+      insertion_code: "",
+      alternate_location: "",
+    },
+  ]);
+  for (const atom of model.selectedAtoms({}))
+    expect(atom.style?.cartoon?.opacity).toBeGreaterThanOrEqual(0.8);
+  expect(model.selectedAtoms({ resi: 1 })[0].style?.stick?.color).toBe(
+    "#dc8e25",
+  );
+  expect(model.selectedAtoms({ resi: 2 })[0].style?.stick).toBeUndefined();
   expect(source(model.selectedAtoms({}))).toEqual(before);
 });

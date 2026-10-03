@@ -1,6 +1,6 @@
 import type { AtomStyleSpec } from "3dmol";
 
-// One display policy for ligands, overlays and selection highlights.
+// Shared display policy; styling never changes source coordinates or identities.
 export const ligandBondRadius = 0.14;
 export const ligandCarbonColor = 0x00ff00;
 export function thinSticks(
@@ -16,3 +16,7 @@ export function thinSticks(
 }
 export const regionStyle = () => thinSticks("greenCarbon", "#dc8e25");
 export const selectionStyle = () => thinSticks("greenCarbon", "#ffae43");
+
+export function proteinBackbone(color: string): AtomStyleSpec {
+  return { cartoon: { color, opacity: 0.9 } };
+}
