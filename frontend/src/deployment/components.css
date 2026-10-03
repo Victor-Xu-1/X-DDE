@@ -266,7 +266,12 @@
 }
 .compute-service-panel .section-heading {
   flex: 1;
+  min-width: 180px;
   justify-content: flex-start;
+}
+.compute-service-panel h2,
+.compute-service-panel .status-pill {
+  white-space: nowrap;
 }
 .compute-service-panel .field-help {
   flex-basis: 100%;
