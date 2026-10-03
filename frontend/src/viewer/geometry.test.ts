@@ -87,3 +87,16 @@ it("styles real SDF ligands and PDB polymers without inventing residue identitie
   expect(second.style?.cartoon).toBeUndefined();
   expect(second.resn).toBeUndefined();
 });
+
+it("keeps raw PDB insertion codes while omitting blank column padding from display labels", async () => {
+  const { residueLabel } = await import("./protocol");
+  const identity = residueRef({
+    chain: "A",
+    resn: "ASN",
+    resi: 140,
+    icode: " ",
+  });
+  expect(identity.icode).toBe(" ");
+  expect(residueLabel(identity)).toBe("A:ASN140");
+  expect(residueLabel({ ...identity, icode: "B" })).toBe("A:ASN140B");
+});

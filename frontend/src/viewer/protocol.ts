@@ -65,7 +65,7 @@ export const emptyScene: SceneInfo = {
   hasPolymer: false,
 };
 export const residueLabel = (r: Residue) =>
-  `${r.chain}:${r.resn}${r.resi}${r.icode}`;
+  `${r.chain.trim()}:${r.resn}${r.resi}${r.icode.trim()}`;
 export const validSource = (raw: string, origin: string) => {
   const url = new URL(raw, origin);
   if (
