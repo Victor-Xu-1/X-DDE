@@ -54,6 +54,6 @@ export interface PreparedExample {
   request?: TaskRequest | null;
   workflow_plan?: WorkflowPlanInput | null;
   record?: ExampleRecord | null;
-  result_requested?: boolean;
+  template_active?: boolean;
   campaign_draft?: DesignDraft | null;
 }

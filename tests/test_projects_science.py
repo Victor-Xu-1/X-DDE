@@ -41,3 +41,28 @@ def test_science_endpoints_require_real_runtime_and_completed_task(client_factor
             assert response.status_code == 503
             assert "Docker runtime" in response.json()["detail"]
         assert client.get(f"/api/jobs/{uuid4()}/analysis").status_code == 404
+
+
+def test_example_only_projects_are_hidden_but_shared_personal_projects_remain(
+    client_factory, settings
+):
+    from opendde_workbench.examples.library import ExampleLibrary
+    from opendde_workbench.store import Store
+
+    with client_factory() as client:
+        project = client.post("/api/projects", json={"name": "Public template project"}).json()
+        body = {
+            "name": "example evidence",
+            "components": [{"kind": "ligand", "value": "c1ccccc1"}],
+            "project_id": project["id"],
+        }
+        fixed = submit(client, body).json()["id"]
+        wait_status(client, fixed, {"succeeded"})
+        ExampleLibrary(Store(settings.state_dir / "jobs.sqlite3")).classify([fixed])
+        assert client.get("/api/projects").json() == []
+        assert client.get("/api/jobs").json() == []
+        assert client.get(f"/api/jobs/{fixed}").status_code == 200
+        user = submit(client, {**body, "name": "my own study"}).json()["id"]
+        wait_status(client, user, {"succeeded"})
+        assert [value["id"] for value in client.get("/api/projects").json()] == [project["id"]]
+        assert [value["id"] for value in client.get("/api/jobs").json()] == [user]

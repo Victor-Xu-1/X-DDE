@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { ExampleContext } from "./examples/context";
+import type { PreparedExample } from "./examples/types";
 import { ExampleActions } from "./examples/ExampleActions";
 import { examplePrediction } from "./examples/prediction";
 import { defaults, prediction, validate } from "./form-model";
@@ -26,18 +28,19 @@ interface Props {
   abagAvailable?: boolean;
   initialRequest?: Prediction | null;
   onSubmit(value: Prediction, key: string): Promise<Job>;
-  onExampleResult?(job: Job): void;
 }
 export function TaskForm({
   language,
   ready,
   initialRequest,
   onSubmit,
-  onExampleResult,
   abagAvailable = false,
 }: Props) {
   const t = translator(language),
     zh = language === "zh";
+  const [example, setExample] = useState<PreparedExample | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [templateRevision, setTemplateRevision] = useState(0);
   const [kind, setKind] = useState<TaskKind>("complex");
   const [expert, setExpert] = useState(false);
   const [name, setName] = useState(""),
@@ -277,8 +280,24 @@ export function TaskForm({
       <ExampleActions
         capability="predict"
         language={language}
-        onResult={(job) => onExampleResult?.(job)}
+        onPreviewChange={setPreviewing}
+        onClear={() => {
+          setExample(null);
+          setName("");
+          setKind("complex");
+          setExpert(false);
+          setComponents(componentsFor("complex", []));
+          setParameters({ ...defaults, model: "standard" });
+          setBonds([]);
+          setInputReferences([]);
+          setError("");
+          drafts.current = {};
+          automaticName.current = "";
+          setTemplateRevision((value) => value + 1);
+        }}
         onLoad={(prepared) => {
+          setExample(prepared);
+          setTemplateRevision((value) => value + 1);
           const value = examplePrediction(prepared);
           setName(value.name);
           setKind(kindFor(value.components, value.parameters.model));
@@ -289,41 +308,46 @@ export function TaskForm({
           setError("");
         }}
       />
-      <Questionnaire
-        language={language}
-        ready={ready && modelReady}
-        busy={busy}
-        error={error}
-        unavailable={
-          zh
-            ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
-            : "Configure this task's prediction environment and model in Installation & components. Inputs are retained."
-        }
-        submitLabel={zh ? "开始预测" : "Run prediction"}
-        onSubmit={submit}
-        steps={[
-          {
-            title: zh ? "选择任务" : "Choose task",
-            content: goal,
-            valid: true,
-          },
-          {
-            title: zh ? "填写材料" : "Provide inputs",
-            content: inputs,
-            valid: inputValid,
-          },
-          {
-            title: zh ? "选择方案" : "Choose settings",
-            content: settings,
-            valid: true,
-          },
-          {
-            title: zh ? "确认启动" : "Review & start",
-            content: review,
-            valid: inputValid,
-          },
-        ]}
-      />
+      <div hidden={previewing}>
+        <ExampleContext.Provider value={example}>
+          <Questionnaire
+            key={templateRevision}
+            language={language}
+            ready={ready && modelReady}
+            busy={busy}
+            error={error}
+            unavailable={
+              zh
+                ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
+                : "Configure this task's prediction environment and model in Installation & components. Inputs are retained."
+            }
+            submitLabel={zh ? "开始预测" : "Run prediction"}
+            onSubmit={submit}
+            steps={[
+              {
+                title: zh ? "选择任务" : "Choose task",
+                content: goal,
+                valid: true,
+              },
+              {
+                title: zh ? "填写材料" : "Provide inputs",
+                content: inputs,
+                valid: inputValid,
+              },
+              {
+                title: zh ? "选择方案" : "Choose settings",
+                content: settings,
+                valid: true,
+              },
+              {
+                title: zh ? "确认启动" : "Review & start",
+                content: review,
+                valid: inputValid,
+              },
+            ]}
+          />
+        </ExampleContext.Provider>
+      </div>
     </>
   );
 }

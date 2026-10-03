@@ -85,8 +85,9 @@ it("preserves exact saved ligand and native exploration budgets through review a
     screen.getByRole("checkbox", { name: "Receptor 1 · Pocket 1" }),
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("radio", { name: "Historical files" }));
   const input = await screen.findByRole("combobox", {
-    name: /Reuse research asset/,
+    name: /Historical files/,
   });
   await waitFor(() => expect(input).toBeEnabled());
   await user.selectOptions(input, "version-1");

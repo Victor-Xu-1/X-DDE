@@ -29,7 +29,7 @@ export function ReferencePicker({
     allowedSuffixes ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
   const [loading, setLoading] = useState(false);
   const [source, setSource] = useState<"saved" | "file">(() =>
-    value && !value.version_id ? "file" : "saved",
+    value?.version_id ? "saved" : "file",
   );
   const selections = useRef<{
     saved: MoleculeRef | null;
@@ -123,19 +123,13 @@ export function ReferencePicker({
         value={source}
         onChange={changeSource}
         options={[
-          {
-            value: "saved",
-            title: zh ? "复用研究版本" : "Reuse a research version",
-          },
-          {
-            value: "file",
-            title: zh ? "上传或选择文件" : "Upload or choose a file",
-          },
+          { value: "file", title: zh ? "上传新文件" : "Upload a new file" },
+          { value: "saved", title: zh ? "历史文件" : "Historical files" },
         ]}
       />
       <div hidden={source !== "saved"}>
         <label className="field">
-          {label} · {zh ? "复用研究资产" : "Reuse research asset"}
+          {label} · {zh ? "历史文件" : "Historical files"}
           <select
             value={value?.version_id ?? ""}
             disabled={loading}
@@ -149,7 +143,7 @@ export function ReferencePicker({
             }}
           >
             <option value="">
-              {zh ? "选择已保存的研究版本" : "Choose a saved research version"}
+              {zh ? "选择历史文件" : "Choose a historical file"}
             </option>
             {versions.map((v) => (
               <option key={v.id} value={v.id}>

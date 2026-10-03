@@ -1,140 +1,139 @@
-import { useEffect, useState } from "react";
-import { api, request } from "../api";
-import type { Job, Language } from "../types";
-import type { ExampleInfo, PreparedExample } from "./types";
-import { reviewedExample } from "./metadata";
+import {
+  useExampleTemplate,
+  type ExampleTemplateOptions,
+} from "./useExampleTemplate";
+import { templateGuide } from "./guide";
+import { ExampleJobResult } from "./ExampleJobResult";
+import { ExampleRecordResult } from "./ExampleRecordResult";
+import { TemplatePreviewContext } from "./context";
 import "./examples.css";
-
-export function ExampleActions({
-  capability,
-  language,
-  onLoad,
-  onResult,
-}: {
-  capability: string;
-  language: Language;
-  onLoad(value: PreparedExample): void;
-  onResult(job: Job): void;
-}) {
+export function ExampleActions(options: ExampleTemplateOptions) {
+  const { capability, language } = options;
   const zh = language === "zh";
-  const [info, setInfo] = useState<ExampleInfo | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    const controller = new AbortController();
-    setInfo(null);
-    setError("");
-    void request<ExampleInfo>(`/examples/${capability}`, {
-      signal: controller.signal,
-    })
-      .then((value) => {
-        if (!reviewedExample(value, capability))
-          throw new Error(
-            zh
-              ? "无法读取已验证的案例信息。"
-              : "Reviewed example metadata is unavailable.",
-          );
-        if (!controller.signal.aborted) setInfo(value);
-      })
-      .catch((failure) => {
-        if (!controller.signal.aborted) setError(String(failure));
-      });
-    return () => controller.abort();
-  }, [capability]);
-
-  async function act(action: () => Promise<void>) {
-    setBusy(true);
-    setError("");
-    try {
-      await action();
-    } catch (failure) {
-      setError(String(failure));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const {
+    info,
+    busy,
+    error,
+    loaded,
+    result,
+    loadTemplate,
+    showResult,
+    closeResult,
+    clear,
+  } = useExampleTemplate(options);
   return (
-    <aside
-      className="example-actions"
-      aria-label={zh ? "固定研发案例" : "Fixed research example"}
+    <section
+      className="module-template"
+      aria-label={zh ? "模块使用模板" : "Module usage template"}
     >
-      {info && (
-        <>
-          <span title={info.case.description[zh ? 0 : 1]}>
-            {zh ? "案例：" : "Example: "}
-            {info.case.label[zh ? 0 : 1]}
-          </span>
-          <button
-            className="secondary-button"
-            disabled={busy}
-            onClick={() =>
-              void act(async () => {
-                const prepared = await api.post<PreparedExample>(
-                  `/examples/${capability}/prepare`,
-                  {},
-                );
-                onLoad(prepared);
-              })
-            }
-          >
-            {busy
-              ? zh
-                ? "正在准备…"
-                : "Preparing…"
-              : zh
-                ? "加载案例"
-                : "Load example"}
-          </button>
-          {(info.pin || info.record_pin) && (
+      <div className="example-actions">
+        {info && (
+          <>
+            <span title={info.case.description[zh ? 0 : 1]}>
+              {zh ? "真实模板：" : "Real template: "}
+              {info.case.label[zh ? 0 : 1]}
+            </span>
             <button
+              type="button"
               className="secondary-button"
               disabled={busy}
-              onClick={() =>
-                void act(async () => {
-                  if (info.pin) {
-                    const job = await request<Job>(`/jobs/${info.pin.job_id}`);
-                    onResult(job);
-                  } else {
-                    const prepared = await api.post<PreparedExample>(
-                      `/examples/${capability}/prepare`,
-                      {},
-                    );
-                    onLoad({ ...prepared, result_requested: true });
-                  }
-                })
-              }
+              onClick={() => void loadTemplate()}
             >
-              {info.record_pin && !info.record_pin.computed_result_available
+              {busy
                 ? zh
-                  ? "查看配置示例"
-                  : "View validated setup"
+                  ? "正在准备…"
+                  : "Preparing…"
                 : zh
-                  ? "查看真实结果"
-                  : "View real results"}
+                  ? "使用此模板"
+                  : "Use this template"}
             </button>
-          )}
-          <details>
-            <summary>{zh ? "来源" : "Sources"}</summary>
-            <ul>
-              {info.case.sources.map((url) => (
-                <li key={url}>
-                  <a href={url} target="_blank" rel="noreferrer">
-                    {new URL(url).hostname}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <small>
-              {[...new Set(info.files.map((file) => file.license))].join(" · ")}
-            </small>
-          </details>
-        </>
+            {(info.pin || info.record_pin) && (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={busy}
+                onClick={() => void showResult()}
+              >
+                {info.record_pin && !info.record_pin.computed_result_available
+                  ? zh
+                    ? "配置示例"
+                    : "Setup example"
+                  : zh
+                    ? "示例结果"
+                    : "Example results"}
+              </button>
+            )}
+            {(loaded || result) && (
+              <button
+                type="button"
+                className="text-button"
+                disabled={busy}
+                onClick={clear}
+              >
+                {zh ? "新建空白任务" : "New blank task"}
+              </button>
+            )}
+            <details>
+              <summary>
+                {zh ? "模板说明与来源" : "Template guide & sources"}
+              </summary>
+              <p>{info.case.description[zh ? 0 : 1]}</p>
+              <ol>
+                {templateGuide(capability, language)
+                  .steps.slice(0, 3)
+                  .map((text) => (
+                    <li key={text}>{text}</li>
+                  ))}
+              </ol>
+              <ul>
+                {info.case.sources.map((url) => (
+                  <li key={url}>
+                    <a href={url} target="_blank" rel="noreferrer">
+                      {new URL(url).hostname}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </>
+        )}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+      {result && (
+        <section
+          className="module-example-result"
+          aria-label={zh ? "模块内示例结果" : "In-module example results"}
+        >
+          <div className="section-heading">
+            <h2>{zh ? "示例结果" : "Example results"}</h2>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={closeResult}
+            >
+              {zh ? "返回任务填写" : "Return to task form"}
+            </button>
+          </div>
+          <p className="field-help">
+            {templateGuide(capability, language).interpretation}
+          </p>
+          <TemplatePreviewContext.Provider value={true}>
+            {result.job && (
+              <ExampleJobResult job={result.job} language={language} />
+            )}
+            {result.example && (
+              <ExampleRecordResult
+                example={result.example}
+                language={language}
+              />
+            )}
+          </TemplatePreviewContext.Provider>
+        </section>
       )}
-      {error && (
-        <p role="alert" className="error">
-          {error}
-        </p>
-      )}
-    </aside>
+    </section>
   );
 }

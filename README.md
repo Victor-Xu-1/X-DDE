@@ -63,6 +63,10 @@ X-DDE UI
 
 首次使用：打开左侧底部 **账户与设置 → 安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
 
+每个任务默认新建，材料从上传新文件或填写序列开始。选择 **历史文件** 才会打开已保存材料；不会自动选择旧结果。模块内的 **使用此模板** 按步骤加载真实研发输入，**示例结果** 在当前模块展示已固定的真实输出，不向个人任务记录添加演示任务。用模板提交后是独立的新任务；原始示例计算、文件与来源保留。
+
+Every task starts with fresh uploads or typed inputs. Historical files are opt-in. Use this template provides guided research inputs; Example results stays in the module. Template-derived submissions are new personal tasks, and the original evidence remains available.
+
 核心科研入口保留在主导航；工作空间概况、安装、运行状态和帮助位于底部管理菜单。**账户与设置**可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器；账户信息反映现有本地单用户模式。
 
 Core research tools remain in the main navigation. The bottom **Account & settings** menu groups workspace overview, installation, runtime status and help. Open its settings page to choose Chinese/English and Warm/Pure white/Night appearance; preferences are saved in the current browser. Account information reflects the existing local single-user mode.

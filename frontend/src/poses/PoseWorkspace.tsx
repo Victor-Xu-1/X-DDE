@@ -22,9 +22,7 @@ export function PoseWorkspace({
   const example = useExample(),
     preset =
       example?.record?.kind === "pose_exploration" ? example.record : null;
-  const selectedId =
-    initialExplorationId ??
-    (example?.result_requested ? preset?.value.id : undefined);
+  const selectedId = initialExplorationId;
   const [sites, setSites] = useState<SiteSet[]>(
       initialSites ? [initialSites] : preset ? [preset.sites] : [],
     ),

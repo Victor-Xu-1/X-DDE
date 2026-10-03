@@ -30,6 +30,7 @@ from .diffsbdd.runtime import validate as validate_diffsbdd
 from .docking.runtime import validate as validate_docking
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
+from .examples.library import ExampleLibrary
 from .examples.routes import register_examples
 from .execution_environment import EnvironmentRecord
 from .harness_routes import register_harness
@@ -58,6 +59,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     store = Store(settings.state_dir / "jobs.sqlite3")
     engine = engine or BackendRouter(settings)
     assets = AssetStore(store, settings.state_dir / "assets")
+    example_library = ExampleLibrary(store)
     worker = Worker(store, engine, settings, assets)
     deployments = DeploymentManager(settings.state_dir)
     csrf = secrets.token_urlsafe(32)
@@ -364,7 +366,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     @app.get("/api/jobs", response_model=list[Job])
     def jobs(limit: int = Query(100, ge=1, le=100), offset: int = Query(0, ge=0, le=10000)):
-        return store.list_jobs(limit, offset)
+        return example_library.personal_jobs(limit, offset)
 
     @app.post("/api/jobs", response_model=Job, status_code=201, dependencies=[Depends(mutation)])
     async def submit(prediction: TaskRequest, idempotency_key: Annotated[UUID, Header()]):

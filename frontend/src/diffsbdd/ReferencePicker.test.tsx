@@ -32,30 +32,26 @@ it("clears the hidden route selection and restores the exact saved version on re
   await waitFor(() =>
     expect(
       screen.getByRole("combobox", {
-        name: "Input molecule · Reuse research asset",
+        name: "Input molecule · Historical files",
       }),
     ).toBeEnabled(),
   );
   expect(
     screen.queryByRole("combobox", { name: "Input molecule" }),
   ).not.toBeInTheDocument();
-  await user.click(
-    screen.getByRole("radio", { name: "Upload or choose a file" }),
-  );
+  await user.click(screen.getByRole("radio", { name: "Upload a new file" }));
   expect(
-    screen.getByRole("combobox", { name: "Input molecule" }),
-  ).toBeVisible();
+    screen.getByRole("radio", { name: "Upload a new file" }),
+  ).toBeChecked();
   expect(
     screen.queryByRole("combobox", {
-      name: "Input molecule · Reuse research asset",
+      name: "Input molecule · Historical files",
     }),
   ).not.toBeInTheDocument();
-  await user.click(
-    screen.getByRole("radio", { name: "Reuse a research version" }),
-  );
+  await user.click(screen.getByRole("radio", { name: "Historical files" }));
   expect(
     screen.getByRole("combobox", {
-      name: "Input molecule · Reuse research asset",
+      name: "Input molecule · Historical files",
     }),
   ).toHaveValue("version");
   expect(onChange).toHaveBeenNthCalledWith(1, null);
@@ -92,22 +88,56 @@ it("a controlled task cannot submit a saved source while the empty file route is
   }
   render(<Task />);
   const user = userEvent.setup();
-  await user.click(
-    screen.getByRole("radio", { name: "Upload or choose a file" }),
-  );
+  await user.click(screen.getByRole("radio", { name: "Upload a new file" }));
   expect(
     screen.getByRole("button", { name: "Continue with source" }),
   ).toBeDisabled();
   expect(screen.getByText("No selected source")).toBeVisible();
-  await user.click(
-    screen.getByRole("radio", { name: "Reuse a research version" }),
-  );
+  await user.click(screen.getByRole("radio", { name: "Historical files" }));
   expect(
     screen.getByRole("button", { name: "Continue with source" }),
   ).toBeEnabled();
   expect(
     screen.getByRole("combobox", {
-      name: "Input molecule · Reuse research asset",
+      name: "Input molecule · Historical files",
     }),
   ).toHaveValue("version");
+});
+
+it("prefers fresh upload even when historical versions exist", async () => {
+  vi.spyOn(client, "request").mockResolvedValue([
+    {
+      id: "past",
+      kind: "molecule",
+      label: "Previous compound",
+      reference: { version_id: "past", asset_id: "past-file" },
+    },
+  ]);
+  const assets = vi.spyOn(client.api, "assets").mockResolvedValue([]),
+    onChange = vi.fn();
+  render(
+    <ReferencePicker
+      kind="ligand"
+      value={null}
+      onChange={onChange}
+      language="en"
+      label="New input"
+    />,
+  );
+  expect(
+    screen.getByRole("radio", { name: "Upload a new file" }),
+  ).toBeChecked();
+  expect(
+    screen.queryByRole("combobox", { name: "New input · Historical files" }),
+  ).toBeNull();
+  expect(onChange).not.toHaveBeenCalled();
+  expect(assets).not.toHaveBeenCalled();
+  await userEvent
+    .setup()
+    .click(screen.getByRole("radio", { name: "Historical files" }));
+  expect(
+    await screen.findByRole("combobox", {
+      name: "New input · Historical files",
+    }),
+  ).toHaveValue("");
 });

@@ -258,3 +258,25 @@ it("rechecks native range constraints at final submission when retained settings
   expect(screen.getByRole("heading", { name: "3. Settings" })).toBeVisible();
   expect(submit).not.toHaveBeenCalled();
 });
+
+import { TemplatePreviewContext } from "../examples/context";
+it("an embedded result preview cannot submit an additional scientific task", async () => {
+  const submit = vi.fn(),
+    user = userEvent.setup();
+  const { container } = render(
+    <TemplatePreviewContext.Provider value={true}>
+      <Form onSubmit={submit} />
+    </TemplatePreviewContext.Provider>,
+  );
+  await user.type(
+    screen.getByRole("textbox", { name: "Input" }),
+    "New compound input",
+  );
+  for (let i = 0; i < 3; i++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(
+    screen.getByRole("button", { name: "Start actual task" }),
+  ).toBeDisabled();
+  fireEvent.submit(container.querySelector("form")!);
+  expect(submit).not.toHaveBeenCalled();
+});

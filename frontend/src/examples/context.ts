@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import type { PreparedExample } from "./types";
 import type { TaskRequest } from "../operations/types";
 
+export const TemplatePreviewContext = createContext(false);
 export const ExampleContext = createContext<PreparedExample | null>(null);
 export function useExample() {
   return useContext(ExampleContext);

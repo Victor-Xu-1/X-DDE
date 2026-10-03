@@ -11,12 +11,31 @@ Private Boltz projects and customer research data are not used as distributable
 examples. Public experimental references, runnable inputs and calculated results
 retain distinct identities.
 
-`Load example` imports checksum-verified inputs into the existing immutable
+`Use this template` imports checksum-verified inputs into the existing immutable
 AssetStore and ScientificStore. It preserves original files, creates traceable
 FASTA or SDF collections where required, and pre-fills the module's questionnaire.
 It does not submit a design calculation. Interactive atomic inspection uses the
 existing native identity adapter. The user reviews the final page before
 submitting a calculation.
+
+Every task initially presents fresh uploads or pasted inputs. Historical files
+are explicitly selected; loading a template is an opt-in action. The guide maps
+each visible capability to bilingual step hints and a result interpretation.
+`Example results` renders the retained native task or compound record in the
+same module, preserving the user's draft and URL. Embedded questionnaires cannot
+submit science while previewing an example. `New blank task` clears the template
+and starts from the first page with empty materials.
+
+The example library classifies current pin evidence and its explicitly referenced
+source tasks in `example_library_tasks`. Personal task pagination excludes these
+rows before LIMIT/OFFSET; native jobs, artifacts, environment records, worker
+lifecycle and direct task URLs remain intact. Explicit operator validation IDs can
+be classified as `setup_validation` without deleting anything. Names, timestamps
+and similarity to a template never classify a user's task. A user's submission
+from a template has no inherited example project and remains a personal task.
+Example-only projects are omitted from the personal list; projects containing any
+personal job remain visible. The current immutable result bundle is unchanged:
+classification is derived from its restored pins.
 
 Fixed native outcomes reference successful tasks in the same jobs database.
 `example_pins` stores the request digest, bound environment-metadata digest and

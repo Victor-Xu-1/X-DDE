@@ -35,7 +35,6 @@ export function RegionWorkspace({ language }: { language: Language }) {
       subject={subject}
       language={language}
       initialRecord={record}
-      showResult={example?.result_requested ?? false}
       inputs={
         <ReferencePicker
           kind="ligand"

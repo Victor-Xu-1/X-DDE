@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
+from .examples.library import ExampleLibrary
 from .store import Store, now
 
 
@@ -25,11 +26,22 @@ def register_projects(app: FastAPI, store: Store, mutation):
             id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT NOT NULL,
             created_at TEXT NOT NULL)""")
 
+    library = ExampleLibrary(store)
+
     @app.get("/api/projects", response_model=list[Project])
     def list_projects():
+        library.synchronize()
         with store.connect() as db:
             return [
-                dict(row) for row in db.execute("SELECT * FROM projects ORDER BY created_at DESC")
+                dict(row)
+                for row in db.execute(
+                    "SELECT p.* FROM projects p WHERE NOT EXISTS "
+                    "(SELECT 1 FROM example_library_projects e WHERE e.project_id=p.id) "
+                    "OR EXISTS (SELECT 1 FROM jobs j WHERE "
+                    "json_extract(j.request, '$.project_id')=p.id AND NOT EXISTS "
+                    "(SELECT 1 FROM example_library_tasks e WHERE e.job_id=j.id)) "
+                    "ORDER BY p.created_at DESC"
+                )
             ]
 
     @app.post(

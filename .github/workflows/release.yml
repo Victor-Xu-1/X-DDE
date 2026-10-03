@@ -22,11 +22,11 @@ jobs:
         run: |
           cd frontend
           npm ci
-          npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
+          npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx src/examples/ExampleActions.test.tsx src/examples/guide.test.ts src/diffsbdd/ReferencePicker.test.tsx src/guided/Questionnaire.test.tsx
           npm run build
           cd ..
           uv sync --locked --group dev
-          uv run pytest -q tests/test_deployment.py tests/test_case_bundle.py tests/test_compute_service.py tests/test_api_security.py tests/test_example_pins.py tests/test_example_records.py tests/test_interpreter_paths.py
+          uv run pytest -q tests/test_deployment.py tests/test_case_bundle.py tests/test_compute_service.py tests/test_api_security.py tests/test_example_pins.py tests/test_example_records.py tests/test_interpreter_paths.py tests/test_example_library.py tests/test_projects_science.py
           uv build --wheel
           test "$GITHUB_REF_NAME" = "v$(uv run python -c 'from opendde_workbench import __version__; print(__version__)')"
           cp install.sh install.ps1 scripts/opendde.ps1 dist/

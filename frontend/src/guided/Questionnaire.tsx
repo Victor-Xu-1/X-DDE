@@ -1,6 +1,15 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useContext,
+  type ReactNode,
+} from "react";
 import type { Job, Language } from "../types";
 import "./questionnaire.css";
+import { TemplatePreviewContext } from "../examples/context";
+import { TemplateStepHelp } from "../examples/TemplateStepHelp";
 import { firstInvalidQuestion } from "./questionnaire-validity";
 export interface QuestionStep {
   title: string;
@@ -32,6 +41,7 @@ export function GuidedSteps<T extends { id: string }>({
   resultTitle?: string;
   initialResult?: T | null;
 }) {
+  const preview = useContext(TemplatePreviewContext);
   const zh = language === "zh",
     id = useId();
   const [current, setCurrent] = useState(initialResult ? 4 : 0),
@@ -71,6 +81,7 @@ export function GuidedSteps<T extends { id: string }>({
     setVisited((v) => Math.max(v, target));
   }
   async function submit() {
+    if (preview) return;
     if (current !== 3) {
       move(current + 1);
       return;
@@ -136,6 +147,7 @@ export function GuidedSteps<T extends { id: string }>({
       <h2 ref={heading} tabIndex={-1} className="questionnaire-heading">
         {current + 1}. {titles[current]}
       </h2>
+      <TemplateStepHelp step={current} language={language} />
       {steps.map((step, index) => (
         <fieldset
           ref={(node) => {
@@ -190,7 +202,7 @@ export function GuidedSteps<T extends { id: string }>({
               key="submit-task"
               type="submit"
               className="primary-button"
-              disabled={busy || !complete || !ready}
+              disabled={preview || busy || !complete || !ready}
             >
               {busy ? (zh ? "正在提交…" : "Submitting…") : submitLabel}
             </button>

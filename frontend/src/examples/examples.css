@@ -31,3 +31,40 @@
   flex-basis: 100%;
   margin: 0;
 }
+
+.module-template {
+  margin: 8px 0 12px;
+}
+.module-template .example-actions {
+  margin: 0;
+}
+.module-example-result {
+  padding: 16px;
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.template-result-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(340px, 1.4fr);
+  gap: 16px;
+}
+.template-step-help {
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.example-actions details[open] {
+  flex-basis: 100%;
+}
+.example-actions details li {
+  margin: 6px 0;
+}
+@media (max-width: 850px) {
+  .template-result-grid {
+    grid-template-columns: 1fr;
+  }
+}

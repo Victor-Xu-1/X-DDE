@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { api } from "./api";
+import { useCallback, useEffect, useState } from "react";
+import { api, request } from "./api";
 import type { Detail, Health, Job } from "./types";
 
 export function taskIdFromHash(hash: string) {
@@ -14,7 +14,7 @@ export function useWorkbench() {
   const [selected, setSelected] = useState(() =>
     taskIdFromHash(window.location.hash),
   );
-  const explicitSelection = useRef(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [connectionError, setConnectionError] = useState(false);
   const [detailError, setDetailError] = useState(false);
@@ -22,7 +22,6 @@ export function useWorkbench() {
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
   const select = useCallback((id: string) => {
-    explicitSelection.current = true;
     setSelected(id);
     setDetail(null);
     setDetailError(false);
@@ -30,7 +29,6 @@ export function useWorkbench() {
   }, []);
   useEffect(() => {
     function navigate() {
-      explicitSelection.current = true;
       setSelected(taskIdFromHash(window.location.hash));
       setDetail(null);
       setDetailError(false);
@@ -56,10 +54,6 @@ export function useWorkbench() {
         setHealth(info);
         setConnectionError(false);
         setLoading(false);
-        setSelected(
-          (previous) =>
-            previous || (explicitSelection.current ? "" : items[0]?.id || ""),
-        );
       } catch {
         if (!controller.signal.aborted) {
           setConnectionError(true);
@@ -79,18 +73,21 @@ export function useWorkbench() {
   }, [revision]);
   useEffect(() => {
     setDetail(null);
+    setSelectedJob(null);
     setDetailError(false);
     if (!selected) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
       try {
-        const [log, artifacts] = await Promise.all([
+        const [log, artifacts, job] = await Promise.all([
           api.logs(selected, controller.signal),
           api.artifacts(selected, controller.signal),
+          request<Job>(`/jobs/${selected}`, { signal: controller.signal }),
         ]);
         if (controller.signal.aborted) return;
         setDetail({ id: selected, log, artifacts });
+        setSelectedJob(job);
         setDetailError(false);
       } catch {
         if (!controller.signal.aborted) setDetailError(true);
@@ -105,6 +102,7 @@ export function useWorkbench() {
   }, [selected, revision]);
   return {
     jobs,
+    selectedJob,
     health,
     selected,
     select,

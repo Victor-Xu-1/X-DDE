@@ -35,7 +35,7 @@ jobs:
       - name: Verify example provenance, immutable results and direct API boundaries
         run: >-
           uv run --locked pytest -q
-          tests/test_examples.py tests/test_example_pins.py tests/test_example_records.py
+          tests/test_examples.py tests/test_example_pins.py tests/test_example_records.py tests/test_example_library.py
           tests/test_analysis_cache.py tests/test_projects_science.py
           tests/test_research_assets.py tests/test_api_security.py tests/test_workflows.py
           tests/test_regions.py tests/test_pose_exploration_api.py
@@ -46,7 +46,7 @@ jobs:
           src/App.test.tsx src/guided/Questionnaire.test.tsx
           src/poses/PoseForm.test.tsx src/poses/PoseWorkspace.test.tsx
           src/viewer/StructureViewer.test.tsx src/viewer/atom-region.test.ts
-          src/examples/ExampleActions.test.tsx src/examples/harness.test.ts
+          src/examples/ExampleActions.test.tsx src/examples/harness.test.ts src/examples/guide.test.ts src/diffsbdd/ReferencePicker.test.tsx
           src/TaskForm.test.tsx src/diffsbdd/DesignOptions.test.tsx
           src/diffsbdd/DiffForm.test.tsx src/docking/DockingForm.test.tsx
           src/pockets/PocketForm.test.tsx src/receptors/StructurePrepareForm.test.tsx

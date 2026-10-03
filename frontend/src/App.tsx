@@ -68,6 +68,7 @@ export function App() {
     { health, jobs, selected, select, detail, loading, refresh } = work;
   const job =
       jobs.find((x) => x.id === selected) ??
+      (work.selectedJob?.id === selected ? work.selectedJob : null) ??
       (submitted?.id === selected ? submitted : null),
     science = useScience(job),
     t = translator(language),
@@ -190,8 +191,11 @@ export function App() {
           view={view}
           onView={(next) => {
             if (next === "tools") setCatalogueRevision((n) => n + 1);
-            if (next === "home" && job && !isPrediction(job.request))
+            if (next === "home") {
               chooseJob("");
+              setDraft(null);
+              setInputVersion((n) => n + 1);
+            }
             setView(next);
           }}
           language={language}

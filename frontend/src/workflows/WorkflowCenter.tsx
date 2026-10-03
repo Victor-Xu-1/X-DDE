@@ -15,13 +15,8 @@ export function WorkflowCenter({
   jobs: Job[];
 }) {
   const example = useExample();
-  const record = example?.record?.kind === "workflows" ? example.record : null;
   const [source, setSource] = useState<"draft" | "saved" | "case">(
-    example?.result_requested && record
-      ? "saved"
-      : example?.workflow_plan
-        ? "case"
-        : "draft",
+    example?.workflow_plan ? "case" : "draft",
   );
   const {
     zh,
@@ -55,9 +50,6 @@ export function WorkflowCenter({
     language,
     jobs,
     source === "case" ? (example?.workflow_plan ?? null) : null,
-    example?.result_requested && record
-      ? { plan: record.value, run: record.run }
-      : null,
   );
   useEffect(() => {
     if (source !== "saved") {
@@ -91,9 +83,7 @@ export function WorkflowCenter({
         >
           {example?.workflow_plan && (
             <option value="case">
-              {zh
-                ? "复用固定研发案例（推荐）"
-                : "Use the fixed research example"}
+              {zh ? "使用此模板" : "Use the fixed research example"}
             </option>
           )}
           <option value="draft">
@@ -385,7 +375,6 @@ export function WorkflowCenter({
   return (
     <section>
       <GuidedSteps<WorkflowRun>
-        initialResult={example?.result_requested ? record?.run : null}
         language={language}
         busy={busy}
         error={error}

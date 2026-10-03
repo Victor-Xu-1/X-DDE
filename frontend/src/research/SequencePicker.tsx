@@ -24,7 +24,7 @@ export function SequencePicker({
     change = useRef(onChange);
   change.current = onChange;
   const [source, setSource] = useState<"saved" | "file" | "paste">(
-      value?.version_id ? "saved" : "paste",
+      value?.version_id ? "saved" : value ? "file" : "paste",
     ),
     [versions, setVersions] = useState<ScientificObject[]>([]),
     [text, setText] = useState(""),
@@ -136,7 +136,7 @@ export function SequencePicker({
           { value: "paste", title: zh ? "粘贴序列" : "Paste sequences" },
           {
             value: "saved",
-            title: zh ? "复用研究序列" : "Reuse a saved sequence",
+            title: zh ? "历史文件" : "Historical files",
           },
           {
             value: "file",
@@ -188,7 +188,7 @@ export function SequencePicker({
       )}
       {source === "saved" && (
         <label className="field">
-          {label} · {zh ? "研究版本" : "Research version"}
+          {label} · {zh ? "历史文件" : "Historical files"}
           <select
             value={value?.version_id ?? ""}
             disabled={busy}

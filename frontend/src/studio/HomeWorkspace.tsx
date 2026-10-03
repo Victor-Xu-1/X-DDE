@@ -191,11 +191,11 @@ export function HomeWorkspace(p: Props) {
         >
           <div className="input-column" hidden={!showInput}>
             <TaskForm
+              key={p.inputVersion ?? 0}
               language={p.language}
               ready={p.ready}
               abagAvailable={Boolean(p.health?.engine.models?.abag)}
               initialRequest={p.draft}
-              onExampleResult={p.onChanged}
               onSubmit={async (value, key) => {
                 const created = await p.onSubmit(value, key);
                 setShowInput(false);

@@ -1,0 +1,1082 @@
+{
+  "antibody.humanize": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "admet.predict": {
+    "steps": [
+      [
+        "比较真实药物分子的性质或早期筛选指标。",
+        "Compare properties or early screening metrics of real drug molecules."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+      "Compare units, missing values and alerts; predictions differ from experiments."
+    ]
+  },
+  "posebusters.check": {
+    "steps": [
+      [
+        "探索 JQ1 在 BRD4 口袋内的结合姿势。",
+        "Explore JQ1 binding poses in BRD4."
+      ],
+      [
+        "受体和分子均已填好；检查它们属于同一配套案例。",
+        "Confirm the paired receptor and ligand."
+      ],
+      [
+        "保留模板的搜索区域和采样方案；不要随意扩大搜索范围。",
+        "Keep the verified search region and sampling settings."
+      ],
+      [
+        "点击姿势看三维结构，比较同一方法的原生分数。",
+        "Select a pose and compare scores within the same method."
+      ]
+    ],
+    "interpretation": [
+      "点击姿势看三维结构，比较同一方法的原生分数。",
+      "Select a pose and compare scores within the same method."
+    ]
+  },
+  "antibody.number": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "chemistry.screen": {
+    "steps": [
+      [
+        "比较真实药物分子的性质或早期筛选指标。",
+        "Compare properties or early screening metrics of real drug molecules."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+      "Compare units, missing values and alerts; predictions differ from experiments."
+    ]
+  },
+  "biopython.prepare": {
+    "steps": [
+      [
+        "准备实验蛋白结构；本页确认要处理哪一份结构。",
+        "Prepare the deposited protein structure."
+      ],
+      [
+        "使用模板中的蛋白文件，确认链和保留的组分。",
+        "Confirm its chains and retained components."
+      ],
+      [
+        "采用模板的清理选项；需要保留配体或水时再修改。",
+        "Keep the verified cleanup settings for the walkthrough."
+      ],
+      [
+        "查看处理前后结构、保留原子与处理记录。",
+        "Inspect the prepared structure and processing report."
+      ]
+    ],
+    "interpretation": [
+      "查看处理前后结构、保留原子与处理记录。",
+      "Inspect the prepared structure and processing report."
+    ]
+  },
+  "discovery.import": {
+    "steps": [
+      [
+        "从公开来源了解疾病、靶点和已知研究材料。",
+        "Collect public disease, target and reference evidence."
+      ],
+      [
+        "使用模板中的真实疾病、靶点或结构编号。",
+        "Use the supplied real identifier."
+      ],
+      [
+        "先保留公开来源与查询范围，再按研究问题缩小范围。",
+        "Keep the example sources and search scope."
+      ],
+      [
+        "核对证据来源、结构或活性记录，选择需要带入后续任务的材料。",
+        "Review source evidence and choose materials for downstream tasks."
+      ]
+    ],
+    "interpretation": [
+      "核对证据来源、结构或活性记录，选择需要带入后续任务的材料。",
+      "Review source evidence and choose materials for downstream tasks."
+    ]
+  },
+  "discovery.target": {
+    "steps": [
+      [
+        "从公开来源了解疾病、靶点和已知研究材料。",
+        "Collect public disease, target and reference evidence."
+      ],
+      [
+        "使用模板中的真实疾病、靶点或结构编号。",
+        "Use the supplied real identifier."
+      ],
+      [
+        "先保留公开来源与查询范围，再按研究问题缩小范围。",
+        "Keep the example sources and search scope."
+      ],
+      [
+        "核对证据来源、结构或活性记录，选择需要带入后续任务的材料。",
+        "Review source evidence and choose materials for downstream tasks."
+      ]
+    ],
+    "interpretation": [
+      "核对证据来源、结构或活性记录，选择需要带入后续任务的材料。",
+      "Review source evidence and choose materials for downstream tasks."
+    ]
+  },
+  "discovery.disease": {
+    "steps": [
+      [
+        "从公开来源了解疾病、靶点和已知研究材料。",
+        "Collect public disease, target and reference evidence."
+      ],
+      [
+        "使用模板中的真实疾病、靶点或结构编号。",
+        "Use the supplied real identifier."
+      ],
+      [
+        "先保留公开来源与查询范围，再按研究问题缩小范围。",
+        "Keep the example sources and search scope."
+      ],
+      [
+        "核对证据来源、结构或活性记录，选择需要带入后续任务的材料。",
+        "Review source evidence and choose materials for downstream tasks."
+      ]
+    ],
+    "interpretation": [
+      "核对证据来源、结构或活性记录，选择需要带入后续任务的材料。",
+      "Review source evidence and choose materials for downstream tasks."
+    ]
+  },
+  "predict": {
+    "steps": [
+      [
+        "预测 BRD4 与 JQ1 的复合物结构；先选择蛋白–小分子任务。",
+        "Predict a BRD4–JQ1 complex; choose a protein–ligand task."
+      ],
+      [
+        "蛋白序列和 JQ1 结构已填好；按链分别确认，不用自己准备坐标。",
+        "Confirm the supplied sequence and ligand separately by chain."
+      ],
+      [
+        "保留模板的计算方案，首次学习无需改专家参数。",
+        "Keep the verified small example settings for the first walkthrough."
+      ],
+      [
+        "先看配体在口袋中的形状，再看 pLDDT / ipTM；分数不是药效。",
+        "Inspect the pose and pLDDT/ipTM; confidence is not potency."
+      ]
+    ],
+    "interpretation": [
+      "先看配体在口袋中的形状，再看 pLDDT / ipTM；分数不是药效。",
+      "Inspect the pose and pLDDT/ipTM; confidence is not potency."
+    ]
+  },
+  "properties": {
+    "steps": [
+      [
+        "比较真实药物分子的性质或早期筛选指标。",
+        "Compare properties or early screening metrics of real drug molecules."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+      "Compare units, missing values and alerts; predictions differ from experiments."
+    ]
+  },
+  "campaign": {
+    "steps": [
+      [
+        "学习曲妥珠单抗–HER2 的代理设计配置。",
+        "Learn the trastuzumab–HER2 agent configuration."
+      ],
+      [
+        "目标、重轻链及真实 CDR 已填好；检查每条链的身份。",
+        "Confirm the target, native variable domains and CDRs."
+      ],
+      [
+        "先用模板的小规模方案；对话模型在账户设置中另行配置。",
+        "Use the small example budget; configure the model separately."
+      ],
+      [
+        "本模板展示已校验配置；代理尚未运行，不展示虚构设计结果。",
+        "This is a validated setup; no agent-generated result is claimed."
+      ]
+    ],
+    "interpretation": [
+      "本模板展示已校验配置；代理尚未运行，不展示虚构设计结果。",
+      "This is a validated setup; no agent-generated result is claimed."
+    ]
+  },
+  "esm": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "esm2": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "mpnn": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "fold": {
+    "steps": [
+      [
+        "检查真实结合体、复合物或结构接触关系。",
+        "Examine a real binder, complex or contact pattern."
+      ],
+      [
+        "确认目标与结合体的链身份；模板已提供配套材料。",
+        "Confirm target and binder chain identities."
+      ],
+      [
+        "保留模板的目标链、结合体链和比较规则。",
+        "Keep the verified chain and reference settings."
+      ],
+      [
+        "结合三维结构与原生指标解读；注意比较所用参考对象。",
+        "Interpret geometry and metrics relative to the stated reference."
+      ]
+    ],
+    "interpretation": [
+      "结合三维结构与原生指标解读；注意比较所用参考对象。",
+      "Interpret geometry and metrics relative to the stated reference."
+    ]
+  },
+  "epitope": {
+    "steps": [
+      [
+        "检查真实结合体、复合物或结构接触关系。",
+        "Examine a real binder, complex or contact pattern."
+      ],
+      [
+        "确认目标与结合体的链身份；模板已提供配套材料。",
+        "Confirm target and binder chain identities."
+      ],
+      [
+        "保留模板的目标链、结合体链和比较规则。",
+        "Keep the verified chain and reference settings."
+      ],
+      [
+        "结合三维结构与原生指标解读；注意比较所用参考对象。",
+        "Interpret geometry and metrics relative to the stated reference."
+      ]
+    ],
+    "interpretation": [
+      "结合三维结构与原生指标解读；注意比较所用参考对象。",
+      "Interpret geometry and metrics relative to the stated reference."
+    ]
+  },
+  "structure": {
+    "steps": [
+      [
+        "检查真实结合体、复合物或结构接触关系。",
+        "Examine a real binder, complex or contact pattern."
+      ],
+      [
+        "确认目标与结合体的链身份；模板已提供配套材料。",
+        "Confirm target and binder chain identities."
+      ],
+      [
+        "保留模板的目标链、结合体链和比较规则。",
+        "Keep the verified chain and reference settings."
+      ],
+      [
+        "结合三维结构与原生指标解读；注意比较所用参考对象。",
+        "Interpret geometry and metrics relative to the stated reference."
+      ]
+    ],
+    "interpretation": [
+      "结合三维结构与原生指标解读；注意比较所用参考对象。",
+      "Interpret geometry and metrics relative to the stated reference."
+    ]
+  },
+  "rmsd": {
+    "steps": [
+      [
+        "检查真实结合体、复合物或结构接触关系。",
+        "Examine a real binder, complex or contact pattern."
+      ],
+      [
+        "确认目标与结合体的链身份；模板已提供配套材料。",
+        "Confirm target and binder chain identities."
+      ],
+      [
+        "保留模板的目标链、结合体链和比较规则。",
+        "Keep the verified chain and reference settings."
+      ],
+      [
+        "结合三维结构与原生指标解读；注意比较所用参考对象。",
+        "Interpret geometry and metrics relative to the stated reference."
+      ]
+    ],
+    "interpretation": [
+      "结合三维结构与原生指标解读；注意比较所用参考对象。",
+      "Interpret geometry and metrics relative to the stated reference."
+    ]
+  },
+  "evolution": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "compare": {
+    "steps": [
+      [
+        "使用真实抗体序列进行编号、评分或序列探索。",
+        "Number, score or explore real antibody sequences."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+      "Inspect CDRs and sequence scores; these are not affinity measurements."
+    ]
+  },
+  "protrek-sequence": {
+    "steps": [
+      [
+        "为真实靶标或抗体查找相关序列与结构。",
+        "Search related sequences or structures for a real research target."
+      ],
+      [
+        "确认查询序列或结构；模板已给出真实研究对象。",
+        "Confirm the supplied sequence or structure."
+      ],
+      [
+        "保留模板的搜索方式和结果数量。",
+        "Keep the verified search mode and result count."
+      ],
+      [
+        "查看返回条目及来源；搜索命中不是实验结合确证。",
+        "Inspect hits and sources; a search hit is not binding confirmation."
+      ]
+    ],
+    "interpretation": [
+      "查看返回条目及来源；搜索命中不是实验结合确证。",
+      "Inspect hits and sources; a search hit is not binding confirmation."
+    ]
+  },
+  "protrek-structure": {
+    "steps": [
+      [
+        "为真实靶标或抗体查找相关序列与结构。",
+        "Search related sequences or structures for a real research target."
+      ],
+      [
+        "确认查询序列或结构；模板已给出真实研究对象。",
+        "Confirm the supplied sequence or structure."
+      ],
+      [
+        "保留模板的搜索方式和结果数量。",
+        "Keep the verified search mode and result count."
+      ],
+      [
+        "查看返回条目及来源；搜索命中不是实验结合确证。",
+        "Inspect hits and sources; a search hit is not binding confirmation."
+      ]
+    ],
+    "interpretation": [
+      "查看返回条目及来源；搜索命中不是实验结合确证。",
+      "Inspect hits and sources; a search hit is not binding confirmation."
+    ]
+  },
+  "target-msa": {
+    "steps": [
+      [
+        "为真实靶标或抗体查找相关序列与结构。",
+        "Search related sequences or structures for a real research target."
+      ],
+      [
+        "确认查询序列或结构；模板已给出真实研究对象。",
+        "Confirm the supplied sequence or structure."
+      ],
+      [
+        "保留模板的搜索方式和结果数量。",
+        "Keep the verified search mode and result count."
+      ],
+      [
+        "查看返回条目及来源；搜索命中不是实验结合确证。",
+        "Inspect hits and sources; a search hit is not binding confirmation."
+      ]
+    ],
+    "interpretation": [
+      "查看返回条目及来源；搜索命中不是实验结合确证。",
+      "Inspect hits and sources; a search hit is not binding confirmation."
+    ]
+  },
+  "features": {
+    "steps": [
+      [
+        "准备下游研究所需的文件、特征或模型资源。",
+        "Prepare files, features or resources for downstream research."
+      ],
+      [
+        "确认模板的原始材料和所需文件类型。",
+        "Confirm the source materials and required format."
+      ],
+      [
+        "保留模板的准备选项；下载或联网操作需要最后明确提交。",
+        "Review preparation choices; network work only starts after submission."
+      ],
+      [
+        "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+        "Inspect actual prepared files and resource reports."
+      ]
+    ],
+    "interpretation": [
+      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+      "Inspect actual prepared files and resource reports."
+    ]
+  },
+  "import": {
+    "steps": [
+      [
+        "准备下游研究所需的文件、特征或模型资源。",
+        "Prepare files, features or resources for downstream research."
+      ],
+      [
+        "确认模板的原始材料和所需文件类型。",
+        "Confirm the source materials and required format."
+      ],
+      [
+        "保留模板的准备选项；下载或联网操作需要最后明确提交。",
+        "Review preparation choices; network work only starts after submission."
+      ],
+      [
+        "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+        "Inspect actual prepared files and resource reports."
+      ]
+    ],
+    "interpretation": [
+      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+      "Inspect actual prepared files and resource reports."
+    ]
+  },
+  "resources": {
+    "steps": [
+      [
+        "准备下游研究所需的文件、特征或模型资源。",
+        "Prepare files, features or resources for downstream research."
+      ],
+      [
+        "确认模板的原始材料和所需文件类型。",
+        "Confirm the source materials and required format."
+      ],
+      [
+        "保留模板的准备选项；下载或联网操作需要最后明确提交。",
+        "Review preparation choices; network work only starts after submission."
+      ],
+      [
+        "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+        "Inspect actual prepared files and resource reports."
+      ]
+    ],
+    "interpretation": [
+      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+      "Inspect actual prepared files and resource reports."
+    ]
+  },
+  "diffsbdd.generate": {
+    "steps": [
+      [
+        "根据 BRD4 口袋生成新的小分子候选。",
+        "Generate molecular candidates around the BRD4 pocket."
+      ],
+      [
+        "确认受体、口袋和起始分子；模板已给出配套输入。",
+        "Confirm the matched receptor, pocket and starting molecule."
+      ],
+      [
+        "先用模板的小批量方案；固定区域或优化目标在专家选项中调整。",
+        "Start with the small verified batch; adjust constraints only when needed."
+      ],
+      [
+        "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+        "Inspect validity, structures and diversity before downstream evaluation."
+      ]
+    ],
+    "interpretation": [
+      "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+      "Inspect validity, structures and diversity before downstream evaluation."
+    ]
+  },
+  "diffsbdd.inpaint": {
+    "steps": [
+      [
+        "根据 BRD4 口袋生成新的小分子候选。",
+        "Generate molecular candidates around the BRD4 pocket."
+      ],
+      [
+        "确认受体、口袋和起始分子；模板已给出配套输入。",
+        "Confirm the matched receptor, pocket and starting molecule."
+      ],
+      [
+        "先用模板的小批量方案；固定区域或优化目标在专家选项中调整。",
+        "Start with the small verified batch; adjust constraints only when needed."
+      ],
+      [
+        "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+        "Inspect validity, structures and diversity before downstream evaluation."
+      ]
+    ],
+    "interpretation": [
+      "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+      "Inspect validity, structures and diversity before downstream evaluation."
+    ]
+  },
+  "diffsbdd.diversify": {
+    "steps": [
+      [
+        "根据 BRD4 口袋生成新的小分子候选。",
+        "Generate molecular candidates around the BRD4 pocket."
+      ],
+      [
+        "确认受体、口袋和起始分子；模板已给出配套输入。",
+        "Confirm the matched receptor, pocket and starting molecule."
+      ],
+      [
+        "先用模板的小批量方案；固定区域或优化目标在专家选项中调整。",
+        "Start with the small verified batch; adjust constraints only when needed."
+      ],
+      [
+        "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+        "Inspect validity, structures and diversity before downstream evaluation."
+      ]
+    ],
+    "interpretation": [
+      "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+      "Inspect validity, structures and diversity before downstream evaluation."
+    ]
+  },
+  "diffsbdd.optimize": {
+    "steps": [
+      [
+        "根据 BRD4 口袋生成新的小分子候选。",
+        "Generate molecular candidates around the BRD4 pocket."
+      ],
+      [
+        "确认受体、口袋和起始分子；模板已给出配套输入。",
+        "Confirm the matched receptor, pocket and starting molecule."
+      ],
+      [
+        "先用模板的小批量方案；固定区域或优化目标在专家选项中调整。",
+        "Start with the small verified batch; adjust constraints only when needed."
+      ],
+      [
+        "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+        "Inspect validity, structures and diversity before downstream evaluation."
+      ]
+    ],
+    "interpretation": [
+      "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+      "Inspect validity, structures and diversity before downstream evaluation."
+    ]
+  },
+  "diffsbdd.pocket": {
+    "steps": [
+      [
+        "寻找蛋白上可能容纳分子的区域。",
+        "Find candidate ligand-binding regions."
+      ],
+      [
+        "模板已选好 BRD4 受体；输入的是蛋白结构而不是序列。",
+        "Confirm the supplied BRD4 receptor structure."
+      ],
+      [
+        "先保留推荐口袋数量；有已知结合位点时再筛选。",
+        "Keep the example pocket count and selection."
+      ],
+      [
+        "点击口袋看位置和邻近残基；预测口袋是候选位置。",
+        "Select a pocket to inspect its position and surrounding residues."
+      ]
+    ],
+    "interpretation": [
+      "点击口袋看位置和邻近残基；预测口袋是候选位置。",
+      "Select a pocket to inspect its position and surrounding residues."
+    ]
+  },
+  "diffsbdd.prepare": {
+    "steps": [
+      [
+        "准备下游研究所需的文件、特征或模型资源。",
+        "Prepare files, features or resources for downstream research."
+      ],
+      [
+        "确认模板的原始材料和所需文件类型。",
+        "Confirm the source materials and required format."
+      ],
+      [
+        "保留模板的准备选项；下载或联网操作需要最后明确提交。",
+        "Review preparation choices; network work only starts after submission."
+      ],
+      [
+        "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+        "Inspect actual prepared files and resource reports."
+      ]
+    ],
+    "interpretation": [
+      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+      "Inspect actual prepared files and resource reports."
+    ]
+  },
+  "diffsbdd.interactions": {
+    "steps": [
+      [
+        "根据 BRD4 口袋生成新的小分子候选。",
+        "Generate molecular candidates around the BRD4 pocket."
+      ],
+      [
+        "确认受体、口袋和起始分子；模板已给出配套输入。",
+        "Confirm the matched receptor, pocket and starting molecule."
+      ],
+      [
+        "先用模板的小批量方案；固定区域或优化目标在专家选项中调整。",
+        "Start with the small verified batch; adjust constraints only when needed."
+      ],
+      [
+        "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+        "Inspect validity, structures and diversity before downstream evaluation."
+      ]
+    ],
+    "interpretation": [
+      "查看生成分子的结构、有效性与多样性；候选还需要后续评估。",
+      "Inspect validity, structures and diversity before downstream evaluation."
+    ]
+  },
+  "diffsbdd.properties": {
+    "steps": [
+      [
+        "比较真实药物分子的性质或早期筛选指标。",
+        "Compare properties or early screening metrics of real drug molecules."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+      "Compare units, missing values and alerts; predictions differ from experiments."
+    ]
+  },
+  "diffsbdd.export": {
+    "steps": [
+      [
+        "准备下游研究所需的文件、特征或模型资源。",
+        "Prepare files, features or resources for downstream research."
+      ],
+      [
+        "确认模板的原始材料和所需文件类型。",
+        "Confirm the source materials and required format."
+      ],
+      [
+        "保留模板的准备选项；下载或联网操作需要最后明确提交。",
+        "Review preparation choices; network work only starts after submission."
+      ],
+      [
+        "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+        "Inspect actual prepared files and resource reports."
+      ]
+    ],
+    "interpretation": [
+      "检查输出文件和准备报告，确认哪些可供后续任务使用。",
+      "Inspect actual prepared files and resource reports."
+    ]
+  },
+  "regions": {
+    "steps": [
+      [
+        "在真实 MZ1 分子上定义可用于后续研究的区域。",
+        "Define regions on the real MZ1 molecule."
+      ],
+      [
+        "使用三维点选或已定义区域；区域可以重叠。",
+        "Select atoms or supplied regions; overlaps are allowed."
+      ],
+      [
+        "给区域明确名称与用途，保留模板的原子身份。",
+        "Name each region and preserve its native atom identity."
+      ],
+      [
+        "切换区域查看高亮；几何接触区域不能直接当作药效结论。",
+        "Switch regions to inspect highlights and their geometric interpretation."
+      ]
+    ],
+    "interpretation": [
+      "切换区域查看高亮；几何接触区域不能直接当作药效结论。",
+      "Switch regions to inspect highlights and their geometric interpretation."
+    ]
+  },
+  "workflows": {
+    "steps": [
+      [
+        "把 BRD4 对接与分子性质计算连接起来。",
+        "Connect BRD4 docking to molecular property analysis."
+      ],
+      [
+        "每一步使用模板中的配套输入；后一步使用前一步的真实产物。",
+        "Confirm paired inputs and the actual output passed to the next step."
+      ],
+      [
+        "保留步骤依赖和预算，确认中间产物如何交接。",
+        "Review dependencies and the small example budget."
+      ],
+      [
+        "逐步查看原生输出，确认同一分子从对接进入性质计算。",
+        "Inspect each native output and its molecular handoff."
+      ]
+    ],
+    "interpretation": [
+      "逐步查看原生输出，确认同一分子从对接进入性质计算。",
+      "Inspect each native output and its molecular handoff."
+    ]
+  },
+  "p2rank.detect": {
+    "steps": [
+      [
+        "寻找蛋白上可能容纳分子的区域。",
+        "Find candidate ligand-binding regions."
+      ],
+      [
+        "模板已选好 BRD4 受体；输入的是蛋白结构而不是序列。",
+        "Confirm the supplied BRD4 receptor structure."
+      ],
+      [
+        "先保留推荐口袋数量；有已知结合位点时再筛选。",
+        "Keep the example pocket count and selection."
+      ],
+      [
+        "点击口袋看位置和邻近残基；预测口袋是候选位置。",
+        "Select a pocket to inspect its position and surrounding residues."
+      ]
+    ],
+    "interpretation": [
+      "点击口袋看位置和邻近残基；预测口袋是候选位置。",
+      "Select a pocket to inspect its position and surrounding residues."
+    ]
+  },
+  "gnina.dock": {
+    "steps": [
+      [
+        "探索 JQ1 在 BRD4 口袋内的结合姿势。",
+        "Explore JQ1 binding poses in BRD4."
+      ],
+      [
+        "受体和分子均已填好；检查它们属于同一配套案例。",
+        "Confirm the paired receptor and ligand."
+      ],
+      [
+        "保留模板的搜索区域和采样方案；不要随意扩大搜索范围。",
+        "Keep the verified search region and sampling settings."
+      ],
+      [
+        "点击姿势看三维结构，比较同一方法的原生分数。",
+        "Select a pose and compare scores within the same method."
+      ]
+    ],
+    "interpretation": [
+      "点击姿势看三维结构，比较同一方法的原生分数。",
+      "Select a pose and compare scores within the same method."
+    ]
+  },
+  "gnina.score": {
+    "steps": [
+      [
+        "探索 JQ1 在 BRD4 口袋内的结合姿势。",
+        "Explore JQ1 binding poses in BRD4."
+      ],
+      [
+        "受体和分子均已填好；检查它们属于同一配套案例。",
+        "Confirm the paired receptor and ligand."
+      ],
+      [
+        "保留模板的搜索区域和采样方案；不要随意扩大搜索范围。",
+        "Keep the verified search region and sampling settings."
+      ],
+      [
+        "点击姿势看三维结构，比较同一方法的原生分数。",
+        "Select a pose and compare scores within the same method."
+      ]
+    ],
+    "interpretation": [
+      "点击姿势看三维结构，比较同一方法的原生分数。",
+      "Select a pose and compare scores within the same method."
+    ]
+  },
+  "gnina.minimize": {
+    "steps": [
+      [
+        "探索 JQ1 在 BRD4 口袋内的结合姿势。",
+        "Explore JQ1 binding poses in BRD4."
+      ],
+      [
+        "受体和分子均已填好；检查它们属于同一配套案例。",
+        "Confirm the paired receptor and ligand."
+      ],
+      [
+        "保留模板的搜索区域和采样方案；不要随意扩大搜索范围。",
+        "Keep the verified search region and sampling settings."
+      ],
+      [
+        "点击姿势看三维结构，比较同一方法的原生分数。",
+        "Select a pose and compare scores within the same method."
+      ]
+    ],
+    "interpretation": [
+      "点击姿势看三维结构，比较同一方法的原生分数。",
+      "Select a pose and compare scores within the same method."
+    ]
+  },
+  "chemistry.states": {
+    "steps": [
+      [
+        "比较真实药物分子的性质或早期筛选指标。",
+        "Compare properties or early screening metrics of real drug molecules."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+      "Compare units, missing values and alerts; predictions differ from experiments."
+    ]
+  },
+  "biopython.ensemble": {
+    "steps": [
+      [
+        "将 BRD4 的结合态与空载态放在同一坐标系比较。",
+        "Compare bound and apo BRD4 in one coordinate frame."
+      ],
+      [
+        "两份受体结构已选好；第一份作为参考结构。",
+        "Use both supplied structures; the first is the reference."
+      ],
+      [
+        "保留模板的对应与对齐规则，先检查链是否匹配。",
+        "Check chain correspondence before changing alignment options."
+      ],
+      [
+        "查看两份结构叠加、对应残基和对齐质量，再选下游受体。",
+        "Inspect overlays, matched residues and alignment quality."
+      ]
+    ],
+    "interpretation": [
+      "查看两份结构叠加、对应残基和对齐质量，再选下游受体。",
+      "Inspect overlays, matched residues and alignment quality."
+    ]
+  },
+  "pose_exploration": {
+    "steps": [
+      [
+        "比较同一分子在两个 BRD4 受体状态中的姿势。",
+        "Explore JQ1 across two BRD4 receptor states."
+      ],
+      [
+        "确认配套的受体、口袋和分子；不要跨坐标系混用。",
+        "Confirm matched receptors, pockets and ligand."
+      ],
+      [
+        "保留模板的组合和小规模采样方案。",
+        "Keep the small verified combination and sampling budget."
+      ],
+      [
+        "先按受体分组看姿势，再比较评分和三维差异。",
+        "Compare poses within receptor groups before interpreting scores."
+      ]
+    ],
+    "interpretation": [
+      "先按受体分组看姿势，再比较评分和三维差异。",
+      "Compare poses within receptor groups before interpreting scores."
+    ]
+  }
+}

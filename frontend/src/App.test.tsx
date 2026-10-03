@@ -190,8 +190,8 @@ it("opens core scientific forms directly from the first navigation entries", asy
     within(nav).getByRole("button", { name: "Molecule preparation" }),
   );
   expect(
-    screen.getByRole("combobox", {
-      name: "Choose an SDF molecular version · Reuse research asset",
+    screen.getByRole("radio", {
+      name: "Upload a new file",
     }),
   ).toBeVisible();
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();

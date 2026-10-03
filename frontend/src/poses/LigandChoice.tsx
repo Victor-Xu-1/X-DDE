@@ -109,7 +109,7 @@ export function LigandChoice({
           }}
         >
           <option value="version">
-            {zh ? "已保存分子或上传 SDF" : "Saved molecule or uploaded SDF"}
+            {zh ? "上传新分子 / 历史文件" : "New ligand / historical files"}
           </option>
           <option value="states">
             {zh
