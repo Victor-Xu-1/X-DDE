@@ -71,6 +71,8 @@ X-DDE UI
 
 首次使用：打开左侧底部 **账户与设置 → 安装与组件 → 选择位置 → 选择方案**。默认启动会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型权重需要单独选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
 
+配体预览默认使用细棒和元素配色，覆盖单独分子、蛋白复合物、叠加、区域与点选高亮，以及内置 Mol* 编辑器；显示样式不改变原始坐标和键级。
+
 每个任务默认新建，材料从上传新文件或填写序列开始。选择 **历史文件** 才会打开已保存材料；不会自动选择旧结果。模块内的 **使用此模板** 按步骤加载真实研发输入，**示例结果** 在当前模块展示已固定的真实输出，不向个人任务记录添加演示任务。用模板提交后是独立的新任务；原始示例计算、文件与来源保留。
 
 Every task starts with fresh uploads or typed inputs. Historical files are opt-in. Use this template provides guided research inputs; Example results stays in the module. Template-derived submissions are new personal tasks, and the original evidence remains available.

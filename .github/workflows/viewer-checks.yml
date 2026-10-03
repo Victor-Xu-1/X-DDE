@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'frontend/src/viewer/**'
+      - 'frontend/src/editors/molstar*'
       - 'frontend/src/regions/AtomSelection.tsx'
       - 'frontend/src/regions/RegionResult.tsx'
       - '.github/workflows/viewer-checks.yml'
@@ -23,4 +24,5 @@ jobs:
         run: >-
           npx vitest run src/viewer/atom-region.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/geometry.test.ts
-          src/viewer/ViewerControls.test.tsx
+          src/viewer/ViewerControls.test.tsx src/viewer/style.test.ts
+          src/editors/molstar-appearance.test.ts

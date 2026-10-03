@@ -57,3 +57,8 @@
 - pyproject.toml is the sole authority. Run `uv run python scripts/release-version.py bump` once per publication batch; it synchronizes frontend metadata, installer defaults and uv.lock. Fix-up commits in a candidate batch retain that batch's version.
 - Before updating main, check exactly one increment against its current full commit SHA with `uv run python scripts/release-version.py check --base SHA`. Feature-specific CI and version CI must pass, then publish the matching vMAJOR.MINOR.PATCH tag and installer release.
 - Release packaging checks versions, immutable checksums and Windows entrypoints. Scientific and frontend feature tests belong to the affected feature CI, not an automatic global release suite. Protocol, data schema and example-bundle versions remain independent.
+
+## Molecular display
+
+- Default ligand previews use thin sticks with elemental colors and no large atom spheres, both standalone and with protein. Apply the shared appearance policy to overlays, native results, regions, selections and the integrated Mol* editor.
+- Selection or region highlights change color without inflating atoms. Explicit expert space-fill remains an intentional representation; isolated ions stay visible. Display styling must preserve source coordinates, atom identities and bond orders.

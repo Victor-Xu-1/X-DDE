@@ -1,3 +1,4 @@
+import { applyThinLigands, type AppearancePlugin } from "./molstar-appearance";
 import "./molstar.css";
 
 declare global {
@@ -13,7 +14,11 @@ declare global {
             format: string,
             options?: { dataLabel: string },
           ): Promise<void>;
-          plugin: { clear(): Promise<void> };
+          plugin: AppearancePlugin & { clear(): Promise<void> };
+          subscribe(
+            observable: unknown,
+            action: (updating: boolean) => void,
+          ): void;
         }>;
       };
     };
@@ -45,6 +50,23 @@ script.onload = async () => {
     document.getElementById("molecular-status")!.remove();
     const input = document.getElementById("structure-file") as HTMLInputElement;
     const status = document.getElementById("molecular-file-status")!;
+    let painting = Promise.resolve();
+    function styleLigands() {
+      const next = painting
+        .catch(() => undefined)
+        .then(() => applyThinLigands(viewer.plugin));
+      painting = next;
+      void next.catch((error) => {
+        status.textContent = String(error);
+      });
+      return next;
+    }
+    viewer.subscribe(
+      viewer.plugin.state.data.behaviors.isUpdating,
+      (updating) => {
+        if (!updating) void styleLigands();
+      },
+    );
     input.disabled = false;
     input.addEventListener("change", async () => {
       const file = input.files?.[0];
@@ -66,6 +88,7 @@ script.onload = async () => {
           /\.pdb$/i.test(file.name) ? "pdb" : "mmcif",
           { dataLabel: file.name },
         );
+        await styleLigands();
         status.textContent = file.name;
       } catch (error) {
         status.textContent = String(error);

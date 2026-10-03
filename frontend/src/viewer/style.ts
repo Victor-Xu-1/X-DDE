@@ -1,3 +1,4 @@
+import { thinSticks } from "./appearance";
 import * as mol from "3dmol";
 import { residueRef as ref, residueSelection as sel } from "./geometry";
 import { residueLabel, type SceneInfo, type ViewerOptions } from "./protocol";
@@ -16,13 +17,7 @@ export async function paintBase(
   options: ViewerOptions,
   hidden: number[],
 ) {
-  v.setStyle(
-    {},
-    {
-      sphere: { scale: 0.22, colorscheme: "Jmol" },
-      stick: { radius: 0.14, colorscheme: "Jmol" },
-    },
-  );
+  v.setStyle({}, thinSticks(info.hasPolymer ? "Jmol" : "greenCarbon"));
   for (const [i, chain] of info.chains.entries()) {
     v.setStyle(
       { chain, hetflag: false },
@@ -32,11 +27,16 @@ export async function paintBase(
       },
     );
   }
-  for (const ligand of info.ligands)
-    v.setStyle(sel(ligand), {
-      stick: { radius: 0.17, colorscheme: "greenCarbon" },
-      sphere: { scale: 0.24, colorscheme: "greenCarbon" },
-    });
+  for (const ligand of info.ligands) v.setStyle(sel(ligand), thinSticks());
+  const isolated = v
+    .selectedAtoms({})
+    .filter((atom) => atom.bonds?.length === 0)
+    .map((atom) => atom.index!);
+  if (isolated.length)
+    v.addStyle(
+      { index: isolated },
+      { sphere: { radius: 0.16, colorscheme: "Jmol" } },
+    );
   v.setStyle({ or: [{ resn: "HOH" }, { resn: "WAT" }] }, {});
   const ligand = info.ligands.find((r) => r.key === options.ligand);
   if (ligand && options.mode === "pocket") {
@@ -85,17 +85,11 @@ export function paintOverlayModel(
 ) {
   model.setStyle(
     {},
-    {
-      stick: {
-        radius: molecular ? 0.17 : 0.1,
-        colorscheme: molecular
-          ? "greenCarbon"
-          : ["blueCarbon", "orangeCarbon", "purpleCarbon"][index],
-      },
-      ...(molecular
-        ? { sphere: { scale: 0.24, colorscheme: "greenCarbon" } }
-        : {}),
-    },
+    thinSticks(
+      molecular
+        ? "greenCarbon"
+        : ["blueCarbon", "orangeCarbon", "purpleCarbon"][index],
+    ),
   );
   // Small-molecule parsers have no polymer residue names. Cartoon rendering must
   // never fabricate those identities or apply a polymer renderer to their atoms.

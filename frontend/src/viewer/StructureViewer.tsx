@@ -137,8 +137,8 @@ export function StructureViewer({
           {zh ? "三维结构与口袋" : "3D structure and pocket"}
           <Hint label={zh ? "三维预览说明" : "3D preview help"}>
             {zh
-              ? "拖动旋转，滚轮缩放。绿色球棍突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
-              : "Drag to rotate and scroll to zoom. Green ball-and-stick highlights ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
+              ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
+              : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
           </Hint>
         </h3>
         <button

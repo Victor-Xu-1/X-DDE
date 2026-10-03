@@ -1,3 +1,4 @@
+import { thinSticks, regionStyle, selectionStyle } from "./appearance";
 import { paintBase } from "./style";
 import { regionAtomIndices } from "./atom-region";
 import {
@@ -82,7 +83,10 @@ export class MolecularScene {
       residues: Residue[] = [];
     for (const { residue, atoms: group } of groups.values()) {
       if (water.has(residue.resn)) continue;
-      if (group.some((a) => !a.hetflag) || nucleic.has(residue.resn))
+      if (
+        residue.resn &&
+        (group.some((a) => !a.hetflag) || nucleic.has(residue.resn))
+      )
         residues.push(residue);
       else if (group.filter((a) => a.elem !== "H").length > 1)
         ligands.push(residue);
@@ -95,6 +99,7 @@ export class MolecularScene {
       hasPolymer: residues.length > 0,
     };
     this.options.ligand = ligands[0]?.key ?? "";
+    this.options.pick = this.info.hasPolymer ? "residue" : "atom";
     this.options.mode =
       ligands.length && residues.length ? "pocket" : "cartoon";
     this.viewer.setClickable({}, !overlay, (atom: mol.AtomSpec) => {
@@ -148,20 +153,11 @@ export class MolecularScene {
     }
     await paintBase(v, this.info, this.options, [...this.hidden]);
     if (this.highlighted.length)
-      v.setStyle(
-        { index: this.highlighted },
-        {
-          stick: { radius: 0.2, color: "#dc8e25" },
-          sphere: { scale: 0.29, color: "#dc8e25" },
-        },
-      );
+      v.setStyle({ index: this.highlighted }, regionStyle());
     for (const edit of this.edits.values())
       v.setStyle({ index: edit.indices }, edit.style);
     if (this.selected.length)
-      v.addStyle(
-        { index: this.selected },
-        { sphere: { scale: 0.3, color: "#ffae43", opacity: 0.75 } },
-      );
+      v.addStyle({ index: this.selected }, selectionStyle());
     if (this.hidden.size) {
       v.setStyle({ index: [...this.hidden] }, {});
       v.setClickable({ index: [...this.hidden] }, false, null);
@@ -282,7 +278,7 @@ export class MolecularScene {
       this.selected.length
     ) {
       const styles: Record<string, mol.AtomStyleSpec> = {
-        stick: { stick: { radius: 0.17, colorscheme: "Jmol" } },
+        stick: thinSticks(this.info.hasPolymer ? "Jmol" : "greenCarbon"),
         line: { line: { colorscheme: "Jmol" } },
         sphere: { sphere: { scale: 0.8, colorscheme: "Jmol" } },
       };
