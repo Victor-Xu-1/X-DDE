@@ -1,3 +1,4 @@
+import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { useEffect, useState } from "react";
 import { artifactUrl, request } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -57,6 +58,25 @@ export function ReceptorResults({
         ),
       ].map((v) => artifactUrl(job.id, v))
     : [];
+  if (next && saved)
+    return (
+      <ResearchHandoff language={language} onBack={() => setNext(false)}>
+        <PocketForm
+          language={language}
+          initialProtein={saved}
+          onCreated={() =>
+            setMessage(zh ? "新任务已创建。" : "New task created.")
+          }
+          onPredict={() =>
+            setMessage(
+              zh
+                ? "可从左侧结构预测建立新的结构。"
+                : "Use Structure prediction in the sidebar.",
+            )
+          }
+        />
+      </ResearchHandoff>
+    );
   return (
     <section
       className="receptor-results"
@@ -176,21 +196,6 @@ export function ReceptorResults({
         >
           {zh ? "用此受体寻找口袋" : "Find pockets on this receptor"}
         </button>
-      )}
-      {next && saved && (
-        <PocketForm
-          key={`${saved.asset_id}:${saved.version_id}`}
-          language={language}
-          initialProtein={saved}
-          onCreated={(j) => setMessage(j.id)}
-          onPredict={() =>
-            setMessage(
-              zh
-                ? "可从左侧结构预测建立新的结构。"
-                : "Use Structure prediction in the sidebar to build another structure.",
-            )
-          }
-        />
       )}
       {!loading && sets.length > 0 && data.qualified_count >= 2 && (
         <details>

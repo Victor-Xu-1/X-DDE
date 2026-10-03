@@ -91,6 +91,8 @@ jobs:
           src/research/asset-list.test.ts
           src/studio/RuntimeStatus.test.tsx
           src/docking/DockingResults.test.tsx
+          src/chemistry/StateResults.test.tsx
+          src/humanization/HumanizationResults.test.tsx
           src/editors/scientificEditor.test.ts
           src/antibodies/AntibodyNumberForm.test.tsx
           src/deployment/deployment.test.tsx

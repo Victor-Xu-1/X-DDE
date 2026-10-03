@@ -1,3 +1,4 @@
+import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
 import { scoreLabel } from "./scoreLabels";
 import { PoseViolations } from "./PoseViolations";
@@ -35,6 +36,34 @@ export function DockingResults({
   const version = assets.versions.find(
     (v) => v.kind === "molecule" && v.label === selected?.artifact,
   );
+  if (version && next)
+    return (
+      <ResearchHandoff language={language} onBack={() => setNext(null)}>
+        {next === "properties" ? (
+          <PropertyForm
+            language={language}
+            initialFile={version.reference.asset_id}
+            scientificInput={version.reference}
+            onCreated={() =>
+              setMessage(zh ? "新任务已创建。" : "New task created.")
+            }
+          />
+        ) : (
+          <DockingForm
+            mode={next}
+            language={language}
+            initialReceptor={result.receptor}
+            initialLigand={version.reference}
+            initialBox={
+              result.search?.kind === "box" ? result.search.box : null
+            }
+            onCreated={() =>
+              setMessage(zh ? "新任务已创建。" : "New task created.")
+            }
+          />
+        )}
+      </ResearchHandoff>
+    );
   return (
     <section
       className="docking-results"
@@ -220,30 +249,6 @@ export function DockingResults({
             </button>
           )}
         </>
-      )}
-      {version && next === "properties" && (
-        <PropertyForm
-          key={version.id + next}
-          language={language}
-          initialFile={version.reference.asset_id}
-          scientificInput={version.reference}
-          onCreated={(j) =>
-            setMessage((zh ? "已创建任务：" : "Created task: ") + j.id)
-          }
-        />
-      )}
-      {version && (next === "score" || next === "minimize") && (
-        <DockingForm
-          key={version.id + next}
-          mode={next}
-          language={language}
-          initialReceptor={result.receptor}
-          initialLigand={version.reference}
-          initialBox={result.search?.kind === "box" ? result.search.box : null}
-          onCreated={(j) =>
-            setMessage((zh ? "已创建任务：" : "Created task: ") + j.id)
-          }
-        />
       )}
       {assets.error && <p role="alert">{assets.error}</p>}
       {message && <p role="status">{message}</p>}

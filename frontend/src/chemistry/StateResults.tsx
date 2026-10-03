@@ -1,3 +1,4 @@
+import { ResearchHandoff } from "../guided/ResearchHandoff";
 import "./states.css";
 import { useEffect, useState } from "react";
 import type { Job, Language } from "../types";
@@ -46,6 +47,30 @@ export function StateResults({
       });
     return () => c.abort();
   }, [job.id]);
+  if (selected && next)
+    return (
+      <ResearchHandoff language={language} onBack={() => setNext(null)}>
+        {next === "properties" ? (
+          <PropertyForm
+            language={language}
+            initialFile={selected.asset_id}
+            scientificInput={selected}
+            onCreated={() =>
+              setMessage(zh ? "新任务已创建。" : "New task created.")
+            }
+          />
+        ) : (
+          <DockingForm
+            mode="dock"
+            language={language}
+            initialLigand={selected}
+            onCreated={() =>
+              setMessage(zh ? "新任务已创建。" : "New task created.")
+            }
+          />
+        )}
+      </ResearchHandoff>
+    );
   return (
     <section
       className="molecular-state-results"
@@ -211,25 +236,6 @@ export function StateResults({
           language={language}
         />
       )}
-      {selected && next === "properties" && (
-        <PropertyForm
-          key={`${selected.asset_id}:${selected.record}`}
-          language={language}
-          initialFile={selected.asset_id}
-          scientificInput={selected}
-          onCreated={(j) => setMessage(j.id)}
-        />
-      )}
-
-      {selected && next === "docking" && (
-        <DockingForm
-          mode="dock"
-          language={language}
-          initialLigand={selected}
-          onCreated={(j) => setMessage(j.id)}
-        />
-      )}
-
       {error && (
         <p role="alert" className="error-box">
           {error}

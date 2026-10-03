@@ -1,3 +1,4 @@
+import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { defaults } from "../form-model";
@@ -41,6 +42,17 @@ export function HumanizationResults({
     [index, setIndex] = useState(0),
     [reuse, setReuse] = useState<MoleculeRef | null>(null),
     row = result.rows[index];
+  if (reuse && onCreated)
+    return (
+      <ResearchHandoff language={language} onBack={() => setReuse(null)}>
+        <HumanizationForm
+          key={reuse.version_id ?? reuse.asset_id}
+          language={language}
+          onCreated={onCreated}
+          initialSequence={reuse}
+        />
+      </ResearchHandoff>
+    );
   return (
     <div className="discovery-results humanization-results">
       <label className="field">
@@ -177,23 +189,6 @@ export function HumanizationResults({
         </p>
         {row?.reason && <p>{row.reason}</p>}
       </details>
-      {reuse && onCreated && (
-        <section aria-label={zh ? "候选复用" : "Candidate reuse"}>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => setReuse(null)}
-          >
-            {zh ? "关闭候选复用" : "Close candidate reuse"}
-          </button>
-          <HumanizationForm
-            key={reuse.version_id ?? reuse.asset_id}
-            language={language}
-            onCreated={onCreated}
-            initialSequence={reuse}
-          />
-        </section>
-      )}
     </div>
   );
 }

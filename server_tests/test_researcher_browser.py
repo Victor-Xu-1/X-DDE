@@ -4,6 +4,7 @@ import os
 import re
 import sqlite3
 from pathlib import Path
+from urllib.parse import urljoin
 from playwright.sync_api import expect, sync_playwright
 from layout_browser_helpers import catalog
 
@@ -46,7 +47,7 @@ def test_researcher_result_decisions_and_handoffs():
             result("准备 MSA 与模板")
             link=page.get_by_role("link",name="预测输入 1 · JSON",exact=True)
             expect(link).to_be_visible()
-            response=page.request.get(link.get_attribute("href"))
+            response=page.request.get(urljoin(page.url, link.get_attribute("href")))
             assert response.status==200
             assert isinstance(response.json(),(dict,list))
             record("prepared-input")

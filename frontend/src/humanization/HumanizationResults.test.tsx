@@ -86,6 +86,13 @@ it("shows separate native metrics and only hands off the actual changed version"
     screen.getByRole("button", { name: "Evaluate this candidate again" }),
   );
   expect(screen.getByText("Exact candidate evaluation")).toBeVisible();
+  expect(
+    screen.queryByRole("table", { name: "1 final changed positions" }),
+  ).toBeNull();
+  await user.click(screen.getByRole("button", { name: "← Back to results" }));
+  expect(
+    screen.getByRole("table", { name: "1 final changed positions" }),
+  ).toHaveTextContent("Y");
 });
 it("does not fabricate candidates for failed records", () => {
   const failed = {

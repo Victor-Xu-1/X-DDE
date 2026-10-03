@@ -103,6 +103,11 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   );
   await user.click(await screen.findByRole("button", { name: "计算性质" }));
   expect(screen.getByText("property:selected")).toBeVisible();
+  expect(screen.queryByTestId("viewer")).toBeNull();
+  await user.click(screen.getByRole("button", { name: "← 返回结果" }));
+  expect(screen.getByTestId("viewer")).toHaveTextContent(
+    "/artifact/j/pose-002.sdf",
+  );
   expect(mocks.request).toHaveBeenCalledWith(
     expect.stringContaining("source_job=j"),
     expect.anything(),
