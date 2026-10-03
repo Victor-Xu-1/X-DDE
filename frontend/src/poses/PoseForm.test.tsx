@@ -90,7 +90,7 @@ it("preserves exact saved ligand and native exploration budgets through review a
     name: /Historical files/,
   });
   await waitFor(() => expect(input).toBeEnabled());
-  await user.selectOptions(input, "version-1");
+  await user.selectOptions(input, "version:version-1");
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Next" })).toBeEnabled(),
   );

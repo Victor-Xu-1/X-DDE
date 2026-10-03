@@ -260,7 +260,10 @@ export function ResearchWorkspace({
                   onChange={(e) => setQuery(e.target.value)}
                 />
               </label>
-              <ul className="research-node-list">
+              <ul
+                className="research-node-list"
+                aria-label={zh ? "资产与任务" : "Assets and tasks"}
+              >
                 {graph.nodes
                   .filter((n) =>
                     `${n.label} ${n.kind} ${n.operation ?? ""}`

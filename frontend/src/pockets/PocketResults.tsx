@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./pocket-results.css";
 import type { Job, Language } from "../types";
 import type { PocketResult, Site } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -47,7 +48,7 @@ export function PocketResults({
             : "No candidate pockets were returned. Check structure completeness, input origin and method applicability; an empty result does not establish that the target is undruggable."}
         </p>
       )}
-      <ul>
+      <ul className="pocket-result-list">
         {result.pockets.map((site) => (
           <li key={site.rank}>
             <button
@@ -59,11 +60,17 @@ export function PocketResults({
                 setDocking(false);
               }}
             >
-              {zh ? "口袋" : "Pocket"} {site.rank} ·{" "}
-              {zh ? "模型概率" : "Model probability"}{" "}
-              {site.probability.toFixed(3)} · {zh ? "原生分数" : "Native score"}{" "}
-              {site.score.toFixed(2)} · {site.residues.length}{" "}
-              {zh ? "个残基" : "residues"}
+              <strong>
+                {zh ? "口袋" : "Pocket"} {site.rank}
+              </strong>
+              <span>
+                {zh ? "模型概率" : "Model probability"}{" "}
+                {site.probability.toFixed(3)} ·{" "}
+                {zh ? "原生分数" : "Native score"} {site.score.toFixed(2)}
+              </span>
+              <small>
+                {site.residues.length} {zh ? "个残基" : "residues"}
+              </small>
             </button>
           </li>
         ))}
@@ -81,13 +88,19 @@ export function PocketResults({
       />
       {selected && (
         <>
-          <p>
-            {zh ? "所选残基" : "Selected residues"}:{" "}
-            {selected.residues
-              .map((r) => `${r.chain}:${r.number}${r.insertion_code}`)
-              .join(", ")}
-          </p>
+          <details>
+            <summary>
+              {zh ? "所选口袋残基" : "Selected pocket residues"}
+            </summary>
+            <p>
+              {zh ? "所选残基" : "Selected residues"}:{" "}
+              {selected.residues
+                .map((r) => `${r.chain}:${r.number}${r.insertion_code}`)
+                .join(", ")}
+            </p>
+          </details>
           <button
+            className="secondary-button"
             type="button"
             disabled={!usable}
             onClick={() => setContinue(true)}
@@ -95,6 +108,7 @@ export function PocketResults({
             {zh ? "用这个口袋生成分子" : "Generate molecules in this pocket"}
           </button>
           <button
+            className="secondary-button"
             type="button"
             disabled={!result.protein_artifact.endsWith(".pdb")}
             onClick={() => {

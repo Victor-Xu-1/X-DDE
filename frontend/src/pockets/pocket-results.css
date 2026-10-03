@@ -1,0 +1,39 @@
+.pocket-result-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 10px;
+}
+.pocket-result-list button {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.pocket-result-list button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.pocket-result-list button span,
+.pocket-result-list button small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.pocket-result-list button strong {
+  font-size: 14px;
+}
+.atom-number-selection {
+  margin-top: 12px;
+}
+.atom-number-selection summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+}

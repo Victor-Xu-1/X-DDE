@@ -25,11 +25,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      WB_HOME: ${{ runner.temp }}/x-dde-layout
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-layout/state
       WB_AUTO_DEPLOY: '0'
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
+      - name: Choose isolated runner state
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-layout" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-layout/state" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -50,6 +52,9 @@ jobs:
           src/diffsbdd/ReferencePicker.test.tsx
           src/research/SequencePicker.test.tsx
           src/research/ResearchWorkspace.test.tsx
+          src/poses/PoseForm.test.tsx
+          src/poses/PoseWorkspace.test.tsx
+          src/regions/RegionWorkspace.test.tsx
           src/studio/ProjectPanel.test.tsx
           src/studio/HomeWorkspace.test.tsx
           src/operations/ToolCenter.test.tsx

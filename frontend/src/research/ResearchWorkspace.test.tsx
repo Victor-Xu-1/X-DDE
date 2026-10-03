@@ -75,7 +75,12 @@ it("recovers from a loading failure and saves annotations as a separate version"
   expect(await screen.findByRole("alert")).toHaveTextContent("unavailable");
   fail = false;
   fireEvent.click(screen.getByRole("button", { name: "重试" }));
-  fireEvent.click(await screen.findByRole("button", { name: "分子: ethanol" }));
+  fireEvent.click(
+    within(await screen.findByRole("list", { name: "资产与任务" })).getByRole(
+      "button",
+      { name: "分子: ethanol" },
+    ),
+  );
   fireEvent.click(
     screen.getByText("名称、备注与人工评价", { selector: "summary" }),
   );
@@ -101,7 +106,10 @@ it("recovers from a loading failure and saves annotations as a separate version"
     await screen.findByRole("heading", { name: "reviewed" }),
   ).toBeVisible();
   expect(
-    within(screen.getByRole("list")).getByRole("button", { name: /ethanol/ }),
+    within(screen.getByRole("list", { name: "资产与任务" })).getByRole(
+      "button",
+      { name: /ethanol/ },
+    ),
   ).toBeVisible();
 });
 
@@ -127,7 +135,12 @@ it("passes the selected record and version to a property task", async () => {
       onCreated={vi.fn()}
     />,
   );
-  fireEvent.click(await screen.findByRole("button", { name: "分子: ethanol" }));
+  fireEvent.click(
+    within(await screen.findByRole("list", { name: "资产与任务" })).getByRole(
+      "button",
+      { name: "分子: ethanol" },
+    ),
+  );
   fireEvent.click(screen.getByRole("button", { name: "用作性质计算输入" }));
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   expect(

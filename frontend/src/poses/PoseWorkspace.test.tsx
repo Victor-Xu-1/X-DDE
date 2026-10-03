@@ -32,7 +32,5 @@ it("reports source loading errors with a recovery action", async () => {
   expect(
     screen.queryByText(/Align receptors, find pockets/),
   ).not.toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: "Refresh reusable results" }),
-  ).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
 });

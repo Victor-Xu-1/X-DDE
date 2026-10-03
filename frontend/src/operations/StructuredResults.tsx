@@ -82,7 +82,9 @@ export function ResultTree({ value, zh }: { value: unknown; zh: boolean }) {
     );
   }
   const entries = Object.entries(value as Record<string, unknown>).filter(
-    ([key]) => isResearchField(key),
+    ([key, value]) =>
+      isResearchField(key) &&
+      !(value == null && ["error", "service", "endpoint"].includes(key)),
   );
   const simple = entries.filter(
     ([, v]) =>

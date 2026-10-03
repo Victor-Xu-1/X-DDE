@@ -30,7 +30,7 @@ def open_settings(page):
 
 def select_molecule(page):
     page.get_by_role("button", name="研究资产", exact=True).click()
-    page.get_by_role("button", name="分子 ethanol.sdf", exact=True).first.click()
+    page.get_by_role("button", name="分子: ethanol.sdf", exact=True).first.click()
     expect(page.get_by_role("heading", name="ethanol.sdf", exact=True)).to_be_visible()
 
 
@@ -80,6 +80,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_text("从第一份研究资产开始", exact=True)).to_be_visible()
             page.locator('.research-workspace input[type="file"]').set_input_files(molecule)
             expect(page.get_by_role("heading", name="ethanol.sdf", exact=True)).to_be_visible()
+            page.get_by_text("名称、备注与人工评价",exact=True).click()
             page.get_by_role("textbox", name="研究备注", exact=True).fill(
                 "Browser regression: retained original"
             )

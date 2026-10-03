@@ -67,6 +67,9 @@ it("saves overlapping binder regions and native evidence without altering the mo
     screen.getByRole("combobox", { name: "Region role" }),
     "binder_a",
   );
+  await user.click(
+    screen.getByText("Select atoms by number", { selector: "summary" }),
+  );
   await user.click(screen.getByRole("button", { name: "1 C" }));
   await user.click(screen.getByRole("button", { name: "Add region" }));
   await user.selectOptions(
