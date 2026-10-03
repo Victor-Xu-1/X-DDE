@@ -8,6 +8,10 @@ on:
       - 'frontend/src/useWorkbench*'
       - 'frontend/src/studio/RuntimeStatus*'
       - 'frontend/src/operations/filter*'
+      - 'frontend/src/**/*Results*'
+      - 'frontend/src/research/ResearchWorkspace*'
+      - 'frontend/src/operations/ToolCenter*'
+      - 'frontend/src/studio/HomeWorkspace*'
       - '.github/workflows/user-interface-checks.yml'
   pull_request:
     paths:
@@ -16,6 +20,10 @@ on:
       - 'frontend/src/useWorkbench*'
       - 'frontend/src/studio/RuntimeStatus*'
       - 'frontend/src/operations/filter*'
+      - 'frontend/src/**/*Results*'
+      - 'frontend/src/research/ResearchWorkspace*'
+      - 'frontend/src/operations/ToolCenter*'
+      - 'frontend/src/studio/HomeWorkspace*'
       - '.github/workflows/user-interface-checks.yml'
   workflow_dispatch:
 jobs:

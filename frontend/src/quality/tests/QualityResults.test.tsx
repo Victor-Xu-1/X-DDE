@@ -33,8 +33,7 @@ it("keeps failed and unavailable checks distinct without fabricating a quality p
   expect(
     screen.queryByText("已通过全部适用检查", { exact: false }),
   ).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "下载质控报告" })).toHaveAttribute(
-    "href",
-    "/api/jobs/job/download?name=result.json",
-  );
+  expect(screen.getByText("Real source preview")).toBeVisible();
+  expect(screen.queryByRole("link", { name: "下载质控报告" })).toBeNull();
+  expect(screen.queryByText(/原始指标与来源|native_config_sha256/)).toBeNull();
 });
