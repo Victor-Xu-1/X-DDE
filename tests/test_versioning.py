@@ -71,26 +71,47 @@ def test_stale_frontend_version_is_detected(tmp_path):
         release.check(tmp_path)
 
 
-def test_exact_commit_increment_accepts_legacy_transition_and_rejects_repeats(monkeypatch):
+def test_exact_commit_increment_accepts_legacy_transition_and_rejects_repeats(
+    monkeypatch, tmp_path
+):
     import subprocess
 
+    root = manifest_fixture(tmp_path)
     base = "a" * 40
     monkeypatch.setattr(
         subprocess, "check_output", lambda *args, **kwargs: '[project]\nversion = "0.4.0rc6"\n'
     )
-    assert str(release.check(ROOT, base)) == "0.4.1"
+    assert str(release.check(root, base)) == "0.4.1"
     monkeypatch.setattr(
         subprocess, "check_output", lambda *args, **kwargs: '[project]\nversion = "0.4.1"\n'
     )
     with pytest.raises(ValueError, match="Each publication"):
-        release.check(ROOT, base)
+        release.check(root, base)
 
 
-def test_skipped_versions_are_rejected(monkeypatch):
+def test_skipped_versions_are_rejected(monkeypatch, tmp_path):
     import subprocess
 
     monkeypatch.setattr(
         subprocess, "check_output", lambda *args, **kwargs: '[project]\nversion = "0.3.99"\n'
     )
     with pytest.raises(ValueError, match="Each publication"):
-        release.check(ROOT, "a" * 40)
+        release.check(manifest_fixture(tmp_path), "a" * 40)
+
+
+def manifest_fixture(root, version="0.4.1"):
+    files = {
+        "pyproject.toml": f'[project]\nversion = "{version}"\n',
+        "uv.lock": f'[[package]]\nname = "x-dde"\nversion = "{version}"\n',
+        "frontend/package.json": json.dumps({"version": version}),
+        "frontend/package-lock.json": json.dumps(
+            {"version": version, "packages": {"": {"version": version}}}
+        ),
+        "install.ps1": f"$Release = 'v{version}'\n",
+        "install.sh": f'release="${{1:-v{version}}}"\n',
+    }
+    for name, body in files.items():
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body)
+    return root
