@@ -4,7 +4,7 @@ import data from "./guide-data.json";
 import { templateGuide } from "./guide";
 it("every visible task has bilingual step guidance and result interpretation", () => {
   expect(Object.keys(data).sort()).toEqual(
-    [...tools.map((tool) => tool.id), "predict"].sort(),
+    tools.map((tool) => tool.id).sort(),
   );
   for (const capability of Object.keys(data))
     for (const language of ["zh", "en"] as const) {

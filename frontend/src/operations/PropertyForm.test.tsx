@@ -36,7 +36,7 @@ it("keeps the exact source version and sends no hidden SMILES after selecting fi
   );
   await user.click(
     screen.getByRole("radio", {
-      name: "Upload or reuse a molecular file (recommended)",
+      name: "Upload a new molecular file (recommended)",
     }),
   );
   for (let i = 0; i < 3; i++)
