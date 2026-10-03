@@ -59,7 +59,7 @@ it("preserves new catalogue components and secondary removal review", () => {
     screen.getByRole("heading", { name: "DiffSBDD · crossdock_full" }),
   ).toBeVisible();
   const card = within(screen.getByRole("article", { name: "DiffSBDD" }));
-  expect(card.queryByRole("button", { name: "卸载" })).toBeNull();
+  expect(card.getByRole("button", { name: "卸载" })).not.toBeVisible();
   fireEvent.click(card.getByText("维护"));
   fireEvent.click(card.getByRole("button", { name: "卸载" }));
   expect(screen.getByRole("alertdialog")).toHaveTextContent("卸载 DiffSBDD？");

@@ -70,9 +70,11 @@ it("keeps paused and unresolved latest failures visible while folding superseded
   render(<DeploymentActivity data={data} zh busy={false} execute={vi.fn()} />);
   expect(screen.getByText("Unresolved failure")).toBeVisible();
   expect(screen.getByText("Superseded failure")).not.toBeVisible();
-  expect(screen.getAllByRole("button", { name: "继续 / 重试" })).toHaveLength(
-    2,
-  );
+  const retries = screen.getAllByRole("button", { name: "继续 / 重试" });
+  expect(retries).toHaveLength(3);
+  expect(retries[0]).toBeVisible();
+  expect(retries[1]).toBeVisible();
+  expect(retries[2]).not.toBeVisible();
   fireEvent.click(screen.getByText("安装历史"));
   expect(screen.getByText("Superseded failure")).toBeVisible();
 });
