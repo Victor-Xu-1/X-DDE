@@ -58,6 +58,10 @@ it("does not expose a pocket radius on a ligand-only structure", () => {
     />,
   );
   expect(screen.queryByLabelText("Pocket radius")).not.toBeInTheDocument();
+  expect(
+    screen.getByText("Selection and display editing").closest("details"),
+  ).not.toHaveAttribute("open");
+  fireEvent.click(screen.getByText("Selection and display editing"));
   expect(screen.getByRole("button", { name: "Hide selection" })).toBeDisabled();
 });
 it("restricts the renderer to same-origin prediction artifacts", () => {

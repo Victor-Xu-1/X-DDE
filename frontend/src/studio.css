@@ -768,7 +768,6 @@ body {
 .utility-page .analysis-grid {
   margin: 15px 0;
 }
-.project-layout,
 .task-page-grid,
 .guide-grid,
 .model-grid {
@@ -779,34 +778,16 @@ body {
 .task-page-grid > * {
   min-width: 0;
 }
-.project-layout .studio-panel,
 .task-page-grid .studio-panel,
 .guide-grid .studio-panel,
 .model-grid .studio-panel {
   padding: 20px;
 }
-.project-layout .studio-panel h3,
 .model-grid .studio-panel h3 {
   font-size: var(--text-body, 14px);
   margin-bottom: 18px;
 }
-.project-layout form {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-.project-layout label {
-  font-size: var(--text-small, 13px);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.project-layout input,
-.project-layout textarea {
-  padding: 9px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-}
+
 .project-row {
   width: 100%;
   display: flex;
@@ -969,7 +950,6 @@ body {
   .ready-indicator {
     margin: 8px 0;
   }
-  .project-layout,
   .task-page-grid,
   .guide-grid,
   .model-grid {

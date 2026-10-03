@@ -111,3 +111,104 @@
   justify-content: flex-end;
   margin-bottom: 8px;
 }
+
+/* Input and output surfaces use one width authority. */
+.studio-content .task-workspace {
+  --task-width: 1040px;
+  width: 100%;
+  max-width: var(--task-width);
+  margin-inline: auto;
+}
+.studio-content .task-workspace.is-result {
+  --task-width: 1440px;
+}
+.task-workspace .tool-form,
+.task-workspace .module-template,
+.task-workspace .pose-workspace {
+  max-width: none;
+  width: 100%;
+}
+.task-workspace .questionnaire {
+  padding: 24px;
+}
+.task-workspace .questionnaire-heading {
+  font-size: 17px;
+}
+.task-workspace .questionnaire-review {
+  gap: 12px 24px;
+}
+.task-workspace .questionnaire-review dd {
+  line-height: 1.6;
+}
+.prediction-workspace {
+  position: relative;
+}
+.prediction-workspace .workbench-status-row {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.prediction-workspace .workspace-mode {
+  margin-bottom: 14px;
+}
+.prediction-workspace .guided-toolbar {
+  margin-bottom: 12px;
+  gap: 12px;
+  justify-content: flex-start;
+}
+.prediction-workspace .guided-toolbar label[hidden] {
+  display: none;
+}
+.prediction-workspace .guided-toolbar select {
+  max-width: 280px;
+}
+.task-workspace .help-trigger > button {
+  border: 0;
+  padding: 3px;
+  min-height: 24px;
+  width: 24px;
+  background: transparent;
+}
+.studio-app .segmented button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.asset-picker .selected-file {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .task-workspace .questionnaire {
+    padding: 18px;
+  }
+  .prediction-workspace .workbench-status-row {
+    position: static;
+    justify-content: flex-start;
+  }
+}
+
+.task-mode-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
+}
+.task-workspace .questionnaire > fieldset .field:last-child {
+  margin-bottom: 0;
+}
+.task-workspace .questionnaire > fieldset > .field-help:first-child {
+  margin-top: 0;
+}
+
+.task-workspace .structure-viewer {
+  padding: 16px;
+}
+.task-workspace.is-input .viewer-stage {
+  height: 320px;
+  min-height: 0;
+}
+.task-workspace.is-input .structure-viewer .section-heading {
+  margin-top: 0;
+}

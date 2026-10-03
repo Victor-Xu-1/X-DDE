@@ -88,26 +88,36 @@ export function PoseWorkspace({
             : "Align receptors, find pockets on their aligned versions and save a cross-conformation site set, or reuse an existing set."}
         </p>
       )}
-      <label className="field">
-        {zh ? "使用哪个位点集合？" : "Which site set?"}
-        <select
-          value={siteId}
-          disabled={loading}
-          onChange={(e) => {
-            setSiteId(e.target.value);
-            setSelected("");
-          }}
-        >
-          <option value="">
-            {zh ? "选择已有位点集合" : "Choose an existing site set"}
-          </option>
-          {sites.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.request.name} · {s.id.slice(0, 8)}
+      <div className="pose-context-row">
+        <label className="field">
+          {zh ? "使用哪个位点集合？" : "Which site set?"}
+          <select
+            value={siteId}
+            disabled={loading}
+            onChange={(e) => {
+              setSiteId(e.target.value);
+              setSelected("");
+            }}
+          >
+            <option value="">
+              {zh ? "选择已有位点集合" : "Choose an existing site set"}
             </option>
-          ))}
-        </select>
-      </label>
+            {sites.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.request.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={loading}
+          onClick={() => setReload((v) => v + 1)}
+        >
+          {zh ? "刷新" : "Refresh"}
+        </button>{" "}
+      </div>
       {site && !loading && !plan && (
         <PoseForm
           key={site.id}
@@ -124,20 +134,25 @@ export function PoseWorkspace({
         />
       )}
       {plans.length > 0 && (
-        <label className="field">
-          {zh ? "复用已保存探索计划" : "Reuse saved exploration plan"}
-          <select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            <option value="">{zh ? "选择计划" : "Choose a plan"}</option>
-            {plans.map((p) => (
-              <option value={p.id} key={p.id}>
-                {p.request.name} · {p.id.slice(0, 8)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <details className="pose-history" open={Boolean(plan)}>
+          <summary>
+            {zh ? "历史探索计划" : "Historical exploration plans"}
+          </summary>
+          <label className="field">
+            {zh ? "选择历史计划" : "Choose a historical plan"}
+            <select
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              <option value="">{zh ? "选择计划" : "Choose a plan"}</option>
+              {plans.map((p) => (
+                <option value={p.id} key={p.id}>
+                  {p.request.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </details>
       )}
       {plan && <PosePlanRun key={plan.id} value={plan} language={language} />}
       {error && (
@@ -145,14 +160,6 @@ export function PoseWorkspace({
           {error}
         </p>
       )}
-      <button
-        className="secondary-button"
-        type="button"
-        disabled={loading}
-        onClick={() => setReload((v) => v + 1)}
-      >
-        {zh ? "刷新可复用结果" : "Refresh reusable results"}
-      </button>
     </section>
   );
 }

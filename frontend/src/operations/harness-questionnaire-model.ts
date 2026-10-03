@@ -9,6 +9,19 @@ export function harnessInputsComplete(
   tool: string,
   payload: Record<string, unknown>,
 ): boolean {
+  return complete(tool, payload, false);
+}
+export function harnessMaterialsComplete(
+  tool: string,
+  payload: Record<string, unknown>,
+): boolean {
+  return complete(tool, payload, true);
+}
+function complete(
+  tool: string,
+  payload: Record<string, unknown>,
+  materialsOnly: boolean,
+): boolean {
   if (tool === "fold")
     return (
       record(payload.options) &&
@@ -25,7 +38,7 @@ export function harnessInputsComplete(
     );
   if (!harnessFields[tool]) return false;
   return harnessFields[tool]
-    .filter((f) => f.required)
+    .filter((f) => f.required && (!materialsOnly || f.kind !== "positions"))
     .every((f) => {
       const v = payload[f.key];
       if (f.kind === "chains") return chains(v);

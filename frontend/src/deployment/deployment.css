@@ -26,7 +26,7 @@
   gap: 20px;
 }
 .setup-card,
-.component-card {
+.deployment-workspace .component-card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -53,23 +53,23 @@
   gap: 20px;
   margin-top: 30px;
 }
-.component-card {
+.deployment-workspace .component-card {
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.component-card h3,
-.component-card p {
+.deployment-workspace .component-card h3,
+.deployment-workspace .component-card p {
   margin: 0;
 }
-.component-card p {
+.deployment-workspace .component-card p {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
   flex: 1;
 }
-.component-card small {
+.deployment-workspace .component-card small {
   color: var(--muted);
   font-size: var(--text-small, 13px);
 }

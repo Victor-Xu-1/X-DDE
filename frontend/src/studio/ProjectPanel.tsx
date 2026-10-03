@@ -1,11 +1,12 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import {
   FolderOpenOutlined,
   PlusOutlined,
   ExperimentOutlined,
 } from "@ant-design/icons";
-import { api } from "../api";
 import type { Language, Project } from "../types";
+import { ProjectCreateDialog } from "./ProjectCreateDialog";
+import "./projects.css";
 
 interface Props {
   language: Language;
@@ -24,113 +25,84 @@ export function ProjectPanel({
   onCreated,
 }: Props) {
   const zh = language === "zh";
-  const [name, setName] = useState(""),
-    [description, setDescription] = useState(""),
-    [saving, setSaving] = useState(false),
-    [message, setMessage] = useState("");
-  async function create(event: FormEvent) {
-    event.preventDefault();
-    setSaving(true);
-    setMessage("");
-    try {
-      const project = await api.createProject(name, description);
-      setName("");
-      setDescription("");
-      onCreated();
-      onChoose(project.id);
-    } catch (error) {
-      setMessage(String(error));
-    } finally {
-      setSaving(false);
-    }
-  }
+  const [creating, setCreating] = useState(false),
+    [query, setQuery] = useState("");
+  const visible = projects.filter((p) =>
+    `${p.name} ${p.description}`.toLowerCase().includes(query.toLowerCase()),
+  );
   return (
     <section className="project-workspace">
-      <header>
+      <header className="project-toolbar">
         <h1 className="sr-only">{zh ? "研究项目" : "Projects"}</h1>
+        <input
+          type="search"
+          aria-label={zh ? "查找项目" : "Search projects"}
+          placeholder={zh ? "查找项目…" : "Search projects…"}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button className="primary-button" onClick={() => setCreating(true)}>
+          <PlusOutlined /> {zh ? "新建项目" : "New project"}
+        </button>
       </header>
-      <div className="project-layout">
-        <div className="studio-panel">
-          <h3>
-            <PlusOutlined /> {zh ? "新建项目" : "New project"}
-          </h3>
-          <form onSubmit={(e) => void create(e)}>
-            <label>
-              {zh ? "项目名称" : "Project name"}
-              <input
-                value={name}
-                maxLength={80}
-                required
-                onChange={(e) => setName(e.target.value)}
-                placeholder={
-                  zh ? "例如：靶点结构验证" : "e.g. Target structure validation"
-                }
-              />
-            </label>
-            <label>
-              {zh ? "说明（可选）" : "Description (optional)"}
-              <textarea
-                value={description}
-                maxLength={500}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </label>
-            <button className="primary-button" disabled={saving}>
-              {saving
-                ? zh
-                  ? "保存中…"
-                  : "Saving…"
-                : zh
-                  ? "创建项目"
-                  : "Create project"}
-            </button>
-          </form>
-          {message && (
-            <p role="alert" className="error-box">
-              {message}
-            </p>
-          )}
-        </div>
-        <div className="studio-panel">
-          <h3>
-            <FolderOpenOutlined /> {zh ? "本机项目" : "Local projects"}
-          </h3>
-          {error && (
-            <p role="alert" className="error-box">
-              {error}
-            </p>
-          )}
+      {error && (
+        <p role="alert" className="error-box">
+          {error}
+        </p>
+      )}
+      <div className="project-list">
+        <button
+          className={`project-row ${!active ? "active" : ""}`}
+          onClick={() => onChoose(null)}
+        >
+          <ExperimentOutlined /> {zh ? "全部任务" : "All tasks"}
+        </button>
+        {visible.map((project) => (
           <button
-            className={`project-row ${!active ? "active" : ""}`}
-            onClick={() => onChoose(null)}
+            className={`project-row ${active === project.id ? "active" : ""}`}
+            onClick={() => onChoose(project.id)}
+            key={project.id}
           >
-            <ExperimentOutlined /> {zh ? "全部任务" : "All tasks"}
+            <FolderOpenOutlined />
+            <span>
+              <strong>{project.name}</strong>
+              {project.description && <small>{project.description}</small>}
+            </span>
           </button>
-          {projects.length ? (
-            projects.map((project) => (
-              <button
-                className={`project-row ${active === project.id ? "active" : ""}`}
-                onClick={() => onChoose(project.id)}
-                key={project.id}
-              >
-                <FolderOpenOutlined />
-                <span>
-                  <strong>{project.name}</strong>
-                  <small>
-                    {project.description || (zh ? "无说明" : "No description")}
-                  </small>
-                </span>
-              </button>
-            ))
-          ) : (
-            <p className="muted small">
-              {zh
-                ? "尚未创建项目；可以先使用左侧表单。"
-                : "No projects yet. You can still submit a task without one."}
+        ))}
+        {!visible.length && (
+          <div className="project-empty">
+            <p>
+              {projects.length
+                ? zh
+                  ? "没有匹配的项目。"
+                  : "No matching projects."
+                : zh
+                  ? "还没有研究项目"
+                  : "No research projects yet"}
             </p>
-          )}
-        </div>
+            {!projects.length && (
+              <button
+                className="secondary-button"
+                onClick={() => setCreating(true)}
+              >
+                {zh ? "创建第一个项目" : "Create your first project"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
+      {creating && (
+        <ProjectCreateDialog
+          language={language}
+          onClose={() => setCreating(false)}
+          onCreated={(project) => {
+            onCreated();
+            onChoose(project.id);
+            setCreating(false);
+          }}
+        />
+      )}
     </section>
   );
 }

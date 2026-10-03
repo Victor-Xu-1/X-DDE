@@ -76,6 +76,9 @@ it("recovers from a loading failure and saves annotations as a separate version"
   fail = false;
   fireEvent.click(screen.getByRole("button", { name: "重试" }));
   fireEvent.click(await screen.findByRole("button", { name: "分子: ethanol" }));
+  fireEvent.click(
+    screen.getByText("名称、备注与人工评价", { selector: "summary" }),
+  );
   fireEvent.change(screen.getByRole("textbox", { name: "名称" }), {
     target: { value: "reviewed" },
   });

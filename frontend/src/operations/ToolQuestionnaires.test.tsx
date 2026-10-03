@@ -29,12 +29,15 @@ it("requires sequences, preserves native ESM normalization and only starts after
       .spyOn(client.api, "submit")
       .mockResolvedValue({ id: "esm-job" } as Job);
   render(<HarnessForm tool="esm" language="en" onCreated={vi.fn()} />);
-  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(
+    screen.getByRole("heading", { name: "1. Provide inputs" }),
+  ).toBeVisible();
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   await user.type(
     screen.getByRole("textbox", { name: /Sequences to score/ }),
     "ac de",
   );
+  await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(submit).not.toHaveBeenCalled();

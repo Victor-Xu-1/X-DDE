@@ -8,7 +8,8 @@
 }
 .example-actions > span {
   flex: 1 1 240px;
-  color: var(--text-secondary);
+  min-width: 0;
+  color: var(--muted);
 }
 .example-actions button {
   min-height: 30px;
@@ -20,7 +21,7 @@
 }
 .example-actions details[open] {
   padding: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 6px;
 }
 .example-actions ul {
@@ -41,7 +42,8 @@
 .module-example-result {
   padding: 16px;
   margin-top: 12px;
-  border: 1px solid var(--border);
+  min-width: 0;
+  border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
 }
@@ -55,7 +57,7 @@
   border-left: 3px solid var(--accent);
   margin: 0 0 12px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 .example-actions details[open] {
   flex-basis: 100%;
@@ -67,4 +69,28 @@
   .template-result-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.example-actions summary {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  cursor: pointer;
+}
+.example-actions button {
+  white-space: nowrap;
+}
+.module-example-result .section-heading {
+  margin: 0 0 12px;
+  align-items: center;
+}
+.module-example-result .section-heading h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.template-step-help {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: -6px 0 18px;
 }

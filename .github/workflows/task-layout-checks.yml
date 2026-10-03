@@ -1,0 +1,75 @@
+name: Task layout and browser checks
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'frontend/src/guided/**'
+      - 'frontend/src/operations/**'
+      - 'frontend/src/research/**'
+      - 'frontend/src/studio/**'
+      - 'frontend/src/design/**'
+      - 'frontend/src/viewer/ViewerControls*'
+      - 'frontend/src/deployment/*css'
+      - 'frontend/src/diffsbdd/ReferencePicker*'
+      - 'frontend/src/examples/examples.css'
+      - 'frontend/src/poses/PoseWorkspace*'
+      - 'frontend/src/poses/poses.css'
+      - 'frontend/src/workflow.css'
+      - 'server_tests/*layout*'
+      - '.github/workflows/task-layout-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scoped-layout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_HOME: ${{ runner.temp }}/x-dde-layout
+      WB_STATE_DIR: ${{ runner.temp }}/x-dde-layout/state
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build locked frontend and install browser check dependencies
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --extra browser
+      - name: Focused task layout, input identity and presentation regressions
+        working-directory: frontend
+        run: >-
+          npx vitest run
+          src/guided/Questionnaire.test.tsx
+          src/operations/ToolQuestionnaires.test.tsx
+          src/operations/StructuredResults.test.tsx
+          src/diffsbdd/ReferencePicker.test.tsx
+          src/research/SequencePicker.test.tsx
+          src/research/ResearchWorkspace.test.tsx
+          src/studio/ProjectPanel.test.tsx
+          src/studio/HomeWorkspace.test.tsx
+          src/operations/ToolCenter.test.tsx
+          src/viewer/ViewerControls.test.tsx
+          src/presentation/research-files.test.tsx
+      - name: Restore fixed native case evidence without scientific execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          uv run --locked python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+      - name: Check every task and archived example in real Chromium
+        run: |
+          uv run --locked python -m playwright install --with-deps chromium
+          uv run --locked python -m opendde_workbench --host 127.0.0.1 --port 4330 > "$RUNNER_TEMP/x-dde-layout-service.log" 2>&1 &
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          uv run --locked pytest -q server_tests/test_task_layout_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task-layout-browser-evidence
+          path: server_tests/evidence/task-layout
+          if-no-files-found: warn

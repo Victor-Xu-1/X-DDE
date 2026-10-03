@@ -13,7 +13,10 @@ import { JsonEditor } from "./ScientificInputs";
 import { useTaskSubmit } from "./useTaskSubmit";
 import { canGuide } from "./guided-contract";
 import { Questionnaire } from "../guided/Questionnaire";
-import { harnessInputsComplete } from "./harness-questionnaire-model";
+import {
+  harnessInputsComplete,
+  harnessMaterialsComplete,
+} from "./harness-questionnaire-model";
 
 export function HarnessForm({
   tool,
@@ -81,9 +84,17 @@ export function HarnessForm({
       result.minimize = result.objective_key !== "iptm";
     return result;
   }
-  const renderFields = (required: boolean) =>
+  const renderFields = (required: boolean, region = false) =>
     harnessFields[tool]
-      ?.filter((field) => Boolean(field.required) === required)
+      ?.filter(
+        (field) =>
+          Boolean(field.required) === required &&
+          (required
+            ? region
+              ? field.kind === "positions"
+              : field.kind !== "positions"
+            : field.kind !== "cdr" && field.kind !== "json"),
+      )
       .map((field) => (
         <HarnessField
           key={field.key}
@@ -151,23 +162,48 @@ export function HarnessForm({
   ) : (
     <>{renderFields(true)}</>
   );
-  const options = (
+  const options = !expert ? (
     <>
-      {!expert && (
-        <>
-          <p className="field-help">
+      <p className="field-help">
+        {zh
+          ? "已使用推荐设置，可按需要调整。"
+          : "Recommended settings are selected; adjust them if needed."}
+      </p>
+      {renderFields(true, true)}
+      <div className="operation-grid">{renderFields(false)}</div>
+      {harnessFields[tool]?.some(
+        (f) => !f.required && ["cdr", "json"].includes(f.kind),
+      ) && (
+        <details>
+          <summary>
             {zh
-              ? "默认方案已设置。需要调整数量或其他选项时展开下方设置。"
-              : "Defaults are configured. Expand optional settings to change counts or other options."}
-          </p>
-          <details>
-            <summary>
-              {zh ? "调整方案（可选）" : "Adjust settings (optional)"}
-            </summary>
-            {renderFields(false)}
-          </details>
-        </>
+              ? "区域与其他微调（可选）"
+              : "Regions & further adjustments (optional)"}
+          </summary>
+          {harnessFields[tool]
+            .filter((f) => !f.required && ["cdr", "json"].includes(f.kind))
+            .map((field) => (
+              <HarnessField
+                key={field.key}
+                field={field}
+                tool={tool}
+                payload={payload}
+                onChange={(v) => setPayload({ ...payload, [field.key]: v })}
+                language={language}
+              />
+            ))}
+        </details>
       )}
+    </>
+  ) : (
+    <p className="field-help">
+      {zh
+        ? "本次使用第一步填写的专家参数。"
+        : "This task uses the expert parameters entered in step one."}
+    </p>
+  );
+  const execution = (
+    <>
       {needsExternal && (
         <label className="network-choice">
           <input
@@ -254,15 +290,26 @@ export function HarnessForm({
       submitLabel={zh ? "提交计算任务" : "Submit compute task"}
       onSubmit={submit}
       steps={[
-        { title: zh ? "选择模式" : "Choose mode", content: mode, valid: true },
         {
           title: zh ? "填写材料" : "Provide inputs",
-          content: inputs,
-          valid: harnessInputsComplete(tool, payload),
+          content: (
+            <>
+              <div className="task-mode-controls">{mode}</div>
+              {inputs}
+            </>
+          ),
+          valid: expert
+            ? harnessInputsComplete(tool, payload)
+            : harnessMaterialsComplete(tool, payload),
         },
         {
           title: zh ? "选择方案" : "Choose settings",
           content: options,
+          valid: harnessInputsComplete(tool, payload),
+        },
+        {
+          title: zh ? "运行设置" : "Run settings",
+          content: execution,
           valid: !needsExternal || external,
         },
         {

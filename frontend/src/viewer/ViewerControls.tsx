@@ -92,7 +92,10 @@ export function ViewerControls({
           )}
         </div>
       )}
-      <details className="selection-editor" open>
+      <details
+        className="selection-editor"
+        open={Boolean(selection) || options.pick === "distance"}
+      >
         <summary>
           {zh ? "点选与显示编辑" : "Selection and display editing"}
         </summary>

@@ -65,3 +65,31 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
 }
+
+.pose-context-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.pose-context-row .field {
+  flex: 1;
+  min-width: min(100%, 260px);
+  margin: 0;
+}
+.pose-context-row > button {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.pose-history {
+  margin-top: 18px;
+}
+.pose-history > summary {
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+}
+.pose-history > .field {
+  margin-top: 12px;
+}

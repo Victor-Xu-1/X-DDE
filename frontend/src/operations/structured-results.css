@@ -1,0 +1,91 @@
+.native-results {
+  min-width: 0;
+}
+.native-result-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px 24px;
+  margin: 12px 0 18px;
+}
+.native-result-metrics > div {
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.native-result-metrics dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.native-result-metrics dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.native-result-group {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.native-result-group > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.native-result-records {
+  max-height: 440px;
+  overflow: auto;
+  padding: 8px 0;
+}
+.native-result-records > details {
+  padding: 8px 0;
+}
+.native-result-table {
+  max-height: 440px;
+  margin-top: 12px;
+}
+.native-result-table th {
+  white-space: nowrap;
+}
+.native-result-table td {
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+.native-result-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.result-list-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  max-height: 160px;
+  overflow: auto;
+}
+.result-smiles {
+  display: block;
+  max-width: 180px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.studio-content .native-result-report {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 440px;
+  overflow: auto;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.8;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 12px;
+}

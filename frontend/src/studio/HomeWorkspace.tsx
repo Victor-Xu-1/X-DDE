@@ -73,7 +73,9 @@ export function HomeWorkspace(p: Props) {
     showResults =
       p.active && !showInput && Boolean(p.job && isPrediction(p.job.request));
   return (
-    <>
+    <div
+      className={`prediction-workspace task-workspace ${showResults ? "is-result" : "is-input"}`}
+    >
       <header className="workbench-status-row">
         <div>
           <h1 className="sr-only">
@@ -151,7 +153,7 @@ export function HomeWorkspace(p: Props) {
               ))}
             </select>
           </label>
-          <label>
+          <label hidden={showInput || !p.jobs.length}>
             {zh ? "查看任务结果" : "View task results"}
             <select
               value={p.job?.id ?? ""}
@@ -286,6 +288,6 @@ export function HomeWorkspace(p: Props) {
           />
         </details>
       )}
-    </>
+    </div>
   );
 }

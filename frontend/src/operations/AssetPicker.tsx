@@ -19,6 +19,7 @@ export function AssetPicker({
   language,
   label,
   allowedSuffixes,
+  showHistory = true,
 }: {
   kind: AssetKind;
   value: string;
@@ -26,6 +27,7 @@ export function AssetPicker({
   language: Language;
   label: string;
   allowedSuffixes?: readonly string[];
+  showHistory?: boolean;
 }) {
   const zh = language === "zh",
     [assets, setAssets] = useState<Asset[]>([]),
@@ -85,60 +87,68 @@ export function AssetPicker({
         />
       </label>
       <small>{accepted} · ≤25 MiB</small>
-      <details
-        className="historical-files"
-        open={Boolean(value) || opened}
-        onToggle={(event) => setOpened(event.currentTarget.open)}
-      >
-        <summary>{zh ? "历史文件" : "Historical files"}</summary>
-        <label className="field">
-          {label}
-          <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={busy}
-            onFocus={() => setOpened(true)}
-          >
-            <option value="">
-              {zh ? "选择历史文件" : "Choose a historical file"}
-            </option>
-            {assets
-              .filter(
-                (a) =>
-                  a.kind === kind &&
-                  (!allowedSuffixes || allowedSuffixes.includes(a.suffix)),
-              )
-              .map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                  {assets.filter(
-                    (other) => other.kind === kind && other.name === a.name,
-                  ).length > 1
-                    ? ` · ${a.id.slice(0, 8)}`
-                    : ""}
-                </option>
-              ))}
-            {value && !assets.some((a) => a.id === value) && (
-              <option value={value}>{value}</option>
-            )}
-          </select>
-        </label>
-        <button type="button" onClick={() => setShowResults((v) => !v)}>
-          {zh ? "从已有任务结果中选择" : "Choose from task results"}
-        </button>
-        {showResults && (
-          <ArtifactPicker
-            kind={kind}
-            accept={accepted}
-            language={language}
-            onSelected={(asset) => {
-              setAssets((prev) => [asset, ...prev]);
-              onChange(asset.id);
-              setShowResults(false);
-            }}
-          />
-        )}
-      </details>
+      {!showHistory && value && (
+        <p className="selected-file" role="status">
+          {assets.find((a) => a.id === value)?.name ??
+            (zh ? "已选择文件" : "File selected")}
+        </p>
+      )}
+      {showHistory && (
+        <details
+          className="historical-files"
+          open={Boolean(value) || opened}
+          onToggle={(event) => setOpened(event.currentTarget.open)}
+        >
+          <summary>{zh ? "历史文件" : "Historical files"}</summary>
+          <label className="field">
+            {label}
+            <select
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              disabled={busy}
+              onFocus={() => setOpened(true)}
+            >
+              <option value="">
+                {zh ? "选择历史文件" : "Choose a historical file"}
+              </option>
+              {assets
+                .filter(
+                  (a) =>
+                    a.kind === kind &&
+                    (!allowedSuffixes || allowedSuffixes.includes(a.suffix)),
+                )
+                .map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                    {assets.filter(
+                      (other) => other.kind === kind && other.name === a.name,
+                    ).length > 1
+                      ? ` · ${a.id.slice(0, 8)}`
+                      : ""}
+                  </option>
+                ))}
+              {value && !assets.some((a) => a.id === value) && (
+                <option value={value}>{value}</option>
+              )}
+            </select>
+          </label>
+          <button type="button" onClick={() => setShowResults((v) => !v)}>
+            {zh ? "从已有任务结果中选择" : "Choose from task results"}
+          </button>
+          {showResults && (
+            <ArtifactPicker
+              kind={kind}
+              accept={accepted}
+              language={language}
+              onSelected={(asset) => {
+                setAssets((prev) => [asset, ...prev]);
+                onChange(asset.id);
+                setShowResults(false);
+              }}
+            />
+          )}
+        </details>
+      )}
       {error && (
         <p role="alert" className="error-box">
           {error}

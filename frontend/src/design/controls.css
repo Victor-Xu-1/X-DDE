@@ -39,8 +39,7 @@
   font-size: 18px;
 }
 .field,
-.studio-app .input-panel .field,
-.project-layout label {
+.studio-app .input-panel .field {
   font-size: 13px;
   gap: 7px;
   margin-bottom: 16px;
@@ -191,7 +190,6 @@ textarea {
   color: var(--info);
   background: var(--info-soft);
 }
-.project-layout,
 .task-page-grid,
 .guide-grid,
 .model-grid {

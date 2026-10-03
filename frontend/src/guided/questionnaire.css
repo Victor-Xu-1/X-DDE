@@ -1,29 +1,53 @@
 .questionnaire {
   min-width: 0;
 }
+/* One compact progress track, shared by every guided task. */
 .questionnaire-steps {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.35rem;
+  gap: 8px;
+  padding: 0 0 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
 }
 .questionnaire-steps button {
   min-width: 0;
   display: flex;
-  gap: 0.35rem;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  padding: 0.45rem;
-  font-size: 0.8rem;
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+}
+.questionnaire-steps button > span:first-child {
+  display: grid;
+  place-items: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-weight: 600;
 }
 .questionnaire-steps button[aria-current="step"] {
   color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  font-weight: 600;
+}
+.questionnaire-steps button[aria-current="step"] > span:first-child {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+.questionnaire-steps button:disabled {
+  opacity: 0.65;
 }
 .questionnaire-heading {
-  margin: 0.5rem 0;
+  margin: 0 0 18px;
   font-size: 1.05rem;
   outline: none;
 }
@@ -44,7 +68,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  padding-top: 1rem;
+  padding-top: 18px;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
 }
 .questionnaire-actions .primary-button {
   flex: 0 0 auto;
@@ -100,14 +126,14 @@
   gap: 0.55rem;
   border: 1px solid var(--line);
   border-radius: 0.65rem;
-  padding: 1rem;
+  padding: 12px 14px;
   cursor: pointer;
   background: var(--surface);
 }
 .questionnaire-choices label.selected {
   background: var(--accent-soft);
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  box-shadow: none;
 }
 .questionnaire-choices label:focus-within {
   outline: 2px solid var(--accent);

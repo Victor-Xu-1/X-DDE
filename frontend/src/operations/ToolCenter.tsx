@@ -69,7 +69,10 @@ export function ToolCenter({
   const [exampleLoad, setExampleLoad] = useState(0);
   const [previewing, setPreviewing] = useState(false);
   return (
-    <section className="tool-center" aria-labelledby={headingId}>
+    <section
+      className={`tool-center ${current ? "task-workspace " + (previewing ? "is-result" : "is-input") : ""}`}
+      aria-labelledby={headingId}
+    >
       {current && (
         <div className="tool-context">
           <button

@@ -59,3 +59,49 @@ it("saves an immutable sequence version only on explicit action and detaches it 
   );
   expect(changed).toHaveBeenLastCalledWith(null);
 });
+
+it("starts with pasted new input and uses the single history selector for a raw FASTA", async () => {
+  const asset = {
+    id: "fasta",
+    kind: "sequences",
+    name: "Trastuzumab-VH-VL.fasta",
+    suffix: ".fasta",
+    sha256: "b".repeat(64),
+    size: 500,
+    created_at: "2026-10-01",
+  };
+  const files = vi.spyOn(api, "assets").mockResolvedValue([asset] as never);
+  vi.spyOn(client, "request").mockImplementation(
+    async (path) => (path.endsWith("/metadata") ? asset : []) as never,
+  );
+  const change = vi.fn(),
+    user = userEvent.setup();
+  render(
+    <SequencePicker
+      language="en"
+      value={null}
+      onChange={change}
+      label="Sequence input"
+    />,
+  );
+  expect(screen.getByRole("radio", { name: "Paste sequences" })).toBeChecked();
+  expect(files).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("radio", { name: "Historical files" }));
+  await screen.findByRole("option", { name: asset.name });
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Sequence input · Historical files" }),
+    "file:fasta",
+  );
+  await screen.findByRole("combobox", {
+    name: "Sequence input · Historical files",
+  });
+  await vi.waitFor(() =>
+    expect(change).toHaveBeenLastCalledWith({
+      asset_id: "fasta",
+      sha256: asset.sha256,
+      record: 0,
+      conformer: 0,
+      version_id: null,
+    }),
+  );
+});

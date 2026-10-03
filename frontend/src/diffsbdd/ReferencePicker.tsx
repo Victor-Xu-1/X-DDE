@@ -1,6 +1,7 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { useEffect, useRef, useState } from "react";
-import { request } from "../api";
+import { api, request } from "../api";
+import { HistoricalFileSelect } from "../research/HistoricalFileSelect";
 import { AssetPicker } from "../operations/AssetPicker";
 import type { Asset } from "../operations/types";
 import type { MoleculeRef, ScientificObject } from "../research/types";
@@ -23,6 +24,7 @@ export function ReferencePicker({
 }) {
   const zh = language === "zh",
     selectionIntent = useRef(0);
+  const [files, setFiles] = useState<Asset[]>([]);
   const [versions, setVersions] = useState<ScientificObject[]>([]),
     [error, setError] = useState("");
   const formats =
@@ -39,7 +41,7 @@ export function ReferencePicker({
     file: value && !value.version_id ? value : null,
   });
   useEffect(() => {
-    if (value) selections.current[value.version_id ? "saved" : "file"] = value;
+    if (value) selections.current[source] = value;
   }, [value]);
   function changeSource(next: "saved" | "file") {
     selectionIntent.current++;
@@ -49,6 +51,7 @@ export function ReferencePicker({
     onChange(selections.current[next]);
   }
   useEffect(() => {
+    if (source !== "saved") return;
     const c = new AbortController();
     setLoading(true);
     async function load() {
@@ -61,12 +64,17 @@ export function ReferencePicker({
         all.push(...page);
         if (page.length < 200) break;
       }
-      if (!c.signal.aborted)
+      const uploaded = await api.assets(c.signal);
+      if (!c.signal.aborted) {
+        setFiles(
+          uploaded.filter((v) => v.kind === kind && formats.includes(v.suffix)),
+        );
         setVersions(
           all.filter(
             (v) => v.kind === (kind === "structure" ? "structure" : "molecule"),
           ),
         );
+      }
     }
     void load()
       .catch((e) => {
@@ -79,7 +87,7 @@ export function ReferencePicker({
       selectionIntent.current++;
       c.abort();
     };
-  }, [kind]);
+  }, [kind, source]);
   async function choose(id: string, reference?: MoleculeRef) {
     const intent = ++selectionIntent.current;
     setError("");
@@ -128,33 +136,19 @@ export function ReferencePicker({
         ]}
       />
       <div hidden={source !== "saved"}>
-        <label className="field">
-          {label} · {zh ? "历史文件" : "Historical files"}
-          <select
-            value={value?.version_id ?? ""}
-            disabled={loading}
-            onChange={(e) => {
-              const v = versions.find((v) => v.id === e.target.value);
-              if (v) void choose(v.reference.asset_id, v.reference);
-              else {
-                selectionIntent.current++;
-                onChange(null);
-              }
-            }}
-          >
-            <option value="">
-              {zh ? "选择历史文件" : "Choose a historical file"}
-            </option>
-            {versions.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.label} · {v.id.slice(0, 8)} · {v.reference.record + 1}
-              </option>
-            ))}
-          </select>
-        </label>
+        <HistoricalFileSelect
+          language={language}
+          label={label}
+          value={value}
+          versions={versions}
+          files={files}
+          busy={loading}
+          onSelect={(id, ref) => void choose(id, ref)}
+        />
       </div>
       <div hidden={source !== "file"}>
         <AssetPicker
+          showHistory={false}
           kind={kind}
           allowedSuffixes={formats}
           value={value?.asset_id ?? ""}

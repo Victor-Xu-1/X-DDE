@@ -118,6 +118,7 @@
 }
 .molecular-fields {
   display: grid;
+  align-items: start;
   grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
   gap: 10px;
 }

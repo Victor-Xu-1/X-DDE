@@ -78,7 +78,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 480px;
+  max-height: 560px;
   overflow: auto;
 }
 .research-node-list button {
@@ -152,4 +152,49 @@
   .research-columns {
     grid-template-columns: 1fr;
   }
+}
+
+.research-workspace {
+  gap: 16px;
+}
+.research-workspace > .editor-toolbar {
+  background: var(--surface);
+  padding: 14px 16px;
+}
+.research-relationships > summary,
+.asset-annotations > summary,
+.asset-version-help > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+}
+.research-relationships .research-graph-scroll {
+  margin-top: 12px;
+}
+.research-inspector .asset-annotations {
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 14px;
+}
+.asset-annotations > .field:first-of-type {
+  margin-top: 16px;
+}
+.asset-annotations > button {
+  margin-top: 12px;
+}
+.asset-version-help {
+  margin-top: 12px;
+}
+.research-relations {
+  max-height: 300px;
+  overflow: auto;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.research-inspector > h2 {
+  overflow-wrap: anywhere;
+}
+.research-inspector > h3 {
+  font-size: 14px;
+  margin-top: 24px;
 }

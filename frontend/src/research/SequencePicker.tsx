@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import { AssetPicker } from "../operations/AssetPicker";
 import type { Asset } from "../operations/types";
+import { HistoricalFileSelect } from "./HistoricalFileSelect";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import type { Language } from "../types";
 import type { MoleculeRef, ScientificObject } from "./types";
@@ -27,10 +28,12 @@ export function SequencePicker({
       value?.version_id ? "saved" : value ? "file" : "paste",
     ),
     [versions, setVersions] = useState<ScientificObject[]>([]),
+    [files, setFiles] = useState<Asset[]>([]),
     [text, setText] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useEffect(() => {
+    if (source !== "saved") return;
     const controller = new AbortController();
     async function load() {
       const records: ScientificObject[] = [];
@@ -42,7 +45,16 @@ export function SequencePicker({
         records.push(...page.filter((row) => row.kind === "sequence"));
         if (page.length < 200) break;
       }
-      if (!controller.signal.aborted) setVersions(records);
+      const uploaded = await api.assets(controller.signal);
+      if (!controller.signal.aborted) {
+        setVersions(records);
+        setFiles(
+          uploaded.filter(
+            (v) =>
+              v.kind === "sequences" && [".fa", ".fasta"].includes(v.suffix),
+          ),
+        );
+      }
     }
     void load().catch((e) => {
       if (!controller.signal.aborted) setError(String(e));
@@ -51,7 +63,7 @@ export function SequencePicker({
       controller.abort();
       intent.current++;
     };
-  }, []);
+  }, [source]);
   async function choose(id: string, ref?: MoleculeRef) {
     const number = ++intent.current;
     setError("");
@@ -187,32 +199,19 @@ export function SequencePicker({
         </>
       )}
       {source === "saved" && (
-        <label className="field">
-          {label} · {zh ? "历史文件" : "Historical files"}
-          <select
-            value={value?.version_id ?? ""}
-            disabled={busy}
-            onChange={(e) => {
-              const version = versions.find((row) => row.id === e.target.value);
-              void choose(
-                version?.reference.asset_id ?? "",
-                version?.reference,
-              );
-            }}
-          >
-            <option value="">
-              {zh ? "选择已保存序列" : "Choose a saved sequence"}
-            </option>
-            {versions.map((row) => (
-              <option key={row.id} value={row.id}>
-                {row.label} · {row.id.slice(0, 8)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <HistoricalFileSelect
+          language={language}
+          label={label}
+          value={value}
+          versions={versions}
+          files={files}
+          busy={busy}
+          onSelect={(id, ref) => void choose(id, ref)}
+        />
       )}
       {source === "file" && (
         <AssetPicker
+          showHistory={false}
           language={language}
           label={label}
           kind="sequences"

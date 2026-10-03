@@ -1,3 +1,4 @@
+import { HelpWorkspace } from "./HelpWorkspace";
 import { componentsOf, isPrediction } from "../operations/types";
 import {
   DownloadOutlined,
@@ -424,67 +425,7 @@ export function UtilityViews(p: Props) {
       />
     );
   if (p.view === "help")
-    return (
-      <section className="utility-page">
-        <h1>{zh ? "第一次使用" : "Getting started"}</h1>
-        <div className="guide-grid">
-          {(zh
-            ? [
-                [
-                  "选任务",
-                  "从六类任务中选择目标；有靶蛋白和小分子选“蛋白–小分子”，抗体–抗原任务自动使用已安装的 ABAG 模型。",
-                ],
-                [
-                  "填输入",
-                  "首次可点击模块中的“加载案例”，按步骤准备真实研发输入。DNA 使用 T，RNA 使用 U；专家模式可调整离子、组分与原生参数。",
-                ],
-                [
-                  "选方案",
-                  "首次研究用“标准预测”；想比较多个构象用“多构象比较”；只检查流程用“快速试跑”。",
-                ],
-                [
-                  "看结果",
-                  "在“结构与结果”中看构象与口袋。点击原子/残基，选择范围、显示样式或两点测距；问号提供解释。显示编辑不改变分子坐标。",
-                ],
-              ]
-            : [
-                [
-                  "Choose a task",
-                  "Choose among six workflows. Antibody–antigen defaults to the installed ABAG checkpoint; use Protein–ligand when you have a target and compound.",
-                ],
-                [
-                  "Enter molecules",
-                  "Start with Load example in a task module and follow the steps with real research inputs. DNA uses T and RNA uses U; Expert mode adjusts ions, assemblies and native settings.",
-                ],
-                [
-                  "Choose a preset",
-                  "Use Standard for your first research task, Compare conformers for alternatives, or Quick check to test the workflow.",
-                ],
-                [
-                  "Inspect results",
-                  "In Structure and results, inspect conformers and pockets. Select atoms/residues, choose a radius, edit display or measure two atoms. Display edits preserve molecular coordinates.",
-                ],
-              ]
-          ).map(([title, note], i) => (
-            <div className="studio-panel" key={title}>
-              <h3>
-                {i + 1} · {title}
-              </h3>
-              <p>{note}</p>
-            </div>
-          ))}
-        </div>
-        <div className="notice">
-          <p>
-            {zh
-              ? "“全部能力”包含性质计算、抗体设计、序列评分、MSA/模板和原生分析。需要的模型、数据库及服务在服务器配置。QED/SA 和结构置信度不能替代活性实验。"
-              : "All capabilities includes molecular properties, antibody design, sequence scoring, MSA/templates and native analysis. Configure models, databases and services on the server. Descriptors and confidence do not replace activity experiments."}
-          </p>
-        </div>
-        <button className="primary-button" onClick={p.onStart}>
-          {zh ? "开始使用" : "Start"}
-        </button>
-      </section>
-    );
+    return <HelpWorkspace language={p.language} onStart={p.onStart} />;
+
   return null;
 }

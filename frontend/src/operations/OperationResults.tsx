@@ -31,43 +31,9 @@ import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
-import { isResearchField } from "../presentation/research-files";
 
-const labels: Record<string, string> = {
-  available: "是否可用",
-  result: "结果",
-  error: "错误",
-  reason: "原因",
-  summary: "摘要",
-  metrics: "指标",
-  sequence: "序列",
-  candidates: "候选",
-  objective: "目标分数",
-  scores: "序列评分",
-  metadata: "来源与记录",
-  structure_path: "结构文件",
-  candidate_id: "候选编号",
-  legacy: "参考候选集",
-  opendde_harness: "当前候选集",
-  candidate_count: "候选数量",
-  format_compliance: "序列格式合格比例",
-  fold_success_rate: "折叠成功比例",
-  scored_rate: "已评分比例",
-  unique_sequence_rate: "唯一序列比例",
-  best_objective: "最佳目标分数",
-  ranked_ids: "排名",
-  top_k_overlap: "前列候选重合比例",
-  objective_delta: "当前与参考最佳分数之差",
-  structural_analysis: "结构进化分析",
-  mutations: "变异",
-  conservation: "保守性",
-  expressivity: "表达相关判断",
-  immunogenicity: "免疫原性相关判断",
-  aggregation: "聚集相关判断",
-  solubility: "溶解性相关判断",
-  specificity: "特异性相关判断",
-  liability: "潜在问题判断",
-};
+export { ResultTree } from "./StructuredResults";
+import { ResultTree } from "./StructuredResults";
 
 export function OperationResults({
   job,
@@ -246,7 +212,17 @@ export function OperationResults({
             <tbody>
               {data.molecules.map((m, i) => (
                 <tr key={i}>
-                  <th title={m.input}>{m.smiles ?? m.input}</th>
+                  <th scope="row">
+                    <span>
+                      {zh ? "分子" : "Molecule"} {i + 1}
+                    </span>
+                    <small
+                      className="result-smiles"
+                      title={m.smiles ?? m.input}
+                    >
+                      {m.smiles ?? m.input}
+                    </small>
+                  </th>
                   {m.available ? (
                     [
                       m.mw,
@@ -357,51 +333,5 @@ export function OperationResults({
         </p>
       )}
     </section>
-  );
-}
-
-export function ResultTree({
-  value,
-  zh,
-  depth = 0,
-}: {
-  value: unknown;
-  zh: boolean;
-  depth?: number;
-}) {
-  if (value == null) return <span>—</span>;
-  if (typeof value !== "object")
-    return <span className="result-value">{String(value)}</span>;
-  if (depth > 4) return null;
-  if (Array.isArray(value))
-    return (
-      <div>
-        {value.length ? (
-          value.map((entry, i) => (
-            <details key={i} open={value.length <= 3}>
-              <summary>
-                {zh ? "结果" : "Result"} {i + 1}
-              </summary>
-              <ResultTree value={entry} zh={zh} depth={depth + 1} />
-            </details>
-          ))
-        ) : (
-          <p>{zh ? "没有返回条目" : "No entries returned"}</p>
-        )}
-      </div>
-    );
-  return (
-    <dl className="result-tree">
-      {Object.entries(value)
-        .filter(([key]) => isResearchField(key))
-        .map(([key, entry]) => (
-          <div key={key}>
-            <dt title={key}>{zh ? (labels[key] ?? key) : key}</dt>
-            <dd>
-              <ResultTree value={entry} zh={zh} depth={depth + 1} />
-            </dd>
-          </div>
-        ))}
-    </dl>
   );
 }

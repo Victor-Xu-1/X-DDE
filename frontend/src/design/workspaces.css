@@ -231,7 +231,6 @@ dialog::backdrop {
   }
   .studio-content h1,
   .tool-grid,
-  .project-layout,
   .guide-grid,
   .model-grid,
   .theme-options {
@@ -277,4 +276,29 @@ dialog::backdrop {
     scroll-behavior: auto !important;
     transition: none !important;
   }
+}
+
+.help-workspace .guide-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 14px;
+}
+.help-workspace .guide-grid .studio-panel {
+  padding: 18px;
+}
+.help-workspace .guide-grid p {
+  font-size: 13px;
+  margin-bottom: 0;
+}
+.help-science-notes {
+  margin: 24px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.help-science-notes summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+.help-science-notes li {
+  margin: 8px 0;
+  line-height: 1.7;
 }

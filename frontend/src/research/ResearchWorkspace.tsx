@@ -108,6 +108,24 @@ export function ResearchWorkspace({
     }
   }
 
+  if (properties)
+    return (
+      <section className="task-workspace is-input">
+        <button
+          className="tool-back-button"
+          onClick={() => setProperties(null)}
+        >
+          {zh ? "← 返回研究资产" : "← Back to assets"}
+        </button>
+        <PropertyForm
+          key={properties.id}
+          language={language}
+          onCreated={onCreated}
+          initialFile={properties.reference.asset_id}
+          scientificInput={properties.reference}
+        />
+      </section>
+    );
   return (
     <section className="research-workspace">
       <h1 className="sr-only">
@@ -115,11 +133,11 @@ export function ResearchWorkspace({
       </h1>
       <div className="editor-toolbar">
         <button onClick={() => void load()} disabled={busy}>
-          {zh ? "刷新关系" : "Refresh relationships"}
+          {zh ? "刷新" : "Refresh"}
         </button>
         {selected && (
           <button onClick={() => setSelected(null)}>
-            {zh ? "查看全局关系" : "View all relationships"}
+            {zh ? "取消选择" : "Clear selection"}
           </button>
         )}
         <label>
@@ -232,19 +250,6 @@ export function ResearchWorkspace({
       )}
       {graph && graph.nodes.length > 0 && (
         <>
-          <RelationshipGraph
-            graph={graph}
-            selected={selected}
-            language={language}
-            onSelect={(id) => void select(id)}
-          />
-          {graph.truncated && (
-            <p className="notice">
-              {zh
-                ? "当前显示最近的资产与任务及关联来源。可以加载更早资产；点击节点查看其直接关系。"
-                : "Showing recent assets/tasks and their origins. Load older assets and select a node to inspect its direct relationships."}
-            </p>
-          )}
           <div className="research-columns">
             <section className="setup-card">
               <label className="field">
@@ -266,6 +271,7 @@ export function ResearchWorkspace({
                     <li key={n.id}>
                       <button
                         className={selected === n.id ? "selected" : ""}
+                        aria-label={`${objectLabels[n.kind]?.[zh ? 0 : 1]}: ${n.label}`}
                         onClick={() => void select(n.id)}
                       >
                         <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
@@ -308,15 +314,17 @@ export function ResearchWorkspace({
               register={register}
             />
           </div>
-          {properties && (
-            <PropertyForm
-              key={properties.id}
+          <details className="research-relationships">
+            <summary>
+              {zh ? "查看资产关系图" : "Show asset relationships"}
+            </summary>
+            <RelationshipGraph
+              graph={graph}
+              selected={selected}
               language={language}
-              onCreated={onCreated}
-              initialFile={properties.reference.asset_id}
-              scientificInput={properties.reference}
+              onSelect={(id) => void select(id)}
             />
-          )}
+          </details>
           {object && ["structure", "pocket"].includes(object.kind) && (
             <StructureViewer
               urls={[`/api/assets/${object.reference.asset_id}`]}

@@ -1,0 +1,66 @@
+.project-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.project-toolbar input {
+  width: min(100%, 300px);
+}
+.project-list {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 12px;
+}
+.project-list .project-row {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  min-height: 64px;
+}
+.project-list .project-row.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.project-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted);
+}
+.project-create-dialog {
+  width: 520px;
+  padding: 24px;
+}
+.project-create-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.project-create-dialog h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.project-create-dialog .text-button {
+  font-size: 24px;
+  min-width: 32px;
+}
+.project-create-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+@media (max-width: 640px) {
+  .project-toolbar input {
+    flex: 1;
+    min-width: 140px;
+  }
+  .project-create-dialog {
+    padding: 18px;
+  }
+}

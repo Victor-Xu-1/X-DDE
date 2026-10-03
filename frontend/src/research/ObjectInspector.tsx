@@ -62,11 +62,6 @@ export function ObjectInspector({
           <h2>{node.label}</h2>
           {object && (
             <>
-              <p className="field-help">
-                {zh
-                  ? "文件来源与版本已校验；化学有效性、三维质量和实验意义需由相应科学工具确认。"
-                  : "File identity and version are checked. Chemical validity, 3D quality and experimental interpretation require scientific tools."}
-              </p>
               <div className="editor-toolbar">
                 {object.kind === "molecule" && (
                   <>
@@ -89,52 +84,65 @@ export function ObjectInspector({
                   {zh ? "下载此版本" : "Download version"}
                 </a>
               </div>
-              <label className="field">
-                {zh ? "名称" : "Name"}
-                <input
-                  value={label}
-                  maxLength={120}
-                  onChange={(e) => setLabel(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                {zh ? "研究备注" : "Research notes"}
-                <textarea
-                  value={notes}
-                  maxLength={3000}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                {zh
-                  ? "人工评价（不代表模型分数）"
-                  : "Human rating (not a model score)"}
-                <select
-                  value={rating}
-                  onChange={(e) => setRating(Number(e.target.value))}
+              <details className="asset-annotations" key={object.id}>
+                <summary>
+                  {zh ? "名称、备注与人工评价" : "Name, notes & human rating"}
+                </summary>
+                <label className="field">
+                  {zh ? "名称" : "Name"}
+                  <input
+                    value={label}
+                    maxLength={120}
+                    onChange={(e) => setLabel(e.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  {zh ? "研究备注" : "Research notes"}
+                  <textarea
+                    value={notes}
+                    maxLength={3000}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  {zh
+                    ? "人工评价（不代表模型分数）"
+                    : "Human rating (not a model score)"}
+                  <select
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                  >
+                    {[0, 1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n === 0 ? (zh ? "未评价" : "Unrated") : `${n} / 5`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  disabled={busy || !label.trim()}
+                  onClick={() =>
+                    void mutate(() =>
+                      register(
+                        object.reference.asset_id,
+                        object.kind,
+                        label.trim(),
+                        object,
+                      ),
+                    )
+                  }
                 >
-                  {[0, 1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>
-                      {n === 0 ? (zh ? "未评价" : "Unrated") : `${n} / 5`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                disabled={busy || !label.trim()}
-                onClick={() =>
-                  void mutate(() =>
-                    register(
-                      object.reference.asset_id,
-                      object.kind,
-                      label.trim(),
-                      object,
-                    ),
-                  )
-                }
-              >
-                {zh ? "保存备注为新版本" : "Save notes as new version"}
-              </button>
+                  {zh ? "保存备注为新版本" : "Save notes as new version"}
+                </button>
+              </details>
+              <details className="asset-version-help">
+                <summary>{zh ? "版本说明" : "About this version"}</summary>
+                <p className="field-help">
+                  {zh
+                    ? "文件来源与版本已校验；化学有效性、三维质量和实验意义需由相应科学工具确认。"
+                    : "File identity and version are checked. Chemical validity, 3D quality and experimental interpretation require scientific tools."}
+                </p>
+              </details>
             </>
           )}
           {node.kind === "file" &&
@@ -186,7 +194,7 @@ export function ObjectInspector({
               {zh ? "尚未被其他任务使用。" : "Not yet used by another task."}
             </p>
           ) : (
-            <ul>
+            <ul className="research-relations">
               {related.map((edge, i) => {
                 const target =
                     edge.source === selected ? edge.target : edge.source,
