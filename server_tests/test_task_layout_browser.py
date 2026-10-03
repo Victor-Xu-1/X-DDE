@@ -24,7 +24,7 @@ def test_every_task_page_and_native_case_layout():
                 for name in names:
                     catalog(page)
                     page.get_by_role("button",name=name,exact=True).click()
-                    expect(page.locator(".module-template")).to_be_visible()
+                    expect(page.locator(".module-template:visible")).to_be_visible()
                     rows.append(capture(page,evidence,name,"new"))
                     # Expert fields are a separate UI state, never a launched task.
                     expert=page.get_by_role("button",name="专家模式",exact=True)

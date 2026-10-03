@@ -13,11 +13,11 @@ def capture(page, evidence, name, stage):
     measurements=page.evaluate("""() => ({width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth+1,panels:[...document.querySelectorAll('main .questionnaire,main .module-template')].filter(e=>e.getBoundingClientRect().height>0).map(e=>({kind:e.className,x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))})""")
     assert not measurements["overflow"], f"{name} {stage}: horizontal page overflow"
     if panels.count():
-        form=page.locator("main .questionnaire").bounding_box()
-        template=page.locator("main .module-template").bounding_box()
+        form=page.locator("main .questionnaire:visible").bounding_box()
+        template=page.locator("main .module-template:visible").bounding_box()
         if template:
             assert abs(form["x"]-template["x"])<=2 and abs(form["width"]-template["width"])<=2, f"{name}: task and template widths differ"
-        actions=page.locator(".questionnaire-actions").bounding_box()
+        actions=page.locator(".questionnaire-actions:visible").bounding_box()
         if actions:
             assert actions["x"]>=form["x"]-1 and actions["x"]+actions["width"]<=form["x"]+form["width"]+1
     safe="".join(c if c.isalnum() else "-" for c in name)[:70]
@@ -46,9 +46,9 @@ def review_steps(page,evidence,name):
         consent_on_current_page(page)
         button=page.get_by_role("button",name="下一步",exact=True)
         if button.count()!=1 or not button.is_enabled():break
-        before=page.locator(".questionnaire-heading").inner_text()
+        before=page.locator(".questionnaire-heading:visible").inner_text()
         button.click()
-        expect(page.locator(".questionnaire-heading")).not_to_have_text(before)
+        expect(page.locator(".questionnaire-heading:visible")).not_to_have_text(before)
     return rows
 
 def save_report(evidence,rows,errors):
