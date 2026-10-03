@@ -25,7 +25,7 @@ export function useTaskLabel(job: Job | null, language: Language) {
         });
     return () => controller.abort();
   }, [job?.id]);
-  return label?.id === job?.id
+  return label && job && label.id === job.id
     ? label!.value[language === "zh" ? 0 : 1]
     : (job?.request.name ?? "");
 }

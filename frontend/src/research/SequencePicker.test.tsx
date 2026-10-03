@@ -45,9 +45,7 @@ it("saves an immutable sequence version only on explicit action and detaches it 
     "ACDEFGHIKLMNPQRSTVWY",
   );
   expect(upload).not.toHaveBeenCalled();
-  await user.click(
-    screen.getByRole("button", { name: "Save sequence version" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Confirm sequences" }));
   expect(save).toHaveBeenCalledWith(
     "/research/objects",
     expect.objectContaining({ asset_id: "file", kind: "sequence" }),

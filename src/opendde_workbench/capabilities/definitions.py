@@ -62,8 +62,8 @@ _DIFF = tuple(
             "design",
             ("口袋条件分子生成", "Pocket-conditioned molecule generation"),
             (
-                "使用真实受体、口袋和兼容模型。",
-                "Use a real receptor, pocket and compatible native model.",
+                "围绕选定受体口袋，生成新的小分子候选。",
+                "Generate new small-molecule candidates for a selected receptor pocket.",
             ),
         ),
         (
@@ -89,8 +89,8 @@ _DIFF = tuple(
             "design",
             ("分子优化", "Optimize molecules"),
             (
-                "按原生 QED/SA 目标与有限种群、轮次运行。",
-                "Use native QED/SA objectives with bounded populations and rounds.",
+                "选择类药性或合成难度目标，探索新的分子候选。",
+                "Explore molecular candidates using drug-likeness or synthesis-difficulty objectives.",
             ),
         ),
         (
@@ -98,8 +98,8 @@ _DIFF = tuple(
             "prepare",
             ("口袋检查", "Inspect pockets"),
             (
-                "检查原生支持的残基或配体定义。",
-                "Inspect native-supported residue or ligand pocket definitions.",
+                "查看所选口袋的位置和包含的残基。",
+                "Inspect the selected pocket and its residues.",
             ),
         ),
         (
@@ -131,8 +131,8 @@ _DIFF = tuple(
             "evaluate",
             ("候选描述符", "Candidate descriptors"),
             (
-                "处理明确候选版本和记录。",
-                "Process explicitly selected candidate versions and records.",
+                "比较所选候选分子的分子量、脂溶性等结构性质。",
+                "Compare molecular weight, lipophilicity and other descriptors for selected candidates.",
             ),
         ),
         (
@@ -190,7 +190,7 @@ _POCKETS = (
         operations=("pocket_search",),
         label=("发现多个候选口袋", "Discover candidate protein pockets"),
         note=(
-            "使用 P2Rank 预测蛋白位点，保留多个假设及原生评分。",
+            "使用 P2Rank 预测蛋白位点，比较多个候选位点及模型评分。",
             "Predict protein sites with P2Rank and retain multiple hypotheses and native scores.",
         ),
         source="P2Rank",

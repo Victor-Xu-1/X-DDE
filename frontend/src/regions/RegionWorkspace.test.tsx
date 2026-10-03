@@ -56,12 +56,13 @@ it("saves overlapping binder regions and native evidence without altering the mo
     );
   render(<RegionEditor subject={subject} language="en" />);
   await waitFor(() =>
-    expect(
-      screen.getByRole("combobox", {
-        name: "Reuse saved regions (this molecule version)",
-      }),
-    ).toBeEnabled(),
+    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled(),
   );
+  expect(
+    screen.queryByRole("combobox", {
+      name: "Historical regions (this molecule)",
+    }),
+  ).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Region role" }),

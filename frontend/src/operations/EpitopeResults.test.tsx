@@ -23,6 +23,10 @@ it("distinguishes protein contact residues from structure water without changing
   );
   expect(screen.getByText("蛋白接触残基: 2")).toBeVisible();
   expect(screen.getByText(/1 个结构水/)).toBeVisible();
-  expect(within(screen.getByRole("table")).getByText("C:PRO572")).toBeVisible();
+  expect(
+    within(screen.getByRole("table", { name: "蛋白接触残基" })).getByText(
+      "C:PRO572",
+    ),
+  ).toBeVisible();
   expect(JSON.stringify(value)).toBe(original);
 });

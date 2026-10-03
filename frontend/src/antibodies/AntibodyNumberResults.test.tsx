@@ -92,7 +92,7 @@ it("hands off the exact saved domain sequence and exposes failed inputs without 
     "1",
   );
   expect(screen.getByRole("status")).toHaveTextContent(
-    "Native model could not number this input",
+    "This input could not be numbered",
   );
   expect(
     screen.queryByRole("button", { name: "Predict this domain structure" }),

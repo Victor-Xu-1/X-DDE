@@ -54,6 +54,9 @@ it("preserves new catalogue components and secondary removal review", () => {
     ),
   );
   expect(screen.getByRole("heading", { name: "DiffSBDD" })).toBeVisible();
+  const extra = screen.getByText(/可选模型与配套组件/, { selector: "summary" });
+  expect(extra.closest("details")).not.toHaveAttribute("open");
+  fireEvent.click(extra);
   expect(
     screen.getByRole("heading", { name: "DiffSBDD · crossdock_full" }),
   ).toBeVisible();

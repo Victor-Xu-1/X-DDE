@@ -70,8 +70,8 @@ _ROWS = (
         "structure",
         ("结合体折叠与界面评分", "Binder folding and interface scoring"),
         (
-            "Harness 原生候选折叠、界面指标与目标评分。",
-            "Native candidate folding, interface metrics and objectives.",
+            "预测结合体复合物，比较结构置信度与界面指标。",
+            "Predict binder complexes and compare structural confidence and interface metrics.",
         ),
         "Harness / OpenDDE",
     ),
@@ -144,8 +144,8 @@ _ROWS = (
         "prepare",
         ("准备抗体设计靶标 MSA", "Prepare target MSA for design"),
         (
-            "由 Harness 搜索靶标比对，返回深度与缓存信息。",
-            "Harness target alignment search with depth and cache metadata.",
+            "搜索靶标的相似序列，查看多序列比对的规模。",
+            "Search target homologs and inspect multiple-sequence alignment depth.",
         ),
         "Harness",
     ),
@@ -154,8 +154,8 @@ _ROWS = (
         "prepare",
         ("准备 MSA 与模板", "Prepare MSAs and templates"),
         (
-            "蛋白 MSA、MSA＋模板、蛋白＋模板＋RNA MSA 三种原生流程。",
-            "Native protein MSA, MSA plus templates, and full protein/template/RNA preparation.",
+            "为结构预测准备多序列比对和参考结构模板。",
+            "Prepare sequence alignments and structural templates for prediction.",
         ),
         "OpenDDE",
     ),

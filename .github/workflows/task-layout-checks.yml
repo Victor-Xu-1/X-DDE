@@ -55,6 +55,8 @@ jobs:
           npm ci --prefix frontend
           npm run build --prefix frontend
           uv sync --locked --group dev --group browser
+      - name: Verify the authoritative capability catalogue
+        run: .venv/bin/python -m pytest -q tests/test_capabilities.py
       - name: Focused task layout, input identity and presentation regressions
         working-directory: frontend
         run: >-

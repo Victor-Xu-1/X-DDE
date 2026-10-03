@@ -37,7 +37,9 @@ it("clears the prior structure when switching to a task without a result", () =>
     { channel: "opendde-viewer", type: "clear", value: undefined },
     location.origin,
   );
-  expect(screen.getByText("预测完成后，结构会显示在这里")).toBeVisible();
+  expect(
+    screen.getByText("选择文件或构象后，三维结构会显示在这里"),
+  ).toBeVisible();
 });
 
 it("focuses the actual pose and enables interactions without pretending comparison selection is supported", () => {

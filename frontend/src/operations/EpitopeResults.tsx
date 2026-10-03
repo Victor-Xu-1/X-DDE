@@ -48,7 +48,7 @@ export function EpitopeResults({
               " structural-water entries.")}
       </p>
       <div className="table-scroll">
-        <table>
+        <table aria-label={zh ? "蛋白接触残基" : "Protein contact residues"}>
           <thead>
             <tr>
               <th>{zh ? "残基" : "Residue"}</th>

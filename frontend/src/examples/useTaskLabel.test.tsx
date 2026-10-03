@@ -7,9 +7,13 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
-function Title({ job }: { job: Job }) {
+function Title({ job }: { job: Job | null }) {
   return <output>{useTaskLabel(job, "zh")}</output>;
 }
+it("renders safely before any task has been selected", () => {
+  render(<Title job={null} />);
+  expect(screen.getByRole("status")).toBeEmptyDOMElement();
+});
 it("uses the registered public case label without changing the immutable task name", async () => {
   vi.spyOn(client, "request").mockResolvedValue({
     examples: [

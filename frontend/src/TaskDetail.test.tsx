@@ -54,10 +54,9 @@ it("shows scientific downloads without internal engineering files", () => {
   expect(screen.queryByRole("heading", { name: /Logs|输入摘要/ })).toBeNull();
   expect(screen.queryByRole("link", { name: /Input JSON/ })).toBeNull();
   expect(document.querySelector("script")).toBeNull();
-  expect(screen.getByRole("link", { name: /result\/a b.cif/ })).toHaveAttribute(
-    "href",
-    "/api/jobs/abc/download?name=result%2Fa+b.cif",
-  );
+  expect(
+    screen.getByRole("link", { name: "3D structure · CIF" }),
+  ).toHaveAttribute("href", "/api/jobs/abc/download?name=result%2Fa+b.cif");
 });
 it("never shows artifacts belonging to the previous selection", () => {
   render(

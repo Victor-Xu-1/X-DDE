@@ -79,5 +79,5 @@ it("requires actual plan validation and explicit review before native campaign d
   expect(
     await screen.findByRole("heading", { name: "5. Track design" }),
   ).toBeVisible();
-  expect(screen.getByRole("status")).toHaveTextContent("native-task");
+  expect(screen.getByRole("status")).toHaveTextContent("Campaign dispatched");
 });
