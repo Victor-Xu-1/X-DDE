@@ -307,3 +307,19 @@ dialog::backdrop {
   display: block;
   margin-left: auto;
 }
+
+.operation-results .research-download {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.result-method-notes {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.result-method-notes summary {
+  color: var(--accent);
+  cursor: pointer;
+}

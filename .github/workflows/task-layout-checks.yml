@@ -49,6 +49,7 @@ jobs:
           src/guided/Questionnaire.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx
+          src/diffsbdd/DiffResults.test.tsx
           src/diffsbdd/ReferencePicker.test.tsx
           src/research/HistoricalFileSelect.test.tsx
           src/research/SequencePicker.test.tsx

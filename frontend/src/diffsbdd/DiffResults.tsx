@@ -72,6 +72,18 @@ export function DiffResults({
       ? [{ key, name: data[key] as string }]
       : [],
   );
+  const fileLabels: Record<string, [string, string]> = {
+    protein_artifact: ["受体结构", "Receptor structure"],
+    pocket_artifact: ["口袋结构", "Pocket structure"],
+    molecule_artifact: ["分子结构", "Molecule structures"],
+    report_artifact: ["分析报告", "Analysis report"],
+    artifact: ["结果文件", "Result file"],
+  };
+  const molecule =
+    typeof data.molecule_artifact === "string" &&
+    /\.(sdf|mol|mol2)$/.test(data.molecule_artifact)
+      ? data.molecule_artifact
+      : null;
   const protein =
     typeof data.protein_artifact === "string" ? data.protein_artifact : null;
   return (
@@ -108,12 +120,24 @@ export function DiffResults({
         <ul>
           {names.map((v) => (
             <li key={v.key}>
-              <a href={artifactUrl(job.id, v.name)} download>
-                {v.name}
+              <a
+                className="research-download"
+                href={artifactUrl(job.id, v.name)}
+                title={v.name.split("/").at(-1)}
+                download
+              >
+                {fileLabels[v.key]?.[zh ? 0 : 1] ?? v.name.split("/").at(-1)} ·{" "}
+                {v.name.split(".").at(-1)?.toUpperCase()}
               </a>
             </li>
           ))}
         </ul>
+      )}
+      {!selected && molecule && (
+        <StructureViewer
+          urls={[artifactUrl(job.id, molecule)]}
+          language={language}
+        />
       )}
       {protein && (
         <details>
