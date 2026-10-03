@@ -34,7 +34,7 @@ jobs:
           npm run build --prefix frontend
       - name: Check installation activity and component controls
         working-directory: frontend
-        run: npx vitest run src/deployment/DeploymentActivity.test.tsx src/deployment/deployment.test.tsx
+        run: npx vitest run src/deployment/DeploymentActivity.test.tsx src/deployment/deployment.test.tsx src/deployment/component-groups.test.ts src/deployment/installation.test.ts src/deployment/ComputeServicePanel.test.tsx
       - name: Check changed installer and related deployment behavior
         run: |
           uv sync --locked --group dev

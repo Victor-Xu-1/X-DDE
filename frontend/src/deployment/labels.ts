@@ -1,3 +1,5 @@
+import type { ComponentPackage } from "./component-groups";
+
 export const names: Record<string, string> = {
   "public-examples": "公开研发案例",
   sapiens: "抗体人源参考 · Sapiens / ANARCII / Promb",
@@ -8,7 +10,42 @@ export const names: Record<string, string> = {
   abag: "OpenDDE 抗体预测模型",
   ketcher: "分子绘图 · Ketcher",
   molstar: "蛋白与复合物 · Mol*",
+  biopython: "受体准备 · Biopython",
+  chemistry: "分子准备 · RDKit",
+  gnina: "分子对接 · GNINA",
+  admet: "性质预测 · ADMET-AI",
+  posebusters: "姿势质控 · PoseBusters",
+  anarcii: "抗体编号 · ANARCII",
+  "p2rank-compute": "P2Rank · Java 环境",
+  p2rank: "口袋寻找 · P2Rank",
+  "opendde-tools": "搜索数据库解压工具",
+  "opendde-search": "模板与 RNA 搜索数据库",
 };
+
+export function componentName(p: ComponentPackage, zh: boolean) {
+  const model =
+    /^diffsbdd-model-(crossdocked|moad)_(ca|fullatom)_(cond|joint)$/.exec(p.id);
+  if (model)
+    return `${model[1] === "moad" ? "MOAD" : "CrossDocked"} · ${model[2] === "ca" ? "Cα" : zh ? "全原子" : "Full atom"} · ${model[3] === "cond" ? (zh ? "条件模型" : "Conditional") : zh ? "联合模型" : "Joint"}`;
+  const english: Record<string, string> = {
+    biopython: "Receptor preparation · Biopython",
+    chemistry: "Molecule preparation · RDKit",
+    gnina: "Molecular docking · GNINA",
+    sapiens: "Antibody reference · Sapiens",
+    "opendde-tools": "Search archive tools",
+    "opendde-search": "Template and RNA databases",
+  };
+  return (zh ? names[p.id] : english[p.id]) || p.name;
+}
+
+export function componentSize(p: ComponentPackage, zh: boolean) {
+  const parts = p.size.split(" / ");
+  const value = parts[zh ? 0 : 1] ?? parts[0];
+  // Some upstream labels translate only “download”; retain their actual size.
+  return !zh && /\d/.test(parts[0]) && !/\d/.test(value)
+    ? parts[0].replace(/约\s*/g, "~").replace(/下载/g, "download")
+    : value;
+}
 export const states: Record<string, string> = {
   queued: "等待依赖 / 排队中",
   running: "正在安装",

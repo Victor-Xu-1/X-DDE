@@ -50,6 +50,12 @@
 - Keep real native results distinct from public experimental references and
   runnable inputs. A download, installation or example preset is not a computed result.
 
+## Component management
+
+- Group components by research use without merging their isolated environments. Bundle actions request only missing, non-pending catalogue roots after a fresh snapshot; the existing server deployment queue owns dependency resolution and operation state. Explicit repair is separate from installed status.
+- Use available page width with adaptive compact cards. Keep all registered components reachable, including future catalogue entries. Fold settings/completed history; keep active, paused and latest unresolved failures visible with existing controls and logs.
+- Installed status must not dispatch installation. Preserve optional model/database choices, individual third-party licenses, ownership and uninstall protection. Do not verify interface changes by reinstalling scientific components on the owner's shared workstation.
+
 ## Publication versions
 
 - Every publishable update pushed to main advances the three-number product counter exactly once. PATCH is 0..100 inclusive; after 100 increment MINOR and reset PATCH to 0. MINOR is 0..10 inclusive; after 0.10.100 advance to 1.0.0. Apply the same carries after 1.x.

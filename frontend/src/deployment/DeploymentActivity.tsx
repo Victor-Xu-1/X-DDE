@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { api, request } from "../api";
 import type { Deployment } from "./client";
-import { names, states, stageLabel } from "./labels";
+import { pendingStates, type DeploymentOperation } from "./component-groups";
+import { componentName, names, states, stageLabel } from "./labels";
 export function DeploymentActivity({
   data,
   zh,
@@ -14,25 +15,31 @@ export function DeploymentActivity({
   execute(action: () => Promise<unknown>): Promise<void>;
 }) {
   const [log, setLog] = useState<string | null>(null);
-  return (
-    <>
-      {" "}
-      <h2>{zh ? "安装进度" : "Installation activity"}</h2>
-      {!data.operations.length && (
-        <p className="empty">
-          {zh
-            ? "还没有安装任务。选择上方方案即可开始。"
-            : "No installations yet. Choose a starting point above."}
-        </p>
-      )}
+  // Snapshot order is newest first. Superseded failures belong to history.
+  const latest = new Map<string, string>();
+  data.operations.forEach((o) => {
+    if (!latest.has(o.package)) latest.set(o.package, o.id);
+  });
+  const current = data.operations.filter(
+    (o) =>
+      pendingStates.has(o.state) ||
+      (o.state === "failed" && latest.get(o.package) === o.id),
+  );
+  const currentIds = new Set(current.map((o) => o.id));
+  const history = data.operations.filter((o) => !currentIds.has(o.id));
+  function rows(operations: DeploymentOperation[]) {
+    return (
       <div className="deployment-activity">
-        {data.operations.map((o) => (
+        {operations.map((o) => (
           <article key={o.id}>
             <div>
               <strong>
-                {(zh && names[o.package]) ||
-                  data.packages.find((p) => p.id === o.package)?.name ||
-                  o.package}
+                {data.packages.find((p) => p.id === o.package)
+                  ? componentName(
+                      data.packages.find((p) => p.id === o.package)!,
+                      zh,
+                    )
+                  : (zh && names[o.package]) || o.package}
               </strong>
               <span className="status-pill">
                 {zh ? states[o.state] : o.state}
@@ -78,6 +85,7 @@ export function DeploymentActivity({
                 </button>
               )}
               <button
+                disabled={busy}
                 onClick={() =>
                   void execute(async () => {
                     const result = await request<{ text: string }>(
@@ -98,6 +106,28 @@ export function DeploymentActivity({
           </article>
         ))}
       </div>
+    );
+  }
+  return (
+    <section className="deployment-progress">
+      {current.length > 0 && (
+        <>
+          <h2>
+            {zh ? "安装进度" : "Installation activity"}{" "}
+            <small>{current.length}</small>
+          </h2>
+          {rows(current)}
+        </>
+      )}
+      {history.length > 0 && (
+        <details className="deployment-disclosure deployment-history">
+          <summary>
+            <strong>{zh ? "安装历史" : "Installation history"}</strong>
+            <span>{history.length}</span>
+          </summary>
+          {rows(history)}
+        </details>
+      )}
       {log !== null && (
         <section className="setup-card">
           <button onClick={() => setLog(null)}>
@@ -106,6 +136,6 @@ export function DeploymentActivity({
           <pre className="deployment-log">{log}</pre>
         </section>
       )}
-    </>
+    </section>
   );
 }

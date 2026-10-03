@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { api } from "../api";
 import type { Deployment } from "./client";
-import { names } from "./labels";
+import { ComponentCard, type ComponentActions } from "./ComponentCard";
+import {
+  componentGroups,
+  missingComponents,
+  pendingOperation,
+} from "./component-groups";
+import { componentName } from "./labels";
+
 export function ComponentLibrary({
   data,
   zh,
@@ -12,143 +19,125 @@ export function ComponentLibrary({
   data: Deployment;
   zh: boolean;
   busy: boolean;
-  execute(action: () => Promise<unknown>): Promise<void>;
-  install(keys: string[]): Promise<void>;
-}) {
+} & ComponentActions) {
   const [remove, setRemove] = useState<string | null>(null);
-  const removeName = data.packages.find((p) => p.id === remove)?.name ?? remove;
-  const groups = [
-    ...new Set(data.packages.map((p) => p.engine ?? "editors")),
-  ].map((id) => ({
-    id,
-    packages: data.packages.filter((p) => (p.engine ?? "editors") === id),
-  }));
+  const [filter, setFilter] = useState("all");
+  const groups = componentGroups(data.packages);
+  const removedPackage = data.packages.find((p) => p.id === remove);
+  const removeName = removedPackage
+    ? componentName(removedPackage, zh)
+    : remove;
   return (
-    <>
-      {" "}
-      <div className="section-heading">
-        <h2>{zh ? "组件库" : "Components"}</h2>
-        <span>
-          {zh
-            ? "仅安装经过版本与校验和固定的官方发行版"
-            : "Reviewed, pinned official releases"}
+    <section className="component-library">
+      <div className="component-overview">
+        <h2>{zh ? "组件" : "Components"}</h2>
+        <span
+          title={
+            zh
+              ? "安装状态不等同于模型或计算服务就绪。"
+              : "Installed files do not imply compute readiness."
+          }
+        >
+          {zh ? "已安装" : "Installed"}{" "}
+          {data.packages.filter((p) => data.installed[p.id]).length}/
+          {data.packages.length}
         </span>
       </div>
-      {groups.map((group) => (
-        <section
-          key={group.id}
-          className="component-group"
-          aria-labelledby={"component-group-" + group.id}
+      <nav
+        className="component-filters"
+        aria-label={zh ? "组件分组" : "Component groups"}
+      >
+        <button
+          aria-pressed={filter === "all"}
+          onClick={() => setFilter("all")}
         >
-          <h3 id={"component-group-" + group.id}>
-            {group.id === "x-dde"
-              ? zh
-                ? "公开研发案例"
-                : "Public research examples"
-              : group.id === "editors"
-                ? zh
-                  ? "编辑与预览工具"
-                  : "Editing & inspection tools"
-                : ((data.environments ?? data.engines)[group.id]?.name ??
-                    group.id) +
-                  (zh
-                    ? " · 集成环境与模型"
-                    : " · Integrated environment & models")}
-          </h3>
-          <div className="component-grid">
-            {group.packages.map((p) => {
-              const installed = data.installed[p.id];
-              const pending = data.operations.some(
-                (o) =>
-                  o.package === p.id &&
-                  ["queued", "running", "pausing", "paused"].includes(o.state),
-              );
-              return (
-                <article className="component-card" key={p.id}>
-                  <div className="component-top">
-                    <span
-                      className={
-                        installed ? "status-pill installed" : "status-pill"
-                      }
-                    >
-                      {installed
-                        ? zh
-                          ? "已安装"
-                          : "Installed"
-                        : zh
-                          ? "未安装"
-                          : "Not installed"}
-                    </span>
-                    <small>{p.version}</small>
-                  </div>
-                  <h3>{zh ? (names[p.id] ?? p.name) : p.name}</h3>
-                  <p>
-                    {p.description.split(" / ")[zh ? 0 : 1] ?? p.description}
-                  </p>
+          {zh ? "全部" : "All"}
+        </button>
+        {groups.map((group) => (
+          <button
+            key={group.id}
+            aria-pressed={filter === group.id}
+            onClick={() => setFilter(group.id)}
+          >
+            {group.title[zh ? 0 : 1]}
+          </button>
+        ))}
+      </nav>
+      {groups
+        .filter((group) => filter === "all" || filter === group.id)
+        .map((group) => {
+          const recommended = group.recommended.filter((id) =>
+            group.packages.some((p) => p.id === id),
+          );
+          const missing = missingComponents(data, recommended);
+          const pending = recommended.some((id) => pendingOperation(data, id));
+          const complete =
+            recommended.length > 0 &&
+            recommended.every((id) => data.installed[id]);
+          return (
+            <section
+              key={group.id}
+              className="component-group"
+              aria-labelledby={"component-group-" + group.id}
+            >
+              <header className="component-group-heading">
+                <h3 id={"component-group-" + group.id}>
+                  {group.title[zh ? 0 : 1]}{" "}
                   <small>
-                    {p.size} · {p.license}
+                    {group.packages.filter((p) => data.installed[p.id]).length}/
+                    {group.packages.length}
                   </small>
-                  <div className="component-actions">
-                    <button
-                      disabled={busy || pending}
-                      onClick={() => void execute(() => install([p.id]))}
-                    >
-                      {installed
+                </h3>
+                {recommended.length > 0 && (
+                  <button
+                    className="component-bundle"
+                    disabled={busy || !missing.length}
+                    title={
+                      (zh
+                        ? "只补齐缺失组件，自动处理依赖。"
+                        : "Install missing components with server-managed dependencies. ") +
+                      group.recommendation[zh ? 0 : 1]
+                    }
+                    onClick={() => void execute(() => install(recommended))}
+                  >
+                    {complete
+                      ? zh
+                        ? "组合已安装"
+                        : "Bundle installed"
+                      : !missing.length && pending
                         ? zh
-                          ? "重新安装"
-                          : "Reinstall"
+                          ? "部署中"
+                          : "Deploying"
                         : zh
-                          ? "安装"
-                          : "Install"}
-                    </button>
-                    {installed && (
-                      <>
-                        <button
-                          disabled={
-                            busy || pending || installed.version === p.version
-                          }
-                          title={
-                            zh
-                              ? "升级到工作台目录中已审核的新版本；更新工作台可获取新的组件目录。"
-                              : "Upgrade to a newer reviewed catalogue release by updating Workbench."
-                          }
-                          onClick={() =>
-                            void execute(() =>
-                              api.post(
-                                `/deployment/packages/${p.id}/upgrade`,
-                                {},
-                              ),
-                            )
-                          }
-                        >
-                          {zh ? "升级" : "Upgrade"}
-                        </button>
-                        <button
-                          disabled={busy || pending}
-                          onClick={() => setRemove(p.id)}
-                        >
-                          {zh ? "卸载" : "Uninstall"}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      ))}
+                          ? "部署推荐组合"
+                          : "Install recommended bundle"}
+                  </button>
+                )}
+              </header>
+              <div className="component-grid">
+                {group.packages.map((p) => (
+                  <ComponentCard
+                    key={p.id}
+                    p={p}
+                    data={data}
+                    zh={zh}
+                    busy={busy}
+                    execute={execute}
+                    install={install}
+                    onRemove={setRemove}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
       {remove && (
         <section
-          className="notice"
+          className="notice component-removal"
           role="alertdialog"
           aria-label={zh ? "确认卸载" : "Confirm uninstall"}
         >
-          <h3>
-            {zh
-              ? `卸载 ${names[remove] ?? removeName}？`
-              : `Uninstall ${removeName}?`}
-          </h3>
+          <h3>{zh ? `卸载 ${removeName}？` : `Uninstall ${removeName}?`}</h3>
           <p>
             {zh
               ? "组件将停用并移除其独立安装文件。研究结果、模型权重、缓存和共享 Docker 镜像保留；依赖此组件的其他组件须先卸载。"
@@ -170,6 +159,6 @@ export function ComponentLibrary({
           </button>
         </section>
       )}
-    </>
+    </section>
   );
 }

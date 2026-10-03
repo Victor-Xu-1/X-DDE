@@ -26,6 +26,7 @@ export interface Deployment {
     engine: string | null;
     kind: "runtime" | "model" | "editor" | "data";
     license: string;
+    dependencies?: string[];
   }[];
   compute_service?: {
     restart_required?: boolean;
