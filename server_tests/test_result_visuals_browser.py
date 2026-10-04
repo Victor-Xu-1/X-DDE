@@ -77,7 +77,8 @@ def test_real_structures_tables_and_sequences():
             )
             assert ET.fromstring(structure.read_bytes()).tag.endswith("svg")
             plot = download(
-                page.get_by_role("button", name="下载当前图表 SVG", exact=True), "native-properties.svg"
+                page.get_by_role("button", name="下载当前图表 SVG", exact=True),
+                "native-properties.svg",
             )
             assert ET.fromstring(plot.read_bytes()).tag.endswith("svg")
             result("性质与早期安全性预测")
@@ -110,7 +111,13 @@ def test_real_structures_tables_and_sequences():
             width, height = struct.unpack(">II", raw[16:24])
             assert 500 < width <= 4096 and 400 < height <= 4096
             assert width * height <= 8 * 1024**2
-            assert page.locator(".viewer-panel iframe").bounding_box() == before_frame
+            after_frame = page.locator(".viewer-panel iframe").bounding_box()
+            # Download controls may scroll the document; the native render size must stay intact.
+            assert before_frame and after_frame
+            assert (after_frame["width"], after_frame["height"]) == (
+                before_frame["width"],
+                before_frame["height"],
+            )
             page.get_by_role("button", name="关闭图片", exact=True).click()
             page.get_by_label("下载原始结构文件", exact=True).click()
             download(
