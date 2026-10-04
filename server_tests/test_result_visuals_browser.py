@@ -126,7 +126,7 @@ def test_real_structures_tables_and_sequences():
             )
             record("protein-real-png")
             result("口袋条件分子生成")
-            expect(page.get_by_role("heading", name="生成的候选分子", exact=False)).to_be_visible(
+            expect(page.get_by_role("table", name="生成的候选分子", exact=True)).to_be_visible(
                 timeout=30000
             )
             expect(page.locator(".molecule-record")).to_have_count(5)
