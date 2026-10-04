@@ -116,6 +116,7 @@ export function DiffResults({
     "pocket_artifact",
     "molecule_artifact",
     "report_artifact",
+    "reference_artifact",
     "artifact",
   ].flatMap((key) =>
     typeof data[key] === "string" &&
@@ -129,6 +130,7 @@ export function DiffResults({
     pocket_artifact: ["口袋结构", "Pocket structure"],
     molecule_artifact: ["分子结构", "Molecule structures"],
     report_artifact: ["分析报告", "Analysis report"],
+    reference_artifact: ["参考分子", "Reference molecule"],
     artifact: ["结果文件", "Result file"],
   };
   const protein =
@@ -255,7 +257,27 @@ export function DiffResults({
           ))}
         </ul>
       )}
-      {protein && (
+      {mode === "pocket" && protein && (
+        <StructureViewer
+          urls={[
+            artifactUrl(job.id, protein),
+            ...(typeof data.reference_artifact === "string" &&
+            (data.ligand_status as { state?: string } | undefined)?.state ===
+              "verified"
+              ? [artifactUrl(job.id, data.reference_artifact)]
+              : []),
+          ]}
+          language={language}
+          focusModel={
+            typeof data.reference_artifact === "string" &&
+            (data.ligand_status as { state?: string } | undefined)?.state ===
+              "verified"
+              ? 1
+              : undefined
+          }
+        />
+      )}
+      {protein && mode !== "pocket" && (
         <details>
           <summary>{zh ? "查看受体结构" : "View receptor structure"}</summary>
           <StructureViewer
@@ -268,6 +290,7 @@ export function DiffResults({
         <>
           <GeneratedCandidates
             records={records}
+            generated={designing}
             url={artifactUrl(job.id, targetArtifact)}
             selected={selectedRecord}
             language={language}

@@ -10,6 +10,7 @@ export interface GeneratedRecord {
 }
 export function GeneratedCandidates({
   records,
+  generated = true,
   url,
   selected,
   language,
@@ -17,6 +18,7 @@ export function GeneratedCandidates({
   onSelect,
 }: {
   records: GeneratedRecord[];
+  generated?: boolean;
   url: string;
   selected: GeneratedRecord | null;
   language: Language;
@@ -25,7 +27,7 @@ export function GeneratedCandidates({
 }) {
   const zh = language === "zh";
   const label = (v: GeneratedRecord) =>
-    (zh ? "候选 " : "Candidate ") +
+    (generated ? (zh ? "候选 " : "Candidate ") : zh ? "分子 " : "Molecule ") +
     ((verification?.candidates.find((c) => c.qualified_record === v.record)
       ?.record ?? v.record) +
       1);
@@ -34,13 +36,27 @@ export function GeneratedCandidates({
       <ResearchTable
         rows={records}
         rowId={(v) => String(v.record)}
-        title={zh ? "生成的候选分子" : "Generated candidate molecules"}
+        title={
+          generated
+            ? zh
+              ? "生成的候选分子"
+              : "Generated candidate molecules"
+            : zh
+              ? "结果中的分子"
+              : "Molecules in this result"
+        }
         language={language}
         selected={selected ? String(selected.record) : null}
         columns={[
           {
             key: "candidate",
-            label: zh ? "候选分子" : "Candidate molecule",
+            label: generated
+              ? zh
+                ? "候选分子"
+                : "Candidate molecule"
+              : zh
+                ? "分子"
+                : "Molecule",
             value: (v) => label(v),
             render: (v) => (
               <button

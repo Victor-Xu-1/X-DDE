@@ -186,3 +186,35 @@ it("does not display or reuse a file whose records disagree with its qualified s
     }),
   ).toBeNull();
 });
+
+it("previews only a verified native pocket reference in the same coordinate context", () => {
+  render(
+    <DiffResults
+      language="en"
+      job={
+        {
+          id: "site",
+          request: { operation: "diffsbdd", payload: { mode: "pocket" } },
+        } as unknown as Job
+      }
+      data={{
+        operation: "diffsbdd",
+        complete: true,
+        protein_artifact: "protein.pdb",
+        reference_artifact: "reference.sdf",
+        ligand_status: { state: "verified" },
+      }}
+    />,
+  );
+  expect(screen.getByTestId("native-preview")).toHaveTextContent(
+    artifactUrl("site", "protein.pdb") +
+      "|" +
+      artifactUrl("site", "reference.sdf"),
+  );
+  expect(
+    screen.getByRole("link", { name: "Reference molecule · SDF" }),
+  ).toHaveAttribute("href", artifactUrl("site", "reference.sdf"));
+  expect(
+    screen.queryByRole("table", { name: "Generated candidate molecules" }),
+  ).toBeNull();
+});
