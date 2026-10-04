@@ -4,6 +4,8 @@ on:
     branches: ['**']
     paths:
       - 'frontend/src/presentation/**'
+      - 'frontend/src/App.tsx'
+      - 'frontend/src/App.test.tsx'
       - 'frontend/src/TaskDetail*'
       - 'frontend/src/useWorkbench*'
       - 'frontend/src/studio/RuntimeStatus*'
@@ -16,6 +18,8 @@ on:
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
+      - 'frontend/src/App.tsx'
+      - 'frontend/src/App.test.tsx'
       - 'frontend/src/TaskDetail*'
       - 'frontend/src/useWorkbench*'
       - 'frontend/src/studio/RuntimeStatus*'
