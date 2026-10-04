@@ -1,7 +1,12 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import type { ScientificObject } from "../research/types";
-import { MoleculeSaveIntent, molecularRecord } from "./scientificEditor";
+import {
+  MoleculeSaveIntent,
+  molecularRecord,
+  editorReady,
+  type Ketcher,
+} from "./scientificEditor";
 
 const original: ScientificObject = {
   id: "version-1",
@@ -24,8 +29,25 @@ const original: ScientificObject = {
   validation: "file_integrity_only",
 };
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+it("resolves an editor frame that mounts after readiness was requested", async () => {
+  vi.useFakeTimers();
+  const editor = {
+    getSmiles: vi.fn(),
+    getMolfile: vi.fn(),
+    setMolecule: vi.fn(),
+  } as Ketcher;
+  let frame: HTMLIFrameElement | null = null;
+  const waiting = editorReady(() => frame, new AbortController().signal);
+  frame = {
+    contentWindow: { ketcher: editor },
+  } as unknown as HTMLIFrameElement;
+  await vi.advanceTimersByTimeAsync(100);
+  expect(await waiting).toBe(editor);
 });
 
 it("opens exactly the selected SDF record and refuses unsupported conversion", async () => {

@@ -18,14 +18,15 @@ export interface Ketcher {
 }
 
 export async function editorReady(
-  frame: HTMLIFrameElement | null,
+  frame: HTMLIFrameElement | null | (() => HTMLIFrameElement | null),
   signal: AbortSignal,
   attempts = 50,
 ): Promise<Ketcher> {
   for (let attempt = 0; attempt < Math.min(attempts, 600); attempt++) {
     signal.throwIfAborted();
+    const currentFrame = typeof frame === "function" ? frame() : frame;
     const editor = (
-      frame?.contentWindow as (Window & { ketcher?: Ketcher }) | null
+      currentFrame?.contentWindow as (Window & { ketcher?: Ketcher }) | null
     )?.ketcher;
     if (editor) return editor;
     await new Promise<void>((resolve, reject) => {

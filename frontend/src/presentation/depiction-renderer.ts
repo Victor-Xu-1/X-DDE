@@ -60,7 +60,7 @@ export class DepictionRenderer {
           throw new Error(
             "Install the Ketcher component to draw 2D structures.",
           );
-        return editorReady(this.frame(), signal, 500);
+        return editorReady(this.frame, signal, 200);
       })();
     return this.ready;
   }
