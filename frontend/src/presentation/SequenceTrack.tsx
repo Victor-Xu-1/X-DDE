@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Language } from "../types";
-import "./research-table.css";
+import "./sequence-track.css";
 export interface SequenceRegion {
   start: number;
   end: number;

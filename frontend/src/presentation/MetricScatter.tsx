@@ -1,3 +1,4 @@
+import "./metric-scatter.css";
 import { useState } from "react";
 import type { Language } from "../types";
 export interface PlotMetric<T> {

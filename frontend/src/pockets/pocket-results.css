@@ -1,6 +1,6 @@
 .pocket-explorer {
   display: grid;
-  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 2fr);
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr);
   gap: 18px;
   align-items: start;
   margin-top: 16px;
@@ -8,47 +8,9 @@
 .pocket-explorer > * {
   min-width: 0;
 }
-.pocket-result-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  max-height: 560px;
-  overflow: auto;
-}
-.pocket-result-list button {
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  text-align: left;
-  padding: 18px;
-  min-height: 132px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-}
-.pocket-result-list button[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-.pocket-result-list button span,
-.pocket-result-list button small {
-  font-size: 13px;
-  color: var(--muted);
-}
-.pocket-result-list button strong {
-  font-size: 15px;
-}
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
   .pocket-explorer {
     grid-template-columns: 1fr;
-  }
-  .pocket-result-list {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
-    max-height: 300px;
   }
 }
 .atom-number-selection {

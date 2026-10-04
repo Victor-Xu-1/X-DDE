@@ -9,7 +9,7 @@ import {
 import { LoadingOutlined } from "@ant-design/icons";
 import { DepictionRenderer, type DepictionSource } from "./depiction-renderer";
 import type { Language } from "../types";
-import "./research-table.css";
+import "./molecule-image.css";
 const DrawingContext = createContext<DepictionRenderer | null>(null);
 export function MoleculeDrawingProvider({ children }: { children: ReactNode }) {
   const frame = useRef<HTMLIFrameElement>(null);

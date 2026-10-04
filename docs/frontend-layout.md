@@ -33,6 +33,10 @@ mixed metrics, convert scores into affinity or merge measured assay endpoints.
 CSV exports retain source values and units, quote Unicode fields and guard
 spreadsheet formulas. Tab panels mount on demand and preserve visited view state.
 
+Candidate pockets use the shared sortable table with separate native ranks,
+probabilities, scores and residue counts. Selecting a row highlights that exact
+site in the source structure and carries its identity into the next task.
+
 The shared native Ketcher SVG renderer reads exact bounded SMILES or MOL/SDF
 records. One bounded readiness handshake, a serial drawing queue and a bounded
 Blob cache keep cold starts and hidden panels from generating repeated requests.

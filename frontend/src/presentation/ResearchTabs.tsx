@@ -1,3 +1,4 @@
+import "./research-tabs.css";
 import { useId, useRef, useState, type ReactNode } from "react";
 export function ResearchTabs({
   tabs,

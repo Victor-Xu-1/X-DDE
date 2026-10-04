@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ResearchTable } from "../presentation/ResearchTable";
 import "./pocket-results.css";
 import type { Job, Language } from "../types";
 import type { PocketResult, Site } from "./types";
@@ -109,33 +110,53 @@ export function PocketResults({
       )}
       <div className="pocket-explorer">
         <div className="pocket-candidates">
-          <ul className="pocket-result-list">
-            {result.pockets.map((site) => (
-              <li key={site.rank}>
-                <button
-                  type="button"
-                  aria-pressed={site.rank === selected?.rank}
-                  onClick={() => {
-                    setSelected(site);
-                    setContinue(false);
-                    setDocking(false);
-                  }}
-                >
-                  <strong>
+          <ResearchTable
+            title={zh ? "候选口袋" : "Candidate pockets"}
+            rows={result.pockets}
+            language={language}
+            rowId={(site) => String(site.rank)}
+            selected={selected ? String(selected.rank) : null}
+            compare={false}
+            columns={[
+              {
+                key: "rank",
+                label: zh ? "口袋" : "Pocket",
+                value: (site) => site.rank,
+                render: (site) => (
+                  <button
+                    type="button"
+                    className="record-select"
+                    aria-pressed={site.rank === selected?.rank}
+                    onClick={() => {
+                      setSelected(site);
+                      setContinue(false);
+                      setDocking(false);
+                    }}
+                  >
                     {zh ? "口袋" : "Pocket"} {site.rank}
-                  </strong>
-                  <span>
-                    {zh ? "模型概率" : "Model probability"}{" "}
-                    {site.probability.toFixed(3)} ·{" "}
-                    {zh ? "位点评分" : "Site score"} {site.score.toFixed(2)}
-                  </span>
-                  <small>
-                    {site.residues.length} {zh ? "个残基" : "residues"}
-                  </small>
-                </button>
-              </li>
-            ))}
-          </ul>
+                  </button>
+                ),
+              },
+              {
+                key: "probability",
+                label: zh ? "模型概率" : "Model probability",
+                value: (site) => site.probability,
+                numeric: true,
+              },
+              {
+                key: "score",
+                label: zh ? "位点评分" : "Site score",
+                value: (site) => site.score,
+                numeric: true,
+              },
+              {
+                key: "residues",
+                label: zh ? "残基数" : "Residues",
+                value: (site) => site.residues.length,
+                numeric: true,
+              },
+            ]}
+          />
           {result.truncated && (
             <p>
               {zh

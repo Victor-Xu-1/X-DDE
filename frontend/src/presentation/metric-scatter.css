@@ -1,0 +1,62 @@
+.metric-scatter {
+  min-width: 0;
+}
+.metric-scatter > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.metric-scatter > header span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.scatter-axes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.scatter-axes label {
+  display: grid;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 0;
+}
+.scatter-axes select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.metric-scatter svg {
+  width: 100%;
+  display: block;
+  margin-top: 12px;
+  overflow: visible;
+}
+.metric-scatter svg text {
+  fill: var(--muted);
+  font-size: 10px;
+  font-family: var(--font);
+}
+.scatter-grid {
+  stroke: var(--line);
+  stroke-dasharray: 3 4;
+}
+.scatter-axis {
+  stroke: var(--muted);
+}
+.scatter-point {
+  fill: var(--accent);
+  fill-opacity: 0.45;
+  stroke: var(--surface);
+  stroke-width: 1;
+  cursor: pointer;
+}
+.scatter-point.selected,
+.scatter-point:hover {
+  fill-opacity: 1;
+  stroke: var(--accent);
+  stroke-width: 2;
+}

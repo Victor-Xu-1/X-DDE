@@ -1,3 +1,4 @@
+import "./presentation/result-layout.css";
 import { useEffect, useRef, useState } from "react";
 import IconContext from "@ant-design/icons/es/components/Context";
 import { api, artifactUrl } from "./api";

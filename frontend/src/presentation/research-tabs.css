@@ -1,0 +1,45 @@
+.research-tabs {
+  min-width: 0;
+  max-width: 100%;
+}
+.research-tab-list {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  margin: 18px 0;
+}
+.research-tab-list button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 12px 2px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.research-tab-list button[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.research-tab-list button span {
+  padding: 1px 6px;
+  font-size: 11px;
+  border-radius: 5px;
+  background: var(--surface-muted);
+}
+.research-tabs [role="tabpanel"][hidden] {
+  display: none;
+}
+.research-tabs [role="tabpanel"] {
+  outline: 0;
+  min-width: 0;
+}

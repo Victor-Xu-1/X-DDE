@@ -1,0 +1,80 @@
+.drawing-service-frame {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  left: -9999px;
+  top: 0;
+}
+.molecule-image {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--muted);
+}
+.molecule-image img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+}
+.molecule-image a {
+  font-size: 12px;
+  justify-self: end;
+  margin-top: 8px;
+}
+.molecule-image.is-thumbnail {
+  min-height: 0;
+  width: 128px;
+  max-width: 100%;
+  height: 84px;
+  padding: 4px;
+  font-size: 11px;
+}
+.molecule-image.is-thumbnail img {
+  width: 120px;
+  height: 76px;
+}
+.molecular-preview {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--surface);
+  min-width: 0;
+}
+.molecular-preview .research-tab-list {
+  margin: 0 0 12px;
+}
+.molecular-preview .viewer-panel {
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.molecule-record {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 190px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+}
+.molecule-record > span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.molecule-record small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}

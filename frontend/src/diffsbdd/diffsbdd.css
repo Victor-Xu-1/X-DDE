@@ -21,15 +21,6 @@
   margin-block: 0.6rem;
 }
 
-.diff-candidate-choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  max-height: 180px;
-  overflow: auto;
-}
 @media (min-width: 1000px) {
   .interaction-results {
     display: grid;
