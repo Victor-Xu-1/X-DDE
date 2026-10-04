@@ -106,6 +106,7 @@ jobs:
           src/viewer/source-layout.test.ts
           src/viewer/PoseScore.test.tsx
           src/operations/HarnessResults.test.tsx
+          src/operations/PreparedInputResults.test.tsx
           src/operations/native-report.test.ts
           src/operations/sequence-result.test.ts
           src/research/asset-list.test.ts

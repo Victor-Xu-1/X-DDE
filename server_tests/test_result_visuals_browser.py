@@ -58,6 +58,19 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_role("heading", name="3MXF", exact=True)).to_be_visible()
             expect(page.get_by_role("link", name="下载原始材料", exact=True)).to_be_visible()
             record("verified-reference-import")
+            result("准备 MSA 与模板")
+            expect(page.locator(".prepared-research-inputs .sequence-track")).to_be_visible(
+                timeout=30000
+            )
+            record("prepared-native-sequence")
+            result("导入结构与批量任务")
+            expect(page.locator(".prepared-research-inputs .sequence-track")).to_be_visible(
+                timeout=30000
+            )
+            expect(page.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
+                timeout=30000
+            )
+            record("converted-native-inputs")
             result("计算小分子性质")
             expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
             page.wait_for_function(
