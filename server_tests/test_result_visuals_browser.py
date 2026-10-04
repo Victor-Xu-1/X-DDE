@@ -44,6 +44,10 @@ def test_real_structures_tables_and_sequences():
             steps.append(name)
 
         try:
+            result("导入参考结构与化合物")
+            expect(page.get_by_role("heading", name="3MXF", exact=True)).to_be_visible()
+            expect(page.get_by_role("link", name="下载原始材料", exact=True)).to_be_visible()
+            record("verified-reference-import")
             result("计算小分子性质")
             expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
             page.wait_for_function(

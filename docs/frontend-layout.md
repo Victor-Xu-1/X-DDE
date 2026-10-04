@@ -57,6 +57,12 @@ domain-specific views preserve native molecular records, source sequence positio
 score definitions, and readiness/qualification boundaries. No synthesis workflow
 or unsupported scientific endpoint is added by this presentation update.
 
+Portable public cases include source snapshots used by the native archive verifier.
+Legacy bundles may recover the omitted final response only from the retained
+archive material with the same recorded SHA-256; all existing source identity,
+scope and digest checks still run. Missing metadata is never reconstructed from
+molecular files, and changed existing receipts are never overwritten.
+
 X-DDE uses one guided task component and one source-selection contract. Scientific engines and result schemas are unchanged by presentation work.
 
 - Show one questionnaire step at a time. Keep Next and Submit at the lower right; validate the current step before navigation.

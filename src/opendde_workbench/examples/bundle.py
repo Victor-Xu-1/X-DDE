@@ -8,6 +8,7 @@ from ..store import Store
 from .bundle_archive import safe_path, sha256, write_archive
 from .bundle_projection import project_records, references
 from .bundle_restore import restore_bundle as restore_bundle
+from .bundle_sources import archive_sources
 from .catalogue import CASES, FILES, MODULES
 from .evidence import capture_job
 from .files import verified_file
@@ -64,6 +65,9 @@ def export_bundle(settings, target, source_revision):
         for name in evidence.artifact_sha256:
             relative = f"jobs/{row['id']}/output/{name}"
             paths[relative] = safe_path(settings.state_dir, relative)
+        output = settings.state_dir / "jobs" / row["id"] / "output"
+        for name, path in archive_sources(store.get(row["id"]), output).items():
+            paths[f"jobs/{row['id']}/output/{name}"] = path
     for row in rows["jobs"]:
         analysis = settings.state_dir / "jobs" / row["id"] / "analysis" / "workbench-analysis.json"
         if analysis.is_file() and json.loads(analysis.read_text()).get("schema_version") == 4:

@@ -10,6 +10,7 @@ from ..assets import AssetStore
 from ..store import ConflictError, Store
 from .bundle_archive import read_archive, safe_path, sha256
 from .bundle_projection import TABLES
+from .bundle_sources import archive_sources
 from .catalogue import FILES
 
 
@@ -94,6 +95,14 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                         + ")",
                         tuple(row[key] for key in keys),
                     )
+        recovered_sources = {}
+        for row in rows["jobs"]:
+            job = stage_store.get(row["id"])
+            output = staging / "jobs" / job.id / "output"
+            for path in archive_sources(job, output, recover=True).values():
+                name = path.relative_to(staging).as_posix()
+                if name not in manifest["files"]:
+                    recovered_sources[name] = {"sha256": sha256(path)}
         summary = verify_examples(replace(settings, state_dir=staging))
         stage_assets = AssetStore(stage_store, staging / "assets")
         for row in rows["jobs"]:
@@ -137,7 +146,7 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                             )
                         if old is None:
                             pending.append((table, columns, row))
-                for name, evidence in manifest["files"].items():
+                for name, evidence in {**manifest["files"], **recovered_sources}.items():
                     checkpoint()
                     target = safe_path(state, name)
                     if target.exists():

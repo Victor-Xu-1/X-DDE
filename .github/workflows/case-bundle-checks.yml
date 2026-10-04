@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_case_bundle.py'
+      - 'tests/test_case_bundle_sources.py'
       - 'tests/test_compute_service.py'
       - 'frontend/src/deployment/**'
       - '.github/workflows/case-bundle-checks.yml'
@@ -29,6 +30,6 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/test_case_bundle.py tests/test_compute_service.py tests/test_deployment.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - run: uv run --locked pytest -q tests/test_case_bundle.py tests/test_case_bundle_sources.py tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
       - working-directory: frontend
         run: npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
