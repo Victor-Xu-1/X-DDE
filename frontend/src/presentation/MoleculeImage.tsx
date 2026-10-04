@@ -7,7 +7,11 @@ import {
   type ReactNode,
 } from "react";
 import { LoadingOutlined } from "@ant-design/icons";
-import { DepictionRenderer, type DepictionSource } from "./depiction-renderer";
+import {
+  DepictionRenderer,
+  depictionDataUrl,
+  type DepictionSource,
+} from "./depiction-renderer";
 import type { Language } from "../types";
 import "./molecule-image.css";
 const DrawingContext = createContext<DepictionRenderer | null>(null);
@@ -77,7 +81,6 @@ export function MoleculeImage({
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    let owned = "";
     setUrl("");
     setError(false);
     if (!visible) return () => controller.abort();
@@ -87,10 +90,10 @@ export function MoleculeImage({
     }
     void renderer
       .render(source, controller.signal)
+      .then(depictionDataUrl)
       .then((value) => {
         if (!controller.signal.aborted) {
-          owned = URL.createObjectURL(value);
-          setUrl(owned);
+          setUrl(value);
         }
       })
       .catch((reason) => {
@@ -104,7 +107,6 @@ export function MoleculeImage({
       });
     return () => {
       controller.abort();
-      if (owned) URL.revokeObjectURL(owned);
     };
   }, [key, renderer, visible, attempt]);
   return (

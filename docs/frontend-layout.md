@@ -40,7 +40,8 @@ site in the source structure and carries its identity into the next task.
 The shared native Ketcher SVG renderer reads exact bounded SMILES or MOL/SDF
 records. One bounded readiness handshake, a serial drawing queue and a bounded
 Blob cache keep cold starts and hidden panels from generating repeated requests.
-Images load near the visible range; each image owns and releases its Blob URL.
+Images load near the visible range. Bounded SVG data URLs preserve drawing bytes
+and work under the unchanged platform image policy; unmounts release view state.
 The pinned native color protocol uses normalized RGB, rather than the incompatible
 hex example in the upstream high-level documentation. Drawing does not call
 setMolecule on the user's editor, write source coordinates, or create research jobs.

@@ -36,6 +36,27 @@ async function readStructure(source: DepictionSource, signal: AbortSignal) {
   return molecularRecordText(text, record, format);
 }
 
+/** Native drawing pixels in an image URL accepted by the platform's strict CSP. */
+export async function depictionDataUrl(blob: Blob): Promise<string> {
+  if (blob.type !== "image/svg+xml" || !blob.size || blob.size > 2 * 1024 ** 2)
+    throw new Error("Expected a bounded native SVG drawing.");
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const value = reader.result;
+      if (
+        typeof value !== "string" ||
+        !value.startsWith("data:image/svg+xml;base64,")
+      )
+        reject(new Error("The native drawing could not be read as an image."));
+      else resolve(value);
+    };
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Cannot read the native drawing."));
+    reader.readAsDataURL(blob);
+  });
+}
+
 /** A bounded, local native Ketcher renderer. It never writes back to the editor or source. */
 export class DepictionRenderer {
   private controller = new AbortController();
