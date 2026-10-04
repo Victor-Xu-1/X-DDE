@@ -112,7 +112,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
                     setShowInput(true);
                   }}
                 >
-                  <ReloadOutlined />{" "}
+                  <ReloadOutlined aria-hidden="true" />{" "}
                   {zh ? "使用这份历史输入" : "Use these historical inputs"}
                 </button>
               )}

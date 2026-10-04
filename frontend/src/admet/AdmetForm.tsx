@@ -115,8 +115,8 @@ export function AdmetForm({
                   value: "molecule",
                   title: zh ? "一个研究分子" : "One research molecule",
                   note: zh
-                    ? "复用确切的研究版本或文件记录。"
-                    : "Reuse an exact research version or file record.",
+                    ? "提供一个分子，确认需要预测的结构。"
+                    : "Provide one molecule and confirm the structure to predict.",
                 },
                 {
                   value: "library",

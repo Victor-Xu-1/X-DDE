@@ -146,6 +146,8 @@
 .questionnaire-choices input {
   width: auto;
   flex: 0 0 auto;
+  accent-color: var(--accent);
+  margin-top: 3px;
 }
 .questionnaire-choices span {
   display: grid;

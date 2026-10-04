@@ -150,10 +150,17 @@ it("shows each main component once and deploys only the selected research group"
   fresh(snapshot);
   const post = vi.spyOn(api, "post").mockResolvedValue({});
   panel(snapshot);
-  expect(screen.getAllByRole("article")).toHaveLength(4);
+  const mainCards = () =>
+    screen
+      .getAllByRole("article")
+      .filter((card) => !card.closest(".component-additions"));
+  expect(mainCards()).toHaveLength(4);
+  expect(
+    screen.getByRole("article", { name: "OpenDDE 抗体预测模型" }),
+  ).not.toBeVisible();
   expect(screen.queryByRole("button", { name: "部署推荐组合" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "结构预测 · OpenDDE" }));
-  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect(mainCards()).toHaveLength(2);
   fireEvent.click(screen.getByRole("button", { name: "部署推荐组合" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(3));
   expect(post.mock.calls.map((call) => call[0])).toEqual([
@@ -164,7 +171,9 @@ it("shows each main component once and deploys only the selected research group"
   fireEvent.click(
     screen.getByText(/可选模型与配套组件/, { selector: "summary" }),
   );
-  expect(screen.getByRole("article", { name: "abag" })).toBeVisible();
+  expect(
+    screen.getByRole("article", { name: "OpenDDE 抗体预测模型" }),
+  ).toBeVisible();
 });
 it("keeps pending or unresolved optional components visible without duplicating main cards", () => {
   panel(
