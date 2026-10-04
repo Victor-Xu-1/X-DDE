@@ -55,3 +55,16 @@ def test_library_snapshot_keeps_all_records_without_relaxing_prediction_ligands(
     directory.mkdir()
     with pytest.raises(ValueError, match="prediction ligand"):
         assets.snapshot(prediction, directory)
+
+
+def test_new_selection_choices_have_explicit_policy_and_bounded_scaffold_budget():
+    legacy = ScreenOptions()
+    assert legacy.alert_policy == "off" and legacy.per_scaffold == 1
+    with pytest.raises(ValidationError, match="warn or exclude"):
+        ScreenOptions(mode="alerts")
+    for policy in ("warn", "exclude"):
+        assert ScreenOptions(mode="alerts", alert_policy=policy).alert_policy == policy
+    assert ScreenOptions(mode="scaffold", per_scaffold=2).per_scaffold == 2
+    for change in ({"per_scaffold": 0}, {"per_scaffold": 11}, {"alert_catalogue": "all"}):
+        with pytest.raises(ValidationError):
+            ScreenOptions(**change)

@@ -39,6 +39,8 @@ def test_actual_library_result_exact_record_handoff_and_questionnaire(tmp_path):
     output = state / "jobs" / job.id / "output"
     output.mkdir(parents=True)
     shutil.copyfile(fixture / result["artifact"], output / result["artifact"])
+    if result.get("report_artifact"):
+        shutil.copyfile(fixture / result["report_artifact"], output / result["report_artifact"])
     (output / "result.json").write_text(json.dumps(result))
     assert OutputCatalog(store, assets).index(job, output)["state"] == "complete"
     with socket.socket() as listener:

@@ -92,6 +92,8 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
                 "invalid_records_preserved",
                 "selected_output_budget",
                 "chemical_criteria_not_activity",
+                "explicit_structural_alert_policy",
+                "scaffold_family_budget",
             ]
     elif spec.environment == "gnina":
         checks = {"runtime": bool(backends.get("gnina", {}).get("ready"))}

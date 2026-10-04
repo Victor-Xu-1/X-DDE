@@ -98,25 +98,25 @@
   "chemistry.screen": {
     "steps": [
       [
-        "比较真实药物分子的性质或早期筛选指标。",
-        "Compare properties or early screening metrics of real drug molecules."
+        "载入伊马替尼、达沙替尼和尼洛替尼的公开结构，核对三个原始记录。",
+        "Load public imatinib, dasatinib and nilotinib structures and confirm the three records."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
-        "Confirm the molecular collection and its separate records."
+        "选择结构风险检查、骨架代表选择，或其他分子库筛选用途。",
+        "Choose structural-alert review, scaffold representatives or another library selection purpose."
       ],
       [
-        "保留模板的性质或筛选项，按研究目的再调整阈值。",
-        "Keep the example endpoints, then adjust research-specific thresholds."
+        "风险检查推荐仅提示；骨架选择推荐每组一个。可在专家设置微调。",
+        "Flag rule matches without exclusion by default; start with one representative per scaffold and adjust optional expert settings."
       ],
       [
-        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
-        "Compare units, missing values and alerts; predictions differ from experiments."
+        "确认后提交新任务；结果查看具体规则、结构组和未选原因，下载表格或继续准备分子。",
+        "Review and submit a new task; inspect matched rules, chemical families and selection reasons, download the table or prepare selected molecules."
       ]
     ],
     "interpretation": [
-      "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
-      "Compare units, missing values and alerts; predictions differ from experiments."
+      "规则命中需要核查，不等于有毒或无活性；骨架代表按原始顺序选择，不是药效排名。历史示例未检查的项目仍显示未计算。",
+      "Rule matches require review and do not establish toxicity or inactivity. Scaffold representatives follow input order, not activity rank. Historical examples never acquire uncomputed inspection claims."
     ]
   },
   "biopython.prepare": {

@@ -123,8 +123,8 @@ export const tools = [
     group: "analyze",
     label: ["分子库与早期筛选", "Library and early molecular selection"],
     note: [
-      "整理、相似性、片段和多样性选择，复用具体分子记录。",
-      "Inventory, similarity, substructure and diversity; reuse exact molecular records.",
+      "结构风险提示、骨架代表选择、相似性与分子库筛选。",
+      "Structural alerts, scaffold representatives, similarity and library selection.",
     ],
     source: "RDKit",
     modalities: ["chemical", "small_molecule"],

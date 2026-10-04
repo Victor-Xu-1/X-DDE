@@ -1,0 +1,71 @@
+name: Early library inspection checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/chemistry/screen_*.py'
+      - 'src/opendde_workbench/chemistry/native_screen.py'
+      - 'src/opendde_workbench/chemistry/backend.py'
+      - 'frontend/src/chemistry/Library*'
+      - 'frontend/src/chemistry/screen-types.ts'
+      - 'tests/test_library*'
+      - 'server_tests/test_library_inspections.py'
+      - 'server_tests/test_native_library_screen.py'
+      - 'server_tests/test_library_extension_browser.py'
+      - '.github/workflows/library-screen-checks.yml'
+  pull_request:
+    paths:
+      - 'src/opendde_workbench/chemistry/screen_*.py'
+      - 'src/opendde_workbench/chemistry/native_screen.py'
+      - 'src/opendde_workbench/chemistry/backend.py'
+      - 'frontend/src/chemistry/Library*'
+      - 'frontend/src/chemistry/screen-types.ts'
+      - 'tests/test_library*'
+      - 'server_tests/test_library_inspections.py'
+      - 'server_tests/test_native_library_screen.py'
+      - 'server_tests/test_library_extension_browser.py'
+      - '.github/workflows/library-screen-checks.yml'
+permissions:
+  contents: read
+jobs:
+  library-inspections:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build locked UI and install isolated host/browser dependencies
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+      - name: Check exact native-library contracts and catalogue authority
+        run: |
+          uv run --locked pytest -q tests/test_library_screen.py tests/test_library_evidence.py
+          PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py --check
+      - name: Check only the changed questionnaire and result consumers
+        working-directory: frontend
+        run: npx vitest run src/chemistry/LibraryScreenForm.test.tsx src/chemistry/LibraryScreenResults.test.tsx
+      - name: Real pinned RDKit rules, scaffolds and chemical preservation on remote CPU
+        run: >-
+          uv run --no-project --python 3.10
+          --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6 --with pydantic==2.13.5
+          python -m pytest -q server_tests/test_library_science.py server_tests/test_library_inspections.py
+      - name: Run therapeutic inputs through the existing isolated chemistry container and API
+        env:
+          WB_TEST_NATIVE_LIBRARY: '1'
+        run: uv run --locked pytest -q -s server_tests/test_native_library_screen.py
+      - name: Inspect actual same-run outputs and new choices in Chromium
+        run: |
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+          uv run --locked --group browser pytest -q server_tests/test_library_extension_browser.py
+      - name: Preserve actual scientific and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: early-library-inspection-evidence
+          path: server_tests/evidence/
+          if-no-files-found: warn

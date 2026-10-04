@@ -191,6 +191,11 @@ def test_real_offline_state_container_indexes_a_persistent_reusable_collection(t
                     shutil.copyfile(
                         screened_output / screen["artifact"], screen_fixture / screen["artifact"]
                     )
+                    if screen.get("report_artifact"):
+                        shutil.copyfile(
+                            screened_output / screen["report_artifact"],
+                            screen_fixture / screen["report_artifact"],
+                        )
             screen_ids.append(screen_id)
         screen_output = settings.state_dir / "jobs" / screen_ids[0] / "output"
         original_selected = (screen_output / "selected.sdf").read_bytes()

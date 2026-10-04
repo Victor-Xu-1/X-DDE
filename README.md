@@ -85,9 +85,9 @@ X-DDE UI
 
 Every task starts with fresh uploads or typed inputs. Historical files are opt-in. Use this template provides guided research inputs; Example results stays in the module. Template-derived submissions are new personal tasks, and the original evidence remains available.
 
-核心科研入口保留在主导航；工作空间概况、安装、运行状态和帮助位于底部管理菜单。**账户与设置**可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器；账户信息反映现有本地单用户模式。
+主导航按靶点、结构、口袋与对接、小分子、生物药和性质组织科研任务。研究空间统一项目、历史文件与结构编辑；任务与结果统一进度、分析、报告和下载。底部 **设置与帮助** 提供安装与运行、界面设置和使用帮助；界面设置可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器。
 
-Core research tools remain in the main navigation. The bottom **Account & settings** menu groups workspace overview, installation, runtime status and help. Open its settings page to choose Chinese/English and Warm/Pure white/Night appearance; preferences are saved in the current browser. Account information reflects the existing local single-user mode.
+The main navigation groups research by targets, structures, pockets/docking, molecules, biologics and properties. Research workspace combines projects, historical files and editors; Tasks and results combines progress, analysis and downloads. Settings and help contains installation/runtime, appearance/language and help. Browser preferences retain the selected Chinese/English language and theme.
 
 部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。新位置的组件目录由 X-DDE 标记归属；升级复用已有目录与归属标记，不自动搬动环境或研究数据。同一位置同时存在新旧组件目录时拒绝猜测，提示管理员核对。更改安装位置不自动迁移已有数据。
 
@@ -336,3 +336,12 @@ environment readiness. Settings and help has three direct destinations: installa
 and runtime, interface preferences, and the usage guide. The static account placeholder,
 separate overview and duplicate analysis/export pages have been retired. Full catalogue
 entries are compact rows grouped by workflow with three common tasks visible and supplementary methods explicitly expandable; overlapping drug-modality filters remain.
+
+
+### 分子库的结构风险与骨架选择 / Structural alerts and scaffold representatives
+
+在 **性质与安全性 → 研究任务 → 分子库与早期筛选** 中，上传新 SDF 分子库，第二步选择“检查结构风险”或“按骨架挑代表”。结构风险使用现有固定版本 RDKit 的 PAINS/Brenk 规则；默认提示后保留候选，暂时排除需明确选择。规则命中不是毒性或无活性结论，未命中不证明安全。
+
+骨架选择使用保留手性的 Murcko 骨架，先覆盖不同结构组，再按每组数量挑选；组内顺序来自输入文件，不代表活性排名。无环分子保留各自完整化学身份，多片段记录原位保留但不参与此项选择，不自动脱盐或枚举状态。专家可调每组上限和规则目录。结果展示规则、骨架组、未选原因与可下载 CSV；选中 SDF 和确切分子记录可继续准备构象、计算性质或对接。历史结果保持原样，未运行的检查不补成阴性结果。
+
+The existing Chemistry environment provides both methods; no additional model or environment is needed. Choose the purpose, then an explicit alert policy or per-scaffold budget and review before submission. Native schema 2 adds actual rule/group evidence and a checked CSV artifact; schema 1 records remain readable and unevaluated. Input molecular identities, stereochemistry, isotopes, charges, coordinates and properties are retained. The methods do not estimate activity, experimental toxicity or affinity.

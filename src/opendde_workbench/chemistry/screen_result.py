@@ -8,6 +8,7 @@ from pydantic import Field, model_validator
 from ..artifacts import contained
 from ..scientific_objects import MoleculeRef, ScientificModel
 from .screen_contract import LibraryRef
+from .screen_evidence import ScaffoldGroup, StructuralAlert, validate_inspection
 from .screen_options import ScreenOptions
 
 
@@ -40,11 +41,16 @@ class ScreenRow(ScientificModel):
             "descriptor_range",
             "count_budget",
             "invalid_record",
+            "structural_alert",
+            "scaffold_quota",
+            "multiple_fragments",
         ]
         | None
     ) = None
     duplicate_of: int | None = Field(default=None, ge=0, le=499)
     descriptors: Descriptors | None = None
+    structural_alerts: tuple[StructuralAlert, ...] | None = Field(default=None, max_length=1000)
+    scaffold_group: int | None = Field(default=None, ge=0, le=499)
 
     @model_validator(mode="after")
     def coherent(self):
@@ -71,7 +77,7 @@ class Fingerprint(ScientificModel):
 class LibraryScreenResult(ScientificModel):
     operation: Literal["library_screen"]
     complete: Literal[True]
-    schema_version: Literal[1]
+    schema_version: Literal[1, 2]
     library: LibraryRef
     query: MoleculeRef | None
     options: ScreenOptions
@@ -84,6 +90,10 @@ class LibraryScreenResult(ScientificModel):
     scope: Literal["chemical_library_selection_not_activity_admet_or_binding_prediction"]
     chemical_processing: Literal["original_records_no_salt_stripping_or_state_enumeration"]
     coordinate_frame: Literal["retained_input_coordinates_not_inferred_binding_pose"]
+    scaffold_groups: tuple[ScaffoldGroup, ...] | None = Field(default=None, max_length=500)
+    scaffold_method: Literal["murcko_chiral_acyclic_exact"] | None = None
+    report_artifact: Literal["library-report.csv"] | None = None
+    report_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
 
     @model_validator(mode="after")
     def complete_records(self):
@@ -131,6 +141,7 @@ class LibraryScreenResult(ScientificModel):
                     )
                 ):
                     raise ValueError("Selected descriptor limits are not satisfied.")
+        validate_inspection(self)
         return self
 
 
@@ -149,4 +160,8 @@ def validate_screen(value, task, output):
         raise ValueError("Selected library artifact bytes changed.")
     if raw.decode("utf-8").count("$$$$") != len(result.selected_records):
         raise ValueError("Selected library output record count differs from the report.")
+    if result.report_artifact:
+        report = contained(output, result.report_artifact).read_bytes()
+        if len(report) > 25 * 1024**2 or hashlib.sha256(report).hexdigest() != result.report_sha256:
+            raise ValueError("Library selection report bytes changed.")
     return result

@@ -90,7 +90,8 @@ _DIFF = tuple(
             ("分子优化", "Optimize molecules"),
             (
                 "选择类药性或合成难度目标，探索新的分子候选。",
-                "Explore molecular candidates using drug-likeness or synthesis-difficulty objectives.",
+                "Explore molecular candidates using drug-likeness "
+                "or synthesis-difficulty objectives.",
             ),
         ),
         (
@@ -132,7 +133,8 @@ _DIFF = tuple(
             ("候选描述符", "Candidate descriptors"),
             (
                 "比较所选候选分子的分子量、脂溶性等结构性质。",
-                "Compare molecular weight, lipophilicity and other descriptors for selected candidates.",
+                "Compare molecular weight, lipophilicity and other descriptors "
+                "for selected candidates.",
             ),
         ),
         (
@@ -409,8 +411,8 @@ _LIBRARY_SCREEN = (
         operations=("library_screen",),
         label=("分子库与早期筛选", "Library and early molecular selection"),
         note=(
-            "整理、相似性、片段和多样性选择，复用具体分子记录。",
-            "Inventory, similarity, substructure and diversity; reuse exact molecular records.",
+            "结构风险提示、骨架代表选择、相似性与分子库筛选。",
+            "Structural alerts, scaffold representatives, similarity and library selection.",
         ),
         source="RDKit",
         frontend_form="library_screen",

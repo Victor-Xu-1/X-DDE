@@ -4,6 +4,7 @@ import { StateForm } from "./StateForm";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import { screenReason, type LibraryScreenResult } from "./screen-types";
+import { ScaffoldCell, StructuralAlertCell } from "./LibraryInspectionCells";
 
 export function LibraryScreenResults({
   job,
@@ -34,7 +35,13 @@ export function LibraryScreenResults({
       </section>
     );
   const rows = result.rows.filter((row) => !selectedOnly || row.selected),
-    visible = rows.slice(page * 20, (page + 1) * 20);
+    visible = rows.slice(page * 20, (page + 1) * 20),
+    alertsRequested = Boolean(
+      result.options?.alert_policy && result.options.alert_policy !== "off",
+    ),
+    inspected = result.rows.filter((row) => row.structural_alerts != null),
+    flagged = inspected.filter((row) => row.structural_alerts!.length > 0),
+    grouped = result.scaffold_groups != null;
   return (
     <div className="discovery-results">
       <p>
@@ -42,6 +49,20 @@ export function LibraryScreenResults({
         {result.rows.length} ·{" "}
         {zh ? "按化学结构条件，不代表药效" : "Chemical criteria, not activity"}
       </p>
+      {alertsRequested && (
+        <p role="status">
+          {zh
+            ? `完成风险检查 ${inspected.length} / ${result.rows.length}，${flagged.length} 个分子需核查；规则提示不代表毒性或药效。`
+            : `Structural rules evaluated for ${inspected.length} / ${result.rows.length}; ${flagged.length} molecules need review. Rule alerts do not establish toxicity or activity.`}
+        </p>
+      )}
+      {grouped && (
+        <p>
+          {zh
+            ? `共 ${result.scaffold_groups!.length} 个结构组；组内按原始顺序选择，不是药效排名。`
+            : `${result.scaffold_groups!.length} chemical families; representatives follow input order, not activity rank.`}
+        </p>
+      )}
       <label className="checkbox-line">
         <input
           type="checkbox"
@@ -56,6 +77,11 @@ export function LibraryScreenResults({
       {result.selected_records.length > 0 && (
         <a href={artifactUrl(job.id, result.artifact)} download>
           {zh ? "下载选中分子 SDF" : "Download selected SDF"}
+        </a>
+      )}
+      {result.report_artifact && (
+        <a href={artifactUrl(job.id, result.report_artifact)} download>
+          {zh ? "下载筛选表格" : "Download selection report"}
         </a>
       )}
       {!visible.length && (
@@ -74,6 +100,10 @@ export function LibraryScreenResults({
                 "SMILES",
                 zh ? "分子量" : "MW",
                 "LogP",
+                ...(alertsRequested
+                  ? [zh ? "结构风险" : "Structural alerts"]
+                  : []),
+                ...(grouped ? [zh ? "骨架组" : "Scaffold family"] : []),
                 zh ? "选择依据" : "Selection evidence",
                 zh ? "下一步" : "Next",
               ].map((label) => (
@@ -93,6 +123,20 @@ export function LibraryScreenResults({
                 </td>
                 <td>{row.descriptors?.mw.toFixed(1) ?? "—"}</td>
                 <td>{row.descriptors?.logp.toFixed(2) ?? "—"}</td>
+                {alertsRequested && (
+                  <td>
+                    <StructuralAlertCell row={row} language={language} />
+                  </td>
+                )}
+                {grouped && (
+                  <td>
+                    <ScaffoldCell
+                      row={row}
+                      groups={result.scaffold_groups}
+                      language={language}
+                    />
+                  </td>
+                )}
                 <td>
                   {row.similarity != null ? (
                     row.similarity.toFixed(3)
@@ -156,13 +200,6 @@ export function LibraryScreenResults({
           </button>
         </div>
       )}
-      <details>
-        <summary>
-          {zh
-            ? "完整来源与未选中记录"
-            : "Full provenance and unselected records"}
-        </summary>
-      </details>
     </div>
   );
 }

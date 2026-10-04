@@ -85,3 +85,115 @@ it("requires a query only for query-based methods and removes unused query befor
     expect.any(String),
   );
 });
+
+it("starts structural review with warnings, preserves the explicit policy on Back and submits only after review", async () => {
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path.startsWith("/capabilities")
+      ? { availability: { configuration_present: true } }
+      : {
+          id: "library",
+          name: "abl-inhibitors.sdf",
+          kind: "ligand",
+          suffix: ".sdf",
+          size: 200,
+          sha256: "a".repeat(64),
+        },
+  );
+  const submit = vi
+    .spyOn(api, "submit")
+    .mockRejectedValue(new Error("native review boundary"));
+  const user = userEvent.setup();
+  render(<LibraryScreenForm language="zh" onCreated={vi.fn()} />);
+  await user.click(
+    screen.getByRole("button", { name: "Select actual library boundary" }),
+  );
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("radio", { name: "检查结构风险" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  expect(
+    screen.getByRole("combobox", { name: "结构风险如何处理？" }),
+  ).toHaveValue("warn");
+  expect(screen.queryByRole("option", { name: "这次不检查" })).toBeNull();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "结构风险如何处理？" }),
+    "exclude",
+  );
+  await user.click(screen.getByRole("button", { name: "上一步" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  expect(
+    screen.getByRole("combobox", { name: "结构风险如何处理？" }),
+  ).toHaveValue("exclude");
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  expect(screen.getByText("暂时排除规则命中")).toBeVisible();
+  expect(submit).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "开始分子库筛选" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "native review boundary",
+  );
+  expect(submit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      query: null,
+      options: expect.objectContaining({
+        mode: "alerts",
+        alert_policy: "exclude",
+        alert_catalogue: "pains_brenk",
+      }),
+    }),
+    expect.any(String),
+  );
+});
+
+it("bounds scaffold representatives and retains the selected budget through review", async () => {
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path.startsWith("/capabilities")
+      ? { availability: { configuration_present: true } }
+      : {
+          id: "library",
+          name: "abl-inhibitors.sdf",
+          kind: "ligand",
+          suffix: ".sdf",
+          size: 200,
+          sha256: "a".repeat(64),
+        },
+  );
+  const submit = vi
+    .spyOn(api, "submit")
+    .mockRejectedValue(new Error("native scaffold boundary"));
+  const user = userEvent.setup();
+  render(<LibraryScreenForm language="en" onCreated={vi.fn()} />);
+  await user.click(
+    screen.getByRole("button", { name: "Select actual library boundary" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(
+    screen.getByRole("radio", { name: "Select scaffold representatives" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByText("Expert settings"));
+  const budget = screen.getByRole("spinbutton", {
+    name: "Exact representatives per family",
+  });
+  await user.clear(budget);
+  await user.type(budget, "11");
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  await user.clear(budget);
+  await user.type(budget, "2");
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(
+    screen.getByRole("button", { name: "Run library selection" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "native scaffold boundary",
+  );
+  expect(submit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      query: null,
+      options: expect.objectContaining({
+        mode: "scaffold",
+        per_scaffold: 2,
+        alert_policy: "off",
+      }),
+    }),
+    expect.any(String),
+  );
+});

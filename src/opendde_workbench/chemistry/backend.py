@@ -15,6 +15,10 @@ FILES = (
     "screen_io.py",
     "sdf_io.py",
     "screen_options.py",
+    "screen_inspection.py",
+    "screen_selection.py",
+    "screen_report.py",
+    "screen_record.py",
 )
 
 

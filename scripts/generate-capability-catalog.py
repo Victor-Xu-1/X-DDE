@@ -11,6 +11,7 @@ from opendde_workbench.antibodies.options import NumberingOptions
 from opendde_workbench.capabilities import frontend_catalogue
 from opendde_workbench.capabilities.modalities import modality_catalogue
 from opendde_workbench.chemistry.options import StateOptions
+from opendde_workbench.chemistry.screen_options import ScreenOptions
 from opendde_workbench.diffsbdd.manifest import MODELS
 from opendde_workbench.diffsbdd.options import DiffOptions
 from opendde_workbench.diffsbdd.quality import CoreVerification
@@ -94,6 +95,10 @@ def main() -> None:
         + json.dumps(StateOptions().model_dump(mode="json"), indent=2)
         + ";\nexport const schema = "
         + json.dumps(StateOptions.model_json_schema(), indent=2)
+        + " as const;\nexport const screenDefaults = "
+        + json.dumps(ScreenOptions().model_dump(mode="json"), indent=2)
+        + " as const;\nexport const screenSchema = "
+        + json.dumps(ScreenOptions.model_json_schema(), indent=2)
         + " as const;\n",
         "constraints/generated.ts": header
         + "export const constraintSchema = "

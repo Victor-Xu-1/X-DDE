@@ -94,3 +94,68 @@ it("presents zero hits without a molecule download or invented reusable referenc
     screen.queryByRole("link", { name: "Download selected SDF" }),
   ).toBeNull();
 });
+
+it("shows native matched rules and scaffold families without implying safety or activity rank", async () => {
+  const row = {
+    record: 0,
+    selected: true,
+    available: true,
+    structural_alerts: [{ catalogue: "BRENK", rule: "review_pattern" }],
+    scaffold_group: 0,
+    similarity: null,
+    substructure_match: null,
+    descriptors: {
+      smiles: "COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN1CCOCC1",
+      mw: 446.9,
+      logp: 4.2,
+      fragments: 1,
+    },
+  };
+  const result = {
+    options: { mode: "scaffold", alert_policy: "warn" },
+    rows: [row],
+    selected_records: [0],
+    artifact: "selected.sdf",
+    report_artifact: "library-report.csv",
+    scaffold_groups: [
+      { index: 0, kind: "murcko", smiles: "c1ccccc1", records: [0, 1] },
+    ],
+  } as unknown as LibraryScreenResult;
+  render(
+    <LibraryScreenResults
+      job={{ id: "job" } as Job}
+      result={result}
+      language="zh"
+    />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("1 个分子需核查");
+  expect(screen.getByText(/不是药效排名/)).toBeVisible();
+  await userEvent.click(screen.getByText("需核查：1 条"));
+  expect(screen.getByText("Brenk · review_pattern")).toBeVisible();
+  expect(screen.getByText("骨架 1")).toBeVisible();
+  expect(screen.getByRole("link", { name: "下载筛选表格" })).toHaveAttribute(
+    "href",
+    expect.stringContaining("library-report.csv"),
+  );
+});
+
+it("does not turn a historical unevaluated report into a no-alert claim", () => {
+  render(
+    <LibraryScreenResults
+      job={{ id: "legacy" } as Job}
+      result={
+        {
+          options: { alert_policy: "off" },
+          rows: [],
+          selected_records: [],
+          artifact: "selected.sdf",
+        } as unknown as LibraryScreenResult
+      }
+      language="en"
+    />,
+  );
+  expect(screen.queryByText("No rule matches")).toBeNull();
+  expect(
+    screen.queryByRole("link", { name: "Download selection report" }),
+  ).toBeNull();
+});

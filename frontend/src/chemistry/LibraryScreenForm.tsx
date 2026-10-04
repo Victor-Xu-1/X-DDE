@@ -8,11 +8,8 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
-import {
-  ScreenPurpose,
-  ScreenSettings,
-  ScreenReview,
-} from "./LibraryScreenQuestions";
+import { ScreenPurpose, ScreenReview } from "./LibraryScreenQuestions";
+import { ScreenSettings } from "./LibraryScreenSettings";
 import {
   screenDefaults,
   type LibraryRef,
@@ -57,6 +54,10 @@ export function LibraryScreenForm({
     options.minimum_similarity <= 1 &&
     options.minimum_mw <= options.maximum_mw &&
     options.minimum_logp <= options.maximum_logp &&
+    Number.isInteger(options.per_scaffold) &&
+    options.per_scaffold >= 1 &&
+    options.per_scaffold <= 10 &&
+    (options.mode !== "alerts" || options.alert_policy !== "off") &&
     Number.isInteger(options.seed) &&
     options.seed >= 1 &&
     options.seed <= 2147483647;
@@ -119,7 +120,12 @@ export function LibraryScreenForm({
               language={language}
               mode={options.mode}
               onMode={(mode) => {
-                configure({ mode });
+                configure({
+                  mode,
+                  ...(mode === "alerts" && options.alert_policy === "off"
+                    ? { alert_policy: "warn" }
+                    : {}),
+                });
                 setQuery(null);
               }}
               query={query}
