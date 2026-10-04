@@ -135,6 +135,7 @@ it("applies an explicitly chosen project until the user clears its filter", asyn
     within(filter).getByRole("button", { name: "Clear filter" }),
   );
   expect(screen.queryByRole("group", { name: "Project filter" })).toBeNull();
+  await user.click(screen.getByText("Task list"));
   expect(screen.getByRole("button", { name: /Project B task/ })).toBeVisible();
   expect(screen.getByRole("button", { name: /Ungrouped task/ })).toBeVisible();
 });
