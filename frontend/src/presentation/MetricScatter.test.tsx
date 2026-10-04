@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { MetricScatter } from "./MetricScatter";
@@ -24,7 +24,9 @@ it("plots only complete raw pairs and selects the exact original record", async 
       ]}
     />,
   );
-  const points = screen.getAllByRole("button");
+  const points = within(
+    screen.getByRole("group", { name: "MW (g/mol) × Score (kcal/mol)" }),
+  ).getAllByRole("button");
   expect(points).toHaveLength(2);
   await userEvent.setup().click(
     screen.getByRole("button", {

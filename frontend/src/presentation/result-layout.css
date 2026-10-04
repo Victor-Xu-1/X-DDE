@@ -25,6 +25,14 @@
 .state-conformer-stage {
   margin-top: 20px;
 }
+.contact-network-svg {
+  width: 100%;
+  display: block;
+  margin-top: 12px;
+}
+.contact-network-svg g[role="button"] {
+  cursor: pointer;
+}
 @media (max-width: 1100px) {
   .paired-structure-views {
     grid-template-columns: 1fr;
@@ -102,4 +110,16 @@
   .result-master-detail {
     grid-template-columns: 1fr;
   }
+}
+
+.contact-network-scroll {
+  max-height: 490px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.contact-network-svg {
+  width: 100%;
+  min-width: 430px;
+  display: block;
 }

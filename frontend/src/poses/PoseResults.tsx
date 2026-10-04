@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PoseScoreComparison } from "./PoseScoreComparison";
 import { artifactUrl } from "../api";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PropertyForm } from "../operations/PropertyForm";
 import { scoreLabel } from "../docking/scoreLabels";
 import { DockingForm } from "../docking/DockingForm";
@@ -15,8 +15,17 @@ export function PoseResults({
   language: Language;
 }) {
   const zh = language === "zh";
-  const [index, setIndex] = useState(0),
-    [pose, setPose] = useState<number | null>(null),
+  const initialIndex = Math.max(
+    0,
+    value.outcomes.findIndex((outcome) =>
+      outcome.poses.some((pose) => pose.reference),
+    ),
+  );
+  const [index, setIndex] = useState(initialIndex),
+    [pose, setPose] = useState<number | null>(
+      value.outcomes[initialIndex]?.poses.find((pose) => pose.reference)
+        ?.evidence.record ?? null,
+    ),
     [next, setNext] = useState<"properties" | "score" | "minimize" | null>(
       null,
     ),
@@ -60,7 +69,11 @@ export function PoseResults({
           value={index}
           onChange={(e) => {
             setIndex(Number(e.target.value));
-            setPose(null);
+            setPose(
+              value.outcomes[Number(e.target.value)]?.poses.find(
+                (pose) => pose.reference,
+              )?.evidence.record ?? null,
+            );
             setNext(null);
           }}
         >
@@ -171,11 +184,23 @@ export function PoseResults({
       />
       {selected?.reference && (
         <>
-          <StructureViewer
+          <MolecularPreview
+            defaultView="3d"
+            label={(zh ? "姿势 " : "Pose ") + (selected.evidence.record + 1)}
+            source={
+              selected.evidence.smiles
+                ? { smiles: selected.evidence.smiles }
+                : {
+                    url: "/api/assets/" + selected.reference.asset_id,
+                    record: selected.reference.record,
+                  }
+            }
             urls={[
               "/api/assets/" + combination.receptor.asset_id,
               "/api/assets/" + selected.reference.asset_id,
             ]}
+            records={[combination.receptor.record, selected.reference.record]}
+            focusModel={1}
             language={language}
           />
           <div className="editor-toolbar">

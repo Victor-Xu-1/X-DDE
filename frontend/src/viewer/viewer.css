@@ -4,6 +4,32 @@
   font-size: 11px;
   min-height: 30px;
 }
+.viewer-original-downloads {
+  position: relative;
+  font-size: 12px;
+}
+.viewer-original-downloads summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--accent);
+}
+.viewer-original-downloads > div {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  z-index: 5;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  min-width: 170px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow-panel);
+}
 .viewer-panel {
   display: flex;
   flex-direction: column;

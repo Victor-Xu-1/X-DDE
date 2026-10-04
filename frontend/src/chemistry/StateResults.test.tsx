@@ -40,14 +40,14 @@ it("distinguishes loading from an unindexed collection and preserves original do
       }) as never,
   );
   render(<StateResults job={job} data={data} language="en" />);
-  expect(screen.getByRole("status")).toHaveTextContent(
+  expect(screen.getByText(/Loading the indexed collection/)).toHaveTextContent(
     "Loading the indexed collection",
   );
   finish([]);
   await waitFor(() =>
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Original results can be previewed and downloaded",
-    ),
+    expect(
+      screen.getByText(/Original results can be previewed and downloaded/),
+    ).toHaveTextContent("Original results can be previewed and downloaded"),
   );
   expect(
     screen.getByRole("link", { name: "Download state SDF" }),

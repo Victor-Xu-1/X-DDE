@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   CameraOutlined,
   FullscreenOutlined,
+  DownloadOutlined,
   LoadingOutlined,
   MinusOutlined,
   PlusOutlined,
@@ -23,6 +24,7 @@ import {
   type ContactSummary,
   type SurfaceSummary,
   surfaceSummary,
+  validSource,
 } from "./protocol";
 import type { Language } from "../types";
 import type { DisplayResidue } from "./residue-region";
@@ -188,6 +190,37 @@ export function StructureViewer({
           </Hint>
         </h3>
         <div className="viewer-heading-actions">
+          {urls.length > 0 && (
+            <details className="viewer-original-downloads">
+              <summary
+                aria-label={
+                  zh ? "下载原始结构文件" : "Download original structure files"
+                }
+                title={
+                  zh ? "下载原始结构文件" : "Download original structure files"
+                }
+              >
+                <DownloadOutlined />
+              </summary>
+              <div>
+                {urls
+                  .filter((url) => {
+                    try {
+                      validSource(url, location.origin);
+                      return true;
+                    } catch {
+                      return false;
+                    }
+                  })
+                  .map((url, index) => (
+                    <a key={url} href={url} download>
+                      {zh ? "原始结构 " : "Original structure "}
+                      {index + 1}
+                    </a>
+                  ))}
+              </div>
+            </details>
+          )}
           <select
             className="viewer-export-size"
             value={imageScale}
