@@ -150,7 +150,12 @@ export function GuidedSteps<T extends { id: string }>({
           <span className="questionnaire-overline">
             {zh ? "步骤" : "STEP"} {current + 1} / 5
           </span>
-          <h2 ref={heading} tabIndex={-1} className="questionnaire-heading">
+          <h2
+            ref={heading}
+            tabIndex={-1}
+            className="questionnaire-heading"
+            aria-label={current + 1 + ". " + titles[current]}
+          >
             {titles[current]}
           </h2>
         </div>

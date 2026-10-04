@@ -92,6 +92,10 @@ export function SequenceTrack({
           })}
         </div>
       </div>
+      <details className="sequence-original">
+        <summary>{zh ? "查看完整序列" : "View full sequence"}</summary>
+        <pre className="sequence-cell">{sequence}</pre>
+      </details>
       <footer>
         {position
           ? (zh ? "序列位置 " : "Sequence position ") +

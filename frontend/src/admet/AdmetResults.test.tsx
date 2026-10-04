@@ -162,7 +162,9 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
     "Toxicity",
   );
   expect(
-    within(screen.getAllByRole("table")[0]).getAllByRole("row"),
+    within(
+      screen.getByRole("region", { name: "Predicted properties" }),
+    ).getAllByRole("row"),
   ).toHaveLength(2);
   expect(
     screen.getByRole("link", { name: "Download prediction table" }),

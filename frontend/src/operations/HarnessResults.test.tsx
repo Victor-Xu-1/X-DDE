@@ -2,10 +2,11 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import type { Job } from "../types";
 import { HarnessResults } from "./HarnessResults";
+import userEvent from "@testing-library/user-event";
 afterEach(cleanup);
 const job = (tool: string, payload: Record<string, unknown> = {}) =>
   ({ id: "public", request: { operation: "harness", tool, payload } }) as Job;
-it("pairs each native sequence score with the same input sequence and preserves exact precision", () => {
+it("pairs each native sequence score with the same input sequence and preserves exact precision", async () => {
   render(
     <HarnessResults
       job={job("esm", {
@@ -19,8 +20,9 @@ it("pairs each native sequence score with the same input sequence and preserves 
       }}
     />,
   );
-  expect(screen.getByText("序列 1")).toBeVisible();
+  expect(screen.getByRole("button", { name: "序列 1" })).toBeVisible();
   expect(screen.getByTitle("-0.6953319795069216")).toHaveTextContent("-0.6953");
+  await userEvent.setup().click(screen.getByRole("button", { name: "序列 2" }));
   expect(screen.getByText("DIQMTQSPSSLSASVGDRVTITC")).toBeInTheDocument();
 });
 it("retains scientific model scores in candidate metadata without displaying engineering receipts", () => {

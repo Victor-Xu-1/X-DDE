@@ -28,8 +28,10 @@ it("keeps native residue metrics in one optional table without inventing force o
   expect(group.closest("details")).not.toHaveAttribute("open");
   await userEvent.setup().click(group);
   const rows = within(screen.getByRole("table")).getAllByRole("row");
-  expect(rows).toHaveLength(23);
-  expect(rows[22]).toHaveTextContent("621");
+  expect(rows).toHaveLength(21);
+  await userEvent.setup().click(screen.getByRole("button", { name: "下一页" }));
+  expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(3);
+  expect(screen.getByRole("table")).toHaveTextContent("621");
   expect(screen.getByRole("columnheader", { name: "距离（Å）" })).toBeVisible();
   expect(screen.queryByText(/kcal|kJ|作用力/)).not.toBeInTheDocument();
 });
