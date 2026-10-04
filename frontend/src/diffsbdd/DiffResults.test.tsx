@@ -40,7 +40,9 @@ it("previews the retained native molecule file even before scientific objects ar
     />,
   );
   expect(
-    screen.getAllByTestId("native-preview").map((node) => node.textContent),
+    (await screen.findAllByTestId("native-preview")).map(
+      (node) => node.textContent,
+    ),
   ).toContain(artifactUrl("case", name));
   const link = screen.getByRole("link", { name: "分子结构 · SDF" });
   expect(link).toHaveAttribute("href", artifactUrl("case", name));

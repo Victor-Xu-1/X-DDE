@@ -131,11 +131,6 @@ export function DiffResults({
     report_artifact: ["分析报告", "Analysis report"],
     artifact: ["结果文件", "Result file"],
   };
-  const molecule =
-    typeof data.molecule_artifact === "string" &&
-    /\.(sdf|mol|mol2)$/.test(data.molecule_artifact)
-      ? data.molecule_artifact
-      : null;
   const protein =
     typeof data.protein_artifact === "string" ? data.protein_artifact : null;
   if (
@@ -259,12 +254,6 @@ export function DiffResults({
             </li>
           ))}
         </ul>
-      )}
-      {!records.length && molecule && data.valid !== 0 && !error && (
-        <StructureViewer
-          urls={[artifactUrl(job.id, molecule)]}
-          language={language}
-        />
       )}
       {protein && (
         <details>
