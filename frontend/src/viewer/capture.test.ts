@@ -7,6 +7,8 @@ describe("Native export resolution and restoration", () => {
     const [w, h] = captureDimensions(4000, 3000, 3);
     expect(w * h).toBeLessThanOrEqual(8 * 1024 ** 2);
     expect(w / h).toBeCloseTo(4 / 3, 2);
+    const [retinaWidth, retinaHeight] = captureDimensions(1800, 1200, 3, 2);
+    expect(retinaWidth * retinaHeight * 4).toBeLessThanOrEqual(8 * 1024 ** 2);
     expect(() => captureDimensions(0, 300, 2)).toThrow();
     expect(() => captureDimensions(400, 300, 100)).toThrow();
   });
@@ -22,6 +24,7 @@ describe("Native export resolution and restoration", () => {
       resize = vi.fn();
     const viewer = {
       getView: () => view,
+      getCanvas: () => ({ width: 400 }),
       setView,
       resize,
       render: vi.fn(),

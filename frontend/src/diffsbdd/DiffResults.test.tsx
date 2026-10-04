@@ -119,7 +119,9 @@ it("shows native candidates by output digest even when their original asset name
       }}
     />,
   );
-  expect(await screen.findByRole("button", {name:"Candidate 1",exact:true})).toBeVisible();
-  expect(screen.queryByRole("button", {name:"Candidate 2",exact:true})).toBeNull();
+  expect(
+    await screen.findByRole("button", { name: "Candidate 1" }),
+  ).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Candidate 2" })).toBeNull();
   expect(listing).not.toHaveBeenCalled();
 });
