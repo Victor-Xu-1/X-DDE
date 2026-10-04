@@ -26,7 +26,10 @@ export function PreparedInputResults({
     setError(false);
     setInputIndex(0);
     if (components.length) return () => controller.abort();
-    const timer = setTimeout(() => controller.abort(), 25000);
+    const timer = setTimeout(() => {
+      controller.abort();
+      setError(true);
+    }, 25000);
     void Promise.all(
       documents.map(async (name) => {
         const response = await fetch(artifactUrl(job.id, name), {
@@ -47,7 +50,7 @@ export function PreparedInputResults({
         if (!controller.signal.aborted) setConverted(values.flat());
       })
       .catch(() => {
-        setError(true);
+        if (!controller.signal.aborted) setError(true);
       })
       .finally(() => clearTimeout(timer));
     return () => {

@@ -70,6 +70,7 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
                 timeout=30000
             )
+            expect(page.locator(".prepared-research-inputs [role=alert]")).not_to_be_visible()
             record("converted-native-inputs")
             result("计算小分子性质")
             expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
