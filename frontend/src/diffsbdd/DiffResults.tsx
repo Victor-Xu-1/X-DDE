@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { GeneratedCandidates } from "./GeneratedCandidates";
-import { api, artifactUrl, request } from "../api";
+import { artifactUrl, request } from "../api";
+import { artifactDigest } from "../presentation/artifact-digest";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
 import type { OperationResult } from "../operations/types";
@@ -49,15 +50,9 @@ export function DiffResults({
     setAction(null);
     async function load() {
       if (!targetArtifact || data.valid === 0) return;
-      const outputFiles = await api.assets(c.signal);
-      const outputIds = new Set(
-        outputFiles
-          .filter(
-            (f) =>
-              f.name === targetArtifact ||
-              f.name === targetArtifact.split("/").at(-1),
-          )
-          .map((f) => f.id),
+      const digest = await artifactDigest(
+        artifactUrl(job.id, targetArtifact),
+        c.signal,
       );
       const all: ScientificObject[] = [];
       for (let offset = 0; offset < 10000; offset += 200) {
@@ -70,7 +65,7 @@ export function DiffResults({
             (v) =>
               v.source_job === job.id &&
               v.kind === "molecule" &&
-              outputIds.has(v.reference.asset_id) &&
+              v.reference.sha256 === digest &&
               (!data.core_verification ||
                 (v.reference.sha256 ===
                   data.core_verification.qualified_sha256 &&

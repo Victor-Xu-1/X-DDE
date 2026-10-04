@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import type { Job } from "../types";
 import { HarnessResults } from "./HarnessResults";
@@ -51,7 +51,9 @@ it("retains scientific model scores in candidate metadata without displaying eng
       }}
     />,
   );
-  expect(screen.getByText("2.5929")).toBeVisible();
+  expect(
+    within(screen.getByRole("table", { name: "序列候选" })).getByText("2.5929"),
+  ).toBeVisible();
   expect(screen.getByText(/A:30 → S/)).toBeVisible();
   expect(screen.queryByText("private-digest")).not.toBeInTheDocument();
 });

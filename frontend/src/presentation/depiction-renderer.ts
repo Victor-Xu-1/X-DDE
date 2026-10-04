@@ -88,9 +88,15 @@ export class DepictionRenderer {
   retryInitialization() {
     this.ready = null;
   }
-  async render(source: DepictionSource, signal: AbortSignal) {
+  async render(
+    source: DepictionSource,
+    signal: AbortSignal,
+    bondThickness = 1.6,
+  ) {
+    if (![1.2, 1.6, 2.2].includes(bondThickness))
+      throw new Error("Choose a supported drawing style.");
     signal.throwIfAborted();
-    const key = JSON.stringify(source);
+    const key = JSON.stringify([source, bondThickness]);
     const cached = this.cache.get(key);
     if (cached) return cached;
     let request = this.requests.get(key);
@@ -109,11 +115,21 @@ export class DepictionRenderer {
             throw new Error(
               "Update the Ketcher component to draw 2D structures.",
             );
-          const drawing = editor.generateImage(structure, {
-            outputFormat: "svg",
-            backgroundColor: "1,1,1",
-            bondThickness: 1.6,
-          });
+          const drawing = (async () => {
+            // This canvas belongs only to the invisible drawing service. Native
+            // layout changes a display copy; scientific files and the user's editor stay intact.
+            if (!editor.layout)
+              throw new Error("Update Ketcher to use native 2D layout.");
+            await editor.setMolecule(structure);
+            await editor.layout();
+            const arranged = await editor.getMolfile();
+            active.throwIfAborted();
+            return editor.generateImage!(arranged, {
+              outputFormat: "svg",
+              backgroundColor: "1,1,1",
+              bondThickness,
+            });
+          })();
           const blob = await Promise.race([
             drawing,
             new Promise<never>((_, reject) =>

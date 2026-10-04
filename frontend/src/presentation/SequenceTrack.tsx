@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { Language } from "../types";
 import "./sequence-track.css";
+import { DownloadOutlined } from "@ant-design/icons";
+import { downloadBlob } from "./visual-export";
 export interface SequenceRegion {
   start: number;
   end: number;
@@ -13,12 +15,14 @@ export function SequenceTrack({
   label,
   regions = [],
   onSelect,
+  unit = "aa",
 }: {
   sequence: string;
   language: Language;
   label: string;
   regions?: readonly SequenceRegion[];
   onSelect?(position: number): void;
+  unit?: "aa" | "nt";
 }) {
   const zh = language === "zh",
     [position, setPosition] = useState<number | null>(null);
@@ -30,7 +34,31 @@ export function SequenceTrack({
     <section className="sequence-track" aria-label={label}>
       <header>
         <h3>{label}</h3>
-        <span>{sequence.length} aa</span>
+        <span>
+          {sequence.length} {unit}
+        </span>
+        <button
+          type="button"
+          className="visual-export-button"
+          aria-label={zh ? "下载此序列 FASTA" : "Download this sequence FASTA"}
+          onClick={() =>
+            downloadBlob(
+              new Blob(
+                [
+                  ">" +
+                    label.replace(/[\r\n]/g, " ") +
+                    "\n" +
+                    (sequence.match(/.{1,80}/g)?.join("\n") ?? "") +
+                    "\n",
+                ],
+                { type: "text/plain;charset=utf-8" },
+              ),
+              label + ".fasta",
+            )
+          }
+        >
+          <DownloadOutlined /> FASTA
+        </button>
       </header>
       {regions.length > 0 && (
         <div

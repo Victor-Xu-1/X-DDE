@@ -43,3 +43,4 @@ jobs:
           src/docking/poseScore.test.ts src/docking/DockingResults.test.tsx
           src/editors/molstar-appearance.test.ts src/editors/ketcher-appearance.test.ts
           src/editors/scientificEditor.test.ts
+          src/viewer/capture.test.ts

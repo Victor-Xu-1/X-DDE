@@ -5,8 +5,7 @@ import type { Job, Language } from "../types";
 import { artifactUrl, request } from "../api";
 import { PropertyForm } from "../operations/PropertyForm";
 import { DockingForm } from "../docking/DockingForm";
-import { MolecularPreview } from "../presentation/MolecularPreview";
-import { MoleculeImage } from "../presentation/MoleculeImage";
+import { StateCollectionPreview } from "./StateCollectionPreview";
 import type { MoleculeRef } from "../research/types";
 import type { StateResult, StateSet } from "./types";
 
@@ -134,124 +133,20 @@ export function StateResults({
       {!loading && !error && sets.length === 0 && (
         <p role="status">
           {zh
-            ? "此任务尚未登记可复用集合，请在任务资产登记中检查错误并重试。原始文件仍可下载。"
-            : "No reusable collection was indexed. Check task asset indexing errors and retry; original files remain downloadable."}
+            ? "可直接查看和下载原始结果；后续任务的历史材料选择将在保存后提供。"
+            : "Original results can be previewed and downloaded; saved materials will enable history selection for later tasks."}
         </p>
       )}
-      {sets
-        .flatMap((set) => set.members)
-        .map((member) => (
-          <details
-            className="molecular-state-card"
-            key={`${member.reference.asset_id}:${member.reference.record}`}
-          >
-            <summary>
-              {zh ? "状态" : "State"} {member.evidence.index + 1} ·{" "}
-              {zh ? "电荷" : "Charge"} {member.evidence.charge} ·{" "}
-              {member.evidence.formula}
-            </summary>
-            <MoleculeImage
-              compact
-              source={{ smiles: member.evidence.smiles }}
-              language={language}
-              label={(zh ? "状态 " : "State ") + (member.evidence.index + 1)}
-            />
-            <details>
-              <summary>SMILES</summary>
-              <p className="molecular-state-smiles">{member.evidence.smiles}</p>
-            </details>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => {
-                setSelected(member.reference);
-                setNext("properties");
-              }}
-            >
-              {zh ? "计算此状态性质" : "Calculate this state's properties"}
-            </button>
-            {member.conformers.length === 0 && (
-              <p>
-                {zh
-                  ? "此状态没有可用三维构象；请检查嵌入或力场参数记录。"
-                  : "This state has no usable 3D conformer; inspect embedding or force-field records."}{" "}
-                · {member.evidence.conformer_status}
-              </p>
-            )}
-            {member.conformers.map((c) => (
-              <div key={c.reference.record} className="editor-toolbar">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  aria-pressed={
-                    selected?.asset_id === c.reference.asset_id &&
-                    selected?.record === c.reference.record
-                  }
-                  onClick={() => {
-                    setSelected(c.reference);
-                    setNext(null);
-                  }}
-                >
-                  {zh ? "构象" : "Conformer"} {c.evidence.native_conformer + 1}{" "}
-                  ·{" "}
-                  {c.evidence.energy === null
-                    ? zh
-                      ? "未计算能量"
-                      : "Energy not computed"
-                    : `${c.evidence.energy.toFixed(3)} kcal/mol`}{" "}
-                  ·{" "}
-                  {c.evidence.converged === null
-                    ? zh
-                      ? "未最小化"
-                      : "Not minimized"
-                    : c.evidence.converged
-                      ? zh
-                        ? "收敛"
-                        : "Converged"
-                      : zh
-                        ? "未收敛"
-                        : "Not converged"}
-                </button>
-              </div>
-            ))}
-          </details>
-        ))}
-      {selected && next === null && (
-        <div className="editor-toolbar">
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => setNext("properties")}
-          >
-            {zh ? "计算性质" : "Calculate properties"}
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => setNext("docking")}
-          >
-            {zh ? "用于寻找结合姿势" : "Use for binding-pose search"}
-          </button>
-        </div>
-      )}
-      {selected && next === null && (
-        <MolecularPreview
-          label={zh ? "所选游离构象" : "Selected free conformer"}
-          source={{
-            url: "/api/assets/" + selected.asset_id,
-            record: selected.record,
-          }}
-          defaultView="3d"
-          urls={[
-            artifactUrl(
-              job.id,
-              data.conformers.find((c) => c.record === selected.record)
-                ?.artifact ?? data.conformer_artifact,
-            ),
-          ]}
-          language={language}
-        />
-      )}
+      <StateCollectionPreview
+        job={job}
+        data={data}
+        sets={sets}
+        language={language}
+        onUse={(reference, kind) => {
+          setSelected(reference);
+          setNext(kind);
+        }}
+      />
       {error && (
         <p role="alert" className="error-box">
           {error}

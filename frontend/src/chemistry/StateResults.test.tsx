@@ -46,7 +46,7 @@ it("distinguishes loading from an unindexed collection and preserves original do
   finish([]);
   await waitFor(() =>
     expect(screen.getByRole("status")).toHaveTextContent(
-      "No reusable collection was indexed",
+      "Original results can be previewed and downloaded",
     ),
   );
   expect(

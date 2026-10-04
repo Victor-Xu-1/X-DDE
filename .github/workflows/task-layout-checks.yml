@@ -69,6 +69,7 @@ jobs:
           src/presentation/MetricScatter.test.tsx
           src/presentation/depiction-renderer.test.ts
           src/viewer/useViewerSnapshot.test.ts
+          src/viewer/capture.test.ts
           src/guided/Questionnaire.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx

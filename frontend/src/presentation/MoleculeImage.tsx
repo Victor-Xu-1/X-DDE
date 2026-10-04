@@ -61,6 +61,7 @@ export function MoleculeImage({
     [error, setError] = useState(false),
     [visible, setVisible] = useState(false),
     [attempt, setAttempt] = useState(0);
+  const [bondThickness, setBondThickness] = useState(1.6);
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") {
@@ -89,7 +90,7 @@ export function MoleculeImage({
       return () => controller.abort();
     }
     void renderer
-      .render(source, controller.signal)
+      .render(source, controller.signal, bondThickness)
       .then(depictionDataUrl)
       .then((value) => {
         if (!controller.signal.aborted) {
@@ -108,12 +109,28 @@ export function MoleculeImage({
     return () => {
       controller.abort();
     };
-  }, [key, renderer, visible, attempt]);
+  }, [key, renderer, visible, attempt, bondThickness]);
   return (
     <div
       ref={element}
       className={"molecule-image" + (compact ? " is-thumbnail" : "")}
     >
+      {!compact && (
+        <label className="molecule-drawing-style">
+          {zh ? "图形线条" : "Drawing lines"}
+          <select
+            aria-label={zh ? "二维图线条粗细" : "2D drawing line weight"}
+            value={bondThickness}
+            onChange={(e) => setBondThickness(Number(e.target.value))}
+          >
+            <option value="1.2">{zh ? "精细" : "Fine"}</option>
+            <option value="1.6">
+              {zh ? "标准 · 推荐" : "Standard · Recommended"}
+            </option>
+            <option value="2.2">{zh ? "醒目" : "Bold"}</option>
+          </select>
+        </label>
+      )}
       {url ? (
         <img
           src={url}

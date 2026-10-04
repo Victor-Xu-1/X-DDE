@@ -10,6 +10,7 @@ import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
 import { initializeTheme } from "../theme";
 import "./frame.css";
+import { captureView } from "./capture";
 initializeTheme();
 const background = () =>
   getComputedStyle(document.documentElement)
@@ -169,17 +170,27 @@ window.addEventListener("message", (event) => {
     viewer.render();
   }
   if (type === "reset") reset();
+  const capture = typeof value === "string" ? { id: value, scale: 1 } : value;
   if (
     type === "snapshot" &&
-    typeof value === "string" &&
-    /^[0-9a-f-]{36}$/.test(value) &&
+    capture &&
+    typeof capture === "object" &&
+    typeof capture.id === "string" &&
+    /^[0-9a-f-]{36}$/.test(capture.id) &&
+    [1, 2, 3].includes(capture.scale) &&
     viewer.getModel(0)
   ) {
     try {
-      viewer.render();
-      notify("snapshot", { id: value, png: viewer.pngURI() });
+      notify("snapshot", {
+        id: capture.id,
+        png: captureView(
+          viewer,
+          document.getElementById("molecule")!,
+          capture.scale,
+        ),
+      });
     } catch {
-      notify("snapshot", { id: value, png: null });
+      notify("snapshot", { id: capture.id, png: null });
     }
   }
   if (type === "focus-ligand") scene.focusLigand();

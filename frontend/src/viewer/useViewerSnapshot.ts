@@ -32,8 +32,9 @@ export function useViewerSnapshot(key: string) {
     setFailed(false);
     return clear;
   }, [key]);
-  function begin(send: (type: string, value?: unknown) => void) {
+  function begin(send: (type: string, value?: unknown) => void, scale = 2) {
     clear();
+    setImage("");
     const id = crypto.randomUUID();
     pending.current = id;
     setBusy(true);
@@ -43,7 +44,7 @@ export function useViewerSnapshot(key: string) {
       setBusy(false);
       setFailed(true);
     }, 5000);
-    send("snapshot", id);
+    send("snapshot", { id, scale });
   }
   function receive(value: unknown) {
     if (validSnapshot(value) && value.id === pending.current) {

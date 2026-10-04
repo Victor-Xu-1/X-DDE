@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { PropertyResults } from "./PropertyResults";
+import { PreparedInputResults } from "./PreparedInputResults";
 import { QualityResults } from "../quality/QualityResults";
 import { AdmetResults } from "../admet/AdmetResults";
 import { HumanizationResults } from "../humanization/HumanizationResults";
@@ -258,27 +259,11 @@ export function OperationResults({
         <HarnessResults job={job} data={data} language={language} />
       )}
       {data.documents && data.documents.length > 0 && (
-        <section className="prepared-research-inputs">
-          <h3>{zh ? "准备好的预测输入" : "Prepared prediction inputs"}</h3>
-          <ul>
-            {data.documents.map((name, i) => (
-              <li key={name}>
-                <a
-                  className="research-download"
-                  href={artifactUrl(job.id, name)}
-                  download
-                >
-                  {zh ? "预测输入" : "Prediction input"} {i + 1} · JSON
-                </a>
-              </li>
-            ))}
-          </ul>
-          <p className="field-help">
-            {zh
-              ? "将下载的文件带入“导入结构与批量任务”，审阅后可提交预测。"
-              : "Import these files in Structure & batch import, then review and submit a prediction."}
-          </p>
-        </section>
+        <PreparedInputResults
+          job={job}
+          documents={data.documents}
+          language={language}
+        />
       )}
     </section>
   );

@@ -6,6 +6,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .metric-scatter > header span {
   color: var(--muted);

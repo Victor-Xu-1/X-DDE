@@ -64,6 +64,7 @@ export function StructureViewer({
   const snapshot = useViewerSnapshot(key),
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
+  const [imageScale, setImageScale] = useState(2);
   const focusedModel = useRef(focusModel);
   focusedModel.current = focusModel;
   const initialPick = useRef(selectionMode);
@@ -187,12 +188,22 @@ export function StructureViewer({
           </Hint>
         </h3>
         <div className="viewer-heading-actions">
+          <select
+            className="viewer-export-size"
+            value={imageScale}
+            aria-label={zh ? "三维图片清晰度" : "3D image resolution"}
+            onChange={(e) => setImageScale(Number(e.target.value))}
+          >
+            <option value="1">{zh ? "屏幕 1×" : "Screen 1×"}</option>
+            <option value="2">{zh ? "清晰 2×" : "Clear 2×"}</option>
+            <option value="3">{zh ? "精细 3×" : "Fine 3×"}</option>
+          </select>
           <button
             type="button"
             disabled={!loaded || snapshot.busy}
             aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
             title={zh ? "生成三维视图图片" : "Capture 3D view"}
-            onClick={() => snapshot.begin(send)}
+            onClick={() => snapshot.begin(send, imageScale)}
           >
             <CameraOutlined />
           </button>

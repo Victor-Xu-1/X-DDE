@@ -60,6 +60,10 @@ export function researchText(text: string, zh: boolean) {
   return messages[clean]?.[zh ? 0 : 1] ?? clean;
 }
 export function researchError(message: string, zh: boolean) {
+  if (/Research evidence is invalid or changed/i.test(message))
+    return zh
+      ? "参考材料无法核验。请检查原始文件或重新获取材料，再用于后续任务。"
+      : "The source record cannot be verified. Check the original material or retrieve it again before using it in later tasks.";
   if (
     /Traceback|ModuleNotFoundError|ImportError|CalledProcessError|ConnectionRefused|ECONNREFUSED|Docker daemon|stderr|stdout|exit code/i.test(
       message,

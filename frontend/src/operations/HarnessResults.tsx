@@ -3,9 +3,10 @@ import type { OperationResult } from "./types";
 import { ResultTree } from "./StructuredResults";
 import { unwrapResult } from "../presentation/research-content";
 import { NativeReport } from "./NativeReport";
-import { mutationDescription } from "./sequence-result";
+import { CandidateSequenceResults } from "./CandidateSequenceResults";
 import { EpitopeResults } from "./EpitopeResults";
 import { SequenceScoreResults } from "./SequenceScoreResults";
+import { StructureComparisonResults } from "./StructureComparisonResults";
 const object = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v)
     ? (v as Record<string, unknown>)
@@ -23,6 +24,14 @@ export function HarnessResults({
     value = unwrapResult(data.result ?? data),
     content = object(value);
   const tool = job.request.operation === "harness" ? job.request.tool : "";
+  if (tool === "rmsd")
+    return (
+      <StructureComparisonResults
+        job={job}
+        value={content}
+        language={language}
+      />
+    );
   if (tool === "esm" && Array.isArray(content.scores)) {
     const sequences =
       job.request.operation === "harness" &&
@@ -41,85 +50,19 @@ export function HarnessResults({
     ["esm2", "mpnn", "fold"].includes(tool) &&
     Array.isArray(content.candidates)
   ) {
-    const candidates = content.candidates.map(object);
     return (
-      <section>
-        <h3>
-          {zh
-            ? "得到 " + candidates.length + " 个候选"
-            : candidates.length + " candidates returned"}
-        </h3>
-        <p className="field-help">
-          {zh
-            ? "以下为模型结果；序列与界面评分不等于实验结合活性。"
-            : "These are model outputs; sequence and interface scores are not measured binding activity."}
-        </p>
-        <div className="research-candidate-list">
-          {candidates.map((c, i) => {
-            const metadata = object(c.metadata),
-              allMetrics = object(c.metrics);
-            const metrics = {
-              ...Object.fromEntries(
-                Object.entries(allMetrics).filter(([k]) =>
-                  ["iptm", "ptm", "plddt", "ipsae", "ranking_score"].includes(
-                    k,
-                  ),
-                ),
-              ),
-              ...Object.fromEntries(
-                ["esm2_llr", "soluble_mpnn_scores", "soluble_mpnn_seqids"]
-                  .filter((k) => metadata[k] != null)
-                  .map((k) => [k, metadata[k]]),
-              ),
-            };
-            const chains = object(c.chains ?? metadata.chains);
-            return (
-              <article className="research-candidate" key={i}>
-                <h4>
-                  {zh ? "候选" : "Candidate"} {i + 1}
-                </h4>
-                {Array.isArray(c.mutations) && (
-                  <p>
-                    {zh
-                      ? "变更（序列位置从 1 开始）"
-                      : "Changes (sequence positions start at 1)"}
-                    : {c.mutations.map(mutationDescription).join("; ")}
-                  </p>
-                )}
-                <ResultTree value={metrics} zh={zh} />
-                <details>
-                  <summary>
-                    {zh
-                      ? "完整序列与设计依据"
-                      : "Full sequences and design evidence"}
-                  </summary>
-                  <ResultTree
-                    value={{
-                      ...(Object.keys(chains).length ? { chains } : {}),
-                      ...(c.sequence ? { sequence: c.sequence } : {}),
-                      ...(c.strategy ? { strategy: c.strategy } : {}),
-                      ...(c.objective != null
-                        ? { objective: c.objective }
-                        : {}),
-                      ...(c.risk_level ? { risk_level: c.risk_level } : {}),
-                      ...(Object.keys(allMetrics).length
-                        ? { metrics: allMetrics }
-                        : {}),
-                      ...(metadata.design_positions
-                        ? { design_positions: metadata.design_positions }
-                        : {}),
-                      ...(metadata.gate_evidence
-                        ? { gate_evidence: metadata.gate_evidence }
-                        : {}),
-                    }}
-                    zh={zh}
-                  />
-                </details>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+      <CandidateSequenceResults
+        job={job}
+        candidates={content.candidates.map(object)}
+        structures={
+          Array.isArray(data.structures)
+            ? data.structures.filter(
+                (value): value is string => typeof value === "string",
+              )
+            : []
+        }
+        language={language}
+      />
     );
   }
   if (tool === "epitope")

@@ -43,13 +43,30 @@ Blob cache keep cold starts and hidden panels from generating repeated requests.
 Images load near the visible range. Bounded SVG data URLs preserve drawing bytes
 and work under the unchanged platform image policy; unmounts release view state.
 The pinned native color protocol uses normalized RGB, rather than the incompatible
-hex example in the upstream high-level documentation. Drawing does not call
-setMolecule on the user's editor, write source coordinates, or create research jobs.
+hex example in the upstream high-level documentation. Native layout uses a
+separate invisible drawing canvas and a display copy, so 3D source coordinates
+are not projected into misleading flat chemical diagrams. It never changes the
+user's editor or research files, and never creates research jobs.
 Missing editors/invalid records remain explicit; retry is a user action.
 
 3D capture uses the existing 3Dmol renderer and a same-origin frame/nonce check.
 Only bounded PNG payloads are accepted. Captures show current display/camera state;
 they do not represent a new structural calculation or a new evidence version.
+
+Every molecular viewer uses the same online appearance controls. Native PNG
+exports support bounded 1x/2x/3x rendering and restore the camera and viewport
+even on errors. 2D drawings expose a few native line-weight choices and SVG
+downloads. Metric charts export their displayed axes, values, labels and styles;
+sequence views export exact FASTA. Originals retain separate download links.
+
+Generated candidates are bound to the declared output digest, rather than an
+asset's editable filename or the first page of global assets. State results
+display every retained state and conformer independently of history indexing;
+energy plots compare one state and force field only. Receptor ensembles open an
+actual aligned pair by default. Sequence-design results use native score tables,
+sequence comparisons and available declared structures; absent structures are
+not fabricated. Historical RMSD results lacking an aligned export display
+verified original inputs with an explicit distinction from aligned coordinates.
 
 Every one of the 44 catalogue IDs remains in its original scientific execution
 path. Shared typography/forms/structured result tables cover all module pages;

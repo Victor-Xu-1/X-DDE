@@ -18,10 +18,15 @@ export function ReceptorResults({
   language: Language;
 }) {
   const zh = language === "zh";
+  const initialSelection =
+    data.members.find((row) => row.artifact && row.status === "aligned")
+      ?.index ??
+    data.members.find((row) => row.artifact)?.index ??
+    null;
   const [sets, setSets] = useState<ReceptorSet[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
-    [selected, setSelected] = useState<number | null>(null),
+    [selected, setSelected] = useState<number | null>(initialSelection),
     [next, setNext] = useState(false),
     [message, setMessage] = useState("");
   useEffect(() => {
@@ -29,7 +34,7 @@ export function ReceptorResults({
     setLoading(true);
     setSets([]);
     setError("");
-    setSelected(null);
+    setSelected(initialSelection);
     setNext(false);
     void request<ReceptorSet[]>(
       `/research/receptor-ensembles?source_job=${encodeURIComponent(job.id)}`,
