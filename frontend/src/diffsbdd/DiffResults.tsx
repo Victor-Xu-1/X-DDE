@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { GeneratedCandidates } from "./GeneratedCandidates";
+import {
+  GeneratedCandidates,
+  type GeneratedRecord,
+} from "./GeneratedCandidates";
 import { artifactUrl, request } from "../api";
-import { artifactDigest } from "../presentation/artifact-digest";
+import { artifactInfo } from "../presentation/artifact-digest";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
 import type { OperationResult } from "../operations/types";
@@ -25,10 +28,13 @@ export function DiffResults({
   language: Language;
 }) {
   const zh = language === "zh",
-    [objects, setObjects] = useState<ScientificObject[]>([]),
     [error, setError] = useState("");
-  const [selected, setSelected] = useState<ScientificObject | null>(null),
-    [action, setAction] = useState<"properties" | "export" | null>(null);
+  const [records, setRecords] = useState<GeneratedRecord[]>([]),
+    [selectedRecord, setSelectedRecord] = useState<GeneratedRecord | null>(
+      null,
+    );
+  const selected = selectedRecord?.object ?? null;
+  const [action, setAction] = useState<"properties" | "export" | null>(null);
   const [designMode, setDesignMode] = useState<
     "inpaint" | "diversify" | "optimize" | null
   >(null);
@@ -44,16 +50,29 @@ export function DiffResults({
   const designing = isDesign(mode);
   useEffect(() => {
     const c = new AbortController();
-    setObjects([]);
     setError("");
-    setSelected(null);
+    setSelectedRecord(null);
+    setRecords([]);
     setAction(null);
     async function load() {
       if (!targetArtifact || data.valid === 0) return;
-      const digest = await artifactDigest(
+      const info = await artifactInfo(
         artifactUrl(job.id, targetArtifact),
         c.signal,
       );
+      const digest = info.sha256;
+      if (typeof data.valid === "number" && data.valid !== info.records)
+        throw new Error(
+          "The declared candidate count does not match the original molecular records.",
+        );
+      if (
+        data.core_verification &&
+        (digest !== data.core_verification.qualified_sha256 ||
+          info.records !== data.core_verification.qualified_count)
+      )
+        throw new Error(
+          "The qualified molecular result does not match its scientific checks.",
+        );
       const all: ScientificObject[] = [];
       for (let offset = 0; offset < 10000; offset += 200) {
         const page = await request<ScientificObject[]>(
@@ -76,12 +95,19 @@ export function DiffResults({
       }
       if (!c.signal.aborted) {
         all.sort((a, b) => a.reference.record - b.reference.record);
-        setObjects(all);
-        setSelected(all[0] ?? null);
+        const current = Array.from({ length: info.records }, (_, record) => ({
+          record,
+          object: all.find((v) => v.reference.record === record),
+        }));
+        setRecords(current);
+        setSelectedRecord(current[0] ?? null);
       }
     }
     void load().catch((e) => {
-      if (!c.signal.aborted) setError(String(e));
+      if (!c.signal.aborted)
+        setError(
+          zh ? "分子结果与原始记录无法核对，请检查原始文件。" : String(e),
+        );
     });
     return () => c.abort();
   }, [job.id, data.core_verification, targetArtifact, data.valid]);
@@ -234,7 +260,7 @@ export function DiffResults({
           ))}
         </ul>
       )}
-      {!selected && molecule && data.valid !== 0 && (
+      {!records.length && molecule && data.valid !== 0 && !error && (
         <StructureViewer
           urls={[artifactUrl(job.id, molecule)]}
           language={language}
@@ -249,15 +275,16 @@ export function DiffResults({
           />
         </details>
       )}
-      {objects.length > 0 && (
+      {records.length > 0 && targetArtifact && (
         <>
           <GeneratedCandidates
-            objects={objects}
-            selected={selected}
+            records={records}
+            url={artifactUrl(job.id, targetArtifact)}
+            selected={selectedRecord}
             language={language}
             verification={data.core_verification}
             onSelect={(value) => {
-              setSelected(value);
+              setSelectedRecord(value);
               setAction(null);
             }}
           />

@@ -4,34 +4,39 @@ import type { CoreVerificationData } from "./types";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MolecularPreview } from "../presentation/MolecularPreview";
+export interface GeneratedRecord {
+  record: number;
+  object?: ScientificObject;
+}
 export function GeneratedCandidates({
-  objects,
+  records,
+  url,
   selected,
   language,
   verification,
   onSelect,
 }: {
-  objects: ScientificObject[];
-  selected: ScientificObject | null;
+  records: GeneratedRecord[];
+  url: string;
+  selected: GeneratedRecord | null;
   language: Language;
   verification?: CoreVerificationData;
-  onSelect(value: ScientificObject): void;
+  onSelect(value: GeneratedRecord): void;
 }) {
   const zh = language === "zh";
-  const label = (v: ScientificObject) =>
+  const label = (v: GeneratedRecord) =>
     (zh ? "候选 " : "Candidate ") +
-    ((verification?.candidates.find(
-      (c) => c.qualified_record === v.reference.record,
-    )?.record ?? v.reference.record) +
+    ((verification?.candidates.find((c) => c.qualified_record === v.record)
+      ?.record ?? v.record) +
       1);
   return (
     <div className="result-master-detail">
       <ResearchTable
-        rows={objects}
-        rowId={(v) => v.id}
+        rows={records}
+        rowId={(v) => String(v.record)}
         title={zh ? "生成的候选分子" : "Generated candidate molecules"}
         language={language}
-        selected={selected?.id}
+        selected={selected ? String(selected.record) : null}
         columns={[
           {
             key: "candidate",
@@ -49,7 +54,7 @@ export function GeneratedCandidates({
                       : " · Fixed-region checks passed"
                     : "")
                 }
-                aria-pressed={selected?.id === v.id}
+                aria-pressed={selected?.record === v.record}
                 onClick={() => onSelect(v)}
               >
                 <MoleculeImage
@@ -57,8 +62,8 @@ export function GeneratedCandidates({
                   language={language}
                   label={label(v)}
                   source={{
-                    url: "/api/assets/" + v.reference.asset_id,
-                    record: v.reference.record,
+                    url,
+                    record: v.record,
                   }}
                 />
                 <span>
@@ -75,7 +80,7 @@ export function GeneratedCandidates({
           {
             key: "record",
             label: zh ? "原始记录" : "Original record",
-            value: (v) => v.reference.record + 1,
+            value: (v) => v.record + 1,
             numeric: true,
           },
         ]}
@@ -86,16 +91,16 @@ export function GeneratedCandidates({
             <header>
               <h3>{label(selected)}</h3>
             </header>
-            {selected.reference.conformer === 0 ? (
+            {(selected.object?.reference.conformer ?? 0) === 0 ? (
               <MolecularPreview
                 label={label(selected)}
                 language={language}
                 source={{
-                  url: "/api/assets/" + selected.reference.asset_id,
-                  record: selected.reference.record,
+                  url,
+                  record: selected.record,
                 }}
-                urls={["/api/assets/" + selected.reference.asset_id]}
-                records={[selected.reference.record]}
+                urls={[url]}
+                records={[selected.record]}
                 defaultView="3d"
               />
             ) : (

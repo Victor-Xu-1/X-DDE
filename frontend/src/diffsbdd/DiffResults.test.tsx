@@ -4,8 +4,9 @@ import { DiffResults } from "./DiffResults";
 import { artifactUrl, api } from "../api";
 import * as client from "../api";
 import type { Job } from "../types";
+import { artifactInfo } from "../presentation/artifact-digest";
 vi.mock("../presentation/artifact-digest", () => ({
-  artifactDigest: vi.fn(async () => "a".repeat(64)),
+  artifactInfo: vi.fn(async () => ({ sha256: "a".repeat(64), records: 1 })),
 }));
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({ urls }: { urls: string[] }) => (
@@ -46,6 +47,12 @@ it("previews the retained native molecule file even before scientific objects ar
   expect(link).toHaveAttribute("title", "molecules.sdf");
   expect(screen.queryByText(name, { exact: true })).not.toBeInTheDocument();
   await waitFor(() => expect(client.request).toHaveBeenCalled());
+  expect(
+    await screen.findByRole("table", { name: "生成的候选分子" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "计算这个候选的性质" }),
+  ).toBeNull();
   expect(submit).not.toHaveBeenCalled();
 });
 
@@ -124,4 +131,55 @@ it("shows native candidates by output digest even when their original asset name
   ).toBeVisible();
   expect(screen.queryByRole("button", { name: "Candidate 2" })).toBeNull();
   expect(listing).not.toHaveBeenCalled();
+});
+
+it("does not display or reuse a file whose records disagree with its qualified scientific receipt", async () => {
+  vi.spyOn(client, "request").mockResolvedValue([]);
+  vi.mocked(artifactInfo).mockResolvedValueOnce({
+    sha256: "b".repeat(64),
+    records: 1,
+  });
+  render(
+    <DiffResults
+      language="en"
+      job={
+        {
+          id: "changed",
+          request: { operation: "diffsbdd", payload: { mode: "inpaint" } },
+        } as unknown as Job
+      }
+      data={{
+        operation: "diffsbdd",
+        complete: true,
+        valid: 1,
+        molecule_artifact: "qualified-molecules.sdf",
+        core_verification: {
+          qualified_sha256: "a".repeat(64),
+          qualified_count: 1,
+          method: "rdkit_fixed_core_v1",
+          preserve_bonds: true,
+          candidates: [
+            {
+              record: 0,
+              qualified_record: 0,
+              diagnostic_artifact: null,
+              status: "passed",
+              reason: null,
+              maximum_displacement: 0,
+              mapping: [],
+            },
+          ],
+        },
+      }}
+    />,
+  );
+  expect(await screen.findByRole("alert")).toBeVisible();
+  expect(
+    screen.queryByRole("table", { name: "Generated candidate molecules" }),
+  ).toBeNull();
+  expect(
+    screen.queryByRole("button", {
+      name: "Calculate this candidate's properties",
+    }),
+  ).toBeNull();
 });
