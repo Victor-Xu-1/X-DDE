@@ -36,9 +36,10 @@ function fixture(data = sdf, format = "sdf") {
     zoomTo: vi.fn(),
     zoom: vi.fn(),
   } as unknown as GLViewer;
-  const scene = new MolecularScene(viewer, vi.fn());
+  const emit = vi.fn(),
+    scene = new MolecularScene(viewer, emit);
   scene.inspect(false, ["sdf", "mol", "mol2"].includes(format));
-  return { model, scene, clicks };
+  return { model, scene, clicks, viewer, emit };
 }
 function source(atoms: AtomSpec[]) {
   return atoms.map((a) => ({
@@ -163,4 +164,98 @@ it("pocket highlights retain the continuous backbone and original coordinates", 
   );
   expect(model.selectedAtoms({ resi: 2 })[0].style?.stick).toBeUndefined();
   expect(source(model.selectedAtoms({}))).toEqual(before);
+});
+
+it("surface mode requests a colored protein surface and publishes coverage only after mesh generation; switching back removes it", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nEND\n";
+  const { model, scene, viewer, emit } = fixture(pdb, "pdb"),
+    before = source(model.selectedAtoms({}));
+  let complete!: () => void;
+  vi.mocked(viewer.addSurface).mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        complete = resolve;
+      }) as never,
+  );
+  const paint = scene.configure({ mode: "surface" });
+  await vi.waitFor(() => expect(viewer.addSurface).toHaveBeenCalledOnce());
+  expect(
+    emit.mock.calls.filter(([type, summary]) => type === "surface" && summary),
+  ).toHaveLength(0);
+  const surface = vi.mocked(viewer.addSurface).mock.calls[0];
+  expect(surface[1]?.color).toBeUndefined();
+  expect(surface[2]).toEqual({ model: 0, index: [0, 1] });
+  complete();
+  await paint;
+  expect(emit).toHaveBeenCalledWith("surface", {
+    total: 2,
+    input: 0,
+    estimated: 2,
+    missing: 0,
+  });
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+  emit.mockClear();
+  vi.mocked(viewer.addSurface).mockClear();
+  await scene.configure({ mode: "cartoon" });
+  expect(viewer.removeAllSurfaces).toHaveBeenCalled();
+  expect(viewer.addSurface).not.toHaveBeenCalled();
+  expect(emit).toHaveBeenCalledWith("surface", null);
+});
+it("resetting the source while a surface is generating cannot publish stale coverage", async () => {
+  const { scene, viewer, emit } = fixture();
+  let complete!: () => void;
+  vi.mocked(viewer.addSurface).mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        complete = resolve;
+      }) as never,
+  );
+  const paint = scene.configure({ mode: "surface" });
+  await vi.waitFor(() => expect(viewer.addSurface).toHaveBeenCalledOnce());
+  scene.resetState();
+  emit.mockClear();
+  complete();
+  await paint;
+  expect(
+    emit.mock.calls.filter(([type, summary]) => type === "surface" && summary),
+  ).toHaveLength(0);
+});
+
+it("an aligned receptor and source pose colors only the receptor, while true comparisons retain their own colors", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nEND\n";
+  const { model, viewer } = fixture(pdb, "pdb"),
+    pose = new GLModel(1),
+    emit = vi.fn();
+  pose.addMolData(sdf, "sdf");
+  const models = [model, pose];
+  viewer.getModel = ((index: number) => models[index]) as GLViewer["getModel"];
+  viewer.selectedAtoms = ((selection: AtomSelectionSpec) =>
+    models[Number(selection.model ?? 0)].selectedAtoms(
+      selection,
+    )) as GLViewer["selectedAtoms"];
+  const scene = new MolecularScene(viewer, emit);
+  scene.inspect(true, false, ["pdb", "sdf"], 1);
+  await scene.configure({ mode: "surface" });
+  expect(viewer.addSurface).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.anything(),
+    { model: 0, index: [0, 1] },
+  );
+  expect(emit).toHaveBeenCalledWith("surface", {
+    total: 2,
+    input: 0,
+    estimated: 2,
+    missing: 0,
+  });
+  expectSticks(pose.selectedAtoms({}));
+  vi.mocked(viewer.addSurface).mockClear();
+  emit.mockClear();
+  scene.inspect(true, false, ["pdb", "sdf"], null);
+  await scene.configure({ mode: "surface" });
+  expect(viewer.addSurface).not.toHaveBeenCalled();
+  expect(
+    emit.mock.calls.filter(([type, summary]) => type === "surface" && summary),
+  ).toHaveLength(0);
 });

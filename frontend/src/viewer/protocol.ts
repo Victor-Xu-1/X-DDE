@@ -40,6 +40,28 @@ export interface ContactSummary {
   shown: number;
   residues: { label: string; distance: number; tooClose: boolean }[];
 }
+export const surfaceChargeRange = 0.6;
+export interface SurfaceSummary {
+  total: number;
+  input: number;
+  estimated: number;
+  missing: number;
+}
+export function surfaceSummary(value: unknown): SurfaceSummary | null {
+  if (!value || typeof value !== "object") return null;
+  const summary = value as SurfaceSummary;
+  const counts = [
+    summary.total,
+    summary.input,
+    summary.estimated,
+    summary.missing,
+  ];
+  return counts.every((n) => Number.isSafeInteger(n) && n >= 0) &&
+    summary.total > 0 &&
+    summary.input + summary.estimated + summary.missing === summary.total
+    ? summary
+    : null;
+}
 export interface SelectionInfo {
   pick_mode?: PickMode;
   identity?: {

@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
+import { SurfaceLegend } from "./SurfaceLegend";
 import { InteractionControls } from "./InteractionControls";
 import { PoseScore, type NativePoseScore } from "./PoseScore";
 import {
@@ -19,6 +20,8 @@ import {
   type ViewerOptions,
   type PickMode,
   type ContactSummary,
+  type SurfaceSummary,
+  surfaceSummary,
 } from "./protocol";
 import type { Language } from "../types";
 import type { DisplayResidue } from "./residue-region";
@@ -72,6 +75,7 @@ export function StructureViewer({
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
+  const [surface, setSurface] = useState<SurfaceSummary | null>(null);
   const [siteStatus, setSiteStatus] = useState<{
     requested: number;
     matched: number;
@@ -97,6 +101,7 @@ export function StructureViewer({
         selectionCallback.current?.(detail);
       }
       if (type === "contacts") setContacts(detail);
+      if (type === "surface") setSurface(surfaceSummary(detail));
       if (type === "site-region") setSiteStatus(detail);
       if (type === "distance")
         setDistance(
@@ -126,6 +131,7 @@ export function StructureViewer({
     setSelection(null);
     setDistance(null);
     setContacts(null);
+    setSurface(null);
     setSiteStatus(null);
     setError("");
     setScene(emptyScene);
@@ -152,6 +158,7 @@ export function StructureViewer({
       send("atom-region", highlightedAtoms ?? []);
   }, [ready, status, key, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
+    if (value.mode) setSurface(null);
     setOptions((o) => ({ ...o, ...value }));
     send("options", value);
   }
@@ -188,16 +195,25 @@ export function StructureViewer({
           <FullscreenOutlined />
         </button>
       </div>
-      {scene.hasPolymer && !overlay && (
+      {loaded && !comparison && (!overlay || scene.hasInteractionContext) && (
         <div className="segmented viewer-modes">
           {(
             [
-              ["cartoon", "整体骨架", "Backbone"],
+              [
+                "cartoon",
+                scene.hasPolymer ? "整体骨架" : "棒状结构",
+                scene.hasPolymer ? "Backbone" : "Sticks",
+              ],
               ["pocket", "配体与口袋", "Ligand and pocket"],
               ["surface", "分子表面", "Surface"],
             ] as const
           )
-            .filter(([id]) => id !== "pocket" || scene.ligands.length > 0)
+            .filter(
+              ([id]) =>
+                id !== "pocket" ||
+                (scene.hasPolymer &&
+                  (scene.ligands.length > 0 || scene.hasInteractionContext)),
+            )
             .map(([id, cn, en]) => (
               <button
                 type="button"
@@ -287,6 +303,9 @@ export function StructureViewer({
       </div>
       {loaded && (
         <>
+          {options.mode === "surface" && !comparison && (
+            <SurfaceLegend summary={surface} language={language} />
+          )}
           {siteStatus && siteStatus.requested > 0 && (
             <p className="field-help" role="status">
               {zh ? "已定位区域残基：" : "Region residues located: "}

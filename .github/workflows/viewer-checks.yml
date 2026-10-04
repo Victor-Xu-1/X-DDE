@@ -38,6 +38,7 @@ jobs:
           src/viewer/StructureViewer.test.tsx src/viewer/geometry.test.ts
           src/viewer/ViewerControls.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/source-layout.test.ts
+          src/viewer/charge-surface.test.ts src/viewer/SurfaceLegend.test.tsx
           src/viewer/InteractionControls.test.tsx src/viewer/PoseScore.test.tsx
           src/docking/poseScore.test.ts src/docking/DockingResults.test.tsx
           src/editors/molstar-appearance.test.ts src/editors/ketcher-appearance.test.ts

@@ -97,7 +97,7 @@ it("focuses the actual pose and enables interactions without pretending comparis
   expect(
     screen.getByRole("button", { name: "Focus selected ligand" }),
   ).toBeVisible();
-  expect(screen.queryByText("Surface", { exact: true })).toBeNull();
+  expect(screen.getByRole("button", { name: "Surface" })).toBeVisible();
   expect(
     screen.queryByText("Selection and display editing", { exact: true }),
   ).toBeNull();
@@ -155,4 +155,57 @@ it("reports selection choices only from its own same-origin loaded frame", () =>
   act(() => event(location.origin, frame.contentWindow));
   expect(loaded).toHaveBeenCalledWith(scene);
   unmount();
+});
+
+it("charge surface accepts only its own frame summary and clears it when returning to backbone or a new source", () => {
+  const { rerender } = render(
+    <StructureViewer urls={["/api/assets/one"]} language="zh" />,
+  );
+  const frame = screen.getByTitle("可交互分子结构") as HTMLIFrameElement;
+  function message(
+    type: string,
+    detail: unknown,
+    origin = location.origin,
+    source = frame.contentWindow,
+  ) {
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin,
+          source,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      ),
+    );
+  }
+  message("loaded", {
+    chains: ["A"],
+    atoms: 100,
+    ligands: [],
+    residues: [],
+    hasPolymer: true,
+    options: {
+      mode: "cartoon",
+      radius: 5,
+      labels: true,
+      ligand: "",
+      pick: "residue",
+      interactions: true,
+      contactLimit: 5,
+    },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "分子表面" }));
+  const summary = { total: 100, input: 0, estimated: 90, missing: 10 };
+  message("surface", summary, "https://untrusted.test");
+  message("surface", summary, location.origin, window);
+  expect(screen.queryByText("近似电性")).toBeNull();
+  message("surface", summary);
+  expect(screen.getByText("近似电性")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "整体骨架" }));
+  expect(screen.queryByText("近似电性")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "分子表面" }));
+  expect(screen.getByText("正在生成电性表面…")).toBeVisible();
+  message("surface", summary);
+  rerender(<StructureViewer urls={[]} language="zh" />);
+  expect(screen.queryByText("近似电性")).toBeNull();
 });

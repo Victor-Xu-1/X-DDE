@@ -6,6 +6,7 @@ import {
   type ViewerLoad,
 } from "./source-layout";
 import { MolecularScene } from "./scene";
+import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
 import { initializeTheme } from "../theme";
 import "./frame.css";
@@ -55,6 +56,7 @@ async function load(input: ViewerLoad) {
   try {
     let molecular = false;
     const formats: string[] = [];
+    const inputCharges: boolean[] = [];
     for (const [sourceIndex, raw] of urls.entries()) {
       const response = await fetch(validSource(raw, location.origin), {
         signal: request.signal,
@@ -78,10 +80,13 @@ async function load(input: ViewerLoad) {
       const format = suffix;
       formats.push(format);
       molecular = urls.length === 1 && ["sdf", "mol", "mol2"].includes(format);
-      const model = viewer.addModel(
-        molecularRecordText(text, input.records?.[sourceIndex] ?? 0, format),
+      const record = molecularRecordText(
+        text,
+        input.records?.[sourceIndex] ?? 0,
         format,
       );
+      inputCharges.push(inputChargesDeclared(record, format));
+      const model = viewer.addModel(record, format);
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
     }
@@ -90,6 +95,7 @@ async function load(input: ViewerLoad) {
       molecular,
       formats,
       complexLigandModel(formats, input),
+      inputCharges,
     );
     await scene.paint();
     if (current !== generation) return;

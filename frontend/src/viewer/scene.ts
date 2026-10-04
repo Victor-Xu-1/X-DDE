@@ -1,5 +1,6 @@
 import { thinSticks, regionStyle, selectionStyle } from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
+import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
@@ -52,6 +53,7 @@ export class MolecularScene {
   private measurement: mol.AtomSpec[] = [];
   private overlay = false;
   private formats: string[] = [];
+  private inputCharges: boolean[] = [];
   private complexModel: number | null = null;
   private painting = Promise.resolve();
   private revision = 0;
@@ -71,16 +73,19 @@ export class MolecularScene {
     this.emit("selected", null);
     this.emit("distance", null);
     this.emit("contacts", null);
+    this.emit("surface", null);
   }
   inspect(
     overlay: boolean,
     molecular = false,
     formats: string[] = [],
     complexModel: number | null = null,
+    inputCharges: boolean[] = [],
   ) {
     this.resetState();
     this.overlay = overlay;
     this.formats = formats;
+    this.inputCharges = inputCharges;
     this.complexModel = complexModel;
     const atoms = this.viewer.selectedAtoms({ model: 0 });
     const groups = new Map<
@@ -199,10 +204,11 @@ export class MolecularScene {
           ["sdf", "mol", "mol2"].includes(format),
         );
       this.drawContacts();
+      await this.paintSurface();
       v.render();
       return;
     }
-    await paintBase(v, this.info, this.options, [...this.hidden]);
+    paintBase(v, this.info, this.options, [...this.hidden]);
     if (this.siteRegion.length) {
       v.addStyle({ model: 0, index: this.siteRegion }, regionStyle());
     }
@@ -232,7 +238,37 @@ export class MolecularScene {
         showBackground: false,
       });
     }
+    await this.paintSurface();
     v.render();
+  }
+  private async paintSurface() {
+    this.emit("surface", null);
+    if (
+      this.options.mode !== "surface" ||
+      (this.overlay && !this.info.hasInteractionContext)
+    )
+      return;
+    const residueKeys = new Set(this.info.residues.map((r) => r.key));
+    const atoms = this.viewer
+      .selectedAtoms({ model: 0 })
+      .filter(
+        (atom) =>
+          !water.has(atom.resn ?? "") &&
+          !this.hidden.has(atom.index!) &&
+          (!this.info.hasPolymer || residueKeys.has(ref(atom).key)),
+      );
+    if (!atoms.length) return;
+    const revision = this.revision;
+    const { style, summary } = electricalSurfaceStyle(
+      atoms,
+      this.info.hasPolymer,
+      this.inputCharges[0] ?? true,
+    );
+    await this.viewer.addSurface(mol.SurfaceType.VDW, style, {
+      model: 0,
+      index: atoms.map((atom) => atom.index!),
+    });
+    if (revision === this.revision) this.emit("surface", summary);
   }
   private drawContacts() {
     if (!this.options.interactions || !this.info.hasInteractionContext) {

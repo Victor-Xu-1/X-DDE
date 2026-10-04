@@ -11,7 +11,7 @@ const gray = {
   P: 0xe8a04b,
 };
 
-export async function paintBase(
+export function paintBase(
   v: mol.GLViewer,
   info: SceneInfo,
   options: ViewerOptions,
@@ -75,12 +75,6 @@ export async function paintBase(
         );
     }
   }
-  if (options.mode === "surface" && info.hasPolymer)
-    await v.addSurface(
-      mol.SurfaceType.VDW,
-      { opacity: 0.35, color: "#bcb3dd" },
-      { hetflag: false, not: { index: hidden } },
-    );
 }
 
 export function paintOverlayModel(
