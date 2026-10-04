@@ -102,3 +102,10 @@ def test_missing_optional_model_is_rejected_before_queueing(client_factory):
         assert response.status_code == 503
         assert "ABAG checkpoint" in response.json()["detail"]
         assert client.get("/api/jobs").json() == []
+
+@pytest.mark.parametrize("path", ["/", "/index.html", "/viewer.html?v=next-release", "/molecular.html", "/theme-init.js"])
+def test_ui_bootstrap_is_not_stored_across_releases(client_factory, path):
+    with client_factory() as client:
+        response = client.get(path)
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"

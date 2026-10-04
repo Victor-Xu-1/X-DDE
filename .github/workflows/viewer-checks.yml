@@ -25,6 +25,12 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - uses: astral-sh/setup-uv@v6
+      - name: Verify preview bootstrap freshness and existing origin boundaries
+        run: >-
+          uv run --locked --group dev pytest -q
+          tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
+          tests/test_api_security.py::test_csrf_origin_and_host_boundaries
       - name: Verify source atom maps, viewer messages and selection controls
         working-directory: frontend
         run: >-

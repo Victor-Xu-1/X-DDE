@@ -1,3 +1,4 @@
+import { version as productVersion } from "../../package.json";
 import { useEffect, useRef, useState } from "react";
 import {
   FullscreenOutlined,
@@ -220,7 +221,7 @@ export function StructureViewer({
       <div className="molecular-stage">
         <iframe
           ref={frame}
-          src="/viewer.html"
+          src={`/viewer.html?v=${encodeURIComponent(productVersion)}`}
           title={zh ? "可交互分子结构" : "Interactive molecular structure"}
         />
         {status === "loading" && (

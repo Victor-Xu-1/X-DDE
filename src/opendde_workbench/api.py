@@ -167,7 +167,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             )
         if request.url.path.startswith(("/assets/", "/tools/molstar/")):
             response.headers["Access-Control-Allow-Origin"] = "*"
-        if request.url.path.startswith("/api"):
+        if request.url.path.startswith("/api") or request.url.path in {
+            "/", "/index.html", "/viewer.html", "/molecular.html", "/theme-init.js"
+        }:
             response.headers["Cache-Control"] = "no-store"
         return response
 

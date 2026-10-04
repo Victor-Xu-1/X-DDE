@@ -1,3 +1,4 @@
+import { version as productVersion } from "../../package.json";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
@@ -10,6 +11,9 @@ it("clears the prior structure when switching to a task without a result", () =>
     />,
   );
   const frame = screen.getByTitle("可交互分子结构") as HTMLIFrameElement;
+  const bootstrap = new URL(frame.src);
+  expect(bootstrap.pathname).toBe("/viewer.html");
+  expect(bootstrap.searchParams.get("v")).toBe(productVersion);
   const post = vi.spyOn(frame.contentWindow!, "postMessage");
   act(() => {
     window.dispatchEvent(
