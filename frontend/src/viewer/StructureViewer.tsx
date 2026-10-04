@@ -1,6 +1,7 @@
 import { version as productVersion } from "../../package.json";
 import { useEffect, useRef, useState } from "react";
 import {
+  CameraOutlined,
   FullscreenOutlined,
   LoadingOutlined,
   MinusOutlined,
@@ -27,6 +28,7 @@ import type { Language } from "../types";
 import type { DisplayResidue } from "./residue-region";
 import { researchError } from "../presentation/research-content";
 import "./viewer.css";
+import { useViewerSnapshot } from "./useViewerSnapshot";
 interface Props {
   urls: string[];
   language: Language;
@@ -59,6 +61,9 @@ export function StructureViewer({
     zh = language === "zh",
     key = urls.join("|") + ":" + (records?.join(",") ?? "");
   const overlay = urls.length > 1;
+  const snapshot = useViewerSnapshot(key),
+    snapshotReceiver = useRef(snapshot.receive);
+  snapshotReceiver.current = snapshot.receive;
   const focusedModel = useRef(focusModel);
   focusedModel.current = focusModel;
   const initialPick = useRef(selectionMode);
@@ -95,6 +100,7 @@ export function StructureViewer({
       )
         return;
       const { type, detail } = event.data;
+      if (type === "snapshot") snapshotReceiver.current(detail);
       if (type === "ready") setReady(true);
       if (type === "selected") {
         setSelection(detail);
@@ -180,20 +186,31 @@ export function StructureViewer({
               : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
           </Hint>
         </h3>
-        <button
-          type="button"
-          title={zh ? "全屏" : "Fullscreen"}
-          onClick={() =>
-            void frame.current
-              ?.closest("section")
-              ?.requestFullscreen()
-              .catch(() =>
-                setError(zh ? "浏览器未允许全屏" : "Fullscreen unavailable"),
-              )
-          }
-        >
-          <FullscreenOutlined />
-        </button>
+        <div className="viewer-heading-actions">
+          <button
+            type="button"
+            disabled={!loaded || snapshot.busy}
+            aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
+            title={zh ? "生成三维视图图片" : "Capture 3D view"}
+            onClick={() => snapshot.begin(send)}
+          >
+            <CameraOutlined />
+          </button>
+          <button
+            type="button"
+            title={zh ? "全屏" : "Fullscreen"}
+            onClick={() =>
+              void frame.current
+                ?.closest("section")
+                ?.requestFullscreen()
+                .catch(() =>
+                  setError(zh ? "浏览器未允许全屏" : "Fullscreen unavailable"),
+                )
+            }
+          >
+            <FullscreenOutlined />
+          </button>
+        </div>
       </div>
       {loaded && !comparison && (!overlay || scene.hasInteractionContext) && (
         <div className="segmented viewer-modes">
@@ -301,6 +318,37 @@ export function StructureViewer({
           </div>
         )}
       </div>
+      {snapshot.failed && (
+        <p role="status" className="field-help">
+          {zh
+            ? "图片未能生成，请稍后重试。"
+            : "Image capture failed; try again."}
+        </p>
+      )}
+      {snapshot.image && (
+        <figure className="viewer-snapshot">
+          <img
+            src={snapshot.image}
+            alt={zh ? "当前三维视图图片" : "Current 3D view image"}
+          />
+          <figcaption>
+            <a
+              className="secondary-button"
+              href={snapshot.image}
+              download="X-DDE-structure-view.png"
+            >
+              {zh ? "下载视图 PNG" : "Download view PNG"}
+            </a>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={snapshot.close}
+            >
+              {zh ? "关闭图片" : "Close image"}
+            </button>
+          </figcaption>
+        </figure>
+      )}
       {loaded && (
         <>
           {options.mode === "surface" && !comparison && (

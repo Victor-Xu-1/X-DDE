@@ -249,7 +249,13 @@ export function ToolCenter({
                     >
                       <Icon />
                     </span>
-                    <h2>{module.label[index]}</h2>
+                    <div className="capability-heading-copy">
+                      <h2>{module.label[index]}</h2>
+                      <small>
+                        {module.short[1].toUpperCase()} · {entries.length}{" "}
+                        {zh ? "项任务" : "tasks"}
+                      </small>
+                    </div>
                   </header>
                   <div className="capability-recommended">
                     {entries

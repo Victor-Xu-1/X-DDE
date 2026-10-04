@@ -1,5 +1,57 @@
 # Task page layout
 
+## Commercial workflow references and graphical results
+
+The visual system uses a quiet neutral canvas, white research surfaces, restrained
+green actions, readable typography and a single spacing/radius palette. Scientific
+content determines layout: forms stay step-by-step; result tables sit beside the
+selected molecular/sequence view; images are real native renderings.
+
+Public product references were reviewed for interaction patterns, not for a claim
+that X-DDE implements their proprietary scientific methods:
+
+| Research workflow | Primary design references | X-DDE presentation |
+| --- | --- | --- |
+| Targets and reference import | Open Targets source evidence, Benchling record organization | Source status, separately tabbed associations/materials/activities, sortable evidence tables and exact sequence positions |
+| Structures and input preparation | Boltz Lab task screens supplied by the owner, Maestro structure hierarchy | One question page, source-coordinate 3D context, confidence views and native PNG capture |
+| Pockets, docking and contacts | Maestro ligand interactions, OpenEye VIDA spreadsheet/display linking | Exact pose/pocket selection, linked receptor view, original method/unit score columns and native 2D molecule thumbnails |
+| Small molecule generation/state preparation | OpenEye VIDA compound browsing | Real per-record 2D/3D views, original record identity, qualified-candidate handoff and original state/force-field distinctions |
+| Antibodies and sequence methods | Benchling AA sequence/alignment and annotation tools | Explicit source-position/CDR tracks, IMGT-preserving original/proposal alignment, native score tables and plots |
+| Properties, safety and library inspection | Simulations Plus ADMET Predictor data/graph workflow | Searchable tables, raw endpoint values/units, selected molecular previews and interactive finite-value scatter plots |
+
+Reference URLs:
+
+- https://docs.eyesopen.com/applications/vida/spreadsheet.html
+- https://docs.eyesopen.com/applications/vida/display_3d.html
+- https://help.benchling.com/hc/en-us/articles/39922093033869-How-to-create-alignments
+- https://www.schrodinger.com/platform/products/ligand-designer/
+- https://www.simulations-plus.com/resource/admet-predictor-tutorial-series-calculating-properties/
+
+ResearchTable changes view state only. Search/sort/pagination preserve native row
+identities; missing values stay missing. Side-by-side comparisons never normalize
+mixed metrics, convert scores into affinity or merge measured assay endpoints.
+CSV exports retain source values and units, quote Unicode fields and guard
+spreadsheet formulas. Tab panels mount on demand and preserve visited view state.
+
+The shared native Ketcher SVG renderer reads exact bounded SMILES or MOL/SDF
+records. One bounded readiness handshake, a serial drawing queue and a bounded
+Blob cache keep cold starts and hidden panels from generating repeated requests.
+Images load near the visible range; each image owns and releases its Blob URL.
+The pinned native color protocol uses normalized RGB, rather than the incompatible
+hex example in the upstream high-level documentation. Drawing does not call
+setMolecule on the user's editor, write source coordinates, or create research jobs.
+Missing editors/invalid records remain explicit; retry is a user action.
+
+3D capture uses the existing 3Dmol renderer and a same-origin frame/nonce check.
+Only bounded PNG payloads are accepted. Captures show current display/camera state;
+they do not represent a new structural calculation or a new evidence version.
+
+Every one of the 44 catalogue IDs remains in its original scientific execution
+path. Shared typography/forms/structured result tables cover all module pages;
+domain-specific views preserve native molecular records, source sequence positions,
+score definitions, and readiness/qualification boundaries. No synthesis workflow
+or unsupported scientific endpoint is added by this presentation update.
+
 X-DDE uses one guided task component and one source-selection contract. Scientific engines and result schemas are unchanged by presentation work.
 
 - Show one questionnaire step at a time. Keep Next and Submit at the lower right; validate the current step before navigation.

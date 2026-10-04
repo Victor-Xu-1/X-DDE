@@ -1,4 +1,5 @@
 import { Hint } from "../guided/Hint";
+import { SequenceAlignment } from "./SequenceAlignment";
 import type { Language } from "../types";
 import type { EvaluationRow, SequenceEvaluation } from "./types";
 
@@ -58,29 +59,7 @@ export function SequenceComparison({
           </tbody>
         </table>
       </div>
-      <div
-        className="humanization-sequence"
-        aria-label={
-          zh
-            ? "原始与建议序列比较"
-            : "Original and proposed sequence comparison"
-        }
-      >
-        {row.numbering.map((residue) => {
-          const after =
-              row.proposal?.[residue.source_position - 1] ?? residue.amino_acid,
-            modified = after !== residue.amino_acid;
-          return (
-            <span
-              key={`${residue.number}${residue.insertion}`}
-              className={`${residue.region === "framework" ? "framework" : "cdr"} ${modified ? "modified" : ""}`}
-              title={`IMGT ${residue.number}${residue.insertion} · ${residue.region} · ${zh ? "原始位置" : "Source position"} ${residue.source_position} · ${residue.amino_acid}${modified ? ` → ${after}` : ""}`}
-            >
-              {after}
-            </span>
-          );
-        })}
-      </div>
+      <SequenceAlignment row={row} language={language} />
       <p className="humanization-legend">
         {zh
           ? "下划线：保留的 CDR · 绿色：修改位置"

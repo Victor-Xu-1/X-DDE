@@ -5,6 +5,7 @@ import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import { screenReason, type LibraryScreenResult } from "./screen-types";
 import { ScaffoldCell, StructuralAlertCell } from "./LibraryInspectionCells";
+import { MoleculeImage } from "../presentation/MoleculeImage";
 
 export function LibraryScreenResults({
   job,
@@ -116,7 +117,22 @@ export function LibraryScreenResults({
               <tr key={row.record}>
                 <td>{row.record + 1}</td>
                 <td className="result-value">
-                  {row.descriptors?.smiles ?? "—"}
+                  <MoleculeImage
+                    compact
+                    source={
+                      row.descriptors?.smiles
+                        ? { smiles: row.descriptors.smiles }
+                        : null
+                    }
+                    language={language}
+                    label={
+                      (zh ? "原始分子 " : "Input molecule ") + (row.record + 1)
+                    }
+                  />
+                  <details>
+                    <summary>SMILES</summary>
+                    {row.descriptors?.smiles ?? "—"}
+                  </details>
                   {row.descriptors && row.descriptors.fragments > 1 && (
                     <small>{zh ? "包含多片段" : "Multiple fragments"}</small>
                   )}

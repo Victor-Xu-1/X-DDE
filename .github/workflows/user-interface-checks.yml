@@ -58,6 +58,9 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run
+          src/presentation/ResearchTable.test.tsx
+          src/presentation/MetricScatter.test.tsx
+          src/viewer/useViewerSnapshot.test.ts
           src/presentation/research-files.test.tsx
           src/presentation/research-graph.test.ts
           src/research/ResearchWorkspace.test.tsx

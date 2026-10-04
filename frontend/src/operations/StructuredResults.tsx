@@ -3,6 +3,7 @@ import { isResearchField } from "../presentation/research-files";
 
 import { resultTitle } from "./native-result-labels";
 import { unwrapResult, researchText } from "../presentation/research-content";
+import { ResearchTable } from "../presentation/ResearchTable";
 
 function scalar(value: unknown, zh: boolean) {
   if (value == null) return "—";
@@ -58,31 +59,32 @@ export function ResultTree({ value, zh }: { value: unknown; zh: boolean }) {
       const keys = [...new Set(value.flatMap((v) => Object.keys(v)))].filter(
         isResearchField,
       );
+      const rows = value.map((record, index) => ({
+        record: record as Record<string, string | number | boolean | null>,
+        index,
+      }));
       return (
-        <div className="native-result-table table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                {keys.map((k) => (
-                  <th key={k} title={k}>
-                    {resultTitle(k, zh)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {value.map((v, i) => (
-                <tr key={i}>
-                  <th scope="row">{i + 1}</th>
-                  {keys.map((k) => (
-                    <td key={k}>{scalar(v[k], zh)}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ResearchTable
+          rows={rows}
+          rowId={(row) => String(row.index)}
+          title={zh ? "科学结果记录" : "Scientific result records"}
+          language={zh ? "zh" : "en"}
+          columns={[
+            {
+              key: "index",
+              label: "#",
+              value: (row) => row.index + 1,
+              numeric: true,
+            },
+            ...keys.map((key) => ({
+              key,
+              label: resultTitle(key, zh),
+              value: (row: (typeof rows)[number]) => row.record[key],
+              render: (row: (typeof rows)[number]) =>
+                scalar(row.record[key], zh),
+            })),
+          ]}
+        />
       );
     }
     return (

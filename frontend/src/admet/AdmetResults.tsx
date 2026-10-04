@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StateForm } from "../chemistry/StateForm";
-import { StructureViewer } from "../viewer/StructureViewer";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import type { AdmetResult } from "./types";
 import { EndpointTable } from "./EndpointTable";
-import { failureReason } from "./labels";
+import { failureReason, commonEndpoints, endpointName } from "./labels";
+import { AdmetRecordTable } from "./AdmetRecordTable";
+import { MolecularPreview } from "../presentation/MolecularPreview";
+import { MetricScatter } from "../presentation/MetricScatter";
 import "./admet.css";
 
 export function AdmetResults({
@@ -45,6 +47,18 @@ export function AdmetResults({
     );
   const current =
     result.rows.find((row) => row.record === selected) ?? result.rows[0];
+  const plotMetrics = result.endpoints
+    .filter((endpoint) => commonEndpoints.has(endpoint.id))
+    .map((endpoint) => ({
+      key: endpoint.id,
+      label:
+        endpointName(endpoint, zh) +
+        " (" +
+        (endpoint.task_type === "classification" ? "0–1" : endpoint.unit) +
+        ")",
+      value: (row: AdmetResult["rows"][number]) =>
+        row.status === "predicted" ? row.predictions[endpoint.id] : null,
+    }));
   return (
     <section
       className="admet-results"
@@ -63,53 +77,35 @@ export function AdmetResults({
           {zh ? "下载预测表" : "Download prediction table"}
         </a>
       </div>
-      <div className="admet-results-layout">
-        <div
-          className="admet-records"
-          role="group"
-          aria-label={zh ? "候选分子" : "Candidate molecules"}
-        >
-          {result.rows.map((row) => (
-            <button
-              type="button"
-              key={row.record}
-              aria-pressed={current?.record === row.record}
-              onClick={() => setSelected(row.record)}
-            >
-              <strong>
-                #{row.record + 1} · {row.name}
-              </strong>
-              <span>
-                {row.status === "predicted"
-                  ? zh
-                    ? "已得到模型预测"
-                    : "Model predictions available"
-                  : failureReason(row.reason, zh)}
-              </span>
-              {row.duplicate_of_record !== null && (
-                <small>
-                  {zh ? "与记录相同" : "Same representation as record"} #
-                  {row.duplicate_of_record + 1}
-                </small>
-              )}
-            </button>
-          ))}
+      <div className="result-master-detail">
+        <div className="result-inspector">
+          <AdmetRecordTable
+            result={result}
+            language={language}
+            selected={current?.record}
+            onSelect={(row) => setSelected(row.record)}
+          />
+          <MetricScatter
+            rows={result.rows}
+            metrics={plotMetrics}
+            language={language}
+            label={zh ? "候选性质对比" : "Candidate property landscape"}
+            rowId={(row) => String(row.record)}
+            rowLabel={(row) => row.name}
+            selected={String(current?.record)}
+            onSelect={(row) => setSelected(row.record)}
+          />
         </div>
-        <div className="admet-selected-record">
+        <div className="result-inspector">
           {current && (
             <>
-              <h3>
-                #{current.record + 1} · {current.name}
-              </h3>
-              {current.preview && (
-                <StructureViewer
-                  urls={[artifactUrl(job.id, current.preview)]}
-                  language={language}
-                />
-              )}
-              {current.status === "predicted" ? (
-                <>
-                  {current.reference && onCreated && (
+              <header>
+                <h3>
+                  #{current.record + 1} · {current.name}
+                </h3>
+                {current.status === "predicted" &&
+                  current.reference &&
+                  onCreated && (
                     <button
                       className="secondary-button"
                       type="button"
@@ -120,13 +116,23 @@ export function AdmetResults({
                         : "Reuse original molecule → preparation"}
                     </button>
                   )}
-                  <EndpointTable
-                    key={job.id + ":" + current.record}
-                    language={language}
-                    result={result}
-                    row={current}
-                  />
-                </>
+              </header>
+              {current.preview && (
+                <MolecularPreview
+                  source={current.smiles ? { smiles: current.smiles } : null}
+                  label={current.name}
+                  urls={[artifactUrl(job.id, current.preview)]}
+                  language={language}
+                  defaultView="3d"
+                />
+              )}
+              {current.status === "predicted" ? (
+                <EndpointTable
+                  key={job.id + ":" + current.record}
+                  language={language}
+                  result={result}
+                  row={current}
+                />
               ) : (
                 <p role="status">{failureReason(current.reason, zh)}</p>
               )}

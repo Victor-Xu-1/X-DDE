@@ -169,6 +169,19 @@ window.addEventListener("message", (event) => {
     viewer.render();
   }
   if (type === "reset") reset();
+  if (
+    type === "snapshot" &&
+    typeof value === "string" &&
+    /^[0-9a-f-]{36}$/.test(value) &&
+    viewer.getModel(0)
+  ) {
+    try {
+      viewer.render();
+      notify("snapshot", { id: value, png: viewer.pngURI() });
+    } catch {
+      notify("snapshot", { id: value, png: null });
+    }
+  }
   if (type === "focus-ligand") scene.focusLigand();
   if (type === "zoom") {
     viewer.zoom(value === 1 ? 1.2 : 0.8);

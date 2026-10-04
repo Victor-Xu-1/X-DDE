@@ -3,9 +3,9 @@ import type { OperationResult } from "./types";
 import { ResultTree } from "./StructuredResults";
 import { unwrapResult } from "../presentation/research-content";
 import { NativeReport } from "./NativeReport";
-import { Hint } from "../guided/Hint";
 import { mutationDescription } from "./sequence-result";
 import { EpitopeResults } from "./EpitopeResults";
+import { SequenceScoreResults } from "./SequenceScoreResults";
 const object = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v)
     ? (v as Record<string, unknown>)
@@ -30,46 +30,11 @@ export function HarnessResults({
         ? (job.request.payload.sequences as string[])
         : [];
     return (
-      <section>
-        <div className="table-scroll">
-          <table>
-            <caption>
-              {zh
-                ? "输入序列的模型评分 · ESM2"
-                : "Input sequence scores · ESM2"}
-              <Hint label={zh ? "序列评分说明" : "Sequence score help"}>
-                {zh
-                  ? "评分反映模型对序列的支持程度，可在同一模型和条件下比较；不是亲和力或药效。"
-                  : "Scores reflect model support for a sequence and compare the same model and conditions; they are not affinity or potency."}
-              </Hint>
-            </caption>
-            <thead>
-              <tr>
-                <th>{zh ? "输入序列" : "Input sequence"}</th>
-                <th>{zh ? "长度" : "Length"}</th>
-                <th>{zh ? "模型分数" : "Model score"}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {content.scores.map((score, i) => (
-                <tr key={i}>
-                  <th>
-                    {zh ? "序列" : "Sequence"} {i + 1}
-                    <details>
-                      <summary>{zh ? "查看序列" : "View sequence"}</summary>
-                      <p className="sequence-cell">{sequences[i] ?? "—"}</p>
-                    </details>
-                  </th>
-                  <td>{sequences[i]?.length ?? "—"} aa</td>
-                  <td title={String(score)}>
-                    {typeof score === "number" ? score.toFixed(4) : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <SequenceScoreResults
+        sequences={sequences}
+        scores={content.scores}
+        language={language}
+      />
     );
   }
   if (

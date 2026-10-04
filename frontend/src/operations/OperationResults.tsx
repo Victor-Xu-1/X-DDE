@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
-import { defaults } from "../form-model";
+import { PropertyResults } from "./PropertyResults";
 import { QualityResults } from "../quality/QualityResults";
 import { AdmetResults } from "../admet/AdmetResults";
 import { HumanizationResults } from "../humanization/HumanizationResults";
@@ -32,7 +32,6 @@ import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { HarnessResults } from "./HarnessResults";
-import { MetricHelp, type metrics } from "../guided/MetricHelp";
 import { researchError } from "../presentation/research-content";
 
 export { ResultTree } from "./StructuredResults";
@@ -195,102 +194,12 @@ export function OperationResults({
         </p>
       )}
       {data.molecules && (
-        <div className="table-scroll">
-          <table>
-            <caption>
-              {zh ? "分子性质 · RDKit 计算" : "Molecular properties · RDKit"}
-            </caption>
-            <thead>
-              <tr>
-                {[
-                  zh ? "分子" : "Molecule",
-                  "MW (g/mol)",
-                  "LogP",
-                  "TPSA (Å²)",
-                  "QED",
-                  "SA",
-                  "HBD",
-                  "HBA",
-                  zh ? "可旋转键" : "Rotatable bonds",
-                  ...(onDraft ? [zh ? "下一步" : "Next step"] : []),
-                ].map((x, i) => (
-                  <th key={x}>
-                    {x}
-                    {i >= 1 && i <= 5 && (
-                      <MetricHelp
-                        metric={
-                          ["mw", "logp", "tpsa", "qed", "sa"][
-                            i - 1
-                          ] as keyof typeof metrics
-                        }
-                        language={language}
-                      />
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.molecules.map((m, i) => (
-                <tr key={i}>
-                  <th scope="row">
-                    <span>
-                      {zh ? "分子" : "Molecule"} {i + 1}
-                    </span>
-                    <small
-                      className="result-smiles"
-                      title={m.smiles ?? m.input}
-                    >
-                      {m.smiles ?? m.input}
-                    </small>
-                  </th>
-                  {m.available ? (
-                    [
-                      m.mw,
-                      m.logp,
-                      m.tpsa,
-                      m.qed,
-                      m.sa,
-                      m.hbd,
-                      m.hba,
-                      m.rotatable_bonds,
-                    ].map((x, j) => (
-                      <td key={j}>{x == null ? "—" : Number(x.toFixed(3))}</td>
-                    ))
-                  ) : (
-                    <td colSpan={8} role="status">
-                      {m.reason}
-                    </td>
-                  )}
-                  {onDraft && (
-                    <td>
-                      {m.available && m.smiles && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onDraft({
-                              name: (job.request.name + " · " + (i + 1)).slice(
-                                0,
-                                80,
-                              ),
-                              components: [
-                                { kind: "ligand", value: m.smiles!, count: 1 },
-                              ],
-                              parameters: { ...defaults, model: "standard" },
-                              project_id: job.request.project_id,
-                            })
-                          }
-                        >
-                          {zh ? "用此分子预测结构" : "Predict this molecule"}
-                        </button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <PropertyResults
+          job={job}
+          molecules={data.molecules}
+          language={language}
+          onDraft={onDraft}
+        />
       )}
       {data.structure && (
         <StructureViewer

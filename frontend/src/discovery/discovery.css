@@ -27,9 +27,24 @@
 }
 .discovery-sources span {
   font-size: 12px;
-  border: 1px solid var(--border, #dedad1);
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 4px 8px;
+}
+.discovery-sources .is-ok {
+  background: var(--success-soft);
+  color: var(--success);
+  border-color: transparent;
+}
+.discovery-sources .is-unavailable {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: transparent;
+}
+.discovery-sources .is-ambiguous {
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-color: transparent;
 }
 .discovery-results h4 {
   margin: 6px 0;
@@ -42,4 +57,64 @@
 .discovery-results .table-scroll thead {
   position: sticky;
   top: 0;
+}
+.evidence-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.evidence-header h3 {
+  font-size: 24px;
+  margin-top: 4px;
+}
+.evidence-header > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.evidence-description {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.evidence-material-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.evidence-material-toolbar h3 {
+  margin-right: auto;
+}
+.target-materials {
+  display: grid;
+  gap: 20px;
+}
+.target-materials > section {
+  display: grid;
+  gap: 14px;
+}
+.evidence-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tractability-cards {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  margin: 18px 0;
+}
+.tractability-cards > div {
+  display: grid;
+  gap: 7px;
+  background: var(--surface-muted);
+  padding: 16px;
+  border-radius: 10px;
+}
+.tractability-cards span {
+  color: var(--accent);
+  font-size: 12px;
 }

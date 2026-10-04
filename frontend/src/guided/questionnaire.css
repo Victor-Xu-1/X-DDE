@@ -47,9 +47,29 @@
   opacity: 0.65;
 }
 .questionnaire-heading {
-  margin: 0 0 18px;
+  margin: 5px 0 0;
   font-size: 1.05rem;
   outline: none;
+}
+.questionnaire-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 4px 0 24px;
+}
+.questionnaire-overline {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--accent);
+}
+.questionnaire-page-mark {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--line);
+  font-variant-numeric: tabular-nums;
 }
 .questionnaire > fieldset {
   min-width: 0;

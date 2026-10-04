@@ -5,7 +5,8 @@ import type { Job, Language } from "../types";
 import { artifactUrl, request } from "../api";
 import { PropertyForm } from "../operations/PropertyForm";
 import { DockingForm } from "../docking/DockingForm";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { MolecularPreview } from "../presentation/MolecularPreview";
+import { MoleculeImage } from "../presentation/MoleculeImage";
 import type { MoleculeRef } from "../research/types";
 import type { StateResult, StateSet } from "./types";
 
@@ -149,7 +150,16 @@ export function StateResults({
               {zh ? "电荷" : "Charge"} {member.evidence.charge} ·{" "}
               {member.evidence.formula}
             </summary>
-            <p className="molecular-state-smiles">{member.evidence.smiles}</p>
+            <MoleculeImage
+              compact
+              source={{ smiles: member.evidence.smiles }}
+              language={language}
+              label={(zh ? "状态 " : "State ") + (member.evidence.index + 1)}
+            />
+            <details>
+              <summary>SMILES</summary>
+              <p className="molecular-state-smiles">{member.evidence.smiles}</p>
+            </details>
             <button
               type="button"
               className="secondary-button"
@@ -225,7 +235,13 @@ export function StateResults({
         </div>
       )}
       {selected && next === null && (
-        <StructureViewer
+        <MolecularPreview
+          label={zh ? "所选游离构象" : "Selected free conformer"}
+          source={{
+            url: "/api/assets/" + selected.asset_id,
+            record: selected.record,
+          }}
+          defaultView="3d"
           urls={[
             artifactUrl(
               job.id,

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { GeneratedCandidates } from "./GeneratedCandidates";
 import { api, artifactUrl, request } from "../api";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
@@ -30,8 +31,7 @@ export function DiffResults({
   const [designMode, setDesignMode] = useState<
     "inpaint" | "diversify" | "optimize" | null
   >(null);
-  const [query, setQuery] = useState(""),
-    [message, setMessage] = useState("");
+  const [message, setMessage] = useState("");
   const targetArtifact =
     typeof data.molecule_artifact === "string"
       ? data.molecule_artifact
@@ -245,13 +245,6 @@ export function DiffResults({
           language={language}
         />
       )}
-      {selected && selected.reference.conformer === 0 && (
-        <StructureViewer
-          language={language}
-          urls={["/api/assets/" + selected.reference.asset_id]}
-          records={[selected.reference.record]}
-        />
-      )}
       {protein && (
         <details>
           <summary>{zh ? "查看受体结构" : "View receptor structure"}</summary>
@@ -263,39 +256,16 @@ export function DiffResults({
       )}
       {objects.length > 0 && (
         <>
-          <label className="field">
-            {zh ? "查找候选分子" : "Find candidates"}
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </label>
-          <ul className="diff-candidate-choices">
-            {objects
-              .filter((v) =>
-                `${v.label} ${v.reference.record + 1}`
-                  .toLowerCase()
-                  .includes(query.toLowerCase()),
-              )
-              .map((v) => (
-                <li key={v.id}>
-                  <button
-                    type="button"
-                    aria-pressed={selected?.id === v.id}
-                    title={`${v.label} · ${zh ? "SDF 记录" : "SDF record"} ${v.reference.record + 1}`}
-                    onClick={() => {
-                      setSelected(v);
-                      setAction(null);
-                    }}
-                  >
-                    {data.core_verification
-                      ? `${zh ? "候选" : "Candidate"} ${(data.core_verification.candidates.find((c) => c.qualified_record === v.reference.record)?.record ?? v.reference.record) + 1} · ${zh ? "固定区域检查通过" : "Fixed-region checks passed"}`
-                      : `${zh ? "候选" : "Candidate"} ${v.reference.record + 1}`}
-                  </button>
-                </li>
-              ))}
-          </ul>
+          <GeneratedCandidates
+            objects={objects}
+            selected={selected}
+            language={language}
+            verification={data.core_verification}
+            onSelect={(value) => {
+              setSelected(value);
+              setAction(null);
+            }}
+          />
           {selected &&
             job.request.operation === "diffsbdd" &&
             "protein" in job.request.payload && (

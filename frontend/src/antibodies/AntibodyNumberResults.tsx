@@ -4,6 +4,8 @@ import { artifactUrl } from "../api";
 import { defaults } from "../form-model";
 import type { Job, Language, Prediction } from "../types";
 import type { AntibodyNumberResult } from "./types";
+import { SequenceTrack } from "../presentation/SequenceTrack";
+import { numberedRegions } from "./numbered-regions";
 
 export function AntibodyNumberResults({
   job,
@@ -18,7 +20,10 @@ export function AntibodyNumberResults({
 }) {
   const zh = language === "zh",
     [index, setIndex] = useState(0),
-    domain = result.domains[index];
+    domain = result.domains[index],
+    source = result.input_records?.find(
+      (record) => record.id === domain?.source_id,
+    );
   return (
     <div className="discovery-results">
       <label className="field">
@@ -56,20 +61,29 @@ export function AntibodyNumberResults({
             · {zh ? "原始序列位置" : "Original positions"}{" "}
             {(domain.start ?? 0) + 1}–{(domain.end ?? 0) + 1}
           </p>
-          <div
-            className="antibody-sequence"
-            aria-label={zh ? "抗体编号残基" : "Numbered antibody residues"}
-          >
-            {domain.numbering.map((row) => (
-              <span
-                key={row.number + row.insertion}
-                className={row.region === "framework" ? "framework" : "cdr"}
-                title={`${row.region} · IMGT ${row.number}${row.insertion} · ${zh ? "原始位置" : "Source position"} ${row.source_position}`}
-              >
-                {row.amino_acid}
-              </span>
-            ))}
-          </div>
+          {source ? (
+            <SequenceTrack
+              language={language}
+              sequence={source.sequence}
+              regions={numberedRegions(domain.numbering)}
+              label={zh ? "抗体编号残基" : "Numbered antibody residues"}
+            />
+          ) : (
+            <div
+              className="antibody-sequence"
+              aria-label={zh ? "抗体编号残基" : "Numbered antibody residues"}
+            >
+              {domain.numbering.map((row) => (
+                <span
+                  key={row.number + row.insertion}
+                  className={row.region === "framework" ? "framework" : "cdr"}
+                  title={`${row.region} · IMGT ${row.number}${row.insertion} · ${zh ? "原始位置" : "Source position"} ${row.source_position}`}
+                >
+                  {row.amino_acid}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="table-scroll">
             <table>
               <thead>

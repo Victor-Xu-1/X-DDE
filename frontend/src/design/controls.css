@@ -7,7 +7,7 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: none;
+  box-shadow: 0 2px 9px rgb(27 42 33 / 3%);
 }
 .studio-panel,
 .studio-app .panel,
@@ -55,7 +55,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
 select,
 textarea {
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 10px 12px;
   background: var(--surface);
   color: var(--ink);
@@ -114,11 +114,11 @@ textarea {
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--accent-contrast);
-  border-radius: 6px;
+  border-radius: 8px;
   min-height: 40px;
   font-size: 14px;
   padding: 9px 16px;
-  box-shadow: none;
+  box-shadow: 0 3px 8px rgb(23 102 77 / 14%);
 }
 .secondary-button,
 .studio-app .secondary-button {

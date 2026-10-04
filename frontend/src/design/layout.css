@@ -3,7 +3,7 @@
   --text-body: 14px;
   --text-small: 13px;
   --content-width: 1440px;
-  --radius: 8px;
+  --radius: 12px;
 }
 html {
   scrollbar-color: var(--line) transparent;
@@ -12,6 +12,7 @@ body {
   background: var(--canvas);
   color: var(--ink);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 button,
 input,
@@ -20,7 +21,15 @@ textarea {
   color: inherit;
 }
 button {
-  transition: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
 }
 button:disabled {
   opacity: 0.5;
@@ -34,23 +43,23 @@ button:disabled {
   color: var(--ink);
 }
 .studio-app {
-  grid-template-columns: 216px minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);
   background: var(--canvas);
   color: var(--ink);
 }
 .studio-sidebar {
   background: var(--sidebar);
   border-color: var(--line);
-  padding: 16px 10px 12px;
+  padding: 20px 12px 12px;
 }
 .studio-brand {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   gap: 10px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 2px 12px;
-  margin-bottom: 8px;
+  margin-bottom: 22px;
   border: 0;
   background: transparent;
   color: var(--ink);
@@ -82,13 +91,13 @@ button:disabled {
   }
 }
 .studio-sidebar nav {
-  gap: 4px;
+  gap: 7px;
 }
 .studio-sidebar nav button {
-  min-height: 38px;
+  min-height: 42px;
   padding: 8px 12px;
   gap: 12px;
-  border-radius: 6px;
+  border-radius: 9px;
   font-size: 14px;
   font-weight: 500;
 }
@@ -117,16 +126,16 @@ button:disabled {
   display: none;
 }
 .studio-topbar {
-  height: 56px;
+  height: 62px;
   padding: 0 24px;
   background: var(--surface);
   border-bottom-color: var(--line);
   gap: 24px;
 }
 .page-context {
-  font-size: 13px;
-  font-weight: 550;
-  color: var(--muted);
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
   white-space: nowrap;
 }
 .global-search {
@@ -134,8 +143,8 @@ button:disabled {
   margin-left: auto;
   height: 36px;
   border-color: var(--line);
-  border-radius: 6px;
-  background: var(--surface);
+  border-radius: 9px;
+  background: var(--surface-muted);
 }
 .global-search input {
   color: var(--ink);
@@ -176,7 +185,7 @@ button:disabled {
 .studio-content {
   width: 100%;
   max-width: var(--content-width);
-  padding: 24px 28px 20px;
+  padding: 28px 32px 24px;
   min-width: 0;
 }
 .studio-content > [hidden] {

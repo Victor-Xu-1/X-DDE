@@ -4,6 +4,14 @@ import type { ScientificObject } from "../research/types";
 
 export interface Ketcher {
   editor?: { setOptions(options: string): unknown };
+  generateImage?(
+    data: string,
+    options: {
+      outputFormat: "svg";
+      backgroundColor?: string;
+      bondThickness?: number;
+    },
+  ): Promise<Blob>;
   getSmiles(): Promise<string>;
   getMolfile(): Promise<string>;
   setMolecule(value: string): Promise<void>;
@@ -12,8 +20,9 @@ export interface Ketcher {
 export async function editorReady(
   frame: HTMLIFrameElement | null,
   signal: AbortSignal,
+  attempts = 50,
 ): Promise<Ketcher> {
-  for (let attempt = 0; attempt < 50; attempt++) {
+  for (let attempt = 0; attempt < Math.min(attempts, 600); attempt++) {
     signal.throwIfAborted();
     const editor = (
       frame?.contentWindow as (Window & { ketcher?: Ketcher }) | null

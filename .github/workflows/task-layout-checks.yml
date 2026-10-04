@@ -65,6 +65,9 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run
+          src/presentation/ResearchTable.test.tsx
+          src/presentation/MetricScatter.test.tsx
+          src/viewer/useViewerSnapshot.test.ts
           src/guided/Questionnaire.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx
@@ -116,6 +119,7 @@ jobs:
         run: |
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           uv run --locked --group browser python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          uv run --locked --group browser python server_tests/prepare_visual_components.py
       - name: Check every task and archived example in real Chromium
         run: |
           .venv/bin/python -m playwright install --with-deps chromium
@@ -125,7 +129,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
-          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py
+          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
