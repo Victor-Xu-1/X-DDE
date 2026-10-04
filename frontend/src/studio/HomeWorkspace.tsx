@@ -1,59 +1,11 @@
-import { componentsOf, isPrediction } from "../operations/types";
+import { isPrediction } from "../operations/types";
 import { useEffect, useState } from "react";
 import { ReloadOutlined } from "@ant-design/icons";
 import { TaskForm } from "../TaskForm";
-import { ConfidencePanel } from "../operations/ConfidencePanel";
-import { TaskDetail } from "../TaskDetail";
-import { CandidatePanel } from "./CandidatePanel";
-import { AnalysisGrid } from "./AnalysisGrid";
-import { StructureViewer } from "../viewer/StructureViewer";
 import { translator } from "../i18n";
-import type {
-  Analysis,
-  Candidate,
-  Detail,
-  Health,
-  Job,
-  Language,
-  Prediction,
-  Project,
-} from "../types";
-import { useTaskLabel } from "../examples/useTaskLabel";
-interface Props {
-  active: boolean;
-  resultsVersion: number;
-  inputVersion?: number;
-  language: Language;
-  ready: boolean;
-  health: Health | null;
-  connectionError: boolean;
-  onRefresh(): void;
-  jobs: Job[];
-  job: Job | null;
-  detail: Detail | null;
-  detailError: boolean;
-  onJob(id: string): void;
-  onChanged(job: Job): void;
-  projects: Project[];
-  projectId: string | null;
-  onProject(id: string | null): void;
-  analysis: Analysis | null;
-  loadingAnalysis: boolean;
-  analysisError: string;
-  onRetry(): void;
-  candidate?: Candidate;
-  onCandidate(id: string): void;
-  urls: string[];
-  compared: string[];
-  onCompare(ids: string[]): void;
-  focusResidue: { residue: string; nonce: number } | null;
-  onResidue(residue: string): void;
-  draft: Prediction | null;
-  onReuse(): void;
-  onSubmit(value: Prediction, key: string): Promise<Job>;
-}
-export function HomeWorkspace(p: Props) {
-  const taskLabel = useTaskLabel(p.job, p.language);
+import { PredictionResults } from "./PredictionResults";
+import type { PredictionWorkspaceProps } from "./prediction-workspace";
+export function HomeWorkspace(p: PredictionWorkspaceProps) {
   const [showInput, setShowInput] = useState(
     () => !/^#task=[0-9a-f-]+$/.test(location.hash),
   );
@@ -180,89 +132,9 @@ export function HomeWorkspace(p: Props) {
               }}
             />
           </div>
-          {showResults && (
-            <>
-              <div className="candidate-column">
-                <h2 className="result-task-name">
-                  {taskLabel}{" "}
-                  <span className={"status " + p.job?.status}>
-                    {p.job ? t(p.job.status) : ""}
-                  </span>
-                </h2>
-                <CandidatePanel
-                  key={p.job?.id || "empty"}
-                  job={p.job}
-                  analysis={p.analysis}
-                  loading={p.loadingAnalysis}
-                  error={p.analysisError}
-                  onRetry={p.onRetry}
-                  language={p.language}
-                  selected={p.candidate?.id ?? null}
-                  onSelect={p.onCandidate}
-                  compared={p.compared}
-                  onCompare={p.onCompare}
-                />
-              </div>
-              <div className="viewer-column">
-                <StructureViewer
-                  urls={p.urls}
-                  language={p.language}
-                  focusResidue={p.focusResidue}
-                  comparison={p.compared.length > 1}
-                />
-              </div>
-            </>
-          )}
         </div>
-        {showResults && (
-          <details className="preview-properties">
-            <summary>
-              {zh ? "性质与结构指标" : "Properties and structure metrics"}
-            </summary>
-            <AnalysisGrid
-              analysis={p.analysis}
-              candidate={p.candidate}
-              language={p.language}
-              onResidue={p.onResidue}
-              components={componentsOf(p.job?.request)}
-            />
-          </details>
-        )}
       </section>
-      {showResults &&
-        p.job &&
-        p.candidate &&
-        (!("parameters" in p.job.request) ||
-          p.job.request.parameters.atom_confidence !== false) && (
-          <details className="confidence-details">
-            <summary>
-              {zh
-                ? "详细置信度分析（PAE / PDE）"
-                : "Detailed confidence analysis (PAE / PDE)"}
-            </summary>
-            <ConfidencePanel
-              jobId={p.job.id}
-              candidate={p.candidate.id}
-              language={p.language}
-            />
-          </details>
-        )}
-      {showResults && p.job && (
-        <details className="execution-detail">
-          <summary>
-            {zh ? "任务结果与文件" : "Task results and files"}{" "}
-            <span className={"status " + p.job.status}>{t(p.job.status)}</span>
-          </summary>
-          <TaskDetail
-            key={p.job.id}
-            language={p.language}
-            job={p.job}
-            detail={p.detail}
-            failed={p.detailError}
-            onChange={p.onChanged}
-          />
-        </details>
-      )}
+      {showResults && <PredictionResults {...p} />}
     </div>
   );
 }

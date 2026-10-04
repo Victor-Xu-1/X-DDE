@@ -18,7 +18,8 @@ it("finds real capabilities by research goal without exposing the upstream stub"
       jobs={[]}
       onCreated={vi.fn()}
       onDraft={vi.fn()}
-      onPredict={vi.fn()}
+      selectedTool={null}
+      onSelectTool={vi.fn()}
     />,
   );
   expect(screen.getByRole("heading", { name: "计算小分子性质" })).toBeVisible();

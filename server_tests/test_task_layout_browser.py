@@ -41,25 +41,31 @@ def test_every_task_page_and_native_case_layout():
                     expect(page.get_by_text("正在读取结果…",exact=True)).not_to_be_visible(timeout=30000)
                     rows.append(capture(page,evidence,name,"result"))
             page.set_viewport_size({"width":1440,"height":1000})
-            for label in ("研究资产","研究项目","任务记录","分子编辑"):
-                page.get_by_role("navigation",name="主导航").get_by_role("button",name=label,exact=True).click()
-                rows.append(capture(page,evidence,label,"utility"))
-                if label=="研究项目":
+            nav=page.get_by_role("navigation",name="主导航")
+            expect(nav.get_by_role("button")).to_have_count(9)
+            nav.get_by_role("button",name="研究空间",exact=True).click()
+            for tab in ("项目","研究文件","结构编辑"):
+                page.get_by_role("group",name="研究空间",exact=True).get_by_role("button",name=tab,exact=True).click()
+                rows.append(capture(page,evidence,"研究空间-"+tab,"utility"))
+                if tab=="项目":
                     page.locator(".project-toolbar .primary-button").click()
                     dialog=page.get_by_role("dialog",name="新建项目",exact=True)
                     expect(dialog).to_be_visible()
                     expect(page.get_by_role("textbox",name="项目名称",exact=True)).to_be_focused()
-                    confirm=dialog.locator("footer .primary-button").bounding_box()
-                    bounds=dialog.bounding_box()
+                    confirm=dialog.locator("footer .primary-button").bounding_box();bounds=dialog.bounding_box()
                     assert confirm["width"] < bounds["width"]*.6
-                    rows.append(capture(page,evidence,label,"create-dialog"))
+                    rows.append(capture(page,evidence,"研究项目","create-dialog"))
                     page.get_by_role("button",name="取消",exact=True).click()
-            page.get_by_role("button",name="账户与设置",exact=True).click()
-            menu=("账户与设置","结果解读","导出结果","工作空间概况","安装与组件","运行状态","帮助中心")
-            for label in menu:
-                if not page.get_by_role("menuitem",name=label,exact=True).count():page.get_by_role("button",name="账户与设置",exact=True).click()
+            nav.get_by_role("button",name="任务与结果",exact=True).click()
+            rows.append(capture(page,evidence,"任务与结果","utility"))
+            for label in ("安装与运行","界面设置","使用帮助"):
+                page.get_by_role("button",name="设置与帮助",exact=True).click()
+                expect(page.get_by_role("menuitem")).to_have_count(3)
                 page.get_by_role("menuitem",name=label,exact=True).click()
                 rows.append(capture(page,evidence,label,"utility"))
+                if label=="安装与运行":
+                    page.get_by_role("group",name="安装与运行",exact=True).get_by_role("button",name="运行状态",exact=True).click()
+                    rows.append(capture(page,evidence,"运行状态","utility"))
             assert not errors, errors
             assert not task_submissions, "A layout check must never submit science tasks"
             assert db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall()==original

@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Health, Job, Language, Prediction } from "../types";
-import { tools, type ToolId } from "./catalog";
+import { type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
-import { ModalityTags } from "./ModalityTags";
+import { researchModules } from "../studio/research-modules";
 import { filterCapabilities, type ModalityFilter } from "./filter";
 import { QualityForm } from "../quality/QualityForm";
 import { AdmetForm } from "../admet/AdmetForm";
@@ -36,22 +36,24 @@ export function ToolCenter({
   language,
   jobs,
   onCreated,
-  onPredict,
   onDraft,
-  initialTool = null,
-  onBrowse,
+  selectedTool,
+  onSelectTool,
+  entryRevision = 0,
+  catalogueRevision = 0,
 }: {
-  initialTool?: ToolId | null;
-  onBrowse?(): void;
+  entryRevision?: number;
+  catalogueRevision?: number;
+  selectedTool: ToolId | null;
+  onSelectTool(value: ToolId | null): void;
   language: Language;
   health: Health | null;
   jobs: Job[];
   onCreated(j: Job): void;
-  onPredict(): void;
   onDraft(p: Prediction): void;
 }) {
   const zh = language === "zh",
-    [selected, setSelected] = useState<ToolId | null>(initialTool),
+    selected = selectedTool,
     [modality, setModality] = useState<ModalityFilter>("all");
   const current = filterCapabilities("all").find((t) => t.id === selected),
     index = zh ? 0 : 1;
@@ -63,11 +65,18 @@ export function ToolCenter({
     if (selected) heading.current?.focus();
     else if (lastOpenedTool.current)
       cards.current[lastOpenedTool.current]?.focus();
-  }, [selected]);
+  }, [selected, entryRevision]);
   const filteredTools = filterCapabilities(modality);
   const [example, setExample] = useState<PreparedExample | null>(null);
   const [exampleLoad, setExampleLoad] = useState(0);
   const [previewing, setPreviewing] = useState(false);
+  useEffect(() => {
+    setExample(null);
+    setPreviewing(false);
+  }, [selected, entryRevision]);
+  useEffect(() => {
+    setModality("all");
+  }, [catalogueRevision]);
   return (
     <section
       className={`tool-center ${current ? "task-workspace " + (previewing ? "is-result" : "is-input") : ""}`}
@@ -79,8 +88,7 @@ export function ToolCenter({
             type="button"
             className="tool-back-button"
             onClick={() => {
-              if (onBrowse) onBrowse();
-              else setSelected(null);
+              onSelectTool(null);
             }}
           >
             <span aria-hidden="true">← </span>
@@ -88,17 +96,13 @@ export function ToolCenter({
           </button>
         </div>
       )}
-      <h1
-        id={headingId}
-        ref={heading}
-        tabIndex={-1}
-        className={current && !initialTool ? "compact-tool-heading" : "sr-only"}
-      >
+      <h1 id={headingId} ref={heading} tabIndex={-1} className="sr-only">
         {current ? current.label[index] : zh ? "全部能力" : "All capabilities"}
       </h1>
       {current ? (
         <>
           <ExampleActions
+            key={current.id}
             capability={current.id}
             language={language}
             onLoad={(value) => {
@@ -113,7 +117,7 @@ export function ToolCenter({
           />
           <div hidden={previewing}>
             <ExampleContext.Provider
-              key={current.id + ":" + exampleLoad}
+              key={current.id + ":" + entryRevision + ":" + exampleLoad}
               value={
                 example?.module.capability_id === current.id ? example : null
               }
@@ -159,7 +163,7 @@ export function ToolCenter({
                 <PocketForm
                   language={language}
                   onCreated={onCreated}
-                  onPredict={onPredict}
+                  onPredict={() => onSelectTool("predict")}
                 />
               ) : selected === "workflows" ? (
                 <WorkflowCenter language={language} jobs={jobs} />
@@ -218,36 +222,77 @@ export function ToolCenter({
               ? `显示 ${filteredTools.length} / ${filterCapabilities("all").length} 项能力`
               : `Showing ${filteredTools.length} of ${filterCapabilities("all").length} capabilities`}
           </p>
-          {
-            <div className="tool-grid">
-              {filteredTools.map((t) => (
-                <button
-                  type="button"
-                  className="tool-card"
-                  key={t.id}
-                  ref={(element) => {
-                    cards.current[t.id] = element;
-                  }}
-                  onClick={() => {
-                    if (t.id === "predict") onPredict();
-                    else {
-                      lastOpenedTool.current = t.id;
-                      setSelected(t.id);
-                    }
-                  }}
-                  aria-label={t.label[index]}
-                  title={t.note[index] + " · " + t.source}
+          <div className="tool-grid capability-sections">
+            {researchModules.map((module) => {
+              const entries = filteredTools
+                .filter((tool) => module.tools.includes(tool.id))
+                .sort(
+                  (a, b) =>
+                    module.tools.indexOf(a.id) - module.tools.indexOf(b.id),
+                );
+              if (!entries.length) return null;
+              return (
+                <section
+                  key={module.id}
+                  className="capability-group"
+                  aria-label={module.label[index]}
                 >
-                  <h2>{t.label[index]}</h2>
-                  <p>{t.note[index]}</p>
-                  <ModalityTags tool={t} language={language} />
-                  <span className="tool-open">
-                    {zh ? "开始准备" : "Prepare task"} →
-                  </span>
-                </button>
-              ))}
-            </div>
-          }
+                  <h2>{module.label[index]}</h2>
+                  {entries
+                    .filter((tool) => module.recommended.includes(tool.id))
+                    .map((tool) => (
+                      <button
+                        type="button"
+                        className="tool-card"
+                        key={tool.id}
+                        ref={(element) => {
+                          cards.current[tool.id] = element;
+                        }}
+                        onClick={() => {
+                          lastOpenedTool.current = tool.id;
+                          onSelectTool(tool.id);
+                        }}
+                        aria-label={tool.label[index]}
+                        title={tool.note[index] + " · " + tool.source}
+                      >
+                        <h2>{tool.label[index]}</h2>
+                        <span aria-hidden="true">→</span>
+                      </button>
+                    ))}
+                  {entries.some(
+                    (tool) => !module.recommended.includes(tool.id),
+                  ) && (
+                    <details className="capability-additional">
+                      <summary>
+                        {zh ? "更多方法" : "Additional methods"}
+                      </summary>
+                      {entries
+                        .filter((tool) => !module.recommended.includes(tool.id))
+                        .map((tool) => (
+                          <button
+                            type="button"
+                            className="tool-card"
+                            key={tool.id}
+                            ref={(element) => {
+                              cards.current[tool.id] = element;
+                            }}
+                            onClick={() => {
+                              lastOpenedTool.current = tool.id;
+                              onSelectTool(tool.id);
+                            }}
+                            aria-label={tool.label[index]}
+                            title={tool.note[index] + " · " + tool.source}
+                          >
+                            <h2>{tool.label[index]}</h2>
+                            <span aria-hidden="true">→</span>
+                          </button>
+                        ))}
+                    </details>
+                  )}
+                </section>
+              );
+            })}
+          </div>
         </>
       )}
     </section>

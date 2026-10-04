@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { Navigation, viewTitle } from "./Navigation";
-import { AccountSettings } from "./AccountSettings";
+import { InterfaceSettings } from "./InterfaceSettings";
 
 afterEach(cleanup);
 it("keeps all research modules directly accessible", async () => {
@@ -11,35 +11,31 @@ it("keeps all research modules directly accessible", async () => {
   render(<Navigation view="home" onView={onView} language="zh" jobs={[]} />);
   const nav = screen.getByRole("navigation", { name: "主导航" });
   for (const name of [
+    "靶点研究",
     "结构预测",
-    "受体构象",
-    "口袋寻找",
-    "结合模式",
-    "分子准备",
-    "分子生成",
-    "抗体设计",
-    "性质计算",
-    "分子编辑",
+    "口袋与对接",
+    "小分子设计",
+    "生物药研究",
+    "性质与安全性",
+    "研究空间",
+    "任务与结果",
     "全部能力",
-    "研究资产",
-    "研究项目",
-    "任务记录",
   ])
     expect(within(nav).getByRole("button", { name })).toBeVisible();
   expect(within(nav).queryByRole("button", { name: "安装与组件" })).toBeNull();
   expect(screen.queryByText("当前工作空间")).toBeNull();
-  await user.click(screen.getByRole("button", { name: "账户与设置" }));
+  await user.click(screen.getByRole("button", { name: "设置与帮助" }));
   expect(
     within(screen.getByRole("menu")).getAllByRole("menuitem"),
-  ).toHaveLength(8);
-  await user.click(screen.getByRole("menuitem", { name: "运行状态" }));
-  expect(onView).toHaveBeenCalledWith("models");
+  ).toHaveLength(3);
+  await user.click(screen.getByRole("menuitem", { name: "安装与运行" }));
+  expect(onView).toHaveBeenCalledWith("deployment");
   expect(screen.queryByRole("menu")).toBeNull();
-  expect(screen.getByRole("button", { name: "账户与设置" })).toHaveFocus();
+  expect(screen.getByRole("button", { name: "设置与帮助" })).toHaveFocus();
 });
 it.each([
-  ["zh", "研究资产", "资产"],
-  ["en", "Research assets", "Assets"],
+  ["zh", "研究空间", "文件"],
+  ["en", "Research workspace", "Files"],
 ] as const)(
   "keeps the shared asset destination reachable in %s",
   async (language, label, shortLabel) => {
@@ -71,18 +67,20 @@ it("supports toggle, outside click, Escape, arrow keys and Tab", async () => {
       <button>Outside</button>
     </>,
   );
-  const trigger = screen.getByRole("button", { name: "Account & settings" });
+  const trigger = screen.getByRole("button", { name: "Settings and help" });
   await user.click(trigger);
   expect(trigger).toHaveAttribute("aria-expanded", "true");
   expect(
-    screen.getByRole("menuitem", { name: "Account & settings" }),
+    screen.getByRole("menuitem", { name: "Installation and runtime" }),
   ).toHaveFocus();
   await user.keyboard("{ArrowDown}");
   expect(
-    screen.getByRole("menuitem", { name: "Molecular regions" }),
+    screen.getByRole("menuitem", { name: "Appearance and language" }),
   ).toHaveFocus();
   await user.keyboard("{End}");
-  expect(screen.getByRole("menuitem", { name: "Help" })).toHaveFocus();
+  expect(
+    screen.getByRole("menuitem", { name: "Getting started" }),
+  ).toHaveFocus();
   await user.keyboard("{Escape}");
   expect(trigger).toHaveFocus();
   expect(screen.queryByRole("menu")).toBeNull();
@@ -101,26 +99,22 @@ it("routes every management entry to the correct panel", async () => {
   const onView = vi.fn();
   render(<Navigation view="tools" onView={onView} language="en" jobs={[]} />);
   for (const [name, view] of [
-    ["Account & settings", "settings"],
-    ["Workspace overview", "overview"],
-    ["Installation & components", "deployment"],
-    ["Runtime status", "models"],
-    ["Help", "help"],
-  ]) {
-    await user.click(
-      screen.getByRole("button", { name: "Account & settings" }),
-    );
+    ["Installation and runtime", "deployment"],
+    ["Appearance and language", "settings"],
+    ["Getting started", "help"],
+  ] as const) {
+    await user.click(screen.getByRole("button", { name: "Settings and help" }));
     await user.click(screen.getByRole("menuitem", { name }));
     expect(onView).toHaveBeenLastCalledWith(view);
   }
 });
-it("exposes language preference and honest account limitations", async () => {
+it("keeps real language preferences without a placeholder account panel", async () => {
   const user = userEvent.setup();
   const onLanguage = vi.fn();
   render(
-    <AccountSettings language="en" onLanguage={onLanguage} storageWarning />,
+    <InterfaceSettings language="en" onLanguage={onLanguage} storageWarning />,
   );
-  expect(screen.getByText(/team sign-in is not enabled/)).toBeVisible();
+  expect(screen.queryByText(/team sign-in is not enabled/)).toBeNull();
   await user.selectOptions(
     screen.getByRole("combobox", { name: /Interface language/ }),
     "zh",

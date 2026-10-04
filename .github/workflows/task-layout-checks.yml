@@ -78,6 +78,12 @@ jobs:
           src/regions/RegionWorkspace.test.tsx
           src/studio/ProjectPanel.test.tsx
           src/studio/HomeWorkspace.test.tsx
+          src/studio/Navigation.test.tsx
+          src/studio/research-modules.test.ts
+          src/studio/TaskWorkspace.test.tsx
+          src/studio/PredictionResults.test.tsx
+          src/studio/InterfaceSettings.test.tsx
+          src/App.test.tsx
           src/operations/ToolCenter.test.tsx
           src/viewer/ViewerControls.test.tsx
           src/presentation/research-files.test.tsx

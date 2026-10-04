@@ -6,6 +6,8 @@ from playwright.sync_api import expect
 def catalog(page):
     page.get_by_role("navigation",name="主导航").get_by_role("button",name="全部能力",exact=True).click()
     expect(page.locator(".tool-card")).to_have_count(44)
+    for summary in page.locator(".capability-additional > summary").all():
+        summary.click()
 
 def capture(page, evidence, name, stage):
     panels=page.locator("main .questionnaire > fieldset:visible")

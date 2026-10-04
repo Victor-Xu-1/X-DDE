@@ -4,22 +4,29 @@ import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import { useWorkbench, taskIdFromHash } from "./useWorkbench";
 import { useScience } from "./studio/useScience";
+import { Navigation } from "./studio/Navigation";
+import { Header } from "./studio/Header";
 import {
-  Navigation,
-  Header,
   viewTitle,
-  coreToolForView,
+  toolForView,
+  viewForTool,
   type View,
-} from "./studio/Navigation";
+} from "./studio/navigation-model";
+import { ModuleTaskPicker } from "./studio/ModuleTaskPicker";
+import { PredictionResults } from "./studio/PredictionResults";
+import { TaskWorkspace } from "./studio/TaskWorkspace";
+import { WorkspaceTabs } from "./studio/WorkspaceTabs";
+import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
+import { HelpWorkspace } from "./studio/HelpWorkspace";
+import { ProjectPanel } from "./studio/ProjectPanel";
+import type { ToolId } from "./operations/catalog";
+import "./design/research-navigation.css";
 import { HomeWorkspace } from "./studio/HomeWorkspace";
-import { UtilityViews } from "./studio/UtilityViews";
 import type { Job, Language, Prediction } from "./types";
 import { ToolCenter } from "./operations/ToolCenter";
 import { isPrediction } from "./operations/types";
 import { useDeployment } from "./deployment/client";
-import { DeploymentPanel } from "./deployment/DeploymentPanel";
-import { AccountSettings } from "./studio/AccountSettings";
-import { WorkspaceOverview } from "./studio/WorkspaceOverview";
+import { InterfaceSettings } from "./studio/InterfaceSettings";
 import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
@@ -30,16 +37,19 @@ export function App() {
     null,
   );
   const [editorsOpened, setEditorsOpened] = useState(false);
+  const [researchOpened, setResearchOpened] = useState(false),
+    [researchTab, setResearchTab] = useState("projects"),
+    [entryRevision, setEntryRevision] = useState(0);
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>(() =>
-      taskIdFromHash(location.hash) ? "home" : "tools",
+      taskIdFromHash(location.hash) ? "tasks" : "tools",
     ),
     [projectId, setProjectId] = useState<string | null>(null);
   useEffect(() => {
     function navigate() {
       if (taskIdFromHash(window.location.hash)) {
-        setView("home");
+        setView("tasks");
         setProjectId(null);
       }
     }
@@ -53,8 +63,10 @@ export function App() {
   const [resultsVersion, setResultsVersion] = useState(0);
   const [catalogueRevision, setCatalogueRevision] = useState(0);
   useEffect(() => {
-    if (view === "editors") setEditorsOpened(true);
-  }, [view]);
+    if (view === "research") setResearchOpened(true);
+    if (view === "research" && researchTab === "editors")
+      setEditorsOpened(true);
+  }, [view, researchTab]);
   const [inputVersion, setInputVersion] = useState(0);
   const [candidateId, setCandidateId] = useState<string | null>(null),
     [compared, setCompared] = useState<string[]>([]),
@@ -107,11 +119,10 @@ export function App() {
   }, [language, view]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    content.current?.focus({ preventScroll: true });
+    if (!content.current?.contains(document.activeElement))
+      content.current?.focus({ preventScroll: true });
   }, [view]);
-  useEffect(() => {
-    if (job && !isPrediction(job.request) && view === "home") setView("tasks");
-  }, [job?.id, view]);
+
   function chooseJob(id: string) {
     select(id);
     setCandidateId(null);
@@ -121,10 +132,7 @@ export function App() {
   function showJob(id: string) {
     inspectJob(id);
     setResultsVersion((n) => n + 1);
-    const value =
-      jobs.find((j) => j.id === id) ??
-      (submitted?.id === id ? submitted : null);
-    setView(value && !isPrediction(value.request) ? "tasks" : "home");
+    setView("tasks");
   }
   function inspectJob(id: string) {
     const next = jobs.find((x) => x.id === id);
@@ -151,7 +159,6 @@ export function App() {
     showJob(next.id);
     setProjectId(next.request.project_id ?? null);
     refresh();
-    if (!isPrediction(next.request)) setView("tasks");
   }
   async function submit(value: Prediction, key: string) {
     const created = await api.submit({ ...value, project_id: projectId }, key);
@@ -164,6 +171,26 @@ export function App() {
     setProjectId(value.project_id ?? null);
     setInputVersion((n) => n + 1);
     setView("home");
+  }
+  function openTool(tool: ToolId | null) {
+    chooseJob("");
+    setDraft(null);
+    setEntryRevision((n) => n + 1);
+    if (tool === "predict") setInputVersion((n) => n + 1);
+    setView(tool ? viewForTool(tool) : "tools");
+  }
+  function navigate(next: View) {
+    const tool = toolForView(next);
+    if (tool) {
+      openTool(tool);
+      return;
+    }
+    if (next === "tools") {
+      setCatalogueRevision((n) => n + 1);
+      openTool(null);
+      return;
+    }
+    setView(next);
   }
   const common = {
     onDraft: prepareDraft,
@@ -189,15 +216,7 @@ export function App() {
       <div className="studio-app">
         <Navigation
           view={view}
-          onView={(next) => {
-            if (next === "tools") setCatalogueRevision((n) => n + 1);
-            if (next === "home") {
-              chooseJob("");
-              setDraft(null);
-              setInputVersion((n) => n + 1);
-            }
-            setView(next);
-          }}
+          onView={navigate}
           language={language}
           jobs={jobs}
         />
@@ -211,7 +230,7 @@ export function App() {
           />
           <main className="studio-content" ref={content} tabIndex={-1}>
             {view === "settings" && (
-              <AccountSettings
+              <InterfaceSettings
                 language={language}
                 storageWarning={storageWarning}
                 onLanguage={(value) => {
@@ -220,45 +239,78 @@ export function App() {
                 }}
               />
             )}
-            {view === "overview" && (
-              <WorkspaceOverview
-                language={language}
-                jobs={jobs}
-                health={health}
-              />
-            )}
-            {view === "research" && (
-              <ResearchWorkspace
-                language={language}
-                onCreated={changed}
-                onJob={showJob}
-                onEdit={(object) => {
-                  setEditorObject(object);
-                  setView("editors");
-                }}
-              />
-            )}
+            <div hidden={view !== "research"}>
+              {(researchOpened || view === "research") && (
+                <WorkspaceTabs
+                  label={zh ? "研究空间" : "Research workspace"}
+                  value={researchTab}
+                  onChange={setResearchTab}
+                  tabs={[
+                    { id: "projects", label: zh ? "项目" : "Projects" },
+                    { id: "files", label: zh ? "研究文件" : "Research files" },
+                    {
+                      id: "editors",
+                      label: zh ? "结构编辑" : "Structure editor",
+                    },
+                  ]}
+                >
+                  <div hidden={researchTab !== "projects"}>
+                    <ProjectPanel
+                      language={language}
+                      projects={science.projects}
+                      error={science.projectError}
+                      active={projectId}
+                      onChoose={(id) => {
+                        chooseProject(id);
+                        setView("tasks");
+                      }}
+                      onCreated={science.reloadProjects}
+                    />
+                  </div>
+                  <div hidden={researchTab !== "files"}>
+                    <ResearchWorkspace
+                      language={language}
+                      onCreated={changed}
+                      onJob={showJob}
+                      onEdit={(object) => {
+                        setEditorObject(object);
+                        setResearchTab("editors");
+                      }}
+                    />
+                  </div>
+                  <div hidden={researchTab !== "editors"}>
+                    {(editorsOpened || researchTab === "editors") && (
+                      <Editors
+                        initialObject={editorObject}
+                        language={language}
+                        deployment={deployment.data}
+                        deploymentError={deployment.error}
+                        onRetry={deployment.refresh}
+                        onSetup={() => setView("deployment")}
+                        onCreated={changed}
+                      />
+                    )}
+                  </div>
+                </WorkspaceTabs>
+              )}
+            </div>
             {view === "deployment" && (
-              <DeploymentPanel
+              <EnvironmentWorkspace
+                language={language}
                 data={deployment.data}
                 error={deployment.error}
                 refresh={deployment.refresh}
-                language={language}
+                health={health}
+                connectionError={work.connectionError}
+                onReconnect={refresh}
               />
             )}
-            <div hidden={view !== "editors"}>
-              {(editorsOpened || view === "editors") && (
-                <Editors
-                  initialObject={editorObject}
-                  language={language}
-                  deployment={deployment.data}
-                  deploymentError={deployment.error}
-                  onRetry={deployment.refresh}
-                  onSetup={() => setView("deployment")}
-                  onCreated={changed}
-                />
-              )}
-            </div>
+            {view === "help" && (
+              <HelpWorkspace
+                language={language}
+                onStart={() => navigate("tools")}
+              />
+            )}
             {health?.queue_wait_reason && view === "tasks" && (
               <p className="notice" role="status">
                 {zh
@@ -267,6 +319,11 @@ export function App() {
               </p>
             )}
             <div hidden={view !== "home"}>
+              <ModuleTaskPicker
+                value="predict"
+                language={language}
+                onChange={openTool}
+              />
               <HomeWorkspace
                 {...common}
                 active={view === "home"}
@@ -306,55 +363,58 @@ export function App() {
                 onSubmit={submit}
               />
             </div>
-            {(view === "tools" || coreToolForView(view)) && (
-              <ToolCenter
-                key={view === "tools" ? view + ":" + catalogueRevision : view}
-                initialTool={coreToolForView(view) ?? null}
-                onBrowse={view === "tools" ? undefined : () => setView("tools")}
-                language={language}
-                health={health}
+            {(view === "tools" || (view !== "home" && toolForView(view))) && (
+              <>
+                {view !== "tools" && (
+                  <ModuleTaskPicker
+                    value={toolForView(view)!}
+                    language={language}
+                    onChange={openTool}
+                  />
+                )}
+                <ToolCenter
+                  selectedTool={view === "tools" ? null : toolForView(view)}
+                  onSelectTool={openTool}
+                  entryRevision={entryRevision}
+                  catalogueRevision={catalogueRevision}
+                  language={language}
+                  health={health}
+                  jobs={jobs}
+                  onCreated={changed}
+                  onDraft={prepareDraft}
+                />
+              </>
+            )}
+            {view === "tasks" && (
+              <TaskWorkspace
+                {...common}
                 jobs={jobs}
-                onCreated={changed}
-                onPredict={() => {
-                  chooseJob("");
-                  setInputVersion((n) => n + 1);
-                  setView("home");
-                }}
+                loading={loading}
+                connectionError={work.connectionError}
+                onRefresh={refresh}
+                onStart={() => navigate("tools")}
+                onJob={chooseJob}
+                projectId={projectId}
+                onProject={chooseProject}
                 onDraft={prepareDraft}
+                prediction={
+                  <PredictionResults
+                    {...common}
+                    urls={urls}
+                    compared={compared}
+                    onCompare={(ids) => {
+                      setCompared(ids);
+                      setFocusResidue(null);
+                    }}
+                    focusResidue={focusResidue}
+                    onResidue={(residue) => {
+                      setCompared([]);
+                      setFocusResidue({ residue, nonce: Date.now() });
+                    }}
+                  />
+                }
               />
             )}
-            {view !== "home" &&
-              view !== "tools" &&
-              !coreToolForView(view) &&
-              view !== "deployment" &&
-              view !== "editors" &&
-              view !== "settings" &&
-              view !== "overview" &&
-              view !== "research" && (
-                <UtilityViews
-                  {...common}
-                  analysis={science.analysis}
-                  view={view}
-                  jobs={jobs}
-                  loading={loading}
-                  connectionError={work.connectionError}
-                  onRefresh={refresh}
-                  onStart={() => setView("tools")}
-                  onSetup={() => setView("deployment")}
-                  onTasks={() => setView("tasks")}
-                  onJob={chooseJob}
-                  onHome={() => {
-                    if (job && !isPrediction(job.request)) {
-                      setView("tasks");
-                      return;
-                    }
-                    setResultsVersion((n) => n + 1);
-                    setView("home");
-                  }}
-                  projectError={science.projectError}
-                  reloadProjects={science.reloadProjects}
-                />
-              )}
           </main>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
 import { HomeWorkspace } from "./HomeWorkspace";
 import { defaults } from "../form-model";
-import { UtilityViews } from "./UtilityViews";
+import { RuntimeStatus } from "./RuntimeStatus";
 import type { Health } from "../types";
 const props: ComponentProps<typeof HomeWorkspace> = {
   active: true,
@@ -91,14 +91,14 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
     health,
     view: "models" as const,
     loading: false,
-    onHome: vi.fn(),
+    onRefresh: vi.fn(),
     onStart: vi.fn(),
     onSetup: vi.fn(),
     onTasks: vi.fn(),
     projectError: "",
     reloadProjects: vi.fn(),
   };
-  const { rerender } = render(<UtilityViews {...runtimeProps} />);
+  const { rerender } = render(<RuntimeStatus {...runtimeProps} />);
   const service = screen.getByRole("heading", {
     name: "工作台服务",
   }).parentElement!;
@@ -111,7 +111,7 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
   expect(within(backend).getByText("在安装与组件中完成配置。")).toBeVisible();
   expect(screen.queryByText("Missing OpenDDE weights")).toBeNull();
   rerender(
-    <UtilityViews
+    <RuntimeStatus
       {...runtimeProps}
       language="en"
       health={{

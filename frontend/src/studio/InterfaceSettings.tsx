@@ -1,7 +1,7 @@
 import type { Language } from "../types";
 import { THEMES, useTheme } from "../theme";
 
-export function AccountSettings({
+export function InterfaceSettings({
   language,
   onLanguage,
   storageWarning,
@@ -29,25 +29,9 @@ export function AccountSettings({
   return (
     <section className="utility-page account-settings">
       <div className="management-heading">
-        <h1 className="sr-only">{zh ? "账户与设置" : "Account & settings"}</h1>
-      </div>
-      <div className="management-card">
-        <h2>{zh ? "当前账户" : "Current account"}</h2>
-        <div className="local-account-row">
-          <span className="local-avatar" aria-hidden="true">
-            L
-          </span>
-          <div>
-            <strong>{zh ? "本地用户" : "Local user"}</strong>
-            <p>{zh ? "单用户工作台" : "Single-user workbench"}</p>
-          </div>
-          <span className="local-mode">{zh ? "本地模式" : "Local mode"}</span>
-        </div>
-        <p>
-          {zh
-            ? "任务保存在配置的研究服务器。在线检索与模型服务按任务设置使用；当前未启用团队登录。"
-            : "Tasks use the configured research server. Online searches and model services follow task settings; team sign-in is not enabled."}
-        </p>
+        <h1 className="sr-only">
+          {zh ? "界面设置" : "Appearance and language"}
+        </h1>
       </div>
       <div className="management-card">
         <h2>{zh ? "界面偏好" : "Interface preferences"}</h2>

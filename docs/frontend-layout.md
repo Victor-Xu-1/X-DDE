@@ -27,3 +27,24 @@ Pocket selection highlights exact model/chain/number/insertion/alternate identit
 Assets default to research results, with originals and tasks available through explicit filters and pagination. Installation shows main research tools first; optional models and supporting packages are expandable, with active/paused or unresolved failures exposed. Runtime descriptions state configuration/readiness truthfully and never equate configuration with scientific validation.
 
 Focused CI checks exercise these result, identity, navigation, failure and component contracts. The Chromium sweep uses the frozen public research bundle and submits no scientific jobs; scientific-model acceptance is a separate server activity.
+
+
+## Research navigation consolidation
+
+One capability/view selection authority lives in App. The presentation registry assigns
+all 44 visible catalogue IDs exactly once to six workflows; defaults and recommended
+choices are checked against the backend-generated catalogue. Sidebar has nine destinations;
+settings menu has three. Native task IDs, methods, scientific assets and example identities
+remain unchanged. Scientific estimates are not merged or renamed into a different method.
+
+Projects/files/editor share Research workspace. Actual results/exports share Tasks and
+results and PredictionResults. Component installation/readiness share Installation and
+runtime. Removed account and overview placeholders are not hidden behind another menu.
+Navigation/Header, typed module mapping, task selection, task results and workspace tabs
+have separate maintainable modules; duplicate UtilityViews routes are retired.
+
+Change-specific CI verifies module coverage/defaults, one active navigation parent,
+keyboard/outside-click/Escape behavior, fresh task inputs, explicit history, project scoping,
+result loading/errors/exports, language/theme persistence, and the existing all-module
+Chromium walk without submitting scientific tasks. Owner machine performs static/build,
+real UI inspection and app lifecycle checks only.

@@ -48,6 +48,11 @@ jobs:
           src/TaskDetail.test.tsx
           src/useWorkbench.test.ts
           src/App.test.tsx
+          src/studio/Navigation.test.tsx
+          src/studio/research-modules.test.ts
+          src/studio/TaskWorkspace.test.tsx
+          src/studio/PredictionResults.test.tsx
+          src/studio/InterfaceSettings.test.tsx
           src/studio/RuntimeStatus.test.tsx
           src/studio/HomeWorkspace.test.tsx
           src/operations/ToolCenter.test.tsx

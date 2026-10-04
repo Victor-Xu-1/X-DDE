@@ -81,7 +81,8 @@ it("opens the shared asset workspace through the integrated navigation", async (
   );
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Research assets" }));
+  await user.click(screen.getByRole("button", { name: "Research workspace" }));
+  await user.click(screen.getByRole("button", { name: "Research files" }));
   expect(
     await screen.findByRole("heading", {
       name: "Scientific assets & relationships",
@@ -91,39 +92,43 @@ it("opens the shared asset workspace through the integrated navigation", async (
     await screen.findByText("Start with your first research asset"),
   ).toBeVisible();
   expect(
-    screen.getByRole("button", { name: "Research assets" }),
+    screen.getByRole("button", { name: "Research workspace" }),
   ).toHaveAttribute("aria-current", "page");
-  expect(document.title).toBe("Research assets · X-DDE");
+  expect(document.title).toBe("Research workspace · X-DDE");
 });
 
 it("keeps all projects visible when selecting a task from the unfiltered task center", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Task history" }));
+  await user.click(screen.getByRole("button", { name: "Tasks and results" }));
   await user.click(
     await screen.findByRole("button", { name: /Project A task/ }),
   );
 
   expect(screen.getByRole("heading", { name: "Project A task" })).toBeVisible();
+  await user.click(screen.getByText("Task list", { exact: true }));
   expect(screen.queryByRole("group", { name: "Project filter" })).toBeNull();
   expect(screen.getByRole("button", { name: /Project B task/ })).toBeVisible();
   expect(screen.getByRole("button", { name: /Ungrouped task/ })).toBeVisible();
   await user.click(screen.getByRole("button", { name: /Project B task/ }));
   expect(screen.getByRole("heading", { name: "Project B task" })).toBeVisible();
+  await user.click(screen.getByText("Task list", { exact: true }));
   expect(screen.getByRole("button", { name: /Project A task/ })).toBeVisible();
 });
 
 it("applies an explicitly chosen project until the user clears its filter", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Projects" }));
+  await user.click(screen.getByRole("button", { name: "Research workspace" }));
   await user.click(await screen.findByRole("button", { name: /Study A/ }));
 
   const filter = screen.getByRole("group", { name: "Project filter" });
+  await user.click(screen.getByText("Task list", { exact: true }));
   expect(filter).toHaveTextContent("Study A");
   expect(screen.queryByRole("button", { name: /Project B task/ })).toBeNull();
   await user.click(screen.getByRole("button", { name: /Another A task/ }));
   expect(screen.getByRole("heading", { name: "Another A task" })).toBeVisible();
+  await user.click(screen.getByText("Task list", { exact: true }));
   expect(screen.getByRole("button", { name: /Project A task/ })).toBeVisible();
 
   await user.click(
@@ -152,17 +157,12 @@ it("opens core scientific forms directly from the first navigation entries", asy
   render(<App />);
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const core = [
-    "Disease to targets",
-    "Target evidence",
+    "Target research",
     "Structure prediction",
-    "Receptor conformations",
-    "Pocket discovery",
-    "Binding poses",
-    "Molecule preparation",
-    "Molecule generation",
-    "Antibody design",
-    "Molecular properties",
-    "Molecule editing",
+    "Pockets and docking",
+    "Small-molecule design",
+    "Biologics research",
+    "Properties and safety",
   ];
   expect(
     within(nav)
@@ -171,7 +171,11 @@ it("opens core scientific forms directly from the first navigation entries", asy
       .map((button) => button.getAttribute("aria-label")),
   ).toEqual(core);
   await user.click(
-    within(nav).getByRole("button", { name: "Molecular properties" }),
+    within(nav).getByRole("button", { name: "Properties and safety" }),
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Research task" }),
+    "properties",
   );
   expect(
     screen.getByRole("radiogroup", { name: "How will you provide molecules?" }),
@@ -183,10 +187,16 @@ it("opens core scientific forms directly from the first navigation entries", asy
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByRole("textbox", { name: "SMILES" })).toBeVisible();
-  await user.click(within(nav).getByRole("button", { name: "Binding poses" }));
+  await user.click(
+    within(nav).getByRole("button", { name: "Pockets and docking" }),
+  );
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   await user.click(
-    within(nav).getByRole("button", { name: "Molecule preparation" }),
+    within(nav).getByRole("button", { name: "Small-molecule design" }),
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Research task" }),
+    "chemistry.states",
   );
   expect(
     screen.getByRole("radio", {
@@ -215,11 +225,11 @@ it("keeps a linked non-prediction task in its task view across both history even
     window.dispatchEvent(new PopStateEvent("popstate"));
   });
   expect(
-    await screen.findByRole("heading", { name: "Task history" }),
+    await screen.findByRole("heading", { name: "Tasks and results" }),
   ).toBeInTheDocument();
   act(() => window.dispatchEvent(new HashChangeEvent("hashchange")));
   expect(
-    await screen.findByRole("heading", { name: "Task history" }),
+    await screen.findByRole("heading", { name: "Tasks and results" }),
   ).toBeInTheDocument();
   expect(
     screen.queryByRole("heading", { name: "Structure prediction" }),
@@ -245,7 +255,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
     name: "Main navigation",
   });
   expect(
-    await screen.findByRole("heading", { name: "Task history" }),
+    await screen.findByRole("heading", { name: "Tasks and results" }),
   ).toBeVisible();
   await user.click(
     within(nav).getByRole("button", { name: "Structure prediction" }),
@@ -254,7 +264,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
     await screen.findByRole("heading", { name: /^Structure prediction/ }),
   ).toBeVisible();
   expect(
-    screen.queryByRole("heading", { name: "Task history" }),
+    screen.queryByRole("heading", { name: "Tasks and results" }),
   ).not.toBeInTheDocument();
   expect(window.location.hash).toBe("#task=");
   expect(submit).not.toHaveBeenCalled();

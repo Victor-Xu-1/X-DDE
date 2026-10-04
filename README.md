@@ -69,7 +69,7 @@ X-DDE UI
 | `xdde ui --no-auto-deploy` | 首次启动不自动创建安装任务 |
 | `xdde ui --no-browser` | 启动但不打开浏览器 |
 
-首次使用：打开左侧底部 **账户与设置 → 安装与组件**。在页面顶部选择统一安装目录，再从基础与预览、口袋/对接/性质、结构预测、分子生成、抗体与生物药五组选择“部署推荐组合”，也可单独安装。组合部署先读取最新安装状态，只补齐缺失项；依赖仍由 X-DDE 后端的同一安装队列处理，暂停、继续使用现有操作。OpenDDE 推荐计算环境与标准模型，DiffSBDD 推荐独立环境与 CrossDocked Cα 条件模型；抗体模型、其他权重及大型搜索数据库按需选择。每个集成环境仍独立安装，不合并其依赖环境。
+首次使用：打开左侧底部 **设置与帮助 → 安装与运行 → 组件安装**。在页面顶部选择统一安装目录，再从基础与预览、口袋/对接/性质、结构预测、分子生成、抗体与生物药五组选择“部署推荐组合”，也可单独安装。组合部署先读取最新安装状态，只补齐缺失项；依赖仍由 X-DDE 后端的同一安装队列处理，暂停、继续使用现有操作。OpenDDE 推荐计算环境与标准模型，DiffSBDD 推荐独立环境与 CrossDocked Cα 条件模型；抗体模型、其他权重及大型搜索数据库按需选择。每个集成环境仍独立安装，不合并其依赖环境。
 
 组件页使用全宽自适应多列卡片和用途筛选。已安装组件的主按钮为不可重复部署的“已安装”，修复、升级、卸载与许可证详情收在“维护”。统一安装目录直接显示，可选推荐目录或填写绝对路径；Windows 路径自动转换为 WSL 路径。已有组件或未结束的部署会锁定目录，不会自动搬动环境。普通用户页面不显示安装历史、终端命令、原始 JSON、哈希或工程附件；排队、运行、暂停及最新失败仍直接显示。组合提交部分失败时刷新真实进度，重新部署只补齐剩余项，不重装已有组件。安装成功和科学计算就绪分别显示。
 
@@ -317,3 +317,22 @@ sharing a name or an owner label are not enough. When an installed environment r
 environment update. It retires only the proven idle, owned container, preserves
 its storage and private connection, then starts the reviewed new image/code.
 Restart X-DDE after component changes to refresh the platform execution settings.
+
+
+### Research navigation
+
+The sidebar follows six research workflows: target research, structure prediction,
+pockets and docking, small-molecule design, biologics research, and properties and
+safety. Each workflow opens a new task by default and offers a short task selector:
+common tasks first, then explicit supplementary methods. The shared presentation
+registry in `frontend/src/studio/research-modules.ts` covers all 44 existing scientific
+capabilities without changing their native contracts or isolated environments.
+
+Research workspace combines projects, research files/relationships and the structure
+editor. Tasks and results combines progress, the actual prediction or native result,
+analysis and downloads; prediction results use one shared renderer in both entry and
+history. Installation and runtime combines component lifecycle management and live
+environment readiness. Settings and help has three direct destinations: installation
+and runtime, interface preferences, and the usage guide. The static account placeholder,
+separate overview and duplicate analysis/export pages have been retired. Full catalogue
+entries are compact rows grouped by workflow with three common tasks visible and supplementary methods explicitly expandable; overlapping drug-modality filters remain.

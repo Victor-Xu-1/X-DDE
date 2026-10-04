@@ -23,28 +23,6 @@
   border-color: var(--line);
   box-shadow: var(--shadow);
 }
-.management-menu-heading strong {
-  font-size: 13px;
-}
-.management-menu-heading small,
-.management-group-label {
-  font-size: 11px;
-}
-.management-group button {
-  font-size: 13px;
-  min-height: 42px;
-}
-.management-avatar,
-.local-avatar {
-  background: var(--surface);
-  border-color: var(--line);
-  color: var(--accent);
-}
-.local-mode {
-  background: var(--surface-muted);
-  color: var(--muted);
-  font-size: 12px;
-}
 .theme-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

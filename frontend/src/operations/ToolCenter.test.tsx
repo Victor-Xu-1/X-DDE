@@ -2,9 +2,33 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
+import { useState, type ComponentProps } from "react";
 import type { Language } from "../types";
-import { tools } from "./catalog";
-import { ToolCenter } from "./ToolCenter";
+import { tools, type ToolId } from "./catalog";
+import { ToolCenter as ControlledToolCenter } from "./ToolCenter";
+function ToolCenter(
+  p: Omit<
+    ComponentProps<typeof ControlledToolCenter>,
+    "selectedTool" | "onSelectTool"
+  > & { initialTool?: ToolId; onBrowse?(): void; onPredict(): void },
+) {
+  const [selected, setSelected] = useState<ToolId | null>(
+    p.initialTool ?? null,
+  );
+  return (
+    <ControlledToolCenter
+      {...p}
+      selectedTool={selected}
+      onSelectTool={(tool) => {
+        if (tool === "predict") p.onPredict();
+        else {
+          setSelected(tool);
+          if (tool === null) p.onBrowse?.();
+        }
+      }}
+    />
+  );
+}
 afterEach(() => vi.restoreAllMocks());
 function props(language: Language = "en") {
   return {
@@ -23,9 +47,13 @@ it.each(["zh", "en"] as const)(
       handlers = props(language),
       submit = vi.spyOn(api, "submit");
     render(<ToolCenter {...handlers} />);
-    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
+    expect(document.querySelectorAll(".tool-card h2")).toHaveLength(
       tools.filter((t) => t.group !== "system").length,
     );
+    for (const summary of Array.from(
+      document.querySelectorAll(".capability-additional > summary"),
+    ))
+      await user.click(summary);
     for (const tool of tools.filter((t) => t.group !== "system"))
       expect(
         screen.getByRole("button", {
@@ -96,6 +124,10 @@ it("shows the same antibody task in each applicable category without extra intro
     "title",
     expect.stringContaining("not general RNA drug design"),
   );
+  for (const summary of Array.from(
+    document.querySelectorAll(".capability-additional > summary"),
+  ))
+    await user.click(summary);
   expect(
     screen.getByRole("button", { name: "Prepare MSAs and templates" }),
   ).toBeVisible();

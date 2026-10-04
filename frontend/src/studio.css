@@ -106,18 +106,6 @@ body {
   background: var(--line);
   margin: 12px 0;
 }
-.storage-meter {
-  height: 6px;
-  background: var(--line);
-  border-radius: 5px;
-  margin: 9px 0 5px;
-  overflow: hidden;
-}
-.storage-meter > span {
-  display: block;
-  background: var(--muted);
-  height: 100%;
-}
 .sidebar-status > small {
   display: block;
   font-size: var(--text-small, 13px);
@@ -1001,19 +989,6 @@ body {
 .management-trigger.active {
   background: var(--surface-hover);
 }
-.management-avatar,
-.local-avatar {
-  display: grid;
-  place-items: center;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface-muted);
-  color: var(--accent);
-  font-size: 16px;
-}
 .management-trigger-copy {
   min-width: 0;
   flex: 1;
@@ -1047,56 +1022,6 @@ body {
   background: var(--surface);
   box-shadow: 0 12px 36px var(--overlay);
 }
-.management-menu-heading {
-  padding: 9px 10px 12px;
-}
-.management-menu-heading strong,
-.management-menu-heading small {
-  display: block;
-}
-.management-menu-heading strong {
-  font-size: var(--text-small, 13px);
-}
-.management-menu-heading small {
-  margin-top: 4px;
-  font-size: var(--text-small, 13px);
-  color: var(--muted);
-}
-.management-group {
-  border-top: 1px solid var(--surface-muted);
-  padding: 6px 0;
-}
-.management-group-label {
-  display: block;
-  padding: 3px 10px 5px;
-  color: var(--muted);
-  font-size: var(--text-small, 13px);
-}
-.management-group button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 40px;
-  border: 0;
-  border-radius: 7px;
-  padding: 9px 10px;
-  background: transparent;
-  color: var(--ink);
-  text-align: left;
-  font-size: var(--text-small, 13px);
-}
-.management-group button:hover,
-.management-group button[aria-current="page"] {
-  background: var(--surface-muted);
-}
-.management-group button > span:nth-child(2) {
-  flex: 1;
-}
-.management-group button > .anticon:last-child {
-  color: var(--muted);
-  font-size: var(--text-small, 13px);
-}
 .management-trigger:focus-visible,
 .management-group button:focus-visible {
   outline: 2px solid var(--accent);
@@ -1129,22 +1054,6 @@ body {
   font-size: var(--text-small, 13px);
   line-height: 1.7;
 }
-.local-account-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.local-account-row p {
-  margin: 3px 0 0;
-}
-.local-mode {
-  margin-left: auto;
-  padding: 5px 9px;
-  border-radius: 20px;
-  background: var(--surface-muted);
-  font-size: var(--text-small, 13px);
-}
 .preference-row {
   display: flex;
   align-items: center;
@@ -1162,19 +1071,6 @@ body {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-}
-.overview-stats {
-  display: flex;
-  gap: 50px;
-  margin: 24px 0 0;
-}
-.overview-stats dt {
-  font-size: var(--text-small, 13px);
-  color: var(--muted);
-}
-.overview-stats dd {
-  font-size: 26px;
-  margin: 8px 0 0;
 }
 @media (max-width: 800px) {
   .studio-sidebar nav button .anticon {
@@ -1217,14 +1113,5 @@ body {
   }
   .preference-row {
     flex-wrap: wrap;
-  }
-  .local-account-row {
-    flex-wrap: wrap;
-  }
-  .local-mode {
-    margin-left: 0;
-  }
-  .overview-stats {
-    gap: 24px;
   }
 }

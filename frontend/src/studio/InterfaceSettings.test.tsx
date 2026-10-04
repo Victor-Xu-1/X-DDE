@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { setTheme, THEME_STORAGE_KEY } from "../theme";
-import { AccountSettings } from "./AccountSettings";
+import { InterfaceSettings } from "./InterfaceSettings";
 
 beforeEach(() => {
   localStorage.clear();
@@ -14,7 +14,7 @@ afterEach(() => vi.restoreAllMocks());
 it("offers two accessible themes and supports keyboard switching", async () => {
   const user = userEvent.setup();
   render(
-    <AccountSettings
+    <InterfaceSettings
       language="en"
       onLanguage={() => {}}
       storageWarning={false}
@@ -35,7 +35,7 @@ it("offers two accessible themes and supports keyboard switching", async () => {
 
 it("provides the theme names and descriptions in Chinese", () => {
   render(
-    <AccountSettings
+    <InterfaceSettings
       language="zh"
       onLanguage={() => {}}
       storageWarning={false}
@@ -52,7 +52,7 @@ it("provides the theme names and descriptions in Chinese", () => {
 it("explains failed persistence while continuing to apply the selected theme", async () => {
   const user = userEvent.setup();
   render(
-    <AccountSettings
+    <InterfaceSettings
       language="en"
       onLanguage={() => {}}
       storageWarning={false}
