@@ -250,9 +250,15 @@ it("an aligned receptor and source pose colors only the receptor, while true com
     missing: 0,
   });
   expectSticks(pose.selectedAtoms({}));
+  await scene.configure({ mode: "pocket" });
+  expect(viewer.zoomTo).toHaveBeenLastCalledWith({ model: 1 });
+  expect(viewer.zoom).toHaveBeenLastCalledWith(1.25);
+  vi.mocked(viewer.zoomTo).mockClear();
   vi.mocked(viewer.addSurface).mockClear();
   emit.mockClear();
   scene.inspect(true, false, ["pdb", "sdf"], null);
+  scene.focusLigand();
+  expect(viewer.zoomTo).not.toHaveBeenCalled();
   await scene.configure({ mode: "surface" });
   expect(viewer.addSurface).not.toHaveBeenCalled();
   expect(

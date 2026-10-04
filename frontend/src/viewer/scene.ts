@@ -367,8 +367,14 @@ export class MolecularScene {
   }
   focusLigand() {
     const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);
-    if (ligand) {
-      this.viewer.zoomTo(sel(ligand));
+    const selection =
+      this.complexModel !== null && this.info.hasInteractionContext
+        ? { model: this.complexModel }
+        : ligand
+          ? { model: 0, ...sel(ligand) }
+          : null;
+    if (selection) {
+      this.viewer.zoomTo(selection);
       this.viewer.zoom(1.25);
       this.viewer.render();
     }
