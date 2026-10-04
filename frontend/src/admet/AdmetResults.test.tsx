@@ -161,11 +161,10 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
     screen.getByRole("combobox", { name: "Result group" }),
     "Toxicity",
   );
-  expect(
-    within(
-      screen.getByRole("region", { name: "Predicted properties" }),
-    ).getAllByRole("row"),
-  ).toHaveLength(2);
+  const endpointTable = within(
+    screen.getByRole("region", { name: "Predicted properties" }),
+  ).getAllByRole("table")[0];
+  expect(within(endpointTable).getAllByRole("row")).toHaveLength(2);
   expect(
     screen.getByRole("link", { name: "Download prediction table" }),
   ).toHaveAttribute("href", "/api/jobs/job/download?name=predictions.csv");

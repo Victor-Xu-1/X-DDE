@@ -46,8 +46,13 @@ def test_real_structures_tables_and_sequences():
         try:
             result("计算小分子性质")
             expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
-            expect(page.locator(".molecule-image img").first).to_have_js_property("complete", True)
-            assert page.locator(".molecule-image img").first.evaluate("e => e.naturalWidth") > 0
+            page.wait_for_function(
+                """() => {
+                    const image = document.querySelector('.molecule-image img');
+                    return image && image.complete && image.naturalWidth > 0;
+                }""",
+                timeout=30000,
+            )
             record("molecule-2d-table")
             result("性质与早期安全性预测")
             expect(page.locator(".admet-results .research-table")).to_be_visible()

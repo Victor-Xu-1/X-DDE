@@ -306,3 +306,50 @@ dialog::backdrop {
   color: var(--accent);
   cursor: pointer;
 }
+.task-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.task-detail-header .panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  min-width: 0;
+  margin: 0;
+}
+.task-detail-header .task-actions {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  flex: 0 0 auto;
+}
+.task-files,
+.task-information {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.task-files > summary,
+.task-information > summary {
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 5px 0;
+}
+.task-information .task-meta {
+  margin-top: 12px;
+  padding: 0;
+  background: transparent;
+}
+@media (max-width: 640px) {
+  .task-detail-header {
+    align-items: flex-start;
+  }
+  .task-detail-header .panel-heading {
+    flex-wrap: wrap;
+  }
+}
