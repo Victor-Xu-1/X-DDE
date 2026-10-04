@@ -1,5 +1,6 @@
 import { DatabaseOutlined, DeploymentUnitOutlined } from "@ant-design/icons";
 import type { EngineStatus, Health, Language } from "../types";
+import "./runtime-status.css";
 const researchUses: Record<string, [string, string]> = {
   opendde: ["结构与复合物预测", "Structure & complex prediction"],
   diffsbdd: ["小分子生成与优化", "Small-molecule generation & optimization"],

@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  HomeFilled,
   FolderOutlined,
   ProfileOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined,
-  BarChartOutlined,
   QuestionCircleOutlined,
-  SearchOutlined,
   SettingOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
 import type { Job, Language } from "../types";
+import { researchIcons } from "./research-icons";
 import {
   navigationItems,
   managementItems,
@@ -20,14 +18,6 @@ import {
 } from "./navigation-model";
 export { viewTitle } from "./navigation-model";
 export type { View } from "./navigation-model";
-const researchIcons = {
-  targets: SearchOutlined,
-  structures: HomeFilled,
-  binding: SearchOutlined,
-  molecules: ExperimentOutlined,
-  biologics: DeploymentUnitOutlined,
-  evaluation: BarChartOutlined,
-};
 const otherIcons = {
   research: FolderOutlined,
   tasks: ProfileOutlined,

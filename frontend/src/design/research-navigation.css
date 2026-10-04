@@ -35,20 +35,54 @@
 }
 .studio-app .capability-sections {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  align-items: start;
+  gap: 20px;
+  align-items: stretch;
 }
 .capability-group {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 22px;
+  aspect-ratio: 1.15;
+  min-height: 300px;
   background: var(--surface);
   min-width: 0;
 }
-.studio-app .capability-group > h2 {
-  font-size: 15px;
-  margin: 0 0 8px;
+.capability-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.capability-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  font-size: 21px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.capability-icon.is-structures,
+.capability-icon.is-binding {
+  color: #4b82b6;
+  background: color-mix(in srgb, #4b82b6 12%, var(--surface));
+}
+.capability-icon.is-biologics {
+  color: #8062cf;
+  background: color-mix(in srgb, #8062cf 12%, var(--surface));
+}
+.studio-app .capability-group-heading h2 {
+  font-size: 17px;
+  margin: 0;
   color: var(--ink);
+}
+.capability-recommended {
+  display: grid;
+  gap: 8px;
 }
 .studio-app .capability-sections .tool-card {
   display: flex;
@@ -57,18 +91,18 @@
   gap: 10px;
   align-items: center;
   width: 100%;
-  min-height: 36px;
+  min-height: 48px;
   text-align: left;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 5px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   box-shadow: none;
-  background: transparent;
+  background: var(--surface);
 }
 .studio-app .capability-sections .tool-card h2 {
   margin: 0;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.5;
 }
 .studio-app .capability-sections .tool-card > span {
@@ -77,6 +111,7 @@
 }
 .studio-app .capability-sections .tool-card:hover {
   background: var(--surface-hover);
+  border-color: var(--accent);
 }
 .studio-app .management-menu {
   width: 230px;
@@ -142,14 +177,17 @@
 
 .capability-additional {
   border-top: 1px solid var(--line);
-  margin-top: 7px;
-  padding-top: 6px;
-  font-size: 12px;
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 13px;
   color: var(--muted);
 }
 .capability-additional summary {
   cursor: pointer;
-  padding: 5px 8px;
+  padding: 5px 0;
+}
+.capability-additional[open] .tool-card {
+  margin-top: 8px;
 }
 
 .task-picker {

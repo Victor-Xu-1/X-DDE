@@ -32,8 +32,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: 14px;
+  padding: 16px;
+  min-height: 210px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface);
@@ -51,7 +52,7 @@
 }
 .theme-swatch {
   display: block;
-  height: 58px;
+  height: 104px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface-muted);

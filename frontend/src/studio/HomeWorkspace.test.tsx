@@ -69,6 +69,15 @@ it("separates task entry from structure review while preserving the draft", () =
     screen.queryByRole("heading", { name: "小分子性质" }),
   ).not.toBeInTheDocument();
 });
+it("does not reserve an empty toolbar or show historical reuse above a fresh prediction", () => {
+  const { container } = render(<HomeWorkspace {...props} />);
+  expect(container.querySelector(".guided-toolbar")).toBeNull();
+  expect(screen.queryByRole("button", { name: "使用这份历史输入" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "结构与结果" }));
+  expect(
+    screen.getByRole("button", { name: "使用这份历史输入" }),
+  ).toBeVisible();
+});
 
 it("keeps platform and scientific engine readiness independent in the runtime view", () => {
   const health: Health = {

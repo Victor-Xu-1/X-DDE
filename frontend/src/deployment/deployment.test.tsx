@@ -139,6 +139,57 @@ it("group filters retain native model choices and fallback components", () => {
   fireEvent.click(screen.getByRole("button", { name: "全部" }));
   expect(screen.getAllByRole("article")).toHaveLength(3);
 });
+it("shows each main component once and deploys only the selected research group", async () => {
+  const snapshot = deploymentFixture([
+    packageOf("ketcher"),
+    packageOf("molstar"),
+    packageOf("compute", { engine: "opendde" }),
+    packageOf("standard", { engine: "opendde", kind: "model" }),
+    packageOf("abag", { engine: "opendde", kind: "model" }),
+  ]);
+  fresh(snapshot);
+  const post = vi.spyOn(api, "post").mockResolvedValue({});
+  panel(snapshot);
+  expect(screen.getAllByRole("article")).toHaveLength(4);
+  expect(screen.queryByRole("button", { name: "部署推荐组合" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "结构预测 · OpenDDE" }));
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+  fireEvent.click(screen.getByRole("button", { name: "部署推荐组合" }));
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(3));
+  expect(post.mock.calls.map((call) => call[0])).toEqual([
+    "/deployment/config",
+    "/deployment/packages/compute/install",
+    "/deployment/packages/standard/install",
+  ]);
+  fireEvent.click(
+    screen.getByText(/可选模型与配套组件/, { selector: "summary" }),
+  );
+  expect(screen.getByRole("article", { name: "abag" })).toBeVisible();
+});
+it("keeps pending or unresolved optional components visible without duplicating main cards", () => {
+  panel(
+    deploymentFixture(
+      [
+        packageOf("diffsbdd", { engine: "diffsbdd" }),
+        packageOf("optional-model", { engine: "diffsbdd", kind: "model" }),
+      ],
+      {
+        operations: [
+          {
+            id: "failed-optional",
+            package: "optional-model",
+            action: "install",
+            state: "failed",
+            stage: "install",
+            error: "Interrupted",
+          },
+        ],
+      },
+    ),
+  );
+  expect(screen.getByRole("article", { name: "optional-model" })).toBeVisible();
+  expect(screen.getAllByRole("article", { name: "diffsbdd" })).toHaveLength(1);
+});
 it("offers installation instead of a blank nonfunctional editor iframe", () => {
   const setup = vi.fn();
   render(

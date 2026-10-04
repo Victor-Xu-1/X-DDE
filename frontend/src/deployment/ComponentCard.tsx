@@ -1,4 +1,11 @@
 import { api } from "../api";
+import {
+  ApiOutlined,
+  DeploymentUnitOutlined,
+  EditOutlined,
+  DatabaseOutlined,
+  CheckOutlined,
+} from "@ant-design/icons";
 import type { Deployment } from "./client";
 import { pendingOperation, type ComponentPackage } from "./component-groups";
 import { componentName, componentSize, states } from "./labels";
@@ -14,6 +21,12 @@ const kinds = {
   editor: ["编辑器", "Editor"],
   data: ["数据", "Data"],
 };
+const kindIcons = {
+  runtime: ApiOutlined,
+  model: DeploymentUnitOutlined,
+  editor: EditOutlined,
+  data: DatabaseOutlined,
+};
 export function ComponentCard({
   p,
   data,
@@ -22,24 +35,33 @@ export function ComponentCard({
   execute,
   install,
   onRemove,
+  groupLabel,
 }: {
   p: ComponentPackage;
   data: Deployment;
   zh: boolean;
   busy: boolean;
   onRemove(id: string): void;
+  groupLabel: string;
 } & ComponentActions) {
   const installed = data.installed[p.id];
   const pending = pendingOperation(data, p.id);
   const title = componentName(p, zh);
   const kind = p.id === "opendde-search" ? "data" : p.kind;
+  const Icon = kindIcons[kind];
   const description = p.description.split(" / ")[zh ? 0 : 1] ?? p.description;
   return (
     <article className="component-card" aria-label={title}>
       <div className="component-top">
-        <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
+        <span className={`component-icon is-${kind}`} aria-hidden="true">
+          <Icon />
+        </span>
+        <span className="component-category">{groupLabel}</span>
       </div>
-      <h3 title={p.name}>{title}</h3>
+      <div className="component-title">
+        <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
+        <h3 title={p.name}>{title}</h3>
+      </div>
       <p title={description}>{description}</p>
       <small className="component-size" title={p.size}>
         {componentSize(p, zh)}
@@ -65,6 +87,7 @@ export function ComponentCard({
               : () => void execute(() => install([p.id]))
           }
         >
+          {installed && !pending && <CheckOutlined aria-hidden="true" />}
           {pending
             ? zh
               ? states[pending.state]

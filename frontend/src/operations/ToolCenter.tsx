@@ -3,6 +3,7 @@ import type { Health, Job, Language, Prediction } from "../types";
 import { type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { researchModules } from "../studio/research-modules";
+import { researchIcons } from "../studio/research-icons";
 import { filterCapabilities, type ModalityFilter } from "./filter";
 import { QualityForm } from "../quality/QualityForm";
 import { AdmetForm } from "../admet/AdmetForm";
@@ -231,34 +232,48 @@ export function ToolCenter({
                     module.tools.indexOf(a.id) - module.tools.indexOf(b.id),
                 );
               if (!entries.length) return null;
+              const Icon = researchIcons[module.id];
               return (
                 <section
                   key={module.id}
                   className="capability-group"
                   aria-label={module.label[index]}
                 >
-                  <h2>{module.label[index]}</h2>
-                  {entries
-                    .filter((tool) => module.recommended.includes(tool.id))
-                    .map((tool) => (
-                      <button
-                        type="button"
-                        className="tool-card"
-                        key={tool.id}
-                        ref={(element) => {
-                          cards.current[tool.id] = element;
-                        }}
-                        onClick={() => {
-                          lastOpenedTool.current = tool.id;
-                          onSelectTool(tool.id);
-                        }}
-                        aria-label={tool.label[index]}
-                        title={tool.note[index] + " · " + tool.source}
-                      >
-                        <h2>{tool.label[index]}</h2>
-                        <span aria-hidden="true">→</span>
-                      </button>
-                    ))}
+                  <header
+                    className="capability-group-heading"
+                    title={module.purpose[index]}
+                  >
+                    <span
+                      className={`capability-icon is-${module.id}`}
+                      aria-hidden="true"
+                    >
+                      <Icon />
+                    </span>
+                    <h2>{module.label[index]}</h2>
+                  </header>
+                  <div className="capability-recommended">
+                    {entries
+                      .filter((tool) => module.recommended.includes(tool.id))
+                      .map((tool) => (
+                        <button
+                          type="button"
+                          className="tool-card"
+                          key={tool.id}
+                          ref={(element) => {
+                            cards.current[tool.id] = element;
+                          }}
+                          onClick={() => {
+                            lastOpenedTool.current = tool.id;
+                            onSelectTool(tool.id);
+                          }}
+                          aria-label={tool.label[index]}
+                          title={tool.note[index] + " · " + tool.source}
+                        >
+                          <h2>{tool.label[index]}</h2>
+                          <span aria-hidden="true">→</span>
+                        </button>
+                      ))}
+                  </div>
                   {entries.some(
                     (tool) => !module.recommended.includes(tool.id),
                   ) && (

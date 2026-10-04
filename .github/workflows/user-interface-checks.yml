@@ -14,6 +14,12 @@ on:
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'
       - 'frontend/src/studio/HomeWorkspace*'
+      - 'frontend/src/deployment/**'
+      - 'frontend/src/design/**'
+      - 'frontend/src/guided/questionnaire.css'
+      - 'frontend/src/workflow.css'
+      - 'frontend/src/research/ObjectInspector*'
+      - 'frontend/src/research/research.css'
       - '.github/workflows/user-interface-checks.yml'
   pull_request:
     paths:
@@ -28,6 +34,12 @@ on:
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'
       - 'frontend/src/studio/HomeWorkspace*'
+      - 'frontend/src/deployment/**'
+      - 'frontend/src/design/**'
+      - 'frontend/src/guided/questionnaire.css'
+      - 'frontend/src/workflow.css'
+      - 'frontend/src/research/ObjectInspector*'
+      - 'frontend/src/research/research.css'
       - '.github/workflows/user-interface-checks.yml'
   workflow_dispatch:
 jobs:
@@ -69,3 +81,6 @@ jobs:
           src/chemistry/StateResults.test.tsx
           src/humanization/HumanizationResults.test.tsx
           src/docking/DockingResults.test.tsx
+          src/deployment/deployment.test.tsx
+          src/deployment/component-groups.test.ts
+          src/deployment/ComputeServicePanel.test.tsx

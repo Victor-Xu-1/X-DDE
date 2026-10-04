@@ -4,10 +4,10 @@ import type { Deployment } from "./client";
 import { ComponentCard, type ComponentActions } from "./ComponentCard";
 import {
   componentGroups,
-  missingComponents,
   pendingOperation,
   visibleDeploymentActivity,
 } from "./component-groups";
+import { ComponentBundle } from "./ComponentBundle";
 import { componentName } from "./labels";
 
 export function ComponentLibrary({
@@ -24,6 +24,36 @@ export function ComponentLibrary({
   const [remove, setRemove] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const groups = componentGroups(data.packages);
+  const visibleGroups = groups.filter(
+    (group) => filter === "all" || filter === group.id,
+  );
+  const selectedGroup = visibleGroups.length === 1 ? visibleGroups[0] : null;
+  const entries = visibleGroups.flatMap((group) => {
+    const main = group.packages.filter((p) => group.recommended.includes(p.id));
+    return group.packages.map((p) => ({
+      p,
+      groupLabel: group.title[zh ? 0 : 1].split(" · ")[0],
+      optional: main.length > 0 && !group.recommended.includes(p.id),
+    }));
+  });
+  const mainEntries = entries.filter((entry) => !entry.optional);
+  const optionalEntries = entries.filter((entry) => entry.optional);
+  const activity = visibleDeploymentActivity(data);
+  function cards(items: typeof entries) {
+    return items.map(({ p, groupLabel }) => (
+      <ComponentCard
+        key={p.id}
+        p={p}
+        groupLabel={groupLabel}
+        data={data}
+        zh={zh}
+        busy={busy}
+        execute={execute}
+        install={install}
+        onRemove={setRemove}
+      />
+    ));
+  }
   const removedPackage = data.packages.find((p) => p.id === remove);
   const removeName = removedPackage
     ? componentName(removedPackage, zh)
@@ -64,115 +94,41 @@ export function ComponentLibrary({
           </button>
         ))}
       </nav>
-      {groups
-        .filter((group) => filter === "all" || filter === group.id)
-        .map((group) => {
-          const recommended = group.recommended.filter((id) =>
-            group.packages.some((p) => p.id === id),
-          );
-          const missing = missingComponents(data, recommended);
-          const pending = recommended.some((id) => pendingOperation(data, id));
-          const complete =
-            recommended.length > 0 &&
-            recommended.every((id) => data.installed[id]);
-          const mainPackages = group.packages.filter((p) =>
-            recommended.includes(p.id),
-          );
-          const additional = group.packages.filter(
-            (p) => !recommended.includes(p.id),
-          );
-          return (
-            <section
-              key={group.id}
-              className="component-group"
-              aria-labelledby={"component-group-" + group.id}
-            >
-              <header className="component-group-heading">
-                <h3 id={"component-group-" + group.id}>
-                  {group.title[zh ? 0 : 1]}{" "}
-                  <small>
-                    {group.packages.filter((p) => data.installed[p.id]).length}/
-                    {group.packages.length}
-                  </small>
-                </h3>
-                {recommended.length > 0 && (
-                  <button
-                    className="component-bundle"
-                    disabled={busy || !missing.length}
-                    title={
-                      (zh
-                        ? "只补齐缺失组件，自动处理依赖。"
-                        : "Install missing components with server-managed dependencies. ") +
-                      group.recommendation[zh ? 0 : 1]
-                    }
-                    onClick={() => void execute(() => install(recommended))}
-                  >
-                    {complete
-                      ? zh
-                        ? "组合已安装"
-                        : "Bundle installed"
-                      : !missing.length && pending
-                        ? zh
-                          ? "部署中"
-                          : "Deploying"
-                        : zh
-                          ? "部署推荐组合"
-                          : "Install recommended bundle"}
-                  </button>
-                )}
-              </header>
-              <div className="component-grid">
-                {(mainPackages.length ? mainPackages : group.packages).map(
-                  (p) => (
-                    <ComponentCard
-                      key={p.id}
-                      p={p}
-                      data={data}
-                      zh={zh}
-                      busy={busy}
-                      execute={execute}
-                      install={install}
-                      onRemove={setRemove}
-                    />
-                  ),
-                )}
-              </div>
-              {mainPackages.length > 0 && additional.length > 0 && (
-                <details
-                  className="component-additions"
-                  open={additional.some(
-                    (p) =>
-                      pendingOperation(data, p.id) ||
-                      visibleDeploymentActivity(data).some(
-                        (o) => o.package === p.id && o.state === "failed",
-                      ),
-                  )}
-                >
-                  <summary>
-                    {zh
-                      ? "可选模型与配套组件"
-                      : "Optional models & supporting components"}{" "}
-                    · {additional.length}
-                  </summary>
-                  <div className="component-grid">
-                    {additional.map((p) => (
-                      <ComponentCard
-                        key={p.id}
-                        p={p}
-                        data={data}
-                        zh={zh}
-                        busy={busy}
-                        execute={execute}
-                        install={install}
-                        onRemove={setRemove}
-                      />
-                    ))}
-                  </div>
-                </details>
-              )}
-            </section>
-          );
-        })}
+      {selectedGroup && (
+        <header className="component-group-heading">
+          <h3>{selectedGroup.title[zh ? 0 : 1]}</h3>
+          <ComponentBundle
+            data={data}
+            zh={zh}
+            busy={busy}
+            execute={execute}
+            install={install}
+            recommended={selectedGroup.recommended.filter((id) =>
+              selectedGroup.packages.some((p) => p.id === id),
+            )}
+            description={selectedGroup.recommendation[zh ? 0 : 1]}
+          />
+        </header>
+      )}
+      <div className="component-grid">{cards(mainEntries)}</div>
+      {optionalEntries.length > 0 && (
+        <details
+          className="component-additions"
+          open={optionalEntries.some(
+            ({ p }) =>
+              pendingOperation(data, p.id) ||
+              activity.some((o) => o.package === p.id && o.state === "failed"),
+          )}
+        >
+          <summary>
+            {zh
+              ? "可选模型与配套组件"
+              : "Optional models & supporting components"}{" "}
+            · {optionalEntries.length}
+          </summary>
+          <div className="component-grid">{cards(optionalEntries)}</div>
+        </details>
+      )}
       {remove && (
         <section
           className="notice component-removal"

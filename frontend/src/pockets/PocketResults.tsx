@@ -107,45 +107,49 @@ export function PocketResults({
             : "No candidate pockets were returned. Check structure completeness, input origin and method applicability; an empty result does not establish that the target is undruggable."}
         </p>
       )}
-      <ul className="pocket-result-list">
-        {result.pockets.map((site) => (
-          <li key={site.rank}>
-            <button
-              type="button"
-              aria-pressed={site.rank === selected?.rank}
-              onClick={() => {
-                setSelected(site);
-                setContinue(false);
-                setDocking(false);
-              }}
-            >
-              <strong>
-                {zh ? "口袋" : "Pocket"} {site.rank}
-              </strong>
-              <span>
-                {zh ? "模型概率" : "Model probability"}{" "}
-                {site.probability.toFixed(3)} · {zh ? "位点评分" : "Site score"}{" "}
-                {site.score.toFixed(2)}
-              </span>
-              <small>
-                {site.residues.length} {zh ? "个残基" : "residues"}
-              </small>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {result.truncated && (
-        <p>
-          {zh
-            ? "面板只显示前列位点，其余内容保留在完整 CSV 中。"
-            : "The panel shows the leading sites; others remain in the full CSV."}
-        </p>
-      )}
-      <StructureViewer
-        urls={[artifactUrl(job.id, result.protein_artifact)]}
-        language={language}
-        residueRegion={selected?.residues}
-      />
+      <div className="pocket-explorer">
+        <div className="pocket-candidates">
+          <ul className="pocket-result-list">
+            {result.pockets.map((site) => (
+              <li key={site.rank}>
+                <button
+                  type="button"
+                  aria-pressed={site.rank === selected?.rank}
+                  onClick={() => {
+                    setSelected(site);
+                    setContinue(false);
+                    setDocking(false);
+                  }}
+                >
+                  <strong>
+                    {zh ? "口袋" : "Pocket"} {site.rank}
+                  </strong>
+                  <span>
+                    {zh ? "模型概率" : "Model probability"}{" "}
+                    {site.probability.toFixed(3)} ·{" "}
+                    {zh ? "位点评分" : "Site score"} {site.score.toFixed(2)}
+                  </span>
+                  <small>
+                    {site.residues.length} {zh ? "个残基" : "residues"}
+                  </small>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {result.truncated && (
+            <p>
+              {zh
+                ? "面板只显示前列位点，其余内容保留在完整 CSV 中。"
+                : "The panel shows the leading sites; others remain in the full CSV."}
+            </p>
+          )}
+        </div>
+        <StructureViewer
+          urls={[artifactUrl(job.id, result.protein_artifact)]}
+          language={language}
+          residueRegion={selected?.residues}
+        />
+      </div>
       {selected && (
         <>
           <details>

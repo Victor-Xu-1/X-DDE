@@ -70,15 +70,28 @@
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(360px, 2fr);
   gap: 20px;
+  align-items: start;
 }
 .research-columns > * {
   min-width: 0;
+}
+.research-inspector.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  color: var(--muted);
+  text-align: center;
+}
+.research-inspector.is-empty p {
+  max-width: 360px;
+  margin: 0;
 }
 .research-node-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 560px;
+  max-height: clamp(240px, calc(100dvh - 460px), 460px);
   overflow: auto;
 }
 .research-node-list button {

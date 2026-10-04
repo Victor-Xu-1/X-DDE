@@ -64,55 +64,60 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
             {zh ? "结构与结果" : "Structure and results"}
           </button>
         </div>
-        <div className="workbench-toolbar guided-toolbar">
-          <label hidden={!p.projects.length}>
-            {zh ? "研究项目" : "Project"}
-            <select
-              value={p.projectId ?? ""}
-              onChange={(e) => p.onProject(e.target.value || null)}
-            >
-              <option value="">{zh ? "不指定项目" : "No project"}</option>
-              {p.projects.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label hidden={showInput || !p.jobs.length}>
-            {zh ? "查看任务结果" : "View task results"}
-            <select
-              value={p.job?.id ?? ""}
-              onChange={(e) => {
-                if (e.target.value) {
-                  p.onJob(e.target.value);
-                  setShowInput(false);
-                }
-              }}
-            >
-              <option value="">{zh ? "选择已有任务" : "Choose a task"}</option>
-              {p.jobs.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.request.name} · {t(x.status)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {p.job &&
-            (!p.job.request.operation ||
-              p.job.request.operation === "predict") && (
-              <button
-                className="quickstart"
-                onClick={() => {
-                  p.onReuse();
-                  setShowInput(true);
+        {(p.projects.length > 0 || !showInput) && (
+          <div className="workbench-toolbar guided-toolbar">
+            <label hidden={!p.projects.length}>
+              {zh ? "研究项目" : "Project"}
+              <select
+                value={p.projectId ?? ""}
+                onChange={(e) => p.onProject(e.target.value || null)}
+              >
+                <option value="">{zh ? "不指定项目" : "No project"}</option>
+                {p.projects.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label hidden={showInput || !p.jobs.length}>
+              {zh ? "查看任务结果" : "View task results"}
+              <select
+                value={p.job?.id ?? ""}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    p.onJob(e.target.value);
+                    setShowInput(false);
+                  }
                 }}
               >
-                <ReloadOutlined />{" "}
-                {zh ? "使用这份历史输入" : "Use these historical inputs"}
-              </button>
-            )}
-        </div>
+                <option value="">
+                  {zh ? "选择已有任务" : "Choose a task"}
+                </option>
+                {p.jobs.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.request.name} · {t(x.status)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {!showInput &&
+              p.job &&
+              (!p.job.request.operation ||
+                p.job.request.operation === "predict") && (
+                <button
+                  className="quickstart"
+                  onClick={() => {
+                    p.onReuse();
+                    setShowInput(true);
+                  }}
+                >
+                  <ReloadOutlined />{" "}
+                  {zh ? "使用这份历史输入" : "Use these historical inputs"}
+                </button>
+              )}
+          </div>
+        )}
         <div
           className={
             "workbench-columns" + (showResults ? " result-columns" : "")

@@ -235,6 +235,7 @@ dialog::backdrop {
     display: grid;
     grid-template-columns: 70px 1fr;
     align-items: center;
+    min-height: 0;
   }
   .theme-swatch {
     height: 45px;
@@ -256,11 +257,16 @@ dialog::backdrop {
 }
 
 .help-workspace .guide-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 16px;
 }
 .help-workspace .guide-grid .studio-panel {
-  padding: 18px;
+  width: 100%;
+  min-width: 0;
+  min-height: 210px;
+  aspect-ratio: 1.1;
+  padding: 20px;
+  border-radius: 12px;
 }
 .help-workspace .guide-grid p {
   font-size: 13px;

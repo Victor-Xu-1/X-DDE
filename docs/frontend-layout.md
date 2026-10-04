@@ -16,6 +16,26 @@ X-DDE uses one guided task component and one source-selection contract. Scientif
 
 A production UI update also needs visual review of its installed preview. Compiling source or passing DOM checks alone is not a visual acceptance result.
 
+## Card and spacing contracts
+
+Component installation uses one main card grid, bounded by the shared 1440 px workspace.
+Columns use auto-fill at a 240 px minimum so a one- or two-item filter retains the same
+card width. Cards have an explicit track width, a near-square proportion, readable
+wrapping and a contained footer. Installed status is a compact disabled button;
+repair, upgrades and removal remain in the separate maintenance disclosure. Selecting
+a research group exposes its reviewed bundle, and optional models/support packages stay
+expandable. Active or unresolved optional operations remain visible.
+
+The capability catalogue, readiness cards and questionnaire choices share a consistent
+card hierarchy and spacing. Tables, editors and scientific results keep their functional
+layout rather than being forced into squares. A fresh prediction omits its empty project/
+history toolbar. Asset pagination remains reachable with a bounded scrolling list.
+
+Scoped browser checks inspect 1440/1920/2560 px desktops and a 390 px mobile viewport,
+short component groups, optional models, footer containment and absence of installation
+mutations. The existing 44-module questionnaire/expert/archived-result walk remains the
+task-page acceptance boundary. These are interface checks, not scientific execution.
+
 ## Researcher-facing information
 
 Every task page was reviewed as a research decision: identify the input, choose a plan, review the submission, interpret the native result, choose a next action. Default forms never expose internal server paths, queue reasons, job IDs, stack traces or transport envelopes. Exact scientific inputs, numerical units, missing/failed results, external-service consent, native methods and limitations remain accessible. Expert adjustments use the existing questionnaire, not another execution path.
