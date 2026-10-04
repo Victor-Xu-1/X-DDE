@@ -42,13 +42,13 @@ export function candidateMetricLabel(key: string) {
   if (key.startsWith("soluble_mpnn_scores:"))
     return "MPNN · " + key.split(":")[1];
   if (key.startsWith("soluble_mpnn_seqids:"))
-    return "Sequence identity (0–1) · " + key.split(":")[1];
+    return "MPNN seqid · " + key.split(":")[1];
   return (
     (
       {
         iptm: "ipTM",
         ptm: "pTM",
-        plddt: "pLDDT (0–100)",
+        plddt: "pLDDT",
         ipsae: "ipSAE",
         ranking_score: "Ranking score",
         esm2_llr: "ESM2 LLR",
