@@ -148,3 +148,5 @@ keyboard/outside-click/Escape behavior, fresh task inputs, explicit history, pro
 result loading/errors/exports, language/theme persistence, and the existing all-module
 Chromium walk without submitting scientific tasks. Owner machine performs static/build,
 real UI inspection and app lifecycle checks only.
+
+Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.

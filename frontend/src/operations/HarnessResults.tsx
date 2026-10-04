@@ -1,3 +1,5 @@
+import { CandidateSetResults, EvolutionResults } from "./CandidateSetResults";
+import { TargetMsaResults } from "./TargetMsaResults";
 import type { Job, Language } from "../types";
 import type { OperationResult } from "./types";
 import { ResultTree } from "./StructuredResults";
@@ -67,31 +69,12 @@ export function HarnessResults({
   }
   if (tool === "epitope")
     return <EpitopeResults job={job} value={content} language={language} />;
-  if (tool === "target-msa" && content.available === true) {
-    const scientific = { ...content };
-    delete scientific.available;
-    return <ResultTree value={scientific} zh={zh} />;
-  }
-  if (tool === "evolution") {
-    const shown = { ...content };
-    if (shown.current_parent_id == null) delete shown.current_parent_id;
-    const noTree = Object.keys(object(shown.trees)).length === 0;
-    if (noTree) delete shown.trees;
-    if (Object.keys(object(shown.conservation)).length === 0)
-      delete shown.conservation;
-    return (
-      <section>
-        {noTree && (
-          <p className="field-help">
-            {zh
-              ? "本次没有形成可展示的父子谱系；仍可查看候选数和变异记录。"
-              : "No displayable parent-child lineage was formed; candidate counts and mutation records remain available."}
-          </p>
-        )}
-        <ResultTree value={shown} zh={zh} />
-      </section>
-    );
-  }
+  if (tool === "target-msa" && content.available === true)
+    return <TargetMsaResults job={job} value={content} language={language} />;
+  if (tool === "compare" && content.legacy && content.opendde_harness)
+    return <CandidateSetResults value={content} language={language} />;
+  if (tool === "evolution" && typeof content.candidate_count === "number")
+    return <EvolutionResults value={content} language={language} />;
   if (typeof value === "string")
     return <NativeReport text={value} zh={zh} job={job} />;
   return <ResultTree value={value} zh={zh} />;

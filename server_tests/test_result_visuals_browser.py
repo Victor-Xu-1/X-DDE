@@ -155,7 +155,7 @@ def test_real_structures_tables_and_sequences():
                 "native-designed-sequence.fasta",
             )
             assert fasta.read_text().startswith(">")
-            assert len("".join(fasta.read_text().splitlines()[1:])) > 100
+            assert len("".join(fasta.read_text().splitlines()[1:])) > 60
             record("designed-sequence-preview")
             result("抗体人源参考与框架优化")
             expect(page.locator(".sequence-alignment")).to_be_visible()

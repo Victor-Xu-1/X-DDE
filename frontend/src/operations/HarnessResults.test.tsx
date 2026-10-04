@@ -75,3 +75,85 @@ it("does not unwrap or invent a result when the native tool is unavailable", () 
   );
   expect(screen.getByText("No eligible structures")).toBeVisible();
 });
+
+it("shows native comparison fractions, counts and missing scores without substituting zero", () => {
+  render(
+    <HarnessResults
+      job={job("compare")}
+      language="zh"
+      data={{
+        operation: "harness",
+        complete: true,
+        result: {
+          legacy: {
+            candidate_count: 2,
+            format_compliance: 1,
+            fold_success_rate: 0,
+            scored_rate: 1,
+            unique_sequence_rate: 0.5,
+            best_objective: 0.7730637490749359,
+          },
+          opendde_harness: {
+            candidate_count: 4,
+            format_compliance: 1,
+            fold_success_rate: 0,
+            scored_rate: 1,
+            unique_sequence_rate: 0.25,
+            best_objective: null,
+          },
+          top_k_overlap: 0.5,
+          objective_delta: null,
+        },
+      }}
+    />,
+  );
+  const table = screen.getByRole("table", { name: "候选集对照" });
+  expect(within(table).getByText("0.25")).toBeVisible();
+  expect(within(table).getByTitle("0.7730637490749359")).toBeVisible();
+  expect(
+    screen.getByRole("img", { name: "候选集指标对比 · 候选数量" }),
+  ).toBeVisible();
+  expect(within(table).getByText("—")).toBeVisible();
+});
+it("keeps unavailable genealogy truthful while displaying native recurring mutation counts", () => {
+  render(
+    <HarnessResults
+      job={job("evolution")}
+      language="zh"
+      data={{
+        operation: "harness",
+        complete: true,
+        result: {
+          available: true,
+          result: {
+            candidate_count: 5,
+            lineage_analysis: {
+              lineage_count: 0,
+              root_ids: ["trastuzumab-1N8Z"],
+              unresolved_parent_count: 0,
+            },
+            trees: {},
+            recurrent_mutations: [
+              {
+                mutation: "A:29:N>G",
+                candidate_count: 4,
+                independent_parent_count: 1,
+                improved_count: 0,
+                mean_improvement: null,
+              },
+            ],
+          },
+        },
+      }}
+    />,
+  );
+  expect(screen.getByText(/没有形成可展示的父子谱系/)).toBeVisible();
+  expect(
+    screen.getByRole("img", { name: "变异出现情况 · 出现候选数" }),
+  ).toBeVisible();
+  expect(
+    within(screen.getByRole("table", { name: "重复出现的变异" })).getByText(
+      "A:29:N>G",
+    ),
+  ).toBeVisible();
+});
