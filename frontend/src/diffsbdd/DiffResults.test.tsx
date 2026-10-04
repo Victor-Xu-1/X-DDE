@@ -39,6 +39,7 @@ it("previews the retained native molecule file even before scientific objects ar
       }}
     />,
   );
+  await screen.findByRole("table", { name: "生成的候选分子" });
   expect(
     (await screen.findAllByTestId("native-preview")).map(
       (node) => node.textContent,
