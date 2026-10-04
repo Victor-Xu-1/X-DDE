@@ -12,6 +12,10 @@ def capture_job(store, state, job_id):
     environment = store.environment(str(job_id))
     if job is None or job.status != "succeeded" or environment is None:
         raise ValueError("Public case evidence requires a successful native task and environment.")
+    with store.connect() as db:
+        authored = db.execute("SELECT request FROM jobs WHERE id=?", (str(job_id),)).fetchone()
+    if authored is None:
+        raise ValueError("The original public-case request is unavailable.")
     output = state / "jobs" / str(job_id) / "output"
     if job.request.operation == "harness":
         file = contained(output, "result.json")
@@ -28,7 +32,9 @@ def capture_job(store, state, job_id):
         raise ValueError("The native example has no retained output artifacts.")
     return JobEvidence(
         job_id=job_id,
-        request_sha256=hashlib.sha256(job.request.model_dump_json().encode()).hexdigest(),
+        # The stored validated request is the authored authority. Re-serializing
+        # a decoded model can add future default fields and break legacy evidence.
+        request_sha256=hashlib.sha256(authored["request"].encode()).hexdigest(),
         environment_sha256=environment.snapshot_sha256,
         artifact_sha256=digests,
     )

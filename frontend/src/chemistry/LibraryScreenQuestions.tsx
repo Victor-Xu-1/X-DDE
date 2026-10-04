@@ -33,6 +33,16 @@ export function ScreenPurpose({
         options={Object.entries(screenLabels).map(([value, label]) => ({
           value: value as ScreenMode,
           title: label[zh ? 0 : 1],
+          hint:
+            value === "alerts"
+              ? zh
+                ? "用 PAINS/Brenk 规则标记需要核查的结构，默认保留候选。"
+                : "Flag structural patterns with PAINS/Brenk rules; candidates are kept by default."
+              : value === "scaffold"
+                ? zh
+                  ? "先覆盖不同骨架，再挑同组代表，避免选择全是近似结构。"
+                  : "Cover different scaffolds before another representative from the same family."
+                : undefined,
         }))}
       />
       {requiresQuery && (

@@ -109,6 +109,9 @@ it("starts structural review with warnings, preserves the explicit policy on Bac
   );
   await user.click(screen.getByRole("button", { name: "下一步" }));
   await user.click(screen.getByRole("radio", { name: "检查结构风险" }));
+  expect(
+    screen.getByRole("radio", { name: "检查结构风险" }).closest("label"),
+  ).toHaveAttribute("title", expect.stringContaining("默认保留候选"));
   await user.click(screen.getByRole("button", { name: "下一步" }));
   expect(
     screen.getByRole("combobox", { name: "结构风险如何处理？" }),

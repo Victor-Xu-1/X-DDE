@@ -1,5 +1,6 @@
 """Fixed pointer/integrity boundaries using the actual SQLite authorities."""
 
+import hashlib
 import json
 from uuid import UUID, uuid4
 
@@ -87,3 +88,33 @@ def test_an_unrelated_input_cannot_be_hidden_beside_a_matching_case_input(settin
     store.finish(other.id, Status.SUCCEEDED)
     with pytest.raises(ValueError, match="Every task input"):
         pins.pin("properties", other.id, prepared)
+
+
+def test_future_default_fields_do_not_rewrite_the_original_task_evidence(settings):
+    from opendde_workbench.chemistry.screen_contract import LibraryScreenTask
+    from opendde_workbench.examples.evidence import capture_job, verify_job
+
+    store, assets, _, _, _, _ = fixture(settings)
+    asset = assets.save("library.sdf", "ligand", b"Controlled protocol record\n$$$$\n")
+    request = LibraryScreenTask(library={"asset_id": asset.id, "sha256": asset.sha256})
+    job = store.create(request, str(uuid4()), 20, 500)
+    store.claim(job.id)
+    store.finish(job.id, Status.SUCCEEDED)
+    store.bind_environment(job.id, capture(settings, "chemistry"))
+    output = settings.state_dir / "jobs" / job.id / "output"
+    output.mkdir(parents=True)
+    (output / "result.json").write_text('{"protocol_fixture":true}')
+    body = json.loads(request.model_dump_json())
+    for field in ("alert_policy", "alert_catalogue", "per_scaffold"):
+        del body["options"][field]
+    original = json.dumps(body, separators=(",", ":"))
+    with store.connect() as db:
+        db.execute("UPDATE jobs SET request=? WHERE id=?", (original, job.id))
+    assert store.get(job.id).request.model_dump_json() != original
+    evidence = capture_job(store, settings.state_dir, job.id)
+    assert evidence.request_sha256 == hashlib.sha256(original.encode()).hexdigest()
+    verify_job(store, settings.state_dir, evidence)
+    with store.connect() as db:
+        db.execute("UPDATE jobs SET request=? WHERE id=?", (original + " ", job.id))
+    with pytest.raises(ValueError, match="output bytes changed"):
+        verify_job(store, settings.state_dir, evidence)

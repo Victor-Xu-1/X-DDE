@@ -143,7 +143,8 @@ def test_real_three_drug_library_has_checked_public_sources_and_reusable_native_
             raw = response.read(source["bytes"] + 1)
         assert len(raw) == source["bytes"] and hashlib.sha256(raw).hexdigest() == source["sha256"]
         block = raw.rstrip()
-        blocks.append(block + (b"\n" if block.endswith(b"$$$$") else b"\n$$$$\n"))
+        # Preserve a blank field terminator before the missing record separator.
+        blocks.append(block + (b"\n" if block.endswith(b"$$$$") else b"\n\n$$$$\n"))
         source_records.append(source)
     evidence = Path("server_tests/evidence/library-inputs")
     evidence.mkdir(parents=True, exist_ok=True)
