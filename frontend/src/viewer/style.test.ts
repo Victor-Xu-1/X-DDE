@@ -252,7 +252,7 @@ it("an aligned receptor and source pose colors only the receptor, while true com
   expectSticks(pose.selectedAtoms({}));
   await scene.configure({ mode: "pocket" });
   expect(viewer.zoomTo).toHaveBeenLastCalledWith({ model: 1 });
-  expect(viewer.zoom).toHaveBeenLastCalledWith(1.25);
+  expect(viewer.zoom).toHaveBeenLastCalledWith(0.85);
   vi.mocked(viewer.zoomTo).mockClear();
   vi.mocked(viewer.addSurface).mockClear();
   emit.mockClear();

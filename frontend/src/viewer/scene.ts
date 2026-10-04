@@ -375,7 +375,7 @@ export class MolecularScene {
           : null;
     if (selection) {
       this.viewer.zoomTo(selection);
-      this.viewer.zoom(1.25);
+      this.viewer.zoom(0.85);
       this.viewer.render();
     }
   }
