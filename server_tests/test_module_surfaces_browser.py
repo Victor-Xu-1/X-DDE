@@ -93,6 +93,10 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
                 main_box = page.locator("main").bounding_box()
                 assert form_box["width"] >= main_box["width"] * 0.9, name
                 assert page.locator(".questionnaire-page-mark:visible").count() == 0
+                body = page.locator(".questionnaire > fieldset:visible").bounding_box()
+                footer = page.locator(".questionnaire-actions:visible").bounding_box()
+                if body and footer:
+                    assert footer["y"] - (body["y"] + body["height"]) <= 80, name
             surfaces = flat_surface_styles(page)
             assert not surfaces["framed"], (name, surfaces)
             editable = page.locator(
