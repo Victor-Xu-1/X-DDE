@@ -85,7 +85,7 @@ it("opens the shared asset workspace through the integrated navigation", async (
   await user.click(screen.getByRole("button", { name: "Research files" }));
   expect(
     await screen.findByRole("heading", {
-      name: "Scientific assets & relationships",
+      name: "Research files",
     }),
   ).toBeVisible();
   expect(
