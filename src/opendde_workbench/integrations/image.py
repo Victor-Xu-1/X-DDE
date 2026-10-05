@@ -36,8 +36,12 @@ def prepare_context(identifier, destination, source=None):
         shutil.copyfile(locked, destination / "conda-explicit.txt")
         lines += [
             "COPY conda-explicit.txt /tmp/conda-explicit.txt",
+            # The AmberTools archive legitimately includes an amber.conda link.
+            # micromamba 2.9's recursive tarball cleaner mistakes it for an
+            # archive. Delete only this fresh image's package cache after a
+            # successful transaction; installed environment files are retained.
             "RUN micromamba install -y -n base --file /tmp/conda-explicit.txt "
-            "&& micromamba clean --all --yes",
+            "&& micromamba clean --index-cache --yes && rm -rf /opt/conda/pkgs",
             "ENV PATH=/opt/conda/bin:$PATH",
         ]
     if spec["pip"]:
