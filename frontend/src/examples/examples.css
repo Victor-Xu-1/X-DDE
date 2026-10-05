@@ -100,7 +100,19 @@
 }
 .module-example-result .section-heading h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 21px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.example-result-kind {
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
 }
 .template-step-help {
   background: transparent;

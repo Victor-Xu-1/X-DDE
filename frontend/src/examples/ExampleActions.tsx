@@ -111,7 +111,17 @@ export function ExampleActions(options: ExampleTemplateOptions) {
         >
           <div className="section-heading">
             <h2>
-              {zh ? "示例结果" : "Example results"}
+              {info?.case.label[zh ? 0 : 1] ??
+                (zh ? "示例结果" : "Example results")}
+              <span className="example-result-kind">
+                {info?.record_pin && !info.record_pin.computed_result_available
+                  ? zh
+                    ? "配置示例"
+                    : "Setup example"
+                  : zh
+                    ? "公开示例"
+                    : "Public example"}
+              </span>
               <Hint label={zh ? "结果解读说明" : "Result interpretation help"}>
                 {templateGuide(capability, language).interpretation}
               </Hint>

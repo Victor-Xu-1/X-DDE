@@ -91,6 +91,10 @@ describe("module templates", () => {
     );
     expect(await screen.findByText("Native output native-task")).toBeVisible();
     expect(
+      screen.getByRole("heading", { name: /BRD4–JQ1 template/ }),
+    ).toBeVisible();
+    expect(screen.getByText("Public example")).toBeVisible();
+    expect(
       screen.getByRole("region", { name: "In-module example results" }),
     ).toBeVisible();
     expect(onLoad).not.toHaveBeenCalled();

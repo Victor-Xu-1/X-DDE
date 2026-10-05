@@ -105,6 +105,7 @@ jobs:
           src/presentation/task-sources.test.ts
           src/operations/EpitopeResults.test.tsx
           src/examples/useTaskLabel.test.tsx
+          src/examples/ExampleActions.test.tsx
           src/viewer/residue-region.test.ts
           src/viewer/source-layout.test.ts
           src/viewer/PoseScore.test.tsx

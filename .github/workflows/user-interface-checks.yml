@@ -79,6 +79,7 @@ jobs:
           src/studio/RuntimeStatus.test.tsx
           src/studio/HomeWorkspace.test.tsx
           src/operations/ToolCenter.test.tsx
+          src/examples/ExampleActions.test.tsx
           src/operations/filter.test.ts
           src/operations/ToolQuestionnaires.test.tsx
           src/admet/AdmetResults.test.tsx
