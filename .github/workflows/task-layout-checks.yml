@@ -9,6 +9,7 @@ on:
       - 'frontend/src/research/**'
       - 'frontend/src/studio/**'
       - 'frontend/src/design/**'
+      - 'frontend/src/humanization/**'
       - 'frontend/src/viewer/**'
       - 'frontend/src/presentation/**'
       - 'frontend/src/docking/DockingResults*'

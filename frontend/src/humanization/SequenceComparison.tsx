@@ -62,8 +62,8 @@ export function SequenceComparison({
       <SequenceAlignment row={row} language={language} />
       <p className="humanization-legend">
         {zh
-          ? "下划线：保留的 CDR · 绿色：修改位置"
-          : "Underlined: preserved CDRs · Green: changed positions"}
+          ? "下划线：保留的 CDR · 青绿：修改位置"
+          : "Underlined: preserved CDRs · Teal: changed positions"}
       </p>
       {changed.length > 0 && (
         <div className="table-scroll">

@@ -61,8 +61,8 @@
   border-bottom: 2px solid var(--accent);
 }
 .alignment-residues .is-modified {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--success-soft);
+  color: var(--teal);
   font-weight: 700;
 }
 .alignment-residues .is-selected {
