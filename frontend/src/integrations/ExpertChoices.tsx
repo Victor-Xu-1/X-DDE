@@ -82,34 +82,35 @@ export function ExpertChoices({
           />
         </label>
       ))}
-      {program === "boltzgen" && (
-        <div className="inline-fields">
-          {[0, 1].map((i) => (
-            <label className="field" key={i}>
-              {zh
-                ? i
-                  ? "最大长度"
-                  : "最小长度"
-                : i
-                  ? "Maximum length"
-                  : "Minimum length"}
-              <input
-                type="number"
-                min={8}
-                max={300}
-                value={(payload.length as number[])[i]}
-                onChange={(e) =>
-                  onChange({
-                    length: (payload.length as number[]).map((n, j) =>
-                      i === j ? Number(e.target.value) : n,
-                    ),
-                  })
-                }
-              />
-            </label>
-          ))}
-        </div>
-      )}
+      {program === "boltzgen" &&
+        !["antibody", "nanobody"].includes(String(payload.modality)) && (
+          <div className="inline-fields">
+            {[0, 1].map((i) => (
+              <label className="field" key={i}>
+                {zh
+                  ? i
+                    ? "最大长度"
+                    : "最小长度"
+                  : i
+                    ? "Maximum length"
+                    : "Minimum length"}
+                <input
+                  type="number"
+                  min={8}
+                  max={300}
+                  value={(payload.length as number[])[i]}
+                  onChange={(e) =>
+                    onChange({
+                      length: (payload.length as number[]).map((n, j) =>
+                        i === j ? Number(e.target.value) : n,
+                      ),
+                    })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        )}
       {program === "reinvent" &&
         payload.mode === "optimize" &&
         ["molecular_weight", "logp"].map((key) => (
