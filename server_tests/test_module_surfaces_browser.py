@@ -39,7 +39,8 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
             canvas.width=canvas.height=1;
             const context=canvas.getContext('2d');
             const luminance=color=>{
-                if(!CSS.supports('color',color.trim())) throw new Error('Invalid color token: '+color);
+                if(!CSS.supports('color',color.trim()))
+                    throw new Error('Invalid color token: '+color);
                 context.clearRect(0,0,1,1);
                 context.fillStyle=color.trim();
                 context.fillRect(0,0,1,1);
