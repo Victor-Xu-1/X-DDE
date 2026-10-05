@@ -2,6 +2,11 @@ name: Scientific upgrade scoped checks
 on:
   workflow_dispatch:
     inputs:
+      check:
+        description: Run only the changed scientific program; native execution is explicit
+        type: choice
+        default: contracts
+        options: [contracts, chemistry, admet, openmm, apbs, plip, chemprop, all]
       runner:
         description: Hosted Linux runner; native containers retain their fixed base images
         type: choice
@@ -17,6 +22,7 @@ permissions:
   contents: read
 jobs:
   contracts:
+    if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 20
     steps:
@@ -43,6 +49,7 @@ jobs:
           --with biopython==1.88 python -m pytest -q
           server_tests/test_molecular_states.py server_tests/test_receptor_science.py
   native-chemistry:
+    if: github.event_name == 'workflow_dispatch' && (inputs.check == 'chemistry' || inputs.check == 'all')
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 30
     steps:
@@ -58,6 +65,7 @@ jobs:
           WB_TEST_NATIVE_STATES: '1'
         run: uv run --locked pytest -q server_tests/test_native_states.py
   native-admet:
+    if: github.event_name == 'workflow_dispatch' && (inputs.check == 'admet' || inputs.check == 'all')
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 40
     steps:
@@ -73,12 +81,13 @@ jobs:
           WB_TEST_NATIVE_ADMET: '1'
         run: uv run --locked pytest -q server_tests/test_native_admet.py
   native-physics-and-contacts:
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["all","openmm","apbs","plip"]'), inputs.check)
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        program: [plip, apbs, openmm]
+        program: ${{ fromJSON(inputs.check == 'all' && '["plip","apbs","openmm"]' || format('["{0}"]', inputs.check)) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -93,6 +102,7 @@ jobs:
           WB_SCIENTIFIC_PROGRAM: ${{ matrix.program }}
         run: uv run --locked --with biopython==1.88 pytest -q server_tests/test_integrated_native_cpu.py
   native-property-model:
+    if: github.event_name == 'workflow_dispatch' && (inputs.check == 'chemprop' || inputs.check == 'all')
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 40
     steps:

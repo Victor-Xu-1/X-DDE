@@ -39,9 +39,11 @@ export function ScientificForm({
   const initialStructure = useExampleReference(
     ["apbs", "openmm"].includes(program)
       ? "protein_only"
-      : program === "boltzgen"
-        ? "her2_domain_iv"
-        : "receptor",
+      : ["plip", "ligandmpnn"].includes(program)
+        ? "brd4"
+        : program === "boltzgen"
+          ? "her2_domain_iv"
+          : "receptor",
     "brd4",
     "her2",
   );

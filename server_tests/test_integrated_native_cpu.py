@@ -7,6 +7,7 @@ import time
 from uuid import uuid4
 
 import pytest
+from scientific_install_evidence import install_with_evidence
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("WB_TEST_INTEGRATED_NATIVE_CPU") != "1",
@@ -19,7 +20,6 @@ def test_public_brd4_native_program_queue_and_downloads(tmp_path):
     from fastapi.testclient import TestClient
 
     from opendde_workbench.api import create_app
-    from opendde_workbench.deployment.installers import install
     from opendde_workbench.examples.catalogue import FILES
     from opendde_workbench.examples.files import verified_file
     from opendde_workbench.locations import atomic_json
@@ -30,7 +30,7 @@ def test_public_brd4_native_program_queue_and_downloads(tmp_path):
     root, state = tmp_path / "components", tmp_path / "state"
     root.mkdir()
     state.mkdir()
-    installed = install(program, root, {}, str(uuid4()), print, lambda: None)
+    installed = install_with_evidence(program, root, str(uuid4()))
     atomic_json(root / "installed.json", {program: installed})
     atomic_json(state / "deployment.json", {"root": str(root), "automatic": False})
     original = verified_file(tmp_path / "public", FILES["brd4"])

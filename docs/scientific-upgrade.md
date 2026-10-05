@@ -73,6 +73,11 @@ Model assets are checksum-verified and mounted read-only; native execution has n
 access. Missing environments/resources block submission. Installed readiness is reported
 separately from scientific acceptance on the target server.
 
+The scientific upgrade workflow runs contract checks on pushes. Native CPU acceptance
+is explicitly dispatched per changed program (`check=admet`, `openmm`, `chemprop`,
+`apbs`, `plip` or `chemistry`); `all` is reserved for a deliberate complete adapter
+acceptance run. This avoids repeatedly launching unrelated scientific programs for UI edits.
+
 Focused contract/build/browser checks and remote native CPU checks do not replace GPU
 validation. Boltz, BoltzGen, LigandMPNN/REINVENT campaigns and trained-model acceptance
 must be evaluated on the intended server with actual inputs before being presented as

@@ -6,6 +6,7 @@ import time
 from uuid import uuid4
 
 import pytest
+from scientific_install_evidence import install_with_evidence
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("WB_TEST_NATIVE_PROPERTY_MODEL") != "1",
@@ -38,7 +39,6 @@ def test_real_egfr_training_checkpoint_and_prediction_reuse(tmp_path):
     from fastapi.testclient import TestClient
 
     from opendde_workbench.api import create_app
-    from opendde_workbench.deployment.installers import install
     from opendde_workbench.examples.catalogue import FILES
     from opendde_workbench.examples.files import verified_file
     from opendde_workbench.locations import atomic_json
@@ -47,7 +47,7 @@ def test_real_egfr_training_checkpoint_and_prediction_reuse(tmp_path):
     root, state = tmp_path / "components", tmp_path / "state"
     root.mkdir()
     state.mkdir()
-    installed = install("chemprop", root, {}, str(uuid4()), print, lambda: None)
+    installed = install_with_evidence("chemprop", root, str(uuid4()))
     atomic_json(root / "installed.json", {"chemprop": installed})
     atomic_json(state / "deployment.json", {"root": str(root), "automatic": False})
     source = verified_file(tmp_path / "public", FILES["egfr_library"])
