@@ -78,6 +78,10 @@ export function ScientificResults({
   if (result.program === "apbs")
     return <PotentialResults job={job} result={result} language={language} />;
   const url = active?.artifact ? artifactUrl(job.id, active.artifact) : null;
+  const complexUrl =
+    active?.geometry === "source_frame" && result.structure_artifact
+      ? artifactUrl(job.id, result.structure_artifact)
+      : null;
   const sequence = active?.sequence ? (
     <section className="sequence-display">
       <pre>{active.sequence.match(/.{1,60}/g)?.join("\n")}</pre>
@@ -88,7 +92,7 @@ export function ScientificResults({
       language={language}
       label={active.id}
       source={url ? { url, record: 0 } : { smiles: active.smiles }}
-      urls={url ? [url] : []}
+      urls={complexUrl ? [complexUrl] : url ? [url] : []}
       defaultView={active.geometry === "none" ? "2d" : "3d"}
     />
   ) : url && /\.(pdb|cif)$/.test(active?.artifact ?? "") ? (
