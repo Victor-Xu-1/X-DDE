@@ -123,15 +123,16 @@ export function ScientificForm({
   const inputValid =
     program === "boltz"
       ? validBoltzComponents(payload.components, payload.affinity)
-      : ["reinvent", "chemprop"].includes(program)
-        ? (program === "reinvent" &&
-            !["analogues", "optimize"].includes(String(payload.mode)) &&
-            validDesignFragments(payload)) ||
-          Boolean(ligand)
-        : Boolean(structure) &&
-          (program !== "boltzgen" ||
-            !["antibody", "nanobody"].includes(String(payload.modality)) ||
-            Boolean(scaffold));
+      : program === "reinvent"
+        ? ["analogues", "optimize"].includes(String(payload.mode))
+          ? Boolean(ligand)
+          : validDesignFragments(payload)
+        : program === "chemprop"
+          ? Boolean(ligand)
+          : Boolean(structure) &&
+            (program !== "boltzgen" ||
+              !["antibody", "nanobody"].includes(String(payload.modality)) ||
+              Boolean(scaffold));
   const modeValid =
     (program !== "chemprop" ||
       operation === "chemprop_train" ||
