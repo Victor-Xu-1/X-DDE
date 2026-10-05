@@ -134,7 +134,7 @@ export function ResearchWorkspace({
   return (
     <section className="research-workspace">
       <h1 className="sr-only">
-        {zh ? "科学研究资产网络" : "Scientific assets & relationships"}
+        {zh ? "研究文件" : "Research files"}
       </h1>
       <div className="editor-toolbar">
         <button onClick={() => void load()} disabled={busy}>
@@ -258,7 +258,7 @@ export function ResearchWorkspace({
           <div className="research-columns">
             <section className="setup-card">
               <label className="field">
-                {zh ? "查找资产或任务" : "Find an asset or task"}
+                {zh ? "查找研究文件或任务" : "Find research files or tasks"}
                 <input
                   type="search"
                   value={query}
@@ -395,7 +395,7 @@ export function ResearchWorkspace({
           </div>
           <details className="research-relationships">
             <summary>
-              {zh ? "查看资产关系图" : "Show asset relationships"}
+              {zh ? "查看文件之间的关系" : "Show file relationships"}
             </summary>
             <RelationshipGraph
               graph={graph}

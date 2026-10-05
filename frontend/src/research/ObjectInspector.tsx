@@ -227,8 +227,8 @@ export function ObjectInspector({
       ) : (
         <p>
           {zh
-            ? "点击左侧或关系图中的资产，选择下一步。"
-            : "Select an asset in the list or graph to choose its next step."}
+            ? "选择文件，查看结构、序列或继续研究。"
+            : "Select a file to inspect its structure or sequence, or continue research."}
         </p>
       )}
     </section>
