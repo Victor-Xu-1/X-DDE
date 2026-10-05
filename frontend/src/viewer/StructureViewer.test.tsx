@@ -3,6 +3,62 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 
+it("waits for the new pose before sending atom selections and clears prior display errors", () => {
+  const { rerender } = render(
+    <StructureViewer
+      urls={["/api/jobs/a/download?name=one.sdf"]}
+      language="zh"
+    />,
+  );
+  const frame = screen.getByTitle("可交互分子结构") as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      );
+    });
+  const scene = {
+    chains: [],
+    atoms: 40,
+    ligands: [],
+    residues: [],
+    hasPolymer: false,
+    options: {
+      mode: "cartoon",
+      radius: 5,
+      labels: true,
+      ligand: "",
+      pick: "atom",
+      interactions: true,
+      contactLimit: 5,
+    },
+  };
+  message("ready");
+  message("loaded", scene);
+  post.mockClear();
+  rerender(
+    <StructureViewer
+      urls={["/api/jobs/a/download?name=two.sdf"]}
+      language="zh"
+    />,
+  );
+  expect(post.mock.calls.some(([data]) => data.type === "load")).toBe(true);
+  expect(post.mock.calls.some(([data]) => data.type === "atom-region")).toBe(
+    false,
+  );
+  message("error", "Could not update structure display.");
+  message("loaded", scene);
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(post.mock.calls.some(([data]) => data.type === "atom-region")).toBe(
+    true,
+  );
+});
+
 it("clears the prior structure when switching to a task without a result", () => {
   const { rerender } = render(
     <StructureViewer

@@ -11,6 +11,10 @@ from .outputs import OutputCatalog
 from .pose_contract import ArtifactPoseSource, AssetPoseSource
 from .storage import ScientificStore
 
+CONSTRAINT_NOTICE = (
+    "Review and transfer existing molecular constraints before optimizing this pose."
+)
+
 
 class PoseSources:
     def __init__(self, store, assets, settings):
@@ -24,6 +28,8 @@ class PoseSources:
             job = self.store.get(str(source.job_id))
             if not job or job.status != Status.SUCCEEDED:
                 raise ValueError("Only a successful task's qualified pose can be minimized.")
+            if job.request.constraints:
+                raise ValueError(CONSTRAINT_NOTICE)
             root = self.settings.state_dir / "jobs" / job.id / "output"
             file = contained(root, source.name)
             if job.request.operation == "pose_quality":
@@ -87,6 +93,7 @@ class PoseSources:
                     f"preview-pose:{asset.id}:{kind}:{source.record}",
                 )
             self.scientific.validate_reference(version.reference)
+            self.check_constraints(version)
             return version.reference
         version = self.scientific.get(source.version_id)
         if version.kind != kind:
@@ -97,7 +104,13 @@ class PoseSources:
             self.assets.get(version.reference.asset_id), version.reference.record, receptor
         )
         self.scientific.validate_reference(version.reference)
+        self.check_constraints(version)
         return version.reference
+
+    def check_constraints(self, version):
+        job = self.store.get(str(version.source_job)) if version.source_job else None
+        if job and job.request.constraints:
+            raise ValueError(CONSTRAINT_NOTICE)
 
     def validate_file(self, asset, record, receptor):
         suffixes = {".pdb", ".cif"} if receptor else {".sdf", ".mol"}

@@ -75,6 +75,7 @@ export function PoseOptimizationControls({
               type="button"
               className="secondary-button"
               disabled={state.busy || state.cursor === 0}
+              aria-label={zh ? "回到上一个 pose" : "Previous pose"}
               onClick={state.previous}
             >
               <UndoOutlined />

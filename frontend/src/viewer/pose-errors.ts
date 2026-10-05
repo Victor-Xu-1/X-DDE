@@ -1,6 +1,10 @@
 import { researchError } from "../presentation/research-content";
 export function poseError(value: unknown, zh: boolean) {
   const message = String(value);
+  if (/transfer.*molecular constraints/i.test(message))
+    return zh
+      ? "这个姿势带有研究约束。请先确认新版本的约束，再进行优化；原 pose 已保留。"
+      : "This pose has research constraints. Confirm them on the new version before optimization; the original pose is retained.";
   if (
     /environment.*unavailable|Install.*environment|not.*ready|image.*missing/i.test(
       message,

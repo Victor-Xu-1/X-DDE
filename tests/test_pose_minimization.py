@@ -179,3 +179,24 @@ def test_preview_api_requires_csrf_and_rejects_unowned_paths(client_factory):
             == 422
         )
         assert client.post(f"/api/research/poses/{uuid4()}/save", json={}).status_code == 422
+
+
+def test_preview_never_silently_drops_existing_molecular_constraints(settings, monkeypatch):
+    from types import SimpleNamespace
+
+    _, _, service = context(settings)
+    source_job = SimpleNamespace(status=Status.SUCCEEDED, request=SimpleNamespace(constraints=True))
+    monkeypatch.setattr(service.store, "get", lambda _: source_job)
+    value = PreviewMinimizeInput.model_validate(
+        {
+            "source": {
+                "kind": "artifact",
+                "job_id": str(uuid4()),
+                "name": "pose-001.sdf",
+            }
+        }
+    )
+    with pytest.raises(ValueError, match="molecular constraints"):
+        service.task(value)
+    with pytest.raises(ValueError, match="molecular constraints"):
+        service.sources.check_constraints(SimpleNamespace(source_job=str(uuid4())))

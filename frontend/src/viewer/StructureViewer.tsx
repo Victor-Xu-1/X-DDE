@@ -96,6 +96,8 @@ export function StructureViewer({
     zh = language === "zh",
     key = urls.join("|") + ":" + (records?.join(",") ?? "");
   const overlay = urls.length > 1;
+  const requestedKey = useRef<string | null>(key);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const snapshot = useViewerSnapshot(key),
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
@@ -156,6 +158,8 @@ export function StructureViewer({
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
         setStatus("loaded");
+        setLoadedKey(requestedKey.current);
+        setError("");
         setScene(detail);
         sceneCallback.current?.(detail);
         if (focusedModel.current !== undefined)
@@ -179,9 +183,11 @@ export function StructureViewer({
     setScene(emptyScene);
     setOptions(defaultOptions);
     if (ready && urls.length) {
+      requestedKey.current = key;
       send("load", { urls, comparison, focusModel, records });
       setStatus("loading");
     } else if (!urls.length) {
+      requestedKey.current = null;
       if (ready) send("clear");
       setStatus("empty");
     }
@@ -192,19 +198,24 @@ export function StructureViewer({
   const regionKey = highlightedAtoms?.join(",") ?? "";
   const siteKey = JSON.stringify(residueRegion ?? []);
   useEffect(() => {
-    if (ready && status === "loaded" && residueRegion !== undefined)
+    if (
+      ready &&
+      status === "loaded" &&
+      loadedKey === key &&
+      residueRegion !== undefined
+    )
       send("site-region", residueRegion);
-  }, [ready, status, key, siteKey]);
+  }, [ready, status, loadedKey, key, siteKey]);
   useEffect(() => {
-    if (ready && status === "loaded")
+    if (ready && status === "loaded" && loadedKey === key)
       send("atom-region", highlightedAtoms ?? []);
-  }, [ready, status, key, regionKey]);
+  }, [ready, status, loadedKey, key, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
     if (value.mode) setSurface(null);
     setOptions((o) => ({ ...o, ...value }));
     send("options", value);
   }
-  const loaded = status === "loaded";
+  const loaded = status === "loaded" && loadedKey === key;
   return (
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
