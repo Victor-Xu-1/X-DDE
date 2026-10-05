@@ -110,12 +110,6 @@
   border-radius: 4px;
   color: var(--muted);
 }
-.candidate-guidance {
-  color: var(--muted);
-  font-size: var(--text-small, 13px);
-  line-height: 1.6;
-  margin: 4px 0 9px;
-}
 .conformer-select {
   border: 0;
   background: transparent;

@@ -65,13 +65,6 @@
   padding-top: 18px;
   color: var(--accent);
 }
-.tool-context {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
 .tool-back-button {
   color: var(--accent);
   border: 0;
@@ -90,13 +83,8 @@
 
 /* Input and output surfaces use one width authority. */
 .studio-content .task-workspace {
-  --task-width: 1040px;
   width: 100%;
-  max-width: var(--task-width);
-  margin-inline: auto;
-}
-.studio-content .task-workspace.is-result {
-  --task-width: 1440px;
+  max-width: none;
 }
 .task-workspace .tool-form,
 .task-workspace .module-template,
@@ -105,7 +93,7 @@
   width: 100%;
 }
 .task-workspace .questionnaire {
-  padding: 24px;
+  padding: 16px 0;
 }
 .task-workspace .questionnaire-heading {
   font-size: 17px;
@@ -153,7 +141,7 @@
 }
 @media (max-width: 640px) {
   .task-workspace .questionnaire {
-    padding: 18px;
+    padding: 12px 0;
   }
 }
 

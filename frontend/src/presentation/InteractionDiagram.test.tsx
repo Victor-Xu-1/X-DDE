@@ -22,7 +22,11 @@ describe("native contact relationships", () => {
     expect(within(diagram).getByText("A:ASP111")).toBeVisible();
     fireEvent.click(screen.getByLabelText("显示距离"));
     expect(within(diagram).queryByText("2.87 Å")).toBeNull();
-    expect(screen.getByText(/线条不表示作用能或亲和力/)).toBeVisible();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    fireEvent.focus(screen.getByRole("button", { name: "接触图说明" }));
+    expect(screen.getByRole("tooltip")).toHaveTextContent(
+      /线条不表示作用能或亲和力/,
+    );
     expect(screen.getByRole("button", { name: "下载图表 SVG" })).toBeEnabled();
   });
 });

@@ -5,11 +5,15 @@
   flex-wrap: wrap;
   margin: 8px 0 12px;
   font-size: 13px;
+  min-height: 38px;
 }
 .example-actions > span {
   flex: 1 1 240px;
   min-width: 0;
   color: var(--muted);
+}
+.example-actions:not(:has(> span)) > .text-button:first-child {
+  margin-right: auto;
 }
 .example-actions button {
   min-height: 30px;
@@ -41,8 +45,8 @@
   margin: 0;
 }
 .module-example-result {
-  padding: 20px 0;
-  margin-top: 12px;
+  padding: 12px 0;
+  margin-top: 8px;
   min-width: 0;
   border: 0;
   border-radius: 0;

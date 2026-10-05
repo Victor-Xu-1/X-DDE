@@ -171,21 +171,12 @@ export function OperationResults({
         />
       )}
       {data.notes &&
-        !["docking", "pocket_search"].includes(job.request.operation ?? "") &&
-        (["diffsbdd", "properties"].includes(job.request.operation ?? "") ? (
+        !["docking", "pocket_search"].includes(job.request.operation ?? "") && (
           <details className="result-method-notes">
             <summary>{zh ? "方法与结果范围" : "Method & result scope"}</summary>
             <p>{data.notes}</p>
           </details>
-        ) : (
-          <p className="notice">
-            {zh && job.request.operation === "properties"
-              ? "这些是 RDKit 计算描述符。QED 表示类药性，SA 是合成难易度启发式指标；不代表 ADMET 或实验药效。"
-              : zh && job.request.operation === "inspect"
-                ? "这是原生输入拓扑预览，坐标不是预测结合姿势；残基编号以这份输入为准。"
-                : data.notes}
-          </p>
-        ))}
+        )}
       {data.molecules && (
         <p role={data.molecules.some((m) => m.available) ? "status" : "alert"}>
           {zh ? "成功计算" : "Calculated"}{" "}
@@ -205,12 +196,21 @@ export function OperationResults({
         />
       )}
       {data.structure && (
-        <StructureViewer
-          urls={[artifactUrl(job.id, data.structure)]}
-          language={language}
-          comparison={false}
-          focusResidue={null}
-        />
+        <section aria-label={zh ? "输入结构" : "Input structure"}>
+          {job.request.operation === "inspect" && (
+            <h3>
+              {zh
+                ? "输入结构预览（非预测结果）"
+                : "Input structure preview (not a prediction)"}
+            </h3>
+          )}
+          <StructureViewer
+            urls={[artifactUrl(job.id, data.structure)]}
+            language={language}
+            comparison={false}
+            focusResidue={null}
+          />
+        </section>
       )}
       {Array.isArray(data.structures) &&
         data.structures

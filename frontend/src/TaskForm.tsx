@@ -153,7 +153,6 @@ export function TaskForm({
     <>
       {" "}
       <div className="form-mode-row">
-        <span>{zh ? "新建结构预测" : "New structure prediction"}</span>
         <div
           className="segmented"
           role="group"

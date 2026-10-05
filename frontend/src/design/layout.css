@@ -2,7 +2,7 @@
 :root {
   --text-body: 14px;
   --text-small: 13px;
-  --content-width: 1440px;
+  --content-width: none;
   --radius: 12px;
 }
 html {

@@ -546,7 +546,7 @@ body {
   white-space: nowrap;
 }
 .candidate-panel {
-  height: 410px;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
@@ -572,7 +572,7 @@ body {
 }
 .candidate-scroll {
   overflow: auto;
-  flex: 1;
+  max-height: 520px;
 }
 .candidate-scroll table {
   width: 100%;

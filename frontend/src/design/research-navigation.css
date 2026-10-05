@@ -4,7 +4,7 @@
   align-items: center;
   gap: 8px;
   margin: 0 0 12px;
-  max-width: 1040px;
+  max-width: none;
   min-width: 0;
 }
 .module-task-picker label {

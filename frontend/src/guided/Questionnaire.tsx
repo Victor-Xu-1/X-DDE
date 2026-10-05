@@ -146,22 +146,14 @@ export function GuidedSteps<T extends { id: string }>({
         ))}
       </nav>
       <header className="questionnaire-page-heading">
-        <div>
-          <span className="questionnaire-overline">
-            {zh ? "步骤" : "STEP"} {current + 1} / 5
-          </span>
-          <h2
-            ref={heading}
-            tabIndex={-1}
-            className="questionnaire-heading"
-            aria-label={current + 1 + ". " + titles[current]}
-          >
-            {titles[current]}
-          </h2>
-        </div>
-        <span aria-hidden="true" className="questionnaire-page-mark">
-          {String(current + 1).padStart(2, "0")}
-        </span>
+        <h2
+          ref={heading}
+          tabIndex={-1}
+          className="questionnaire-heading"
+          aria-label={current + 1 + ". " + titles[current]}
+        >
+          {titles[current]}
+        </h2>
       </header>
       <TemplateStepHelp step={current} language={language} />
       {steps.map((step, index) => (

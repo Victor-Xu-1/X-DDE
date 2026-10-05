@@ -37,8 +37,8 @@
 .studio-app .workspace-tabs {
   max-width: none;
   width: 100%;
-  min-height: 64px;
-  padding: 12px 24px;
+  min-height: 52px;
+  padding: 8px 16px;
   border: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
@@ -114,33 +114,21 @@
   grid-auto-rows: minmax(44px, auto);
   gap: 0;
 }
-.studio-app .questionnaire {
-  padding: 24px;
-}
-.studio-app .questionnaire-page-heading {
-  margin: 0 0 20px;
-  min-height: 46px;
-}
-.studio-app .questionnaire-page-mark {
-  font-size: 30px;
-}
 .studio-app .questionnaire-steps {
   gap: 10px;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
 }
 .studio-app .questionnaire-choices {
   gap: 12px;
   align-items: stretch;
 }
 .studio-app .questionnaire-choices label {
-  height: 100%;
-  min-height: 100px;
-  padding: 16px;
+  min-height: 58px;
+  padding: 14px 16px;
 }
-.studio-app .questionnaire-actions {
-  padding-top: 16px;
-  margin-top: 24px;
+.studio-app .questionnaire-choices label:has(small) {
+  min-height: 96px;
 }
 .studio-app .task-workspace.is-result .viewer-panel .molecular-stage {
   height: 520px;
@@ -173,9 +161,6 @@
     background-size:
       100% 100%,
       auto 100px;
-  }
-  .studio-app .questionnaire {
-    padding: 16px;
   }
   .studio-app .capability-group {
     min-height: 324px;

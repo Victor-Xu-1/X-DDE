@@ -8,8 +8,10 @@ import { ExampleRecordResult } from "./ExampleRecordResult";
 import { TemplatePreviewContext } from "./context";
 import "./examples.css";
 import { Hint } from "../guided/Hint";
-export function ExampleActions(options: ExampleTemplateOptions) {
-  const { capability, language } = options;
+export function ExampleActions(
+  options: ExampleTemplateOptions & { onBack?(): void },
+) {
+  const { capability, language, onBack } = options;
   const zh = language === "zh";
   const {
     info,
@@ -28,12 +30,20 @@ export function ExampleActions(options: ExampleTemplateOptions) {
       aria-label={zh ? "模块使用模板" : "Module usage template"}
     >
       <div className="example-actions">
+        {onBack && (
+          <button type="button" className="text-button" onClick={onBack}>
+            <span aria-hidden="true">← </span>
+            {zh ? "返回全部能力" : "Back to all capabilities"}
+          </button>
+        )}
         {info && (
           <>
-            <span title={info.case.description[zh ? 0 : 1]}>
-              {zh ? "真实模板：" : "Real template: "}
-              {info.case.label[zh ? 0 : 1]}
-            </span>
+            {!result && (
+              <span title={info.case.description[zh ? 0 : 1]}>
+                {zh ? "真实模板：" : "Real template: "}
+                {info.case.label[zh ? 0 : 1]}
+              </span>
+            )}
             <button
               type="button"
               className="secondary-button"

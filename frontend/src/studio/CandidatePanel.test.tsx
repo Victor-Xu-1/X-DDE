@@ -38,6 +38,9 @@ it("selects a conformer and overlays no more than three, without an empty affini
   };
   const { rerender } = render(<CandidatePanel {...props} />);
   expect(screen.queryByText("亲和力")).toBeNull();
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  await user.click(screen.getByRole("button", { name: "构象与评分说明" }));
+  expect(screen.getByRole("tooltip")).toHaveTextContent("不是药效");
   await user.click(screen.getByRole("button", { name: "构象 2" }));
   expect(select).toHaveBeenCalledWith("sample-1");
   await user.click(screen.getByRole("checkbox", { name: "叠加 构象 1" }));

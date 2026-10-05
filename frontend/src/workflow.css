@@ -29,10 +29,10 @@
 }
 .form-mode-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   font-weight: 600;
 }
 .form-mode-row .segmented {

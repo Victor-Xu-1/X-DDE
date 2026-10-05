@@ -77,6 +77,7 @@ jobs:
           src/studio/research-modules.test.ts
           src/studio/TaskWorkspace.test.tsx
           src/studio/PredictionResults.test.tsx
+          src/studio/CandidatePanel.test.tsx
           src/studio/InterfaceSettings.test.tsx
           src/studio/RuntimeStatus.test.tsx
           src/studio/HomeWorkspace.test.tsx
@@ -84,6 +85,7 @@ jobs:
           src/examples/ExampleActions.test.tsx
           src/operations/filter.test.ts
           src/operations/ToolQuestionnaires.test.tsx
+          src/operations/OperationResults.test.tsx
           src/admet/AdmetResults.test.tsx
           src/quality/tests/QualityResults.test.tsx
           src/antibodies/AntibodyNumberResults.test.tsx

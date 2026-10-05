@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { Language } from "../types";
 import { exportSvg } from "./visual-export";
+import { Hint } from "../guided/Hint";
 export interface InteractionEdge {
   left: string;
   right: string;
@@ -41,7 +42,14 @@ export function InteractionDiagram({
   return (
     <section className="interaction-diagram result-section-card">
       <header className="evidence-material-toolbar">
-        <h3>{zh ? "接触关系图" : "Contact relationships"}</h3>
+        <h3>
+          {zh ? "接触关系图" : "Contact relationships"}
+          <Hint label={zh ? "接触图说明" : "Contact diagram help"}>
+            {zh
+              ? "示意布局，不是二维原子映射。类型和距离来自接触记录；线条不表示作用能或亲和力。"
+              : "Schematic layout, not a 2D atom map. Types and distances come from contact records; line width does not encode energy or affinity."}
+          </Hint>
+        </h3>
         <button
           type="button"
           className="visual-export-button"
@@ -203,11 +211,6 @@ export function InteractionDiagram({
           })}
         </svg>
       </div>
-      <p className="field-help">
-        {zh
-          ? "示意布局，不是二维原子映射。类型和距离来自原生接触记录；线条不表示作用能或亲和力。"
-          : "Schematic layout, not a 2D atom map. Types and distances come from native contact records; line width does not encode energy or affinity."}
-      </p>
     </section>
   );
 }

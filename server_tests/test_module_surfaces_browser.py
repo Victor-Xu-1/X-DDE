@@ -87,6 +87,12 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
             }
             assert page.locator(".questionnaire > fieldset:visible").count() <= 1
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1"), name
+            questionnaire = page.locator(".questionnaire:visible")
+            if questionnaire.count():
+                form_box = questionnaire.bounding_box()
+                main_box = page.locator("main").bounding_box()
+                assert form_box["width"] >= main_box["width"] * 0.9, name
+                assert page.locator(".questionnaire-page-mark:visible").count() == 0
             surfaces = flat_surface_styles(page)
             assert not surfaces["framed"], (name, surfaces)
             editable = page.locator(

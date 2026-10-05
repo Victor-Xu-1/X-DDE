@@ -3,6 +3,7 @@ import { useId, useMemo, useState } from "react";
 import { DownloadOutlined } from "@ant-design/icons";
 import { artifactUrl } from "../api";
 import { MetricHelp } from "../guided/MetricHelp";
+import { Hint } from "../guided/Hint";
 import type { Analysis, Job, Language } from "../types";
 const n = (v: number | null | undefined, d = 2) =>
   v == null ? "—" : v.toFixed(d);
@@ -64,6 +65,11 @@ export function CandidatePanel({
         <h3>
           {zh ? "预测构象" : "Predicted conformers"}{" "}
           <small>({all.length})</small>
+          <Hint label={zh ? "构象与评分说明" : "Conformer and score help"}>
+            {zh
+              ? "点击构象看结构；分数用于同一任务内比较，不是药效。"
+              : "Select a conformer to view it. Scores compare this task's structures, not potency."}
+          </Hint>
         </h3>
         {all.length > 0 && (
           <div className="candidate-actions">
@@ -93,11 +99,6 @@ export function CandidatePanel({
           </div>
         )}
       </div>
-      <p className="candidate-guidance">
-        {zh
-          ? "点击构象看结构；分数用于同一任务内比较，不是药效。"
-          : "Select a conformer to view it. Scores compare this task's structures, not potency."}
-      </p>
       {all.length > 1 && onCompare && (
         <p className="comparison-note">
           {zh
@@ -236,13 +237,13 @@ export function CandidatePanel({
               : "Results appear here after a prediction finishes."}
         </p>
       )}
-      <div className="candidate-foot">
-        {compared.length > 1 && (
+      {compared.length > 1 && (
+        <div className="candidate-foot">
           <span>
             {zh ? "正在叠加" : "Overlaying"} {compared.length}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -91,20 +91,6 @@ export function ToolCenter({
       className={`tool-center ${current ? "task-workspace " + (previewing ? "is-result" : "is-input") : ""}`}
       aria-labelledby={headingId}
     >
-      {current && (
-        <div className="tool-context">
-          <button
-            type="button"
-            className="tool-back-button"
-            onClick={() => {
-              onSelectTool(null);
-            }}
-          >
-            <span aria-hidden="true">← </span>
-            {zh ? "返回全部能力" : "Back to all capabilities"}
-          </button>
-        </div>
-      )}
       <h1 id={headingId} ref={heading} tabIndex={-1} className="sr-only">
         {current ? current.label[index] : zh ? "全部能力" : "All capabilities"}
       </h1>
@@ -114,6 +100,7 @@ export function ToolCenter({
             key={current.id}
             capability={current.id}
             language={language}
+            onBack={() => onSelectTool(null)}
             onLoad={(value) => {
               setExample(value);
               setExampleLoad((n) => n + 1);
