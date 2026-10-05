@@ -149,7 +149,21 @@
         "url": "https://codeload.github.com/MolecularAI/REINVENT4/zip/refs/tags/v4.8",
         "sha256": "405bb9d5658dc475a555135f170686b1a2cd70ab42b9fb933375ae2b8133ff98",
         "prefix": "REINVENT4-4.8",
-        "package": "reinvent"
+        "package": "reinvent",
+        "skipped_links": {
+          "REINVENT4-4.8/contrib/tutorials/maize/Libinvent/6G5J_vs_8ZYP/adgpu_prepare": "../../adgpu_prepare",
+          "REINVENT4-4.8/contrib/tutorials/maize/Libinvent/6G5J_vs_8ZYP/autodock_gpu.yaml": "../../autodock_gpu.yaml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Libinvent/6G5J_vs_8ZYP/maize_global_config.toml": "../../maize_global_config.toml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/1DB5/adgpu_prepare": "../../adgpu_prepare",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/1DB5/autodock_gpu.yaml": "../../autodock_gpu.yaml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/1DB5/maize_global_config.toml": "../../maize_global_config.toml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/6G5J/adgpu_prepare": "../../adgpu_prepare",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/6G5J/autodock_gpu.yaml": "../../autodock_gpu.yaml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/6G5J/maize_global_config.toml": "../../maize_global_config.toml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/6G5J_vs_1DB5/adgpu_prepare": "../../adgpu_prepare",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/6G5J_vs_1DB5/autodock_gpu.yaml": "../../autodock_gpu.yaml",
+          "REINVENT4-4.8/contrib/tutorials/maize/Reinvent/6G5J_vs_1DB5/maize_global_config.toml": "../../maize_global_config.toml"
+        }
       },
       "models": [
         {

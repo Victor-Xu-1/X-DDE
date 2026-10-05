@@ -45,4 +45,4 @@ jobs:
         run: |
           uv sync --locked --group dev
           uv run --locked ruff check src/opendde_workbench/deployment/network.py src/opendde_workbench/deployment/process.py src/opendde_workbench/deployment/storage.py src/opendde_workbench/deployment/manager.py tests/test_install_network.py tests/test_deployment.py
-          uv run --locked pytest -q tests/test_install_network.py tests/test_deployment.py tests/test_native_resources.py
+          uv run --locked pytest -q tests/test_install_network.py tests/test_deployment.py tests/test_native_resources.py tests/test_scientific_archives.py

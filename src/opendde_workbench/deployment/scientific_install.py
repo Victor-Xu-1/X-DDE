@@ -34,7 +34,7 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         archive = root / "downloads" / (identifier + "-" + spec["version"] + ".zip")
         download(entry["url"], archive, entry["sha256"], report, checkpoint)
         temporary = work / "source"
-        extract(archive, temporary, checkpoint)
+        extract(archive, temporary, checkpoint, skipped_links=entry.get("skipped_links"))
         source = temporary / entry["prefix"]
         if not source.is_dir() or source.is_symlink():
             raise ValueError("Native source archive layout differs from the reviewed release.")

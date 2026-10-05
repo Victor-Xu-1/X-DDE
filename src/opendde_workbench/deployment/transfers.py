@@ -89,6 +89,16 @@ def extract(archive: Path, destination: Path, checkpoint, *, skipped_links=None)
                 if item.is_dir():
                     continue
                 if (item.external_attr >> 16) & 0o170000 == 0o120000:
+                    expected = (skipped_links or {}).get(item.filename)
+                    if (
+                        expected
+                        and item.file_size <= 4096
+                        and source.read(item) == expected.encode()
+                    ):
+                        # Reviewed upstream tutorial/test aliases are omitted.
+                        # Validate their paths and duplicates, but never create or follow links.
+                        target(item.filename, item.file_size)
+                        continue
                     raise ValueError("Archive symlinks are not allowed.")
                 path = target(item.filename, item.file_size)
                 with source.open(item) as input_file, path.open("wb") as output:
