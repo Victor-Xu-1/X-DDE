@@ -35,9 +35,17 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         })""")
         contrast = page.evaluate("""() => {
             const style=getComputedStyle(document.documentElement);
+            const canvas=document.createElement('canvas');
+            canvas.width=canvas.height=1;
+            const context=canvas.getContext('2d');
             const luminance=color=>{
-                const value=color.trim().replace('#','');
-                const channels=[0,2,4].map(n=>parseInt(value.slice(n,n+2),16)/255)
+                if(!CSS.supports('color',color.trim())) throw new Error('Invalid color token: '+color);
+                context.clearRect(0,0,1,1);
+                context.fillStyle=color.trim();
+                context.fillRect(0,0,1,1);
+                const pixel=context.getImageData(0,0,1,1).data;
+                if(pixel[3]!==255) throw new Error('Contrast colors must be opaque');
+                const channels=[...pixel].slice(0,3).map(c=>c/255)
                     .map(c=>c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4);
                 return channels[0]*0.2126+channels[1]*0.7152+channels[2]*0.0722;
             };
