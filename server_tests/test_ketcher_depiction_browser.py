@@ -56,9 +56,11 @@ def test_native_kekule_drawings_and_identity():
             expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
             page.wait_for_function(
                 """() => {
-                const images = [...document.querySelectorAll('.molecule-image img')];
-                return images.length && images.every(image =>
-                    image.complete && image.naturalWidth > 0);
+                const cards = [...document.querySelectorAll('.molecule-image')];
+                return cards.length && cards.every(card => {
+                    const image = card.querySelector('img');
+                    return image && image.complete && image.naturalWidth > 0;
+                });
             }""",
                 timeout=30000,
             )
@@ -94,10 +96,24 @@ def test_native_kekule_drawings_and_identity():
             page.get_by_role("tab", name="二维结构", exact=True).click()
             inspect_images("generated-native-kekule")
 
-            # Use only the hidden drawing service. InChI keys include connectivity,
-            # stereochemistry, isotope and protonation layers; source strings stay intact.
+            # Use the separate visible editor, not the queued thumbnail service.
+            # Its native on-load policy is also part of this display change.
+            page.get_by_role("navigation", name="主导航").get_by_role(
+                "button", name="研究空间", exact=True
+            ).click()
+            page.get_by_role("button", name="结构编辑", exact=True).click()
+            page.wait_for_function(
+                """() => {
+                const k = document.querySelector('iframe[title="Ketcher molecular editor"]')
+                    ?.contentWindow?.ketcher;
+                return k?.editor?.options()['dearomatize-on-load'] === true;
+            }""",
+                timeout=90000,
+            )
+            # Native InChI keys include connectivity, stereo, isotope and charge layers.
             identities = page.evaluate("""async () => {
-                const k = document.querySelector('.drawing-service-frame').contentWindow.ketcher;
+                const k = document.querySelector('iframe[title="Ketcher molecular editor"]')
+                    .contentWindow.ketcher;
                 const cases = [
                     ['charged-isotope', '[13CH3][C@@H]([NH3+])c1ccccc1.[Cl-]'],
                     ['opposite-stereo', '[13CH3][C@H]([NH3+])c1ccccc1.[Cl-]'],
@@ -119,6 +135,7 @@ def test_native_kekule_drawings_and_identity():
                 }
                 return rows;
             }""")
+            (evidence / "native-identity.json").write_text(json.dumps(identities, indent=2))
             for row in identities:
                 assert row["before"] and row["before"] == row["after"]
                 assert row["atoms"] >= 9 and 4 not in row["orders"]
@@ -127,7 +144,6 @@ def test_native_kekule_drawings_and_identity():
             assert not errors and not mutations, (errors, mutations)
             with sqlite3.connect(state) as db:
                 assert db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall() == before
-            (evidence / "native-identity.json").write_text(json.dumps(identities, indent=2))
         finally:
             (evidence / "acceptance.json").write_text(
                 json.dumps(
