@@ -67,8 +67,34 @@ def test_real_preview_minimization_history_and_download():
                 assert event.value.status == 201
                 job = event.value.json()
                 previous = page.get_by_role("button", name="回到上一个 pose", exact=True)
-                expect(previous).to_be_enabled(timeout=180000)
+                try:
+                    expect(previous).to_be_enabled(timeout=60000)
+                except AssertionError:
+                    page.screenshot(path=str(evidence / "preview-save-failure.png"))
+                    token = page.request.get(base + "/api/session").json()["csrf_token"]
+                    saved_response = page.request.post(
+                        base + f"/api/research/poses/{job['id']}/save",
+                        data={},
+                        headers={"X-Workbench-CSRF": token},
+                    )
+                    (evidence / "preview-save-failure.json").write_text(
+                        json.dumps(
+                            {
+                                "body": page.locator("body").inner_text(),
+                                "errors": errors,
+                                "job": page.request.get(base + f"/api/jobs/{job['id']}").json(),
+                                "save": saved_response.json(),
+                            },
+                            ensure_ascii=False,
+                            indent=2,
+                        )
+                    )
+                    raise
                 expect(page.get_by_text("pose 2/2 · 已保存", exact=True)).to_be_visible()
+                expect(
+                    page.get_by_role("button", name="生成三维视图图片", exact=True)
+                ).to_be_enabled(timeout=30000)
+                expect(page.locator(".viewer-error")).not_to_be_visible()
                 expect(page.locator(".pose-energy")).to_contain_text("MMFF94s")
                 expect(page.get_by_role("link", name="下载当前 pose", exact=True)).to_be_visible()
                 page.screenshot(path=str(evidence / "preview-saved.png"))

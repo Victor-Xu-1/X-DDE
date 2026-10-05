@@ -133,9 +133,9 @@ def test_real_structures_tables_and_sequences():
                 before_frame["height"],
             )
             page.get_by_role("button", name="关闭图片", exact=True).click()
-            page.get_by_label("下载原始结构文件", exact=True).click()
+            page.get_by_label("下载结构文件", exact=True).click()
             download(
-                page.get_by_role("link", name="原始结构 1", exact=True),
+                page.get_by_role("link", name="结构 1", exact=True),
                 "native-pocket-receptor.cif",
             )
             record("protein-real-png")

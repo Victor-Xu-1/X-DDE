@@ -480,17 +480,6 @@ export function StructureViewer({
               onChange={configure}
             />
           )}
-          {!comparison &&
-            ((!overlay && !scene.hasPolymer) ||
-              (overlay &&
-                scene.hasInteractionContext &&
-                optimization.pose.receptor)) && (
-              <PoseOptimizationControls
-                state={optimization}
-                language={language}
-                disabled={!loaded}
-              />
-            )}
           {!overlay && (
             <ViewerControls
               language={language}
@@ -505,6 +494,20 @@ export function StructureViewer({
           )}
         </>
       )}
+      {!comparison &&
+        (optimization.count > 1 ||
+          optimization.busy ||
+          (loaded &&
+            ((!overlay && !scene.hasPolymer) ||
+              (overlay &&
+                scene.hasInteractionContext &&
+                optimization.pose.receptor)))) && (
+          <PoseOptimizationControls
+            state={optimization}
+            language={language}
+            disabled={!loaded}
+          />
+        )}
     </section>
   );
 }
