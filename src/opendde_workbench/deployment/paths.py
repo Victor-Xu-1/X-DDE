@@ -13,5 +13,7 @@ def environment_root(component_root: Path, package: str = "harness") -> Path:
     from ..integrations.specs import PROGRAMS
 
     if package in PROGRAMS:
-        return Path("/srv/wsl/envs/x-dde") / identifier / package
+        # Container executables live in Docker's verified Linux storage. Their reviewed
+        # build contexts honor the user's managed component directory on every host.
+        return component_root / "environments" / package
     return Path.home() / ".local/share/opendde-workbench/environments" / identifier / package
