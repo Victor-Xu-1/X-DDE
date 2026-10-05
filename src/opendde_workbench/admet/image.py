@@ -11,7 +11,10 @@ PYTHON_IMAGE = (
     "2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301"
 )
 VERSION = "admet-ai-2.0.1-chemprop-2.3.1"
-SYSTEM_LIBRARIES = "libxrender1=1:0.9.10-1.1 libxext6=2:1.3.4-1+b1 libsm6=2:1.2.3-1"
+SYSTEM_LIBRARIES = (
+    "libxrender1=1:0.9.10-1.1 libxext6=2:1.3.4-1+b1 "
+    "libsm6=2:1.2.3-1 libexpat1=2.5.0-1+deb12u4"
+)
 
 
 def lock_digest():

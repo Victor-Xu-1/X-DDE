@@ -1,5 +1,6 @@
 import { Hint } from "../guided/Hint";
 import { ExpertChoices } from "./ExpertChoices";
+import { validScientificChoices } from "./validation";
 import type { Language } from "../types";
 import type {
   ScientificPayload,
@@ -210,6 +211,13 @@ export function ScientificChoices({
             </label>
           )}
         </div>
+      )}
+      {!validScientificChoices(payload) && (
+        <p role="alert">
+          {zh
+            ? "请检查候选数量、长度范围或专家参数；保留数量不能大于生成数量。"
+            : "Check candidate counts, length ranges and expert values. Retained designs cannot exceed generated designs."}
+        </p>
       )}
     </>
   );

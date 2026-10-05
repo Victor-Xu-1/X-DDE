@@ -78,6 +78,11 @@ export function ScientificResults({
   if (result.program === "apbs")
     return <PotentialResults job={job} result={result} language={language} />;
   const url = active?.artifact ? artifactUrl(job.id, active.artifact) : null;
+  const sequence = active?.sequence ? (
+    <section className="sequence-display">
+      <pre>{active.sequence.match(/.{1,60}/g)?.join("\n")}</pre>
+    </section>
+  ) : null;
   const view = active?.smiles ? (
     <MolecularPreview
       language={language}
@@ -87,17 +92,28 @@ export function ScientificResults({
       defaultView={active.geometry === "none" ? "2d" : "3d"}
     />
   ) : url && /\.(pdb|cif)$/.test(active?.artifact ?? "") ? (
-    <StructureViewer urls={[url]} language={language} />
-  ) : active?.sequence ? (
-    <section className="sequence-display">
-      <pre>
-        {active.sequence
-          .split(/(.{1,60})/)
-          .filter(Boolean)
-          .join("\n")}
-      </pre>
-    </section>
-  ) : null;
+    sequence ? (
+      <ResearchTabs
+        label={zh ? "候选预览" : "Candidate preview"}
+        tabs={[
+          {
+            id: "structure",
+            label: zh ? "三维结构" : "3D structure",
+            content: <StructureViewer urls={[url]} language={language} />,
+          },
+          {
+            id: "sequence",
+            label: zh ? "序列" : "Sequence",
+            content: sequence,
+          },
+        ]}
+      />
+    ) : (
+      <StructureViewer urls={[url]} language={language} />
+    )
+  ) : (
+    sequence
+  );
   return (
     <div className="scientific-results">
       {result.validation_points?.length > 1 && (

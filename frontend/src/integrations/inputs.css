@@ -1,0 +1,53 @@
+.scientific-input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+.scientific-component-input {
+  min-width: 0;
+  padding: 12px 0;
+  display: grid;
+  gap: 14px;
+}
+.scientific-component-input > label {
+  display: grid;
+  gap: 6px;
+}
+.scientific-component-input .inline-fields {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+}
+.scientific-component-input .inline-fields label {
+  display: grid;
+  gap: 6px;
+}
+.scientific-component-input .questionnaire-choices input[type="radio"] {
+  width: auto;
+  flex: 0 0 auto;
+}
+.scientific-component-input .questionnaire-choices label {
+  min-height: 58px;
+  padding: 14px;
+}
+.scientific-component-input .questionnaire-choices span {
+  min-width: 0;
+  flex: 1;
+}
+.scientific-component-input textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.scientific-component-input .text-button {
+  justify-self: start;
+}
+.scientific-input-grid > .secondary-button {
+  grid-column: 1/-1;
+  justify-self: start;
+}
+@media (max-width: 900px) {
+  .scientific-input-grid {
+    grid-template-columns: 1fr;
+  }
+}

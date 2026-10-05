@@ -27,7 +27,7 @@ jobs:
           tests/test_capabilities.py tests/test_operations.py
       - name: Native overlays and related preview contracts only
         working-directory: frontend
-        run: npx vitest run src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts src/viewer/StructureViewer.test.tsx src/studio/research-modules.test.ts
+        run: npx vitest run src/integrations/validation.test.ts src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts src/viewer/StructureViewer.test.tsx src/studio/research-modules.test.ts
       - name: Native upgraded chemistry and receptor contracts on remote CPU
         env:
           PYTHONPATH: src

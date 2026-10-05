@@ -38,9 +38,9 @@ export function ScientificInputs({
       source?: MoleculeRef | null;
     }[];
     return (
-      <div className="molecular-inputs">
+      <div className="scientific-input-grid">
         {components.map((component, index) => (
-          <div key={index} className="field">
+          <div key={index} className="scientific-component-input">
             <div className="inline-fields">
               <label>
                 {zh ? "分子类型" : "Molecular type"}

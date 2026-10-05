@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./inputs.css";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
@@ -9,6 +10,7 @@ import { ScientificInputs } from "./ScientificInputs";
 import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
+import { validBoltzComponents, validScientificChoices } from "./validation";
 import {
   useExample,
   useExampleReference,
@@ -110,13 +112,7 @@ export function ScientificForm({
     });
   const inputValid =
     program === "boltz"
-      ? Array.isArray(payload.components) &&
-        payload.components.every((item) =>
-          Boolean(
-            (item as { value: string; source?: MoleculeRef }).value ||
-            (item as { source?: MoleculeRef }).source,
-          ),
-        )
+      ? validBoltzComponents(payload.components, payload.affinity)
       : ["reinvent", "chemprop"].includes(program)
         ? (program === "reinvent" &&
             !["analogues", "optimize"].includes(String(payload.mode))) ||
@@ -136,6 +132,7 @@ export function ScientificForm({
         (payload.scaffold_residues as string[] | undefined)?.length,
       ));
   const optionsValid =
+    validScientificChoices(payload) &&
     Number.isInteger(options.cpu) &&
     options.cpu >= 1 &&
     options.cpu <= 16 &&
