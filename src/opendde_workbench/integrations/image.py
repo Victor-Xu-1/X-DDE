@@ -23,6 +23,12 @@ def prepare_context(identifier, destination, source=None):
     destination.mkdir(parents=True, exist_ok=True)
     recipes = Path(__file__).parent / "recipes"
     lines = ["FROM " + spec["base"], "USER root"]
+    if spec.get("system_packages"):
+        lines += [
+            "RUN apt-get update && apt-get install -y --no-install-recommends "
+            + " ".join(spec["system_packages"])
+            + " && rm -rf /var/lib/apt/lists/*"
+        ]
     if spec.get("conda"):
         locked = recipes / (identifier + ".conda.txt")
         if not locked.is_file():

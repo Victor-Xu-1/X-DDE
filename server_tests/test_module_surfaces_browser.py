@@ -71,7 +71,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         page.screenshot(path=str(evidence / "generated-module-backgrounds.png"))
         catalog(page)
         names = [card.get_attribute("aria-label") for card in page.locator(".tool-card").all()]
-        assert len(names) == len(set(names)) == 44
+        assert len(names) == len(set(names)) == 53
         for name in names:
             catalog(page)
             page.get_by_role("button", name=name, exact=True).click()

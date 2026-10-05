@@ -12,6 +12,8 @@ import type { NativeCandidate, NativeResult } from "./types";
 import { InteractionResults } from "./InteractionResults";
 import { PotentialResults } from "./PotentialResults";
 import { MetricScatter } from "../presentation/MetricScatter";
+import { MoleculeImage } from "../presentation/MoleculeImage";
+import "./results.css";
 
 export function ScientificResults({
   job,
@@ -34,6 +36,24 @@ export function ScientificResults({
     ];
     return [
       { key: "id", label: zh ? "候选" : "Candidate", value: (row) => row.id },
+      ...(rows.some((r) => r.smiles)
+        ? [
+            {
+              key: "molecule",
+              label: zh ? "结构" : "Structure",
+              value: (r: NativeCandidate) => r.smiles ?? "",
+              render: (r: NativeCandidate) =>
+                r.smiles ? (
+                  <MoleculeImage
+                    compact
+                    source={{ smiles: r.smiles }}
+                    language={language}
+                    label={r.id}
+                  />
+                ) : null,
+            },
+          ]
+        : []),
       ...names.map((name) => ({
         key: name,
         label: name,

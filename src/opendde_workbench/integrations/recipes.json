@@ -254,7 +254,12 @@
         "rdkit==2026.3.6"
       ],
       "models": [],
-      "license": "MIT; user datasets retain their own terms"
+      "license": "MIT; user datasets retain their own terms",
+      "system_packages": [
+        "libxrender1=1:0.9.10-1.1",
+        "libxext6=2:1.3.4-1+b1",
+        "libsm6=2:1.2.3-1"
+      ]
     }
   }
 }

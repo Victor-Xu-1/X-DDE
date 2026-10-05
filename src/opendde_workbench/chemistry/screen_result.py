@@ -151,7 +151,7 @@ def validate_screen(value, task, output):
         result.library != task.library
         or result.query != task.query
         or result.options != task.options
-        or result.versions != {"rdkit": "2023.09.6"}
+        or result.versions not in ({"rdkit": "2023.09.6"}, {"rdkit": "2026.03.6"})
     ):
         raise ValueError("Library source/query/options/software differ from the selected task.")
     file = contained(output, result.artifact)

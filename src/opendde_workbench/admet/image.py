@@ -11,11 +11,12 @@ PYTHON_IMAGE = (
     "2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301"
 )
 VERSION = "admet-ai-2.0.1-chemprop-2.3.1"
+SYSTEM_LIBRARIES = "libxrender1=1:0.9.10-1.1 libxext6=2:1.3.4-1+b1 libsm6=2:1.2.3-1"
 
 
 def lock_digest():
     return hashlib.sha256(
-        Path(__file__).with_name("native-requirements.txt").read_bytes()
+        Path(__file__).with_name("native-requirements.txt").read_bytes() + SYSTEM_LIBRARIES.encode()
     ).hexdigest()
 
 
@@ -33,7 +34,11 @@ def prepare_context(destination):
         Path(__file__).with_name("native-requirements.txt"), destination / "requirements.txt"
     )
     (destination / "Dockerfile").write_text(
-        "FROM " + PYTHON_IMAGE + "\nCOPY requirements.txt /tmp/requirements.txt\n"
+        "FROM " + PYTHON_IMAGE + "\n"
+        "RUN apt-get update && apt-get install -y --no-install-recommends "
+        + SYSTEM_LIBRARIES
+        + " && rm -rf /var/lib/apt/lists/*\n"
+        "COPY requirements.txt /tmp/requirements.txt\n"
         "RUN python -m pip install --no-cache-dir --only-binary=:all: --require-hashes "
         "-r /tmp/requirements.txt && python -m pip check && "
         'python -c "import site; from pathlib import Path; '
