@@ -1,4 +1,4 @@
-import { nativeInteractions, type PotentialMap } from "./scientific-overlay";
+import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
 export interface ViewerLoad {
   urls: string[];

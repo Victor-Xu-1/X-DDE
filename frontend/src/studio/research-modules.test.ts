@@ -15,7 +15,7 @@ it("covers every existing visible scientific capability exactly once without mer
       .sort(),
     assigned = researchModules.flatMap((module) => module.tools).sort();
   expect(assigned).toEqual(registered);
-  expect(new Set(assigned).size).toBe(44);
+  expect(new Set(assigned).size).toBe(53);
   for (const module of researchModules) {
     expect(module.recommended).toContain(module.defaultTool);
     for (const tool of module.recommended) expect(module.tools).toContain(tool);

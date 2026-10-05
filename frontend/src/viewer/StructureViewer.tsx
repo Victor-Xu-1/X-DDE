@@ -35,7 +35,7 @@ import { usePoseOptimization } from "./usePoseOptimization";
 import { poseSource } from "./pose-source";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
 import type { NativeInteraction } from "../integrations/types";
-import type { PotentialMap } from "./scientific-overlay";
+import type { PotentialMap } from "./scientific-data";
 interface Props {
   urls: string[];
   language: Language;

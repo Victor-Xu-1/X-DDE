@@ -46,6 +46,8 @@ it("does not add large search databases or all model weights to recommended bund
   expect(groups[1].recommended).toEqual([
     "diffsbdd",
     "diffsbdd-model-crossdocked_ca_cond",
+    "reinvent",
+    "reinvent-models",
   ]);
   expect(groups.flatMap((g) => g.recommended)).not.toContain("opendde-search");
   expect(groups[1].packages).toHaveLength(3);
