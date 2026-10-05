@@ -33,6 +33,7 @@ on:
       - 'frontend/src/workflow.css'
       - 'server_tests/*layout*'
       - 'server_tests/*researcher*'
+      - 'server_tests/test_module_surfaces_browser.py'
       - '.github/workflows/task-layout-checks.yml'
   workflow_dispatch:
 permissions:
@@ -90,6 +91,7 @@ jobs:
           src/studio/HomeWorkspace.test.tsx
           src/studio/Navigation.test.tsx
           src/studio/research-modules.test.ts
+          src/design/module-theme.test.ts
           src/studio/TaskWorkspace.test.tsx
           src/studio/PredictionResults.test.tsx
           src/studio/InterfaceSettings.test.tsx
@@ -133,7 +135,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
-          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py
+          .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py server_tests/test_module_surfaces_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

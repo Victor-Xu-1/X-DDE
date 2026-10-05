@@ -4,6 +4,7 @@ import { type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { researchModules } from "../studio/research-modules";
 import { researchIcons } from "../studio/research-icons";
+import { themeForModule } from "../design/module-theme";
 import { filterCapabilities, type ModalityFilter } from "./filter";
 import { QualityForm } from "../quality/QualityForm";
 import { AdmetForm } from "../admet/AdmetForm";
@@ -237,6 +238,7 @@ export function ToolCenter({
                 <section
                   key={module.id}
                   className="capability-group"
+                  data-module-theme={themeForModule(module.id)}
                   aria-label={module.label[index]}
                 >
                   <header

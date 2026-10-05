@@ -22,6 +22,8 @@ import { HelpWorkspace } from "./studio/HelpWorkspace";
 import { ProjectPanel } from "./studio/ProjectPanel";
 import type { ToolId } from "./operations/catalog";
 import "./design/research-navigation.css";
+import "./design/module-surfaces.css";
+import { workspaceTheme } from "./design/module-theme";
 import { HomeWorkspace } from "./studio/HomeWorkspace";
 import type { Job, Language, Prediction } from "./types";
 import { ToolCenter } from "./operations/ToolCenter";
@@ -229,7 +231,16 @@ export function App() {
             onJob={showJob}
             storageWarning={storageWarning}
           />
-          <main className="studio-content" ref={content} tabIndex={-1}>
+          <main
+            className="studio-content"
+            ref={content}
+            tabIndex={-1}
+            data-module-theme={workspaceTheme(
+              view,
+              toolForView(view),
+              job?.request,
+            )}
+          >
             {view === "settings" && (
               <InterfaceSettings
                 language={language}

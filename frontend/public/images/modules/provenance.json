@@ -1,0 +1,105 @@
+{
+  "created": "2026-10-05",
+  "assets": [
+    {
+      "theme": "biologics",
+      "file": "biologics.webp",
+      "width": 2172,
+      "height": 724,
+      "png_sha256": "526ee4ca84e841662459b89f1edab808126c029501d411b9bd60dcc1ea7f2b1f",
+      "webp_sha256": "28e1f52473484fc8a4c765de12554193c3aa4886b319e6ab112f0b9d1ff382f7",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "docking",
+      "file": "docking.webp",
+      "width": 2164,
+      "height": 727,
+      "png_sha256": "31c1bbf701073cf21a4bdbf2a27d13a12cb0510b8cf5504180839a0a81b079fd",
+      "webp_sha256": "ebff48bad445d7101ed1e22054686fdc6224290e4efed424c6f268a5d8920c05",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "environments",
+      "file": "environments.webp",
+      "width": 2172,
+      "height": 724,
+      "png_sha256": "30dd37b35a1cfa0f1bed1308a7276a38b3a6fc0e410075a774de00986a878720",
+      "webp_sha256": "016e44f8d1d8be0f144b5f58d002c0eb9cdfaa8388faff5f1d24d791ae28956d",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "molecules",
+      "file": "molecules.webp",
+      "width": 2172,
+      "height": 724,
+      "png_sha256": "e10cec9fd51a9fe3301dd86444508c4bd4b510bd831e7a03fc7c6f8ec7391e0f",
+      "webp_sha256": "ccb84889621f3e2c0b99ded168dcea0bb13ea65fea26d72aa5dc24ae8ae164e6",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "properties",
+      "file": "properties.webp",
+      "width": 2172,
+      "height": 724,
+      "png_sha256": "b70e1f26b8942a6ea3ea74bb87978c805adee266233d3c0f86da99456a723b8a",
+      "webp_sha256": "f170f28c6909632570b20879ef8d827abeb1f00a635901044b82b4a4781cd56e",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "research",
+      "file": "research.webp",
+      "width": 2172,
+      "height": 724,
+      "png_sha256": "909cf8ad575eb1e519c7b40e8ce4f97ffb2e8286c0891bde881afa1570240102",
+      "webp_sha256": "cf35f7d141195e1f99a9a5b1018e6c2eb2290e6c79d3b5eefea29f3297cb82e3",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "structures",
+      "file": "structures.webp",
+      "width": 2164,
+      "height": 727,
+      "png_sha256": "b8f74587aa100609bee777aa0bfd639da27ee347c81f895efdeafd377aebf227",
+      "webp_sha256": "494d52eac8d18543e0a7056cd3a0aad0f01b239faa948a7161acff239466aadd",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    },
+    {
+      "theme": "targets",
+      "file": "targets.webp",
+      "width": 2172,
+      "height": 724,
+      "png_sha256": "27bfbcc8677ad5bcf2499d64e1ad6bfc3dd3d417888d0d20d6c31cc21128b239",
+      "webp_sha256": "d907127e537c59ef9d4e424e8319dd4c82caaee310530cbeeec12a20f1c7fd86",
+      "generated_by": "Built-in image_gen tool; concrete model selection is not exposed",
+      "purpose": "Decorative conceptual module background, not scientific evidence",
+      "pixel_identical_encoding": true
+    }
+  ],
+  "palette": "White, cool gray, muted emerald and teal; pale violet for biologics",
+  "prompt_spec": "Panoramic 3:1 enterprise drug-discovery module backdrop. Left 65 percent nearly blank; orderly scientific CGI motifs at right. No text, logos, watermarks, atom labels or invented evidence.",
+  "subjects": {
+    "targets": "Protein fold with subtle focal ring and biological nodes",
+    "structures": "Protein ribbon and nucleic-acid curve",
+    "docking": "Pale protein pocket with slim ligand",
+    "molecules": "Molecular motifs and translucent scaffold",
+    "biologics": "Antibody ribbon silhouette and peptide curve",
+    "properties": "Molecular scaffold and abstract property landscapes",
+    "research": "Floating glass panels and connected research objects",
+    "environments": "Orderly modular blocks and connector accents"
+  }
+}
