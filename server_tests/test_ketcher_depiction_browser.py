@@ -53,14 +53,14 @@ def test_native_kekule_drawings_and_identity():
             expect(page.get_by_text("正在读取结果…", exact=True)).not_to_be_visible(timeout=30000)
 
         def inspect_images(name):
-            expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
+            preview = page.locator(".molecule-image:not(.is-thumbnail):visible")
+            preview.scroll_into_view_if_needed()
+            expect(preview.locator("img")).to_be_visible(timeout=90000)
             page.wait_for_function(
                 """() => {
-                const cards = [...document.querySelectorAll('.molecule-image')];
-                return cards.length && cards.every(card => {
-                    const image = card.querySelector('img');
-                    return image && image.complete && image.naturalWidth > 0;
-                });
+                const images = [...document.querySelectorAll('.molecule-image img')];
+                return images.length && images.every(image =>
+                    image.complete && image.naturalWidth > 0);
             }""",
                 timeout=30000,
             )
