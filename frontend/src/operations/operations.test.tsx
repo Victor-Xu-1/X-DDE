@@ -24,14 +24,14 @@ it("finds real capabilities by research goal without exposing the upstream stub"
   );
   expect(screen.getByRole("heading", { name: "计算小分子性质" })).toBeVisible();
   expect(
-    screen.getByRole("heading", { name: "抗体设计与 CDR 优化" }),
+    screen.getByRole("heading", { name: "结合蛋白、肽与抗体设计" }),
   ).toBeVisible();
   expect(
     screen.queryByRole("button", { name: /客观可开发性/ }),
   ).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "蛋白" }));
   expect(
-    screen.getByRole("heading", { name: "结构引导序列设计" }),
+    screen.getByRole("heading", { name: "配体环境中的蛋白序列设计" }),
   ).toBeVisible();
   expect(
     screen.queryByRole("heading", { name: "计算小分子性质" }),

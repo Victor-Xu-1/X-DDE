@@ -112,7 +112,7 @@ it("shows the same antibody task in each applicable category without extra intro
     await user.click(screen.getByRole("button", { name }));
     expect(
       screen.getByRole("button", {
-        name: "Antibody design and CDR optimization",
+        name: "Protein, peptide and antibody design",
       }),
     ).toBeVisible();
     expect(
@@ -133,7 +133,7 @@ it("shows the same antibody task in each applicable category without extra intro
   ).toBeVisible();
   expect(
     screen.queryByRole("button", {
-      name: "Antibody design and CDR optimization",
+      name: "Protein, peptide and antibody design",
     }),
   ).toBeNull();
   expect(submit).not.toHaveBeenCalled();
