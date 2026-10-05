@@ -21,8 +21,9 @@
 }
 .example-actions details[open] {
   padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .example-actions ul {
   margin: 6px 0;
@@ -40,12 +41,14 @@
   margin: 0;
 }
 .module-example-result {
-  padding: 16px;
+  padding: 20px 0;
   margin-top: 12px;
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
+  box-shadow: none;
+  border-top: 1px solid var(--line);
 }
 .template-result-grid {
   display: grid;

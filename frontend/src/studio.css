@@ -312,9 +312,9 @@ body {
 .studio-panel,
 .studio-app .panel {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  box-shadow: 0 1px 4px transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .studio-panel {
   padding: 10px;
@@ -660,12 +660,13 @@ body {
 .analysis-card {
   min-width: 0;
   height: 218px;
-  border: 1px solid var(--line);
+  border: 0;
   background: var(--surface);
-  border-radius: 5px;
+  border-radius: 0;
   padding: 9px;
   display: flex;
   flex-direction: column;
+  box-shadow: none;
 }
 .analysis-card h3 {
   font-size: 13px;
@@ -766,13 +767,14 @@ body {
   display: flex;
   align-items: center;
   gap: 9px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
   color: var(--muted);
   text-align: left;
   padding: 10px;
   margin: 7px 0;
+  box-shadow: none;
 }
 .project-row.active {
   background: var(--canvas);
@@ -1040,9 +1042,10 @@ body {
   max-width: 760px;
   margin: 16px 0;
   padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
+  box-shadow: none;
 }
 .management-card h2 {
   font-size: 15px;

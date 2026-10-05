@@ -3,11 +3,11 @@
 :root[data-theme="light"] {
   color-scheme: light;
   background: var(--canvas);
-  --canvas: #f5f7f9;
+  --canvas: #ffffff;
   --ink: #22342f;
   --muted: #687b75;
   --accent: #17664d;
-  --sidebar: #ffffff;
+  --sidebar: #f7f9f8;
   --line: #e0e8e5;
   --surface: #ffffff;
   --surface-muted: #f4f7f6;
@@ -35,7 +35,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --canvas: #141b18;
+  --canvas: #1c2721;
   --ink: #edf3ef;
   --muted: #a9b7ae;
   --accent: #9cccad;

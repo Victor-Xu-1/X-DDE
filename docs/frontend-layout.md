@@ -2,8 +2,9 @@
 
 ## Commercial workflow references and graphical results
 
-The visual system uses a quiet neutral canvas, white research surfaces, restrained
-green actions, readable typography and a single spacing/radius palette. Scientific
+The visual system uses a continuous white canvas, restrained green actions, readable
+typography and a single spacing palette. Section titles, whitespace and subtle
+horizontal rules organize pages without nested framed cards or raised panels. Scientific
 content determines layout: forms stay step-by-step; result tables sit beside the
 selected molecular/sequence view; images are real native renderings.
 
@@ -119,8 +120,8 @@ repair, upgrades and removal remain in the separate maintenance disclosure. Sele
 a research group exposes its reviewed bundle, and optional models/support packages stay
 expandable. Active or unresolved optional operations remain visible.
 
-The capability catalogue, readiness cards and questionnaire choices share a consistent
-card hierarchy and spacing. Tables, editors and scientific results keep their functional
+The capability catalogue, readiness items and questionnaire choices share a consistent
+flat hierarchy and spacing. Tables, editors and scientific results keep their functional
 layout rather than being forced into squares. A fresh prediction omits its empty project/
 history toolbar. Asset pagination remains reachable with a bounded scrolling list.
 
@@ -180,4 +181,4 @@ Feature preparation previews read the actual typed task components; converted in
 
 八组通过内置 image_gen 生成的真实栅格背景覆盖靶点、结构、口袋/对接、小分子、生物药、性质、研究空间和安装运行。所有公开任务沿用 `researchModules` 的唯一导航分类选择主题；持久化结果按实际任务类型选择相应主题。背景限于模块入口卡片与紧凑工具栏，不铺在科学表格、2D/3D 画布或研究输入后面。生成图仅为概念性装饰，不是实际科学结果；原始 PNG 留在 E 盘工作资产中，前端使用像素完全相同的无损 WebP。具体图像模型无法由该工具接口指定，来源记录不得虚称 image-2.5。
 
-模块入口统一等高卡片、92px 标题区和52px 任务入口；工具栏64px，步骤表单24px 内距，单页一步逻辑保留。移动端收紧内距与图像占用，暗色及高对比模式优先保证可读性。装饰不额外增加大幅介绍区，也不改变原生输入、三维坐标和任务调用。共享主题由 `design/module-theme.ts` 决定，绘制规则由 `design/module-surfaces.css` 维护，图像与来源在 `frontend/public/images/modules`；不要为每个能力另造竞争的导航或样式实现。
+模块入口采用等高平铺区域、92px 标题区和52px 任务入口，以留白和细横线分组，移除独立外框、圆角容器和阴影。工具栏64px、步骤表单24px 内距，单页一步逻辑保留。问卷、示例、结果表格、2D/3D 预览、序列、项目和安装区域融入连续页面，选项用浅色底和选中底线表达状态；输入框、键盘焦点、错误/告警及浮层仍保持功能性边界。移动端收紧内距与图像占用，暗色及高对比模式优先保证可读性。装饰不额外增加大幅介绍区，也不改变原生输入、三维坐标和任务调用。共享主题由 `design/module-theme.ts` 决定，背景和间距由 `design/module-surfaces.css` 维护，组件外观在其现有样式源中修改，图像与来源在 `frontend/public/images/modules`；不要为每个能力另造竞争的导航或累积覆盖样式。

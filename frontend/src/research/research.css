@@ -121,10 +121,11 @@
 .research-graph-scroll {
   max-height: 560px;
   overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
-  padding: 12px;
+  padding: 12px 0;
+  box-shadow: none;
 }
 .research-graph {
   display: block;

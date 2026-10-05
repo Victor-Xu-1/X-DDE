@@ -7,9 +7,10 @@
 }
 .research-candidate {
   padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
+  box-shadow: none;
 }
 .research-candidate h4 {
   margin: 0 0 10px;
@@ -112,8 +113,9 @@
   font-size: 13px;
   line-height: 1.8;
   background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 0;
   padding: 16px;
   margin-top: 12px;
+  box-shadow: none;
 }

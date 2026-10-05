@@ -1,10 +1,11 @@
 .receptor-input {
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   padding: 1rem;
   margin-block: 0.75rem;
   background: var(--surface);
   min-width: 0;
+  box-shadow: none;
 }
 .receptor-row-heading {
   display: flex;

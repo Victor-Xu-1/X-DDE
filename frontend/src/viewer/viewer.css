@@ -50,9 +50,10 @@
 }
 .viewer-snapshot {
   margin: 16px 0;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 0;
+  border-radius: 0;
   padding: 12px;
+  box-shadow: none;
 }
 .viewer-snapshot img {
   display: block;
@@ -73,8 +74,9 @@
   min-height: 0;
   overflow: hidden;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .viewer-panel:fullscreen {
   overflow: auto;

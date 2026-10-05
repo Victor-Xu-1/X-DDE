@@ -14,9 +14,11 @@
   place-items: center;
   min-height: 240px;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 0;
   background: #fff;
   color: var(--muted);
+  border: 0;
+  box-shadow: none;
 }
 .molecule-drawing-style {
   justify-self: end;
@@ -55,11 +57,12 @@
   height: 76px;
 }
 .molecular-preview {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
   background: var(--surface);
   min-width: 0;
+  box-shadow: none;
 }
 .molecular-preview .research-tab-list {
   margin: 0 0 12px;

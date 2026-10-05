@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 
-from layout_browser_helpers import catalog
+from layout_browser_helpers import catalog, flat_surface_styles
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -25,6 +25,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         )
         assert max(r["height"] for r in dimensions) - min(r["height"] for r in dimensions) < 2
         assert min(r["width"] for r in dimensions) > 280
+        assert not flat_surface_styles(page)["framed"]
         assert page.evaluate("""async () => {
             const themes=['targets','structures','docking','molecules',
               'biologics','properties','research','environments'];
@@ -53,7 +54,18 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
             }
             assert page.locator(".questionnaire > fieldset:visible").count() <= 1
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1"), name
-            pages.append({"module": name, "theme": theme})
+            surfaces = flat_surface_styles(page)
+            assert not surfaces["framed"], (name, surfaces)
+            editable = page.locator(
+                ".questionnaire > fieldset:visible "
+                ":is(input,textarea):visible:enabled:not([type=hidden])"
+            )
+            if editable.count():
+                page.keyboard.press("Tab")
+                editable.first.focus()
+                expect(editable.first).to_be_focused()
+                assert editable.first.evaluate("e=>getComputedStyle(e).outlineStyle") != "none"
+            pages.append({"module": name, "theme": theme, "flat_surfaces": surfaces["count"]})
         page.set_viewport_size({"width": 720, "height": 1100})
         catalog(page)
         assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")

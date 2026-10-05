@@ -10,10 +10,11 @@
   width: min(100%, 300px);
 }
 .project-list {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
-  padding: 12px;
+  padding: 0;
+  box-shadow: none;
 }
 .project-list .project-row {
   margin: 0;

@@ -31,9 +31,9 @@
 }
 .tool-card {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 0;
   padding: 20px;
-  border-radius: var(--radius);
+  border-radius: 0;
   min-height: 160px;
   box-shadow: none;
 }
