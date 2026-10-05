@@ -1,7 +1,7 @@
 name: Publication version checks
 on:
   push:
-    branches: [main, feat/platform-integration, feat/ai-biomed-design, feat/research-layout]
+    branches: [main, feat/platform-integration, feat/ai-biomed-design, feat/research-layout, feat/scientific-upgrades]
   pull_request:
     branches: [main]
 permissions:

@@ -1,6 +1,12 @@
 name: Scientific upgrade scoped checks
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: Hosted Linux runner; native containers retain their fixed base images
+        type: choice
+        default: ubuntu-24.04
+        options: [ubuntu-24.04, ubuntu-22.04]
   push:
     paths:
       - 'src/opendde_workbench/integrations/**'
@@ -11,7 +17,7 @@ permissions:
   contents: read
 jobs:
   contracts:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +43,7 @@ jobs:
           --with biopython==1.88 python -m pytest -q
           server_tests/test_molecular_states.py server_tests/test_receptor_science.py
   native-chemistry:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +58,7 @@ jobs:
           WB_TEST_NATIVE_STATES: '1'
         run: uv run --locked pytest -q server_tests/test_native_states.py
   native-admet:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +73,7 @@ jobs:
           WB_TEST_NATIVE_ADMET: '1'
         run: uv run --locked pytest -q server_tests/test_native_admet.py
   native-physics-and-contacts:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 40
     strategy:
       fail-fast: false
@@ -86,3 +92,18 @@ jobs:
           WB_TEST_INTEGRATED_NATIVE_CPU: '1'
           WB_SCIENTIFIC_PROGRAM: ${{ matrix.program }}
         run: uv run --locked --with biopython==1.88 pytest -q server_tests/test_integrated_native_cpu.py
+  native-property-model:
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Experimental EGFR library through actual training and checkpoint reuse
+        env:
+          WB_TEST_NATIVE_PROPERTY_MODEL: '1'
+        run: uv run --locked pytest -q server_tests/test_native_property_model.py
