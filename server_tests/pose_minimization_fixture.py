@@ -2,16 +2,26 @@
 
 import hashlib
 import json
+import os
 from pathlib import Path
-from urllib.request import urlopen
 
 
 def public_material(key):
     source = json.loads(Path("src/opendde_workbench/examples/catalogue.json").read_text())["files"][
         key
     ]
-    with urlopen(source["url"], timeout=30) as response:
-        raw = response.read(source["bytes"] + 1)
+    # Live model exports can change formatting. Use the immutable, SHA-verified public bundle.
+    root = Path(os.environ["WB_MIN_REFERENCE_STATE"]) / "assets"
+    matches = [
+        file
+        for file in root.glob("*")
+        if file.is_file()
+        and not file.is_symlink()
+        and file.stat().st_size == source["bytes"]
+        and hashlib.sha256(file.read_bytes()).hexdigest() == source["sha256"]
+    ]
+    assert len(matches) == 1, f"The pinned {key} source must exist in the verified public bundle."
+    raw = matches[0].read_bytes()
     assert len(raw) == source["bytes"]
     assert hashlib.sha256(raw).hexdigest() == source["sha256"]
     return raw, source

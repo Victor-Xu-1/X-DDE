@@ -37,6 +37,15 @@ jobs:
           PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py --check
       - name: Native complex ligand force fields and receptor-bound GNINA through the shared queue
         env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/minimization-reference-home
+          WB_STATE_DIR: ${{ runner.temp }}/minimization-reference-state
+        run: |
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          echo "WB_MIN_REFERENCE_STATE=$WB_STATE_DIR" >> "$GITHUB_ENV"
+      - name: Run the exact existing 3D pose through native Chemistry and GNINA
+        env:
           WB_TEST_NATIVE_MINIMIZATION: '1'
         run: uv run --locked pytest -q -s server_tests/test_native_pose_minimization.py
       - name: Real browser save, undo, redo and exact SDF download
