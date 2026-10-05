@@ -16,6 +16,7 @@ export interface Ketcher {
   getMolfile(): Promise<string>;
   setMolecule(value: string): Promise<void>;
   layout?(): Promise<void>;
+  dearomatize?(): Promise<void>;
 }
 
 export async function editorReady(

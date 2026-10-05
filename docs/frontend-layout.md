@@ -59,6 +59,15 @@ even on errors. 2D drawings expose a few native line-weight choices and SVG
 downloads. Metric charts export their displayed axes, values, labels and styles;
 sequence views export exact FASTA. Originals retain separate download links.
 
+All 2D thumbnails, selected molecular previews and their SVG downloads share the
+local Ketcher renderer. It lays out an isolated display copy, uses native
+dearomatization to assign valid alternating single/double aromatic bonds, and
+then exports that copy. Benzene rings do not use center circles; SVG paths are
+never removed or redrawn to mimic chemistry. The integrated Ketcher editor also
+defaults to native dearomatization on load. Source records, original coordinates,
+stereochemistry, isotope/charge labels and retained salt fragments remain in the
+original assets; only an explicit editor save creates a new scientific version.
+
 Generated candidates are bound to the declared output digest, rather than an
 asset's editable filename or the first page of global assets. State results
 display every retained state and conformer independently of history indexing;

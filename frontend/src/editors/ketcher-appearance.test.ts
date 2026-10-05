@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { configureKetcherPreview } from "./ketcher-appearance";
 import type { Ketcher } from "./scientificEditor";
-it("uses the native thin-stick mode without replacing molecule data or unrelated settings", () => {
+it("uses native Kekulé loading and thin 3D bonds without replacing molecular data", () => {
   const setOptions = vi.fn(),
     setMolecule = vi.fn();
   configureKetcherPreview({
@@ -9,6 +9,7 @@ it("uses the native thin-stick mode without replacing molecule data or unrelated
     setMolecule,
   } as unknown as Ketcher);
   expect(JSON.parse(setOptions.mock.calls[0][0])).toEqual({
+    "dearomatize-on-load": true,
     miewMode: "LN",
     miewAtomLabel: "no",
   });

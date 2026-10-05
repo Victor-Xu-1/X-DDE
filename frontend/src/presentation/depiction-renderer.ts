@@ -120,8 +120,15 @@ export class DepictionRenderer {
             // layout changes a display copy; scientific files and the user's editor stay intact.
             if (!editor.layout)
               throw new Error("Update Ketcher to use native 2D layout.");
+            if (!editor.dearomatize)
+              throw new Error(
+                "Update Ketcher to draw alternating aromatic bonds.",
+              );
             await editor.setMolecule(structure);
             await editor.layout();
+            // Ketcher assigns a valid Kekulé form to this display copy. Removing
+            // circles from an SVG would lose the aromatic bond information.
+            await editor.dearomatize();
             const arranged = await editor.getMolfile();
             active.throwIfAborted();
             return editor.generateImage!(arranged, {
