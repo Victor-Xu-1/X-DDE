@@ -192,7 +192,9 @@
         "openff-forcefields=2026.09.0",
         "ambertools=26.0=cuda_None_nompi_py312hd652fd9_100",
         "rdkit=2025.09.6=py312h3ecb6ed_1",
-        "openff-interchange-base=0.5.5"
+        "openff-interchange-base=0.5.5",
+        "numpy=1.26.4",
+        "biopython=1.85"
       ],
       "pip": [
         "pdbfixer==1.12.0",
@@ -202,7 +204,10 @@
         "importlib_resources",
         "PyYAML",
         "setuptools==84.0.0",
-        "wheel"
+        "wheel",
+        "requests",
+        "pdb2pqr==3.7.1",
+        "netCDF4"
       ],
       "models": [],
       "license": "OpenMM MIT/LGPL; OpenFF MIT; AmberTools component licenses",

@@ -23,7 +23,11 @@ The OpenMM environment uses RDKit 2025.09.6 because AmberTools 26.0 and that RDK
 conda build share Boost 1.86. The independent chemistry and ADMET environments use
 RDKit 2026.03.6. OpenFF's base toolkit and Interchange base package provide the actual
 SMIRNOFF/AM1-BCC flow; unrelated neural charge-model dependencies are not required by
-this adapter. OpenMMForceFields 0.16.0 is installed from the checksum-verified official
+this adapter. AmberTools' bundled analysis/preparation metadata requires NumPy 1.26.4
+and Biopython 1.85 in this environment; the independent receptor adapter uses 1.88.
+The supplementary pip lock excludes these conda-provided packages and OpenMM, so pip
+cannot silently replace the reviewed OpenMM runtime with an older PyPI wheel.
+OpenMMForceFields 0.16.0 is installed from the checksum-verified official
 source archive after its declared scientific dependencies. Dependency locks include
 immutable conda artifact URLs/SHA-256 and pip hashes.
 

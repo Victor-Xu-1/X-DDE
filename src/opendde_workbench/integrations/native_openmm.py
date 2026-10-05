@@ -77,6 +77,9 @@ def run(request):
     from openmm import app, unit
     from pdbfixer import PDBFixer
 
+    if openmm.__version__ != "8.6.1":
+        raise ValueError("The native OpenMM runtime differs from the reviewed 8.6.1 environment.")
+
     source, _ = input_pdb(request)
     payload = request["payload"]
     fixer = PDBFixer(filename=str(source))
