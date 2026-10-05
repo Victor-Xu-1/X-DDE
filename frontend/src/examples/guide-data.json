@@ -1078,5 +1078,221 @@
       "先按受体分组看姿势，再比较评分和三维差异。",
       "Compare poses within receptor groups before interpreting scores."
     ]
+  },
+  "boltz.predict": {
+    "steps": [
+      [
+        "从蛋白序列与真实配体结构预测复合物；该入口当前为单序列模式。",
+        "Predict the protein–ligand complex; this adapter currently uses single-sequence mode."
+      ],
+      [
+        "蛋白序列和 JQ1 结构已填好；按链分别确认，不用自己准备坐标。",
+        "Confirm the supplied sequence and ligand separately by chain."
+      ],
+      [
+        "保留模板的计算方案，首次学习无需改专家参数。",
+        "Keep the verified small example settings for the first walkthrough."
+      ],
+      [
+        "先看配体在口袋中的形状，再看 pLDDT / ipTM；分数不是药效。",
+        "Inspect the pose and pLDDT/ipTM; confidence is not potency."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "reinvent.design": {
+    "steps": [
+      [
+        "从真实药物结构出发，选择类似物、R 基或连接子设计。",
+        "Start from a real drug structure and choose analogue, R-group or linker design."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "ligandmpnn.design": {
+    "steps": [
+      [
+        "点击真实结构中的可变残基，保留其余骨架和配体环境。",
+        "Select variable residues in a real structure, preserving the remaining backbone and ligand context."
+      ],
+      [
+        "重链和轻链分别确认；模板保留了原始序列来源。",
+        "Confirm heavy and light chains and their source."
+      ],
+      [
+        "保留已验证的编号或设计范围；首次不要改动全部位置。",
+        "Keep the verified numbering scheme or mutable positions."
+      ],
+      [
+        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
+        "Inspect CDRs and sequence scores; these are not affinity measurements."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "boltzgen.design": {
+    "steps": [
+      [
+        "选择靶点链；抗体可变区设计还需框架结构和可变残基。",
+        "Choose target chains; antibody variable-region design also requires a framework and mutable residues."
+      ],
+      [
+        "目标、重轻链及真实 CDR 已填好；检查每条链的身份。",
+        "Confirm the target, native variable domains and CDRs."
+      ],
+      [
+        "先用模板的小规模方案；对话模型在账户设置中另行配置。",
+        "Use the small example budget; configure the model separately."
+      ],
+      [
+        "本模板展示已校验配置；代理尚未运行，不展示虚构设计结果。",
+        "This is a validated setup; no agent-generated result is claimed."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "openmm.refine": {
+    "steps": [
+      [
+        "对完整的已解析结构进行约束优化；结合配体须处于同一坐标系。",
+        "Refine resolved structures with restraints; bound ligands must share the coordinate frame."
+      ],
+      [
+        "使用模板中的蛋白文件，确认链和保留的组分。",
+        "Confirm its chains and retained components."
+      ],
+      [
+        "采用模板的清理选项；需要保留配体或水时再修改。",
+        "Keep the verified cleanup settings for the walkthrough."
+      ],
+      [
+        "查看处理前后结构、保留原子与处理记录。",
+        "Inspect the prepared structure and processing report."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "apbs.potential": {
+    "steps": [
+      [
+        "选择准备好的纯蛋白结构，设置 pH 与盐浓度。",
+        "Choose a prepared protein-only structure and select pH and salt conditions."
+      ],
+      [
+        "确认目标与结合体的链身份；模板已提供配套材料。",
+        "Confirm target and binder chain identities."
+      ],
+      [
+        "保留模板的目标链、结合体链和比较规则。",
+        "Keep the verified chain and reference settings."
+      ],
+      [
+        "结合三维结构与原生指标解读；注意比较所用参考对象。",
+        "Interpret geometry and metrics relative to the stated reference."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "chemprop.train": {
+    "steps": [
+      [
+        "研究模型需要至少 50 个不同分子及同一实验标签；三种 ABL 药物用于说明材料形式，不足以训练模型。",
+        "A research model requires at least 50 distinct molecules with one experimental endpoint; the three ABL drugs illustrate material formats and are not a training dataset."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "chemprop.predict": {
+    "steps": [
+      [
+        "选择已训练模型，再选择要预测的真实分子库；标签与单位保持一致。",
+        "Choose a trained model and a real molecular library; preserve its target and units."
+      ],
+      [
+        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "Confirm the molecular collection and its separate records."
+      ],
+      [
+        "保留模板的性质或筛选项，按研究目的再调整阈值。",
+        "Keep the example endpoints, then adjust research-specific thresholds."
+      ],
+      [
+        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
+        "Compare units, missing values and alerts; predictions differ from experiments."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
+  },
+  "plip.profile": {
+    "steps": [
+      [
+        "在真实复合物中选择一个配体，查看原生化学相互作用。",
+        "Choose one ligand in a real complex and inspect native chemical interactions."
+      ],
+      [
+        "确认目标与结合体的链身份；模板已提供配套材料。",
+        "Confirm target and binder chain identities."
+      ],
+      [
+        "保留模板的目标链、结合体链和比较规则。",
+        "Keep the verified chain and reference settings."
+      ],
+      [
+        "结合三维结构与原生指标解读；注意比较所用参考对象。",
+        "Interpret geometry and metrics relative to the stated reference."
+      ]
+    ],
+    "interpretation": [
+      "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
+      "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
+    ]
   }
 }

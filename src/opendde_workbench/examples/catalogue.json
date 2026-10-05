@@ -606,6 +606,60 @@
       "capability_id": "pose_exploration",
       "revision": 1,
       "pinned_run_required": false
+    },
+    "boltz.predict": {
+      "case_id": "brd4-jq1",
+      "capability_id": "boltz.predict",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "reinvent.design": {
+      "case_id": "brd4-jq1",
+      "capability_id": "reinvent.design",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "ligandmpnn.design": {
+      "case_id": "brd4-jq1",
+      "capability_id": "ligandmpnn.design",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "boltzgen.design": {
+      "case_id": "trastuzumab-domainiv",
+      "capability_id": "boltzgen.design",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "openmm.refine": {
+      "case_id": "brd4-jq1",
+      "capability_id": "openmm.refine",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "apbs.potential": {
+      "case_id": "brd4-jq1",
+      "capability_id": "apbs.potential",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "chemprop.train": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "chemprop.train",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "chemprop.predict": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "chemprop.predict",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "plip.profile": {
+      "case_id": "brd4-jq1",
+      "capability_id": "plip.profile",
+      "revision": 1,
+      "pinned_run_required": true
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."

@@ -17,7 +17,7 @@ from opendde_workbench.store import Store
 
 def test_every_visible_module_has_a_source_backed_complex_case():
     assert set(MODULES) == {key for key, value in CAPABILITIES.items() if value.frontend_form}
-    assert len(MODULES) == 45
+    assert len(MODULES) == 54
     assert len(POLYMERS["3MXF.polymer-1.json"]["sequence"]) == 127
     assert len(POLYMERS["1N8Z.polymer-2.json"]["sequence"]) == 220
     assert FILES["jq1"].bytes > 3000

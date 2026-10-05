@@ -121,7 +121,11 @@ export function ToolCenter({
               }
             >
               {isScientificForm(selected) ? (
-                <ScientificForm form={selected} language={language} onCreated={onCreated} />
+                <ScientificForm
+                  form={selected}
+                  language={language}
+                  onCreated={onCreated}
+                />
               ) : selected === "antibody.humanize" ? (
                 <HumanizationForm language={language} onCreated={onCreated} />
               ) : selected === "admet.predict" ? (

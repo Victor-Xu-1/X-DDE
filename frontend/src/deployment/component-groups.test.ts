@@ -37,7 +37,12 @@ it("does not add large search databases or all model weights to recommended bund
       kind: "model",
     }),
   ]);
-  expect(groups[0].recommended).toEqual(["compute", "standard"]);
+  expect(groups[0].recommended).toEqual([
+    "compute",
+    "standard",
+    "boltz",
+    "boltz-models",
+  ]);
   expect(groups[1].recommended).toEqual([
     "diffsbdd",
     "diffsbdd-model-crossdocked_ca_cond",

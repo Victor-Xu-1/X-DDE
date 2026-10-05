@@ -30,7 +30,8 @@ def run(request):
         line.startswith("HETATM") and line[17:20].strip() not in {"HOH", "WAT"} for line in lines
     ):
         raise ValueError(
-            "Select a protein-only structure; this AMBER protocol does not parameterize ligands or cofactors."
+            "Select a protein-only structure; this AMBER protocol "
+            "does not parameterize ligands or cofactors."
         )
     pqr, prepared = Path("/output/charged-structure.pqr"), Path("/output/charged-structure.pdb")
     execute(
