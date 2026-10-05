@@ -46,13 +46,26 @@ export function paintNativeContacts(
       { model: 0, index: residue.map((a) => a.index!) },
       { stick: { radius: 0.09, colorscheme: "Jmol" } },
     );
-    viewer.addLine({
-      start,
-      end,
-      color: interactionColors[row.kind],
-      dashed: true,
-      linewidth: 2,
-    });
+    const bridge = row.bridge_position
+      ? {
+          x: row.bridge_position[0],
+          y: row.bridge_position[1],
+          z: row.bridge_position[2],
+        }
+      : null;
+    for (const [a, b] of bridge
+      ? [
+          [start, bridge],
+          [bridge, end],
+        ]
+      : [[start, end]])
+      viewer.addLine({
+        start: a,
+        end: b,
+        color: interactionColors[row.kind],
+        dashed: true,
+        linewidth: 2,
+      });
     if (labels)
       viewer.addLabel(
         `${row.chain}:${row.residue}${row.number} · ${row.distance.toFixed(2)} Å`,

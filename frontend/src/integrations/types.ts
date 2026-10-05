@@ -62,6 +62,7 @@ export interface NativeInteraction {
   protein_position: [number, number, number];
   ligand_position: [number, number, number];
   distance: number;
+  bridge_position?: [number, number, number] | null;
 }
 export interface NativeResult {
   operation: ScientificOperation;

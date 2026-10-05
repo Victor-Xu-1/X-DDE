@@ -345,3 +345,5 @@ entries are compact rows grouped by workflow with three common tasks visible and
 骨架选择使用保留手性的 Murcko 骨架，先覆盖不同结构组，再按每组数量挑选；组内顺序来自输入文件，不代表活性排名。无环分子保留各自完整化学身份，多片段记录原位保留但不参与此项选择，不自动脱盐或枚举状态。专家可调每组上限和规则目录。结果展示规则、骨架组、未选原因与可下载 CSV；选中 SDF 和确切分子记录可继续准备构象、计算性质或对接。历史结果保持原样，未运行的检查不补成阴性结果。
 
 The existing Chemistry environment provides both methods; no additional model or environment is needed. Choose the purpose, then an explicit alert policy or per-scaffold budget and review before submission. Native schema 2 adds actual rule/group evidence and a checked CSV artifact; schema 1 records remain readable and unevaluated. Input molecular identities, stereochemistry, isotopes, charges, coordinates and properties are retained. The methods do not estimate activity, experimental toxicity or affinity.
+
+独立科学环境与实际支持范围：[科学环境升级说明](docs/scientific-upgrade.md)。

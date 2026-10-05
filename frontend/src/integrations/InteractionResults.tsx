@@ -49,7 +49,7 @@ export function InteractionResults({
           },
           {
             key: "distance",
-            label: zh ? "距离（Å）" : "Distance (Å)",
+            label: zh ? "端点距离（Å）" : "Endpoint distance (Å)",
             numeric: true,
             value: (row) => row.distance,
             render: (row) => row.distance.toFixed(2),

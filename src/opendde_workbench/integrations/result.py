@@ -67,6 +67,7 @@ class NativeInteraction(BaseModel):
     protein_position: tuple[float, float, float]
     ligand_position: tuple[float, float, float]
     distance: float = Field(ge=0, le=20, allow_inf_nan=False)
+    bridge_position: tuple[float, float, float] | None = None
 
 
 class ValidationPoint(BaseModel):

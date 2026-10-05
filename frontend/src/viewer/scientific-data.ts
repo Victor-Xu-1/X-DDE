@@ -32,7 +32,11 @@ export function nativeInteractions(
       !Number.isFinite(row.distance) ||
       row.distance < 0 ||
       row.distance > 20 ||
-      [row.protein_position, row.ligand_position].some(
+      [
+        row.protein_position,
+        row.ligand_position,
+        ...(row.bridge_position == null ? [] : [row.bridge_position]),
+      ].some(
         (p) =>
           !Array.isArray(p) ||
           p.length !== 3 ||

@@ -79,6 +79,22 @@ def run(request):
         interactions.append(
             edge("halogen_bond", item, original[item.acc_orig_idx], original[item.don_orig_idx])
         )
+    for item in profile.water_bridges:
+        protein = item.d_orig_idx if item.protisdon else item.a_orig_idx
+        ligand = item.a_orig_idx if item.protisdon else item.d_orig_idx
+        row = edge("water_bridge", item, original[protein], original[ligand])
+        row["bridge_position"] = original[item.water_orig_idx]
+        interactions.append(row)
+    for item in profile.metal_complexes:
+        if "protein" in item.location:
+            interactions.append(
+                edge(
+                    "metal_complex",
+                    item,
+                    original[item.target_orig_idx],
+                    original[item.metal_orig_idx],
+                )
+            )
     structure = copy_artifact(source, "interaction-structure.pdb")
     csv_file(
         "interactions.csv",

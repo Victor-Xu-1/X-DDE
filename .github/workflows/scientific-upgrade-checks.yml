@@ -36,3 +36,33 @@ jobs:
           --with rdkit==2026.3.6 --with dimorphite-dl==2.1.0 --with numpy==1.26.4
           --with biopython==1.88 python -m pytest -q
           server_tests/test_molecular_states.py server_tests/test_receptor_science.py
+  native-chemistry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Changed chemistry container through the actual queue and API
+        env:
+          WB_TEST_NATIVE_STATES: '1'
+        run: uv run --locked pytest -q server_tests/test_native_states.py
+  native-admet:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Changed ADMET runtime with actual pretrained models and API
+        env:
+          WB_TEST_NATIVE_ADMET: '1'
+        run: uv run --locked pytest -q server_tests/test_native_admet.py
