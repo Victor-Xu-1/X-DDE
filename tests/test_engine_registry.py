@@ -34,6 +34,9 @@ def test_deployment_packages_belong_to_engines_or_editors():
     for package in packages:
         if package["kind"] == "editor":
             assert package["engine"] is None
+        elif package["kind"] == "data":
+            # Public cases are platform-owned data, not a scientific execution engine.
+            assert package["engine"] == "x-dde"
         else:
             assert package["engine"] in ENGINES
     assert dependencies("diffsbdd") == ["diffsbdd"]
