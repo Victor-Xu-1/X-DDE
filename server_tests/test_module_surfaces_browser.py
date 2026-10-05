@@ -20,14 +20,17 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         groups = page.locator(".capability-group")
         expect(groups).to_have_count(6)
         dimensions = groups.evaluate_all(
-            "elements => elements.map(e => ({theme:e.dataset.moduleTheme,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))"
+            """elements => elements.map(e => ({theme:e.dataset.moduleTheme,
+                width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))"""
         )
         assert max(r["height"] for r in dimensions) - min(r["height"] for r in dimensions) < 2
         assert min(r["width"] for r in dimensions) > 280
         assert page.evaluate("""async () => {
-            const themes=['targets','structures','docking','molecules','biologics','properties','research','environments'];
+            const themes=['targets','structures','docking','molecules',
+              'biologics','properties','research','environments'];
             return (await Promise.all(themes.map(theme => new Promise(resolve => {
-              const image=new Image(); image.onload=()=>resolve(image.naturalWidth>1000&&image.naturalHeight>300);
+              const image=new Image();
+              image.onload=()=>resolve(image.naturalWidth>1000&&image.naturalHeight>300);
               image.onerror=()=>resolve(false); image.src='/images/modules/'+theme+'.webp';
             })))).every(Boolean);
         }""")
