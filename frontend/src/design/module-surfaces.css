@@ -1,4 +1,10 @@
-/* Generated decorative imagery stays on entry cards/toolbars; scientific result canvases stay plain. */
+/* Conceptual decoration never represents scientific data or covers result canvases. */
+:root {
+  --workspace-ambient: url("/images/modules/ambient-ai.webp");
+}
+:root[data-theme="dark"] {
+  --workspace-ambient: none;
+}
 [data-module-theme="targets"] {
   --module-art: url("/images/modules/targets.webp");
 }
@@ -37,8 +43,11 @@
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   background-color: transparent;
-  background-image: var(--module-art);
-  background-size: auto 180px;
+  background-image:
+    linear-gradient(90deg, var(--surface) 55%, transparent), var(--module-art);
+  background-size:
+    100% 100%,
+    auto 180px;
   background-repeat: no-repeat;
   background-position: right center;
 }
@@ -74,13 +83,17 @@
   color: var(--accent);
 }
 .studio-app .capability-group {
-  background-image: var(--module-art);
+  background-image:
+    linear-gradient(180deg, transparent 48px, var(--surface) 152px),
+    var(--module-art);
   background-repeat: no-repeat;
   background-position: right top;
-  background-size: auto 148px;
+  background-size:
+    100% 152px,
+    auto 152px;
 }
 .studio-app .capability-group-heading {
-  min-height: 92px;
+  min-height: 116px;
   align-items: flex-start;
   padding-top: 8px;
 }
@@ -98,7 +111,7 @@
   font-size: 21px;
 }
 .studio-app .capability-recommended {
-  grid-auto-rows: minmax(52px, auto);
+  grid-auto-rows: minmax(44px, auto);
   gap: 0;
 }
 .studio-app .questionnaire {
@@ -129,6 +142,9 @@
   padding-top: 16px;
   margin-top: 24px;
 }
+.studio-app .task-workspace.is-result .viewer-panel .molecular-stage {
+  height: 520px;
+}
 
 /* Readability takes precedence over decoration in alternate contrast modes. */
 :root[data-theme="dark"] .studio-app .module-task-picker,
@@ -137,6 +153,9 @@
   background-image: none;
 }
 @media (prefers-contrast: more) {
+  :root {
+    --workspace-ambient: none;
+  }
   .studio-app .module-task-picker,
   .studio-app .workspace-tabs,
   .studio-app .capability-group {
@@ -151,7 +170,9 @@
   .studio-app .workspace-tabs {
     min-height: 58px;
     padding: 10px 16px;
-    background-size: auto 100px;
+    background-size:
+      100% 100%,
+      auto 100px;
   }
   .studio-app .questionnaire {
     padding: 16px;
@@ -161,5 +182,8 @@
   }
   .studio-app .module-task-picker label {
     flex: 1;
+  }
+  .studio-app .task-workspace.is-result .viewer-panel .molecular-stage {
+    height: 360px;
   }
 }

@@ -1,0 +1,149 @@
+/* Flat research landing composition, derived from actual registry and project records. */
+.catalogue-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  margin: 0 0 20px;
+  padding: 6px 0 18px;
+  background-image: var(--workspace-ambient);
+  background-size: auto 140px;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+.catalogue-eyebrow {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+.studio-app .catalogue-heading h2 {
+  font-size: 32px;
+  margin: 3px 0 0;
+}
+.catalogue-heading p {
+  color: var(--muted);
+  margin-top: 6px;
+  font-size: 13px;
+}
+.catalogue-count {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  padding-bottom: 4px;
+}
+.research-stage-nav {
+  margin: 0 0 24px;
+}
+.research-stage-nav ol {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 20px;
+}
+.research-stage-nav li {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  position: relative;
+  gap: 6px;
+  min-width: 0;
+}
+.research-stage-nav li::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 28px;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
+.research-stage-number {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.research-stage-nav button {
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+}
+.research-stage-nav button:hover {
+  color: var(--accent);
+}
+.research-stage-nav .research-stage-alternative {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.project-continuation {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.project-continuation > .anticon {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 20px;
+}
+.project-continuation > div {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.project-continuation small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.project-continuation strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.project-continuation button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 8px 0;
+  font-size: 13px;
+}
+
+@media (max-width: 680px) {
+  .catalogue-heading {
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+  .studio-app .catalogue-heading h2 {
+    font-size: 25px;
+  }
+  .research-stage-nav ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .project-continuation {
+    flex-wrap: wrap;
+  }
+  .project-continuation button {
+    margin-left: auto;
+  }
+}

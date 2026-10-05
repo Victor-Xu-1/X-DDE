@@ -53,7 +53,7 @@
   gap: 6px;
 }
 .research-table-scroll {
-  max-height: 440px;
+  max-height: 520px;
   overflow: auto;
 }
 .research-table table {
@@ -77,7 +77,7 @@
   background: var(--surface-muted);
   color: var(--muted);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
 }
 .research-table tr:last-child td {
   border-bottom: 0;
@@ -87,6 +87,7 @@
 }
 .research-table tbody tr.is-selected {
   background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 .research-table .numeric-cell {
   white-space: nowrap;

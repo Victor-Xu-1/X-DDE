@@ -1,7 +1,7 @@
 .result-master-detail {
   display: grid;
-  grid-template-columns: minmax(300px, 0.9fr) minmax(400px, 1.1fr);
-  gap: 20px;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(440px, 1.2fr);
+  gap: 28px;
   align-items: start;
 }
 .visual-export-button {

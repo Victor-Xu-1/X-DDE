@@ -1,6 +1,7 @@
 import {
-  SearchOutlined,
-  HomeFilled,
+  AimOutlined,
+  ApartmentOutlined,
+  PartitionOutlined,
   ExperimentOutlined,
   DeploymentUnitOutlined,
   BarChartOutlined,
@@ -8,9 +9,9 @@ import {
 
 /** The sidebar and capability cards use one visual vocabulary. */
 export const researchIcons = {
-  targets: SearchOutlined,
-  structures: HomeFilled,
-  binding: SearchOutlined,
+  targets: AimOutlined,
+  structures: ApartmentOutlined,
+  binding: PartitionOutlined,
   molecules: ExperimentOutlined,
   biologics: DeploymentUnitOutlined,
   evaluation: BarChartOutlined,

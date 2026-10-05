@@ -2,11 +2,37 @@
 
 ## Commercial workflow references and graphical results
 
-The visual system uses a continuous white canvas, restrained green actions, readable
+The visual system uses a continuous cool-white canvas, indigo/violet actions, teal scientific accents, readable
 typography and a single spacing palette. Section titles, whitespace and subtle
 horizontal rules organize pages without nested framed cards or raised panels. Scientific
 content determines layout: forms stay step-by-step; result tables sit beside the
 selected molecular/sequence view; images are real native renderings.
+
+## AI-biomedical visual identity
+
+The owner's selected concept uses cool white, blue-violet and teal. Built-in image_gen
+produced entry/results mockups and a separate quiet molecular-network/DNA atmosphere.
+Mockup structures, scores, labels and status are conceptual; none are imported as
+scientific data or presented as an actual experiment. The original X-DDE raster logo
+remains unchanged. The new ambient WebP is a pixel-identical encoding of the generated
+PNG, with prompt and SHA-256 in `frontend/public/images/modules/ambient-provenance.json`.
+The image tool does not expose a selectable image-2.5 model.
+
+The entry page follows the concept's compact title, five-stage research navigation,
+six open research directions and real-project continuation. Stage shortcuts use the
+existing registry defaults; small-molecule design has an explicit biologics alternative.
+They are navigation, never task progress or scientific completion. Project continuation
+uses actual API records, with an honest empty-workspace state. No mock project, asset
+thumbnail, score or timestamp is fabricated. Result composition gives the linked
+native table 40% and structure inspector 60% where width permits; smaller screens
+stack the same source views. Task inputs retain one visible questionnaire step.
+
+Shared tokens, sidebar/header, choices, buttons, tables, sequences, component status and
+plots follow the same visual identity. Decorations are restricted to entry/header areas;
+Ketcher drawings, structural coordinates, charge interpretation, contact identities,
+native metrics and exports keep their existing authority. Scoped Chromium checks
+walk all 44 modules and genuine archived cases and verify focus, text/action contrast,
+desktop/mobile geometry and original task state without scientific recomputation.
 
 Public product references were reviewed for interaction patterns, not for a claim
 that X-DDE implements their proprietary scientific methods:

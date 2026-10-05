@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { Health, Job, Language, Prediction } from "../types";
+import type { Health, Job, Language, Prediction, Project } from "../types";
 import { type ToolId } from "./catalog";
 import { CapabilityFilters } from "./CapabilityFilters";
 import { researchModules } from "../studio/research-modules";
 import { researchIcons } from "../studio/research-icons";
+import { ResearchStageNavigation } from "../studio/ResearchStageNavigation";
+import { ProjectContinuation } from "../studio/ProjectContinuation";
 import { themeForModule } from "../design/module-theme";
 import { filterCapabilities, type ModalityFilter } from "./filter";
 import { QualityForm } from "../quality/QualityForm";
@@ -20,6 +22,7 @@ import { ImportForm } from "./ImportForm";
 import { HarnessForm } from "./HarnessForm";
 import { CampaignForm } from "./CampaignForm";
 import "./operations.css";
+import "../design/research-entry.css";
 import { RegionWorkspace } from "../regions/RegionWorkspace";
 import { PocketForm } from "../pockets/PocketForm";
 import { PoseWorkspace } from "../poses/PoseWorkspace";
@@ -43,6 +46,8 @@ export function ToolCenter({
   onSelectTool,
   entryRevision = 0,
   catalogueRevision = 0,
+  projects = [],
+  onOpenWorkspace,
 }: {
   entryRevision?: number;
   catalogueRevision?: number;
@@ -53,6 +58,8 @@ export function ToolCenter({
   jobs: Job[];
   onCreated(j: Job): void;
   onDraft(p: Prediction): void;
+  projects?: Project[];
+  onOpenWorkspace?(project: Project | null): void;
 }) {
   const zh = language === "zh",
     selected = selectedTool,
@@ -209,6 +216,28 @@ export function ToolCenter({
         </>
       ) : (
         <>
+          <header className="catalogue-heading">
+            <div>
+              <span className="catalogue-eyebrow" aria-hidden="true">
+                AI DRUG DISCOVERY
+              </span>
+              <h2>{zh ? "研究任务" : "Research tasks"}</h2>
+              <p>
+                {zh
+                  ? "从靶点到候选，选择研究阶段开始。"
+                  : "Choose a research stage, from target to candidate."}
+              </p>
+            </div>
+            <span className="catalogue-count">
+              {zh
+                ? `${filteredTools.length} 项任务可选`
+                : `${filteredTools.length} research tasks`}
+            </span>
+          </header>
+          <ResearchStageNavigation
+            language={language}
+            onSelect={onSelectTool}
+          />
           <CapabilityFilters
             language={language}
             modality={modality}
@@ -254,9 +283,11 @@ export function ToolCenter({
                     <div className="capability-heading-copy">
                       <h2>{module.label[index]}</h2>
                       <small>
-                        {module.short[1].toUpperCase()} · {entries.length}{" "}
-                        {zh ? "项任务" : "tasks"}
+                        {entries.length} {zh ? "项任务" : "tasks"}
                       </small>
+                      <p className="capability-purpose">
+                        {module.purpose[index]}
+                      </p>
                     </div>
                   </header>
                   <div className="capability-recommended">
@@ -316,6 +347,13 @@ export function ToolCenter({
               );
             })}
           </div>
+          {onOpenWorkspace && (
+            <ProjectContinuation
+              language={language}
+              projects={projects}
+              onOpen={onOpenWorkspace}
+            />
+          )}
         </>
       )}
     </section>

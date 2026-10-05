@@ -90,6 +90,7 @@ jobs:
           src/studio/ProjectPanel.test.tsx
           src/studio/HomeWorkspace.test.tsx
           src/studio/Navigation.test.tsx
+          src/studio/ResearchEntry.test.tsx
           src/studio/research-modules.test.ts
           src/design/module-theme.test.ts
           src/studio/TaskWorkspace.test.tsx

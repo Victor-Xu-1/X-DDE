@@ -394,6 +394,12 @@ export function App() {
                   jobs={jobs}
                   onCreated={changed}
                   onDraft={prepareDraft}
+                  projects={science.projects}
+                  onOpenWorkspace={(project) => {
+                    navigate("research");
+                    setResearchTab("projects");
+                    setProjectId(project?.id ?? null);
+                  }}
                 />
               </>
             )}

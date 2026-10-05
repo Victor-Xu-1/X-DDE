@@ -59,7 +59,12 @@ export function Header({
         }
       }}
     >
-      <span className="page-context">{viewTitle(view, language)}</span>
+      <div className="page-context">
+        <span className="page-context-signature" aria-hidden="true">
+          AI · BIOPHARMA
+        </span>
+        <span>{viewTitle(view, language)}</span>
+      </div>
       <div className="global-search">
         <SearchOutlined />
         <label className="sr-only" htmlFor="global-search">

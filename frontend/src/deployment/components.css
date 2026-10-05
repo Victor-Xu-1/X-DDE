@@ -90,12 +90,12 @@
   font-size: 20px;
 }
 .component-icon.is-model {
-  background: color-mix(in srgb, #8062cf 12%, var(--surface));
-  color: #8062cf;
+  background: color-mix(in srgb, var(--violet) 10%, var(--surface));
+  color: var(--violet);
 }
 .component-icon.is-editor {
-  background: color-mix(in srgb, #4b82b6 12%, var(--surface));
-  color: #4b82b6;
+  background: color-mix(in srgb, var(--teal) 10%, var(--surface));
+  color: var(--teal);
 }
 .component-icon.is-data {
   background: color-mix(in srgb, #ac854b 12%, var(--surface));

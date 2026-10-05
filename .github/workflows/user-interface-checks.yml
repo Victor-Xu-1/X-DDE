@@ -71,6 +71,7 @@ jobs:
           src/useWorkbench.test.ts
           src/App.test.tsx
           src/studio/Navigation.test.tsx
+          src/studio/ResearchEntry.test.tsx
           src/studio/research-modules.test.ts
           src/studio/TaskWorkspace.test.tsx
           src/studio/PredictionResults.test.tsx

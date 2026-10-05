@@ -1,0 +1,11 @@
+{
+  "file": "ambient-ai.webp",
+  "width": 2172,
+  "height": 724,
+  "generated_by": "Built-in image_gen; concrete model selection is not exposed",
+  "purpose": "Decorative AI-biomedical atmosphere, not scientific evidence",
+  "png_sha256": "599f726577edd1d88156b5a8f6d65462adb105f276f143624a634e72fca5f292",
+  "webp_sha256": "6b62134ae20fef2d86d1e4e0d56fdd6f12024cc57db771396b15dfc8d1c55b47",
+  "pixel_identical_encoding": true,
+  "prompt": "Use case: stylized-concept. Asset type: extremely subtle production decorative background for the compact header of a real AI biomedical research web application X-DDE, NOT a UI screenshot and NOT scientific evidence. Wide panoramic 3:1 aspect ratio. Cool white #fafcff seamless luminous background fading to pure white on all four edges. At the far right only, a refined small network of translucent cyan and periwinkle molecular nodes and very thin computational connections, a faint graceful protein ribbon fragment and hint of a DNA helix, all fused into delicate blue-violet/teal aurora light. Leave at least the left 75 percent visually empty for readable real UI controls. Sparse, nearly white, luxury scientific instrument style, clean high-end computational-biology rendering. No text, no logos, no letters, no interface boxes, no diagrams claiming data, no heavy contrast, no black background, no neon, no repeated atom balls, no thick sticks, no large central molecule, no medical clipart, no fake metrics. The art must remain quiet enough to sit behind a 64px toolbar without reducing readability; it should be used as an atmospheric scientific signature rather than a banner. Precise beautiful restrained studio lighting, soft focus, elegant scientifically inspired forms, airy negative space."
+}

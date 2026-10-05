@@ -35,7 +35,7 @@
 }
 .studio-app .capability-sections {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px 32px;
+  gap: 30px 32px;
   align-items: stretch;
 }
 .capability-group {
@@ -52,7 +52,6 @@
   min-width: 0;
   box-shadow: none;
   height: 100%;
-  border-bottom: 1px solid var(--line);
 }
 .capability-group-heading {
   display: flex;
@@ -72,15 +71,15 @@
 }
 .capability-icon.is-structures,
 .capability-icon.is-binding {
-  color: #4b82b6;
-  background: color-mix(in srgb, #4b82b6 12%, var(--surface));
+  color: var(--teal);
+  background: color-mix(in srgb, var(--teal) 10%, var(--surface));
 }
 .capability-icon.is-biologics {
-  color: #8062cf;
-  background: color-mix(in srgb, #8062cf 12%, var(--surface));
+  color: var(--violet);
+  background: color-mix(in srgb, var(--violet) 10%, var(--surface));
 }
 .studio-app .capability-group-heading h2 {
-  font-size: 17px;
+  font-size: 21px;
   margin: 0;
   color: var(--ink);
 }
@@ -92,6 +91,13 @@
   display: grid;
   gap: 4px;
   min-width: 0;
+  max-width: 76%;
+}
+.studio-app .capability-purpose {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 2px 0 0;
 }
 .capability-heading-copy small {
   font-size: 12px;
@@ -104,24 +110,27 @@
   gap: 10px;
   align-items: center;
   width: 100%;
-  min-height: 52px;
+  min-height: 44px;
   text-align: left;
-  padding: 11px 0;
+  padding: 8px 0;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   background: transparent;
-  border-bottom: 1px solid var(--line);
+}
+.capability-recommended .tool-card + .tool-card {
+  border-top: 1px solid var(--line);
 }
 .studio-app .capability-sections .tool-card h2 {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
   line-height: 1.5;
+  color: var(--accent);
 }
 .studio-app .capability-sections .tool-card > span {
   flex: none;
-  color: var(--muted);
+  color: var(--accent);
 }
 .studio-app .capability-sections .tool-card:hover {
   background: var(--surface-hover);

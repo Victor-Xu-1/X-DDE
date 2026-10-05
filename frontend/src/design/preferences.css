@@ -61,7 +61,7 @@
   background: #ffffff;
 }
 .theme-option[data-theme-preview="dark"] .theme-swatch {
-  background: #141b18;
+  background: #11182b;
 }
 .theme-preference {
   padding: 0;
@@ -129,16 +129,16 @@
   width: 60%;
 }
 .theme-option[data-theme-preview="light"] .theme-swatch-sidebar {
-  background: #f0f0f0;
+  background: #eef2ff;
 }
 .theme-option[data-theme-preview="light"] .theme-swatch-content i {
-  background: #d4d4d4;
+  background: #bfcaec;
 }
 .theme-option[data-theme-preview="dark"] .theme-swatch-sidebar {
-  background: #243229;
+  background: #19233b;
 }
 .theme-option[data-theme-preview="dark"] .theme-swatch-content i {
-  background: #8eaa98;
+  background: #91a0c8;
 }
 .preference-warning {
   color: var(--warning);

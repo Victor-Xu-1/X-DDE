@@ -41,7 +41,7 @@
 }
 .questionnaire-steps button[aria-current="step"] > span:first-child {
   color: var(--accent-contrast);
-  background: var(--accent);
+  background: linear-gradient(110deg, var(--accent), var(--accent-secondary));
 }
 .questionnaire-steps button:disabled {
   opacity: 0.65;

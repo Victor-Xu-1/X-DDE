@@ -26,6 +26,30 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         assert max(r["height"] for r in dimensions) - min(r["height"] for r in dimensions) < 2
         assert min(r["width"] for r in dimensions) > 280
         assert not flat_surface_styles(page)["framed"]
+        expect(page.get_by_role("navigation", name="研究阶段快捷入口")).to_be_visible()
+        assert page.evaluate("""async () => new Promise(resolve => {
+            const image = new Image();
+            image.onload = () => resolve(image.naturalWidth > 1000 && image.naturalHeight > 300);
+            image.onerror = () => resolve(false);
+            image.src = '/images/modules/ambient-ai.webp';
+        })""")
+        contrast = page.evaluate("""() => {
+            const style=getComputedStyle(document.documentElement);
+            const luminance=color=>{
+                const value=color.trim().replace('#','');
+                const channels=[0,2,4].map(n=>parseInt(value.slice(n,n+2),16)/255)
+                    .map(c=>c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4);
+                return channels[0]*0.2126+channels[1]*0.7152+channels[2]*0.0722;
+            };
+            const ratio=(a,b)=>(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+            const bg=luminance(style.getPropertyValue('--surface'));
+            const text=['--ink','--muted','--accent'].map(name=>
+                ratio(luminance(style.getPropertyValue(name)),bg));
+            const button=luminance(style.getPropertyValue('--accent-contrast'));
+            return {text,primary:['--accent','--accent-secondary'].map(name=>
+                ratio(luminance(style.getPropertyValue(name)),button))};
+        }""")
+        assert min([*contrast["text"], *contrast["primary"]]) >= 4.5, contrast
         assert page.evaluate("""async () => {
             const themes=['targets','structures','docking','molecules',
               'biologics','properties','research','environments'];
@@ -73,7 +97,14 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         assert not errors, errors
         (evidence / "module-surface-acceptance.json").write_text(
             json.dumps(
-                {"images": 8, "modules": pages, "entry_geometry": dimensions, "errors": errors},
+                {
+                    "images": 8,
+                    "ambient_image": True,
+                    "contrast": contrast,
+                    "modules": pages,
+                    "entry_geometry": dimensions,
+                    "errors": errors,
+                },
                 ensure_ascii=False,
                 indent=2,
             )
