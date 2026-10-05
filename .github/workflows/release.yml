@@ -8,13 +8,18 @@ on:
         description: Exact numeric release tag matching the selected revision
         required: true
         type: string
+      runner:
+        description: Hosted Linux runner for wheel packaging
+        type: choice
+        default: ubuntu-24.04
+        options: [ubuntu-24.04, ubuntu-22.04]
 env:
   RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 permissions:
   contents: write
 jobs:
   release:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,7 +61,7 @@ jobs:
 
   publish:
     needs: [release, windows-entrypoints]
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     steps:
       - uses: actions/download-artifact@v4
         with:
