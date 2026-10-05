@@ -1,8 +1,35 @@
 import { describe, expect, it } from "vitest";
 import { nativeDefaults } from "./generated";
-import { validBoltzComponents, validScientificChoices } from "./validation";
+import {
+  validBoltzComponents,
+  validDesignFragments,
+  validScientificChoices,
+} from "./validation";
 
 describe("scientific form guidance", () => {
+  it("requires each fragment and its attachment point before advancing", () => {
+    expect(
+      validDesignFragments({
+        kind: "reinvent",
+        mode: "linker",
+        fragments: ["c1ccccc1*"],
+      }),
+    ).toBe(false);
+    expect(
+      validDesignFragments({
+        kind: "reinvent",
+        mode: "r_groups",
+        fragments: ["c1ccccc1"],
+      }),
+    ).toBe(false);
+    expect(
+      validDesignFragments({
+        kind: "reinvent",
+        mode: "linker",
+        fragments: ["c1ccccc1*", "*N1CCNCC1"],
+      }),
+    ).toBe(true);
+  });
   it("blocks reversed optimization windows and invalid expert edits before submission", () => {
     expect(
       validScientificChoices({

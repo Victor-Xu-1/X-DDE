@@ -10,7 +10,11 @@ import { ScientificInputs } from "./ScientificInputs";
 import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
-import { validBoltzComponents, validScientificChoices } from "./validation";
+import {
+  validBoltzComponents,
+  validDesignFragments,
+  validScientificChoices,
+} from "./validation";
 import {
   useExample,
   useExampleReference,
@@ -121,7 +125,8 @@ export function ScientificForm({
       ? validBoltzComponents(payload.components, payload.affinity)
       : ["reinvent", "chemprop"].includes(program)
         ? (program === "reinvent" &&
-            !["analogues", "optimize"].includes(String(payload.mode))) ||
+            !["analogues", "optimize"].includes(String(payload.mode)) &&
+            validDesignFragments(payload)) ||
           Boolean(ligand)
         : Boolean(structure) &&
           (program !== "boltzgen" ||

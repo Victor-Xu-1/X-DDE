@@ -191,7 +191,7 @@ export function ScientificChoices({
               }
             />
           </label>
-          {program !== "boltzgen" && (
+          {!["boltzgen", "apbs", "plip"].includes(program) && (
             <label className="field">
               {zh ? "随机种子" : "Random seed"}
               <Hint label={zh ? "随机种子说明" : "Random seed help"}>

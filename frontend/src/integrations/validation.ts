@@ -73,6 +73,22 @@ export function validScientificChoices(p: ScientificPayload): boolean {
   }
 }
 
+export function validDesignFragments(p: ScientificPayload): boolean {
+  if (!["r_groups", "linker"].includes(String(p.mode))) return true;
+  const count = p.mode === "r_groups" ? 1 : 2;
+  return (
+    Array.isArray(p.fragments) &&
+    p.fragments.length === count &&
+    p.fragments.every(
+      (value) =>
+        typeof value === "string" &&
+        value.length <= 2000 &&
+        value.includes("*") &&
+        !/\s/.test(value),
+    )
+  );
+}
+
 export function validBoltzComponents(
   value: unknown,
   affinity: unknown,
