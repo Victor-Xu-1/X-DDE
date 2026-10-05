@@ -7,6 +7,9 @@ from pathlib import Path
 from layout_browser_helpers import capture, catalog, load_template, review_steps, save_report
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.capabilities.definitions import CAPABILITIES
+from opendde_workbench.integrations.specs import PROGRAMS
+
 
 def test_every_task_page_and_native_case_layout():
     evidence = Path("server_tests/evidence/task-layout")
@@ -14,6 +17,12 @@ def test_every_task_page_and_native_case_layout():
     errors = []
     rows = []
     task_submissions = []
+    # The restored public bundle predates the nine new adapters. Their input
+    # templates are reviewed, but no computed output is fabricated for them.
+    input_only = {
+        spec.label[0] for spec in CAPABILITIES.values() if spec.environment in PROGRAMS
+    }
+    assert len(input_only) == 9
     db = sqlite3.connect(Path(os.environ["WB_STATE_DIR"]) / "jobs.sqlite3")
     original = db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall()
     with sync_playwright() as engine:
@@ -53,6 +62,12 @@ def test_every_task_page_and_native_case_layout():
                     results = page.get_by_role("button", name="示例结果", exact=True)
                     if results.count() == 0:
                         results = page.get_by_role("button", name="配置示例", exact=True)
+                    if results.count() == 0 and name in input_only:
+                        expect(
+                            page.get_by_role("button", name="新建空白任务", exact=True)
+                        ).to_be_visible()
+                        rows.append(capture(page, evidence, name, "reviewed-input-template"))
+                        continue
                     expect(results).to_be_visible()
                     results.click()
                     expect(
