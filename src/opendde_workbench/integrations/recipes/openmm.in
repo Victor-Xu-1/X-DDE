@@ -1,1 +1,8 @@
 pdbfixer==1.12.0
+lxml
+tinydb
+validators
+importlib_resources
+PyYAML
+setuptools==84.0.0
+wheel

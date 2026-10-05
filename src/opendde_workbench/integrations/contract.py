@@ -139,6 +139,21 @@ class IntegratedTask(TaskMetadata):
                 raise ValueError("Choose a complete X-DDE-trained model with its exact checksum.")
             if roles != expected:
                 raise ValueError("Choose one whole SDF library for property modeling.")
+        elif kind == "boltz":
+            sources = [c.source for c in self.payload.components if c.source]
+            if (
+                len(sources) > 1
+                or (sources and (roles != {"ligand"} or self.inputs[0].source != sources[0]))
+                or (not sources and roles)
+            ):
+                raise ValueError("Confirm the selected ligand file once in the exact task inputs.")
+            if any(
+                (c.source and (c.kind != "ligand" or c.value)) or (not c.source and not c.value)
+                for c in self.payload.components
+            ):
+                raise ValueError(
+                    "Choose either a ligand file or text for each molecular component."
+                )
         elif roles != expected:
             raise ValueError("The selected input roles differ from this task's requirements.")
         if kind == "boltz":
@@ -155,7 +170,10 @@ class IntegratedTask(TaskMetadata):
                 for item in components
             ):
                 raise ValueError("Sequence letters differ from the chosen molecular type.")
-            if self.payload.affinity and sum(item.kind == "ligand" for item in components) != 1:
+            if self.payload.affinity and (
+                sum(item.kind == "ligand" for item in components) != 1
+                or not any(c.kind == "protein" for c in components)
+            ):
                 raise ValueError("Affinity prediction requires exactly one small-molecule ligand.")
         if kind == "ligandmpnn" and any(
             not re.fullmatch(r"[A-Za-z0-9]-?\d+[A-Za-z]?", item)

@@ -21,12 +21,13 @@ def catalogue_digest():
     return sha256(Path(__file__).with_name("catalogue.json"))
 
 
-def verify_examples(settings):
+def verify_examples(settings, capabilities=None):
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     pins, records = ExamplePins(store, settings.state_dir), ExampleRecords(store, assets, settings)
     computed = validated = 0
-    for capability in MODULES:
+    selected = tuple(MODULES) if capabilities is None else tuple(capabilities)
+    for capability in selected:
         pin = pins.get(capability, verify=True)
         record = records.get(capability, verify=True)
         if pin or record and record.computed_result_available:
@@ -35,7 +36,7 @@ def verify_examples(settings):
             validated += 1
         else:
             raise ValueError("The bundle lacks a fixed example for " + capability)
-    return {"modules": len(MODULES), "computed": computed, "validated": validated}
+    return {"modules": len(selected), "computed": computed, "validated": validated}
 
 
 def export_bundle(settings, target, source_revision):

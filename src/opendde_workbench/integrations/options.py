@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..scientific_objects import MoleculeRef
+
 
 class ExecutionOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -17,7 +19,8 @@ class MolecularComponent(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9]{0,7}$")
     kind: Literal["protein", "rna", "dna", "ligand"]
-    value: str = Field(min_length=1, max_length=5000, pattern=r"^[^\s\x00-\x1f\x7f]+$")
+    value: str = Field(default="", max_length=5000, pattern=r"^[^\s\x00-\x1f\x7f]*$")
+    source: MoleculeRef | None = None
 
 
 class BoltzPayload(BaseModel):

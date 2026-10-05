@@ -17,15 +17,6 @@ def validate_bindings(request, assets):
             suffixes = {".sdf"}
         if asset.kind != expected or asset.suffix not in suffixes or asset.sha256 != ref.sha256:
             raise ValueError("Choose an exact supported file matching the selected input role.")
-        if (
-            request.operation
-            in {"ligandmpnn_design", "structure_refine", "electrostatics", "interaction_profile"}
-            and item.role == "structure"
-            and asset.suffix != ".pdb"
-        ):
-            raise ValueError(
-                "This native adapter requires PDB; prepare/export the selected structure first."
-            )
         assets.path(asset)
         result[asset.id] = asset
     if request.operation == "chemprop_predict":

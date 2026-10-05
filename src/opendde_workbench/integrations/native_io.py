@@ -74,6 +74,8 @@ def metric(name, value, unit, method, meaning="score"):
 
 def csv_file(name, header, rows):
     def safe(value):
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
+            return value
         text = str(value)
         return "'" + text if text.lstrip().startswith(("=", "+", "-", "@")) else text
 

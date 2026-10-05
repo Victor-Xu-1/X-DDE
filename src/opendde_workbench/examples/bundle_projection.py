@@ -32,6 +32,7 @@ REFERENCE_KEYS = {
     "parent_id",
     "source_job",
     "job_id",
+    "model_job",
     "identity_job",
     "ensemble_id",
     "site_set_id",

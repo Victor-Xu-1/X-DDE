@@ -1226,12 +1226,12 @@
   "chemprop.train": {
     "steps": [
       [
-        "研究模型需要至少 50 个不同分子及同一实验标签；三种 ABL 药物用于说明材料形式，不足以训练模型。",
-        "A research model requires at least 50 distinct molecules with one experimental endpoint; the three ABL drugs illustrate material formats and are not a training dataset."
+        "使用 EGFR 同一实验的 177 个分子和 pIC50 标签建立研究模型。",
+        "Train on 177 EGFR molecules and pIC50 labels from one experimental assay."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
-        "Confirm the molecular collection and its separate records."
+        "确认标签 pIC50 和单位 pIC50；划分时保留不同骨架的独立测试集。",
+        "Confirm pIC50 labels and units; retain an independent scaffold-separated test set."
       ],
       [
         "保留模板的性质或筛选项，按研究目的再调整阈值。",

@@ -1,4 +1,5 @@
 import { Hint } from "../guided/Hint";
+import { ExpertChoices } from "./ExpertChoices";
 import type { Language } from "../types";
 import type {
   ScientificPayload,
@@ -123,6 +124,31 @@ export function ScientificChoices({
           </select>
         </label>
       )}
+      {program === "ligandmpnn" && (
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={Boolean(payload.pack_sidechains)}
+            onChange={(e) => onChange({ pack_sidechains: e.target.checked })}
+          />
+          {zh
+            ? "同时生成侧链三维结构"
+            : "Generate packed side-chain structures"}
+        </label>
+      )}
+      {program === "apbs" && (
+        <label className="field">
+          {zh ? "电势网格精度" : "Potential-grid detail"}
+          <select
+            value={Number(payload.grid)}
+            onChange={(e) => onChange({ grid: Number(e.target.value) })}
+          >
+            <option value={65}>{zh ? "快速" : "Quick"}</option>
+            <option value={97}>{zh ? "标准" : "Standard"}</option>
+            <option value={129}>{zh ? "精细" : "Fine"}</option>
+          </select>
+        </label>
+      )}
       <button
         type="button"
         className="text-button"
@@ -133,6 +159,12 @@ export function ScientificChoices({
       </button>
       {expert && (
         <div className="expert-fields">
+          <ExpertChoices
+            program={program}
+            payload={payload}
+            language={language}
+            onChange={onChange}
+          />
           <label className="field">
             {zh ? "CPU 核数" : "CPU cores"}
             <input

@@ -10,6 +10,11 @@ import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
 import {
+  useExample,
+  useExampleReference,
+  useExampleTask,
+} from "../examples/context";
+import {
   scientificForms,
   type ScientificForm as FormId,
   type ScientificPayload,
@@ -27,8 +32,28 @@ export function ScientificForm({
 }) {
   const zh = language === "zh",
     [program, operation] = scientificForms[form];
-  const [structure, setStructure] = useState<MoleculeRef | null>(null);
-  const [ligand, setLigand] = useState<MoleculeRef | null>(null);
+  const example = useExample(),
+    preset = useExampleTask(operation);
+  const initialStructure = useExampleReference(
+    program === "boltzgen" ? "her2_domain_iv" : "receptor",
+    "brd4",
+    "her2",
+  );
+  const initialLigand = useExampleReference(
+    program === "chemprop" ? "egfr_library" : "jq1",
+    "imatinib",
+  );
+  const [structure, setStructure] = useState<MoleculeRef | null>(
+    preset?.inputs.find((i) => i.role === "structure")?.source ??
+      (["boltz", "reinvent", "chemprop"].includes(program)
+        ? null
+        : initialStructure),
+  );
+  const [ligand, setLigand] = useState<MoleculeRef | null>(
+    preset?.inputs.find((i) => ["ligand", "library"].includes(i.role))
+      ?.source ??
+      (["reinvent", "chemprop"].includes(program) ? initialLigand : null),
+  );
   const [scaffold, setScaffold] = useState<MoleculeRef | null>(null);
   const [payload, setPayload] = useState<ScientificPayload>(() => ({
     ...structuredClone(nativeDefaults[program]),
@@ -39,19 +64,26 @@ export function ScientificForm({
     ...(program === "boltz"
       ? {
           components: [
-            { id: "A", kind: "protein", value: "" },
-            { id: "B", kind: "ligand", value: "" },
+            {
+              id: "A",
+              kind: "protein",
+              value: example?.sequences.protein ?? "",
+            },
+            { id: "B", kind: "ligand", value: "", source: initialLigand },
           ],
         }
       : {}),
     ...(program === "ligandmpnn" ? { redesigned_residues: [] } : {}),
     ...(program === "boltzgen" ? { target_chains: [] } : {}),
+    ...(preset?.payload ?? {}),
   }));
   const [selectionValid, setSelectionValid] = useState(
     !["ligandmpnn", "boltzgen", "plip"].includes(program),
   );
   const [expert, setExpert] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(
+    preset?.name ?? example?.case.label[zh ? 0 : 1] ?? "",
+  );
   const [options, setOptions] = useState<ScientificTask["options"]>({
     device: ["boltz", "boltzgen"].includes(program) ? "cuda" : "cpu",
     cpu: 2,
@@ -64,6 +96,10 @@ export function ScientificForm({
     setPayload((value) => ({ ...value, ...patch }));
   }
   const inputs: ScientificTask["inputs"] = [];
+  if (program === "boltz") {
+    for (const c of payload.components as { source?: MoleculeRef | null }[])
+      if (c.source) inputs.push({ role: "ligand", source: c.source });
+  }
   if (structure) inputs.push({ role: "structure", source: structure });
   if (scaffold && ["antibody", "nanobody"].includes(String(payload.modality)))
     inputs.push({ role: "scaffold", source: scaffold });
@@ -76,7 +112,10 @@ export function ScientificForm({
     program === "boltz"
       ? Array.isArray(payload.components) &&
         payload.components.every((item) =>
-          Boolean((item as { value: string }).value),
+          Boolean(
+            (item as { value: string; source?: MoleculeRef }).value ||
+            (item as { source?: MoleculeRef }).source,
+          ),
         )
       : ["reinvent", "chemprop"].includes(program)
         ? (program === "reinvent" &&

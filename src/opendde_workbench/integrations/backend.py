@@ -17,6 +17,7 @@ FILES = (
     "native_ligandmpnn.py",
     "native_boltzgen.py",
     "native_scaffold.py",
+    "native_structure.py",
     "native_openmm.py",
     "native_apbs.py",
     "native_chemprop.py",

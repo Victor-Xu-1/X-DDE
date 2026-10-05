@@ -4,7 +4,8 @@ import math
 from importlib.metadata import version
 from pathlib import Path
 
-from native_io import execute, finish, input_file, metric
+from native_io import execute, finish, metric
+from native_structure import input_pdb
 
 
 def pqr_positions(file):
@@ -23,7 +24,7 @@ def pqr_positions(file):
 
 
 def run(request):
-    source, _ = input_file(request, "structure")
+    source, _ = input_pdb(request)
     payload = request["payload"]
     lines = source.read_text(encoding="utf-8").splitlines()
     if any(

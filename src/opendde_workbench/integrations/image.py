@@ -47,9 +47,17 @@ def prepare_context(identifier, destination, source=None):
     if source:
         # Source has already passed the fixed archive checksum and member checks.
         shutil.copytree(source, destination / "source")
-        lines += ["COPY source /opt/native"]
+        target = (
+            "/opt/native/" + spec["source"]["prefix"]
+            if spec.get("source", {}).get("package")
+            else "/opt/native"
+        )
+        lines += ["COPY source " + target]
         if spec.get("source", {}).get("package"):
-            lines += ["RUN python -m pip install --no-deps /opt/native && python -m pip check"]
+            lines += [
+                "RUN python -m pip install --no-deps --no-build-isolation " + target + " "
+                "&& python -m pip check"
+            ]
     lines += [
         'LABEL org.xdde.science.program="' + identifier + '" '
         'org.xdde.science.recipe="' + recipe_digest(identifier) + '" '

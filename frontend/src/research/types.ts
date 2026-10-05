@@ -109,6 +109,7 @@ export const edgeLabels: Record<string, [string, string]> = {
   executed_as: ["运行", "Executed as"],
   executed_step: ["执行步骤", "Executed step"],
   used_as_input: ["用作输入", "Used as input"],
+  used_property_model: ["使用研究模型", "Uses research model"],
   produced: ["生成", "Produced"],
   edited_from: ["修改为", "Edited into"],
   prepared_from: ["准备为", "Prepared into"],

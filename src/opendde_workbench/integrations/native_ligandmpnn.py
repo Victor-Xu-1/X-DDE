@@ -3,14 +3,15 @@
 import sys
 from pathlib import Path
 
-from native_io import copy_artifact, csv_file, execute, finish, input_file
+from native_io import copy_artifact, csv_file, execute, finish
+from native_structure import input_pdb
 
 
 def run(request):
     from Bio import SeqIO
     from Bio.PDB import PDBParser
 
-    source, _ = input_file(request, "structure")
+    source, _ = input_pdb(request)
     structure = PDBParser(QUIET=True).get_structure("source", source)
     models = list(structure.get_models())
     if len(models) != 1:

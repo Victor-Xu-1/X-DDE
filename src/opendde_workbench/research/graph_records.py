@@ -320,6 +320,10 @@ def project_record(store, kind, row):
         ("asset:" + value, identifier, "used_as_input") for value in input_identifiers(job.request)
     ]
     refs = list(job.request.scientific_inputs)
+    if job.request.operation == "chemprop_predict":
+        edges.append(
+            ("task:" + str(job.request.payload.model_job), identifier, "used_property_model")
+        )
     if job.request.operation == "docking":
         from ..docking.contract import references
 

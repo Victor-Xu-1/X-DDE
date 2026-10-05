@@ -36,11 +36,12 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
         staging = Path(directory)
         manifest = read_archive(archive, staging, expected_sha)
         rows = manifest.get("records", {})
-        if (
-            manifest.get("catalogue_sha256") != catalogue_digest()
-            or set(rows) != set(TABLES)
-            or sum(map(len, rows.values())) > 5000
-        ):
+        selected = None
+        if manifest.get("catalogue_sha256") != catalogue_digest():
+            from .catalogue_profiles import compatible_modules
+
+            selected = compatible_modules(manifest.get("catalogue_sha256"))
+        if set(rows) != set(TABLES) or sum(map(len, rows.values())) > 5000:
             raise ValueError(
                 "The bundle must match the reviewed current catalogue and record schema."
             )
@@ -103,7 +104,11 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                 name = path.relative_to(staging).as_posix()
                 if name not in manifest["files"]:
                     recovered_sources[name] = {"sha256": sha256(path)}
-        summary = verify_examples(replace(settings, state_dir=staging))
+        summary = (
+            verify_examples(replace(settings, state_dir=staging))
+            if selected is None
+            else verify_examples(replace(settings, state_dir=staging), selected)
+        )
         stage_assets = AssetStore(stage_store, staging / "assets")
         for row in rows["jobs"]:
             job = stage_store.get(row["id"])

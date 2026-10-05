@@ -2,7 +2,8 @@
 
 from pathlib import Path
 
-from native_io import finish, input_file, metric, source_molecule
+from native_io import finish, metric, source_molecule
+from native_structure import input_pdb
 
 
 def add_bound_ligand(modeller, request):
@@ -76,7 +77,7 @@ def run(request):
     from openmm import app, unit
     from pdbfixer import PDBFixer
 
-    source, _ = input_file(request, "structure")
+    source, _ = input_pdb(request)
     payload = request["payload"]
     fixer = PDBFixer(filename=str(source))
     fixer.findMissingResidues()
@@ -128,7 +129,28 @@ def run(request):
             restraint.addPerParticleParameter(name)
         positions = modeller.positions.value_in_unit(unit.nanometer)
         for atom in modeller.topology.atoms():
-            if atom.name in {"N", "CA", "C", "O"}:
+            if atom.residue.name in {
+                "ALA",
+                "ARG",
+                "ASN",
+                "ASP",
+                "CYS",
+                "GLN",
+                "GLU",
+                "GLY",
+                "HIS",
+                "ILE",
+                "LEU",
+                "LYS",
+                "MET",
+                "PHE",
+                "PRO",
+                "SER",
+                "THR",
+                "TRP",
+                "TYR",
+                "VAL",
+            } and atom.name in {"N", "CA", "C", "O"}:
                 restraint.addParticle(atom.index, positions[atom.index])
         system.addForce(restraint)
     integrator = openmm.VerletIntegrator(0.001 * unit.picoseconds)
@@ -177,6 +199,7 @@ def run(request):
             {
                 "id": "refined-ligand",
                 "artifact": "refined-ligand.sdf",
+                "smiles": Chem.MolToSmiles(ligand, isomericSmiles=True),
                 "metrics": [],
                 "geometry": "source_frame",
             }

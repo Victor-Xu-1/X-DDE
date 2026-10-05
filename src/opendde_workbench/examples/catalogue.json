@@ -117,6 +117,15 @@
       "bytes": 264708,
       "kind": "structure",
       "license": "CC0-1.0"
+    },
+    "egfr_library": {
+      "key": "egfr_library",
+      "name": "EGFR-CHEMBL944276.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-science-v1/EGFR-CHEMBL944276.sdf",
+      "sha256": "a2ad786152380d2461d4c3bb1e54d8a0dbe1813a344cc07129ec9648d7e0674d",
+      "bytes": 507333,
+      "kind": "ligand",
+      "license": "CC-BY-SA-3.0"
     }
   },
   "polymers": {
@@ -334,6 +343,33 @@
         "https://www.rcsb.org/structure/6LBX",
         "https://doi.org/10.1038/nature01392"
       ]
+    },
+    {
+      "id": "egfr-ic50",
+      "revision": 1,
+      "label": [
+        "EGFR · 177 个实测活性分子",
+        "EGFR · 177 experimentally labeled molecules"
+      ],
+      "description": [
+        "同一人 EGFR 实验的分子系列；59 个 Murcko 骨架，实测 IC50 和换算 pIC50。",
+        "Molecular series from one human EGFR assay; 59 Murcko scaffolds with measured IC50 and derived pIC50."
+      ],
+      "files": [
+        "egfr_library"
+      ],
+      "sources": [
+        "https://www.ebi.ac.uk/chembl/api/data/assay/CHEMBL944276.json",
+        "https://www.ebi.ac.uk/chembl/api/data/document/CHEMBL1140899.json"
+      ],
+      "evidence_entities": {
+        "target": {
+          "chembl_id": "CHEMBL203"
+        },
+        "assay": {
+          "chembl_id": "CHEMBL944276"
+        }
+      }
     }
   ],
   "modules": {
@@ -644,13 +680,13 @@
       "pinned_run_required": true
     },
     "chemprop.train": {
-      "case_id": "abl-inhibitors",
+      "case_id": "egfr-ic50",
       "capability_id": "chemprop.train",
       "revision": 1,
       "pinned_run_required": true
     },
     "chemprop.predict": {
-      "case_id": "abl-inhibitors",
+      "case_id": "egfr-ic50",
       "capability_id": "chemprop.predict",
       "revision": 1,
       "pinned_run_required": true

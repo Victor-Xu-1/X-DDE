@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import type { ScientificPayload, ScientificProgram } from "./types";
 import { LibraryInput } from "./LibraryInput";
+import { MoleculeImage } from "../presentation/MoleculeImage";
 
 export function ScientificInputs({
   program,
@@ -34,6 +35,7 @@ export function ScientificInputs({
       id: string;
       kind: string;
       value: string;
+      source?: MoleculeRef | null;
     }[];
     return (
       <div className="molecular-inputs">
@@ -48,7 +50,12 @@ export function ScientificInputs({
                     onChange({
                       components: components.map((c, i) =>
                         i === index
-                          ? { ...c, kind: e.target.value, value: "" }
+                          ? {
+                              ...c,
+                              kind: e.target.value,
+                              value: "",
+                              source: null,
+                            }
                           : c,
                       ),
                     })
@@ -77,6 +84,23 @@ export function ScientificInputs({
                 />
               </label>
             </div>
+            {component.kind === "ligand" &&
+              !components.some((c, i) => i !== index && c.source) && (
+                <ReferencePicker
+                  kind="ligand"
+                  value={component.source ?? null}
+                  onChange={(value) =>
+                    onChange({
+                      components: components.map((c, i) =>
+                        i === index ? { ...c, source: value, value: "" } : c,
+                      ),
+                    })
+                  }
+                  language={language}
+                  label={zh ? "上传小分子结构" : "Upload molecular structure"}
+                  allowedSuffixes={[".sdf", ".mol"]}
+                />
+              )}
             <label>
               {component.kind === "ligand"
                 ? "SMILES"
@@ -90,13 +114,32 @@ export function ScientificInputs({
                   onChange({
                     components: components.map((c, i) =>
                       i === index
-                        ? { ...c, value: e.target.value.replace(/\s/g, "") }
+                        ? {
+                            ...c,
+                            source: null,
+                            value: e.target.value.replace(/\s/g, ""),
+                          }
                         : c,
                     ),
                   })
                 }
               />
             </label>
+            {component.kind === "ligand" &&
+              (component.value || component.source) && (
+                <MoleculeImage
+                  source={
+                    component.source
+                      ? {
+                          url: `/api/assets/${component.source.asset_id}`,
+                          record: component.source.record,
+                        }
+                      : { smiles: component.value }
+                  }
+                  language={language}
+                  label={zh ? "本次输入分子" : "Entered molecule"}
+                />
+              )}
             {components.length > 1 && (
               <button
                 type="button"
@@ -218,6 +261,7 @@ export function ScientificInputs({
             onChange={(e) => {
               onChange({
                 modality: e.target.value,
+                length: e.target.value === "peptide" ? [15, 30] : [80, 120],
                 scaffold_chain: null,
                 scaffold_residues: [],
               });
@@ -241,7 +285,7 @@ export function ScientificInputs({
         onChange={onStructure}
         language={language}
         label={zh ? "选择目标结构" : "Choose target structure"}
-        allowedSuffixes={program === "boltzgen" ? [".pdb", ".cif"] : [".pdb"]}
+        allowedSuffixes={[".pdb", ".cif"]}
       />
       {program === "boltzgen" &&
         ["antibody", "nanobody"].includes(String(payload.modality)) && (

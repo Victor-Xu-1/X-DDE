@@ -1,0 +1,302 @@
+{
+  "7983ecd5b426183e4b09dfcf0010872e0f6453e78ef97e95c8e09519b81a29f8": {
+    "source_revision": "c8e8a5b2836d6e0117b999c66985a06f122f96d6",
+    "content_sha256": "f48cec549ba69dc6e0883d0a5de042ec77377afb807edd628750bad4d6df7cbb",
+    "modules": {
+      "antibody.humanize": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "antibody.humanize",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "admet.predict": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "admet.predict",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "posebusters.check": {
+        "case_id": "brd4-jq1",
+        "capability_id": "posebusters.check",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "antibody.number": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "antibody.number",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "chemistry.screen": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "chemistry.screen",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "biopython.prepare": {
+        "case_id": "brd4-jq1",
+        "capability_id": "biopython.prepare",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "discovery.import": {
+        "case_id": "brd4-jq1",
+        "capability_id": "discovery.import",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "discovery.target": {
+        "case_id": "brd4-jq1",
+        "capability_id": "discovery.target",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "discovery.disease": {
+        "case_id": "brd4-jq1",
+        "capability_id": "discovery.disease",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "predict": {
+        "case_id": "brd4-jq1",
+        "capability_id": "predict",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "properties": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "properties",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "campaign": {
+        "case_id": "trastuzumab-domainiv",
+        "capability_id": "campaign",
+        "revision": 2,
+        "pinned_run_required": false
+      },
+      "esm": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "esm",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "esm2": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "esm2",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "mpnn": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "mpnn",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "fold": {
+        "case_id": "her2-repebody",
+        "capability_id": "fold",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "epitope": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "epitope",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "structure": {
+        "case_id": "mz1-ternary",
+        "capability_id": "structure",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "rmsd": {
+        "case_id": "her2-repebody",
+        "capability_id": "rmsd",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "evolution": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "evolution",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "compare": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "compare",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "protrek-sequence": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "protrek-sequence",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "protrek-structure": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "protrek-structure",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "target-msa": {
+        "case_id": "brd4-jq1",
+        "capability_id": "target-msa",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "features": {
+        "case_id": "brd4-jq1",
+        "capability_id": "features",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "import": {
+        "case_id": "brd4-jq1",
+        "capability_id": "import",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "resources": {
+        "case_id": "brd4-jq1",
+        "capability_id": "resources",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.generate": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.generate",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.inpaint": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.inpaint",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.diversify": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.diversify",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.optimize": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.optimize",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.pocket": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.pocket",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.prepare": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.prepare",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.interactions": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.interactions",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.properties": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.properties",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.export": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.export",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "regions": {
+        "case_id": "mz1-ternary",
+        "capability_id": "regions",
+        "revision": 1,
+        "pinned_run_required": false
+      },
+      "workflows": {
+        "case_id": "brd4-jq1",
+        "capability_id": "workflows",
+        "revision": 1,
+        "pinned_run_required": false
+      },
+      "p2rank.detect": {
+        "case_id": "brd4-jq1",
+        "capability_id": "p2rank.detect",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "gnina.dock": {
+        "case_id": "brd4-jq1",
+        "capability_id": "gnina.dock",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "gnina.score": {
+        "case_id": "brd4-jq1",
+        "capability_id": "gnina.score",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "gnina.minimize": {
+        "case_id": "brd4-jq1",
+        "capability_id": "gnina.minimize",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "chemistry.states": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "chemistry.states",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "biopython.ensemble": {
+        "case_id": "brd4-jq1",
+        "capability_id": "biopython.ensemble",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "pose_exploration": {
+        "case_id": "brd4-jq1",
+        "capability_id": "pose_exploration",
+        "revision": 1,
+        "pinned_run_required": false
+      }
+    },
+    "file_keys": [
+      "brd4",
+      "her2",
+      "mz1",
+      "rna",
+      "jq1",
+      "imatinib",
+      "dasatinib",
+      "nilotinib",
+      "brd4_apo",
+      "her2_pertuzumab",
+      "trastuzumab_fv",
+      "mz1_molecule",
+      "her2_domain_iv"
+    ],
+    "case_ids": [
+      "brd4-jq1",
+      "trastuzumab-her2",
+      "abl-inhibitors",
+      "mz1-ternary",
+      "tpp-riboswitch",
+      "her2-repebody",
+      "trastuzumab-domainiv"
+    ]
+  }
+}

@@ -4,7 +4,7 @@ import json
 from importlib.metadata import version
 from pathlib import Path
 
-from native_io import copy_artifact, csv_file, execute, finish, metric
+from native_io import copy_artifact, csv_file, execute, finish, metric, source_molecule
 
 
 def run(request):
@@ -16,7 +16,11 @@ def run(request):
     for component in payload["components"]:
         body = {"id": component["id"]}
         if component["kind"] == "ligand":
-            molecule = Chem.MolFromSmiles(component["value"])
+            molecule = (
+                source_molecule(request)
+                if component.get("source")
+                else Chem.MolFromSmiles(component["value"])
+            )
             if molecule is None or len(Chem.GetMolFrags(molecule)) != 1:
                 raise ValueError("Choose one valid connected small-molecule structure.")
             body["smiles"] = Chem.MolToSmiles(molecule, isomericSmiles=True)

@@ -3,7 +3,8 @@
 import math
 from importlib.metadata import version
 
-from native_io import copy_artifact, csv_file, finish, input_file, metric
+from native_io import copy_artifact, csv_file, finish, metric
+from native_structure import input_pdb
 
 
 def atom_coordinates(file):
@@ -36,7 +37,7 @@ def edge(kind, item, protein, ligand):
 def run(request):
     from plip.structure.preparation import PDBComplex
 
-    source, _ = input_file(request, "structure")
+    source, _ = input_pdb(request)
     original = atom_coordinates(source)
     complex_ = PDBComplex()
     complex_.output_path = "/output/native"
