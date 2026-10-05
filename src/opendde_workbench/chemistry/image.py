@@ -8,7 +8,7 @@ PYTHON_IMAGE = (
     "docker.io/library/python@sha256:"
     "54b4fc9408ea4f5d1b1b9c63c7ef1968d46d3b927e00df8ab1f09364593f979f"
 )
-VERSION = "rdkit-2023.9.6-dimorphite-2.0.2"
+VERSION = "rdkit-2026.3.6-dimorphite-2.1.0"
 
 
 def lock_digest():

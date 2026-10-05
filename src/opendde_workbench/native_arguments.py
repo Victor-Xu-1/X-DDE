@@ -79,6 +79,10 @@ def network_enabled(request: TaskRequest) -> bool:
 
 
 def needs_gpu(request: TaskRequest) -> bool:
+    from .integrations.contract import IntegratedTask
+
+    if isinstance(request, IntegratedTask):
+        return request.options.device == "cuda"
     return (
         (request.operation == "predict" and request.parameters.device == "cuda")
         or (request.operation == "harness" and request.tool in {"esm", "esm2", "mpnn", "fold"})

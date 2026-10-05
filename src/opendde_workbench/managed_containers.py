@@ -3,6 +3,14 @@
 from uuid import UUID
 
 CONTAINER_STYLES = {
+    "boltz": "preparation",
+    "reinvent": "preparation",
+    "ligandmpnn": "preparation",
+    "boltzgen": "preparation",
+    "openmm": "preparation",
+    "apbs": "preparation",
+    "chemprop": "preparation",
+    "plip": "preparation",
     "p2rank": "native",
     "gnina": "native",
     "chemistry": "preparation",

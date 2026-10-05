@@ -35,6 +35,12 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
     if not manifest.is_file() or manifest.stat().st_size > 25 * 1024**2:
         return False
     result = json.loads(manifest.read_text())
+    from .integrations.contract import IntegratedTask
+
+    if isinstance(job.request, IntegratedTask):
+        from .integrations.result import validate_result
+
+        validate_result(result, job.request, output)
     if operation == "reference_import":
         from .discovery.import_runner import validate_import_result
 

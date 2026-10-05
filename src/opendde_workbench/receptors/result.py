@@ -215,7 +215,10 @@ class ReceptorResult(ScientificModel):
             qualified == len(self.inputs)
         ):
             raise ValueError("Receptor collection status/count is inconsistent.")
-        if self.versions != {"biopython": "1.86", "numpy": "1.26.4"}:
+        if self.versions not in (
+            {"biopython": "1.86", "numpy": "1.26.4"},
+            {"biopython": "1.88", "numpy": "1.26.4"},
+        ):
             raise ValueError("Receptor report differs from the reviewed native library versions.")
         return self
 

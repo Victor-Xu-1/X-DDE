@@ -34,6 +34,8 @@ import { useViewerSnapshot } from "./useViewerSnapshot";
 import { usePoseOptimization } from "./usePoseOptimization";
 import { poseSource } from "./pose-source";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
+import type { NativeInteraction } from "../integrations/types";
+import type { PotentialMap } from "./scientific-overlay";
 interface Props {
   urls: string[];
   language: Language;
@@ -46,6 +48,8 @@ interface Props {
   highlightedAtoms?: number[];
   nativeScore?: NativePoseScore | null;
   molecularSource?: { url: string; record?: number };
+  nativeInteractions?: NativeInteraction[];
+  electrostaticMap?: PotentialMap;
   onAtomSelected?(selection: SelectionInfo | null): void;
   onSceneLoaded?(scene: SceneInfo): void;
 }
@@ -61,6 +65,8 @@ export function StructureViewer({
   highlightedAtoms,
   nativeScore: originalScore,
   molecularSource,
+  nativeInteractions,
+  electrostaticMap,
   onAtomSelected,
   onSceneLoaded,
 }: Props) {
@@ -94,7 +100,12 @@ export function StructureViewer({
   const { urls, records, score: nativeScore } = optimization.pose;
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
-    key = urls.join("|") + ":" + (records?.join(",") ?? "");
+    key =
+      urls.join("|") +
+      ":" +
+      (records?.join(",") ?? "") +
+      ":" +
+      JSON.stringify({ nativeInteractions, electrostaticMap });
   const overlay = urls.length > 1;
   const requestedKey = useRef<string | null>(key);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
@@ -184,7 +195,14 @@ export function StructureViewer({
     setOptions(defaultOptions);
     if (ready && urls.length) {
       requestedKey.current = key;
-      send("load", { urls, comparison, focusModel, records });
+      send("load", {
+        urls,
+        comparison,
+        focusModel,
+        records,
+        nativeInteractions,
+        electrostaticMap,
+      });
       setStatus("loading");
     } else if (!urls.length) {
       requestedKey.current = null;
@@ -368,7 +386,14 @@ export function StructureViewer({
               type="button"
               onClick={() => {
                 setError("");
-                send("load", { urls, comparison, focusModel, records });
+                send("load", {
+                  urls,
+                  comparison,
+                  focusModel,
+                  records,
+                  nativeInteractions,
+                  electrostaticMap,
+                });
               }}
             >
               {zh ? "重新加载" : "Reload"}
@@ -435,8 +460,16 @@ export function StructureViewer({
       )}
       {loaded && (
         <>
-          {options.mode === "surface" && !comparison && (
+          {options.mode === "surface" && !comparison && !electrostaticMap && (
             <SurfaceLegend summary={surface} language={language} />
+          )}
+          {options.mode === "surface" && electrostaticMap && (
+            <div className="potential-legend">
+              <span>{zh ? "APBS 电势" : "APBS potential"}</span>
+              <span>−{electrostaticMap.range ?? 5}</span>
+              <i />
+              <span>+{electrostaticMap.range ?? 5} kBT/e</span>
+            </div>
           )}
           {siteStatus && siteStatus.requested > 0 && (
             <p className="field-help" role="status">
@@ -481,15 +514,55 @@ export function StructureViewer({
           {scene.hasInteractionContext && !comparison && (
             <PoseScore value={nativeScore} language={language} />
           )}
-          {scene.hasInteractionContext && !comparison && (
-            <InteractionControls
-              language={language}
-              enabled={options.interactions}
-              labels={options.labels}
-              limit={options.contactLimit}
-              summary={contacts}
-              onChange={configure}
-            />
+          {scene.hasInteractionContext &&
+            !comparison &&
+            nativeInteractions === undefined && (
+              <InteractionControls
+                language={language}
+                enabled={options.interactions}
+                labels={options.labels}
+                limit={options.contactLimit}
+                summary={contacts}
+                onChange={configure}
+              />
+            )}
+          {nativeInteractions !== undefined && (
+            <div className="inline-fields">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={options.interactions}
+                  onChange={(e) =>
+                    configure({ interactions: e.target.checked })
+                  }
+                />
+                {zh ? "显示 PLIP 相互作用" : "Show PLIP interactions"}
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={options.labels}
+                  onChange={(e) => configure({ labels: e.target.checked })}
+                />
+                {zh ? "显示残基与距离" : "Show residues and distances"}
+              </label>
+              <select
+                aria-label={zh ? "关注残基数" : "Focus residues"}
+                value={options.contactLimit}
+                onChange={(e) =>
+                  configure({
+                    contactLimit:
+                      e.target.value === "all"
+                        ? "all"
+                        : (Number(e.target.value) as 3 | 5),
+                  })
+                }
+              >
+                <option value={3}>3</option>
+                <option value={5}>5</option>
+                <option value="all">{zh ? "全部" : "All"}</option>
+              </select>
+            </div>
           )}
           {!overlay && (
             <ViewerControls

@@ -1,0 +1,5 @@
+torch==2.8.0
+numpy==1.26.4
+biopython==1.88
+prody==2.6.1
+rdkit==2026.3.6

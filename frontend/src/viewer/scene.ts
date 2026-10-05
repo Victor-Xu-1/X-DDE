@@ -12,6 +12,8 @@ import {
   finiteCoordinates,
 } from "./geometry";
 import * as mol from "3dmol";
+import { paintNativeContacts } from "./scientific-overlay";
+import type { NativeInteraction } from "../integrations/types";
 import {
   defaultOptions,
   residueLabel,
@@ -34,6 +36,8 @@ const nucleic = new Set([
 ]);
 type Emit = (type: string, detail?: unknown) => void;
 export class MolecularScene {
+  nativeInteractions?: NativeInteraction[];
+  potential?: { data: mol.VolumeData; range: number };
   options: ViewerOptions = { ...defaultOptions };
   info: SceneInfo = {
     atoms: 0,
@@ -62,6 +66,8 @@ export class MolecularScene {
     private emit: Emit,
   ) {}
   resetState() {
+    this.nativeInteractions = undefined;
+    this.potential = undefined;
     this.revision++;
     this.selected = [];
     this.highlighted = [];
@@ -259,6 +265,23 @@ export class MolecularScene {
       );
     if (!atoms.length) return;
     const revision = this.revision;
+    if (this.potential) {
+      const { data, range } = this.potential;
+      if (atoms.some((a) => data.getIndex(a.x!, a.y!, a.z!) < 0))
+        throw new Error(
+          "Potential grid does not cover the displayed structure",
+        );
+      await this.viewer.addSurface(
+        mol.SurfaceType.SAS,
+        {
+          opacity: 0.82,
+          voldata: data,
+          volscheme: new mol.Gradient.RWB(-range, range),
+        },
+        { model: 0, index: atoms.map((a) => a.index!) },
+      );
+      return;
+    }
     const { style, summary } = electricalSurfaceStyle(
       atoms,
       this.info.hasPolymer,
@@ -272,6 +295,16 @@ export class MolecularScene {
   }
   private drawContacts() {
     if (!this.options.interactions || !this.info.hasInteractionContext) {
+      this.emit("contacts", null);
+      return;
+    }
+    if (this.nativeInteractions !== undefined) {
+      paintNativeContacts(
+        this.viewer,
+        this.nativeInteractions,
+        this.options.contactLimit,
+        this.options.labels,
+      );
       this.emit("contacts", null);
       return;
     }

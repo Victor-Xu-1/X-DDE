@@ -3,6 +3,7 @@
 import hashlib
 import json
 import math
+from importlib.metadata import version
 from pathlib import Path
 
 from manifest import CLASSIFICATION, ENDPOINTS, METADATA, METADATA_DIGEST, VERSIONS
@@ -13,6 +14,8 @@ from serialization import rows_csv
 
 
 def run(request, bindings, directory):
+    if any(version(name) != expected for name, expected in VERSIONS.items()):
+        raise ValueError("ADMET runtime dependencies differ from the reviewed scientific recipe.")
     options = AdmetOptions.model_validate(request["options"])
     source, rows, smiles, blocks = inputs(request, bindings, directory)
     model_root = verify_models()

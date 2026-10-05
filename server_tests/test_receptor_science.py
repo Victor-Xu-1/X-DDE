@@ -98,7 +98,7 @@ def test_actual_rigid_structure_copy_recovers_frame_and_original_residue_corresp
             hashlib.sha256((output / member["artifact"]).read_bytes()).hexdigest()
             == member["artifact_sha256"]
         )
-    assert result["versions"] == {"biopython": "1.86", "numpy": "1.26.4"}
+    assert result["versions"] == {"biopython": "1.88", "numpy": "1.26.4"}
     import shutil
 
     fixture = Path("server_tests/evidence/core-fixture/receptor-inputs")

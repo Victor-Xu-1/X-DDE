@@ -11,6 +11,7 @@ import { validSource } from "./protocol";
 import { initializeTheme } from "../theme";
 import "./frame.css";
 import { captureView } from "./capture";
+import { potentialData } from "./scientific-overlay";
 initializeTheme();
 const background = () =>
   getComputedStyle(document.documentElement)
@@ -98,6 +99,26 @@ async function load(input: ViewerLoad) {
       complexLigandModel(formats, input),
       inputCharges,
     );
+    scene.nativeInteractions = input.nativeInteractions;
+    if (input.electrostaticMap) {
+      const response = await fetch(
+        validSource(input.electrostaticMap.url, location.origin),
+        { signal: request.signal },
+      );
+      if (
+        !response.ok ||
+        Number(response.headers.get("Content-Length")) > 35000000
+      )
+        throw new Error("Potential map could not be loaded");
+      const text = await response.text();
+      if (text.length > 35000000) throw new Error("Potential map is too large");
+      if (current !== generation) return;
+      scene.potential = {
+        data: potentialData(text),
+        range: input.electrostaticMap.range ?? 5,
+      };
+      scene.options.mode = "surface";
+    }
     await scene.paint();
     if (current !== generation) return;
     reset();

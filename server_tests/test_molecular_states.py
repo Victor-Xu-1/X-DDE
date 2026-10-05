@@ -62,7 +62,7 @@ def test_real_seeded_conformers_have_energy_coordinates_and_original_atom_identi
     assert all(sorted(r["source_to_conformer_atoms"]) == list(range(5)) for r in rows)
 
 
-def test_unavailable_parameters_and_known_protonation_limit_are_not_fake_success(native):
+def test_unavailable_parameters_and_neutral_tertiary_amides_are_explicit(native):
     source = native["mapping"].source_molecule(Chem.MolFromSmiles("B(O)O"))
     options = native["options"].StateOptions(protonation=False, max_states=1)
     assert (
@@ -70,8 +70,8 @@ def test_unavailable_parameters_and_known_protonation_limit_are_not_fake_success
         == "force_field_parameters_unavailable"
     )
     source = native["mapping"].source_molecule(Chem.MolFromSmiles("CC(=O)N1CCCCC1"))
-    with pytest.raises(ValueError, match="tertiary-amide"):
-        native["states"].enumerate_states(source, native["options"].StateOptions())
+    states, _ = native["states"].enumerate_states(source, native["options"].StateOptions())
+    assert states and all(Chem.GetFormalCharge(row["molecule"]) == 0 for row in states)
 
 
 def test_actual_sdf_runner_records_method_versions_digests_and_exact_record(native, tmp_path):
@@ -104,7 +104,8 @@ def test_actual_sdf_runner_records_method_versions_digests_and_exact_record(nati
         request, {identifier: "/job/assets/library.sdf"}, tmp_path, output
     )
     assert result["source"] == ref and result["states"][0]["charge"] == -1
-    assert result["versions"]["rdkit"] and result["versions"]["dimorphite_dl"] == "2.0.2"
+    assert result["versions"]["rdkit"] == "2026.03.6"
+    assert result["versions"]["dimorphite_dl"] == "2.1.0"
     assert len(Chem.SDMolSupplier(str(output / "states.sdf"))) == len(result["states"])
     assert len(Chem.SDMolSupplier(str(output / "conformers.sdf"))) == len(result["conformers"])
     assert all(

@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "programs": {
+    "boltz": {
+      "version": "2.2.1",
+      "name": "Boltz-2",
+      "gpu": true,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "boltz==2.2.1",
+        "torch==2.8.0",
+        "rdkit==2026.3.6"
+      ],
+      "models": [
+        {
+          "name": "boltz2_aff.ckpt",
+          "url": "https://huggingface.co/boltz-community/boltz-2/resolve/6fdef46d763fee7fbb83ca5501ccceff43b85607/boltz2_aff.ckpt",
+          "sha256": "dcc5cd3722b1c9eaa34267e4ae32f55cbbf1963f4c19319381ccfa30fdd2ca9e",
+          "size": 2062139170
+        },
+        {
+          "name": "boltz2_conf.ckpt",
+          "url": "https://huggingface.co/boltz-community/boltz-2/resolve/6fdef46d763fee7fbb83ca5501ccceff43b85607/boltz2_conf.ckpt",
+          "sha256": "090e82ac8c92f5e943fa1b39e7410a44027bea7243c0bbb3caa67a77fc1428e1",
+          "size": 2286561469
+        },
+        {
+          "name": "mols.tar",
+          "url": "https://huggingface.co/boltz-community/boltz-2/resolve/6fdef46d763fee7fbb83ca5501ccceff43b85607/mols.tar",
+          "sha256": "39e076d96dbec6b4e86982bbda16f3a53a2a60c9bdc17828d88f6f9a0c7d1fd7",
+          "size": 1855662080
+        }
+      ],
+      "license": "MIT code and model weights; PDB chemical-component data terms"
+    },
+    "boltzgen": {
+      "version": "0.3.2",
+      "name": "BoltzGen",
+      "gpu": true,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "boltzgen==0.3.2",
+        "torch==2.8.0",
+        "rdkit==2026.3.6"
+      ],
+      "models": [
+        {
+          "name": "boltz2_aff.ckpt",
+          "url": "https://huggingface.co/boltzgen/boltzgen-1/resolve/c1be29e1f82ffcc72264f64b993c43fb4e0d17f0/boltz2_aff.ckpt",
+          "sha256": "6dc13d488015666d3c3fdffd29fab54d72e4f2597b654f996cdcf5937feab090",
+          "size": 2061914091
+        },
+        {
+          "name": "boltz2_conf_final.ckpt",
+          "url": "https://huggingface.co/boltzgen/boltzgen-1/resolve/c1be29e1f82ffcc72264f64b993c43fb4e0d17f0/boltz2_conf_final.ckpt",
+          "sha256": "525a51ef306da7282a54d23a4a5b91212fc60d0ff6b23b56dd6351de3b387530",
+          "size": 2087255089
+        },
+        {
+          "name": "boltzgen1_adherence.ckpt",
+          "url": "https://huggingface.co/boltzgen/boltzgen-1/resolve/c1be29e1f82ffcc72264f64b993c43fb4e0d17f0/boltzgen1_adherence.ckpt",
+          "sha256": "ac7078b3dc13064c68e0c3fd542e5bc538c33558bf6607f65e499eb336ca5e5d",
+          "size": 1930858014
+        },
+        {
+          "name": "boltzgen1_diverse.ckpt",
+          "url": "https://huggingface.co/boltzgen/boltzgen-1/resolve/c1be29e1f82ffcc72264f64b993c43fb4e0d17f0/boltzgen1_diverse.ckpt",
+          "sha256": "360af8bd6e59527ff6ec25dd81253967f3bd3567d200053b10680634751f8e3c",
+          "size": 1930847192
+        },
+        {
+          "name": "boltzgen1_ifold.ckpt",
+          "url": "https://huggingface.co/boltzgen/boltzgen-1/resolve/c1be29e1f82ffcc72264f64b993c43fb4e0d17f0/boltzgen1_ifold.ckpt",
+          "sha256": "dd4cf108c94471bdc3a326b7b180fa3854dc019110fae780208c30b50bd56578",
+          "size": 12582656
+        },
+        {
+          "name": "mols.zip",
+          "url": "https://huggingface.co/datasets/boltzgen/inference-data/resolve/c3d36fd276e9caf098c75d4113c6d5eb320b1a4c/mols.zip",
+          "sha256": "3d4f56ac4262e745bb3d09cfaa19099b1d01be208122d501667b952e45521e53",
+          "size": 391401102
+        }
+      ],
+      "license": "MIT code and models; third-party resource terms"
+    },
+    "ligandmpnn": {
+      "version": "26ec57ac976ade5379920dbd43c7f97a91cf82de",
+      "name": "LigandMPNN",
+      "gpu": true,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "torch==2.8.0",
+        "numpy==1.26.4",
+        "biopython==1.88",
+        "prody==2.6.1",
+        "rdkit==2026.3.6"
+      ],
+      "models": [
+        {
+          "name": "ligandmpnn.pt",
+          "url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_v_32_010_25.pt",
+          "sha256": "161cd264061fda9680cbb940255522ae42f2966c552d045d87913d9452a80970",
+          "size": 10541943
+        },
+        {
+          "name": "sidechain.pt",
+          "url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_sc_v_32_002_16.pt",
+          "sha256": "799a9de6c1c72bb0c7ceb37998391a6fd0e3e21cb42928ee31a28313a3b1b46a",
+          "size": 14359379
+        }
+      ],
+      "source": {
+        "url": "https://codeload.github.com/dauparas/LigandMPNN/zip/26ec57ac976ade5379920dbd43c7f97a91cf82de",
+        "sha256": "08c34d9e8662b253c2cf3663bf5d10da805e14419713a783e76e4b68169281b8",
+        "prefix": "LigandMPNN-26ec57ac976ade5379920dbd43c7f97a91cf82de"
+      },
+      "license": "MIT code and models; OpenFold component terms"
+    },
+    "reinvent": {
+      "version": "4.8",
+      "name": "REINVENT4",
+      "gpu": false,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "torch==2.12.0",
+        "torchvision",
+        "tensorboard >=2,<3",
+        "rdkit >=2025.09.1",
+        "numpy >=2,<3",
+        "pumas >=1.3.0",
+        "molvs >=0.1.1,<0.2",
+        "xxhash >=3,<4",
+        "pydantic >=2,<3",
+        "python-dotenv >=1.0,<2",
+        "matplotlib >=3.7,<4",
+        "apted >=1.0.3, <2",
+        "mmpdb >=2.1,<3",
+        "pandas >=3,<4",
+        "polars <2",
+        "Pillow >=12.2.0",
+        "PyYAML >=6.0",
+        "requests >=2.28,<3",
+        "tqdm >=4.64,<5",
+        "pytest >=9.0.3",
+        "pytest-mock >=3",
+        "rdkit==2026.3.6"
+      ],
+      "source": {
+        "url": "https://codeload.github.com/MolecularAI/REINVENT4/zip/refs/tags/v4.8",
+        "sha256": "405bb9d5658dc475a555135f170686b1a2cd70ab42b9fb933375ae2b8133ff98",
+        "prefix": "REINVENT4-4.8",
+        "package": "reinvent"
+      },
+      "models": [
+        {
+          "name": "reinvent.prior",
+          "url": "https://zenodo.org/api/records/20701824/files/reinvent_pubchem.prior/content",
+          "sha256": "fe8cd1678452ad292a8f93e97cb19a85959b729e17113e157180d5e69ae89ef3",
+          "size": 23528840
+        },
+        {
+          "name": "libinvent.prior",
+          "url": "https://zenodo.org/api/records/20701824/files/libinvent.prior/content",
+          "sha256": "03e6cbe8a53e59a4ac3aa6728d041f1957bdd07b5eefdf2cfc5c8591036075af",
+          "size": 94756131
+        },
+        {
+          "name": "linkinvent.prior",
+          "url": "https://zenodo.org/api/records/20701824/files/linkinvent.prior/content",
+          "sha256": "3b8ac84f77c2c6b40f4c43aaf472f6d798ed906a37fbeb43f6648769b61f454b",
+          "size": 94754999
+        },
+        {
+          "name": "mol2mol_similarity.prior",
+          "url": "https://zenodo.org/api/records/20701824/files/pubchem_ecfp4_with_count_with_rank_reinvent4_dict_voc.prior/content",
+          "sha256": "3bdf03adb4e77f21a1d344adcb8b2e18f06004cf9b9f276e412c5a7c4468ea31",
+          "size": 81205029
+        }
+      ],
+      "license": "Apache-2.0; separate prior/training-data terms; proprietary optional plugins excluded"
+    },
+    "openmm": {
+      "version": "8.6.1-openff-0.19.0",
+      "name": "PDBFixer + OpenMM + OpenFF",
+      "gpu": false,
+      "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
+      "conda": [
+        "python=3.12",
+        "openmm=8.6.1",
+        "openff-toolkit-base=0.19.0",
+        "openff-forcefields=2026.09.0",
+        "openmmforcefields=0.16.0",
+        "ambertools=24.8",
+        "rdkit=2026.03.6"
+      ],
+      "pip": [
+        "pdbfixer==1.12.0"
+      ],
+      "models": [],
+      "license": "OpenMM MIT/LGPL; OpenFF MIT; AmberTools component licenses"
+    },
+    "apbs": {
+      "version": "3.4.1-pdb2pqr-3.7.1",
+      "name": "PDB2PQR + APBS",
+      "gpu": false,
+      "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
+      "conda": [
+        "python=3.12",
+        "apbs=3.4.1"
+      ],
+      "pip": [
+        "pdb2pqr==3.7.1"
+      ],
+      "models": [],
+      "license": "APBS BSD-3-Clause; PDB2PQR BSD-3-Clause; PROPKA LGPL"
+    },
+    "plip": {
+      "version": "3.0.1-openbabel-3.2.1",
+      "name": "PLIP",
+      "gpu": false,
+      "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
+      "conda": [
+        "python=3.12",
+        "plip=3.0.1",
+        "openbabel=3.2.1"
+      ],
+      "pip": [],
+      "models": [],
+      "license": "PLIP GPL-2.0; Open Babel GPL-2.0"
+    },
+    "chemprop": {
+      "version": "2.3.1",
+      "name": "Chemprop custom property models",
+      "gpu": false,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "chemprop==2.3.1",
+        "torch==2.8.0",
+        "rdkit==2026.3.6"
+      ],
+      "models": [],
+      "license": "MIT; user datasets retain their own terms"
+    }
+  }
+}

@@ -28,7 +28,15 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
-    if key == "public-examples":
+    from ..integrations.specs import PROGRAMS
+    from .scientific_install import install_models as scientific_models
+    from .scientific_install import install_runtime as scientific_runtime
+
+    if key in PROGRAMS:
+        metadata.update(scientific_runtime(key, root, work, execute, report, checkpoint))
+    elif key.endswith("-models") and key.removesuffix("-models") in PROGRAMS:
+        metadata.update(scientific_models(key.removesuffix("-models"), root, report, checkpoint))
+    elif key == "public-examples":
         from ..examples.bundle import restore_bundle
         from ..settings import Settings
 

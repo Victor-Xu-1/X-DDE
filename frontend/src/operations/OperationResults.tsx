@@ -35,6 +35,8 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { MinimizedPoseResults } from "../viewer/MinimizedPoseResults";
 import { HarnessResults } from "./HarnessResults";
 import { researchError } from "../presentation/research-content";
+import { ScientificResults } from "../integrations/ScientificResults";
+import type { NativeResult } from "../integrations/types";
 
 export { ResultTree } from "./StructuredResults";
 
@@ -53,6 +55,15 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    "boltz_predict",
+    "reinvent_design",
+    "ligandmpnn_design",
+    "boltzgen_design",
+    "structure_refine",
+    "electrostatics",
+    "chemprop_train",
+    "chemprop_predict",
+    "interaction_profile",
     "antibody_humanize",
     "admet_predict",
     "pose_quality",
@@ -100,6 +111,27 @@ export function OperationResults({
     );
   if (!data)
     return <p role="status">{zh ? "正在读取结果…" : "Loading results…"}</p>;
+  if (
+    [
+      "boltz_predict",
+      "reinvent_design",
+      "ligandmpnn_design",
+      "boltzgen_design",
+      "structure_refine",
+      "electrostatics",
+      "chemprop_train",
+      "chemprop_predict",
+      "interaction_profile",
+    ].includes(job.request.operation ?? "")
+  )
+    return (
+      <ScientificResults
+        key={job.id}
+        job={job}
+        result={data as unknown as NativeResult}
+        language={language}
+      />
+    );
   return (
     <section
       className="operation-results"

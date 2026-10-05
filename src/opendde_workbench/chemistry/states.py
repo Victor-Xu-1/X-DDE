@@ -11,13 +11,6 @@ def enumerate_states(source, options):
     from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
     from rdkit.Chem.MolStandardize import rdMolStandardize
 
-    # The frozen upstream release documents this ionization-rule limitation.
-    tertiary_amide = Chem.MolFromSmarts("[CX3](=O)[NX3;H0]")
-    if options.protonation and source.HasSubstructMatch(tertiary_amide):
-        raise ValueError(
-            "Dimorphite-DL 2.0.2 has a known tertiary-amide protonation limitation. "
-            "Disable pH enumeration and retain the supplied charge state for this input."
-        )
     bounded, protonation_rejected = [], 0
     if options.protonation:
         from dimorphite_dl.protonate.run import Protonate
@@ -43,7 +36,9 @@ def enumerate_states(source, options):
     if not bounded:
         raise ValueError("The protonation method returned no valid state.")
     truncated = len(bounded) > options.max_states
-    bounded = sorted(bounded, key=lambda m: Chem.MolToSmiles(m))[: options.max_states]
+    # Dimorphite 2.1 orders a truncated set using its native ionization model.
+    # Keep that choice; alphabetical SMILES sorting must not change which states survive.
+    bounded = bounded[: options.max_states]
     enumerator = rdMolStandardize.TautomerEnumerator()
     enumerator.SetMaxTautomers(options.max_tautomers + 1)
     enumerator.SetMaxTransforms(512)

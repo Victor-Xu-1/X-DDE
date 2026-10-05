@@ -79,6 +79,27 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
             "chembl_endpoint": "https://www.ebi.ac.uk/chembl/api/data",
         }
         matched = False
+    elif software in {
+        "boltz",
+        "reinvent",
+        "ligandmpnn",
+        "boltzgen",
+        "openmm",
+        "apbs",
+        "chemprop",
+        "plip",
+    }:
+        from .integrations.specs import recipe_digest
+
+        entry = installed.get(software, {})
+        models = installed.get(software + "-models", {})
+        runtime = {
+            "image": entry.get("image", ""),
+            "recipe_sha256": recipe_digest(software),
+            "models": models.get("models", ""),
+            "model_manifest_sha256": models.get("manifest_sha256", ""),
+        }
+        matched = bool(runtime["image"] and entry.get("recipe_sha256") == runtime["recipe_sha256"])
     elif software == "opendde":
         runtime = {
             "image": settings.image_file.read_text().strip()

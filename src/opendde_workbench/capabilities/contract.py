@@ -34,6 +34,14 @@ class CapabilitySpec(BaseModel):
         "posebusters",
         "admet",
         "sapiens",
+        "boltz",
+        "reinvent",
+        "ligandmpnn",
+        "boltzgen",
+        "openmm",
+        "apbs",
+        "chemprop",
+        "plip",
     ]
     operations: tuple[str, ...]
     label: tuple[str, str]

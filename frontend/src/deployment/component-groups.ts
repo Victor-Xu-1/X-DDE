@@ -48,31 +48,53 @@ const definitions: GroupDefinition[] = [
       "P2Rank + GNINA + PoseBusters + ADMET-AI；自动补齐 Java",
       "P2Rank, GNINA, PoseBusters and ADMET-AI, with Java dependencies",
     ],
-    recommended: ["p2rank", "gnina", "posebusters", "admet"],
+    recommended: [
+      "p2rank",
+      "gnina",
+      "posebusters",
+      "admet",
+      "plip",
+      "apbs",
+      "chemprop",
+    ],
     matches: (p) =>
-      ["p2rank", "p2rank-compute", "gnina", "posebusters", "admet"].includes(
-        p.id,
-      ),
+      [
+        "p2rank",
+        "p2rank-compute",
+        "gnina",
+        "posebusters",
+        "admet",
+        "plip",
+        "apbs",
+        "chemprop",
+        "openmm",
+      ].includes(p.id),
   },
   {
     id: "prediction",
-    title: ["结构预测 · OpenDDE", "Structure prediction · OpenDDE"],
+    title: ["结构与复合物预测", "Structure and complex prediction"],
     recommendation: [
       "计算环境 + 标准模型；抗体模型与大型搜索数据库按需选择",
       "Compute and standard model; antibody model and large search databases are optional",
     ],
-    recommended: ["compute", "standard"],
-    matches: (p) => p.engine === "opendde" || p.id === "harness",
+    recommended: ["compute", "standard", "boltz", "boltz-models"],
+    matches: (p) =>
+      p.engine === "opendde" || p.engine === "boltz" || p.id === "harness",
   },
   {
     id: "generation",
-    title: ["分子生成 · DiffSBDD", "Molecule generation · DiffSBDD"],
+    title: ["小分子生成与优化", "Molecule generation and optimization"],
     recommendation: [
       "独立环境 + CrossDocked Cα 条件模型；其他模型按需选择",
       "Isolated runtime and CrossDocked Cα conditional model; other models are optional",
     ],
-    recommended: ["diffsbdd", "diffsbdd-model-crossdocked_ca_cond"],
-    matches: (p) => p.engine === "diffsbdd",
+    recommended: [
+      "diffsbdd",
+      "diffsbdd-model-crossdocked_ca_cond",
+      "reinvent",
+      "reinvent-models",
+    ],
+    matches: (p) => ["diffsbdd", "reinvent"].includes(p.engine ?? ""),
   },
   {
     id: "biologics",
@@ -81,8 +103,18 @@ const definitions: GroupDefinition[] = [
       "ANARCII 编号 + Sapiens 人源参考评估",
       "ANARCII numbering and Sapiens human reference assessment",
     ],
-    recommended: ["anarcii", "sapiens"],
-    matches: (p) => ["anarcii", "sapiens"].includes(p.id),
+    recommended: [
+      "anarcii",
+      "sapiens",
+      "ligandmpnn",
+      "ligandmpnn-models",
+      "boltzgen",
+      "boltzgen-models",
+    ],
+    matches: (p) =>
+      ["anarcii", "sapiens", "ligandmpnn", "boltzgen"].includes(
+        p.engine ?? "",
+      ) || ["anarcii", "sapiens"].includes(p.id),
   },
 ];
 

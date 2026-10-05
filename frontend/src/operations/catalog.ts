@@ -68,6 +68,127 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "boltz.predict",
+    group: "structure",
+    label: ["复合物与亲和力预测", "Complex and affinity prediction"],
+    note: [
+      "用 Boltz-2 预测结构与模型亲和力，独立保存结果。",
+      "Predict structures and model affinity with Boltz-2.",
+    ],
+    source: "boltz",
+    modalities: [
+      "chemical",
+      "small_molecule",
+      "biologic",
+      "protein",
+      "antibody",
+      "rna",
+    ],
+    modality_role: "research_object",
+  },
+  {
+    id: "reinvent.design",
+    group: "design",
+    label: ["类似物与多目标分子设计", "Analogues and molecular optimization"],
+    note: [
+      "选择类似物、R 基、连接子或性质优化方案。",
+      "Choose analogues, R-groups, linkers or property optimization.",
+    ],
+    source: "reinvent",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
+    id: "ligandmpnn.design",
+    group: "design",
+    label: ["配体环境中的蛋白序列设计", "Ligand-aware protein sequence design"],
+    note: [
+      "选择要修改的残基，保留真实配体和结构环境。",
+      "Select residues to redesign in their ligand context.",
+    ],
+    source: "ligandmpnn",
+    modalities: ["biologic", "protein", "antibody"],
+    modality_role: "research_object",
+  },
+  {
+    id: "boltzgen.design",
+    group: "design",
+    label: ["结合蛋白、肽与抗体设计", "Protein, peptide and antibody design"],
+    note: [
+      "按药物形式选择设计方案，比较原生结构与界面结果。",
+      "Choose a design modality and compare native structural results.",
+    ],
+    source: "boltzgen",
+    modalities: ["biologic", "protein", "peptide", "antibody"],
+    modality_role: "research_object",
+  },
+  {
+    id: "openmm.refine",
+    group: "prepare",
+    label: ["结构准备与约束优化", "Structure preparation and refinement"],
+    note: [
+      "补齐已解析残基的原子并优化结构，保留原始文件。",
+      "Prepare resolved atoms and refine structures while preserving originals.",
+    ],
+    source: "openmm",
+    modalities: [
+      "chemical",
+      "small_molecule",
+      "biologic",
+      "protein",
+      "antibody",
+    ],
+    modality_role: "research_object",
+  },
+  {
+    id: "apbs.potential",
+    group: "analyze",
+    label: ["蛋白表面电势", "Protein electrostatic surface"],
+    note: [
+      "在指定 pH 和盐浓度下计算电势并下载三维网格。",
+      "Calculate potential at selected pH/salt conditions and export the grid.",
+    ],
+    source: "apbs",
+    modalities: ["biologic", "protein", "antibody", "rna"],
+    modality_role: "research_object",
+  },
+  {
+    id: "chemprop.train",
+    group: "evaluate",
+    label: ["建立实验数据性质模型", "Train a property model"],
+    note: [
+      "从带标签的分子库训练模型，保留骨架划分验证与原始单位。",
+      "Train from labeled molecular libraries with scaffold-split validation.",
+    ],
+    source: "chemprop",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
+    id: "chemprop.predict",
+    group: "evaluate",
+    label: ["用研究模型预测性质", "Predict with a research model"],
+    note: [
+      "选择已训练模型并预测新分子，保留模型版本与单位。",
+      "Choose a trained model to predict new molecules with original units.",
+    ],
+    source: "chemprop",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
+    id: "plip.profile",
+    group: "analyze",
+    label: ["结合相互作用与三维标注", "Interactions and 3D annotations"],
+    note: [
+      "显示原生化学相互作用类型、关键残基和真实距离。",
+      "Display native interaction types, residues and coordinate distances.",
+    ],
+    source: "plip",
+    modalities: ["chemical", "small_molecule", "biologic", "protein"],
+    modality_role: "research_object",
+  },
+  {
     id: "antibody.humanize",
     group: "design",
     label: [

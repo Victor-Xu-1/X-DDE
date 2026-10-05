@@ -171,6 +171,12 @@ class AssetStore:
 
     def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        from .integrations.contract import IntegratedTask
+
+        if isinstance(request, IntegratedTask):
+            from .integrations.bindings import validate_bindings
+
+            return validate_bindings(request, self)
         if getattr(request, "operation", None) == "reference_import":
             from .discovery.import_provenance import evidence_binding
 
@@ -365,16 +371,23 @@ class AssetStore:
             shutil.copyfile(self.path(asset), target)
             if hashlib.sha256(target.read_bytes()).hexdigest() != asset.sha256:
                 raise ValueError("Uploaded input integrity check failed.")
-            if asset.suffix == ".sdf" and getattr(request, "operation", None) not in {
-                "properties",
-                "diffsbdd",
-                "docking",
-                "molecular_states",
-                "molecule_minimize",
-                "library_screen",
-                "pose_quality",
-                "admet_predict",
-            }:
+            from .integrations.contract import IntegratedTask
+
+            if (
+                asset.suffix == ".sdf"
+                and not isinstance(request, IntegratedTask)
+                and getattr(request, "operation", None)
+                not in {
+                    "properties",
+                    "diffsbdd",
+                    "docking",
+                    "molecular_states",
+                    "molecule_minimize",
+                    "library_screen",
+                    "pose_quality",
+                    "admet_predict",
+                }
+            ):
                 records = [
                     part
                     for part in target.read_text(encoding="utf-8-sig").split("$$$$")

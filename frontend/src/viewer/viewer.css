@@ -261,3 +261,17 @@
   border-radius: 50%;
   background: #b1b7c1;
 }
+.potential-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 8px 0;
+}
+.potential-legend i {
+  width: 120px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e25358, #fff, #406ad1);
+}

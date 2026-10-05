@@ -206,7 +206,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             raise HTTPException(503, worker.error or "Task worker is not available.")
         try:
             constraints.check_task(value)
-            if value.operation == "harness":
+            from .integrations.contract import IntegratedTask
+
+            if isinstance(value, IntegratedTask):
+                from .integrations.runtime import validate
+
+                assets.validate_bindings(value)
+                validate(value, readiness["engine"].get("backends", {}).get(value.payload.kind, {}))
+            elif value.operation == "harness":
                 assets.validate_bindings(value)
                 if (
                     not settings.harness_python

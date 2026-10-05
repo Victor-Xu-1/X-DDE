@@ -1,8 +1,12 @@
+import { nativeInteractions, type PotentialMap } from "./scientific-overlay";
+import type { NativeInteraction } from "../integrations/types";
 export interface ViewerLoad {
   urls: string[];
   comparison: boolean;
   focusModel?: number;
   records?: number[];
+  nativeInteractions?: NativeInteraction[];
+  electrostaticMap?: PotentialMap;
 }
 /** A receptor and its separately stored pose are one complex, not a comparison. */
 export function complexLigandModel(
@@ -44,9 +48,25 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid molecular records");
   return {
+    nativeInteractions: nativeInteractions(v.nativeInteractions),
+    ...(v.electrostaticMap
+      ? { electrostaticMap: potentialMap(v.electrostaticMap) }
+      : {}),
     urls: v.urls as string[],
     ...(v.records === undefined ? {} : { records: v.records as number[] }),
     comparison: v.comparison,
     ...(v.focusModel === undefined ? {} : { focusModel: Number(v.focusModel) }),
   };
+}
+function potentialMap(value: unknown): PotentialMap {
+  const map = value as PotentialMap;
+  if (
+    !map ||
+    typeof map.url !== "string" ||
+    map.unit !== "kBT/e" ||
+    (map.range !== undefined &&
+      (!Number.isFinite(map.range) || map.range < 1 || map.range > 20))
+  )
+    throw new Error("Invalid potential display request");
+  return { url: map.url, unit: map.unit, range: map.range ?? 5 };
 }

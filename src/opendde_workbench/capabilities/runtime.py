@@ -120,6 +120,25 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             specific.extend(("selected_model", "mode_model_compatibility", "gpu_and_budget"))
         if spec.native_mode == "inpaint":
             specific.append("fixed_atom_identity_and_bonds")
+    elif spec.environment in {
+        "boltz",
+        "reinvent",
+        "ligandmpnn",
+        "boltzgen",
+        "openmm",
+        "apbs",
+        "chemprop",
+        "plip",
+    }:
+        checks = {"runtime": bool(backends.get(spec.environment, {}).get("ready"))}
+        specific.extend(
+            (
+                "native_input_roles",
+                "selected_native_model",
+                "bounded_execution",
+                "exact_output_artifacts",
+            )
+        )
     else:
         checks = {
             "native_client": bool(settings.harness_python and settings.harness_python.is_file())

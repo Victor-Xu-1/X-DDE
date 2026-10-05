@@ -212,6 +212,22 @@ class OutputCatalog:
         humanization_result=None,
     ):
         job = self.store.get(str(job_id))
+        from ..integrations.contract import IntegratedTask
+
+        if job and isinstance(job.request, IntegratedTask):
+            from ..integrations.result import validate_result
+
+            root = self.assets.root.parent / "jobs" / job.id / "output"
+            report = contained(root, "result.json")
+            if report.stat().st_size > 25 * 1024**2:
+                raise ValueError("Native scientific result exceeds its display limit.")
+            result = validate_result(
+                json.loads(report.read_text(encoding="utf-8")), job.request, root
+            )
+            if file.name != "result.json" and (
+                file.parent.resolve() != root.resolve() or file.name not in result.artifact_sha256
+            ):
+                raise ValueError("Only declared native scientific artifacts are reusable.")
         if job and job.request.operation == "admet_predict":
             from ..admet.result import validate_admet
 

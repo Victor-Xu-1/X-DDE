@@ -1,0 +1,38 @@
+name: Scientific upgrade scoped checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/integrations/**'
+      - 'frontend/src/integrations/**'
+      - 'tests/test_integrated_science.py'
+      - '.github/workflows/scientific-upgrade-checks.yml'
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Changed adapter and dispatch contracts only
+        run: >-
+          uv run --locked pytest -q tests/test_integrated_science.py
+          tests/test_capabilities.py tests/test_operations.py
+      - name: Native overlays and related preview contracts only
+        working-directory: frontend
+        run: npx vitest run src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts src/viewer/StructureViewer.test.tsx src/studio/research-modules.test.ts
+      - name: Native upgraded chemistry and receptor contracts on remote CPU
+        env:
+          PYTHONPATH: src
+        run: >-
+          uv run --no-project --python 3.12 --with pytest --with pydantic
+          --with rdkit==2026.3.6 --with dimorphite-dl==2.1.0 --with numpy==1.26.4
+          --with biopython==1.88 python -m pytest -q
+          server_tests/test_molecular_states.py server_tests/test_receptor_science.py

@@ -8,6 +8,9 @@ from dataclasses import asdict, dataclass
 from types import MappingProxyType
 from typing import Literal
 
+from .integrations.contract import OPERATIONS as INTEGRATED_OPERATIONS
+from .integrations.specs import PROGRAMS
+
 
 @dataclass(frozen=True)
 class ScientificEngine:
@@ -112,6 +115,18 @@ _DEFINITIONS = (
         "harness_process",
         ("harness",),
     ),
+)
+_DEFINITIONS += tuple(
+    ScientificEngine(
+        identifier,
+        spec["name"],
+        "独立科学程序、原生结果与不可覆盖输入 / Native software and immutable inputs",
+        "docker",
+        tuple(
+            operation for operation, owner in INTEGRATED_OPERATIONS.items() if owner == identifier
+        ),
+    )
+    for identifier, spec in PROGRAMS.items()
 )
 ENGINES = MappingProxyType({engine.id: engine for engine in _DEFINITIONS})
 _OPERATIONS = MappingProxyType(

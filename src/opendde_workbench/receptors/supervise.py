@@ -18,6 +18,8 @@ def main():
         raise ValueError("Receptor alignment result is unsafe or oversized.")
     request = TASK_ADAPTER.validate_json((directory / "request.json").read_text())
     value = json.loads(file.read_text())
+    if value.get("versions", {}).get("biopython") != "1.88":
+        raise ValueError("New structural tasks must use the reviewed Biopython 1.88 runtime.")
     if request.operation == "structure_prepare":
         validate_preparation(value, request, directory / "output")
     elif request.operation == "receptor_ensemble":

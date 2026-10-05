@@ -60,7 +60,7 @@ def validate_preparation(value, request, output):
         result.source != request.structure
         or result.options != request.options
         or result.artifact != "prepared." + request.options.format
-        or result.versions != {"biopython": "1.86"}
+        or result.versions not in ({"biopython": "1.86"}, {"biopython": "1.88"})
     ):
         raise ValueError("Prepared structural source/options/software differ from this task.")
     if result.options.model_index >= result.inspection.model_count or (

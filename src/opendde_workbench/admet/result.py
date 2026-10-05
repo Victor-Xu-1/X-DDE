@@ -12,6 +12,7 @@ from ..scientific_objects import MoleculeRef, ScientificModel
 from .manifest import (
     CLASSIFICATION,
     ENDPOINTS,
+    LEGACY_VERSIONS,
     MAX_INPUT_BYTES,
     METADATA,
     METADATA_DIGEST,
@@ -97,7 +98,7 @@ class AdmetResult(ScientificModel):
     @model_validator(mode="after")
     def evidence(self):
         if (
-            self.versions != VERSIONS
+            self.versions not in (VERSIONS, LEGACY_VERSIONS)
             or self.endpoint_metadata_sha256 != METADATA_DIGEST
             or {key: row.model_dump() for key, row in self.model_weights.items()}
             != METADATA["weights"]

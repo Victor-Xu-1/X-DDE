@@ -36,6 +36,8 @@ import { ExampleContext } from "../examples/context";
 import type { PreparedExample } from "../examples/types";
 import type { DockingMode } from "../docking/types";
 import type { DiffMode } from "../diffsbdd/types";
+import { ScientificForm } from "../integrations/ScientificForm";
+import { isScientificForm } from "../integrations/types";
 
 export function ToolCenter({
   language,
@@ -118,7 +120,9 @@ export function ToolCenter({
                 example?.module.capability_id === current.id ? example : null
               }
             >
-              {selected === "antibody.humanize" ? (
+              {isScientificForm(selected) ? (
+                <ScientificForm form={selected} language={language} onCreated={onCreated} />
+              ) : selected === "antibody.humanize" ? (
                 <HumanizationForm language={language} onCreated={onCreated} />
               ) : selected === "admet.predict" ? (
                 <AdmetForm language={language} onCreated={onCreated} />

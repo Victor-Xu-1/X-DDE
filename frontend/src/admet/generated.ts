@@ -6,9 +6,9 @@ export const admetDefaults = {
 } as const;
 export const admetVersions = {
   "admet-ai": "2.0.1",
-  chemprop: "2.2.2",
+  chemprop: "2.3.1",
   torch: "2.8.0+cpu",
-  rdkit: "2025.9.5",
+  rdkit: "2026.3.6",
   numpy: "2.2.6",
   pandas: "2.3.3",
   lightning: "2.6.1",

@@ -22,6 +22,8 @@ from .engine import DockerEngine
 from .engine_registry import engine_for
 from .execution_environment import capture as capture_environment
 from .humanization.backend import HumanizationBackend
+from .integrations.backend import ScientificBackend
+from .integrations.specs import PROGRAMS
 from .pockets.backend import PocketBackend
 from .quality.backend import QualityBackend
 from .receptors.backend import ReceptorBackend
@@ -42,10 +44,11 @@ class BackendRouter:
         self.posebusters = QualityBackend(settings)
         self.admet = AdmetBackend(settings)
         self.sapiens = HumanizationBackend(settings)
+        self.scientific = {key: ScientificBackend(settings, key) for key in PROGRAMS}
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
-        if implementation not in {
+        if implementation not in self.scientific and implementation not in {
             "opendde",
             "diffsbdd",
             "harness",
@@ -63,6 +66,8 @@ class BackendRouter:
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if implementation in self.scientific:
+            return await self.scientific[implementation].start(job, directory)
         if implementation == "sapiens":
             return await self.sapiens.start(job, directory)
         if implementation == "admet":
@@ -130,7 +135,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation == "sapiens":
+        if implementation in self.scientific:
+            await self.scientific[implementation].stop(job.id, directory)
+        elif implementation == "sapiens":
             await self.sapiens.stop(job.id, directory)
         elif implementation == "admet":
             await self.admet.stop(job.id, directory)
@@ -192,9 +199,16 @@ class BackendRouter:
             else "Configure the native Harness interpreter, then restart X-DDE.",
             "compute_configured": bool(self.settings.harness_url),
         }
+        scientific_states = await asyncio.gather(
+            *(
+                self._checked_readiness(key, backend.readiness())
+                for key, backend in self.scientific.items()
+            )
+        )
         return {
             **opendde,
             "backends": {
+                **dict(zip(self.scientific, scientific_states, strict=True)),
                 "opendde": opendde,
                 "diffsbdd": diff,
                 "harness": harness,

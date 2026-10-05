@@ -8,6 +8,7 @@ from types import MappingProxyType
 
 from ..engine_registry import engine_for
 from ..harness_contract import TOOLS
+from ..integrations.capabilities import CAPABILITIES as _INTEGRATED
 from .catalogue import forms
 from .contract import CapabilitySpec, ConstraintSupport
 from .modalities import modality_metadata
@@ -454,7 +455,8 @@ _REFERENCE_IMPORT = (
     ),
 )
 _ITEMS = (
-    _HUMANIZATION
+    _INTEGRATED
+    + _HUMANIZATION
     + _ADMET
     + _POSE_QUALITY
     + _ANTIBODY_NUMBER

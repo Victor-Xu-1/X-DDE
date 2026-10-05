@@ -11,6 +11,7 @@ from ..docking.manifest import VERSION as GNINA_VERSION
 from ..examples.bundle_release import SHA256 as CASE_SHA
 from ..examples.bundle_release import URL as CASE_URL
 from ..examples.bundle_release import VERSION as CASE_VERSION
+from ..integrations.specs import PROGRAMS as SCIENTIFIC_PROGRAMS
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
 from ..pockets.manifest import VERSION as P2_VERSION
@@ -40,7 +41,7 @@ PACKAGES = {
     for p in [
         Package(
             "biopython",
-            "biopython-1.86-numpy-1.26.4",
+            "biopython-1.88-numpy-1.26.4",
             "Biopython 受体构象准备",
             "独立 CPU 结构解析、对应和刚体对齐 / Independent structural alignment",
             "约 100 MB 下载；至少 2 GiB 安装空间 / ~100 MB download; 2 GiB staging",
@@ -52,7 +53,7 @@ PACKAGES = {
         ),
         Package(
             "chemistry",
-            "rdkit-2023.9.6-dimorphite-2.0.2",
+            "rdkit-2026.3.6-dimorphite-2.1.0",
             "Chemistry preparation environment",
             "独立 CPU 化学状态与构象准备 / Independent CPU molecular preparation",
             "约 150 MB 下载；至少 2 GiB 安装空间 / ~150 MB download; 2 GiB staging",
@@ -148,13 +149,13 @@ PACKAGES = {
         ),
         Package(
             "molstar",
-            "5.12.0",
+            "5.13.0",
             "Mol*",
             "蛋白、复合物、序列与三维结构检查 / Protein structure workspace",
             "约20 MB 下载 / download",
             automatic=True,
-            url="https://registry.npmjs.org/molstar/-/molstar-5.12.0.tgz",
-            checksum="sha512:KBwdn8ie42a6kqgp/zhCjBb8fIJdBcBq/AMc17iWdYLtGF4doxmaMe5Rf0cUUwMj7FiH+/1Hp7F2Px6ywQV/rg==",
+            url="https://registry.npmjs.org/molstar/-/molstar-5.13.0.tgz",
+            checksum="sha512:pMXXhPGkbjYeZwPbHSTvQmUJ+wXpLVphDF0n90piy1OtYrUCCr6Z3MFqWjV6Kjcd44hU0U2myQMnPulb4MC1FQ==",
             license="MIT",
             engine=None,
             kind="editor",
@@ -199,7 +200,7 @@ PACKAGES["sapiens"] = Package(
 
 PACKAGES["admet"] = Package(
     "admet",
-    "2.0.1-cpu",
+    "2.0.1-chemprop-2.3.1-cpu",
     "ADMET-AI",
     "小分子性质与早期安全性预测 / Molecular ADMET and early safety predictions",
     "独立 CPU 模型与依赖；至少 6 GiB 安装空间 / Independent CPU models; 6 GiB staging",
@@ -302,6 +303,30 @@ def prerequisites() -> dict:
         "uv": bool(shutil.which("uv")),
         "gpu_tool": bool(shutil.which("nvidia-smi")),
     }
+
+
+for identifier, specification in SCIENTIFIC_PROGRAMS.items():
+    PACKAGES[identifier] = Package(
+        identifier,
+        specification["version"],
+        specification["name"],
+        "独立科学环境 / Independent scientific environment",
+        "至少 16 GiB 安装空间 / At least 16 GiB staging space",
+        license=specification["license"],
+        engine=identifier,
+    )
+    if specification["models"]:
+        PACKAGES[identifier + "-models"] = Package(
+            identifier + "-models",
+            specification["version"],
+            specification["name"] + " models",
+            "固定版本模型与必要资源 / Fixed model versions and required resources",
+            str(round(sum(item["size"] for item in specification["models"]) / 1024**3, 1)) + " GiB",
+            (identifier,),
+            license=specification["license"],
+            engine=identifier,
+            kind="model",
+        )
 
 
 def catalogue() -> list[dict]:

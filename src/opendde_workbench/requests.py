@@ -26,6 +26,8 @@ from .docking.contract import DockingTask
 from .docking.contract import references as docking_references
 from .harness_contract import HarnessTask
 from .humanization.contract import HumanizationTask
+from .integrations.contract import OPERATIONS as INTEGRATED_OPERATIONS
+from .integrations.contract import IntegratedTask
 from .pockets.contract import PocketSearch
 from .prediction import Prediction
 from .quality.contract import PoseQualityTask
@@ -130,11 +132,14 @@ def request_kind(value: object) -> str:
         if isinstance(value, dict)
         else getattr(value, "operation", "predict")
     )
+    if operation in INTEGRATED_OPERATIONS:
+        return "integrated_science"
     return "features" if operation in {"msa", "mt", "prep"} else str(operation)
 
 
 TaskRequest = Annotated[
-    Annotated[HumanizationTask, Tag("antibody_humanize")]
+    Annotated[IntegratedTask, Tag("integrated_science")]
+    | Annotated[HumanizationTask, Tag("antibody_humanize")]
     | Annotated[AdmetTask, Tag("admet_predict")]
     | Annotated[ReferenceImportTask, Tag("reference_import")]
     | Annotated[TargetResearchTask, Tag("target_research")]
@@ -163,6 +168,9 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
+
+    if isinstance(request, IntegratedTask):
+        return {str(item.source.asset_id) for item in request.inputs}
 
     if isinstance(request, HumanizationTask):
         return {str(request.sequences.asset_id)}

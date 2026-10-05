@@ -10,7 +10,7 @@ PYTHON_IMAGE = (
     "docker.io/library/python@sha256:"
     "2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301"
 )
-VERSION = "admet-ai-2.0.1-chemprop-2.2.2"
+VERSION = "admet-ai-2.0.1-chemprop-2.3.1"
 
 
 def lock_digest():
