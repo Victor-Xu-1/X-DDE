@@ -52,13 +52,14 @@
 .studio-app .module-task-picker .hint {
   flex: 0 0 auto;
 }
-.studio-app .workspace-tabs .secondary-button {
+.studio-app .workspace-tabs > button {
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
 }
-.studio-app .workspace-tabs .secondary-button[aria-pressed="true"] {
+.studio-app .workspace-tabs > button[aria-pressed="true"] {
+  background: transparent;
   border-bottom-color: var(--accent);
   color: var(--accent);
 }

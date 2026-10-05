@@ -43,7 +43,6 @@
   cursor: pointer;
 }
 .theme-option-selected {
-  border-color: var(--accent);
   box-shadow: none;
   background: var(--accent-soft);
 }

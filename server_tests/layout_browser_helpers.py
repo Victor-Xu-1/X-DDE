@@ -77,7 +77,8 @@ def flat_surface_styles(page):
             '.result-summary-grid>div,.sequence-track,.sequence-alignment,' +
             '.module-example-result,.receptor-input,.capability-group,' +
             '.component-card,.research-candidate,.molecular-state-card,' +
-            '.project-list,.research-graph-scroll,.molecular-stage';
+            '.project-list,.research-graph-scroll,.molecular-stage,' +
+            '.module-task-picker,.workspace-tabs,.workspace-tabs>button';
         const nodes = [...document.querySelectorAll('main ' + selectors.split(',').join(',main '))]
             .filter(e => e.getBoundingClientRect().height>0 &&
                 !e.closest('dialog,.component-removal'));
