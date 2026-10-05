@@ -37,7 +37,11 @@ export function ScientificForm({
   const example = useExample(),
     preset = useExampleTask(operation);
   const initialStructure = useExampleReference(
-    program === "boltzgen" ? "her2_domain_iv" : "receptor",
+    ["apbs", "openmm"].includes(program)
+      ? "protein_only"
+      : program === "boltzgen"
+        ? "her2_domain_iv"
+        : "receptor",
     "brd4",
     "her2",
   );

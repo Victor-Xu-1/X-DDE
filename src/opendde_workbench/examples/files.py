@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .contracts import SourceFile
+from .downloads import download_url
 
 
 def verified_file(root: Path, spec: SourceFile) -> bytes:
@@ -21,7 +22,7 @@ def verified_file(root: Path, spec: SourceFile) -> bytes:
             data = stream.read(spec.bytes + 1)
     else:
         request = urllib.request.Request(
-            spec.url, headers={"User-Agent": "X-DDE research examples"}
+            download_url(spec), headers={"User-Agent": "X-DDE research examples"}
         )
         with urllib.request.urlopen(request, timeout=30) as response:
             if response.status != 200:

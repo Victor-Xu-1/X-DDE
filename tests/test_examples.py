@@ -10,7 +10,9 @@ from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.examples import preparation
 from opendde_workbench.examples.catalogue import FILES, MODULES, POLYMERS
 from opendde_workbench.examples.collections import sdf_collection
+from opendde_workbench.examples.downloads import DOWNLOADS, PREFIX, download_url
 from opendde_workbench.examples.files import verified_file
+from opendde_workbench.examples.structure_inputs import protein_only_pdb
 from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.store import Store
 
@@ -30,6 +32,16 @@ def test_corrupt_or_oversized_pinned_cache_is_rejected_without_network(tmp_path)
     (tmp_path / spec.sha256).write_bytes(b"changed" * spec.bytes)
     with pytest.raises(ValueError, match="new example revision"):
         verified_file(tmp_path, spec)
+
+
+def test_fixed_template_transport_preserves_origin_and_original_checksum(monkeypatch):
+    spec = FILES["jq1"]
+    assert download_url(spec) == PREFIX + spec.sha256 + ".sdf"
+    assert spec.url.startswith("https://models.rcsb.org/")
+    assert len(DOWNLOADS) == 13
+    monkeypatch.setitem(DOWNLOADS, spec.sha256, "https://unreviewed.invalid/template.sdf")
+    with pytest.raises(ValueError, match="not reviewed"):
+        download_url(spec)
 
 
 def test_repeat_import_preserves_versions_and_original_user_assets(tmp_path, monkeypatch):
@@ -73,3 +85,13 @@ def test_single_mol_archive_responses_remain_distinct_sdf_records():
         b"drug-b",
         b"drug-c",
     ]
+
+
+def test_protein_template_selection_keeps_deposited_atoms_and_original_input():
+    atom = b"ATOM      1  CA  ALA A  12      10.200  20.300  30.400  1.00 15.00           C\n"
+    original = (
+        atom
+        + b"HETATM    2  C1  JQ1 A 201      11.200  20.300  30.400  1.00 15.00           C\nEND\n"
+    )
+    assert protein_only_pdb(original) == atom + b"END\n"
+    assert b"HETATM" in original

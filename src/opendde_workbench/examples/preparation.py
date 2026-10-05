@@ -12,6 +12,7 @@ from .derived import prepared_receptor, variable_domains
 from .files import verified_file
 from .pins import ExamplePins
 from .populations import proposal_populations
+from .structure_inputs import protein_only_pdb
 from .workflow import example_workflow
 
 NAMESPACE = UUID("d2f5485c-9384-49e8-9c41-6b316a14c932")
@@ -87,6 +88,28 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
             )
             sequence_sources["target_construct"] = (sequences["antigen"],)
     if case.id == "brd4-jq1":
+        if capability_id in {"apbs.potential", "openmm.refine"}:
+            original = objects["brd4"]
+            raw = scientific.assets.path(
+                scientific.assets.get(original.reference.asset_id)
+            ).read_bytes()
+            asset = scientific.assets.save(
+                "3MXF-protein-only.pdb", "structure", protein_only_pdb(raw)
+            )
+            objects["protein_only"] = scientific.create(
+                VersionInput(
+                    asset_id=asset.id,
+                    kind="structure",
+                    label="BRD4 · protein-only input",
+                    parent_id=original.id,
+                    relation="prepared_from",
+                    notes=(
+                        "Original deposited ATOM coordinates only; "
+                        "no modeled atoms, charges or optimization."
+                    ),
+                ),
+                uuid5(NAMESPACE, "protein-only:" + asset.sha256),
+            )
         sequences["protein"] = POLYMERS["3MXF.polymer-1.json"]["sequence"]
         register(
             "protein_sequence",

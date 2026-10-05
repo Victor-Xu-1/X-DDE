@@ -61,6 +61,9 @@ code is separately Apache-2.0. The data release contains no model predictions.
 Previously published case bundles are accepted only through an explicit catalogue
 fingerprint, unchanged historical sources and unchanged module revisions. Restoring
 the old 45-module bundle does not certify results for the nine newly added tasks.
+Template downloads use a fixed public input archive while retaining original RCSB/
+ChEMBL source attribution, file sizes and checksums. A changed upstream formatting
+header therefore does not replace historical coordinates or silently change a case.
 
 ## Deployment and acceptance
 
