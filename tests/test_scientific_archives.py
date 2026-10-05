@@ -16,7 +16,11 @@ def link_archive(tmp_path, target="../../upstream-config", duplicate=False):
         bundle.writestr("release/native.py", "native source")
         bundle.writestr(link, target)
         if duplicate:
-            bundle.writestr(link, target)
+            second = zipfile.ZipInfo(link.filename)
+            second.create_system = 3
+            second.external_attr = link.external_attr
+            with pytest.warns(UserWarning, match="Duplicate name"):
+                bundle.writestr(second, target)
     return file
 
 
