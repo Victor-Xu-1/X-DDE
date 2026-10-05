@@ -66,3 +66,23 @@ jobs:
         env:
           WB_TEST_NATIVE_ADMET: '1'
         run: uv run --locked pytest -q server_tests/test_native_admet.py
+  native-physics-and-contacts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        program: [plip, apbs, openmm]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Real public structure through the changed native program and API
+        env:
+          WB_TEST_INTEGRATED_NATIVE_CPU: '1'
+          WB_SCIENTIFIC_PROGRAM: ${{ matrix.program }}
+        run: uv run --locked --with biopython==1.88 pytest -q server_tests/test_integrated_native_cpu.py
