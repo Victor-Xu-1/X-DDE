@@ -133,9 +133,7 @@ export function ResearchWorkspace({
     );
   return (
     <section className="research-workspace">
-      <h1 className="sr-only">
-        {zh ? "研究文件" : "Research files"}
-      </h1>
+      <h1 className="sr-only">{zh ? "研究文件" : "Research files"}</h1>
       <div className="editor-toolbar">
         <button onClick={() => void load()} disabled={busy}>
           {zh ? "刷新" : "Refresh"}
