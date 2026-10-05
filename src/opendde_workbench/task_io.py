@@ -75,6 +75,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .chemistry.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "molecule_minimize":
+        from .chemistry.minimization_result import validate_minimization
+
+        validate_minimization(result, job.request, output)
     if operation == "diffsbdd" and job.request.payload.mode == "inpaint":
         execution = directory / "execution.json"
         required = (

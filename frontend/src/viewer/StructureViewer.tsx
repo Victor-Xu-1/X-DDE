@@ -31,6 +31,9 @@ import type { DisplayResidue } from "./residue-region";
 import { researchError } from "../presentation/research-content";
 import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
+import { usePoseOptimization } from "./usePoseOptimization";
+import { poseSource } from "./pose-source";
+import { PoseOptimizationControls } from "./PoseOptimizationControls";
 interface Props {
   urls: string[];
   language: Language;
@@ -42,23 +45,53 @@ interface Props {
   selectionMode?: PickMode;
   highlightedAtoms?: number[];
   nativeScore?: NativePoseScore | null;
+  molecularSource?: { url: string; record?: number };
   onAtomSelected?(selection: SelectionInfo | null): void;
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewer({
-  urls,
+  urls: originalUrls,
   language,
   focusResidue,
   comparison = false,
   focusModel,
-  records,
+  records: originalRecords,
   residueRegion,
   selectionMode,
   highlightedAtoms,
-  nativeScore,
+  nativeScore: originalScore,
+  molecularSource,
   onAtomSelected,
   onSceneLoaded,
 }: Props) {
+  const poseIndex = molecularSource
+    ? originalUrls.indexOf(molecularSource.url)
+    : originalUrls.length === 1
+      ? 0
+      : -1;
+  const optimization = usePoseOptimization(
+    {
+      urls: originalUrls,
+      records: originalRecords,
+      score: originalScore,
+      source:
+        !comparison && poseIndex >= 0
+          ? poseSource(
+              originalUrls[poseIndex],
+              molecularSource?.record ?? originalRecords?.[poseIndex] ?? 0,
+            )
+          : null,
+      receptor:
+        !comparison &&
+        molecularSource &&
+        originalUrls.length === 2 &&
+        poseIndex === 1
+          ? poseSource(originalUrls[0], originalRecords?.[0] ?? 0)
+          : null,
+    },
+    poseIndex,
+  );
+  const { urls, records, score: nativeScore } = optimization.pose;
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
     key = urls.join("|") + ":" + (records?.join(",") ?? "");
@@ -193,12 +226,8 @@ export function StructureViewer({
           {urls.length > 0 && (
             <details className="viewer-original-downloads">
               <summary
-                aria-label={
-                  zh ? "下载原始结构文件" : "Download original structure files"
-                }
-                title={
-                  zh ? "下载原始结构文件" : "Download original structure files"
-                }
+                aria-label={zh ? "下载结构文件" : "Download structure files"}
+                title={zh ? "下载结构文件" : "Download structure files"}
               >
                 <DownloadOutlined />
               </summary>
@@ -214,7 +243,7 @@ export function StructureViewer({
                   })
                   .map((url, index) => (
                     <a key={url} href={url} download>
-                      {zh ? "原始结构 " : "Original structure "}
+                      {zh ? "结构 " : "Structure "}
                       {index + 1}
                     </a>
                   ))}
@@ -451,6 +480,17 @@ export function StructureViewer({
               onChange={configure}
             />
           )}
+          {!comparison &&
+            ((!overlay && !scene.hasPolymer) ||
+              (overlay &&
+                scene.hasInteractionContext &&
+                optimization.pose.receptor)) && (
+              <PoseOptimizationControls
+                state={optimization}
+                language={language}
+                disabled={!loaded}
+              />
+            )}
           {!overlay && (
             <ViewerControls
               language={language}

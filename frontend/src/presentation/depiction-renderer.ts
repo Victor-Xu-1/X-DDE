@@ -1,4 +1,5 @@
 import { editorReady, type Ketcher } from "../editors/scientificEditor";
+import { configureKetcherPreview } from "../editors/ketcher-appearance";
 import { molecularRecordText } from "./molecular-record";
 export type DepictionSource =
   { smiles: string } | { url: string; record?: number };
@@ -81,7 +82,11 @@ export class DepictionRenderer {
           throw new Error(
             "Install the Ketcher component to draw 2D structures.",
           );
-        return editorReady(this.frame, signal, 200);
+        const editor = await editorReady(this.frame, signal, 200);
+        // Ketcher's image service derives its native carbon/hydrogen label mode
+        // from these editor options, keeping images and the visible editor consistent.
+        configureKetcherPreview(editor);
+        return editor;
       })();
     return this.ready;
   }

@@ -41,6 +41,16 @@ export function MolecularPreview({
         focusModel={focusModel}
         comparison={false}
         nativeScore={nativeScore}
+        molecularSource={
+          source && "url" in source
+            ? source
+            : urls?.length === 1 || focusModel !== undefined
+              ? {
+                  url: urls?.[focusModel ?? 0] ?? "",
+                  record: records?.[focusModel ?? 0] ?? 0,
+                }
+              : undefined
+        }
       />
     ),
   };

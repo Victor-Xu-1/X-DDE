@@ -64,6 +64,11 @@ def test_native_kekule_drawings_and_identity():
             }""",
                 timeout=30000,
             )
+            assert (
+                page.evaluate("""() => document.querySelector('.drawing-service-frame')
+                .contentWindow.ketcher.editor.options().showHydrogenLabels""")
+                == "Hetero"
+            )
             for image in page.locator(".molecule-image img").all():
                 url = image.get_attribute("src")
                 assert url.startswith("data:image/svg+xml;base64,")
@@ -106,7 +111,8 @@ def test_native_kekule_drawings_and_identity():
                 """() => {
                 const k = document.querySelector('iframe[title="Ketcher molecular editor"]')
                     ?.contentWindow?.ketcher;
-                return k?.editor?.options()['dearomatize-on-load'] === true;
+                return k?.editor?.options()['dearomatize-on-load'] === true &&
+                    k.editor.options().showHydrogenLabels === 'Hetero';
             }""",
                 timeout=90000,
             )
@@ -141,6 +147,28 @@ def test_native_kekule_drawings_and_identity():
                 assert row["atoms"] >= 9 and 4 not in row["orders"]
                 assert row["orders"].count(2) >= 3
             assert identities[0]["after"] != identities[1]["after"]
+            labels = page.evaluate("""async () => {
+                const k = document.querySelector('iframe[title="Ketcher molecular editor"]')
+                    .contentWindow.ketcher;
+                await k.setMolecule('COc1ccccc1N');
+                await k.layout();
+                const mol = await k.getMolfile(), identity = await k.getInChIKey();
+                const settings = k.editor.options().showHydrogenLabels;
+                try {
+                    k.editor.setOptions(JSON.stringify({showHydrogenLabels:'Terminal and Hetero'}));
+                    const explicit = await k.generateImage(mol,{outputFormat:'svg'});
+                    k.editor.setOptions(JSON.stringify({showHydrogenLabels:'Hetero'}));
+                    const skeletal = await k.generateImage(mol,{outputFormat:'svg'});
+                    return {explicit:await explicit.text(),skeletal:await skeletal.text(),
+                        identityBefore:identity,identityAfter:await k.getInChIKey()};
+                } finally {k.editor.setOptions(JSON.stringify({showHydrogenLabels:settings}));}
+            }""")
+            explicit = ET.fromstring(labels["explicit"])
+            skeletal = ET.fromstring(labels["skeletal"])
+            glyph = ".//{http://www.w3.org/2000/svg}use"
+            assert len(explicit.findall(glyph)) > len(skeletal.findall(glyph)) >= 2
+            assert labels["identityBefore"] == labels["identityAfter"]
+            (evidence / "terminal-labels.json").write_text(json.dumps(labels, indent=2))
             assert not errors and not mutations, (errors, mutations)
             with sqlite3.connect(state) as db:
                 assert db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall() == before

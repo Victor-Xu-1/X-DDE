@@ -4,6 +4,7 @@ import json
 import sys
 from pathlib import Path
 
+from opendde_workbench.chemistry.minimization_result import validate_minimization
 from opendde_workbench.chemistry.result import validate_result
 from opendde_workbench.chemistry.screen_result import validate_screen
 from opendde_workbench.container_supervision import attach
@@ -22,6 +23,8 @@ def main():
         validate_screen(value, request, directory / "output")
     elif request.operation == "molecular_states":
         validate_result(value, request, directory / "output")
+    elif request.operation == "molecule_minimize":
+        validate_minimization(value, request, directory / "output")
     else:
         raise ValueError("Unsupported operation in the reviewed chemical supervisor.")
 

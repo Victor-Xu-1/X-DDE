@@ -1,0 +1,59 @@
+.pose-optimization {
+  border-top: 1px solid var(--border, #dce5e0);
+  padding: 12px 0 4px;
+  margin-top: 12px;
+}
+.pose-optimization-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pose-optimization-actions button,
+.pose-optimization-actions a {
+  min-height: 32px;
+  font-size: 12px;
+}
+.pose-version-label {
+  color: var(--muted, #5e7067);
+  font-size: 12px;
+}
+.pose-settings {
+  margin-left: auto;
+  font-size: 12px;
+}
+.pose-settings summary {
+  cursor: pointer;
+  color: var(--muted, #5e7067);
+}
+.pose-settings > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 10px 0;
+}
+.pose-settings label {
+  display: grid;
+  gap: 4px;
+}
+.pose-energy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: baseline;
+  font-size: 12px;
+  margin: 12px 0 0;
+  color: var(--muted, #5e7067);
+}
+.pose-energy strong {
+  color: var(--text, #1b3327);
+  font-variant-numeric: tabular-nums;
+}
+.pose-optimization-error {
+  color: #944237;
+  font-size: 12px;
+  margin-top: 10px;
+}
+.pose-optimization-error button {
+  margin-left: 8px;
+}

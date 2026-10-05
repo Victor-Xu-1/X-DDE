@@ -225,16 +225,19 @@ class AssetStore:
             from .chemistry.screen_bindings import screen_bindings
 
             return screen_bindings(request, self)
-        if getattr(request, "operation", None) == "molecular_states":
+        if getattr(request, "operation", None) in {"molecular_states", "molecule_minimize"}:
             ref = request.molecule
             asset = self.get(ref.asset_id)
             if (
                 asset.kind != "ligand"
-                or asset.suffix != ".sdf"
+                or asset.suffix
+                not in ({".sdf", ".mol"} if request.operation == "molecule_minimize" else {".sdf"})
                 or asset.sha256 != ref.sha256
                 or ref.conformer != 0
             ):
-                raise ValueError("State preparation requires an exact SDF record/version.")
+                raise ValueError(
+                    "Chemical optimization/preparation requires an exact SDF/MOL record/version."
+                )
             if ref.version_id:
                 from .research.storage import ScientificStore
 
@@ -367,6 +370,7 @@ class AssetStore:
                 "diffsbdd",
                 "docking",
                 "molecular_states",
+                "molecule_minimize",
                 "library_screen",
                 "pose_quality",
                 "admet_predict",

@@ -26,9 +26,7 @@ export function PoseResults({
       value.outcomes[initialIndex]?.poses.find((pose) => pose.reference)
         ?.evidence.record ?? null,
     ),
-    [next, setNext] = useState<"properties" | "score" | "minimize" | null>(
-      null,
-    ),
+    [next, setNext] = useState<"properties" | "score" | null>(null),
     [message, setMessage] = useState("");
   const outcome = value.outcomes[index],
     combination = outcome.combination;
@@ -221,13 +219,6 @@ export function PoseResults({
             >
               {zh ? "在配套受体上重新评分" : "Rescore with paired receptor"}
             </button>
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={() => setNext("minimize")}
-            >
-              {zh ? "在配套受体上局部最小化" : "Minimize with paired receptor"}
-            </button>
           </div>
           {next === "properties" && (
             <PropertyForm
@@ -238,7 +229,7 @@ export function PoseResults({
               onCreated={(j) => setMessage(j.id)}
             />
           )}
-          {(next === "score" || next === "minimize") && (
+          {next === "score" && (
             <DockingForm
               key={selected.reference.version_id + next}
               language={language}

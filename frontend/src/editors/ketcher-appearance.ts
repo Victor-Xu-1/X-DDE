@@ -8,6 +8,7 @@ export function configureKetcherPreview(editor: Ketcher) {
   editor.editor.setOptions(
     JSON.stringify({
       "dearomatize-on-load": true,
+      showHydrogenLabels: "Hetero",
       miewMode: "LN",
       miewAtomLabel: "no",
     }),

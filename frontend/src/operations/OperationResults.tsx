@@ -32,6 +32,7 @@ import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
+import { MinimizedPoseResults } from "../viewer/MinimizedPoseResults";
 import { HarnessResults } from "./HarnessResults";
 import { researchError } from "../presentation/research-content";
 
@@ -64,6 +65,7 @@ export function OperationResults({
     "docking",
     "diffsbdd",
     "molecular_states",
+    "molecule_minimize",
     "receptor_ensemble",
     "properties",
     "inspect",
@@ -249,6 +251,17 @@ export function OperationResults({
         <StateResults
           job={job}
           data={data as unknown as StateResult}
+          language={language}
+        />
+      )}
+      {job.request.operation === "molecule_minimize" && (
+        <MinimizedPoseResults
+          job={job}
+          data={
+            data as unknown as Parameters<
+              typeof MinimizedPoseResults
+            >[0]["data"]
+          }
           language={language}
         />
       )}

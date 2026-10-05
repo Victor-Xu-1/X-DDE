@@ -67,6 +67,7 @@ export type TaskRequest =
   | import("../discovery/reference-types").ReferenceImportTask
   | import("../discovery/types").TargetResearchTask
   | import("../chemistry/types").MolecularStatesTask
+  | import("../viewer/pose-types").MoleculeMinimizeTask
   | import("../receptors/types").ReceptorTask
   | FeatureTask
   | ConversionTask

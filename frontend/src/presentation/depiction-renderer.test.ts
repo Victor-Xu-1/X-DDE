@@ -7,6 +7,11 @@ afterEach(() => vi.unstubAllGlobals());
 function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
+    editor: {
+      setOptions: vi.fn((_options: string) => {
+        calls.push("style");
+      }),
+    },
     setMolecule: vi.fn(async () => {
       calls.push("load");
     }),
@@ -46,7 +51,19 @@ describe("Native aromatic depiction", () => {
     const source = Object.freeze({ smiles: "c1ccccc1" });
     try {
       await renderer.render(source, new AbortController().signal, 2.2);
-      expect(calls).toEqual(["load", "layout", "kekule", "read", "draw"]);
+      expect(calls).toEqual([
+        "style",
+        "load",
+        "layout",
+        "kekule",
+        "read",
+        "draw",
+      ]);
+      expect(
+        JSON.parse(editor.editor.setOptions.mock.calls[0][0]),
+      ).toMatchObject({
+        showHydrogenLabels: "Hetero",
+      });
       expect(editor.setMolecule).toHaveBeenCalledWith(source.smiles);
       expect(editor.generateImage).toHaveBeenCalledWith("native-kekule-mol", {
         outputFormat: "svg",

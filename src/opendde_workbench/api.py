@@ -168,7 +168,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         if request.url.path.startswith(("/assets/", "/tools/molstar/")):
             response.headers["Access-Control-Allow-Origin"] = "*"
         if request.url.path.startswith("/api") or request.url.path in {
-            "/", "/index.html", "/viewer.html", "/molecular.html", "/theme-init.js"
+            "/",
+            "/index.html",
+            "/viewer.html",
+            "/molecular.html",
+            "/theme-init.js",
         }:
             response.headers["Cache-Control"] = "no-store"
         return response
@@ -246,7 +250,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("biopython", {}))
-            elif value.operation in {"molecular_states", "library_screen"}:
+            elif value.operation in {"molecular_states", "library_screen", "molecule_minimize"}:
                 from .chemistry.runtime import validate
 
                 assets.validate_bindings(value)
@@ -518,6 +522,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     register_discovery(app, mutation)
     register_operations(app, store, assets, settings, mutation)
     register_research(app, store, assets, mutation)
+    from .research.pose_routes import register_pose_minimization
+
+    register_pose_minimization(app, store, assets, settings, mutation, enqueue)
     register_examples(app, store, assets, settings, mutation)
     register_sites(app, store, assets, settings, mutation)
     register_pose_explorations(app, store, assets, settings, mutation)

@@ -128,6 +128,10 @@ def register_operations(app, store, assets, settings, mutation):
                         "Prepared molecular state evidence is invalid or changed; "
                         "inspect the task files.",
                     ) from exc
+            if job.request.operation == "molecule_minimize":
+                from .chemistry.minimization_result import validate_minimization
+
+                validate_minimization(value, job.request, root / "output")
             if job.request.operation == "diffsbdd" and job.request.payload.mode == "inpaint":
                 try:
                     if not isinstance(value, dict):

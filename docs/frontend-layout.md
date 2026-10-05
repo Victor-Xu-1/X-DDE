@@ -67,6 +67,10 @@ never removed or redrawn to mimic chemistry. The integrated Ketcher editor also
 defaults to native dearomatization on load. Source records, original coordinates,
 stereochemistry, isotope/charge labels and retained salt fragments remain in the
 original assets; only an explicit editor save creates a new scientific version.
+The same Ketcher display policy uses heteroatom hydrogen labels: unmarked terminal
+carbons are skeletal endpoints, without CH3 labels. Heteroatom hydrogens, charges,
+isotopes and stereochemical marks remain available. Native SVG export uses the
+editor's actual label policy; text/glyph elements are never stripped from an image.
 
 Generated candidates are bound to the declared output digest, rather than an
 asset's editable filename or the first page of global assets. State results
@@ -163,3 +167,11 @@ Native candidate-set comparisons now pair numeric tables with selectable SVG bar
 Generated result previews are now derived from the declared original SDF records and byte digest, independently of optional research-version indexing. Native and qualified record counts must match the actual SDF before display. Reusable task handoffs still require a real immutable object matching the source job, output digest and record; missing historical index metadata never creates synthetic references.
 
 Feature preparation previews read the actual typed task components; converted input previews decode only the declared native JSON entities. CCD identifiers stay distinct from SMILES. Original conversion input structures are selected one at a time, preserving their independent coordinate frames.
+
+### 预览中的 pose 最小化
+
+小分子三维预览提供紧凑的“能量最小化”操作、收起的专家设置、保存状态、上一/下一 pose 和当前 SDF 下载。各模块共用同一预览控制，不再重复跳转到另一张最小化问卷。默认从当前 SDF/MOL 记录的已有三维坐标执行 RDKit MMFF94s；UFF 必须明确选择，不静默回退。程序只补齐隐式氢，不枚举化学状态、不重新嵌入构象。表格显示同一氢补全模型的前后能量、实际方法和收敛状态；分子内能量不作为结合亲和力。
+
+受体与配体同时显示且来源明确时，按钮为“受体内最小化”，沿用 GNINA 既有 typed adapter、坐标系确认和姿势合格检查；受体保持不动。点选说明解释坐标确认含义。比较视图、诊断姿势和缺少配体化学键的 PDB/CIF 不自动执行游离分子优化。分子准备中的单构象预览定位到原生验证后的构象集合确切记录；质控预览定位回原始输入，而非另造一份诊断资产。
+
+新增 pose 走原有队列、任务数据库、文件资产和 ScientificStore。成功输出自动登记为 `edited_from` 子版本，校验源 SHA、确切记录、方法、有限能量、原子映射、化学身份和立体化学；失败不覆盖或切换当前 pose。撤回只切换显示版本，不删除已保存版本。切换分子/页面中止旧页面轮询，不取消已提交的后台计算；同一次不确定提交使用原 idempotency key，避免重复任务。

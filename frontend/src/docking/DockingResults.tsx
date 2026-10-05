@@ -27,9 +27,7 @@ export function DockingResults({
   const [record, setRecord] = useState<number | null>(
       () => result.poses.find((p) => p.valid && p.artifact)?.record ?? null,
     ),
-    [next, setNext] = useState<"properties" | "score" | "minimize" | null>(
-      null,
-    ),
+    [next, setNext] = useState<"properties" | "score" | null>(null),
     [message, setMessage] = useState("");
   const selected = result.poses.find(
     (v) => v.record === record && v.valid && v.artifact,
@@ -137,26 +135,20 @@ export function DockingResults({
               </a>
               {version ? (
                 <div className="editor-toolbar">
-                  {(["properties", "score", "minimize"] as const).map(
-                    (v, n) => (
-                      <button
-                        className="secondary-button"
-                        type="button"
-                        key={v}
-                        onClick={() => setNext(v)}
-                      >
-                        {
-                          (zh
-                            ? ["计算性质", "重新评分", "局部最小化"]
-                            : [
-                                "Calculate properties",
-                                "Rescore",
-                                "Local minimization",
-                              ])[n]
-                        }
-                      </button>
-                    ),
-                  )}
+                  {(["properties", "score"] as const).map((v, n) => (
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      key={v}
+                      onClick={() => setNext(v)}
+                    >
+                      {
+                        (zh
+                          ? ["计算性质", "重新评分"]
+                          : ["Calculate properties", "Rescore"])[n]
+                      }
+                    </button>
+                  ))}
                 </div>
               ) : (
                 <button

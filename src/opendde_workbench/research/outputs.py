@@ -255,6 +255,9 @@ class OutputCatalog:
             }:
                 raise ValueError("Sequence artifact was not declared by the evidence report.")
         self.docking_output(job_id, file)
+        from .minimized_outputs import minimized_output
+
+        minimized = minimized_output(self.store, self.assets, job_id, file)
         core = self.core_output(job_id, file)
         states = self.state_output(job_id, file)
         receptors = receptor_result or self.receptor_output(job_id, file)
@@ -265,6 +268,12 @@ class OutputCatalog:
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
         content = file.read_bytes()
+        if (
+            minimized
+            and file.suffix.lower() == ".sdf"
+            and hashlib.sha256(content).hexdigest() != minimized.artifact_sha256
+        ):
+            raise ValueError("Optimized pose bytes changed before asset registration.")
         if (
             core
             and file.suffix.lower() == ".sdf"
@@ -307,6 +316,8 @@ class OutputCatalog:
         if not 1 <= records <= 500:
             raise ValueError("Split this SDF into files with one to 500 molecular records.")
         parent, relation = None, "derived_from"
+        if minimized and object_kind == "molecule":
+            parent, relation = minimized.source.version_id, "edited_from"
         job = self.store.get(str(job_id))
         if job and job.request.operation == "diffsbdd":
             payload = job.request.payload
@@ -352,6 +363,8 @@ class OutputCatalog:
                 relation = (
                     "prepared_from"
                     if file.name in {"input-ligand.sdf", "receptor.pdb"}
+                    else "edited_from"
+                    if job.request.mode == "minimize" and object_kind == "molecule"
                     else "derived_from"
                 )
         entries = []
@@ -374,7 +387,8 @@ class OutputCatalog:
             entries,
             source_job=job_id,
             validation="native_edited"
-            if humanization and object_kind == "sequence"
+            if (humanization and object_kind == "sequence")
+            or (minimized and object_kind == "molecule")
             else "file_integrity_only",
         )
         return asset, objects

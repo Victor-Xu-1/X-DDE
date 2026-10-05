@@ -69,7 +69,7 @@ _DEFINITIONS = (
         "RDKit + Dimorphite-DL",
         "化学状态、构象与早期分子库筛选 / Molecular states, conformers and early library selection",
         "docker",
-        ("molecular_states", "library_screen"),
+        ("molecular_states", "library_screen", "molecule_minimize"),
     ),
     ScientificEngine(
         "gnina",

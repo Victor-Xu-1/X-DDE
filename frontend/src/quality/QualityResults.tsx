@@ -42,10 +42,14 @@ export function QualityResults({
         · {zh ? "通过" : "Pass"} {counts.pass} / {result.checks.length}
       </p>
       <StructureViewer
-        urls={Object.keys(result.previews_sha256).map((name) =>
-          artifactUrl(job.id, name),
-        )}
+        urls={Object.keys(result.previews_sha256)
+          .sort((a, b) =>
+            a.endsWith(".pdb") ? -1 : b.endsWith(".pdb") ? 1 : 0,
+          )
+          .map((name) => artifactUrl(job.id, name))}
         language={language}
+        molecularSource={{ url: artifactUrl(job.id, "molecule-preview.sdf") }}
+        focusModel={result.inputs.protein ? 1 : 0}
       />
       <details open={counts.fail > 0 || counts.unavailable > 0}>
         <summary>

@@ -171,3 +171,16 @@ class ScientificStore:
                 raise ValueError("Selected scientific version no longer exists.") from exc
             if version.reference != ref:
                 raise ValueError("Scientific reference does not match the saved molecule version.")
+
+    def find_asset(self, asset_id, record, kind):
+        """Find the exact native record without guessing from a display filename."""
+        with self.store.connect() as db:
+            return self.decode(
+                db.execute(
+                    "SELECT * FROM scientific_objects WHERE asset_id=? "
+                    "AND json_extract(body, '$.reference.record')=? "
+                    "AND json_extract(body, '$.reference.conformer')=0 "
+                    "AND json_extract(body, '$.kind')=? ORDER BY created_at,id LIMIT 1",
+                    (str(asset_id), record, kind),
+                ).fetchone()
+            )

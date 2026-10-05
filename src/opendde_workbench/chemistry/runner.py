@@ -107,6 +107,10 @@ def main():
         result = run_screen(request, bindings, directory, output)
     elif request["operation"] == "molecular_states":
         result = run(request, bindings, directory, output)
+    elif request["operation"] == "molecule_minimize":
+        from native_minimization import run_minimization
+
+        result = run_minimization(request, bindings, directory, output)
     else:
         raise ValueError("Unsupported operation in the reviewed chemistry adapter.")
     file = output / "result.json.tmp"

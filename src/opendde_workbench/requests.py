@@ -17,6 +17,7 @@ from pydantic import (
 from .admet.contract import AdmetTask
 from .antibodies.contract import AntibodyNumberTask
 from .chemistry.contract import MolecularStatesTask
+from .chemistry.minimization_contract import MoleculeMinimizeTask
 from .chemistry.screen_contract import LibraryScreenTask
 from .diffsbdd.contract import DiffTask, references
 from .discovery.contract import TargetResearchTask
@@ -152,6 +153,7 @@ TaskRequest = Annotated[
     | Annotated[AntibodyNumberTask, Tag("antibody_number")]
     | Annotated[LibraryScreenTask, Tag("library_screen")]
     | Annotated[MolecularStatesTask, Tag("molecular_states")]
+    | Annotated[MoleculeMinimizeTask, Tag("molecule_minimize")]
     | Annotated[StructurePrepareTask, Tag("structure_prepare")]
     | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
     Discriminator(request_kind),
@@ -182,7 +184,7 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         return {str(request.library.asset_id)} | (
             {str(request.query.asset_id)} if request.query else set()
         )
-    if isinstance(request, MolecularStatesTask):
+    if isinstance(request, (MolecularStatesTask, MoleculeMinimizeTask)):
         return {str(request.molecule.asset_id)} | {
             str(ref.asset_id) for ref in request.scientific_inputs
         }

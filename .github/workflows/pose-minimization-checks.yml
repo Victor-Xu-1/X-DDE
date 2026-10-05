@@ -1,0 +1,54 @@
+name: Molecular pose minimization checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/chemistry/*minimization*.py'
+      - 'src/opendde_workbench/research/pose_*.py'
+      - 'src/opendde_workbench/research/minimized_outputs.py'
+      - 'frontend/src/viewer/*Pose*'
+      - 'frontend/src/viewer/pose-*'
+      - 'tests/test_pose_minimization.py'
+      - 'server_tests/*pose_minimization*'
+      - '.github/workflows/pose-minimization-checks.yml'
+permissions:
+  contents: read
+jobs:
+  native-poses:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build and focused pose/save/preview regressions
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          cd frontend
+          npx vitest run src/viewer/pose-source.test.ts src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/docking/DockingResults.test.tsx src/quality/QualityResults.test.tsx src/poses/PoseResults.test.tsx
+          cd ..
+          uv sync --locked --group dev --group browser
+          uv run --locked pytest -q tests/test_pose_minimization.py tests/test_chemistry_contract.py tests/test_engine_registry.py
+          PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py --check
+      - name: Native complex ligand force fields and receptor-bound GNINA through the shared queue
+        env:
+          WB_TEST_NATIVE_MINIMIZATION: '1'
+        run: uv run --locked pytest -q -s server_tests/test_native_pose_minimization.py
+      - name: Real browser save, undo, redo and exact SDF download
+        run: |
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+          uv run --locked --group browser pytest -q server_tests/test_pose_minimization_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pose-minimization-evidence
+          path: |
+            server_tests/evidence/pose-minimization/*.json
+            server_tests/evidence/pose-minimization/*.sdf
+            server_tests/evidence/pose-minimization/*.png
+            server_tests/evidence/pose-minimization/*.log
