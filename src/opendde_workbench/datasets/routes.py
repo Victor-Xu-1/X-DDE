@@ -125,3 +125,84 @@ def register(app, store, settings):
             ) from exc
         finally:
             database.close()
+
+    @app.get("/api/datasets/{job_id}/table")
+    def research_table(
+        job_id: UUID,
+        view: str = Query(pattern="^(enrichment|counts|series|followup)$"),
+        comparison: str = Query(default="", max_length=64),
+        limit: int = Query(default=30, ge=1, le=100),
+        offset: int = Query(default=0, ge=0, le=100000000),
+        search: str = Query(default="", max_length=120),
+        prioritized: bool = False,
+    ):
+        _, root, result, _ = completed(job_id)
+        file_and_role = {
+            "enrichment": ("analysis.sqlite", "del_comparison_evidence"),
+            "counts": ("counts.sqlite", "compound_count_matrix"),
+            "series": ("series.sqlite", "del_series_counts"),
+            "followup": ("followup.sqlite", "reported_followup_measurements"),
+        }[view]
+        file_name, role = file_and_role
+        if not any(item.name == file_name and item.role == role for item in result.artifacts):
+            raise HTTPException(
+                422, "This result has no verified table of the selected research type."
+            )
+        database = sqlite3.connect(
+            contained(root, file_name).as_uri() + "?mode=ro&immutable=1", uri=True
+        )
+        database.row_factory = sqlite3.Row
+        try:
+            database.execute("PRAGMA query_only=ON")
+            database.execute("PRAGMA trusted_schema=OFF")
+            deadline = time.monotonic() + 5
+            database.set_progress_handler(lambda: int(time.monotonic() > deadline), 10000)
+            values = []
+            pattern = (
+                "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+            )
+            if view == "enrichment":
+                if comparison not in {
+                    row[0] for row in database.execute("SELECT id FROM comparisons")
+                }:
+                    raise HTTPException(422, "Choose an actually computed enrichment comparison.")
+                query = (
+                    "SELECT e.*,m.smiles,m.cycles,m.ordinal FROM enrichment e "
+                    "JOIN members m ON m.id=e.member WHERE e.comparison=?"
+                )
+                values = [comparison]
+                if search:
+                    query += " AND e.member LIKE ? ESCAPE '\\'"
+                    values.append(pattern)
+                if prioritized:
+                    query += " AND e.prioritizable=1"
+                query += " ORDER BY e.score DESC,e.member"
+                total = result.counts["observed_members"]
+            elif view == "counts":
+                query = "SELECT c.*,m.cycles,m.smiles FROM counts c JOIN members m ON m.id=c.member"
+                if search:
+                    query += " WHERE c.member LIKE ? ESCAPE '\\'"
+                    values.append(pattern)
+                query += " ORDER BY c.raw DESC,c.member,c.sample"
+                total = result.counts["member_sample_pairs"]
+            elif view == "series":
+                query = "SELECT * FROM series ORDER BY score DESC,kind,block_a,block_b"
+                total = result.counts["series"]
+            else:
+                query = "SELECT * FROM measurements ORDER BY record"
+                total = result.counts["reported"]
+            rows = database.execute(
+                query + " LIMIT ? OFFSET ?", (*values, limit + 1, offset)
+            ).fetchall()
+            return {
+                "rows": [dict(row) for row in rows[:limit]],
+                "offset": offset,
+                "total": total,
+                "has_more": len(rows) > limit,
+            }
+        except sqlite3.Error as exc:
+            raise HTTPException(
+                422, "This research query exceeds its budget or its table is invalid."
+            ) from exc
+        finally:
+            database.close()

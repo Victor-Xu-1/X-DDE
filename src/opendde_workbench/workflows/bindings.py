@@ -4,6 +4,7 @@ import json
 
 from ..artifacts import contained
 from ..requests import TASK_ADAPTER
+from .data_bindings import resolve_data
 
 
 def resolve(step, latest, store, outputs, settings):
@@ -40,5 +41,6 @@ def resolve(step, latest, store, outputs, settings):
             body["protein"] = ref
         else:
             body["payload"][binding.target] = ref
+    body = resolve_data(step, latest, store, settings, body)
     # Contract validation rejects stale pocket/fixed-atom references and incompatible formats.
     return TASK_ADAPTER.validate_python(body)

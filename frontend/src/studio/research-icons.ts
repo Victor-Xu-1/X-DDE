@@ -12,6 +12,8 @@ export const researchIcons = {
   targets: AimOutlined,
   structures: ApartmentOutlined,
   binding: PartitionOutlined,
+  screening: BarChartOutlined,
+  del: DeploymentUnitOutlined,
   molecules: ExperimentOutlined,
   biologics: DeploymentUnitOutlined,
   evaluation: BarChartOutlined,

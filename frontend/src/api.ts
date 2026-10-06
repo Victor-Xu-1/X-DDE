@@ -29,6 +29,12 @@ export async function request<T>(
   return payload as T;
 }
 export const api = {
+  async authorized<T>(path: string, init: RequestInit): Promise<T> {
+    await api.initialize();
+    const headers = new Headers(init.headers);
+    headers.set("X-Workbench-CSRF", csrf);
+    return request<T>(path, { ...init, headers });
+  },
   async post<T>(
     path: string,
     body: unknown,

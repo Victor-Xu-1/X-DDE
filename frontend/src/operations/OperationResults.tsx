@@ -37,6 +37,9 @@ import { HarnessResults } from "./HarnessResults";
 import { researchError } from "../presentation/research-content";
 import { ScientificResults } from "../integrations/ScientificResults";
 import type { NativeResult } from "../integrations/types";
+import { DatasetResults } from "../datasets/DatasetResults";
+import { datasetOperations, type DatasetResult } from "../datasets/types";
+import "../datasets/datasets.css";
 
 export { ResultTree } from "./StructuredResults";
 
@@ -55,6 +58,7 @@ export function OperationResults({
   const [data, setData] = useState<OperationResult | null>(null),
     [error, setError] = useState("");
   const supported = [
+    ...datasetOperations,
     "boltz_predict",
     "reinvent_design",
     "ligandmpnn_design",
@@ -111,6 +115,19 @@ export function OperationResults({
     );
   if (!data)
     return <p role="status">{zh ? "正在读取结果…" : "Loading results…"}</p>;
+  if (
+    datasetOperations.includes(
+      job.request.operation as (typeof datasetOperations)[number],
+    )
+  )
+    return (
+      <DatasetResults
+        job={job}
+        result={data as unknown as DatasetResult}
+        language={language}
+        onCreated={onCreated}
+      />
+    );
   if (
     [
       "boltz_predict",

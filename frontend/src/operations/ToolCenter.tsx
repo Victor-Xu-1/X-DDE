@@ -38,6 +38,8 @@ import type { DockingMode } from "../docking/types";
 import type { DiffMode } from "../diffsbdd/types";
 import { ScientificForm } from "../integrations/ScientificForm";
 import { isScientificForm } from "../integrations/types";
+import { DatasetForm } from "../datasets/DatasetForm";
+import { isDatasetTool } from "../datasets/dataset-model";
 
 export function ToolCenter({
   language,
@@ -120,7 +122,13 @@ export function ToolCenter({
                 example?.module.capability_id === current.id ? example : null
               }
             >
-              {isScientificForm(selected) ? (
+              {selected && isDatasetTool(selected) ? (
+                <DatasetForm
+                  tool={selected}
+                  language={language}
+                  onCreated={onCreated}
+                />
+              ) : isScientificForm(selected) ? (
                 <ScientificForm
                   form={selected}
                   language={language}

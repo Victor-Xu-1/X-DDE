@@ -18,7 +18,7 @@ FORMATS = {
 }
 
 
-def asset_bindings(request, assets):
+def asset_bindings(request, assets, *, deferred_sources=()):
     bound = {}
     for item in request.inputs:
         file = assets.get(item.source.asset_id)
@@ -35,7 +35,11 @@ def asset_bindings(request, assets):
 
             ScientificStore(assets.store, assets).validate_reference(item.source)
         bound[file.id] = file
-    for source in request.sources:
+    for position, source in enumerate(request.sources):
+        if position in deferred_sources:
+            if source.report_sha256 != "0" * 64:
+                raise ValueError("Only explicitly unresolved planned source slots may be deferred.")
+            continue
         _, _, result = resolve_source(assets.store, assets.root.parent, source)
         required = {
             "library": "compound_library",

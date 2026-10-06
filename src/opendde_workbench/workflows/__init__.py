@@ -40,7 +40,16 @@ def register_workflows(app, store, assets, worker, preflight, settings, mutation
         # Planning checks file/version bindings without starting scientific programs.
         def create():
             for step in value.steps:
-                assets.validate_bindings(step.request)
+                if step.data_bindings:
+                    from ..datasets.bindings import asset_bindings
+
+                    asset_bindings(
+                        step.request,
+                        assets,
+                        deferred_sources={binding.slot for binding in step.data_bindings},
+                    )
+                else:
+                    assets.validate_bindings(step.request)
             return records.save_plan(value, idempotency_key)
 
         return translated(create)

@@ -1,8 +1,15 @@
 import type { Component, Parameters, Prediction } from "../types";
 
 export type AssetKind =
-  "structure" | "ligand" | "msa" | "template" | "config" | "sequences"
-  | "library" | "counts" | "reads";
+  | "structure"
+  | "ligand"
+  | "msa"
+  | "template"
+  | "config"
+  | "sequences"
+  | "library"
+  | "counts"
+  | "reads";
 export interface Asset {
   id: string;
   name: string;
@@ -58,6 +65,7 @@ export interface HarnessTask extends BaseTask {
   allow_external: boolean;
 }
 export type TaskRequest =
+  | import("../datasets/types").DatasetTask
   | import("../integrations/types").ScientificTask
   | Prediction
   | import("../humanization/types").HumanizationTask

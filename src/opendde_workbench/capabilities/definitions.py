@@ -6,6 +6,7 @@ Native task routing still belongs to engine_registry and BackendRouter.
 
 from types import MappingProxyType
 
+from ..datasets.capabilities import CAPABILITIES as _DATASETS
 from ..engine_registry import engine_for
 from ..harness_contract import TOOLS
 from ..integrations.capabilities import CAPABILITIES as _INTEGRATED
@@ -456,6 +457,7 @@ _REFERENCE_IMPORT = (
 )
 _ITEMS = (
     _INTEGRATED
+    + _DATASETS
     + _HUMANIZATION
     + _ADMET
     + _POSE_QUALITY

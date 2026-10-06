@@ -5,6 +5,7 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from ..requests import TaskRequest
+from .data_bindings import DataBinding, validate_graph
 
 
 class Binding(BaseModel):
@@ -44,8 +45,16 @@ class Step(BaseModel):
     request: TaskRequest
     depends_on: tuple[str, ...] = Field(default=(), max_length=30)
     bindings: tuple[Binding, ...] = Field(default=(), max_length=20)
+    data_bindings: tuple[DataBinding, ...] = Field(default=(), max_length=35)
     retries: int = Field(default=0, ge=0, le=2)
     retry_backoff_seconds: int = Field(default=5, ge=1, le=300)
+
+    @model_serializer(mode="wrap")
+    def preserve_existing_plan_wire(self, handler):
+        data = handler(self)
+        if not self.data_bindings:
+            data.pop("data_bindings", None)
+        return data
 
 
 class Budget(BaseModel):
@@ -72,7 +81,7 @@ class PlanInput(BaseModel):
     @model_validator(mode="after")
     def valid_graph(self) -> Self:
         if self.failure_policy == "continue_independent" and any(
-            step.depends_on or step.bindings for step in self.steps
+            step.depends_on or step.bindings or step.data_bindings for step in self.steps
         ):
             raise ValueError("Continuing after failure is supported only for independent steps.")
         identifiers = {step.id for step in self.steps}
@@ -91,6 +100,9 @@ class PlanInput(BaseModel):
                 raise ValueError("Output bindings must come from explicitly declared dependencies.")
             if len({binding.target for binding in step.bindings}) != len(step.bindings):
                 raise ValueError("A workflow input slot can have only one binding.")
+            validate_graph(
+                step, {previous.id: previous for previous in self.steps if previous.id in resolved}
+            )
             for binding in step.bindings:
                 predecessor = next(s for s in self.steps if s.id == binding.from_step)
                 if predecessor.request.operation == "molecular_states" and binding.target not in {

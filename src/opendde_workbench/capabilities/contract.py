@@ -42,6 +42,8 @@ class CapabilitySpec(BaseModel):
         "apbs",
         "chemprop",
         "plip",
+        "drugclip",
+        "deli",
     ]
     operations: tuple[str, ...]
     label: tuple[str, str]

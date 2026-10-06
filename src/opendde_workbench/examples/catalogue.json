@@ -370,6 +370,45 @@
           "chembl_id": "CHEMBL944276"
         }
       }
+    },
+    {
+      "id": "drugclip-public-library",
+      "revision": 1,
+      "label": [
+        "BRD4 口袋与公开药物库",
+        "BRD4 pocket and public drug library"
+      ],
+      "description": [
+        "使用 PDB 3MXF、JQ1 和 ChEMBL 的真实复杂分子演示库准备、六折检索和候选对接。这是操作案例，不是靶点活性基准。",
+        "Public PDB 3MXF/JQ1 and complex ChEMBL molecules demonstrate library preparation, six-fold retrieval and docking. This is a workflow case, not a target-activity benchmark."
+      ],
+      "files": [
+        "brd4",
+        "jq1",
+        "egfr_library"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/3MXF",
+        "https://www.ebi.ac.uk/chembl/",
+        "https://github.com/THU-ATOM/Drug-The-Whole-Genome"
+      ]
+    },
+    {
+      "id": "del-unc006-brd4",
+      "revision": 1,
+      "label": [
+        "UNCDEL006 · BRD4 公开研究",
+        "UNCDEL006 · public BRD4 selection"
+      ],
+      "description": [
+        "使用 DELi 官方公开库定义、原始测序数据及 BRD4 计数表。保留公开样本的实际对照类型，不把富集当作 KD。",
+        "Official DELi library definition, reads and BRD4 count data, retaining actual reference types. Sequencing enrichment is not KD."
+      ],
+      "files": [],
+      "sources": [
+        "https://github.com/Popov-Lab-UNC/DELi/tree/edeb06ca8ffe6a158c1231c4014e569e04a9b83b/examples",
+        "https://doi.org/10.1186/s13321-026-01296-1"
+      ]
     }
   ],
   "modules": {
@@ -694,6 +733,90 @@
     "plip.profile": {
       "case_id": "brd4-jq1",
       "capability_id": "plip.profile",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "library.import": {
+      "case_id": "drugclip-public-library",
+      "capability_id": "library.import",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "library.select": {
+      "case_id": "drugclip-public-library",
+      "capability_id": "library.select",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "drugclip.index": {
+      "case_id": "drugclip-public-library",
+      "capability_id": "drugclip.index",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "drugclip.screen": {
+      "case_id": "drugclip-public-library",
+      "capability_id": "drugclip.screen",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "screening.dock": {
+      "case_id": "drugclip-public-library",
+      "capability_id": "screening.dock",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.library": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.library",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.enumerate": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.enumerate",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.decode": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.decode",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.count": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.count",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.analyze": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.analyze",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.series": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.series",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.model": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.model",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.candidates": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.candidates",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "del.followup": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.followup",
       "revision": 1,
       "pinned_run_required": true
     }

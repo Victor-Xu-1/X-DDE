@@ -4,6 +4,8 @@ export type ModuleId =
   | "targets"
   | "structures"
   | "binding"
+  | "screening"
+  | "del"
   | "molecules"
   | "biologics"
   | "evaluation";
@@ -102,6 +104,46 @@ export const researchModules: readonly ResearchModule[] = [
       "diffsbdd.diversify",
       "diffsbdd.optimize",
       "diffsbdd.export",
+    ],
+  },
+  {
+    id: "screening",
+    label: ["高通量筛选", "High-throughput screening"],
+    short: ["筛选", "Screening"],
+    purpose: [
+      "分子库、快速检索与候选批量对接",
+      "Compound libraries, fast retrieval and shortlisted docking",
+    ],
+    defaultTool: "drugclip.screen",
+    recommended: ["drugclip.screen", "screening.dock", "library.import"],
+    tools: [
+      "drugclip.screen",
+      "screening.dock",
+      "library.import",
+      "drugclip.index",
+      "library.select",
+    ],
+  },
+  {
+    id: "del",
+    label: ["DEL 研究", "DEL research"],
+    short: ["DEL", "DEL"],
+    purpose: [
+      "从测序计数到富集、系列和候选交接",
+      "From sequence counts to enrichment, series and candidate handoff",
+    ],
+    defaultTool: "del.analyze",
+    recommended: ["del.analyze", "del.decode", "del.library"],
+    tools: [
+      "del.analyze",
+      "del.decode",
+      "del.library",
+      "del.count",
+      "del.enumerate",
+      "del.series",
+      "del.candidates",
+      "del.model",
+      "del.followup",
     ],
   },
   {

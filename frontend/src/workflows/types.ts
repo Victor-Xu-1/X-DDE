@@ -17,6 +17,13 @@ export interface WorkflowStep {
       | "state_artifact"
       | "conformer_artifact";
   }[];
+  data_bindings?: {
+    from_step: string;
+    slot: number;
+    role: import("../datasets/types").DatasetSource["role"];
+    select_candidates?: boolean;
+    select_samples?: boolean;
+  }[];
 }
 export interface WorkflowPlanInput {
   name: string;

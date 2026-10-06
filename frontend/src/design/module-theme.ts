@@ -16,6 +16,8 @@ const moduleThemes: Record<ModuleId, ModuleTheme> = {
   targets: "targets",
   structures: "structures",
   binding: "docking",
+  screening: "docking",
+  del: "research",
   molecules: "molecules",
   biologics: "biologics",
   evaluation: "properties",

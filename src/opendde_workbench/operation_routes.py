@@ -18,6 +18,9 @@ def register_operations(app, store, assets, settings, mutation):
 
     register_scientific_routes(app, store, settings)
     register_dataset_routes(app, store, settings)
+    from .datasets.input_preview import register as register_dataset_preview
+
+    register_dataset_preview(app, assets)
     output_catalog = OutputCatalog(store, assets)
 
     def completed(job_id):

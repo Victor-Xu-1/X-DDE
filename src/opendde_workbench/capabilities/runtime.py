@@ -129,6 +129,8 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
         "apbs",
         "chemprop",
         "plip",
+        "drugclip",
+        "deli",
     }:
         checks = {"runtime": bool(backends.get(spec.environment, {}).get("ready"))}
         specific.extend(
