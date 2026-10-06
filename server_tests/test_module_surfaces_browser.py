@@ -74,7 +74,9 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         assert len(names) == len(set(names)) == VISIBLE_TASKS
         for name in names:
             catalog(page)
-            page.get_by_role("button", name=name, exact=True).click()
+            page.get_by_role("button", name=name, exact=True).and_(
+                page.locator(".tool-card")
+            ).click()
             theme = page.locator("main").get_attribute("data-module-theme")
             assert theme in {
                 "targets",
