@@ -23,6 +23,7 @@ FILES = (
     "native_chemprop.py",
     "native_validation.py",
     "native_plip.py",
+    "plip_coordinates.py",
     "recipes.json",
 )
 

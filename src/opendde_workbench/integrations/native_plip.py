@@ -5,19 +5,7 @@ from importlib.metadata import version
 
 from native_io import copy_artifact, csv_file, finish, metric
 from native_structure import input_pdb
-
-
-def atom_coordinates(file):
-    points = {}
-    for line in file.read_text().splitlines():
-        if line.startswith(("ATOM  ", "HETATM")):
-            serial = int(line[6:11])
-            if serial in points:
-                raise ValueError(
-                    "Choose one structural model with unique original atom identities."
-                )
-            points[serial] = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
-    return points
+from plip_coordinates import SourceCoordinates
 
 
 def edge(kind, item, protein, ligand):
@@ -38,12 +26,12 @@ def run(request):
     from plip.structure.preparation import PDBComplex
 
     source, _ = input_pdb(request)
-    original = atom_coordinates(source)
+    payload = request["payload"]
+    original = SourceCoordinates(source, payload["ligand_chain"], payload["ligand_number"])
     complex_ = PDBComplex()
     complex_.output_path = "/output/native"
     complex_.load_pdb(str(source))
     complex_.analyze()
-    payload = request["payload"]
     selected = [
         value
         for ligand, value in complex_.interaction_sets.items()
@@ -56,14 +44,28 @@ def run(request):
     for item in profile.hydrophobic_contacts:
         interactions.append(
             edge(
-                "hydrophobic", item, original[item.bsatom_orig_idx], original[item.ligatom_orig_idx]
+                "hydrophobic",
+                item,
+                original.atom(
+                    item.bsatom, protein=(str(item.reschain), int(item.resnr), str(item.restype))
+                ),
+                original.atom(item.ligatom, ligand=True),
             )
         )
     for values, protein_donor in ((profile.hbonds_pdon, True), (profile.hbonds_ldon, False)):
         for item in values:
-            protein = item.d_orig_idx if protein_donor else item.a_orig_idx
-            ligand = item.a_orig_idx if protein_donor else item.d_orig_idx
-            interactions.append(edge("hydrogen_bond", item, original[protein], original[ligand]))
+            protein = item.d if protein_donor else item.a
+            ligand = item.a if protein_donor else item.d
+            interactions.append(
+                edge(
+                    "hydrogen_bond",
+                    item,
+                    original.atom(
+                        protein, protein=(str(item.reschain), int(item.resnr), str(item.restype))
+                    ),
+                    original.atom(ligand, ligand=True),
+                )
+            )
     for item in profile.pistacking:
         interactions.append(edge("pi_stack", item, item.proteinring.center, item.ligandring.center))
     for values, positive in ((profile.saltbridge_pneg, False), (profile.saltbridge_lneg, True)):
@@ -77,13 +79,13 @@ def run(request):
         interactions.append(edge("pi_cation", item, item.ring.center, item.charge.center))
     for item in profile.halogen_bonds:
         interactions.append(
-            edge("halogen_bond", item, original[item.acc_orig_idx], original[item.don_orig_idx])
+            edge("halogen_bond", item, original.atom(item.acc), original.atom(item.don))
         )
     for item in profile.water_bridges:
-        protein = item.d_orig_idx if item.protisdon else item.a_orig_idx
-        ligand = item.a_orig_idx if item.protisdon else item.d_orig_idx
-        row = edge("water_bridge", item, original[protein], original[ligand])
-        row["bridge_position"] = original[item.water_orig_idx]
+        protein = item.d if item.protisdon else item.a
+        ligand = item.a if item.protisdon else item.d
+        row = edge("water_bridge", item, original.atom(protein), original.atom(ligand))
+        row["bridge_position"] = original.atom(item.water)
         interactions.append(row)
     for item in profile.metal_complexes:
         if "protein" in item.location:
@@ -91,8 +93,8 @@ def run(request):
                 edge(
                     "metal_complex",
                     item,
-                    original[item.target_orig_idx],
-                    original[item.metal_orig_idx],
+                    original.atom(item.target),
+                    original.atom(item.metal),
                 )
             )
     structure = copy_artifact(source, "interaction-structure.pdb")
