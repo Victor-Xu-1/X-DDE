@@ -14,6 +14,7 @@ RESULT_KINDS = {
     "library_subset": "screening",
     "drugclip_index": "index",
     "drugclip_retrieve": "screening",
+    "screening_dock": "screening",
     "del_validate": "definition",
     "del_enumerate": "library",
     "del_decode": "decoded",
@@ -45,6 +46,9 @@ class DataCandidate(BaseModel):
     smiles: str = Field(default="", max_length=20000)
     score: float | None = None
     raw_score: float | None = None
+    docking_score: float | None = None
+    cnn_score: float | None = None
+    cnn_affinity: float | None = None
     artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     record: int = Field(default=0, ge=0, le=499)
     geometry: Literal["none", "unbound_conformer", "binding_pose"] = "none"

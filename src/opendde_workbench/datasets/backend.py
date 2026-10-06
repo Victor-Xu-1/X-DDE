@@ -32,6 +32,7 @@ FILES = (
     "native_del_model.py",
     "native_del_candidates.py",
     "native_del_followup.py",
+    "native_docking.py",
 )
 
 
@@ -50,6 +51,9 @@ class DatasetBackend(PreparedContainerBackend):
                 "recipes.json": Path(__file__).parent.parent / "integrations/recipes.json",
                 "native_resources.py": Path(__file__).parent.parent
                 / "integrations/native_resources.py",
+                "docking_chemistry.py": Path(__file__).parent.parent / "docking/chemistry.py",
+                "docking_options.py": Path(__file__).parent.parent / "docking/options.py",
+                "docking_manifest.py": Path(__file__).parent.parent / "docking/manifest.py",
             },
         )
 
@@ -62,6 +66,10 @@ class DatasetBackend(PreparedContainerBackend):
     def image_for(self, job, directory):
         if job.request.payload.kind == "chemistry":
             from ..chemistry.runtime import configuration
+
+            return configuration(self.settings)
+        elif job.request.payload.kind == "gnina":
+            from ..docking.runtime import configuration
 
             return configuration(self.settings)
         else:

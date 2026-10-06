@@ -104,9 +104,7 @@ def prepare_counts(request):
     columns = ",".join(f"c{index} INTEGER NOT NULL" for index in range(len(samples)))
     database.execute(
         "CREATE TABLE members (ordinal INTEGER PRIMARY KEY,id TEXT NOT NULL UNIQUE,"
-        "library TEXT,cycles TEXT,smiles TEXT,"
-        + columns
-        + ")"
+        "library TEXT,cycles TEXT,smiles TEXT," + columns + ")"
     )
     placeholders = ",".join("?" for _ in range(5 + len(samples)))
     totals, observed = [0] * len(samples), 0

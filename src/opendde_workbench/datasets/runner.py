@@ -13,6 +13,10 @@ def main():
         from native_library import run
 
         run(request)
+    elif request["payload"]["kind"] == "gnina":
+        from native_docking import run
+
+        run(request)
     elif request["payload"]["kind"] == "drugclip":
         from platformnative_io import verify_models
 

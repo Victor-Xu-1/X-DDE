@@ -9,6 +9,7 @@ from ..integrations.options import ExecutionOptions
 from ..scientific_objects import MoleculeRef
 from ..task_metadata import TaskMetadata
 from .del_options import DELOptions
+from .docking_options import BatchDockingOptions
 from .drugclip_options import DrugCLIPOptions
 from .library_options import LibraryOptions
 
@@ -17,6 +18,7 @@ OPERATIONS = {
     "library_subset": ("chemistry", "subset"),
     "drugclip_index": ("drugclip", "index"),
     "drugclip_retrieve": ("drugclip", "retrieve"),
+    "screening_dock": ("gnina", "batch"),
     **{
         "del_" + mode: ("deli", mode)
         for mode in (
@@ -50,7 +52,9 @@ class NativeSource(BaseModel):
     ]
 
 
-Payload = Annotated[LibraryOptions | DrugCLIPOptions | DELOptions, Field(discriminator="kind")]
+Payload = Annotated[
+    LibraryOptions | DrugCLIPOptions | DELOptions | BatchDockingOptions, Field(discriminator="kind")
+]
 
 
 class DatasetTask(TaskMetadata):
@@ -60,6 +64,7 @@ class DatasetTask(TaskMetadata):
         "library_subset",
         "drugclip_index",
         "drugclip_retrieve",
+        "screening_dock",
         "del_validate",
         "del_enumerate",
         "del_decode",
@@ -95,7 +100,25 @@ class DatasetTask(TaskMetadata):
         ):
             raise ValueError("Whole datasets and structures use original record/conformer zero.")
         roles = [item.role for item in self.inputs]
-        if self.payload.kind == "deli":
+        if self.payload.kind == "gnina":
+            if [item.role for item in self.sources] != ["screening"]:
+                raise ValueError("Choose one completed source-linked molecular candidate set.")
+            expected = [self.payload.receptor]
+            if self.payload.search.kind == "reference_ligand":
+                expected.append(self.payload.search.reference)
+            if [item.source for item in self.inputs] != expected or roles != (
+                ["structure", "ligand"] if len(expected) == 2 else ["structure"]
+            ):
+                raise ValueError("Confirm the exact receptor and optional reference-ligand roles.")
+            if (
+                self.payload.docking.use_gpu != (self.options.device == "cuda")
+                or self.payload.docking.cpu > self.options.cpu
+                or self.payload.docking.memory_mib > self.options.memory_mib
+            ):
+                raise ValueError(
+                    "Match native GNINA GPU, CPU and memory choices to the container budget."
+                )
+        elif self.payload.kind == "deli":
             from .del_contract import validate_task
 
             validate_task(self)

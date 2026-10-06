@@ -86,7 +86,7 @@ _DEFINITIONS = (
         "GNINA",
         "受体内的分子对接、姿势评分与局部最小化 / Docking, pose scoring and minimization",
         "docker",
-        ("docking",),
+        ("docking", "screening_dock"),
     ),
     ScientificEngine(
         "p2rank",

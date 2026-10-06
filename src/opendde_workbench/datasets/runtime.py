@@ -10,3 +10,11 @@ def validate(request, state):
         raise ValueError("The selected official DrugCLIP weights permit noncommercial research.")
     if request.options.device == "cuda" and state.get("gpu") is False:
         raise ValueError("This scientific environment does not support the selected GPU mode.")
+    if (
+        request.payload.kind == "gnina"
+        and request.payload.docking.use_gpu
+        and not state.get("gpu_runtime")
+    ):
+        raise RuntimeError(
+            "Configure the selected server's NVIDIA container runtime before GPU docking."
+        )

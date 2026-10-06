@@ -1,18 +1,32 @@
 """Large inputs never consume output budgets, and cancellation can interrupt preparation."""
 
 import asyncio
+import hashlib
 from dataclasses import replace
 from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
 
+from opendde_workbench.asset_uploads import UploadInput, UploadStore
+from opendde_workbench.assets import AssetStore
 from opendde_workbench.datasets.contract import DatasetTask
 from opendde_workbench.models import Status
 from opendde_workbench.prediction import Prediction
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from opendde_workbench.worker import Worker
+
+
+def registered_library(store, root):
+    assets = AssetStore(store, root / "assets")
+    content = b"SMILES,ID\nCC(=O)Oc1ccccc1C(=O)O,aspirin\n"
+    uploads = UploadStore(assets, 1024**2, 2 * 1024**2, 0)
+    key = uuid4()
+    uploads.create(UploadInput(name="drugs.csv", kind="library", size=len(content)), key)
+    uploads.append(key, 0, content, hashlib.sha256(content).hexdigest())
+    asset = uploads.finalize(key)
+    return {"asset_id": asset.id, "sha256": asset.sha256}
 
 
 @pytest.mark.parametrize(
@@ -26,7 +40,7 @@ def test_output_budget_preserves_large_dataset_inputs_and_legacy_limits(
 
     settings = replace(Settings.from_env(), state_dir=tmp_path)
     store = Store(tmp_path / "jobs.sqlite3")
-    ref = {"asset_id": str(uuid4()), "sha256": "a" * 64}
+    ref = registered_library(store, tmp_path)
     task = (
         DatasetTask(
             operation="library_prepare",
@@ -37,7 +51,7 @@ def test_output_budget_preserves_large_dataset_inputs_and_legacy_limits(
             output_bytes=1024**3,
         )
         if dataset
-        else Prediction(name="Legacy task", components=[{"kind": "protein", "sequence": "AAAA"}])
+        else Prediction(name="Legacy task", components=[{"kind": "protein", "value": "AAAA"}])
     )
     job = store.create(task, str(uuid4()), 10, 100)
     job = store.claim(job.id)
@@ -98,7 +112,7 @@ def test_cancellation_during_verified_source_preparation_does_not_start_native_c
 
     settings = replace(Settings.from_env(), state_dir=tmp_path)
     store = Store(tmp_path / "jobs.sqlite3")
-    ref = {"asset_id": str(uuid4()), "sha256": "a" * 64}
+    ref = registered_library(store, tmp_path)
     request = DatasetTask(
         operation="library_prepare",
         name="Cancel preparation",
