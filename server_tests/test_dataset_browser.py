@@ -173,6 +173,33 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 page.screenshot(
                     path=str(destination / f"{capability}-in-module.png"), full_page=True
                 )
+            page.goto("http://127.0.0.1:4320/", wait_until="networkidle")
+            card = page.locator('button[data-capability="library.import"]')
+            card.wait_for(state="attached")
+            if not card.is_visible():
+                card.locator("xpath=ancestor::details[1]").locator("summary").click()
+            card.click()
+            page.get_by_role("button", name="公开结构库", exact=True).click()
+            from playwright.sync_api import expect
+
+            choices = page.get_by_role("combobox", name="选择供应商结构文件", exact=True)
+            expect(choices.locator("option")).to_have_count(12)
+            choices.select_option("bionet-complete-2026-08")
+            expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
+            expect(page.get_by_role("button", name="下载公开结构文件", exact=True)).to_be_visible()
+            assert not page.locator("main").evaluate(
+                "e => document.documentElement.scrollWidth > innerWidth + 1"
+            )
+            page.screenshot(
+                path=str(destination / "public-supplier-files-desktop.png"), full_page=True
+            )
+            page.set_viewport_size({"width": 390, "height": 900})
+            assert not page.locator("main").evaluate(
+                "e => document.documentElement.scrollWidth > innerWidth + 1"
+            )
+            page.screenshot(
+                path=str(destination / "public-supplier-files-mobile.png"), full_page=True
+            )
             assert not failures, failures
             browser.close()
     finally:
