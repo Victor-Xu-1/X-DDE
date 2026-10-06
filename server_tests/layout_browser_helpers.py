@@ -3,6 +3,7 @@
 import json
 
 from playwright.sync_api import expect
+
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 
 VISIBLE_TASKS = sum(
