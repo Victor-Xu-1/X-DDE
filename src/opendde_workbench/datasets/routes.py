@@ -9,6 +9,7 @@ from uuid import UUID
 from fastapi import HTTPException, Query
 
 from ..artifacts import contained
+from ..examples.labels import job_labels
 from .bindings import SOURCE_ARTIFACT
 from .contract import OPERATIONS, DatasetTask
 from .result import RESULT_KINDS, validate_result
@@ -47,6 +48,7 @@ def register(app, store, settings):
         return {
             "job_id": job.id,
             "name": job.request.name,
+            "label": job_labels(store).get(job.id),
             "operation": job.request.operation,
             "report_sha256": digest,
             "role": result.data_kind,
@@ -73,6 +75,7 @@ def register(app, store, settings):
         }:
             raise HTTPException(422, "Choose a supported research data role.")
         values = []
+        labels = job_labels(store)
         # Filter the existing task authority before limiting; unrelated tasks cannot hide libraries.
         pattern = "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         operations = tuple(
@@ -82,6 +85,14 @@ def register(app, store, settings):
             and (role != "analysis" or operation == "del_analyze")
         )
         with store.connect() as database:
+            matching_examples = tuple(
+                identifier
+                for identifier, names in labels.items()
+                if search and any(search.casefold() in name.casefold() for name in names)
+            )
+            search_clause = "json_extract(request,'$.name') LIKE ? ESCAPE '\\'"
+            if matching_examples:
+                search_clause += " OR id IN (" + ",".join("?" for _ in matching_examples) + ")"
             jobs = [
                 store.decode(row)
                 for row in database.execute(
@@ -89,9 +100,9 @@ def register(app, store, settings):
                     "json_extract(request,'$.operation') IN ("
                     + ",".join("?" for _ in operations)
                     + ") "
-                    "AND json_extract(request,'$.name') LIKE ? ESCAPE '\\' "
+                    "AND (" + search_clause + ") "
                     "ORDER BY created_at DESC LIMIT ? OFFSET ?",
-                    (*operations, pattern, limit, offset),
+                    (*operations, pattern, *matching_examples, limit, offset),
                 )
             ]
         for job in jobs:
@@ -107,6 +118,7 @@ def register(app, store, settings):
                         {
                             "job_id": job.id,
                             "name": job.request.name,
+                            "label": labels.get(job.id),
                             "operation": job.request.operation,
                             "report_sha256": digest,
                             "role": result.data_kind,

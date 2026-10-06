@@ -15,6 +15,7 @@ import { useDatasetRun, type DatasetExecution } from "./useDatasetRun";
 import { ExecutionView } from "./ExecutionView";
 import { useTablePreview } from "./useTablePreview";
 import type { AvailableDataset } from "./types";
+import { datasetName } from "./source-label";
 
 export function LibraryForm({
   tool,
@@ -319,7 +320,10 @@ export function LibraryForm({
                 <div className="dataset-review-strip">
                   <div>
                     <span>{zh ? "研究材料" : "Materials"}</span>
-                    <strong>{asset?.name ?? source[0]?.name}</strong>
+                    <strong>
+                      {asset?.name ??
+                        (source[0] ? datasetName(source[0], language) : "")}
+                    </strong>
                   </div>
                   {!importing && !indexing && (
                     <div>

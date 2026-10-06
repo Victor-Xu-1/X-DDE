@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
 import type { Language } from "../types";
 import type { AvailableDataset, DatasetSource } from "./types";
+import { datasetName } from "./source-label";
 
 export function SourcePicker({
   language,
@@ -48,7 +49,9 @@ export function SourcePicker({
   }, [role, search]);
   const selected = new Set(values.map((item) => item.job_id)),
     filtered = items.filter((item) =>
-      item.name.toLowerCase().includes(search.toLowerCase()),
+      [item.name, datasetName(item, language)].some((name) =>
+        name.toLowerCase().includes(search.toLowerCase()),
+      ),
     );
   function toggle(item: AvailableDataset) {
     onChange(
@@ -103,7 +106,7 @@ export function SourcePicker({
               {selected.has(item.job_id) ? "✓" : "▦"}
             </span>
             <span>
-              <strong>{item.name}</strong>
+              <strong>{datasetName(item, language)}</strong>
               <small>
                 {(
                   item.counts.indexed ??

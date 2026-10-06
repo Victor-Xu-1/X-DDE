@@ -129,6 +129,7 @@ export interface DatasetResult {
 }
 export interface AvailableDataset extends DatasetSource {
   name: string;
+  label?: [string, string] | null;
   counts: Record<string, number>;
   metadata: Record<string, unknown>;
 }

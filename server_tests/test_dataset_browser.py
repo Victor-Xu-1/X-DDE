@@ -130,6 +130,13 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 form.wait_for()
                 for step in range(4):
                     assert form.locator("fieldset:visible").count() == 1
+                    if capability == "drugclip.screen" and step == 1:
+                        form.get_by_role("searchbox", name="搜索研究文件", exact=True).fill("BRD4")
+                        from playwright.sync_api import expect
+
+                        expect(form.locator(".dataset-source-list button").first).to_contain_text(
+                            "BRD4"
+                        )
                     assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
                     page.screenshot(
                         path=str(destination / f"{capability}-step{step + 1}.png"), full_page=True
