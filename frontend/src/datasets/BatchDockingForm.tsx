@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { BatchSettings, defaultBatchSettings } from "./BatchSettings";
 import { request } from "../api";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -38,7 +39,16 @@ export function BatchDockingForm({
     [device, setDevice] = useState<"cpu" | "cuda">("cpu"),
     [name, setName] = useState(""),
     [error, setError] = useState("");
+  const [settings, setSettings] = useState({ ...defaultBatchSettings }),
+    intent = useRef(0);
+  useEffect(
+    () => () => {
+      intent.current++;
+    },
+    [],
+  );
   async function choose(values: AvailableDataset[]) {
+    const current = ++intent.current;
     setSource(values);
     setCandidates([]);
     setSelected([]);
@@ -49,19 +59,30 @@ export function BatchDockingForm({
         `/jobs/${values[0].job_id}/result`,
       );
       const rows = result.candidates.filter((row) => row.artifact);
+      if (current !== intent.current) return;
       setCandidates(rows);
       setSelected(rows.slice(0, 25).map((row) => row.id));
     } catch (e) {
-      setError(String(e));
+      if (current === intent.current) setError(String(e));
     }
   }
-  const example = useDatasetExample(setError);
+  const example = useDatasetExample(setError, language);
   useEffect(() => {
     if (!example) return;
     void choose(example.sources).then(() =>
       setSelected((example.task.payload.selected_ids as string[]) ?? []),
     );
     setName(example.task.name);
+    setSettings(
+      (old) =>
+        Object.fromEntries(
+          Object.entries(old).map(([key, value]) => [
+            key,
+            (example.task.payload.docking as Record<string, unknown>)?.[key] ??
+              value,
+          ]),
+        ) as typeof old,
+    );
   }, [example]);
   function toggle(id: string) {
     setSelected((values) =>
@@ -86,8 +107,7 @@ export function BatchDockingForm({
             use_gpu: device === "cuda",
             cpu: 2,
             memory_mib: 8192,
-            exhaustiveness: 8,
-            num_modes: 3,
+            ...settings,
             cnn_scoring: device === "cuda" ? "rescore" : "none",
           },
         },
@@ -226,9 +246,14 @@ export function BatchDockingForm({
                   </div>
                   <div>
                     <span>{zh ? "每个分子的姿势" : "Poses per molecule"}</span>
-                    <strong>3</strong>
+                    <strong>{settings.num_modes}</strong>
                   </div>
                 </div>
+                <BatchSettings
+                  language={language}
+                  value={settings}
+                  onChange={setSettings}
+                />
                 <label className="field">
                   {zh ? "任务名称" : "Task name"}
                   <input

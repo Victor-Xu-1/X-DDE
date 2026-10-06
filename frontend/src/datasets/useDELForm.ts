@@ -69,7 +69,7 @@ export function useDELForm({
     mode === "followup" ||
     (mode === "analyze" && inputKind === "new");
   const [templateError, setTemplateError] = useState("");
-  const example = useDatasetExample(setTemplateError);
+  const example = useDatasetExample(setTemplateError, language);
   useEffect(() => {
     if (!example) return;
     const { task, assets, sources } = example,

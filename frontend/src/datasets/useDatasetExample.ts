@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { request } from "../api";
 import { useExample } from "../examples/context";
 import type { Asset } from "../operations/types";
+import type { Language } from "../types";
+import { datasetTools } from "./catalog";
 import {
   datasetOperations,
   type AvailableDataset,
@@ -13,7 +15,10 @@ export interface DataExample {
   assets: Map<string, Asset>;
   sources: AvailableDataset[];
 }
-export function useDatasetExample(onError?: (message: string) => void) {
+export function useDatasetExample(
+  onError?: (message: string) => void,
+  language: Language = "zh",
+) {
   const prepared = useExample(),
     [example, setExample] = useState<DataExample | null>(null);
   useEffect(() => {
@@ -24,6 +29,13 @@ export function useDatasetExample(onError?: (message: string) => void) {
       !datasetOperations.includes(task.operation as DatasetTask["operation"])
     )
       return;
+    const definition = datasetTools.find(
+      (item) => item.operation === task.operation,
+    );
+    const title =
+      prepared.case.label[language === "zh" ? 0 : 1] +
+      " · " +
+      (definition?.label[language === "zh" ? 0 : 1] ?? "");
     const c = new AbortController(),
       value = task as DatasetTask;
     void Promise.all([
@@ -45,7 +57,7 @@ export function useDatasetExample(onError?: (message: string) => void) {
       .then(([assets, sources]) => {
         if (!c.signal.aborted)
           setExample({
-            task: value,
+            task: { ...value, name: title.slice(0, 80) },
             assets: new Map(assets.map((asset) => [asset.id, asset])),
             sources,
           });

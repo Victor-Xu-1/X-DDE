@@ -40,7 +40,7 @@ export function LibraryForm({
     [device, setDevice] = useState<"cpu" | "cuda">("cpu");
   const [templateError, setTemplateError] = useState("");
   const { preview, error } = useTablePreview(importing ? asset : null);
-  const example = useDatasetExample(setTemplateError);
+  const example = useDatasetExample(setTemplateError, language);
   useEffect(() => {
     if (!example) return;
     const { task, assets, sources } = example;

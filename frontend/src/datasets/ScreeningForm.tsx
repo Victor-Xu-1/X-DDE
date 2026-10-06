@@ -47,6 +47,9 @@ export function ScreeningForm({
     [profile, setProfile] = useState<"quick" | "focused" | "broad">("quick"),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu"),
     [name, setName] = useState("");
+  const [score, setScore] = useState<"fold_zscore" | "mean_cosine">(
+    "fold_zscore",
+  );
   const [shortlist, setShortlist] = useState<ShortlistSettings>({
     shortlist: "ranked",
     candidate_policy: "all",
@@ -57,7 +60,7 @@ export function ScreeningForm({
     chemistry = useTaskReadiness("library.import");
   const { preview, error } = useTablePreview(source === "new" ? library : null);
   const [templateError, setTemplateError] = useState("");
-  const example = useDatasetExample(setTemplateError);
+  const example = useDatasetExample(setTemplateError, language);
   useEffect(() => {
     if (!example) return;
     setSource("indexes");
@@ -68,6 +71,11 @@ export function ScreeningForm({
         "highest_occupancy",
     );
     setRadius(Number(example.task.payload.pocket_radius ?? 6));
+    setScore(
+      example.task.payload.score === "mean_cosine"
+        ? "mean_cosine"
+        : "fold_zscore",
+    );
   }, [example]);
   useEffect(() => {
     if (!preview?.columns.length) return;
@@ -112,6 +120,7 @@ export function ScreeningForm({
         },
         expert: {
           ...shortlist,
+          score,
           pocket_radius: radius,
           batch_size: batch,
           alternate_locations: altloc,
@@ -318,6 +327,26 @@ export function ScreeningForm({
                 <details className="dataset-expert">
                   <summary>{zh ? "专家微调" : "Expert settings"}</summary>
                   <div className="dataset-field-grid">
+                    <label className="field">
+                      {zh ? "检索评分方法" : "Retrieval scoring"}
+                      <select
+                        value={score}
+                        onChange={(e) =>
+                          setScore(e.target.value as typeof score)
+                        }
+                      >
+                        <option value="fold_zscore">
+                          {zh
+                            ? "六折标准化分数 · 大库推荐"
+                            : "Six-fold normalized score · large libraries"}
+                        </option>
+                        <option value="mean_cosine">
+                          {zh
+                            ? "六折平均相似度 · 小库可用"
+                            : "Mean six-fold similarity · supports small libraries"}
+                        </option>
+                      </select>
+                    </label>
                     <label className="field">
                       {zh ? "蛋白的替代构象" : "Alternate protein conformers"}
                       <select
