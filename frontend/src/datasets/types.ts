@@ -80,7 +80,16 @@ export interface DatasetArtifact {
   name: string;
   sha256: string;
   size: number;
-  format: "sqlite" | "hdf5" | "csv" | "json" | "sdf" | "ndjson" | "model";
+  format:
+    | "sqlite"
+    | "hdf5"
+    | "csv"
+    | "json"
+    | "sdf"
+    | "pdb"
+    | "cif"
+    | "ndjson"
+    | "model";
   role: string;
 }
 export interface DatasetCandidate {

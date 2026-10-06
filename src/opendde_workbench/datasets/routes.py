@@ -37,6 +37,10 @@ def register(app, store, settings):
             raise HTTPException(422, "Scientific data changed or failed verification.") from exc
         return job, root, result, hashlib.sha256(content).hexdigest()
 
+    from .exploration_routes import register as register_exploration
+
+    register_exploration(app, completed)
+
     @app.get("/api/datasets/results")
     def results(
         role: str = Query(default="", max_length=20),
@@ -135,19 +139,20 @@ def register(app, store, settings):
             }[order]
             rows = database.execute(
                 "SELECT c.id,c.smiles,c.mw,c.logp,c.tpsa,c.qed,c.hbd,c.hba,c.rotatable, "
-                "c.source_record,c.supplier,(SELECT COUNT(*) FROM records r "
+                "c.source_record,c.supplier,(SELECT supplier_id FROM records r WHERE "
+                "r.record=c.source_record) display_name,(SELECT COUNT(*) FROM records r "
                 "WHERE r.compound_id=c.id) offers FROM compounds c "
                 + clause
                 + " ORDER BY "
                 + sort
                 + ",c.id LIMIT ? OFFSET ?",
-                (*parameters, limit, offset),
+                (*parameters, limit + 1, offset),
             ).fetchall()
             return {
-                "rows": [dict(row) for row in rows],
+                "rows": [dict(row) for row in rows[:limit]],
                 "offset": offset,
                 "total": result.counts["unique_compounds"],
-                "has_more": len(rows) == limit,
+                "has_more": len(rows) > limit,
             }
         except sqlite3.Error as exc:
             raise HTTPException(

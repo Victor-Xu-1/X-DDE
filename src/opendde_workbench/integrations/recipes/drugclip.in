@@ -16,3 +16,7 @@ pandas>=2.2,<3
 einops>=0.8,<1
 setuptools>=80,<82
 wheel>=0.45,<1
+ipython>=8.30,<10
+pyarrow>=19,<23
+selfies==2.2.0
+zstandard>=0.24,<1

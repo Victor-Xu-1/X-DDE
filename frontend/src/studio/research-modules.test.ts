@@ -15,7 +15,7 @@ it("covers every existing visible scientific capability exactly once without mer
       .sort(),
     assigned = researchModules.flatMap((module) => module.tools).sort();
   expect(assigned).toEqual(registered);
-  expect(new Set(assigned).size).toBe(53);
+  expect(new Set(assigned).size).toBe(registered.length);
   for (const module of researchModules) {
     expect(module.recommended).toContain(module.defaultTool);
     for (const tool of module.recommended) expect(module.tools).toContain(tool);
@@ -23,8 +23,8 @@ it("covers every existing visible scientific capability exactly once without mer
       expect(moduleForTool(tool)?.id).toBe(module.id);
   }
 });
-it("uses nine primary entries, three settings destinations and one active parent for every task", () => {
-  expect(navigationItems).toHaveLength(9);
+it("keeps the two data research entries and one active parent for every task", () => {
+  expect(navigationItems).toHaveLength(11);
   expect(managementItems).toHaveLength(3);
   for (const tool of filterCapabilities("all")) {
     const view = viewForTool(tool.id);
@@ -42,4 +42,6 @@ it("promotes complete workflows while preserving complementary methods", () => {
   expect(moduleForTool("chemistry.states")?.id).toBe("molecules");
   expect(moduleForTool("biopython.ensemble")?.id).toBe("structures");
   expect(moduleForTool("regions")?.id).toBe("binding");
+  expect(moduleForTool("drugclip.screen")?.id).toBe("screening");
+  expect(moduleForTool("del.analyze")?.id).toBe("del");
 });

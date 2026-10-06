@@ -136,6 +136,8 @@ def finish(request, version, data_kind, artifacts, **values):
         ".csv": "csv",
         ".json": "json",
         ".sdf": "sdf",
+        ".pdb": "pdb",
+        ".cif": "cif",
         ".ndjson": "ndjson",
         ".pkl": "model",
     }

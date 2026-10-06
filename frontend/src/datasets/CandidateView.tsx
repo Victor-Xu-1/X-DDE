@@ -93,7 +93,7 @@ export function CandidateView({
                         className="dataset-row-title"
                         onClick={() => setSelected(page * 15 + index)}
                       >
-                        {row.id}
+                        {row.display_name || row.id}
                       </button>
                       <small>{row.supplier}</small>
                     </td>
@@ -129,7 +129,7 @@ export function CandidateView({
       </section>
       <section className="dataset-preview-pane">
         <div className="dataset-panel-title">
-          <strong>{candidate?.id}</strong>
+          <strong>{candidate?.display_name || candidate?.id}</strong>
           <span>
             {candidate?.geometry === "binding_pose"
               ? zh
@@ -179,8 +179,11 @@ export function CandidateView({
         )}
         <div className="dataset-preview-footer">
           {molecular && (
-            <a className="secondary-button" href={molecular}>
-              {zh ? "下载结构文件" : "Download structure file"}
+            <a
+              className="secondary-button"
+              href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
+            >
+              {zh ? "下载当前结构" : "Download selected structure"}
             </a>
           )}
           <Hint label={zh ? "预览说明" : "Preview help"}>

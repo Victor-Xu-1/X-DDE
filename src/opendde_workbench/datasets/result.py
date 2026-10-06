@@ -32,7 +32,7 @@ class DataArtifact(BaseModel):
     name: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     size: int = Field(gt=0, le=50 * 1024**3)
-    format: Literal["sqlite", "hdf5", "csv", "json", "sdf", "ndjson", "model"]
+    format: Literal["sqlite", "hdf5", "csv", "json", "sdf", "pdb", "cif", "ndjson", "model"]
     role: str = Field(min_length=1, max_length=40)
 
 

@@ -223,7 +223,11 @@ export function ResearchTable({
                             onSelect?.(row);
                           }}
                         >
-                          {format(row[key])}
+                          {format(
+                            key === "id"
+                              ? row.display_name || row.id
+                              : row[key],
+                          )}
                         </button>
                       ) : (
                         format(row[key])

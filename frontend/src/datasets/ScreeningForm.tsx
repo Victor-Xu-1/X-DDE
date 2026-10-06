@@ -284,18 +284,42 @@ export function ScreeningForm({
                 </label>
                 <details className="dataset-expert">
                   <summary>{zh ? "专家微调" : "Expert settings"}</summary>
-                  <label className="field">
-                    {zh ? "计算设备" : "Compute device"}
-                    <select
-                      value={device}
-                      onChange={(e) =>
-                        setDevice(e.target.value as "cpu" | "cuda")
-                      }
-                    >
-                      <option value="cpu">CPU</option>
-                      <option value="cuda">GPU · CUDA</option>
-                    </select>
-                  </label>
+                  <div className="dataset-field-grid">
+                    <label className="field">
+                      {zh ? "计算设备" : "Compute device"}
+                      <select
+                        value={device}
+                        onChange={(e) =>
+                          setDevice(e.target.value as "cpu" | "cuda")
+                        }
+                      >
+                        <option value="cpu">CPU</option>
+                        <option value="cuda">GPU · CUDA</option>
+                      </select>
+                    </label>
+                    <label className="field">
+                      {zh ? "口袋范围（Å）" : "Pocket radius (Å)"}
+                      <select
+                        value={radius}
+                        onChange={(e) => setRadius(Number(e.target.value))}
+                      >
+                        {[4, 5, 6, 8, 10].map((value) => (
+                          <option key={value}>{value}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="field">
+                      {zh ? "每批最多编码分子" : "Maximum molecules per batch"}
+                      <select
+                        value={batch}
+                        onChange={(e) => setBatch(Number(e.target.value))}
+                      >
+                        {[1, 4, 16, 32, 64].map((value) => (
+                          <option key={value}>{value}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
                 </details>
                 <p className="dataset-license-note">
                   {zh

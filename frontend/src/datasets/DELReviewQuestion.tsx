@@ -12,6 +12,7 @@ export function DELReviewQuestion({ model }: { model: DELFormState }) {
     mode,
     samples,
     comparisons,
+    readLanes,
   } = model;
   return (
     <div className="dataset-question-content">
@@ -28,7 +29,9 @@ export function DELReviewQuestion({ model }: { model: DELFormState }) {
         <div>
           <span>{zh ? "研究材料" : "Study material"}</span>
           <strong>
-            {asset?.name ?? source[0]?.name ?? definitions[0]?.name}
+            {mode === "decode"
+              ? `${readLanes.length} ${zh ? "组测序文件" : "read groups"}`
+              : (asset?.name ?? source[0]?.name ?? definitions[0]?.name)}
           </strong>
         </div>
         {mode === "analyze" && (
