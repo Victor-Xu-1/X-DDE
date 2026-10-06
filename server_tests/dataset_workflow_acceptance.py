@@ -123,7 +123,12 @@ def run_screening_chain(campaign, raw, materials, pocket):
         if run["state"] in {"succeeded", "failed", "blocked", "cancelled"}:
             break
         time.sleep(0.3)
-    assert run["state"] == "succeeded", run
+    diagnostics = {
+        item["step_id"]: campaign.client.get(f"/api/jobs/{item['job_id']}/logs").json()
+        for item in run["attempts"]
+        if item["status"] != "succeeded"
+    }
+    assert run["state"] == "succeeded", {"run": run, "native_diagnostics": diagnostics}
     assert len(run["attempts"]) == 4 and all(
         item["status"] == "succeeded" for item in run["attempts"]
     )

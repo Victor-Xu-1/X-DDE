@@ -103,7 +103,7 @@ jobs:
           path: |
             server_tests/evidence/datasets
             /tmp/pytest-of-runner/pytest-*/**/install.log
-            /tmp/pytest-of-runner/pytest-*/**/jobs/*/console.log
+            /tmp/pytest-of-runner/pytest-*/**/jobs/*/run.log
           if-no-files-found: ignore
           retention-days: 7
   browser:
