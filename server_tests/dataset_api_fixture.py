@@ -57,12 +57,38 @@ class Campaign:
         self.client.__exit__(*args)
 
     def material(self, raw, name, kind, role, label=""):
-        response = self.client.post(
-            f"/api/assets?kind={kind}&name={name}",
-            content=raw,
-            headers={"Content-Type": "application/octet-stream"},
-        )
-        assert response.status_code == 201, response.text
+        if kind in {"library", "counts", "reads"}:
+            key = str(uuid4())
+            response = self.client.post(
+                "/api/assets/uploads",
+                json={
+                    "kind": kind,
+                    "name": name,
+                    "size": len(raw),
+                },
+                headers={"Idempotency-Key": key},
+            )
+            assert response.status_code == 201, response.text
+            for offset in range(0, len(raw), 4 * 1024**2):
+                chunk = raw[offset : offset + 4 * 1024**2]
+                response = self.client.put(
+                    f"/api/assets/uploads/{key}?offset={offset}",
+                    content=chunk,
+                    headers={
+                        "X-Chunk-SHA256": hashlib.sha256(chunk).hexdigest(),
+                        "Content-Type": "application/octet-stream",
+                    },
+                )
+                assert response.status_code == 200, response.text
+            response = self.client.post(f"/api/assets/uploads/{key}/complete")
+        else:
+            response = self.client.post(
+                "/api/assets",
+                params={"kind": kind, "name": name},
+                content=raw,
+                headers={"Content-Type": "application/octet-stream"},
+            )
+        assert response.status_code in {200, 201}, response.text
         asset = response.json()
         return {
             "role": role,

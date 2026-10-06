@@ -97,6 +97,16 @@ const definitions: GroupDefinition[] = [
     matches: (p) => ["diffsbdd", "reinvent"].includes(p.engine ?? ""),
   },
   {
+    id: "large-libraries",
+    title: ["高通量筛选与 DEL", "High-throughput screening & DEL"],
+    recommendation: [
+      "DrugCLIP 六折模型用于非商业研究；DELi 负责解码、计数与富集分析",
+      "Six-fold DrugCLIP for noncommercial research; DELi for decoding, counts and enrichment",
+    ],
+    recommended: ["drugclip", "drugclip-models", "deli"],
+    matches: (p) => ["drugclip", "deli"].includes(p.engine ?? ""),
+  },
+  {
     id: "biologics",
     title: ["抗体与生物药", "Antibodies & biologics"],
     recommendation: [

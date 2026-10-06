@@ -1,11 +1,8 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
-import { AssetPicker } from "../operations/AssetPicker";
-import { DatasetPicker } from "./DatasetPicker";
 import { SourcePicker } from "./SourcePicker";
-import { ResearchTable } from "./ResearchTable";
-import { DELSampleDesign } from "./DELSampleDesign";
 import type { DELFormState } from "./useDELForm";
+import { DELExpertSettings } from "./DELExpertSettings";
 
 export function DELMethodQuestion({ model }: { model: DELFormState }) {
   const {
@@ -28,6 +25,10 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
     definitions,
     setDefinitions,
     language,
+    attachmentPolicy,
+    setAttachmentPolicy,
+    expert,
+    setExpert,
   } = model;
   return (
     <div className="dataset-question-content">
@@ -151,16 +152,53 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
         </div>
       )}
       {mode === "candidates" && (
-        <SourcePicker
-          role="definition"
-          values={definitions}
-          onChange={setDefinitions}
+        <>
+          <ChoiceCards<"retain" | "cap_hydrogen">
+            label={
+              zh
+                ? "DNA 连接位置如何处理？"
+                : "How should the DNA attachment be handled?"
+            }
+            value={attachmentPolicy}
+            onChange={setAttachmentPolicy}
+            options={[
+              {
+                value: "retain",
+                title: zh ? "保留原始结构" : "Retain supplied chemistry",
+                note: zh
+                  ? "含连接标记的成员需要先确认结构才能生成三维构象"
+                  : "Review attachment markers before 3D generation",
+              },
+              {
+                value: "cap_hydrogen",
+                title: zh
+                  ? "去除连接标记，以氢封端"
+                  : "Cap terminal attachment with hydrogen",
+                note: zh
+                  ? "生成用于后续计算的衍生结构，原始结构仍保留"
+                  : "Prepare a derived calculation structure; retain the original",
+              },
+            ]}
+          />
+          <SourcePicker
+            role="definition"
+            values={definitions}
+            onChange={setDefinitions}
+            language={language}
+            label={
+              zh
+                ? "缺少结构时，可提供匹配的库定义"
+                : "Matching definition, if chemical structures are unresolved"
+            }
+          />
+        </>
+      )}
+      {["enumerate", "decode", "count", "series", "model"].includes(mode) && (
+        <DELExpertSettings
+          mode={mode}
           language={language}
-          label={
-            zh
-              ? "缺少结构时，可提供匹配的库定义"
-              : "Matching definition, if chemical structures are unresolved"
-          }
+          value={expert}
+          onChange={setExpert}
         />
       )}
       <Hint label={zh ? "方法说明" : "Method help"}>

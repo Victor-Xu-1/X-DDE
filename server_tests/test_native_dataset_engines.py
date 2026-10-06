@@ -249,7 +249,13 @@ def test_deli_real_definition_reads_counts_analysis_series_and_candidates(tmp_pa
         db.close()
         _, resolved, _ = campaign.task(
             "del_candidates",
-            {"kind": "deli", "mode": "candidates", "library": "DEL006", "selected_ids": [member]},
+            {
+                "kind": "deli",
+                "mode": "candidates",
+                "library": "DEL006",
+                "selected_ids": [member],
+                "attachment_policy": "cap_hydrogen",
+            },
             sources=[analysis, defined],
         )
         assert (
@@ -259,4 +265,17 @@ def test_deli_real_definition_reads_counts_analysis_series_and_candidates(tmp_pa
         assert resolved["candidates"], (
             "The public member must resolve through its actual chemical rules"
         )
+        _, modeled, _ = campaign.task(
+            "del_model",
+            {
+                "kind": "deli",
+                "mode": "model",
+                "chosen_comparison": "BRD4_vs_reference",
+                "holdout_cycle": 2,
+                "trees": 50,
+                "max_training_members": 1000,
+            },
+            sources=[analysis],
+        )
+        assert modeled["counts"]["training"] >= 50 and modeled["counts"]["heldout"] >= 20
         campaign.receipt("deli")

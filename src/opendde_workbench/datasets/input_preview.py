@@ -28,7 +28,9 @@ def register(app, assets):
                         if not line:
                             return
                         remaining -= len(line.encode("utf-8"))
-                        if not line.endswith(("\n", "\r")) and remaining <= 0:
+                        if not line.endswith(("\n", "\r")) and (
+                            remaining <= 0 or len(line) >= 65536
+                        ):
                             raise ValueError("A preview row exceeds the supported text budget.")
                         yield line
 

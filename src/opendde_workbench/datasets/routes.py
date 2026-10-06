@@ -9,8 +9,9 @@ from uuid import UUID
 from fastapi import HTTPException, Query
 
 from ..artifacts import contained
-from .contract import DatasetTask
-from .result import validate_result
+from .bindings import SOURCE_ARTIFACT
+from .contract import OPERATIONS, DatasetTask
+from .result import RESULT_KINDS, validate_result
 from .suppliers import catalogue
 
 
@@ -37,7 +38,12 @@ def register(app, store, settings):
         return job, root, result, hashlib.sha256(content).hexdigest()
 
     @app.get("/api/datasets/results")
-    def results(role: str = Query(default="", max_length=20)):
+    def results(
+        role: str = Query(default="", max_length=20),
+        search: str = Query(default="", max_length=120),
+        offset: int = Query(default=0, ge=0, le=100000000),
+        limit: int = Query(default=100, ge=1, le=200),
+    ):
         if role and role not in {
             "library",
             "index",
@@ -50,15 +56,39 @@ def register(app, store, settings):
         }:
             raise HTTPException(422, "Choose a supported research data role.")
         values = []
-        # The bounded task store is the only catalogue; no parallel file/version database.
-        for job in store.list_jobs(limit=100):
+        # Filter the existing task authority before limiting; unrelated tasks cannot hide libraries.
+        pattern = "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        operations = tuple(
+            operation
+            for operation in OPERATIONS
+            if (not role or RESULT_KINDS[operation] == role)
+            and (role != "analysis" or operation == "del_analyze")
+        )
+        with store.connect() as database:
+            jobs = [
+                store.decode(row)
+                for row in database.execute(
+                    "SELECT * FROM jobs WHERE status='succeeded' AND "
+                    "json_extract(request,'$.operation') IN ("
+                    + ",".join("?" for _ in operations)
+                    + ") "
+                    "AND json_extract(request,'$.name') LIKE ? ESCAPE '\\' "
+                    "ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                    (*operations, pattern, limit, offset),
+                )
+            ]
+        for job in jobs:
             if job.status == "succeeded" and isinstance(job.request, DatasetTask):
                 _, _, result, digest = completed(job.id, full_hash=False)
                 if not role or result.data_kind == role:
+                    required = SOURCE_ARTIFACT.get(role)
+                    if required and not any(item.role == required for item in result.artifacts):
+                        continue
                     values.append(
                         {
                             "job_id": job.id,
                             "name": job.request.name,
+                            "operation": job.request.operation,
                             "report_sha256": digest,
                             "role": result.data_kind,
                             "counts": result.counts,

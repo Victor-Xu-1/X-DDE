@@ -4,6 +4,7 @@ import importlib.metadata
 import json
 from pathlib import Path
 
+from del_chemistry import candidate_molecule
 from del_definition import prepare_home
 from library_records import unbound_conformer
 from platformnative_io import finish, readonly_database, source_result, write_csv
@@ -35,15 +36,16 @@ def run(request):
                             "chemical_identity_unresolved; supply_the_matching_library_definition"
                         )
                     smiles = library.enumerate_by_bb_ids(json.loads(row["cycles"])).smi
-                molecule = Chem.MolFromSmiles(smiles)
-                if molecule is None:
-                    raise ValueError("invalid_resolved_member_structure")
+                policy = options.get("attachment_policy", "retain")
+                molecule = candidate_molecule(smiles, policy)
                 molecule = unbound_conformer(
                     molecule, request["options"]["seed"] + row["ordinal"] % 100000
                 )
                 molecule.SetProp("_Name", identifier)
                 molecule.SetProp("DEL_ID", identifier)
                 molecule.SetProp("XDDE_GEOMETRY", "unbound_conformer")
+                molecule.SetProp("XDDE_SUPPLIED_SMILES", smiles)
+                molecule.SetProp("XDDE_ATTACHMENT_POLICY", policy)
                 writer.write(molecule)
                 candidates.append(
                     {
@@ -56,7 +58,7 @@ def run(request):
                         "geometry": "unbound_conformer",
                     }
                 )
-            except Exception as exc:
+            except (ValueError, RuntimeError, KeyError) as exc:
                 failures.append([identifier, str(exc)[:240]])
     finally:
         writer.close()
@@ -88,7 +90,12 @@ def run(request):
         candidates=candidates,
         molecule_artifact="del-candidates.sdf" if candidates else None,
         metadata={
-            "chemical_state": "supplied_full_member; DNA/linker state retained as defined",
+            "chemical_state": "derived_candidates; supplied chemistry retained in SD properties",
+            "attachment_policy": options.get("attachment_policy", "retain"),
+            "off_DNA_scope": (
+                "terminal dummy atoms capped only by explicit choice; "
+                "not a confirmed synthesized structure"
+            ),
             "geometry": "unbound; not a receptor binding pose",
             "source": request["sources"][0],
         },

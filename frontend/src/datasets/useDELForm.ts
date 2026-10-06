@@ -8,6 +8,8 @@ import { materialFor, taskFor } from "./dataset-model";
 import { datasetTools } from "./catalog";
 import { useDatasetRun } from "./useDatasetRun";
 import { useTablePreview } from "./useTablePreview";
+import { newReadLane, validReadLanes, type ReadLane } from "./DELReadFiles";
+import { delExpertDefaults } from "./DELExpertSettings";
 import type {
   AvailableDataset,
   DELComparison,
@@ -53,7 +55,11 @@ export function useDELForm({
     [endpoint, setEndpoint] = useState("KD"),
     [unit, setUnit] = useState("nM"),
     [valueColumn, setValueColumn] = useState("value"),
-    [sampleName, setSampleName] = useState("sample1");
+    [expert, setExpert] = useState({ ...delExpertDefaults }),
+    [readLanes, setReadLanes] = useState<ReadLane[]>(() => [newReadLane()]),
+    [attachmentPolicy, setAttachmentPolicy] = useState<
+      "retain" | "cap_hydrogen"
+    >("retain");
   const hasFile =
     mode === "validate" ||
     mode === "decode" ||
@@ -70,6 +76,7 @@ export function useDELForm({
     setComparison("");
     setSamples([]);
     setComparisons([]);
+    setReadLanes([newReadLane()]);
   }, [tool]);
   useEffect(() => {
     if (!preview?.columns.length) return;
@@ -104,7 +111,7 @@ export function useDELForm({
     mode === "validate"
       ? !!asset
       : mode === "decode"
-        ? !!asset && definitions.length === 1
+        ? validReadLanes(readLanes) && definitions.length === 1
         : mode === "enumerate"
           ? definitions.length === 1
           : mode === "analyze"
@@ -125,7 +132,7 @@ export function useDELForm({
           : mode === "series" || mode === "model"
             ? !!comparison
             : mode === "decode"
-              ? !!sampleName
+              ? validReadLanes(readLanes, true)
               : firstValid;
   async function chooseDefinition(id: string) {
     setAsset(id ? await request<Asset>(`/assets/${id}/metadata`) : null);
@@ -135,8 +142,12 @@ export function useDELForm({
       sources = [...source];
     if (mode === "validate" && asset)
       inputs.push(materialFor(asset, "definition"));
-    if (mode === "decode" && asset) {
-      inputs.push(materialFor(asset, "reads", "reads1"));
+    if (mode === "decode") {
+      for (const lane of readLanes) {
+        if (lane.file) inputs.push(materialFor(lane.file, "reads", lane.id));
+        if (lane.paired && lane.mate)
+          inputs.push(materialFor(lane.mate, "reads", lane.id + "_mate"));
+      }
       sources.splice(0, sources.length, ...definitions);
     }
     if (mode === "enumerate") sources.splice(0, sources.length, ...definitions);
@@ -157,6 +168,7 @@ export function useDELForm({
       taskFor(
         tool,
         {
+          ...expert,
           kind: "deli",
           mode,
           library,
@@ -169,17 +181,20 @@ export function useDELForm({
           comparisons,
           chosen_comparison: comparison,
           selected_ids: selected,
+          attachment_policy: attachmentPolicy,
           umi_method: umi,
           count_unit: countUnit,
           read_samples:
             mode === "decode"
-              ? [
-                  {
-                    input_label: "reads1",
-                    sample: sampleName,
-                    sample_barcode: "",
-                  },
-                ]
+              ? readLanes.flatMap((lane) =>
+                  lane.assignments.map((assignment) => ({
+                    input_label: lane.id,
+                    sample: assignment.sample,
+                    sample_barcode: assignment.barcode,
+                    mate_label: lane.paired ? lane.id + "_mate" : "",
+                    encoded_mate: lane.encodedMate,
+                  })),
+                )
               : [],
           series_cycles: [cycleA, cycleB],
           holdout_cycle: cycleA,
@@ -255,8 +270,12 @@ export function useDELForm({
     setUnit,
     valueColumn,
     setValueColumn,
-    sampleName,
-    setSampleName,
+    expert,
+    setExpert,
+    readLanes,
+    setReadLanes,
+    attachmentPolicy,
+    setAttachmentPolicy,
     hasFile,
     preview,
     error,

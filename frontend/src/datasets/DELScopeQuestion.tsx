@@ -1,10 +1,6 @@
-import { ChoiceCards } from "../guided/ChoiceCards";
-import { Hint } from "../guided/Hint";
-import { AssetPicker } from "../operations/AssetPicker";
-import { DatasetPicker } from "./DatasetPicker";
-import { SourcePicker } from "./SourcePicker";
 import { ResearchTable } from "./ResearchTable";
 import { DELSampleDesign } from "./DELSampleDesign";
+import { DELReadFiles } from "./DELReadFiles";
 import type { DELFormState } from "./useDELForm";
 
 export function DELScopeQuestion({ model }: { model: DELFormState }) {
@@ -34,28 +30,31 @@ export function DELScopeQuestion({ model }: { model: DELFormState }) {
     source,
     selected,
     setSelected,
-    sampleName,
-    setSampleName,
+    readLanes,
+    setReadLanes,
     valueColumn,
     setValueColumn,
     definition,
+    inputKind,
   } = model;
   return (
     <div className="dataset-question-content">
       {mode === "analyze" ? (
         <>
           <div className="dataset-field-grid">
-            <label className="field">
-              {zh ? "成员编号列" : "Member-ID column"}
-              <select
-                value={memberId}
-                onChange={(e) => setMemberId(e.target.value)}
-              >
-                {columns.map((column) => (
-                  <option key={column}>{column}</option>
-                ))}
-              </select>
-            </label>
+            {inputKind === "new" && (
+              <label className="field">
+                {zh ? "成员编号列" : "Member-ID column"}
+                <select
+                  value={memberId}
+                  onChange={(e) => setMemberId(e.target.value)}
+                >
+                  {columns.map((column) => (
+                    <option key={column}>{column}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="field">
               {zh ? "计数来源" : "Count unit"}
               <select
@@ -147,15 +146,12 @@ export function DELScopeQuestion({ model }: { model: DELFormState }) {
           )}
         </>
       ) : mode === "decode" ? (
-        <label className="field">
-          {zh ? "样本名称" : "Sample name"}
-          <input
-            value={sampleName}
-            onChange={(e) =>
-              setSampleName(e.target.value.replace(/[^A-Za-z0-9_-]/g, "_"))
-            }
-          />
-        </label>
+        <DELReadFiles
+          language={language}
+          lanes={readLanes}
+          onChange={setReadLanes}
+          design
+        />
       ) : mode === "followup" ? (
         <div className="dataset-field-grid">
           <label className="field">

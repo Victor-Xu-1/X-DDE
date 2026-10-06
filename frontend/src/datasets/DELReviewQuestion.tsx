@@ -1,10 +1,3 @@
-import { ChoiceCards } from "../guided/ChoiceCards";
-import { Hint } from "../guided/Hint";
-import { AssetPicker } from "../operations/AssetPicker";
-import { DatasetPicker } from "./DatasetPicker";
-import { SourcePicker } from "./SourcePicker";
-import { ResearchTable } from "./ResearchTable";
-import { DELSampleDesign } from "./DELSampleDesign";
 import type { DELFormState } from "./useDELForm";
 
 export function DELReviewQuestion({ model }: { model: DELFormState }) {

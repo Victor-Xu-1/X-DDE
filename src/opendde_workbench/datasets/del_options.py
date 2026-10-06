@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 
 class DELSample(BaseModel):
@@ -27,6 +27,17 @@ class DELReadSample(BaseModel):
     input_label: str = Field(min_length=1, max_length=120)
     sample: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
     sample_barcode: str = Field(default="", max_length=32, pattern=r"^[ACGT]*$")
+    mate_label: str = Field(default="", max_length=120)
+    encoded_mate: Literal["r1", "r2"] = "r1"
+
+    @model_serializer(mode="wrap")
+    def stable_wire(self, handler):
+        value = handler(self)
+        if not self.mate_label:
+            value.pop("mate_label", None)
+        if self.encoded_mate == "r1":
+            value.pop("encoded_mate", None)
+        return value
 
 
 class DELOptions(BaseModel):
@@ -72,6 +83,7 @@ class DELOptions(BaseModel):
     retain: int = Field(default=100, ge=1, le=500)
     chosen_comparison: str = Field(default="", max_length=64)
     selected_ids: list[str] = Field(default_factory=list, max_length=500)
+    attachment_policy: Literal["retain", "cap_hydrogen"] = "retain"
     series_cycles: tuple[int, int] = (0, 1)
     maximum_series: int = Field(default=2000, ge=10, le=10000)
     holdout_cycle: int = Field(default=0, ge=0, le=7)
@@ -82,6 +94,13 @@ class DELOptions(BaseModel):
     followup_value_column: str = Field(default="value", min_length=1, max_length=100)
     followup_endpoint: Literal["KD", "IC50", "EC50", "inhibition"] = "KD"
     followup_unit: Literal["nM", "uM", "percent"] = "nM"
+
+    @model_serializer(mode="wrap")
+    def stable_wire(self, handler):
+        value = handler(self)
+        if self.attachment_policy == "retain":
+            value.pop("attachment_policy", None)
+        return value
 
     @model_validator(mode="after")
     def study_design(self):
@@ -135,6 +154,27 @@ class DELOptions(BaseModel):
             raise ValueError(
                 "Assign each sequencing file to its sample or explicit sample barcodes."
             )
+        if any(
+            sample.mate_label == sample.input_label
+            or (sample.encoded_mate == "r2" and not sample.mate_label)
+            for sample in self.read_samples
+        ):
+            raise ValueError(
+                "Paired reads need distinct files; select the mate carrying the DEL code."
+            )
+        if any(
+            not 2 <= len(member) <= 8
+            or any(
+                not identifier
+                or len(identifier) > 120
+                or any(ord(char) < 32 for char in identifier)
+                for identifier in member
+            )
+            for member in self.selected_members
+        ):
+            raise ValueError("Each selected DEL member needs two to eight explicit cycle IDs.")
+        if len({tuple(member) for member in self.selected_members}) != len(self.selected_members):
+            raise ValueError("Choose each complete DEL member once.")
         if self.mode == "enumerate" and not (self.selected_members or self.enumerate_all):
             raise ValueError("Choose explicit DEL members or confirm full-library enumeration.")
         if self.mode in {"series", "model"} and not self.chosen_comparison:

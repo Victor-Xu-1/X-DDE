@@ -16,6 +16,15 @@ FORMATS = {
     "counts": ("counts", None),
     "reads": ("reads", None),
 }
+SOURCE_ARTIFACT = {
+    "library": "compound_library",
+    "index": "embedding_row_identities",
+    "definition": "del_library_definition",
+    "decoded": "decoded_umi_evidence",
+    "counts": "compound_count_matrix",
+    "analysis": "del_comparison_evidence",
+    "model": "del_enrichment_research_model",
+}
 
 
 def asset_bindings(request, assets, *, deferred_sources=()):
@@ -41,15 +50,7 @@ def asset_bindings(request, assets, *, deferred_sources=()):
                 raise ValueError("Only explicitly unresolved planned source slots may be deferred.")
             continue
         _, _, result = resolve_source(assets.store, assets.root.parent, source)
-        required = {
-            "library": "compound_library",
-            "index": "embedding_row_identities",
-            "definition": "del_library_definition",
-            "decoded": "decoded_umi_evidence",
-            "counts": "compound_count_matrix",
-            "analysis": "del_comparison_evidence",
-            "model": "del_enrichment_research_model",
-        }.get(source.role)
+        required = SOURCE_ARTIFACT.get(source.role)
         if required and not any(item.role == required for item in result.artifacts):
             raise ValueError(
                 "Choose the completed scientific stage required by this analysis path."

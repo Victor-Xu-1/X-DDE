@@ -2,6 +2,7 @@ import { ChoiceCards } from "../guided/ChoiceCards";
 import { AssetPicker } from "../operations/AssetPicker";
 import { DatasetPicker } from "./DatasetPicker";
 import { SourcePicker } from "./SourcePicker";
+import { DELReadFiles } from "./DELReadFiles";
 import type { DELFormState } from "./useDELForm";
 
 export function DELMaterialQuestion({ model }: { model: DELFormState }) {
@@ -20,6 +21,8 @@ export function DELMaterialQuestion({ model }: { model: DELFormState }) {
     sourceRole,
     source,
     setSource,
+    readLanes,
+    setReadLanes,
   } = model;
   return (
     <div className="dataset-question-content">
@@ -50,24 +53,27 @@ export function DELMaterialQuestion({ model }: { model: DELFormState }) {
           allowedSuffixes={[".json"]}
         />
       )}
-      {hasFile && mode !== "validate" && (
+      {mode === "decode" && (
+        <DELReadFiles
+          language={language}
+          lanes={readLanes}
+          onChange={setReadLanes}
+        />
+      )}
+      {hasFile && mode !== "validate" && mode !== "decode" && (
         <DatasetPicker
-          kind={mode === "decode" ? "reads" : "counts"}
+          kind="counts"
           value={asset}
           onChange={setAsset}
           language={language}
           label={
-            mode === "decode"
+            mode === "followup"
               ? zh
-                ? "测序文件"
-                : "Sequencing file"
-              : mode === "followup"
-                ? zh
-                  ? "后续测量表"
-                  : "Follow-up measurements"
-                : zh
-                  ? "DEL 计数表"
-                  : "DEL count table"
+                ? "后续测量表"
+                : "Follow-up measurements"
+              : zh
+                ? "DEL 计数表"
+                : "DEL count table"
           }
         />
       )}

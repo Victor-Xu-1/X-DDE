@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
 import type { Language } from "../types";
 import type { AvailableDataset, DatasetSource } from "./types";
@@ -22,17 +22,30 @@ export function SourcePicker({
     [items, setItems] = useState<AvailableDataset[]>([]),
     [search, setSearch] = useState(""),
     [error, setError] = useState("");
+  const known = useRef(new Map<string, AvailableDataset>());
   useEffect(() => {
     const c = new AbortController();
-    void request<AvailableDataset[]>(`/datasets/results?role=${role}`, {
-      signal: c.signal,
-    })
-      .then(setItems)
-      .catch((e) => {
-        if (!c.signal.aborted) setError(String(e));
-      });
-    return () => c.abort();
-  }, [role]);
+    const timer = setTimeout(() => {
+      void request<AvailableDataset[]>(
+        `/datasets/results?role=${role}&search=${encodeURIComponent(search)}`,
+        {
+          signal: c.signal,
+        },
+      )
+        .then((records) => {
+          records.forEach((item) => known.current.set(item.job_id, item));
+          setItems(records);
+          setError("");
+        })
+        .catch((e) => {
+          if (!c.signal.aborted) setError(String(e));
+        });
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+      c.abort();
+    };
+  }, [role, search]);
   const selected = new Set(values.map((item) => item.job_id)),
     filtered = items.filter((item) =>
       item.name.toLowerCase().includes(search.toLowerCase()),
@@ -41,14 +54,21 @@ export function SourcePicker({
     onChange(
       multiple
         ? selected.has(item.job_id)
-          ? items.filter(
-              (value) =>
-                selected.has(value.job_id) && value.job_id !== item.job_id,
-            )
-          : items.filter(
-              (value) =>
-                selected.has(value.job_id) || value.job_id === item.job_id,
-            )
+          ? values
+              .filter((value) => value.job_id !== item.job_id)
+              .map(
+                (value) =>
+                  known.current.get(value.job_id) ??
+                  (value as AvailableDataset),
+              )
+          : [
+              ...values.map(
+                (value) =>
+                  known.current.get(value.job_id) ??
+                  (value as AvailableDataset),
+              ),
+              item,
+            ]
         : [item],
     );
   }

@@ -8,7 +8,8 @@ from pathlib import Path
 
 from del_decoder_compat import reviewed_decoder
 from del_definition import prepare_home
-from del_fastq import Quality, reads
+from del_fastq import Quality
+from del_read_pairs import observations
 from platformnative_io import finish, input_file, progress, source_result, write_csv
 
 
@@ -56,6 +57,18 @@ def run(request):
             for b in barcodes[index + 1 :]
         ):
             raise ValueError("Sample barcode prefixes are ambiguous.")
+        if (
+            len(
+                {
+                    (sample.get("mate_label", ""), sample.get("encoded_mate", "r1"))
+                    for sample in samples
+                }
+            )
+            != 1
+        ):
+            raise ValueError(
+                "Samples sharing a multiplexed file need the same paired-read strategy."
+            )
     database = sqlite3.connect("/output/decoded.sqlite")
     database.execute("PRAGMA cache_size=-16384")
     database.executescript("""
@@ -65,10 +78,19 @@ def run(request):
         CREATE TABLE failures (reason TEXT PRIMARY KEY, count INTEGER NOT NULL);
     """)
     reasons, qc, total, decoded, corrected = Counter(), Quality(), 0, 0, 0
+    byte_budget = {"remaining": options["expanded_bytes"]}
     try:
+        positions = {item["label"]: position for position, item in enumerate(inputs)}
         for position, item in enumerate(inputs):
+            if item["label"] not in sample_groups:
+                continue
             path, _ = input_file(request, "reads", position)
-            for read in reads(path, options["expanded_bytes"]):
+            strategy = sample_groups[item["label"]][0]
+            mate_label = strategy.get("mate_label", "")
+            mate = input_file(request, "reads", positions[mate_label])[0] if mate_label else None
+            for read in observations(
+                path, mate, {**options, **strategy, "byte_budget": byte_budget}
+            ):
                 total += 1
                 if total > options["max_reads"]:
                     raise ValueError("The FASTQ inputs exceed the confirmed read budget.")
@@ -136,6 +158,7 @@ def run(request):
                 "sample_assignment": options["read_samples"],
                 "umi_scope": "within_sample_and_compound",
                 "trimming": "none; the native DEL barcode schema is preserved",
+                "paired_reads": "one confirmed code-bearing mate per matched pair",
             }
         )
     )

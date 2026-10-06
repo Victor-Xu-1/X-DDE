@@ -5,7 +5,7 @@ from collections import Counter
 from platformnative_io import text_lines
 
 
-def reads(path, expanded_bytes):
+def reads(path, expanded_bytes, budget=None):
     from dnaio import SequenceRecord
 
     lines = iter(text_lines(path, expanded_bytes, maximum_line=65536))
@@ -22,6 +22,14 @@ def reads(path, expanded_bytes):
             or not separator.startswith("+")
         ):
             raise ValueError("A FASTQ record is malformed or truncated.")
+        if budget is not None:
+            budget["remaining"] -= sum(
+                len(line.encode("utf-8")) for line in (header, sequence, separator, quality)
+            )
+            if budget["remaining"] < 0:
+                raise ValueError(
+                    "All sequencing files together exceed the confirmed expanded-byte budget."
+                )
         sequence, quality = sequence.strip().upper(), quality.rstrip("\r\n")
         if (
             not sequence

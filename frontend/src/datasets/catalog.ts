@@ -164,6 +164,7 @@ export const dataDefaults = {
     minimum_enrichment: 3,
     retain: 100,
     chosen_comparison: "",
+    attachment_policy: "retain",
     series_cycles: [0, 1],
     maximum_series: 2000,
     holdout_cycle: 0,
