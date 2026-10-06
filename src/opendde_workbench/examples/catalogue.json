@@ -780,85 +780,85 @@
     "library.import": {
       "case_id": "drugclip-public-library",
       "capability_id": "library.import",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "library.select": {
       "case_id": "drugclip-public-library",
       "capability_id": "library.select",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "drugclip.index": {
       "case_id": "drugclip-public-library",
       "capability_id": "drugclip.index",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "drugclip.screen": {
       "case_id": "drugclip-public-library",
       "capability_id": "drugclip.screen",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "screening.dock": {
       "case_id": "drugclip-public-library",
       "capability_id": "screening.dock",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.library": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.library",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.enumerate": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.enumerate",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.decode": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.decode",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.count": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.count",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.analyze": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.analyze",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.series": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.series",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.model": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.model",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.candidates": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.candidates",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     },
     "del.followup": {
       "case_id": "del-unc006-brd4",
       "capability_id": "del.followup",
-      "revision": 1,
+      "revision": 2,
       "pinned_run_required": true
     }
   },

@@ -1100,5 +1100,450 @@
       "drugclip-public-library",
       "del-unc006-brd4"
     ]
+  },
+  "56f9cf3cbfce26ba9dfe593420b39d689d02862bfa52435059d8654e849e7696": {
+    "modules": {
+      "antibody.humanize": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "antibody.humanize",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "admet.predict": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "admet.predict",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "posebusters.check": {
+        "case_id": "brd4-jq1",
+        "capability_id": "posebusters.check",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "antibody.number": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "antibody.number",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "chemistry.screen": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "chemistry.screen",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "biopython.prepare": {
+        "case_id": "brd4-jq1",
+        "capability_id": "biopython.prepare",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "discovery.import": {
+        "case_id": "brd4-jq1",
+        "capability_id": "discovery.import",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "discovery.target": {
+        "case_id": "brd4-jq1",
+        "capability_id": "discovery.target",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "discovery.disease": {
+        "case_id": "brd4-jq1",
+        "capability_id": "discovery.disease",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "predict": {
+        "case_id": "brd4-jq1",
+        "capability_id": "predict",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "properties": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "properties",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "campaign": {
+        "case_id": "trastuzumab-domainiv",
+        "capability_id": "campaign",
+        "revision": 2,
+        "pinned_run_required": false
+      },
+      "esm": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "esm",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "esm2": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "esm2",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "mpnn": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "mpnn",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "fold": {
+        "case_id": "her2-repebody",
+        "capability_id": "fold",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "epitope": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "epitope",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "structure": {
+        "case_id": "mz1-ternary",
+        "capability_id": "structure",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "rmsd": {
+        "case_id": "her2-repebody",
+        "capability_id": "rmsd",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "evolution": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "evolution",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "compare": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "compare",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "protrek-sequence": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "protrek-sequence",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "protrek-structure": {
+        "case_id": "trastuzumab-her2",
+        "capability_id": "protrek-structure",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "target-msa": {
+        "case_id": "brd4-jq1",
+        "capability_id": "target-msa",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "features": {
+        "case_id": "brd4-jq1",
+        "capability_id": "features",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "import": {
+        "case_id": "brd4-jq1",
+        "capability_id": "import",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "resources": {
+        "case_id": "brd4-jq1",
+        "capability_id": "resources",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.generate": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.generate",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.inpaint": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.inpaint",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.diversify": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.diversify",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.optimize": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.optimize",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.pocket": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.pocket",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.prepare": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.prepare",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.interactions": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.interactions",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.properties": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.properties",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "diffsbdd.export": {
+        "case_id": "brd4-jq1",
+        "capability_id": "diffsbdd.export",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "regions": {
+        "case_id": "mz1-ternary",
+        "capability_id": "regions",
+        "revision": 1,
+        "pinned_run_required": false
+      },
+      "workflows": {
+        "case_id": "brd4-jq1",
+        "capability_id": "workflows",
+        "revision": 1,
+        "pinned_run_required": false
+      },
+      "p2rank.detect": {
+        "case_id": "brd4-jq1",
+        "capability_id": "p2rank.detect",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "gnina.dock": {
+        "case_id": "brd4-jq1",
+        "capability_id": "gnina.dock",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "gnina.score": {
+        "case_id": "brd4-jq1",
+        "capability_id": "gnina.score",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "gnina.minimize": {
+        "case_id": "brd4-jq1",
+        "capability_id": "gnina.minimize",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "chemistry.states": {
+        "case_id": "abl-inhibitors",
+        "capability_id": "chemistry.states",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "biopython.ensemble": {
+        "case_id": "brd4-jq1",
+        "capability_id": "biopython.ensemble",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "pose_exploration": {
+        "case_id": "brd4-jq1",
+        "capability_id": "pose_exploration",
+        "revision": 1,
+        "pinned_run_required": false
+      },
+      "boltz.predict": {
+        "case_id": "brd4-jq1",
+        "capability_id": "boltz.predict",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "reinvent.design": {
+        "case_id": "brd4-jq1",
+        "capability_id": "reinvent.design",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "ligandmpnn.design": {
+        "case_id": "brd4-jq1",
+        "capability_id": "ligandmpnn.design",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "boltzgen.design": {
+        "case_id": "trastuzumab-domainiv",
+        "capability_id": "boltzgen.design",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "openmm.refine": {
+        "case_id": "brd4-jq1",
+        "capability_id": "openmm.refine",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "apbs.potential": {
+        "case_id": "brd4-jq1",
+        "capability_id": "apbs.potential",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "chemprop.train": {
+        "case_id": "egfr-ic50",
+        "capability_id": "chemprop.train",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "chemprop.predict": {
+        "case_id": "egfr-ic50",
+        "capability_id": "chemprop.predict",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "plip.profile": {
+        "case_id": "brd4-jq1",
+        "capability_id": "plip.profile",
+        "revision": 1,
+        "pinned_run_required": true
+      },
+      "library.import": {
+        "case_id": "drugclip-public-library",
+        "capability_id": "library.import",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "library.select": {
+        "case_id": "drugclip-public-library",
+        "capability_id": "library.select",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "drugclip.index": {
+        "case_id": "drugclip-public-library",
+        "capability_id": "drugclip.index",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "drugclip.screen": {
+        "case_id": "drugclip-public-library",
+        "capability_id": "drugclip.screen",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "screening.dock": {
+        "case_id": "drugclip-public-library",
+        "capability_id": "screening.dock",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.library": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.library",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.enumerate": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.enumerate",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.decode": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.decode",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.count": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.count",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.analyze": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.analyze",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.series": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.series",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.model": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.model",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.candidates": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.candidates",
+        "revision": 2,
+        "pinned_run_required": true
+      },
+      "del.followup": {
+        "case_id": "del-unc006-brd4",
+        "capability_id": "del.followup",
+        "revision": 2,
+        "pinned_run_required": true
+      }
+    },
+    "file_keys": [
+      "brd4",
+      "her2",
+      "mz1",
+      "rna",
+      "jq1",
+      "imatinib",
+      "dasatinib",
+      "nilotinib",
+      "brd4_apo",
+      "her2_pertuzumab",
+      "trastuzumab_fv",
+      "mz1_molecule",
+      "her2_domain_iv",
+      "egfr_library",
+      "del_definition",
+      "del_reads",
+      "del_counts",
+      "del_followup"
+    ],
+    "case_ids": [
+      "brd4-jq1",
+      "trastuzumab-her2",
+      "abl-inhibitors",
+      "mz1-ternary",
+      "tpp-riboswitch",
+      "her2-repebody",
+      "trastuzumab-domainiv",
+      "egfr-ic50",
+      "drugclip-public-library",
+      "del-unc006-brd4"
+    ],
+    "content_sha256": "306d08a85c4f46959f6d5b3cca1035dde8fe61db122b590a7abc4373ea59420a"
   }
 }

@@ -12,6 +12,64 @@ from opendde_workbench.integrations.image import prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS
 
 
+@pytest.mark.parametrize("package", ["public-examples", "public-dataset-examples"])
+def test_case_component_queue_restores_into_current_state(package, tmp_path, monkeypatch):
+    """Exercise installer/archive/SQLite boundaries without pretending to compute science."""
+    import shutil
+    from dataclasses import replace
+    from uuid import uuid4
+
+    from opendde_workbench.deployment import installers
+    from opendde_workbench.deployment.manager import DeploymentManager
+    from opendde_workbench.examples import bundle
+    from opendde_workbench.examples.bundle_archive import sha256, write_archive
+    from opendde_workbench.examples.bundle_projection import TABLES
+    from opendde_workbench.store import Store
+
+    state = tmp_path / "state"
+    manager = DeploymentManager(state)
+    manager.configure(str(tmp_path / "components"), False)
+    identifier = str(uuid4())
+    rows = {name: [] for name in TABLES}
+    rows["projects"] = [
+        {
+            "id": identifier,
+            "name": "Public archive protocol",
+            "description": "",
+            "created_at": "today",
+        }
+    ]
+    archive = tmp_path / "protocol.zip"
+    write_archive(
+        archive,
+        {"schema_version": 1, "catalogue_sha256": bundle.catalogue_digest(), "records": rows},
+        {},
+    )
+    checksum = sha256(archive)
+    monkeypatch.setitem(
+        installers.PACKAGES, package, replace(installers.PACKAGES[package], checksum=checksum)
+    )
+
+    def download(url, destination, expected, report, checkpoint):
+        assert expected == checksum
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(archive, destination)
+
+    monkeypatch.setattr(installers, "download", download)
+    # This transport fixture contains only a project record, never a scientific prediction.
+    monkeypatch.setattr(bundle, "verify_examples", lambda settings: {"modules": 0})
+    operation = manager.enqueue(package, "install")[0]
+    manager.tick()
+    assert manager.store.get(operation)["state"] == "succeeded"
+    assert manager.store.installed()[package]["bundle_sha256"] == checksum
+    with Store(state / "jobs.sqlite3").connect() as database:
+        assert (
+            database.execute("SELECT name FROM projects WHERE id=?", (identifier,)).fetchone()[0]
+            == "Public archive protocol"
+        )
+        assert database.execute("SELECT count(*) FROM jobs").fetchone()[0] == 0
+
+
 class Response(io.BytesIO):
     def __init__(self, content, status, headers):
         super().__init__(content)
