@@ -154,4 +154,3 @@ jobs:
           name: dataset-reviewed-runtime-images
           path: server_tests/evidence/runtime-images
           retention-days: 7
-
