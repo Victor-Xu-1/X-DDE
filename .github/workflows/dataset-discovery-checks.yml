@@ -15,7 +15,7 @@ on:
         description: Changed contracts or one actual isolated scientific engine
         type: choice
         default: contracts
-        options: [contracts, browser, drugclip, deli, gnina]
+        options: [contracts, browser, images, drugclip, deli, gnina]
 permissions:
   contents: read
 jobs:
@@ -73,7 +73,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
   native:
-    if: github.event_name == 'workflow_dispatch' && inputs.engine != 'contracts' && inputs.engine != 'browser'
+    if: github.event_name == 'workflow_dispatch' && (inputs.engine == 'drugclip' || inputs.engine == 'deli' || inputs.engine == 'gnina')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -131,5 +131,23 @@ jobs:
           name: dataset-browser-acceptance
           path: server_tests/evidence/dataset-browser
           if-no-files-found: ignore
+          retention-days: 7
+  images:
+    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'images'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Identical pinned runtimes for offline installation, without model redistribution
+        env:
+          PYTHONPATH: src
+          PYTHONUNBUFFERED: '1'
+        run: uv run --locked python server_tests/export_dataset_images.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dataset-reviewed-runtime-images
+          path: server_tests/evidence/runtime-images
           retention-days: 7
 
