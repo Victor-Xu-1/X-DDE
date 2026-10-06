@@ -9,6 +9,7 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 from ..asset_uploads import UploadInput, UploadStore
 from ..assets import AssetStore
 from ..datasets.public_resources import RESOURCES, VERSION, manifest_digest
+from ..datasets.source_text import normalize_text
 from ..locations import atomic_json
 from ..settings import Settings
 from ..store import Store
@@ -31,7 +32,7 @@ def extract_structure(archive, resource, destination, checkpoint):
             ):
                 raise ValueError("Supplier archive contains an unsafe or encrypted member.")
         member = bundle.getinfo(resource["member"])
-        if member.file_size != resource["size"]:
+        if member.file_size != resource.get("source_size", resource["size"]):
             raise ValueError("Supplier structure size differs from the reviewed source.")
         digest = hashlib.sha256()
         with bundle.open(member) as source, destination.open("wb") as output:
@@ -39,8 +40,46 @@ def extract_structure(archive, resource, destination, checkpoint):
                 checkpoint()
                 digest.update(chunk)
                 output.write(chunk)
-        if digest.hexdigest() != resource["sha256"]:
+        if digest.hexdigest() != resource.get("source_sha256", resource["sha256"]):
             raise ValueError("Supplier structure differs from its reviewed content identity.")
+
+
+def prepare_structure(source, resource, directory, checkpoint):
+    if not resource.get("text_profile"):
+        return source
+    target = directory / resource["filename"]
+    result = normalize_text(
+        source, target, resource["text_profile"], resource["id_column"], checkpoint
+    )
+    if (result["sha256"], result["size"]) != (resource["sha256"], resource["size"]):
+        raise ValueError("Normalized supplier text differs from its reviewed derived identity.")
+    return target
+
+
+def release_previous_upload(uploads, source, resource, checkpoint):
+    if not resource.get("text_profile"):
+        return
+    identifier = uuid5(NAMESPACE_URL, "x-dde/supplier-file/" + resource["source_sha256"])
+    try:
+        row = uploads.get(identifier)
+    except FileNotFoundError:
+        return
+    if row["state"] != "uploading":
+        return  # Registered original assets and unrelated histories are always retained.
+    if (row["name"], row["kind"], row["size"]) != (
+        resource["source_filename"],
+        "library",
+        resource["source_size"],
+    ):
+        raise ValueError("The previous upload is not this supplier's original source.")
+    with uploads.path(row).open("rb") as retained, source.open("rb") as original:
+        while chunk := retained.read(4 * 1024**2):
+            checkpoint()
+            if original.read(len(chunk)) != chunk:
+                raise ValueError("Preserve a previous upload with different supplier bytes.")
+    # Only an exact, installer-owned temporary upload is cancelled. Its raw source
+    # remains in the checksum-verified ZIP; the UTF-8 asset has already been published.
+    uploads.cancel(identifier)
 
 
 def register_file(uploads, file, resource, checkpoint):
@@ -96,15 +135,18 @@ def install(root, state, report, checkpoint):
             report("Preparing supplier file " + str(len(files) + 1) + "/" + str(len(RESOURCES)))
             archive = root / "downloads" / (key + ".zip")
             download(resource["url"], archive, resource["archive_sha256"], report, checkpoint)
-            structure = directory / resource["filename"]
+            structure = directory / resource.get("source_filename", resource["filename"])
             try:
                 extract_structure(archive, resource, structure, checkpoint)
-                asset = register_file(uploads, structure, resource, checkpoint)
+                normalized = prepare_structure(structure, resource, directory, checkpoint)
+                asset = register_file(uploads, normalized, resource, checkpoint)
                 files[key] = asset.model_dump()
+                release_previous_upload(uploads, structure, resource, checkpoint)
             finally:
                 # Only this operation's extracted copy is removed. The shared AssetStore
                 # retains registered files and incomplete, verified uploads for resume.
                 structure.unlink(missing_ok=True)
+                (directory / resource["filename"]).unlink(missing_ok=True)
         value = {"directory": str(directory), "files": files, "manifest_sha256": manifest_digest()}
         atomic_json(directory / "sources.json", value)
         return value

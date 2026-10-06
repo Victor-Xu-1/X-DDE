@@ -43,6 +43,7 @@ jobs:
           tests/test_dataset_examples.py tests/test_research_assets.py
           tests/test_plip_coordinates.py
           tests/test_supplier_resources.py
+          tests/test_supplier_text.py
       - name: Changed data forms, upload and workflow UI only
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts

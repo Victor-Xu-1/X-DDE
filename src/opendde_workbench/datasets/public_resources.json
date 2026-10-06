@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "version": "2026-10-07",
+  "schema_version": 2,
+  "version": "2026-10-07.1",
   "resources": [
     {
       "id": "asinex-all-screening-2025",
@@ -24,7 +24,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "asinex-all-screening-2025.sdf",
+      "source_sha256": "fa494d78c33a95ac90dbdeb948b5b43dfd2c95a87a15a8622560865374b1a889",
+      "source_size": 1781715575
     },
     {
       "id": "bionet-complete-2026-08",
@@ -38,9 +41,9 @@
       "archive_sha256": "3d89bbd6272b8f76c8cac4e4474cd9accb0d337159a372f2fd8350eb1fc74967",
       "archive_bytes": 93319260,
       "member": "BIONET-Key Organics Complete BIONET August 2026.sdf",
-      "filename": "bionet-complete-2026-08.sdf",
-      "sha256": "a13dde73450728e7c6faf8b7746b8ba623a62bb11c284fd7550cf6682adf701d",
-      "size": 780217629,
+      "filename": "bionet-complete-2026-08.utf8.sdf",
+      "sha256": "230aed72f600d5ec7268b4d913a7c6c29f29bb9d301aede6f1a289d7052cf863",
+      "size": 780266968,
       "raw_records": 353398,
       "id_column": "Cmpdid",
       "scope": "complete_collection",
@@ -48,7 +51,21 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "bionet-complete-2026-08.sdf",
+      "source_sha256": "a13dde73450728e7c6faf8b7746b8ba623a62bb11c284fd7550cf6682adf701d",
+      "source_size": 780217629,
+      "text_profile": {
+        "legacy_properties": {
+          "Mpbp": "cp1252"
+        },
+        "escape_unreviewed_bytes": true,
+        "review_basis": "Mpbp degree symbol reviewed; mixed UTF-8 remains unchanged; unresolved metadata bytes escaped"
+      },
+      "text_counts": {
+        "legacy_characters": 4528,
+        "escaped_characters": 14935
+      }
     },
     {
       "id": "aronis-stock",
@@ -72,7 +89,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "aronis-stock.sdf",
+      "source_sha256": "184dbcd8a211480b1125e6003b245c46eb83473f44c2fd5851edb2d893400a91",
+      "source_size": 89286741
     },
     {
       "id": "otava-drug-like-green",
@@ -96,7 +116,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "otava-drug-like-green.sdf",
+      "source_sha256": "a0997a3d824daf059e0d0a070b2d54588dc28fe126be332a3afb622661e250c2",
+      "source_size": 466490931
     },
     {
       "id": "eximed-screening",
@@ -110,9 +133,9 @@
       "archive_sha256": "e95a93f901d48c13dc3111e98d50b8cf4e3b017b0254f290127a12df2b1c23be",
       "archive_bytes": 14169443,
       "member": "Full Screening Collection/Download/Eximed_SCL_61554.sdf",
-      "filename": "eximed-screening.sdf",
-      "sha256": "bc43c04a82c5d0d8b92a9fd8b8322784896245ed74d600a9cc679c72a3bd8ac5",
-      "size": 167816767,
+      "filename": "eximed-screening.utf8.sdf",
+      "sha256": "593123ed32121b2ff7b946b2cfdb81bae62bf119e54b4ed68caedb9cfbf58379",
+      "size": 167816779,
       "raw_records": 61554,
       "id_column": "ID",
       "scope": "screening_collection",
@@ -120,7 +143,20 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "eximed-screening.sdf",
+      "source_sha256": "bc43c04a82c5d0d8b92a9fd8b8322784896245ed74d600a9cc679c72a3bd8ac5",
+      "source_size": 167816767,
+      "text_profile": {
+        "escaped_bytes": [
+          255
+        ],
+        "review_basis": "Four invalid FF bytes in vendor SMILES properties retained as byte escapes; MOL chemistry unchanged"
+      },
+      "text_counts": {
+        "legacy_characters": 0,
+        "escaped_characters": 4
+      }
     },
     {
       "id": "princeton-bbl-aromatic",
@@ -144,7 +180,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "princeton-bbl-aromatic.sdf",
+      "source_sha256": "9bdb529015a92c4abf0ec4d5420e4cfe4c6fa636e0a9407cc1d7217187ffbaa8",
+      "source_size": 51366435
     },
     {
       "id": "alinda-screening-stock-2024-12",
@@ -158,9 +197,9 @@
       "archive_sha256": "74735bf0716b85cf6344856eefdb34bf3dddb30f516dc9134561acdc4a7c6571",
       "archive_bytes": 51269421,
       "member": "Alinda_StockSC_2024_December_203529_sdf.sdf",
-      "filename": "alinda-screening-stock-2024-12.sdf",
-      "sha256": "545e850d62987a803c44615fd7e987001ce22afd3cb35ce3a4248c05b96d7721",
-      "size": 532969337,
+      "filename": "alinda-screening-stock-2024-12.utf8.sdf",
+      "sha256": "83278dc4d70afcef59c89a25f766ff95595689433646ed023e12edf5bac94add",
+      "size": 532969353,
       "raw_records": 203529,
       "id_column": "IDNumber",
       "scope": "screening_collection",
@@ -168,7 +207,20 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "alinda-screening-stock-2024-12.sdf",
+      "source_sha256": "545e850d62987a803c44615fd7e987001ce22afd3cb35ce3a4248c05b96d7721",
+      "source_size": 532969337,
+      "text_profile": {
+        "legacy_properties": {
+          "Name": "cp1251"
+        },
+        "review_basis": "Two CP1251 Name flags encode ЗАПРЕЩЕН; all existing UTF-8 and the restriction text preserved"
+      },
+      "text_counts": {
+        "legacy_characters": 16,
+        "escaped_characters": 0
+      }
     },
     {
       "id": "alinda-screening-category2-part1-2024-12",
@@ -192,7 +244,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "alinda-screening-category2-part1-2024-12.sdf",
+      "source_sha256": "097b9a2b5bf07d5d6da5bc4991dd4a993ed6c6a43ce5126ace446e37deb772fe",
+      "source_size": 823938859
     },
     {
       "id": "alinda-screening-category2-part2-2024-12",
@@ -216,7 +271,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "alinda-screening-category2-part2-2024-12.sdf",
+      "source_sha256": "f86845e69fbdb491fc6051d8fb54b2057d0014795eb7d7d74a67843af7be4af2",
+      "source_size": 811017204
     },
     {
       "id": "alinda-building-blocks-2025-03",
@@ -230,9 +288,9 @@
       "archive_sha256": "a697dc2366797f134f4aa2e17d32e0c181ab4945bf0970c023b40093148d6976",
       "archive_bytes": 7734429,
       "member": "Alinda_StockBB_2025_March_34656_sdf.sdf",
-      "filename": "alinda-building-blocks-2025-03.sdf",
-      "sha256": "5847dbdb0c6f2ea83aec72ec997720a6b30a37063cfac52d1efcf644b7c23fb9",
-      "size": 76164631,
+      "filename": "alinda-building-blocks-2025-03.utf8.sdf",
+      "sha256": "f5ed3c1993744825623ad33e1773c0043cc15cfbea2eac7ec77796a884822c5f",
+      "size": 76164636,
       "raw_records": 34656,
       "id_column": "IDNumber",
       "scope": "building_blocks",
@@ -240,7 +298,23 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "alinda-building-blocks-2025-03.sdf",
+      "source_sha256": "5847dbdb0c6f2ea83aec72ec997720a6b30a37063cfac52d1efcf644b7c23fb9",
+      "source_size": 76164631,
+      "text_profile": {
+        "legacy_properties": {
+          "Synonym2": "cp1252"
+        },
+        "escaped_bytes": [
+          225
+        ],
+        "review_basis": "Synonym2 curly apostrophe reviewed; ambiguous E1 explicitly escaped; existing UTF-8 superscripts preserved"
+      },
+      "text_counts": {
+        "legacy_characters": 1,
+        "escaped_characters": 1
+      }
     },
     {
       "id": "chemrar-diversity-mce18",
@@ -264,7 +338,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "chemrar-diversity-mce18.sdf",
+      "source_sha256": "da42631a333c10bba40497793945cfa6eb2bc57788e3327784b5b6690693955e",
+      "source_size": 196298287
     },
     {
       "id": "chemdiv-stock-2026-09-01_500000",
@@ -288,7 +365,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "chemdiv-stock-2026-09-01_500000.sdf",
+      "source_sha256": "7c9190b24f4e2803e7b48d576fa955522858831dff28bab2ca5438593106d6bb",
+      "source_size": 1872289392
     },
     {
       "id": "chemdiv-stock-2026-09-02_500000",
@@ -312,7 +392,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "chemdiv-stock-2026-09-02_500000.sdf",
+      "source_sha256": "320eca1d6e3320373c62f4a972fb76b98880cc9b390bfd26e34748087927bf64",
+      "source_size": 1966441954
     },
     {
       "id": "chemdiv-stock-2026-09-03_500000",
@@ -336,7 +419,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "chemdiv-stock-2026-09-03_500000.sdf",
+      "source_sha256": "32805696e495ad154dd0cb892922cfb9cf0399fc5bae2a59fef1f869da11295c",
+      "source_size": 1884850038
     },
     {
       "id": "chemdiv-stock-2026-09-04_180778",
@@ -360,7 +446,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "chemdiv-stock-2026-09-04_180778.sdf",
+      "source_sha256": "83e001914f038a58e353b0d054cfc0ce7a515a6c473cd80d125297a276de1853",
+      "source_size": 676237946
     },
     {
       "id": "chemdiv-building-blocks-2026-09",
@@ -384,7 +473,10 @@
       "reviewed_at": "2026-10-07",
       "digest_basis": "measured_and_verified_download_bytes",
       "chemical_validation": "required_on_native_preparation",
-      "stock_claim": "source_file_not_current_stock"
+      "stock_claim": "source_file_not_current_stock",
+      "source_filename": "chemdiv-building-blocks-2026-09.sdf",
+      "source_sha256": "b9e663fdb82f537d7ad81c114bdf4add3eb4f941423978593c2aacf1960dd1c3",
+      "source_size": 197542223
     }
   ]
 }

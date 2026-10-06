@@ -4,13 +4,14 @@ import json
 import os
 import re
 import sqlite3
-import zipfile
 from pathlib import Path
 
 import pytest
 from dataset_native_fixture import Native
 
+from opendde_workbench.dataset_inputs import inspect_data
 from opendde_workbench.datasets.public_resources import RESOURCES
+from opendde_workbench.deployment.supplier_files import extract_structure, prepare_structure
 from opendde_workbench.deployment.transfers import download
 
 pytestmark = pytest.mark.skipif(
@@ -27,8 +28,11 @@ def test_actual_supplier_sdf_preserves_original_identifiers_and_prepares_native_
     archive = tmp_path / "public-source.zip"
     download(resource["url"], archive, resource["archive_sha256"], lambda _: None, lambda: None)
     blocks, count, size = [], 0, 0
-    with zipfile.ZipFile(archive) as bundle, bundle.open(resource["member"]) as stream:
-        assert bundle.getinfo(resource["member"]).file_size == resource["size"]
+    source = tmp_path / resource.get("source_filename", resource["filename"])
+    extract_structure(archive, resource, source, lambda: None)
+    prepared = prepare_structure(source, resource, tmp_path, lambda: None)
+    assert inspect_data(prepared, ".sdf") == resource["sha256"]
+    with prepared.open("rb") as stream:
         for line in stream:
             size += len(line)
             assert size <= 12 * 1024**2, "Representative source records exceed their budget."
@@ -80,6 +84,9 @@ def test_actual_supplier_sdf_preserves_original_identifiers_and_prepares_native_
                 "native_counts": result.counts,
                 "all_sample_supplier_ids_retained": True,
                 "full_corpus_chemical_validation": False,
+                "full_corpus_text_verified": True,
+                "source_sha256": resource.get("source_sha256", resource["sha256"]),
+                "text_profile": resource.get("text_profile"),
             },
             indent=2,
         ),
