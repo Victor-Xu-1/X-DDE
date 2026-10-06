@@ -192,6 +192,7 @@ def register(app, store, settings):
                 "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
             )
             if view == "enrichment":
+                comparison = comparison or str(result.metadata.get("chosen_comparison", ""))
                 if comparison not in {
                     row[0] for row in database.execute("SELECT id FROM comparisons")
                 }:

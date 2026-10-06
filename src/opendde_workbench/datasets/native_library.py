@@ -142,6 +142,10 @@ def subset(request):
                 candidates.append(
                     {
                         "id": identifier,
+                        "display_name": database.execute(
+                            "SELECT supplier_id FROM records WHERE record=?",
+                            (row["source_record"],),
+                        ).fetchone()[0],
                         "smiles": row["smiles"],
                         "source_job": request["sources"][0]["job_id"],
                         "source_record": row["source_record"],

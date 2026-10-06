@@ -36,6 +36,10 @@ jobs:
           uv run --locked pytest -q tests/test_dataset_uploads.py
           tests/test_dataset_contracts.py tests/test_api_security.py
           tests/test_dataset_worker.py tests/test_dataset_resources.py
+          tests/test_dataset_views.py tests/test_dataset_workflows.py tests/test_workflows.py
+      - name: Changed data forms, upload and workflow UI only
+        working-directory: frontend
+        run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts
   native-del-data:
     if: github.event_name == 'push' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04

@@ -9,8 +9,11 @@ from pathlib import Path
 
 
 def digest(path):
+    result = hashlib.sha256()
     with Path(path).open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
+        while chunk := stream.read(1024**2):
+            result.update(chunk)
+    return result.hexdigest()
 
 
 def input_file(request, role, position=0):

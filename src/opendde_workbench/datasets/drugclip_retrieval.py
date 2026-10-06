@@ -102,6 +102,7 @@ def retain_candidates(request, indexes, ranked):
             )
             candidate = {
                 "id": row["id"],
+                "display_name": row["display_name"],
                 "source_job": row["source_job"],
                 "source_record": row["source_record"],
                 "supplier": row["supplier"],

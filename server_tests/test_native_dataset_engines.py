@@ -156,9 +156,12 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
             row["geometry"] == "binding_pose" and np.isfinite(row["docking_score"])
             for row in docked["candidates"]
         )
-        assert (pose_root / "receptor.pdb").read_bytes() == verified_file(
-            campaign.root / "public", FILES["brd4"]
-        )
+        original = verified_file(campaign.root / "public", FILES["brd4"])
+        prepared = (pose_root / "receptor.pdb").read_bytes()
+        assert b"HETATM" not in prepared
+        assert [line for line in prepared.splitlines() if line.startswith(b"ATOM  ")] == [
+            line for line in original.splitlines() if line.startswith(b"ATOM  ")
+        ]
         campaign.receipt("gnina")
 
 

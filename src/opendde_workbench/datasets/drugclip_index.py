@@ -41,7 +41,7 @@ def stage_members(request):
     output.executescript("""
         CREATE TABLE members (ordinal INTEGER PRIMARY KEY, id TEXT NOT NULL UNIQUE,
           source_record INTEGER NOT NULL, source_job TEXT NOT NULL, supplier TEXT NOT NULL,
-          smiles TEXT NOT NULL, molblock TEXT NOT NULL,
+          smiles TEXT NOT NULL, molblock TEXT NOT NULL, display_name TEXT NOT NULL,
           shard INTEGER NOT NULL, row INTEGER NOT NULL);
         CREATE INDEX member_order ON members(shard,row);
         CREATE TABLE rejected (id TEXT PRIMARY KEY,
@@ -91,7 +91,7 @@ def stage_members(request):
             shard["offsets"].resize((local_row + 2,))
             shard["offsets"][local_row + 1] = stop
             output.execute(
-                "INSERT INTO members VALUES (?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO members VALUES (?,?,?,?,?,?,?,?,?,?)",
                 (
                     encoded,
                     row["id"],
@@ -100,6 +100,9 @@ def stage_members(request):
                     row["supplier"],
                     row["smiles"],
                     Chem.MolToMolBlock(molecule),
+                    source_db.execute(
+                        "SELECT supplier_id FROM records WHERE record=?", (row["source_record"],)
+                    ).fetchone()[0],
                     shard_number,
                     local_row,
                 ),

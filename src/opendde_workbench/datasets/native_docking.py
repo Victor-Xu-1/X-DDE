@@ -1,13 +1,13 @@
 """The existing verified GNINA binary and pose validator execute a bounded candidate batch."""
 
 import json
-import shutil
 import subprocess
 from pathlib import Path
 
 from docking_chemistry import comparison_graph, digest, molecule, summarize_poses
 from docking_manifest import BINARY_SHA256, VERSION
 from docking_options import DockingOptions, SearchBox, arguments
+from docking_receptor import prepare as prepare_receptor
 from platformnative_io import finish, input_file, progress, source_result, write_csv
 
 
@@ -47,6 +47,7 @@ def run(request):
         raise ValueError(
             "Prepare the selected receptor as a single-model PDB before GNINA docking."
         )
+    receptor = prepare_receptor(receptor, request["payload"].get("retain_heterogens", []))
     text = receptor.read_text()
     if text.count("MODEL ") > 1 or not any(line.startswith("ATOM  ") for line in text.splitlines()):
         raise ValueError("Batch docking needs one observed protein receptor model.")
@@ -168,7 +169,6 @@ def run(request):
             progress("Docking selected candidates", index + 1, len(selected))
     finally:
         writer.close()
-    shutil.copyfile(receptor, "/output/receptor.pdb")
     write_csv(
         "/output/docking-candidates.csv",
         [
@@ -205,6 +205,8 @@ def run(request):
                 "software_version": VERSION,
                 "options": options.model_dump(),
                 "receptor": request["payload"]["receptor"],
+                "preparation": "original ATOM coordinates; explicitly retained HETATM cofactors",
+                "retained_heterogens": request["payload"].get("retain_heterogens", []),
                 "search": request["payload"]["search"],
                 "candidate_set": request["sources"][0],
                 "pose_validation": "existing_GNINA_chemical_identity_and_coordinate_validator",

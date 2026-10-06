@@ -85,6 +85,7 @@ export interface DatasetArtifact {
 }
 export interface DatasetCandidate {
   id: string;
+  display_name?: string;
   source_job: string | null;
   source_asset?: string | null;
   source_record: number;

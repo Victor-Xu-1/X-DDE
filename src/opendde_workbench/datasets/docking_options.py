@@ -17,9 +17,14 @@ class BatchDockingOptions(BaseModel):
     search: Search
     selected_ids: list[str] = Field(min_length=1, max_length=500)
     docking: DockingOptions = Field(default_factory=DockingOptions)
+    retain_heterogens: list[str] = Field(default_factory=list, max_length=20)
 
     @model_validator(mode="after")
     def exact_frame(self):
+        if any(not value.isalnum() or len(value) > 3 for value in self.retain_heterogens):
+            raise ValueError(
+                "Choose explicit PDB cofactor/metal residue names of one to three letters."
+            )
         if self.search.frame != self.receptor or self.receptor.record or self.receptor.conformer:
             raise ValueError(
                 "Batch docking needs one exact receptor model and its confirmed pocket."

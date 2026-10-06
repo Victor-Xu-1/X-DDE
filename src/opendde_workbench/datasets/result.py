@@ -39,6 +39,7 @@ class DataArtifact(BaseModel):
 class DataCandidate(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
     id: str = Field(min_length=1, max_length=240)
+    display_name: str = Field(default="", max_length=240)
     source_job: str | None = Field(default=None, min_length=1, max_length=36)
     source_asset: str | None = Field(default=None, min_length=1, max_length=36)
     source_record: int = Field(ge=0, le=100000000)
