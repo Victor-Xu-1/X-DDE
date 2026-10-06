@@ -22,7 +22,8 @@ class PreparedContainerBackend:
             raise ValueError("Shared adapter file identities must be unique.")
         files = (*files, *shared_sources)
         self.shared_sources = {name: Path(path) for name, path in shared_sources.items()}
-        if not 1 <= len(files) <= 32 or any(Path(name).name != name for name in files):
+        file_limit = 64 if identifier == "datasets" else 32
+        if not 1 <= len(files) <= file_limit or any(Path(name).name != name for name in files):
             raise ValueError("Preparation adapter files must have bounded, explicit names.")
         self.settings, self.identifier, self.root, self.files = settings, identifier, root, files
         self.configuration, self.runtime_readiness = configuration, readiness
