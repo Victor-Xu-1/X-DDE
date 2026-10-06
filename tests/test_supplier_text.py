@@ -101,3 +101,62 @@ def test_repaired_input_releases_only_matching_installer_temporary_upload(tmp_pa
     assert uploads.get(identifier)["state"] == "cancelled"
     assert source.read_bytes() == raw
     assert not assets.list()
+
+
+@pytest.mark.parametrize("mismatch", ["name", "bytes"])
+def test_repair_preserves_other_uploads_or_changed_source_bytes(tmp_path, mismatch):
+    assets = AssetStore(Store(tmp_path / "state/jobs.sqlite3"), tmp_path / "state/assets")
+    uploads = UploadStore(assets, 1024**2, 1024**3, 0)
+    raw = document(b"140\xb0C")
+    source = tmp_path / "raw.sdf"
+    source.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    identifier = uuid5(NAMESPACE_URL, "x-dde/supplier-file/" + digest)
+    content = raw.replace(b"140", b"150") if mismatch == "bytes" else raw
+    uploads.create(
+        UploadInput(
+            name="other.sdf" if mismatch == "name" else "source.sdf", kind="library", size=len(raw)
+        ),
+        identifier,
+    )
+    uploads.append(identifier, 0, content, hashlib.sha256(content).hexdigest())
+    with pytest.raises(ValueError):
+        release_previous_upload(
+            uploads,
+            source,
+            {
+                "text_profile": {"legacy_codepage": "cp1252"},
+                "source_sha256": digest,
+                "source_filename": "source.sdf",
+                "source_size": len(raw),
+            },
+            lambda: None,
+        )
+    row = uploads.get(identifier)
+    assert row["state"] == "uploading" and uploads.path(row).read_bytes() == content
+
+
+def test_repair_preserves_already_registered_original_asset(tmp_path):
+    assets = AssetStore(Store(tmp_path / "state/jobs.sqlite3"), tmp_path / "state/assets")
+    uploads = UploadStore(assets, 1024**2, 1024**3, 0)
+    raw = document("140°C".encode())
+    source = tmp_path / "raw.sdf"
+    source.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    identifier = uuid5(NAMESPACE_URL, "x-dde/supplier-file/" + digest)
+    uploads.create(UploadInput(name="source.sdf", kind="library", size=len(raw)), identifier)
+    uploads.append(identifier, 0, raw, digest)
+    asset = uploads.finalize(identifier)
+    release_previous_upload(
+        uploads,
+        source,
+        {
+            "text_profile": {"legacy_codepage": "cp1252"},
+            "source_sha256": digest,
+            "source_filename": "source.sdf",
+            "source_size": len(raw),
+        },
+        lambda: None,
+    )
+    assert uploads.get(identifier)["state"] == "complete"
+    assert assets.path(asset).read_bytes() == raw

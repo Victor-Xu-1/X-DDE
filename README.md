@@ -85,7 +85,7 @@ X-DDE UI
 
 Every task starts with fresh uploads or typed inputs. Historical files are opt-in. Use this template provides guided research inputs; Example results stays in the module. Template-derived submissions are new personal tasks, and the original evidence remains available.
 
-**高通量筛选的公开结构库**：v0.4.30 提供 9 家供应商的 16 份已核对结构文件（3,841,777 条原始记录），包括 ChemDiv 2026.09 整库四分卷及砌块；在“分子库管理 → 公开结构库”选择并安装，自动匹配供应商货号字段。实际化学准备与索引另行运行，35 个目录条目不表示 35 家完整商业库都已取得。范围、获取方式和许可见 [供应商结构文件](docs/design/supplier-structure-files.md)。
+**高通量筛选的公开结构库**：v0.4.31 提供 9 家供应商的 16 份已核对结构文件（3,841,777 条原始记录），包括 ChemDiv 2026.09 整库四分卷及砌块；在“分子库管理 → 公开结构库”选择并安装，自动匹配供应商货号字段。混合编码的文字属性使用已审查的 UTF-8 工作版本，原始下载保留。实际化学准备与索引另行运行，35 个目录条目不表示 35 家完整商业库都已取得。范围、获取方式和许可见 [供应商结构文件](docs/design/supplier-structure-files.md)。
 
 主导航按靶点、结构、口袋与对接、小分子、生物药和性质组织科研任务。研究空间统一项目、历史文件与结构编辑；任务与结果统一进度、分析、报告和下载。底部 **设置与帮助** 提供安装与运行、界面设置和使用帮助；界面设置可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器。
 
