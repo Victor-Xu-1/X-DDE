@@ -15,7 +15,7 @@ on:
         description: Changed contracts or one actual isolated scientific engine
         type: choice
         default: contracts
-        options: [contracts, drugclip, deli, gnina]
+        options: [contracts, browser, drugclip, deli, gnina]
 permissions:
   contents: read
 jobs:
@@ -37,6 +37,7 @@ jobs:
           tests/test_dataset_contracts.py tests/test_api_security.py
           tests/test_dataset_worker.py tests/test_dataset_resources.py
           tests/test_dataset_views.py tests/test_dataset_workflows.py tests/test_workflows.py
+          tests/test_case_bundle.py tests/test_case_bundle_sources.py
       - name: Changed data forms, upload and workflow UI only
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts
@@ -69,7 +70,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
   native:
-    if: github.event_name == 'workflow_dispatch' && inputs.engine != 'contracts'
+    if: github.event_name == 'workflow_dispatch' && inputs.engine != 'contracts' && inputs.engine != 'browser'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -101,6 +102,31 @@ jobs:
             server_tests/evidence/datasets
             /tmp/pytest-of-runner/pytest-*/**/install.log
             /tmp/pytest-of-runner/pytest-*/**/jobs/*/console.log
+          if-no-files-found: ignore
+          retention-days: 7
+  browser:
+    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'browser'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - run: uv run --locked --with playwright==1.58.0 playwright install --with-deps chromium
+      - name: Actual public-case API, questionnaire, Ketcher and 3D research pages
+        env:
+          WB_TEST_DATASET_BROWSER: '1'
+          PYTHONPATH: src
+        run: uv run --locked --with playwright==1.58.0 pytest -q -s server_tests/test_dataset_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dataset-browser-acceptance
+          path: server_tests/evidence/dataset-browser
           if-no-files-found: ignore
           retention-days: 7
 

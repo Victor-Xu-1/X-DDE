@@ -41,6 +41,27 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             from .catalogue_profiles import compatible_modules
 
             selected = compatible_modules(manifest.get("catalogue_sha256"))
+        if manifest.get("capabilities") is not None:
+            from .catalogue import MODULES
+
+            declared = manifest["capabilities"]
+            permitted_modules = set(MODULES if selected is None else selected)
+            pinned_modules = {
+                row["capability_id"]
+                for table in ("example_pins", "example_record_pins")
+                for row in rows.get(table, [])
+            }
+            if (
+                not isinstance(declared, list)
+                or not declared
+                or len(set(declared)) != len(declared)
+                or not set(declared) <= permitted_modules
+                or set(declared) != pinned_modules
+            ):
+                raise ValueError(
+                    "The declared public case scope differs from its reviewed native pins."
+                )
+            selected = tuple(declared)
         if set(rows) != set(TABLES) or sum(map(len, rows.values())) > 5000:
             raise ValueError(
                 "The bundle must match the reviewed current catalogue and record schema."

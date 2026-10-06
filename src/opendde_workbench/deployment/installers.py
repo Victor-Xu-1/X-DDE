@@ -36,13 +36,21 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         metadata.update(scientific_runtime(key, root, work, execute, report, checkpoint))
     elif key.endswith("-models") and key.removesuffix("-models") in PROGRAMS:
         metadata.update(scientific_models(key.removesuffix("-models"), root, report, checkpoint))
-    elif key == "public-examples":
+    elif key in {"public-examples", "public-dataset-examples"}:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings
 
         if state is None:
             raise ValueError("Public cases require the current X-DDE scientific state directory.")
-        archive = root / "downloads" / "x-dde-public-cases-v1.zip"
+        archive = (
+            root
+            / "downloads"
+            / (
+                "x-dde-dataset-cases-v1.zip"
+                if key == "public-dataset-examples"
+                else "x-dde-public-cases-v1.zip"
+            )
+        )
         download(spec.url, archive, spec.checksum, report, checkpoint)
         report("Verifying and restoring fixed public scientific results")
         settings = Settings(

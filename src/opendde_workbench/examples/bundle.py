@@ -39,21 +39,28 @@ def verify_examples(settings, capabilities=None):
     return {"modules": len(selected), "computed": computed, "validated": validated}
 
 
-def export_bundle(settings, target, source_revision):
+def export_bundle(settings, target, source_revision, *, capabilities=None):
     from ..research.storage import ScientificStore
 
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     scientific = ScientificStore(store, assets)
     records = ExampleRecords(store, assets, settings)
-    summary = verify_examples(settings)
+    selected = tuple(MODULES) if capabilities is None else tuple(capabilities)
+    if (
+        not selected
+        or len(set(selected)) != len(selected)
+        or any(key not in MODULES for key in selected)
+    ):
+        raise ValueError("Choose an explicit reviewed set of public example modules.")
+    summary = verify_examples(settings, selected)
     roots = set()
-    for capability in MODULES:
+    for capability in selected:
         prepared = prepare_example(
             capability, scientific, settings.state_dir / "public-example-cache", records=records
         )
         roots.update(references(prepared.model_dump(mode="json")))
-    rows = project_records(store, roots)
+    rows = project_records(store, roots, capabilities=set(selected))
     paths = {}
     for row in rows["assets"]:
         asset = assets.get(row["id"])
@@ -75,7 +82,11 @@ def export_bundle(settings, target, source_revision):
             paths[f"jobs/{row['id']}/analysis/workbench-analysis.json"] = analysis
             for path in (analysis.parent / "workbench-aligned").glob("*.cif"):
                 paths[f"jobs/{row['id']}/analysis/workbench-aligned/{path.name}"] = path
-    for spec in FILES.values():
+    required_files = {
+        key for capability in selected for key in CASES[MODULES[capability].case_id].files
+    }
+    for key in required_files:
+        spec = FILES[key]
         verified_file(settings.state_dir / "public-example-cache", spec)
         paths["public-example-cache/" + spec.sha256] = (
             settings.state_dir / "public-example-cache" / spec.sha256
@@ -84,6 +95,7 @@ def export_bundle(settings, target, source_revision):
         "schema_version": 1,
         "catalogue_sha256": catalogue_digest(),
         "source_revision": source_revision,
+        "capabilities": list(selected),
         "summary": summary,
         "records": rows,
         "notices": {
@@ -92,6 +104,8 @@ def export_bundle(settings, target, source_revision):
                 "RCSB PDB: CC0-1.0",
                 "ChEMBL: CC-BY-SA-3.0",
                 "UniProt/Swiss-Prot: CC-BY-4.0",
+                "UNCDEL006 examples: MIT; Wellnitz et al. (2026) CC-BY-4.0",
+                "Official DrugCLIP computed outputs: CC-BY-NC-4.0; noncommercial research",
             ],
             "methods": (
                 "Retained native computational predictions; not experimental affinity. "

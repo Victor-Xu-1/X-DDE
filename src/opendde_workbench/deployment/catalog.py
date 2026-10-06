@@ -11,6 +11,9 @@ from ..docking.manifest import VERSION as GNINA_VERSION
 from ..examples.bundle_release import SHA256 as CASE_SHA
 from ..examples.bundle_release import URL as CASE_URL
 from ..examples.bundle_release import VERSION as CASE_VERSION
+from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
+from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
+from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
 from ..integrations.specs import PROGRAMS as SCIENTIFIC_PROGRAMS
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
@@ -289,6 +292,20 @@ PACKAGES["public-examples"] = Package(
     url=CASE_URL,
     checksum=CASE_SHA,
     license="RCSB CC0-1.0; ChEMBL CC-BY-SA-3.0; UniProt CC-BY-4.0; computed output notices",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-dataset-examples"] = Package(
+    "public-dataset-examples",
+    DATA_CASE_VERSION,
+    "Screening and DEL public cases",
+    "14 个模块的真实输入与原生结果 / Real inputs and native results for 14 data modules",
+    "2.2 MB",
+    automatic=True,
+    url=DATA_CASE_URL,
+    checksum=DATA_CASE_SHA,
+    license="MIT; CC-BY-4.0; ChEMBL CC-BY-SA-3.0; DrugCLIP computed outputs CC-BY-NC-4.0",
     engine="x-dde",
     kind="data",
 )

@@ -66,6 +66,15 @@ class ExampleLibrary:
                 row = db.execute("SELECT request FROM jobs WHERE id=?", (identifier,)).fetchone()
                 if row is None:
                     continue
+                request = TASK_ADAPTER.validate_json(row["request"])
+                from ..datasets.contract import DatasetTask
+
+                if isinstance(request, DatasetTask):
+                    for source in request.sources:
+                        source_job = str(source.job_id)
+                        if source_job not in identifiers:
+                            identifiers.add(source_job)
+                            pending.add(source_job)
                 for reference in references(json.loads(row["request"])):
                     source = db.execute(
                         "SELECT body FROM scientific_objects WHERE id=?", (reference,)

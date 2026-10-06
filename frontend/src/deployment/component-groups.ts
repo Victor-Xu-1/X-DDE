@@ -103,8 +103,8 @@ const definitions: GroupDefinition[] = [
       "DrugCLIP 六折模型用于非商业研究；DELi 负责解码、计数与富集分析",
       "Six-fold DrugCLIP for noncommercial research; DELi for decoding, counts and enrichment",
     ],
-    recommended: ["drugclip", "drugclip-models", "deli"],
-    matches: (p) => ["drugclip", "deli"].includes(p.engine ?? ""),
+    recommended: ["drugclip", "drugclip-models", "deli", "public-dataset-examples"],
+    matches: (p) => ["drugclip", "deli"].includes(p.engine ?? "") || p.id === "public-dataset-examples",
   },
   {
     id: "biologics",

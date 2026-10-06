@@ -81,7 +81,7 @@ def row_references(row):
     return result
 
 
-def project_records(store, roots):
+def project_records(store, roots, *, capabilities=None):
     selected = {name: [] for name in TABLES}
     identifiers, seen = set(roots), set()
     with store.connect() as db:
@@ -89,7 +89,11 @@ def project_records(store, roots):
         for name in ("example_pins", "example_record_pins"):
             for index, row in enumerate(rows[name]):
                 module = MODULES.get(row["capability_id"])
-                if module and row["revision"] == module.revision:
+                if (
+                    module
+                    and row["revision"] == module.revision
+                    and (capabilities is None or row["capability_id"] in capabilities)
+                ):
                     selected[name].append(row)
                     identifiers.update(row_references(row))
                     seen.add((name, index))
