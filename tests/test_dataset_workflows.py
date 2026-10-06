@@ -75,7 +75,18 @@ def test_dataset_plan_rejects_source_type_confusion_and_undeclared_dependency():
 def test_data_handoff_requires_success_and_exact_verified_source_bytes(tmp_path):
     store = Store(tmp_path / "jobs.sqlite3")
     steps = PlanInput.model_validate(plan()).steps
-    task = DatasetTask.model_validate(steps[0].request)
+    from opendde_workbench.assets import AssetStore
+
+    assets = AssetStore(store, tmp_path / "assets")
+    asset = assets.save("protocol-definition.json", "config", b'{"protocol":"byte-contract"}')
+    ref = {"asset_id": asset.id, "sha256": asset.sha256}
+    task = DatasetTask.model_validate(
+        {
+            **steps[0].request.model_dump(mode="json"),
+            "inputs": [{"role": "definition", "source": ref}],
+            "scientific_inputs": [ref],
+        }
+    )
     job = store.create(task, str(uuid4()), 10, 100)
     latest = {"definition": {"job_id": job.id}}
     settings = SimpleNamespace(state_dir=tmp_path)

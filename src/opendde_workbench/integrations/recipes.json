@@ -296,6 +296,7 @@
         "url": "https://codeload.github.com/THU-ATOM/Drug-The-Whole-Genome/zip/9d0db73915219763b5bcc3b7de86d7c4edb5ed03",
         "sha256": "6e43a2f5297faaa481a3e28d87e3d71208ef1583ed740660032dd5f53bc3d509",
         "prefix": "Drug-The-Whole-Genome-9d0db73915219763b5bcc3b7de86d7c4edb5ed03",
+        "runtime_access": "readonly_all_users",
         "python_path": true,
         "patches": [
           {

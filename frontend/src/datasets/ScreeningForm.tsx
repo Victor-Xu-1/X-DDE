@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { request } from "../api";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
@@ -16,7 +15,11 @@ import {
 import { screeningPlan } from "./dataset-model";
 import { ExecutionView } from "./ExecutionView";
 import { useDatasetRun, type DatasetExecution } from "./useDatasetRun";
-import type { DatasetSource, Supplier } from "./types";
+import type { DatasetSource } from "./types";
+import { SupplierPicker } from "./SupplierPicker";
+import { LibraryFields } from "./LibraryFields";
+import { useTablePreview } from "./useTablePreview";
+import { dataDefaults } from "./catalog";
 
 export function ScreeningForm({
   language,
@@ -32,20 +35,30 @@ export function ScreeningForm({
     [indexes, setIndexes] = useState<DatasetSource[]>([]),
     [source, setSource] = useState<"new" | "indexes">("new"),
     [supplier, setSupplier] = useState("custom"),
-    [suppliers, setSuppliers] = useState<Supplier[]>([]),
+    [idColumn, setIdColumn] = useState("ID"),
+    [smilesColumn, setSmilesColumn] = useState("SMILES"),
+    [radius, setRadius] = useState<number>(dataDefaults.drugclip.pocket_radius),
+    [batch, setBatch] = useState<number>(dataDefaults.drugclip.batch_size),
     [profile, setProfile] = useState<"quick" | "focused" | "broad">("quick"),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu"),
     [name, setName] = useState("");
   const retrieval = useTaskReadiness("drugclip.screen"),
     docking = useTaskReadiness("screening.dock"),
     chemistry = useTaskReadiness("library.import");
+  const { preview, error } = useTablePreview(source === "new" ? library : null);
   useEffect(() => {
-    const c = new AbortController();
-    void request<Supplier[]>("/datasets/suppliers", { signal: c.signal }).then(
-      setSuppliers,
+    if (!preview?.columns.length) return;
+    setIdColumn(
+      preview.columns.find((name) =>
+        /^(id|compound.?id|catalog.?id|chembl.?id)$/i.test(name),
+      ) ?? preview.columns[0],
     );
-    return () => c.abort();
-  }, []);
+    setSmilesColumn(
+      preview.columns.find((name) =>
+        /^(smiles|smi|canonical_smiles)$/i.test(name),
+      ) ?? "SMILES",
+    );
+  }, [preview]);
   const preset = {
     quick: { topK: 100, retain: 25, dock: false },
     focused: { topK: 300, retain: 40, dock: true },
@@ -69,6 +82,12 @@ export function ScreeningForm({
         pocket: pocket.pocket,
         ...preset,
         device,
+        libraryFields: {
+          id_column: idColumn,
+          smiles_column: smilesColumn,
+          delimiter: library?.suffix.includes(".tsv") ? "\t" : ",",
+        },
+        expert: { pocket_radius: radius, batch_size: batch },
       }),
     );
   }
@@ -77,7 +96,7 @@ export function ScreeningForm({
       <GuidedSteps<DatasetExecution>
         language={language}
         busy={run.busy}
-        error={run.error}
+        error={run.error || error}
         ready={ready}
         unavailable={
           zh
@@ -114,7 +133,13 @@ export function ScreeningForm({
           },
           {
             title: zh ? "选择分子库" : "Choose library",
-            valid: source === "new" ? !!library : indexes.length > 0,
+            valid:
+              source === "new"
+                ? !!library &&
+                  (!preview?.table ||
+                    (preview.columns.includes(idColumn) &&
+                      preview.columns.includes(smilesColumn)))
+                : indexes.length > 0,
             content: (
               <div className="dataset-question-content">
                 <ChoiceCards<"new" | "indexes">
@@ -151,22 +176,19 @@ export function ScreeningForm({
                           : "Supplier or owned compound library"
                       }
                     />
-                    <label className="field">
-                      {zh ? "分子来源" : "Compound source"}
-                      <select
-                        value={supplier}
-                        onChange={(e) => setSupplier(e.target.value)}
-                      >
-                        <option value="custom">
-                          {zh ? "自有或其他来源" : "Owned or other source"}
-                        </option>
-                        {suppliers.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <SupplierPicker
+                      language={language}
+                      value={supplier}
+                      onChange={setSupplier}
+                    />
+                    <LibraryFields
+                      language={language}
+                      preview={preview}
+                      id={idColumn}
+                      smiles={smilesColumn}
+                      onId={setIdColumn}
+                      onSmiles={setSmilesColumn}
+                    />
                     <Hint
                       label={zh ? "商业库接入说明" : "Supplier-library help"}
                     >

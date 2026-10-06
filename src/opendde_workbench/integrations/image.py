@@ -74,6 +74,10 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None)
             else "/opt/native"
         )
         lines += ["COPY source " + target]
+        if spec.get("source", {}).get("runtime_access") == "readonly_all_users":
+            # Verified downloads are private staging files (0600). Container execution
+            # uses the owning task's UID, so native resources must be readable there.
+            lines += ["RUN chmod -R a+rX " + target]
         if spec.get("source", {}).get("package"):
             lines += [
                 "RUN python -m pip install --no-deps --no-build-isolation " + target + " "

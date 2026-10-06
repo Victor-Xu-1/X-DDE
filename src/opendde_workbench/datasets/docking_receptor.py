@@ -5,7 +5,7 @@ from pathlib import Path
 
 def prepare(file, retain=()):
     original = file.read_text()
-    if original.count("MODEL ") > 1:
+    if sum(line.startswith("MODEL ") for line in original.splitlines()) > 1:
         raise ValueError("Choose one observed receptor model before docking.")
     requested = {name.upper() for name in retain}
     found = set()

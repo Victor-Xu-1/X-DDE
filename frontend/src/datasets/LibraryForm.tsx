@@ -1,5 +1,6 @@
+import { SupplierPicker } from "./SupplierPicker";
+import { LibraryFields } from "./LibraryFields";
 import { useEffect, useState } from "react";
-import { api, request } from "../api";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { ToolId } from "../operations/catalog";
@@ -12,7 +13,7 @@ import { materialFor, taskFor } from "./dataset-model";
 import { useDatasetRun, type DatasetExecution } from "./useDatasetRun";
 import { ExecutionView } from "./ExecutionView";
 import { useTablePreview } from "./useTablePreview";
-import type { AvailableDataset, Supplier } from "./types";
+import type { AvailableDataset } from "./types";
 
 export function LibraryForm({
   tool,
@@ -30,7 +31,6 @@ export function LibraryForm({
     ready = useTaskReadiness(tool),
     [asset, setAsset] = useState<Asset | null>(null),
     [source, setSource] = useState<AvailableDataset[]>([]),
-    [suppliers, setSuppliers] = useState<Supplier[]>([]),
     [supplier, setSupplier] = useState("custom"),
     [idColumn, setIdColumn] = useState("ID"),
     [smilesColumn, setSmilesColumn] = useState("SMILES"),
@@ -38,13 +38,7 @@ export function LibraryForm({
     [name, setName] = useState(""),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu");
   const { preview, error } = useTablePreview(importing ? asset : null);
-  useEffect(() => {
-    const c = new AbortController();
-    void request<Supplier[]>("/datasets/suppliers", { signal: c.signal })
-      .then(setSuppliers)
-      .catch(() => {});
-    return () => c.abort();
-  }, []);
+
   useEffect(() => {
     if (!preview?.columns.length) return;
     const ids = preview.columns.find((column) =>
@@ -182,48 +176,19 @@ export function LibraryForm({
               <div className="dataset-question-content">
                 {importing ? (
                   <>
-                    <label className="field">
-                      {zh ? "供应商来源" : "Supplier"}
-                      <select
-                        value={supplier}
-                        onChange={(e) => setSupplier(e.target.value)}
-                      >
-                        <option value="custom">
-                          {zh ? "自有或其他来源" : "Owned or other source"}
-                        </option>
-                        {suppliers.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {preview?.table && (
-                      <div className="dataset-field-grid">
-                        <label className="field">
-                          {zh ? "货号列" : "Compound-ID column"}
-                          <select
-                            value={idColumn}
-                            onChange={(e) => setIdColumn(e.target.value)}
-                          >
-                            {preview.columns.map((column) => (
-                              <option key={column}>{column}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="field">
-                          {zh ? "结构列（SMILES）" : "SMILES column"}
-                          <select
-                            value={smilesColumn}
-                            onChange={(e) => setSmilesColumn(e.target.value)}
-                          >
-                            {preview.columns.map((column) => (
-                              <option key={column}>{column}</option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                    )}
+                    <SupplierPicker
+                      language={language}
+                      value={supplier}
+                      onChange={setSupplier}
+                    />
+                    <LibraryFields
+                      language={language}
+                      preview={preview}
+                      id={idColumn}
+                      smiles={smilesColumn}
+                      onId={setIdColumn}
+                      onSmiles={setSmilesColumn}
+                    />
                     {preview?.rows.length ? (
                       <div className="dataset-input-sample">
                         <table>

@@ -78,6 +78,8 @@ export function screeningPlan({
   retain,
   dock,
   device,
+  libraryFields = {},
+  expert = {},
 }: {
   name: string;
   library: Asset | null;
@@ -89,6 +91,18 @@ export function screeningPlan({
   retain: number;
   dock: boolean;
   device: "cpu" | "cuda";
+  libraryFields?: {
+    id_column?: string;
+    smiles_column?: string;
+    delimiter?: "," | "\t";
+  };
+  expert?: {
+    batch_size?: number;
+    pocket_radius?: number;
+    score?: "fold_zscore" | "mean_cosine";
+    top_k?: number;
+    retain?: number;
+  };
 }): WorkflowPlanInput {
   const execution = { device, cpu: 2, memory_mib: 8192, seed: 101 } as const;
   const stages: WorkflowStep[] = [];
@@ -104,6 +118,7 @@ export function screeningPlan({
             mode: "prepare",
             supplier,
             library_name: library.name,
+            ...libraryFields,
           },
           [materialFor(library, "data")],
           [],
@@ -116,7 +131,12 @@ export function screeningPlan({
         "index",
         taskFor(
           "drugclip.index",
-          { kind: "drugclip", mode: "index", use: "non_commercial" },
+          {
+            kind: "drugclip",
+            mode: "index",
+            use: "non_commercial",
+            ...(expert.batch_size ? { batch_size: expert.batch_size } : {}),
+          },
           [],
           [unresolved("library")],
           name + " · index",
@@ -143,6 +163,7 @@ export function screeningPlan({
         top_k: topK,
         retain,
         score: "fold_zscore",
+        ...expert,
       },
       receptorInputs,
       indexes,
