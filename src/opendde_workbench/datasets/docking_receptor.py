@@ -2,15 +2,18 @@
 
 from pathlib import Path
 
+from alternate_locations import pdb_lines
 
-def prepare(file, retain=()):
+
+def prepare(file, retain=(), alternate_locations="reject"):
     original = file.read_text()
     if sum(line.startswith("MODEL ") for line in original.splitlines()) > 1:
         raise ValueError("Choose one observed receptor model before docking.")
     requested = {name.upper() for name in retain}
     found = set()
     lines = []
-    for line in original.splitlines():
+    resolved, _ = pdb_lines(original, alternate_locations)
+    for line in resolved:
         if line.startswith("ATOM  "):
             lines.append(line)
         elif line.startswith("HETATM") and line[17:20].strip() in requested:

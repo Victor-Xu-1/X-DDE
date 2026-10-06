@@ -229,6 +229,8 @@ export function ResearchTable({
                               : row[key],
                           )}
                         </button>
+                      ) : key === "value" && row.value == null ? (
+                        format(row.qualifier)
                       ) : (
                         format(row[key])
                       )}

@@ -33,6 +33,12 @@ def validate_case_job(capability_id, job, prepared, store):
         return
     if job.request.operation == "resources":
         return
+    from ..datasets.contract import DatasetTask
+
+    if isinstance(job.request, DatasetTask):
+        from .dataset_pins import validate_dataset_case
+
+        return validate_dataset_case(job, prepared, store)
     allowed = {str(obj.reference.asset_id) for obj in prepared.objects.values()}
     families = {str(obj.family_id) for obj in prepared.objects.values()}
     with store.connect() as db:

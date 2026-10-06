@@ -92,14 +92,20 @@ class DELOptions(BaseModel):
     trees: int = Field(default=200, ge=50, le=500)
     followup_id_column: str = Field(default="DEL_ID", min_length=1, max_length=100)
     followup_value_column: str = Field(default="value", min_length=1, max_length=100)
-    followup_endpoint: Literal["KD", "IC50", "EC50", "inhibition"] = "KD"
-    followup_unit: Literal["nM", "uM", "percent"] = "nM"
+    followup_endpoint: Literal["KD", "IC50", "EC50", "inhibition", "reported_binding"] = "KD"
+    followup_unit: Literal["nM", "uM", "percent", "qualitative"] = "nM"
+    followup_relation_column: str = Field(default="", max_length=100)
+    followup_source: str = Field(default="", max_length=1000)
 
     @model_serializer(mode="wrap")
     def stable_wire(self, handler):
         value = handler(self)
         if self.attachment_policy == "retain":
             value.pop("attachment_policy", None)
+        if not self.followup_relation_column:
+            value.pop("followup_relation_column", None)
+        if not self.followup_source:
+            value.pop("followup_source", None)
         return value
 
     @model_validator(mode="after")
@@ -189,4 +195,6 @@ class DELOptions(BaseModel):
             raise ValueError("Choose two distinct observed building-block cycles.")
         if (self.followup_endpoint == "inhibition") != (self.followup_unit == "percent"):
             raise ValueError("Inhibition uses percent; concentration endpoints use nM or uM.")
+        if (self.followup_endpoint == "reported_binding") != (self.followup_unit == "qualitative"):
+            raise ValueError("Qualitative binding reports use their own endpoint and unit.")
         return self

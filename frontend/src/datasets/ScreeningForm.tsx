@@ -20,6 +20,7 @@ import { SupplierPicker } from "./SupplierPicker";
 import { LibraryFields } from "./LibraryFields";
 import { useTablePreview } from "./useTablePreview";
 import { dataDefaults } from "./catalog";
+import { useDatasetExample } from "./useDatasetExample";
 
 export function ScreeningForm({
   language,
@@ -39,6 +40,9 @@ export function ScreeningForm({
     [smilesColumn, setSmilesColumn] = useState("SMILES"),
     [radius, setRadius] = useState<number>(dataDefaults.drugclip.pocket_radius),
     [batch, setBatch] = useState<number>(dataDefaults.drugclip.batch_size),
+    [altloc, setAltloc] = useState<"highest_occupancy" | "reject" | "A" | "B">(
+      "highest_occupancy",
+    ),
     [profile, setProfile] = useState<"quick" | "focused" | "broad">("quick"),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu"),
     [name, setName] = useState("");
@@ -46,6 +50,19 @@ export function ScreeningForm({
     docking = useTaskReadiness("screening.dock"),
     chemistry = useTaskReadiness("library.import");
   const { preview, error } = useTablePreview(source === "new" ? library : null);
+  const [templateError, setTemplateError] = useState("");
+  const example = useDatasetExample(setTemplateError);
+  useEffect(() => {
+    if (!example) return;
+    setSource("indexes");
+    setIndexes(example.sources);
+    setName(example.task.name);
+    setAltloc(
+      (example.task.payload.alternate_locations as typeof altloc) ??
+        "highest_occupancy",
+    );
+    setRadius(Number(example.task.payload.pocket_radius ?? 6));
+  }, [example]);
   useEffect(() => {
     if (!preview?.columns.length) return;
     setIdColumn(
@@ -87,7 +104,11 @@ export function ScreeningForm({
           smiles_column: smilesColumn,
           delimiter: library?.suffix.includes(".tsv") ? "\t" : ",",
         },
-        expert: { pocket_radius: radius, batch_size: batch },
+        expert: {
+          pocket_radius: radius,
+          batch_size: batch,
+          alternate_locations: altloc,
+        },
       }),
     );
   }
@@ -96,7 +117,7 @@ export function ScreeningForm({
       <GuidedSteps<DatasetExecution>
         language={language}
         busy={run.busy}
-        error={run.error || error}
+        error={run.error || templateError || error}
         ready={ready}
         unavailable={
           zh
@@ -285,6 +306,28 @@ export function ScreeningForm({
                 <details className="dataset-expert">
                   <summary>{zh ? "专家微调" : "Expert settings"}</summary>
                   <div className="dataset-field-grid">
+                    <label className="field">
+                      {zh ? "蛋白的替代构象" : "Alternate protein conformers"}
+                      <select
+                        value={altloc}
+                        onChange={(e) =>
+                          setAltloc(e.target.value as typeof altloc)
+                        }
+                      >
+                        <option value="highest_occupancy">
+                          {zh
+                            ? "选择占有率最高的主构象"
+                            : "Highest-occupancy conformer"}
+                        </option>
+                        <option value="reject">
+                          {zh
+                            ? "遇到多构象时先人工确认"
+                            : "Require prior manual preparation"}
+                        </option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                      </select>
+                    </label>
                     <label className="field">
                       {zh ? "计算设备" : "Compute device"}
                       <select

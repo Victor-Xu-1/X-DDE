@@ -102,6 +102,7 @@ export function screeningPlan({
     score?: "fold_zscore" | "mean_cosine";
     top_k?: number;
     retain?: number;
+    alternate_locations?: "reject" | "highest_occupancy" | "A" | "B";
   };
 }): WorkflowPlanInput {
   const execution = { device, cpu: 2, memory_mib: 8192, seed: 101 } as const;
@@ -182,6 +183,8 @@ export function screeningPlan({
         {
           kind: "gnina",
           mode: "batch",
+          alternate_locations:
+            expert.alternate_locations ?? "highest_occupancy",
           receptor: receptorInputs[0].source,
           search: pocket,
           selected_ids: ["planned-candidates"],

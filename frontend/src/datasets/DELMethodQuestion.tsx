@@ -131,22 +131,39 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
               value={endpoint}
               onChange={(e) => {
                 setEndpoint(e.target.value);
-                setUnit(e.target.value === "inhibition" ? "percent" : "nM");
+                setUnit(
+                  e.target.value === "inhibition"
+                    ? "percent"
+                    : e.target.value === "reported_binding"
+                      ? "qualitative"
+                      : "nM",
+                );
               }}
             >
-              {["KD", "IC50", "EC50", "inhibition"].map((value) => (
-                <option key={value}>{value}</option>
-              ))}
+              {["KD", "IC50", "EC50", "inhibition", "reported_binding"].map(
+                (value) => (
+                  <option key={value} value={value}>
+                    {value === "reported_binding"
+                      ? zh
+                        ? "文献定性结合报告"
+                        : "Qualitative binding report"
+                      : value}
+                  </option>
+                ),
+              )}
             </select>
           </label>
           <label className="field">
             {zh ? "原始单位" : "Reported unit"}
             <select value={unit} onChange={(e) => setUnit(e.target.value)}>
-              {(endpoint === "inhibition" ? ["percent"] : ["nM", "uM"]).map(
-                (value) => (
-                  <option key={value}>{value}</option>
-                ),
-              )}
+              {(endpoint === "inhibition"
+                ? ["percent"]
+                : endpoint === "reported_binding"
+                  ? ["qualitative"]
+                  : ["nM", "uM"]
+              ).map((value) => (
+                <option key={value}>{value}</option>
+              ))}
             </select>
           </label>
         </div>

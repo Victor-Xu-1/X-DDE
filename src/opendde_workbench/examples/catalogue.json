@@ -126,6 +126,42 @@
       "bytes": 507333,
       "kind": "ligand",
       "license": "CC-BY-SA-3.0"
+    },
+    "del_definition": {
+      "key": "del_definition",
+      "name": "UNCDEL006.json",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/UNCDEL006.json",
+      "sha256": "921c4d3be247d6abd32778b989a600214153710d19622c2312cf7b6363b47b9a",
+      "bytes": 24635,
+      "kind": "config",
+      "license": "MIT"
+    },
+    "del_reads": {
+      "key": "del_reads",
+      "name": "UNCDEL006-1000-reads.fastq",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/UNCDEL006-1000-reads.fastq",
+      "sha256": "adde40372892584d61d5a6ae324ba37b622bf0db36d89824defb26b23b1b185c",
+      "bytes": 509174,
+      "kind": "reads",
+      "license": "MIT"
+    },
+    "del_counts": {
+      "key": "del_counts",
+      "name": "UNCDEL006-BRD4.csv",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/UNCDEL006-BRD4.csv",
+      "sha256": "ce248e3df7cac37c4de4b1b44cf565f71ebc51d9a59abdebec4ffd236fde91c0",
+      "bytes": 1306144,
+      "kind": "counts",
+      "license": "MIT"
+    },
+    "del_followup": {
+      "key": "del_followup",
+      "name": "UNC11951-reported-binding.csv",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/UNC11951-reported-binding.csv",
+      "sha256": "b22f5a728cc15cca0c64d03bee48c9f2bea54e74b711ece9fc40b9927c963804",
+      "bytes": 61,
+      "kind": "counts",
+      "license": "CC-BY-4.0"
     }
   },
   "polymers": {
@@ -404,7 +440,12 @@
         "使用 DELi 官方公开库定义、原始测序数据及 BRD4 计数表。保留公开样本的实际对照类型，不把富集当作 KD。",
         "Official DELi library definition, reads and BRD4 count data, retaining actual reference types. Sequencing enrichment is not KD."
       ],
-      "files": [],
+      "files": [
+        "del_definition",
+        "del_reads",
+        "del_counts",
+        "del_followup"
+      ],
       "sources": [
         "https://github.com/Popov-Lab-UNC/DELi/tree/edeb06ca8ffe6a158c1231c4014e569e04a9b83b/examples",
         "https://doi.org/10.1186/s13321-026-01296-1"

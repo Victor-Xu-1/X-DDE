@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useExample } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { SearchRegion } from "../docking/SearchRegion";
 import { parseBox } from "../docking/model";
@@ -13,6 +14,28 @@ export function usePocketQuestions(language: Language) {
     [center, setCenter] = useState<string[]>(["", "", ""]),
     [size, setSize] = useState<string[]>(["20", "20", "20"]),
     [confirmed, setConfirmed] = useState(false);
+  const example = useExample();
+  useEffect(() => {
+    const task = example?.request;
+    if (
+      !task?.operation ||
+      !["drugclip_retrieve", "screening_dock"].includes(task.operation)
+    )
+      return;
+    const payload = (task as import("./types").DatasetTask).payload;
+    const search = payload.search as PocketSelection | undefined;
+    if (!search) return;
+    setReceptor(payload.receptor as MoleculeRef);
+    if (search.kind === "reference_ligand") {
+      setKind("reference");
+      setReference(search.reference);
+      setConfirmed(true);
+    } else {
+      setKind("box");
+      setCenter(search.box.center.map(String));
+      setSize(search.box.size.map(String));
+    }
+  }, [example]);
   let pocket: PocketSelection | null = null;
   try {
     if (receptor && kind === "box")

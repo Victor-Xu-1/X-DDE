@@ -31,7 +31,7 @@ def run(request):
     output = sqlite3.connect("/output/followup.sqlite")
     output.execute(
         "CREATE TABLE measurements (record INTEGER PRIMARY KEY,member TEXT,endpoint TEXT,"
-        "unit TEXT,value REAL,matched INTEGER)"
+        "unit TEXT,value REAL,matched INTEGER,qualifier TEXT,relation TEXT)"
     )
     rows = matched = 0
     try:
@@ -39,18 +39,34 @@ def run(request):
             if ordinal >= options["max_members"]:
                 raise ValueError("The follow-up table exceeds its explicit row budget.")
             identifier = row[options["followup_id_column"]].strip()
-            value = float(row[options["followup_value_column"]])
-            if not identifier or len(identifier) > 240 or not math.isfinite(value) or value < 0:
+            reported = row[options["followup_value_column"]].strip()
+            qualitative = options["followup_unit"] == "qualitative"
+            value = None if qualitative else float(reported)
+            if (
+                not identifier
+                or len(identifier) > 240
+                or (value is not None and (not math.isfinite(value) or value < 0))
+            ):
                 raise ValueError(
                     "Measured member identifiers and endpoint values must be explicit and finite."
                 )
             if options["followup_unit"] == "percent" and value > 100:
                 raise ValueError("Inhibition measurements must be between 0 and 100 percent.")
+            if qualitative and (
+                not reported or len(reported) > 240 or any(ord(char) < 32 for char in reported)
+            ):
+                raise ValueError(
+                    "A qualitative report needs bounded text, not an invented numeric value."
+                )
+            column = options.get("followup_relation_column", "")
+            relation = row.get(column, "=").strip() if column else "="
+            if relation not in {"=", "<", "<=", ">", ">=", "~"}:
+                raise ValueError("Choose an explicit supported reported-measurement relation.")
             exists = bool(
                 original.execute("SELECT 1 FROM members WHERE id=?", (identifier,)).fetchone()
             )
             output.execute(
-                "INSERT INTO measurements VALUES (?,?,?,?,?,?)",
+                "INSERT INTO measurements VALUES (?,?,?,?,?,?,?,?)",
                 (
                     ordinal,
                     identifier,
@@ -58,6 +74,8 @@ def run(request):
                     options["followup_unit"],
                     value,
                     int(exists),
+                    reported if qualitative else "",
+                    relation,
                 ),
             )
             matched += exists
@@ -74,6 +92,8 @@ def run(request):
                 "reported_unit",
                 "reported_value",
                 "matched_prior_member",
+                "reported_text",
+                "reported_relation",
             ],
             output.execute("SELECT * FROM measurements ORDER BY record"),
         )
@@ -93,6 +113,7 @@ def run(request):
             "endpoint": options["followup_endpoint"],
             "unit": options["followup_unit"],
             "source": "user_supplied_measurements; not independently validated experiments",
+            "reported_source": options.get("followup_source", ""),
             "analysis": request["sources"][0],
         },
     )

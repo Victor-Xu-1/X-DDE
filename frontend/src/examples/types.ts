@@ -1,4 +1,5 @@
 import type { ScientificObject } from "../research/types";
+import type { Asset } from "../operations/types";
 import type { TaskRequest } from "../operations/types";
 import type { WorkflowPlanInput } from "../workflows/types";
 import type { WorkflowPlan, WorkflowRun } from "../workflows/types";
@@ -45,6 +46,7 @@ export interface ExampleInfo {
 }
 
 export interface PreparedExample {
+  data_assets?: Record<string, Asset>;
   module: ExampleInfo["module"];
   case: ExampleInfo["case"];
   objects: Record<string, ScientificObject>;

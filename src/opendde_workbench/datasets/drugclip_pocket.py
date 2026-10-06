@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from alternate_locations import atoms as selected_atoms
 from platformnative_io import input_file
 
 
@@ -44,13 +45,9 @@ def pocket(request):
         for residue in chain:
             if not is_aa(residue, standard=False):
                 continue
-            observed = list(residue.get_atoms())
-            if any(
-                atom.is_disordered() and len(atom.disordered_get_list()) > 1 for atom in observed
-            ):
-                raise ValueError(
-                    "Prepare an explicit alternate-location selection before screening."
-                )
+            observed, selected_alt = selected_atoms(
+                residue, options.get("alternate_locations", "reject")
+            )
             heavy = [atom for atom in observed if atom.element.strip().upper() not in {"H", "D"}]
             if not heavy:
                 continue
@@ -68,6 +65,7 @@ def pocket(request):
                     "number": residue.id[1],
                     "insertion": residue.id[2].strip(),
                     "name": residue.resname,
+                    "alternate_location": selected_alt,
                     "closest_distance": float(distances.min()),
                 }
             )
@@ -79,6 +77,7 @@ def pocket(request):
         "receptor": reference,
         "search": region,
         "radius_angstrom": options["pocket_radius"],
+        "alternate_locations": options.get("alternate_locations", "reject"),
         "residues": residues,
         "atoms": len(atoms),
         "policy": "whole_observed_amino_acid_residues_near_reference; no_waters_or_cofactors",

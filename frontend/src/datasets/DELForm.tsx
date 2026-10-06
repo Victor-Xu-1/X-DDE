@@ -26,7 +26,7 @@ export function DELForm({
       <GuidedSteps<DatasetExecution>
         language={language}
         busy={run.busy}
-        error={run.error || error}
+        error={run.error || model.templateError || error}
         ready={readiness.ready}
         unavailable={
           zh

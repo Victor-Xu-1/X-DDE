@@ -30,7 +30,12 @@ def validate_catalogue():
             or not (
                 url.hostname in {"files.rcsb.org", "models.rcsb.org", "www.ebi.ac.uk"}
                 or url.hostname == "github.com"
-                and url.path.startswith("/Victor-Xu-1/X-DDE/releases/download/examples-science-v1/")
+                and url.path.startswith(
+                    (
+                        "/Victor-Xu-1/X-DDE/releases/download/examples-science-v1/",
+                        "/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/",
+                    )
+                )
             )
             or url.username
             or url.password

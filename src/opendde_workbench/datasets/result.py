@@ -3,6 +3,7 @@
 import hashlib
 from pathlib import Path
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -95,6 +96,25 @@ def validate_result(value, request, output: Path, *, full_hash=True):
         raise ValueError("Candidate molecular files are missing from the scientific result.")
     if any(item.artifact and item.artifact not in names for item in result.candidates):
         raise ValueError("A candidate refers to an unverified molecular file.")
+    formats = {item.name: item.format for item in result.artifacts}
+    seen = set()
+    for candidate in result.candidates:
+        if candidate.id in seen or bool(candidate.source_job) == bool(candidate.source_asset):
+            raise ValueError("Each candidate needs a unique identity and one exact source owner.")
+        seen.add(candidate.id)
+        UUID(candidate.source_job or candidate.source_asset)
+        if candidate.artifact and formats[candidate.artifact] != "sdf":
+            raise ValueError("Candidate molecular records require verified SDF artifacts.")
+        if candidate.geometry != "none" and not candidate.artifact:
+            raise ValueError(
+                "A claimed three-dimensional candidate needs an actual molecular file."
+            )
+        if candidate.geometry == "binding_pose" and (
+            request.operation != "screening_dock" or candidate.docking_score is None
+        ):
+            raise ValueError(
+                "A binding pose requires the actual native docking operation and score."
+            )
     if any(value < 0 for value in result.counts.values()):
         raise ValueError("Research record counts cannot be negative.")
     for item in result.artifacts:
@@ -113,4 +133,23 @@ def validate_result(value, request, output: Path, *, full_hash=True):
             or not counts.get("unique_compounds")
         ):
             raise ValueError("Prepared-library record accounting is incomplete.")
+    if request.operation == "screening_dock" and (
+        result.counts.get("docked") != len(result.candidates)
+        or result.counts.get("selected") != len(request.payload.selected_ids)
+        or result.counts.get("docked", -1) + result.counts.get("failed", -1)
+        != result.counts.get("selected")
+        or not {row.id for row in result.candidates} <= set(request.payload.selected_ids)
+    ):
+        raise ValueError(
+            "Batched docking candidate identities and outcome counts do not reconcile."
+        )
+    if request.operation == "drugclip_retrieve" and (
+        result.counts.get("returned") != len(result.candidates)
+        or len(result.candidates) > request.payload.top_k
+        or any(
+            row.docking_score is not None or row.score is None or row.raw_score is None
+            for row in result.candidates
+        )
+    ):
+        raise ValueError("DrugCLIP retrieval must preserve real scores without claiming docking.")
     return result

@@ -47,7 +47,11 @@ def run(request):
         raise ValueError(
             "Prepare the selected receptor as a single-model PDB before GNINA docking."
         )
-    receptor = prepare_receptor(receptor, request["payload"].get("retain_heterogens", []))
+    receptor = prepare_receptor(
+        receptor,
+        request["payload"].get("retain_heterogens", []),
+        request["payload"].get("alternate_locations", "reject"),
+    )
     text = receptor.read_text()
     if text.count("MODEL ") > 1 or not any(line.startswith("ATOM  ") for line in text.splitlines()):
         raise ValueError("Batch docking needs one observed protein receptor model.")

@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..assets import Asset
 from ..research.contracts import ScientificObject
 
 
@@ -16,8 +17,8 @@ class SourceFile(ExampleModel):
     url: str
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     bytes: int = Field(ge=1, le=8 * 1024**2)
-    kind: Literal["structure", "ligand"]
-    license: Literal["CC0-1.0", "CC-BY-SA-3.0"]
+    kind: Literal["structure", "ligand", "config", "library", "counts", "reads"]
+    license: Literal["CC0-1.0", "CC-BY-SA-3.0", "MIT", "CC-BY-4.0"]
 
 
 class CaseStudy(ExampleModel):
@@ -41,6 +42,7 @@ class PreparedExample(ExampleModel):
     module: ModuleExample
     case: CaseStudy
     objects: dict[str, ScientificObject]
+    data_assets: dict[str, Asset] = Field(default_factory=dict)
     sequences: dict[str, str]
     sequence_sources: dict[str, tuple[str, ...]] = Field(default_factory=dict)
     sources: tuple[str, ...]

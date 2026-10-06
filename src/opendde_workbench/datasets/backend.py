@@ -18,6 +18,7 @@ FILES = (
     "drugclip_encoder.py",
     "drugclip_index.py",
     "drugclip_pocket.py",
+    "alternate_locations.py",
     "drugclip_retrieval.py",
     "retrieval_topk.py",
     "del_definition.py",

@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from ..docking.contract import Search
 from ..scientific_objects import MoleculeRef
@@ -25,6 +25,14 @@ class DrugCLIPOptions(BaseModel):
     pocket_radius: float = Field(default=6.0, ge=3, le=12, allow_inf_nan=False)
     precision: Literal["float32", "float16"] = "float32"
     max_records: int = Field(default=10000000, ge=1, le=100000000)
+    alternate_locations: Literal["reject", "highest_occupancy", "A", "B"] = "reject"
+
+    @model_serializer(mode="wrap")
+    def stable_wire(self, handler):
+        value = handler(self)
+        if self.alternate_locations == "reject":
+            value.pop("alternate_locations", None)
+        return value
 
     @model_validator(mode="after")
     def scientific_scope(self):

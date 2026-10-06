@@ -21,7 +21,7 @@ NAMESPACE = UUID("d2f5485c-9384-49e8-9c41-6b316a14c932")
 def prepare_example(capability_id, scientific, cache, *, records=None):
     module = MODULES[capability_id]
     case = CASES[module.case_id]
-    objects = {}
+    objects, data_assets = {}, {}
 
     def register(key, name, kind, content, source, record=0):
         asset = scientific.assets.save(name, kind, content)
@@ -40,6 +40,18 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
 
     for key in case.files:
         file = FILES[key]
+        if file.kind in {"config", "library", "counts", "reads"} or (
+            case.id == "drugclip-public-library" and key == "egfr_library"
+        ):
+            from .dataset_inputs import register_dataset_input
+
+            data_assets[key] = register_dataset_input(
+                scientific.assets,
+                cache,
+                file,
+                kind="library" if key == "egfr_library" else file.kind,
+            )
+            continue
         register(key, file.name, file.kind, verified_file(cache, file), file.url)
     sequences, sequence_sources = {}, {}
     if case.id in {"trastuzumab-her2", "trastuzumab-domainiv"}:
@@ -145,6 +157,7 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
         module=module,
         case=case,
         objects=objects,
+        data_assets=data_assets,
         sequences=sequences,
         sequence_sources=sequence_sources,
         sources=case.sources,

@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from ..docking.contract import Search
 from ..docking.options import DockingOptions
@@ -18,6 +18,16 @@ class BatchDockingOptions(BaseModel):
     selected_ids: list[str] = Field(min_length=1, max_length=500)
     docking: DockingOptions = Field(default_factory=DockingOptions)
     retain_heterogens: list[str] = Field(default_factory=list, max_length=20)
+    alternate_locations: Literal["reject", "highest_occupancy", "A", "B"] = "reject"
+
+    @model_serializer(mode="wrap")
+    def stable_wire(self, handler):
+        value = handler(self)
+        if self.alternate_locations == "reject":
+            value.pop("alternate_locations", None)
+        if not self.retain_heterogens:
+            value.pop("retain_heterogens", None)
+        return value
 
     @model_validator(mode="after")
     def exact_frame(self):

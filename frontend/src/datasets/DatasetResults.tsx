@@ -5,6 +5,7 @@ import type { DatasetResult } from "./types";
 import { CandidateView } from "./CandidateView";
 import { ResearchTable } from "./ResearchTable";
 import { DatasetCharts } from "./DatasetCharts";
+import { DefinitionView } from "./DefinitionView";
 
 const names: Record<string, [string, string]> = {
   source_records: ["原始记录", "Source records"],
@@ -156,9 +157,14 @@ export function DatasetResults({
               <CandidateView job={job} result={result} language={language} />
             </details>
           )}
-          {!tableView && !result.candidates.length && (
-            <DatasetCharts job={job} result={result} language={language} />
+          {result.data_kind === "definition" && (
+            <DefinitionView job={job} result={result} language={language} />
           )}
+          {!tableView &&
+            !result.candidates.length &&
+            result.data_kind !== "definition" && (
+              <DatasetCharts job={job} result={result} language={language} />
+            )}
         </>
       )}
       {result.warnings.length > 0 && (

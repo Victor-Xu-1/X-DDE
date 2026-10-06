@@ -96,6 +96,7 @@ def test_official_six_fold_drugclip_index_retrieval_and_identity(tmp_path):
             "search": search,
             "top_k": min(10, result["counts"]["indexed"]),
             "retain": 5,
+            "alternate_locations": "highest_occupancy",
         }
         _, hits, hits_root = campaign.task("drugclip_retrieve", params, materials, [indexed])
         assert hits["candidates"] and all(
@@ -133,6 +134,7 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
             {
                 "kind": "gnina",
                 "mode": "batch",
+                "alternate_locations": "highest_occupancy",
                 "receptor": materials[0]["source"],
                 "search": search,
                 "selected_ids": selected,
@@ -159,9 +161,11 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
         original = verified_file(campaign.root / "public", FILES["brd4"])
         prepared = (pose_root / "receptor.pdb").read_bytes()
         assert b"HETATM" not in prepared
-        assert [line for line in prepared.splitlines() if line.startswith(b"ATOM  ")] == [
-            line for line in original.splitlines() if line.startswith(b"ATOM  ")
-        ]
+        assert all(
+            line in original.splitlines()
+            for line in prepared.splitlines()
+            if line.startswith(b"ATOM  ")
+        )
         campaign.receipt("gnina")
 
 
@@ -281,4 +285,23 @@ def test_deli_real_definition_reads_counts_analysis_series_and_candidates(tmp_pa
             sources=[analysis],
         )
         assert modeled["counts"]["training"] >= 50 and modeled["counts"]["heldout"] >= 20
+        measurement = campaign.material(
+            b"DEL_ID,value\nUNC11951,nanomolar BRD4 binding reported by ITC\n",
+            "UNC11951-reported-binding.csv",
+            "counts",
+            "counts",
+        )
+        _, followup, _ = campaign.task(
+            "del_followup",
+            {
+                "kind": "deli",
+                "mode": "followup",
+                "followup_endpoint": "reported_binding",
+                "followup_unit": "qualitative",
+                "followup_source": "https://doi.org/10.1186/s13321-026-01296-1",
+            },
+            [measurement],
+            [analysis],
+        )
+        assert followup["counts"] == {"reported": 1, "matched": 0, "unmatched": 1}
         campaign.receipt("deli")

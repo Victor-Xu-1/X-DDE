@@ -138,6 +138,7 @@ export const dataDefaults = {
     pocket_radius: 6.0,
     precision: "float32",
     max_records: 10000000,
+    alternate_locations: "reject",
   },
   deli: {
     kind: "deli",
@@ -175,5 +176,7 @@ export const dataDefaults = {
     followup_value_column: "value",
     followup_endpoint: "KD",
     followup_unit: "nM",
+    followup_relation_column: "",
+    followup_source: "",
   },
 } as const;

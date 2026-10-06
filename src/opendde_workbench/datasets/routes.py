@@ -41,6 +41,19 @@ def register(app, store, settings):
 
     register_exploration(app, completed)
 
+    @app.get("/api/datasets/{job_id}/summary")
+    def summary(job_id: UUID):
+        job, _, result, digest = completed(job_id, full_hash=False)
+        return {
+            "job_id": job.id,
+            "name": job.request.name,
+            "operation": job.request.operation,
+            "report_sha256": digest,
+            "role": result.data_kind,
+            "counts": result.counts,
+            "metadata": result.metadata,
+        }
+
     @app.get("/api/datasets/results")
     def results(
         role: str = Query(default="", max_length=20),

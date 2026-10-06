@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { request } from "../api";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -19,6 +19,7 @@ import type {
   DatasetResult,
   DatasetCandidate,
 } from "./types";
+import { useDatasetExample } from "./useDatasetExample";
 
 export function BatchDockingForm({
   language,
@@ -54,6 +55,14 @@ export function BatchDockingForm({
       setError(String(e));
     }
   }
+  const example = useDatasetExample(setError);
+  useEffect(() => {
+    if (!example) return;
+    void choose(example.sources).then(() =>
+      setSelected((example.task.payload.selected_ids as string[]) ?? []),
+    );
+    setName(example.task.name);
+  }, [example]);
   function toggle(id: string) {
     setSelected((values) =>
       values.includes(id)
@@ -69,6 +78,7 @@ export function BatchDockingForm({
         {
           kind: "gnina",
           mode: "batch",
+          alternate_locations: "highest_occupancy",
           receptor: pocket.receptor,
           search: pocket.pocket,
           selected_ids: selected,

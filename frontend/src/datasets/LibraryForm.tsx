@@ -1,5 +1,6 @@
 import { SupplierPicker } from "./SupplierPicker";
 import { LibraryFields } from "./LibraryFields";
+import { useDatasetExample } from "./useDatasetExample";
 import { useEffect, useState } from "react";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -37,7 +38,20 @@ export function LibraryForm({
     [selected, setSelected] = useState<string[]>([]),
     [name, setName] = useState(""),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu");
+  const [templateError, setTemplateError] = useState("");
   const { preview, error } = useTablePreview(importing ? asset : null);
+  const example = useDatasetExample(setTemplateError);
+  useEffect(() => {
+    if (!example) return;
+    const { task, assets, sources } = example;
+    setAsset(assets.get(task.inputs[0]?.source.asset_id) ?? null);
+    setSource(sources);
+    setSelected((task.payload.selected_ids as string[]) ?? []);
+    setSupplier(String(task.payload.supplier ?? "custom"));
+    setIdColumn(String(task.payload.id_column ?? "ID"));
+    setSmilesColumn(String(task.payload.smiles_column ?? "SMILES"));
+    setName(task.name);
+  }, [example]);
 
   useEffect(() => {
     if (!preview?.columns.length) return;
@@ -101,7 +115,7 @@ export function LibraryForm({
       <GuidedSteps<DatasetExecution>
         language={language}
         busy={run.busy}
-        error={run.error || error}
+        error={run.error || templateError || error}
         ready={ready.ready}
         unavailable={
           zh

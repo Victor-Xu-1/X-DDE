@@ -10,6 +10,7 @@ import { useDatasetRun } from "./useDatasetRun";
 import { useTablePreview } from "./useTablePreview";
 import { newReadLane, validReadLanes, type ReadLane } from "./DELReadFiles";
 import { delExpertDefaults } from "./DELExpertSettings";
+import { useDatasetExample } from "./useDatasetExample";
 import type {
   AvailableDataset,
   DELComparison,
@@ -65,6 +66,70 @@ export function useDELForm({
     mode === "decode" ||
     mode === "followup" ||
     (mode === "analyze" && inputKind === "new");
+  const [templateError, setTemplateError] = useState("");
+  const example = useDatasetExample(setTemplateError);
+  useEffect(() => {
+    if (!example) return;
+    const { task, assets, sources } = example,
+      payload = task.payload;
+    setAsset(assets.get(task.inputs[0]?.source.asset_id) ?? null);
+    setSource(sources.filter((item) => item.role !== "definition"));
+    setDefinitions(sources.filter((item) => item.role === "definition"));
+    setInputKind(task.inputs.length ? "new" : "counts");
+    setName(task.name);
+    setSamples((payload.samples as DELSample[]) ?? []);
+    setComparisons((payload.comparisons as DELComparison[]) ?? []);
+    setComparison(String(payload.chosen_comparison ?? ""));
+    setLibrary(String(payload.library ?? ""));
+    setSelected((payload.selected_ids as string[]) ?? []);
+    setMembers(
+      ((payload.selected_members as string[][]) ?? [])
+        .map((item) => item.join(","))
+        .join("\n"),
+    );
+    setMemberId(String(payload.id_column ?? "DEL_ID"));
+    setSmilesColumn(String(payload.smiles_column ?? "SMILES"));
+    setCycleColumns((payload.cycle_columns as string[]) ?? []);
+    setCycleA(Number(payload.holdout_cycle ?? 0));
+    setCountUnit(String(payload.count_unit ?? "corrected_umi"));
+    setEndpoint(String(payload.followup_endpoint ?? "KD"));
+    setUnit(String(payload.followup_unit ?? "nM"));
+    setValueColumn(String(payload.followup_value_column ?? "value"));
+    setAttachmentPolicy(
+      payload.attachment_policy === "cap_hydrogen" ? "cap_hydrogen" : "retain",
+    );
+    if (mode === "decode") {
+      const assignments =
+        (payload.read_samples as {
+          input_label: string;
+          sample: string;
+          sample_barcode?: string;
+          mate_label?: string;
+          encoded_mate?: "r1" | "r2";
+        }[]) ?? [];
+      setReadLanes(
+        [...new Set(assignments.map((item) => item.input_label))].map((id) => {
+          const groups = assignments.filter((item) => item.input_label === id),
+            first = groups[0];
+          const material = task.inputs.find((item) => item.label === id),
+            mate = task.inputs.find((item) => item.label === first.mate_label);
+          return {
+            id,
+            file: material
+              ? (assets.get(material.source.asset_id) ?? null)
+              : null,
+            mate: mate ? (assets.get(mate.source.asset_id) ?? null) : null,
+            paired: !!first.mate_label,
+            encodedMate: first.encoded_mate ?? "r1",
+            assignments: groups.map((item) => ({
+              sample: item.sample,
+              barcode: item.sample_barcode ?? "",
+            })),
+          };
+        }),
+      );
+    }
+  }, [example]);
   const { preview, error } = useTablePreview(
     asset && ["analyze", "followup"].includes(mode) ? asset : null,
   );
@@ -279,6 +344,7 @@ export function useDELForm({
     hasFile,
     preview,
     error,
+    templateError,
     nativeSamples,
     columns,
     availableComparisons,
