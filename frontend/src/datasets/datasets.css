@@ -386,6 +386,7 @@
 }
 .dataset-result-tabs {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 16px 0;
@@ -493,6 +494,7 @@
   font-size: 11px;
 }
 .dataset-table-toolbar {
+  flex-wrap: wrap;
   padding: 8px 0 16px;
   font-size: 12px;
   color: #65748b;
@@ -770,7 +772,12 @@
 }
 .del-definition-view {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 20px;
+}
+.del-definition-view > * {
+  min-width: 0;
 }
 .del-barcode-map {
   display: flex;
@@ -796,7 +803,7 @@
 }
 .dataset-block-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
   gap: 16px;
   max-height: min(48vh, 560px);
   overflow: auto;

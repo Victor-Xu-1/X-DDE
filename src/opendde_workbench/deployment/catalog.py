@@ -14,6 +14,7 @@ from ..examples.bundle_release import VERSION as CASE_VERSION
 from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
 from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
 from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
+from ..integrations.labels import public_name
 from ..integrations.specs import PROGRAMS as SCIENTIFIC_PROGRAMS
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
@@ -301,11 +302,11 @@ PACKAGES["public-dataset-examples"] = Package(
     DATA_CASE_VERSION,
     "Screening and DEL public cases",
     "14 个模块的真实输入与原生结果 / Real inputs and native results for 14 data modules",
-    "2.2 MB",
+    "3.9 MB",
     automatic=True,
     url=DATA_CASE_URL,
     checksum=DATA_CASE_SHA,
-    license="MIT; CC-BY-4.0; ChEMBL CC-BY-SA-3.0; DrugCLIP computed outputs CC-BY-NC-4.0",
+    license="MIT; CC-BY-4.0; ChEMBL CC-BY-SA-3.0; retrieval model outputs CC-BY-NC-4.0",
     engine="x-dde",
     kind="data",
 )
@@ -326,7 +327,7 @@ for identifier, specification in SCIENTIFIC_PROGRAMS.items():
     PACKAGES[identifier] = Package(
         identifier,
         specification["version"],
-        specification["name"],
+        public_name(identifier, specification["name"]),
         "独立科学环境 / Independent scientific environment",
         "至少 16 GiB 安装空间 / At least 16 GiB staging space",
         license=specification["license"],
@@ -336,7 +337,7 @@ for identifier, specification in SCIENTIFIC_PROGRAMS.items():
         PACKAGES[identifier + "-models"] = Package(
             identifier + "-models",
             specification["version"],
-            specification["name"] + " models",
+            public_name(identifier, specification["name"]) + " models",
             "固定版本模型与必要资源 / Fixed model versions and required resources",
             str(round(sum(item["size"] for item in specification["models"]) / 1024**3, 1)) + " GiB",
             (identifier,),

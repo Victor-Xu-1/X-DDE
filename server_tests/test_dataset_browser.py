@@ -1,6 +1,7 @@
 """Actual public outputs, real Ketcher/WebGL and single-step questionnaires; no model simulation."""
 
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -85,6 +86,7 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     for index in range(min(3, drawings.count())):
                         drawings.nth(index).locator("img").wait_for(timeout=30000)
                 page.screenshot(path=str(destination / f"{capability}-results.png"), full_page=True)
+                assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
                 if capability in {"screening.dock", "drugclip.screen", "del.candidates"}:
                     assert page.locator(".dataset-candidate-table").is_visible()
                     page.get_by_text("下载当前结构", exact=True).first.wait_for(timeout=20000)
@@ -128,6 +130,7 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 form.wait_for()
                 for step in range(4):
                     assert form.locator("fieldset:visible").count() == 1
+                    assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
                     page.screenshot(
                         path=str(destination / f"{capability}-step{step + 1}.png"), full_page=True
                     )

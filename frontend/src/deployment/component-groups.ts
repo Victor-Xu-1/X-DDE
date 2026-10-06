@@ -100,11 +100,18 @@ const definitions: GroupDefinition[] = [
     id: "large-libraries",
     title: ["高通量筛选与 DEL", "High-throughput screening & DEL"],
     recommendation: [
-      "DrugCLIP 六折模型用于非商业研究；DELi 负责解码、计数与富集分析",
-      "Six-fold DrugCLIP for noncommercial research; DELi for decoding, counts and enrichment",
+      "六模型联合检索用于非商业研究；DEL 支持解码、计数与富集分析",
+      "Six-model retrieval for noncommercial research; DEL decoding, counts and enrichment",
     ],
-    recommended: ["drugclip", "drugclip-models", "deli", "public-dataset-examples"],
-    matches: (p) => ["drugclip", "deli"].includes(p.engine ?? "") || p.id === "public-dataset-examples",
+    recommended: [
+      "drugclip",
+      "drugclip-models",
+      "deli",
+      "public-dataset-examples",
+    ],
+    matches: (p) =>
+      ["drugclip", "deli"].includes(p.engine ?? "") ||
+      p.id === "public-dataset-examples",
   },
   {
     id: "biologics",

@@ -138,8 +138,8 @@ export function ScreeningForm({
         ready={ready}
         unavailable={
           zh
-            ? "请在安装与组件中准备 DrugCLIP、分子处理环境，以及所选方案所需的 GNINA。"
-            : "Prepare DrugCLIP, molecular processing and GNINA if docking is selected in Components."
+            ? "请在安装与组件中准备高通量筛选、分子处理，以及所选方案所需的对接环境。"
+            : "Prepare high-throughput screening, molecular processing and docking if selected in Components."
         }
         submitLabel={zh ? "提交筛选" : "Submit screening"}
         onSubmit={submit}

@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -75,6 +76,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                     ).click()
                     cards = card_geometry(page, ".component-grid > .component-card")
                     check_cards(cards, width)
+                    assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
                     assert abs(cards[0]["width"] - all_cards[0]["width"]) <= 1, (
                         "A short group must retain the grid column width"
                     )
@@ -93,6 +95,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                     "button", name="运行状态", exact=True
                 ).click()
                 expect(page.locator(".runtime-workspace .studio-panel").first).to_be_visible()
+                assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
                 runtime = card_geometry(page, ".runtime-workspace .studio-panel")
                 # Status cards intentionally have no component maintenance footer.
                 for card in runtime:

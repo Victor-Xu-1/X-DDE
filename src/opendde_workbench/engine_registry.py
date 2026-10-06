@@ -10,6 +10,7 @@ from typing import Literal
 
 from .datasets.contract import OPERATIONS as DATA_OPERATIONS
 from .integrations.contract import OPERATIONS as INTEGRATED_OPERATIONS
+from .integrations.labels import public_name
 from .integrations.specs import PROGRAMS
 
 
@@ -126,7 +127,7 @@ _DEFINITIONS = (
 _DEFINITIONS += tuple(
     ScientificEngine(
         identifier,
-        spec["name"],
+        public_name(identifier, spec["name"]),
         "独立科学程序、原生结果与不可覆盖输入 / Native software and immutable inputs",
         "docker",
         tuple(

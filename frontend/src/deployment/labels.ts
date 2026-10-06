@@ -2,6 +2,9 @@ import type { ComponentPackage } from "./component-groups";
 
 export const names: Record<string, string> = {
   "public-examples": "公开研发案例",
+  "public-dataset-examples": "高通量筛选与 DEL 案例",
+  drugclip: "高通量筛选引擎",
+  "drugclip-models": "六模型筛选资源",
   sapiens: "抗体人源参考 · Sapiens / ANARCII / Promb",
   harness: "OpenDDE Harness 客户端",
   runtime: "OpenDDE 科学代码",
@@ -28,6 +31,8 @@ export function componentName(p: ComponentPackage, zh: boolean) {
   if (model)
     return `${model[1] === "moad" ? "MOAD" : "CrossDocked"} · ${model[2] === "ca" ? "Cα" : zh ? "全原子" : "Full atom"} · ${model[3] === "cond" ? (zh ? "条件模型" : "Conditional") : zh ? "联合模型" : "Joint"}`;
   const english: Record<string, string> = {
+    drugclip: "High-throughput screening engine",
+    "drugclip-models": "Six-model screening resources",
     biopython: "Receptor preparation · Biopython",
     chemistry: "Molecule preparation · RDKit",
     gnina: "Molecular docking · GNINA",

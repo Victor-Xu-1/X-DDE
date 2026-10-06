@@ -17,6 +17,8 @@ const researchUses: Record<string, [string, string]> = {
   admet: ["性质与早期安全性", "Properties & early safety"],
   posebusters: ["构象与姿势质控", "Conformer & pose quality"],
   discovery: ["靶点与公共研究材料", "Targets & public research materials"],
+  drugclip: ["高通量筛选", "High-throughput screening"],
+  deli: ["DEL 数据分析", "DEL data analysis"],
 };
 
 export function RuntimeStatus({

@@ -186,7 +186,7 @@ CAPABILITIES = tuple(
         note=note,
         source={
             "chemistry": "RDKit",
-            "drugclip": "Official DrugCLIP",
+            "drugclip": "Pocket–molecule joint retrieval",
             "gnina": "GNINA",
             "deli": "DELi",
         }[engine],

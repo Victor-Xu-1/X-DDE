@@ -188,8 +188,8 @@ export function ScreeningReview({
       </details>
       <p className="dataset-license-note">
         {zh
-          ? "DrugCLIP 官方模型与输出：仅非商业科研使用。检索分数不代表亲和力。"
-          : "Official DrugCLIP models and outputs: noncommercial research. Retrieval scores are not affinity."}
+          ? "筛选模型与输出仅用于非商业科研。检索分数不代表亲和力。"
+          : "Screening models and outputs are for noncommercial research. Retrieval scores are not affinity."}
       </p>
     </div>
   );

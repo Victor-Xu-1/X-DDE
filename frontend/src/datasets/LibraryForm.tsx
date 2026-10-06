@@ -236,7 +236,11 @@ export function LibraryForm({
                     </div>
                     <div>
                       <span>{zh ? "模型" : "Model"}</span>
-                      <strong>DrugCLIP · 6 folds</strong>
+                      <strong>
+                        {zh
+                          ? "口袋–分子联合检索 · 六模型"
+                          : "Pocket–molecule retrieval · 6 models"}
+                      </strong>
                     </div>
                   </div>
                 ) : (

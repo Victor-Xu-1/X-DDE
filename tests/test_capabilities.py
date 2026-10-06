@@ -8,7 +8,9 @@ from opendde_workbench.capabilities import frontend_catalogue, request_schema
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.capabilities.modalities import MODALITIES, modality_catalogue
 from opendde_workbench.capabilities.runtime import availability
+from opendde_workbench.deployment.catalog import PACKAGES
 from opendde_workbench.engine_registry import engine_for
+from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
 
 def test_inventory_matches_router_and_excludes_unimplemented_forms():
@@ -18,6 +20,16 @@ def test_inventory_matches_router_and_excludes_unimplemented_forms():
     assert "native.inspect" not in visible
     assert "properties" in visible
     assert all(CAPABILITIES[id].frontend_form for id in visible)
+    # Product names must not re-key tasks or invalidate previously verified runtimes.
+    assert engine_for("drugclip_retrieve").id == "drugclip"
+    assert "DrugCLIP" in PROGRAMS["drugclip"]["name"]
+    assert "DrugCLIP" not in engine_for("drugclip_retrieve").name
+    assert "DrugCLIP" not in PACKAGES["drugclip"].name
+    assert "DrugCLIP" not in PACKAGES["drugclip-models"].name
+    assert (
+        recipe_digest("drugclip")
+        == "ab0363175f4cc81e2d9e73c3bd6aa0c8eaa941ad5c69e03874db29d7dde6648e"
+    )
 
 
 def test_schemas_are_owned_values_not_mutable_global_state():
