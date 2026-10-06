@@ -2,6 +2,7 @@
 
 import csv
 import gzip
+import re
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -15,6 +16,22 @@ def register(app, assets):
             if asset.kind not in {"library", "counts"}:
                 raise ValueError("Choose a molecular library or count table.")
             file = assets.path(asset)
+            if asset.suffix in {".sdf", ".sdf.gz"}:
+                opener = gzip.open if asset.suffix.endswith(".gz") else open
+                with opener(file, "rt", encoding="utf-8-sig") as stream:
+                    block = stream.read(512 * 1024)
+                properties = list(
+                    dict.fromkeys(re.findall(r"(?m)^>\s*(?:\d+\s*)?<([^>\r\n]+)>", block))
+                )
+                if len(properties) > 128 or any(len(name) > 80 for name in properties):
+                    raise ValueError("The source has too many or overly long SDF properties.")
+                return {
+                    "columns": [],
+                    "rows": [],
+                    "format": asset.suffix,
+                    "table": False,
+                    "sdf_properties": properties,
+                }
             if asset.suffix not in {".csv", ".tsv", ".csv.gz", ".tsv.gz"}:
                 return {"columns": [], "rows": [], "format": asset.suffix, "table": False}
             opener = gzip.open if asset.suffix.endswith(".gz") else open

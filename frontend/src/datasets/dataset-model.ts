@@ -100,6 +100,8 @@ export function screeningPlan({
     id_column?: string;
     smiles_column?: string;
     delimiter?: "," | "\t";
+    source_permission?: "official_public_resource" | "user_owned_file";
+    source_url?: string;
   };
   expert?: Partial<ShortlistSettings> & {
     batch_size?: number;

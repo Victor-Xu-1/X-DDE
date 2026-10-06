@@ -3,6 +3,7 @@ import type { ComponentPackage } from "./component-groups";
 export const names: Record<string, string> = {
   "public-examples": "公开研发案例",
   "public-dataset-examples": "高通量筛选与 DEL 案例",
+  "supplier-libraries": "供应商公开结构文件",
   drugclip: "高通量筛选引擎",
   "drugclip-models": "六模型筛选资源",
   sapiens: "抗体人源参考 · Sapiens / ANARCII / Promb",

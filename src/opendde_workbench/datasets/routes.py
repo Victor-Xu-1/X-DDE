@@ -17,6 +17,13 @@ from .suppliers import catalogue
 
 
 def register(app, store, settings):
+    @app.get("/api/datasets/public-files")
+    def public_files():
+        from ..assets import AssetStore
+        from .public_resources import available_files
+
+        return available_files(AssetStore(store, settings.state_dir / "assets"), settings.state_dir)
+
     @app.get("/api/datasets/suppliers")
     def suppliers():
         return catalogue()

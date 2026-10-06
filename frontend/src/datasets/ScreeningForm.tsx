@@ -23,6 +23,7 @@ import { dataDefaults } from "./catalog";
 import { useDatasetExample } from "./useDatasetExample";
 import type { ShortlistSettings } from "./ShortlistChoices";
 import { ScreeningReview } from "./ScreeningReview";
+import type { PublicLibraryFile } from "./PublicLibraryFiles";
 
 export function ScreeningForm({
   language,
@@ -35,6 +36,9 @@ export function ScreeningForm({
     pocket = usePocketQuestions(language),
     run = useDatasetRun(onCreated),
     [library, setLibrary] = useState<Asset | null>(null),
+    [publicResource, setPublicResource] = useState<PublicLibraryFile | null>(
+      null,
+    ),
     [indexes, setIndexes] = useState<DatasetSource[]>([]),
     [source, setSource] = useState<"new" | "indexes">("new"),
     [supplier, setSupplier] = useState("custom"),
@@ -79,6 +83,16 @@ export function ScreeningForm({
     );
   }, [example]);
   useEffect(() => {
+    if (preview?.sdf_properties) {
+      setIdColumn(
+        preview.sdf_properties.find((column) =>
+          /^(id|id[_ ]?number|cat(alog)?[_ ]?(no|number)|code|cmpdid)$/i.test(
+            column,
+          ),
+        ) ?? "_Name",
+      );
+      return;
+    }
     if (!preview?.columns.length) return;
     setIdColumn(
       preview.columns.find((name) =>
@@ -117,6 +131,14 @@ export function ScreeningForm({
         libraryFields: {
           id_column: idColumn,
           smiles_column: smilesColumn,
+          source_permission:
+            publicResource?.asset?.id === library?.id
+              ? "official_public_resource"
+              : "user_owned_file",
+          source_url:
+            publicResource?.asset?.id === library?.id
+              ? publicResource?.source_page
+              : "",
           delimiter: library?.suffix.includes(".tsv") ? "\t" : ",",
         },
         expert: {
@@ -207,7 +229,15 @@ export function ScreeningForm({
                       kind="library"
                       language={language}
                       value={library}
-                      onChange={setLibrary}
+                      onChange={(next) => {
+                        setLibrary(next);
+                        setPublicResource(null);
+                      }}
+                      onResource={(resource) => {
+                        setPublicResource(resource);
+                        setSupplier(resource.supplier);
+                        setIdColumn(resource.id_column);
+                      }}
                       label={
                         zh
                           ? "供应商或自有分子库"

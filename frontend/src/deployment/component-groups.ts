@@ -108,10 +108,11 @@ const definitions: GroupDefinition[] = [
       "drugclip-models",
       "deli",
       "public-dataset-examples",
+      "supplier-libraries",
     ],
     matches: (p) =>
       ["drugclip", "deli"].includes(p.engine ?? "") ||
-      p.id === "public-dataset-examples",
+      ["public-dataset-examples", "supplier-libraries"].includes(p.id),
   },
   {
     id: "biologics",

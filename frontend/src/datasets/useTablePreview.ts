@@ -6,6 +6,7 @@ export interface InputPreview {
   rows: Record<string, string>[];
   format: string;
   table: boolean;
+  sdf_properties?: string[];
 }
 export function useTablePreview(asset: Asset | null) {
   const [preview, setPreview] = useState<InputPreview | null>(null),

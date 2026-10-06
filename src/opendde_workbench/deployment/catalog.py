@@ -311,6 +311,17 @@ PACKAGES["public-dataset-examples"] = Package(
     kind="data",
 )
 
+PACKAGES["supplier-libraries"] = Package(
+    "supplier-libraries",
+    "2026-10-07",
+    "Public supplier structure files",
+    "8 家供应商的 11 份公开结构文件 / 11 public structure files from 8 suppliers",
+    "约 542 MiB 下载；5.4 GiB 原始结构 / 542 MiB download; 5.4 GiB structures",
+    license="Supplier published-file terms; no redistribution assumed",
+    engine="x-dde",
+    kind="data",
+)
+
 
 def prerequisites() -> dict:
     return {

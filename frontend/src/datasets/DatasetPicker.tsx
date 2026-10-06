@@ -4,6 +4,10 @@ import { Hint } from "../guided/Hint";
 import type { Asset } from "../operations/types";
 import type { Language } from "../types";
 import {
+  PublicLibraryFiles,
+  type PublicLibraryFile,
+} from "./PublicLibraryFiles";
+import {
   cancelUpload,
   uploadDataset,
   type DataKind,
@@ -25,15 +29,18 @@ export function DatasetPicker({
   value,
   onChange,
   label,
+  onResource,
 }: {
   language: Language;
   kind: DataKind;
   value: Asset | null;
   onChange(value: Asset | null): void;
   label: string;
+  onResource?(value: PublicLibraryFile): void;
 }) {
   const zh = language === "zh",
     [history, setHistory] = useState(false),
+    [publicFiles, setPublicFiles] = useState(false),
     [assets, setAssets] = useState<Asset[]>([]),
     [file, setFile] = useState<File | null>(null),
     [state, setState] = useState<UploadState | null>(null),
@@ -103,10 +110,11 @@ export function DatasetPicker({
       <div className="dataset-source-tabs" role="group" aria-label={label}>
         <button
           type="button"
-          aria-pressed={!history}
+          aria-pressed={!history && !publicFiles}
           disabled={busy}
           onClick={() => {
             setHistory(false);
+            setPublicFiles(false);
             onChange(null);
           }}
         >
@@ -118,13 +126,36 @@ export function DatasetPicker({
           disabled={busy}
           onClick={() => {
             setHistory(true);
+            setPublicFiles(false);
             onChange(null);
           }}
         >
           {zh ? "历史文件" : "History"}
         </button>
+        {kind === "library" && (
+          <button
+            type="button"
+            aria-pressed={publicFiles}
+            disabled={busy}
+            onClick={() => {
+              setPublicFiles(true);
+              setHistory(false);
+              onChange(null);
+            }}
+          >
+            {zh ? "公开结构库" : "Public libraries"}
+          </button>
+        )}
       </div>
-      {history ? (
+      {publicFiles ? (
+        <PublicLibraryFiles
+          language={language}
+          onChange={(resource) => {
+            onChange(resource.asset);
+            onResource?.(resource);
+          }}
+        />
+      ) : history ? (
         <select
           aria-label={label}
           value={value?.id ?? ""}

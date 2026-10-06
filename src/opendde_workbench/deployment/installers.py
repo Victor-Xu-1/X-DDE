@@ -36,6 +36,10 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         metadata.update(scientific_runtime(key, root, work, execute, report, checkpoint))
     elif key.endswith("-models") and key.removesuffix("-models") in PROGRAMS:
         metadata.update(scientific_models(key.removesuffix("-models"), root, report, checkpoint))
+    elif key == "supplier-libraries":
+        from .supplier_files import install as supplier_files
+
+        metadata.update(supplier_files(root, state, report, checkpoint))
     elif key in {"public-examples", "public-dataset-examples"}:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings

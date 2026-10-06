@@ -196,7 +196,7 @@ class DeploymentManager:
                         shutil.rmtree(directory)
                 installed.pop(key, None)
             else:
-                if key in {"public-examples", "public-dataset-examples"}:
+                if key in {"public-examples", "public-dataset-examples", "supplier-libraries"}:
                     installed[key] = install(
                         key, root, installed, identifier, report, checkpoint, state=self.store.state
                     )

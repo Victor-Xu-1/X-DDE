@@ -16,6 +16,7 @@ import { ExecutionView } from "./ExecutionView";
 import { useTablePreview } from "./useTablePreview";
 import type { AvailableDataset } from "./types";
 import { datasetName } from "./source-label";
+import type { PublicLibraryFile } from "./PublicLibraryFiles";
 
 export function LibraryForm({
   tool,
@@ -32,6 +33,9 @@ export function LibraryForm({
     run = useDatasetRun(onCreated),
     ready = useTaskReadiness(tool),
     [asset, setAsset] = useState<Asset | null>(null),
+    [publicResource, setPublicResource] = useState<PublicLibraryFile | null>(
+      null,
+    ),
     [source, setSource] = useState<AvailableDataset[]>([]),
     [supplier, setSupplier] = useState("custom"),
     [idColumn, setIdColumn] = useState("ID"),
@@ -55,6 +59,15 @@ export function LibraryForm({
   }, [example]);
 
   useEffect(() => {
+    if (preview?.sdf_properties) {
+      const candidate = preview.sdf_properties.find((column) =>
+        /^(id|id[_ ]?number|cat(alog)?[_ ]?(no|number)|code|cmpdid)$/i.test(
+          column,
+        ),
+      );
+      setIdColumn(candidate ?? "_Name");
+      return;
+    }
     if (!preview?.columns.length) return;
     const ids = preview.columns.find((column) =>
       /^(id|compound_id|catalog.?id|molport.?id|chembl.?id)$/i.test(column),
@@ -87,6 +100,14 @@ export function LibraryForm({
             library_name: name.trim() || asset?.name || purpose,
             id_column: idColumn,
             smiles_column: smilesColumn,
+            source_permission:
+              publicResource?.asset?.id === asset?.id
+                ? "official_public_resource"
+                : "user_owned_file",
+            source_url:
+              publicResource?.asset?.id === asset?.id
+                ? publicResource?.source_page
+                : "",
             delimiter: asset?.suffix.includes(".tsv") ? "\t" : ",",
           }
         : {
@@ -147,7 +168,15 @@ export function LibraryForm({
                         : "Supplier or owned compound file"
                     }
                     value={asset}
-                    onChange={setAsset}
+                    onChange={(next) => {
+                      setAsset(next);
+                      setPublicResource(null);
+                    }}
+                    onResource={(resource) => {
+                      setPublicResource(resource);
+                      setSupplier(resource.supplier);
+                      setIdColumn(resource.id_column);
+                    }}
                     language={language}
                   />
                 ) : (
