@@ -5,6 +5,7 @@ import importlib.metadata
 import json
 import math
 import pickle
+from pathlib import Path
 
 import numpy as np
 from platformnative_io import csv_sink, finish, progress, readonly_database, source_result
@@ -139,8 +140,6 @@ def run(request):
         database.close()
     if not predicted_count:
         raise ValueError("This study has no resolved chemical structures for model reuse.")
-    from pathlib import Path
-
     Path("/output/prediction-scope.json").write_text(
         json.dumps(
             {

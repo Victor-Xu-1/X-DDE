@@ -31,10 +31,12 @@ export function ScientificForm({
   form,
   language,
   onCreated,
+  initialStructure: chosenStructure = null,
 }: {
   form: FormId;
   language: Language;
   onCreated(job: Job): void;
+  initialStructure?: MoleculeRef | null;
 }) {
   const zh = language === "zh",
     [program, operation] = scientificForms[form];
@@ -56,7 +58,8 @@ export function ScientificForm({
     "imatinib",
   );
   const [structure, setStructure] = useState<MoleculeRef | null>(
-    preset?.inputs.find((i) => i.role === "structure")?.source ??
+    chosenStructure ??
+      preset?.inputs.find((i) => i.role === "structure")?.source ??
       (["boltz", "reinvent", "chemprop"].includes(program)
         ? null
         : initialStructure),

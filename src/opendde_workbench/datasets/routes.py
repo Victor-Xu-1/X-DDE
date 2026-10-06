@@ -98,6 +98,8 @@ def register(app, store, settings):
             if job.status == "succeeded" and isinstance(job.request, DatasetTask):
                 _, _, result, digest = completed(job.id, full_hash=False)
                 if not role or result.data_kind == role:
+                    if role == "model" and result.metadata.get("model_contract") != 1:
+                        continue
                     required = SOURCE_ARTIFACT.get(role)
                     if required and not any(item.role == required for item in result.artifacts):
                         continue

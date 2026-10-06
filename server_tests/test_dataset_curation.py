@@ -73,6 +73,35 @@ def test_csv_export_writes_records_before_a_later_source_failure(tmp_path, monke
     assert rows == [["member", "count"], ["'=unsafe", "1"], ["valid", "2"]]
 
 
+def test_pose_complex_preserves_actual_protein_frame_and_ligand_coordinates(tmp_path, monkeypatch):
+    import numpy as np
+    from rdkit import Chem
+
+    native = Native(tmp_path, monkeypatch)
+    original = verified_file(tmp_path / "public", FILES["brd4"]).decode()
+    lines = [line for line in original.splitlines() if line.startswith("ATOM  ")]
+    receptor = tmp_path / "protein.pdb"
+    receptor.write_text("\n".join(lines) + "\nEND\n")
+    supplier = Chem.SDMolSupplier()
+    supplier.SetData(verified_file(tmp_path / "public", FILES["jq1"]).decode(), removeHs=False)
+    molecule = supplier[0]
+    coordinates = molecule.GetConformer().GetPositions().copy()
+    output = tmp_path / "complex.pdb"
+    site = native.module("pose_complex").export(receptor, molecule, output)
+    actual = output.read_text().splitlines()
+    assert [line for line in actual if line.startswith("ATOM  ")] == lines
+    heterogens = [line for line in actual if line.startswith("HETATM")]
+    serials = [int(line[6:11]) for line in actual if line.startswith(("ATOM  ", "HETATM"))]
+    assert len(serials) == len(set(serials))
+    pose = np.asarray(
+        [[float(line[start : start + 8]) for start in (30, 38, 46)] for line in heterogens]
+    )
+    assert np.allclose(pose, coordinates, atol=0.00051) and all(
+        line[21] == site["chain"] for line in heterogens
+    )
+    assert np.array_equal(molecule.GetConformer().GetPositions(), coordinates)
+
+
 def test_native_model_reuse_keeps_labels_domain_and_independent_validation_distinct(
     tmp_path, monkeypatch
 ):

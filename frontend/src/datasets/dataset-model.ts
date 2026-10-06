@@ -33,7 +33,11 @@ export function taskFor(
     operation: definition.operation as DatasetOperation,
     name,
     inputs,
-    sources,
+    sources: sources.map(({ job_id, report_sha256, role }) => ({
+      job_id,
+      report_sha256,
+      role,
+    })),
     payload,
     options: execution,
     scientific_inputs: inputs.map((item) => item.source),

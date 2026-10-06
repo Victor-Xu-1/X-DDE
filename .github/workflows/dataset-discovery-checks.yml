@@ -39,6 +39,7 @@ jobs:
           tests/test_dataset_views.py tests/test_dataset_workflows.py tests/test_workflows.py
           tests/test_case_bundle.py tests/test_case_bundle_sources.py
           tests/test_example_library.py tests/test_example_pins.py tests/test_examples.py
+          tests/test_dataset_examples.py tests/test_research_assets.py
       - name: Changed data forms, upload and workflow UI only
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts

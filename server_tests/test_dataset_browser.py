@@ -73,7 +73,11 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     assert page.locator(".dataset-candidate-table").is_visible()
                     page.get_by_text("下载当前结构", exact=True).first.wait_for(timeout=20000)
                 if capability == "del.analyze":
-                    assert page.locator(".dataset-table-scroll tbody tr").count() == 20
+                    from playwright.sync_api import expect
+
+                    expect(
+                        page.locator(".dataset-table-region .dataset-table-scroll tbody tr")
+                    ).to_have_count(20)
                     page.get_by_text("图表与质量", exact=True).click()
                     page.locator(".dataset-chart svg").first.wait_for()
                     page.screenshot(

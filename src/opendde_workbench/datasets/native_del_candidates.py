@@ -13,9 +13,12 @@ from platformnative_io import finish, readonly_database, source_result, write_cs
 def run(request):
     from rdkit import Chem
 
-    root, _ = source_result(request)
+    root, analysis = source_result(request)
     original = readonly_database(root / "analysis.sqlite")
     options = request["payload"]
+    comparison = options["chosen_comparison"] or analysis["metadata"]["chosen_comparison"]
+    if not any(item["id"] == comparison for item in analysis["metadata"]["comparisons"]):
+        raise ValueError("Choose an actually computed comparison for DEL candidate handoff.")
     libraries = {}
     if len(request["sources"]) > 1:
         definition_root, _ = source_result(request, 1)
@@ -53,6 +56,10 @@ def run(request):
                         "source_job": request["sources"][0]["job_id"],
                         "source_record": row["ordinal"],
                         "smiles": Chem.MolToSmiles(molecule, isomericSmiles=True),
+                        "score": original.execute(
+                            "SELECT score FROM enrichment WHERE member=? AND comparison=?",
+                            (identifier, comparison),
+                        ).fetchone()[0],
                         "artifact": "del-candidates.sdf",
                         "record": len(candidates),
                         "geometry": "unbound_conformer",
@@ -98,5 +105,7 @@ def run(request):
             ),
             "geometry": "unbound; not a receptor binding pose",
             "source": request["sources"][0],
+            "chosen_comparison": comparison,
+            "score_scope": "original_encoded_member_enrichment; not off-DNA affinity",
         },
     )

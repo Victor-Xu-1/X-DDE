@@ -97,7 +97,8 @@ def main():
                 raise ValueError(
                     "Every retained example must be an actual successful native result."
                 )
-            available[entry["job"]["request"]["operation"]] = entry["job"]["id"]
+            if entry["job"]["request"].get("payload", {}).get("model_action") != "predict":
+                available[entry["job"]["request"]["operation"]] = entry["job"]["id"]
     assets = AssetStore(store, args.state / "assets")
     scientific = ScientificStore(store, assets)
     records = ExampleRecords(store, assets, settings)

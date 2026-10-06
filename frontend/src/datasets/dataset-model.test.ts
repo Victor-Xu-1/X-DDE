@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screeningPlan } from "./dataset-model";
+import { screeningPlan, taskFor } from "./dataset-model";
 import { validReadLanes, type ReadLane } from "./DELReadFiles";
 
 const receptor = {
@@ -25,6 +25,31 @@ const pocket = {
 };
 
 describe("screening plans", () => {
+  it("sends strict native source references while retaining UI metadata only in the picker", () => {
+    const source = {
+      job_id: receptor.asset_id,
+      report_sha256: "d".repeat(64),
+      role: "analysis" as const,
+      name: "Public BRD4 study",
+      counts: { observed_members: 3000 },
+      metadata: { chosen_comparison: "BRD4" },
+    };
+    const task = taskFor(
+      "del.series",
+      { kind: "deli", mode: "series", chosen_comparison: "BRD4" },
+      [],
+      [source],
+      "BRD4 series",
+    );
+    expect(task.sources).toEqual([
+      {
+        job_id: source.job_id,
+        report_sha256: source.report_sha256,
+        role: "analysis",
+      },
+    ]);
+    expect(source.metadata.chosen_comparison).toBe("BRD4");
+  });
   it("uses the selected fresh library and exact receptor frame through one planned chain", () => {
     const plan = screeningPlan({
       name: "BRD4",

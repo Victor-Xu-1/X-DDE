@@ -428,6 +428,17 @@ class OutputCatalog:
     def index(self, job, root):
         errors, count = [], 0
         artifacts = list_artifacts(root)
+        from ..datasets.contract import DatasetTask
+
+        if isinstance(job.request, DatasetTask):
+            from ..datasets.result import validate_result
+
+            result = validate_result(
+                json.loads(contained(root, "result.json").read_bytes()), job.request, root
+            )
+            reusable = {item.name for item in result.artifacts if item.format in {"pdb", "cif"}}
+            reusable.update({"result.json", result.molecule_artifact})
+            artifacts = [item for item in artifacts if item.name in reusable]
         receptor_result = None
         antibody_result = None
         humanization_result = None

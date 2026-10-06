@@ -133,6 +133,10 @@ def run(request):
                 qualified = f"pose-{index + 1:04d}.sdf"
                 with Chem.SDWriter("/output/" + qualified) as single:
                     single.write(pose)
+                from pose_complex import export as export_complex
+
+                complex_artifact = f"complex-{index + 1:04d}.pdb"
+                export_complex("/output/receptor.pdb", pose, "/output/" + complex_artifact)
                 writer.write(pose)
                 scores = {item["name"]: item["value"] for item in best["scores"]}
                 poses.append(
@@ -141,6 +145,7 @@ def run(request):
                         "artifact": "best-poses.sdf",
                         "record": len(poses),
                         "geometry": "binding_pose",
+                        "complex_artifact": complex_artifact,
                         "docking_score": scores["minimizedAffinity"],
                         "cnn_score": scores.get("CNNscore"),
                         "cnn_affinity": scores.get("CNNaffinity"),
@@ -160,6 +165,7 @@ def run(request):
                     ]
                 )
                 artifacts[qualified] = "qualified_binding_pose"
+                artifacts[complex_artifact] = "qualified_pose_complex"
             except (ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
                 reason = (
                     "native_time_limit"

@@ -106,6 +106,7 @@ export interface DatasetCandidate {
   cnn_score: number | null;
   cnn_affinity: number | null;
   artifact: string | null;
+  complex_artifact?: string | null;
   record: number;
   geometry: "none" | "unbound_conformer" | "binding_pose";
 }

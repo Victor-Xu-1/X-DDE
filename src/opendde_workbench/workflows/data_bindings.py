@@ -41,6 +41,13 @@ def validate_graph(step, predecessors):
             or RESULT_KINDS[previous.request.operation] != binding.role
         ):
             raise ValueError("A workflow dataset producer has a different scientific output role.")
+        if binding.role == "model" and (
+            previous.request.operation != "del_model"
+            or previous.request.payload.model_action != "train"
+        ):
+            raise ValueError(
+                "Model reuse requires a training stage, not applied model predictions."
+            )
         if (
             binding.slot >= len(step.request.sources)
             or step.request.sources[binding.slot].role != binding.role

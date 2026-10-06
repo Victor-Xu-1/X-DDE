@@ -179,6 +179,7 @@ def run(request):
             "scope": "research_baseline; not scientifically accepted affinity prediction",
             "holdout_cycle": options["holdout_cycle"],
             "model_action": "train",
+            "model_contract": 1,
         },
         warnings=["The baseline did not improve on the training mean in the independent holdout."]
         if metrics["rmse_log1p_enrichment"] >= metrics["mean_baseline_rmse"]

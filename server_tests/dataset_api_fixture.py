@@ -150,3 +150,45 @@ class Campaign:
         import shutil
 
         shutil.copytree(self.settings.state_dir, directory / "state", dirs_exist_ok=True)
+
+    def interactions(self, source_job, complex_name, chain, residue):
+        imported = self.client.post(
+            f"/api/jobs/{source_job}/assets", params={"kind": "structure", "name": complex_name}
+        )
+        assert imported.status_code == 201, imported.text
+        asset = imported.json()
+        reference = {"asset_id": asset["id"], "sha256": asset["sha256"]}
+        response = self.client.post(
+            "/api/jobs",
+            headers={"Idempotency-Key": str(uuid4())},
+            json={
+                "operation": "interaction_profile",
+                "name": "Actual PLIP docking follow-up",
+                "inputs": [{"role": "structure", "source": reference}],
+                "scientific_inputs": [reference],
+                "payload": {"kind": "plip", "ligand_chain": chain, "ligand_number": residue},
+                "options": {"cpu": 2, "memory_mib": 4096},
+            },
+        )
+        assert response.status_code == 201, response.text
+        identifier = response.json()["id"]
+        until = time.monotonic() + 300
+        while time.monotonic() < until:
+            job = self.client.get(f"/api/jobs/{identifier}").json()
+            if job["status"] in {"succeeded", "failed", "cancelled"}:
+                break
+            time.sleep(0.3)
+        assert job["status"] == "succeeded", self.client.get(f"/api/jobs/{identifier}/logs").json()
+        response = self.client.get(f"/api/jobs/{identifier}/result")
+        assert response.status_code == 200, response.text
+        result = response.json()
+        assert result["interactions"] and result["structure_artifact"]
+        for name, digest in result["artifact_sha256"].items():
+            download = self.client.get(f"/api/jobs/{identifier}/download", params={"name": name})
+            assert (
+                download.status_code == 200
+                and hashlib.sha256(download.content).hexdigest() == digest
+            )
+        (self.root / "native-interaction-followup.json").write_text(
+            json.dumps({"job": job, "result": result}, indent=2)
+        )

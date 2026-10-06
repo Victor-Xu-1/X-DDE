@@ -75,8 +75,8 @@ export function CandidateView({
                             ? "预测 log(1＋富集)"
                             : "Predicted log(1+enrichment)"
                           : zh
-                            ? "富集倍数"
-                            : "Enrichment"}
+                            ? "原 DEL 成员富集"
+                            : "Original DEL enrichment"}
                   </th>
                 </tr>
               </thead>
@@ -111,7 +111,13 @@ export function CandidateView({
                         >
                           {row.display_name || row.id}
                         </button>
-                        <small>{row.supplier}</small>
+                        <small>
+                          {row.supplier === "custom"
+                            ? zh
+                              ? "研究库"
+                              : "Research library"
+                            : row.supplier}
+                        </small>
                       </td>
                       <td>
                         {(result.program === "gnina"
@@ -165,6 +171,9 @@ export function CandidateView({
               key={candidate.id}
               urls={urls}
               records={records}
+              focusModel={
+                hasReceptor && candidate.geometry === "binding_pose" ? 1 : 0
+              }
               language={language}
               molecularSource={{ url: molecular!, record: candidate.record }}
               nativeScore={

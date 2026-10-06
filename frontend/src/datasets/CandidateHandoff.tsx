@@ -9,10 +9,18 @@ import { DockingForm } from "../docking/DockingForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { Editors } from "../editors/Editors";
 import { useDeployment } from "../deployment/client";
+import { ScientificForm } from "../integrations/ScientificForm";
 import { DeploymentPanel } from "../deployment/DeploymentPanel";
 
 type Action =
-  "admet" | "quality" | "dock" | "score" | "minimize" | "edit" | "curate";
+  | "interactions"
+  | "admet"
+  | "quality"
+  | "dock"
+  | "score"
+  | "minimize"
+  | "edit"
+  | "curate";
 function EditCandidate(props: {
   job: Job;
   language: Language;
@@ -76,6 +84,9 @@ export function CandidateHandoff({
     protein = assets.versions.find(
       (v) => v.kind === "structure" && v.label === "receptor.pdb",
     );
+  const complex = assets.versions.find(
+    (v) => v.kind === "structure" && v.label === candidate?.complex_artifact,
+  );
   function created(value: Job) {
     onCreated?.(value);
     setNotice(zh ? "新研究任务已提交。" : "The new study has been submitted.");
@@ -83,7 +94,16 @@ export function CandidateHandoff({
   if (action && molecule)
     return (
       <ResearchHandoff language={language} onBack={() => setAction(null)}>
-        {action === "admet" ? (
+        {action === "interactions" ? (
+          complex ? (
+            <ScientificForm
+              form="plip.profile"
+              language={language}
+              initialStructure={complex.reference}
+              onCreated={created}
+            />
+          ) : null
+        ) : action === "admet" ? (
           <AdmetForm
             language={language}
             initialMolecule={molecule.reference}
@@ -165,6 +185,11 @@ export function CandidateHandoff({
                   {zh ? "优化结合姿势" : "Refine pose"}
                 </button>
               </>
+            )}
+            {complex && (
+              <button type="button" onClick={() => setAction("interactions")}>
+                {zh ? "化学相互作用分析" : "Chemical interactions"}
+              </button>
             )}
           </>
         ) : (

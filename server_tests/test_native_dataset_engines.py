@@ -131,7 +131,7 @@ def test_official_six_fold_drugclip_index_retrieval_and_identity(tmp_path):
 def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
     if os.environ.get("WB_DATASET_ENGINE") != "gnina":
         pytest.skip("Selected independent engine only")
-    with Campaign(tmp_path, ["chemistry", "gnina"]) as campaign:
+    with Campaign(tmp_path, ["chemistry", "gnina", "plip"]) as campaign:
         prepared, _, output = library(campaign)
         database = sqlite3.connect(output / "library.sqlite")
         selected = [
@@ -145,7 +145,7 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
             sources=[prepared],
         )
         materials, search = target(campaign)
-        _, docked, pose_root = campaign.task(
+        docking, docked, pose_root = campaign.task(
             "screening_dock",
             {
                 "kind": "gnina",
@@ -169,6 +169,10 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
         )
         assert docked["counts"]["selected"] == len(candidates["candidates"])
         assert docked["counts"]["docked"] + docked["counts"]["failed"] == len(selected)
+        assert all(
+            row["complex_artifact"] and (pose_root / row["complex_artifact"]).is_file()
+            for row in docked["candidates"]
+        )
         assert docked["candidates"], "A realistic shortlist must produce at least one actual pose"
         assert all(
             row["geometry"] == "binding_pose" and np.isfinite(row["docking_score"])
@@ -182,6 +186,13 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
             for line in prepared.splitlines()
             if line.startswith(b"ATOM  ")
         )
+        complex_name = docked["candidates"][0]["complex_artifact"]
+        heterogen = next(
+            line
+            for line in (pose_root / complex_name).read_text().splitlines()
+            if line.startswith("HETATM")
+        )
+        campaign.interactions(docking["job_id"], complex_name, heterogen[21], int(heterogen[22:26]))
         campaign.receipt("gnina")
 
 

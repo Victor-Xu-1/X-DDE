@@ -35,6 +35,12 @@ const names: Record<string, [string, string]> = {
   training: ["训练成员", "Training members"],
   heldout: ["留出成员", "Held-out members"],
   reported: ["报告测量", "Reported measurements"],
+  resolved: ["解析结构", "Resolved structures"],
+  rejected: ["未编码记录", "Encoding rejections"],
+  predicted: ["模型应用成员", "Predicted members"],
+  source_members: ["源成员", "Source members"],
+  sampled_members: ["抽取训练范围", "Sampled training scope"],
+  unresolved_structures: ["结构待解析", "Unresolved structures"],
   matched: ["关联成员", "Linked members"],
 };
 export function DatasetResults({
@@ -78,8 +84,7 @@ export function DatasetResults({
   return (
     <div className="dataset-results">
       <div className="dataset-result-heading">
-        <h2>{job.request.name}</h2>
-        <span className="dataset-status-complete">
+        <span className="dataset-status-complete sr-only">
           {zh ? "已完成" : "Complete"}
         </span>
         <details className="dataset-download-menu">

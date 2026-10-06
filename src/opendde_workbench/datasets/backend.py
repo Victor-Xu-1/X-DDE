@@ -40,6 +40,7 @@ FILES = (
     "native_del_followup.py",
     "native_docking.py",
     "docking_receptor.py",
+    "pose_complex.py",
 )
 
 

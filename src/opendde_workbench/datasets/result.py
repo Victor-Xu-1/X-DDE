@@ -52,6 +52,7 @@ class DataCandidate(BaseModel):
     cnn_score: float | None = None
     cnn_affinity: float | None = None
     artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
+    complex_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     record: int = Field(default=0, ge=0, le=499)
     geometry: Literal["none", "unbound_conformer", "binding_pose"] = "none"
 
@@ -114,6 +115,12 @@ def validate_result(value, request, output: Path, *, full_hash=True):
         ):
             raise ValueError(
                 "A binding pose requires the actual native docking operation and score."
+            )
+        if candidate.complex_artifact and (
+            candidate.geometry != "binding_pose" or formats.get(candidate.complex_artifact) != "pdb"
+        ):
+            raise ValueError(
+                "A receptor-plus-ligand complex requires a declared native binding pose."
             )
     if any(value < 0 for value in result.counts.values()):
         raise ValueError("Research record counts cannot be negative.")
