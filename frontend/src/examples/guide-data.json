@@ -1474,8 +1474,8 @@
   },
   "del.count": {
     "steps": [
-      ["选择真实解码结果。", "Choose an actual decoded result."],
-      ["确认样本和成员范围。", "Confirm samples and members."],
+      ["选择已完成解码的真实测序结果。", "Choose an actual decoded result."],
+      ["确认参与计数的样本与库成员范围。", "Confirm samples and members."],
       [
         "选择原始读段、独立 UMI 或方向图纠错。",
         "Choose raw reads, unique UMIs or directional correction."

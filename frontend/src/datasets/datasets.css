@@ -311,12 +311,9 @@
   border-radius: 5px;
   padding: 5px 8px;
 }
-.dataset-result-heading {
-  justify-content: flex-start;
-  margin: 0 0 8px;
-}
 .dataset-download-menu {
   margin-left: auto;
+  align-self: center;
   position: relative;
   font-size: 13px;
 }
@@ -373,7 +370,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 22px 0;
+  padding: 16px 0;
 }
 .dataset-result-tabs button {
   border: 0;
@@ -417,7 +414,7 @@
   width: 100%;
   background: #fff;
   min-height: 90px;
-  max-height: min(62vh, 680px);
+  max-height: min(48vh, 560px);
 }
 .dataset-table-scroll table {
   width: 100%;
@@ -510,9 +507,16 @@
 .dataset-preview-pane .structure-viewer {
   min-height: 420px;
 }
-.dataset-preview-pane .viewer-canvas,
 .dataset-preview-pane iframe {
-  min-height: 410px;
+  min-height: 0;
+}
+.studio-app
+  .dataset-results
+  .dataset-preview-pane
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
+  height: clamp(320px, 42vh, 480px);
+  min-height: 0;
 }
 .dataset-large-depiction {
   min-height: 390px;
@@ -675,18 +679,10 @@
   .dataset-candidate-layout {
     grid-template-columns: 1fr 1.15fr;
   }
-  .dataset-preview-pane .viewer-canvas,
-  .dataset-preview-pane iframe {
-    min-height: 540px;
-  }
 }
 @media (max-width: 1100px) {
   .dataset-candidate-layout {
     grid-template-columns: 1fr;
-  }
-  .dataset-preview-pane .viewer-canvas,
-  .dataset-preview-pane iframe {
-    min-height: 390px;
   }
   .dataset-chart-grid {
     gap: 15px;
@@ -774,9 +770,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 16px;
+  max-height: min(48vh, 560px);
+  overflow: auto;
 }
 .dataset-block-grid article {
-  min-height: 230px;
+  min-height: 150px;
   background: white;
   border-bottom: 1px solid #e0e7f2;
   padding: 16px;
@@ -787,7 +785,11 @@
   gap: 12px;
 }
 .dataset-block-grid .molecule-image {
-  height: 190px;
+  height: 125px;
+  min-height: 125px;
+}
+.dataset-block-grid .molecule-image img {
+  height: 120px;
 }
 .dataset-block-grid code {
   font-size: 11px;

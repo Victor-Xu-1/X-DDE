@@ -76,14 +76,23 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     "del.analyze",
                     "del.candidates",
                     "del.enumerate",
+                    "del.library",
                 }:
                     page.locator(".dataset-results .molecule-image img").first.wait_for(
                         timeout=30000
                     )
+                    drawings = page.locator(".dataset-results .molecule-image")
+                    for index in range(min(3, drawings.count())):
+                        drawings.nth(index).locator("img").wait_for(timeout=30000)
                 page.screenshot(path=str(destination / f"{capability}-results.png"), full_page=True)
                 if capability in {"screening.dock", "drugclip.screen", "del.candidates"}:
                     assert page.locator(".dataset-candidate-table").is_visible()
                     page.get_by_text("下载当前结构", exact=True).first.wait_for(timeout=20000)
+                    selected = page.get_by_role("link", name="下载当前结构", exact=True).first
+                    downloaded = context.get(
+                        "http://127.0.0.1:4320" + selected.get_attribute("href")
+                    )
+                    assert downloaded.ok and b"$$$$" in downloaded.body()
                 if capability == "del.analyze":
                     from playwright.sync_api import expect
 
@@ -95,6 +104,13 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     page.screenshot(
                         path=str(destination / "del-analysis-quality.png"), full_page=True
                     )
+                if capability in {"del.model", "del.decode"}:
+                    page.locator(".dataset-chart svg").first.wait_for(timeout=15000)
+                    with page.expect_download() as transfer:
+                        page.get_by_role("button", name="下载图表", exact=True).first.click()
+                    image = tmp_path / (capability + ".svg")
+                    transfer.value.save_as(image)
+                    assert b"<svg" in image.read_bytes() and image.stat().st_size > 1000
                 # Screenshots and checks inspect only changed research pages.
                 assert not page.get_by_text("native-exit.json", exact=False).count()
             assert not failures, failures
@@ -136,10 +152,14 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     "del.analyze",
                     "del.candidates",
                     "del.enumerate",
+                    "del.library",
                 }:
                     page.locator(".module-example-result .molecule-image img").first.wait_for(
                         timeout=30000
                     )
+                    drawings = page.locator(".module-example-result .molecule-image")
+                    for index in range(min(3, drawings.count())):
+                        drawings.nth(index).locator("img").wait_for(timeout=30000)
                 page.screenshot(
                     path=str(destination / f"{capability}-in-module.png"), full_page=True
                 )

@@ -162,6 +162,8 @@ it("opens core scientific forms directly from the first navigation entries", asy
     "Structure prediction",
     "Pockets and docking",
     "Small-molecule design",
+    "High-throughput screening",
+    "DEL research",
     "Biologics research",
     "Properties and safety",
   ];

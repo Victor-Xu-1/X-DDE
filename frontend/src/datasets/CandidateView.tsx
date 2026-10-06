@@ -24,6 +24,7 @@ export function CandidateView({
   const hasReceptor = result.artifacts.some(
       (file) => file.name === "receptor.pdb",
     ),
+    hasScore = ["gnina", "drugclip", "deli"].includes(result.program),
     molecular = candidate?.artifact
       ? artifactUrl(job.id, candidate.artifact)
       : null;
@@ -61,23 +62,25 @@ export function CandidateView({
                 <tr>
                   <th>{zh ? "结构" : "Structure"}</th>
                   <th>{zh ? "成员" : "Member"}</th>
-                  <th>
-                    {result.program === "gnina"
-                      ? zh
-                        ? "对接能量"
-                        : "Docking energy"
-                      : result.program === "drugclip"
+                  {hasScore && (
+                    <th>
+                      {result.program === "gnina"
                         ? zh
-                          ? "检索分数"
-                          : "Retrieval score"
-                        : result.metadata.model_action === "predict"
+                          ? "对接能量"
+                          : "Docking energy"
+                        : result.program === "drugclip"
                           ? zh
-                            ? "预测 log(1＋富集)"
-                            : "Predicted log(1+enrichment)"
-                          : zh
-                            ? "原 DEL 成员富集"
-                            : "Original DEL enrichment"}
-                  </th>
+                            ? "检索分数"
+                            : "Retrieval score"
+                          : result.metadata.model_action === "predict"
+                            ? zh
+                              ? "预测 log(1＋富集)"
+                              : "Predicted log(1+enrichment)"
+                            : zh
+                              ? "原 DEL 成员富集"
+                              : "Original DEL enrichment"}
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -119,13 +122,17 @@ export function CandidateView({
                             : row.supplier}
                         </small>
                       </td>
-                      <td>
-                        {(result.program === "gnina"
-                          ? row.docking_score
-                          : row.score
-                        )?.toFixed(3) ?? "—"}
-                        {result.program === "gnina" && <small>kcal/mol</small>}
-                      </td>
+                      {hasScore && (
+                        <td>
+                          {(result.program === "gnina"
+                            ? row.docking_score
+                            : row.score
+                          )?.toFixed(3) ?? "—"}
+                          {result.program === "gnina" && (
+                            <small>kcal/mol</small>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
               </tbody>

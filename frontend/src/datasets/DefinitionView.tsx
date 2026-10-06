@@ -132,6 +132,7 @@ export function DefinitionView({
                 source={{ smiles: row.smiles }}
                 language={language}
                 label={row.id}
+                compact
               />
             ) : (
               <p className="dataset-unresolved">

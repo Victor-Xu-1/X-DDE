@@ -100,7 +100,7 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
               value={cycleA}
               onChange={(e) => setCycleA(Number(e.target.value))}
             >
-              {[0, 1, 2, 3].map((value) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((value) => (
                 <option key={value} value={value}>
                   {value + 1}
                 </option>
@@ -114,7 +114,7 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
                 value={cycleB}
                 onChange={(e) => setCycleB(Number(e.target.value))}
               >
-                {[0, 1, 2, 3].map((value) => (
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((value) => (
                   <option key={value} value={value}>
                     {value + 1}
                   </option>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bars, PlotFrame } from "./PlotFrame";
+import { resultCountLabels } from "./result-labels";
+import { SequencingQualityPlot } from "./SequencingQualityPlot";
 import { ModelValidationPlot } from "./ModelValidationPlot";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
@@ -86,42 +88,10 @@ export function DatasetCharts({
               },
             ]}
           />
-          <PlotFrame
+          <SequencingQualityPlot
+            values={sequencing.mean_quality}
             language={language}
-            title={zh ? "各位置测序质量" : "Sequencing quality by position"}
-          >
-            <line x1={60} x2={605} y1={265} y2={265} stroke="#cbd5e1" />
-            <polyline
-              fill="none"
-              stroke="#288dbc"
-              strokeWidth={2.8}
-              points={sequencing.mean_quality
-                .map(
-                  (value: number, index: number) =>
-                    `${60 + (index / Math.max(1, sequencing.mean_quality.length - 1)) * 540},${265 - (Math.min(value, 45) / 45) * 215}`,
-                )
-                .join(" ")}
-            />
-            <text
-              x={325}
-              y={307}
-              textAnchor="middle"
-              fill="#526174"
-              fontSize={12}
-            >
-              {zh ? "读段位置（碱基）" : "Read position (base)"}
-            </text>
-            <text
-              x={16}
-              y={155}
-              transform="rotate(-90 16 155)"
-              textAnchor="middle"
-              fill="#526174"
-              fontSize={12}
-            >
-              Phred+33
-            </text>
-          </PlotFrame>
+          />
         </>
       )}
       {samples && (
@@ -287,7 +257,10 @@ export function DatasetCharts({
           title={zh ? "计算结果概览" : "Calculation overview"}
           rows={Object.entries(result.counts)
             .slice(0, 8)
-            .map(([name, value]) => ({ name, value }))}
+            .map(([name, value]) => ({
+              name: resultCountLabels[name]?.[zh ? 0 : 1] ?? name,
+              value,
+            }))}
         />
       )}
       {error && (

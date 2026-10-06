@@ -6,43 +6,8 @@ import { CandidateView } from "./CandidateView";
 import { ResearchTable } from "./ResearchTable";
 import { DatasetCharts } from "./DatasetCharts";
 import { DefinitionView } from "./DefinitionView";
+import { resultCountLabels as names } from "./result-labels";
 
-const names: Record<string, [string, string]> = {
-  source_records: ["原始记录", "Source records"],
-  valid_records: ["有效记录", "Valid records"],
-  unique_compounds: ["独立结构", "Unique structures"],
-  duplicate_chemical_records: ["重复结构记录", "Duplicate chemical records"],
-  rejected_records: ["需核查记录", "Rejected records"],
-  indexed: ["索引分子", "Indexed molecules"],
-  searched_rows: ["检索分子", "Searched molecules"],
-  returned: ["候选成员", "Candidates"],
-  retained_3d: ["三维候选", "3D candidates"],
-  selected: ["选择成员", "Selected members"],
-  docked: ["完成对接", "Docked"],
-  failed: ["未完成成员", "Failed members"],
-  input_reads: ["测序读段", "Input reads"],
-  decoded_reads: ["解码读段", "Decoded reads"],
-  rejected_reads: ["未解码读段", "Rejected reads"],
-  counted_reads: ["计数读段", "Counted reads"],
-  observed_members: ["观察成员", "Observed members"],
-  samples: ["样本", "Samples"],
-  comparisons: ["比较", "Comparisons"],
-  series: ["砌块组合", "Series"],
-  enumerated: ["解析结构", "Resolved structures"],
-  theoretical_members: ["理论成员", "Theoretical members"],
-  building_blocks: ["砌块", "Building blocks"],
-  libraries: ["库", "Libraries"],
-  training: ["训练成员", "Training members"],
-  heldout: ["留出成员", "Held-out members"],
-  reported: ["报告测量", "Reported measurements"],
-  resolved: ["解析结构", "Resolved structures"],
-  rejected: ["未编码记录", "Encoding rejections"],
-  predicted: ["模型应用成员", "Predicted members"],
-  source_members: ["源成员", "Source members"],
-  sampled_members: ["抽取训练范围", "Sampled training scope"],
-  unresolved_structures: ["结构待解析", "Unresolved structures"],
-  matched: ["关联成员", "Linked members"],
-};
 export function DatasetResults({
   job,
   result,
@@ -83,10 +48,16 @@ export function DatasetResults({
     );
   return (
     <div className="dataset-results">
-      <div className="dataset-result-heading">
+      <div className="dataset-result-metrics">
         <span className="dataset-status-complete sr-only">
           {zh ? "已完成" : "Complete"}
         </span>
+        {stats.map(([key, value]) => (
+          <div key={key}>
+            <span>{names[key][zh ? 0 : 1]}</span>
+            <strong>{value.toLocaleString()}</strong>
+          </div>
+        ))}
         <details className="dataset-download-menu">
           <summary>{zh ? "下载研究结果" : "Download results"}</summary>
           <div>
@@ -104,14 +75,6 @@ export function DatasetResults({
             ))}
           </div>
         </details>
-      </div>
-      <div className="dataset-result-metrics">
-        {stats.map(([key, value]) => (
-          <div key={key}>
-            <span>{names[key][zh ? 0 : 1]}</span>
-            <strong>{value.toLocaleString()}</strong>
-          </div>
-        ))}
       </div>
       <div className="dataset-result-tabs">
         <button
