@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Install a verified GitHub release without requiring Node, Git or a source checkout.
 set -euo pipefail
-release="${1:-v0.4.27}"
+release="${1:-v0.4.28}"
 prefix="${2:-$HOME/.local/share/opendde-workbench/app}"
 download_dir="${3:-}"
-case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4.27' >&2; exit 2;; esac
+case "$release" in v[0-9]*) ;; *) echo 'Expected a version tag, for example v0.4.28' >&2; exit 2;; esac
 [[ "$release" =~ ^v[0-9A-Za-z.-]+$ ]] || exit 2
 [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'Use Linux x86-64 or Windows WSL2.' >&2; exit 2; }
 if [[ -z "$download_dir" ]]; then

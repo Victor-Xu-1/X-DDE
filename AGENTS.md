@@ -37,6 +37,14 @@
   acceptance; missing OpenDDE never defines platform-wide availability.
 - Keep environment and input-version provenance explicit. Preserve prior asset
   versions when editing; never turn unavailable calculations into fabricated data.
+
+- Select every backend for professional task fit, reproducible scientific evidence,
+  stable interfaces, bounded resource use, verifiable outputs and licenses covering
+  the actual code, weights, data and outputs. Newness or popularity is insufficient.
+  Keep candidate, installed, native-verified and scientifically accepted states
+  separate. Compare replacements on representative matched inputs before changing
+  a default; preserve a rollback version and remove superseded execution paths only
+  after their consumers are migrated. See docs/design/screening-and-del.md.
 - CI uses its isolated runner workspace. Do not hard-code owner-machine paths
   into scientific algorithms or application runtime contracts.
 

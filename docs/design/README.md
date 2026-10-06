@@ -4,6 +4,8 @@ The owner-provided `reference.png` remains unchanged as style inspiration only: 
 
 ## Product hierarchy
 
+新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录商业库接入、口袋条件检索、候选对接和 DEL 全部干实验流程的目标架构及实施验收；这些新增任务尚未实现或部署，不计入当前能力覆盖。
+
 **X-DDE owns the frontend and unified backend. All other software, including OpenDDE, is integrated as managed environments/components.** Platform APIs, scientific/business contracts, projects, assets, tasks, workflow plans, execution/deployment authority and evidence belong to X-DDE. Upstream scientific programs retain their genuine names, interfaces and licenses.
 
 Environment preparation and scientific execution are distinct contracts. The product OpenDDE configuration adapter currently delegates its reviewed configuration actions to the official OpenDDE Harness installer; it is not a new upstream API or a universal preparation gateway for DiffSBDD or editors. Existing native OpenDDE prediction remains a scientific software implementation inside an integrated environment. X-DDE owns the deployment queue and process lifecycle; native configuration does not expose fictional pause, rollback or uninstall APIs.
