@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/datasets/**'
       - 'frontend/src/datasets/**'
       - 'tests/test_dataset*'
+      - 'tests/test_supplier*'
       - 'server_tests/*dataset*'
       - '.github/workflows/dataset-discovery-checks.yml'
   workflow_dispatch:
