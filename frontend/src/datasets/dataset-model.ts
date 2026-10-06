@@ -9,6 +9,7 @@ import type {
   PocketSelection,
 } from "./types";
 import type { WorkflowPlanInput, WorkflowStep } from "../workflows/types";
+import type { ShortlistSettings } from "./ShortlistChoices";
 
 export function isDatasetTool(tool: string): boolean {
   return datasetTools.some((value) => value.id === tool);
@@ -96,7 +97,7 @@ export function screeningPlan({
     smiles_column?: string;
     delimiter?: "," | "\t";
   };
-  expert?: {
+  expert?: Partial<ShortlistSettings> & {
     batch_size?: number;
     pocket_radius?: number;
     score?: "fold_zscore" | "mean_cosine";

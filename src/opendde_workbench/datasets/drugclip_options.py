@@ -26,12 +26,22 @@ class DrugCLIPOptions(BaseModel):
     precision: Literal["float32", "float16"] = "float32"
     max_records: int = Field(default=10000000, ge=1, le=100000000)
     alternate_locations: Literal["reject", "highest_occupancy", "A", "B"] = "reject"
+    shortlist: Literal["ranked", "diversity", "scaffold"] = "ranked"
+    candidate_policy: Literal["all", "lead_like"] = "all"
+    structural_alerts: Literal["off", "warn", "exclude"] = "off"
 
     @model_serializer(mode="wrap")
     def stable_wire(self, handler):
         value = handler(self)
         if self.alternate_locations == "reject":
             value.pop("alternate_locations", None)
+        for key, default in (
+            ("shortlist", "ranked"),
+            ("candidate_policy", "all"),
+            ("structural_alerts", "off"),
+        ):
+            if value[key] == default:
+                value.pop(key)
         return value
 
     @model_validator(mode="after")
@@ -43,4 +53,10 @@ class DrugCLIPOptions(BaseModel):
                 raise ValueError("Retain no more than the returned ranked molecules.")
         elif self.receptor is not None or self.search is not None:
             raise ValueError("Library encoding does not need a target or binding pose.")
+        elif (self.shortlist, self.candidate_policy, self.structural_alerts) != (
+            "ranked",
+            "all",
+            "off",
+        ):
+            raise ValueError("Candidate selection applies to retrieval, not molecular encoding.")
         return self

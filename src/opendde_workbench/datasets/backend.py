@@ -20,6 +20,7 @@ FILES = (
     "drugclip_pocket.py",
     "alternate_locations.py",
     "drugclip_retrieval.py",
+    "drugclip_candidates.py",
     "retrieval_topk.py",
     "del_definition.py",
     "del_chemistry.py",
@@ -59,6 +60,15 @@ class DatasetBackend(PreparedContainerBackend):
                 "docking_chemistry.py": Path(__file__).parent.parent / "docking/chemistry.py",
                 "docking_options.py": Path(__file__).parent.parent / "docking/options.py",
                 "docking_manifest.py": Path(__file__).parent.parent / "docking/manifest.py",
+                **{
+                    name: Path(__file__).parent.parent / "chemistry" / name
+                    for name in (
+                        "screen_selection.py",
+                        "screen_inspection.py",
+                        "screen_record.py",
+                        "screen_io.py",
+                    )
+                },
             },
         )
 

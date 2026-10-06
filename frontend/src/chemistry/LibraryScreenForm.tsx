@@ -19,9 +19,11 @@ import {
 export function LibraryScreenForm({
   language,
   onCreated,
+  initialLibrary = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
+  initialLibrary?: LibraryRef | null;
 }) {
   const exampleLibrary = useExampleReference("library");
   const zh = language === "zh",
@@ -29,8 +31,9 @@ export function LibraryScreenForm({
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
   useEffect(() => {
-    if (exampleLibrary) void input.choose(exampleLibrary.asset_id);
-  }, [exampleLibrary?.asset_id, input.choose]);
+    const selected = initialLibrary ?? exampleLibrary;
+    if (selected) void input.choose(selected.asset_id);
+  }, [initialLibrary?.asset_id, exampleLibrary?.asset_id, input.choose]);
   const library: LibraryRef | null = input.asset
       ? { asset_id: input.asset.id, sha256: input.asset.sha256 }
       : null,

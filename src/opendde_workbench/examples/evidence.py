@@ -28,6 +28,18 @@ def capture_job(store, state, job_id):
     for artifact in list_artifacts(output):
         with contained(output, artifact.name).open("rb") as stream:
             digests[artifact.name] = hashlib.file_digest(stream, "sha256").hexdigest()
+    from ..datasets.contract import DatasetTask
+
+    if isinstance(job.request, DatasetTask):
+        from ..datasets.result import validate_result
+
+        manifest = contained(output, "result.json")
+        if manifest.stat().st_size > 4 * 1024**2:
+            raise ValueError("The public scientific-data summary exceeds its bounded read limit.")
+        result = validate_result(json.loads(manifest.read_bytes()), job.request, output)
+        # Data stages also require the declared SQLite, HDF5 and model artifacts.
+        # A general user-download extension list is not their dependency authority.
+        digests.update({artifact.name: artifact.sha256 for artifact in result.artifacts})
     if not digests:
         raise ValueError("The native example has no retained output artifacts.")
     return JobEvidence(

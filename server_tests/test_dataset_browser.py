@@ -51,7 +51,7 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 }
             ]
             assert len(modules) == 14 and all(item["computed_result_available"] for item in modules)
-            # Public examples remain outside the personal queue, even after every template is loaded.
+            # Loading a public template must not enqueue its historical computations.
             assert context.get("http://127.0.0.1:4320/api/jobs").json() == []
             for item in modules:
                 capability = item["module"]["capability_id"]

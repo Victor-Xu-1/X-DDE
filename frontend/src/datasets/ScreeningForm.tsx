@@ -21,6 +21,7 @@ import { LibraryFields } from "./LibraryFields";
 import { useTablePreview } from "./useTablePreview";
 import { dataDefaults } from "./catalog";
 import { useDatasetExample } from "./useDatasetExample";
+import { ShortlistChoices, type ShortlistSettings } from "./ShortlistChoices";
 
 export function ScreeningForm({
   language,
@@ -46,6 +47,11 @@ export function ScreeningForm({
     [profile, setProfile] = useState<"quick" | "focused" | "broad">("quick"),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu"),
     [name, setName] = useState("");
+  const [shortlist, setShortlist] = useState<ShortlistSettings>({
+    shortlist: "ranked",
+    candidate_policy: "all",
+    structural_alerts: "off",
+  });
   const retrieval = useTaskReadiness("drugclip.screen"),
     docking = useTaskReadiness("screening.dock"),
     chemistry = useTaskReadiness("library.import");
@@ -105,6 +111,7 @@ export function ScreeningForm({
           delimiter: library?.suffix.includes(".tsv") ? "\t" : ",",
         },
         expert: {
+          ...shortlist,
           pocket_radius: radius,
           batch_size: batch,
           alternate_locations: altloc,
@@ -290,6 +297,11 @@ export function ScreeningForm({
                     </strong>
                   </div>
                 </div>
+                <ShortlistChoices
+                  value={shortlist}
+                  onChange={setShortlist}
+                  language={language}
+                />
                 <label className="field">
                   {zh ? "任务名称（可选）" : "Task name (optional)"}
                   <input

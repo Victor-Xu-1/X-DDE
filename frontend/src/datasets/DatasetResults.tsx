@@ -41,6 +41,7 @@ export function DatasetResults({
   job,
   result,
   language,
+  onCreated,
 }: {
   job: Job;
   result: DatasetResult;
@@ -141,7 +142,12 @@ export function DatasetResults({
       ) : (
         <>
           {result.candidates.length > 0 && !tableView && (
-            <CandidateView job={job} result={result} language={language} />
+            <CandidateView
+              job={job}
+              result={result}
+              language={language}
+              onCreated={onCreated}
+            />
           )}
           {tableView && (
             <ResearchTable
@@ -154,7 +160,12 @@ export function DatasetResults({
           {result.candidates.length > 0 && tableView && (
             <details className="dataset-structure-details">
               <summary>{zh ? "查看候选结构" : "Candidate structures"}</summary>
-              <CandidateView job={job} result={result} language={language} />
+              <CandidateView
+                job={job}
+                result={result}
+                language={language}
+                onCreated={onCreated}
+              />
             </details>
           )}
           {result.data_kind === "definition" && (

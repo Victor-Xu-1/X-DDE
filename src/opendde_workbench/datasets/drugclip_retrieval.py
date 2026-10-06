@@ -8,9 +8,10 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+from drugclip_candidates import retain_candidates
 from drugclip_encoder import dictionaries, encode, fingerprint, model_for
 from drugclip_pocket import pocket
-from platformnative_io import finish, progress, readonly_database, source_result, write_csv
+from platformnative_io import finish, progress, source_result
 from retrieval_topk import TopK, calibration, fold_scores, ranking_scores
 
 
@@ -65,93 +66,6 @@ def reference_scores(indexes, query, options, seed):
                     scores.append(fold_scores(file["vectors"][local], query))
         cursor += count
     return np.concatenate(scores, axis=0)
-
-
-def retain_candidates(request, indexes, ranked):
-    from rdkit import Chem
-
-    databases = [readonly_database(item[0] / "index-members.sqlite") for item in indexes]
-    seen, rows, candidates, failures = set(), [], [], []
-    writer = Chem.SDWriter("/output/candidates.sdf")
-    written = 0
-    try:
-        for score, raw_score, index, ordinal in ranked:
-            row = (
-                databases[index]
-                .execute("SELECT * FROM members WHERE ordinal=?", (ordinal,))
-                .fetchone()
-            )
-            if row is None:
-                raise ValueError("A ranked embedding has no confirmed chemical identity.")
-            if row["id"] in seen:
-                continue
-            seen.add(row["id"])
-            if len(rows) == request["payload"]["top_k"]:
-                break
-            rows.append(
-                [
-                    len(rows) + 1,
-                    row["id"],
-                    score,
-                    raw_score,
-                    row["smiles"],
-                    row["supplier"],
-                    row["source_job"],
-                    row["source_record"],
-                ]
-            )
-            candidate = {
-                "id": row["id"],
-                "display_name": row["display_name"],
-                "source_job": row["source_job"],
-                "source_record": row["source_record"],
-                "supplier": row["supplier"],
-                "smiles": row["smiles"],
-                "score": score,
-                "raw_score": raw_score,
-                "geometry": "none",
-            }
-            if len(candidates) < request["payload"]["retain"]:
-                molecule = Chem.MolFromMolBlock(row["molblock"], removeHs=False)
-                if (
-                    molecule is None
-                    or not molecule.GetNumConformers()
-                    or not molecule.GetConformer().Is3D()
-                ):
-                    failures.append([row["id"], "indexed_conformer_unavailable"])
-                else:
-                    molecule.SetProp("_Name", row["id"])
-                    molecule.SetProp("XDDE_COMPOUND_ID", row["id"])
-                    molecule.SetProp("XDDE_GEOMETRY", "unbound_conformer")
-                    molecule.SetDoubleProp("DRUGCLIP_SCORE", score)
-                    writer.write(molecule)
-                    candidate.update(
-                        artifact="candidates.sdf",
-                        record=written,
-                        geometry="unbound_conformer",
-                    )
-                    written += 1
-            candidates.append(candidate)
-    finally:
-        writer.close()
-        for database in databases:
-            database.close()
-    write_csv(
-        "/output/ranked-candidates.csv",
-        [
-            "rank",
-            "compound",
-            "retrieval_score",
-            "mean_cosine",
-            "smiles",
-            "supplier",
-            "source_job",
-            "source_record",
-        ],
-        rows,
-    )
-    write_csv("/output/candidate-failures.csv", ["compound", "reason"], failures)
-    return candidates, failures
 
 
 def run(request):
@@ -249,5 +163,9 @@ def run(request):
             "use": "non_commercial",
             "geometry": "unbound; no receptor docking has been run",
             "fingerprint": identity,
+            "shortlist": options.get("shortlist", "ranked"),
+            "candidate_policy": options.get("candidate_policy", "all"),
+            "structural_alerts": options.get("structural_alerts", "off"),
+            "selection_scope": "retrieved_top_k_only; not an activity or toxicity prediction",
         },
     )
