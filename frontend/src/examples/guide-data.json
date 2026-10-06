@@ -1294,5 +1294,314 @@
       "结果仅在该环境真实运行并固定后展示；公开实验结构是输入来源，不是该模型的计算结果。",
       "Results are displayed only after a real run is pinned; public experimental structures are input references, not predictions from this model."
     ]
+  },
+  "library.import": {
+    "steps": [
+      [
+        "选择含 177 个真实 ChEMBL 分子的公开模板。",
+        "Use the public template containing 177 real ChEMBL molecules."
+      ],
+      [
+        "确认编号与结构列，保留供应商货号。",
+        "Confirm ID/structure columns and retain catalogue IDs."
+      ],
+      ["选择是否生成游离三维构象。", "Choose unbound conformer generation."],
+      [
+        "查看分子结构表、有效数量和失败记录。",
+        "Inspect structures, valid counts and rejected records."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "library.select": {
+    "steps": [
+      ["选择已准备的真实分子库。", "Choose a prepared real library."],
+      [
+        "按二维结构勾选后续研究的分子。",
+        "Select follow-up molecules by their 2D structures."
+      ],
+      ["确认所选成员和三维构象。", "Confirm members and 3D conformers."],
+      [
+        "下载带来源的候选，继续对接或性质预测。",
+        "Download source-linked candidates and continue to docking or properties."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "drugclip.index": {
+    "steps": [
+      [
+        "选择已准备的复杂分子库。",
+        "Choose a prepared complex-molecule library."
+      ],
+      [
+        "确认编码范围，不需要输入靶点。",
+        "Confirm the encoding scope; a target is not required."
+      ],
+      [
+        "选择非商业科研用途与计算设备。",
+        "Choose noncommercial research use and the device."
+      ],
+      [
+        "检查六折编码数量与失败表；此库可供多个口袋复用。",
+        "Inspect six-fold encoded counts and failures; reuse the index for multiple pockets."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "drugclip.screen": {
+    "steps": [
+      [
+        "选择 BRD4 实验结构并确认链。",
+        "Choose the experimental BRD4 structure and its chains."
+      ],
+      [
+        "模板以晶体配体 JQ1 定义口袋，确认坐标一致。",
+        "The template defines a pocket with crystallographic JQ1; confirm the frame."
+      ],
+      [
+        "选择真实编码库，或导入新库自动准备。",
+        "Select a real encoded library or import one for automatic preparation."
+      ],
+      [
+        "选择方案，检查实际排名与游离构象；检索分数不是亲和力。",
+        "Choose a plan and inspect ranks and unbound conformers; retrieval scores are not affinity."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "screening.dock": {
+    "steps": [
+      ["选择真实 BRD4 受体结构。", "Choose the real BRD4 receptor."],
+      [
+        "选择参考配体或口袋范围，核实坐标系。",
+        "Choose a reference ligand or pocket region and verify the frame."
+      ],
+      [
+        "按二维结构勾选需要对接的候选。",
+        "Select candidates by their 2D chemistry."
+      ],
+      [
+        "查看原生 GNINA 姿势、评分、接触和失败记录。",
+        "Inspect native GNINA poses, scores, contacts and failures."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.library": {
+    "steps": [
+      [
+        "使用 UNCDEL006 真实库定义或上传自己的定义文件。",
+        "Use the real UNCDEL006 definition or upload your definition."
+      ],
+      [
+        "确认库名、周期、砌块和编码范围。",
+        "Confirm library, cycles, building blocks and codes."
+      ],
+      [
+        "选择编码差异检查和规模预算。",
+        "Choose barcode-distance checks and budgets."
+      ],
+      [
+        "查看砌块结构、编码示意和冲突证据。",
+        "Inspect structures, barcode diagrams and conflict evidence."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.enumerate": {
+    "steps": [
+      ["选择已核实的 DEL 库定义。", "Choose a validated DEL definition."],
+      [
+        "选择砌块组合；模板含两个真实复杂成员。",
+        "Choose building-block combinations; the template has two complex members."
+      ],
+      [
+        "确认规则和数量，保留无法解析的组合。",
+        "Confirm rules and counts; retain unresolved combinations."
+      ],
+      [
+        "查看实际枚举结构与原始成员编号。",
+        "Inspect actual enumerated chemistry and original member IDs."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.decode": {
+    "steps": [
+      [
+        "使用 UNCDEL006 的真实 FASTQ 子集或上传测序组。",
+        "Use the real UNCDEL006 FASTQ subset or upload read groups."
+      ],
+      [
+        "填写样本对应关系；双端数据选择携带编码的端。",
+        "Assign samples; select the code-carrying mate for paired data."
+      ],
+      [
+        "选择解码与纠错设置，不会自动裁掉编码或 UMI。",
+        "Choose decoding/correction; barcode and UMI regions are not automatically trimmed."
+      ],
+      [
+        "查看质量曲线、解码率、歧义和未匹配分类。",
+        "Inspect quality curves, decode rates, ambiguity and unmatched categories."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.count": {
+    "steps": [
+      ["选择真实解码结果。", "Choose an actual decoded result."],
+      ["确认样本和成员范围。", "Confirm samples and members."],
+      [
+        "选择原始读段、独立 UMI 或方向图纠错。",
+        "Choose raw reads, unique UMIs or directional correction."
+      ],
+      [
+        "核对读段与 UMI；无 UMI 不会声称消除了 PCR 偏倚。",
+        "Reconcile reads and UMIs; un-UMId data does not establish PCR-bias removal."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.analyze": {
+    "steps": [
+      [
+        "模板含公开 BRD4 实验的 3,000 个真实成员。",
+        "The template has 3,000 real members from a public BRD4 selection."
+      ],
+      [
+        "将靶点与各类对照分开，确认实际比较。",
+        "Separate target/reference types and confirm actual comparisons."
+      ],
+      [
+        "选择最低计数与富集条件；区间仅描述计数模型。",
+        "Choose count/enrichment criteria; intervals describe the count model only."
+      ],
+      [
+        "查看命中、重复一致性与证据提示；富集不是 KD。",
+        "Inspect hits, replicate consistency and evidence notes; enrichment is not KD."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.series": {
+    "steps": [
+      ["选择已经计算的富集分析。", "Choose a completed enrichment analysis."],
+      [
+        "选择实际的靶点／对照比较。",
+        "Choose an actual target/reference comparison."
+      ],
+      [
+        "选择两个不同的砌块周期。",
+        "Choose two distinct building-block cycles."
+      ],
+      [
+        "查看单／双砌块和热图；未观察组合不补造计数。",
+        "Inspect mono/disynthons and heatmaps; unobserved combinations are not filled with invented counts."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.model": {
+    "steps": [
+      [
+        "用真实结构与计数建模，或明确选择历史模型。",
+        "Train on real structures/counts or explicitly choose a historical model."
+      ],
+      [
+        "确认实验比较和富集标签。",
+        "Confirm the comparison and enrichment label."
+      ],
+      [
+        "按砌块周期独立留出；应用模型时保留用途限制。",
+        "Hold out building-block groups; preserve scope when applying a model."
+      ],
+      [
+        "比较留出预测与基线；模型应用不作为新的验证。",
+        "Compare held-out predictions with the baseline; model application is not new validation."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.candidates": {
+    "steps": [
+      ["选择已完成的 DEL 富集分析。", "Choose a completed DEL analysis."],
+      [
+        "勾选成员；缺少结构时提供匹配的库定义。",
+        "Select members and provide matching definitions for unresolved chemistry."
+      ],
+      [
+        "明确保留 DNA 连接点或以氢封端；不声称已合成。",
+        "Explicitly retain attachment points or cap with hydrogen; no synthesis is claimed."
+      ],
+      [
+        "下载真实候选，继续对接、性质预测或编辑。",
+        "Download real candidates and continue to docking, properties or editing."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
+  },
+  "del.followup": {
+    "steps": [
+      [
+        "模板包含论文真实的定性 ITC 结合报告。",
+        "The template contains a real qualitative ITC binding report."
+      ],
+      [
+        "选择编号与测量列，保留无法匹配的编号。",
+        "Choose ID/measurement columns and retain unmatched identifiers."
+      ],
+      [
+        "选择终点及单位；定性报告使用独立类别。",
+        "Choose endpoint/units; qualitative reports use their own category."
+      ],
+      [
+        "核查来源和关联；未公开的精确 KD 不会被补造。",
+        "Inspect provenance/linkage; unpublished precise KD values are never invented."
+      ]
+    ],
+    "interpretation": [
+      "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
+      "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
+    ]
   }
 }

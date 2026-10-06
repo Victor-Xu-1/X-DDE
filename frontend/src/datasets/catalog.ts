@@ -139,6 +139,9 @@ export const dataDefaults = {
     precision: "float32",
     max_records: 10000000,
     alternate_locations: "reject",
+    shortlist: "ranked",
+    candidate_policy: "all",
+    structural_alerts: "off",
   },
   deli: {
     kind: "deli",
@@ -172,6 +175,8 @@ export const dataDefaults = {
     holdout_fraction: 0.2,
     max_training_members: 50000,
     trees: 200,
+    model_action: "train",
+    max_prediction_members: 50000,
     followup_id_column: "DEL_ID",
     followup_value_column: "value",
     followup_endpoint: "KD",

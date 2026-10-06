@@ -3,6 +3,7 @@ import { request } from "../api";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
+import { evidenceNotes } from "./evidence-labels";
 
 export type TableRow = Record<string, string | number | null>;
 interface Page {
@@ -39,6 +40,8 @@ const labels: Record<string, [string, string]> = {
   unit: ["单位", "Unit"],
   value: ["报告值", "Reported value"],
   matched: ["关联原成员", "Linked member"],
+  qualifier: ["报告说明", "Reported observation"],
+  flags: ["证据提示", "Evidence notes"],
 };
 const views = {
   library: ["id", "smiles", "mw", "logp", "tpsa", "qed", "offers"],
@@ -51,6 +54,7 @@ const views = {
     "lower",
     "upper",
     "replicate_cv",
+    "flags",
   ],
   counts: ["member", "sample", "raw", "unique_umi", "corrected_umi"],
   series: [
@@ -62,7 +66,7 @@ const views = {
     "reference",
     "score",
   ],
-  followup: ["member", "endpoint", "unit", "value", "matched"],
+  followup: ["member", "endpoint", "unit", "value", "qualifier", "matched"],
 } as const;
 function format(value: unknown) {
   if (value == null) return "—";
@@ -213,6 +217,35 @@ export function ResearchTable({
                           <span className="dataset-unresolved">
                             {zh ? "结构待解析" : "Unresolved"}
                           </span>
+                        )
+                      ) : key === "flags" ? (
+                        <span
+                          className="dataset-evidence-notes"
+                          title={evidenceNotes(row.flags, zh).join("；")}
+                        >
+                          {evidenceNotes(row.flags, zh).length
+                            ? `${evidenceNotes(row.flags, zh).length} ${zh ? "项提示" : "notes"}`
+                            : zh
+                              ? "无额外提示"
+                              : "No extra notes"}
+                        </span>
+                      ) : key === "matched" ? (
+                        row.matched ? (
+                          zh ? (
+                            "已关联"
+                          ) : (
+                            "Linked"
+                          )
+                        ) : zh ? (
+                          "尚未关联"
+                        ) : (
+                          "Unlinked"
+                        )
+                      ) : key === "unit" && row.unit === "qualitative" ? (
+                        zh ? (
+                          "定性报告"
+                        ) : (
+                          "Qualitative"
                         )
                       ) : key === "id" || key === "member" ? (
                         <button

@@ -49,7 +49,11 @@ def validate_task(task):
             not roles and source_roles == ["counts"]
         )
     elif mode == "model":
-        valid = not roles and source_roles in (["analysis"], ["analysis", "definition"])
+        valid = not roles and (
+            source_roles == ["model", "analysis"]
+            if task.payload.model_action == "predict"
+            else source_roles in (["analysis"], ["analysis", "definition"])
+        )
     elif mode == "series":
         valid = not roles and source_roles == ["analysis"]
     elif mode == "candidates":

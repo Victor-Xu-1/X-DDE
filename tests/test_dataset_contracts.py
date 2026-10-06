@@ -24,6 +24,30 @@ def source(role):
     return {"job_id": str(uuid4()), "report_sha256": "b" * 64, "role": role}
 
 
+def test_model_application_requires_exact_native_model_and_analysis_and_preserves_old_wire():
+    trained = DELOptions(mode="model", chosen_comparison="BRD4_vs_reference")
+    assert "model_action" not in trained.model_dump()
+    assert "max_prediction_members" not in trained.model_dump()
+    inputs = {
+        "operation": "del_model",
+        "name": "Apply BRD4 model",
+        "inputs": [],
+        "sources": [source("model"), source("analysis")],
+        "payload": {
+            "kind": "deli",
+            "mode": "model",
+            "model_action": "predict",
+            "chosen_comparison": "BRD4_vs_reference",
+        },
+    }
+    assert DatasetTask.model_validate(inputs).payload.model_action == "predict"
+    for roles in ([source("analysis")], [source("analysis"), source("model")]):
+        with pytest.raises(ValidationError, match="scientific materials"):
+            DatasetTask.model_validate({**inputs, "sources": roles})
+    with pytest.raises(ValidationError, match="model module"):
+        DELOptions(mode="count", model_action="predict")
+
+
 def test_large_library_inputs_keep_exact_versions_and_native_engine_identity():
     ref = reference()
     value = DatasetTask(

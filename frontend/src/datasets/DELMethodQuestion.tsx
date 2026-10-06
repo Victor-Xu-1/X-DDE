@@ -85,7 +85,8 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
           </label>
         </div>
       )}
-      {["series", "model"].includes(mode) && (
+      {(mode === "series" ||
+        (mode === "model" && model.modelAction === "train")) && (
         <div className="dataset-field-grid">
           <label className="field">
             {zh

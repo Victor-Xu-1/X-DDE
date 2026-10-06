@@ -59,7 +59,7 @@ def test_official_six_fold_drugclip_index_retrieval_and_identity(tmp_path):
         pytest.skip("Selected independent engine only")
     import h5py
 
-    with Campaign(tmp_path, ["chemistry", "drugclip"]) as campaign:
+    with Campaign(tmp_path, ["chemistry", "drugclip", "gnina"]) as campaign:
         prepared, members, _ = library(campaign)
         indexed, result, output = campaign.task(
             "drugclip_index",
@@ -109,6 +109,22 @@ def test_official_six_fold_drugclip_index_retrieval_and_identity(tmp_path):
         assert all(row["docking_score"] is None for row in hits["candidates"])
         method = json.loads((hits_root / "ranking-method.json").read_text())
         assert len(method["query"]) == 6
+        _, diverse, _ = campaign.task(
+            "drugclip_retrieve", {**params, "shortlist": "diversity"}, materials, [indexed]
+        )
+        assert diverse["counts"]["returned"] == hits["counts"]["returned"]
+        assert {row["id"] for row in diverse["candidates"]} == {
+            row["id"] for row in hits["candidates"]
+        }
+        assert diverse["counts"]["retained_3d"] == 5
+        from dataset_workflow_acceptance import run_screening_chain
+
+        run_screening_chain(
+            campaign,
+            verified_file(campaign.root / "public", FILES["egfr_library"]),
+            materials,
+            search,
+        )
         campaign.receipt("drugclip")
 
 
@@ -272,7 +288,7 @@ def test_deli_real_definition_reads_counts_analysis_series_and_candidates(tmp_pa
         assert resolved["candidates"], (
             "The public member must resolve through its actual chemical rules"
         )
-        _, modeled, _ = campaign.task(
+        model, modeled, _ = campaign.task(
             "del_model",
             {
                 "kind": "deli",
@@ -285,6 +301,26 @@ def test_deli_real_definition_reads_counts_analysis_series_and_candidates(tmp_pa
             sources=[analysis],
         )
         assert modeled["counts"]["training"] >= 50 and modeled["counts"]["heldout"] >= 20
+        _, predictions, _ = campaign.task(
+            "del_model",
+            {
+                "kind": "deli",
+                "mode": "model",
+                "model_action": "predict",
+                "chosen_comparison": "BRD4_vs_reference",
+                "max_prediction_members": 3000,
+                "retain": 10,
+            },
+            sources=[model, analysis],
+        )
+        assert (
+            predictions["counts"]["predicted"] + predictions["counts"]["unresolved_structures"]
+            == 3000
+        )
+        assert predictions["metadata"]["prediction_unit"] == "log1p_enrichment"
+        assert len(predictions["candidates"]) == 10 and all(
+            row["geometry"] == "none" for row in predictions["candidates"]
+        )
         measurement = campaign.material(
             b"DEL_ID,value\nUNC11951,nanomolar BRD4 binding reported by ITC\n",
             "UNC11951-reported-binding.csv",

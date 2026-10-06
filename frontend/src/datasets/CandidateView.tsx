@@ -70,9 +70,13 @@ export function CandidateView({
                         ? zh
                           ? "检索分数"
                           : "Retrieval score"
-                        : zh
-                          ? "富集倍数"
-                          : "Enrichment"}
+                        : result.metadata.model_action === "predict"
+                          ? zh
+                            ? "预测 log(1＋富集)"
+                            : "Predicted log(1+enrichment)"
+                          : zh
+                            ? "富集倍数"
+                            : "Enrichment"}
                   </th>
                 </tr>
               </thead>

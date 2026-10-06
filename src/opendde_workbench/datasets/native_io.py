@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import json
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -107,19 +108,27 @@ def text_lines(path, expanded_bytes, maximum_line=1024**2):
             yield line
 
 
-def write_csv(path, columns, rows):
-    def safe(value):
-        if value is None:
-            return ""
-        if isinstance(value, (int, float)):
-            return value
-        text = str(value)
-        return "'" + text if text.lstrip().startswith(("=", "+", "-", "@")) else text
+def safe_csv_value(value):
+    if value is None:
+        return ""
+    if isinstance(value, (int, float)):
+        return value
+    text = str(value)
+    return "'" + text if text.lstrip().startswith(("=", "+", "-", "@")) else text
 
+
+@contextmanager
+def csv_sink(path, columns):
     with Path(path).open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.writer(stream)
         writer.writerow(columns)
-        writer.writerows([[safe(value) for value in row] for row in rows])
+        yield lambda row: writer.writerow([safe_csv_value(value) for value in row])
+
+
+def write_csv(path, columns, rows):
+    with csv_sink(path, columns) as write:
+        for row in rows:
+            write(row)
 
 
 def progress(stage, completed, total=None):

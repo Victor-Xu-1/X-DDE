@@ -26,6 +26,38 @@ export function DELMaterialQuestion({ model }: { model: DELFormState }) {
   } = model;
   return (
     <div className="dataset-question-content">
+      {mode === "model" && (
+        <>
+          <ChoiceCards<"train" | "predict">
+            label={
+              zh ? "如何使用研究模型？" : "How will the research model be used?"
+            }
+            value={model.modelAction}
+            onChange={model.setModelAction}
+            options={[
+              {
+                value: "train",
+                title: zh
+                  ? "建立并验证新模型"
+                  : "Train and validate a new model",
+              },
+              {
+                value: "predict",
+                title: zh ? "使用历史模型预测" : "Apply a historical model",
+              },
+            ]}
+          />
+          {model.modelAction === "predict" && (
+            <SourcePicker
+              role="model"
+              values={model.models}
+              onChange={model.setModels}
+              language={language}
+              label={zh ? "选择已训练的研究模型" : "Trained research model"}
+            />
+          )}
+        </>
+      )}
       {mode === "analyze" && (
         <ChoiceCards<"new" | "counts">
           label={zh ? "材料来源" : "Material source"}

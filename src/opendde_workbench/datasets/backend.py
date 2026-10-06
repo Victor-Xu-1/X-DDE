@@ -35,6 +35,7 @@ FILES = (
     "native_del_analysis.py",
     "native_del_series.py",
     "native_del_model.py",
+    "native_del_predict.py",
     "native_del_candidates.py",
     "native_del_followup.py",
     "native_docking.py",

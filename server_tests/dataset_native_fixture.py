@@ -27,6 +27,7 @@ class Native:
         for name in ("input/assets", "output", "sources", "tmp"):
             (root / name).mkdir(parents=True, exist_ok=True)
         monkeypatch.syspath_prepend(str(ROOT))
+        monkeypatch.syspath_prepend(str(ROOT.parent / "chemistry"))
         spec = importlib.util.spec_from_file_location("platformnative_io", ROOT / "native_io.py")
         self.io = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, "platformnative_io", self.io)

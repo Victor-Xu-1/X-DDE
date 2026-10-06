@@ -90,6 +90,8 @@ class DELOptions(BaseModel):
     holdout_fraction: float = Field(default=0.2, ge=0.1, le=0.4)
     max_training_members: int = Field(default=50000, ge=100, le=200000)
     trees: int = Field(default=200, ge=50, le=500)
+    model_action: Literal["train", "predict"] = "train"
+    max_prediction_members: int = Field(default=50000, ge=1, le=1000000)
     followup_id_column: str = Field(default="DEL_ID", min_length=1, max_length=100)
     followup_value_column: str = Field(default="value", min_length=1, max_length=100)
     followup_endpoint: Literal["KD", "IC50", "EC50", "inhibition", "reported_binding"] = "KD"
@@ -106,10 +108,16 @@ class DELOptions(BaseModel):
             value.pop("followup_relation_column", None)
         if not self.followup_source:
             value.pop("followup_source", None)
+        if self.model_action == "train":
+            value.pop("model_action", None)
+        if self.max_prediction_members == 50000:
+            value.pop("max_prediction_members", None)
         return value
 
     @model_validator(mode="after")
     def study_design(self):
+        if self.model_action != "train" and self.mode != "model":
+            raise ValueError("Research-model reuse belongs to the model module.")
         if self.min_read_length > self.max_read_length:
             raise ValueError("Choose a valid read-length range.")
         if len({sample.column for sample in self.samples}) != len(self.samples):

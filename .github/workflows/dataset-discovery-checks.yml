@@ -38,6 +38,7 @@ jobs:
           tests/test_dataset_worker.py tests/test_dataset_resources.py
           tests/test_dataset_views.py tests/test_dataset_workflows.py tests/test_workflows.py
           tests/test_case_bundle.py tests/test_case_bundle_sources.py
+          tests/test_example_library.py tests/test_example_pins.py tests/test_examples.py
       - name: Changed data forms, upload and workflow UI only
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts
@@ -61,7 +62,7 @@ jobs:
         env:
           PYTHONPATH: src
           WB_TEST_DATASET_NATIVE: '1'
-        run: .dataset-native/bin/python -m pytest -q server_tests/test_dataset_native.py
+        run: .dataset-native/bin/python -m pytest -q server_tests/test_dataset_native.py server_tests/test_dataset_curation.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

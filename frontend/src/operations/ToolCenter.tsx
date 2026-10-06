@@ -300,6 +300,7 @@ export function ToolCenter({
                         <button
                           type="button"
                           className="tool-card"
+                          data-capability={tool.id}
                           key={tool.id}
                           ref={(element) => {
                             cards.current[tool.id] = element;
@@ -329,6 +330,7 @@ export function ToolCenter({
                           <button
                             type="button"
                             className="tool-card"
+                            data-capability={tool.id}
                             key={tool.id}
                             ref={(element) => {
                               cards.current[tool.id] = element;

@@ -12,6 +12,10 @@ from platformnative_io import finish, readonly_database, source_result, write_cs
 
 
 def run(request):
+    if request["payload"].get("model_action", "train") == "predict":
+        from native_del_predict import run as predict
+
+        return predict(request)
     from rdkit import Chem
     from rdkit.Chem import rdFingerprintGenerator
     from scipy.stats import spearmanr
@@ -19,7 +23,7 @@ def run(request):
     from sklearn.metrics import mean_absolute_error, mean_squared_error
     from sklearn.model_selection import GroupShuffleSplit
 
-    root, _ = source_result(request)
+    root, original = source_result(request)
     database = readonly_database(root / "analysis.sqlite")
     options, seed = request["payload"], request["options"]["seed"]
     members = []
@@ -39,14 +43,29 @@ def run(request):
     finally:
         database.close()
     generator = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    features, labels, group_ids, identities = [], [], [], []
+    libraries = {}
+    if len(request["sources"]) > 1:
+        from del_definition import prepare_home
+
+        definition_root, _ = source_result(request, 1)
+        libraries = prepare_home(json.loads((definition_root / "del-definition.json").read_text()))
+    features, labels, group_ids, identities, chemistry = [], [], [], [], []
     for row in members:
         cycles = json.loads(row["cycles"])
         if options["holdout_cycle"] >= len(cycles):
             raise ValueError(
                 "Choose an explicitly observed building-block cycle for independent holdout."
             )
-        molecule = Chem.MolFromSmiles(row["smiles"]) if row["smiles"] else None
+        smiles = row["smiles"]
+        if not smiles and libraries:
+            library = libraries.get(row["library"] or options["library"])
+            if library is not None:
+                try:
+                    smiles = library.enumerate_by_bb_ids(cycles).smi
+                except (ValueError, RuntimeError, KeyError):
+                    rejected += 1
+                    continue
+        molecule = Chem.MolFromSmiles(smiles) if smiles else None
         if molecule is None:
             rejected += 1
             continue
@@ -54,6 +73,7 @@ def run(request):
         labels.append(math.log1p(row["score"]))
         group_ids.append(cycles[options["holdout_cycle"]])
         identities.append(row["id"])
+        chemistry.append(Chem.MolToSmiles(molecule, isomericSmiles=True))
     if len(features) < 100 or len(set(group_ids)) < 8 or len(set(labels)) < 10:
         raise ValueError(
             "Need 100 resolved structures, eight cycle holdout groups and varying enrichments."
@@ -123,6 +143,16 @@ def run(request):
                 "target": "log1p_DEL_enrichment",
                 "fingerprint": "Morgan2_2048",
                 "source": request["sources"][0],
+                "training_context": next(
+                    item
+                    for item in original["metadata"]["comparisons"]
+                    if item["id"] == options["chosen_comparison"]
+                ),
+                "training_ids": [identities[index] for index in train],
+                "training_chemistry": {identities[index]: chemistry[index] for index in train},
+                "domain_fingerprints": features[train[:2048]].astype(np.uint8),
+                "dependency": importlib.metadata.version("scikit-learn"),
+                "schema_version": 1,
             },
             file,
             protocol=5,
@@ -148,6 +178,7 @@ def run(request):
             "method": "RandomForest Morgan baseline",
             "scope": "research_baseline; not scientifically accepted affinity prediction",
             "holdout_cycle": options["holdout_cycle"],
+            "model_action": "train",
         },
         warnings=["The baseline did not improve on the training mean in the independent holdout."]
         if metrics["rmse_log1p_enrichment"] >= metrics["mean_baseline_rmse"]

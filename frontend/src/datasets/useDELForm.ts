@@ -61,6 +61,8 @@ export function useDELForm({
     [attachmentPolicy, setAttachmentPolicy] = useState<
       "retain" | "cap_hydrogen"
     >("retain");
+  const [modelAction, setModelAction] = useState<"train" | "predict">("train"),
+    [models, setModels] = useState<AvailableDataset[]>([]);
   const hasFile =
     mode === "validate" ||
     mode === "decode" ||
@@ -73,7 +75,13 @@ export function useDELForm({
     const { task, assets, sources } = example,
       payload = task.payload;
     setAsset(assets.get(task.inputs[0]?.source.asset_id) ?? null);
-    setSource(sources.filter((item) => item.role !== "definition"));
+    setSource(
+      sources.filter(
+        (item) => item.role !== "definition" && item.role !== "model",
+      ),
+    );
+    setModels(sources.filter((item) => item.role === "model"));
+    setModelAction(payload.model_action === "predict" ? "predict" : "train");
     setDefinitions(sources.filter((item) => item.role === "definition"));
     setInputKind(task.inputs.length ? "new" : "counts");
     setName(task.name);
@@ -92,6 +100,25 @@ export function useDELForm({
     setCycleColumns((payload.cycle_columns as string[]) ?? []);
     setCycleA(Number(payload.holdout_cycle ?? 0));
     setCountUnit(String(payload.count_unit ?? "corrected_umi"));
+    setUmi(
+      payload.umi_method === "raw" || payload.umi_method === "unique"
+        ? payload.umi_method
+        : "directional",
+    );
+    setAllMembers(Boolean(payload.enumerate_all));
+    setExpert(
+      (old) =>
+        Object.fromEntries(
+          Object.entries(old).map(([key, value]) => [
+            key,
+            payload[key] ?? value,
+          ]),
+        ) as typeof old,
+    );
+    if (Array.isArray(payload.series_cycles)) {
+      setCycleA(Number(payload.series_cycles[0]));
+      setCycleB(Number(payload.series_cycles[1]));
+    }
     setEndpoint(String(payload.followup_endpoint ?? "KD"));
     setUnit(String(payload.followup_unit ?? "nM"));
     setValueColumn(String(payload.followup_value_column ?? "value"));
@@ -185,7 +212,10 @@ export function useDELForm({
               : source.length === 1
             : mode === "followup"
               ? !!asset && source.length === 1
-              : source.length === 1;
+              : source.length === 1 &&
+                (mode !== "model" ||
+                  modelAction === "train" ||
+                  models.length === 1);
   const planValid =
     mode === "analyze"
       ? samples.length > 0 &&
@@ -225,6 +255,10 @@ export function useDELForm({
       sources.splice(0, sources.length);
     if (mode === "candidates" && definitions.length)
       sources.push(definitions[0]);
+    if (mode === "model") {
+      if (modelAction === "predict") sources.unshift(models[0]);
+      else if (definitions.length) sources.push(definitions[0]);
+    }
     const parsed = members
       .split(/\r?\n/)
       .filter((value) => value.trim())
@@ -236,6 +270,7 @@ export function useDELForm({
           ...expert,
           kind: "deli",
           mode,
+          ...(mode === "model" ? { model_action: modelAction } : {}),
           library,
           selected_members: parsed,
           enumerate_all: allMembers,
@@ -354,6 +389,10 @@ export function useDELForm({
     planValid,
     chooseDefinition,
     submit,
+    modelAction,
+    setModelAction,
+    models,
+    setModels,
   };
 }
 export type DELFormState = ReturnType<typeof useDELForm>;
