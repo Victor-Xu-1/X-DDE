@@ -11,6 +11,7 @@ from opendde_workbench.assets import AssetStore
 from opendde_workbench.datasets import public_resources
 from opendde_workbench.deployment import supplier_files
 from opendde_workbench.deployment.manager import DeploymentManager
+from opendde_workbench.deployment.process import Paused
 from opendde_workbench.store import Store
 
 
@@ -108,3 +109,53 @@ def test_selected_sdf_supplier_property_is_available_without_chemical_execution(
             not row["asset"] and not row["screening_index_ready"]
             for row in client.get("/api/datasets/public-files").json()
         )
+
+
+def test_supplier_pause_retains_verified_upload_and_cleans_only_extracted_copy(
+    tmp_path, monkeypatch
+):
+    content, raw, resource = protocol_archive()
+    state, root = tmp_path / "state", tmp_path / "components"
+    store = Store(state / "jobs.sqlite3")
+    monkeypatch.setattr(supplier_files, "RESOURCES", {resource["id"]: resource})
+
+    def transfer(url, target, checksum, report, checkpoint):
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw)
+
+    monkeypatch.setattr(supplier_files, "download", transfer)
+
+    def pause_after_upload():
+        with store.connect() as db:
+            if db.execute("SELECT count(*) FROM asset_uploads WHERE offset > 0").fetchone()[0]:
+                raise Paused()
+
+    with pytest.raises(Paused):
+        supplier_files.install(root, state, lambda value: None, pause_after_upload)
+    assert not list((root / "packages/supplier-libraries").iterdir())
+    with store.connect() as db:
+        retained = db.execute("SELECT id,offset,state FROM asset_uploads").fetchone()
+        assert retained[1] == len(content) and retained[2] == "uploading"
+    entry = supplier_files.install(root, state, lambda value: None, lambda: None)
+    asset = AssetStore(store, state / "assets").get(retained[0])
+    assert entry["files"][resource["id"]]["id"] == asset.id
+    assert AssetStore(store, state / "assets").path(asset).read_bytes() == content
+
+
+def test_supplier_install_respects_configured_file_budget(tmp_path, monkeypatch):
+    content, raw, resource = protocol_archive()
+    manager = DeploymentManager(tmp_path / "state")
+    manager.configure(str(tmp_path / "components"), False)
+    monkeypatch.setattr(supplier_files, "RESOURCES", {resource["id"]: resource})
+    monkeypatch.setenv("WB_DATASET_FILE_BYTES", str(len(content) - 1))
+
+    def transfer(url, target, checksum, report, checkpoint):
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw)
+
+    monkeypatch.setattr(supplier_files, "download", transfer)
+    identifier = manager.enqueue("supplier-libraries", "install")[0]
+    manager.tick()
+    assert manager.store.get(identifier)["state"] == "failed"
+    assert "file budget" in manager.store.get(identifier)["error"]
+    assert not list((tmp_path / "components/packages/supplier-libraries").iterdir())

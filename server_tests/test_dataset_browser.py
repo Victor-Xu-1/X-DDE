@@ -183,7 +183,9 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
             from playwright.sync_api import expect
 
             choices = page.get_by_role("combobox", name="选择供应商结构文件", exact=True)
-            expect(choices.locator("option")).to_have_count(12)
+            from opendde_workbench.datasets.public_resources import RESOURCES
+
+            expect(choices.locator("option")).to_have_count(len(RESOURCES) + 1)
             choices.select_option("bionet-complete-2026-08")
             expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
             expect(page.get_by_role("button", name="下载公开结构文件", exact=True)).to_be_visible()

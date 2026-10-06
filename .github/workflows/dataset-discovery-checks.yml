@@ -15,7 +15,7 @@ on:
         description: Changed contracts or one actual isolated scientific engine
         type: choice
         default: contracts
-        options: [contracts, browser, images, drugclip, deli, gnina]
+        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina]
 permissions:
   contents: read
 jobs:
@@ -154,4 +154,31 @@ jobs:
         with:
           name: dataset-reviewed-runtime-images
           path: server_tests/evidence/runtime-images
+          retention-days: 7
+  supplier-files:
+    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'supplier-files'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: The reviewed independent RDKit environment
+        run: |
+          uv venv --python 3.13 .dataset-native
+          uv pip install --python .dataset-native/bin/python --require-hashes -r src/opendde_workbench/integrations/recipes/deli.txt
+          uv pip install --python .dataset-native/bin/python -e . pytest==9.1.1 pydantic==2.13.0
+      - name: Real supplier archives and original SDF identifiers
+        env:
+          WB_TEST_SUPPLIER_NATIVE: '1'
+        run: .dataset-native/bin/python -m pytest -q server_tests/test_supplier_native.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: supplier-native-file-evidence
+          path: server_tests/evidence/supplier-files
+          if-no-files-found: ignore
           retention-days: 7

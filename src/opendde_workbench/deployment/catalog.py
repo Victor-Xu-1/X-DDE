@@ -5,6 +5,8 @@ import shutil
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from ..datasets.public_resources import RESOURCES as SUPPLIER_FILES
+from ..datasets.public_resources import VERSION as SUPPLIER_FILES_VERSION
 from ..diffsbdd.manifest import MODEL_URL, MODELS, SOURCE_COMMIT, SOURCE_SHA256, SOURCE_URL
 from ..docking.manifest import BINARY_SHA256, BINARY_URL
 from ..docking.manifest import VERSION as GNINA_VERSION
@@ -313,10 +315,15 @@ PACKAGES["public-dataset-examples"] = Package(
 
 PACKAGES["supplier-libraries"] = Package(
     "supplier-libraries",
-    "2026-10-07",
+    SUPPLIER_FILES_VERSION,
     "Public supplier structure files",
-    "8 家供应商的 11 份公开结构文件 / 11 public structure files from 8 suppliers",
-    "约 542 MiB 下载；5.4 GiB 原始结构 / 542 MiB download; 5.4 GiB structures",
+    f"{len({row['supplier'] for row in SUPPLIER_FILES.values()})} 家供应商的 "
+    f"{len(SUPPLIER_FILES)} 份公开结构文件 / "
+    f"{len(SUPPLIER_FILES)} public structure files",
+    f"{sum(row['archive_bytes'] for row in SUPPLIER_FILES.values()) / 1024**3:.1f} GiB "
+    f"下载 / download; "
+    f"{sum(row['size'] for row in SUPPLIER_FILES.values()) / 1024**3:.1f} GiB "
+    "原始结构 / structures",
     license="Supplier published-file terms; no redistribution assumed",
     engine="x-dde",
     kind="data",

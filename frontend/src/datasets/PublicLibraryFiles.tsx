@@ -20,7 +20,7 @@ export function PublicLibraryFiles({
   onChange,
 }: {
   language: Language;
-  onChange(resource: PublicLibraryFile): void;
+  onChange(resource: PublicLibraryFile | null): void;
 }) {
   const zh = language === "zh";
   const [items, setItems] = useState<PublicLibraryFile[]>([]);
@@ -79,6 +79,7 @@ export function PublicLibraryFiles({
           value={selected}
           onChange={(event) => {
             setSelected(event.target.value);
+            onChange(null);
           }}
         >
           <option value="">

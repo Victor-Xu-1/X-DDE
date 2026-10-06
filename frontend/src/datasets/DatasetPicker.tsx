@@ -151,8 +151,8 @@ export function DatasetPicker({
         <PublicLibraryFiles
           language={language}
           onChange={(resource) => {
-            onChange(resource.asset);
-            onResource?.(resource);
+            onChange(resource?.asset ?? null);
+            if (resource) onResource?.(resource);
           }}
         />
       ) : history ? (

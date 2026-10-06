@@ -1,6 +1,7 @@
 """Supplier files use the existing deployment queue and resumable research AssetStore."""
 
 import hashlib
+import os
 import zipfile
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid4, uuid5
@@ -9,6 +10,7 @@ from ..asset_uploads import UploadInput, UploadStore
 from ..assets import AssetStore
 from ..datasets.public_resources import RESOURCES, VERSION, manifest_digest
 from ..locations import atomic_json
+from ..settings import Settings
 from ..store import Store
 from .transfers import download
 
@@ -79,20 +81,33 @@ def install(root, state, report, checkpoint):
     if state is None:
         raise ValueError("Supplier files require the current X-DDE research state.")
     assets = AssetStore(Store(state / "jobs.sqlite3"), state / "assets")
-    uploads = UploadStore(assets, 50 * 1024**3, 200 * 1024**3, 2 * 1024**3)
+    uploads = UploadStore(
+        assets,
+        int(os.environ.get("WB_DATASET_FILE_BYTES", Settings.dataset_file_bytes)),
+        int(os.environ.get("WB_DATASET_QUOTA_BYTES", Settings.dataset_quota_bytes)),
+        Settings.minimum_free_bytes,
+    )
     directory = root / "packages/supplier-libraries" / (VERSION + "-" + str(uuid4()))
     directory.mkdir(parents=True)
     files = {}
-    for key, resource in RESOURCES.items():
-        checkpoint()
-        report("Preparing supplier file " + str(len(files) + 1) + "/" + str(len(RESOURCES)))
-        archive = root / "downloads" / (key + ".zip")
-        download(resource["url"], archive, resource["archive_sha256"], report, checkpoint)
-        structure = directory / resource["filename"]
-        extract_structure(archive, resource, structure, checkpoint)
-        asset = register_file(uploads, structure, resource, checkpoint)
-        files[key] = asset.model_dump()
-        structure.unlink()  # The registered AssetStore retains the verified scientific bytes.
-    value = {"directory": str(directory), "files": files, "manifest_sha256": manifest_digest()}
-    atomic_json(directory / "sources.json", value)
-    return value
+    try:
+        for key, resource in RESOURCES.items():
+            checkpoint()
+            report("Preparing supplier file " + str(len(files) + 1) + "/" + str(len(RESOURCES)))
+            archive = root / "downloads" / (key + ".zip")
+            download(resource["url"], archive, resource["archive_sha256"], report, checkpoint)
+            structure = directory / resource["filename"]
+            try:
+                extract_structure(archive, resource, structure, checkpoint)
+                asset = register_file(uploads, structure, resource, checkpoint)
+                files[key] = asset.model_dump()
+            finally:
+                # Only this operation's extracted copy is removed. The shared AssetStore
+                # retains registered files and incomplete, verified uploads for resume.
+                structure.unlink(missing_ok=True)
+        value = {"directory": str(directory), "files": files, "manifest_sha256": manifest_digest()}
+        atomic_json(directory / "sources.json", value)
+        return value
+    finally:
+        if not (directory / "sources.json").exists():
+            directory.rmdir()
