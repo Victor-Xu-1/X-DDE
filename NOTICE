@@ -11,3 +11,8 @@ REINVENT4: Apache-2.0 code; reviewed public priors retain their published terms.
 PLIP and Open Babel: GPL components provisioned as separate external environments; their licenses are not replaced by X-DDE's Apache-2.0 license.
 OpenMM, PDBFixer, PDB2PQR and APBS retain their upstream component licenses.
 EGFR activity template: ChEMBL assay CHEMBL944276, CC-BY-SA-3.0. Original activity IDs and data attribution remain in the distributed SDF.
+
+High-throughput screening and DEL integrations added in v0.4.29
+DrugCLIP / Drug-The-Whole-Genome (THU-ATOM): Apache-2.0 code; official weights, precomputed embeddings and model outputs are CC BY-NC 4.0. Product labels do not replace upstream attribution or broaden these terms. Model weights are separately provisioned, not redistributed in the X-DDE wheel.
+DELi (Popov Lab, University of North Carolina): MIT code; public example files and article data retain their published terms and source notices.
+Public BRD4 / JQ1 and UNCDEL006 cases retain RCSB, ChEMBL and original study attribution in the case manifest and scientific artifacts.
