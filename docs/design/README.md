@@ -1,10 +1,10 @@
 # Design direction and capability contract
 
-The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction uses Boltz Lab as interaction and visual inspiration: a light gray canvas, white workspaces, subtle borders, dark green primary actions and compact typography. It supersedes the previous palette. Private reference projects and screenshots are not distributed with X-DDE. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
+The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction uses Boltz Lab as interaction and visual inspiration: compact stepwise scientific workflows. The current visual direction is bright AI + biopharma: cool white, blue-purple and teal, flat workspaces and restrained boundaries. It supersedes the earlier green palette. Private reference projects and screenshots are not distributed with X-DDE. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
 
 ## Product hierarchy
 
-新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录商业库接入、口袋条件检索、候选对接和 DEL 全部干实验流程的目标架构及实施验收；这些新增任务尚未实现或部署，不计入当前能力覆盖。
+新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录 v0.4.29 已实现的 14 个专用模块、商业库接入、口袋条件检索、候选对接、DEL 干实验链路及真实原生验收。供应商数据授权、目标服务器 GPU/规模性能和实验验证仍分别确认。
 
 **X-DDE owns the frontend and unified backend. All other software, including OpenDDE, is integrated as managed environments/components.** Platform APIs, scientific/business contracts, projects, assets, tasks, workflow plans, execution/deployment authority and evidence belong to X-DDE. Upstream scientific programs retain their genuine names, interfaces and licenses.
 

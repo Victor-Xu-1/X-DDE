@@ -338,11 +338,23 @@
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   min-width: 260px;
+  max-height: min(50vh, 420px);
+  overflow: auto;
 }
 .dataset-download-menu a {
   color: #425a8c;
   font-size: 12px;
   overflow-wrap: anywhere;
+}
+.dataset-data-downloads > summary {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 12px 0;
+}
+.dataset-data-downloads > div {
+  display: grid;
+  gap: 10px;
 }
 .dataset-result-metrics {
   display: flex;
@@ -503,9 +515,6 @@
   background: #fff;
   border-radius: 8px;
   padding: 0 15px 15px;
-}
-.dataset-preview-pane .structure-viewer {
-  min-height: 420px;
 }
 .dataset-preview-pane iframe {
   min-height: 0;

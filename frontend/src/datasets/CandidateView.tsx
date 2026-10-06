@@ -18,8 +18,12 @@ export function CandidateView({
   onCreated?(job: Job): void;
 }) {
   const zh = language === "zh",
-    [selected, setSelected] = useState(0),
-    [page, setPage] = useState(0),
+    initial = Math.max(
+      0,
+      result.candidates.findIndex((row) => Boolean(row.artifact)),
+    ),
+    [selected, setSelected] = useState(initial),
+    [page, setPage] = useState(Math.floor(initial / 15)),
     candidate = result.candidates[selected];
   const hasReceptor = result.artifacts.some(
       (file) => file.name === "receptor.pdb",

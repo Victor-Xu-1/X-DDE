@@ -17,11 +17,12 @@ it("gives every public task one of the generated module backgrounds through the 
       "molecules",
       "biologics",
       "properties",
+      "research",
       "environments",
     ]).toContain(themeForTool(tool.id));
   }
   expect(new Set(researchModules.map((m) => themeForModule(m.id))).size).toBe(
-    6,
+    7,
   );
 });
 it("retains the molecule theme when a preview optimization becomes a persisted task", () => {

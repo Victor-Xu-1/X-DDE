@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 import { CandidateView } from "./CandidateView";
@@ -7,6 +6,7 @@ import { ResearchTable } from "./ResearchTable";
 import { DatasetCharts } from "./DatasetCharts";
 import { DefinitionView } from "./DefinitionView";
 import { resultCountLabels as names } from "./result-labels";
+import { ResearchDownloads } from "./ResearchDownloads";
 
 export function DatasetResults({
   job,
@@ -41,11 +41,8 @@ export function DatasetResults({
             ? "library"
             : null;
   const stats = Object.entries(result.counts)
-      .filter(([key]) => names[key])
-      .slice(0, 5),
-    downloads = result.artifacts.filter((file) =>
-      ["csv", "sdf"].includes(file.format),
-    );
+    .filter(([key]) => names[key])
+    .slice(0, 5);
   return (
     <div className="dataset-results">
       <div className="dataset-result-metrics">
@@ -58,23 +55,11 @@ export function DatasetResults({
             <strong>{value.toLocaleString()}</strong>
           </div>
         ))}
-        <details className="dataset-download-menu">
-          <summary>{zh ? "下载研究结果" : "Download results"}</summary>
-          <div>
-            {downloads.map((file) => (
-              <a key={file.name} href={artifactUrl(job.id, file.name)}>
-                {file.name.endsWith(".sdf")
-                  ? zh
-                    ? "分子结构 · "
-                    : "Structures · "
-                  : zh
-                    ? "研究表格 · "
-                    : "Table · "}
-                {file.name}
-              </a>
-            ))}
-          </div>
-        </details>
+        <ResearchDownloads
+          jobId={job.id}
+          artifacts={result.artifacts}
+          language={language}
+        />
       </div>
       <div className="dataset-result-tabs">
         <button
