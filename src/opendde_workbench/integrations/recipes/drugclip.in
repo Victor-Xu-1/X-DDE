@@ -1,0 +1,18 @@
+# Official Uni-Core inference dependency closure; CUDA extensions remain disabled.
+torch==2.8.0
+rdkit==2026.3.6
+numpy==1.26.4
+scipy==1.14.1
+scikit-learn==1.7.2
+biopython==1.86
+h5py>=3.14,<4
+lmdb>=1.7,<2
+tqdm>=4.67,<5
+ml_collections>=1.1,<2
+tensorboardX>=2.6,<3
+tokenizers>=0.21,<1
+wandb>=0.22,<1
+pandas>=2.2,<3
+einops>=0.8,<1
+setuptools>=80,<82
+wheel>=0.45,<1

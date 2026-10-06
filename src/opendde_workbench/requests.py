@@ -19,6 +19,8 @@ from .antibodies.contract import AntibodyNumberTask
 from .chemistry.contract import MolecularStatesTask
 from .chemistry.minimization_contract import MoleculeMinimizeTask
 from .chemistry.screen_contract import LibraryScreenTask
+from .datasets.contract import OPERATIONS as DATA_OPERATIONS
+from .datasets.contract import DatasetTask
 from .diffsbdd.contract import DiffTask, references
 from .discovery.contract import TargetResearchTask
 from .discovery.import_contract import ReferenceImportTask
@@ -132,13 +134,16 @@ def request_kind(value: object) -> str:
         if isinstance(value, dict)
         else getattr(value, "operation", "predict")
     )
+    if operation in DATA_OPERATIONS:
+        return "scientific_data"
     if operation in INTEGRATED_OPERATIONS:
         return "integrated_science"
     return "features" if operation in {"msa", "mt", "prep"} else str(operation)
 
 
 TaskRequest = Annotated[
-    Annotated[IntegratedTask, Tag("integrated_science")]
+    Annotated[DatasetTask, Tag("scientific_data")]
+    | Annotated[IntegratedTask, Tag("integrated_science")]
     | Annotated[HumanizationTask, Tag("antibody_humanize")]
     | Annotated[AdmetTask, Tag("admet_predict")]
     | Annotated[ReferenceImportTask, Tag("reference_import")]
@@ -169,7 +174,7 @@ TASK_ADAPTER = TypeAdapter(TaskRequest)
 def input_identifiers(request: TaskRequest) -> set[str]:
     from .harness_contract import asset_references
 
-    if isinstance(request, IntegratedTask):
+    if isinstance(request, (DatasetTask, IntegratedTask)):
         return {str(item.source.asset_id) for item in request.inputs}
 
     if isinstance(request, HumanizationTask):

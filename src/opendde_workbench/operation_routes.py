@@ -13,9 +13,11 @@ from .research.outputs import OutputCatalog
 
 
 def register_operations(app, store, assets, settings, mutation):
+    from .datasets.routes import register as register_dataset_routes
     from .integrations.routes import register_scientific_routes
 
     register_scientific_routes(app, store, settings)
+    register_dataset_routes(app, store, settings)
     output_catalog = OutputCatalog(store, assets)
 
     def completed(job_id):
@@ -47,8 +49,13 @@ def register_operations(app, store, assets, settings, mutation):
                 raise ValueError("Result exceeds the display size limit. Download the artifact.")
             value = json.loads(path.read_text())
             job = store.get(str(job_id))
+            from .datasets.contract import DatasetTask
             from .integrations.contract import IntegratedTask
 
+            if isinstance(job.request, DatasetTask):
+                from .datasets.result import validate_result
+
+                value = validate_result(value, job.request, root / "output").model_dump(mode="json")
             if isinstance(job.request, IntegratedTask):
                 from .integrations.result import validate_result
 

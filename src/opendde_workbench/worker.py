@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 from .assets import AssetStore
+from .datasets.contract import DatasetTask
 from .engine import Engine
 from .models import Job, Status
 from .research.outputs import OutputCatalog
@@ -138,7 +139,13 @@ class Worker:
                 (directory / "constraint-execution.json").write_text(
                     receipt.model_dump_json(), encoding="utf-8"
                 )
-            prepare(job, directory, self.assets)
+            if isinstance(job.request, DatasetTask):
+                await asyncio.to_thread(prepare, job, directory, self.assets)
+                if self.store.get(job.id).status == Status.CANCELLING or self.stopping:
+                    status = Status.CANCELLED if not self.stopping else Status.INTERRUPTED
+                    return
+            else:
+                prepare(job, directory, self.assets)
             process = await self.engine.start(job, directory)
             reader = asyncio.create_task(self.capture(process.stdout, directory / "run.log"))
             while process.returncode is None:
@@ -159,7 +166,9 @@ class Worker:
                     await self.engine.stop(job.id)
                     break
                 timeout = (
-                    24 * 3600
+                    job.request.time_limit_seconds
+                    if isinstance(job.request, DatasetTask)
+                    else 24 * 3600
                     if job.request.operation == "resources"
                     else 150
                     if job.request.operation in {"target_research", "reference_import"}
@@ -169,20 +178,28 @@ class Worker:
                     error = "Task exceeded its execution time limit."
                     await self.engine.stop(job.id)
                     break
+                is_dataset = isinstance(job.request, DatasetTask)
+                measured = directory / "output" if is_dataset else directory
                 size = sum(
                     p.stat().st_size
-                    for p in directory.rglob("*")
+                    for p in measured.rglob("*")
                     if p.is_file() and not p.is_symlink()
                 )
-                if size > 1024**3:
-                    error = "Task output exceeded the 1 GiB limit."
+                budget = job.request.output_bytes if is_dataset else 1024**3
+                if size > budget:
+                    error = "Task output exceeded its selected storage budget."
                     await self.engine.stop(job.id)
                     break
                 await asyncio.sleep(0.4)
             code = await asyncio.wait_for(process.wait(), 10)
             await reader
             if error is None and status not in {Status.CANCELLED, Status.INTERRUPTED}:
-                if successful(job, directory, code):
+                passed = (
+                    await asyncio.to_thread(successful, job, directory, code)
+                    if isinstance(job.request, DatasetTask)
+                    else successful(job, directory, code)
+                )
+                if passed:
                     status = Status.SUCCEEDED
                     index = await asyncio.to_thread(self.outputs.index, job, directory / "output")
                     if index["errors"]:
@@ -201,10 +218,17 @@ class Worker:
                         f"Scientific task exited with code {code}; {missing}. Inspect the task log."
                     )
         except Exception as exc:
-            error = f"Task execution failed: {type(exc).__name__}. Inspect the task log."
+            cancelled = isinstance(job.request, DatasetTask) and (
+                self.store.get(job.id).status == Status.CANCELLING
+            )
+            if cancelled:
+                status, error = Status.CANCELLED, None
+            else:
+                error = f"Task execution failed: {type(exc).__name__}. Inspect the task log."
             with (directory / "run.log").open("a") as file:
                 file.write(f"\n{type(exc).__name__}: {exc}\n")
-            log.exception("task_execution_failed job_id=%s", job.id)
+            if not cancelled:
+                log.exception("task_execution_failed job_id=%s", job.id)
         finally:
             try:
                 await self.engine.stop(job.id)

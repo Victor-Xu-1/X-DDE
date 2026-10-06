@@ -215,9 +215,15 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             raise HTTPException(503, worker.error or "Task worker is not available.")
         try:
             constraints.check_task(value)
+            from .datasets.contract import DatasetTask
             from .integrations.contract import IntegratedTask
 
-            if isinstance(value, IntegratedTask):
+            if isinstance(value, DatasetTask):
+                from .datasets.runtime import validate
+
+                assets.validate_bindings(value)
+                validate(value, readiness["engine"].get("backends", {}).get(value.payload.kind, {}))
+            elif isinstance(value, IntegratedTask):
                 from .integrations.runtime import validate
 
                 assets.validate_bindings(value)

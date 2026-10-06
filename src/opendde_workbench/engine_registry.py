@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 from types import MappingProxyType
 from typing import Literal
 
+from .datasets.contract import OPERATIONS as DATA_OPERATIONS
 from .integrations.contract import OPERATIONS as INTEGRATED_OPERATIONS
 from .integrations.specs import PROGRAMS
 
@@ -72,7 +73,13 @@ _DEFINITIONS = (
         "RDKit + Dimorphite-DL",
         "化学状态、构象与早期分子库筛选 / Molecular states, conformers and early library selection",
         "docker",
-        ("molecular_states", "library_screen", "molecule_minimize"),
+        (
+            "molecular_states",
+            "library_screen",
+            "molecule_minimize",
+            "library_prepare",
+            "library_subset",
+        ),
     ),
     ScientificEngine(
         "gnina",
@@ -124,6 +131,9 @@ _DEFINITIONS += tuple(
         "docker",
         tuple(
             operation for operation, owner in INTEGRATED_OPERATIONS.items() if owner == identifier
+        )
+        + tuple(
+            operation for operation, (owner, _) in DATA_OPERATIONS.items() if owner == identifier
         ),
     )
     for identifier, spec in PROGRAMS.items()

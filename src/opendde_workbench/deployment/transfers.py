@@ -46,6 +46,11 @@ def download(
                 if progress != previous:
                     report(f"Downloading {progress}%" if total else f"Downloaded {progress} MiB")
                     previous = progress
+        if total and size != total:
+            raise RuntimeError(
+                "Download ended before the declared file size. "
+                "The confirmed partial download was retained for resume."
+            )
     if not verify(partial, checksum):
         partial.unlink()
         raise ValueError("Package checksum mismatch. Nothing was activated; retry the download.")

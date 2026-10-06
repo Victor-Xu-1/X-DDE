@@ -39,7 +39,21 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         if not source.is_dir() or source.is_symlink():
             raise ValueError("Native source archive layout differs from the reviewed release.")
     context = destination / "image-context"
-    prepare_context(identifier, context, source)
+    extra_sources = {}
+    for entry in spec.get("source_dependencies", []):
+        archive = (
+            root
+            / "downloads"
+            / (identifier + "-" + entry["id"] + "-" + entry["sha256"][:16] + ".zip")
+        )
+        download(entry["url"], archive, entry["sha256"], report, checkpoint)
+        temporary = work / ("dependency-" + entry["id"])
+        extract(archive, temporary, checkpoint, skipped_links=entry.get("skipped_links"))
+        folder = temporary / entry["prefix"]
+        if not folder.is_dir() or folder.is_symlink():
+            raise ValueError("Native dependency source differs from the fixed archive layout.")
+        extra_sources[entry["id"]] = folder
+    prepare_context(identifier, context, source, extra_sources=extra_sources)
     checkpoint()
     report("Building the reviewed independent scientific environment")
     tag = "xdde-" + identifier + ":" + recipe_digest(identifier)[:16]
@@ -108,7 +122,19 @@ def install_models(identifier, root, report, checkpoint):
     resources = spec["models"]
     if not resources:
         raise ValueError("This scientific program has no separate pretrained model package.")
-    if shutil.disk_usage(root).free < sum(row["size"] for row in resources) * 3 + 4 * 1024**3:
+    required = (
+        sum(
+            sum(
+                member["size"] + member.get("transport", {}).get("size", row["size"])
+                for member in row["selected_members"]
+            )
+            if row.get("selected_members")
+            else row["size"] * 3
+            for row in resources
+        )
+        + 4 * 1024**3
+    )
+    if shutil.disk_usage(root).free < required:
         raise ValueError("Insufficient free space for verified model downloads and extraction.")
     destination = (
         root / "models" / identifier / (recipe_digest(identifier)[:16] + "-" + str(uuid4()))
@@ -118,7 +144,22 @@ def install_models(identifier, root, report, checkpoint):
         name = row["name"]
         archive = root / "downloads" / (identifier + "-" + row["sha256"][:16] + "-" + name)
         report("Preparing verified model resource: " + name)
+        selected = row.get("selected_members", [])
+        if selected and all(
+            member.get("transport", {}).get("kind") == "verified_zip_range" for member in selected
+        ):
+            from .model_ranges import download_member
+
+            for member in selected:
+                cache = root / "downloads" / (identifier + "-" + member["sha256"][:16] + ".deflate")
+                download_member(row, member, destination, cache, report, checkpoint)
+            continue
         download(row["url"], archive, row["sha256"], report, checkpoint, limit=row["size"])
+        if row.get("selected_members"):
+            from .model_members import extract_selected
+
+            extract_selected(archive, destination, row["selected_members"], checkpoint)
+            continue
         target = destination / name
         shutil.copyfile(archive, target)
         if name.endswith((".zip", ".tar")):

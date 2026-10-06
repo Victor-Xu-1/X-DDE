@@ -18,7 +18,7 @@ def lock_digest(identifier):
     return hasher.hexdigest()
 
 
-def prepare_context(identifier, destination, source=None):
+def prepare_context(identifier, destination, source=None, *, extra_sources=None):
     spec = PROGRAMS[identifier]
     destination.mkdir(parents=True, exist_ok=True)
     recipes = Path(__file__).parent / "recipes"
@@ -57,6 +57,17 @@ def prepare_context(identifier, destination, source=None):
     if source:
         # Source has already passed the fixed archive checksum and member checks.
         shutil.copytree(source, destination / "source")
+        for patch in spec.get("source", {}).get("patches", []):
+            relative = Path(patch["file"])
+            file = destination / "source" / relative
+            if relative.is_absolute() or ".." in relative.parts or file.is_symlink():
+                raise ValueError("A reviewed native source patch has an unsafe path.")
+            content = file.read_text(encoding="utf-8")
+            if content.count(patch["old"]) != 1:
+                raise ValueError(
+                    "Reviewed native source differs from the exact compatibility patch."
+                )
+            file.write_text(content.replace(patch["old"], patch["new"]), encoding="utf-8")
         target = (
             "/opt/native/" + spec["source"]["prefix"]
             if spec.get("source", {}).get("package")
@@ -68,6 +79,24 @@ def prepare_context(identifier, destination, source=None):
                 "RUN python -m pip install --no-deps --no-build-isolation " + target + " "
                 "&& python -m pip check"
             ]
+    for entry in spec.get("source_dependencies", []):
+        dependency = (extra_sources or {}).get(entry["id"])
+        if dependency is None or dependency.is_symlink():
+            raise ValueError("A checksum-reviewed native source dependency is missing.")
+        name = entry["id"]
+        if not name.isidentifier():
+            raise ValueError("A reviewed source dependency has an invalid identity.")
+        shutil.copytree(dependency, destination / ("dependency-" + name))
+        target = "/opt/native-dependencies/" + name
+        lines += ["COPY dependency-" + name + " " + target]
+        if entry.get("package"):
+            lines += [
+                "RUN python -m pip install --no-deps --no-build-isolation "
+                + target
+                + " && python -m pip check"
+            ]
+    if spec.get("source", {}).get("python_path"):
+        lines += ["ENV PYTHONPATH=/opt/native"]
     lines += [
         'LABEL org.xdde.science.program="' + identifier + '" '
         'org.xdde.science.recipe="' + recipe_digest(identifier) + '" '

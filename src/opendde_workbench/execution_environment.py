@@ -88,6 +88,8 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
         "apbs",
         "chemprop",
         "plip",
+        "drugclip",
+        "deli",
     }:
         from .integrations.specs import recipe_digest
 

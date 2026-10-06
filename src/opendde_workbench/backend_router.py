@@ -14,6 +14,8 @@ from . import harness_process, local_process
 from .admet.backend import AdmetBackend
 from .antibodies.backend import AntibodyBackend
 from .chemistry.backend import ChemistryBackend
+from .datasets.backend import DatasetBackend
+from .datasets.contract import DatasetTask
 from .diffsbdd.runtime import configuration
 from .diffsbdd.runtime import readiness as diff_readiness
 from .discovery.backend import DiscoveryBackend
@@ -23,6 +25,7 @@ from .engine_registry import engine_for
 from .execution_environment import capture as capture_environment
 from .humanization.backend import HumanizationBackend
 from .integrations.backend import ScientificBackend
+from .integrations.runtime import readiness as scientific_readiness
 from .integrations.specs import PROGRAMS
 from .pockets.backend import PocketBackend
 from .quality.backend import QualityBackend
@@ -38,13 +41,18 @@ class BackendRouter:
         self.pockets = PocketBackend(settings)
         self.docking = DockingBackend(settings)
         self.chemistry = ChemistryBackend(settings)
+        self.datasets = DatasetBackend(settings)
         self.biopython = ReceptorBackend(settings)
         self.discovery = DiscoveryBackend(settings)
         self.anarcii = AntibodyBackend(settings)
         self.posebusters = QualityBackend(settings)
         self.admet = AdmetBackend(settings)
         self.sapiens = HumanizationBackend(settings)
-        self.scientific = {key: ScientificBackend(settings, key) for key in PROGRAMS}
+        self.scientific = {
+            key: ScientificBackend(settings, key)
+            for key in PROGRAMS
+            if key not in {"drugclip", "deli"}
+        }
 
     async def start(self, job, directory):
         implementation = engine_for(job.request.operation).id
@@ -61,11 +69,15 @@ class BackendRouter:
             "posebusters",
             "admet",
             "sapiens",
+            "drugclip",
+            "deli",
         }:
             raise ValueError("No execution adapter for registered engine: " + implementation)
         environment = capture_environment(self.settings, implementation)
         self.store.bind_environment(job.id, environment)
         (directory / "environment.json").write_text(environment.model_dump_json(), encoding="utf-8")
+        if isinstance(job.request, DatasetTask):
+            return await self.datasets.start(job, directory)
         if implementation in self.scientific:
             return await self.scientific[implementation].start(job, directory)
         if implementation == "sapiens":
@@ -135,7 +147,9 @@ class BackendRouter:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
         implementation = engine_for(job.request.operation).id
-        if implementation in self.scientific:
+        if isinstance(job.request, DatasetTask):
+            await self.datasets.stop(job.id, directory)
+        elif implementation in self.scientific:
             await self.scientific[implementation].stop(job.id, directory)
         elif implementation == "sapiens":
             await self.sapiens.stop(job.id, directory)
@@ -201,14 +215,19 @@ class BackendRouter:
         }
         scientific_states = await asyncio.gather(
             *(
-                self._checked_readiness(key, backend.readiness())
-                for key, backend in self.scientific.items()
+                self._checked_readiness(
+                    key,
+                    self.scientific[key].readiness()
+                    if key in self.scientific
+                    else scientific_readiness(self.settings, key),
+                )
+                for key in PROGRAMS
             )
         )
         return {
             **opendde,
             "backends": {
-                **dict(zip(self.scientific, scientific_states, strict=True)),
+                **dict(zip(PROGRAMS, scientific_states, strict=True)),
                 "opendde": opendde,
                 "diffsbdd": diff,
                 "harness": harness,

@@ -280,6 +280,163 @@
         "libsm6=2:1.2.3-1",
         "libexpat1=2.5.0-1+deb12u4"
       ]
+    },
+    "drugclip": {
+      "version": "6-fold-9d0db739",
+      "name": "DrugCLIP six-fold retrieval",
+      "gpu": true,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "torch==2.8.0",
+        "rdkit==2026.3.6",
+        "numpy==1.26.4",
+        "scipy==1.14.1"
+      ],
+      "source": {
+        "url": "https://codeload.github.com/THU-ATOM/Drug-The-Whole-Genome/zip/9d0db73915219763b5bcc3b7de86d7c4edb5ed03",
+        "sha256": "6e43a2f5297faaa481a3e28d87e3d71208ef1583ed740660032dd5f53bc3d509",
+        "prefix": "Drug-The-Whole-Genome-9d0db73915219763b5bcc3b7de86d7c4edb5ed03",
+        "python_path": true,
+        "patches": [
+          {
+            "file": "unimol/models/drugclip.py",
+            "old": "torch.ones([1], device=\"cuda\")",
+            "new": "torch.ones([1], device=\"cpu\")",
+            "purpose": "Device-neutral initialization; checkpoint and official encoders remain unchanged."
+          }
+        ]
+      },
+      "source_dependencies": [
+        {
+          "url": "https://codeload.github.com/dptech-corp/Uni-Core/zip/ace6fae1c8479a9751f2bb1e1d6e4047427bc134",
+          "sha256": "d295489b0c85253e3c1f979acbbe04f6bbcd9dc99c1fa2638a5d5ef9edb3dee3",
+          "prefix": "Uni-Core-ace6fae1c8479a9751f2bb1e1d6e4047427bc134",
+          "id": "unicore",
+          "package": true,
+          "license": "MIT",
+          "cuda_extensions": "official_default_disabled"
+        }
+      ],
+      "models": [
+        {
+          "url": "https://huggingface.co/datasets/bgao95/DrugCLIP_data/resolve/1025437db09a31d956dfede6a9a4bec81131713d/model_weights.zip",
+          "size": 13007383205,
+          "sha256": "978fee1e29423ba4ab1d419532d95462015c86223b72ed792d0fee9d307eeae0",
+          "name": "model_weights.zip",
+          "selected_members": [
+            {
+              "name": "fold_0.pt",
+              "member": "model_weights/6_folds/fold_0.pt",
+              "size": 1199477971,
+              "sha256": "129196ea9eb211c6b931d8dc5cd4edccbc4c6fd382aae7200b455d3bc3847e5c",
+              "transport": {
+                "kind": "verified_zip_range",
+                "start": 8348862346,
+                "size": 931472430,
+                "sha256": "23979cc1cbc1e9864321a4b2267f1ef85f0e3c59e6ff3aa8a9c2cdf07c719133",
+                "compression": 8,
+                "crc32": 1455096015
+              }
+            },
+            {
+              "name": "fold_1.pt",
+              "member": "model_weights/6_folds/fold_1.pt",
+              "size": 1199477971,
+              "sha256": "2c17fce79d67da039fb396c2352a5c251b0d04c679ce9a0ea9f294dffccc9aa2",
+              "transport": {
+                "kind": "verified_zip_range",
+                "start": 12075593103,
+                "size": 931788202,
+                "sha256": "183a205a9de8f484ad462e78c8de571970b73def9d48762541695be4857d5e6a",
+                "compression": 8,
+                "crc32": 2329790351
+              }
+            },
+            {
+              "name": "fold_2.pt",
+              "member": "model_weights/6_folds/fold_2.pt",
+              "size": 1199477971,
+              "sha256": "8638bf55304287591fe20b82ee9d09508ff621fb2f71ba6d75f8bdb369bcd293",
+              "transport": {
+                "kind": "verified_zip_range",
+                "start": 11144039998,
+                "size": 931553016,
+                "sha256": "656d91880bc562a709b564f73e06b4fde45b20991397c800af8866d7ab590a72",
+                "compression": 8,
+                "crc32": 562222932
+              }
+            },
+            {
+              "name": "fold_3.pt",
+              "member": "model_weights/6_folds/fold_3.pt",
+              "size": 1199477971,
+              "sha256": "80f5fec6026636935e3e100d155a6803f12d1593e7f74c32de46e74b7739831c",
+              "transport": {
+                "kind": "verified_zip_range",
+                "start": 7417203897,
+                "size": 931658360,
+                "sha256": "2f4290fb8d8a1d9cf5d45bd45827d9e004b1bbf29fe24222aad86538bf5f2403",
+                "compression": 8,
+                "crc32": 2637859262
+              }
+            },
+            {
+              "name": "fold_4.pt",
+              "member": "model_weights/6_folds/fold_4.pt",
+              "size": 1199477971,
+              "sha256": "931577ba8217fd08db744763ef9613562f67e8d390f6266450a7b8b2b06e13e3",
+              "transport": {
+                "kind": "verified_zip_range",
+                "start": 9280334865,
+                "size": 931900065,
+                "sha256": "92b7679f37f2b3b8b22f4ba1758d98e3a338ed4251a3480e3a0a315e91f74a05",
+                "compression": 8,
+                "crc32": 3753605415
+              }
+            },
+            {
+              "name": "fold_5.pt",
+              "member": "model_weights/6_folds/fold_5.pt",
+              "size": 1199477971,
+              "sha256": "fe9ddd7f83201b25c70715a9e4010c93b3249fe9022005d612ffa52b6a5a1fc1",
+              "transport": {
+                "kind": "verified_zip_range",
+                "start": 10212235019,
+                "size": 931804890,
+                "sha256": "3353776d6948a33eecdaf4f1a37e2a51ca2ad0e63531d2e27b05300e2b6c7773",
+                "compression": 8,
+                "crc32": 516290891
+              }
+            }
+          ]
+        }
+      ],
+      "license": "Apache-2.0 main code; MIT Uni-Core/Uni-Mol; CC BY-NC 4.0 official weights, embeddings and outputs",
+      "allowed_use": "non_commercial",
+      "system_packages": [
+        "libxrender1=1:0.9.10-1.1",
+        "libxext6=2:1.3.4-1+b1",
+        "libsm6=2:1.2.3-1",
+        "libexpat1=2.5.0-1+deb12u4"
+      ]
+    },
+    "deli": {
+      "version": "0.2.1",
+      "name": "DELi DEL informatics",
+      "gpu": false,
+      "base": "docker.io/library/python@sha256:88310c082760d93ac7c74d579e95e53a4ab6ea52dd8901abc61a103daf488ac4",
+      "pip": [
+        "deli-chem==0.2.1",
+        "rdkit==2026.3.6"
+      ],
+      "models": [],
+      "license": "MIT DELi; individual dependency terms; user library/count data retains its own terms",
+      "system_packages": [
+        "libxrender1=1:0.9.10-1.1",
+        "libxext6=2:1.3.4-1+b1",
+        "libsm6=2:1.2.3-1",
+        "libexpat1=2.5.0-1+deb12u4"
+      ]
     }
   }
 }

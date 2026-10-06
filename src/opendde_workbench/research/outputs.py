@@ -212,8 +212,24 @@ class OutputCatalog:
         humanization_result=None,
     ):
         job = self.store.get(str(job_id))
+        from ..datasets.contract import DatasetTask
         from ..integrations.contract import IntegratedTask
 
+        if job and isinstance(job.request, DatasetTask):
+            from ..datasets.result import validate_result
+
+            root = self.assets.root.parent / "jobs" / job.id / "output"
+            manifest = contained(root, "result.json")
+            if manifest.stat().st_size > 4 * 1024**2:
+                raise ValueError("Scientific data summary exceeds its display budget.")
+            result = validate_result(json.loads(manifest.read_text()), job.request, root)
+            allowed = {item.name for item in result.artifacts}
+            if file.name != "result.json" and (
+                file.parent.resolve() != root.resolve() or file.name not in allowed
+            ):
+                raise ValueError("Only declared scientific data artifacts can be preserved.")
+            if file.suffix.lower() == ".sdf" and file.name != result.molecule_artifact:
+                raise ValueError("Only the confirmed source-linked candidate bundle is reusable.")
         if job and isinstance(job.request, IntegratedTask):
             from ..integrations.result import validate_result
 

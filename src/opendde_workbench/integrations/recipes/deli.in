@@ -1,0 +1,3 @@
+# Published DELi release, isolated Python 3.13; no platform interpreter upgrade.
+deli-chem==0.2.1
+rdkit==2026.3.6

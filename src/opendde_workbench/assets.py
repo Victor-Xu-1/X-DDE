@@ -180,8 +180,13 @@ class AssetStore:
 
     def _validate_bindings(self, request) -> dict[str, Asset]:
         bindings = {}
+        from .datasets.contract import DatasetTask
         from .integrations.contract import IntegratedTask
 
+        if isinstance(request, DatasetTask):
+            from .datasets.bindings import asset_bindings
+
+            return asset_bindings(request, self)
         if isinstance(request, IntegratedTask):
             from .integrations.bindings import validate_bindings
 
@@ -391,7 +396,7 @@ class AssetStore:
             from .integrations.contract import IntegratedTask
 
             if (
-                asset.suffix == ".sdf"
+                asset.kind == "ligand" and asset.suffix == ".sdf"
                 and not isinstance(request, IntegratedTask)
                 and getattr(request, "operation", None)
                 not in {

@@ -22,9 +22,12 @@ def model_files(root, spec, *, full_hash=False):
     if len(by_name) != len(entries):
         raise ValueError("Duplicate native model resource identities.")
     for expected in spec["models"]:
-        saved = by_name.get(expected["name"])
-        if not saved or (saved["sha256"], saved["size"]) != (expected["sha256"], expected["size"]):
-            raise ValueError("A required official model resource is missing or changed.")
+        for resource in expected.get("selected_members", [expected]):
+            saved = by_name.get(resource["name"])
+            if not saved or (saved["sha256"], saved["size"]) != (
+                resource["sha256"], resource["size"]
+            ):
+                raise ValueError("A required official model resource is missing or changed.")
     for row in entries:
         name = PurePosixPath(row["name"])
         if name.is_absolute() or ".." in name.parts or "\\" in row["name"]:

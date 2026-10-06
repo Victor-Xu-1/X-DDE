@@ -37,8 +37,14 @@ class PreparedContainerBackend:
         """Reviewed native adapters may add bounded model mounts or GPU access."""
         return []
 
+    def image_for(self, job, directory):
+        return self.configuration(self.settings)
+
+    async def prepare_execution_arguments(self, job, directory):
+        return self.execution_arguments(job, directory)
+
     async def start(self, job, directory):
-        image = self.configuration(self.settings)
+        image = self.image_for(job, directory)
         adapter = directory / "adapter"
         adapter.mkdir(exist_ok=False)
         checksums = {}
@@ -93,7 +99,7 @@ class PreparedContainerBackend:
                     f"type=bind,source={host},target={target}" + (",readonly" if readonly else ""),
                 ]
             )
-        args.extend(self.execution_arguments(job, directory))
+        args.extend(await self.prepare_execution_arguments(job, directory))
         args.extend(["--entrypoint", "python", image, "-B", "/platform/runner.py"])
         code, text = await command(*args)
         if code:

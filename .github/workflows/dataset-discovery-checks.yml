@@ -24,4 +24,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Research upload and directly affected trust boundaries
-        run: uv run --locked pytest -q tests/test_dataset_uploads.py tests/test_api_security.py
+        run: >-
+          uv run --locked pytest -q tests/test_dataset_uploads.py
+          tests/test_dataset_contracts.py tests/test_api_security.py
+          tests/test_dataset_worker.py tests/test_dataset_resources.py
