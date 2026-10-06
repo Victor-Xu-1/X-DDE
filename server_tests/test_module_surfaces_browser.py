@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 
-from layout_browser_helpers import catalog, flat_surface_styles
+from layout_browser_helpers import VISIBLE_TASKS, catalog, flat_surface_styles
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -18,7 +18,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(os.environ["WB_BROWSER_URL"])
         groups = page.locator(".capability-group")
-        expect(groups).to_have_count(6)
+        expect(groups).to_have_count(8)
         dimensions = groups.evaluate_all(
             """elements => elements.map(e => ({theme:e.dataset.moduleTheme,
                 width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))"""
@@ -71,7 +71,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         page.screenshot(path=str(evidence / "generated-module-backgrounds.png"))
         catalog(page)
         names = [card.get_attribute("aria-label") for card in page.locator(".tool-card").all()]
-        assert len(names) == len(set(names)) == 53
+        assert len(names) == len(set(names)) == VISIBLE_TASKS
         for name in names:
             catalog(page)
             page.get_by_role("button", name=name, exact=True).click()
@@ -83,6 +83,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
                 "molecules",
                 "biologics",
                 "properties",
+                "research",
                 "environments",
             }
             assert page.locator(".questionnaire > fieldset:visible").count() <= 1

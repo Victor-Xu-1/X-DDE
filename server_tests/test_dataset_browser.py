@@ -81,7 +81,7 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     page.locator(".dataset-results .molecule-image img").first.wait_for(
                         timeout=30000
                     )
-                    drawings = page.locator(".dataset-results .molecule-image")
+                    drawings = page.locator(".dataset-results .molecule-image:visible")
                     for index in range(min(3, drawings.count())):
                         drawings.nth(index).locator("img").wait_for(timeout=30000)
                 page.screenshot(path=str(destination / f"{capability}-results.png"), full_page=True)
@@ -157,7 +157,7 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                     page.locator(".module-example-result .molecule-image img").first.wait_for(
                         timeout=30000
                     )
-                    drawings = page.locator(".module-example-result .molecule-image")
+                    drawings = page.locator(".module-example-result .molecule-image:visible")
                     for index in range(min(3, drawings.count())):
                         drawings.nth(index).locator("img").wait_for(timeout=30000)
                 page.screenshot(

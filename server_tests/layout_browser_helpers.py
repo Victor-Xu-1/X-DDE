@@ -3,13 +3,18 @@
 import json
 
 from playwright.sync_api import expect
+from opendde_workbench.capabilities.definitions import CAPABILITIES
+
+VISIBLE_TASKS = sum(
+    bool(spec.frontend_form) and key != "resources" for key, spec in CAPABILITIES.items()
+)
 
 
 def catalog(page):
     page.get_by_role("navigation", name="主导航").get_by_role(
         "button", name="全部能力", exact=True
     ).click()
-    expect(page.locator(".tool-card")).to_have_count(53)
+    expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
     for summary in page.locator(".capability-additional > summary").all():
         summary.click()
 

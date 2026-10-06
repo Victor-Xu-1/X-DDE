@@ -20,4 +20,9 @@ if "ketcher" not in manager.store.installed():
     operations = [row for row in manager.store.rows() if row["package"] == "ketcher"]
     assert operations and operations[0]["state"] == "succeeded", operations
 assert (Path(manager.store.installed()["ketcher"]["web"]) / "index.html").is_file()
+if "public-dataset-examples" not in manager.store.installed():
+    operation = manager.enqueue("public-dataset-examples", "install")[0]
+    manager.tick()
+    assert manager.store.get(operation)["state"] == "succeeded", manager.store.get(operation)
+assert manager.store.installed()["public-dataset-examples"]["computed"] == 14
 print("Reviewed native Ketcher is ready for graphical browser checks.")

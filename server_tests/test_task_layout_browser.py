@@ -4,11 +4,17 @@ import os
 import sqlite3
 from pathlib import Path
 
-from layout_browser_helpers import capture, catalog, load_template, review_steps, save_report
+from layout_browser_helpers import (
+    VISIBLE_TASKS,
+    capture,
+    catalog,
+    load_template,
+    review_steps,
+    save_report,
+)
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.capabilities.definitions import CAPABILITIES
-from opendde_workbench.integrations.specs import PROGRAMS
 
 
 def test_every_task_page_and_native_case_layout():
@@ -17,12 +23,6 @@ def test_every_task_page_and_native_case_layout():
     errors = []
     rows = []
     task_submissions = []
-    # The restored public bundle predates the nine new adapters. Their input
-    # templates are reviewed, but no computed output is fabricated for them.
-    input_only = {
-        spec.label[0] for spec in CAPABILITIES.values() if spec.environment in PROGRAMS
-    }
-    assert len(input_only) == 9
     db = sqlite3.connect(Path(os.environ["WB_STATE_DIR"]) / "jobs.sqlite3")
     original = db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall()
     with sync_playwright() as engine:
@@ -40,7 +40,15 @@ def test_every_task_page_and_native_case_layout():
         )
         try:
             page.goto(os.environ["WB_BROWSER_URL"])
-            expect(page.locator(".tool-card")).to_have_count(53)
+            examples = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples").json()[
+                "examples"
+            ]
+            input_only = {
+                CAPABILITIES[item["module"]["capability_id"]].label[0]
+                for item in examples
+                if not item["computed_result_available"]
+            }
+            expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
             names = page.locator(".tool-card h2").all_text_contents()
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
@@ -79,7 +87,7 @@ def test_every_task_page_and_native_case_layout():
                     rows.append(capture(page, evidence, name, "result"))
             page.set_viewport_size({"width": 1440, "height": 1000})
             nav = page.get_by_role("navigation", name="主导航")
-            expect(nav.get_by_role("button")).to_have_count(9)
+            expect(nav.get_by_role("button")).to_have_count(11)
             nav.get_by_role("button", name="研究空间", exact=True).click()
             for tab in ("项目", "研究文件", "结构编辑"):
                 page.get_by_role("group", name="研究空间", exact=True).get_by_role(
