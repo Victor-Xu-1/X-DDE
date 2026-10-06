@@ -44,6 +44,8 @@ class Settings:
     sapiens_image: str | None = None
     native_tools_dir: Path | None = None
     engine_network: str = "bridge"
+    dataset_file_bytes: int = 50 * 1024**3
+    dataset_quota_bytes: int = 200 * 1024**3
 
     @classmethod
     def from_env(cls):
@@ -80,6 +82,8 @@ class Settings:
         connection = prepare_connection(state, root, installed, network) if root else connection
         tools = installed.get("opendde-tools", {}).get("directory")
         return cls(
+            dataset_file_bytes=int(os.environ.get("WB_DATASET_FILE_BYTES", 50 * 1024**3)),
+            dataset_quota_bytes=int(os.environ.get("WB_DATASET_QUOTA_BYTES", 200 * 1024**3)),
             engine_network=network,
             native_tools_dir=path("WB_NATIVE_TOOLS_DIR", tools or "")
             if os.environ.get("WB_NATIVE_TOOLS_DIR") or tools

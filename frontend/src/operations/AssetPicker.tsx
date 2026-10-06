@@ -11,6 +11,9 @@ const accept: Record<AssetKind, string> = {
   template: ".a3m,.hhr",
   config: ".json,.yaml,.yml",
   sequences: ".fasta,.fa",
+  library: ".sdf,.csv,.tsv,.smi,.smiles,.sdf.gz,.csv.gz,.tsv.gz",
+  counts: ".csv,.tsv,.csv.gz,.tsv.gz",
+  reads: ".fastq,.fq,.fastq.gz,.fq.gz",
 };
 export function AssetPicker({
   kind,

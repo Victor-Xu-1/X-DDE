@@ -5,7 +5,7 @@ import fcntl
 import secrets
 import shutil
 import time
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
@@ -19,6 +19,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import PRODUCT_NAME, __version__
 from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
+from .asset_upload_routes import register_uploads
 from .assets import AssetStore
 from .backend_router import BackendRouter
 from .capabilities import register_capabilities
@@ -109,6 +110,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             limit = (
                 25 * 1024**2
                 if request.url.path == "/api/assets"
+                else 4 * 1024**2
+                if request.url.path.startswith("/api/assets/uploads/") and request.method == "PUT"
                 else 2 * 1024**2
                 if request.url.path == "/api/batches"
                 else 262144
@@ -121,7 +124,13 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     },
                 )
         if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
-            async with mutations:
+            # Data transfers own short database transactions and cannot change
+            # tasks/deployments. A multi-GiB final hash must not block cancellation
+            # of an unrelated scientific task; normal CSRF/host/body rules remain.
+            lock = (
+                nullcontext() if request.url.path.startswith("/api/assets/uploads") else mutations
+            )
+            async with lock:
                 if app.state.quiescing:
                     return JSONResponse(status_code=409, content={"detail": "UI is shutting down."})
                 if (
@@ -484,6 +493,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         )
 
     register_assets(app, assets, mutation)
+    register_uploads(app, assets, settings, mutation)
     harness_service = register_harness(app, store, assets, settings, mutation)
 
     async def scientific_busy():

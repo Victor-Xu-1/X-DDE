@@ -1,0 +1,27 @@
+name: Dataset discovery scoped checks
+on:
+  push:
+    paths:
+      - 'src/opendde_workbench/asset_upload*'
+      - 'src/opendde_workbench/dataset_inputs.py'
+      - 'src/opendde_workbench/datasets/**'
+      - 'frontend/src/datasets/**'
+      - 'tests/test_dataset*'
+      - '.github/workflows/dataset-discovery-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Research upload and directly affected trust boundaries
+        run: uv run --locked pytest -q tests/test_dataset_uploads.py tests/test_api_security.py

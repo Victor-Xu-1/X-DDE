@@ -1,7 +1,8 @@
 import type { Component, Parameters, Prediction } from "../types";
 
 export type AssetKind =
-  "structure" | "ligand" | "msa" | "template" | "config" | "sequences";
+  "structure" | "ligand" | "msa" | "template" | "config" | "sequences"
+  | "library" | "counts" | "reads";
 export interface Asset {
   id: string;
   name: string;

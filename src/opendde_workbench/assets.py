@@ -14,7 +14,9 @@ from pydantic import BaseModel
 from .harness_contract import asset_references
 from .store import Store, now
 
-AssetKind = Literal["structure", "ligand", "msa", "template", "config", "sequences"]
+AssetKind = Literal[
+    "structure", "ligand", "msa", "template", "config", "sequences", "library", "counts", "reads"
+]
 EXTENSIONS = {
     "structure": {".pdb", ".cif"},
     "ligand": {".sdf", ".mol", ".mol2", ".pdb"},
@@ -77,6 +79,10 @@ class AssetStore:
         return path
 
     def save(self, name: str, kind: AssetKind, content: bytes) -> Asset:
+        if kind not in EXTENSIONS:
+            raise ValueError(
+                "Use the resumable research upload for library, count-table or FASTQ data."
+            )
         name = re.split(r"[/\\]", name)[-1].strip()
         if not name or len(name) > 120 or any(ord(c) < 32 for c in name):
             raise ValueError("Use a readable filename of at most120 characters.")
@@ -122,7 +128,10 @@ class AssetStore:
                     ):
                         raise ValueError("Existing uploaded file failed its integrity check.")
                     return previous
-                used = db.execute("SELECT coalesce(sum(size),0) FROM assets").fetchone()[0]
+                used = db.execute(
+                    "SELECT coalesce(sum(size),0) FROM assets "
+                    "WHERE kind NOT IN ('library','counts','reads')"
+                ).fetchone()[0]
                 if used + asset.size > self.max_total:
                     raise ValueError("Uploaded-input storage is full. Remove unused inputs.")
                 folder.mkdir(mode=0o700)
@@ -368,8 +377,16 @@ class AssetStore:
             target = destination / (identifier + asset.suffix)
             if target.is_symlink():
                 raise ValueError("Input snapshot must not be a symbolic link.")
-            shutil.copyfile(self.path(asset), target)
-            if hashlib.sha256(target.read_bytes()).hexdigest() != asset.sha256:
+            if asset.kind in {"library", "counts", "reads"}:
+                # The immutable upload and its task snapshot share this managed filesystem.
+                # Read-only container mounts cannot modify either link; referenced inputs
+                # cannot be removed. Avoid copying tens of GiB for every downstream task.
+                os.link(self.path(asset), target)
+            else:
+                shutil.copyfile(self.path(asset), target)
+            with target.open("rb") as stream:
+                digest = hashlib.file_digest(stream, "sha256").hexdigest()
+            if digest != asset.sha256:
                 raise ValueError("Uploaded input integrity check failed.")
             from .integrations.contract import IntegratedTask
 
