@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/datasets/**'
       - 'frontend/src/datasets/**'
       - 'tests/test_dataset*'
+      - 'server_tests/*dataset*'
       - '.github/workflows/dataset-discovery-checks.yml'
   workflow_dispatch:
 permissions:
@@ -28,3 +29,26 @@ jobs:
           uv run --locked pytest -q tests/test_dataset_uploads.py
           tests/test_dataset_contracts.py tests/test_api_security.py
           tests/test_dataset_worker.py tests/test_dataset_resources.py
+  native-del-data:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install the reviewed independent DEL environment, without platform interpreter changes
+        run: |
+          uv venv --python 3.13 .dataset-native
+          uv pip install --python .dataset-native/bin/python --require-hashes -r src/opendde_workbench/integrations/recipes/deli.txt
+          uv pip install --python .dataset-native/bin/python pytest==9.1.1 pydantic==2.13.0
+      - name: Real compound libraries, public DEL chemistry/reads/counts and ranking boundaries only
+        env:
+          PYTHONPATH: src
+          WB_TEST_DATASET_NATIVE: '1'
+        run: .dataset-native/bin/python -m pytest -q server_tests/test_dataset_native.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dataset-native-check-evidence
+          path: /tmp/pytest-of-runner/pytest-*/**/output
+          if-no-files-found: ignore
+          retention-days: 7
