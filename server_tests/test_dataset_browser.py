@@ -130,7 +130,7 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 form.wait_for()
                 for step in range(4):
                     assert form.locator("fieldset:visible").count() == 1
-                    if capability == "drugclip.screen" and step == 1:
+                    if capability == "drugclip.screen" and step == 2:
                         form.get_by_role("searchbox", name="搜索研究文件", exact=True).fill("BRD4")
                         from playwright.sync_api import expect
 
