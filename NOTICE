@@ -16,3 +16,10 @@ High-throughput screening and DEL integrations added in v0.4.29
 DrugCLIP / Drug-The-Whole-Genome (THU-ATOM): Apache-2.0 code; official weights, precomputed embeddings and model outputs are CC BY-NC 4.0. Product labels do not replace upstream attribution or broaden these terms. Model weights are separately provisioned, not redistributed in the X-DDE wheel.
 DELi (Popov Lab, University of North Carolina): MIT code; public example files and article data retain their published terms and source notices.
 Public BRD4 / JQ1 and UNCDEL006 cases retain RCSB, ChEMBL and original study attribution in the case manifest and scientific artifacts.
+
+Public supplier structure-file metadata added in v0.4.30
+Reviewed ChemDiv, ASINEX, BIONET / Key Organics, Alinda, OTAVA, Eximed, ARONIS,
+Princeton BioMolecular and ChemRar file references retain their original supplier
+source pages and terms. Public download availability is not a redistribution
+grant. X-DDE distributes reviewed download metadata and checksums, not the raw
+supplier structure archives or current-stock/experimental-activity claims.

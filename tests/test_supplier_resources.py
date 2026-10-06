@@ -3,6 +3,7 @@
 import hashlib
 import io
 import zipfile
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -158,4 +159,5 @@ def test_supplier_install_respects_configured_file_budget(tmp_path, monkeypatch)
     manager.tick()
     assert manager.store.get(identifier)["state"] == "failed"
     assert "file budget" in manager.store.get(identifier)["error"]
-    assert not list((tmp_path / "components/packages/supplier-libraries").iterdir())
+    root = Path(manager.store.config()["root"])
+    assert not list((root / "packages/supplier-libraries").iterdir())

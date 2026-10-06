@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import sqlite3
 import zipfile
 from pathlib import Path
@@ -37,7 +38,13 @@ def test_actual_supplier_sdf_preserves_original_identifiers_and_prepares_native_
                 if count == 3:
                     break
     assert count == 3
-    material = native.material(b"".join(blocks), ".sdf", "data")
+    content = b"".join(blocks)
+    expected_ids = re.findall(
+        r"(?m)^>\s*(?:\d+\s*)?<" + re.escape(resource["id_column"]) + r">[^\r\n]*\r?\n([^\r\n]+)",
+        content.decode("utf-8-sig"),
+    )
+    assert len(expected_ids) == 3
+    material = native.material(content, ".sdf", "data")
     task = native.task(
         "library_prepare",
         {
@@ -56,7 +63,8 @@ def test_actual_supplier_sdf_preserves_original_identifiers_and_prepares_native_
     assert result.counts["rejected_records"] == 0
     with sqlite3.connect(native.root / "output/library.sqlite") as db:
         identifiers = list(db.execute("SELECT supplier_id FROM records ORDER BY record"))
-        assert len(identifiers) == 3 and all(row[0].strip() for row in identifiers)
+        assert [row[0] for row in identifiers] == [value.strip() for value in expected_ids]
+        assert all(row[0].strip() for row in identifiers)
         assert db.execute("SELECT min(heavy_atoms) FROM compounds").fetchone()[0] > 1
     assert result.metadata["supplier"] == resource["supplier"]
     assert result.metadata["source_url"] == resource["source_page"]
