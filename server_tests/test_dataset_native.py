@@ -104,6 +104,9 @@ def test_exact_segmented_topk_matches_full_ranking_and_stable_ties(native):
     full = module.fold_scores(vectors.reshape(-1, 768), query)
     mean, deviation = module.calibration(full[:1000])
     ranked = ((full - mean) / deviation).mean(axis=1)
+    accelerated, raw = module.ranking_scores(vectors.reshape(-1, 768), query, mean, deviation)
+    assert np.allclose(accelerated, ranked, atol=2e-6)
+    assert np.allclose(raw, full.mean(axis=1), atol=1e-6)
     expected = np.lexsort((np.arange(len(full)), -ranked))[:73]
     top = module.TopK(73)
     for start in range(0, len(full), 257):
@@ -244,6 +247,19 @@ def test_del_exact_count_model_zero_reference_and_missing_cells_are_not_infinite
         with pytest.raises(ValueError):
             table.count(value)
     assert table.count("123.0") == 123
+
+
+def test_native_deli_failure_tuple_fix_preserves_unmatched_and_ambiguous_calls(native):
+    from deli.decode.barcode_calling import AmbiguousBarcodeCall, FailedBarcodeLookup, ValidCall
+
+    compatibility = native.module("del_decoder_compat")
+    for failure in (FailedBarcodeLookup("AAAA"), AmbiguousBarcodeCall("AAAA")):
+        call, start, stop = compatibility.normalize_failure(lambda *args, failed=failure: failed)(
+            "AAAA", None, 4
+        )
+        assert call is failure and start == stop == -1
+    success = (ValidCall("A035", 0), 0, 8)
+    assert compatibility.normalize_failure(lambda *args: success)("AAAA", None, 4) is success
 
 
 def test_del_native_decode_and_compound_scoped_umi_counting_reconcile_public_reads(

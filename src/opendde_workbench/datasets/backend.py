@@ -21,6 +21,7 @@ FILES = (
     "drugclip_retrieval.py",
     "retrieval_topk.py",
     "del_definition.py",
+    "del_decoder_compat.py",
     "del_fastq.py",
     "native_del_library.py",
     "native_del_decode.py",

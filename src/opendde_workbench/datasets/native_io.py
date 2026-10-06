@@ -106,6 +106,8 @@ def text_lines(path, expanded_bytes, maximum_line=1024**2):
 
 def write_csv(path, columns, rows):
     def safe(value):
+        if value is None:
+            return ""
         if isinstance(value, (int, float)):
             return value
         text = str(value)

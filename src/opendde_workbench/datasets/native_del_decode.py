@@ -6,6 +6,7 @@ import sqlite3
 from collections import Counter
 from pathlib import Path
 
+from del_decoder_compat import reviewed_decoder
 from del_definition import prepare_home
 from del_fastq import Quality, reads
 from platformnative_io import finish, input_file, progress, source_result, write_csv
@@ -32,8 +33,10 @@ def run(request):
         min_read_length=options["min_read_length"],
         max_read_length=options["max_read_length"],
     )
-    decoder = SelectionDecoder(
-        Selection("X-DDE", DELibraryCollection(list(libraries.values()))), settings
+    decoder = reviewed_decoder(
+        SelectionDecoder(
+            Selection("X-DDE", DELibraryCollection(list(libraries.values()))), settings
+        )
     )
     inputs = [item for item in request["inputs"] if item["role"] == "reads"]
     if len({item["label"] for item in inputs}) != len(inputs):

@@ -3,6 +3,7 @@
 import bisect
 import json
 import random
+import time
 from pathlib import Path
 
 import h5py
@@ -10,7 +11,7 @@ import numpy as np
 from drugclip_encoder import dictionaries, encode, fingerprint, model_for
 from drugclip_pocket import pocket
 from platformnative_io import finish, progress, readonly_database, source_result, write_csv
-from retrieval_topk import TopK, calibration, fold_scores
+from retrieval_topk import TopK, calibration, fold_scores, ranking_scores
 
 
 def sources(request, identity):
@@ -180,20 +181,24 @@ def run(request):
     )
     top = TopK(options["top_k"] * len(indexes))
     completed, total = 0, sum(item[3] for item in indexes)
+    search_started = time.monotonic()
     for number, (root, _, entries, _) in enumerate(indexes):
         for name, offset, rows in entries:
             with h5py.File(root / name, "r") as file:
                 for start in range(0, rows, options["block_rows"]):
                     stop = min(start + options["block_rows"], rows)
-                    values = fold_scores(file["vectors"][start:stop], query)
+                    scores, raw = ranking_scores(
+                        file["vectors"][start:stop], query, mean, deviation, device
+                    )
                     top.add(
-                        ((values - mean) / deviation).mean(axis=1),
-                        values.mean(axis=1),
+                        scores,
+                        raw,
                         number,
                         offset + start,
                     )
                     completed += stop - start
                     progress("Searching indexed compounds", completed, total)
+    elapsed = time.monotonic() - search_started
     candidates, failures = retain_candidates(request, indexes, top.rows())
     artifacts = {
         "ranked-candidates.csv": "candidate_ranking",
@@ -231,6 +236,10 @@ def run(request):
             "returned": len(candidates),
             "retained_3d": len(molecular),
             "failed": len(failures),
+        },
+        metrics={
+            "index_search_seconds": elapsed,
+            "index_rows_per_second": total / max(elapsed, 0.000001),
         },
         candidates=candidates,
         molecule_artifact="candidates.sdf" if molecular else None,
