@@ -79,6 +79,44 @@ def test_verified_cached_input_retains_the_original_bytes(tmp_path):
     assert verified_file(tmp_path, spec) == content
 
 
+def test_fixed_input_reuses_its_exact_asset_after_duplicate_archive_merge(tmp_path, monkeypatch):
+    """Identical bytes in another archive do not replace a fixed version's asset UUID."""
+    from uuid import uuid4
+
+    store = Store(tmp_path / "jobs.sqlite3")
+    assets = AssetStore(store, tmp_path / "assets")
+    scientific = ScientificStore(store, assets)
+    payloads = {
+        "brd4": b"HEADER public structure\nEND\n",
+        "brd4_apo": b"HEADER public apo structure\nEND\n",
+        "jq1": b"public molecule input\nM  END\n$$$$\n",
+    }
+    monkeypatch.setattr(preparation, "verified_file", lambda _, spec: payloads[spec.key])
+    first = preparation.prepare_example("p2rank.detect", scientific, tmp_path / "cache")
+    fixed = first.objects["brd4"].reference
+    asset = assets.get(fixed.asset_id)
+    duplicate = asset.model_copy(update={"id": str(uuid4())})
+    folder = assets.root / duplicate.id
+    folder.mkdir()
+    (folder / ("content" + duplicate.suffix)).write_bytes(payloads["brd4"])
+    with store.connect() as db:
+        db.execute(
+            "INSERT INTO assets VALUES(?,?,?,?,?,?,?)", tuple(duplicate.model_dump().values())
+        )
+    save = assets.save
+    monkeypatch.setattr(
+        assets,
+        "save",
+        lambda name, kind, content: duplicate if name == asset.name else save(name, kind, content),
+    )
+    repeated = preparation.prepare_example("gnina.dock", scientific, tmp_path / "cache")
+    assert repeated.objects["brd4"].reference == fixed
+    assert assets.get(duplicate.id).sha256 == fixed.sha256
+    assets.path(asset).write_bytes(b"HEADER changed\nEND\n")
+    with pytest.raises(ValueError, match="size changed|input file changed"):
+        preparation.prepare_example("p2rank.detect", scientific, tmp_path / "cache")
+
+
 def test_single_mol_archive_responses_remain_distinct_sdf_records():
     records = [b"drug-a\nM  END\n", b"drug-b\nM  END\n$$$$\n", b"drug-c\nM  END\n"]
     collection = sdf_collection(records)

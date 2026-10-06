@@ -1,5 +1,6 @@
 """Example inputs use the same immutable AssetStore and ScientificStore as research."""
 
+import hashlib
 from uuid import UUID, uuid5
 
 from ..harness_sequences import fasta_sequences
@@ -24,19 +25,41 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
     objects, data_assets = {}, {}
 
     def register(key, name, kind, content, source, record=0):
-        asset = scientific.assets.save(name, kind, content)
         object_kind = {"structure": "structure", "ligand": "molecule", "sequences": "sequence"}[
             kind
         ]
+        checksum = hashlib.sha256(content).hexdigest()
+        identity = uuid5(NAMESPACE, f"{case.id}:{case.revision}:{key}:{checksum}:{record}")
+        label = case.label[0] + " · " + key
+        notes = "Public example revision " + str(case.revision) + "; source: " + source
+        try:
+            retained = scientific.get_for_key(identity)
+        except KeyError:
+            retained = None
+        if retained is not None:
+            asset = scientific.assets.get(retained.reference.asset_id)
+            if (
+                (asset.name, asset.kind, asset.sha256) != (name, kind, checksum)
+                or (retained.kind, retained.reference.record, retained.reference.conformer)
+                != (object_kind, record, 0)
+                or (retained.label, retained.notes, retained.parent_id, retained.source_job)
+                != (label, notes, None, None)
+            ):
+                raise ValueError("A fixed public input version differs from its reviewed identity.")
+            with scientific.assets.path(asset).open("rb") as file:
+                if hashlib.file_digest(file, "sha256").hexdigest() != checksum:
+                    raise ValueError("The fixed public input file changed.")
+            objects[key] = retained
+            return
+        asset = scientific.assets.save(name, kind, content)
         value = VersionInput(
             asset_id=asset.id,
             kind=object_kind,
-            label=case.label[0] + " · " + key,
+            label=label,
             record=record,
-            notes="Public example revision " + str(case.revision) + "; source: " + source,
+            notes=notes,
         )
-        identity = f"{case.id}:{case.revision}:{key}:{asset.sha256}:{record}"
-        objects[key] = scientific.create(value, uuid5(NAMESPACE, identity))
+        objects[key] = scientific.create(value, identity)
 
     for key in case.files:
         file = FILES[key]

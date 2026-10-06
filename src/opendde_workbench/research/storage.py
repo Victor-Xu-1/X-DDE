@@ -17,6 +17,10 @@ EXPECTED = {
 }
 
 
+def version_identifier(key):
+    return str(uuid5(NAMESPACE, str(key)))
+
+
 class ScientificStore:
     def __init__(self, store, assets):
         self.store, self.assets = store, assets
@@ -46,6 +50,9 @@ class ScientificStore:
         if result is None:
             raise KeyError("Scientific asset version not found.")
         return result
+
+    def get_for_key(self, key):
+        return self.get(version_identifier(key))
 
     def create(
         self, value: VersionInput, key, *, source_job=None, validation="file_integrity_only"
@@ -106,7 +113,7 @@ class ScientificStore:
             and not db.execute("SELECT 1 FROM jobs WHERE id=?", (str(source_job),)).fetchone()
         ):
             raise KeyError("Source task not found.")
-        identifier = str(uuid5(NAMESPACE, str(key)))
+        identifier = version_identifier(key)
         digest = hashlib.sha256(
             (value.model_dump_json() + str(source_job) + validation).encode()
         ).hexdigest()
