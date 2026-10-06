@@ -8,7 +8,7 @@ from uuid import uuid4
 def run_screening_chain(campaign, raw, materials, pocket):
     # Keep original bytes from four complex ChEMBL records; this is a bounded
     # independent workflow check, not a replacement public-library example.
-    subset = b"$$$$\n".join(raw.split(b"$$$$")[:4]) + b"$$$$\n"
+    subset = b"$$$$".join(raw.split(b"$$$$")[:4]) + b"$$$$\n"
     library = campaign.material(subset, "public-four-complex-molecules.sdf", "library", "data")
     steps = []
     definitions = (
@@ -136,6 +136,9 @@ def run_screening_chain(campaign, raw, materials, pocket):
         item["step_id"]: campaign.client.get(f"/api/jobs/{item['job_id']}").json()
         for item in run["attempts"]
     }
+    prepared = campaign.client.get(f"/api/jobs/{jobs['prepare']['id']}/result").json()
+    encoded = campaign.client.get(f"/api/jobs/{jobs['index']['id']}/result").json()
+    assert prepared["counts"]["unique_compounds"] == 4 and encoded["counts"]["indexed"] == 4
     retrieved = campaign.client.get(f"/api/jobs/{jobs['retrieve']['id']}/result").json()
     selected = [row["id"] for row in retrieved["candidates"] if row["artifact"]]
     assert jobs["dock"]["request"]["payload"]["selected_ids"] == selected and len(selected) == 2

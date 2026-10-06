@@ -42,15 +42,7 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
 
         if state is None:
             raise ValueError("Public cases require the current X-DDE scientific state directory.")
-        archive = (
-            root
-            / "downloads"
-            / (
-                "x-dde-dataset-cases-v1.zip"
-                if key == "public-dataset-examples"
-                else "x-dde-public-cases-v1.zip"
-            )
-        )
+        archive = root / "downloads" / spec.url.rsplit("/", 1)[1]
         download(spec.url, archive, spec.checksum, report, checkpoint)
         report("Verifying and restoring fixed public scientific results")
         settings = Settings(

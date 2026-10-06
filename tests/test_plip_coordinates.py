@@ -19,7 +19,10 @@ def test_source_coordinates_keep_native_endpoint_and_residue_even_with_serial_ga
     file = tmp_path / "source.pdb"
 
     def atom(serial, name, residue, chain, number, point):
-        return f"HETATM{serial:5d} {name:>4s} {residue:3s} {chain}{number:4d}    {point[0]:8.3f}{point[1]:8.3f}{point[2]:8.3f}  1.00 20.00           C  "
+        return (
+            f"HETATM{serial:5d} {name:>4s} {residue:3s} {chain}{number:4d}    "
+            f"{point[0]:8.3f}{point[1]:8.3f}{point[2]:8.3f}  1.00 20.00           C  "
+        )
 
     file.write_text(
         atom(101, "CA", "ALA", "A", 33, (1, 2, 3))

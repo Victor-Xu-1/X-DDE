@@ -68,6 +68,18 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 page.goto(f"http://127.0.0.1:4320/#task={identifier}")
                 page.wait_for_timeout(400)
                 page.locator(".dataset-results .dataset-status-complete").wait_for(timeout=15000)
+                if capability in {
+                    "library.import",
+                    "library.select",
+                    "screening.dock",
+                    "drugclip.screen",
+                    "del.analyze",
+                    "del.candidates",
+                    "del.enumerate",
+                }:
+                    page.locator(".dataset-results .molecule-image img").first.wait_for(
+                        timeout=30000
+                    )
                 page.screenshot(path=str(destination / f"{capability}-results.png"), full_page=True)
                 if capability in {"screening.dock", "drugclip.screen", "del.candidates"}:
                     assert page.locator(".dataset-candidate-table").is_visible()
@@ -116,6 +128,18 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 form.get_by_role("button", name="下一步", exact=True).click()
                 page.get_by_role("button", name="示例结果", exact=True).click()
                 page.locator(".module-example-result .dataset-results").wait_for()
+                if capability in {
+                    "library.import",
+                    "library.select",
+                    "screening.dock",
+                    "drugclip.screen",
+                    "del.analyze",
+                    "del.candidates",
+                    "del.enumerate",
+                }:
+                    page.locator(".module-example-result .molecule-image img").first.wait_for(
+                        timeout=30000
+                    )
                 page.screenshot(
                     path=str(destination / f"{capability}-in-module.png"), full_page=True
                 )

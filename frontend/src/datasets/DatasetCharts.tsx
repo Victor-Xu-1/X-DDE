@@ -1,111 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import { Bars, PlotFrame } from "./PlotFrame";
+import { ModelValidationPlot } from "./ModelValidationPlot";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 
-function downloadFigure(element: SVGSVGElement | null, name: string) {
-  if (!element) return;
-  const clone = element.cloneNode(true) as SVGSVGElement;
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  const url = URL.createObjectURL(
-    new Blob([new XMLSerializer().serializeToString(clone)], {
-      type: "image/svg+xml",
-    }),
-  );
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name + ".svg";
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-function PlotFrame({
-  title,
-  language,
-  children,
-}: {
-  title: string;
-  language: Language;
-  children: React.ReactNode;
-}) {
-  const reference = useRef<SVGSVGElement | null>(null);
-  return (
-    <section className="dataset-chart">
-      <div className="dataset-panel-title">
-        <strong>{title}</strong>
-        <button
-          type="button"
-          onClick={() => downloadFigure(reference.current, title)}
-        >
-          {language === "zh" ? "下载图表" : "Download"}
-        </button>
-      </div>
-      <svg
-        ref={reference}
-        viewBox="0 0 640 320"
-        role="img"
-        aria-label={title}
-        style={{ background: "white", fontFamily: "Arial,sans-serif" }}
-      >
-        {children}
-      </svg>
-    </section>
-  );
-}
-function Bars({
-  rows,
-  title,
-  language,
-}: {
-  rows: { name: string; value: number }[];
-  title: string;
-  language: Language;
-}) {
-  const maximum = Math.max(1, ...rows.map((row) => row.value)),
-    width = 550 / Math.max(rows.length, 1);
-  return (
-    <PlotFrame title={title} language={language}>
-      <line x1={60} x2={610} y1={265} y2={265} stroke="#cbd5e1" />
-      {rows.slice(0, 25).map((row, index) => (
-        <g key={row.name}>
-          <rect
-            x={60 + index * width + width * 0.15}
-            y={265 - (row.value / maximum) * 210}
-            width={width * 0.65}
-            height={(row.value / maximum) * 210}
-            fill={index % 2 ? "#7465e6" : "#2c9ac8"}
-            rx={4}
-          />
-          <text
-            x={60 + index * width + width * 0.47}
-            y={285}
-            textAnchor="middle"
-            fontSize={10}
-            fill="#526174"
-          >
-            {row.name.slice(0, 12)}
-          </text>
-          <title>
-            {row.name}: {row.value.toLocaleString()}
-          </title>
-        </g>
-      ))}
-      {[0, 0.5, 1].map((value) => (
-        <text
-          key={value}
-          x={52}
-          y={270 - value * 210}
-          textAnchor="end"
-          fontSize={11}
-          fill="#64748b"
-        >
-          {(maximum * value).toLocaleString(undefined, {
-            maximumFractionDigits: 0,
-          })}
-        </text>
-      ))}
-    </PlotFrame>
-  );
-}
 export function DatasetCharts({
   job,
   result,
@@ -126,6 +25,7 @@ export function DatasetCharts({
         "barcode_quality",
         "del_series_visualization",
         "independent_holdout_evaluation",
+        "research_model_application",
       ]);
     void Promise.all(
       result.artifacts
@@ -151,7 +51,9 @@ export function DatasetCharts({
     count = documents.count_quality,
     barcode = documents.barcode_quality,
     series = documents.del_series_visualization,
-    model = documents.independent_holdout_evaluation;
+    model =
+      documents.independent_holdout_evaluation ??
+      documents.research_model_application;
   const correlations = count?.correlation_logcpm_pearson as
       number[][] | undefined,
     samples = count?.samples as { column: string; depth: number }[] | undefined;
@@ -168,10 +70,6 @@ export function DatasetCharts({
     b = seriesRows
       ? [...new Set(seriesRows.map((row) => row.block_b))].slice(0, 20)
       : [];
-  const observedMax = Math.max(
-    1,
-    ...(modelPoints?.map((row) => Math.max(row.observed, row.predicted)) ?? []),
-  );
   return (
     <div className="dataset-chart-grid">
       {sequencing && (
@@ -376,56 +274,12 @@ export function DatasetCharts({
         </PlotFrame>
       )}
       {modelPoints && (
-        <PlotFrame
+        <ModelValidationPlot
+          points={modelPoints}
+          metrics={result.metrics}
           language={language}
-          title={
-            zh
-              ? "独立留出：观察与预测富集"
-              : "Independent holdout: observed vs predicted enrichment"
-          }
-        >
-          <line
-            x1={60}
-            y1={265}
-            x2={580}
-            y2={40}
-            stroke="#c1ccd9"
-            strokeDasharray="5 5"
-          />
-          {modelPoints.map((row, index) => (
-            <circle
-              key={index}
-              cx={60 + (row.observed / observedMax) * 520}
-              cy={265 - (row.predicted / observedMax) * 225}
-              r={3}
-              fill="#7864dd"
-              opacity={0.6}
-            >
-              <title>
-                {row.observed.toFixed(3)} / {row.predicted.toFixed(3)}
-              </title>
-            </circle>
-          ))}
-          <text
-            x={315}
-            y={305}
-            textAnchor="middle"
-            fontSize={12}
-            fill="#526174"
-          >
-            {zh ? "观察 log(1＋富集)" : "Observed log(1+enrichment)"}
-          </text>
-          <text
-            x={16}
-            y={155}
-            transform="rotate(-90 16 155)"
-            textAnchor="middle"
-            fontSize={12}
-            fill="#526174"
-          >
-            {zh ? "预测值" : "Prediction"}
-          </text>
-        </PlotFrame>
+          application={Boolean(documents.research_model_application)}
+        />
       )}
       {!sequencing && !count && !barcode && !series && !model && (
         <Bars
