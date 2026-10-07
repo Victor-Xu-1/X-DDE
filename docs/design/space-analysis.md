@@ -2,8 +2,9 @@
 
 This note describes the R41–R43 implementation under the canonical roadmap in
 [README.md](README.md). The current v0.4.36 branch is a candidate; its new task is
-not yet registered or exposed in the product. Native, API and browser acceptance
-must pass before publication.
+registered as caver.paths through the existing task and deployment authorities.
+Its questionnaire and result views are implemented. Full native, API and browser
+acceptance must pass before publication.
 
 CAVER 3.02 is the reviewed stable channel implementation. Its official archive is
 fixed by SHA-256; its GPL-3.0 and bundled library notices stay with the separately
@@ -19,8 +20,11 @@ are folded. Do not present arbitrary commands, logs or construction documents.
 The starting point is the equal-weight geometric center of the selected heavy
 atoms. Selected genuine nonpolymer ligands can be removed from obstacles, while
 protein/RNA/DNA residues remain protected. Preserve all other selected-context
-obstacles and source identities. Resolve alternate locations explicitly before
-analysis. Unknown or absent native van der Waals radii must fail clearly; the
+obstacles and source identities. The same native task invokes shared structure preparation, resolving an explicit
+alternate location (default A) and selected chains, retaining heterogens and
+omitting water. Its actual prepared.cif becomes a new version in the original
+structure family; missing atoms are not generated. Context obstacle maps and
+computational PDB files remain diagnostics, rather than invented structural versions. Unknown or absent native van der Waals radii must fail clearly; the
 upstream generic unknown-element radius is not an acceptable silent replacement.
 
 An actual official-input counterexample changed channel count after common
@@ -62,3 +66,19 @@ Static tunnels and probe clearance do not establish passage of an entire linker
 or second binding partner. Volume, attachment directions, constrained full
 molecules and assemblies remain the corresponding roadmap work; do not mark
 R41–R46 or all remaining plans complete from this channel task alone.
+
+The native frame/protocol gate passed in run 37588562238: canonical reference,
+common-translation and proper-quarter-rotation inputs each retained 50 paths and
+identical measurements. The maximum PDB rounding error was 0.000827912 Å,
+within the declared sqrt(3) × 0.0005 Å bound. Raw upstream inputs had 56 and 51
+paths after translation; this counterexample is retained. The separate protein-only
+4EY7 protocol probe had eight paths. The composed task retains its explicitly
+selected additional obstacles, so its channel count is not fixed to eight.
+
+The computational single-model export strips both MODEL and ENDMDL without
+changing source files. An additional naming issue remained: CAVER derives snapshot
+identity from filename digits, and a digit-free context.pdb was reported as
+context.pdb0. The adapter therefore authors the explicit single snapshot
+context_1.pdb and requires that exact identity in both native CSV reports.
+The official manual defines snapshot prefix/number/suffix ordering:
+https://caver.cz/fil/download/manual/caver_userguide.pdf

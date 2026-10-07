@@ -10,3 +10,6 @@ JAVA_IMAGE = (
 )
 LICENSE = "GPL-3.0; bundled LGPL-3.0/GPL-3.0 library notices retained"
 RADII_SHA256 = "5986cc8f6f07002b3c0b0601c2940527f5d8defe17580e17092b2b1ef8bce8f0"
+
+# CAVER orders snapshots by filename digits; use an explicit single-snapshot identity.
+SNAPSHOT = "context_1.pdb"

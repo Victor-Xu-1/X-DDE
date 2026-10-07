@@ -5,6 +5,7 @@ import math
 
 from ..artifacts import contained
 from .caver_profiles import read_profiles
+from .manifest import SNAPSHOT
 from .native_execution import point
 from .pdb_frame import canonical_pdb, source_channels, source_position
 
@@ -35,7 +36,7 @@ def validate_geometry(result, output):
         raise ValueError("Native PDB export error differs from its verified geometry.")
     native = read_profiles(
         contained(output, "tunnel_profiles.csv"),
-        "context.pdb",
+        SNAPSHOT,
         maximum_tunnels=result.options.maximum_candidates,
         maximum_points=50000,
     )

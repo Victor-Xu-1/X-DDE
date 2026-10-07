@@ -6,6 +6,7 @@ const researchUses: Record<string, [string, string]> = {
   diffsbdd: ["小分子生成与优化", "Small-molecule generation & optimization"],
   harness: ["蛋白与抗体工具", "Protein & antibody tools"],
   p2rank: ["口袋寻找", "Pocket finding"],
+  caver: ["口袋通道与瓶颈", "Pocket channels & bottlenecks"],
   gnina: ["对接与姿势评估", "Docking & pose evaluation"],
   chemistry: ["分子状态与构象准备", "Molecular states & conformers"],
   biopython: ["受体结构准备与对齐", "Receptor preparation & alignment"],

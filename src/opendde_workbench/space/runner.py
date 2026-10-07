@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 
 from caver_profiles import read_profiles
-from manifest import VERSION
+from manifest import SNAPSHOT, VERSION
 from native_context import prepare_context
 from native_execution import execute, point
 from native_preparation import run_preparation
@@ -108,13 +108,13 @@ def run(request, bindings, directory, output):
     local, frame = canonical_pdb(raw.read_bytes(), origin)
     inputs = output / "native-input"
     inputs.mkdir()
-    (inputs / "context.pdb").write_bytes(local)
+    (inputs / SNAPSHOT).write_bytes(local)
     (output / "context-native.pdb").write_bytes(local)
     artifacts = execute(inputs, output, options)
     artifacts[preparation["artifact"]] = preparation["sha256"]
     native = read_profiles(
         output / "tunnel_profiles.csv",
-        "context.pdb",
+        SNAPSHOT,
         maximum_tunnels=options.maximum_candidates,
         maximum_points=50000,
     )
