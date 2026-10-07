@@ -100,7 +100,7 @@ export function ProximityResults({
   );
   const url = (name: string) => artifactUrl(job.id, name);
   return (
-    <div className="proximity-results">
+    <div className="proximity-results" lang={language}>
       <div className="proximity-result-heading">
         <h2>
           {mechanismLabels[result.mechanism][zh ? 0 : 1]} ·{" "}
