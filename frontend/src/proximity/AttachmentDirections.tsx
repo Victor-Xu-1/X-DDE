@@ -35,11 +35,30 @@ export function AttachmentDirections({
       key: "region",
       label: zh ? "结合端" : "Binding region",
       value: (r) => (zh ? "结合端 " : "Region ") + (r.region === "a" ? 1 : 2),
+      render: (r) => (
+        <span>{(zh ? "结合端 " : "Region ") + (r.region === "a" ? 1 : 2)}</span>
+      ),
     },
     {
       key: "bond",
       label: zh ? "连接原子" : "Bond atoms",
       value: (r) => atom(r, true) + " → " + atom(r, false),
+      render: (r) => (
+        <button
+          type="button"
+          className="table-record-button"
+          aria-label={
+            (zh ? "查看连接 " : "Inspect bond ") +
+            atom(r, true) +
+            " → " +
+            atom(r, false)
+          }
+          aria-pressed={selected === r.id}
+          onClick={() => setSelected(r.id)}
+        >
+          {atom(r, true) + " → " + atom(r, false)}
+        </button>
+      ),
     },
     {
       key: "length",

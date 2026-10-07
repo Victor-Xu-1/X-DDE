@@ -98,7 +98,7 @@ def test_ternary_fixed_result_and_stepwise_submission():
             assert "Current bond length (angstrom)" in csv and "Direction x" in csv
             page.screenshot(path=str(root / "proximity-attachment-directions.png"), full_page=True)
             first_cut = cuts.locator("tbody tr").first
-            first_cut.click()
+            first_cut.get_by_role("button", name="查看连接", exact=False).click()
             expect(markers).to_have_text("1 处连接标记")
             for width in (1280, 1366, 390):
                 page.set_viewport_size({"width": width, "height": 1050})
