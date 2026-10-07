@@ -65,7 +65,7 @@ export function paintChannel(viewer: mol.GLViewer, channel?: ChannelGeometry) {
         center: xyz(points[i].position),
         radius: points[i].radius_angstrom,
         color: "#66b3e7",
-        opacity: 0.13,
+        opacity: 0.2,
       });
   }
   viewer.addSphere({

@@ -113,7 +113,10 @@ async function load(input: ViewerLoad) {
     );
     scene.nativeInteractions = input.nativeInteractions;
     scene.channelGeometry = input.channelGeometry;
-    if (input.channelGeometry) scene.options.mode = "cartoon";
+    if (input.channelGeometry) {
+      scene.options.mode = "cartoon";
+      scene.options.labels = false;
+    }
     if (input.electrostaticMap) {
       const response = await fetch(
         validSource(input.electrostaticMap.url, location.origin),

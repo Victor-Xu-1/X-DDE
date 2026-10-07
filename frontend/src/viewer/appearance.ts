@@ -18,6 +18,17 @@ export function thinSticks(
 export const regionStyle = () => thinSticks("greenCarbon", "#dc8e25");
 export const selectionStyle = () => thinSticks("greenCarbon", "#ffae43");
 
-export function proteinBackbone(color: string): AtomStyleSpec {
-  return { cartoon: { color, opacity: 0.9 } };
+export function proteinBackbone(
+  color: string,
+  representation: "ribbon" | "trace" = "ribbon",
+): AtomStyleSpec {
+  return {
+    cartoon: {
+      color,
+      opacity: 0.9,
+      ...(representation === "trace"
+        ? { style: "trace", thickness: 0.32 }
+        : {}),
+    },
+  };
 }
