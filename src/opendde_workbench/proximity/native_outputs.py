@@ -18,7 +18,7 @@ def ligand_pose(source, positions):
     if len(positions) != molecule.GetNumAtoms():
         raise ValueError("Whole-molecule prediction lost an original atom.")
     for index, xyz in enumerate(positions):
-        molecule.GetConformer().SetAtomPosition(index, xyz)
+        molecule.GetConformer().SetAtomPosition(index, tuple(float(value) for value in xyz))
     return molecule
 
 
