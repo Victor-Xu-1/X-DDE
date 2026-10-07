@@ -12,6 +12,7 @@
 }
 .task-model-switch > button {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   background: transparent;
@@ -33,6 +34,8 @@
   font-weight: 600;
 }
 .task-model-switch small {
+  flex: 0 0 auto;
+  white-space: nowrap;
   font-size: 10px;
   color: var(--muted);
   font-weight: 400;
