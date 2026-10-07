@@ -57,3 +57,11 @@ def test_unrepresentable_native_positions_are_rejected_without_truncating():
 def test_collinear_backbone_does_not_receive_an_invented_world_frame():
     with pytest.raises(ValueError, match="non-collinear"):
         canonical_pdb(structure([(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0)]), (0, 0, 0))
+
+
+def test_single_prepared_model_never_leaves_an_orphan_endmdl_snapshot():
+    wrapped = b"MODEL        0\n" + SOURCE.replace(b"END\n", b"ENDMDL\nEND\n")
+    native, _ = canonical_pdb(wrapped, (1, 1, 3))
+    expected, _ = canonical_pdb(SOURCE, (1, 1, 3))
+    assert native == expected
+    assert b"MODEL" not in native and b"ENDMDL" not in native

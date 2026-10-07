@@ -23,7 +23,10 @@ export function ChannelResults({
     ? Math.min(...channel.points.map((p) => p.radius_angstrom))
     : null;
   return (
-    <section className="channel-results">
+    <section
+      className="channel-results"
+      aria-label={zh ? "通道分析结果" : "Channel analysis results"}
+    >
       <div className="channel-result-heading">
         <h3>{zh ? "口袋通道与瓶颈" : "Pocket channels and bottlenecks"}</h3>
         <Hint label={zh ? "怎样理解通道？" : "How to interpret channels?"}>

@@ -21,6 +21,10 @@ def bundle_notices(selected, rows):
         methods.append("Campaign is native configuration validation only.")
     if "surface_exposure" in operations:
         methods.append("SASA is geometric accessibility, not energy, affinity or linker passage.")
+    if "channel_analysis" in operations:
+        methods.append(
+            "CAVER static geometric channels do not establish whole-drug passage, energy or affinity."
+        )
     return {
         "sources": sorted({url for case in cases for url in CASES[case].sources}),
         "licenses": licenses,

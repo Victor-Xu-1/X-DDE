@@ -14,7 +14,7 @@ WATER = {"HOH", "WAT", "DOD"}
 
 def identity(chain, residue):
     return {
-        "chain": chain.id,
+        "chain": chain.id if chain.id.strip() else "",
         "number": residue.id[1],
         "insertion_code": residue.id[2].strip(),
         "resname": residue.resname,

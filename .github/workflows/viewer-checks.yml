@@ -34,7 +34,7 @@ jobs:
       - name: Verify source atom maps, viewer messages and selection controls
         working-directory: frontend
         run: >-
-          npx vitest run src/viewer/atom-region.test.ts
+          npx vitest run src/viewer/atom-region.test.ts src/viewer/channel-geometry.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/geometry.test.ts
           src/viewer/ViewerControls.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/source-layout.test.ts src/viewer/focus-layout.test.ts

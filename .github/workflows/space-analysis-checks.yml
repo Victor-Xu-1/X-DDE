@@ -7,6 +7,10 @@ on:
       - 'src/opendde_workbench/receptors/image.py'
       - 'src/opendde_workbench/receptors/native-requirements.txt'
       - 'server_tests/caver*_probe.py'
+      - 'server_tests/channel*.py'
+      - 'server_tests/test_channel_browser.py'
+      - 'frontend/src/space/**'
+      - 'frontend/src/viewer/channel-geometry*'
       - 'tests/test_space_frame.py'
       - 'tests/test_caver_profiles.py'
       - 'tests/test_channel_analysis.py'
@@ -16,7 +20,7 @@ permissions:
 jobs:
   native:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,19 +28,39 @@ jobs:
           node-version: '22'
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/test_caver_profiles.py tests/test_space_frame.py tests/test_channel_analysis.py tests/test_structure_preparation.py tests/test_surface_exposure.py
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked pytest -q tests/test_caver_profiles.py tests/test_space_frame.py tests/test_channel_analysis.py tests/test_structure_preparation.py tests/test_surface_exposure.py tests/test_capabilities.py tests/test_research_assets.py tests/test_examples.py tests/test_example_pins.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
       - name: Stable native protocol on official and real drug-complex inputs
         run: uv run --locked python server_tests/caver_native_probe.py --output "$RUNNER_TEMP/caver-native"
       - name: Actual composed adapter, reusable structure and undefined-radius rejection
         run: uv run --locked python server_tests/caver_adapter_probe.py --protocol "$RUNNER_TEMP/caver-native"
+      - name: Changed channel questionnaire and geometry display boundary
+        working-directory: frontend
+        run: npx vitest run src/space/ChannelForm.test.tsx src/viewer/channel-geometry.test.ts src/receptors/SurfaceForm.test.tsx src/operations/OperationResults.test.tsx
+      - name: Managed installer, actual task authority, indexed versions and fixed archive
+        run: uv run --locked python server_tests/channel_api_acceptance.py --protocol "$RUNNER_TEMP/caver-native"
+      - run: uv run --locked python -m playwright install --with-deps chromium
+      - name: Real channel geometry, downloads, module case and fresh questionnaire submission
+        env:
+          WB_CHANNEL_CASE: ${{ runner.temp }}/caver-native/platform
+        run: uv run --locked pytest -q server_tests/test_channel_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: caver-native-evidence
           path: |
+            ${{ runner.temp }}/caver-native/platform/*.png
+            ${{ runner.temp }}/caver-native/platform/*.zip
+            ${{ runner.temp }}/caver-native/platform/*.json
+            ${{ runner.temp }}/caver-native/platform/*.csv
+            ${{ runner.temp }}/caver-native/platform/*.svg
+            ${{ runner.temp }}/caver-native/platform/*.log
             ${{ runner.temp }}/caver-native/adapter-acceptance.json
             ${{ runner.temp }}/caver-native/adapter-acceptance/actual/result.json
+            ${{ runner.temp }}/caver-native/adapter-acceptance/actual/*.csv
+            ${{ runner.temp }}/caver-native/adapter-acceptance/actual/*.pdb
+            ${{ runner.temp }}/caver-native/adapter-acceptance/actual/*.cif
+            ${{ runner.temp }}/caver-native/adapter-acceptance/actual/context-map.json
             ${{ runner.temp }}/caver-native/adapter-acceptance/*/probe.log
             ${{ runner.temp }}/caver-native/adapter-acceptance/actual/native.log
             ${{ runner.temp }}/caver-native/protocol-acceptance.json

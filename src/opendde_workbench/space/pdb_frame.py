@@ -109,9 +109,7 @@ def canonical_pdb(data, origin):
     # original-frame metadata in the immutable source rather than mislabel it.
     native = (
         "\n".join(
-            line
-            for line in lines
-            if line.startswith(("ATOM  ", "HETATM", "CONECT", "TER   ", "END"))
+            line for line in lines if line[:6].strip() in {"ATOM", "HETATM", "CONECT", "TER", "END"}
         )
         + "\n"
     )
