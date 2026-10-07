@@ -31,8 +31,21 @@ Shared tokens, sidebar/header, choices, buttons, tables, sequences, component st
 plots follow the same visual identity. Decorations are restricted to entry/header areas;
 Ketcher drawings, structural coordinates, charge interpretation, contact identities,
 native metrics and exports keep their existing authority. Scoped Chromium checks
-walk all 44 modules and genuine archived cases and verify focus, text/action contrast,
+walk every registered module and genuine archived case and verify focus, text/action contrast,
 desktop/mobile geometry and original task state without scientific recomputation.
+
+Each question page has one primary question heading. Step-specific mode controls
+share that heading row, remain disabled while submitting, and retain the same
+input state on back navigation. Environment readiness stays visible in method
+selection and the final review; an unavailable runtime blocks submission without
+an extra warning banner above the first question. Structure results remain
+accessible even when a calculation environment is unavailable. Shared native file
+selection includes accepted formats and size limits in its choice area.
+
+Sequence scoring places its table and comparison plot in one column, with the
+selected exact sequence beside them. This avoids stacking two tall views beside
+a short table. Selection, native score precision, position identity and original
+FASTA/CSV/SVG downloads retain their existing contracts.
 
 Public product references were reviewed for interaction patterns, not for a claim
 that X-DDE implements their proprietary scientific methods:

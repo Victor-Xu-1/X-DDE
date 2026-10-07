@@ -32,46 +32,39 @@ export function SequenceScoreResults({
         </Hint>
       </h3>
       <div className="result-master-detail">
-        <ResearchTable
-          rows={rows}
-          rowId={(row) => String(row.index)}
-          selected={String(selected)}
-          onSelect={(row) => setSelected(row.index)}
-          language={language}
-          title={zh ? "输入序列评分" : "Input sequence scores"}
-          columns={[
-            {
-              key: "sequence",
-              label: zh ? "输入序列" : "Input sequence",
-              value: (row) => (zh ? "序列 " : "Sequence ") + (row.index + 1),
-            },
-            {
-              key: "length",
-              label: zh ? "长度 (aa)" : "Length (aa)",
-              value: (row) => row.sequence?.length,
-              numeric: true,
-            },
-            {
-              key: "score",
-              label: zh ? "模型分数" : "Model score",
-              value: (row) => row.score,
-              numeric: true,
-              render: (row) => (
-                <span title={String(row.score)}>
-                  {row.score?.toFixed(4) ?? "—"}
-                </span>
-              ),
-            },
-          ]}
-        />
         <div className="result-inspector">
-          {current?.sequence && (
-            <SequenceTrack
-              sequence={current.sequence}
-              label={(zh ? "序列 " : "Sequence ") + (current.index + 1)}
-              language={language}
-            />
-          )}
+          <ResearchTable
+            rows={rows}
+            rowId={(row) => String(row.index)}
+            selected={String(selected)}
+            onSelect={(row) => setSelected(row.index)}
+            language={language}
+            title={zh ? "输入序列评分" : "Input sequence scores"}
+            columns={[
+              {
+                key: "sequence",
+                label: zh ? "输入序列" : "Input sequence",
+                value: (row) => (zh ? "序列 " : "Sequence ") + (row.index + 1),
+              },
+              {
+                key: "length",
+                label: zh ? "长度 (aa)" : "Length (aa)",
+                value: (row) => row.sequence?.length,
+                numeric: true,
+              },
+              {
+                key: "score",
+                label: zh ? "模型分数" : "Model score",
+                value: (row) => row.score,
+                numeric: true,
+                render: (row) => (
+                  <span title={String(row.score)}>
+                    {row.score?.toFixed(4) ?? "—"}
+                  </span>
+                ),
+              },
+            ]}
+          />
           <MetricScatter
             rows={rows}
             language={language}
@@ -94,6 +87,13 @@ export function SequenceScoreResults({
             ]}
           />
         </div>
+        {current?.sequence && (
+          <SequenceTrack
+            sequence={current.sequence}
+            label={(zh ? "序列 " : "Sequence ") + (current.index + 1)}
+            language={language}
+          />
+        )}
       </div>
     </section>
   );

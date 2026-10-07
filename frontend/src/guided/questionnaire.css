@@ -6,8 +6,8 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
-  padding: 0 0 18px;
-  margin-bottom: 18px;
+  padding: 0 0 12px;
+  margin-bottom: 16px;
   border-bottom: 1px solid var(--line);
 }
 .questionnaire-steps button {
@@ -57,6 +57,23 @@
   justify-content: space-between;
   gap: 16px;
   margin: 0 0 16px;
+  flex-wrap: wrap;
+}
+.questionnaire-heading-tools {
+  min-width: 0;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+}
+.questionnaire-heading-tools .segmented {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.questionnaire-heading-tools button {
+  font-size: 12px;
+  min-height: 32px;
+  padding: 5px 10px;
 }
 .questionnaire-overline {
   font-size: 11px;

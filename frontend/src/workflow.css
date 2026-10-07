@@ -27,26 +27,6 @@
   padding: 20px;
   min-height: 0;
 }
-.form-mode-row {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-  font-weight: 600;
-}
-.form-mode-row .segmented {
-  display: flex;
-  align-items: center;
-}
-.form-mode-row button {
-  font-size: 13px;
-  padding: 8px 14px;
-}
-.workflow-picker h2 {
-  font-size: 16px;
-  margin: 0 0 12px;
-}
 .workflow-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -184,9 +164,6 @@
   .studio-app .input-panel {
     padding: 14px;
   }
-  .form-mode-row {
-    flex-wrap: wrap;
-  }
   .molecular-fields {
     grid-template-columns: 1fr;
   }
@@ -223,13 +200,13 @@
   background: var(--line);
   border-color: var(--muted);
 }
-.form-mode-row .segmented > button {
+.questionnaire-heading-tools .segmented > button {
   border: 1px solid var(--line);
   border-radius: 6px;
   color: var(--muted);
   background: var(--surface);
 }
-.form-mode-row .segmented > button.selected {
+.questionnaire-heading-tools .segmented > button.selected {
   color: var(--accent);
   border-color: var(--muted);
   background: var(--line);

@@ -149,45 +149,42 @@ export function TaskForm({
       setBusy(false);
     }
   }
+  const goalTools = (
+    <div
+      className="segmented"
+      role="group"
+      aria-label={zh ? "操作模式" : "Interaction mode"}
+    >
+      <button
+        type="button"
+        aria-pressed={!expert}
+        className={!expert ? "selected" : ""}
+        onClick={() => setExpert(false)}
+      >
+        {zh ? "简易模式" : "Guided mode"}
+      </button>
+      <button
+        type="button"
+        aria-pressed={expert}
+        className={expert ? "selected" : ""}
+        onClick={() => setExpert(true)}
+      >
+        {zh ? "专家微调" : "Expert mode"}
+      </button>
+      <Hint label={zh ? "操作模式说明" : "Mode help"}>
+        {zh
+          ? "简易模式使用预设，专家模式可自由增加组分、调整拷贝数和计算参数。切换模式保留所有输入和参数；选择运行方案才会重设数值。"
+          : "Guided mode uses presets. Expert mode adds arbitrary components, copy counts and numeric parameters. Switching modes preserves your inputs and settings; selecting a preset resets its numeric values."}
+      </Hint>
+    </div>
+  );
   const goal = (
-    <>
-      {" "}
-      <div className="form-mode-row">
-        <div
-          className="segmented"
-          role="group"
-          aria-label={zh ? "操作模式" : "Interaction mode"}
-        >
-          <button
-            type="button"
-            aria-pressed={!expert}
-            className={!expert ? "selected" : ""}
-            onClick={() => setExpert(false)}
-          >
-            {zh ? "简易模式" : "Guided mode"}
-          </button>
-          <button
-            type="button"
-            aria-pressed={expert}
-            className={expert ? "selected" : ""}
-            onClick={() => setExpert(true)}
-          >
-            {zh ? "专家微调" : "Expert mode"}
-          </button>
-          <Hint label={zh ? "操作模式说明" : "Mode help"}>
-            {zh
-              ? "简易模式使用预设，专家模式可自由增加组分、调整拷贝数和计算参数。切换模式保留所有输入和参数；选择运行方案才会重设数值。"
-              : "Guided mode uses presets. Expert mode adds arbitrary components, copy counts and numeric parameters. Switching modes preserves your inputs and settings; selecting a preset resets its numeric values."}
-          </Hint>
-        </div>
-      </div>
-      <WorkflowChoices
-        value={kind}
-        onChange={chooseKind}
-        language={language}
-        abagAvailable={abagAvailable}
-      />
-    </>
+    <WorkflowChoices
+      value={kind}
+      onChange={chooseKind}
+      language={language}
+      abagAvailable={abagAvailable}
+    />
   );
   const inputs = (
     <>
@@ -324,7 +321,10 @@ export function TaskForm({
             onSubmit={submit}
             steps={[
               {
-                title: zh ? "选择任务" : "Choose task",
+                title: zh
+                  ? "你想预测什么？"
+                  : "What would you like to predict?",
+                actions: goalTools,
                 content: goal,
                 valid: true,
               },

@@ -42,6 +42,45 @@ it("opens a verified existing result without running the questionnaire or submit
 });
 import { JsonEditor } from "../operations/ScientificInputs";
 afterEach(cleanup);
+it("keeps step-specific controls disabled during submission and retains their state on navigation", async () => {
+  const changeMode = vi.fn(),
+    user = userEvent.setup();
+  const input = {
+    language: "en" as const,
+    busy: false,
+    error: "",
+    ready: true,
+    submitLabel: "Launch",
+    onSubmit: vi.fn(),
+    steps: [
+      {
+        title: "Inputs",
+        valid: true,
+        content: <p>Input questions</p>,
+        actions: (
+          <button type="button" onClick={changeMode}>
+            Expert mode
+          </button>
+        ),
+      },
+      { title: "Context", valid: true, content: <p>Context questions</p> },
+      { title: "Settings", valid: true, content: <p>Setting questions</p> },
+      { title: "Review", valid: true, content: <p>Reviewed inputs</p> },
+    ] as const,
+  };
+  const { rerender } = render(<Questionnaire {...input} />);
+  await user.click(screen.getByRole("button", { name: "Expert mode" }));
+  expect(changeMode).toHaveBeenCalledOnce();
+  rerender(<Questionnaire {...input} busy />);
+  expect(screen.getByRole("button", { name: "Expert mode" })).toBeDisabled();
+  rerender(<Questionnaire {...input} />);
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.queryByRole("button", { name: "Expert mode" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  expect(screen.getByRole("button", { name: "Expert mode" })).toBeEnabled();
+  expect(changeMode).toHaveBeenCalledOnce();
+  expect(input.onSubmit).not.toHaveBeenCalled();
+});
 function Form({
   onSubmit,
   ready = true,

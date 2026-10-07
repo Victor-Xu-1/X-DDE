@@ -33,15 +33,6 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
           <button onClick={p.onRefresh}>{t("refresh")}</button>
         </div>
       )}
-      {p.health && (!p.health.engine.ready || p.health.worker_error) && (
-        <aside className="notice engine-notice">
-          <p>
-            {zh
-              ? "可以先填写任务；计算前请在安装与组件中完成结构预测配置。"
-              : "Prepare your inputs now; complete structure prediction setup in Installation & components before calculating."}
-          </p>
-        </aside>
-      )}
       <section className="workbench-section">
         <div
           className="workspace-mode segmented"

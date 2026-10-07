@@ -66,15 +66,15 @@ export function AssetPicker({
     <div className="asset-picker">
       {showHistory && <h3 className="input-purpose">{label}</h3>}
       <label className="file-upload">
-        {busy
-          ? zh
-            ? "上传中…"
-            : "Uploading…"
-          : zh
-            ? "上传文件"
-            : "Upload file"}
+        {busy && <span role="status">{zh ? "上传中…" : "Uploading…"}</span>}
         <FileSelect
           language={language}
+          description={
+            accepted.replaceAll(".", "").split(",").join(" · ").toUpperCase() +
+            (zh ? " · 最大 " : " · Up to ") +
+            maxBytes / 1024 ** 2 +
+            " MiB"
+          }
           aria-label={(zh ? "上传 " : "Upload ") + label}
           accept={accepted}
           disabled={busy}
@@ -103,9 +103,6 @@ export function AssetPicker({
           }}
         />
       </label>
-      <small>
-        {accepted} · ≤{maxBytes / 1024 ** 2} MiB
-      </small>
       {!showHistory && value && (
         <p className="selected-file" role="status">
           {assets.find((a) => a.id === value)?.name ??

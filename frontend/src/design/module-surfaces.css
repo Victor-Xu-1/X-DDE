@@ -38,7 +38,7 @@
   max-width: none;
   width: 100%;
   min-height: 52px;
-  padding: 8px 16px;
+  padding: 6px 0;
   border: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
@@ -52,7 +52,7 @@
   background-position: right center;
 }
 .studio-app .module-task-picker > label {
-  flex: 0 1 560px;
+  flex: 0 1 460px;
 }
 .studio-app .module-task-picker > label > select {
   flex: 1;

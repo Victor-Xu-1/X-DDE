@@ -15,7 +15,6 @@ export function WorkflowChoices({
   const i = language === "zh" ? 0 : 1;
   return (
     <section className="workflow-picker">
-      <h2>{i === 0 ? "你想预测什么？" : "What would you like to predict?"}</h2>
       <div
         className="workflow-options"
         role="radiogroup"

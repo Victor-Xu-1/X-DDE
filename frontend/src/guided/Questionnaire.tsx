@@ -14,6 +14,7 @@ import { firstInvalidQuestion } from "./questionnaire-validity";
 import { researchError } from "../presentation/research-content";
 export interface QuestionStep {
   title: string;
+  actions?: ReactNode;
   content: ReactNode;
   valid: boolean;
 }
@@ -154,6 +155,11 @@ export function GuidedSteps<T extends { id: string }>({
         >
           {titles[current]}
         </h2>
+        {current < 4 && steps[current].actions && (
+          <fieldset className="questionnaire-heading-tools" disabled={busy}>
+            {steps[current].actions}
+          </fieldset>
+        )}
       </header>
       <TemplateStepHelp step={current} language={language} />
       {steps.map((step, index) => (
