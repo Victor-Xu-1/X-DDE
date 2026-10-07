@@ -1,26 +1,7 @@
 import { DatabaseOutlined, DeploymentUnitOutlined } from "@ant-design/icons";
 import type { EngineStatus, Health, Language } from "../types";
 import "./runtime-status.css";
-const researchUses: Record<string, [string, string]> = {
-  opendde: ["结构与复合物预测", "Structure & complex prediction"],
-  diffsbdd: ["小分子生成与优化", "Small-molecule generation & optimization"],
-  harness: ["蛋白与抗体工具", "Protein & antibody tools"],
-  p2rank: ["口袋寻找", "Pocket finding"],
-  caver: ["口袋通道与瓶颈", "Pocket channels & bottlenecks"],
-  gnina: ["对接与姿势评估", "Docking & pose evaluation"],
-  chemistry: ["分子状态与构象准备", "Molecular states & conformers"],
-  biopython: ["受体结构准备与对齐", "Receptor preparation & alignment"],
-  anarcii: ["抗体编号与 CDR 标注", "Antibody numbering & CDR annotation"],
-  sapiens: [
-    "抗体人源参考与框架建议",
-    "Antibody human reference & framework proposals",
-  ],
-  admet: ["性质与早期安全性", "Properties & early safety"],
-  posebusters: ["构象与姿势质控", "Conformer & pose quality"],
-  discovery: ["靶点与公共研究材料", "Targets & public research materials"],
-  drugclip: ["高通量筛选", "High-throughput screening"],
-  deli: ["DEL 数据分析", "DEL data analysis"],
-};
+import { EnvironmentStatusTable } from "./EnvironmentStatusTable";
 
 export function RuntimeStatus({
   language,
@@ -66,7 +47,7 @@ export function RuntimeStatus({
           <button onClick={onRefresh}>{zh ? "重新连接" : "Reconnect"}</button>
         </p>
       )}
-      <div className="model-grid">
+      <div className="runtime-summary">
         <article className="studio-panel">
           <DeploymentUnitOutlined />
           <h3>{zh ? "工作台服务" : "Workbench service"}</h3>
@@ -103,80 +84,6 @@ export function RuntimeStatus({
             {zh ? "管理集成环境" : "Manage integrated environments"}
           </button>
         </article>
-        {Object.values(engines).map((engine) => {
-          const harness = engine.id === "harness";
-          const modelFiles = Object.values(engine.models ?? {});
-          return (
-            <article className="studio-panel" key={engine.id}>
-              <DeploymentUnitOutlined />
-              <h3>{researchUses[engine.id]?.[zh ? 0 : 1] ?? engine.name}</h3>
-              <small>{engine.name}</small>
-              <span
-                className={
-                  "status " +
-                  (!connected
-                    ? "interrupted"
-                    : engine.ready
-                      ? "succeeded"
-                      : "failed")
-                }
-              >
-                {!connected
-                  ? zh
-                    ? "状态尚未更新"
-                    : "State may be out of date"
-                  : engine.ready
-                    ? harness
-                      ? zh
-                        ? engine.compute_configured
-                          ? "任务服务已配置"
-                          : "需配置计算服务"
-                        : engine.compute_configured
-                          ? "Task services configured"
-                          : "Compute setup required"
-                      : zh
-                        ? "环境检查通过"
-                        : "Environment checks passed"
-                    : zh
-                      ? "环境未就绪"
-                      : "Environment unavailable"}
-              </span>
-              {connected && !engine.ready && (
-                <p className="field-help">
-                  {zh
-                    ? "在安装与组件中完成配置。"
-                    : "Complete setup in Installation & components."}
-                </p>
-              )}
-              {modelFiles.length > 0 && (
-                <details>
-                  <summary>{zh ? "模型资源" : "Model resources"}</summary>
-                  <p
-                    title={
-                      zh
-                        ? "文件存在检查不等于模型推理或科学基准通过。"
-                        : "File checks do not establish inference or scientific validity."
-                    }
-                  >
-                    {zh ? "模型文件：" : "Model files: "}
-                    {modelFiles.filter(Boolean).length} / {modelFiles.length}
-                  </p>
-                </details>
-              )}
-              {harness && (
-                <p>
-                  {engine.compute_configured
-                    ? zh
-                      ? "提交任务时会检查相应的计算或检索服务。"
-                      : "Each task checks its required compute or search service before submission."
-                    : zh
-                      ? "在安装与组件中完成服务配置后，可提交需要计算服务的任务。"
-                      : "Configure the service in Installation & components before submitting compute-dependent tasks."}
-                </p>
-              )}
-            </article>
-          );
-        })}
         <article className="studio-panel">
           <DatabaseOutlined />
           <h3>{zh ? "X-DDE 研究数据" : "X-DDE research data"}</h3>
@@ -185,6 +92,11 @@ export function RuntimeStatus({
           </p>
         </article>
       </div>
+      <EnvironmentStatusTable
+        engines={engines}
+        connected={connected}
+        language={language}
+      />
     </section>
   );
 }

@@ -32,11 +32,13 @@ export function ScientificForm({
   language,
   onCreated,
   initialStructure: chosenStructure = null,
+  onChooseTask,
 }: {
   form: FormId;
   language: Language;
   onCreated(job: Job): void;
   initialStructure?: MoleculeRef | null;
+  onChooseTask?(form: FormId): void;
 }) {
   const zh = language === "zh",
     [program, operation] = scientificForms[form];
@@ -224,6 +226,11 @@ export function ScientificForm({
                 onChange={update}
                 structure={structure}
                 onValid={setSelectionValid}
+                onTrainModel={
+                  onChooseTask
+                    ? () => onChooseTask("chemprop.train")
+                    : undefined
+                }
               />
               {program === "boltzgen" &&
                 scaffold &&

@@ -1,14 +1,10 @@
-import { useEffect, useState } from "react";
-import { request } from "../api";
+import { useEffect } from "react";
 import { StructureTargetSelection } from "./StructureTargetSelection";
+import { PropertyModelSelection } from "./PropertyModelSelection";
 
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
-import type {
-  PropertyModel,
-  ScientificPayload,
-  ScientificProgram,
-} from "./types";
+import type { ScientificPayload, ScientificProgram } from "./types";
 
 export function ScientificSelection({
   program,
@@ -17,6 +13,7 @@ export function ScientificSelection({
   onChange,
   structure,
   onValid,
+  onTrainModel,
 }: {
   program: ScientificProgram;
   language: Language;
@@ -24,25 +21,10 @@ export function ScientificSelection({
   onChange(value: Partial<ScientificPayload>): void;
   structure: MoleculeRef | null;
   onValid(value: boolean): void;
+  onTrainModel?(): void;
 }) {
   const zh = language === "zh";
 
-  const [models, setModels] = useState<PropertyModel[]>([]),
-    [error, setError] = useState("");
-  useEffect(() => {
-    if (program !== "chemprop" || payload.mode !== "predict") return;
-    const controller = new AbortController();
-    void request<{ models: PropertyModel[] }>("/scientific/property-models", {
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (!controller.signal.aborted) setModels(result.models);
-      })
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(String(e));
-      });
-    return () => controller.abort();
-  }, [program, payload.mode]);
   useEffect(() => {
     onValid(
       program === "ligandmpnn"
@@ -84,44 +66,12 @@ export function ScientificSelection({
         </label>
       </>
     ) : (
-      <>
-        {error && <p role="alert">{error}</p>}
-        <label className="field">
-          {zh ? "选择已有研究模型" : "Choose a trained research model"}
-          <select
-            value={String(payload.model_job ?? "")}
-            onChange={(e) => {
-              const model = models.find(
-                (item) => item.job_id === e.target.value,
-              );
-              onChange({
-                model_job: model?.job_id ?? null,
-                model_sha256: model?.sha256 ?? null,
-                ...(model
-                  ? {
-                      activity_property: model.activity_property,
-                      activity_unit: model.activity_unit,
-                    }
-                  : {}),
-              });
-            }}
-          >
-            <option value="">{zh ? "选择模型" : "Choose model"}</option>
-            {models.map((model) => (
-              <option key={model.job_id} value={model.job_id}>
-                {model.name} · {model.activity_property} ({model.activity_unit})
-              </option>
-            ))}
-          </select>
-        </label>
-        {!models.length && !error && (
-          <p>
-            {zh
-              ? "先在“建立实验数据性质模型”中训练一个模型。"
-              : "Train a model in Train a property model first."}
-          </p>
-        )}
-      </>
+      <PropertyModelSelection
+        language={language}
+        payload={payload}
+        onChange={onChange}
+        onTrainModel={onTrainModel}
+      />
     );
   if (program === "ligandmpnn" || program === "boltzgen" || program === "plip")
     return (

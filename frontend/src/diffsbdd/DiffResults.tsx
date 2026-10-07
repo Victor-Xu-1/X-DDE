@@ -17,6 +17,7 @@ import { ResultTree } from "../operations/StructuredResults";
 import { isDesign } from "./types";
 import { ScientificDetails } from "./ScientificDetails";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
+import { DesignInputContext } from "./DesignInputContext";
 
 export function DiffResults({
   job,
@@ -239,6 +240,9 @@ export function DiffResults({
             zh={zh}
           />
         </details>
+      )}
+      {designing && data.valid === 0 && (
+        <DesignInputContext job={job} language={language} />
       )}
       {names.length > 0 && (
         <ul>

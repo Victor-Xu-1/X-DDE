@@ -43,6 +43,9 @@ export function StructureTargetSelection({
     const identity = selection?.identity;
     if (!identity || identity.is_ligand || program !== "ligandmpnn") return;
     const key = `${identity.chain}${identity.number}${identity.insertion_code}`;
+    toggleResidue(key);
+  }
+  function toggleResidue(key: string) {
     onChange({
       redesigned_residues: residues.includes(key)
         ? residues.filter((item) => item !== key)
@@ -96,6 +99,38 @@ export function StructureTargetSelection({
         ) : null}
         {program === "ligandmpnn" && (
           <>
+            <label className="field">
+              {zh ? "从列表补选残基" : "Add a residue from the list"}
+              <select
+                value=""
+                disabled={!scene}
+                onChange={(event) => {
+                  const residue = scene?.residues.find(
+                    (item) => item.key === event.target.value,
+                  );
+                  if (residue)
+                    toggleResidue(
+                      `${residue.chain}${residue.resi}${residue.icode.trim()}`,
+                    );
+                }}
+              >
+                <option value="">
+                  {zh ? "选择蛋白残基" : "Choose a protein residue"}
+                </option>
+                {scene?.residues.map((item) => (
+                  <option
+                    key={item.key}
+                    value={item.key}
+                    disabled={residues.includes(
+                      `${item.chain}${item.resi}${item.icode.trim()}`,
+                    )}
+                  >
+                    {item.resn} · {item.chain}:{item.resi}
+                    {item.icode.trim()}
+                  </option>
+                ))}
+              </select>
+            </label>
             <p className="scientific-selection-count" role="status">
               {zh
                 ? `已选择 ${residues.length} 个残基`
@@ -190,6 +225,7 @@ export function StructureTargetSelection({
           <StructureViewer
             urls={[`/api/assets/${structure.asset_id}`]}
             language={language}
+            initialMode={program === "boltzgen" ? "cartoon" : undefined}
             focusLigand={analyzedLigand?.key}
             selectionMode="residue"
             onAtomSelected={selected}

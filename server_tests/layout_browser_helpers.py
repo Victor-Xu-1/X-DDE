@@ -3,6 +3,7 @@
 import json
 
 from depiction_browser_helpers import settle_visible_drawings
+from layout_template_choices import choose_template_objective
 from playwright.sync_api import expect
 
 from opendde_workbench.capabilities.definitions import CAPABILITIES
@@ -119,6 +120,7 @@ def consent_on_current_page(page):
 def review_steps(page, evidence, name):
     rows = []
     for stage in range(1, 5):
+        choose_template_objective(page, name, stage)
         rows.append(capture(page, evidence, name, f"step-{stage}"))
         if stage == 4:
             break

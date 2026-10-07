@@ -10,6 +10,8 @@ on:
       - 'frontend/src/TaskDetail*'
       - 'frontend/src/useWorkbench*'
       - 'frontend/src/studio/RuntimeStatus*'
+      - 'frontend/src/studio/EnvironmentStatusTable*'
+      - 'frontend/src/studio/runtime-status.css'
       - 'frontend/src/operations/filter*'
       - 'frontend/src/**/*Results*'
       - 'frontend/src/research/ResearchWorkspace*'
@@ -25,6 +27,10 @@ on:
       - 'frontend/src/operations/HarnessForm*'
       - 'frontend/src/operations/CampaignForm*'
       - 'frontend/src/datasets/DatasetPicker*'
+      - 'frontend/src/datasets/SourcePicker*'
+      - 'frontend/src/datasets/useDatasetSources*'
+      - 'frontend/src/datasets/DEL*'
+      - 'frontend/src/receptors/SurfaceForm*'
       - 'frontend/src/editors/Editors*'
       - 'frontend/src/workflow.css'
       - 'frontend/src/research/ObjectInspector*'
@@ -39,6 +45,8 @@ on:
       - 'frontend/src/TaskDetail*'
       - 'frontend/src/useWorkbench*'
       - 'frontend/src/studio/RuntimeStatus*'
+      - 'frontend/src/studio/EnvironmentStatusTable*'
+      - 'frontend/src/studio/runtime-status.css'
       - 'frontend/src/operations/filter*'
       - 'frontend/src/**/*Results*'
       - 'frontend/src/research/ResearchWorkspace*'
@@ -54,6 +62,10 @@ on:
       - 'frontend/src/operations/HarnessForm*'
       - 'frontend/src/operations/CampaignForm*'
       - 'frontend/src/datasets/DatasetPicker*'
+      - 'frontend/src/datasets/SourcePicker*'
+      - 'frontend/src/datasets/useDatasetSources*'
+      - 'frontend/src/datasets/DEL*'
+      - 'frontend/src/receptors/SurfaceForm*'
       - 'frontend/src/editors/Editors*'
       - 'frontend/src/workflow.css'
       - 'frontend/src/research/ObjectInspector*'
@@ -79,6 +91,9 @@ jobs:
           src/presentation/ResearchTable.test.tsx
           src/presentation/FileSelect.test.tsx
           src/integrations/StructureTargetSelection.test.tsx
+          src/integrations/PropertyModelSelection.test.tsx
+          src/datasets/SourcePicker.test.tsx
+          src/receptors/SurfaceForm.test.tsx
           src/operations/AssetPicker.test.tsx
           src/TaskForm.test.tsx
           src/guided/workflows.test.tsx
@@ -102,6 +117,7 @@ jobs:
           src/studio/CandidatePanel.test.tsx
           src/studio/InterfaceSettings.test.tsx
           src/studio/RuntimeStatus.test.tsx
+          src/diffsbdd/DesignInputContext.test.tsx
           src/studio/HomeWorkspace.test.tsx
           src/operations/ToolCenter.test.tsx
           src/examples/ExampleActions.test.tsx

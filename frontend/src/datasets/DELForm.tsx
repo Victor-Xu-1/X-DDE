@@ -13,10 +13,12 @@ export function DELForm({
   tool,
   language,
   onCreated,
+  onPrepare,
 }: {
   tool: ToolId;
   language: Language;
   onCreated(job: Job): void;
+  onPrepare?(tool: ToolId): void;
 }) {
   const model = useDELForm({ tool, language, onCreated });
   const { zh, run, error, readiness, firstValid, mode, planValid, submit } =
@@ -46,7 +48,9 @@ export function DELForm({
           {
             title: zh ? "选择研究材料" : "Choose study materials",
             valid: firstValid,
-            content: <DELMaterialQuestion model={model} />,
+            content: (
+              <DELMaterialQuestion model={model} onPrepare={onPrepare} />
+            ),
           },
           {
             title:

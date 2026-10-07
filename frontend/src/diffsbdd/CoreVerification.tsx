@@ -65,7 +65,11 @@ export function CoreVerification({
     <details className="panel">
       <summary>
         {zh ? "固定区域独立复核" : "Independent fixed-core verification"} ·{" "}
-        {data.qualified_count}/{data.candidates.length}
+        {data.candidates.length
+          ? `${data.qualified_count}/${data.candidates.length}`
+          : zh
+            ? "没有可复核的候选"
+            : "No candidate to verify"}
       </summary>
       <p className="muted">
         {data.preserve_bonds

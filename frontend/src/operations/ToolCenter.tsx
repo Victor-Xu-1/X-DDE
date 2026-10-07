@@ -131,6 +131,7 @@ export function ToolCenter({
                   tool={selected}
                   language={language}
                   onCreated={onCreated}
+                  onPrepare={onSelectTool}
                 />
               ) : selected === "deepternary.model" ? (
                 <ProximityForm language={language} onCreated={onCreated} />
@@ -139,6 +140,7 @@ export function ToolCenter({
                   form={selected}
                   language={language}
                   onCreated={onCreated}
+                  onChooseTask={onSelectTool}
                 />
               ) : selected === "antibody.humanize" ? (
                 <HumanizationForm language={language} onCreated={onCreated} />

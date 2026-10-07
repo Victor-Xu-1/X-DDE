@@ -254,6 +254,32 @@ current loaded scene. Ordinary rerenders preserve the user's camera. This uses
 the shared viewer options/message path; scientific coordinates and payload
 identities remain unchanged.
 
+Empty DEL inputs link to the specific prerequisite (library definition, decoding,
+counts, enrichment or training) through the existing task navigation. Property
+prediction offers training when no trained model exists. Retrieval errors and
+loading states remain distinct from missing prerequisites; retry is explicit.
+Selected public template sources remain visible even when excluded from personal
+history. Missing counts are not displayed as zero, and source checksums remain
+attached to selections.
+
+Exposure templates explicitly project deposited alternate A from the verified
+BRD4 complex. Protein-only APBS/OpenMM inputs use the same projection before
+selecting ATOM records. Coordinates, atom identifiers and retained connectivity
+are preserved; no atoms or coordinates are generated. The immutable original is
+retained and each projection is registered as `prepared_from`. These are declared
+input projections, not newly computed scientific results. Module guides describe
+the actual controls and material requirements rather than unrelated antibody or
+agent workflows.
+
+Runtime readiness is a compact environment table with one installation action.
+It retains independent platform status, disconnected/stale state, Harness compute
+configuration and model-file counts; file presence is not scientific acceptance.
+
+Zero-qualified design results offer the exact original molecular record in 2D/3D
+and the input receptor in separate views. Independently supplied coordinate frames
+are not overlaid. Diagnostic outputs retain their restrictions, and an empty fixed-core
+review says that no candidate was available instead of presenting a 0/0 comparison.
+
 Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.
 
 Generated result previews are now derived from the declared original SDF records and byte digest, independently of optional research-version indexing. Native and qualified record counts must match the actual SDF before display. Reusable task handoffs still require a real immutable object matching the source job, output digest and record; missing historical index metadata never creates synthetic references.

@@ -4,6 +4,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import * as client from "../api";
 import { SurfaceForm } from "./SurfaceForm";
+import { ExampleContext } from "../examples/context";
+import type { PreparedExample } from "../examples/types";
 const ref = {
   asset_id: "source",
   sha256: "a".repeat(64),
@@ -62,6 +64,19 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+it("uses the explicitly loaded public structure even when no computed exposure result is pinned", () => {
+  const example = {
+    request: null,
+    objects: { brd4_alt_a: { reference: ref } },
+  } as unknown as PreparedExample;
+  render(
+    <ExampleContext.Provider value={example}>
+      <SurfaceForm language="en" onCreated={vi.fn()} />
+    </ExampleContext.Provider>,
+  );
+  expect(screen.getByText("Selected structure")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
 });
 it("starts empty and submits exact region only from the reviewed final step", async () => {
   const user = userEvent.setup(),

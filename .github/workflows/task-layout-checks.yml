@@ -5,6 +5,11 @@ on:
     paths:
       - 'frontend/src/guided/**'
       - 'frontend/src/integrations/**'
+      - 'frontend/src/datasets/SourcePicker*'
+      - 'frontend/src/datasets/useDatasetSources*'
+      - 'frontend/src/datasets/DEL*'
+      - 'frontend/src/datasets/DatasetForm*'
+      - 'frontend/src/receptors/SurfaceForm*'
       - 'frontend/src/pockets/**'
       - 'frontend/src/operations/**'
       - 'frontend/src/research/**'
@@ -30,6 +35,8 @@ on:
       - 'frontend/src/deployment/ComputeServicePanel*'
       - 'frontend/src/diffsbdd/ReferencePicker*'
       - 'frontend/src/diffsbdd/DiffResults*'
+      - 'frontend/src/diffsbdd/DesignInputContext*'
+      - 'frontend/src/diffsbdd/CoreVerification*'
       - 'frontend/src/examples/examples.css'
       - 'frontend/src/poses/PoseWorkspace*'
       - 'frontend/src/poses/poses.css'
@@ -89,9 +96,13 @@ jobs:
           src/viewer/capture.test.ts
           src/guided/Questionnaire.test.tsx
           src/integrations/StructureTargetSelection.test.tsx
+          src/integrations/PropertyModelSelection.test.tsx
+          src/datasets/SourcePicker.test.tsx
+          src/receptors/SurfaceForm.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx
           src/diffsbdd/DiffResults.test.tsx
+          src/diffsbdd/DesignInputContext.test.tsx
           src/diffsbdd/ReferencePicker.test.tsx
           src/research/HistoricalFileSelect.test.tsx
           src/research/SequencePicker.test.tsx

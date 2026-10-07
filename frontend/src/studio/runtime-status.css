@@ -1,55 +1,74 @@
-/* Readiness cards follow the component library without sharing lifecycle button rules. */
-.runtime-workspace .model-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
-  gap: 16px;
-}
-.runtime-workspace .model-grid .studio-panel {
+.runtime-summary {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+.runtime-summary > .studio-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  width: 100%;
   min-width: 0;
-  min-height: 250px;
-  aspect-ratio: 1.1;
-  padding: 20px;
-  border-radius: 0;
-  border: 0;
-  box-shadow: none;
+  padding: 0;
 }
-.runtime-workspace .studio-panel > .anticon {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  padding: 9px;
-  border-radius: 10px;
-  background: var(--accent-soft);
+.runtime-summary > .studio-panel:last-child {
+  margin-left: auto;
+}
+.runtime-summary h3,
+.runtime-summary p {
+  margin: 0;
+}
+.runtime-summary .anticon {
   color: var(--accent);
-  font-size: 20px;
 }
-.runtime-workspace .model-grid h3 {
-  margin: 0;
-  min-height: 44px;
-  font-size: 15px;
-  line-height: 1.5;
+.runtime-environments {
+  padding-top: 20px;
 }
-.runtime-workspace .studio-panel > small {
-  color: var(--muted);
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-.runtime-workspace .studio-panel > .status {
-  margin-top: auto;
-}
-.runtime-workspace .studio-panel p {
+.runtime-environments h3 {
   margin: 0;
 }
-.runtime-workspace .studio-panel details {
+.runtime-environments .table-scroll {
+  max-height: 70vh;
+  overflow: auto;
+}
+.runtime-environments table {
+  min-width: 640px;
   width: 100%;
+  border-collapse: collapse;
+}
+.runtime-environments th,
+.runtime-environments td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
   font-size: 13px;
 }
-.runtime-workspace .studio-panel .secondary-button {
-  margin-top: auto;
+.runtime-environments thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-muted);
+  z-index: 1;
+  white-space: nowrap;
+}
+.runtime-environments tbody th {
+  font-weight: 500;
+  max-width: 300px;
+}
+.runtime-environments td:last-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.runtime-environments .status {
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .runtime-summary {
+    gap: 16px;
+  }
+  .runtime-summary > .studio-panel:last-child {
+    margin-left: 0;
+  }
 }

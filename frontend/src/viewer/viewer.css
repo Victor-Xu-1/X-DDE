@@ -46,6 +46,7 @@
   row-gap: 10px;
 }
 .viewer-panel > .studio-heading > h3 {
+  margin: 0;
   flex: 0 0 auto;
   white-space: nowrap;
 }

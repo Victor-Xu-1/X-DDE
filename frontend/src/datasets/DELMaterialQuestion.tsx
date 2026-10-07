@@ -4,8 +4,16 @@ import { DatasetPicker } from "./DatasetPicker";
 import { SourcePicker } from "./SourcePicker";
 import { DELReadFiles } from "./DELReadFiles";
 import type { DELFormState } from "./useDELForm";
+import type { ToolId } from "../operations/catalog";
+import { DELPrerequisite } from "./DELPrerequisite";
 
-export function DELMaterialQuestion({ model }: { model: DELFormState }) {
+export function DELMaterialQuestion({
+  model,
+  onPrepare,
+}: {
+  model: DELFormState;
+  onPrepare?(tool: ToolId): void;
+}) {
   const {
     mode,
     zh,
@@ -50,6 +58,13 @@ export function DELMaterialQuestion({ model }: { model: DELFormState }) {
           {model.modelAction === "predict" && (
             <SourcePicker
               role="model"
+              emptyAction={
+                <DELPrerequisite
+                  role="model"
+                  language={language}
+                  onPrepare={() => model.setModelAction("train")}
+                />
+              }
               values={model.models}
               onChange={model.setModels}
               language={language}
@@ -112,6 +127,13 @@ export function DELMaterialQuestion({ model }: { model: DELFormState }) {
       {["enumerate", "decode"].includes(mode) && (
         <SourcePicker
           role="definition"
+          emptyAction={
+            <DELPrerequisite
+              role="definition"
+              language={language}
+              onPrepare={onPrepare}
+            />
+          }
           values={definitions}
           onChange={setDefinitions}
           language={language}
@@ -121,6 +143,13 @@ export function DELMaterialQuestion({ model }: { model: DELFormState }) {
       {(!hasFile && mode !== "enumerate") || mode === "followup" ? (
         <SourcePicker
           role={sourceRole}
+          emptyAction={
+            <DELPrerequisite
+              role={sourceRole}
+              language={language}
+              onPrepare={onPrepare}
+            />
+          }
           values={source}
           onChange={setSource}
           language={language}

@@ -10,7 +10,9 @@ const scene: SceneInfo = {
   chains: ["A", "B"],
   atoms: 1200,
   hasPolymer: true,
-  residues: [],
+  residues: [
+    { key: "A:TYR:42:B", chain: "A", resn: "TYR", resi: 42, icode: "B" },
+  ],
   ligands: [{ key: "B:LIG301", chain: "B", resn: "LIG", resi: 301, icode: "" }],
 };
 const callbacks: NonNullable<
@@ -152,6 +154,29 @@ it("preserves insertion codes and ignores a ligand when selecting redesign resid
   );
   await user.click(screen.getByRole("button", { name: "Remove residue A42B" }));
   expect(update).toHaveBeenLastCalledWith({ redesigned_residues: [] });
+});
+it("offers the actual residue list with the same exact identity as a 3D selection", async () => {
+  const update = vi.fn(),
+    user = userEvent.setup();
+  render(
+    <ScientificSelection
+      program="ligandmpnn"
+      language="en"
+      payload={{ kind: "ligandmpnn", redesigned_residues: [] }}
+      onChange={update}
+      onValid={vi.fn()}
+      structure={source}
+    />,
+  );
+  const choice = screen.getByRole("combobox", {
+    name: "Add a residue from the list",
+  });
+  expect(choice).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Read structure" }));
+  await user.selectOptions(choice, "A:TYR:42:B");
+  expect(update).toHaveBeenCalledExactlyOnceWith({
+    redesigned_residues: ["A42B"],
+  });
 });
 it("uses the scene's exact chain identities for target selection", async () => {
   const update = vi.fn(),

@@ -9,6 +9,7 @@ on:
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
       - 'tests/test_examples.py'
+      - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
       - '.github/workflows/examples-checks.yml'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - '!src/opendde_workbench/examples/bundle*.py'
       - 'frontend/src/examples/**'
       - 'tests/test_examples.py'
+      - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
       - '.github/workflows/examples-checks.yml'
 permissions:
@@ -35,7 +37,7 @@ jobs:
       - name: Verify example provenance, immutable results and direct API boundaries
         run: >-
           uv run --locked pytest -q
-          tests/test_examples.py tests/test_example_pins.py tests/test_example_records.py tests/test_example_library.py
+          tests/test_examples.py tests/test_example_observed_inputs.py tests/test_example_pins.py tests/test_example_records.py tests/test_example_library.py
           tests/test_analysis_cache.py tests/test_projects_science.py
           tests/test_research_assets.py tests/test_api_security.py tests/test_workflows.py
           tests/test_regions.py tests/test_pose_exploration_api.py
@@ -50,6 +52,7 @@ jobs:
           src/TaskForm.test.tsx src/diffsbdd/DesignOptions.test.tsx
           src/diffsbdd/DiffForm.test.tsx src/docking/DockingForm.test.tsx
           src/pockets/PocketForm.test.tsx src/receptors/StructurePrepareForm.test.tsx
+          src/receptors/SurfaceForm.test.tsx
           src/receptors/ReceptorForm.test.tsx src/chemistry/StateForm.test.tsx
           src/antibodies/AntibodyNumberForm.test.tsx src/admet/AdmetForm.test.tsx
           src/humanization/HumanizationForm.test.tsx src/quality/tests/QualityForm.test.tsx

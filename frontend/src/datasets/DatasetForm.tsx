@@ -9,10 +9,12 @@ export function DatasetForm({
   tool,
   language,
   onCreated,
+  onPrepare,
 }: {
   tool: ToolId;
   language: Language;
   onCreated(job: Job): void;
+  onPrepare?(tool: ToolId): void;
 }) {
   const props = { language, onCreated };
   return tool === "drugclip.screen" ? (
@@ -20,7 +22,7 @@ export function DatasetForm({
   ) : tool === "screening.dock" ? (
     <BatchDockingForm {...props} />
   ) : tool.startsWith("del.") ? (
-    <DELForm key={tool} tool={tool} {...props} />
+    <DELForm key={tool} tool={tool} onPrepare={onPrepare} {...props} />
   ) : (
     <LibraryForm key={tool} tool={tool} {...props} />
   );

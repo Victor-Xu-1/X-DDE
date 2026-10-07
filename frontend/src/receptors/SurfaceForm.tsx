@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useExampleTask } from "../examples/context";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { Questionnaire } from "../guided/Questionnaire";
 import { ChoiceCards } from "../guided/ChoiceCards";
@@ -26,7 +26,8 @@ export function SurfaceForm({
   initialStructure?: MoleculeRef;
 }) {
   const example = useExampleTask("surface_exposure");
-  initialStructure ??= example?.structure;
+  const templateStructure = useExampleReference("brd4_alt_a");
+  initialStructure ??= example?.structure ?? templateStructure ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("biopython.exposure");

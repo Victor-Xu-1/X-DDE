@@ -30,7 +30,7 @@
         "Compare properties or early screening metrics of real drug molecules."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "确认分子列表，每条记录对应一个分子。",
         "Confirm the molecular collection and its separate records."
       ],
       [
@@ -246,7 +246,7 @@
         "Compare properties or early screening metrics of real drug molecules."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "确认分子列表，每条记录对应一个分子。",
         "Confirm the molecular collection and its separate records."
       ],
       [
@@ -822,7 +822,7 @@
         "Compare properties or early screening metrics of real drug molecules."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "确认分子列表，每条记录对应一个分子。",
         "Confirm the molecular collection and its separate records."
       ],
       [
@@ -1014,7 +1014,7 @@
         "Compare properties or early screening metrics of real drug molecules."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "确认分子列表，每条记录对应一个分子。",
         "Confirm the molecular collection and its separate records."
       ],
       [
@@ -1110,7 +1110,7 @@
         "Start from a real drug structure and choose analogue, R-group or linker design."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
+        "确认分子列表，每条记录对应一个分子。",
         "Confirm the molecular collection and its separate records."
       ],
       [
@@ -1130,20 +1130,20 @@
   "ligandmpnn.design": {
     "steps": [
       [
-        "点击真实结构中的可变残基，保留其余骨架和配体环境。",
-        "Select variable residues in a real structure, preserving the remaining backbone and ligand context."
+        "使用 BRD4–JQ1 复合物中的蛋白骨架与配体环境。",
+        "Use the protein backbone and ligand context in the BRD4–JQ1 complex."
       ],
       [
-        "重链和轻链分别确认；模板保留了原始序列来源。",
-        "Confirm heavy and light chains and their source."
+        "在三维结构中点选要修改的蛋白残基，再次点击可取消。",
+        "Select protein residues to redesign in 3D; select again to remove them."
       ],
       [
-        "保留已验证的编号或设计范围；首次不要改动全部位置。",
-        "Keep the verified numbering scheme or mutable positions."
+        "先生成少量序列；未选择的残基保持固定。",
+        "Start with a small sequence sample; unselected residues remain fixed."
       ],
       [
-        "查看序列、CDR 标注或候选评分；序列分数不等于亲和力。",
-        "Inspect CDRs and sequence scores; these are not affinity measurements."
+        "核对确切残基编号后提交，比较生成序列并下载。",
+        "Review the exact residue identifiers, then compare and download the generated sequences."
       ]
     ],
     "interpretation": [
@@ -1154,20 +1154,20 @@
   "boltzgen.design": {
     "steps": [
       [
-        "选择靶点链；抗体可变区设计还需框架结构和可变残基。",
-        "Choose target chains; antibody variable-region design also requires a framework and mutable residues."
+        "使用模板中的 HER2 靶标结构；抗体或纳米抗体设计还需提供框架。",
+        "Use the template HER2 target structure; antibody or nanobody design also requires a framework."
       ],
       [
-        "目标、重轻链及真实 CDR 已填好；检查每条链的身份。",
-        "Confirm the target, native variable domains and CDRs."
+        "从结构实际包含的链中选择目标链，并在三维图中核对。",
+        "Choose target chains actually present in the structure and check them in 3D."
       ],
       [
-        "先用模板的小规模方案；对话模型在账户设置中另行配置。",
-        "Use the small example budget; configure the model separately."
+        "选择结合蛋白、肽或抗体的设计形式，再选择小规模试算方案。",
+        "Choose the binder, peptide or antibody design type, then select a small trial budget."
       ],
       [
-        "本模板展示已校验配置；代理尚未运行，不展示虚构设计结果。",
-        "This is a validated setup; no agent-generated result is claimed."
+        "检查目标链、设计范围和计算方案，再递交任务。",
+        "Review the target chains, design scope and computation plan before submission."
       ]
     ],
     "interpretation": [
@@ -1202,20 +1202,20 @@
   "apbs.potential": {
     "steps": [
       [
-        "选择准备好的纯蛋白结构，设置 pH 与盐浓度。",
-        "Choose a prepared protein-only structure and select pH and salt conditions."
+        "使用模板中的纯蛋白 BRD4 结构。",
+        "Use the template protein-only BRD4 structure."
       ],
       [
-        "确认目标与结合体的链身份；模板已提供配套材料。",
-        "Confirm target and binder chain identities."
+        "核对目标蛋白；下一步选择溶剂与电性计算条件。",
+        "Check the target protein; choose solvent and electrostatics conditions in the next step."
       ],
       [
-        "保留模板的目标链、结合体链和比较规则。",
-        "Keep the verified chain and reference settings."
+        "选择 pH、盐浓度和计算方案；首次使用默认方案。",
+        "Choose pH, salt concentration and computation settings; start with the default plan."
       ],
       [
-        "结合三维结构与原生指标解读；注意比较所用参考对象。",
-        "Interpret geometry and metrics relative to the stated reference."
+        "确认条件后提交，查看电势表面、色标并下载结果。",
+        "Review the conditions, then inspect the potential surface and color scale and download the results."
       ]
     ],
     "interpretation": [
@@ -1250,20 +1250,20 @@
   "chemprop.predict": {
     "steps": [
       [
-        "选择已训练模型，再选择要预测的真实分子库；标签与单位保持一致。",
-        "Choose a trained model and a real molecular library; preserve its target and units."
+        "选择要预测的分子文件；模板提供 EGFR 实验研究中的分子集合。",
+        "Choose a molecular file; the template provides the EGFR experimental-study collection."
       ],
       [
-        "确认分子列表，每条记录对应一个分子；模板不是单个玩具分子。",
-        "Confirm the molecular collection and its separate records."
+        "选择已训练模型并核对标签和单位；没有模型时先点击建立模型。",
+        "Choose a trained model and check its endpoint and units; use the training action if none is available."
       ],
       [
-        "保留模板的性质或筛选项，按研究目的再调整阈值。",
-        "Keep the example endpoints, then adjust research-specific thresholds."
+        "保留模型对应的预测方案，确认分子范围。",
+        "Keep the model-specific prediction settings and confirm the molecular scope."
       ],
       [
-        "比较表格中的单位、缺失项和异常项；计算值与实验值要区分。",
-        "Compare units, missing values and alerts; predictions differ from experiments."
+        "核对模型与输入后提交；比较预测值、缺失值和模型适用范围。",
+        "Review the model and inputs, then compare predictions, missing values and the model scope."
       ]
     ],
     "interpretation": [
@@ -1274,20 +1274,20 @@
   "plip.profile": {
     "steps": [
       [
-        "在真实复合物中选择一个配体，查看原生化学相互作用。",
-        "Choose one ligand in a real complex and inspect native chemical interactions."
+        "使用 BRD4–JQ1 实验复合物，保留配体与受体的原始坐标。",
+        "Use the BRD4–JQ1 experimental complex with its original ligand and receptor coordinates."
       ],
       [
-        "确认目标与结合体的链身份；模板已提供配套材料。",
-        "Confirm target and binder chain identities."
+        "选择分析配体 JQ1 · A:1；旁边的三维视图会同步定位。",
+        "Choose JQ1 · A:1 as the analysis ligand; the adjacent 3D view follows the selection."
       ],
       [
-        "保留模板的目标链、结合体链和比较规则。",
-        "Keep the verified chain and reference settings."
+        "先用默认接触分析方案；需要时展开专家设置。",
+        "Start with the default contact-analysis plan; open expert settings when needed."
       ],
       [
-        "结合三维结构与原生指标解读；注意比较所用参考对象。",
-        "Interpret geometry and metrics relative to the stated reference."
+        "核对结构和配体后提交；在结果中比较接触类型、距离并下载。",
+        "Review the structure and ligand before submission; inspect contact types and distances and download the results."
       ]
     ],
     "interpretation": [
@@ -1607,16 +1607,16 @@
   "biopython.exposure": {
     "steps": [
       [
-        "使用明确选取替代位置 A 的 BRD4–JQ1 实验结构。",
-        "Use observed BRD4–JQ1 coordinates with explicit alternate A selection."
+        "模板已明确选取 BRD4–JQ1 的原始替代位置 A；保留已有观测坐标。",
+        "The template explicitly selects deposited alternate A in BRD4–JQ1, preserving observed coordinates."
       ],
       [
-        "点选 JQ1 配体或其他研究残基。",
-        "Select JQ1 or other research residues."
+        "点选 JQ1 或研究残基，核对链与残基编号。",
+        "Select JQ1 or research residues and check the exact chain and residue identifiers."
       ],
       [
-        "采用 1.4 Å 探针；需要时调整采样和上下文链。",
-        "Use a 1.4 Å probe; adjust sampling and context chains when needed."
+        "采用 1.4 Å 探针；核对采样精度和上下文链。",
+        "Use a 1.4 Å probe and review sampling precision and context chains."
       ],
       [
         "确认选区和条件，再查看三维与面积并下载。",

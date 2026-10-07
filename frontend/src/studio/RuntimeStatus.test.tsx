@@ -56,17 +56,11 @@ it("shows an available X-DDE server independently of its scientific engines", ()
   );
   expect(screen.getByRole("heading", { name: "工作台服务" })).toBeVisible();
   expect(screen.getByText("平台服务就绪", { exact: true })).toBeVisible();
-  const open = screen
-    .getByRole("heading", { name: "结构与复合物预测" })
-    .closest("article")!;
-  const diff = screen
-    .getByRole("heading", { name: "小分子生成与优化" })
-    .closest("article")!;
+  const open = screen.getByRole("row", { name: /结构与复合物预测/ });
+  const diff = screen.getByRole("row", { name: /小分子生成与优化/ });
   expect(within(open).getByText("环境未就绪", { exact: true })).toBeVisible();
   expect(within(diff).getByText("环境检查通过", { exact: true })).toBeVisible();
-  expect(
-    within(diff).getByText("模型文件：1 / 2", { exact: true }),
-  ).toBeInTheDocument();
+  expect(within(diff).getByText("1 / 2", { exact: true })).toBeInTheDocument();
   expect(screen.queryByText("OpenDDE 后端", { exact: true })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "管理集成环境" }));
   expect(setup).toHaveBeenCalledOnce();
@@ -82,20 +76,16 @@ it("does not confuse the Harness client with its remote compute service", () => 
       onSetup={vi.fn()}
     />,
   );
-  const harness = screen
-    .getByRole("heading", { name: "Protein & antibody tools" })
-    .closest("article")!;
+  const harness = screen.getByRole("row", { name: /Protein & antibody tools/ });
   expect(
     within(harness).getByText("Compute setup required", { exact: true }),
   ).toBeVisible();
+  expect(within(harness).getByText("Compute setup required")).toHaveClass(
+    "failed",
+  );
   expect(
-    within(harness).getByText(
-      "Configure the service in Installation & components before submitting compute-dependent tasks.",
-      {
-        exact: true,
-      },
-    ),
-  ).toBeVisible();
+    screen.getAllByRole("button", { name: "Manage integrated environments" }),
+  ).toHaveLength(1);
   expect(screen.getByText("Workbench service", { exact: true })).toBeVisible();
 });
 
@@ -147,10 +137,6 @@ it("can inspect existing server snapshots without inventing engine availability"
     />,
   );
   expect(screen.getByText("平台服务就绪", { exact: true })).toBeVisible();
-  expect(
-    screen.getByRole("heading", { name: "结构与复合物预测" }),
-  ).toBeVisible();
-  expect(
-    screen.queryByRole("heading", { name: "小分子生成与优化" }),
-  ).toBeNull();
+  expect(screen.getByRole("row", { name: /结构与复合物预测/ })).toBeVisible();
+  expect(screen.queryByRole("row", { name: /小分子生成与优化/ })).toBeNull();
 });

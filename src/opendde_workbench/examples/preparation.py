@@ -13,7 +13,7 @@ from .derived import prepared_receptor, variable_domains
 from .files import verified_file
 from .pins import ExamplePins
 from .populations import proposal_populations
-from .structure_inputs import protein_only_pdb
+from .structure_inputs import observed_alt_a_pdb, protein_only_pdb
 from .workflow import example_workflow
 
 NAMESPACE = UUID("d2f5485c-9384-49e8-9c41-6b316a14c932")
@@ -24,7 +24,7 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
     case = CASES[module.case_id]
     objects, data_assets = {}, {}
 
-    def register(key, name, kind, content, source, record=0):
+    def register(key, name, kind, content, source, record=0, parent=None):
         object_kind = {"structure": "structure", "ligand": "molecule", "sequences": "sequence"}[
             kind
         ]
@@ -43,7 +43,7 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
                 or (retained.kind, retained.reference.record, retained.reference.conformer)
                 != (object_kind, record, 0)
                 or (retained.label, retained.notes, retained.parent_id, retained.source_job)
-                != (label, notes, None, None)
+                != (label, notes, parent.id if parent else None, None)
             ):
                 raise ValueError("A fixed public input version differs from its reviewed identity.")
             with scientific.assets.path(asset).open("rb") as file:
@@ -58,6 +58,7 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
             label=label,
             record=record,
             notes=notes,
+            **({"parent_id": parent.id, "relation": "prepared_from"} if parent else {}),
         )
         objects[key] = scientific.create(value, identity)
 
@@ -123,27 +124,33 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
             )
             sequence_sources["target_construct"] = (sequences["antigen"],)
     if case.id == "brd4-jq1":
+        if capability_id == "biopython.exposure":
+            original = objects["brd4"]
+            raw = scientific.assets.path(
+                scientific.assets.get(original.reference.asset_id)
+            ).read_bytes()
+            register(
+                "brd4_alt_a",
+                "3MXF-observed-alt-A.pdb",
+                "structure",
+                observed_alt_a_pdb(raw),
+                "https://www.rcsb.org/structure/3MXF; explicit deposited alternate A; "
+                "no coordinates generated or optimized",
+                parent=original,
+            )
         if capability_id in {"apbs.potential", "openmm.refine"}:
             original = objects["brd4"]
             raw = scientific.assets.path(
                 scientific.assets.get(original.reference.asset_id)
             ).read_bytes()
-            asset = scientific.assets.save(
-                "3MXF-protein-only.pdb", "structure", protein_only_pdb(raw)
-            )
-            objects["protein_only"] = scientific.create(
-                VersionInput(
-                    asset_id=asset.id,
-                    kind="structure",
-                    label="BRD4 · protein-only input",
-                    parent_id=original.id,
-                    relation="prepared_from",
-                    notes=(
-                        "Original deposited ATOM coordinates only; "
-                        "no modeled atoms, charges or optimization."
-                    ),
-                ),
-                uuid5(NAMESPACE, "protein-only:" + asset.sha256),
+            register(
+                "protein_only",
+                "3MXF-protein-only-observed-alt-A.pdb",
+                "structure",
+                protein_only_pdb(observed_alt_a_pdb(raw)),
+                "https://www.rcsb.org/structure/3MXF; deposited protein ATOM coordinates; "
+                "explicit alternate A; no coordinates generated or optimized",
+                parent=original,
             )
         sequences["protein"] = POLYMERS["3MXF.polymer-1.json"]["sequence"]
         register(
