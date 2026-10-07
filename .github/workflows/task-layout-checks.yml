@@ -4,6 +4,7 @@ on:
     branches: ['**']
     paths:
       - 'frontend/src/guided/**'
+      - 'frontend/src/integrations/**'
       - 'frontend/src/pockets/**'
       - 'frontend/src/operations/**'
       - 'frontend/src/research/**'
@@ -86,6 +87,7 @@ jobs:
           src/viewer/useViewerSnapshot.test.ts
           src/viewer/capture.test.ts
           src/guided/Questionnaire.test.tsx
+          src/integrations/StructureTargetSelection.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx
           src/diffsbdd/DiffResults.test.tsx

@@ -15,7 +15,6 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/integrations/**'
-      - 'frontend/src/integrations/**'
       - 'tests/test_integrated_science.py'
       - '.github/workflows/scientific-upgrade-checks.yml'
 permissions:

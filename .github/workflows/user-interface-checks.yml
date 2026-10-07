@@ -4,6 +4,7 @@ on:
     branches: ['**']
     paths:
       - 'frontend/src/presentation/**'
+      - 'frontend/src/integrations/**'
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
       - 'frontend/src/TaskDetail*'
@@ -32,6 +33,7 @@ on:
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
+      - 'frontend/src/integrations/**'
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
       - 'frontend/src/TaskDetail*'
@@ -76,6 +78,7 @@ jobs:
           npx vitest run
           src/presentation/ResearchTable.test.tsx
           src/presentation/FileSelect.test.tsx
+          src/integrations/StructureTargetSelection.test.tsx
           src/operations/AssetPicker.test.tsx
           src/TaskForm.test.tsx
           src/guided/workflows.test.tsx

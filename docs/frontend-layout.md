@@ -51,6 +51,19 @@ second inset to each subsection. Extra-wide prediction pages fit their available
 choices across the row; ordinary desktop and compact flows retain their existing
 breakpoints.
 
+Structure-based research objectives use one control-and-preview composition.
+Ligand choice, target-chain checkboxes and selected residue identities sit before
+the 3D preview in document order and beside it on desktop. Compact screens stack
+the same controls above the structure. Chain, residue number and insertion code
+are taken from the actual scene without renumbering; no calculation starts during
+selection. Changing the source asset/digest remounts the scene selection, preventing
+late messages from restoring another structure's choices.
+
+Presentation changes under `frontend/src/integrations` run their focused component
+and Chromium checks. Native adapter, molecular-state and receptor calculations
+remain in the scientific workflow for backend changes or explicit dispatch;
+moving a choice panel does not justify unrelated native scientific runs.
+
 Sequence scoring places its table and comparison plot in one column, with the
 selected exact sequence beside them. This avoids stacking two tall views beside
 a short table. Selection, native score precision, position identity and original

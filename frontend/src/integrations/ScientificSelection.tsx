@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { request } from "../api";
-import { StructureViewer } from "../viewer/StructureViewer";
-import type { SceneInfo, SelectionInfo } from "../viewer/protocol";
+import { StructureTargetSelection } from "./StructureTargetSelection";
+
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
 import type {
@@ -26,7 +26,7 @@ export function ScientificSelection({
   onValid(value: boolean): void;
 }) {
   const zh = language === "zh";
-  const [scene, setScene] = useState<SceneInfo | null>(null);
+
   const [models, setModels] = useState<PropertyModel[]>([]),
     [error, setError] = useState("");
   useEffect(() => {
@@ -58,19 +58,6 @@ export function ScientificSelection({
             : true,
     );
   }, [program, payload, onValid]);
-  function selected(selection: SelectionInfo | null) {
-    const identity = selection?.identity;
-    if (!identity || identity.is_ligand || program !== "ligandmpnn") return;
-    const key = `${identity.chain}${identity.number}${identity.insertion_code}`;
-    const current = Array.isArray(payload.redesigned_residues)
-      ? (payload.redesigned_residues as string[])
-      : [];
-    onChange({
-      redesigned_residues: current.includes(key)
-        ? current.filter((item) => item !== key)
-        : [...current, key],
-    });
-  }
   if (program === "chemprop")
     return payload.mode === "train" ? (
       <>
@@ -136,99 +123,22 @@ export function ScientificSelection({
         )}
       </>
     );
-  if (["ligandmpnn", "boltzgen", "plip"].includes(program))
+  if (program === "ligandmpnn" || program === "boltzgen" || program === "plip")
     return (
-      <>
-        {structure && (
-          <StructureViewer
-            urls={[`/api/assets/${structure.asset_id}`]}
-            language={language}
-            selectionMode="residue"
-            onAtomSelected={selected}
-            onSceneLoaded={setScene}
-          />
-        )}
-        {program === "ligandmpnn" && (
-          <>
-            <p>
-              {zh
-                ? "在三维结构中点击要修改的残基，再次点击可取消。"
-                : "Click residues to redesign; click again to remove."}
-            </p>
-            <div className="selection-chips">
-              {(payload.redesigned_residues as string[]).map((item) => (
-                <button
-                  type="button"
-                  key={item}
-                  onClick={() =>
-                    onChange({
-                      redesigned_residues: (
-                        payload.redesigned_residues as string[]
-                      ).filter((r) => r !== item),
-                    })
-                  }
-                >
-                  {item} ×
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-        {program === "boltzgen" && (
-          <fieldset>
-            <legend>
-              {zh ? "选择要结合的目标链" : "Choose target chains"}
-            </legend>
-            {scene?.chains.map((chain) => (
-              <label key={chain}>
-                <input
-                  type="checkbox"
-                  checked={(payload.target_chains as string[]).includes(chain)}
-                  onChange={(e) =>
-                    onChange({
-                      target_chains: e.target.checked
-                        ? [...(payload.target_chains as string[]), chain]
-                        : (payload.target_chains as string[]).filter(
-                            (c) => c !== chain,
-                          ),
-                    })
-                  }
-                />
-                {zh ? "链 " : "Chain "}
-                {chain}
-              </label>
-            ))}
-          </fieldset>
-        )}
-        {program === "plip" && (
-          <label className="field">
-            {zh ? "选择中心配体" : "Choose ligand"}
-            <select
-              value={
-                payload.ligand_chain
-                  ? `${payload.ligand_chain}:${payload.ligand_number}`
-                  : ""
-              }
-              onChange={(e) => {
-                const ligand = scene?.ligands.find(
-                  (item) => `${item.chain}:${item.resi}` === e.target.value,
-                );
-                onChange({
-                  ligand_chain: ligand?.chain ?? "",
-                  ligand_number: ligand?.resi,
-                });
-              }}
-            >
-              <option value="">{zh ? "选择配体" : "Choose ligand"}</option>
-              {scene?.ligands.map((item) => (
-                <option key={item.key} value={`${item.chain}:${item.resi}`}>
-                  {item.resn} · {item.chain}:{item.resi}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </>
+      <StructureTargetSelection
+        key={
+          program +
+          ":" +
+          (structure?.asset_id ?? "") +
+          ":" +
+          (structure?.sha256 ?? "")
+        }
+        program={program}
+        language={language}
+        payload={payload}
+        onChange={onChange}
+        structure={structure}
+      />
     );
   if (program === "boltz")
     return (
