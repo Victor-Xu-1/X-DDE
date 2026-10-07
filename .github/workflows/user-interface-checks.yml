@@ -92,6 +92,7 @@ jobs:
           src/presentation/FileSelect.test.tsx
           src/integrations/StructureTargetSelection.test.tsx
           src/integrations/PropertyModelSelection.test.tsx
+          src/integrations/ScientificChoices.test.tsx
           src/datasets/SourcePicker.test.tsx
           src/receptors/SurfaceForm.test.tsx
           src/operations/AssetPicker.test.tsx

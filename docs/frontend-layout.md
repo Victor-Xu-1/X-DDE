@@ -280,6 +280,14 @@ and the input receptor in separate views. Independently supplied coordinate fram
 are not overlaid. Diagnostic outputs retain their restrictions, and an empty fixed-core
 review says that no candidate was available instead of presenting a 0/0 comparison.
 
+Scientific candidate-count choices use the same flat selectable controls as other
+questionnaires, preserving numeric payload values. Surface and channel region
+selection place exact selected components beside the 3D preview, above it on compact
+screens. A single selected ligand uses the existing source-bound viewer focus.
+Dataset form content aligns with the question title at wide widths instead of
+centering a separate narrow block. Researcher diagnostic captures also wait for
+native molecular drawings to finish before their screenshots are accepted.
+
 Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.
 
 Generated result previews are now derived from the declared original SDF records and byte digest, independently of optional research-version indexing. Native and qualified record counts must match the actual SDF before display. Reusable task handoffs still require a real immutable object matching the source job, output digest and record; missing historical index metadata never creates synthetic references.

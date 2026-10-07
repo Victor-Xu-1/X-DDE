@@ -1,4 +1,5 @@
 import { Hint } from "../guided/Hint";
+import { ChoiceCards } from "../guided/ChoiceCards";
 import { ExpertChoices } from "./ExpertChoices";
 import { validScientificChoices } from "./validation";
 import type { Language } from "../types";
@@ -43,24 +44,22 @@ export function ScientificChoices({
   return (
     <>
       {countField && (
-        <fieldset className="choice-grid">
-          <legend>
+        <div className="scientific-count-choice">
+          <h3>
             {zh
               ? "希望查看多少个候选？"
               : "How many candidates would you like?"}
-          </legend>
-          {choices.map((value) => (
-            <label className="choice-card" key={value}>
-              <input
-                type="radio"
-                name="candidate-count"
-                checked={payload[countField] === value}
-                onChange={() => onChange({ [countField]: value })}
-              />
-              {value} {zh ? "个" : "candidates"}
-            </label>
-          ))}
-        </fieldset>
+          </h3>
+          <ChoiceCards
+            label={zh ? "候选数量" : "Candidate count"}
+            value={String(payload[countField])}
+            onChange={(value) => onChange({ [countField]: Number(value) })}
+            options={choices.map((value) => ({
+              value: String(value),
+              title: `${value} ${zh ? "个候选" : "candidates"}`,
+            }))}
+          />
+        </div>
       )}
       {program === "boltzgen" && (
         <>

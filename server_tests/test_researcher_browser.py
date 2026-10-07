@@ -7,6 +7,7 @@ import sqlite3
 from pathlib import Path
 from urllib.parse import urljoin
 
+from depiction_browser_helpers import settle_visible_drawings
 from layout_browser_helpers import catalog
 from playwright.sync_api import expect, sync_playwright
 
@@ -43,6 +44,7 @@ def test_researcher_result_decisions_and_handoffs():
             expect(page.get_by_text("正在读取结果…", exact=True)).not_to_be_visible(timeout=30000)
 
         def record(name):
+            settle_visible_drawings(page)
             text = page.locator("main").inner_text()
             assert (
                 "/srv/" not in text

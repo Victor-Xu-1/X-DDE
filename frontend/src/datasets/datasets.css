@@ -40,13 +40,12 @@
 }
 .dataset-question-content {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
+  margin: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: 22px;
-  padding: 14px 4px 34px;
+  padding: 0 0 20px;
 }
 .dataset-question-content > .field {
   max-width: 620px;
@@ -662,9 +661,6 @@
   font-weight: 500;
 }
 @media (min-width: 1600px) {
-  .dataset-question-content {
-    max-width: 1450px;
-  }
   .dataset-candidate-layout {
     grid-template-columns: 1fr 1.15fr;
   }
@@ -687,7 +683,7 @@
   }
   .dataset-question-content {
     gap: 16px;
-    padding: 10px 0 25px;
+    padding: 0 0 16px;
   }
   .dataset-review-strip {
     grid-template-columns: 1fr 1fr;
