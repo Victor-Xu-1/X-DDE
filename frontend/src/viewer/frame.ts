@@ -101,6 +101,8 @@ async function load(input: ViewerLoad) {
       inputCharges,
     );
     scene.nativeInteractions = input.nativeInteractions;
+    scene.channelGeometry = input.channelGeometry;
+    if (input.channelGeometry) scene.options.mode = "cartoon";
     if (input.electrostaticMap) {
       const response = await fetch(
         validSource(input.electrostaticMap.url, location.origin),
@@ -123,7 +125,8 @@ async function load(input: ViewerLoad) {
     await scene.paint();
     if (current !== generation) return;
     reset();
-    if (scene.options.mode === "pocket") scene.focusLigand();
+    if (scene.options.mode === "pocket" && !scene.channelGeometry)
+      scene.focusLigand();
     notify("loaded", { ...scene.info, options: scene.options });
   } catch (error) {
     if (!request.signal.aborted && current === generation) {

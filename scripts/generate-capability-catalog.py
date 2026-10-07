@@ -40,6 +40,7 @@ from opendde_workbench.receptors.selection import EnsembleOptions, MemberSelecti
 from opendde_workbench.research.constraint_contract import ConstraintSet, SpatialBoundsCondition
 from opendde_workbench.research.regions import REGION_ROLES
 from opendde_workbench.sites.contracts import SiteOptions
+from opendde_workbench.space.options import ChannelOptions
 
 
 def main() -> None:
@@ -164,6 +165,10 @@ def main() -> None:
         + " as const;\nexport const selectionSchema = "
         + json.dumps(MemberSelection.model_json_schema(), indent=2)
         + " as const;\n",
+        "space/generated.ts": header
+        + "export const channelDefaults = "
+        + json.dumps(ChannelOptions().model_dump(mode="json"), indent=2)
+        + ";\n",
         "chemistry/generated.ts": header
         + "export const defaults = "
         + json.dumps(StateOptions().model_dump(mode="json"), indent=2)

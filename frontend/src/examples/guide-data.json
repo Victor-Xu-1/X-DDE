@@ -1651,5 +1651,29 @@
       "示例来自 EGFR 单一 ChEMBL 实验的 177 个真实化合物。保留原实验内中位数规则，不把聚合值当独立重复。",
       "The example contains 177 real compounds from one ChEMBL EGFR assay. Published within-assay medians are not independent replicates."
     ]
+  },
+  "caver.paths": {
+    "steps": [
+      [
+        "使用 4EY7 的人源 AChE–多奈哌齐真实结合结构。",
+        "Use the real human AChE–donepezil complex 4EY7."
+      ],
+      [
+        "从列表选择 A 链 E20 604，或在三维图中点选；这是起点，不是待对接的新分子。",
+        "Choose chain A E20 604 from the list or 3D as the starting site, not a new docking ligand."
+      ],
+      [
+        "先用标准方案；保留 A 链结构环境，并明确选择替代位置 A。",
+        "Start with the standard probe, chain A context and explicit alternate location A."
+      ],
+      [
+        "检查三维通道、最窄半径和沿程变化；静态几何不能证明完整药物能穿过通道。",
+        "Inspect 3D paths, bottlenecks and radius profiles; static geometry cannot prove whole-drug passage."
+      ]
+    ],
+    "interpretation": [
+      "通道来自已保存结构的原生几何计算；瓶颈半径、路径长度均为 Å，不是能量或亲和力。",
+      "Channels are native geometry on the saved structure. Bottleneck radius and path length are Å, not energy or affinity."
+    ]
   }
 }

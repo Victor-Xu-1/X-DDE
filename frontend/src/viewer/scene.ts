@@ -40,7 +40,9 @@ const nucleic = new Set([
   "DN",
 ]);
 type Emit = (type: string, detail?: unknown) => void;
+import { paintChannel, type ChannelGeometry } from "./channel-geometry";
 export class MolecularScene {
+  channelGeometry?: ChannelGeometry;
   nativeInteractions?: NativeInteraction[];
   potential?: { data: mol.VolumeData; range: number };
   options: ViewerOptions = { ...defaultOptions };
@@ -72,6 +74,7 @@ export class MolecularScene {
   ) {}
   resetState() {
     this.nativeInteractions = undefined;
+    this.channelGeometry = undefined;
     this.potential = undefined;
     this.revision++;
     this.selected = [];
@@ -207,6 +210,7 @@ export class MolecularScene {
     v.removeAllSurfaces();
     v.removeAllLabels();
     v.removeAllShapes();
+    paintChannel(v, this.channelGeometry);
     if (this.overlay) {
       for (const [index, format] of this.formats.entries())
         paintOverlayModel(

@@ -55,6 +55,25 @@ export const methodChoices = [
     ],
   },
   {
+    id: "method.caver.paths",
+    label: ["口袋通道与瓶颈", "Pocket channels and bottlenecks"],
+    default: "caver.paths",
+    default_basis: [
+      "当前唯一接入的方法，已默认选中。",
+      "The only integrated method is selected by default.",
+    ],
+    options: [
+      {
+        id: "caver.paths",
+        label: "CAVER 3.0.2",
+        note: [
+          "点选起始区域，探索通向溶剂的静态几何路径和最窄位置。",
+          "Select a starting region and explore static solvent paths and bottlenecks.",
+        ],
+      },
+    ],
+  },
+  {
     id: "method.reinvent.design",
     label: ["类似物与多目标分子设计", "Analogues and molecular optimization"],
     default: "reinvent.design",

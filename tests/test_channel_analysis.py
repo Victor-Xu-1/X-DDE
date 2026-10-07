@@ -63,7 +63,13 @@ def test_managed_channel_runtime_is_dynamic_and_exact(tmp_path):
     state, root = tmp_path / "state", tmp_path / "components"
     state.mkdir()
     root.mkdir()
-    settings = Settings(state_dir=state)
+    settings = Settings(
+        state_dir=state,
+        image_file=state / "image",
+        code_file=state / "code",
+        model_dir=root / "models",
+        cache_dir=state / "cache",
+    )
     with pytest.raises(ValueError):
         configuration(settings)
     atomic_json(state / "deployment.json", {"root": str(root)})

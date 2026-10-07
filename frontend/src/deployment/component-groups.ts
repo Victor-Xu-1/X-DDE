@@ -56,6 +56,7 @@ const definitions: GroupDefinition[] = [
     ],
     recommended: [
       "p2rank",
+      "caver",
       "gnina",
       "posebusters",
       "admet",
@@ -66,6 +67,7 @@ const definitions: GroupDefinition[] = [
     matches: (p) =>
       [
         "p2rank",
+        "caver",
         "p2rank-compute",
         "gnina",
         "posebusters",

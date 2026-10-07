@@ -504,8 +504,25 @@ _REFERENCE_IMPORT = (
         scientific_validation="not_applicable",
     ),
 )
+_CHANNELS = (
+    CapabilitySpec(
+        id="caver.paths",
+        **modality_metadata("caver.paths"),
+        group="analyze",
+        environment="caver",
+        operations=("channel_analysis",),
+        label=("口袋通道与瓶颈", "Pocket channels and bottlenecks"),
+        note=(
+            "点选起始区域，探索通向溶剂的静态几何路径和最窄位置。",
+            "Select a starting region and explore static solvent paths and bottlenecks.",
+        ),
+        source="CAVER 3.0.2",
+        frontend_form="channel_analysis",
+    ),
+)
 _ITEMS = (
-    _INTEGRATED
+    _CHANNELS
+    + _INTEGRATED
     + _DATASETS
     + _HUMANIZATION
     + _ADMET

@@ -71,6 +71,16 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             "bundled_model_digests",
             "internal_score_not_developability",
         ]
+    elif spec.environment == "caver":
+        checks = {"runtime": bool(backends.get("caver", {}).get("ready"))}
+        specific = [
+            "observed_starting_region",
+            "explicit_context_and_alternates",
+            "reviewed_element_radii",
+            "proper_source_frame",
+            "bounded_native_search",
+            "not_whole_linker_passage_or_energy",
+        ]
     elif spec.environment == "biopython":
         checks = {"runtime": bool(backends.get("biopython", {}).get("ready"))}
         specific.extend(

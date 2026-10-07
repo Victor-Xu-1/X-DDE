@@ -127,6 +127,7 @@ _MEMBERSHIP = {
     "experimental.evidence": _ALL,
     "biopython.prepare": _ALL,
     "biopython.exposure": _ALL,
+    "caver.paths": _CONTEXT,
     "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),
     "chemistry.states": _SMALL,
     "chemistry.screen": _SMALL,

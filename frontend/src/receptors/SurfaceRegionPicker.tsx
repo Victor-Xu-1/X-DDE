@@ -18,21 +18,27 @@ export function SurfaceRegionPicker({
   value,
   onChange,
   onChains,
+  maximum = 128,
+  purpose = "surface",
 }: {
   source: MoleculeRef;
   language: Language;
   value: SurfaceRegion[];
   onChange(v: SurfaceRegion[]): void;
   onChains(v: string[]): void;
+  maximum?: number;
+  purpose?: "surface" | "channel";
 }) {
   const zh = language === "zh",
     [scene, setScene] = useState<SceneInfo>(emptyScene),
     [message, setMessage] = useState("");
   const available = [...scene.ligands, ...scene.residues];
   function add(r: SurfaceRegion) {
-    if (value.length >= 128) {
+    if (value.length >= maximum) {
       setMessage(
-        zh ? "一次最多选择128个组分。" : "Choose at most 128 components.",
+        zh
+          ? `一次最多选择 ${maximum} 个组分。`
+          : `Choose at most ${maximum} components.`,
       );
       return;
     }
@@ -65,9 +71,13 @@ export function SurfaceRegionPicker({
           </select>
         </label>
         <Hint label={zh ? "怎样选择研究区域？" : "How to select a region?"}>
-          {zh
-            ? "选择一整个配体或一组残基。多个组分作为一个共同区域计算，彼此之间的遮挡保留；默认整体文件中的全部链参与遮挡。"
-            : "Choose a whole ligand or a group of residues. Selected components form one region; their mutual occlusion remains. All provided chains form the default context."}
+          {purpose === "channel"
+            ? zh
+              ? "选择结合配体，或位于口袋内的一小组残基。所选重原子的中心作为路径起点；选定配体默认从障碍中移除，蛋白保留。"
+              : "Choose the bound ligand or a small residue group in the pocket. Their heavy-atom center defines the starting point. Selected non-polymer ligands are removed from obstacles by default; protein remains."
+            : zh
+              ? "选择一整个配体或一组残基。多个组分作为一个共同区域计算，彼此之间的遮挡保留；默认整体文件中的全部链参与遮挡。"
+              : "Choose a whole ligand or a group of residues. Selected components form one region; their mutual occlusion remains. All provided chains form the default context."}
         </Hint>
       </div>
       <StructureViewer

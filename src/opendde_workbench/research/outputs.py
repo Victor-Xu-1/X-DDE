@@ -433,7 +433,9 @@ class OutputCatalog:
             if (humanization and object_kind == "sequence")
             or (minimized and object_kind == "molecule")
             else "native_prepared"
-            if preparation and object_kind == "structure"
+            if preparation
+            and object_kind == "structure"
+            and job.request.operation == "channel_analysis"
             else "file_integrity_only",
         )
         return asset, objects

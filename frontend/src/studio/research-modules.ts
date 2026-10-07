@@ -78,6 +78,7 @@ export const researchModules: readonly ResearchModule[] = [
       "posebusters.check",
       "plip.profile",
       "biopython.exposure",
+      "caver.paths",
       "apbs.potential",
       "structure",
       "regions",

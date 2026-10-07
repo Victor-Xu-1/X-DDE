@@ -162,6 +162,24 @@
       "bytes": 61,
       "kind": "counts",
       "license": "CC-BY-4.0"
+    },
+    "ache": {
+      "key": "ache",
+      "name": "4EY7.pdb",
+      "url": "https://files.rcsb.org/download/4EY7.pdb",
+      "sha256": "6bca2109d7b512a576458c3261e597bb5159e8fb43162c5b6c88df71f9fcdbd2",
+      "bytes": 794610,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "donepezil": {
+      "key": "donepezil",
+      "name": "4EY7-E20-A604.sdf",
+      "url": "https://models.rcsb.org/v1/4ey7/ligand?auth_asym_id=A&auth_seq_id=604&encoding=sdf",
+      "sha256": "20b6d2407bef26e9a253507e79852153ad6d839e33fc5cd2109b831a1ecc606e",
+      "bytes": 3360,
+      "kind": "ligand",
+      "license": "CC0-1.0"
     }
   },
   "polymers": {
@@ -449,6 +467,26 @@
       "sources": [
         "https://github.com/Popov-Lab-UNC/DELi/tree/edeb06ca8ffe6a158c1231c4014e569e04a9b83b/examples",
         "https://doi.org/10.1186/s13321-026-01296-1"
+      ]
+    },
+    {
+      "id": "ache-donepezil",
+      "revision": 1,
+      "label": [
+        "人源 AChE–多奈哌齐通道",
+        "Human AChE–donepezil channels"
+      ],
+      "description": [
+        "在真实药物结合结构中，从多奈哌齐所在位置探索通向溶剂的几何路径与瓶颈。",
+        "Explore static paths and bottlenecks from the bound donepezil site toward solvent in the real drug complex."
+      ],
+      "files": [
+        "ache",
+        "donepezil"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/4EY7",
+        "https://doi.org/10.1021/jm300871x"
       ]
     }
   ],
@@ -879,6 +917,12 @@
       "revision": 1,
       "pinned_run_required": true,
       "parent_capability": "pose_exploration"
+    },
+    "caver.paths": {
+      "case_id": "ache-donepezil",
+      "capability_id": "caver.paths",
+      "revision": 1,
+      "pinned_run_required": true
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."

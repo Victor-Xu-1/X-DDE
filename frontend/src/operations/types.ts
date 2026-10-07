@@ -76,6 +76,7 @@ export type TaskRequest =
   | import("../chemistry/screen-types").LibraryScreenTask
   | import("../receptors/preparation-types").StructurePrepareTask
   | import("../receptors/surface-types").SurfaceExposureTask
+  | import("../space/types").ChannelTask
   | import("../discovery/reference-types").ReferenceImportTask
   | import("../discovery/types").TargetResearchTask
   | import("../chemistry/types").MolecularStatesTask

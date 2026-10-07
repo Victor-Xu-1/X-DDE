@@ -29,6 +29,7 @@ class CapabilitySpec(BaseModel):
         "gnina",
         "chemistry",
         "biopython",
+        "caver",
         "discovery",
         "anarcii",
         "posebusters",

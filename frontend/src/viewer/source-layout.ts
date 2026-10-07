@@ -1,6 +1,8 @@
 import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
+import { channelGeometry, type ChannelGeometry } from "./channel-geometry";
 export interface ViewerLoad {
+  channelGeometry?: ChannelGeometry;
   urls: string[];
   comparison: boolean;
   focusModel?: number;
@@ -63,6 +65,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
     throw new Error("Invalid molecular records");
   return {
     nativeInteractions: nativeInteractions(v.nativeInteractions),
+    ...(v.channelGeometry === undefined
+      ? {}
+      : { channelGeometry: channelGeometry(v.channelGeometry) }),
     ...(v.electrostaticMap
       ? { electrostaticMap: potentialMap(v.electrostaticMap) }
       : {}),

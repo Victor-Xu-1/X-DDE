@@ -68,6 +68,18 @@ export const modalities = [
 export type ModalityId = (typeof modalities)[number]["id"];
 export const tools = [
   {
+    id: "caver.paths",
+    group: "analyze",
+    label: ["口袋通道与瓶颈", "Pocket channels and bottlenecks"],
+    note: [
+      "点选起始区域，探索通向溶剂的静态几何路径和最窄位置。",
+      "Select a starting region and explore static solvent paths and bottlenecks.",
+    ],
+    source: "CAVER 3.0.2",
+    modalities: ["biologic", "chemical", "protein", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "boltz.predict",
     group: "structure",
     label: ["复合物与亲和力预测", "Complex and affinity prediction"],

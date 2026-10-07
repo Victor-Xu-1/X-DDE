@@ -36,7 +36,9 @@ import { poseSource } from "./pose-source";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
 import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
+import type { ChannelGeometry } from "./channel-geometry";
 interface Props {
+  channelGeometry?: ChannelGeometry;
   urls: string[];
   language: Language;
   focusResidue?: { residue: string; nonce: number } | null;
@@ -68,6 +70,7 @@ export function StructureViewer({
   nativeScore: originalScore,
   molecularSource,
   nativeInteractions,
+  channelGeometry,
   electrostaticMap,
   onAtomSelected,
   onSceneLoaded,
@@ -107,7 +110,7 @@ export function StructureViewer({
       ":" +
       (records?.join(",") ?? "") +
       ":" +
-      JSON.stringify({ nativeInteractions, electrostaticMap });
+      JSON.stringify({ nativeInteractions, electrostaticMap, channelGeometry });
   const overlay = urls.length > 1;
   const requestedKey = useRef<string | null>(key);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
@@ -209,6 +212,7 @@ export function StructureViewer({
         ...(focusModels ? { focusModels } : {}),
         records,
         nativeInteractions,
+        ...(channelGeometry ? { channelGeometry } : {}),
         electrostaticMap,
       });
       setStatus("loading");
@@ -401,6 +405,7 @@ export function StructureViewer({
                   ...(focusModels ? { focusModels } : {}),
                   records,
                   nativeInteractions,
+                  ...(channelGeometry ? { channelGeometry } : {}),
                   electrostaticMap,
                 });
               }}

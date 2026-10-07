@@ -16,6 +16,8 @@ import type { LibraryScreenResult } from "../chemistry/screen-types";
 import { ClusterResults } from "../poses/ClusterResults";
 import type { PoseClusterResult } from "../poses/cluster-types";
 import { SurfaceResults } from "../receptors/SurfaceResults";
+import { ChannelResults } from "../space/ChannelResults";
+import type { ChannelResult } from "../space/types";
 import type { SurfaceResult } from "../receptors/surface-types";
 import { StructurePrepareResults } from "../receptors/StructurePrepareResults";
 import type { StructurePrepareResult } from "../receptors/preparation-types";
@@ -80,6 +82,7 @@ export function OperationResults({
     "library_screen",
     "structure_prepare",
     "surface_exposure",
+    "channel_analysis",
     "pocket_search",
     "reference_import",
     "target_research",
@@ -205,6 +208,13 @@ export function OperationResults({
           result={data as unknown as LibraryScreenResult}
           language={language}
           onCreated={onCreated}
+        />
+      )}
+      {job.request.operation === "channel_analysis" && (
+        <ChannelResults
+          job={job}
+          result={data as unknown as ChannelResult}
+          language={language}
         />
       )}
       {job.request.operation === "surface_exposure" && (
