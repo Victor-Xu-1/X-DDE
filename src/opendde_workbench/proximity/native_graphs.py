@@ -84,6 +84,9 @@ def proposal(full, arms, partners, cfg, seed):
     )
     if molecule.GetNumAtoms() != full.GetNumAtoms():
         raise ValueError("Native ligand featurization changed the complete atom correspondence.")
+    # With an already generated, exact constrained conformer the official featurizer
+    # keeps coordinates in x. The model's initialized pose input is explicitly new_x.
+    ligand.ndata["new_x"] = ligand.ndata["x"].clone()
     first, second = [deepcopy(graph) for graph in partners]
     geometry = get_geometry_graph_ring(molecule)
     count = full.GetNumAtoms()
