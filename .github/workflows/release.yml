@@ -53,7 +53,7 @@ jobs:
           uv run --locked python scripts/stage-release-examples.py --tag "$RELEASE_TAG" --destination dist
           cd dist
           shopt -s nullglob
-          sha256sum *.whl *.zip install.sh install.ps1 opendde.ps1 > SHA256SUMS
+          sha256sum *.whl *.zip *.pdb *.sdf install.sh install.ps1 opendde.ps1 > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: release-installers
