@@ -56,7 +56,9 @@ def test_reported_evidence_example_and_fresh_questionnaire():
             browser = playwright.chromium.launch()
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
             diagnostics = []
-            page.on("console", lambda message: diagnostics.append(message.type + ": " + message.text))
+            page.on(
+                "console", lambda message: diagnostics.append(message.type + ": " + message.text)
+            )
             page.on("pageerror", lambda error: diagnostics.append("pageerror: " + str(error)))
             try:
                 page.goto(url)
@@ -78,9 +80,7 @@ def test_reported_evidence_example_and_fresh_questionnaire():
                 page.get_by_role("table", name="原始实测记录").wait_for()
                 assert "177" in page.get_by_role("region", name="实验数据结果").inner_text()
                 assert page.get_by_role("img", name="同条件实测值对比图").count() == 1
-                molecule = page.get_by_role(
-                    "img", name="二维分子结构 · CHEMBL126384", exact=True
-                )
+                molecule = page.get_by_role("img", name="二维分子结构 · CHEMBL126384", exact=True)
                 molecule.wait_for(timeout=30000)
                 assert molecule.evaluate("img => img.complete && img.naturalWidth > 0")
                 page.screenshot(path=output / "reported-results-desktop.png", full_page=True)
@@ -115,9 +115,9 @@ def test_reported_evidence_example_and_fresh_questionnaire():
                     "CHEMBL203 / human EGFR"
                 )
                 page.get_by_role("textbox", name="实验名称或编号", exact=True).fill("CHEMBL944276")
-                page.get_by_role("textbox", name="数据来源（报告、实验记录或文献）", exact=True).fill(
-                    "ChEMBL CHEMBL944276 / CC-BY-SA-3.0; published within-assay medians"
-                )
+                page.get_by_role(
+                    "textbox", name="数据来源（报告、实验记录或文献）", exact=True
+                ).fill("ChEMBL CHEMBL944276 / CC-BY-SA-3.0; published within-assay medians")
                 page.get_by_role("button", name="下一步", exact=True).click()
                 page.get_by_role("button", name="检查全部记录", exact=True).click()
                 page.get_by_role("table", name="实验记录预览", exact=True).wait_for()
