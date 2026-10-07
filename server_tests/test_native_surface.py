@@ -60,8 +60,13 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
             headers={"Content-Type": "application/octet-stream"},
         )
         assert response.status_code == 201, response.text
-        source = response.json()
-        ref = {"asset_id": source["id"], "sha256": source["sha256"]}
+        original_upload = response.json()
+        example_response = client.post("/api/examples/biopython.exposure/prepare")
+        assert example_response.status_code == 200, example_response.text
+        example = example_response.json()
+        ref = example["objects"]["brd4"]["reference"]
+        source = client.get("/api/assets/" + ref["asset_id"] + "/metadata").json()
+        assert source["sha256"] == original_upload["sha256"]
         preparation = {
             "operation": "structure_prepare",
             "name": "BRD4–JQ1 experimental altloc A",
@@ -76,6 +81,8 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
         prepare_id = created.json()["id"]
         prepared = finished(client, prepare_id)
         assert prepared["resolved_alternates"] and prepared["reference"]["version_id"]
+        pinned = client.post("/api/examples/biopython.prepare/pin", json={"job_id": prepare_id})
+        assert pinned.status_code == 200, pinned.text
         exact = prepared["reference"]
         body = {
             "operation": "surface_exposure",
@@ -144,6 +151,19 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
                 }
             )
         )
+        pinned = client.post("/api/examples/biopython.exposure/pin", json={"job_id": identifier})
+        assert pinned.status_code == 200, pinned.text
+        assert client.get("/api/examples/biopython.exposure").json()["computed_result_available"]
+        assert not any(j["id"] in {identifier, prepare_id} for j in client.get("/api/jobs").json())
+        from opendde_workbench.examples.bundle import export_bundle
+
+        exported = export_bundle(
+            settings,
+            evidence / "x-dde-surface-cases-v1.zip",
+            os.environ.get("GITHUB_SHA", "native-server-check"),
+            capabilities=["biopython.exposure"],
+        )
+        (evidence / "bundle-receipt.json").write_text(json.dumps(exported, indent=2))
         original = (output / "atoms.csv").read_bytes()
         (output / "atoms.csv").write_bytes(b"changed")
         assert client.get("/api/jobs/" + identifier + "/result").status_code == 422

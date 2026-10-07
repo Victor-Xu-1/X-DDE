@@ -29,7 +29,7 @@ jobs:
         run: |
           uv run --locked ruff check src/opendde_workbench/receptors/surface_contract.py src/opendde_workbench/receptors/surface_options.py src/opendde_workbench/receptors/surface_result.py src/opendde_workbench/receptors/native_surface.py tests/test_surface_exposure.py server_tests/test_surface_science.py server_tests/test_native_surface.py server_tests/test_surface_browser.py
           uv run --locked python scripts/generate-capability-catalog.py --check
-          uv run --locked pytest -q tests/test_surface_exposure.py tests/test_structure_preparation.py tests/test_receptor_contract.py tests/test_capabilities.py tests/test_native_contract.py
+          uv run --locked pytest -q tests/test_surface_exposure.py tests/test_structure_preparation.py tests/test_receptor_contract.py tests/test_capabilities.py tests/test_native_contract.py tests/test_examples.py tests/test_example_pins.py tests/test_case_bundle.py tests/test_dataset_examples.py
       - name: Focused exposure questionnaire and direct preparation/entry consumers
         working-directory: frontend
         run: npx vitest run src/receptors/SurfaceForm.test.tsx src/receptors/StructurePrepareForm.test.tsx src/studio/BindingEntryDialog.test.tsx src/studio/research-modules.test.ts

@@ -1603,5 +1603,29 @@
       "公开真实输入与已验证的原生计算分别保留来源。示例固定在模块内，不占用个人任务；计算分数、富集和实验测量分别解读。",
       "Public real inputs and verified native computations retain provenance. Examples remain in the module outside personal tasks; computed scores, enrichment and measurements are interpreted separately."
     ]
+  },
+  "biopython.exposure": {
+    "steps": [
+      [
+        "使用明确选取替代位置 A 的 BRD4–JQ1 实验结构。",
+        "Use observed BRD4–JQ1 coordinates with explicit alternate A selection."
+      ],
+      [
+        "点选 JQ1 配体或其他研究残基。",
+        "Select JQ1 or other research residues."
+      ],
+      [
+        "采用 1.4 Å 探针；需要时调整采样和上下文链。",
+        "Use a 1.4 Å probe; adjust sampling and context chains when needed."
+      ],
+      [
+        "确认选区和条件，再查看三维与面积并下载。",
+        "Review the selection and conditions, then inspect and download the 3D structure and areas."
+      ]
+    ],
+    "interpretation": [
+      "面积比较同一选区的独立状态与整体结构中的暴露，不表示亲和力、连接臂通行或实验药效。",
+      "Areas compare the same region in isolation and in context; they do not establish affinity, linker passage or experimental efficacy."
+    ]
   }
 }

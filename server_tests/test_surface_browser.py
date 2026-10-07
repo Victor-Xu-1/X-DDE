@@ -72,5 +72,10 @@ def test_surface_native_3d_table_download_and_guided_entry():
         page.set_viewport_size({"width": 390, "height": 1050})
         assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
         page.screenshot(path=str(evidence / "submission-review-mobile.png"), full_page=True)
+        page.get_by_role("button", name="使用此模板", exact=True).click()
+        expect(page.get_by_role("button", name="下一步", exact=True)).to_be_enabled()
+        page.get_by_role("button", name="示例结果", exact=True).click()
+        expect(page.locator(".module-template .surface-results")).to_be_visible(timeout=30000)
+        page.screenshot(path=str(evidence / "fixed-module-example-mobile.png"), full_page=True)
         assert not submitted and not errors
         browser.close()

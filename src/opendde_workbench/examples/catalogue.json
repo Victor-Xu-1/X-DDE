@@ -860,6 +860,12 @@
       "capability_id": "del.followup",
       "revision": 2,
       "pinned_run_required": true
+    },
+    "biopython.exposure": {
+      "case_id": "brd4-jq1",
+      "capability_id": "biopython.exposure",
+      "revision": 1,
+      "pinned_run_required": true
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."
