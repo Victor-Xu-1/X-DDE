@@ -18,6 +18,10 @@ from opendde_workbench.capabilities.definitions import CAPABILITIES
 
 
 def test_every_task_page_and_native_case_layout():
+    selected_width = os.environ.get("WB_LAYOUT_WIDTH")
+    if selected_width is not None and selected_width not in {"1440", "390"}:
+        raise ValueError("Choose the reviewed desktop or mobile layout width.")
+    widths = (int(selected_width),) if selected_width else (1440, 390)
     evidence = Path("server_tests/evidence/task-layout")
     evidence.mkdir(parents=True, exist_ok=True)
     errors = []
@@ -50,7 +54,7 @@ def test_every_task_page_and_native_case_layout():
             }
             expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
             names = page.locator(".tool-card h2").all_text_contents()
-            for width in (1440, 390):
+            for width in widths:
                 page.set_viewport_size({"width": width, "height": 1000})
                 for name in names:
                     catalog(page)
