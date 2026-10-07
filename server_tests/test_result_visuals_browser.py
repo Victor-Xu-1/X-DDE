@@ -222,6 +222,28 @@ def test_real_structures_tables_and_sequences():
             page.locator(".alignment-residues button").first.click()
             expect(page.locator(".sequence-alignment footer")).to_contain_text("IMGT")
             record("antibody-source-alignment")
+            result("DEL 研究模型")
+            assessment = page.get_by_role("region", name="独立验证指标", exact=True)
+            expect(assessment).to_be_visible(timeout=30000)
+            expect(assessment).to_contain_text("尚未优于简单基线")
+            validation = page.locator(".dataset-model-validation")
+            for width in (1440, 390):
+                page.set_viewport_size({"width": width, "height": 1000})
+                chart = validation.locator(".dataset-chart").bounding_box()
+                summary = assessment.bounding_box()
+                if width == 1440:
+                    assert chart["x"] + chart["width"] <= summary["x"]
+                    assert chart["width"] > 650
+                else:
+                    assert chart["y"] + chart["height"] <= summary["y"]
+                assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
+                record(f"del-model-validation-{width}")
+            page.set_viewport_size({"width": 1440, "height": 1000})
+            validation_file = download(
+                validation.get_by_role("button", name="下载图表", exact=True),
+                "native-del-validation.svg",
+            )
+            assert ET.fromstring(validation_file.read_bytes()).tag.endswith("svg")
             assert not errors, errors
             assert not submitted, submitted
             with sqlite3.connect(Path(os.environ["WB_STATE_DIR"]) / "jobs.sqlite3") as db:

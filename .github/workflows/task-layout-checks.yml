@@ -13,6 +13,7 @@ on:
       - 'frontend/src/receptors/SurfaceRegionPicker*'
       - 'frontend/src/receptors/surface.css'
       - 'frontend/src/datasets/datasets.css'
+      - 'frontend/src/datasets/ModelValidationPlot*'
       - 'frontend/src/pockets/**'
       - 'frontend/src/operations/**'
       - 'frontend/src/research/**'
@@ -102,6 +103,7 @@ jobs:
           src/integrations/PropertyModelSelection.test.tsx
           src/integrations/ScientificChoices.test.tsx
           src/datasets/SourcePicker.test.tsx
+          src/datasets/ModelValidationPlot.test.tsx
           src/receptors/SurfaceForm.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx

@@ -288,6 +288,13 @@ Dataset form content aligns with the question title at wide widths instead of
 centering a separate narrow block. Researcher diagnostic captures also wait for
 native molecular drawings to finish before their screenshots are accepted.
 
+DEL model validation uses one full-width composition: observed/predicted points
+beside the native holdout metrics, stacked on compact screens. The displayed
+baseline comparison uses only finite native RMSE values; application predictions
+never acquire holdout labels. Lower holdout error does not imply affinity or
+experimental acceptance. Expert tuning starts on a separate line from side-chain
+selection so the two actions cannot be mistaken for one checkbox label.
+
 Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.
 
 Generated result previews are now derived from the declared original SDF records and byte digest, independently of optional research-version indexing. Native and qualified record counts must match the actual SDF before display. Reusable task handoffs still require a real immutable object matching the source job, output digest and record; missing historical index metadata never creates synthetic references.

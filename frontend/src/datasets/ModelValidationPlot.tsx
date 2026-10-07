@@ -17,8 +17,13 @@ export function ModelValidationPlot({
 }) {
   const zh = language === "zh",
     max = Math.max(1, ...points.flatMap((p) => [p.observed, p.predicted]));
+  const compared =
+    Number.isFinite(metrics.rmse_log1p_enrichment) &&
+    Number.isFinite(metrics.mean_baseline_rmse);
+  const improvesBaseline =
+    compared && metrics.rmse_log1p_enrichment < metrics.mean_baseline_rmse;
   return (
-    <div>
+    <div className="dataset-model-validation">
       <PlotFrame
         language={language}
         title={
@@ -99,20 +104,45 @@ export function ModelValidationPlot({
         </text>
       </PlotFrame>
       {!application && (
-        <div className="dataset-model-metrics">
-          {[
-            ["rmse_log1p_enrichment", zh ? "模型误差 RMSE" : "Model RMSE"],
-            ["mean_baseline_rmse", zh ? "均值基线误差" : "Mean baseline RMSE"],
-            ["spearman_enrichment", zh ? "排序相关性" : "Rank correlation"],
-          ]
-            .filter(([key]) => Number.isFinite(metrics[key]))
-            .map(([key, label]) => (
-              <span key={key}>
-                {label}
-                <strong>{metrics[key].toFixed(3)}</strong>
-              </span>
-            ))}
-        </div>
+        <section
+          className="dataset-model-assessment"
+          aria-label={zh ? "独立验证指标" : "Independent validation metrics"}
+        >
+          <h3>{zh ? "独立验证" : "Independent validation"}</h3>
+          {compared && (
+            <p className="dataset-model-comparison">
+              {improvesBaseline
+                ? zh
+                  ? "留出误差低于简单基线"
+                  : "Holdout error is below the simple baseline"
+                : zh
+                  ? "尚未优于简单基线"
+                  : "Has not outperformed the simple baseline"}
+            </p>
+          )}
+          <div className="dataset-model-metrics">
+            {[
+              ["rmse_log1p_enrichment", zh ? "模型误差 RMSE" : "Model RMSE"],
+              [
+                "mean_baseline_rmse",
+                zh ? "均值基线误差" : "Mean baseline RMSE",
+              ],
+              ["spearman_enrichment", zh ? "排序相关性" : "Rank correlation"],
+            ]
+              .filter(([key]) => Number.isFinite(metrics[key]))
+              .map(([key, label]) => (
+                <span key={key}>
+                  {label}
+                  <strong>{metrics[key].toFixed(3)}</strong>
+                </span>
+              ))}
+          </div>
+          <p className="dataset-model-reading-help">
+            {zh
+              ? "误差越低越好；简单基线为仅使用训练集均值的预测。富集预测不代表结合亲和力，仍需实验验证。"
+              : "Lower error is better. The simple baseline predicts the training-set mean. Enrichment predictions are not binding affinity and still require experiments."}
+          </p>
+        </section>
       )}
     </div>
   );
