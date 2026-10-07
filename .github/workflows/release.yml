@@ -19,6 +19,9 @@ permissions:
   contents: write
 jobs:
   release:
+    permissions:
+      contents: read
+      actions: read
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +35,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify and build exact release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
@@ -45,8 +50,10 @@ jobs:
           uv build --wheel
           test "$RELEASE_TAG" = "v$(uv run python -c 'from opendde_workbench import __version__; print(__version__)')"
           cp install.sh install.ps1 scripts/opendde.ps1 dist/
+          uv run --locked python scripts/stage-release-examples.py --tag "$RELEASE_TAG" --destination dist
           cd dist
-          sha256sum *.whl install.sh install.ps1 opendde.ps1 > SHA256SUMS
+          shopt -s nullglob
+          sha256sum *.whl *.zip install.sh install.ps1 opendde.ps1 > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: release-installers

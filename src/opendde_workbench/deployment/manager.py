@@ -45,7 +45,15 @@ class DeploymentManager:
         if not config and os.environ.get("WB_AUTO_DEPLOY") == "1":
             self.configure(str(home() / "components"), True)
             # Editors first so a large compute image never blocks the first useful screen.
-            for key in ("ketcher", "molstar", "public-examples", "harness", "runtime", "compute"):
+            for key in (
+                "ketcher",
+                "molstar",
+                "public-examples",
+                "public-surface-examples",
+                "harness",
+                "runtime",
+                "compute",
+            ):
                 self.enqueue(key, "install")
         self.task = asyncio.create_task(self.loop())
 
@@ -196,7 +204,12 @@ class DeploymentManager:
                         shutil.rmtree(directory)
                 installed.pop(key, None)
             else:
-                if key in {"public-examples", "public-dataset-examples", "supplier-libraries"}:
+                if key in {
+                    "public-examples",
+                    "public-dataset-examples",
+                    "public-surface-examples",
+                    "supplier-libraries",
+                }:
                     installed[key] = install(
                         key, root, installed, identifier, report, checkpoint, state=self.store.state
                     )

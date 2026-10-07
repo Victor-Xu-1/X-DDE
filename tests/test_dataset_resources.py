@@ -12,7 +12,9 @@ from opendde_workbench.integrations.image import prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS
 
 
-@pytest.mark.parametrize("package", ["public-examples", "public-dataset-examples"])
+@pytest.mark.parametrize(
+    "package", ["public-examples", "public-dataset-examples", "public-surface-examples"]
+)
 def test_case_component_queue_restores_into_current_state(package, tmp_path, monkeypatch):
     """Exercise installer/archive/SQLite boundaries without pretending to compute science."""
     import shutil

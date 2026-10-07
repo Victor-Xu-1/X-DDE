@@ -16,6 +16,9 @@ from ..examples.bundle_release import VERSION as CASE_VERSION
 from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
 from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
 from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
+from ..examples.surface_bundle_release import SHA256 as SURFACE_CASE_SHA
+from ..examples.surface_bundle_release import URL as SURFACE_CASE_URL
+from ..examples.surface_bundle_release import VERSION as SURFACE_CASE_VERSION
 from ..integrations.labels import public_name
 from ..integrations.specs import PROGRAMS as SCIENTIFIC_PROGRAMS
 from ..pockets.manifest import SHA256 as P2_SHA
@@ -48,8 +51,8 @@ PACKAGES = {
         Package(
             "biopython",
             "biopython-1.88-numpy-1.26.4",
-            "Biopython 受体构象准备",
-            "独立 CPU 结构解析、对应和刚体对齐 / Independent structural alignment",
+            "Biopython 结构与空间分析",
+            "结构准备、受体对齐与区域暴露 / Preparation, alignment and region exposure",
             "约 100 MB 下载；至少 2 GiB 安装空间 / ~100 MB download; 2 GiB staging",
             license=(
                 "Biopython License Agreement / BSD-3-Clause; NumPy BSD-3-Clause; dependency terms"
@@ -295,6 +298,21 @@ PACKAGES["public-examples"] = Package(
     url=CASE_URL,
     checksum=CASE_SHA,
     license="RCSB CC0-1.0; ChEMBL CC-BY-SA-3.0; UniProt CC-BY-4.0; computed output notices",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-surface-examples"] = Package(
+    "public-surface-examples",
+    SURFACE_CASE_VERSION,
+    "Structural exposure public case",
+    "BRD4–JQ1 真实暴露分析模板与结果 / Native BRD4–JQ1 exposure template and result",
+    "0.4 MB",
+    dependencies=("public-examples",),
+    automatic=True,
+    url=SURFACE_CASE_URL,
+    checksum=SURFACE_CASE_SHA,
+    license="RCSB PDB CC0-1.0; native geometric measurements with source and method notices",
     engine="x-dde",
     kind="data",
 )

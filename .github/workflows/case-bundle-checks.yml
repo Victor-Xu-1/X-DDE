@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/examples/bundle*.py'
+      - 'src/opendde_workbench/examples/surface_bundle_release.py'
+      - 'scripts/stage-release-examples.py'
+      - 'tests/test_dataset_resources.py'
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_case_bundle.py'
@@ -14,11 +17,15 @@ on:
   pull_request:
     paths:
       - 'src/opendde_workbench/examples/bundle*.py'
+      - 'src/opendde_workbench/examples/surface_bundle_release.py'
+      - 'scripts/stage-release-examples.py'
+      - 'tests/test_dataset_resources.py'
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
       - 'frontend/src/deployment/**'
 permissions:
   contents: read
+  actions: read
 jobs:
   scoped-delivery:
     runs-on: ubuntu-24.04
@@ -31,5 +38,13 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - run: uv run --locked pytest -q tests/test_case_bundle.py tests/test_case_bundle_sources.py tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - name: Verify case installation into the active state
+        run: uv run --locked pytest -q tests/test_dataset_resources.py -k case_component_queue_restores_into_current_state
+      - name: Stage the exact accepted release data without scientific recomputation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(uv run --locked python -c 'from opendde_workbench import __version__; print(__version__)')
+          uv run --locked python scripts/stage-release-examples.py --tag "v$version" --destination "$RUNNER_TEMP/staged-cases"
       - working-directory: frontend
         run: npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
