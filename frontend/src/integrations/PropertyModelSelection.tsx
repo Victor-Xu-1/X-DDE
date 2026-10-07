@@ -41,35 +41,37 @@ export function PropertyModelSelection({
   }, [attempt]);
   return (
     <>
-      <label className="field">
-        {zh ? "选择已训练的研究模型" : "Choose a trained research model"}
-        <select
-          disabled={loading || !models.length}
-          value={String(payload.model_job ?? "")}
-          onChange={(event) => {
-            const model = models.find(
-              (item) => item.job_id === event.target.value,
-            );
-            onChange({
-              model_job: model?.job_id ?? null,
-              model_sha256: model?.sha256 ?? null,
-              ...(model
-                ? {
-                    activity_property: model.activity_property,
-                    activity_unit: model.activity_unit,
-                  }
-                : {}),
-            });
-          }}
-        >
-          <option value="">{zh ? "选择模型" : "Choose model"}</option>
-          {models.map((model) => (
-            <option key={model.job_id} value={model.job_id}>
-              {model.name} · {model.activity_property} ({model.activity_unit})
-            </option>
-          ))}
-        </select>
-      </label>
+      {(loading || models.length > 0) && (
+        <label className="field">
+          {zh ? "选择已训练的研究模型" : "Choose a trained research model"}
+          <select
+            disabled={loading || !models.length}
+            value={String(payload.model_job ?? "")}
+            onChange={(event) => {
+              const model = models.find(
+                (item) => item.job_id === event.target.value,
+              );
+              onChange({
+                model_job: model?.job_id ?? null,
+                model_sha256: model?.sha256 ?? null,
+                ...(model
+                  ? {
+                      activity_property: model.activity_property,
+                      activity_unit: model.activity_unit,
+                    }
+                  : {}),
+              });
+            }}
+          >
+            <option value="">{zh ? "选择模型" : "Choose model"}</option>
+            {models.map((model) => (
+              <option key={model.job_id} value={model.job_id}>
+                {model.name} · {model.activity_property} ({model.activity_unit})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {loading ? (
         <p role="status">
           {zh ? "正在读取研究模型…" : "Loading research models…"}

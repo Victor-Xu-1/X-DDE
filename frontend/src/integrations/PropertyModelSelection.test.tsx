@@ -36,6 +36,7 @@ it("distinguishes a pending model request from a missing training prerequisite",
     screen.queryByRole("button", { name: "Train a property model" }),
   ).toBeNull();
   await act(async () => finish({ models: [] }));
+  expect(screen.queryByRole("combobox")).toBeNull();
   await userEvent
     .setup()
     .click(
