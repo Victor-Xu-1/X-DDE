@@ -11,12 +11,32 @@ from uuid import uuid4
 from opendde_workbench.integrations.backend import ScientificBackend
 from opendde_workbench.integrations.contract import IntegratedTask
 from opendde_workbench.integrations.result import validate_result
+from opendde_workbench.integrations.specs import recipe_digest
 from opendde_workbench.proximity.options import TernaryPayload
 
 
 def run_adapter(root, image, models):
     if os.environ.get("CI") != "true":
         raise RuntimeError("Native model acceptance belongs in isolated CI.")
+    # Freeze actual selected official bytes under the same manifest contract as installation.
+    (models / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "program": "deepternary",
+                "recipe_sha256": recipe_digest("deepternary"),
+                "files": [
+                    {
+                        "name": file.name,
+                        "size": file.stat().st_size,
+                        "sha256": hashlib.sha256(file.read_bytes()).hexdigest(),
+                    }
+                    for file in sorted(models.iterdir())
+                    if file.is_file()
+                ],
+            }
+        )
+    )
     work = root / "adapter-job"
     work.mkdir()
     assets = work / "assets"
