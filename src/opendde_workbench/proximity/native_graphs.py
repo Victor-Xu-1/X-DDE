@@ -114,7 +114,9 @@ def proposal(full, arms, partners, cfg, seed):
         else:
             mask = torch.zeros(count, dtype=torch.bool)
             coordinates = ligand.ndata["x"][0:0]
-            protein_mask = torch.zeros(native_graph.ndata["x"].shape[0], dtype=torch.bool)
+            # The official MGD interface supplies empty ligand-sized masks for
+            # all four pocket fields; no known pocket is injected into this model.
+            protein_mask = torch.zeros(count, dtype=torch.bool)
         data[prefix + "lig_lig_pocket_mask"] = [mask]
         data[prefix + "lig_lig_pocket_coords"] = [coordinates.clone()]
         data[prefix + "lig_" + prefix + "_pocket_mask"] = [protein_mask]

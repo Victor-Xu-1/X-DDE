@@ -18,7 +18,7 @@ from native_proximity_graphs import load_model, partner_graph, proposal
 from native_proximity_partners import read_partner
 from native_proximity_prediction import predict_one
 from native_proximity_quality import check_candidate
-from predict import get_lig_graph_revised
+from predict import get_geometry_graph_ring, get_lig_graph_revised
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
         )
     assert np.array_equal(original, full.GetConformer().GetPositions())
     # Independently invoke the official glue featurizer under the deposited frame.
-    _, reference = get_lig_graph_revised(
+    reference_molecule, reference = get_lig_graph_revised(
         deepcopy(full),
         name="X_DDE",
         max_neighbors=config.lig_max_neighbors,
@@ -57,11 +57,26 @@ def main():
     assert all(
         torch.equal(a, b) for a, b in zip(data["lig_graph"].edges(), reference.edges(), strict=True)
     )
+    # Construct the official _run_mgd forward inputs independently, including its
+    # ligand-sized empty pocket masks. Do not compare the adapter to itself.
+    official = {
+        "lig_graph": reference,
+        "rec_graph": deepcopy(graphs[0]),
+        "rec2_graph": deepcopy(graphs[1]),
+        "geometry_graph": get_geometry_graph_ring(reference_molecule),
+        "complex_name": ["X_DDE"],
+        "rec2_coords": [graphs[1].ndata["x"].clone()],
+        "rec2_coords_input": [graphs[1].ndata["x"].clone()],
+    }
+    for prefix in ("p1lig_p1", "p1lig_lig", "p2lig_p2", "p2lig_lig"):
+        official[prefix + "_pocket_mask"] = [torch.zeros(full.GetNumAtoms(), dtype=torch.bool)]
+        official[prefix + "_pocket_coords"] = [reference.ndata["x"][0:0]]
+        assert torch.equal(data[prefix + "_pocket_mask"][0], official[prefix + "_pocket_mask"][0])
     random.seed(0)
     torch.manual_seed(0)
     np.random.seed(0)
     with torch.no_grad():
-        native = model(**data, mode="predict")[0]
+        native = model(**official, mode="predict")[0]
     expected_ligand = correct_ligand(native["ligs_coords_pred"], reference.ndata["x"], full)
     expected_partner = (
         rotate_and_translate(graphs[1].ndata["x"], native["rotation_2"], native["translation_2"])
