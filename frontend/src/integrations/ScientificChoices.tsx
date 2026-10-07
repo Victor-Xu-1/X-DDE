@@ -151,7 +151,7 @@ export function ScientificChoices({
       )}
       <button
         type="button"
-        className="text-button"
+        className="text-button scientific-expert-toggle"
         aria-expanded={expert}
         onClick={() => onExpert(!expert)}
       >

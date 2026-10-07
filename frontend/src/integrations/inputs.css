@@ -42,6 +42,10 @@
 .scientific-component-input .text-button {
   justify-self: start;
 }
+.scientific-expert-toggle {
+  display: block;
+  margin-top: 18px;
+}
 .scientific-input-grid > .secondary-button {
   grid-column: 1/-1;
   justify-self: start;
