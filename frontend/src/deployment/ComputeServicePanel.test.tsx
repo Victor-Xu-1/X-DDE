@@ -7,6 +7,30 @@ import type { Deployment } from "./client";
 const data = {
   compute_service: { configured: true, running: false, ready: false },
 } as Deployment;
+it("shows an actionable local-language setup state without exposing internal diagnostics", () => {
+  render(
+    <ComputeServicePanel
+      data={{
+        ...data,
+        compute_service: {
+          configured: false,
+          running: false,
+          ready: false,
+          reason:
+            "Install Harness, runtime, compute image and checkpoint: /srv/internal/state.log",
+        },
+      }}
+      zh={true}
+      busy={false}
+      execute={vi.fn()}
+    />,
+  );
+  expect(
+    screen.getByText("请先安装下方所需的计算组件，再启动服务。"),
+  ).toBeVisible();
+  expect(screen.queryByText(/Install Harness|state.log/)).toBeNull();
+  expect(screen.getByRole("button", { name: "启动计算服务" })).toBeDisabled();
+});
 it("starts the managed service through its existing deployment API", () => {
   const execute = vi.fn(async (action: () => Promise<unknown>) => {
     await action();

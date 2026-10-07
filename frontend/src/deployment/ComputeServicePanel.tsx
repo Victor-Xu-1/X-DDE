@@ -38,7 +38,25 @@ export function ComputeServicePanel({
                 : "Stopped"}
         </span>
       </div>
-      {service.reason && <p className="field-help">{service.reason}</p>}
+      {!service.ready && (
+        <p className="field-help">
+          {!service.configured
+            ? zh
+              ? "请先安装下方所需的计算组件，再启动服务。"
+              : "Install the required compute components below, then start the service."
+            : service.restart_required
+              ? zh
+                ? "环境已更新，点击“应用环境更新”使配置生效。"
+                : "The environment changed. Apply the update to use its new configuration."
+              : service.running
+                ? zh
+                  ? "服务正在运行，所需资源尚未就绪；请检查组件与模型。"
+                  : "The service is running, but required resources are unavailable. Check its components and models."
+                : zh
+                  ? "启动计算服务后，可在运行状态中检查是否就绪。"
+                  : "Start the compute service, then check its readiness in Runtime status."}
+        </p>
+      )}
       <div className="component-actions">
         <button
           disabled={
