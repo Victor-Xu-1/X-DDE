@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/integrations/recipes/deepternary*'
       - 'server_tests/deepternary*'
       - 'server_tests/proximity*'
+      - 'server_tests/molecular_glue*'
       - 'server_tests/test_proximity_browser.py'
       - 'tests/test_proximity*'
       - 'frontend/src/proximity/**'

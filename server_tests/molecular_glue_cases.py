@@ -1,10 +1,19 @@
 """Exact deposited core-chain inputs for isolated molecular-glue acceptance."""
 
+import argparse
+import hashlib
 import json
 import shutil
+import zipfile
 from pathlib import Path
 
-from opendde_workbench.deployment.transfers import download
+from opendde_workbench.deployment.transfers import download, extract
+
+SNAPSHOT_URL = (
+    "https://github.com/Victor-Xu-1/X-DDE/releases/download/"
+    "proximity-inputs-v1/x-dde-glue-inputs-v1.zip"
+)
+SNAPSHOT_SHA256 = "cbeb500bfede8086d957279acfc6d6827f66590874a0ced06b3d97f3b1a531c2"
 
 CASES = (
     {
@@ -36,6 +45,10 @@ CASES = (
 
 def prepare_cases(root: Path):
     """No inferred chemistry or inferred pose; SDF uses observed instance coordinates."""
+    archive = root / "glue-source-snapshot.zip"
+    download(SNAPSHOT_URL, archive, SNAPSHOT_SHA256, print, lambda: None, limit=8 * 1024**2)
+    source = root / "glue-source-snapshot"
+    extract(archive, source, lambda: None)
     cases = []
     for definition in CASES:
         case = dict(definition)
@@ -48,11 +61,13 @@ def prepare_cases(root: Path):
             f"https://models.rcsb.org/v1/{case['entry'].lower()}/ligand?"
             f"auth_asym_id={case['ligand_chain']}&auth_seq_id={case['ligand_number']}&encoding=sdf"
         )
-        for url, destination, digest, limit in (
-            (pdb_url, pdb, case["pdb_sha256"], 8 * 1024**2),
-            (sdf_url, sdf, case["sdf_sha256"], 1024**2),
+        for original, destination, digest in (
+            (source / (case["entry"] + ".pdb"), pdb, case["pdb_sha256"]),
+            (source / (case["entry"] + ".sdf"), sdf, case["sdf_sha256"]),
         ):
-            download(url, destination, digest, print, lambda: None, limit=limit)
+            if hashlib.sha256(original.read_bytes()).hexdigest() != digest:
+                raise ValueError("Frozen molecular-glue source member changed.")
+            shutil.copyfile(original, destination)
         # The native shared selection policy extracts the explicitly declared chains.
         for name in ("protein1.pdb", "protein2.pdb"):
             shutil.copyfile(pdb, directory / name)
@@ -62,3 +77,48 @@ def prepare_cases(root: Path):
         case["inputs"] = directory
         cases.append(case)
     return cases
+
+
+def freeze_inputs(source: Path, destination: Path):
+    """Package already downloaded public bytes; never hash live server timestamps."""
+    members = {}
+    for case in CASES:
+        for suffix in ("pdb", "sdf"):
+            name = case["entry"] + "." + suffix
+            content = (source / name).read_bytes()
+            if hashlib.sha256(content).hexdigest() != case[suffix + "_sha256"]:
+                raise ValueError("Only the reviewed original public bytes can be frozen.")
+            members[name] = content
+    members["source.json"] = json.dumps(
+        {
+            "schema_version": 1,
+            "kind": "deposited_inputs_not_computed_results",
+            "cases": CASES,
+            "license": "CC0-1.0",
+            "license_source": "https://www.rcsb.org/pages/policies",
+            "references": [
+                "https://www.rcsb.org/structure/5FQD",
+                "https://doi.org/10.1038/nature16979",
+                "https://www.rcsb.org/structure/5HXB",
+                "https://doi.org/10.1038/nature18611",
+            ],
+            "coordinates": "Observed ligand instances and deposited protein coordinates",
+            "modelserver_metadata": "Original response timestamps and timings retained as received",
+        },
+        indent=2,
+    ).encode()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, content in sorted(members.items()):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(info, content)
+    print(hashlib.sha256(destination.read_bytes()).hexdigest())
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--freeze-from", type=Path, required=True)
+    parser.add_argument("--destination", type=Path, required=True)
+    arguments = parser.parse_args()
+    freeze_inputs(arguments.freeze_from, arguments.destination)

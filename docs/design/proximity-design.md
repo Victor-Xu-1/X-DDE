@@ -157,6 +157,12 @@ Z/X with its 31-heavy-atom 85C instance. Both declare omitted DDB1, structural
 zinc and duplicate crystal copies. Exact public input hashes and native graph/
 forward parity are checked before accepting the integration; parity is not
 prospective scientific accuracy or validation of the omitted components.
+The native input snapshot is [proximity-inputs-v1](https://github.com/Victor-Xu-1/X-DDE/releases/tag/proximity-inputs-v1),
+SHA-256 `cbeb500bfede8086d957279acfc6d6827f66590874a0ced06b3d97f3b1a531c2`.
+ModelServer SDF responses include per-request timestamps and timings; the original
+reviewed responses are frozen rather than weakening checksum verification or
+changing the expected digest on each run. This input-only data release is separate
+from computed examples and software publication versions.
 
 Result acceptance also covers 1280px, 1366px and 1600px desktop widths. Candidate
 table headings remain horizontal and the table fits its assigned desktop column;
