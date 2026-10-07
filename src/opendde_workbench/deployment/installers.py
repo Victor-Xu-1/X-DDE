@@ -91,6 +91,10 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         from .antibody_install import install_antibody
 
         metadata.update(install_antibody(root, work, execute, report, checkpoint))
+    elif key == "caver":
+        from .space_install import install_space
+
+        metadata.update(install_space(root, work, execute, report, checkpoint))
     elif key == "biopython":
         from .receptor_install import install_biopython
 

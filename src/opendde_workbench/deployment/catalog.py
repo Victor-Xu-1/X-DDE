@@ -28,6 +28,10 @@ from ..integrations.specs import PROGRAMS as SCIENTIFIC_PROGRAMS
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
 from ..pockets.manifest import VERSION as P2_VERSION
+from ..space.manifest import LICENSE as CAVER_LICENSE
+from ..space.manifest import SHA256 as CAVER_SHA
+from ..space.manifest import URL as CAVER_URL
+from ..space.manifest import VERSION as CAVER_VERSION
 from .native_tools import SHA256 as ZSTD_SHA
 from .native_tools import URL as ZSTD_URL
 from .native_tools import VERSION as ZSTD_VERSION
@@ -52,6 +56,17 @@ class Package:
 PACKAGES = {
     p.id: p
     for p in [
+        Package(
+            "caver",
+            CAVER_VERSION,
+            "口袋通道与瓶颈 · CAVER",
+            "静态结构内的通道、瓶颈和路径轮廓 / Static channels, bottlenecks and profiles",
+            "约 200 MB 下载；至少 3 GiB 安装空间 / ~200 MB; 3 GiB staging",
+            url=CAVER_URL,
+            checksum=CAVER_SHA,
+            license=CAVER_LICENSE,
+            engine="caver",
+        ),
         Package(
             "biopython",
             "biopython-1.88-numpy-1.26.4",

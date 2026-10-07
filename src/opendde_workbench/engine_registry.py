@@ -26,6 +26,13 @@ class ScientificEngine:
 
 _DEFINITIONS = (
     ScientificEngine(
+        "caver",
+        "CAVER 3.0.2",
+        "口袋通道与几何瓶颈 / Pocket channels and geometric bottlenecks",
+        "docker",
+        ("channel_analysis",),
+    ),
+    ScientificEngine(
         "sapiens",
         "Sapiens / ANARCII / Promb",
         "抗体序列人源参考评估与框架建议 / "

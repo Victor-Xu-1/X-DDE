@@ -137,7 +137,7 @@ class OutputCatalog:
 
     def preparation_output(self, job_id, file):
         job = self.store.get(str(job_id))
-        if not job or job.request.operation != "structure_prepare":
+        if not job or job.request.operation not in {"structure_prepare", "channel_analysis"}:
             return None
         from ..receptors.preparation_result import validate_preparation
 
@@ -145,9 +145,20 @@ class OutputCatalog:
         manifest = contained(root, "result.json")
         if manifest.stat().st_size > 25 * 1024**2:
             raise ValueError("Prepared structure report exceeds its size limit.")
-        result = validate_preparation(json.loads(manifest.read_text()), job.request, root)
+        value = json.loads(manifest.read_text())
+        if job.request.operation == "channel_analysis":
+            from ..space.result import validate_channels
+
+            result = validate_channels(value, job.request, root).preparation
+        else:
+            result = validate_preparation(value, job.request, root)
         if file.suffix.lower() in {".pdb", ".cif"} and file.name != result.artifact:
             raise ValueError("Only the declared prepared structure can be reused.")
+        if job.request.operation == "channel_analysis" and file.name not in {
+            result.artifact,
+            "result.json",
+        }:
+            raise ValueError("Native context maps and path geometry remain diagnostic downloads.")
         return result
 
     def screen_output(self, job_id, file):
@@ -421,6 +432,8 @@ class OutputCatalog:
             validation="native_edited"
             if (humanization and object_kind == "sequence")
             or (minimized and object_kind == "molecule")
+            else "native_prepared"
+            if preparation and object_kind == "structure"
             else "file_integrity_only",
         )
         return asset, objects
@@ -482,6 +495,11 @@ class OutputCatalog:
                     and file.name != "result.json"
                 ):
                     # Diagnostic copies support preview; downstream jobs reuse original versions.
+                    continue
+                if job.request.operation == "channel_analysis" and file.name not in {
+                    "result.json",
+                    "prepared.cif",
+                }:
                     continue
                 if job.request.operation == "docking":
                     from ..docking.result import DockingResult

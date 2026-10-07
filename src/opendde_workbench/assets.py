@@ -207,7 +207,11 @@ class AssetStore:
             from .discovery.import_provenance import evidence_binding
 
             return evidence_binding(request, self)
-        if getattr(request, "operation", None) in {"structure_prepare", "surface_exposure"}:
+        if getattr(request, "operation", None) in {
+            "structure_prepare",
+            "surface_exposure",
+            "channel_analysis",
+        }:
             ref = request.structure
             asset = self.get(ref.asset_id)
             if (

@@ -152,6 +152,12 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
         matched = bool(
             runtime["image"] and installed.get("anarcii", {}).get("image") == runtime["image"]
         )
+    elif software == "caver":
+        from .space.image import lock_digest
+
+        entry = installed.get("caver", {})
+        runtime = {"image": entry.get("image", ""), "runtime_lock_sha256": lock_digest()}
+        matched = bool(runtime["image"] and entry.get("runtime_lock_sha256") == lock_digest())
     elif software == "biopython":
         from .receptors.image import lock_digest
 

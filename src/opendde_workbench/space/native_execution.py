@@ -14,9 +14,14 @@ else:
 
 def execute(inputs, output, options):
     jar = Path("/opt/caver/caver.jar")
+    if jar.is_symlink() or not 0 < jar.stat().st_size <= 32 * 1024**2:
+        raise ValueError("Native CAVER binary is unsafe or oversized.")
+    digest = hashlib.sha256()
     with jar.open("rb") as stream:
-        if hashlib.file_digest(stream, "sha256").hexdigest() != JAR_SHA256:
-            raise ValueError("Native CAVER differs from the reviewed version.")
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    if digest.hexdigest() != JAR_SHA256:
+        raise ValueError("Native CAVER differs from the reviewed version.")
     config = output / "native-config.txt"
     config.write_text(
         "\n".join(

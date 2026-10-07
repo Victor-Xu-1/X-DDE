@@ -117,6 +117,13 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Library selection evidence is invalid or changed."
                     ) from exc
+            if job.request.operation == "channel_analysis":
+                from .space.presentation import present_channels
+
+                try:
+                    value = present_channels(value, job, root / "output", store, assets)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(422, "Channel evidence is invalid or changed.") from exc
             if job.request.operation == "surface_exposure":
                 from .receptors.surface_result import validate_surface
 

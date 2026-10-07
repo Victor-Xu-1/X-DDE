@@ -12,7 +12,7 @@ def environment_root(component_root: Path, package: str = "harness") -> Path:
     identifier = hashlib.sha256(str(component_root.resolve()).encode()).hexdigest()[:16]
     from ..integrations.specs import PROGRAMS
 
-    if package in PROGRAMS:
+    if package in PROGRAMS or package == "caver":
         # Container executables live in Docker's verified Linux storage. Their reviewed
         # build contexts honor the user's managed component directory on every host.
         return component_root / "environments" / package

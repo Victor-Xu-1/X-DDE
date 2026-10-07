@@ -30,6 +30,7 @@ from .integrations.specs import PROGRAMS
 from .pockets.backend import PocketBackend
 from .quality.backend import QualityBackend
 from .receptors.backend import ReceptorBackend
+from .space.backend import SpaceBackend
 from .store import Store
 
 
@@ -43,6 +44,7 @@ class BackendRouter:
         self.chemistry = ChemistryBackend(settings)
         self.datasets = DatasetBackend(settings)
         self.biopython = ReceptorBackend(settings)
+        self.caver = SpaceBackend(settings)
         self.discovery = DiscoveryBackend(settings)
         self.anarcii = AntibodyBackend(settings)
         self.posebusters = QualityBackend(settings)
@@ -64,6 +66,7 @@ class BackendRouter:
             "gnina",
             "chemistry",
             "biopython",
+            "caver",
             "discovery",
             "anarcii",
             "posebusters",
@@ -90,6 +93,8 @@ class BackendRouter:
             return await self.anarcii.start(job, directory)
         if implementation == "discovery":
             return await self.discovery.start(job, directory)
+        if implementation == "caver":
+            return await self.caver.start(job, directory)
         if implementation == "biopython":
             return await self.biopython.start(job, directory)
         if implementation == "chemistry":
@@ -161,6 +166,8 @@ class BackendRouter:
             await self.anarcii.stop(job.id, directory)
         elif implementation == "discovery":
             await self.discovery.stop(job.id, directory)
+        elif implementation == "caver":
+            await self.caver.stop(job.id, directory)
         elif implementation == "biopython":
             await self.biopython.stop(job.id, directory)
         elif implementation == "chemistry":
@@ -235,6 +242,7 @@ class BackendRouter:
                 "gnina": docking,
                 "chemistry": chemistry,
                 "biopython": biopython,
+                "caver": await self._checked_readiness("caver", self.caver.readiness()),
                 "anarcii": anarcii,
                 "posebusters": quality,
                 "admet": admet,

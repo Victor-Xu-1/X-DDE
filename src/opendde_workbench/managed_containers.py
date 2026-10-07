@@ -18,6 +18,7 @@ CONTAINER_STYLES = {
     "gnina": "native",
     "chemistry": "preparation",
     "biopython": "preparation",
+    "caver": "preparation",
     "anarcii": "preparation",
     "posebusters": "preparation",
     "admet": "preparation",

@@ -54,6 +54,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .discovery.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "channel_analysis":
+        from .space.result import validate_channels
+
+        validate_channels(result, job.request, output)
     if operation == "surface_exposure":
         from .receptors.surface_result import validate_surface
 
