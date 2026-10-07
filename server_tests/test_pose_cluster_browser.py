@@ -88,6 +88,9 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 expect(
                     result.get_by_role("button", name="生成三维视图图片", exact=True)
                 ).to_be_enabled(timeout=30000)
+                expect(
+                    result.get_by_role("button", name="定位比较姿势", exact=True)
+                ).to_be_visible()
                 page.screenshot(path=output / "native-pair-overlay.png", full_page=True)
                 with page.expect_download() as downloaded:
                     result.get_by_role("link", name="下载两两比较", exact=True).click()

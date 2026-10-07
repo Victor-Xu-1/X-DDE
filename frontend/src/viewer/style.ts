@@ -81,10 +81,15 @@ export function paintOverlayModel(
   model: mol.GLModel,
   index: number,
   molecular = false,
+  comparison = true,
 ) {
   model.setStyle(
     {},
-    thinSticks(["blueCarbon", "orangeCarbon", "purpleCarbon"][index % 3]),
+    thinSticks(
+      comparison
+        ? ["blueCarbon", "orangeCarbon", "purpleCarbon"][index % 3]
+        : "greenCarbon",
+    ),
   );
   // Small-molecule parsers have no polymer residue names. Cartoon rendering must
   // never fabricate those identities or apply a polymer renderer to their atoms.

@@ -49,16 +49,21 @@ export function ClusterPoseTable({
           value: (r) => r.member_index + 1,
         },
         {
-          key: "contacts",
-          label: zh ? "接触残基" : "Contact residues",
-          numeric: true,
-          value: (r) => r.contact_count,
-        },
-        {
           key: "mapped",
-          label: zh ? "可比接触" : "Mapped contacts",
+          label: zh ? "对应接触" : "Mapped contacts",
           numeric: true,
           value: (r) => r.mapped_contact_count,
+          render: (r) => (
+            <span
+              title={
+                zh
+                  ? "可对应残基数 / 全部接触残基数"
+                  : "Mapped residues / all contact residues"
+              }
+            >
+              {r.mapped_contact_count} / {r.contact_count}
+            </span>
+          ),
         },
       ]}
     />

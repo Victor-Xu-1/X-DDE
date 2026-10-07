@@ -42,6 +42,7 @@ interface Props {
   focusResidue?: { residue: string; nonce: number } | null;
   comparison?: boolean;
   focusModel?: number;
+  focusModels?: number[];
   records?: number[];
   residueRegion?: DisplayResidue[];
   selectionMode?: PickMode;
@@ -59,6 +60,7 @@ export function StructureViewer({
   focusResidue,
   comparison = false,
   focusModel,
+  focusModels,
   records: originalRecords,
   residueRegion,
   selectionMode,
@@ -113,6 +115,9 @@ export function StructureViewer({
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
   const [imageScale, setImageScale] = useState(2);
+  const focusKey = focusModels?.join(",") ?? "";
+  const focusedModels = useRef(focusModels);
+  focusedModels.current = focusModels;
   const focusedModel = useRef(focusModel);
   focusedModel.current = focusModel;
   const initialPick = useRef(selectionMode);
@@ -173,7 +178,9 @@ export function StructureViewer({
         setError("");
         setScene(detail);
         sceneCallback.current?.(detail);
-        if (focusedModel.current !== undefined)
+        if (focusedModels.current?.length)
+          send("focus-models", focusedModels.current);
+        else if (focusedModel.current !== undefined)
           send("focus-model", focusedModel.current);
         if (initialPick.current) {
           setOptions({ ...detail.options, pick: initialPick.current });
@@ -199,6 +206,7 @@ export function StructureViewer({
         urls,
         comparison,
         focusModel,
+        ...(focusModels ? { focusModels } : {}),
         records,
         nativeInteractions,
         electrostaticMap,
@@ -209,7 +217,7 @@ export function StructureViewer({
       if (ready) send("clear");
       setStatus("empty");
     }
-  }, [ready, key, comparison, focusModel]);
+  }, [ready, key, comparison, focusModel, focusKey]);
   useEffect(() => {
     if (ready && focusResidue) send("residue", focusResidue.residue);
   }, [ready, focusResidue]);
@@ -390,6 +398,7 @@ export function StructureViewer({
                   urls,
                   comparison,
                   focusModel,
+                  ...(focusModels ? { focusModels } : {}),
                   records,
                   nativeInteractions,
                   electrostaticMap,
@@ -486,6 +495,14 @@ export function StructureViewer({
             <button type="button" onClick={() => send("reset")}>
               {zh ? "回到全局" : "Full structure"}
             </button>
+            {focusModels?.length ? (
+              <button
+                type="button"
+                onClick={() => send("focus-models", focusModels)}
+              >
+                {zh ? "定位比较姿势" : "Focus compared poses"}
+              </button>
+            ) : null}
             {focusModel !== undefined && (
               <button
                 type="button"

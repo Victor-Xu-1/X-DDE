@@ -208,6 +208,7 @@ export class MolecularScene {
           v.getModel(index),
           index,
           ["sdf", "mol", "mol2"].includes(format),
+          this.complexModel === null,
         );
       this.drawContacts();
       await this.paintSurface();
@@ -408,7 +409,7 @@ export class MolecularScene {
           : null;
     if (selection) {
       this.viewer.zoomTo(selection);
-      this.viewer.zoom(0.85);
+      this.viewer.zoom(0.75);
       this.viewer.render();
     }
   }

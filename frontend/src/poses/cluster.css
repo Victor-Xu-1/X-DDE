@@ -16,14 +16,14 @@
   min-width: 0;
 }
 .cluster-results .research-table-scroll table {
-  min-width: 480px;
+  min-width: 420px;
 }
 .cluster-results .research-table td,
 .cluster-results .research-table th {
   white-space: nowrap;
   overflow-wrap: normal;
 }
-.cluster-preview .molecular-stage {
+.studio-app .cluster-preview .viewer-panel .molecular-stage {
   height: 440px;
 }
 .cluster-downloads {
@@ -58,7 +58,7 @@
   .cluster-pose-selection {
     grid-template-columns: minmax(0, 1fr);
   }
-  .cluster-preview .molecular-stage {
+  .studio-app .cluster-preview .viewer-panel .molecular-stage {
     height: 340px;
   }
 }

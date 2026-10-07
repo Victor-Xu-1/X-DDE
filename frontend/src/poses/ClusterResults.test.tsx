@@ -11,8 +11,15 @@ vi.mock("../presentation/MolecularPreview", () => ({
   ),
 }));
 vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: (p: { urls: string[]; comparison: boolean }) => (
-    <output aria-label="comparison-source">
+  StructureViewer: (p: {
+    urls: string[];
+    comparison: boolean;
+    focusModels?: number[];
+  }) => (
+    <output
+      aria-label="comparison-source"
+      data-focus-models={p.focusModels?.join(",")}
+    >
       {String(p.comparison)}:{p.urls.join("|")}
     </output>
   ),
@@ -92,6 +99,10 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
   );
   expect(screen.getByLabelText("comparison-source").textContent).toContain(
     "frame.pdb",
+  );
+  expect(screen.getByLabelText("comparison-source")).toHaveAttribute(
+    "data-focus-models",
+    "1,2",
   );
   expect(screen.getByText(/三维差异 —/)).toBeInTheDocument();
   expect(

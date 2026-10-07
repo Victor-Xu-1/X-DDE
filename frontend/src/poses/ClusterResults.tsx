@@ -98,6 +98,7 @@ export function ClusterResults({
                   ]}
                   language={language}
                   comparison={true}
+                  focusModels={[1, 2]}
                   records={[0, 0, 0]}
                 />
                 <p>

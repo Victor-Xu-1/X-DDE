@@ -59,11 +59,6 @@ export function ClusterExample({ language }: { language: Language }) {
         zh ? "BRD4–JQ1 固定分群案例" : "Fixed BRD4–JQ1 clustering case"
       }
     >
-      <h3>
-        {zh
-          ? "BRD4–JQ1 · 两个受体构象中的结合姿势"
-          : "BRD4–JQ1 · poses in two receptor conformations"}
-      </h3>
       <ExampleJobResult job={job} language={language} />
     </section>
   );

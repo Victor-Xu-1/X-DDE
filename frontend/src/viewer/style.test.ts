@@ -280,3 +280,14 @@ it("an aligned receptor and source pose colors only the receptor, while true com
     emit.mock.calls.filter(([type, summary]) => type === "surface" && summary),
   ).toHaveLength(0);
 });
+
+it("a separately stored pose in its paired receptor keeps the shared green ligand style", () => {
+  const { model } = fixture(),
+    before = source(model.selectedAtoms({}));
+  paintOverlayModel(model, 1, true, false);
+  expectSticks(model.selectedAtoms({}));
+  expect(model.selectedAtoms({})[0].style?.stick?.colorscheme).toBe(
+    "greenCarbon",
+  );
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});

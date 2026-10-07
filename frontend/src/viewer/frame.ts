@@ -187,7 +187,25 @@ window.addEventListener("message", (event) => {
     viewer.getModel(value)
   ) {
     viewer.zoomTo({ model: value });
-    viewer.zoom(0.85);
+    viewer.zoom(0.75);
+    viewer.render();
+  }
+  if (
+    type === "focus-models" &&
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.length <= 3 &&
+    new Set(value).size === value.length &&
+    value.every(
+      (index) =>
+        Number.isInteger(index) &&
+        index >= 0 &&
+        index < 3 &&
+        viewer.getModel(index),
+    )
+  ) {
+    viewer.zoomTo({ model: value });
+    viewer.zoom(0.75);
     viewer.render();
   }
   if (type === "reset") reset();

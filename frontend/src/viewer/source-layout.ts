@@ -4,6 +4,7 @@ export interface ViewerLoad {
   urls: string[];
   comparison: boolean;
   focusModel?: number;
+  focusModels?: number[];
   records?: number[];
   nativeInteractions?: NativeInteraction[];
   electrostaticMap?: PotentialMap;
@@ -32,6 +33,7 @@ export function viewerLoad(value: unknown): ViewerLoad {
     v.urls.some((url) => typeof url !== "string")
   )
     throw new Error("Invalid structure sources");
+  const sourceCount = v.urls.length;
   if (
     typeof v.comparison !== "boolean" ||
     (v.focusModel !== undefined &&
@@ -40,6 +42,18 @@ export function viewerLoad(value: unknown): ViewerLoad {
         Number(v.focusModel) >= v.urls.length))
   )
     throw new Error("Invalid structure layout");
+  if (
+    v.focusModels !== undefined &&
+    (v.focusModel !== undefined ||
+      !Array.isArray(v.focusModels) ||
+      v.focusModels.length < 1 ||
+      v.focusModels.length > v.urls.length ||
+      new Set(v.focusModels).size !== v.focusModels.length ||
+      v.focusModels.some(
+        (n) => !Number.isInteger(n) || n < 0 || n >= sourceCount,
+      ))
+  )
+    throw new Error("Invalid comparison focus");
   if (
     v.records !== undefined &&
     (!Array.isArray(v.records) ||
@@ -55,6 +69,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
     urls: v.urls as string[],
     ...(v.records === undefined ? {} : { records: v.records as number[] }),
     comparison: v.comparison,
+    ...(v.focusModels === undefined
+      ? {}
+      : { focusModels: [...(v.focusModels as number[])] }),
     ...(v.focusModel === undefined ? {} : { focusModel: Number(v.focusModel) }),
   };
 }
