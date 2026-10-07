@@ -34,6 +34,10 @@ def test_surface_native_3d_table_download_and_guided_entry():
         expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(timeout=30000)
         frame = page.frame_locator('iframe[title="可交互分子结构"]')
         expect(frame.locator("canvas").first).to_be_visible(timeout=30000)
+        expect(page.get_by_role("tab", name="按原子", exact=True)).to_have_attribute(
+            "aria-selected", "true"
+        )
+        page.get_by_role("tab", name="按区域", exact=True).click()
         page.get_by_role("button", name="A:JQ1 1", exact=True).first.click()
         for width in (1440, 390):
             page.set_viewport_size({"width": width, "height": 1050})
@@ -55,7 +59,9 @@ def test_surface_native_3d_table_download_and_guided_entry():
         )
         expect(page.get_by_role("radio", name="上传新文件", exact=True)).to_be_checked()
         expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
-        page.locator('input[type="file"]').first.set_input_files(evidence / "prepared-case.pdb")
+        page.get_by_label("上传 包含研究区域的结构", exact=True).set_input_files(
+            evidence / "prepared-case.pdb"
+        )
         expect(page.get_by_role("button", name="下一步", exact=True)).to_be_enabled()
         page.get_by_role("button", name="下一步", exact=True).click()
         expect(page.locator(".questionnaire>fieldset:visible")).to_have_count(1)

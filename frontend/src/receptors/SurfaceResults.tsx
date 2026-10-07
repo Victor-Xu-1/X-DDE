@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
-import {
-  ResearchTable,
-  type ResearchColumn,
-} from "../presentation/ResearchTable";
+import { SurfaceTable } from "./SurfaceTable";
 import { Hint } from "../guided/Hint";
 import type { Job, Language } from "../types";
 import {
   surfaceKey,
-  surfaceLabel,
   type SurfaceResult,
   type SurfaceRow,
 } from "./surface-types";
@@ -31,34 +27,6 @@ export function SurfaceResults({
     result.isolated_area > 0
       ? (100 * result.assembly_area) / result.isolated_area
       : null;
-  const columns: ResearchColumn<SurfaceRow>[] = [
-    {
-      key: "residue",
-      label: zh ? "配体 / 残基" : "Ligand / residue",
-      value: surfaceLabel,
-    },
-    {
-      key: "assembly",
-      label: zh ? "整体中暴露（Å²）" : "Exposed in context (Å²)",
-      value: (r) => r.assembly_area,
-      numeric: true,
-      render: (r) => r.assembly_area.toFixed(2),
-    },
-    {
-      key: "buried",
-      label: zh ? "被遮挡（Å²）" : "Occluded (Å²)",
-      value: (r) => r.buried_area,
-      numeric: true,
-      render: (r) => r.buried_area.toFixed(2),
-    },
-    {
-      key: "isolated",
-      label: zh ? "独立区域（Å²）" : "Isolated region (Å²)",
-      value: (r) => r.isolated_area,
-      numeric: true,
-      render: (r) => r.isolated_area.toFixed(2),
-    },
-  ];
   function locate(r: SurfaceRow) {
     setFocus((v) => ({
       residue: `${r.chain}:${r.resname}:${r.number}:${r.insertion_code}`,
@@ -123,13 +91,10 @@ export function SurfaceResults({
           focusResidue={focus}
         />
         <div>
-          <ResearchTable
-            rows={result.residues}
-            columns={columns}
-            rowId={surfaceKey}
+          <SurfaceTable
+            result={result}
             language={language}
-            title={zh ? "区域面积" : "Region areas"}
-            onSelect={locate}
+            onLocate={locate}
             selected={
               focus
                 ? (() => {
@@ -142,8 +107,6 @@ export function SurfaceResults({
                   })()
                 : null
             }
-            compare={false}
-            exportName="region-exposure.csv"
           />
         </div>
       </div>
@@ -159,26 +122,12 @@ export function SurfaceResults({
         </a>
       </div>
       <details>
-        <summary>
-          {zh ? "测量条件与原子明细" : "Conditions and atom details"}
-        </summary>
+        <summary>{zh ? "测量条件" : "Measurement conditions"}</summary>
         <p>
           Shrake–Rupley · {result.options.probe_radius_angstrom} Å ·{" "}
           {result.options.sphere_points}{" "}
           {zh ? "采样点 / 原子" : "points / atom"}
         </p>
-        <ResearchTable<SurfaceResult["atoms"][number]>
-          rows={result.atoms}
-          columns={[
-            ...columns,
-            { key: "atom", label: zh ? "原子" : "Atom", value: (r) => r.atom },
-          ]}
-          rowId={(r) => surfaceKey(r) + r.atom}
-          language={language}
-          title={zh ? "原子面积" : "Atom areas"}
-          compare={false}
-          exportName="atom-exposure.csv"
-        />
       </details>
     </section>
   );
