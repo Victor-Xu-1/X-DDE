@@ -57,6 +57,7 @@ on:
       - 'server_tests/*researcher*'
       - 'server_tests/test_module_surfaces_browser.py'
       - 'server_tests/test_result_visuals_browser.py'
+      - 'server_tests/depiction_browser_helpers.py'
       - 'server_tests/layout_browser_helpers.py'
       - 'server_tests/layout_coverage.py'
       - '.github/workflows/task-layout-checks.yml'

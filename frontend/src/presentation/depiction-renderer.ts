@@ -62,7 +62,10 @@ export async function depictionDataUrl(blob: Blob): Promise<string> {
 export class DepictionRenderer {
   private controller = new AbortController();
   private cache = new Map<string, Blob>();
-  private requests = new Map<string, Promise<Blob>>();
+  private requests = new Map<
+    string,
+    { promise: Promise<Blob>; consumers: Set<AbortSignal> }
+  >();
   private ready: Promise<Ketcher> | null = null;
   private tail: Promise<unknown> = Promise.resolve();
   private pending = 0;
@@ -109,13 +112,24 @@ export class DepictionRenderer {
       if (this.pending >= 80)
         throw new Error("Too many structure previews. Select fewer records.");
       this.pending++;
-      request = this.tail
+      const consumers = new Set<AbortSignal>();
+      const ensureVisible = () => {
+        if (![...consumers].some((consumer) => !consumer.aborted))
+          throw new DOMException(
+            "The structure preview is no longer needed.",
+            "AbortError",
+          );
+      };
+      const promise = this.tail
         .then(async () => {
           this.controller.signal.throwIfAborted();
+          ensureVisible();
           const editor = await this.initialize();
+          ensureVisible();
           const timeout = AbortSignal.timeout(25000);
           const active = AbortSignal.any([timeout, this.controller.signal]);
           const structure = await readStructure(source, active);
+          ensureVisible();
           if (!editor.generateImage)
             throw new Error(
               "Update the Ketcher component to draw 2D structures.",
@@ -165,12 +179,22 @@ export class DepictionRenderer {
           this.pending--;
           this.requests.delete(key);
         });
+      request = { promise, consumers };
       this.requests.set(key, request);
-      this.tail = request.catch(() => undefined);
+      this.tail = promise.catch(() => undefined);
     }
-    const result = await request;
-    signal.throwIfAborted();
-    return result;
+    const consumers = request.consumers;
+    consumers.add(signal);
+    const release = () => consumers.delete(signal);
+    signal.addEventListener("abort", release, { once: true });
+    try {
+      const result = await request.promise;
+      signal.throwIfAborted();
+      return result;
+    } finally {
+      signal.removeEventListener("abort", release);
+      release();
+    }
   }
   close() {
     this.controller.abort();

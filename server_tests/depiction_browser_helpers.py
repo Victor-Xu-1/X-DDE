@@ -1,9 +1,14 @@
 """Accept settled drawings or explicit unavailable states, never loading screenshots."""
 
+import json
+from pathlib import Path
+from uuid import uuid4
+
 
 def settle_visible_drawings(page):
-    page.wait_for_function(
-        """() => {
+    try:
+        page.wait_for_function(
+            """() => {
             const visible = node => {
                 const bounds = node.getBoundingClientRect();
                 let left = Math.max(0, bounds.left), top = Math.max(0, bounds.top);
@@ -32,5 +37,19 @@ def settle_visible_drawings(page):
                     return state === 'unavailable' || state === 'no-source';
                 });
         }""",
-        timeout=45000,
-    )
+            timeout=45000,
+        )
+    except Exception:
+        root = Path("server_tests/evidence/task-layout")
+        root.mkdir(parents=True, exist_ok=True)
+        name = "drawing-timeout-" + uuid4().hex[:12]
+        page.screenshot(path=str(root / (name + ".png")))
+        states = page.evaluate("""() => [...document.querySelectorAll('main .molecule-image')]
+            .slice(0,30).map(node => {
+                const r = node.getBoundingClientRect(), img = node.querySelector('img');
+                return {state:node.dataset.drawingState, label:img?.alt,
+                    x:r.x,y:r.y,width:r.width,height:r.height,
+                    complete:img?.complete,naturalWidth:img?.naturalWidth};
+            })""")
+        (root / (name + ".json")).write_text(json.dumps(states), encoding="utf-8")
+        raise

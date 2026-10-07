@@ -12,7 +12,7 @@ function nativeRenderer() {
         calls.push("style");
       }),
     },
-    setMolecule: vi.fn(async () => {
+    setMolecule: vi.fn(async (_structure: string) => {
       calls.push("load");
     }),
     layout: vi.fn(async () => {
@@ -115,5 +115,64 @@ describe("Native SVG image transport under the platform CSP", () => {
       await expect(depictionDataUrl(blob)).rejects.toThrow(
         "bounded native SVG",
       );
+  });
+});
+
+describe("Source-aware drawing queue", () => {
+  it("skips abandoned queued drawings before they touch the native editor", async () => {
+    const { renderer, editor } = nativeRenderer();
+    let release!: (value: Blob) => void;
+    editor.generateImage.mockReturnValueOnce(
+      new Promise<Blob>((resolve) => {
+        release = resolve;
+      }),
+    );
+    const first = renderer.render(
+      { smiles: "c1ccccc1" },
+      new AbortController().signal,
+    );
+    await vi.waitFor(() =>
+      expect(editor.generateImage).toHaveBeenCalledTimes(1),
+    );
+    const abandoned = new AbortController();
+    const old = renderer
+      .render({ smiles: "CCN" }, abandoned.signal)
+      .catch((error) => error.name);
+    const current = renderer.render(
+      { smiles: "CN" },
+      new AbortController().signal,
+    );
+    abandoned.abort();
+    release(new Blob(["<svg/>"], { type: "image/svg+xml" }));
+    try {
+      await first;
+      expect(await old).toBe("AbortError");
+      await current;
+      expect(editor.setMolecule.mock.calls.map((args) => args[0])).toEqual([
+        "c1ccccc1",
+        "CN",
+      ]);
+    } finally {
+      renderer.close();
+    }
+  });
+  it("retains a shared drawing while another visible consumer still needs it", async () => {
+    const { renderer, editor } = nativeRenderer();
+    const hidden = new AbortController();
+    const first = renderer
+      .render({ smiles: "c1ccccc1" }, hidden.signal)
+      .catch((error) => error.name);
+    const current = renderer.render(
+      { smiles: "c1ccccc1" },
+      new AbortController().signal,
+    );
+    hidden.abort();
+    try {
+      expect(await first).toBe("AbortError");
+      expect(await current).toBeInstanceOf(Blob);
+      expect(editor.generateImage).toHaveBeenCalledTimes(1);
+    } finally {
+      renderer.close();
+    }
   });
 });
