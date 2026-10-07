@@ -1,7 +1,7 @@
 """Read-only prerequisite projection; no provider calls or sensitive path disclosure."""
 
-from .contract import CapabilityAvailability, CapabilitySpec
 from ..integrations.specs import PROGRAMS
+from .contract import CapabilityAvailability, CapabilitySpec
 
 
 def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityAvailability:
