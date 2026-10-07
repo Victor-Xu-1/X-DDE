@@ -38,17 +38,21 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
         expect(analysis.get_by_role("option", name="JQ1 · A:1", exact=True)).to_have_count(1)
         center = page.get_by_role("combobox", name="中心配体", exact=True)
         contacts = page.locator(".interaction-summary")
+        previous_contacts = None
         for width in (1440, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             analysis.select_option(label="JQ1 · A:1")
             expect(center.locator("option:checked")).to_have_text("A:JQ11")
             expect(contacts).to_contain_text("接触残基")
+            if previous_contacts is not None:
+                expect(contacts).not_to_have_text(previous_contacts)
             jq1_contacts = contacts.inner_text()
             expect(page.get_by_role("button", name="下一步", exact=True)).to_be_enabled()
             page.screenshot(path=str(evidence / f"{width}-target-selection-jq1.png"))
             analysis.select_option(label="DMS · A:171")
             expect(center.locator("option:checked")).to_have_text("A:DMS171")
             expect(contacts).not_to_have_text(jq1_contacts)
+            previous_contacts = contacts.inner_text()
             resolution = page.get_by_role("combobox", name="三维图片清晰度", exact=True)
             capture = page.get_by_role("button", name="生成三维视图图片", exact=True)
             assert abs(resolution.bounding_box()["height"] - capture.bounding_box()["height"]) < 2
