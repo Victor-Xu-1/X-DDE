@@ -49,4 +49,9 @@ jobs:
         if: always()
         with:
           name: experimental-evidence-acceptance
-          path: ${{ runner.temp }}/experimental-evidence
+          path: |
+            ${{ runner.temp }}/experimental-evidence/*.json
+            ${{ runner.temp }}/experimental-evidence/*.csv
+            ${{ runner.temp }}/experimental-evidence/*.png
+            ${{ runner.temp }}/experimental-evidence/*.log
+            ${{ runner.temp }}/experimental-evidence/*.txt

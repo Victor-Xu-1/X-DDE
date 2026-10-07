@@ -17,7 +17,12 @@ def test_reported_evidence_example_and_fresh_questionnaire():
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
-    env = {**os.environ, "WB_AUTO_DEPLOY": "0", "WB_STATE_DIR": str(output / "state")}
+    env = {
+        **os.environ,
+        "WB_AUTO_DEPLOY": "0",
+        "WB_STATE_DIR": str(output / "state"),
+        "WB_ALLOWED_ORIGINS": f"http://127.0.0.1:{port}",
+    }
     process = subprocess.Popen(
         [
             "uv",
@@ -65,7 +70,12 @@ def test_reported_evidence_example_and_fresh_questionnaire():
             )
             page.screenshot(path=output / "fresh-task-desktop.png")
             page.get_by_role("button", name="示例结果", exact=True).click()
-            page.get_by_role("region", name="实验数据结果").wait_for()
+            try:
+                page.get_by_role("region", name="实验数据结果").wait_for()
+            except Exception:
+                page.screenshot(path=output / "failed-example-result.png", full_page=True)
+                (output / "failed-example-dom.txt").write_text(page.locator("body").inner_text())
+                raise
             page.get_by_role("table", name="原始实测记录").wait_for()
             assert "177" in page.get_by_role("region", name="实验数据结果").inner_text()
             assert page.get_by_role("img", name="同条件实测值对比图").count() == 1
