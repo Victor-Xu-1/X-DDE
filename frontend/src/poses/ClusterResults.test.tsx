@@ -33,9 +33,9 @@ const result: PoseClusterResult = {
   rows: [0, 1].map((index) => ({
     index,
     selection: { step_id: "pose_000", record: index },
-    reference: ref,
+    reference: { ...ref, asset_id: "pose-source-" + index },
     member_index: index,
-    receptor: ref,
+    receptor: { ...ref, asset_id: "receptor-source-" + index },
     identity_smiles: "controlled",
     heavy_atom_count: 30,
     contact_count: 0,

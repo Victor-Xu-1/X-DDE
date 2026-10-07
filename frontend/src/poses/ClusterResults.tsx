@@ -126,9 +126,15 @@ export function ClusterResults({
               <MolecularPreview
                 language={language}
                 label={(zh ? "姿势 " : "Pose ") + (row.index + 1)}
-                source={{ url: url(row.pose_artifact), record: 0 }}
+                source={{
+                  url: "/api/assets/" + row.reference.asset_id,
+                  record: row.reference.record,
+                }}
                 defaultView="3d"
-                urls={[url(row.receptor_artifact), url(row.pose_artifact)]}
+                urls={[
+                  "/api/assets/" + row.receptor.asset_id,
+                  "/api/assets/" + row.reference.asset_id,
+                ]}
                 records={[0, 0]}
                 focusModel={1}
               />

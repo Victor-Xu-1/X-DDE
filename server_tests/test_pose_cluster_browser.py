@@ -72,7 +72,15 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 )
                 pair = result.get_by_role("button", name=expected_label, exact=True)
                 pair.click()
-                expect(result.get_by_text("接触相似度", exact=False).first).to_be_visible()
+                metrics = result.locator(".cluster-preview > p")
+                expect(metrics).to_be_visible()
+                expect(metrics).to_contain_text(
+                    "三维差异 " + ("—" if distance is None else f"{distance:.3f} Å")
+                )
+                similarity = native["pairs"][0]["contact_jaccard"]
+                expect(metrics).to_contain_text(
+                    "接触相似度 " + ("—" if similarity is None else f"{similarity * 100:.1f}%")
+                )
                 page.screenshot(path=output / "native-pair-overlay.png", full_page=True)
                 with page.expect_download() as downloaded:
                     result.get_by_role("link", name="下载两两比较", exact=True).click()
