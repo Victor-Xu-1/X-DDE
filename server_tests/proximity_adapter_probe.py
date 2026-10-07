@@ -15,7 +15,7 @@ from opendde_workbench.integrations.specs import recipe_digest
 from opendde_workbench.proximity.options import TernaryPayload
 
 
-def run_adapter(root, image, models):
+def run_adapter(root, image, models, glue_case=None):
     if os.environ.get("CI") != "true":
         raise RuntimeError("Native model acceptance belongs in isolated CI.")
     # Freeze actual selected official bytes under the same manifest contract as installation.
@@ -31,13 +31,12 @@ def run_adapter(root, image, models):
                         "size": file.stat().st_size,
                         "sha256": hashlib.sha256(file.read_bytes()).hexdigest(),
                     }
-                    for file in sorted(models.iterdir())
-                    if file.is_file()
+                    for file in (models / "glue.pth", models / "protac.pth")
                 ],
             }
         )
     )
-    work = root / "adapter-job"
+    work = root / ("adapter-job" if glue_case is None else glue_case["id"] + "-adapter-job")
     work.mkdir()
     assets = work / "assets"
     assets.mkdir()
@@ -47,7 +46,7 @@ def run_adapter(root, image, models):
         ("partner_b", "protein2.pdb"),
         ("ligand", "ligand.sdf"),
     ):
-        source = root / "inputs" / name
+        source = root / "inputs" / name if glue_case is None else glue_case["inputs"] / name
         identifier = str(uuid4())
         copied = assets / (identifier + source.suffix)
         shutil.copyfile(source, copied)
@@ -71,6 +70,18 @@ def run_adapter(root, image, models):
         binding_region_a=list(range(32)),
         binding_region_b=list(range(42, 69)),
     )
+    if glue_case is not None:
+        payload = TernaryPayload(
+            input_mode="shared_complex",
+            mechanism="molecular_glue",
+            partner_a_name="CRBN",
+            partner_b_name=glue_case["partner_b"],
+            partner_a_chain=glue_case["chains"][0],
+            partner_b_chain=glue_case["chains"][1],
+            samples=3,
+            attempt_budget=3,
+            wall_seconds=600,
+        )
     request = IntegratedTask(
         operation="ternary_model",
         name="MZ1鈥揃RD4鈥揤HL adapter acceptance",
@@ -89,7 +100,13 @@ def run_adapter(root, image, models):
         shutil.copyfile(source, adapter / name)
     output = work / "output"
     output.mkdir()
-    entry = Path(__file__).with_name("proximity_native_entry.py").resolve()
+    entry = (
+        Path(__file__)
+        .with_name(
+            "proximity_native_entry.py" if glue_case is None else "molecular_glue_native_entry.py"
+        )
+        .resolve()
+    )
     container = "xdde-proximity-adapter-" + uuid4().hex
     arguments = [
         "docker",

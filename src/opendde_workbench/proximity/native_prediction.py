@@ -27,9 +27,10 @@ def predict_one(full, arms, graphs, cfg, model, seed, correction):
         predicted = model(**data, mode="predict")[0]
     ligand = predicted["ligs_coords_pred"]
     if correction:
-        ligand = torch.from_numpy(
-            correct_ligand(ligand, data["lig_graph"].ndata["new_x"], molecule)
-        ).float()
+        # The original MGD correction reference is the observed ligand geometry;
+        # PROTAC uses the initialized conformer. They are different native protocols.
+        reference = data["lig_graph"].ndata["new_x" if arms else "x"]
+        ligand = torch.from_numpy(correct_ligand(ligand, reference, molecule)).float()
     second = rotate_and_translate(
         data["rec2_coords_input"][0],
         predicted["rotation_2"],

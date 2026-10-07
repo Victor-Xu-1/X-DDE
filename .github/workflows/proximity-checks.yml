@@ -69,6 +69,12 @@ jobs:
             ${{ runner.temp }}/deepternary/adapter-job/output/*.csv
             ${{ runner.temp }}/deepternary/adapter-job/output/*.pdb
             ${{ runner.temp }}/deepternary/adapter-job/output/*.sdf
+            ${{ runner.temp }}/deepternary/*-adapter-job/*.json
+            ${{ runner.temp }}/deepternary/*-adapter-job/execution.log
+            ${{ runner.temp }}/deepternary/*-adapter-job/output/*.json
+            ${{ runner.temp }}/deepternary/*-adapter-job/output/*.pdb
+            ${{ runner.temp }}/deepternary/*-adapter-job/output/*.sdf
+            ${{ runner.temp }}/deepternary/glue-inputs/*/source.json
             ${{ runner.temp }}/deepternary/platform/*.log
             ${{ runner.temp }}/deepternary/platform/*.json
             ${{ runner.temp }}/deepternary/platform/*.pdb

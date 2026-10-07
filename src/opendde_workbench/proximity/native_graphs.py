@@ -70,7 +70,7 @@ def proposal(full, arms, partners, cfg, seed):
 
     torch.manual_seed(seed)
     np.random.seed(seed)
-    generated = fixed_arm_conformer(full, arms, seed)
+    generated = fixed_arm_conformer(full, arms, seed) if arms else deepcopy(full)
     config = cfg.test_dataloader.dataset
     graph_function = get_lig_graph_protac if arms else get_lig_graph_revised
     molecule, ligand = graph_function(
@@ -78,7 +78,7 @@ def proposal(full, arms, partners, cfg, seed):
         name="X_DDE",
         max_neighbors=config.lig_max_neighbors,
         radius=config.lig_graph_radius,
-        use_rdkit_coords=False,
+        use_rdkit_coords=not bool(arms),
         use_random_coords=False,
         seed=seed,
     )
@@ -86,7 +86,8 @@ def proposal(full, arms, partners, cfg, seed):
         raise ValueError("Native ligand featurization changed the complete atom correspondence.")
     # With an already generated, exact constrained conformer the official featurizer
     # keeps coordinates in x. The model's initialized pose input is explicitly new_x.
-    ligand.ndata["new_x"] = ligand.ndata["x"].clone()
+    if arms:
+        ligand.ndata["new_x"] = ligand.ndata["x"].clone()
     first, second = [deepcopy(graph) for graph in partners]
     geometry = get_geometry_graph_ring(molecule)
     count = full.GetNumAtoms()
@@ -118,7 +119,12 @@ def proposal(full, arms, partners, cfg, seed):
         data[prefix + "lig_lig_pocket_coords"] = [coordinates.clone()]
         data[prefix + "lig_" + prefix + "_pocket_mask"] = [protein_mask]
         data[prefix + "lig_" + prefix + "_pocket_coords"] = [coordinates.clone()]
-    # Use the official rigid initialization policy; retain exact atom masks.
+    # Official MGD keeps both observed partner frames and the ligand's observed x.
+    # Its independently generated, aligned conformer remains in new_x. PROTAC's
+    # random rigid initialization is a separate protocol, not a glue default.
+    if not arms:
+        return data, molecule
+    # Use the official PROTAC rigid initialization policy; retain exact atom masks.
     rotation, translation = random_rotation_translation(translation_distance=5)
     center = ligand.ndata["new_x"].mean(dim=0, keepdims=True)
     ligand.ndata["new_x"] = (rotation @ (ligand.ndata["new_x"] - center).T).T + translation

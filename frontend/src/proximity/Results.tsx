@@ -46,7 +46,8 @@ export function ProximityResults({
       },
       {
         key: "geometry",
-        label: zh ? "基本几何" : "Basic geometry",
+        label: zh ? "几何检查" : "Geometry",
+        exportLabel: zh ? "基本几何检查" : "Basic geometry assessment",
         value: (r) =>
           r.quality.accepted
             ? zh
@@ -75,19 +76,22 @@ export function ProximityResults({
       },
       {
         key: "contactsA",
-        label: zh ? "端 1 接触" : "Partner 1 contacts",
+        label: zh ? "端 1 接触" : "End 1 contacts",
+        exportLabel: "Partner 1 contacting heavy atoms",
         value: (r) => r.quality.arms[0].contacting_heavy_atoms,
         numeric: true,
       },
       {
         key: "contactsB",
-        label: zh ? "端 2 接触" : "Partner 2 contacts",
+        label: zh ? "端 2 接触" : "End 2 contacts",
+        exportLabel: "Partner 2 contacting heavy atoms",
         value: (r) => r.quality.arms[1].contacting_heavy_atoms,
         numeric: true,
       },
       {
         key: "clashes",
-        label: zh ? "严重碰撞" : "Severe clashes",
+        label: zh ? "严重碰撞" : "Clashes",
+        exportLabel: "Severe atom clashes",
         value: assemblyClashes,
         numeric: true,
       },
@@ -109,15 +113,17 @@ export function ProximityResults({
       <dl className="proximity-summary">
         <div>
           <dt>{zh ? "生成装配" : "Generated"}</dt>
-          <dd>{rows.length}</dd>
+          <dd>
+            {rows.length}
+            <span className="proximity-request-count">
+              {" "}
+              / {result.search.requested}
+            </span>
+          </dd>
         </div>
         <div>
           <dt>{zh ? "基本几何通过" : "Basic geometry passed"}</dt>
           <dd>{qualified}</dd>
-        </div>
-        <div>
-          <dt>{zh ? "请求装配" : "Requested"}</dt>
-          <dd>{result.search.requested}</dd>
         </div>
       </dl>
       {result.search.returned < result.search.requested && (

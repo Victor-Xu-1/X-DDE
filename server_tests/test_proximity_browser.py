@@ -54,6 +54,19 @@ def test_ternary_fixed_result_and_stepwise_submission():
             expect(viewer.content_frame.locator("canvas")).to_be_visible(timeout=20000)
             expect(page.get_by_text("基本几何通过", exact=True).first).to_be_visible()
             page.screenshot(path=str(root / "proximity-assemblies.png"), full_page=True)
+            for width in (1280, 1366):
+                page.set_viewport_size({"width": width, "height": 1050})
+                assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+                # The previous 1300px layout squeezed Chinese headings into vertical text.
+                headers = table.locator(".research-table-scroll thead th")
+                assert headers.evaluate_all(
+                    "nodes => nodes.every(node => node.getBoundingClientRect().height <= 50)"
+                ), "Assembly headers must stay readable at ordinary desktop widths."
+                assert table.locator(".research-table-scroll").evaluate(
+                    "node => node.scrollWidth <= node.clientWidth + 1"
+                ), "The desktop result table must fit its assigned column."
+                page.screenshot(path=str(root / f"proximity-desktop-{width}.png"), full_page=True)
+            page.set_viewport_size({"width": 1600, "height": 1050})
             first = next(
                 (row for row in result["proximity"]["assemblies"] if row["quality"]["accepted"]),
                 result["proximity"]["assemblies"][0],

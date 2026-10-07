@@ -147,3 +147,20 @@ This establishes executable software integration for the recorded PROTAC case,
 not external prediction accuracy, RIPTAC/glue benchmark acceptance, P4ward
 integration, ternary free energy or complete R42/R47–R56 delivery. Those remaining
 items continue under the single platform roadmap.
+
+The next candidate corrects mechanism-specific initialization: the official MGD
+protocol retains the observed partner frames and corrects the ligand against
+observed `x`, whereas PROTAC randomizes initialized poses and uses `new_x` for
+correction. The two protocols must not share that initialization. Isolated checks
+use deposited 5FQD chains B/C with its 19-heavy-atom LVY instance and 5HXB chains
+Z/X with its 31-heavy-atom 85C instance. Both declare omitted DDB1, structural
+zinc and duplicate crystal copies. Exact public input hashes and native graph/
+forward parity are checked before accepting the integration; parity is not
+prospective scientific accuracy or validation of the omitted components.
+
+Result acceptance also covers 1280px, 1366px and 1600px desktop widths. Candidate
+table headings remain horizontal and the table fits its assigned desktop column;
+when there is insufficient space the complete-complex preview leads a single
+column layout. Requested/returned counts share one statistic rather than separate
+repeated panels. Exported original metrics and scientific qualification remain
+unchanged.

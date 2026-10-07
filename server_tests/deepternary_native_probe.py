@@ -140,6 +140,10 @@ def main(root):
     from proximity_api_acceptance import run_platform
 
     run_platform(root)
+    from molecular_glue_cases import prepare_cases
+
+    for case in prepare_cases(root):
+        run_adapter(root, image_id, models, glue_case=case)
 
 
 if __name__ == "__main__":

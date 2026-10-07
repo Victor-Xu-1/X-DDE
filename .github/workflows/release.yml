@@ -80,7 +80,9 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           # GITHUB_TOKEN creates the matching tag without recursively starting feature suites.
-          if gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha' > existing-tag.txt; then
+          if gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" > /dev/null; then
+            # Resolve the exact tag to its commit: annotated refs point to tag objects.
+            gh api "repos/$GH_REPO/commits/refs%2Ftags%2F$RELEASE_TAG" --jq '.sha' > existing-tag.txt
             test "$(cat existing-tag.txt)" = "$GITHUB_SHA"
           else
             gh api --method POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/$RELEASE_TAG" -f sha="$GITHUB_SHA"

@@ -4,6 +4,8 @@ from copy import deepcopy
 
 from .definitions import CAPABILITIES
 
+_METHOD_LABELS = {"deepternary": "DeepTernary"}
+
 _GROUPS = (
     {
         "id": "complex_structure",
@@ -81,7 +83,13 @@ def method_choices():
                     "当前唯一接入的方法，已默认选中。",
                     "The only integrated method is selected by default.",
                 ),
-                "options": ({"id": spec.id, "label": spec.source, "note": spec.note},),
+                "options": (
+                    {
+                        "id": spec.id,
+                        "label": _METHOD_LABELS.get(spec.source, spec.source),
+                        "note": spec.note,
+                    },
+                ),
             }
         )
         identifiers.add(spec.id)

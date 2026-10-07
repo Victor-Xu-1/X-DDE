@@ -84,7 +84,7 @@ export const methodChoices = [
     options: [
       {
         id: "deepternary.model",
-        label: "deepternary",
+        label: "DeepTernary",
         note: [
           "比较降解剂、RIPTAC、分子胶与诱导邻近分子的完整装配假设。",
           "Compare complete PROTAC, RIPTAC, molecular-glue and proximity assemblies.",
