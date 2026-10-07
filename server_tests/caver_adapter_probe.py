@@ -115,6 +115,9 @@ def main():
     assert result["operation"] == "channel_analysis" and result["complete"]
     assert result["structure"] == task.structure.model_dump(mode="json")
     assert result["options"] == task.options.model_dump(mode="json")
+    from opendde_workbench.space.result import validate_channels
+
+    validate_channels(result, task, output / "actual")
     assert result["channels"] and result["context"]["removed_starting_ligand_count"] == 1
     assert result["preparation"]["resolved_alternates"], (
         "Real ambiguous coordinates must be resolved explicitly"

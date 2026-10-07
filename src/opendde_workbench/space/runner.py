@@ -87,14 +87,7 @@ def run(request, bindings, directory, output):
     regions = [
         SurfaceRegion.model_validate(row).model_dump() for row in request["starting_regions"]
     ]
-    preparation_options = PreparationOptions(
-        model_index=options.model_index,
-        chains=options.context_chains,
-        format="cif",
-        waters=False,
-        heterogens="keep",
-        alternate=options.alternate,
-    )
+    preparation_options = PreparationOptions.model_validate(options.preparation_parameters())
     preparation = run_preparation(
         {
             "operation": "structure_prepare",

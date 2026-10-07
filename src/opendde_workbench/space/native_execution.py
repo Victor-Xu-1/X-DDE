@@ -1,6 +1,7 @@
 """One offline, bounded native CAVER process inside the existing managed container."""
 
 import hashlib
+import math
 import shutil
 import subprocess
 from pathlib import Path
@@ -94,4 +95,7 @@ def point(file):
     rows = [row for row in file.read_text().splitlines() if row.startswith(("ATOM  ", "HETATM"))]
     if len(rows) != 1:
         raise ValueError("The single input must have one unambiguous native origin.")
-    return [float(rows[0][start : start + 8]) for start in (30, 38, 46)]
+    value = [float(rows[0][start : start + 8]) for start in (30, 38, 46)]
+    if not all(math.isfinite(v) and abs(v) <= 100000 for v in value):
+        raise ValueError("Native origins must have finite bounded coordinates.")
+    return value

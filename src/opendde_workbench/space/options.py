@@ -25,6 +25,18 @@ class ChannelOptions(BaseModel):
     memory_mib: int = Field(default=2048, strict=True, ge=1536, le=4096)
     timeout_seconds: int = Field(default=180, strict=True, ge=30, le=900)
 
+    def preparation_parameters(self):
+        return {
+            "model_index": self.model_index,
+            "chains": self.context_chains,
+            "format": "cif",
+            "waters": False,
+            "heterogens": "keep",
+            "alternate": self.alternate,
+            "cpu": self.cpu,
+            "memory_mib": self.memory_mib,
+        }
+
     @field_validator("cpu", "profile_step_angstrom", mode="before")
     @classmethod
     def real_numbers(cls, value):

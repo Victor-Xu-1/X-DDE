@@ -18,4 +18,5 @@ SHARED_SOURCES = {
     "structural_profile.py": RECEPTORS / "profiles.py",
     "native_preparation.py": RECEPTORS / "native_preparation.py",
     "preparation_options.py": RECEPTORS / "preparation_options.py",
+    "surface_options.py": RECEPTORS / "surface_options.py",
 }
