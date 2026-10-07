@@ -1,4 +1,5 @@
 import * as mol from "3dmol";
+import { focusedViewScale } from "./appearance";
 import { molecularRecordText } from "../presentation/molecular-record";
 import {
   complexLigandModel,
@@ -187,7 +188,7 @@ window.addEventListener("message", (event) => {
     viewer.getModel(value)
   ) {
     viewer.zoomTo({ model: value });
-    viewer.zoom(0.75);
+    viewer.zoom(focusedViewScale);
     viewer.render();
   }
   if (
@@ -205,7 +206,7 @@ window.addEventListener("message", (event) => {
     )
   ) {
     viewer.zoomTo({ model: value });
-    viewer.zoom(0.75);
+    viewer.zoom(focusedViewScale);
     viewer.render();
   }
   if (type === "reset") reset();

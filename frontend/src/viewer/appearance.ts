@@ -2,6 +2,7 @@ import type { AtomStyleSpec } from "3dmol";
 
 // Shared display policy; styling never changes source coordinates or identities.
 export const ligandBondRadius = 0.14;
+export const focusedViewScale = 0.75;
 export const ligandCarbonColor = 0x00ff00;
 export function thinSticks(
   colorscheme = "greenCarbon",

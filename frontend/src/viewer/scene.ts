@@ -1,4 +1,9 @@
-import { thinSticks, regionStyle, selectionStyle } from "./appearance";
+import {
+  thinSticks,
+  regionStyle,
+  selectionStyle,
+  focusedViewScale,
+} from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
 import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
@@ -409,7 +414,7 @@ export class MolecularScene {
           : null;
     if (selection) {
       this.viewer.zoomTo(selection);
-      this.viewer.zoom(0.75);
+      this.viewer.zoom(focusedViewScale);
       this.viewer.render();
     }
   }
