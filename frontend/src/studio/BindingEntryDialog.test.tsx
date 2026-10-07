@@ -1,14 +1,30 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, afterAll, beforeEach, expect, it, vi } from "vitest";
 import { BindingEntryDialog } from "./BindingEntryDialog";
 import { ModuleTaskPicker } from "./ModuleTaskPicker";
+const originalShowModal = Object.getOwnPropertyDescriptor(
+  HTMLDialogElement.prototype,
+  "showModal",
+);
 beforeEach(() => {
-  vi.spyOn(HTMLDialogElement.prototype, "showModal").mockImplementation(
-    function (this: HTMLDialogElement) {
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
       this.setAttribute("open", "");
     },
-  );
+  });
+});
+afterAll(() => {
+  if (originalShowModal) {
+    Object.defineProperty(
+      HTMLDialogElement.prototype,
+      "showModal",
+      originalShowModal,
+    );
+  } else {
+    Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
+  }
 });
 afterEach(() => {
   cleanup();
