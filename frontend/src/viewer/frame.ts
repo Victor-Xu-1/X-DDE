@@ -144,7 +144,9 @@ async function load(input: ViewerLoad) {
     if (current !== generation) return;
     reset();
     if (!retainedView && input.initialMode === "cartoon") {
-      viewer.zoom(1.6);
+      // Leave room around both partners when the result inspector is a narrow
+      // desktop column. Users can zoom further without losing the initial overview.
+      viewer.zoom(1.2);
       viewer.render();
     }
     if (retainedView) viewer.setView(retainedView);
