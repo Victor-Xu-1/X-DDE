@@ -100,12 +100,12 @@ def test_real_structures_tables_and_sequences():
             for chart_width in (2560, 390):
                 page.set_viewport_size({"width": chart_width, "height": 1000})
                 page.wait_for_function("""() => {
-                    const chart = document.querySelector('.metric-scatter svg');
+                    const chart = document.querySelector('.metric-scatter > .metric-scatter-plot');
                     if (!chart) return false;
                     const width = chart.getBoundingClientRect().width;
                     return Math.abs(chart.viewBox.baseVal.width - width) <= 1;
                 }""")
-                chart = page.locator(".metric-scatter svg:visible").first
+                chart = page.locator(".metric-scatter > .metric-scatter-plot:visible").first
                 geometry = chart.evaluate("""node => ({height:node.getBoundingClientRect().height,
                     marker:node.querySelector('circle')?.getAttribute('r'),
                     textSize:getComputedStyle(node.querySelector('text')).fontSize})""")

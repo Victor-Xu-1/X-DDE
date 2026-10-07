@@ -46,7 +46,7 @@ it("keeps chart height, marker size and original record selection stable while r
       ]}
     />,
   );
-  const svg = container.querySelector("svg")!;
+  const svg = screen.getByRole("group", { name: "Length (aa) × Model score" });
   expect(svg).toHaveAttribute("viewBox", "0 0 920 265");
   expect(container.querySelectorAll(".scatter-grid")).toHaveLength(5);
   act(() => {
@@ -60,13 +60,11 @@ it("keeps chart height, marker size and original record selection stable while r
     "r",
     "6",
   );
-  await userEvent
-    .setup()
-    .click(
-      screen.getByRole("button", {
-        name: "comparison: Length (aa) 214; Model score -1.1675",
-      }),
-    );
+  await userEvent.setup().click(
+    screen.getByRole("button", {
+      name: "comparison: Length (aa) 214; Model score -1.1675",
+    }),
+  );
   expect(selected).toHaveBeenCalledExactlyOnceWith(rows[1]);
   unmount();
   expect(disconnected).toHaveBeenCalledOnce();

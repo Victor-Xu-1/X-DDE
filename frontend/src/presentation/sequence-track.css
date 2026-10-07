@@ -14,7 +14,7 @@
   flex-wrap: wrap;
   margin-bottom: 14px;
 }
-.sequence-track header span,
+.sequence-track header > span,
 .sequence-track footer {
   color: var(--muted);
   font-size: 12px;

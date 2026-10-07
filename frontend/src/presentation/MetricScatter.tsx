@@ -118,6 +118,7 @@ export function MetricScatter<T>({
       {points.length ? (
         <svg
           ref={plot}
+          className="metric-scatter-plot"
           viewBox={`0 0 ${plotWidth} 265`}
           width={plotWidth}
           height="265"
