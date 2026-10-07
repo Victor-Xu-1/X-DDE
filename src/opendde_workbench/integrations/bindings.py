@@ -11,7 +11,11 @@ def validate_bindings(request, assets):
     for item in request.inputs:
         ref = item.source
         asset = assets.get(ref.asset_id)
-        expected = "structure" if item.role in {"structure", "scaffold"} else "ligand"
+        expected = (
+            "structure"
+            if item.role in {"structure", "scaffold", "partner_a", "partner_b"}
+            else "ligand"
+        )
         suffixes = {".pdb", ".cif"} if expected == "structure" else {".sdf", ".mol"}
         if item.role == "library":
             suffixes = {".sdf"}

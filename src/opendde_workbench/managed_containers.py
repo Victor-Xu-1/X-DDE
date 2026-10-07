@@ -6,6 +6,7 @@ CONTAINER_STYLES = {
     "datasets": "preparation",
     "drugclip": "preparation",
     "deli": "preparation",
+    "deepternary": "preparation",
     "boltz": "preparation",
     "reinvent": "preparation",
     "ligandmpnn": "preparation",

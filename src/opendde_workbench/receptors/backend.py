@@ -14,6 +14,7 @@ FILES = (
     "selection.py",
     "preparation_options.py",
     "native_preparation.py",
+    "native_selection.py",
     "native_surface.py",
     "surface_options.py",
 )

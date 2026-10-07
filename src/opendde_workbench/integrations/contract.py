@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from ..proximity.options import TernaryPayload
 from ..scientific_objects import MoleculeRef
 from ..task_metadata import TaskMetadata
 from .options import (
@@ -21,6 +22,7 @@ from .options import (
 )
 
 OPERATIONS = {
+    "ternary_model": "deepternary",
     "boltz_predict": "boltz",
     "reinvent_design": "reinvent",
     "ligandmpnn_design": "ligandmpnn",
@@ -35,7 +37,9 @@ OPERATIONS = {
 
 class MaterialInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    role: Literal["structure", "ligand", "library", "scaffold"]
+    role: Literal[
+        "structure", "ligand", "library", "scaffold", "partner_a", "partner_b", "arm_a", "arm_b"
+    ]
     source: MoleculeRef
 
 
@@ -47,7 +51,8 @@ Payload = Annotated[
     | RefinementPayload
     | ElectrostaticsPayload
     | ChempropPayload
-    | InteractionPayload,
+    | InteractionPayload
+    | TernaryPayload,
     Field(discriminator="kind"),
 ]
 
@@ -55,6 +60,7 @@ Payload = Annotated[
 class IntegratedTask(TaskMetadata):
     model_config = ConfigDict(extra="forbid")
     operation: Literal[
+        "ternary_model",
         "boltz_predict",
         "reinvent_design",
         "ligandmpnn_design",
@@ -67,7 +73,7 @@ class IntegratedTask(TaskMetadata):
     ]
     name: str = Field(min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$")
     project_id: UUID | None = None
-    inputs: list[MaterialInput] = Field(default_factory=list, max_length=2)
+    inputs: list[MaterialInput] = Field(default_factory=list, max_length=5)
     payload: Payload
     options: ExecutionOptions = Field(default_factory=ExecutionOptions)
 
@@ -84,7 +90,8 @@ class IntegratedTask(TaskMetadata):
         if self.scientific_inputs != [item.source for item in self.inputs]:
             raise ValueError("Confirm the exact scientific input versions before submission.")
         if any(
-            item.source.conformer or (item.role != "ligand" and item.source.record)
+            item.source.conformer
+            or (item.role not in {"ligand", "arm_a", "arm_b"} and item.source.record)
             for item in self.inputs
         ):
             raise ValueError(
@@ -94,7 +101,11 @@ class IntegratedTask(TaskMetadata):
         expected = (
             {"structure"} if kind in {"ligandmpnn", "boltzgen", "openmm", "apbs", "plip"} else set()
         )
-        if kind == "openmm":
+        if kind == "deepternary":
+            from ..proximity.contract import validate_task
+
+            validate_task(self)
+        elif kind == "openmm":
             if not expected <= roles or not roles <= {"structure", "ligand"}:
                 raise ValueError(
                     "Refinement needs a structure and optionally its exact bound ligand."

@@ -37,3 +37,12 @@ jobs:
             ${{ runner.temp }}/deepternary/output/*.json
             ${{ runner.temp }}/deepternary/output/native/*.pdb
             ${{ runner.temp }}/deepternary/output/native/*.csv
+            ${{ runner.temp }}/deepternary/adapter-job/execution.log
+            ${{ runner.temp }}/deepternary/adapter-job/acceptance.json
+            ${{ runner.temp }}/deepternary/adapter-job/request.json
+            ${{ runner.temp }}/deepternary/adapter-job/bindings.json
+            ${{ runner.temp }}/deepternary/adapter-job/assets/*
+            ${{ runner.temp }}/deepternary/adapter-job/output/*.json
+            ${{ runner.temp }}/deepternary/adapter-job/output/*.csv
+            ${{ runner.temp }}/deepternary/adapter-job/output/*.pdb
+            ${{ runner.temp }}/deepternary/adapter-job/output/*.sdf

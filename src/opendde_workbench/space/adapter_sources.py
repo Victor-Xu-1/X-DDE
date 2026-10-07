@@ -18,6 +18,7 @@ SHARED_SOURCES = {
     "native_io.py": RECEPTORS / "native_io.py",
     "structural_profile.py": RECEPTORS / "profiles.py",
     "native_preparation.py": RECEPTORS / "native_preparation.py",
+    "native_selection.py": RECEPTORS / "native_selection.py",
     "preparation_options.py": RECEPTORS / "preparation_options.py",
     "surface_options.py": RECEPTORS / "surface_options.py",
 }

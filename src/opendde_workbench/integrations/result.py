@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..artifacts import contained
+from ..proximity.result_models import TernaryResult
 
 
 class NativeMetric(BaseModel):
@@ -40,6 +41,7 @@ class NativeResult(BaseModel):
     artifact_sha256: dict[str, str] = Field(min_length=1, max_length=1100)
     model_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
+    proximity: TernaryResult | None = None
     structure_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_unit: Literal["kBT/e"] | None = None
     interactions: list["NativeInteraction"] = Field(default_factory=list, max_length=1000)
@@ -126,4 +128,10 @@ def validate_result(value, request, output):
         and not result.candidates
     ):
         raise ValueError("The scientific program produced no usable native candidates.")
+    if request.operation == "ternary_model":
+        from ..proximity.result import validate_ternary
+
+        validate_ternary(result, request, output)
+    elif result.proximity is not None:
+        raise ValueError("Ternary evidence belongs only to its exact native operation.")
     return result

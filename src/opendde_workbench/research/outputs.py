@@ -255,6 +255,14 @@ class OutputCatalog:
                 file.parent.resolve() != root.resolve() or file.name not in result.artifact_sha256
             ):
                 raise ValueError("Only declared native scientific artifacts are reusable.")
+            if (
+                job.request.operation == "ternary_model"
+                and file.suffix.lower() in {".pdb", ".sdf", ".mol", ".cif"}
+                and file.name not in {candidate.artifact for candidate in result.candidates}
+            ):
+                raise ValueError(
+                    "Diagnostic ternary structures cannot become reusable qualified candidates."
+                )
         if job and job.request.operation == "admet_predict":
             from ..admet.result import validate_admet
 

@@ -10,6 +10,7 @@ def main():
     request = json.loads(Path("/input/request.json").read_text())
     program = os.environ.get("XDDE_PROGRAM")
     if program != request["payload"]["kind"] or program not in {
+        "deepternary",
         "boltz",
         "reinvent",
         "ligandmpnn",

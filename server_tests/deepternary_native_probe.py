@@ -134,6 +134,9 @@ def main(root):
     )
     (root / "acceptance.json").write_text(json.dumps(receipt, indent=2))
     print(json.dumps(receipt))
+    from proximity_adapter_probe import run_adapter
+
+    run_adapter(root, image_id, models)
 
 
 if __name__ == "__main__":

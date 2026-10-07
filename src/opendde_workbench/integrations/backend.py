@@ -12,6 +12,7 @@ FILES = (
     "runner.py",
     "native_io.py",
     "native_resources.py",
+    "native_deepternary.py",
     "native_boltz.py",
     "native_reinvent.py",
     "native_ligandmpnn.py",
@@ -31,6 +32,20 @@ FILES = (
 class ScientificBackend(PreparedContainerBackend):
     def __init__(self, settings, identifier):
         self.program = identifier
+        root = Path(__file__).parent.parent
+        shared = {}
+        if identifier == "deepternary":
+            shared = {
+                "native_proximity_" + name + ".py": root / "proximity" / ("native_" + name + ".py")
+                for name in ("chemistry", "partners", "graphs", "prediction", "quality", "outputs")
+            }
+            shared.update(
+                {
+                    "native_proximity_options.py": root / "proximity/options.py",
+                    "native_selection.py": root / "receptors/native_selection.py",
+                    "preparation_options.py": root / "receptors/preparation_options.py",
+                }
+            )
         super().__init__(
             settings,
             identifier,
@@ -38,6 +53,7 @@ class ScientificBackend(PreparedContainerBackend):
             FILES,
             lambda config: configuration(config, identifier)[0],
             lambda config: readiness(config, identifier),
+            shared_sources=shared,
         )
 
     def execution_arguments(self, job, directory):

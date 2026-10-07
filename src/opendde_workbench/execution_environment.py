@@ -80,6 +80,7 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
         }
         matched = False
     elif software in {
+        "deepternary",
         "boltz",
         "reinvent",
         "ligandmpnn",

@@ -2,6 +2,34 @@
 
 The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction uses Boltz Lab as interaction and visual inspiration: compact stepwise scientific workflows. The current visual direction is bright AI + biopharma: cool white, blue-purple and teal, flat workspaces and restrained boundaries. It supersedes the earlier green palette. Private reference projects and screenshots are not distributed with X-DDE. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
 
+## Whole-platform visual acceptance
+
+The owner sets Awwwards, Webby Awards and FWA as quality references, not a claim
+of an award or an external jury score. Each research page must pass an observed
+visual and interaction review, including inputs, results, loading, empty and
+error states. This extends R01–R76 rather than creating a competing roadmap.
+
+The design expresses AI-assisted biomedical research through readable scientific
+visuals, restrained cool white, blue-purple and teal, precise typography and flat
+workspaces. Structures, molecular drawings, sequences, tables and plots carry
+the result; decorative imagery must not imply scientific evidence. Every task
+offers one visible step at a time, a clear next action and optional expert controls.
+Use shared design tokens and components, not page-specific competing themes.
+
+Acceptance requires coherent density and alignment at desktop and compact
+widths, keyboard access and visible focus, readable contrast, reduced-motion
+support, intact structure labels and accessible equivalents for charts. No
+horizontal document overflow, overlapping controls, inaccessible downloads,
+raw engineering logs, placeholder scientific scores or unsupported actions.
+Retain source evidence, method limitations and scientific uncertainty where
+they change a research decision. Capture real results and iterate after each
+review; a screenshot of a mockup is not runtime acceptance.
+
+Primary reference criteria: [Awwwards evaluation](https://www.awwwards.com/about-evaluation/),
+[Webby judging criteria](https://www.webbyawards.com/judging-criteria/),
+and [FWA](https://thefwa.com/). These references guide internal quality checks;
+X-DDE does not assign itself an official award score.
+
 ## Product hierarchy
 
 新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录已实现的 14 个专用模块及验收；v0.4.31 又完成 9 家供应商、16 份公开结构文件的实际安装。该专项完成不代表下面的 76 项平台路线图全部完成；供应商受限数据、目标服务器 GPU/规模性能和实验验证仍分别确认。
