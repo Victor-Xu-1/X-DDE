@@ -66,10 +66,11 @@ export function MetricScatter<T>({
   }
   const [xmin, xmax] = range(points.map((p) => p.x)),
     [ymin, ymax] = range(points.map((p) => p.y));
-  const plotRight = plotWidth - 32,
-    plotSpan = plotRight - 58;
+  const plotLeft = 80,
+    plotRight = plotWidth - 32,
+    plotSpan = plotRight - plotLeft;
   const ticks = plotWidth < 380 ? [0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1];
-  const px = (v: number) => 58 + ((v - xmin) / (xmax - xmin)) * plotSpan,
+  const px = (v: number) => plotLeft + ((v - xmin) / (xmax - xmin)) * plotSpan,
     py = (v: number) => 218 - ((v - ymin) / (ymax - ymin)) * 185;
   return (
     <section
@@ -128,28 +129,32 @@ export function MetricScatter<T>({
           {ticks.map((fraction) => (
             <g key={fraction}>
               <line
-                x1="58"
+                x1={plotLeft}
                 y1={33 + fraction * 185}
                 x2={plotRight}
                 y2={33 + fraction * 185}
                 className="scatter-grid"
               />
-              <text x="50" y={37 + fraction * 185} textAnchor="end">
+              <text x={plotLeft - 8} y={37 + fraction * 185} textAnchor="end">
                 {Number((ymax - fraction * (ymax - ymin)).toPrecision(3))}
               </text>
-              <text x={58 + fraction * plotSpan} y="236" textAnchor="middle">
+              <text
+                x={plotLeft + fraction * plotSpan}
+                y="236"
+                textAnchor="middle"
+              >
                 {Number((xmin + fraction * (xmax - xmin)).toPrecision(3))}
               </text>
             </g>
           ))}
           <line
-            x1="58"
+            x1={plotLeft}
             y1="218"
             x2={plotRight}
             y2="218"
             className="scatter-axis"
           />
-          <text x={58 + plotSpan / 2} y="259" textAnchor="middle">
+          <text x={plotLeft + plotSpan / 2} y="259" textAnchor="middle">
             {x.label}
           </text>
           <text

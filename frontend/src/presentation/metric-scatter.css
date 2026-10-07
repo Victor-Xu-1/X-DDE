@@ -39,7 +39,7 @@
 }
 .metric-scatter-plot text {
   fill: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-family: var(--font);
 }
 .scatter-grid {

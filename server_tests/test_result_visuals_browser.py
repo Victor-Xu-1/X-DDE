@@ -111,7 +111,11 @@ def test_real_structures_tables_and_sequences():
                     textSize:getComputedStyle(node.querySelector('text')).fontSize})""")
                 assert abs(geometry["height"] - 265) <= 1, geometry
                 assert geometry["marker"] in {"4", "6"}, geometry
-                assert geometry["textSize"] == "10px", geometry
+                assert geometry["textSize"] == "12px", geometry
+                export_control = page.locator(
+                    ".metric-scatter:visible > header .visual-export-button"
+                ).first.bounding_box()
+                assert export_control and export_control["height"] <= 44, export_control
                 record(f"responsive-properties-{chart_width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
             result("性质与早期安全性预测")
