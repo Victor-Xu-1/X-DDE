@@ -71,7 +71,7 @@ def main():
     actual = predict_one(full, arms, graphs, cfg, model, 0, True)
     assert np.allclose(actual["ligand_positions"], expected_ligand, atol=0.02, rtol=0)
     actual_partner = rotate_and_translate(
-        graphs[1].ndata["x"], actual["rotation"], actual["translation"]
+        graphs[1].ndata["x"].cpu().numpy(), actual["rotation"], actual["translation"]
     )
     assert np.allclose(actual_partner, expected_partner, atol=0.02, rtol=0)
     source_quality = check_candidate(
