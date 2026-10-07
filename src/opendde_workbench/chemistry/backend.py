@@ -7,6 +7,11 @@ from .runtime import configuration, readiness
 
 FILES = (
     "runner.py",
+    "native_cluster.py",
+    "cluster_geometry.py",
+    "cluster_contacts.py",
+    "cluster_groups.py",
+    "cluster_options.py",
     "states.py",
     "mapping.py",
     "conformers.py",

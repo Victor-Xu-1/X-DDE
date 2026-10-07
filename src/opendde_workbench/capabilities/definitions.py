@@ -304,6 +304,20 @@ _RECEPTORS = (
 )
 _POSES = (
     CapabilitySpec(
+        id="pose.cluster",
+        modalities=("small_molecule", "chemical"),
+        modality_role="research_object",
+        group="analyze",
+        environment="chemistry",
+        operations=("pose_cluster",),
+        label=("结合模式分群", "Binding mode clustering"),
+        note=(
+            "在配套受体坐标中比较原生姿势和残基几何接触，保留代表姿势。",
+            "Compare native poses and geometric residue contacts in their paired receptor frame.",
+        ),
+        source="RDKit",
+    ),
+    CapabilitySpec(
         id="pose_exploration",
         **modality_metadata("pose_exploration"),
         group="structure",

@@ -1,0 +1,60 @@
+name: Pose clustering scoped checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/chemistry/cluster*.py'
+      - 'src/opendde_workbench/chemistry/native_cluster.py'
+      - 'src/opendde_workbench/pose_ensembles/clustering*.py'
+      - 'frontend/src/poses/Cluster*'
+      - 'frontend/src/poses/cluster*'
+      - 'tests/test_pose_clustering*.py'
+      - 'server_tests/*cluster*'
+      - '.github/workflows/pose-cluster-checks.yml'
+permissions:
+  contents: read
+jobs:
+  cluster:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed scientific contracts and direct consumers
+        run: >-
+          uv run --locked pytest -q tests/test_pose_clustering_contract.py
+          tests/test_pose_exploration_contract.py tests/test_pose_exploration_api.py
+          tests/test_chemistry_contract.py tests/test_capabilities.py
+          tests/test_research_assets.py
+      - name: Changed questionnaire and native result presentation
+        working-directory: frontend
+        run: npx vitest run src/poses/ClusterForm.test.tsx src/poses/ClusterResults.test.tsx src/poses/PoseScoreComparison.test.tsx src/operations/OperationResults.test.tsx
+      - name: Restore real BRD4/JQ1 poses and execute locked native clustering
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          uv run --locked python server_tests/pose_cluster_acceptance.py --archive "$RUNNER_TEMP/x-dde-public-cases-v1.zip" --output "$RUNNER_TEMP/pose-cluster"
+      - run: uv run --locked python -m playwright install --with-deps chromium
+      - name: Actual clustering questionnaire, previews, heatmap and downloads
+        env:
+          WB_POSE_CLUSTER: ${{ runner.temp }}/pose-cluster
+        run: uv run --locked pytest -q server_tests/test_pose_cluster_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pose-cluster-acceptance
+          path: |
+            ${{ runner.temp }}/pose-cluster/*.json
+            ${{ runner.temp }}/pose-cluster/*.png
+            ${{ runner.temp }}/pose-cluster/*.csv
+            ${{ runner.temp }}/pose-cluster/*.svg
+            ${{ runner.temp }}/pose-cluster/*.log
+            ${{ runner.temp }}/pose-cluster/*.txt

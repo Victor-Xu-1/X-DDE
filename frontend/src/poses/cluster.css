@@ -1,0 +1,64 @@
+.cluster-pose-selection {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 22px;
+  max-height: 420px;
+  overflow: auto;
+  margin-top: 16px;
+}
+.cluster-result-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  margin: 20px 0;
+}
+.cluster-result-columns > * {
+  min-width: 0;
+}
+.cluster-results .research-table-scroll table {
+  min-width: 560px;
+}
+.cluster-results .research-table td,
+.cluster-results .research-table th {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.cluster-preview .molecular-stage {
+  height: 440px;
+}
+.cluster-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 10px 0;
+}
+.cluster-matrix-scroll {
+  max-height: 440px;
+  overflow: auto;
+}
+.cluster-matrix svg {
+  max-width: none;
+  display: block;
+}
+.cluster-matrix g[role="button"] {
+  cursor: pointer;
+}
+.cluster-matrix g[role="button"]:focus {
+  outline: 2px solid var(--accent);
+}
+.cluster-results > details {
+  margin-top: 20px;
+}
+@media (max-width: 900px) {
+  .cluster-result-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .cluster-pose-selection {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cluster-preview .molecular-stage {
+    height: 340px;
+  }
+}

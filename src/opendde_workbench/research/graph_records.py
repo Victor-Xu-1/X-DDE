@@ -354,6 +354,14 @@ def project_record(store, kind, row):
         edges.append(
             ("task:" + str(job.request.payload.model_job), identifier, "used_property_model")
         )
+    if job.request.operation == "pose_cluster":
+        from ..chemistry.cluster_contract import references
+
+        refs.extend(ref for _, ref in references(job.request))
+        edges.append(("pose_set:" + str(job.request.pose_set_id), identifier, "pose_clustering"))
+        edges.append(
+            ("receptor_set:" + str(job.request.receptor_set_id), identifier, "aligned_frame")
+        )
     if job.request.operation == "docking":
         from ..docking.contract import references
 

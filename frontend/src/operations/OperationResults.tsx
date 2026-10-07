@@ -13,6 +13,8 @@ import { AntibodyNumberResults } from "../antibodies/AntibodyNumberResults";
 import type { AntibodyNumberResult } from "../antibodies/types";
 import { LibraryScreenResults } from "../chemistry/LibraryScreenResults";
 import type { LibraryScreenResult } from "../chemistry/screen-types";
+import { ClusterResults } from "../poses/ClusterResults";
+import type { PoseClusterResult } from "../poses/cluster-types";
 import { SurfaceResults } from "../receptors/SurfaceResults";
 import type { SurfaceResult } from "../receptors/surface-types";
 import { StructurePrepareResults } from "../receptors/StructurePrepareResults";
@@ -73,6 +75,7 @@ export function OperationResults({
     "antibody_humanize",
     "admet_predict",
     "pose_quality",
+    "pose_cluster",
     "antibody_number",
     "library_screen",
     "structure_prepare",
@@ -172,6 +175,13 @@ export function OperationResults({
           result={data as unknown as AdmetResult}
           language={language}
           onCreated={onCreated}
+        />
+      )}
+      {job.request.operation === "pose_cluster" && (
+        <ClusterResults
+          job={job}
+          result={data as unknown as PoseClusterResult}
+          language={language}
         />
       )}
       {job.request.operation === "pose_quality" && (

@@ -253,6 +253,10 @@ class AssetStore:
             from .antibodies.bindings import sequence_bindings
 
             return sequence_bindings(request, self)
+        if getattr(request, "operation", None) == "pose_cluster":
+            from .pose_ensembles.clustering_sources import clustering_bindings
+
+            return clustering_bindings(request, self)
         if getattr(request, "operation", None) == "library_screen":
             from .chemistry.screen_bindings import screen_bindings
 

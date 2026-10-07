@@ -151,6 +151,10 @@ def register_operations(app, store, assets, settings, mutation):
                         "Prepared molecular state evidence is invalid or changed; "
                         "inspect the task files.",
                     ) from exc
+            if job.request.operation == "pose_cluster":
+                from .chemistry.cluster_result import validate_cluster
+
+                validate_cluster(value, job.request, root / "output")
             if job.request.operation == "molecule_minimize":
                 from .chemistry.minimization_result import validate_minimization
 

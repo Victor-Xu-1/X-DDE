@@ -273,7 +273,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("biopython", {}))
-            elif value.operation in {"molecular_states", "library_screen", "molecule_minimize"}:
+            elif value.operation in {
+                "molecular_states",
+                "library_screen",
+                "molecule_minimize",
+                "pose_cluster",
+            }:
                 from .chemistry.runtime import validate
 
                 assets.validate_bindings(value)

@@ -16,6 +16,7 @@ from pydantic import (
 
 from .admet.contract import AdmetTask
 from .antibodies.contract import AntibodyNumberTask
+from .chemistry.cluster_contract import PoseClusterTask
 from .chemistry.contract import MolecularStatesTask
 from .chemistry.minimization_contract import MoleculeMinimizeTask
 from .chemistry.screen_contract import LibraryScreenTask
@@ -165,6 +166,7 @@ TaskRequest = Annotated[
     | Annotated[LibraryScreenTask, Tag("library_screen")]
     | Annotated[MolecularStatesTask, Tag("molecular_states")]
     | Annotated[MoleculeMinimizeTask, Tag("molecule_minimize")]
+    | Annotated[PoseClusterTask, Tag("pose_cluster")]
     | Annotated[SurfaceExposureTask, Tag("surface_exposure")]
     | Annotated[StructurePrepareTask, Tag("structure_prepare")]
     | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
@@ -195,6 +197,10 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         return {str(ref.asset_id) for _, ref in quality_references(request)}
     if isinstance(request, AntibodyNumberTask):
         return {str(request.sequences.asset_id)}
+    if isinstance(request, PoseClusterTask):
+        from .chemistry.cluster_contract import references as cluster_references
+
+        return {str(ref.asset_id) for _, ref in cluster_references(request)}
     if isinstance(request, LibraryScreenTask):
         return {str(request.library.asset_id)} | (
             {str(request.query.asset_id)} if request.query else set()

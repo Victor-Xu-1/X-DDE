@@ -78,6 +78,7 @@ _DEFINITIONS = (
             "molecular_states",
             "library_screen",
             "molecule_minimize",
+            "pose_cluster",
             "library_prepare",
             "library_subset",
         ),

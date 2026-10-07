@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import Depends, Header, HTTPException, Query
 
 from ..store import ConflictError
+from .clustering_routes import register_clustering
 from .collections import PoseSets
 from .comparison_routes import register_score_comparisons
 from .contracts import ExplorationInput
@@ -74,3 +75,4 @@ def register_pose_explorations(app, store, assets, settings, mutation):
         return translate(lambda: sets.get(set_id))
 
     register_score_comparisons(app, sets, mutation, translate)
+    register_clustering(app, sets, mutation, translate)

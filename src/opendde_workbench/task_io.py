@@ -90,6 +90,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .chemistry.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "pose_cluster":
+        from .chemistry.cluster_result import validate_cluster
+
+        validate_cluster(result, job.request, output)
     if operation == "molecule_minimize":
         from .chemistry.minimization_result import validate_minimization
 

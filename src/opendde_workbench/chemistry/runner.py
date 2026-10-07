@@ -107,6 +107,10 @@ def main():
         result = run_screen(request, bindings, directory, output)
     elif request["operation"] == "molecular_states":
         result = run(request, bindings, directory, output)
+    elif request["operation"] == "pose_cluster":
+        from native_cluster import run_cluster
+
+        result = run_cluster(request, bindings, directory, output)
     elif request["operation"] == "molecule_minimize":
         from native_minimization import run_minimization
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ClusterForm } from "./ClusterForm";
 import { PoseScoreComparison } from "./PoseScoreComparison";
 import { artifactUrl } from "../api";
 import { MolecularPreview } from "../presentation/MolecularPreview";
@@ -27,7 +28,8 @@ export function PoseResults({
         ?.evidence.record ?? null,
     ),
     [next, setNext] = useState<"properties" | "score" | null>(null),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [clustering, setClustering] = useState(false);
   const outcome = value.outcomes[index],
     combination = outcome.combination;
   const selected = outcome.poses.find(
@@ -165,6 +167,20 @@ export function PoseResults({
           </tbody>
         </table>
       </div>
+      <div className="editor-toolbar">
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={value.qualified_pose_count < 2}
+          aria-expanded={clustering}
+          onClick={() => setClustering((v) => !v)}
+        >
+          {zh ? "按结合模式分群" : "Cluster binding modes"}
+        </button>
+      </div>
+      {clustering && (
+        <ClusterForm key={value.id} value={value} language={language} />
+      )}
       <PoseScoreComparison
         value={value}
         outcomeIndex={index}

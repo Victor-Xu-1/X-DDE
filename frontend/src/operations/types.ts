@@ -80,6 +80,7 @@ export type TaskRequest =
   | import("../discovery/types").TargetResearchTask
   | import("../chemistry/types").MolecularStatesTask
   | import("../viewer/pose-types").MoleculeMinimizeTask
+  | import("../poses/cluster-types").PoseClusterTask
   | import("../receptors/types").ReceptorTask
   | FeatureTask
   | ConversionTask
