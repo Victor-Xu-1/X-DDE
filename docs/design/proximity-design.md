@@ -215,3 +215,12 @@ inspection without populating personal history. Molecular glues do not acquire
 two compulsory binding arms. This observation is not allowed-growth cones,
 solvent accessibility, steric clearance, reactivity or constrained design;
 those parts of R42–R46 remain in the canonical roadmap.
+
+[R42 native/API/real-browser acceptance](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37668183556)
+passed source-frame matching, exact pose digests, measured cuts, dynamic marker
+selection, full-precision CSV, bilingual results and 1280/1366/390 layouts.
+[Shared-viewer consumer acceptance](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37667545287)
+passed all 870 desktop/mobile task-page states. Desktop and mobile are independent
+bounded jobs, with no scientific inference on the owner's workstation and no
+personal example jobs. These checks do not change the zero-qualified-proposal
+scientific boundary or imply an award jury evaluation.
