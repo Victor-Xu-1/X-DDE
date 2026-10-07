@@ -165,3 +165,28 @@ def fixed_arm_conformer(full, arms, seed):
     ):
         raise ValueError("Conformer generation changed the complete chemical graph.")
     return generated
+
+
+def aligned_arm_conformer(full, arms, seed):
+    """Place the generated whole molecule in its observed reference frame."""
+    from deepternary.models.process_mols import rigid_transform_Kabsch_3D
+
+    generated = fixed_arm_conformer(full, arms, seed)
+    coordinates = generated.GetConformer().GetPositions()
+    observed = full.GetConformer().GetPositions()
+    if any(
+        np.linalg.matrix_rank(value - value.mean(axis=0)) < 2 for value in (coordinates, observed)
+    ):
+        raise ValueError("The complete molecule has no nondegenerate alignment reference.")
+    rotation, translation = rigid_transform_Kabsch_3D(coordinates.T, observed.T)
+    if (
+        not np.isfinite(rotation).all()
+        or not np.isfinite(translation).all()
+        or not np.allclose(rotation.T @ rotation, np.eye(3), atol=0.0001, rtol=0)
+        or abs(np.linalg.det(rotation) - 1) > 0.0001
+    ):
+        raise ValueError("The initial molecular alignment must be one proper rigid transform.")
+    aligned = (rotation @ coordinates.T).T + translation.reshape(1, 3)
+    for index, position in enumerate(aligned):
+        generated.GetConformer().SetAtomPosition(index, position)
+    return generated

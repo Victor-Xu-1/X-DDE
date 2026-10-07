@@ -11,7 +11,7 @@ from deepternary.models.process_mols import (
     get_receptor_inference,
 )
 from deepternary.models.ternary_pdb import get_pocket_and_mask
-from native_proximity_chemistry import fixed_arm_conformer
+from native_proximity_chemistry import aligned_arm_conformer
 
 
 def load_model(glue):
@@ -70,7 +70,7 @@ def proposal(full, arms, partners, cfg, seed):
 
     torch.manual_seed(seed)
     np.random.seed(seed)
-    generated = fixed_arm_conformer(full, arms, seed) if arms else deepcopy(full)
+    generated = aligned_arm_conformer(full, arms, seed) if arms else deepcopy(full)
     config = cfg.test_dataloader.dataset
     graph_function = get_lig_graph_protac if arms else get_lig_graph_revised
     molecule, ligand = graph_function(
@@ -84,10 +84,12 @@ def proposal(full, arms, partners, cfg, seed):
     )
     if molecule.GetNumAtoms() != full.GetNumAtoms():
         raise ValueError("Native ligand featurization changed the complete atom correspondence.")
-    # With an already generated, exact constrained conformer the official featurizer
-    # keeps coordinates in x. The model's initialized pose input is explicitly new_x.
+    # The official PROTAC protocol keeps observed x separate from generated new_x.
+    # Align the generated conformer before applying the same random transform to
+    # it and the observed binding pockets; neither input file is changed.
     if arms:
         ligand.ndata["new_x"] = ligand.ndata["x"].clone()
+        ligand.ndata["x"] = torch.from_numpy(full.GetConformer().GetPositions()).float()
     first, second = [deepcopy(graph) for graph in partners]
     geometry = get_geometry_graph_ring(molecule)
     count = full.GetNumAtoms()

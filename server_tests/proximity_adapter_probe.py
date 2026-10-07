@@ -155,6 +155,12 @@ def run_adapter(root, image, models, glue_case=None):
             "--mount",
             f"type=bind,source={host},target={target}" + (",readonly" if readonly else ""),
         ]
+    if glue_case is None:
+        helper = Path(__file__).with_name("protac_initialization_checks.py").resolve()
+        arguments += [
+            "--mount",
+            f"type=bind,source={helper},target=/probe/protac_initialization_checks.py,readonly",
+        ]
     arguments += ["--entrypoint", "python", image, "-B", "/probe/entry.py"]
     try:
         with (work / "execution.log").open("wb") as log:

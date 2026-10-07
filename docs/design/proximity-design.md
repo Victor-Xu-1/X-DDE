@@ -177,3 +177,15 @@ when there is insufficient space the complete-complex preview leads a single
 column layout. Requested/returned counts share one statistic rather than separate
 repeated panels. Exported original metrics and scientific qualification remain
 unchanged.
+
+The next initialization correction keeps the original whole-ligand `x` separate
+from the generated conformer's `new_x`, and uses the upstream proper Kabsch
+transform to place that generated conformer in the observed molecular frame
+before random initialization. The known binary pocket coordinates and the whole
+conformer consequently receive the same centering and rigid transform. This
+does not change source coordinates, chemical identities, internal distances or
+qualification thresholds. Isolated acceptance compares real RDKit conformers and
+native graph coordinates with an independent row-vector Kabsch reference,
+translation covariance and the source poses, then executes the sole native
+adapter. These checks establish input consistency; predictive accuracy remains
+subject to the actual returned structures and independent gates.

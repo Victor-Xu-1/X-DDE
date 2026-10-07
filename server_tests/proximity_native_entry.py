@@ -12,12 +12,14 @@ sys.path.insert(0, "/platform")
 from native_proximity_chemistry import arm_mapping, fragment_from_indices, read_chemistry
 from native_proximity_partners import read_partner, validate_bound_arm
 from native_proximity_quality import check_candidate, stereochemistry_preserved
+from protac_initialization_checks import verify_initialization
 
 request = json.loads(Path("/input/request.json").read_text())
 full, indices, arms = read_chemistry(request)
 partners = [read_partner(request, role) for role in ("a", "b")]
 for index, (arm, _) in enumerate(arms):
     validate_bound_arm(arm, partners[index])
+initialization = verify_initialization(full, arms, partners, request["options"]["seed"])
 checks = []
 
 
@@ -71,6 +73,7 @@ Path("/output/native-checks.json").write_text(
             "source_crystal_geometry": original,
             "negative_checks": checks,
             "native_model_executed": True,
+            "initialization": initialization,
         },
         indent=2,
     )
