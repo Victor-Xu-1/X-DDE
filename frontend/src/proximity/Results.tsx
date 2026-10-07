@@ -237,30 +237,37 @@ export function ProximityResults({
               </a>
             </nav>
             {!active.quality.accepted && (
+              <span className="proximity-check-fail">
+                {zh
+                  ? "诊断结构 · 几何检查未全部通过"
+                  : "Diagnostic structure · geometry checks incomplete"}
+              </span>
+            )}
+            <details className="proximity-scope">
+              <summary>
+                {zh
+                  ? "结构范围与结果说明"
+                  : "Structure scope and interpretation"}
+              </summary>
               <p className="proximity-caption">
                 {zh
-                  ? "该结构供诊断与调整，不是通过几何检查的可复用候选。"
-                  : "This is a diagnostic structure, not a reusable candidate passing basic geometry."}
+                  ? "链 A：伙伴 1 · 链 B：伙伴 2 · 链 L：完整分子"
+                  : "Chain A: partner 1 · Chain B: partner 2 · Chain L: complete molecule"}
               </p>
-            )}
-            <p className="proximity-caption">
-              {zh
-                ? "链 A：伙伴 1 · 链 B：伙伴 2 · 链 L：完整分子"
-                : "Chain A: partner 1 · Chain B: partner 2 · Chain L: complete molecule"}
-            </p>
-            <p className="proximity-caption">
-              {zh
-                ? "本次只建模两个核心蛋白链与完整分子；其他亚基和辅因子需要另行评估。"
-                : "This models two principal protein chains and the complete molecule. Accessory subunits and cofactors require separate assessment."}
-            </p>
+              <p className="proximity-caption">
+                {zh
+                  ? "本次只建模两个核心蛋白链与完整分子；其他亚基和辅因子需要另行评估。"
+                  : "This models two principal protein chains and the complete molecule. Accessory subunits and cofactors require separate assessment."}
+              </p>
+              <p className="proximity-caption">
+                {zh
+                  ? "三元装配不证明降解、协同性、效应抑制或细胞活性。"
+                  : "A ternary assembly does not establish degradation, cooperativity, effector inhibition or cellular activity."}
+              </p>
+            </details>
           </section>
         </div>
       )}
-      <p className="proximity-caption">
-        {zh
-          ? "三元装配不证明降解、协同性、效应抑制或细胞活性。"
-          : "A ternary assembly does not establish degradation, cooperativity, effector inhibition or cellular activity."}
-      </p>
     </div>
   );
 }
