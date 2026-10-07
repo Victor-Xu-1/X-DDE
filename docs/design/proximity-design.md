@@ -29,7 +29,7 @@ substitute for interface design.
 
 | Method | Intended role | Verified source / current boundary |
 | --- | --- | --- |
-| DeepTernary | Fast multiple ternary hypotheses, separate PROTAC and MGD checkpoints; CPU and CUDA entrypoints | Official Apache-2.0 source at 827821dccca31a5918bd0355e2d6bf70c072b6dd; source and official weights downloaded and hashed; X-DDE adapter/native scientific validation pending |
+| DeepTernary | Fast multiple ternary hypotheses, separate PROTAC and MGD checkpoints | Official Apache-2.0 source at 827821dccca31a5918bd0355e2d6bf70c072b6dd; isolated CPU adapter, exact graph and native input protocols verified; CUDA, prospective accuracy and mechanism-specific scientific acceptance remain pending |
 | P4ward | Protein–protein sampling followed by full-PROTAC/linker modeling from two binary complexes; classical complementary method | GPL-3.0 source at 2d5cf1c0dc88083995b707371199b56444513fe6; MEGADOCK is CC-BY-NC-4.0; source downloaded, pinned runtime/native validation pending |
 | REINVENT4 / LinkInvent | Generate explicit attachment-point fragment linkers with property objectives | Existing peer environment has native linker mode; add exact region/attachment lineage and full-graph handoff, not another molecular generator |
 | DiffLinker | Optional pocket/3D-conditioned linking alternative | Candidate pending version/weights/protocol acceptance; not a universal replacement for LinkInvent |
@@ -178,7 +178,7 @@ column layout. Requested/returned counts share one statistic rather than separat
 repeated panels. Exported original metrics and scientific qualification remain
 unchanged.
 
-The next initialization correction keeps the original whole-ligand `x` separate
+The v0.4.40 initialization correction keeps the original whole-ligand `x` separate
 from the generated conformer's `new_x`, and uses the upstream proper Kabsch
 transform to place that generated conformer in the observed molecular frame
 before random initialization. The known binary pocket coordinates and the whole
@@ -189,3 +189,14 @@ native graph coordinates with an independent row-vector Kabsch reference,
 translation covariance and the source poses, then executes the sole native
 adapter. These checks establish input consistency; predictive accuracy remains
 subject to the actual returned structures and independent gates.
+
+[Native/API/browser acceptance](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37659023416)
+passed on the actual MZ1 input and the two deposited glue inputs. Before placement,
+the generated MZ1 conformer's centroid was 39.553 Å from the observed reference;
+this is a difference of coordinate frames, not a measured prediction error.
+The independent proper-alignment, translated-reference, unchanged-source,
+unchanged-internal-distance and actual model-graph checks passed. All three cases
+still returned three diagnostic proposals and zero proposals passing every
+independent geometry gate. Original source complexes passed those same gates;
+the gates were not relaxed and the correction is not reported as scientific
+prediction accuracy acceptance.
