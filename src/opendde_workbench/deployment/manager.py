@@ -10,6 +10,7 @@ from pathlib import Path
 from ..engine_registry import ENGINES
 from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
+from .activation import DYNAMIC_RUNTIMES, activation_snapshot
 from .catalog import PACKAGES, catalogue, prerequisites
 from .compute_service import ComputeService
 from .installers import install
@@ -26,11 +27,7 @@ class DeploymentManager:
         self.closing = threading.Event()
         self.mutex = threading.RLock()
         self.task = None
-        self.activated = {
-            k: v
-            for k, v in self.store.installed().items()
-            if PACKAGES.get(k) is None or PACKAGES[k].kind not in {"editor", "data"}
-        }
+        self.activated = activation_snapshot(self.store.installed())
 
     async def start(self):
         # Reap only children with a matching saved kernel start time.
@@ -115,12 +112,7 @@ class DeploymentManager:
             + (["/mnt/e/WSL/apps/x-dde"] if Path("/mnt/e").is_dir() else []),
             "location_locked": bool(self.store.installed())
             or any(r["state"] in ACTIVE | {"paused"} for r in self.store.rows()),
-            "restart_required": self.activated
-            != {
-                k: v
-                for k, v in self.store.installed().items()
-                if PACKAGES.get(k) is None or PACKAGES[k].kind not in {"editor", "data"}
-            },
+            "restart_required": self.activated != activation_snapshot(self.store.installed()),
         }
 
     def enqueue(self, package, action):
@@ -226,6 +218,8 @@ class DeploymentManager:
                     state="succeeded",
                     stage="Uninstalled; models, caches and shared Docker layers retained"
                     if row["action"] == "uninstall"
+                    else "Installed and available"
+                    if key in DYNAMIC_RUNTIMES
                     else "Installed; restart UI to activate compute changes",
                 )
         except Paused:

@@ -90,3 +90,14 @@ def test_managed_channel_runtime_is_dynamic_and_exact(tmp_path):
         atomic_json(root / "installed.json", {"caver": {**entry, **patch}})
         with pytest.raises(ValueError):
             configuration(settings)
+
+
+def test_live_runtime_activation_preserves_other_restart_requirements():
+    from opendde_workbench.deployment.activation import activation_snapshot, dynamic_snapshot
+
+    original = {"chemistry": {"version": "reviewed", "image": "original"}}
+    installed = {**original, "caver": {"version": "3.0.2", "image": "new-native-image"}}
+    assert activation_snapshot(installed) == activation_snapshot(original)
+    assert dynamic_snapshot(installed) != dynamic_snapshot(original)
+    upgraded = {**installed, "chemistry": {"version": "reviewed", "image": "replacement"}}
+    assert activation_snapshot(upgraded) != activation_snapshot(installed)

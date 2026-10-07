@@ -55,6 +55,13 @@ export function ChannelResults({
           </dd>
         </div>
       </dl>
+      {result.context.quality.backbone_complete === false && (
+        <p role="status" className="field-note">
+          {zh
+            ? "所选结构的部分骨架原子缺失，可能影响通道。请检查准备结构，再决定是否用于后续研究。"
+            : "Some observed backbone atoms are missing and can affect channels. Review the prepared structure before downstream use."}
+        </p>
+      )}
       {!channel && (
         <p role="status">
           {zh

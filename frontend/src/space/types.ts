@@ -52,5 +52,8 @@ export interface ChannelResult {
   requested_start: [number, number, number];
   native_start_displacement_angstrom: number;
   outcome: "paths_found" | "not_found_within_declared_conditions";
+  context: {
+    quality: { backbone_complete: boolean; sidechain_completeness: string };
+  };
   versions: Record<string, string>;
 }

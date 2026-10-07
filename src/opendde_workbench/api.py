@@ -369,9 +369,13 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     @app.get("/api/health")
     async def health():
-        if time.monotonic() > health_cache["expires"]:
+        from .deployment.activation import dynamic_snapshot
+
+        dynamic = dynamic_snapshot(deployments.store.installed())
+        if time.monotonic() > health_cache["expires"] or health_cache.get("dynamic") != dynamic:
             health_cache["value"] = await engine.readiness()
             health_cache["expires"] = time.monotonic() + 10
+            health_cache["dynamic"] = dynamic
         alive = worker.task is not None and not worker.task.done()
         environments = engine_statuses(health_cache["value"])
         return {

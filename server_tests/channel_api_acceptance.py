@@ -13,10 +13,8 @@ from channel_case_archive import freeze_channels
 from fastapi.testclient import TestClient
 
 from opendde_workbench.api import create_app
-from opendde_workbench.deployment.installers import install
 from opendde_workbench.examples.catalogue import FILES
 from opendde_workbench.examples.files import verified_file
-from opendde_workbench.locations import atomic_json
 from opendde_workbench.settings import Settings
 from opendde_workbench.space.contract import ChannelTask
 from opendde_workbench.space.manifest import VERSION
@@ -29,12 +27,7 @@ def main():
     protocol = args.protocol.resolve()
     output = protocol / "platform"
     output.mkdir(exist_ok=False)
-    components = output / "components"
-    (components / "downloads").mkdir(parents=True)
-    shutil.copyfile(
-        protocol / "caver.zip", components / "downloads" / ("caver-" + VERSION + ".zip")
-    )
-    entry = install("caver", components, {}, str(uuid4()), print, lambda: None)
+    base = output / "components"
     settings = Settings(
         state_dir=output / "state",
         image_file=output / "missing-image",
@@ -44,16 +37,42 @@ def main():
         minimum_free_bytes=0,
     )
     settings.state_dir.mkdir()
-    atomic_json(
-        settings.state_dir / "deployment.json", {"root": str(components), "automatic": False}
-    )
-    atomic_json(components / "installed.json", {"caver": entry})
     cache = settings.state_dir / "public-example-cache"
     cache.mkdir()
     shutil.copyfile(protocol / "4EY7.pdb", cache / FILES["ache"].sha256)
     verified_file(cache, FILES["donepezil"])
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        assert not client.get("/api/capabilities/caver.paths").json()["availability"][
+            "configuration_present"
+        ]
+        configured = client.post(
+            "/api/deployment/config", json={"location": str(base), "automatic": False}
+        )
+        assert configured.status_code == 200, configured.text
+        components = Path(configured.json()["config"]["root"])
+        (components / "downloads").mkdir()
+        shutil.copyfile(
+            protocol / "caver.zip", components / "downloads" / ("caver-" + VERSION + ".zip")
+        )
+        queued = client.post("/api/deployment/packages/caver/install", json={})
+        assert queued.status_code == 200, queued.text
+        operations = queued.json()["operations"]
+        deadline = time.monotonic() + 300
+        while time.monotonic() < deadline:
+            deployment = client.get("/api/deployment").json()
+            rows = [r for r in deployment["operations"] if r["id"] in operations]
+            assert not any(r["state"] in {"failed", "cancelled", "paused"} for r in rows), rows
+            if len(rows) == len(operations) and all(r["state"] == "succeeded" for r in rows):
+                break
+            time.sleep(0.25)
+        else:
+            raise TimeoutError("Managed channel installation did not finish")
+        entry = deployment["installed"]["caver"]
+        assert not deployment["restart_required"]
+        assert client.get("/api/capabilities/caver.paths").json()["availability"][
+            "configuration_present"
+        ]
         prepared = client.post("/api/examples/caver.paths/prepare")
         assert prepared.status_code == 200, prepared.text
         example = prepared.json()
