@@ -83,6 +83,29 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 timeout=30000
             )
             page.screenshot(path=str(root / "proximity-molecule-2d.png"), full_page=True)
+            page.get_by_role("tab", name="连接位点", exact=True).click()
+            geometry = result["proximity"]["attachment_geometry"]["assemblies"]
+            current = next(row for row in geometry if row["id"] == first["id"])
+            count = sum(bond["direction"] is not None for bond in current["bonds"])
+            markers = page.get_by_label("连接位点标记", exact=True)
+            expect(markers).to_have_text(f"{count} 处连接标记", timeout=30000)
+            cuts = page.get_by_role("table", name="当前构象的连接位点", exact=True)
+            expect(cuts.locator("tbody tr")).to_have_count(len(current["bonds"]))
+            panel = page.locator(".attachment-directions")
+            with page.expect_download() as info:
+                panel.get_by_role("button", name="导出筛选结果", exact=True).click()
+            csv = Path(info.value.path()).read_text(encoding="utf-8-sig")
+            assert "Current bond length (angstrom)" in csv and "Direction x" in csv
+            page.screenshot(path=str(root / "proximity-attachment-directions.png"), full_page=True)
+            first_cut = cuts.locator("tbody tr").first
+            first_cut.click()
+            expect(markers).to_have_text("1 处连接标记")
+            for width in (1280, 1366, 390):
+                page.set_viewport_size({"width": width, "height": 1050})
+                assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+                page.screenshot(
+                    path=str(root / f"proximity-attachments-{width}.png"), full_page=True
+                )
             page.get_by_role("tab", name="完整复合物", exact=True).click()
             page.set_viewport_size({"width": 860, "height": 1000})
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")

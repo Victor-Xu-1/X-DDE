@@ -52,6 +52,16 @@ export interface TernaryResult {
     atoms: unknown[];
   }[];
   arm_maps: number[][];
+  attachment_geometry?: {
+    method: "source_graph_region_boundary_direction_v1";
+    scope: "observed_bond_direction_not_allowed_growth_or_clearance";
+    assemblies: {
+      id: string;
+      ligand_artifact: string;
+      sha256: string;
+      bonds: AttachmentBond[];
+    }[];
+  };
   assemblies: AssemblyProposal[];
   search: {
     requested: number;
@@ -59,6 +69,18 @@ export interface TernaryResult {
     returned: number;
     status: string;
   };
+}
+export interface AttachmentBond {
+  id: string;
+  region: "a" | "b";
+  region_atom: number;
+  outside_atom: number;
+  region_element: string;
+  outside_element: string;
+  origin: [number, number, number];
+  target: [number, number, number];
+  bond_length_angstrom: number;
+  direction: [number, number, number] | null;
 }
 export const mechanismLabels = {
   protac: ["PROTAC 降解剂", "PROTAC degrader"],

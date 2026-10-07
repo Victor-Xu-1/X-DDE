@@ -63,6 +63,10 @@ def register_operations(app, store, assets, settings, mutation):
                 from .integrations.result import validate_result
 
                 value = validate_result(value, job.request, root / "output").model_dump(mode="json")
+            if job.request.operation == "ternary_model":
+                from .proximity.presentation import present_ternary
+
+                value = present_ternary(value, root / "output")
             if job.request.operation in {"reference_import", "target_research"}:
                 from .discovery.presentation import present_result
 

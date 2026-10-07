@@ -15,6 +15,7 @@ import {
 } from "./types";
 import type { Job, Language } from "../types";
 import "./proximity.css";
+import { AttachmentDirections } from "./AttachmentDirections";
 
 export function ProximityResults({
   job,
@@ -203,6 +204,25 @@ export function ProximityResults({
                     />
                   ),
                 },
+                ...(result.attachment_geometry?.assemblies.some(
+                  (row) => row.id === active.id && row.bonds.length,
+                )
+                  ? [
+                      {
+                        id: "attachments",
+                        label: zh ? "连接位点" : "Attachment sites",
+                        content: (
+                          <AttachmentDirections
+                            key={active.id}
+                            job={job}
+                            assembly={active}
+                            result={result}
+                            language={language}
+                          />
+                        ),
+                      },
+                    ]
+                  : []),
               ]}
             />
             <nav

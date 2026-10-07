@@ -200,3 +200,18 @@ still returned three diagnostic proposals and zero proposals passing every
 independent geometry gate. Original source complexes passed those same gates;
 the gates were not relaxed and the correction is not reported as scientific
 prediction accuracy acceptance.
+
+The R42 observation view derives each boundary bond from the validated complete
+chemical graph and original binding-region atom maps. It rechecks the actual
+serialized SDF digest and graph before measuring endpoints, distance and unit
+direction. Coincident endpoints have no direction. Original native files,
+chemical identities, output coordinates and qualification stay unchanged; the
+versioned API projection does not create a second task or persisted pose.
+The viewer checks the measured endpoints against the actual whole-complex ligand
+before adding any marker, respects hidden-atom choices, and changes markers
+without resetting the user's camera. CSV and 3D image downloads retain the actual
+measurements and view. Existing fixed native cases receive the same read-only
+inspection without populating personal history. Molecular glues do not acquire
+two compulsory binding arms. This observation is not allowed-growth cones,
+solvent accessibility, steric clearance, reactivity or constrained design;
+those parts of R42–R46 remain in the canonical roadmap.

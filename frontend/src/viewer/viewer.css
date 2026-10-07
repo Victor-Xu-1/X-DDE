@@ -286,3 +286,7 @@
   border-radius: 4px;
   background: linear-gradient(90deg, #e25358, #fff, #406ad1);
 }
+.viewer-attachment-count {
+  color: var(--muted);
+  font-size: 12px;
+}

@@ -38,9 +38,11 @@ import { PoseOptimizationControls } from "./PoseOptimizationControls";
 import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
+import type { AttachmentGeometry } from "./attachment-geometry";
 interface Props {
   initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
+  attachmentGeometry?: AttachmentGeometry;
   urls: string[];
   language: Language;
   focusResidue?: { residue: string; nonce: number } | null;
@@ -74,6 +76,7 @@ export function StructureViewer({
   molecularSource,
   nativeInteractions,
   channelGeometry,
+  attachmentGeometry,
   electrostaticMap,
   onAtomSelected,
   onSceneLoaded,
@@ -145,6 +148,7 @@ export function StructureViewer({
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
+  const [attachmentCount, setAttachmentCount] = useState(0);
   const [surface, setSurface] = useState<SurfaceSummary | null>(null);
   const [siteStatus, setSiteStatus] = useState<{
     requested: number;
@@ -172,6 +176,13 @@ export function StructureViewer({
         selectionCallback.current?.(detail);
       }
       if (type === "contacts") setContacts(detail);
+      if (
+        type === "attachments" &&
+        Number.isInteger(detail) &&
+        detail >= 0 &&
+        detail <= 16
+      )
+        setAttachmentCount(detail);
       if (type === "surface") setSurface(surfaceSummary(detail));
       if (type === "site-region") setSiteStatus(detail);
       if (type === "distance")
@@ -206,6 +217,7 @@ export function StructureViewer({
     setSelection(null);
     setDistance(null);
     setContacts(null);
+    setAttachmentCount(0);
     setSurface(null);
     setSiteStatus(null);
     setError("");
@@ -231,6 +243,19 @@ export function StructureViewer({
       setStatus("empty");
     }
   }, [ready, key, comparison, focusModel, focusKey]);
+  const attachmentKey = JSON.stringify(attachmentGeometry);
+  const lastAttachment = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      ready &&
+      status === "loaded" &&
+      loadedKey === key &&
+      (attachmentGeometry !== undefined || lastAttachment.current !== undefined)
+    ) {
+      send("attachment-geometry", attachmentGeometry);
+      lastAttachment.current = attachmentKey;
+    }
+  }, [ready, status, loadedKey, key, attachmentKey]);
   useEffect(() => {
     if (ready && focusResidue) send("residue", focusResidue.residue);
   }, [ready, focusResidue]);
@@ -272,6 +297,15 @@ export function StructureViewer({
               : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
           </Hint>
         </h3>
+        {attachmentGeometry !== undefined && (
+          <span
+            className="viewer-attachment-count"
+            role="status"
+            aria-label={zh ? "连接位点标记" : "Attachment markers"}
+          >
+            {attachmentCount} {zh ? "处连接标记" : "attachment markers"}
+          </span>
+        )}
         <div className="viewer-heading-actions">
           {channelGeometry && (
             <button

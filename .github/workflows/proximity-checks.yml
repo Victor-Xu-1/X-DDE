@@ -34,6 +34,7 @@ jobs:
       - name: Focused task, scientific contract and source-backed example checks
         run: >-
           uv run --locked pytest -q tests/test_proximity_contract.py
+          tests/test_proximity_attachments.py
           tests/test_integrated_science.py tests/test_native_resources.py
           tests/test_receptor_contract.py tests/test_capabilities.py tests/test_examples.py
       - name: Official native CPU baseline on the complete MZ1 ternary case

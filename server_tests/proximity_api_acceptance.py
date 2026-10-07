@@ -137,6 +137,17 @@ def run_platform(protocol):
         assert response.status_code == 200, response.text
         result = response.json()
         assert len(result["proximity"]["assemblies"]) == 3
+        geometry = result["proximity"]["attachment_geometry"]
+        assert geometry["scope"] == "observed_bond_direction_not_allowed_growth_or_clearance"
+        assert len(geometry["assemblies"]) == 3
+        for row in geometry["assemblies"]:
+            assert row["sha256"] == result["artifact_sha256"][row["ligand_artifact"]]
+            assert {bond["region"] for bond in row["bonds"]} == {"a", "b"}
+            for bond in row["bonds"]:
+                index = ("a", "b").index(bond["region"])
+                assert bond["region_atom"] in result["proximity"]["arm_maps"][index]
+                assert bond["outside_atom"] not in result["proximity"]["arm_maps"][index]
+                assert bond["direction"] is not None
         indexed = client.post("/api/jobs/" + identifier + "/index-assets")
         assert indexed.status_code == 200 and indexed.json()["state"] == "complete", indexed.text
         reused = client.get("/api/research/objects?source_job=" + identifier).json()

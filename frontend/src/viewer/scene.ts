@@ -18,6 +18,12 @@ import {
 } from "./geometry";
 import * as mol from "3dmol";
 import { paintNativeContacts } from "./scientific-overlay";
+import {
+  attachmentGeometry,
+  matchAttachmentAtoms,
+  paintAttachments,
+  type AttachmentGeometry,
+} from "./attachment-geometry";
 import type { NativeInteraction } from "../integrations/types";
 import {
   defaultOptions,
@@ -47,6 +53,7 @@ import {
 } from "./channel-geometry";
 export class MolecularScene {
   channelGeometry?: ChannelGeometry;
+  attachmentGeometry?: AttachmentGeometry;
   nativeInteractions?: NativeInteraction[];
   potential?: { data: mol.VolumeData; range: number };
   options: ViewerOptions = { ...defaultOptions };
@@ -61,6 +68,7 @@ export class MolecularScene {
   private highlighted: number[] = [];
   private siteRegion: number[] = [];
   private hidden = new Set<number>();
+  private attachmentCount = 0;
   private edits = new Map<
     string,
     { indices: number[]; style: mol.AtomStyleSpec }
@@ -79,6 +87,8 @@ export class MolecularScene {
   resetState() {
     this.nativeInteractions = undefined;
     this.channelGeometry = undefined;
+    this.attachmentGeometry = undefined;
+    this.attachmentCount = 0;
     this.potential = undefined;
     this.revision++;
     this.selected = [];
@@ -215,6 +225,12 @@ export class MolecularScene {
     v.removeAllLabels();
     v.removeAllShapes();
     paintChannel(v, this.channelGeometry);
+    const previousAttachments = this.attachmentCount;
+    this.attachmentCount = this.overlay
+      ? 0
+      : paintAttachments(v, this.attachmentGeometry, this.hidden);
+    if (this.attachmentGeometry !== undefined || previousAttachments)
+      this.emit("attachments", this.attachmentCount);
     if (this.overlay) {
       for (const [index, format] of this.formats.entries())
         paintOverlayModel(
@@ -266,6 +282,14 @@ export class MolecularScene {
     }
     await this.paintSurface();
     v.render();
+  }
+  async showAttachments(value: unknown) {
+    if (this.overlay && value !== undefined)
+      throw new Error("Attachment annotations need one native complex pose.");
+    const checked = attachmentGeometry(value);
+    matchAttachmentAtoms(this.viewer, checked);
+    this.attachmentGeometry = checked;
+    await this.paint();
   }
   private async paintSurface() {
     this.emit("surface", null);

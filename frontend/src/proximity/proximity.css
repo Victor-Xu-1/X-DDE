@@ -216,3 +216,15 @@
     grid-template-columns: 1fr;
   }
 }
+.attachment-directions {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.attachment-directions .section-heading {
+  margin: 0;
+  justify-content: flex-start;
+}
+.attachment-directions .section-heading h3 {
+  font-size: 14px;
+}
