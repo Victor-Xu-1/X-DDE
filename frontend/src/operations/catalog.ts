@@ -895,7 +895,7 @@ export const tools = [
       "导入实测终点、单位、实验条件和重复，关联确切的分子版本。",
       "Import reported endpoints, units, conditions and replicates linked to exact material versions.",
     ],
-    source: "X-DDE / reported measurements",
+    source: "X-DDE",
     modalities: [
       "biologic",
       "chemical",

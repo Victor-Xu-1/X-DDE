@@ -161,7 +161,7 @@ _PLATFORM = (
             "Import reported endpoints, units, conditions and replicates "
             "linked to exact material versions.",
         ),
-        source="X-DDE / reported measurements",
+        source="X-DDE",
         frontend_form="experimental.evidence",
         submission="scientific_record",
         contract_source="EvidenceInput",

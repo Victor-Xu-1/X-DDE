@@ -102,3 +102,14 @@
     13px/1.8 ui-monospace,
     monospace;
 }
+
+/* Keep chemical identifiers and measured values readable on narrow screens. */
+.evidence-results .research-table-scroll table,
+.evidence-results .research-comparison table {
+  min-width: 820px;
+}
+.evidence-results .research-table th,
+.evidence-results .research-table td {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}

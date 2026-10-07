@@ -1138,7 +1138,7 @@ export const methodChoices = [
     options: [
       {
         id: "experimental.evidence",
-        label: "X-DDE / reported measurements",
+        label: "X-DDE",
         note: [
           "导入实测终点、单位、实验条件和重复，关联确切的分子版本。",
           "Import reported endpoints, units, conditions and replicates linked to exact material versions.",

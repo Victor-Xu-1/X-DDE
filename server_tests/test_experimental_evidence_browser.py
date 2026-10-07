@@ -98,6 +98,11 @@ def test_reported_evidence_example_and_fresh_questionnaire():
                 page.set_viewport_size({"width": 390, "height": 844})
                 page.screenshot(path=output / "reported-results-mobile.png", full_page=True)
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+                table = page.get_by_role("table", name="原始实测记录", exact=True)
+                assert table.evaluate(
+                    "table => table.clientWidth >= 820 && "
+                    "table.parentElement.scrollWidth > table.parentElement.clientWidth"
+                )
                 page.get_by_role("button", name="新建空白任务", exact=True).click()
                 page.get_by_role("heading", name="1. 上传实验表格", exact=True).wait_for()
                 assert page.get_by_role("button", name="下一步", exact=True).is_disabled()
