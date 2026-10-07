@@ -60,6 +60,11 @@
   accent-color: var(--accent);
   margin-top: 3px;
 }
+@media (min-width: 1800px) {
+  .workflow-options {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
 .workflow-options strong {
   font-size: var(--text-body, 14px);
   color: var(--ink);

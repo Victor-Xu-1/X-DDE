@@ -41,6 +41,11 @@ selection and the final review; an unavailable runtime blocks submission without
 an extra warning banner above the first question. Structure results remain
 accessible even when a calculation environment is unavailable. Shared native file
 selection includes accepted formats and size limits in its choice area.
+Choice grids fit their actual options rather than reserving empty columns. Flat
+sequence and plot sections align with their parent table instead of adding a
+second inset to each subsection. Extra-wide prediction pages fit their available
+choices across the row; ordinary desktop and compact flows retain their existing
+breakpoints.
 
 Sequence scoring places its table and comparison plot in one column, with the
 selected exact sequence beside them. This avoids stacking two tall views beside

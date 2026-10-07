@@ -56,12 +56,15 @@
   font-size: 16px;
 }
 .result-section-card {
-  padding: 20px;
+  padding: 12px 0;
   border: 0;
   border-radius: 0;
   background: var(--surface);
   min-width: 0;
   box-shadow: none;
+}
+.result-section-card > header > h3 {
+  margin: 0;
 }
 .result-summary-grid {
   display: grid;
