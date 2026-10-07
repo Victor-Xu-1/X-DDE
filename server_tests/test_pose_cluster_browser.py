@@ -65,7 +65,12 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 expect(image).to_be_visible(timeout=30000)
                 assert image.evaluate("img=>img.complete && img.naturalWidth>0")
                 result.get_by_role("tab", name="三维结构", exact=True).click()
-                pair = result.get_by_role("button", name=re.compile("^姿势 1 / 2 ·")).first
+                native = json.loads((output / "result.json").read_text())
+                distance = native["pairs"][0]["rmsd_angstrom"]
+                expected_label = "姿势 1 / 2 · " + (
+                    "未知" if distance is None else f"{distance:.3f} Å"
+                )
+                pair = result.get_by_role("button", name=expected_label, exact=True)
                 pair.click()
                 expect(result.get_by_text("接触相似度", exact=False).first).to_be_visible()
                 page.screenshot(path=output / "native-pair-overlay.png", full_page=True)
