@@ -51,10 +51,10 @@
   background-repeat: no-repeat;
   background-position: right center;
 }
-.studio-app .module-task-picker label {
+.studio-app .module-task-picker > label {
   flex: 0 1 560px;
 }
-.studio-app .module-task-picker select {
+.studio-app .module-task-picker > label > select {
   flex: 1;
   min-height: 36px;
 }
@@ -165,7 +165,7 @@
   .studio-app .capability-group {
     min-height: 324px;
   }
-  .studio-app .module-task-picker label {
+  .studio-app .module-task-picker > label {
     flex: 1;
   }
   .studio-app .task-workspace.is-result .viewer-panel .molecular-stage {

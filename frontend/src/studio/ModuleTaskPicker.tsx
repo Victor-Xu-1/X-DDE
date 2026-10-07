@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { MethodSwitch } from "./MethodSwitch";
 import { BindingEntryDialog } from "./BindingEntryDialog";
 import { Hint } from "../guided/Hint";
 import { tools, type ToolId } from "../operations/catalog";
@@ -70,6 +71,7 @@ export function ModuleTaskPicker({
           )}
         </>
       )}
+      <MethodSwitch value={value} language={language} onChange={onChange} />
       {current && (
         <Hint label={zh ? "研究任务说明" : "Research task help"}>
           {current.note[zh ? 0 : 1]} · {current.source}

@@ -1,6 +1,7 @@
 """Real browser decisions reuse scientific questionnaires; no model inference or queued jobs."""
 
 import os
+import re
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -36,6 +37,9 @@ def test_binding_material_routes_and_structural_prerequisites():
 
         dialog = open_guide()
         expect(dialog.get_by_role("heading")).to_be_focused()
+        assert dialog.locator(".questionnaire-choices label").evaluate_all(
+            "items=>items.every(e=>e.scrollWidth<=e.clientWidth+1)"
+        )
         page.screenshot(path=str(evidence / "binding-entry-desktop.png"))
         page.keyboard.press("Escape")
         expect(page.get_by_role("dialog")).to_have_count(0)
@@ -66,10 +70,24 @@ def test_binding_material_routes_and_structural_prerequisites():
             dialog.get_by_role("button", name="下一步", exact=True).click()
             expect(page.get_by_role("combobox", name="研究任务", exact=True)).to_have_value(tool)
             expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
+        page.get_by_role("button", name="结构预测", exact=True).click()
+        models = page.get_by_role("group", name="后端模型", exact=True)
+        expect(models).to_be_visible()
+        models.get_by_role("button", name=re.compile("^Boltz-2")).click()
+        expect(page.get_by_role("combobox", name="研究任务", exact=True)).to_have_value(
+            "boltz.predict"
+        )
+        expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
+        models.get_by_role("button", name=re.compile("^OpenDDE")).click()
+        expect(page.get_by_role("combobox", name="研究任务", exact=True)).to_have_value("predict")
+        page.screenshot(path=str(evidence / "model-switch-desktop.png"))
         page.set_viewport_size({"width": 390, "height": 900})
         dialog = open_guide()
         assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
         assert dialog.evaluate("e=>e.scrollWidth<=e.clientWidth+1")
+        assert dialog.locator(".questionnaire-choices label").evaluate_all(
+            "items=>items.every(e=>e.scrollWidth<=e.clientWidth+1)"
+        )
         page.screenshot(path=str(evidence / "binding-entry-mobile.png"))
         dialog.get_by_role("radio", name="结构资料不足", exact=True).check()
         dialog.get_by_role("button", name="下一步", exact=True).click()

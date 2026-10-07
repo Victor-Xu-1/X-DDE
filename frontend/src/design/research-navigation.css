@@ -7,7 +7,7 @@
   max-width: none;
   min-width: 0;
 }
-.module-task-picker label {
+.module-task-picker > label {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -16,7 +16,7 @@
   min-width: 0;
   white-space: nowrap;
 }
-.module-task-picker select {
+.module-task-picker > label > select {
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 6px;
@@ -189,12 +189,12 @@
   .module-task-picker {
     width: 100%;
   }
-  .module-task-picker label {
+  .module-task-picker > label {
     align-items: flex-start;
     flex-direction: column;
     flex: 1;
   }
-  .module-task-picker select {
+  .module-task-picker > label > select {
     width: 100%;
   }
 }

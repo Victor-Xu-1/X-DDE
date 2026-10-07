@@ -119,7 +119,7 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
         assert 0 < result["assembly_area"] < result["isolated_area"]
         output = settings.state_dir / "jobs" / identifier / "output"
         for name, expected in result["artifacts"].items():
-            response = client.get(f"/api/jobs/{identifier}/download", params={"path": name})
+            response = client.get(f"/api/jobs/{identifier}/download", params={"name": name})
             assert response.status_code == 200, response.text
             assert hashlib.sha256(response.content).hexdigest() == expected
             shutil.copyfile(output / name, evidence / name)

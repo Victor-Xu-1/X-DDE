@@ -949,3 +949,8 @@ No owner-workstation scientific inference or test-suite execution is required.
 核对来源：[RFdiffusion3 官方教程](https://rosettacommons.github.io/foundry/models/rfd3/tutorials/binder_design_tutorial.html)、[Foundry 源码许可](https://github.com/RosettaCommons/foundry/blob/production/LICENSE.md)、[RFdiffusion](https://github.com/RosettaCommons/RFdiffusion)、[CODesign 原论文](https://arxiv.org/abs/2610.01773)、[Rosetta 许可](https://rosettacommons.org/software/licensing-faq/)。
 
 区域暴露方法依据：[Biopython Shrake–Rupley](https://biopython.org/docs/latest/api/Bio.PDB.SASA.html)。以同一选区的独立状态和所提供结构上下文比较原子/残基 SASA，明确元素范德华半径、重原子/去水策略、探针与分辨率；不推导亲和力、路径或生物学装配。远程代表验收与 [FreeSASA Lee–Richards](https://freesasa.github.io/python/functions.html) 在相同坐标、元素半径和探针下对照，预定容差 max(3 Å², 3%)，不宣称全体系普适误差上界。真实案例为 [BRD4–JQ1 / 3MXF](https://www.rcsb.org/structure/3MXF)，原始结构 SHA-256 固定，明确选择替代位置 A 后另存，原始记录不改。
+
+
+任务内模型切换（2026-10-07）：由后端 `capabilities/method_choices.py` 声明用途相近的方法组，目录生成器投影到前端，当前仅复合物预测 OpenDDE/Boltz-2 与结构引导序列设计 SolubleMPNN/LigandMPNN。切换选择对应的真实表单与类型契约，不自动发起计算或把原参数强行转给另一模型。未配置状态显式显示；已保存任务/文件保留。BoltzGen、RFdiffusion3、CODesign 后续只有通过实际适配验收后才能加入相应生成组，独立方法的分数不直接混合排名。
+
+后端选择统一规则：每项任务开始前显示其后端模型/方法。用途相近的已有方法可在同一组切换；当前只有一个实现的任务也显示并选中唯一方法，后续加入经验证实现即可扩展。全部可执行能力都由统一目录覆盖，包括非机器学习的科研程序；界面不会把这些程序伪称为训练模型。默认优先保留当前任务已采用的方法，依据适用范围与匹配输入的科学验收更新；没有比较证据时不标称全场景最优。用户明确选择某方法后不被自动切回默认。

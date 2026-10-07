@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 from ..requests import TASK_ADAPTER
 from .definitions import CAPABILITIES
+from .method_choices import method_choices
 from .modalities import modality_catalogue
 from .runtime import availability
 
@@ -48,6 +49,7 @@ def register_capabilities(app, settings, health):
             "schema_version": 1,
             "owner": "X-DDE",
             "modalities": modality_catalogue(),
+            "method_choices": method_choices(),
             "capabilities": [
                 {
                     **spec.model_dump(mode="json"),

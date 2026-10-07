@@ -94,6 +94,7 @@ jobs:
           src/studio/Navigation.test.tsx
           src/studio/ResearchEntry.test.tsx
           src/studio/BindingEntryDialog.test.tsx
+          src/studio/MethodSwitch.test.tsx
           src/studio/research-modules.test.ts
           src/design/module-theme.test.ts
           src/studio/TaskWorkspace.test.tsx
