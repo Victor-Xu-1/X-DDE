@@ -27,7 +27,9 @@ def test_surface_native_3d_table_download_and_guided_entry():
             ),
         )
         page.goto(base + "/#task=" + session["job_id"])
-        expect(page.locator(".surface-results h3")).to_have_text("区域暴露与埋藏")
+        expect(page.get_by_role("heading", name="区域暴露与埋藏", exact=True)).to_have_text(
+            "区域暴露与埋藏"
+        )
         expect(page.locator(".surface-summary")).to_contain_text(f"{result['assembly_area']:.1f}")
         expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(timeout=30000)
         frame = page.frame_locator('iframe[title="可交互分子结构"]')
