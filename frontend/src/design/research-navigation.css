@@ -1,6 +1,7 @@
 /* One compact presentation for the shared research navigation and workspaces. */
 .studio-app .module-task-picker {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin: 0 0 12px;

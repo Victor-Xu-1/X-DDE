@@ -166,7 +166,7 @@
     min-height: 324px;
   }
   .studio-app .module-task-picker > label {
-    flex: 1;
+    flex: 1 1 100%;
   }
   .studio-app .task-workspace.is-result .viewer-panel .molecular-stage {
     height: 360px;

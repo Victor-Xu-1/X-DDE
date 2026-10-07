@@ -96,6 +96,11 @@ def test_reported_evidence_example_and_fresh_questionnaire():
                     == 178
                 )
                 page.set_viewport_size({"width": 390, "height": 844})
+                picker = page.get_by_role("combobox", name="研究任务", exact=True)
+                methods = page.get_by_role("group", name="后端模型", exact=True)
+                picker_box, methods_box = picker.bounding_box(), methods.bounding_box()
+                assert picker_box["width"] >= 200
+                assert methods_box["y"] >= picker_box["y"] + picker_box["height"]
                 page.screenshot(path=output / "reported-results-mobile.png", full_page=True)
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
                 table = page.get_by_role("table", name="原始实测记录", exact=True)

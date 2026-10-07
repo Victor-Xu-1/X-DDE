@@ -14,9 +14,6 @@
 .binding-entry-dialog .questionnaire-actions {
   position: static;
 }
-.studio-app .module-task-picker.binding-task-picker {
-  flex-wrap: wrap;
-}
 .binding-task-picker .binding-entry-trigger {
   flex: 0 0 auto;
   font-size: 12px;
