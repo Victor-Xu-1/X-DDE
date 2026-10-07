@@ -56,7 +56,7 @@ it("shows exact input records and keeps independently provided coordinate frames
   expect(screen.queryByTestId("source-3d")).toBeNull();
   await userEvent
     .setup()
-    .click(screen.getByRole("button", { name: "Input receptor" }));
+    .click(screen.getByRole("tab", { name: "Input receptor" }));
   expect(screen.getByTestId("source-3d")).toHaveTextContent(
     `/api/assets/${protein.asset_id}`,
   );

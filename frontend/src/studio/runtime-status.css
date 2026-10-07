@@ -55,6 +55,8 @@
 }
 .runtime-environments tbody th {
   font-weight: 500;
+  font-family: var(--font);
+  color: var(--ink);
   max-width: 300px;
 }
 .runtime-environments td:last-child {

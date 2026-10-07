@@ -111,13 +111,13 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
   const service = screen.getByRole("heading", {
     name: "工作台服务",
   }).parentElement!;
-  const backend = screen.getByRole("heading", {
-    name: "结构与复合物预测",
-  }).parentElement!;
+  const backend = screen.getByRole("row", { name: /结构与复合物预测/ });
   expect(within(service).getByText("平台服务就绪")).toBeVisible();
   expect(within(service).queryByRole("alert")).not.toBeInTheDocument();
   expect(within(backend).getByText("环境未就绪")).toBeVisible();
-  expect(within(backend).getByText("在安装与组件中完成配置。")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: "管理集成环境" })).toHaveLength(
+    1,
+  );
   expect(screen.queryByText("Missing OpenDDE weights")).toBeNull();
   rerender(
     <RuntimeStatus

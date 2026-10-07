@@ -20,6 +20,21 @@ const researchUses: Record<string, [string, string]> = {
   discovery: ["靶点与公共研究材料", "Targets & public research materials"],
   drugclip: ["高通量筛选", "High-throughput screening"],
   deli: ["DEL 数据分析", "DEL data analysis"],
+  boltz: ["复合物与亲和力预测", "Complex and affinity prediction"],
+  boltzgen: ["结合蛋白、肽与抗体设计", "Binder, peptide and antibody design"],
+  ligandmpnn: [
+    "配体环境中的蛋白序列设计",
+    "Protein sequence design with ligand context",
+  ],
+  reinvent: [
+    "类似物与多目标分子设计",
+    "Analogue and multi-objective molecular design",
+  ],
+  openmm: ["结构局部优化", "Local structure refinement"],
+  apbs: ["蛋白表面电势", "Protein surface potential"],
+  plip: ["结合相互作用分析", "Binding interaction analysis"],
+  chemprop: ["实验数据性质模型", "Experimental-data property models"],
+  deepternary: ["三元复合物建模", "Ternary complex modeling"],
 };
 
 function statusLabel(engine: EngineStatus, connected: boolean, zh: boolean) {
