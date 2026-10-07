@@ -1,6 +1,7 @@
 """Read-only prerequisite projection; no provider calls or sensitive path disclosure."""
 
 from .contract import CapabilityAvailability, CapabilitySpec
+from ..integrations.specs import PROGRAMS
 
 
 def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityAvailability:
@@ -149,18 +150,7 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             specific.extend(("selected_model", "mode_model_compatibility", "gpu_and_budget"))
         if spec.native_mode == "inpaint":
             specific.append("fixed_atom_identity_and_bonds")
-    elif spec.environment in {
-        "boltz",
-        "reinvent",
-        "ligandmpnn",
-        "boltzgen",
-        "openmm",
-        "apbs",
-        "chemprop",
-        "plip",
-        "drugclip",
-        "deli",
-    }:
+    elif spec.environment in PROGRAMS or spec.environment in {"drugclip", "deli"}:
         checks = {"runtime": bool(backends.get(spec.environment, {}).get("ready"))}
         specific.extend(
             (

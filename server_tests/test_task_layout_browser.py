@@ -89,7 +89,7 @@ def test_every_task_page_and_native_case_layout():
                     rows.append(capture(page, evidence, name, "result"))
             page.set_viewport_size({"width": 1440, "height": 1000})
             nav = page.get_by_role("navigation", name="主导航")
-            expect(nav.get_by_role("button")).to_have_count(11)
+            expect(nav.get_by_role("button")).to_have_count(12)
             nav.get_by_role("button", name="研究空间", exact=True).click()
             for tab in ("项目", "研究文件", "结构编辑"):
                 page.get_by_role("group", name="研究空间", exact=True).get_by_role(

@@ -38,6 +38,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px 28px;
   align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 .capability-group {
   display: flex;
