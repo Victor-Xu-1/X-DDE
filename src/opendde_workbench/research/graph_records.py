@@ -5,6 +5,7 @@ from .contracts import ScientificObject
 
 TABLES = {
     "asset": "assets",
+    "evidence": "research_evidence",
     "object": "scientific_objects",
     "task": "jobs",
     "plan": "workflow_plans",
@@ -22,6 +23,35 @@ TABLES = {
 
 def project_record(store, kind, row):
     identifier = kind + ":" + row["id"]
+    if kind == "evidence":
+        from .evidence_records import EvidenceRecords
+
+        value = EvidenceRecords.decode(row)
+        edges = [("asset:" + str(value.request.source.asset_id), identifier, "reported_source")]
+        edges += [
+            ("object:" + str(ref.version_id), identifier, "experimental_observation")
+            for ref in value.request.compound_links.values()
+        ]
+        if value.request.parent_id:
+            edges.append(
+                (
+                    "evidence:" + str(value.request.parent_id),
+                    identifier,
+                    "revised_evidence_annotation",
+                )
+            )
+        return (
+            identifier,
+            {
+                "id": identifier,
+                "kind": "experimental_evidence",
+                "label": value.request.name,
+                "evidence_id": str(value.id),
+                "created_at": value.created_at,
+                "source": {"type": "api", "path": "/api/research/evidence/" + str(value.id)},
+            },
+            edges,
+        )
     if kind == "score_set":
         from ..pose_ensembles.comparisons import ScoreComparisons
 

@@ -1,0 +1,104 @@
+.evidence-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+.evidence-fields .field:has(textarea) {
+  grid-column: 1/-1;
+}
+.evidence-metrics {
+  display: flex;
+  gap: 36px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.evidence-metrics span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+}
+.evidence-metrics strong {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+}
+.evidence-visuals {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin: 20px 0;
+}
+.evidence-visuals.full {
+  grid-template-columns: minmax(0, 1fr);
+}
+.evidence-plot-scroll {
+  max-height: 460px;
+  overflow: auto;
+}
+.evidence-plot svg {
+  width: 100%;
+  min-width: 500px;
+  color: var(--text);
+  font: 12px system-ui;
+}
+.evidence-plot text {
+  fill: currentColor;
+}
+.evidence-plot g[role="button"] {
+  cursor: pointer;
+}
+.evidence-plot g[role="button"]:focus {
+  outline: 2px solid var(--primary);
+}
+.evidence-structure {
+  min-width: 0;
+}
+.evidence-structure .molecule-image {
+  min-height: 230px;
+}
+.evidence-results > details {
+  margin-top: 20px;
+}
+.evidence-results > details > p {
+  max-width: 80ch;
+}
+.evidence-mapping {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+.evidence-link-row {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.evidence-link-row .field {
+  flex: 1;
+  min-width: 180px;
+}
+@media (max-width: 760px) {
+  .evidence-fields,
+  .evidence-mapping,
+  .evidence-visuals {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .evidence-metrics {
+    gap: 20px;
+  }
+  .evidence-plot-scroll {
+    max-height: 360px;
+  }
+}
+
+.evidence-sequence {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 420px;
+  overflow: auto;
+  font:
+    13px/1.8 ui-monospace,
+    monospace;
+}

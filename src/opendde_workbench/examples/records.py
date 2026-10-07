@@ -9,7 +9,7 @@ from .contracts import ExampleRecordPin
 from .evidence import capture_job, verify_job
 from .record_sources import record_source, validate_record_source
 
-RECORD_MODULES = {"regions", "workflows", "pose_exploration", "campaign"}
+RECORD_MODULES = {"regions", "workflows", "pose_exploration", "campaign", "experimental.evidence"}
 
 
 def digest(value):

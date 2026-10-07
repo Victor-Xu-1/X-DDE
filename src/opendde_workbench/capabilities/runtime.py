@@ -22,6 +22,15 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
             if spec.id == "regions"
             else ["plan_digest", "per_step_native_preflight", "bound_output_versions", "budget"]
         )
+        if spec.id == "experimental.evidence":
+            specific = [
+                "source_csv_digest",
+                "reported_endpoint_units",
+                "explicit_assay_conditions",
+                "censoring_retained",
+                "exact_material_links",
+                "not_independently_verified_experiment",
+            ]
     elif spec.environment == "discovery":
         checks = {"public_query_adapter": bool(backends.get("discovery", {}).get("ready"))}
         specific = [

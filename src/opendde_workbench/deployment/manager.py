@@ -50,6 +50,7 @@ class DeploymentManager:
                 "molstar",
                 "public-examples",
                 "public-surface-examples",
+                "public-experimental-examples",
                 "harness",
                 "runtime",
                 "compute",
@@ -208,6 +209,7 @@ class DeploymentManager:
                     "public-examples",
                     "public-dataset-examples",
                     "public-surface-examples",
+                    "public-experimental-examples",
                     "supplier-libraries",
                 }:
                     installed[key] = install(

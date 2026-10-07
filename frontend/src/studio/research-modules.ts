@@ -188,6 +188,7 @@ export const researchModules: readonly ResearchModule[] = [
       "properties",
       "chemistry.screen",
       "diffsbdd.properties",
+      "experimental.evidence",
       "chemprop.train",
       "chemprop.predict",
     ],

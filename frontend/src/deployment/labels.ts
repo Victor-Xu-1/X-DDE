@@ -2,6 +2,7 @@ import type { ComponentPackage } from "./component-groups";
 
 export const names: Record<string, string> = {
   "public-examples": "公开研发案例",
+  "public-experimental-examples": "实测数据案例",
   "public-surface-examples": "结构空间分析案例",
   "public-dataset-examples": "高通量筛选与 DEL 案例",
   "supplier-libraries": "供应商公开结构文件",

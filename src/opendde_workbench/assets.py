@@ -15,9 +15,19 @@ from .harness_contract import asset_references
 from .store import Store, now
 
 AssetKind = Literal[
-    "structure", "ligand", "msa", "template", "config", "sequences", "library", "counts", "reads"
+    "structure",
+    "ligand",
+    "msa",
+    "template",
+    "config",
+    "sequences",
+    "library",
+    "counts",
+    "reads",
+    "measurements",
 ]
 EXTENSIONS = {
+    "measurements": {".csv"},
     "structure": {".pdb", ".cif"},
     "ligand": {".sdf", ".mol", ".mol2", ".pdb"},
     "msa": {".a3m"},
@@ -89,6 +99,8 @@ class AssetStore:
         suffix = Path(name).suffix.lower()
         if suffix not in EXTENSIONS[kind]:
             raise ValueError("This file extension is not supported for the selected input type.")
+        if kind == "measurements" and len(content) > 16 * 1024**2:
+            raise ValueError("Experimental tables must not exceed 16 MiB.")
         if not content or len(content) > 25 * 1024**2 or b"\x00" in content:
             raise ValueError("Upload a nonempty text input no larger than25MiB.")
         try:
@@ -396,7 +408,8 @@ class AssetStore:
             from .integrations.contract import IntegratedTask
 
             if (
-                asset.kind == "ligand" and asset.suffix == ".sdf"
+                asset.kind == "ligand"
+                and asset.suffix == ".sdf"
                 and not isinstance(request, IntegratedTask)
                 and getattr(request, "operation", None)
                 not in {
@@ -471,6 +484,16 @@ class AssetStore:
                     ).fetchone()
                 ):
                     raise ValueError("This input belongs to a research plan and cannot be removed.")
+                has_evidence = db.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='research_evidence'"
+                ).fetchone()
+                if (
+                    has_evidence
+                    and db.execute(
+                        "SELECT 1 FROM research_evidence WHERE source_asset=? LIMIT 1", (asset.id,)
+                    ).fetchone()
+                ):
+                    raise ValueError("This file is retained by experimental evidence.")
                 path.parent.rename(tombstone)
                 moved = True
                 db.execute("DELETE FROM assets WHERE id=?", (asset.id,))

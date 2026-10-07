@@ -14,6 +14,11 @@ export interface RecordPin {
   computed_result_available: boolean;
 }
 export type ExampleRecord =
+  | {
+      kind: "experimental.evidence";
+      value: import("../evidence/types").EvidenceDocument;
+      pin: RecordPin;
+    }
   | { kind: "regions"; value: SavedRegion; pin: RecordPin }
   | { kind: "workflows"; value: WorkflowPlan; run: WorkflowRun; pin: RecordPin }
   | {

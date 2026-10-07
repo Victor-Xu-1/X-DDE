@@ -44,6 +44,7 @@ from .preflight import check
 from .projects import register_projects
 from .requests import BatchRequest, TaskRequest
 from .research.constraint_routes import register_constraints
+from .research.evidence_routes import register_evidence
 from .research.region_routes import register_regions
 from .research.routes import register_research
 from .science_routes import register_science
@@ -544,6 +545,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     register_discovery(app, mutation)
     register_operations(app, store, assets, settings, mutation)
+    register_evidence(app, store, assets, mutation)
     register_research(app, store, assets, mutation)
     from .research.pose_routes import register_pose_minimization
 

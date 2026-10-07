@@ -9,7 +9,8 @@ export type AssetKind =
   | "sequences"
   | "library"
   | "counts"
-  | "reads";
+  | "reads"
+  | "measurements";
 export interface Asset {
   id: string;
   name: string;

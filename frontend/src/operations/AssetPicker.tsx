@@ -5,6 +5,7 @@ import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
 
 const accept: Record<AssetKind, string> = {
+  measurements: ".csv",
   structure: ".pdb,.cif",
   ligand: ".sdf,.mol,.mol2,.pdb",
   msa: ".a3m",
@@ -23,6 +24,7 @@ export function AssetPicker({
   label,
   allowedSuffixes,
   showHistory = true,
+  maxBytes = 25 * 1024 ** 2,
 }: {
   kind: AssetKind;
   value: string;
@@ -31,6 +33,7 @@ export function AssetPicker({
   label: string;
   allowedSuffixes?: readonly string[];
   showHistory?: boolean;
+  maxBytes?: number;
 }) {
   const zh = language === "zh",
     [assets, setAssets] = useState<Asset[]>([]),
@@ -77,6 +80,14 @@ export function AssetPicker({
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            if (file.size > maxBytes) {
+              setError(
+                zh
+                  ? `文件不能超过 ${maxBytes / 1024 ** 2} MiB。`
+                  : `Use a file up to ${maxBytes / 1024 ** 2} MiB.`,
+              );
+              return;
+            }
             setBusy(true);
             setError("");
             try {
@@ -91,7 +102,9 @@ export function AssetPicker({
           }}
         />
       </label>
-      <small>{accepted} · ≤25 MiB</small>
+      <small>
+        {accepted} · ≤{maxBytes / 1024 ** 2} MiB
+      </small>
       {!showHistory && value && (
         <p className="selected-file" role="status">
           {assets.find((a) => a.id === value)?.name ??

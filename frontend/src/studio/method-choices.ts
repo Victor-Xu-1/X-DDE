@@ -1125,6 +1125,28 @@ export const methodChoices = [
     ],
   },
   {
+    id: "method.experimental.evidence",
+    label: [
+      "实验数据与候选比较",
+      "Experimental evidence and candidate comparison",
+    ],
+    default: "experimental.evidence",
+    default_basis: [
+      "当前唯一接入的方法，已默认选中。",
+      "The only integrated method is selected by default.",
+    ],
+    options: [
+      {
+        id: "experimental.evidence",
+        label: "X-DDE / reported measurements",
+        note: [
+          "导入实测终点、单位、实验条件和重复，关联确切的分子版本。",
+          "Import reported endpoints, units, conditions and replicates linked to exact material versions.",
+        ],
+      },
+    ],
+  },
+  {
     id: "method.regions",
     label: ["定义完整分子的区域", "Define full-molecule regions"],
     default: "regions",

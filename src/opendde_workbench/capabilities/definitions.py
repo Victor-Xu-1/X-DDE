@@ -150,6 +150,24 @@ _DIFF = tuple(
 
 _PLATFORM = (
     CapabilitySpec(
+        id="experimental.evidence",
+        **modality_metadata("experimental.evidence"),
+        group="analyze",
+        environment="platform",
+        operations=(),
+        label=("实验数据与候选比较", "Experimental evidence and candidate comparison"),
+        note=(
+            "导入实测终点、单位、实验条件和重复，关联确切的分子版本。",
+            "Import reported endpoints, units, conditions and replicates "
+            "linked to exact material versions.",
+        ),
+        source="X-DDE / reported measurements",
+        frontend_form="experimental.evidence",
+        submission="scientific_record",
+        contract_source="EvidenceInput",
+        scientific_validation="not_applicable",
+    ),
+    CapabilitySpec(
         id="regions",
         **modality_metadata("regions"),
         group="prepare",
@@ -448,7 +466,8 @@ _SURFACE_EXPOSURE = (
         label=("区域暴露与埋藏", "Region exposure and burial"),
         note=(
             "点选配体或残基，比较孤立区域与整体结构中的溶剂可接触面积。",
-            "Select ligands or residues and compare solvent accessibility in isolation and in the provided assembly.",
+            "Select ligands or residues and compare solvent accessibility "
+            "in isolation and in the provided assembly.",
         ),
         source="Biopython Shrake-Rupley",
         frontend_form="surface_exposure",

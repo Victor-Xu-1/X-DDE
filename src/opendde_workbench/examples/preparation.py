@@ -174,9 +174,15 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
         register(
             "library", "abl-inhibitors-three-drugs.sdf", "ligand", data, "; ".join(case.sources)
         )
+    experimental = None
+    if capability_id == "experimental.evidence":
+        from .experimental import prepare_experimental
+
+        experimental, asset = prepare_experimental(scientific, cache, objects["egfr_library"])
+        data_assets["experimental_observations"] = asset
     pin = ExamplePins(scientific.store, cache.parent).get(capability_id, verify=True)
     request = scientific.store.get(str(pin.job_id)).request.model_dump(mode="json") if pin else None
-    return PreparedExample(
+    prepared = PreparedExample(
         module=module,
         case=case,
         objects=objects,
@@ -191,3 +197,8 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
         if capability_id == "campaign"
         else None,
     )
+
+    if experimental is not None and records is not None:
+        records.pin(capability_id, experimental.id, None, prepared)
+        prepared = prepared.model_copy(update={"record": records.prepared(capability_id)})
+    return prepared

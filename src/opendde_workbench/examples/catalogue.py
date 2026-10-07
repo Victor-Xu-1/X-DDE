@@ -1,13 +1,12 @@
 """One checked-in source manifest, never private account data or synthetic scores."""
 
-import json
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from ..capabilities.definitions import CAPABILITIES
 from .contracts import CaseStudy, ModuleExample, SourceFile
+from .manifest import MANIFEST
 
-MANIFEST = json.loads(Path(__file__).with_name("catalogue.json").read_text())
 FILES = {key: SourceFile.model_validate(value) for key, value in MANIFEST["files"].items()}
 CASES = {case.id: case for case in map(CaseStudy.model_validate, MANIFEST["cases"])}
 MODULES = {key: ModuleExample.model_validate(value) for key, value in MANIFEST["modules"].items()}

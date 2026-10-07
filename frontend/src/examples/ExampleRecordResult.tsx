@@ -3,6 +3,7 @@ import { api, request } from "../api";
 import type { Job, Language } from "../types";
 import type { PreparedExample } from "./types";
 import { ExampleContext } from "./context";
+import { EvidenceResults } from "../evidence/EvidenceResults";
 import { RegionResult } from "../regions/RegionResult";
 import { CampaignCasePreview } from "./CampaignCasePreview";
 import { PoseResults } from "../poses/PoseResults";
@@ -56,6 +57,9 @@ export function ExampleRecordResult({
         <p className="error" role="alert">
           {error}
         </p>
+      )}
+      {record.kind === "experimental.evidence" && (
+        <EvidenceResults value={record.value} language={language} />
       )}
       {record.kind === "regions" && (
         <RegionResult

@@ -40,6 +40,10 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         from .supplier_files import install as supplier_files
 
         metadata.update(supplier_files(root, state, report, checkpoint))
+    elif key == "public-experimental-examples":
+        from .experimental_cases import install as experimental_cases
+
+        metadata.update(experimental_cases(root, state, report, checkpoint))
     elif key in {"public-examples", "public-dataset-examples", "public-surface-examples"}:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings

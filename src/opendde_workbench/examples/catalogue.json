@@ -866,6 +866,12 @@
       "capability_id": "biopython.exposure",
       "revision": 1,
       "pinned_run_required": true
+    },
+    "experimental.evidence": {
+      "case_id": "egfr-ic50",
+      "capability_id": "experimental.evidence",
+      "revision": 1,
+      "pinned_run_required": false
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."

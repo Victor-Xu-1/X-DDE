@@ -13,6 +13,12 @@ from .pin_validation import validate_case_job
 
 def record_source(capability, identifier, run_id, store, assets, settings):
     workflows = WorkflowRecords(store)
+    if capability == "experimental.evidence":
+        from ..research.evidence_export import public_document
+        from ..research.evidence_records import EvidenceRecords
+
+        value = EvidenceRecords(store, assets).get(identifier)
+        return {"kind": capability, "value": public_document(value)}, []
     if capability == "regions":
         value = RegionRecords(store, assets, settings).get(identifier)
         return {"kind": capability, "value": value}, [value["body"]["identity_job"]]
@@ -71,6 +77,18 @@ def record_source(capability, identifier, run_id, store, assets, settings):
 
 def validate_record_source(capability, source, prepared, store):
     value = source["value"]
+    if capability == "experimental.evidence":
+        expected = prepared.data_assets["experimental_observations"]
+        if (
+            value["request"]["source"]["asset_id"] != expected.id
+            or value["source_sha256"] != expected.sha256
+        ):
+            raise ValueError("The experimental example must retain its exact public projection.")
+        if len(value["observations"]) != 177 or any(
+            row["endpoint"] != "IC50" for row in value["observations"]
+        ):
+            raise ValueError("The fixed case must retain all reviewed EGFR observations.")
+        return
     if capability == "regions":
         expected = prepared.objects["mz1_molecule"].reference.model_dump(mode="json")
         if value["body"]["subject"] != expected:

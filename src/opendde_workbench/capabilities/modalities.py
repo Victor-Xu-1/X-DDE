@@ -124,6 +124,7 @@ _MEMBERSHIP = {
     "native.inspect": _ALL,
     "workflows": _ALL,
     "regions": _SMALL,
+    "experimental.evidence": _ALL,
     "biopython.prepare": _ALL,
     "biopython.exposure": _ALL,
     "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),

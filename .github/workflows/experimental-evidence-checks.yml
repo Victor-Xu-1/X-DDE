@@ -1,0 +1,50 @@
+name: Experimental evidence scoped checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/research/evidence*.py'
+      - 'src/opendde_workbench/deployment/experimental_cases.py'
+      - 'src/opendde_workbench/examples/experimental.py'
+      - 'frontend/src/evidence/**'
+      - 'tests/test_experimental_evidence*.py'
+      - 'server_tests/experimental_evidence_acceptance.py'
+      - 'server_tests/test_experimental_evidence_browser.py'
+      - '.github/workflows/experimental-evidence-checks.yml'
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: CSV, immutable evidence, assets and legacy case boundaries
+        run: >-
+          uv run --locked pytest -q tests/test_experimental_evidence.py
+          tests/test_experimental_evidence_api.py tests/test_capabilities.py
+          tests/test_examples.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
+          tests/test_example_records.py tests/test_example_pins.py tests/test_research_assets.py
+      - name: Changed evidence results and question flow
+        working-directory: frontend
+        run: npx vitest run src/evidence/EvidenceResults.test.tsx src/evidence/EvidenceForm.test.tsx
+      - name: Install the actual public assay and preserve its original records
+        env:
+          WB_AUTO_DEPLOY: '0'
+        run: uv run --locked python server_tests/experimental_evidence_acceptance.py --output "$RUNNER_TEMP/experimental-evidence"
+      - run: uv run --locked python -m playwright install --with-deps chromium
+      - name: Real browser questionnaire, reported results and download
+        env:
+          WB_EXPERIMENTAL_EVIDENCE: ${{ runner.temp }}/experimental-evidence
+        run: uv run --locked pytest -q server_tests/test_experimental_evidence_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: experimental-evidence-acceptance
+          path: ${{ runner.temp }}/experimental-evidence

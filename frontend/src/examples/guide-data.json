@@ -1627,5 +1627,29 @@
       "面积比较同一选区的独立状态与整体结构中的暴露，不表示亲和力、连接臂通行或实验药效。",
       "Areas compare the same region in isolation and in context; they do not establish affinity, linker passage or experimental efficacy."
     ]
+  },
+  "experimental.evidence": {
+    "steps": [
+      [
+        "上传实验表格，先确认分子编号和实测值列。",
+        "Upload an experimental table and confirm identifiers and measured-value columns."
+      ],
+      [
+        "选择终点、单位和实验条件。",
+        "Choose the endpoint, units and assay conditions."
+      ],
+      [
+        "预览全部记录，检查限值、重复和分子关联。",
+        "Preview records, censoring, replicates and exact material links."
+      ],
+      [
+        "按同条件查看观测值和摘要；导出仍保留原始报告。",
+        "Inspect condition-matched observations and summaries; exports retain original reports."
+      ]
+    ],
+    "interpretation": [
+      "示例来自 EGFR 单一 ChEMBL 实验的 177 个真实化合物。保留原实验内中位数规则，不把聚合值当独立重复。",
+      "The example contains 177 real compounds from one ChEMBL EGFR assay. Published within-assay medians are not independent replicates."
+    ]
   }
 }

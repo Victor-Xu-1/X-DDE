@@ -12,6 +12,7 @@ TABLES = (
     "assets",
     "scientific_objects",
     "research_regions",
+    "research_evidence",
     "research_receptor_sets",
     "research_site_sets",
     "research_pose_explorations",

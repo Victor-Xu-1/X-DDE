@@ -885,6 +885,30 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "experimental.evidence",
+    group: "analyze",
+    label: [
+      "实验数据与候选比较",
+      "Experimental evidence and candidate comparison",
+    ],
+    note: [
+      "导入实测终点、单位、实验条件和重复，关联确切的分子版本。",
+      "Import reported endpoints, units, conditions and replicates linked to exact material versions.",
+    ],
+    source: "X-DDE / reported measurements",
+    modalities: [
+      "biologic",
+      "chemical",
+      "rna",
+      "dna",
+      "antibody",
+      "protein",
+      "peptide",
+      "small_molecule",
+    ],
+    modality_role: "research_object",
+  },
+  {
     id: "regions",
     group: "prepare",
     label: ["定义完整分子的区域", "Define full-molecule regions"],

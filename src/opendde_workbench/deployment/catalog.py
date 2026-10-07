@@ -16,6 +16,7 @@ from ..examples.bundle_release import VERSION as CASE_VERSION
 from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
 from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
 from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
+from ..examples.manifest import MANIFEST as EXAMPLE_MANIFEST
 from ..examples.surface_bundle_release import SHA256 as SURFACE_CASE_SHA
 from ..examples.surface_bundle_release import URL as SURFACE_CASE_URL
 from ..examples.surface_bundle_release import VERSION as SURFACE_CASE_VERSION
@@ -298,6 +299,21 @@ PACKAGES["public-examples"] = Package(
     url=CASE_URL,
     checksum=CASE_SHA,
     license="RCSB CC0-1.0; ChEMBL CC-BY-SA-3.0; UniProt CC-BY-4.0; computed output notices",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-experimental-examples"] = Package(
+    "public-experimental-examples",
+    "1",
+    "Experimental evidence public case",
+    "EGFR 单一实测实验的 177 个化合物 / 177 compounds from one reported EGFR assay",
+    "0.6 MB",
+    dependencies=("public-examples",),
+    automatic=True,
+    url=EXAMPLE_MANIFEST["files"]["egfr_library"]["url"],
+    checksum=EXAMPLE_MANIFEST["files"]["egfr_library"]["sha256"],
+    license="ChEMBL CC-BY-SA-3.0; source-backed experimental reference, not model inference",
     engine="x-dde",
     kind="data",
 )

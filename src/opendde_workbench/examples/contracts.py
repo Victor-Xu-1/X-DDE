@@ -80,7 +80,9 @@ class JobEvidence(ExampleModel):
 
 
 class ExampleRecordPin(ExampleModel):
-    capability_id: Literal["regions", "workflows", "pose_exploration", "campaign"]
+    capability_id: Literal[
+        "regions", "workflows", "pose_exploration", "campaign", "experimental.evidence"
+    ]
     case_id: str
     revision: int
     record_id: UUID

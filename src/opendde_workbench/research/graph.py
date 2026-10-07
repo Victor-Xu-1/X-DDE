@@ -34,7 +34,12 @@ def graph(store, *, limit=200, focus=None):
         edges.update(relations)
 
     with store.connect() as db:
+        available = {
+            row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        }
         for kind, table in TABLES.items():
+            if table not in available:
+                continue
             rows = db.execute(
                 f"SELECT * FROM {table} ORDER BY created_at DESC,id LIMIT ?", (limit + 1,)
             ).fetchall()
@@ -43,6 +48,8 @@ def graph(store, *, limit=200, focus=None):
                 add(kind, row)
         if focus:
             kind, value = parse_focus(focus)
+            if TABLES[kind] not in available:
+                raise KeyError("Scientific relationship node does not exist.")
             row = db.execute(f"SELECT * FROM {TABLES[kind]} WHERE id=?", (value,)).fetchone()
             if row is None:
                 raise KeyError("Scientific relationship node does not exist.")
@@ -69,6 +76,8 @@ def graph(store, *, limit=200, focus=None):
             if not missing:
                 break
             for kind, table in TABLES.items():
+                if table not in available:
+                    continue
                 values = sorted(
                     part.split(":", 1)[1] for part in missing if part.startswith(kind + ":")
                 )

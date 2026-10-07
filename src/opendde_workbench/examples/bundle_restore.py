@@ -62,6 +62,8 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                     "The declared public case scope differs from its reviewed native pins."
                 )
             selected = tuple(declared)
+        if selected is not None and set(rows) == set(TABLES) - {"research_evidence"}:
+            rows = {**rows, "research_evidence": []}
         if set(rows) != set(TABLES) or sum(map(len, rows.values())) > 5000:
             raise ValueError(
                 "The bundle must match the reviewed current catalogue and record schema."
