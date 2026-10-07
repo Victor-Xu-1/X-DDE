@@ -76,7 +76,15 @@ def test_researcher_result_decisions_and_handoffs():
             record("pocket-handoff")
             result("局部重设计")
             expect(page.get_by_text("此次没有得到符合要求的候选。", exact=False)).to_be_visible()
-            expect(page.locator(".viewer-panel:visible")).to_have_count(0)
+            inputs = page.get_by_role("region", name="检查研究输入", exact=True)
+            expect(inputs).to_be_visible()
+            expect(page.locator(".viewer-panel:visible")).to_have_count(
+                inputs.locator(".viewer-panel:visible").count()
+            )
+            source_links = inputs.locator(".viewer-original-downloads a").all()
+            assert all(
+                link.get_attribute("href").startswith("/api/assets/") for link in source_links
+            ), "A zero-qualified result must not automatically preview rejected output poses"
             record("zero-qualified")
             result("准备 MSA 与模板")
             link = page.get_by_role("link", name="预测输入 1 · JSON", exact=True)

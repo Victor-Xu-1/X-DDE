@@ -96,13 +96,15 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                 ).click()
                 expect(page.locator(".runtime-workspace .studio-panel").first).to_be_visible()
                 assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
-                runtime = card_geometry(page, ".runtime-workspace .studio-panel")
-                # Status cards intentionally have no component maintenance footer.
-                for card in runtime:
-                    assert (
-                        card["right"] <= width + 1 and 0.7 <= card["width"] / card["height"] <= 1.4
-                    ), card
-                page.screenshot(path=str(evidence / f"runtime-cards-{width}.png"))
+                summary = card_geometry(page, ".runtime-summary > .studio-panel")
+                assert all(item["right"] <= width + 1 for item in summary), summary
+                table = page.get_by_role("region", name="集成环境", exact=True)
+                expect(table.get_by_role("table")).to_be_visible()
+                assert table.get_by_role("rowheader").count() > 0
+                expect(page.get_by_role("button", name="管理集成环境", exact=True)).to_have_count(1)
+                assert table.locator(".table-scroll").bounding_box()["width"] <= width + 1
+                assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
+                page.screenshot(path=str(evidence / f"runtime-table-{width}.png"))
                 page.get_by_role("group", name="安装与运行").get_by_role(
                     "button", name="组件安装", exact=True
                 ).click()
