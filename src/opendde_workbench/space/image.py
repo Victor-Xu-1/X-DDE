@@ -40,7 +40,13 @@ def prepare_context(destination, source):
     if source.is_symlink() or any(path.is_symlink() for path in source.rglob("*")):
         raise ValueError("Native CAVER source tree cannot contain symlinks.")
     destination.mkdir(parents=True, exist_ok=False)
-    shutil.copytree(source, destination / "caver")
+    copied = destination / "caver"
+    shutil.copytree(source, copied)
+    # Safe archive staging is private; public native files must be readable by the
+    # non-root worker inside the subsequently read-only image.
+    for file in copied.rglob("*"):
+        file.chmod(0o555 if file.is_dir() else 0o444)
+    copied.chmod(0o555)
     shutil.copyfile(LOCK, destination / "requirements.txt")
     (destination / "Dockerfile").write_text(
         "FROM " + JAVA_IMAGE + " AS java\nFROM " + PYTHON_IMAGE + "\n"
