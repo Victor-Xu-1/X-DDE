@@ -75,16 +75,28 @@ def fragment_from_indices(full, original_indices, selected):
         raise ValueError(
             "Select at least three distinct original heavy atoms for each binding region."
         )
-    mapped = deepcopy(full)
-    for atom in mapped.GetAtoms():
-        atom.SetAtomMapNum(atom.GetIdx() + 1)
-    smiles = Chem.MolFragmentToSmiles(
-        mapped, atomsToUse=[inverse[i] for i in selected], isomericSmiles=True, canonical=False
-    )
-    arm = Chem.MolFromSmiles(smiles)
-    if arm is None or len(Chem.GetMolFrags(arm)) != 1:
+    retained = {inverse[i] for i in selected}
+    mapping = tuple(sorted(retained))
+    editable = Chem.RWMol(full)
+    for index in reversed(range(full.GetNumAtoms())):
+        if index not in retained:
+            editable.RemoveAtom(index)
+    arm = editable.GetMol()
+    for local, original in enumerate(mapping):
+        before = full.GetAtomWithIdx(original)
+        missing = [
+            bond for bond in before.GetBonds() if bond.GetOtherAtomIdx(original) not in retained
+        ]
+        if any(bond.GetBondType() != Chem.BondType.SINGLE for bond in missing):
+            raise ValueError("Select fragment boundaries across ordinary single bonds.")
+        if missing:
+            atom = arm.GetAtomWithIdx(local)
+            atom.SetNumExplicitHs(before.GetTotalNumHs() + len(missing))
+            atom.SetNoImplicit(True)
+    Chem.SanitizeMol(arm)
+    if len(Chem.GetMolFrags(arm)) != 1:
         raise ValueError("A selected binding region must be one connected chemical fragment.")
-    mapping = tuple(atom.GetAtomMapNum() - 1 for atom in arm.GetAtoms())
+    arm.RemoveAllConformers()
     conformer = Chem.Conformer(arm.GetNumAtoms())
     conformer.Set3D(True)
     for atom, index in zip(arm.GetAtoms(), mapping, strict=True):
@@ -92,12 +104,9 @@ def fragment_from_indices(full, original_indices, selected):
         conformer.SetAtomPosition(atom.GetIdx(), full.GetConformer().GetAtomPosition(index))
     arm.AddConformer(conformer)
     Chem.AssignStereochemistry(arm, cleanIt=True, force=True)
-    if mapping not in full.GetSubstructMatches(
-        arm, useChirality=True, uniquify=False, maxMatches=257
-    ):
-        raise ValueError(
-            "Fragment capping changed the confirmed chemical or stereochemical correspondence."
-        )
+    from native_proximity_regions import verify_region
+
+    verify_region(full, arm, mapping)
     return arm, mapping
 
 

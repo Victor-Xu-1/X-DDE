@@ -37,7 +37,15 @@ class ScientificBackend(PreparedContainerBackend):
         if identifier == "deepternary":
             shared = {
                 "native_proximity_" + name + ".py": root / "proximity" / ("native_" + name + ".py")
-                for name in ("chemistry", "partners", "graphs", "prediction", "quality", "outputs")
+                for name in (
+                    "chemistry",
+                    "regions",
+                    "partners",
+                    "graphs",
+                    "prediction",
+                    "quality",
+                    "outputs",
+                )
             }
             shared.update(
                 {
