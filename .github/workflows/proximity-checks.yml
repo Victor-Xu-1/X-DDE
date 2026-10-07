@@ -1,0 +1,35 @@
+name: Induced proximity scoped checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/proximity/**'
+      - 'src/opendde_workbench/integrations/recipes/deepternary*'
+      - 'server_tests/deepternary*'
+      - 'server_tests/proximity*'
+      - 'tests/test_proximity*'
+      - 'frontend/src/proximity/**'
+      - '.github/workflows/proximity-checks.yml'
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Official native CPU baseline on the complete MZ1 ternary case
+        run: uv run --locked python server_tests/deepternary_native_probe.py --output "$RUNNER_TEMP/deepternary"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deepternary-native-evidence
+          path: |
+            ${{ runner.temp }}/deepternary/*.log
+            ${{ runner.temp }}/deepternary/*.json
+            ${{ runner.temp }}/deepternary/output/*.log
+            ${{ runner.temp }}/deepternary/output/*.json
+            ${{ runner.temp }}/deepternary/output/native/*.pdb
+            ${{ runner.temp }}/deepternary/output/native/*.csv

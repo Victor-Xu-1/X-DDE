@@ -1,0 +1,24 @@
+torch @ https://download.pytorch.org/whl/cpu/torch-2.3.1%2Bcpu-cp312-cp312-linux_x86_64.whl
+torchvision @ https://download.pytorch.org/whl/cpu/torchvision-0.18.1%2Bcpu-cp312-cp312-linux_x86_64.whl
+dgl @ https://data.dgl.ai/wheels/torch-2.3/dgl-2.3.0-cp312-cp312-manylinux1_x86_64.whl
+numpy==1.26.4
+scipy==1.12.0
+pandas==2.2.3
+scikit-learn==1.5.2
+mmcv-lite==2.2.0
+mmengine==0.10.3
+rdkit==2023.9.3
+biopandas==0.5.1
+torchdata==0.8.0
+pydantic==2.8.2
+modelindex==0.0.2
+biopython==1.84
+POT==0.9.4
+joblib==1.3.2
+requests==2.32.5
+importlib-metadata==8.7.0
+tqdm==4.67.1
+prettytable==3.12.0
+tensorboard==2.17.1
+opencv-python==4.11.0.86
+ipython==8.37.0

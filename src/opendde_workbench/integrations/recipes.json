@@ -438,6 +438,53 @@
         "libsm6=2:1.2.3-1",
         "libexpat1=2.5.0-1+deb12u4"
       ]
+    },
+    "deepternary": {
+      "version": "827821dccca31a5918bd0355e2d6bf70c072b6dd",
+      "name": "DeepTernary",
+      "gpu": false,
+      "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "pip": [
+        "torch==2.3.1+cpu",
+        "torchvision==0.18.1+cpu",
+        "dgl==2.3.0",
+        "rdkit==2023.9.3",
+        "numpy==1.26.4"
+      ],
+      "system_packages": [
+        "libgl1",
+        "libglib2.0-0"
+      ],
+      "source": {
+        "url": "https://github.com/youqingxiaozhua/DeepTernary/archive/827821dccca31a5918bd0355e2d6bf70c072b6dd.zip",
+        "sha256": "985aac93e0bcbdc5fd0f66689aecd2fdf6bcab46540a4a80ffb351c59b383eec",
+        "prefix": "DeepTernary-827821dccca31a5918bd0355e2d6bf70c072b6dd",
+        "python_path": true,
+        "runtime_access": "readonly_all_users"
+      },
+      "models": [
+        {
+          "name": "output.zip",
+          "url": "https://github.com/youqingxiaozhua/DeepTernary/releases/download/v1.0.0/output.zip",
+          "sha256": "2979aff2742dee11e8ce2b9694f73fb6e58b59d4155fb21fdd3524758039fc4b",
+          "size": 202500878,
+          "selected_members": [
+            {
+              "name": "protac.pth",
+              "member": "output/checkpoints/PROTAC/checkpoint.pth",
+              "size": 67324440,
+              "sha256": "4ac2b4c67d05705e5c1907f878b6865b8b788cbd9111578965e01fd6c1b4e683"
+            },
+            {
+              "name": "glue.pth",
+              "member": "output/checkpoints/MGD/checkpoint.pth",
+              "size": 83311804,
+              "sha256": "212be926f81a9b84e44e2f882ec9e520b81c883c0cb1c24826ff775a6f4b6cef"
+            }
+          ]
+        }
+      ],
+      "license": "Apache-2.0 repository; official v1.0.0 checkpoints, upstream and third-party notices apply"
     }
   }
 }
