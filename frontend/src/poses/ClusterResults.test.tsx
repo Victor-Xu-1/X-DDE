@@ -78,8 +78,8 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
   expect(
     screen.getByRole("heading", { name: "2 组结合模式" }),
   ).toBeInTheDocument();
-  expect(screen.getByLabelText("paired-source").textContent).toContain(
-    "receptor-00.pdb",
+  expect(screen.getByLabelText("paired-source").textContent).toBe(
+    "/api/assets/receptor-source-0|/api/assets/pose-source-0",
   );
   expect(
     screen.getByRole("link", { name: "下载原始姿势" }).getAttribute("href"),
