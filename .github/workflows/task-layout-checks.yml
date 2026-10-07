@@ -26,6 +26,7 @@ on:
       - 'frontend/src/deployment/ComponentLibrary*'
       - 'frontend/src/deployment/ComponentCard*'
       - 'frontend/src/deployment/ComponentBundle*'
+      - 'frontend/src/deployment/ComputeServicePanel*'
       - 'frontend/src/diffsbdd/ReferencePicker*'
       - 'frontend/src/diffsbdd/DiffResults*'
       - 'frontend/src/examples/examples.css'
