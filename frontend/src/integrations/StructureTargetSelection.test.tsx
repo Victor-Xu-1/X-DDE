@@ -20,7 +20,10 @@ vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: (props: ComponentProps<typeof StructureViewer>) => {
     callbacks.push(props.onSceneLoaded!);
     return (
-      <div aria-label="Source structure preview">
+      <div
+        aria-label="Source structure preview"
+        data-focused-ligand={props.focusLigand}
+      >
         <button type="button" onClick={() => props.onSceneLoaded?.(scene)}>
           Read structure
         </button>
@@ -84,26 +87,46 @@ const source = {
 it("requires a real scene choice and preserves the selected ligand's chain and number", async () => {
   const update = vi.fn(),
     user = userEvent.setup();
-  render(
-    <ScientificSelection
-      program="plip"
-      language="en"
-      payload={{ kind: "plip" }}
-      onChange={update}
-      onValid={vi.fn()}
-      structure={source}
-    />,
-  );
-  expect(screen.getByLabelText("Ligand", { exact: true })).toBeDisabled();
+  const props = {
+    program: "plip" as const,
+    language: "en" as const,
+    payload: { kind: "plip" as const },
+    onChange: update,
+    onValid: vi.fn(),
+    structure: source,
+  };
+  const { rerender } = render(<ScientificSelection {...props} />);
+  expect(
+    screen.getByLabelText("Ligand to analyze", { exact: true }),
+  ).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Read structure" }));
   await user.selectOptions(
-    screen.getByLabelText("Ligand", { exact: true }),
+    screen.getByLabelText("Ligand to analyze", { exact: true }),
     "B:301",
   );
   expect(update).toHaveBeenCalledExactlyOnceWith({
     ligand_chain: "B",
     ligand_number: 301,
   });
+  rerender(
+    <ScientificSelection
+      {...props}
+      payload={{ kind: "plip", ligand_chain: "B", ligand_number: 301 }}
+    />,
+  );
+  expect(screen.getByLabelText("Source structure preview")).toHaveAttribute(
+    "data-focused-ligand",
+    "B:LIG301",
+  );
+  rerender(
+    <ScientificSelection
+      {...props}
+      payload={{ kind: "plip", ligand_chain: "B", ligand_number: 999 }}
+    />,
+  );
+  expect(screen.getByLabelText("Source structure preview")).not.toHaveAttribute(
+    "data-focused-ligand",
+  );
 });
 it("preserves insertion codes and ignores a ligand when selecting redesign residues", async () => {
   const update = vi.fn(),
@@ -168,6 +191,8 @@ it("does not resurrect a previous source scene after changing the structure", as
     />,
   );
   act(() => prior(scene));
-  expect(screen.getByLabelText("Ligand", { exact: true })).toBeDisabled();
+  expect(
+    screen.getByLabelText("Ligand to analyze", { exact: true }),
+  ).toBeDisabled();
   expect(screen.queryByRole("option", { name: "LIG · B:301" })).toBeNull();
 });

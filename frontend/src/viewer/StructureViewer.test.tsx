@@ -2,6 +2,92 @@ import { version as productVersion } from "../../package.json";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
+import { defaultOptions } from "./protocol";
+
+it("centers only a selected ligand in the current loaded source, without resetting a user's camera on rerender", () => {
+  const props = {
+    urls: ["/api/assets/aa-11"],
+    language: "en" as const,
+    focusLigand: "B:LIG301",
+  };
+  const { rerender } = render(<StructureViewer {...props} />);
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      );
+    });
+  const scene = {
+    chains: ["B"],
+    atoms: 1200,
+    hasPolymer: true,
+    residues: [],
+    ligands: [
+      { key: "B:LIG301", chain: "B", resn: "LIG", resi: 301, icode: "" },
+    ],
+    options: defaultOptions,
+  };
+  message("ready");
+  expect(
+    post.mock.calls.some(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toBe(false);
+  message("loaded", scene);
+  expect(screen.getByLabelText("Central ligand")).toHaveValue("B:LIG301");
+  expect(post).toHaveBeenCalledWith(
+    {
+      channel: "opendde-viewer",
+      type: "options",
+      value: { ligand: "B:LIG301" },
+    },
+    location.origin,
+  );
+  expect(
+    post.mock.calls.filter(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toHaveLength(1);
+  post.mockClear();
+  rerender(<StructureViewer {...props} language="zh" />);
+  expect(
+    post.mock.calls.some(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toBe(false);
+  rerender(<StructureViewer {...props} focusLigand="A:missing" />);
+  expect(
+    post.mock.calls.some(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toBe(false);
+  rerender(<StructureViewer {...props} urls={["/api/assets/bb-22"]} />);
+  expect(
+    post.mock.calls.some(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toBe(false);
+  message("loaded", { ...scene, ligands: [] });
+  expect(
+    post.mock.calls.some(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toBe(false);
+  message("loaded", scene);
+  expect(
+    post.mock.calls.filter(
+      ([data]) => data.type === "options" && data.value?.ligand,
+    ),
+  ).toHaveLength(1);
+});
 
 it("waits for the new pose before sending atom selections and clears prior display errors", () => {
   const { rerender } = render(

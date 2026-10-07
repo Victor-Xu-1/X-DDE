@@ -31,6 +31,14 @@ export function StructureTargetSelection({
   const chains = Array.isArray(payload.target_chains)
     ? (payload.target_chains as string[])
     : [];
+  const analyzedLigand =
+    program === "plip"
+      ? scene?.ligands.find(
+          (item) =>
+            item.chain === payload.ligand_chain &&
+            item.resi === payload.ligand_number,
+        )
+      : undefined;
   function selected(selection: SelectionInfo | null) {
     const identity = selection?.identity;
     if (!identity || identity.is_ligand || program !== "ligandmpnn") return;
@@ -142,7 +150,7 @@ export function StructureTargetSelection({
         )}
         {program === "plip" && (
           <label className="field">
-            {zh ? "中心配体" : "Ligand"}
+            {zh ? "分析配体" : "Ligand to analyze"}
             <select
               disabled={!scene}
               value={
@@ -182,6 +190,7 @@ export function StructureTargetSelection({
           <StructureViewer
             urls={[`/api/assets/${structure.asset_id}`]}
             language={language}
+            focusLigand={analyzedLigand?.key}
             selectionMode="residue"
             onAtomSelected={selected}
             onSceneLoaded={setScene}

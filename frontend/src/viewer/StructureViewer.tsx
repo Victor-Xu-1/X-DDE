@@ -46,6 +46,7 @@ interface Props {
   urls: string[];
   language: Language;
   focusResidue?: { residue: string; nonce: number } | null;
+  focusLigand?: string | null;
   comparison?: boolean;
   focusModel?: number;
   focusModels?: number[];
@@ -65,6 +66,7 @@ export function StructureViewer({
   urls: originalUrls,
   language,
   focusResidue,
+  focusLigand,
   comparison = false,
   focusModel,
   focusModels,
@@ -125,6 +127,7 @@ export function StructureViewer({
   const overlay = urls.length > 1;
   const requestedKey = useRef<string | null>(key);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const focusedLigand = useRef<string | null>(null);
   const snapshot = useViewerSnapshot(key),
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
@@ -214,6 +217,7 @@ export function StructureViewer({
     return () => window.removeEventListener("message", message);
   }, []);
   useEffect(() => {
+    focusedLigand.current = null;
     setSelection(null);
     setDistance(null);
     setContacts(null);
@@ -243,6 +247,23 @@ export function StructureViewer({
       setStatus("empty");
     }
   }, [ready, key, comparison, focusModel, focusKey]);
+  useEffect(() => {
+    if (!focusLigand) {
+      focusedLigand.current = null;
+      return;
+    }
+    if (
+      !ready ||
+      status !== "loaded" ||
+      loadedKey !== key ||
+      !scene.ligands.some((ligand) => ligand.key === focusLigand)
+    )
+      return;
+    const request = `${key}:${focusLigand}`;
+    if (focusedLigand.current === request) return;
+    focusedLigand.current = request;
+    configure({ ligand: focusLigand });
+  }, [ready, status, loadedKey, key, focusLigand, scene.ligands]);
   const attachmentKey = JSON.stringify(attachmentGeometry);
   const lastAttachment = useRef<string | undefined>(undefined);
   useEffect(() => {
