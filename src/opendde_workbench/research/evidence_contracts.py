@@ -18,7 +18,7 @@ class AssayConditions(ScientificModel):
     target: Text
     assay: Text
     species: Text = ""
-    construct: Text = ""
+    construct_id: Text = ""
     batch: Text = ""
     temperature_c: float | None = Field(default=None, ge=-20, le=150, allow_inf_nan=False)
     ph: float | None = Field(default=None, ge=0, le=14, allow_inf_nan=False)

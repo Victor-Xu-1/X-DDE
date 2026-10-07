@@ -13,7 +13,7 @@ export interface Conditions {
   target: string;
   assay: string;
   species: string;
-  construct: string;
+  construct_id: string;
   batch: string;
   temperature_c: number | null;
   ph: number | null;
@@ -92,7 +92,7 @@ export const blankConditions: Conditions = {
   target: "",
   assay: "",
   species: "",
-  construct: "",
+  construct_id: "",
   batch: "",
   temperature_c: null,
   ph: null,

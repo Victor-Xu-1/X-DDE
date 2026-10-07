@@ -24,7 +24,7 @@ function row(
       target: "target",
       assay: "assay",
       species: "",
-      construct: "",
+      construct_id: "",
       batch: "",
       temperature_c: null,
       ph: null,

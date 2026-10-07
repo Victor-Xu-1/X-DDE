@@ -166,6 +166,10 @@ def test_sqlite_replay_revision_source_integrity_and_asset_retention(records):
     with pytest.raises(ValueError, match="experimental evidence"):
         records.assets.delete_unused(asset.id)
     records.assets.path(asset).write_text("changed original source")
+    with pytest.raises(ValueError, match="size changed"):
+        records.get(first.id)
+    # Equal-size tampering must also fail the content digest, not just file size.
+    records.assets.path(asset).write_bytes(b"X" * asset.size)
     with pytest.raises(ValueError, match="integrity"):
         records.get(first.id)
 

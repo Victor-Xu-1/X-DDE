@@ -88,7 +88,7 @@ export function ConditionFields({
         <summary>{zh ? "补充实验条件" : "Additional assay conditions"}</summary>
         <div className="evidence-fields">
           {label("species", "物种", "Species")}
-          {label("construct", "构建体", "Construct")}
+          {label("construct_id", "构建体", "Construct")}
           {label("batch", "批次", "Batch")}
           {label("buffer", "缓冲液/溶剂", "Buffer / solvent")}
           {label("method", "实验方法", "Assay method")}
