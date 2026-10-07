@@ -17,6 +17,9 @@ from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
 from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
 from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
 from ..examples.manifest import MANIFEST as EXAMPLE_MANIFEST
+from ..examples.pose_bundle_release import SHA256 as POSE_CASE_SHA
+from ..examples.pose_bundle_release import URL as POSE_CASE_URL
+from ..examples.pose_bundle_release import VERSION as POSE_CASE_VERSION
 from ..examples.surface_bundle_release import SHA256 as SURFACE_CASE_SHA
 from ..examples.surface_bundle_release import URL as SURFACE_CASE_URL
 from ..examples.surface_bundle_release import VERSION as SURFACE_CASE_VERSION
@@ -329,6 +332,21 @@ PACKAGES["public-surface-examples"] = Package(
     url=SURFACE_CASE_URL,
     checksum=SURFACE_CASE_SHA,
     license="RCSB PDB CC0-1.0; native geometric measurements with source and method notices",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-pose-examples"] = Package(
+    "public-pose-examples",
+    POSE_CASE_VERSION,
+    "Binding-mode public case",
+    "BRD4–JQ1 真实姿势分群与结构对比 / Native BRD4–JQ1 pose clustering and comparison",
+    "0.7 MB",
+    dependencies=("public-examples",),
+    automatic=True,
+    url=POSE_CASE_URL,
+    checksum=POSE_CASE_SHA,
+    license="RCSB PDB CC0-1.0; native geometry and contact measurements, not binding proof",
     engine="x-dde",
     kind="data",
 )

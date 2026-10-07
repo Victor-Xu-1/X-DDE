@@ -44,7 +44,12 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         from .experimental_cases import install as experimental_cases
 
         metadata.update(experimental_cases(root, state, report, checkpoint))
-    elif key in {"public-examples", "public-dataset-examples", "public-surface-examples"}:
+    elif key in {
+        "public-examples",
+        "public-dataset-examples",
+        "public-surface-examples",
+        "public-pose-examples",
+    }:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings
 

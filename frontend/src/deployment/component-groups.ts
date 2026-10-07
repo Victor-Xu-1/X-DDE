@@ -32,6 +32,7 @@ const definitions: GroupDefinition[] = [
       "chemistry",
       "public-examples",
       "public-surface-examples",
+      "public-pose-examples",
       "public-experimental-examples",
     ],
     matches: (p) =>
@@ -42,6 +43,7 @@ const definitions: GroupDefinition[] = [
         "chemistry",
         "public-examples",
         "public-surface-examples",
+        "public-pose-examples",
         "public-experimental-examples",
       ].includes(p.id),
   },

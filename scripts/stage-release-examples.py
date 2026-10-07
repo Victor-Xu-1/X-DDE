@@ -1,4 +1,4 @@
-"""Stage an accepted case-data artifact into the existing software release only."""
+"""Stage accepted case-data artifacts into the single existing software release."""
 
 import argparse
 import hashlib
@@ -11,10 +11,12 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from opendde_workbench.examples import surface_bundle_release as spec
+from opendde_workbench.examples import pose_bundle_release, surface_bundle_release
+
+SPECS = (surface_bundle_release, pose_bundle_release)
 
 
-def verify_bundle(file):
+def verify_bundle(file, spec):
     if file.stat().st_size != spec.BYTES:
         raise ValueError("Accepted example archive size changed.")
     with file.open("rb") as stream:
@@ -22,19 +24,19 @@ def verify_bundle(file):
             raise ValueError("Accepted example archive digest changed.")
     with zipfile.ZipFile(file) as archive:
         manifest = json.loads(archive.read("manifest.json"))
-    if manifest.get("source_revision") != spec.SOURCE_REVISION or manifest.get("capabilities") != [
-        "biopython.exposure"
-    ]:
+    if manifest.get("source_revision") != spec.SOURCE_REVISION or manifest.get(
+        "capabilities"
+    ) != list(spec.CAPABILITIES):
         raise ValueError("The artifact does not match the approved native source and case scope.")
     if manifest.get("notices", {}).get("licenses") != ["CC0-1.0"]:
-        raise ValueError("The exposure source notices differ from the reviewed case data.")
+        raise ValueError("The geometric-case source notices differ from the reviewed case data.")
     return manifest
 
 
-def stage(tag, destination):
+def stage_one(tag, destination, spec):
     parts = urlsplit(spec.URL).path.split("/")
     if parts[-2] != tag:
-        # Later software versions reuse this immutable data URL; do not republish it.
+        # Later software versions reuse this immutable data URL, without republishing it.
         return
     repository = os.environ["GITHUB_REPOSITORY"]
     if repository != "Victor-Xu-1/X-DDE":
@@ -48,11 +50,11 @@ def stage(tag, destination):
         run.get("conclusion") != "success"
         or run.get("status") != "completed"
         or run.get("head_sha") != spec.SOURCE_REVISION
-        or run.get("path") != ".github/workflows/surface-exposure-checks.yml"
+        or run.get("path") != spec.WORKFLOW
     ):
         raise ValueError("The native source run did not pass the reviewed scoped acceptance.")
     with tempfile.TemporaryDirectory(
-        prefix="accepted-surface-", dir=os.environ["RUNNER_TEMP"]
+        prefix="accepted-case-", dir=os.environ["RUNNER_TEMP"]
     ) as directory:
         subprocess.run(
             [
@@ -63,23 +65,28 @@ def stage(tag, destination):
                 "--repo",
                 repository,
                 "--name",
-                "surface-exposure-native-evidence",
+                spec.ARTIFACT,
                 "--dir",
                 directory,
             ],
             check=True,
         )
         source = Path(directory) / parts[-1]
-        verify_bundle(source)
+        verify_bundle(source, spec)
         destination.mkdir(parents=True, exist_ok=True)
         target = destination / source.name
         if target.exists():
-            verify_bundle(target)
+            verify_bundle(target, spec)
         else:
             shutil.copyfile(source, target)
     print(
         json.dumps({"case": target.name, "sha256": spec.SHA256, "native_run": spec.NATIVE_RUN_ID})
     )
+
+
+def stage(tag, destination):
+    for spec in SPECS:
+        stage_one(tag, destination, spec)
 
 
 def main():
