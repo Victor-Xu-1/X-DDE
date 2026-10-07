@@ -7,6 +7,7 @@ import Bio
 import torch
 from native_io import csv_file, finish, metric
 from native_proximity_chemistry import read_chemistry
+from native_proximity_graph_identity import graph_signature
 from native_proximity_options import TernaryPayload
 from native_proximity_outputs import write_proposal
 from native_proximity_partners import read_partner, validate_bound_arm
@@ -69,6 +70,8 @@ def run(request):
     result = {
         "mechanism": request["payload"]["mechanism"],
         "source_ligand": source,
+        "source_smiles": smiles,
+        "chemical_graph": graph_signature(Chem.MolToMolBlock(full).splitlines()),
         "ligand_atom_indices": indices,
         "partner_mapping": mapping,
         "arm_maps": [[indices[index] for index in mapping] for _, mapping in arms],

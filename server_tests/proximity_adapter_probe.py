@@ -149,6 +149,7 @@ def run_adapter(root, image, models):
                 timeout=660,
             )
     except BaseException:
+        print((work / "execution.log").read_text()[-12000:])
         subprocess.run(
             ["docker", "rm", "--force", container], check=False, stdout=subprocess.DEVNULL
         )

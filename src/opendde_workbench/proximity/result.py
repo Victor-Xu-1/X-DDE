@@ -3,6 +3,7 @@
 import math
 
 from ..artifacts import contained
+from .graph_identity import graph_signature
 
 
 def pdb_atoms(file):
@@ -142,6 +143,8 @@ def validate_ternary(result, request, output):
         count, bonds = int(sdf[3][:3]), int(sdf[3][3:6])
         if count != len(atoms) or not 1 <= bonds <= 1024:
             raise ValueError("The ternary ligand lost its complete graph.")
+        if graph_signature(sdf) != value.chemical_graph.model_dump():
+            raise ValueError("The native ligand changed source elements, charges or bonds.")
         ligand = [atom for atom in complex_rows if atom["chain"] == "L"]
         if len(ligand) != count:
             raise ValueError("The complete ligand is missing from the native assembly.")
@@ -160,3 +163,7 @@ def validate_ternary(result, request, output):
         raise ValueError(
             "Only independently qualified complete assemblies and ligands are reusable."
         )
+    for row in result.candidates:
+        expected_smiles = value.source_smiles if row.id.endswith("-ligand") else None
+        if row.smiles != expected_smiles or row.geometry != "predicted_structure":
+            raise ValueError("A reusable ternary candidate lost its complete chemical identity.")

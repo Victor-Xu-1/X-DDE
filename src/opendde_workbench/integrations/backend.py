@@ -50,6 +50,7 @@ class ScientificBackend(PreparedContainerBackend):
             shared.update(
                 {
                     "native_proximity_options.py": root / "proximity/options.py",
+                    "native_proximity_graph_identity.py": root / "proximity/graph_identity.py",
                     "native_selection.py": root / "receptors/native_selection.py",
                     "preparation_options.py": root / "receptors/preparation_options.py",
                 }

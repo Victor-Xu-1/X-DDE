@@ -134,9 +134,33 @@ class TernarySearch(EvidenceModel):
     failures: list[SearchFailure] = Field(max_length=60)
 
 
+class ChemicalGraph(EvidenceModel):
+    atoms: list[str] = Field(min_length=3, max_length=256)
+    bonds: list[tuple[int, int, int]] = Field(min_length=1, max_length=1024)
+    annotations: list[str] = Field(max_length=64)
+
+    @model_validator(mode="after")
+    def valid_graph(self) -> Self:
+        count = len(self.atoms)
+        if any(len(token) != 8 for token in self.atoms):
+            raise ValueError("Original atom element/charge/isotope tokens must be retained.")
+        if any(not (0 <= a < b < count and 1 <= order <= 4) for a, b, order in self.bonds):
+            raise ValueError("The confirmed whole-molecule bond graph is invalid.")
+        if len({(a, b) for a, b, _ in self.bonds}) != len(self.bonds):
+            raise ValueError("The confirmed whole-molecule graph has duplicate bonds.")
+        if any(
+            len(line) > 256 or not line.startswith(("M  CHG", "M  ISO", "M  RAD"))
+            for line in self.annotations
+        ):
+            raise ValueError("Original charge/isotope/radical annotations must be bounded.")
+        return self
+
+
 class TernaryResult(EvidenceModel):
     mechanism: Literal["protac", "riptac", "proximity", "molecular_glue"]
     source_ligand: MoleculeRef
+    source_smiles: str = Field(min_length=1, max_length=20000)
+    chemical_graph: ChemicalGraph
     ligand_atom_indices: list[int] = Field(min_length=3, max_length=256)
     partner_mapping: tuple[PartnerMapping, PartnerMapping]
     arm_maps: list[list[int]] = Field(max_length=2)
@@ -155,6 +179,8 @@ class TernaryResult(EvidenceModel):
             raise ValueError("Assembly identities must be unique.")
         if len(set(self.ligand_atom_indices)) != len(self.ligand_atom_indices):
             raise ValueError("Ligand atoms lost their original correspondence.")
+        if len(self.chemical_graph.atoms) != len(self.ligand_atom_indices):
+            raise ValueError("The complete chemical graph lost its original atom correspondence.")
         if [partner.output_chain for partner in self.partner_mapping] != ["A", "B"]:
             raise ValueError("Both declared partner identities are required.")
         if len(self.arm_maps) != (0 if self.mechanism == "molecular_glue" else 2):
