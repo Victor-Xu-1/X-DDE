@@ -83,6 +83,9 @@ def run_platform(protocol):
         assert queued.status_code == 200, queued.text
         installed = wait_deployment(client, queued.json()["operations"])
         entry = installed["installed"]["deepternary"]
+        editor = client.post("/api/deployment/packages/ketcher/install", json={})
+        assert editor.status_code == 200, editor.text
+        wait_deployment(client, editor.json()["operations"])
         availability = client.get("/api/capabilities/deepternary.model").json()["availability"]
         assert availability["configuration_present"], availability
         prepared = client.post("/api/examples/deepternary.model/prepare")
