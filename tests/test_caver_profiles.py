@@ -23,6 +23,23 @@ def fixture(path):
             ["one.pdb", "1", "1", "1", "0", "1", "-", "-", "-", "1", "2", "", axis, *values[axis]]
         )
     write(path, rows)
+    write(
+        path.with_name("tunnel_characteristics.csv"),
+        [
+            [
+                "Snapshot",
+                "Tunnel cluster",
+                "Tunnel",
+                "Throughput",
+                "Cost",
+                "Bottleneck radius",
+                "Bottleneck R error bound",
+                "Length",
+                "Curvature",
+            ],
+            ["one.pdb", "1", "1", "1", "0", "1", "-", "2", "1"],
+        ],
+    )
     return rows
 
 
@@ -77,3 +94,26 @@ def test_untrusted_or_incomplete_native_profiles_are_rejected(tmp_path, change):
 def test_missing_native_output_does_not_become_no_solution(tmp_path):
     with pytest.raises(ValueError):
         read_profiles(tmp_path / "missing.csv", "one.pdb")
+
+
+def test_native_sampling_axis_is_retained_separately_from_geometry(tmp_path):
+    path = tmp_path / "profile.csv"
+    rows = fixture(path)
+    next(row for row in rows[1:] if row[12] == "length")[-1] = "2.5"
+    write(path, rows)
+    value = read_profiles(path, "one.pdb")[0]
+    assert value["length_angstrom"] == 2
+    assert value["points"][-1]["native_profile_distance_angstrom"] == 2.5
+    assert value["points"][-1]["sample_polyline_distance_angstrom"] == 1
+
+
+def test_tampered_complete_path_summary_is_rejected(tmp_path):
+    path = tmp_path / "profile.csv"
+    fixture(path)
+    summary = path.with_name("tunnel_characteristics.csv")
+    with summary.open(newline="") as stream:
+        rows = list(csv.reader(stream))
+    rows[1][-2] = "3"
+    write(summary, rows)
+    with pytest.raises(ValueError, match="complete-path report"):
+        read_profiles(path, "one.pdb")
