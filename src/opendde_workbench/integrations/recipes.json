@@ -453,7 +453,8 @@
       ],
       "system_packages": [
         "libgl1",
-        "libglib2.0-0"
+        "libglib2.0-0",
+        "libcurl4"
       ],
       "source": {
         "url": "https://github.com/youqingxiaozhua/DeepTernary/archive/827821dccca31a5918bd0355e2d6bf70c072b6dd.zip",
