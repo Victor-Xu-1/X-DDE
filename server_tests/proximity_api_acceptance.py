@@ -79,7 +79,7 @@ def run_platform(protocol):
             protocol / "models.zip",
             downloads / ("deepternary-" + resource["sha256"][:16] + "-" + resource["name"]),
         )
-        queued = client.post("/api/deployment/packages/deepternary/install", json={})
+        queued = client.post("/api/deployment/packages/deepternary-models/install", json={})
         assert queued.status_code == 200, queued.text
         installed = wait_deployment(client, queued.json()["operations"])
         entry = installed["installed"]["deepternary"]
