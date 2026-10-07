@@ -132,7 +132,48 @@ def review_steps(page, evidence, name):
     return rows
 
 
-def save_report(evidence, rows, errors):
+def capture_utilities(page, evidence, width):
+    """Inspect workspace utilities at the same actual viewport as their task group."""
+    page.set_viewport_size({"width": width, "height": 1000})
+    rows = []
+    nav = page.get_by_role("navigation", name="主导航")
+    expect(nav.get_by_role("button")).to_have_count(12)
+    nav.get_by_role("button", name="研究空间", exact=True).click()
+    for tab in ("项目", "研究文件", "结构编辑"):
+        page.get_by_role("group", name="研究空间", exact=True).get_by_role(
+            "button", name=tab, exact=True
+        ).click()
+        rows.append(capture(page, evidence, "研究空间-" + tab, "utility"))
+        if tab == "项目":
+            page.locator(".project-toolbar .primary-button").click()
+            dialog = page.get_by_role("dialog", name="新建项目", exact=True)
+            expect(dialog).to_be_visible()
+            expect(page.get_by_role("textbox", name="项目名称", exact=True)).to_be_focused()
+            confirm = dialog.locator("footer .primary-button").bounding_box()
+            bounds = dialog.bounding_box()
+            assert confirm["width"] < bounds["width"] * 0.6
+            rows.append(capture(page, evidence, "研究项目", "create-dialog"))
+            page.get_by_role("button", name="取消", exact=True).click()
+    nav.get_by_role("button", name="任务与结果", exact=True).click()
+    rows.append(capture(page, evidence, "任务与结果", "utility"))
+    for label in ("安装与运行", "界面设置", "使用帮助"):
+        page.get_by_role("button", name="设置与帮助", exact=True).click()
+        expect(page.get_by_role("menuitem")).to_have_count(3)
+        page.get_by_role("menuitem", name=label, exact=True).click()
+        rows.append(capture(page, evidence, label, "utility"))
+        if label == "安装与运行":
+            page.get_by_role("group", name="安装与运行", exact=True).get_by_role(
+                "button", name="运行状态", exact=True
+            ).click()
+            rows.append(capture(page, evidence, "运行状态", "utility"))
+    return rows
+
+
+def save_report(evidence, rows, errors, selection=None):
     (evidence / "layout-matrix.json").write_text(
-        json.dumps({"pages": rows, "errors": errors}, ensure_ascii=False, indent=2)
+        json.dumps(
+            {"pages": rows, "errors": errors, "selection": selection},
+            ensure_ascii=False,
+            indent=2,
+        )
     )

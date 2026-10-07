@@ -221,7 +221,14 @@ have separate maintainable modules; duplicate UtilityViews routes are retired.
 Change-specific CI verifies module coverage/defaults, one active navigation parent,
 keyboard/outside-click/Escape behavior, fresh task inputs, explicit history, project scoping,
 result loading/errors/exports, language/theme persistence, and the existing all-module
-Chromium walk without submitting scientific tasks. Owner machine performs static/build,
+Chromium walk without submitting scientific tasks. Coverage is split into two
+deterministic task groups at each reviewed width (1440 and 390), retaining the
+20-minute budget for each group. A final gate requires all groups from the same
+source revision, every registered task, its new input and template/result states,
+and all eight utility pages at each actual width. Splitting does not reduce task
+coverage or turn a cancelled group into a passing result.
+
+Owner machine performs static/build,
 real UI inspection and app lifecycle checks only.
 
 Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.

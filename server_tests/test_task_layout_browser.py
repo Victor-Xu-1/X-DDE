@@ -7,6 +7,7 @@ from pathlib import Path
 from layout_browser_helpers import (
     VISIBLE_TASKS,
     capture,
+    capture_utilities,
     catalog,
     load_template,
     review_steps,
@@ -22,10 +23,15 @@ def test_every_task_page_and_native_case_layout():
     if selected_width is not None and selected_width not in {"1440", "390"}:
         raise ValueError("Choose the reviewed desktop or mobile layout width.")
     widths = (int(selected_width),) if selected_width else (1440, 390)
+    selected_shard = os.environ.get("WB_LAYOUT_SHARD")
+    if selected_shard is not None and selected_shard not in {"0", "1"}:
+        raise ValueError("Choose a reviewed task group, 0 or 1.")
+    shard = int(selected_shard) if selected_shard is not None else None
     evidence = Path("server_tests/evidence/task-layout")
     evidence.mkdir(parents=True, exist_ok=True)
     errors = []
     rows = []
+    names = []
     task_submissions = []
     db = sqlite3.connect(Path(os.environ["WB_STATE_DIR"]) / "jobs.sqlite3")
     original = db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall()
@@ -54,6 +60,14 @@ def test_every_task_page_and_native_case_layout():
             }
             expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
             names = page.locator(".tool-card h2").all_text_contents()
+            expected = {
+                spec.label[0]
+                for key, spec in CAPABILITIES.items()
+                if spec.frontend_form and key != "resources"
+            }
+            assert set(names) == expected and len(names) == len(expected)
+            if shard is not None:
+                names = [name for index, name in enumerate(names) if index % 2 == shard]
             for width in widths:
                 page.set_viewport_size({"width": width, "height": 1000})
                 for name in names:
@@ -91,41 +105,22 @@ def test_every_task_page_and_native_case_layout():
                         timeout=30000
                     )
                     rows.append(capture(page, evidence, name, "result"))
-            page.set_viewport_size({"width": 1440, "height": 1000})
-            nav = page.get_by_role("navigation", name="主导航")
-            expect(nav.get_by_role("button")).to_have_count(12)
-            nav.get_by_role("button", name="研究空间", exact=True).click()
-            for tab in ("项目", "研究文件", "结构编辑"):
-                page.get_by_role("group", name="研究空间", exact=True).get_by_role(
-                    "button", name=tab, exact=True
-                ).click()
-                rows.append(capture(page, evidence, "研究空间-" + tab, "utility"))
-                if tab == "项目":
-                    page.locator(".project-toolbar .primary-button").click()
-                    dialog = page.get_by_role("dialog", name="新建项目", exact=True)
-                    expect(dialog).to_be_visible()
-                    expect(page.get_by_role("textbox", name="项目名称", exact=True)).to_be_focused()
-                    confirm = dialog.locator("footer .primary-button").bounding_box()
-                    bounds = dialog.bounding_box()
-                    assert confirm["width"] < bounds["width"] * 0.6
-                    rows.append(capture(page, evidence, "研究项目", "create-dialog"))
-                    page.get_by_role("button", name="取消", exact=True).click()
-            nav.get_by_role("button", name="任务与结果", exact=True).click()
-            rows.append(capture(page, evidence, "任务与结果", "utility"))
-            for label in ("安装与运行", "界面设置", "使用帮助"):
-                page.get_by_role("button", name="设置与帮助", exact=True).click()
-                expect(page.get_by_role("menuitem")).to_have_count(3)
-                page.get_by_role("menuitem", name=label, exact=True).click()
-                rows.append(capture(page, evidence, label, "utility"))
-                if label == "安装与运行":
-                    page.get_by_role("group", name="安装与运行", exact=True).get_by_role(
-                        "button", name="运行状态", exact=True
-                    ).click()
-                    rows.append(capture(page, evidence, "运行状态", "utility"))
+                if shard in {None, 0}:
+                    rows.extend(capture_utilities(page, evidence, width))
             assert not errors, errors
             assert not task_submissions, "A layout check must never submit science tasks"
             assert db.execute("SELECT id,status FROM jobs ORDER BY id").fetchall() == original
         finally:
-            save_report(evidence, rows, errors)
+            save_report(
+                evidence,
+                rows,
+                errors,
+                {
+                    "revision": os.environ.get("GITHUB_SHA"),
+                    "widths": widths,
+                    "shard": shard,
+                    "selected_tasks": names,
+                },
+            )
             browser.close()
             db.close()

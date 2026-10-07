@@ -37,6 +37,8 @@ on:
       - 'server_tests/*researcher*'
       - 'server_tests/test_module_surfaces_browser.py'
       - 'server_tests/test_result_visuals_browser.py'
+      - 'server_tests/layout_browser_helpers.py'
+      - 'server_tests/layout_coverage.py'
       - '.github/workflows/task-layout-checks.yml'
   workflow_dispatch:
 permissions:
@@ -49,10 +51,12 @@ jobs:
       fail-fast: false
       matrix:
         viewport: [1440, 390]
+        shard: [0, 1]
     env:
       WB_AUTO_DEPLOY: '0'
       WB_BROWSER_URL: http://127.0.0.1:4330
       WB_LAYOUT_WIDTH: ${{ matrix.viewport }}
+      WB_LAYOUT_SHARD: ${{ matrix.shard }}
     steps:
       - name: Choose isolated runner state
         run: |
@@ -151,12 +155,25 @@ jobs:
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
           .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py
-          if [ "$WB_LAYOUT_WIDTH" = 1440 ]; then
+          if [ "$WB_LAYOUT_WIDTH" = 1440 ] && [ "$WB_LAYOUT_SHARD" = 0 ]; then
             .venv/bin/python -m pytest -q server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py server_tests/test_module_surfaces_browser.py server_tests/test_binding_entry_browser.py
           fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task-layout-browser-evidence-${{ matrix.viewport }}
+          name: task-layout-browser-evidence-${{ matrix.viewport }}-${{ matrix.shard }}
           path: server_tests/evidence/task-layout
           if-no-files-found: warn
+  verify-coverage:
+    needs: scoped-layout
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: task-layout-browser-evidence-*
+          path: server_tests/evidence/layout-groups
+      - name: Require both widths, every task and the same reviewed revision
+        run: uv run --locked python server_tests/layout_coverage.py server_tests/evidence/layout-groups "$GITHUB_SHA"
