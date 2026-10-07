@@ -46,7 +46,7 @@ export function AttachmentDirections({
       render: (r) => (
         <button
           type="button"
-          className="table-record-button"
+          className="record-select"
           aria-label={
             (zh ? "查看连接 " : "Inspect bond ") +
             atom(r, true) +
@@ -62,10 +62,15 @@ export function AttachmentDirections({
     },
     {
       key: "length",
-      label: zh ? "当前键长" : "Current bond length",
+      label: zh ? "键长 / Å" : "Bond / Å",
       exportLabel: "Current bond length (angstrom)",
       numeric: true,
       value: (r) => r.bond_length_angstrom,
+      render: (r) => (
+        <span title={String(r.bond_length_angstrom)}>
+          {r.bond_length_angstrom.toFixed(3)}
+        </span>
+      ),
     },
     {
       key: "direction",
