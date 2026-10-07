@@ -24,6 +24,7 @@ from opendde_workbench.docking.options import DockingOptions
 from opendde_workbench.humanization.manifest import MAX_RECORDS as HUMANIZATION_MAX_RECORDS
 from opendde_workbench.humanization.manifest import VERSIONS as HUMANIZATION_VERSIONS
 from opendde_workbench.humanization.options import HumanizationOptions
+from opendde_workbench.integrations.contract import OPERATIONS
 from opendde_workbench.integrations.options import (
     BoltzGenPayload,
     BoltzPayload,
@@ -112,6 +113,12 @@ def main() -> None:
             },
             indent=2,
         )
+        + " as const;\n",
+        "integrations/operations.ts": header
+        + "export const nativeOperations = "
+        + json.dumps(list(OPERATIONS), indent=2)
+        + " as const;\nexport const nativeOperationPrograms = "
+        + json.dumps(OPERATIONS, indent=2)
         + " as const;\n",
         "humanization/generated.ts": header
         + "export const humanizationDefaults = "

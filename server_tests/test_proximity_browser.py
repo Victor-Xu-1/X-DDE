@@ -31,7 +31,9 @@ def test_ternary_fixed_result_and_stepwise_submission():
             page.get_by_role("navigation", name="主导航").get_by_role(
                 "button", name="诱导邻近设计", exact=True
             ).click()
-            expect(page.get_by_role("heading", name="选择分子与目标", exact=True)).to_be_visible()
+            expect(
+                page.get_by_role("heading", name="1. 选择分子与目标", exact=True)
+            ).to_be_visible()
             expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
             expect(page.get_by_role("radio", name="PROTAC 降解剂", exact=True)).to_be_checked()
             expect(page.get_by_role("radio", name="分别有两端结合姿势", exact=True)).to_be_checked()
@@ -75,11 +77,13 @@ def test_ternary_fixed_result_and_stepwise_submission():
             page.set_viewport_size({"width": 1600, "height": 1050})
             page.get_by_role("button", name="使用此模板", exact=True).click()
             expect(page.get_by_role("radio", name="有完整复合物", exact=True)).to_be_checked()
-            for heading in ("招募端 · E3 连接酶", "目标蛋白", "确认探索方案"):
+            for number, heading in enumerate(("招募端 · E3 连接酶", "目标蛋白", "确认探索方案"), 2):
                 page.locator(".questionnaire-actions").get_by_role(
                     "button", name="下一步", exact=True
                 ).click()
-                expect(page.get_by_role("heading", name=heading, exact=True)).to_be_visible()
+                expect(
+                    page.get_by_role("heading", name=f"{number}. {heading}", exact=True)
+                ).to_be_visible()
                 expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
                 assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             expect(page.get_by_role("button", name="开始三元建模", exact=True)).to_be_enabled()

@@ -107,6 +107,16 @@ const definitions: GroupDefinition[] = [
     matches: (p) => ["diffsbdd", "reinvent"].includes(p.engine ?? ""),
   },
   {
+    id: "proximity",
+    title: ["诱导邻近设计", "Induced proximity"],
+    recommendation: [
+      "一起准备三元建模环境和固定模型，再在模块中查看真实案例",
+      "Prepare the ternary runtime and fixed models together, then explore the real module example",
+    ],
+    recommended: ["deepternary", "deepternary-models"],
+    matches: (p) => p.engine === "deepternary",
+  },
+  {
     id: "large-libraries",
     title: ["高通量筛选与 DEL", "High-throughput screening & DEL"],
     recommendation: [

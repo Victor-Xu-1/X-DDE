@@ -1,28 +1,11 @@
 import type { BaseTask } from "../operations/types";
 import type { MoleculeRef } from "../research/types";
 import type { TernaryResult } from "../proximity/types";
+import { nativeOperations, nativeOperationPrograms } from "./operations";
 
+export type ScientificOperation = (typeof nativeOperations)[number];
 export type ScientificProgram =
-  | "deepternary"
-  | "boltz"
-  | "reinvent"
-  | "ligandmpnn"
-  | "boltzgen"
-  | "openmm"
-  | "apbs"
-  | "chemprop"
-  | "plip";
-export type ScientificOperation =
-  | "ternary_model"
-  | "boltz_predict"
-  | "reinvent_design"
-  | "ligandmpnn_design"
-  | "boltzgen_design"
-  | "structure_refine"
-  | "electrostatics"
-  | "chemprop_train"
-  | "chemprop_predict"
-  | "interaction_profile";
+  (typeof nativeOperationPrograms)[ScientificOperation];
 export interface ScientificPayload {
   kind: ScientificProgram;
   [key: string]: unknown;

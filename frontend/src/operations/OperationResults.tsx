@@ -43,6 +43,7 @@ import { HarnessResults } from "./HarnessResults";
 import { researchError } from "../presentation/research-content";
 import { ScientificResults } from "../integrations/ScientificResults";
 import type { NativeResult } from "../integrations/types";
+import { nativeOperations } from "../integrations/operations";
 import { DatasetResults } from "../datasets/DatasetResults";
 import { datasetOperations, type DatasetResult } from "../datasets/types";
 import "../datasets/datasets.css";
@@ -65,15 +66,7 @@ export function OperationResults({
     [error, setError] = useState("");
   const supported = [
     ...datasetOperations,
-    "boltz_predict",
-    "reinvent_design",
-    "ligandmpnn_design",
-    "boltzgen_design",
-    "structure_refine",
-    "electrostatics",
-    "chemprop_train",
-    "chemprop_predict",
-    "interaction_profile",
+    ...nativeOperations,
     "antibody_humanize",
     "admet_predict",
     "pose_quality",
@@ -137,19 +130,7 @@ export function OperationResults({
         onCreated={onCreated}
       />
     );
-  if (
-    [
-      "boltz_predict",
-      "reinvent_design",
-      "ligandmpnn_design",
-      "boltzgen_design",
-      "structure_refine",
-      "electrostatics",
-      "chemprop_train",
-      "chemprop_predict",
-      "interaction_profile",
-    ].includes(job.request.operation ?? "")
-  )
+  if (nativeOperations.some((operation) => operation === job.request.operation))
     return (
       <ScientificResults
         key={job.id}
