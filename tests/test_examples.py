@@ -44,7 +44,15 @@ def test_fixed_template_transport_preserves_origin_and_original_checksum(monkeyp
     spec = FILES["jq1"]
     assert download_url(spec) == PREFIX + spec.sha256 + ".sdf"
     assert spec.url.startswith("https://models.rcsb.org/")
-    assert len(DOWNLOADS) == 13
+    known = {file.sha256: file for file in FILES.values()}
+    assert set(DOWNLOADS) <= set(known)
+    dynamic = {
+        file.sha256 for file in FILES.values() if file.url.startswith("https://models.rcsb.org/")
+    }
+    assert dynamic <= set(DOWNLOADS)
+    for digest in DOWNLOADS:
+        file = known[digest]
+        assert download_url(file) == PREFIX + digest + Path(file.name).suffix
     monkeypatch.setitem(DOWNLOADS, spec.sha256, "https://unreviewed.invalid/template.sdf")
     with pytest.raises(ValueError, match="not reviewed"):
         download_url(spec)
