@@ -36,6 +36,7 @@ on:
       - 'server_tests/*layout*'
       - 'server_tests/*researcher*'
       - 'server_tests/test_module_surfaces_browser.py'
+      - 'server_tests/test_result_visuals_browser.py'
       - '.github/workflows/task-layout-checks.yml'
   workflow_dispatch:
 permissions:
