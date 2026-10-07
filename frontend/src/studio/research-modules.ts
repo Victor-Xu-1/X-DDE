@@ -77,6 +77,7 @@ export const researchModules: readonly ResearchModule[] = [
       "gnina.minimize",
       "posebusters.check",
       "plip.profile",
+      "biopython.exposure",
       "apbs.potential",
       "structure",
       "regions",

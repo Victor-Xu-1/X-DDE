@@ -438,6 +438,22 @@ _STRUCTURE_PREPARE = (
         scientific_validation="target_server_pending",
     ),
 )
+_SURFACE_EXPOSURE = (
+    CapabilitySpec(
+        id="biopython.exposure",
+        **modality_metadata("biopython.exposure"),
+        group="analyze",
+        environment="biopython",
+        operations=("surface_exposure",),
+        label=("区域暴露与埋藏", "Region exposure and burial"),
+        note=(
+            "点选配体或残基，比较孤立区域与整体结构中的溶剂可接触面积。",
+            "Select ligands or residues and compare solvent accessibility in isolation and in the provided assembly.",
+        ),
+        source="Biopython Shrake-Rupley",
+        frontend_form="surface_exposure",
+    ),
+)
 _REFERENCE_IMPORT = (
     CapabilitySpec(
         id="discovery.import",
@@ -464,6 +480,7 @@ _ITEMS = (
     + _ANTIBODY_NUMBER
     + _LIBRARY_SCREEN
     + _STRUCTURE_PREPARE
+    + _SURFACE_EXPOSURE
     + _REFERENCE_IMPORT
     + _DISCOVERY
     + _BASE

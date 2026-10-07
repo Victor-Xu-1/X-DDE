@@ -73,6 +73,16 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
                 "backbone_and_ambiguity_checks",
             )
         )
+        if spec.id == "biopython.exposure":
+            specific = [
+                "exact_observed_region",
+                "selected_assembly_context",
+                "reviewed_element_radii",
+                "explicit_probe_and_resolution",
+                "bounded_surface_sampling",
+                "no_ambiguous_or_coincident_atoms",
+                "not_affinity_or_linker_passage",
+            ]
     elif spec.environment == "chemistry":
         checks = {"runtime": bool(backends.get("chemistry", {}).get("ready"))}
         specific.extend(

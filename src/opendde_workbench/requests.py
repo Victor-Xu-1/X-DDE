@@ -36,6 +36,7 @@ from .quality.contract import PoseQualityTask
 from .quality.contract import references as quality_references
 from .receptors.contract import ReceptorEnsembleTask
 from .receptors.preparation_contract import StructurePrepareTask
+from .receptors.surface_contract import SurfaceExposureTask
 from .task_metadata import TaskMetadata
 
 
@@ -164,6 +165,7 @@ TaskRequest = Annotated[
     | Annotated[LibraryScreenTask, Tag("library_screen")]
     | Annotated[MolecularStatesTask, Tag("molecular_states")]
     | Annotated[MoleculeMinimizeTask, Tag("molecule_minimize")]
+    | Annotated[SurfaceExposureTask, Tag("surface_exposure")]
     | Annotated[StructurePrepareTask, Tag("structure_prepare")]
     | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
     Discriminator(request_kind),
@@ -183,7 +185,7 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         return {str(request.source.asset_id)}
     if isinstance(request, ReferenceImportTask):
         return {str(ref.asset_id) for ref in request.scientific_inputs}
-    if isinstance(request, StructurePrepareTask):
+    if isinstance(request, (StructurePrepareTask, SurfaceExposureTask)):
         return {str(request.structure.asset_id)}
     if isinstance(request, ReceptorEnsembleTask):
         return {str(item.structure.asset_id) for item in request.inputs} | {

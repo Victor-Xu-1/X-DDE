@@ -441,6 +441,27 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "biopython.exposure",
+    group: "analyze",
+    label: ["区域暴露与埋藏", "Region exposure and burial"],
+    note: [
+      "点选配体或残基，比较孤立区域与整体结构中的溶剂可接触面积。",
+      "Select ligands or residues and compare solvent accessibility in isolation and in the provided assembly.",
+    ],
+    source: "Biopython Shrake-Rupley",
+    modalities: [
+      "biologic",
+      "chemical",
+      "rna",
+      "dna",
+      "antibody",
+      "protein",
+      "peptide",
+      "small_molecule",
+    ],
+    modality_role: "research_object",
+  },
+  {
     id: "discovery.import",
     group: "prepare",
     label: [

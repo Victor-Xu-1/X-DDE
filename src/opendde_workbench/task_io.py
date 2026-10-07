@@ -54,6 +54,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .discovery.result import validate_result
 
         validate_result(result, job.request, output)
+    if operation == "surface_exposure":
+        from .receptors.surface_result import validate_surface
+
+        validate_surface(result, job.request, output)
     if operation == "structure_prepare":
         from .receptors.preparation_result import validate_preparation
 

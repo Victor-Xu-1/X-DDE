@@ -117,6 +117,10 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Library selection evidence is invalid or changed."
                     ) from exc
+            if job.request.operation == "surface_exposure":
+                from .receptors.surface_result import validate_surface
+
+                validate_surface(value, job.request, root / "output")
             if job.request.operation == "structure_prepare":
                 from .receptors.preparation_presentation import present_preparation
 

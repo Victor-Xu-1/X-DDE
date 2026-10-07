@@ -67,7 +67,7 @@ _DEFINITIONS = (
         "Biopython",
         "受体构象解析、对应与刚体对齐 / Receptor conformation parsing and rigid alignment",
         "docker",
-        ("receptor_ensemble", "structure_prepare"),
+        ("receptor_ensemble", "structure_prepare", "surface_exposure"),
     ),
     ScientificEngine(
         "chemistry",

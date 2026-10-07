@@ -375,7 +375,7 @@ WP2 开始接入固定版本 P2Rank 2.5.1：它作为独立集成环境由 X-DDE
 
 | ID | 状态 | 要做的任务 | 完成标准 |
 | --- | --- | --- | --- |
-| R41 | 待实施 | 区域暴露/埋藏、表面距离与测量方法，分别针对单目标和整体装配 | 量纲、探针、范围与方法条件明确；不以单一 SASA 阈值代表所有空间要求 |
+| R41 | 实现中 · 原生重原子 SASA/遮挡分析、分步表单、三维与 CSV 已编写；数值/容器/浏览器验收进行中，表面距离与通行分析继续 | 区域暴露/埋藏、表面距离与测量方法，分别针对单目标和整体装配 | 量纲、探针、范围与方法条件明确；不以单一 SASA 阈值代表所有空间要求 |
 | R42 | 待实施 | 连接位点/出口方向、允许生长方向与可修改区域的证据和选择 | 方向源于局部结构/键与证据；未知模式支持多方向假设；不存在无来源固定世界箭头 |
 | R43 | 待实施 | 建立连接/功能区域可通行空间、路径、瓶颈、体积和障碍采样 | 探针/网格/阈值及坐标系有定义和基准；水可达不自动视为连接臂或第二端可容纳 |
 | R44 | 待实施 | 在真实支持的程序/自研方法中实施搜索引导和带约束精修 | 支持等级和作用阶段准确；同时保存执行与独立最终检查证据，不能用过滤代替搜索 |
@@ -937,3 +937,15 @@ CI therefore verifies theme bootstrap/persistence/storage errors, keyboard theme
 selection, normal-text contrast, and the existing real-browser task/asset flows
 at desktop and narrow widths. Scientific gates are retained without change.
 No owner-workstation scientific inference or test-suite execution is required.
+
+
+### 2026-10-07 蛋白设计后端补充核对（候选，尚未安装）
+
+- 优先评估 RosettaCommons Foundry 的 RFdiffusion3，作为与已接入 BoltzGen 并列的蛋白/结合体生成方法。蛋白骨架、全原子设计和序列优化有部分重叠；仍保留 LigandMPNN 后续序列设计及独立结构复核，不因为版本较新自动替换既有默认方法。RFD1 的成熟任务作为逐项匹配基准。官方源码 BSD-3-Clause；实际权重、依赖与数据许可需随冻结的部署版本单独核查。
+- Rosetta/PyRosetta 作为可选侧链重排、局部精修、界面分析环境，与 OpenMM 部分松弛任务重叠，但力场/评分及协议不同。用户自行取得适用许可后安装；X-DDE Apache-2.0 不覆盖或重新分发 Rosetta。Rosetta 能量单位不视为实验结合自由能，也不与其他引擎原始分数直接相加。
+- 若 CODesign 指 arXiv:2610.01773（2026-10-01），其联合序列/骨架/局部原子生成与 BoltzGen/RFD3 重叠。当前核实到论文及计算评估，未核实可获取的官方代码、权重、许可和原生接口；维持候选，不能显示为已集成或可运行。若为另一同名项目，应以其实际仓库重新核对。
+- 前端按任务组织为生成→序列优化→结构复核→界面/精修，方法放入相同步骤选择。全部环境独立安装，复用 BackendRouter、Worker、资产版本与科学评价，禁止复制工作台/队列。不同方法比较采用匹配输入、有限多种子、结构/序列身份、独立质量与真实失败证据。
+
+核对来源：[RFdiffusion3 官方教程](https://rosettacommons.github.io/foundry/models/rfd3/tutorials/binder_design_tutorial.html)、[Foundry 源码许可](https://github.com/RosettaCommons/foundry/blob/production/LICENSE.md)、[RFdiffusion](https://github.com/RosettaCommons/RFdiffusion)、[CODesign 原论文](https://arxiv.org/abs/2610.01773)、[Rosetta 许可](https://rosettacommons.org/software/licensing-faq/)。
+
+区域暴露方法依据：[Biopython Shrake–Rupley](https://biopython.org/docs/latest/api/Bio.PDB.SASA.html)。以同一选区的独立状态和所提供结构上下文比较原子/残基 SASA，明确元素范德华半径、重原子/去水策略、探针与分辨率；不推导亲和力、路径或生物学装配。远程代表验收与 [FreeSASA Lee–Richards](https://freesasa.github.io/python/functions.html) 在相同坐标、元素半径和探针下对照，预定容差 max(3 Å², 3%)，不宣称全体系普适误差上界。真实案例为 [BRD4–JQ1 / 3MXF](https://www.rcsb.org/structure/3MXF)，原始结构 SHA-256 固定，明确选择替代位置 A 后另存，原始记录不改。

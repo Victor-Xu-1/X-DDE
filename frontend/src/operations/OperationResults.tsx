@@ -13,6 +13,8 @@ import { AntibodyNumberResults } from "../antibodies/AntibodyNumberResults";
 import type { AntibodyNumberResult } from "../antibodies/types";
 import { LibraryScreenResults } from "../chemistry/LibraryScreenResults";
 import type { LibraryScreenResult } from "../chemistry/screen-types";
+import { SurfaceResults } from "../receptors/SurfaceResults";
+import type { SurfaceResult } from "../receptors/surface-types";
 import { StructurePrepareResults } from "../receptors/StructurePrepareResults";
 import type { StructurePrepareResult } from "../receptors/preparation-types";
 import { PocketResults } from "../pockets/PocketResults";
@@ -74,6 +76,7 @@ export function OperationResults({
     "antibody_number",
     "library_screen",
     "structure_prepare",
+    "surface_exposure",
     "pocket_search",
     "reference_import",
     "target_research",
@@ -192,6 +195,13 @@ export function OperationResults({
           result={data as unknown as LibraryScreenResult}
           language={language}
           onCreated={onCreated}
+        />
+      )}
+      {job.request.operation === "surface_exposure" && (
+        <SurfaceResults
+          job={job}
+          result={data as unknown as SurfaceResult}
+          language={language}
         />
       )}
       {job.request.operation === "structure_prepare" && (

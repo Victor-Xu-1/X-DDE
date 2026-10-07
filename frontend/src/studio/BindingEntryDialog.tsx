@@ -33,6 +33,10 @@ export function BindingEntryDialog({
   useEffect(() => {
     heading.current?.focus();
   }, [step]);
+  function dismiss() {
+    dialog.current?.close();
+    onClose();
+  }
   function next() {
     if (!mode) return;
     if (mode === "insufficient" && step === 0) {
@@ -41,7 +45,7 @@ export function BindingEntryDialog({
     }
     const tool = bindingEntryTool(mode, material || undefined);
     if (!tool) return;
-    onClose();
+    dismiss();
     onSelect(tool);
   }
   return (
@@ -49,7 +53,10 @@ export function BindingEntryDialog({
       ref={dialog}
       className="project-create-dialog binding-entry-dialog"
       aria-labelledby={id}
-      onCancel={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        dismiss();
+      }}
     >
       <header>
         <h2 ref={heading} id={id} tabIndex={-1}>
@@ -65,7 +72,7 @@ export function BindingEntryDialog({
           type="button"
           className="text-button"
           aria-label={zh ? "关闭" : "Close"}
-          onClick={onClose}
+          onClick={dismiss}
         >
           ×
         </button>
@@ -128,7 +135,7 @@ export function BindingEntryDialog({
             <button
               type="button"
               className="secondary-button"
-              onClick={onClose}
+              onClick={dismiss}
             >
               {zh ? "取消" : "Cancel"}
             </button>

@@ -3,11 +3,21 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, afterAll, beforeEach, expect, it, vi } from "vitest";
 import { BindingEntryDialog } from "./BindingEntryDialog";
 import { ModuleTaskPicker } from "./ModuleTaskPicker";
+const originalClose = Object.getOwnPropertyDescriptor(
+  HTMLDialogElement.prototype,
+  "close",
+);
 const originalShowModal = Object.getOwnPropertyDescriptor(
   HTMLDialogElement.prototype,
   "showModal",
 );
 beforeEach(() => {
+  Object.defineProperty(HTMLDialogElement.prototype, "close", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
+      this.removeAttribute("open");
+    },
+  });
   Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
     configurable: true,
     value: function (this: HTMLDialogElement) {
@@ -16,6 +26,9 @@ beforeEach(() => {
   });
 });
 afterAll(() => {
+  if (originalClose)
+    Object.defineProperty(HTMLDialogElement.prototype, "close", originalClose);
+  else Reflect.deleteProperty(HTMLDialogElement.prototype, "close");
   if (originalShowModal) {
     Object.defineProperty(
       HTMLDialogElement.prototype,

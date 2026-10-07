@@ -125,6 +125,7 @@ _MEMBERSHIP = {
     "workflows": _ALL,
     "regions": _SMALL,
     "biopython.prepare": _ALL,
+    "biopython.exposure": _ALL,
     "biopython.ensemble": _CONTEXT + ("antibody", "peptide"),
     "chemistry.states": _SMALL,
     "chemistry.screen": _SMALL,

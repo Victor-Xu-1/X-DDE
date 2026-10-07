@@ -13,6 +13,7 @@ import { AdmetForm } from "../admet/AdmetForm";
 import { HumanizationForm } from "../humanization/HumanizationForm";
 import { AntibodyNumberForm } from "../antibodies/AntibodyNumberForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
+import { SurfaceForm } from "../receptors/SurfaceForm";
 import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
 import { ReferenceImportForm } from "../discovery/ReferenceImportForm";
 import { TargetResearchForm } from "../discovery/TargetResearchForm";
@@ -144,6 +145,8 @@ export function ToolCenter({
                 <AntibodyNumberForm language={language} onCreated={onCreated} />
               ) : selected === "chemistry.screen" ? (
                 <LibraryScreenForm language={language} onCreated={onCreated} />
+              ) : selected === "biopython.exposure" ? (
+                <SurfaceForm language={language} onCreated={onCreated} />
               ) : selected === "biopython.prepare" ? (
                 <StructurePrepareForm
                   language={language}

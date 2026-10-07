@@ -477,7 +477,7 @@ class OutputCatalog:
                 ):
                     continue
                 if (
-                    job.request.operation in {"pose_quality", "admet_predict"}
+                    job.request.operation in {"pose_quality", "admet_predict", "surface_exposure"}
                     and file.name != "result.json"
                 ):
                     # Diagnostic copies support preview; downstream jobs reuse original versions.

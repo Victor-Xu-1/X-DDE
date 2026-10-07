@@ -45,6 +45,7 @@ export function workspaceTheme(
       mt: "structures",
       prep: "structures",
       structure_prepare: "structures",
+      surface_exposure: "docking",
       receptor_ensemble: "structures",
       target_research: "targets",
       reference_import: "targets",

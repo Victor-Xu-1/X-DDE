@@ -267,7 +267,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("anarcii", {}))
-            elif value.operation in {"receptor_ensemble", "structure_prepare"}:
+            elif value.operation in {"receptor_ensemble", "structure_prepare", "surface_exposure"}:
                 from .receptors.runtime import validate
 
                 assets.validate_bindings(value)
