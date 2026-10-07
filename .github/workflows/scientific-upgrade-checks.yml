@@ -26,6 +26,26 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select native verification from actual changed backend paths
+        id: native-scope
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          with open(os.environ["GITHUB_EVENT_PATH"]) as stream:
+              event = json.load(stream)
+          before = event.get("before")
+          native = True
+          if os.environ["GITHUB_EVENT_NAME"] == "push" and before and set(before) != {"0"}:
+              files = subprocess.check_output(
+                  ["git", "diff", "--name-only", before, os.environ["GITHUB_SHA"]], text=True
+              ).splitlines()
+              native = any(path.startswith("src/opendde_workbench/integrations/")
+                           or path == "tests/test_integrated_science.py" for path in files)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
+              stream.write("required=" + str(native).lower() + "\n")
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -40,6 +60,7 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/integrations/validation.test.ts src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts src/viewer/StructureViewer.test.tsx src/studio/research-modules.test.ts
       - name: Native upgraded chemistry and receptor contracts on remote CPU
+        if: steps.native-scope.outputs.required == 'true'
         env:
           PYTHONPATH: src
         run: >-
