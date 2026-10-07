@@ -20,9 +20,8 @@ export function AdmetRecordTable({
   const zh = language === "zh";
   const endpoints = result.endpoints.filter(
     (e) =>
-      commonEndpoints.has(e.id) &&
-      (result.options.view === "all" ||
-        (result.options.view === "safety") === (e.category === "Toxicity")),
+      result.options.view === "all" ||
+      (result.options.view === "safety") === (e.category === "Toxicity"),
   );
   const columns: ResearchColumn<AdmetRow>[] = [
     {
@@ -44,7 +43,7 @@ export function AdmetRecordTable({
             source={row.smiles ? { smiles: row.smiles } : null}
           />
           <span>
-            <strong>
+            <strong title={"#" + (row.record + 1) + " · " + row.name}>
               #{row.record + 1} · {row.name}
             </strong>
             <small>
@@ -77,10 +76,16 @@ export function AdmetRecordTable({
         row.status === "predicted" ? row.predictions[e.id] : null,
     })),
   ];
+  const core = endpoints.filter((endpoint) => commonEndpoints.has(endpoint.id));
+  const primary = (core.length ? core : endpoints).slice(0, 2);
   return (
     <ResearchTable
       rows={result.rows}
       columns={columns}
+      initialVisibleColumns={[
+        "molecule",
+        ...primary.map((endpoint) => endpoint.id),
+      ]}
       rowId={(row) => String(row.record)}
       language={language}
       title={zh ? "候选分子" : "Candidate molecules"}

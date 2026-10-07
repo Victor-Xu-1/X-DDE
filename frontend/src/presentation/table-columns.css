@@ -1,0 +1,63 @@
+.table-columns {
+  font-size: 12px;
+  color: var(--muted);
+}
+.table-columns > summary {
+  cursor: pointer;
+  padding: 7px 10px;
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--surface);
+}
+.table-columns[open] {
+  flex: 1 0 100%;
+  order: 2;
+}
+.table-columns[open] > summary {
+  width: max-content;
+  color: var(--accent);
+}
+.table-column-options {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.table-column-presets {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.table-column-presets button {
+  font: inherit;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.table-column-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 18px;
+  max-height: 240px;
+  overflow: auto;
+}
+.table-column-choices label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.table-column-choices input {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.table-column-options p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}

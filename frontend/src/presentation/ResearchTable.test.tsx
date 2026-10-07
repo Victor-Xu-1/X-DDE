@@ -4,7 +4,12 @@ import { afterEach, expect, it, vi } from "vitest";
 import { ResearchTable } from "./ResearchTable";
 import { csvCell, compareValues } from "./table-model";
 import { ResearchTabs } from "./ResearchTabs";
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  vi.clearAllTimers();
+});
 // Deliberate UI fixtures, not experimental or model results.
 const rows = [
   { id: "record-7", name: "Sotorasib", value: 8 },
@@ -78,6 +83,93 @@ it("retains numerical signs while blocking spreadsheet formula injection", () =>
   );
   expect(csvCell("结构,原始")).toBe('"结构,原始"');
   expect(csvCell(NaN)).toBe('""');
+});
+it("chooses visible metrics while retaining hidden search values and record identity", async () => {
+  const user = userEvent.setup(),
+    onSelect = vi.fn();
+  const fields = [
+    ...columns,
+    {
+      key: "source",
+      label: "Original source",
+      value: (row: (typeof rows)[number]) => row.id,
+    },
+    { key: "missing", label: "Unreported", value: () => null },
+  ];
+  render(
+    <ResearchTable
+      rows={rows}
+      columns={fields}
+      initialVisibleColumns={["name", "value"]}
+      rowId={(row) => row.id}
+      language="en"
+      title="Selectable metrics"
+      onSelect={onSelect}
+    />,
+  );
+  const table = screen.getByRole("table", { name: "Selectable metrics" });
+  expect(
+    within(table).queryByRole("columnheader", { name: /Original source/ }),
+  ).toBeNull();
+  await user.type(screen.getByRole("searchbox"), "record-2");
+  await user.click(within(table).getByRole("button", { name: "JQ1" }));
+  expect(onSelect).toHaveBeenLastCalledWith(rows[1]);
+  await user.click(screen.getByText("Columns", { selector: "summary" }));
+  expect(screen.getByRole("checkbox", { name: "Molecule" })).toBeDisabled();
+  await user.click(screen.getByRole("checkbox", { name: "Original source" }));
+  expect(
+    within(table).getByRole("columnheader", { name: /Original source/ }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Core metrics" }));
+  expect(
+    within(table).queryByRole("columnheader", { name: /Original source/ }),
+  ).toBeNull();
+  expect(rows.map((row) => row.id)).toEqual([
+    "record-7",
+    "record-2",
+    "record-9",
+  ]);
+});
+it("downloads complete original metrics even when columns are hidden", async () => {
+  const user = userEvent.setup();
+  let captured: Blob | undefined;
+  vi.stubGlobal("URL", {
+    createObjectURL: vi.fn((blob: Blob) => {
+      captured = blob;
+      return "blob:table-export";
+    }),
+    revokeObjectURL: vi.fn(),
+  });
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  render(
+    <ResearchTable
+      rows={rows}
+      columns={[
+        ...columns,
+        { key: "source", label: "Original source", value: (row) => row.id },
+        { key: "missing", label: "Unreported", value: () => null },
+      ]}
+      initialVisibleColumns={["name", "value"]}
+      rowId={(row) => row.id}
+      language="en"
+      title="Complete export"
+    />,
+  );
+  await user.type(screen.getByRole("searchbox"), "sotor");
+  await user.click(
+    screen.getByRole("button", { name: "Export filtered rows" }),
+  );
+  expect(captured).toBeDefined();
+  const text = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(captured!);
+  });
+  expect(text).toContain('"Original source"');
+  expect(text).toContain('"record-7"');
+  expect(text).not.toContain('"record-2"');
+  expect(text).toContain('"Unreported"');
 });
 it("provides keyboard tab navigation and mounts only requested result views", async () => {
   const user = userEvent.setup(),

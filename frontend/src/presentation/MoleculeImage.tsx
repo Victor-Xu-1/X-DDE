@@ -114,6 +114,15 @@ export function MoleculeImage({
     <div
       ref={element}
       className={"molecule-image" + (compact ? " is-thumbnail" : "")}
+      data-drawing-state={
+        !source
+          ? "no-source"
+          : url
+            ? "ready"
+            : error
+              ? "unavailable"
+              : "loading"
+      }
     >
       {!compact && (
         <label className="molecule-drawing-style">

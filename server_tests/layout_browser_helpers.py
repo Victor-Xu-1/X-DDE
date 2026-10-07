@@ -2,6 +2,7 @@
 
 import json
 
+from depiction_browser_helpers import settle_visible_drawings
 from playwright.sync_api import expect
 
 from opendde_workbench.capabilities.definitions import CAPABILITIES
@@ -21,6 +22,7 @@ def catalog(page):
 
 
 def capture(page, evidence, name, stage):
+    settle_visible_drawings(page)
     panels = page.locator("main .questionnaire > fieldset:visible")
     assert panels.count() <= 1, f"{name}: more than one question page visible"
     measurements = page.evaluate(

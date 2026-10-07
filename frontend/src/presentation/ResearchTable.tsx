@@ -12,6 +12,8 @@ import {
   type SortOrder,
 } from "./table-model";
 import "./research-table.css";
+import { TableColumns } from "./TableColumns";
+import { useTableColumns } from "./useTableColumns";
 
 export interface ResearchColumn<T> {
   key: string;
@@ -32,6 +34,7 @@ export function ResearchTable<T>({
   selected,
   onSelect,
   initialSort,
+  initialVisibleColumns,
   compare = true,
   exportName = "research-results.csv",
 }: {
@@ -43,11 +46,13 @@ export function ResearchTable<T>({
   selected?: string | null;
   onSelect?(row: T): void;
   initialSort?: SortOrder;
+  initialVisibleColumns?: readonly string[];
   compare?: boolean;
   exportName?: string;
 }) {
   const zh = language === "zh",
     id = useId();
+  const view = useTableColumns(columns, initialVisibleColumns);
   const [query, setQuery] = useState(""),
     [sort, setSort] = useState<SortOrder | null>(initialSort ?? null);
   const [page, setPage] = useState(0),
@@ -160,7 +165,7 @@ export function ResearchTable<T>({
           <button
             type="button"
             className="secondary-button"
-            disabled={compared.length < 2}
+            disabled={compared.length < 2 || view.shown.length < 2}
             aria-expanded={comparing}
             onClick={() => setComparing(!comparing)}
           >
@@ -168,9 +173,30 @@ export function ResearchTable<T>({
             {compared.length ? " (" + compared.length + ")" : ""}
           </button>
         )}
+        <TableColumns
+          columns={columns}
+          visible={view.visible}
+          language={language}
+          onToggle={(key) => {
+            if (sort?.key === key) setSort(null);
+            setComparing(false);
+            view.toggle(key);
+          }}
+          onReset={() => {
+            setSort(null);
+            setComparing(false);
+            view.select(view.defaults);
+          }}
+          onShowAll={() => view.select(columns.map((column) => column.key))}
+        />
         <button
           type="button"
           className="secondary-button result-export"
+          title={
+            zh
+              ? "按当前筛选导出全部原始指标"
+              : "Export all original metrics for the filtered rows"
+          }
           disabled={!visible.length}
           onClick={exportRows}
         >
@@ -199,7 +225,7 @@ export function ResearchTable<T>({
               </tr>
             </thead>
             <tbody>
-              {columns.slice(1).map((column) => (
+              {view.shown.slice(1).map((column) => (
                 <tr key={column.key}>
                   <th scope="row">{column.label}</th>
                   {compared.map((row) => (
@@ -222,9 +248,10 @@ export function ResearchTable<T>({
                   </span>
                 </th>
               )}
-              {columns.map((column) => (
+              {view.shown.map((column) => (
                 <th
                   key={column.key}
+                  title={column.exportLabel}
                   aria-sort={
                     sort?.key === column.key ? sort.direction : undefined
                   }
@@ -296,7 +323,7 @@ export function ResearchTable<T>({
                       />
                     </td>
                   )}
-                  {columns.map((column, index) => (
+                  {view.shown.map((column, index) => (
                     <td
                       key={column.key}
                       className={column.numeric ? "numeric-cell" : ""}

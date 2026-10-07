@@ -173,6 +173,9 @@ export function ScientificResults({
           <ResearchTable
             rows={rows}
             columns={columns}
+            initialVisibleColumns={columns
+              .slice(0, 4)
+              .map((column) => column.key)}
             rowId={(row) => row.id}
             language={language}
             title={zh ? "研究候选" : "Research candidates"}
