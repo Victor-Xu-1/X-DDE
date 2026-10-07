@@ -8,10 +8,13 @@ import subprocess
 from pathlib import Path
 from uuid import uuid4
 
+from caver_frame_probe import verify_frames
+
 from opendde_workbench.deployment.transfers import download, extract
 from opendde_workbench.space.caver_profiles import read_profiles
 from opendde_workbench.space.image import lock_digest, prepare_context
 from opendde_workbench.space.manifest import SHA256, URL
+from opendde_workbench.space.pdb_frame import canonical_pdb, source_channels
 
 ACHE_URL = "https://files.rcsb.org/download/4EY7.pdb"
 ACHE_SHA256 = "6bca2109d7b512a576458c3261e597bb5159e8fb43162c5b6c88df71f9fcdbd2"
@@ -81,19 +84,6 @@ def run_native(image, inputs, config, output):
     )
 
 
-def translate_pdb(data, vector):
-    rows = []
-    for line in data.decode("ascii").splitlines():
-        if line.startswith(("ATOM  ", "HETATM")):
-            xyz = [
-                float(line[start : start + 8]) + shift
-                for start, shift in zip((30, 38, 46), vector, strict=True)
-            ]
-            line = line[:30] + "".join(f"{value:8.3f}" for value in xyz) + line[54:]
-        rows.append(line)
-    return ("\n".join(rows) + "\n").encode("ascii")
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
@@ -114,38 +104,15 @@ def main():
     ).strip()
     assert image.startswith("sha256:") and len(image) == 71
     official = source / "caver_3.0/examples/static_structures/2ACE"
-    inputs = output / "inputs"
-    inputs.mkdir()
     original = (official / "inputs/2ACE.pdb").read_bytes()
-    (inputs / "2ACE.pdb").write_bytes(original)
-    config = output / "reference-config.txt"
-    config.write_bytes((official / "inputs/config.txt").read_bytes())
-    reference = run_native(image, inputs, config, output / "reference")
-    assert reference, "The real official enzyme example must produce native paths"
-    frozen = read_profiles(official / "results/analysis/tunnel_profiles.csv", "2ACE.pdb")
-    translated = output / "translated-inputs"
-    translated.mkdir()
-    shift = (25, -15, 8)
-    (translated / "2ACE.pdb").write_bytes(translate_pdb(original, shift))
-    moved_config = output / "translated-config.txt"
-    config_lines = config.read_text().splitlines()
-    for index, line in enumerate(config_lines):
-        if line.startswith("starting_point_coordinates "):
-            xyz = [float(v) + delta for v, delta in zip(line.split()[1:4], shift, strict=True)]
-            config_lines[index] = "starting_point_coordinates " + " ".join(str(v) for v in xyz)
-    moved_config.write_text("\n".join(config_lines) + "\n")
-    moved = run_native(image, translated, moved_config, output / "translated")
-
-    def ordered(rows):
-        return sorted((r["bottleneck_radius_angstrom"], r["length_angstrom"]) for r in rows)
-
-    assert len(moved) == len(reference), "Common translation changed native path count"
-    difference = max(
-        abs(a - b)
-        for left, right in zip(ordered(reference), ordered(moved), strict=True)
-        for a, b in zip(left, right, strict=True)
+    reference, frame_acceptance = verify_frames(
+        image,
+        original,
+        (official / "inputs/config.txt").read_bytes(),
+        output,
+        run_native,
     )
-    assert difference < 0.02, f"Common-frame invariance failed: {difference} Å"
+    frozen = read_profiles(official / "results/analysis/tunnel_profiles.csv", "2ACE.pdb")
     ache = output / "4EY7.pdb"
     download(ACHE_URL, ache, ACHE_SHA256, print, lambda: None, limit=2 * 1024**2)
     text = ache.read_text()
@@ -173,12 +140,11 @@ def main():
     ache_inputs = output / "ache-inputs"
     ache_inputs.mkdir()
     prepared = "\n".join(row[:16] + " " + row[17:] for row in atoms) + "\nEND\n"
-    (ache_inputs / "4EY7.pdb").write_text(prepared)
+    local, ache_frame = canonical_pdb(prepared.encode("ascii"), center)
+    (ache_inputs / "4EY7.pdb").write_bytes(local)
     ache_config = output / "ache-config.txt"
     ache_config.write_text(
-        "starting_point_coordinates "
-        + " ".join(str(v) for v in center)
-        + "\nprobe_radius 0.9\nshell_radius 5\nseed 1\n"
+        "starting_point_coordinates 0 0 0" + "\nprobe_radius 0.9\nshell_radius 5\nseed 1\n"
     )
     ache_result = run_native(image, ache_inputs, ache_config, output / "ache")
     assert ache_result, "The drug-bound human target must produce native geometric paths"
@@ -188,7 +154,8 @@ def main():
         "official_input_sha256": hashlib.sha256(original).hexdigest(),
         "official_reference_paths": len(frozen),
         "fresh_official_paths": len(reference),
-        "common_translation_max_difference_angstrom": difference,
+        "frame_acceptance": frame_acceptance,
+        "drug_computational_frame": ache_frame,
         "drug_target": "4EY7 human acetylcholinesterase / donepezil",
         "drug_input_sha256": ACHE_SHA256,
         "drug_heavy_atoms": len(ligand),
@@ -200,7 +167,9 @@ def main():
         "scope": "native_static_geometry_not_whole_linker_passage_or_binding_energy",
     }
     (output / "protocol-acceptance.json").write_text(json.dumps(receipt, indent=2))
-    (output / "drug-channels.json").write_text(json.dumps(ache_result, indent=2))
+    (output / "drug-channels.json").write_text(
+        json.dumps(source_channels(ache_result, ache_frame), indent=2)
+    )
     print(json.dumps(receipt))
 
 
