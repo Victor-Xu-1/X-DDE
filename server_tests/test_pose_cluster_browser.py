@@ -60,11 +60,11 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                     page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                 ).to_be_visible()
                 page.screenshot(path=output / "native-clusters-desktop.png", full_page=True)
-                result.get_by_role("button", name="二维结构", exact=True).click()
+                result.get_by_role("tab", name="二维结构", exact=True).click()
                 image = result.get_by_role("img", name=re.compile("^二维分子结构 · 姿势"))
                 expect(image).to_be_visible(timeout=30000)
                 assert image.evaluate("img=>img.complete && img.naturalWidth>0")
-                result.get_by_role("button", name="三维结构", exact=True).click()
+                result.get_by_role("tab", name="三维结构", exact=True).click()
                 pair = result.get_by_role("button", name=re.compile("^姿势 1 / 2 ·")).first
                 pair.click()
                 expect(result.get_by_text("接触相似度", exact=False).first).to_be_visible()

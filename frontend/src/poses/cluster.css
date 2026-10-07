@@ -16,7 +16,7 @@
   min-width: 0;
 }
 .cluster-results .research-table-scroll table {
-  min-width: 560px;
+  min-width: 480px;
 }
 .cluster-results .research-table td,
 .cluster-results .research-table th {
@@ -60,5 +60,21 @@
   }
   .cluster-preview .molecular-stage {
     height: 340px;
+  }
+}
+
+.cluster-analysis {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.cluster-analysis .research-table th,
+.cluster-analysis .research-table td {
+  padding: 10px 8px;
+}
+@media (max-width: 900px) {
+  .cluster-preview {
+    order: -1;
   }
 }

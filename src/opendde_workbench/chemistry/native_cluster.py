@@ -71,6 +71,10 @@ def run_cluster(request, bindings, directory, output):
             geometry, protein, receptor["residue_pairs"], options.contact_cutoff_angstrom
         )
         matched, coverage, residue_rows = fingerprint
+        if len(all_contacts) + len(residue_rows) > 100000:
+            raise ValueError(
+                "Contact records exceed 100000; select fewer poses or a smaller context."
+            )
         all_contacts.extend({"pose": index, **row} for row in residue_rows)
         rows.append(
             {

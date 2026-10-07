@@ -11,6 +11,7 @@ import type {
   PoseClusterResult,
 } from "./cluster-types";
 import { ClusterMatrix } from "./ClusterMatrix";
+import { ClusterPoseTable, ClusterPairTable } from "./ClusterTables";
 import "./cluster.css";
 export function ClusterResults({
   job,
@@ -24,15 +25,15 @@ export function ClusterResults({
   const zh = language === "zh",
     [selected, setSelected] = useState(result.clusters[0]?.representative ?? 0),
     [pair, setPair] = useState<ClusterPair | null>(null);
-  const row = result.rows[selected],
-    membership = new Map(
-      result.clusters.flatMap((g) => g.members.map((i) => [i, g.id] as const)),
-    ),
-    reps = new Set(result.clusters.map((g) => g.representative));
+  const row = result.rows[selected];
   const url = (name: string) => artifactUrl(job.id, name);
   function select(value: ClusterRow) {
     setSelected(value.index);
     setPair(null);
+  }
+  function selectPair(value: ClusterPair) {
+    setSelected(value.left);
+    setPair(value);
   }
   return (
     <section
@@ -67,50 +68,24 @@ export function ClusterResults({
         )}
       </div>
       <div className="cluster-result-columns">
-        <ResearchTable
-          rows={result.rows}
-          language={language}
-          rowId={(r) => String(r.index)}
-          title={zh ? "姿势与代表结构" : "Poses and representatives"}
-          selected={String(selected)}
-          onSelect={select}
-          compare={false}
-          columns={[
-            {
-              key: "pose",
-              label: zh ? "姿势" : "Pose",
-              value: (r) => r.index + 1,
-            },
-            {
-              key: "group",
-              label: zh ? "模式组" : "Mode",
-              value: (r) => membership.get(r.index) ?? "—",
-            },
-            {
-              key: "role",
-              label: zh ? "代表" : "Representative",
-              value: (r) =>
-                reps.has(r.index) ? (zh ? "代表姿势" : "Representative") : "—",
-            },
-            {
-              key: "receptor",
-              label: zh ? "受体" : "Receptor",
-              value: (r) => r.member_index + 1,
-            },
-            {
-              key: "contacts",
-              label: zh ? "接触残基" : "Contact residues",
-              numeric: true,
-              value: (r) => r.contact_count,
-            },
-            {
-              key: "mapped",
-              label: zh ? "可比接触" : "Mapped contacts",
-              numeric: true,
-              value: (r) => r.mapped_contact_count,
-            },
-          ]}
-        />
+        <div className="cluster-analysis">
+          <ClusterPoseTable
+            result={result}
+            language={language}
+            selected={selected}
+            onSelect={select}
+          />
+          <ClusterMatrix
+            value={result}
+            language={language}
+            onSelect={selectPair}
+          />
+          <ClusterPairTable
+            result={result}
+            language={language}
+            onSelect={selectPair}
+          />
+        </div>
         {row && (
           <div className="cluster-preview">
             {pair ? (
@@ -169,14 +144,6 @@ export function ClusterResults({
           </div>
         )}
       </div>
-      <ClusterMatrix
-        value={result}
-        language={language}
-        onSelect={(p) => {
-          setSelected(p.left);
-          setPair(p);
-        }}
-      />
       {row && (
         <details>
           <summary>
