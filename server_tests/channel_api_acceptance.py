@@ -122,6 +122,28 @@ def main():
         finally:
             file.write_bytes(original)
         assert client.get("/api/jobs/" + identifier + "/result").json() == result
+        # A well-formed JSON report may not move paths, invent radii or forge export hashes.
+        report = root / "result.json"
+        authored = report.read_bytes()
+        for mode in ("coordinates", "radius", "frame", "download"):
+            changed = json.loads(authored)
+            if mode == "coordinates":
+                changed["channels"][0]["points"][0]["position"][0] += 1
+            elif mode == "radius":
+                changed["channels"][0]["points"][0]["radius_angstrom"] = -1
+            elif mode == "frame":
+                changed["frame"]["basis"][0][0] += 0.1
+            else:
+                file.write_bytes(b"x" + original[1:])
+                changed["artifacts"]["channel-points.csv"] = hashlib.sha256(
+                    file.read_bytes()
+                ).hexdigest()
+            try:
+                report.write_text(json.dumps(changed))
+                assert client.get("/api/jobs/" + identifier + "/result").status_code == 422
+            finally:
+                report.write_bytes(authored)
+                file.write_bytes(original)
         pin = client.post("/api/examples/caver.paths/pin", json={"job_id": identifier})
         assert pin.status_code == 200, pin.text
         assert (

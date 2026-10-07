@@ -58,6 +58,8 @@ def prepare_context(file, regions, options, output):
             }:
                 continue  # These components are protected polymers, not removable ligands.
             removed.append((chain.id, residue.id))
+    if len({tuple(round(float(v), 3) for v in a.coord) for a in center_atoms}) != len(center_atoms):
+        raise ValueError("Selected starting atoms coincide at native coordinate precision.")
     origin = [
         sum(round(float(atom.coord[index]), 3) for atom in center_atoms) / len(center_atoms)
         for index in range(3)
@@ -74,6 +76,7 @@ def prepare_context(file, regions, options, output):
         if len(parts) == 4 and parts[3].strip().isdigit() and int(parts[0]) > 0:
             radii[parts[1].upper()] = int(parts[3]) / 100
     context, mapping, count = Model(0), [], 0
+    positions = set()
     for chain_index, chain in enumerate(sorted(model, key=lambda c: c.id)):
         native_chain = Chain(chr(ord("A") + chain_index))
         context.add(native_chain)
@@ -97,6 +100,12 @@ def prepare_context(file, regions, options, output):
                     raise ValueError(
                         "Native van der Waals radius is undefined for element " + element + "."
                     )
+                position = tuple(round(float(v), 3) for v in atom.coord)
+                if position in positions:
+                    raise ValueError(
+                        "Observed obstacle atoms coincide at native coordinate precision."
+                    )
+                positions.add(position)
                 count += 1
                 if count > 15000:
                     raise ValueError("Native channel analysis is bounded to 15000 obstacle atoms.")

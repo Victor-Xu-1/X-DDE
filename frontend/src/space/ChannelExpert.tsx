@@ -85,30 +85,33 @@ export function ChannelExpert({
           ? "将起点配体从空间障碍中移除"
           : "Remove starting ligands from obstacles"}
       </label>
-      <label className="field">
-        {zh ? "参与分析的链" : "Context chains"}
-        <select
-          value={
-            options.context_chains.length === 1 ? options.context_chains[0] : ""
-          }
-          onChange={(e) =>
-            setOptions((o) => ({
-              ...o,
-              context_chains: e.target.value ? [e.target.value] : [],
-            }))
-          }
-        >
-          <option value="">
-            {zh ? "文件中的全部链" : "All provided chains"}
-          </option>
-          {chains.map((c) => (
-            <option key={c} value={c}>
+      <div>
+        <p>
+          {zh
+            ? "参与分析的链（未勾选时为全部链）"
+            : "Context chains (all chains when none are checked)"}
+        </p>
+        <div className="surface-context-chains">
+          {chains.map((chain) => (
+            <label className="checkbox-line" key={chain}>
+              <input
+                type="checkbox"
+                checked={options.context_chains.includes(chain)}
+                onChange={() =>
+                  setOptions((o) => ({
+                    ...o,
+                    context_chains: o.context_chains.includes(chain)
+                      ? o.context_chains.filter((c) => c !== chain)
+                      : [...o.context_chains, chain],
+                  }))
+                }
+              />
               {zh ? "链 " : "Chain "}
-              {c}
-            </option>
+              {chain}
+            </label>
           ))}
-        </select>
-      </label>
+        </div>
+      </div>
       <p className="field-note">
         {zh
           ? "保留已有重原子，去水并保存新结构版本；缺失原子不自动生成。"

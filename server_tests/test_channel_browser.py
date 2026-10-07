@@ -94,6 +94,10 @@ def test_native_channels_and_fresh_submission():
                 expect(image).to_be_visible(timeout=10000)
                 assert image.evaluate("img=>img.complete && img.naturalWidth>0")
                 page.screenshot(path=output / "native-channel-capture.png", full_page=True)
+                with page.expect_download() as download:
+                    page.get_by_role("link", name="下载视图 PNG", exact=True).click()
+                download.value.save_as(output / "downloaded-channel-view.png")
+                assert (output / "downloaded-channel-view.png").read_bytes().startswith(b"\\x89PNG")
                 page.get_by_role("button", name="关闭图片", exact=True).click()
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")

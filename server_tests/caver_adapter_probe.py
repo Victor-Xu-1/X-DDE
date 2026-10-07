@@ -135,9 +135,17 @@ def main():
     counter = (
         f"HETATM{serial:5d} FE    FE A9999       0.000   0.000   0.000  1.00 20.00          FE  "
     )
-    modified = (
-        "\n".join([row for row in source if row not in {"END", "ENDMDL"}] + [counter, "END"]) + "\n"
+    # PDB parsers stop coordinate reading at CONECT/MASTER/END; insert inside
+    # the actual coordinate section, not after an ignored terminator.
+    boundary = next(
+        (
+            i
+            for i, row in enumerate(source)
+            if row[:6].strip() in {"CONECT", "MASTER", "END", "ENDMDL"}
+        ),
+        len(source),
     )
+    modified = "\n".join([*source[:boundary], counter, *source[boundary:]]) + "\n"
     input_snapshot(output / "unsupported-input", modified.encode("ascii"))
     invoke(
         accepted["image"],

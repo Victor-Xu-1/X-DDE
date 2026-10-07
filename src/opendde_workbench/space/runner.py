@@ -1,12 +1,12 @@
 """Native channel geometry only; task, asset and environment authorities remain X-DDE."""
 
-import csv
 import hashlib
 import json
 import math
 from pathlib import Path
 
 from caver_profiles import read_profiles
+from exports import write_exports
 from manifest import SNAPSHOT, VERSION
 from native_context import prepare_context
 from native_execution import execute, point
@@ -15,67 +15,6 @@ from options import ChannelOptions
 from pdb_frame import canonical_pdb, source_channels, source_position
 from preparation_options import PreparationOptions
 from surface_options import SurfaceRegion
-
-
-def exports(rows, output):
-    with (output / "channels.csv").open("w", newline="") as stream:
-        writer = csv.writer(stream)
-        writer.writerow(
-            [
-                "cluster",
-                "tunnel",
-                "bottleneck_radius_angstrom",
-                "length_angstrom",
-                "curvature",
-                "geometric_throughput",
-                "geometric_cost",
-            ]
-        )
-        for row in rows:
-            writer.writerow(
-                [
-                    row[key]
-                    for key in (
-                        "cluster",
-                        "tunnel",
-                        "bottleneck_radius_angstrom",
-                        "length_angstrom",
-                        "curvature",
-                        "native_geometric_throughput",
-                        "native_geometric_cost",
-                    )
-                ]
-            )
-    with (output / "channel-points.csv").open("w", newline="") as stream:
-        writer = csv.writer(stream)
-        writer.writerow(
-            [
-                "cluster",
-                "tunnel",
-                "point",
-                "x_angstrom",
-                "y_angstrom",
-                "z_angstrom",
-                "radius_angstrom",
-                "sample_polyline_distance_angstrom",
-                "native_profile_distance_angstrom",
-                "radius_error_bound_angstrom",
-            ]
-        )
-        for row in rows:
-            for index, p in enumerate(row["points"]):
-                writer.writerow(
-                    [
-                        row["cluster"],
-                        row["tunnel"],
-                        index,
-                        *p["position"],
-                        p["radius_angstrom"],
-                        p["sample_polyline_distance_angstrom"],
-                        p["native_profile_distance_angstrom"],
-                        p["radius_error_bound_angstrom"],
-                    ]
-                )
 
 
 def run(request, bindings, directory, output):
@@ -125,7 +64,7 @@ def run(request, bindings, directory, output):
         raise ValueError("Native CAVER used another starting point.")
     if math.dist(actual, requested) > options.maximum_start_displacement_angstrom + 0.003:
         raise ValueError("Native starting-point displacement exceeded the declared bound.")
-    exports(rows, output)
+    write_exports(rows, output)
     for name in (
         "channels.csv",
         "channel-points.csv",

@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from ..artifacts import contained
 from ..receptors.preparation_options import PreparationOptions
 from ..receptors.preparation_result import validate_preparation
+from .exports import render_exports
 from .manifest import RADII_SHA256, VERSION
 from .result_geometry import validate_context, validate_geometry
 from .result_models import ChannelResult
@@ -59,4 +60,9 @@ def validate_channels(value, request, output):
     validate_preparation(result.preparation.model_dump(mode="json"), stage, output)
     validate_context(result, request, output)
     validate_geometry(result, output)
+    for name, content in render_exports(
+        [row.model_dump(mode="json") for row in result.channels]
+    ).items():
+        if contained(output, name).read_bytes() != content:
+            raise ValueError("Downloaded coordinates or measurements differ from native geometry.")
     return result

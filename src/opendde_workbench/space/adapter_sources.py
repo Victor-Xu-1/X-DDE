@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 FILES = (
     "runner.py",
+    "exports.py",
     "options.py",
     "native_context.py",
     "native_execution.py",
