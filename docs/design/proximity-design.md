@@ -124,3 +124,26 @@ Verified structural sources:
 [6HR2](https://www.rcsb.org/structure/6HR2),
 [5FQD](https://www.rcsb.org/structure/5FQD),
 [5HXB](https://www.rcsb.org/structure/5HXB).
+
+## Implementation evidence for the first native integration
+
+The first DeepTernary CPU adapter passed the real managed installer, model-resource
+verification, sole Router/Worker/supervisor, exact molecular/partner references,
+whole-ligand and proper-transform validation, bounded proposal count, independent
+geometry/stereochemistry checks, negative inputs and altered output rejection.
+The in-module MZ1 public case returned three complete core assemblies. All three
+remain diagnostic because the full contact/steric acceptance criteria did not pass.
+No thresholds were relaxed to obtain a qualified candidate.
+
+[Native/API/browser evidence](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37635909792)
+includes real Ketcher drawings, 3D previews, structure downloads, fresh-input defaults,
+one visible questionnaire step and compact layouts. Case bundle SHA-256:
+``02a5638ae60d3d72631b38ea0985339b88abac19ff2317fb246ea5b21d6c43fc``.
+It is independent data, restored idempotently without scientific execution or
+personal task-list additions. Code changes after that capture require their own
+focused checks.
+
+This establishes executable software integration for the recorded PROTAC case,
+not external prediction accuracy, RIPTAC/glue benchmark acceptance, P4ward
+integration, ternary free energy or complete R42/R47–R56 delivery. Those remaining
+items continue under the single platform roadmap.
