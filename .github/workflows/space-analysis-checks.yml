@@ -6,7 +6,6 @@ on:
       - 'src/opendde_workbench/space/**'
       - 'src/opendde_workbench/receptors/image.py'
       - 'src/opendde_workbench/receptors/native-requirements.txt'
-      - 'src/opendde_workbench/pockets/manifest.py'
       - 'server_tests/caver_native_probe.py'
       - 'tests/test_caver_profiles.py'
       - '.github/workflows/space-analysis-checks.yml'
@@ -18,6 +17,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --group dev
       - run: uv run --locked pytest -q tests/test_caver_profiles.py
