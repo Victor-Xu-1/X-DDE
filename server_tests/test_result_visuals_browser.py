@@ -97,6 +97,22 @@ def test_real_structures_tables_and_sequences():
             assert ET.fromstring(plot.read_bytes()).tag.endswith("svg")
             result("性质与早期安全性预测")
             expect(page.locator(".admet-results .research-table")).to_be_visible()
+            table = page.locator(".admet-results .research-table")
+            expect(table.locator("thead th")).to_have_count(4)
+            table.locator(".table-columns > summary").click()
+            table.get_by_role("checkbox", name="hERG 阻断", exact=True).check()
+            expect(table.locator("thead th")).to_have_count(5)
+            table.get_by_role("button", name="常用指标", exact=True).click()
+            expect(table.locator("thead th")).to_have_count(4)
+            table.locator(".table-columns > summary").click()
+            exported = download(
+                table.get_by_role("button", name="导出筛选结果", exact=True),
+                "admet-complete-filtered-metrics.csv",
+            )
+            text = exported.read_text(encoding="utf-8-sig")
+            assert "药物性肝损伤" in text and "hERG 阻断" in text, (
+                "Hidden endpoints must remain in the complete result download."
+            )
             page.locator(".admet-results .molecule-record").last.click()
             expect(page.locator(".result-inspector .viewer-panel iframe")).to_be_visible(
                 timeout=30000
