@@ -62,6 +62,9 @@ jobs:
           npx vitest run
           src/presentation/ResearchTable.test.tsx
           src/presentation/FileSelect.test.tsx
+          src/TaskForm.test.tsx
+          src/guided/workflows.test.tsx
+          src/operations/CampaignForm.test.tsx
           src/presentation/MetricScatter.test.tsx
           src/presentation/InteractionDiagram.test.tsx
           src/presentation/depiction-renderer.test.ts
