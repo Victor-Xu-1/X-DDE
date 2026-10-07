@@ -95,6 +95,25 @@ def test_real_structures_tables_and_sequences():
                 "native-properties.svg",
             )
             assert ET.fromstring(plot.read_bytes()).tag.endswith("svg")
+            # Shared plots must use available width without inflating text/markers
+            # or stretching a short result into a very tall chart.
+            for chart_width in (2560, 390):
+                page.set_viewport_size({"width": chart_width, "height": 1000})
+                page.wait_for_function("""() => {
+                    const chart = document.querySelector('.metric-scatter svg');
+                    if (!chart) return false;
+                    const width = chart.getBoundingClientRect().width;
+                    return Math.abs(chart.viewBox.baseVal.width - width) <= 1;
+                }""")
+                chart = page.locator(".metric-scatter svg:visible").first
+                geometry = chart.evaluate("""node => ({height:node.getBoundingClientRect().height,
+                    marker:node.querySelector('circle')?.getAttribute('r'),
+                    textSize:getComputedStyle(node.querySelector('text')).fontSize})""")
+                assert abs(geometry["height"] - 265) <= 1, geometry
+                assert geometry["marker"] in {"4", "6"}, geometry
+                assert geometry["textSize"] == "10px", geometry
+                record(f"responsive-properties-{chart_width}")
+            page.set_viewport_size({"width": 1440, "height": 1000})
             result("性质与早期安全性预测")
             expect(page.locator(".admet-results .research-table")).to_be_visible()
             table = page.locator(".admet-results .research-table")

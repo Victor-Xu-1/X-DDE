@@ -1,5 +1,5 @@
 import "./metric-scatter.css";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DownloadOutlined } from "@ant-design/icons";
 import { exportSvg } from "./visual-export";
 import type { Language } from "../types";
@@ -31,6 +31,20 @@ export function MetricScatter<T>({
     [xKey, setX] = useState(metrics[0]?.key),
     [yKey, setY] = useState(metrics[1]?.key);
   const plot = useRef<SVGSVGElement>(null);
+  const container = useRef<HTMLElement>(null);
+  const [plotWidth, setPlotWidth] = useState(480);
+  useEffect(() => {
+    const node = container.current;
+    if (!node) return;
+    const measure = () => {
+      const width = Math.floor(node.getBoundingClientRect().width);
+      if (width > 0) setPlotWidth(Math.max(200, width));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [rows.length, metrics.length]);
   const x = metrics.find((m) => m.key === xKey) ?? metrics[0],
     y = metrics.find((m) => m.key === yKey) ?? metrics[1];
   if (!x || !y || rows.length < 2) return null;
@@ -52,10 +66,17 @@ export function MetricScatter<T>({
   }
   const [xmin, xmax] = range(points.map((p) => p.x)),
     [ymin, ymax] = range(points.map((p) => p.y));
-  const px = (v: number) => 58 + ((v - xmin) / (xmax - xmin)) * 390,
+  const plotRight = plotWidth - 32,
+    plotSpan = plotRight - 58;
+  const ticks = plotWidth < 380 ? [0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1];
+  const px = (v: number) => 58 + ((v - xmin) / (xmax - xmin)) * plotSpan,
     py = (v: number) => 218 - ((v - ymin) / (ymax - ymin)) * 185;
   return (
-    <section className="metric-scatter result-section-card" aria-label={label}>
+    <section
+      ref={container}
+      className="metric-scatter result-section-card"
+      aria-label={label}
+    >
       <header>
         <h3>{label}</h3>
         <span>
@@ -97,29 +118,37 @@ export function MetricScatter<T>({
       {points.length ? (
         <svg
           ref={plot}
-          viewBox="0 0 480 265"
+          viewBox={`0 0 ${plotWidth} 265`}
+          width={plotWidth}
+          height="265"
           role={onSelect ? "group" : "img"}
           aria-label={x.label + " × " + y.label}
         >
-          {[0, 1, 2, 3, 4].map((i) => (
-            <g key={i}>
+          {ticks.map((fraction) => (
+            <g key={fraction}>
               <line
                 x1="58"
-                y1={33 + (i * 185) / 4}
-                x2="448"
-                y2={33 + (i * 185) / 4}
+                y1={33 + fraction * 185}
+                x2={plotRight}
+                y2={33 + fraction * 185}
                 className="scatter-grid"
               />
-              <text x="50" y={37 + (i * 185) / 4} textAnchor="end">
-                {Number((ymax - (i * (ymax - ymin)) / 4).toPrecision(3))}
+              <text x="50" y={37 + fraction * 185} textAnchor="end">
+                {Number((ymax - fraction * (ymax - ymin)).toPrecision(3))}
               </text>
-              <text x={58 + (i * 390) / 4} y="236" textAnchor="middle">
-                {Number((xmin + (i * (xmax - xmin)) / 4).toPrecision(3))}
+              <text x={58 + fraction * plotSpan} y="236" textAnchor="middle">
+                {Number((xmin + fraction * (xmax - xmin)).toPrecision(3))}
               </text>
             </g>
           ))}
-          <line x1="58" y1="218" x2="448" y2="218" className="scatter-axis" />
-          <text x="253" y="259" textAnchor="middle">
+          <line
+            x1="58"
+            y1="218"
+            x2={plotRight}
+            y2="218"
+            className="scatter-axis"
+          />
+          <text x={58 + plotSpan / 2} y="259" textAnchor="middle">
             {x.label}
           </text>
           <text

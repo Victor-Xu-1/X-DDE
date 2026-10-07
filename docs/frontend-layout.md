@@ -51,6 +51,10 @@ Sequence scoring places its table and comparison plot in one column, with the
 selected exact sequence beside them. This avoids stacking two tall views beside
 a short table. Selection, native score precision, position identity and original
 FASTA/CSV/SVG downloads retain their existing contracts.
+Shared scatter plots measure their actual column width and keep a 265-pixel
+canvas height. Labels and markers keep their pixel size on extra-wide screens;
+compact columns use fewer tick labels without changing their source values or
+selection identities. Exported SVG uses the same current geometry and labels.
 
 Public product references were reviewed for interaction patterns, not for a claim
 that X-DDE implements their proprietary scientific methods:
