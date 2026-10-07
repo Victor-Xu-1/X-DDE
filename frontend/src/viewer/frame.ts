@@ -143,6 +143,10 @@ async function load(input: ViewerLoad) {
     await scene.paint();
     if (current !== generation) return;
     reset();
+    if (!retainedView && input.initialMode === "cartoon") {
+      viewer.zoom(1.6);
+      viewer.render();
+    }
     if (retainedView) viewer.setView(retainedView);
     else if (scene.channelGeometry) scene.focusChannel();
     loadedSourceIdentity = sourceIdentity;
