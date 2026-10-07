@@ -145,11 +145,6 @@
   }
 }
 
-.task-mode-controls {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 18px;
-}
 .task-workspace .questionnaire > fieldset .field:last-child {
   margin-bottom: 0;
 }

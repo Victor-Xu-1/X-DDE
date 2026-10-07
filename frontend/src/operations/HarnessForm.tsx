@@ -109,7 +109,11 @@ export function HarnessForm({
   const mode = (
     <>
       {" "}
-      <div className="segmented">
+      <div
+        className="segmented"
+        role="group"
+        aria-label={zh ? "操作模式" : "Interaction mode"}
+      >
         <button
           type="button"
           aria-pressed={!expert}
@@ -296,12 +300,8 @@ export function HarnessForm({
       steps={[
         {
           title: zh ? "填写材料" : "Provide inputs",
-          content: (
-            <>
-              <div className="task-mode-controls">{mode}</div>
-              {inputs}
-            </>
-          ),
+          actions: mode,
+          content: inputs,
           valid: expert
             ? harnessInputsComplete(tool, payload)
             : harnessMaterialsComplete(tool, payload),

@@ -32,28 +32,33 @@ export function CampaignForm({ language }: { language: Language }) {
     validate,
     start,
   } = useCampaignController(language);
+  const goalActions = (
+    <div
+      className="segmented"
+      role="group"
+      aria-label={zh ? "操作模式" : "Interaction mode"}
+    >
+      <button
+        type="button"
+        aria-pressed={!expert}
+        onClick={() => setExpert(false)}
+      >
+        {zh ? "简易模式" : "Guided mode"}
+      </button>
+      <button
+        type="button"
+        aria-pressed={expert}
+        onClick={() => {
+          setRaw(config);
+          setExpert(true);
+        }}
+      >
+        {zh ? "专家参数" : "Expert parameters"}
+      </button>
+    </div>
+  );
   const goal = (
     <>
-      {" "}
-      <div className="segmented">
-        <button
-          type="button"
-          aria-pressed={!expert}
-          onClick={() => setExpert(false)}
-        >
-          {zh ? "简易模式" : "Guided mode"}
-        </button>
-        <button
-          type="button"
-          aria-pressed={expert}
-          onClick={() => {
-            setRaw(config);
-            setExpert(true);
-          }}
-        >
-          {zh ? "专家参数" : "Expert parameters"}
-        </button>
-      </div>
       {!expert && raw && (
         <p className="notice">
           {zh
@@ -354,6 +359,7 @@ export function CampaignForm({ language }: { language: Language }) {
           {
             title: zh ? "选择目标" : "Choose target",
             content: goal,
+            actions: goalActions,
             valid: targetValid,
           },
           {
