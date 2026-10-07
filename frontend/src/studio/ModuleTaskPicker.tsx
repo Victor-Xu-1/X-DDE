@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+import { BindingEntryDialog } from "./BindingEntryDialog";
 import { Hint } from "../guided/Hint";
 import { tools, type ToolId } from "../operations/catalog";
 import { moduleForTool, toolLabel } from "./research-modules";
@@ -11,13 +13,17 @@ export function ModuleTaskPicker({
   language: Language;
   onChange(tool: ToolId): void;
 }) {
+  const [guide, setGuide] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
   const module = moduleForTool(value),
     current = tools.find((tool) => tool.id === value),
     zh = language === "zh";
   if (!module) return null;
   const extra = module.tools.filter((id) => !module.recommended.includes(id));
   return (
-    <div className="module-task-picker">
+    <div
+      className={`module-task-picker ${module.id === "binding" || module.id === "structures" ? "binding-task-picker" : ""}`}
+    >
       <label>
         {zh ? "研究任务" : "Research task"}
         <select
@@ -42,6 +48,28 @@ export function ModuleTaskPicker({
           )}
         </select>
       </label>
+      {(module.id === "binding" || module.id === "structures") && (
+        <>
+          <button
+            ref={trigger}
+            type="button"
+            className="secondary-button binding-entry-trigger"
+            onClick={() => setGuide(true)}
+          >
+            {zh ? "按已有材料开始" : "Start from my evidence"}
+          </button>
+          {guide && (
+            <BindingEntryDialog
+              language={language}
+              onSelect={onChange}
+              onClose={() => {
+                setGuide(false);
+                trigger.current?.focus();
+              }}
+            />
+          )}
+        </>
+      )}
       {current && (
         <Hint label={zh ? "研究任务说明" : "Research task help"}>
           {current.note[zh ? 0 : 1]} · {current.source}

@@ -1,0 +1,33 @@
+/* Domain-only entry choices reuse the shared question and native-dialog styles. */
+.binding-entry-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+.binding-entry-dialog h2 {
+  outline: none;
+  font-size: 1.15rem;
+}
+.binding-entry-dialog .questionnaire-choices {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.binding-entry-dialog .questionnaire-actions {
+  position: static;
+}
+.studio-app .module-task-picker.binding-task-picker {
+  flex-wrap: wrap;
+}
+.binding-task-picker .binding-entry-trigger {
+  flex: 0 0 auto;
+  font-size: 12px;
+  min-height: 34px;
+  padding: 6px 12px;
+}
+@media (max-width: 600px) {
+  .binding-entry-dialog .questionnaire-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .binding-entry-dialog {
+    padding: 18px;
+  }
+}
