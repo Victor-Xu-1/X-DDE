@@ -71,6 +71,21 @@ it("standalone ligands use thin element-colored sticks while keeping original co
   expect(source(model.selectedAtoms({}))).toEqual(before);
   expect(before[0].orders).toContain(2);
 });
+it.each(["blueCarbon", "orangeCarbon", "purpleCarbon"])(
+  "true molecular comparisons retain distinguishable %s carbon colors without moving atoms",
+  (scheme) => {
+    const { model } = fixture(),
+      before = source(model.selectedAtoms({}));
+    const index = ["blueCarbon", "orangeCarbon", "purpleCarbon"].indexOf(
+      scheme,
+    );
+    paintOverlayModel(model, index, true);
+    expectSticks(model.selectedAtoms({}));
+    expect(model.selectedAtoms({})[0].style?.stick?.colorscheme).toBe(scheme);
+    expect(model.selectedAtoms({})[0].style?.cartoon).toBeUndefined();
+    expect(source(model.selectedAtoms({}))).toEqual(before);
+  },
+);
 it("molecule overlays use the same thin representation without atom balls", () => {
   const { model } = fixture(),
     before = source(model.selectedAtoms({}));

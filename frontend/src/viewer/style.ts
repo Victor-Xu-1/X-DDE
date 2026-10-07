@@ -84,18 +84,16 @@ export function paintOverlayModel(
 ) {
   model.setStyle(
     {},
-    thinSticks(
-      molecular
-        ? "greenCarbon"
-        : ["blueCarbon", "orangeCarbon", "purpleCarbon"][index],
-    ),
+    thinSticks(["blueCarbon", "orangeCarbon", "purpleCarbon"][index % 3]),
   );
   // Small-molecule parsers have no polymer residue names. Cartoon rendering must
   // never fabricate those identities or apply a polymer renderer to their atoms.
-  const polymers = model
-    .selectedAtoms({ hetflag: false })
-    .filter((atom) => typeof atom.resn === "string")
-    .map((atom) => atom.index!);
+  const polymers = molecular
+    ? []
+    : model
+        .selectedAtoms({ hetflag: false })
+        .filter((atom) => typeof atom.resn === "string")
+        .map((atom) => atom.index!);
   if (polymers.length)
     model.setStyle(
       { index: polymers },
