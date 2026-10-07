@@ -385,6 +385,7 @@ export function StructureViewer({
           </button>
           <button
             type="button"
+            aria-label={zh ? "全屏显示结构" : "Fullscreen structure"}
             title={zh ? "全屏" : "Fullscreen"}
             onClick={() =>
               void frame.current
@@ -493,18 +494,13 @@ export function StructureViewer({
               [
                 ["zoom", 1, "放大", "Zoom in", PlusOutlined],
                 ["zoom", -1, "缩小", "Zoom out", MinusOutlined],
-                [
-                  "reset",
-                  undefined,
-                  "回到全局",
-                  "Full structure",
-                  ReloadOutlined,
-                ],
+                ["reset", undefined, "重置视角", "Reset view", ReloadOutlined],
               ] as const
             ).map(([type, value, cn, en, Icon], i) => (
               <button
                 type="button"
                 key={i}
+                aria-label={zh ? cn : en}
                 title={zh ? cn : en}
                 onClick={() => send(type, value)}
               >

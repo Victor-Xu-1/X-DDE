@@ -49,6 +49,12 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
             analysis.select_option(label="DMS · A:171")
             expect(center.locator("option:checked")).to_have_text("A:DMS171")
             expect(contacts).not_to_have_text(jq1_contacts)
+            resolution = page.get_by_role("combobox", name="三维图片清晰度", exact=True)
+            capture = page.get_by_role("button", name="生成三维视图图片", exact=True)
+            assert abs(resolution.bounding_box()["height"] - capture.bounding_box()["height"]) < 2
+            assert resolution.bounding_box()["height"] <= 34
+            expect(page.get_by_role("button", name="放大", exact=True)).to_be_visible()
+            expect(page.get_by_role("button", name="全屏显示结构", exact=True)).to_be_visible()
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
             bounds = controls.bounding_box()
             preview = page.locator(".scientific-target-preview").bounding_box()

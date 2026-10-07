@@ -1,8 +1,11 @@
-.viewer-export-size {
-  max-width: 90px;
+.viewer-heading-actions > .viewer-export-size {
+  width: 104px;
+  max-width: 104px;
+  height: 32px;
   padding: 5px 7px;
-  font-size: 11px;
-  min-height: 30px;
+  font-size: 12px;
+  line-height: 1.35;
+  min-height: 32px;
 }
 .viewer-original-downloads {
   position: relative;
@@ -48,6 +51,7 @@
 }
 .viewer-heading-actions {
   display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
   flex-wrap: wrap;
   gap: 6px;

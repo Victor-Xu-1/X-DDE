@@ -8,6 +8,9 @@
 .scientific-target-preview {
   min-width: 0;
 }
+.scientific-target-selection .scientific-target-preview > .viewer-panel {
+  padding: 0;
+}
 .scientific-target-controls > h3 {
   margin: 0 0 10px;
 }
