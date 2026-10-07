@@ -41,6 +41,10 @@ selection and the final review; an unavailable runtime blocks submission without
 an extra warning banner above the first question. Structure results remain
 accessible even when a calculation environment is unavailable. Shared native file
 selection includes accepted formats and size limits in its choice area.
+Selecting a replacement clears the previous draft input before uploading. Failed
+uploads can retry the same file, and leaving that input choice prevents a late
+upload response from restoring it. Immutable server files and historical records
+remain available; this only changes the current questionnaire's selection.
 Choice grids fit their actual options rather than reserving empty columns. Flat
 sequence and plot sections align with their parent table instead of adding a
 second inset to each subsection. Extra-wide prediction pages fit their available

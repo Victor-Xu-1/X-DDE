@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
@@ -43,6 +43,16 @@ export function AssetPicker({
     [opened, setOpened] = useState(false);
   const accepted = allowedSuffixes?.join(",") ?? accept[kind];
   const [showResults, setShowResults] = useState(false);
+  const mounted = useRef(true);
+  const uploadIntent = useRef(0);
+  useEffect(() => {
+    mounted.current = true;
+    setBusy(false);
+    return () => {
+      mounted.current = false;
+      uploadIntent.current++;
+    };
+  }, [kind, accepted, maxBytes]);
   useEffect(() => {
     if (!value && !opened) return;
     const c = new AbortController();
@@ -81,6 +91,11 @@ export function AssetPicker({
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            const intent = ++uploadIntent.current;
+            // A new file is a new input intent, even when upload fails. Do not
+            // leave a previous file eligible for submission or block same-file retry.
+            e.target.value = "";
+            onChange("");
             if (file.size > maxBytes) {
               setError(
                 zh
@@ -93,12 +108,15 @@ export function AssetPicker({
             setError("");
             try {
               const asset = await api.upload(file, kind);
+              if (!mounted.current || intent !== uploadIntent.current) return;
               setAssets((prev) => [asset, ...prev]);
               onChange(asset.id);
             } catch (e) {
-              setError(String(e));
+              if (mounted.current && intent === uploadIntent.current)
+                setError(String(e));
             } finally {
-              setBusy(false);
+              if (mounted.current && intent === uploadIntent.current)
+                setBusy(false);
             }
           }}
         />
