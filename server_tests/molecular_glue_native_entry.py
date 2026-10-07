@@ -85,7 +85,7 @@ def main():
     assert all(row["contacting_heavy_atoms"] >= 3 for row in source_quality["arms"])
     # Real platform output must still pass chemical identity, proper transforms and
     # the unchanged acceptance gates. Native parity does not assert model accuracy.
-    runpy.run_path("/platform/native_entry.py", run_name="__main__")
+    runpy.run_path("/platform/runner.py", run_name="__main__")
     Path("/output/native-checks.json").write_text(
         json.dumps(
             {
