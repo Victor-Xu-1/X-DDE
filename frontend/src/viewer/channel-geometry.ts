@@ -1,5 +1,4 @@
 import type * as mol from "3dmol";
-import { focusedViewScale } from "./appearance";
 import { finiteCoordinates } from "./geometry";
 export interface ChannelGeometry {
   points: { position: [number, number, number]; radius_angstrom: number }[];
@@ -52,8 +51,8 @@ export function paintChannel(viewer: mol.GLViewer, channel?: ChannelGeometry) {
       viewer.addCylinder({
         start: xyz(points[i - 1].position),
         end: xyz(points[i].position),
-        radius: 0.11,
-        color: "#487de8",
+        radius: 0.2,
+        color: "#2265e4",
         fromCap: 1,
         toCap: 1,
       });
@@ -65,7 +64,7 @@ export function paintChannel(viewer: mol.GLViewer, channel?: ChannelGeometry) {
         center: xyz(points[i].position),
         radius: points[i].radius_angstrom,
         color: "#66b3e7",
-        opacity: 0.2,
+        opacity: 0.3,
       });
   }
   viewer.addSphere({
@@ -93,11 +92,11 @@ export function focusChannel(viewer: mol.GLViewer, channel: ChannelGeometry) {
     for (let axis = 0; axis < 3; axis++) {
       lower[axis] = Math.min(
         lower[axis],
-        point.position[axis] - point.radius_angstrom - 6,
+        point.position[axis] - point.radius_angstrom - 4,
       );
       upper[axis] = Math.max(
         upper[axis],
-        point.position[axis] + point.radius_angstrom + 6,
+        point.position[axis] + point.radius_angstrom + 4,
       );
     }
   const selection: mol.AtomSelectionSpec = {
@@ -115,6 +114,6 @@ export function focusChannel(viewer: mol.GLViewer, channel: ChannelGeometry) {
       "The channel does not overlap the displayed source context",
     );
   viewer.zoomTo(selection);
-  viewer.zoom(focusedViewScale);
+  viewer.zoom(0.9);
   viewer.render();
 }

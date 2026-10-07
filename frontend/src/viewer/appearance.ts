@@ -27,7 +27,7 @@ export function proteinBackbone(
       color,
       opacity: 0.9,
       ...(representation === "trace"
-        ? { style: "trace", thickness: 0.32 }
+        ? { style: "trace", thickness: 0.12 }
         : {}),
     },
   };
