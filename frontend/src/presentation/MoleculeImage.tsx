@@ -14,7 +14,9 @@ import {
 } from "./depiction-renderer";
 import type { Language } from "../types";
 import "./molecule-image.css";
-const DrawingContext = createContext<DepictionRenderer | null>(null);
+const DrawingContext = createContext<DepictionRenderer | null | undefined>(
+  undefined,
+);
 export function MoleculeDrawingProvider({ children }: { children: ReactNode }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [renderer, setRenderer] = useState<DepictionRenderer | null>(null),
@@ -85,10 +87,13 @@ export function MoleculeImage({
     setUrl("");
     setError(false);
     if (!visible) return () => controller.abort();
-    if (!source || !renderer) {
+    if (!source || renderer === undefined) {
       setError(true);
       return () => controller.abort();
     }
+    // The provider's first effect is still starting. This is loading, not a
+    // failed drawing that can be accepted as an unavailable result screenshot.
+    if (renderer === null) return () => controller.abort();
     void renderer
       .render(source, controller.signal, bondThickness)
       .then(depictionDataUrl)
