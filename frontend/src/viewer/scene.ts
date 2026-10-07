@@ -40,7 +40,11 @@ const nucleic = new Set([
   "DN",
 ]);
 type Emit = (type: string, detail?: unknown) => void;
-import { paintChannel, type ChannelGeometry } from "./channel-geometry";
+import {
+  paintChannel,
+  focusChannel,
+  type ChannelGeometry,
+} from "./channel-geometry";
 export class MolecularScene {
   channelGeometry?: ChannelGeometry;
   nativeInteractions?: NativeInteraction[];
@@ -407,6 +411,9 @@ export class MolecularScene {
       this.viewer.zoom(1.5);
       this.viewer.render();
     }
+  }
+  focusChannel() {
+    if (this.channelGeometry) focusChannel(this.viewer, this.channelGeometry);
   }
   focusLigand() {
     const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);

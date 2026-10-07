@@ -49,6 +49,7 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         "public-dataset-examples",
         "public-surface-examples",
         "public-pose-examples",
+        "public-channel-examples",
     }:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings

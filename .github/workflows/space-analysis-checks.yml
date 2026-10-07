@@ -39,6 +39,13 @@ jobs:
         run: npx vitest run src/space/ChannelForm.test.tsx src/viewer/channel-geometry.test.ts src/receptors/SurfaceForm.test.tsx src/operations/OperationResults.test.tsx
       - name: Managed installer, actual task authority, indexed versions and fixed archive
         run: uv run --locked python server_tests/channel_api_acceptance.py --protocol "$RUNNER_TEMP/caver-native"
+      - name: Stage and install the frozen accepted channel case through the single release pipeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          uv run --locked python scripts/stage-release-examples.py --tag v0.4.36 --destination "$RUNNER_TEMP/accepted-channel-case"
+          uv run --locked python server_tests/channel_case_install_acceptance.py --base "$RUNNER_TEMP/x-dde-public-cases-v1.zip" --archive "$RUNNER_TEMP/accepted-channel-case/x-dde-channel-cases-v1.zip" --output "$RUNNER_TEMP/caver-native/platform/data-install"
       - run: uv run --locked python -m playwright install --with-deps chromium
       - name: Real channel geometry, downloads, module case and fresh questionnaire submission
         env:
@@ -49,6 +56,7 @@ jobs:
         with:
           name: caver-native-evidence
           path: |
+            ${{ runner.temp }}/caver-native/platform/data-install/installation.json
             ${{ runner.temp }}/caver-native/platform/*.png
             ${{ runner.temp }}/caver-native/platform/*.zip
             ${{ runner.temp }}/caver-native/platform/*.json

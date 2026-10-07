@@ -274,7 +274,7 @@ export function OperationResults({
           onDraft={onDraft}
         />
       )}
-      {data.structure && (
+      {typeof data.structure === "string" && (
         <section aria-label={zh ? "输入结构" : "Input structure"}>
           {job.request.operation === "inspect" && (
             <h3>

@@ -1,6 +1,10 @@
 import { expect, it, vi } from "vitest";
 import type * as mol from "3dmol";
-import { channelGeometry, paintChannel } from "./channel-geometry";
+import {
+  channelGeometry,
+  paintChannel,
+  focusChannel,
+} from "./channel-geometry";
 const geometry = {
   envelope: true,
   points: [
@@ -51,5 +55,23 @@ it("paints shapes and sampled clearance while preserving source coordinates and 
     "0.90 Å",
     expect.objectContaining({ position: { x: 2, y: 3, z: 4 } }),
   );
+  expect(JSON.stringify(geometry)).toBe(before);
+});
+
+it("focuses actual finite source atoms around native geometry without creating atoms", () => {
+  const viewer = {
+    selectedAtoms: vi.fn(() => [{ x: 1, y: 2, z: 3 }]),
+    zoomTo: vi.fn(),
+    zoom: vi.fn(),
+    render: vi.fn(),
+    addModel: vi.fn(),
+  };
+  const before = JSON.stringify(geometry);
+  focusChannel(viewer as unknown as mol.GLViewer, geometry);
+  const selection = viewer.zoomTo.mock.calls[0][0] as mol.AtomSelectionSpec;
+  expect(selection.predicate!({ x: 1, y: 2, z: 3 })).toBe(true);
+  expect(selection.predicate!({ x: 1000, y: 2, z: 3 })).toBe(false);
+  expect(selection.predicate!({ x: NaN, y: 2, z: 3 })).toBe(false);
+  expect(viewer.addModel).not.toHaveBeenCalled();
   expect(JSON.stringify(geometry)).toBe(before);
 });

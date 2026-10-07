@@ -12,6 +12,12 @@ from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 
 
+def screenshot(page, *, path, full_page):
+    page.evaluate("window.scrollTo(0,0)")
+    page.wait_for_timeout(100)
+    page.screenshot(path=path, full_page=full_page)
+
+
 def test_native_channels_and_fresh_submission():
     output = Path(os.environ["WB_CHANNEL_CASE"])
     accepted = json.loads((output / "acceptance.json").read_text())
@@ -68,16 +74,20 @@ def test_native_channels_and_fresh_submission():
                 expect(
                     view.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                 ).to_be_visible()
-                page.screenshot(path=output / "native-channel-desktop.png", full_page=True)
+                expect(page.locator('iframe[title="可交互分子结构"]')).to_have_count(1)
+                expect(page.locator(".viewer-error")).to_have_count(0)
+                screenshot(page, path=output / "native-channel-desktop.png", full_page=True)
                 if len(result["channels"]) > 1:
                     button = view.get_by_role("button", name="路径 2", exact=True)
                     button.click()
                     expect(button).to_have_attribute("aria-pressed", "true")
                     expect(capture).to_be_enabled(timeout=30000)
+                    view.get_by_role("button", name="定位通道", exact=True).click()
+                    expect(capture).to_be_enabled(timeout=30000)
                     expect(view.locator(".channel-summary")).to_contain_text(
                         f"{result['channels'][1]['bottleneck_radius_angstrom']:.2f}"
                     )
-                    page.screenshot(path=output / "native-channel-selected.png", full_page=True)
+                    screenshot(page, path=output / "native-channel-selected.png", full_page=True)
                 with page.expect_download() as download:
                     view.get_by_role("link", name="下载三维坐标与半径", exact=True).click()
                 download.value.save_as(output / "downloaded-channel-points.csv")
@@ -93,7 +103,7 @@ def test_native_channels_and_fresh_submission():
                 image = page.get_by_role("img", name="当前三维视图图片", exact=True)
                 expect(image).to_be_visible(timeout=10000)
                 assert image.evaluate("img=>img.complete && img.naturalWidth>0")
-                page.screenshot(path=output / "native-channel-capture.png", full_page=True)
+                screenshot(page, path=output / "native-channel-capture.png", full_page=True)
                 with page.expect_download() as download:
                     page.get_by_role("link", name="下载视图 PNG", exact=True).click()
                 download.value.save_as(output / "downloaded-channel-view.png")
@@ -105,7 +115,7 @@ def test_native_channels_and_fresh_submission():
                 page.get_by_role("button", name="关闭图片", exact=True).click()
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
-                page.screenshot(path=output / "native-channel-mobile.png", full_page=True)
+                screenshot(page, path=output / "native-channel-mobile.png", full_page=True)
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 page.get_by_role("navigation", name="主导航").get_by_role(
                     "button", name="口袋与对接", exact=True
@@ -120,7 +130,7 @@ def test_native_channels_and_fresh_submission():
                     timeout=30000
                 )
                 expect(page.locator(".questionnaire:visible")).to_have_count(0)
-                page.screenshot(path=output / "fixed-channel-module.png", full_page=True)
+                screenshot(page, path=output / "fixed-channel-module.png", full_page=True)
                 page.get_by_role("button", name="使用此模板", exact=True).click()
                 expect(page.get_by_role("button", name="下一步", exact=True)).to_be_enabled()
                 for step in range(3):
@@ -135,7 +145,7 @@ def test_native_channels_and_fresh_submission():
                     page.get_by_role("button", name="下一步", exact=True).click()
                 submit = page.get_by_role("button", name="分析通道与瓶颈", exact=True)
                 expect(submit).to_be_enabled()
-                page.screenshot(path=output / "channel-review.png", full_page=True)
+                screenshot(page, path=output / "channel-review.png", full_page=True)
                 assert not submitted
                 submit.click()
                 expect(page.locator(".channel-results")).to_be_visible(timeout=240000)

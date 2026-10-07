@@ -48,6 +48,7 @@ class DeploymentManager:
                 "public-examples",
                 "public-surface-examples",
                 "public-pose-examples",
+                "public-channel-examples",
                 "public-experimental-examples",
                 "harness",
                 "runtime",
@@ -203,6 +204,7 @@ class DeploymentManager:
                     "public-dataset-examples",
                     "public-surface-examples",
                     "public-pose-examples",
+                    "public-channel-examples",
                     "public-experimental-examples",
                     "supplier-libraries",
                 }:

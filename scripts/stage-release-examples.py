@@ -11,9 +11,13 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from opendde_workbench.examples import pose_bundle_release, surface_bundle_release
+from opendde_workbench.examples import (
+    channel_bundle_release,
+    pose_bundle_release,
+    surface_bundle_release,
+)
 
-SPECS = (surface_bundle_release, pose_bundle_release)
+SPECS = (surface_bundle_release, pose_bundle_release, channel_bundle_release)
 
 
 def verify_bundle(file, spec):
@@ -71,7 +75,7 @@ def stage_one(tag, destination, spec):
             ],
             check=True,
         )
-        source = Path(directory) / parts[-1]
+        source = Path(directory) / getattr(spec, "ARTIFACT_PATH", parts[-1])
         verify_bundle(source, spec)
         destination.mkdir(parents=True, exist_ok=True)
         target = destination / source.name

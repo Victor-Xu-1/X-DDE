@@ -264,6 +264,15 @@ export function StructureViewer({
           </Hint>
         </h3>
         <div className="viewer-heading-actions">
+          {channelGeometry && (
+            <button
+              type="button"
+              disabled={!loaded}
+              onClick={() => send("focus-channel")}
+            >
+              {zh ? "定位通道" : "Focus channel"}
+            </button>
+          )}
           {urls.length > 0 && (
             <details className="viewer-original-downloads">
               <summary

@@ -42,6 +42,7 @@ function notify(type: string, detail: unknown = {}) {
 const scene = new MolecularScene(viewer, notify);
 let controller: AbortController | null = null,
   generation = 0;
+let loadedSourceIdentity: string | null = null;
 function reset() {
   viewer.zoomTo();
   viewer.zoom(0.85);
@@ -49,6 +50,16 @@ function reset() {
 }
 async function load(input: ViewerLoad) {
   const { urls } = input;
+  const sourceIdentity = JSON.stringify({
+    urls,
+    records: input.records,
+    comparison: input.comparison,
+  });
+  const retainedView =
+    input.channelGeometry && loadedSourceIdentity === sourceIdentity
+      ? viewer.getView()
+      : undefined;
+  loadedSourceIdentity = null;
   controller?.abort();
   controller = new AbortController();
   const request = controller,
@@ -125,6 +136,9 @@ async function load(input: ViewerLoad) {
     await scene.paint();
     if (current !== generation) return;
     reset();
+    if (retainedView) viewer.setView(retainedView);
+    else if (scene.channelGeometry) scene.focusChannel();
+    loadedSourceIdentity = sourceIdentity;
     if (scene.options.mode === "pocket" && !scene.channelGeometry)
       scene.focusLigand();
     notify("loaded", { ...scene.info, options: scene.options });
@@ -159,6 +173,7 @@ window.addEventListener("message", (event) => {
     return;
   const { type, value } = event.data;
   if (type === "clear") {
+    loadedSourceIdentity = null;
     controller?.abort();
     generation++;
     scene.resetState();
@@ -237,6 +252,7 @@ window.addEventListener("message", (event) => {
     }
   }
   if (type === "focus-ligand") scene.focusLigand();
+  if (type === "focus-channel") scene.focusChannel();
   if (type === "zoom") {
     viewer.zoom(value === 1 ? 1.2 : 0.8);
     viewer.render();

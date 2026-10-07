@@ -1,4 +1,6 @@
 import type * as mol from "3dmol";
+import { focusedViewScale } from "./appearance";
+import { finiteCoordinates } from "./geometry";
 export interface ChannelGeometry {
   points: { position: [number, number, number]; radius_angstrom: number }[];
   envelope: boolean;
@@ -81,4 +83,38 @@ export function paintChannel(viewer: mol.GLViewer, channel?: ChannelGeometry) {
     borderThickness: 0,
     inFront: true,
   });
+}
+
+/** Focus real source atoms around the measured path; never create pseudo-atoms. */
+export function focusChannel(viewer: mol.GLViewer, channel: ChannelGeometry) {
+  const lower = [Infinity, Infinity, Infinity],
+    upper = [-Infinity, -Infinity, -Infinity];
+  for (const point of channel.points)
+    for (let axis = 0; axis < 3; axis++) {
+      lower[axis] = Math.min(
+        lower[axis],
+        point.position[axis] - point.radius_angstrom - 6,
+      );
+      upper[axis] = Math.max(
+        upper[axis],
+        point.position[axis] + point.radius_angstrom + 6,
+      );
+    }
+  const selection: mol.AtomSelectionSpec = {
+    model: 0,
+    predicate: (atom) => {
+      const position = finiteCoordinates(atom);
+      return Boolean(
+        position &&
+        position.every((v, axis) => v >= lower[axis] && v <= upper[axis]),
+      );
+    },
+  };
+  if (!viewer.selectedAtoms(selection).length)
+    throw new Error(
+      "The channel does not overlap the displayed source context",
+    );
+  viewer.zoomTo(selection);
+  viewer.zoom(focusedViewScale);
+  viewer.render();
 }

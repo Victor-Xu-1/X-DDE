@@ -13,6 +13,9 @@ from ..docking.manifest import VERSION as GNINA_VERSION
 from ..examples.bundle_release import SHA256 as CASE_SHA
 from ..examples.bundle_release import URL as CASE_URL
 from ..examples.bundle_release import VERSION as CASE_VERSION
+from ..examples.channel_bundle_release import SHA256 as CHANNEL_CASE_SHA
+from ..examples.channel_bundle_release import URL as CHANNEL_CASE_URL
+from ..examples.channel_bundle_release import VERSION as CHANNEL_CASE_VERSION
 from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
 from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
 from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
@@ -347,6 +350,20 @@ PACKAGES["public-surface-examples"] = Package(
     url=SURFACE_CASE_URL,
     checksum=SURFACE_CASE_SHA,
     license="RCSB PDB CC0-1.0; native geometric measurements with source and method notices",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-channel-examples"] = Package(
+    "public-channel-examples",
+    CHANNEL_CASE_VERSION,
+    "Pocket channel public case",
+    "人源 AChE–多奈哌齐真实通道与瓶颈 / Native human AChE–donepezil channels",
+    "1.1 MB",
+    automatic=True,
+    url=CHANNEL_CASE_URL,
+    checksum=CHANNEL_CASE_SHA,
+    license="RCSB PDB CC0-1.0; native geometric measurements, not whole-drug passage",
     engine="x-dde",
     kind="data",
 )
