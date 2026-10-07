@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
 import { FileSelect } from "../presentation/FileSelect";
+import { researchError } from "../presentation/research-content";
 
 const accept: Record<AssetKind, string> = {
   measurements: ".csv",
@@ -187,7 +188,7 @@ export function AssetPicker({
       )}
       {error && (
         <p role="alert" className="error-box">
-          {error}
+          {researchError(error, zh)}
         </p>
       )}
     </div>
