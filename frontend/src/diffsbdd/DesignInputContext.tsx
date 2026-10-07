@@ -26,7 +26,7 @@ export function DesignInputContext({
   language: Language;
 }) {
   if (job.request.operation !== "diffsbdd") return null;
-  const molecule = inputReference(job.request.payload.molecule),
+  const molecule = inputReference(job.request.payload.initial),
     protein = inputReference(job.request.payload.protein),
     zh = language === "zh";
   const tabs = [];

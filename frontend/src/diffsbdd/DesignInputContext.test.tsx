@@ -44,7 +44,7 @@ const job: Job = {
   request: {
     operation: "diffsbdd",
     name: "Input context",
-    payload: { mode: "inpaint", molecule, protein },
+    payload: { mode: "inpaint", initial: molecule, protein },
   },
 };
 
@@ -76,7 +76,7 @@ it("does not invent a source preview from missing or ambiguous references", () =
             ...job.request,
             payload: {
               mode: "inpaint",
-              molecule: { ...molecule, conformer: 3 },
+              initial: { ...molecule, conformer: 3 },
               protein: "unknown-input.pdb",
             },
           },
