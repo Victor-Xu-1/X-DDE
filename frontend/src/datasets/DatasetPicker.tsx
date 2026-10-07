@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { Hint } from "../guided/Hint";
+import { FileSelect } from "../presentation/FileSelect";
 import type { Asset } from "../operations/types";
 import type { Language } from "../types";
 import {
@@ -177,28 +178,25 @@ export function DatasetPicker({
       ) : (
         <>
           {!busy && !state && (
-            <label className="dataset-dropzone">
-              <span className="dataset-upload-symbol" aria-hidden>
-                ↥
-              </span>
-              <strong>{zh ? "选择研究文件" : "Choose a research file"}</strong>
-              <span>
-                {formats[kind].replaceAll(".", "").split(",").join(" · ")}
-              </span>
-              <input
-                type="file"
-                accept={formats[kind]}
-                aria-label={label}
-                onChange={(e) => {
-                  const selected = e.target.files?.[0];
-                  if (!selected) return;
-                  key.current = crypto.randomUUID();
-                  setFile(selected);
-                  setProgress(0);
-                  void begin(selected);
-                }}
-              />
-            </label>
+            <FileSelect
+              language={language}
+              variant="large"
+              title={zh ? "选择研究文件" : "Choose a research file"}
+              description={formats[kind]
+                .replaceAll(".", "")
+                .split(",")
+                .join(" · ")}
+              accept={formats[kind]}
+              aria-label={label}
+              onChange={(e) => {
+                const selected = e.target.files?.[0];
+                if (!selected) return;
+                key.current = crypto.randomUUID();
+                setFile(selected);
+                setProgress(0);
+                void begin(selected);
+              }}
+            />
           )}
           {(busy || state) && (
             <div className="dataset-upload-progress">
@@ -231,8 +229,9 @@ export function DatasetPicker({
                       {zh ? "继续上传" : "Resume"}
                     </button>
                   ) : (
-                    <input
-                      type="file"
+                    <FileSelect
+                      language={language}
+                      variant="compact"
                       accept={formats[kind]}
                       aria-label={
                         zh

@@ -37,22 +37,13 @@
   font-size: 13px;
   color: var(--muted);
 }
-.research-workspace .editor-toolbar select,
-.research-workspace .file-choice input::file-selector-button {
+.research-workspace .editor-toolbar select {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 9px 13px;
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-}
-.research-workspace .file-choice input {
-  max-width: 100%;
-  color: var(--muted);
-}
-.research-workspace .file-choice input::file-selector-button {
-  cursor: pointer;
-  margin-right: 10px;
 }
 .research-workspace .research-inspector > button {
   background: var(--accent);

@@ -3,6 +3,7 @@ import { api, request } from "../api";
 import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
+import { FileSelect } from "../presentation/FileSelect";
 
 const accept: Record<AssetKind, string> = {
   measurements: ".csv",
@@ -72,9 +73,9 @@ export function AssetPicker({
           : zh
             ? "上传文件"
             : "Upload file"}
-        <input
+        <FileSelect
+          language={language}
           aria-label={(zh ? "上传 " : "Upload ") + label}
-          type="file"
           accept={accepted}
           disabled={busy}
           onChange={async (e) => {

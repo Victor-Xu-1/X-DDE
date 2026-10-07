@@ -6,6 +6,7 @@ import type { Deployment } from "../deployment/client";
 import { PropertyForm } from "../operations/PropertyForm";
 import "./editors.css";
 import { AlignedEditAction } from "./AlignedEditAction";
+import { FileSelect } from "../presentation/FileSelect";
 import {
   editorReady,
   molecularRecord,
@@ -203,8 +204,12 @@ export function Editors({
             <div className="editor-toolbar">
               <label className="file-choice">
                 {zh ? "打开 MOL / SDF / SMILES" : "Open MOL / SDF / SMILES"}
-                <input
-                  type="file"
+                <FileSelect
+                  language={language}
+                  variant="compact"
+                  aria-label={
+                    zh ? "打开 MOL / SDF / SMILES" : "Open MOL / SDF / SMILES"
+                  }
                   accept=".mol,.sdf,.smi,.smiles"
                   disabled={busy}
                   onChange={(e) => {

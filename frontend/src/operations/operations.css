@@ -153,11 +153,9 @@
   min-width: 180px;
   margin: 0;
 }
-.asset-picker input[type="file"] {
-  max-width: 230px;
-}
 .file-upload {
   display: grid;
+  width: 100%;
   gap: 5px;
   font-size: var(--text-small, 13px);
   color: var(--muted);

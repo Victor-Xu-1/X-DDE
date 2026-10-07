@@ -12,6 +12,7 @@ import { useResearchGraph } from "./useResearchGraph";
 import { researchGraphForDisplay } from "../presentation/research-graph";
 import { isResearchFile } from "../presentation/research-files";
 import { visibleAssetNodes, type AssetFilter } from "./asset-list";
+import { FileSelect } from "../presentation/FileSelect";
 
 export function ResearchWorkspace({
   language,
@@ -158,8 +159,10 @@ export function ResearchWorkspace({
         </label>
         <label className="file-choice">
           {zh ? "上传材料" : "Upload material"}
-          <input
-            type="file"
+          <FileSelect
+            language={language}
+            variant="compact"
+            aria-label={zh ? "上传材料" : "Upload material"}
             disabled={busy}
             accept={
               uploadKind === "molecule"

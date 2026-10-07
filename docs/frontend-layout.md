@@ -108,7 +108,7 @@ sequence comparisons and available declared structures; absent structures are
 not fabricated. Historical RMSD results lacking an aligned export display
 verified original inputs with an explicit distinction from aligned coordinates.
 
-Every one of the 44 catalogue IDs remains in its original scientific execution
+Every registered catalogue ID remains in its original scientific execution
 path. Shared typography/forms/structured result tables cover all module pages;
 domain-specific views preserve native molecular records, source sequence positions,
 score definitions, and readiness/qualification boundaries. No synthesis workflow
@@ -132,9 +132,18 @@ X-DDE uses one guided task component and one source-selection contract. Scientif
 
 ## Scoped verification
 
-`Task layout and browser checks` runs only the affected frontend contracts and a real Chromium sweep of all 44 research modules. It restores the reviewed public case bundle into fresh runner state; it does not launch scientific calculations. The sweep checks one visible step, aligned input surfaces, desktop/mobile overflow, archived example views and absence of new compute tasks. Screenshot and geometry evidence are uploaded as a workflow artifact.
+`Task layout and browser checks` runs only the affected frontend contracts and a real Chromium sweep of every registered research task (currently 71). Desktop and mobile run in independent bounded jobs. It restores the reviewed public case bundle into fresh runner state; it does not launch scientific calculations. The sweep checks one visible step, aligned input surfaces, desktop/mobile overflow, archived example views and absence of new compute tasks. Screenshot and geometry evidence are uploaded as workflow artifacts.
 
 A production UI update also needs visual review of its installed preview. Compiling source or passing DOM checks alone is not a visual acceptance result.
+
+All file selection surfaces use the shared `FileSelect` presentation. The real
+native input retains its accessible purpose, accepted formats, disabled state,
+original `File` objects and caller's upload/resume callbacks. Visible controls
+use Chinese or English, a contained file icon and consistent focus treatment;
+regular research inputs fill their assigned width while editor toolbars remain
+compact. Callers that clear the native value for reopening the same file do not
+retain a stale file label. File selection does not imply successful upload or
+scientific validation, and does not create a second upload implementation.
 
 ## Card and spacing contracts
 

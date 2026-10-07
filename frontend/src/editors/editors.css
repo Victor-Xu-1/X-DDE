@@ -45,6 +45,3 @@
   font-size: var(--text-small, 13px);
   padding: 6px 0;
 }
-.file-choice input {
-  width: 220px;
-}

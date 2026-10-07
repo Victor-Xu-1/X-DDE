@@ -1,0 +1,102 @@
+.file-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 108px;
+  width: 100%;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-hover, #f7f8fd);
+  color: var(--ink);
+  cursor: pointer;
+}
+.file-select:hover:not(:has(input:disabled)) {
+  border-color: var(--accent);
+  background: var(--accent-soft, #f0efff);
+}
+.file-select:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.file-select:has(input:disabled) {
+  opacity: 0.62;
+  cursor: default;
+}
+.file-select .file-select-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  cursor: inherit;
+}
+.file-select-symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--accent-soft, #efedff);
+  color: var(--accent);
+  font-size: 22px;
+}
+.file-select-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.file-select-copy strong {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.file-select-copy > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.file-select.is-large {
+  min-height: 160px;
+}
+.file-select.is-compact {
+  min-height: 38px;
+  width: auto;
+  max-width: 320px;
+  padding: 7px 12px;
+  gap: 8px;
+  background: var(--surface);
+}
+.file-select.is-compact .file-select-symbol {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  font-size: 16px;
+}
+.file-select.is-compact .file-select-copy strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .file-select {
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease;
+  }
+}
+@media (max-width: 480px) {
+  .file-select {
+    padding: 16px;
+  }
+  .file-select.is-compact {
+    max-width: 100%;
+  }
+}

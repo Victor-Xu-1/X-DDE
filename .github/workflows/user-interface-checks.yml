@@ -61,6 +61,7 @@ jobs:
         run: >-
           npx vitest run
           src/presentation/ResearchTable.test.tsx
+          src/presentation/FileSelect.test.tsx
           src/presentation/MetricScatter.test.tsx
           src/presentation/InteractionDiagram.test.tsx
           src/presentation/depiction-renderer.test.ts
