@@ -143,6 +143,24 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 ).to_be_enabled(timeout=30000)
                 page.screenshot(path=output / "fresh-clustering-result.png", full_page=True)
                 assert created["request"]["operation"] == "pose_cluster"
+                personal = page.request.get(url + "/api/jobs").json()
+                page.get_by_role("navigation", name="主导航").get_by_role(
+                    "button", name="口袋与对接", exact=True
+                ).click()
+                page.get_by_role("combobox", name="研究任务", exact=True).select_option(
+                    "pose_exploration"
+                )
+                page.get_by_role("button", name="示例结果", exact=True).click()
+                page.get_by_text("查看结合模式分群示例", exact=True).click()
+                fixed = page.get_by_role("region", name="BRD4–JQ1 固定分群案例", exact=True)
+                expect(
+                    fixed.get_by_role("region", name="结合模式分群结果", exact=True)
+                ).to_be_visible()
+                expect(
+                    fixed.get_by_role("button", name="生成三维视图图片", exact=True)
+                ).to_be_enabled(timeout=30000)
+                page.screenshot(path=output / "fixed-clustering-module.png", full_page=True)
+                assert page.request.get(url + "/api/jobs").json() == personal
                 assert not errors, errors
             except Exception:
                 page.screenshot(path=output / "failed-browser-page.png", full_page=True)

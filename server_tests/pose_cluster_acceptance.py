@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
+from cluster_case_archive import freeze_case
 from fastapi.testclient import TestClient
 
 from opendde_workbench.api import create_app
@@ -186,6 +187,7 @@ def main():
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         assert client.get("/api/jobs/" + identifier + "/result").json() == result
         assert records.prepared("pose_exploration")["poses"][0] == poses
+    freeze_case(settings, output, identifier, result)
     receipt = {
         "job_id": identifier,
         "pose_set_id": poses["id"],

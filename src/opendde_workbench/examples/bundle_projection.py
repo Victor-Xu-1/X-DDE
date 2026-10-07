@@ -36,6 +36,8 @@ REFERENCE_KEYS = {
     "model_job",
     "identity_job",
     "ensemble_id",
+    "pose_set_id",
+    "receptor_set_id",
     "site_set_id",
     "exploration_id",
     "run_id",

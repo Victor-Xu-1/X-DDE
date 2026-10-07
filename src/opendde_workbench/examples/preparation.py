@@ -193,6 +193,9 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
         request=request,
         workflow_plan=example_workflow(objects) if capability_id == "workflows" else None,
         record=records.prepared(capability_id) if records is not None else None,
+        source_record=records.prepared(module.parent_capability)
+        if records is not None and module.parent_capability
+        else None,
         campaign_draft=campaign_draft(scientific, cache.parent, objects, sequences)
         if capability_id == "campaign"
         else None,

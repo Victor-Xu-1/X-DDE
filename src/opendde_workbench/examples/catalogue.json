@@ -872,6 +872,13 @@
       "capability_id": "experimental.evidence",
       "revision": 1,
       "pinned_run_required": false
+    },
+    "pose.cluster": {
+      "case_id": "brd4-jq1",
+      "capability_id": "pose.cluster",
+      "revision": 1,
+      "pinned_run_required": true,
+      "parent_capability": "pose_exploration"
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."

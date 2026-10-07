@@ -22,6 +22,10 @@ def validate_case_job(capability_id, job, prepared, store):
         mode = job.request.entity
     if specification.native_mode and mode != specification.native_mode:
         raise ValueError("The native mode does not match this example.")
+    if prepared.module.parent_capability:
+        from .analysis_validation import validate_analysis
+
+        return validate_analysis(job, prepared, store)
     if job.request.operation == "reference_import":
         if job.request.source != "pdb" or job.request.identifier != "3MXF":
             raise ValueError("The archive import does not belong to the reviewed case.")

@@ -18,7 +18,10 @@ from opendde_workbench.store import Store
 
 
 def test_every_visible_module_has_a_source_backed_complex_case():
-    assert set(MODULES) == {key for key, value in CAPABILITIES.items() if value.frontend_form}
+    visible = {key for key, value in CAPABILITIES.items() if value.frontend_form}
+    assert set(MODULES) == visible | {"pose.cluster"}
+    assert MODULES["pose.cluster"].parent_capability == "pose_exploration"
+    assert MODULES["pose.cluster"].case_id == MODULES["pose_exploration"].case_id
     from opendde_workbench.datasets.capabilities import CAPABILITIES as DATA_CAPABILITIES
 
     assert {item.id for item in DATA_CAPABILITIES} <= set(MODULES)

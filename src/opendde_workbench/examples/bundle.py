@@ -29,7 +29,21 @@ def verify_examples(settings, capabilities=None):
     computed = validated = 0
     selected = tuple(MODULES) if capabilities is None else tuple(capabilities)
     for capability in selected:
+        parent = MODULES[capability].parent_capability
+        if parent and parent not in selected:
+            raise ValueError("A follow-up case must retain its fixed parent-case pin.")
         pin = pins.get(capability, verify=True)
+        if pin and parent:
+            from ..research.storage import ScientificStore
+            from .pin_validation import validate_case_job
+
+            prepared = prepare_example(
+                capability,
+                ScientificStore(store, assets),
+                settings.state_dir / "public-example-cache",
+                records=records,
+            )
+            validate_case_job(capability, store.get(str(pin.job_id)), prepared, store)
         record = records.get(capability, verify=True)
         if pin or record and record.computed_result_available:
             computed += 1

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ClusterForm } from "./ClusterForm";
+import { ClusterExample } from "./ClusterExample";
 import { PoseScoreComparison } from "./PoseScoreComparison";
 import { artifactUrl } from "../api";
 import { MolecularPreview } from "../presentation/MolecularPreview";
@@ -11,9 +12,11 @@ import type { PoseSet } from "./types";
 export function PoseResults({
   value,
   language,
+  fixedExample = false,
 }: {
   value: PoseSet;
   language: Language;
+  fixedExample?: boolean;
 }) {
   const zh = language === "zh";
   const initialIndex = Math.max(
@@ -29,12 +32,34 @@ export function PoseResults({
     ),
     [next, setNext] = useState<"properties" | "score" | null>(null),
     [message, setMessage] = useState(""),
-    [clustering, setClustering] = useState(false);
+    [clustering, setClustering] = useState(false),
+    [exampleOpen, setExampleOpen] = useState(false);
   const outcome = value.outcomes[index],
     combination = outcome.combination;
   const selected = outcome.poses.find(
     (p) => p.evidence.record === pose && p.reference,
   );
+  if (clustering || exampleOpen) {
+    return (
+      <section className="pose-results">
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            setClustering(false);
+            setExampleOpen(false);
+          }}
+        >
+          {zh ? "← 返回姿势结果" : "← Back to pose results"}
+        </button>
+        {clustering ? (
+          <ClusterForm key={value.id} value={value} language={language} />
+        ) : (
+          <ClusterExample language={language} />
+        )}
+      </section>
+    );
+  }
   const labels: Record<string, string> = {
     succeeded: zh ? "有原生结果" : "Native result",
     failed: zh ? "失败" : "Failed",
@@ -178,8 +203,16 @@ export function PoseResults({
           {zh ? "按结合模式分群" : "Cluster binding modes"}
         </button>
       </div>
-      {clustering && (
-        <ClusterForm key={value.id} value={value} language={language} />
+      {fixedExample && (
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setExampleOpen(true)}
+        >
+          {zh
+            ? "查看结合模式分群示例"
+            : "View the binding-mode clustering example"}
+        </button>
       )}
       <PoseScoreComparison
         value={value}

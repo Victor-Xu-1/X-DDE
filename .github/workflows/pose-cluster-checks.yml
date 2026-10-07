@@ -10,6 +10,7 @@ on:
       - 'frontend/src/poses/cluster*'
       - 'tests/test_pose_clustering*.py'
       - 'server_tests/*cluster*'
+      - 'src/opendde_workbench/examples/analysis_validation.py'
       - '.github/workflows/pose-cluster-checks.yml'
 permissions:
   contents: read
@@ -32,10 +33,11 @@ jobs:
           uv run --locked pytest -q tests/test_pose_clustering_contract.py
           tests/test_pose_exploration_contract.py tests/test_pose_exploration_api.py
           tests/test_chemistry_contract.py tests/test_capabilities.py
-          tests/test_research_assets.py
+          tests/test_research_assets.py tests/test_analysis_example.py tests/test_examples.py tests/test_example_pins.py
+          tests/test_example_records.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
       - name: Changed questionnaire and native result presentation
         working-directory: frontend
-        run: npx vitest run src/poses/ClusterForm.test.tsx src/poses/ClusterResults.test.tsx src/poses/PoseScoreComparison.test.tsx src/operations/OperationResults.test.tsx
+        run: npx vitest run src/poses/ClusterForm.test.tsx src/poses/ClusterResults.test.tsx src/poses/ClusterExample.test.tsx src/poses/PoseScoreComparison.test.tsx src/operations/OperationResults.test.tsx
       - name: Restore real BRD4/JQ1 poses and execute locked native clustering
         env:
           GH_TOKEN: ${{ github.token }}
@@ -52,6 +54,7 @@ jobs:
         with:
           name: pose-cluster-acceptance
           path: |
+            ${{ runner.temp }}/pose-cluster/*.zip
             ${{ runner.temp }}/pose-cluster/*.json
             ${{ runner.temp }}/pose-cluster/*.png
             ${{ runner.temp }}/pose-cluster/*.csv

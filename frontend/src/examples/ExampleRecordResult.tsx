@@ -72,7 +72,7 @@ export function ExampleRecordResult({
         <CampaignCasePreview language={language} />
       )}
       {record.kind === "pose_exploration" && record.poses[0] && (
-        <PoseResults value={record.poses[0]} language={language} />
+        <PoseResults value={record.poses[0]} language={language} fixedExample />
       )}
       {record.kind === "workflows" && (
         <section aria-label={zh ? "模板流程结果" : "Template workflow result"}>

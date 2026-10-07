@@ -36,6 +36,7 @@ class ModuleExample(ExampleModel):
     capability_id: str
     revision: int = Field(ge=1)
     pinned_run_required: bool
+    parent_capability: str | None = None
 
 
 class PreparedExample(ExampleModel):
@@ -49,6 +50,7 @@ class PreparedExample(ExampleModel):
     request: dict | None = None
     workflow_plan: dict | None = None
     record: dict | None = None
+    source_record: dict | None = None
     campaign_draft: dict | None = None
 
 

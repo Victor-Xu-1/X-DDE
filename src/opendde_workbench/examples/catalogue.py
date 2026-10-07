@@ -15,11 +15,27 @@ POLYMERS = MANIFEST["polymers"]
 
 def validate_catalogue():
     expected = {key for key, capability in CAPABILITIES.items() if capability.frontend_form}
-    if set(MODULES) != expected:
+    internal = {key for key, module in MODULES.items() if module.parent_capability}
+    if set(MODULES) != expected | internal:
         raise ValueError("Every visible capability requires an explicitly reviewed example.")
     for key, module in MODULES.items():
         if module.capability_id != key or module.case_id not in CASES:
             raise ValueError("Example capability/case identity is inconsistent.")
+        if module.parent_capability:
+            parent = MODULES.get(module.parent_capability)
+            capability = CAPABILITIES.get(key)
+            if (
+                not parent
+                or parent.parent_capability
+                or parent.case_id != module.case_id
+                or module.parent_capability not in expected
+                or key in expected
+                or not capability
+                or not capability.operations
+                or capability.frontend_form
+                or not module.pinned_run_required
+            ):
+                raise ValueError("An internal analysis requires its visible reviewed parent case.")
         if any(name not in FILES for name in CASES[module.case_id].files):
             raise ValueError("An example refers to an unknown public file.")
     for file in FILES.values():
