@@ -18,7 +18,7 @@ def pdb_atoms(file):
                     "insertion": line[26].strip(),
                     "residue": line[17:20].strip(),
                     "atom": line[12:16].strip(),
-                    "element": line[76:78].strip(),
+                    "element": line[76:78].strip().capitalize(),
                     "position": tuple(float(line[i : i + 8]) for i in (30, 38, 46)),
                 }
             except (ValueError, IndexError) as error:
