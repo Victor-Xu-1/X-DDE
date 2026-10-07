@@ -70,7 +70,7 @@ export function EvidencePlot({
                 x2={x(unproject(t))}
                 y1={20}
                 y2={height - 25}
-                stroke="var(--border)"
+                stroke="var(--line)"
               />
               <text x={x(unproject(t))} y={height - 7} textAnchor="middle">
                 {unproject(t).toPrecision(3)}
@@ -102,14 +102,14 @@ export function EvidencePlot({
                   cx={x(r.normalized_value!)}
                   cy={30 + i * 25}
                   r={4}
-                  fill="var(--primary)"
+                  fill="var(--accent)"
                 />
               ) : (
                 <text
                   x={x(r.normalized_value!)}
                   y={35 + i * 25}
                   textAnchor="middle"
-                  fill="var(--primary)"
+                  fill="var(--accent)"
                 >
                   {r.relation === "~"
                     ? "≈"

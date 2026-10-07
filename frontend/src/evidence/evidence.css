@@ -21,7 +21,7 @@
 .evidence-metrics strong {
   font-size: 26px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink);
 }
 .evidence-visuals {
   display: grid;
@@ -40,7 +40,7 @@
 .evidence-plot svg {
   width: 100%;
   min-width: 500px;
-  color: var(--text);
+  color: var(--ink);
   font: 12px system-ui;
 }
 .evidence-plot text {
@@ -50,7 +50,7 @@
   cursor: pointer;
 }
 .evidence-plot g[role="button"]:focus {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent);
 }
 .evidence-structure {
   min-width: 0;

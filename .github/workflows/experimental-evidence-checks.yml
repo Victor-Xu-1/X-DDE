@@ -26,12 +26,14 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: CSV, immutable evidence, assets and legacy case boundaries
+        id: evidence_contracts
         run: >-
           uv run --locked pytest -q tests/test_experimental_evidence.py
           tests/test_experimental_evidence_api.py tests/test_capabilities.py
           tests/test_examples.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
           tests/test_example_records.py tests/test_example_pins.py tests/test_research_assets.py
       - name: Changed evidence results and question flow
+        if: ${{ success() || (failure() && steps.evidence_contracts.outcome == 'failure') }}
         working-directory: frontend
         run: npx vitest run src/evidence/EvidenceResults.test.tsx src/evidence/EvidenceForm.test.tsx
       - name: Install the actual public assay and preserve its original records
