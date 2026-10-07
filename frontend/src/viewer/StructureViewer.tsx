@@ -20,6 +20,7 @@ import {
   type SceneInfo,
   type SelectionInfo,
   type ViewerOptions,
+  type ViewMode,
   type PickMode,
   type ContactSummary,
   type SurfaceSummary,
@@ -38,6 +39,7 @@ import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 interface Props {
+  initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
   urls: string[];
   language: Language;
@@ -57,6 +59,7 @@ interface Props {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewer({
+  initialMode,
   urls: originalUrls,
   language,
   focusResidue,
@@ -110,7 +113,12 @@ export function StructureViewer({
       ":" +
       (records?.join(",") ?? "") +
       ":" +
-      JSON.stringify({ nativeInteractions, electrostaticMap, channelGeometry });
+      JSON.stringify({
+        nativeInteractions,
+        electrostaticMap,
+        channelGeometry,
+        initialMode,
+      });
   const overlay = urls.length > 1;
   const requestedKey = useRef<string | null>(key);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
@@ -211,6 +219,7 @@ export function StructureViewer({
         focusModel,
         ...(focusModels ? { focusModels } : {}),
         records,
+        ...(initialMode ? { initialMode } : {}),
         nativeInteractions,
         ...(channelGeometry ? { channelGeometry } : {}),
         electrostaticMap,

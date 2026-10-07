@@ -14,10 +14,16 @@ from urllib.parse import urlsplit
 from opendde_workbench.examples import (
     channel_bundle_release,
     pose_bundle_release,
+    proximity_bundle_release,
     surface_bundle_release,
 )
 
-SPECS = (surface_bundle_release, pose_bundle_release, channel_bundle_release)
+SPECS = (
+    surface_bundle_release,
+    pose_bundle_release,
+    channel_bundle_release,
+    proximity_bundle_release,
+)
 
 
 def verify_bundle(file, spec):
@@ -83,6 +89,23 @@ def stage_one(tag, destination, spec):
             verify_bundle(target, spec)
         else:
             shutil.copyfile(source, target)
+        if getattr(spec, "SOURCE_FILES", ()):
+            from opendde_workbench.examples.catalogue import FILES
+
+            for key in spec.SOURCE_FILES:
+                original = FILES[key]
+                file = Path(directory) / "platform" / original.name
+                if (
+                    file.stat().st_size != original.bytes
+                    or hashlib.sha256(file.read_bytes()).hexdigest() != original.sha256
+                ):
+                    raise ValueError("The accepted public coordinate input changed.")
+                copied = destination / original.name
+                if copied.exists():
+                    if copied.read_bytes() != file.read_bytes():
+                        raise ValueError("Existing release input differs from its accepted source.")
+                else:
+                    shutil.copyfile(file, copied)
     print(
         json.dumps({"case": target.name, "sha256": spec.SHA256, "native_run": spec.NATIVE_RUN_ID})
     )

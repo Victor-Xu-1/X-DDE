@@ -164,6 +164,7 @@ export function ProximityResults({
                   label: zh ? "完整复合物" : "Complete complex",
                   content: (
                     <StructureViewer
+                      initialMode="cartoon"
                       key={active.id + "-complex"}
                       urls={[url(active.complex_artifact)]}
                       molecularSource={{
@@ -220,6 +221,11 @@ export function ProximityResults({
               {zh
                 ? "链 A：伙伴 1 · 链 B：伙伴 2 · 链 L：完整分子"
                 : "Chain A: partner 1 · Chain B: partner 2 · Chain L: complete molecule"}
+            </p>
+            <p className="proximity-caption">
+              {zh
+                ? "本次只建模两个核心蛋白链与完整分子；其他亚基和辅因子需要另行评估。"
+                : "This models two principal protein chains and the complete molecule. Accessory subunits and cofactors require separate assessment."}
             </p>
           </section>
         </div>

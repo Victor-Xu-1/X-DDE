@@ -50,6 +50,7 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
         "public-surface-examples",
         "public-pose-examples",
         "public-channel-examples",
+        "public-proximity-examples",
     }:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings

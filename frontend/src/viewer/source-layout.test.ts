@@ -36,3 +36,15 @@ it("accepts only bounded explicit viewer layouts and preserves source URLs", () 
   ])
     expect(() => viewerLoad(value)).toThrow();
 });
+
+it("keeps explicit whole-assembly presentation separate from the existing automatic pocket view", () => {
+  const input = { urls: ["/api/assets/assembly"], comparison: false };
+  expect(viewerLoad(input).initialMode).toBeUndefined();
+  expect(viewerLoad({ ...input, initialMode: "cartoon" }).initialMode).toBe(
+    "cartoon",
+  );
+  for (const mode of ["unknown", true, 1, {}, []])
+    expect(() => viewerLoad({ ...input, initialMode: mode })).toThrow(
+      "Invalid initial structure view",
+    );
+});

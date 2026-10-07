@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from opendde_workbench.api import create_app
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.deployment.installers import install
-from opendde_workbench.examples import channel_bundle_release as spec
+from opendde_workbench.examples import channel_bundle_release, proximity_bundle_release
 from opendde_workbench.examples.bundle import restore_bundle
 from opendde_workbench.examples.bundle_release import SHA256 as BASE_SHA256
 from opendde_workbench.settings import Settings
@@ -21,10 +21,14 @@ from opendde_workbench.store import Store
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--case", choices=("channel", "proximity"), default="channel")
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--base", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    spec = channel_bundle_release if args.case == "channel" else proximity_bundle_release
+    package = "public-channel-examples" if args.case == "channel" else "public-proximity-examples"
+    capability = "caver.paths" if args.case == "channel" else "deepternary.model"
     output = args.output.resolve()
     settings = Settings(
         state_dir=output / "state",
@@ -47,7 +51,7 @@ def main():
         assert hashlib.file_digest(stream, "sha256").hexdigest() == spec.SHA256
     # The existing downloader verifies the real accepted cache; it cannot substitute another zip.
     metadata = install(
-        "public-channel-examples",
+        package,
         root,
         {},
         str(uuid4()),
@@ -63,7 +67,7 @@ def main():
             for name in ("jobs", "assets", "scientific_objects")
         }
     repeated = install(
-        "public-channel-examples",
+        package,
         root,
         {},
         str(uuid4()),
@@ -83,14 +87,18 @@ def main():
         store.get(key).request.model_dump_json() == request for key, request in before_jobs.items()
     )
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
-        example = client.get("/api/examples/caver.paths").json()
+        example = client.get("/api/examples/" + capability).json()
         assert example["computed_result_available"]
         job = example["pin"]["job_id"]
         result = client.get("/api/jobs/" + job + "/result")
         assert result.status_code == 200, result.text
-        assert result.json()["channels"]
-        assert result.json()["coordinate_frame"] == "original_selected_structural_model"
-        assert result.json()["prepared_reference"]["version_id"]
+        if args.case == "channel":
+            assert result.json()["channels"]
+            assert result.json()["coordinate_frame"] == "original_selected_structural_model"
+            assert result.json()["prepared_reference"]["version_id"]
+        else:
+            assert len(result.json()["proximity"]["assemblies"]) == 3
+            assert result.json()["proximity"]["source_ligand"]["version_id"]
         assert job not in {row["id"] for row in client.get("/api/jobs").json()}
     receipt = {
         "accepted_sha256": spec.SHA256,

@@ -23,6 +23,9 @@ from ..examples.manifest import MANIFEST as EXAMPLE_MANIFEST
 from ..examples.pose_bundle_release import SHA256 as POSE_CASE_SHA
 from ..examples.pose_bundle_release import URL as POSE_CASE_URL
 from ..examples.pose_bundle_release import VERSION as POSE_CASE_VERSION
+from ..examples.proximity_bundle_release import SHA256 as PROXIMITY_CASE_SHA
+from ..examples.proximity_bundle_release import URL as PROXIMITY_CASE_URL
+from ..examples.proximity_bundle_release import VERSION as PROXIMITY_CASE_VERSION
 from ..examples.surface_bundle_release import SHA256 as SURFACE_CASE_SHA
 from ..examples.surface_bundle_release import URL as SURFACE_CASE_URL
 from ..examples.surface_bundle_release import VERSION as SURFACE_CASE_VERSION
@@ -364,6 +367,20 @@ PACKAGES["public-channel-examples"] = Package(
     url=CHANNEL_CASE_URL,
     checksum=CHANNEL_CASE_SHA,
     license="RCSB PDB CC0-1.0; native geometric measurements, not whole-drug passage",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-proximity-examples"] = Package(
+    "public-proximity-examples",
+    PROXIMITY_CASE_VERSION,
+    "Induced proximity public case",
+    "MZ1–BRD4–VHL 原生三元核心装配 / Native ternary core assembly hypotheses",
+    "0.5 MB",
+    automatic=True,
+    url=PROXIMITY_CASE_URL,
+    checksum=PROXIMITY_CASE_SHA,
+    license="RCSB PDB CC0-1.0; processed input attribution; computed hypotheses, not drug activity",
     engine="x-dde",
     kind="data",
 )

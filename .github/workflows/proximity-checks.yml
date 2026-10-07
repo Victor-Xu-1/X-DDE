@@ -13,6 +13,7 @@ on:
       - '.github/workflows/proximity-checks.yml'
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: proximity-${{ github.ref }}
   cancel-in-progress: true
@@ -41,6 +42,13 @@ jobs:
         run: |
           uv run --locked --group browser python -m playwright install --with-deps chromium
           uv run --locked --group browser pytest -q server_tests/test_proximity_browser.py
+      - name: Verify accepted data installation preserves historical state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run --locked python scripts/stage-release-examples.py --tag v0.4.37 --destination "$RUNNER_TEMP/proximity-release-inputs"
+          gh release download examples-v1 --repo Victor-Xu-1/X-DDE --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          uv run --locked python server_tests/channel_case_install_acceptance.py --case proximity --archive "$RUNNER_TEMP/proximity-release-inputs/x-dde-proximity-cases-v1.zip" --base "$RUNNER_TEMP/x-dde-public-cases-v1.zip" --output "$RUNNER_TEMP/proximity-data-install"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -67,3 +75,4 @@ jobs:
             ${{ runner.temp }}/deepternary/platform/*.sdf
             ${{ runner.temp }}/deepternary/platform/*.zip
             ${{ runner.temp }}/deepternary/platform/*.png
+            ${{ runner.temp }}/proximity-data-install/*.json

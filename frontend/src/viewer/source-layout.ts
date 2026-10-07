@@ -1,7 +1,9 @@
 import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
 import { channelGeometry, type ChannelGeometry } from "./channel-geometry";
+import type { ViewMode } from "./protocol";
 export interface ViewerLoad {
+  initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
   urls: string[];
   comparison: boolean;
@@ -37,6 +39,12 @@ export function viewerLoad(value: unknown): ViewerLoad {
     throw new Error("Invalid structure sources");
   const sourceCount = v.urls.length;
   if (
+    v.initialMode !== undefined &&
+    (typeof v.initialMode !== "string" ||
+      !["cartoon", "pocket", "surface"].includes(v.initialMode))
+  )
+    throw new Error("Invalid initial structure view");
+  if (
     typeof v.comparison !== "boolean" ||
     (v.focusModel !== undefined &&
       (!Number.isInteger(v.focusModel) ||
@@ -64,6 +72,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid molecular records");
   return {
+    ...(v.initialMode === undefined
+      ? {}
+      : { initialMode: v.initialMode as ViewMode }),
     nativeInteractions: nativeInteractions(v.nativeInteractions),
     ...(v.channelGeometry === undefined
       ? {}

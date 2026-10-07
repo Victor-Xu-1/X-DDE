@@ -112,6 +112,10 @@ async function load(input: ViewerLoad) {
       inputCharges,
     );
     scene.nativeInteractions = input.nativeInteractions;
+    if (input.initialMode) {
+      scene.options.mode = input.initialMode;
+      if (input.initialMode === "cartoon") scene.options.labels = false;
+    }
     scene.channelGeometry = input.channelGeometry;
     if (input.channelGeometry) {
       scene.options.mode = "cartoon";
