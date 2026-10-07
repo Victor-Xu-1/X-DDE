@@ -9,3 +9,4 @@ JAVA_IMAGE = (
     "14731f0ec76c841877c8858e1a29413d7acacda5c5ce567eaf6e5f19913b7cb1"
 )
 LICENSE = "GPL-3.0; bundled LGPL-3.0/GPL-3.0 library notices retained"
+RADII_SHA256 = "5986cc8f6f07002b3c0b0601c2940527f5d8defe17580e17092b2b1ef8bce8f0"

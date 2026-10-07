@@ -27,11 +27,17 @@ jobs:
       - run: uv run --locked pytest -q tests/test_caver_profiles.py tests/test_space_frame.py
       - name: Stable native protocol on official and real drug-complex inputs
         run: uv run --locked python server_tests/caver_native_probe.py --output "$RUNNER_TEMP/caver-native"
+      - name: Actual composed adapter, reusable structure and undefined-radius rejection
+        run: uv run --locked python server_tests/caver_adapter_probe.py --protocol "$RUNNER_TEMP/caver-native"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: caver-native-evidence
           path: |
+            ${{ runner.temp }}/caver-native/adapter-acceptance.json
+            ${{ runner.temp }}/caver-native/adapter-acceptance/actual/result.json
+            ${{ runner.temp }}/caver-native/adapter-acceptance/*/probe.log
+            ${{ runner.temp }}/caver-native/adapter-acceptance/actual/native.log
             ${{ runner.temp }}/caver-native/protocol-acceptance.json
             ${{ runner.temp }}/caver-native/drug-channels.json
             ${{ runner.temp }}/caver-native/*/native.log
