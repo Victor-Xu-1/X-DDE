@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api";
 import { MethodSwitch } from "./MethodSwitch";
+import { ModuleTaskPicker } from "./ModuleTaskPicker";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -51,4 +52,18 @@ it("selects the sole backend for a task and does not dispatch when clicked", asy
   expect(selected).toHaveAttribute("aria-pressed", "true");
   await user.click(selected);
   expect(change).not.toHaveBeenCalled();
+});
+
+it("selects a backend even for a task outside the research navigation groups", () => {
+  vi.spyOn(client, "request").mockResolvedValue({
+    availability: { configuration_present: true },
+  });
+  render(
+    <ModuleTaskPicker value="resources" language="en" onChange={vi.fn()} />,
+  );
+  expect(screen.getByRole("group", { name: "Backend method" })).toBeVisible();
+  expect(screen.getByRole("button", { name: /Default/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 });

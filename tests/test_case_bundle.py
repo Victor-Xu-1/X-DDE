@@ -174,3 +174,21 @@ def test_unknown_record_columns_rejected_before_sql(settings, tmp_path):
     )
     with pytest.raises(ValueError, match="record fields"):
         bundle.restore_bundle(target, settings, sha256(target))
+
+
+def test_partial_case_notices_exclude_unrelated_sources_and_output_restrictions():
+    from opendde_workbench.examples.bundle_notices import bundle_notices
+    from opendde_workbench.examples.catalogue import CASES
+
+    value = bundle_notices(
+        ["biopython.exposure"],
+        {"jobs": [{"request": json.dumps({"operation": "surface_exposure"})}]},
+    )
+    assert set(value["sources"]) == set(CASES["brd4-jq1"].sources)
+    assert value["licenses"] == ["CC0-1.0"]
+    assert "linker passage" in value["methods"]
+    assert "DrugCLIP" not in json.dumps(value)
+    retrieval = bundle_notices(
+        ["drugclip.screen"], {"jobs": [{"request": json.dumps({"operation": "drugclip_retrieve"})}]}
+    )
+    assert any("CC-BY-NC-4.0" in license for license in retrieval["licenses"])

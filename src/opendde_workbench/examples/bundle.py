@@ -6,6 +6,7 @@ from pathlib import Path
 from ..assets import AssetStore
 from ..store import Store
 from .bundle_archive import safe_path, sha256, write_archive
+from .bundle_notices import bundle_notices
 from .bundle_projection import project_records, references
 from .bundle_restore import restore_bundle as restore_bundle
 from .bundle_sources import archive_sources
@@ -98,21 +99,7 @@ def export_bundle(settings, target, source_revision, *, capabilities=None):
         "capabilities": list(selected),
         "summary": summary,
         "records": rows,
-        "notices": {
-            "sources": sorted({url for case in CASES.values() for url in case.sources}),
-            "licenses": [
-                "RCSB PDB: CC0-1.0",
-                "ChEMBL: CC-BY-SA-3.0",
-                "UniProt/Swiss-Prot: CC-BY-4.0",
-                "UNCDEL006 examples: MIT; Wellnitz et al. (2026) CC-BY-4.0",
-                "Official DrugCLIP computed outputs: CC-BY-NC-4.0; noncommercial research",
-            ],
-            "methods": (
-                "Retained native computational predictions; not experimental affinity. "
-                "MZ1 regions are geometric annotations. "
-                "Campaign is native configuration validation only."
-            ),
-        },
+        "notices": bundle_notices(selected, rows),
     }
     return {
         **summary,

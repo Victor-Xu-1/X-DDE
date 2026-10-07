@@ -45,6 +45,14 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
     settings = replace(
         Settings.from_env(), biopython_image=installed["image"], minimum_free_bytes=0
     )
+    from opendde_workbench.deployment.transfers import download
+    from opendde_workbench.examples.bundle import restore_bundle
+    from opendde_workbench.examples.bundle_release import SHA256 as BASE_SHA
+    from opendde_workbench.examples.bundle_release import URL as BASE_URL
+
+    base_archive = tmp_path / "base-cases.zip"
+    download(BASE_URL, base_archive, BASE_SHA, lambda message: None, lambda: None)
+    restore_bundle(base_archive, settings, BASE_SHA)
     evidence = Path("server_tests/evidence/surface")
     evidence.mkdir(parents=True, exist_ok=True)
     raw = Path("server_tests/fixtures/surface-3mxf.pdb").read_bytes()
@@ -81,8 +89,6 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
         prepare_id = created.json()["id"]
         prepared = finished(client, prepare_id)
         assert prepared["resolved_alternates"] and prepared["reference"]["version_id"]
-        pinned = client.post("/api/examples/biopython.prepare/pin", json={"job_id": prepare_id})
-        assert pinned.status_code == 200, pinned.text
         exact = prepared["reference"]
         body = {
             "operation": "surface_exposure",
@@ -164,6 +170,18 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
             capabilities=["biopython.exposure"],
         )
         (evidence / "bundle-receipt.json").write_text(json.dumps(exported, indent=2))
+        target = replace(settings, state_dir=tmp_path / "restore-state")
+        restore_bundle(base_archive, target, BASE_SHA)
+        restore_bundle(evidence / "x-dde-surface-cases-v1.zip", target, exported["sha256"])
+        # Re-import preserves the same scientific versions and does not enqueue any calculation.
+        restore_bundle(evidence / "x-dde-surface-cases-v1.zip", target, exported["sha256"])
+        with TestClient(create_app(target), base_url="http://127.0.0.1:4334") as replay:
+            assert replay.get("/api/jobs").json() == []
+            assert replay.get("/api/jobs/" + identifier + "/result").json() == result
+            assert replay.get("/api/examples/biopython.exposure").json()[
+                "computed_result_available"
+            ]
+
         original = (output / "atoms.csv").read_bytes()
         (output / "atoms.csv").write_bytes(b"changed")
         assert client.get("/api/jobs/" + identifier + "/result").status_code == 422

@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
 import { MethodSwitch } from "./MethodSwitch";
 import { BindingEntryDialog } from "./BindingEntryDialog";
-import { Hint } from "../guided/Hint";
-import { tools, type ToolId } from "../operations/catalog";
+import type { ToolId } from "../operations/catalog";
 import { moduleForTool, toolLabel } from "./research-modules";
 import type { Language } from "../types";
 export function ModuleTaskPicker({
@@ -17,9 +16,11 @@ export function ModuleTaskPicker({
   const [guide, setGuide] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const module = moduleForTool(value),
-    current = tools.find((tool) => tool.id === value),
     zh = language === "zh";
-  if (!module) return null;
+  if (!module)
+    return (
+      <MethodSwitch value={value} language={language} onChange={onChange} />
+    );
   const extra = module.tools.filter((id) => !module.recommended.includes(id));
   return (
     <div
@@ -72,11 +73,6 @@ export function ModuleTaskPicker({
         </>
       )}
       <MethodSwitch value={value} language={language} onChange={onChange} />
-      {current && (
-        <Hint label={zh ? "研究任务说明" : "Research task help"}>
-          {current.note[zh ? 0 : 1]} · {current.source}
-        </Hint>
-      )}
     </div>
   );
 }
