@@ -48,9 +48,15 @@ def test_case_component_queue_restores_into_current_state(package, tmp_path, mon
         {},
     )
     checksum = sha256(archive)
-    monkeypatch.setitem(
-        installers.PACKAGES, package, replace(installers.PACKAGES[package], checksum=checksum)
-    )
+    from opendde_workbench.deployment.catalog import dependencies
+
+    # Exercise the actual dependency queue as well as replaying the same immutable records.
+    for component in dependencies(package):
+        monkeypatch.setitem(
+            installers.PACKAGES,
+            component,
+            replace(installers.PACKAGES[component], checksum=checksum),
+        )
 
     def download(url, destination, expected, report, checkpoint):
         assert expected == checksum
@@ -60,9 +66,12 @@ def test_case_component_queue_restores_into_current_state(package, tmp_path, mon
     monkeypatch.setattr(installers, "download", download)
     # This transport fixture contains only a project record, never a scientific prediction.
     monkeypatch.setattr(bundle, "verify_examples", lambda settings: {"modules": 0})
-    operation = manager.enqueue(package, "install")[0]
-    manager.tick()
-    assert manager.store.get(operation)["state"] == "succeeded"
+    operations = manager.enqueue(package, "install")
+    for operation in operations:
+        manager.tick()
+        record = manager.store.get(operation)
+        assert record["state"] == "succeeded", record
+    assert [manager.store.get(row)["package"] for row in operations] == dependencies(package)
     assert manager.store.installed()[package]["bundle_sha256"] == checksum
     with Store(state / "jobs.sqlite3").connect() as database:
         assert (
