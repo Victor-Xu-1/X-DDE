@@ -135,7 +135,11 @@ def check_candidate(source, candidate, arms, partners, prediction):
         "partner_partner_severe_pairs": clash_partners,
         "stereochemistry_preserved": stereo,
         "arms": heads,
-        "relaxation": relaxation_difference(candidate),
+        "relaxation": (
+            relaxation_difference(candidate)
+            if not (bad_bonds or internal) and stereo
+            else {"status": "not_evaluated_invalid_geometry", "difference_kcal_mol": None}
+        ),
         "method": "X-DDE independent covalent-radius/steric/binary-frame/stereo checks v1",
         "scope": "basic_geometry_not_experimental_activity_or_complete_posebusters_acceptance",
     }

@@ -57,7 +57,9 @@ class ArmQuality(EvidenceModel):
 
 
 class RelaxationQuality(EvidenceModel):
-    status: Literal["converged", "not_converged", "unsupported_parameters"]
+    status: Literal[
+        "converged", "not_converged", "unsupported_parameters", "not_evaluated_invalid_geometry"
+    ]
     difference_kcal_mol: float | None = Field(ge=0)
 
 
