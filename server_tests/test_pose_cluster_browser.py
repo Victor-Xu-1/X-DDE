@@ -59,11 +59,15 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 expect(
                     page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                 ).to_be_visible()
+                expect(
+                    result.get_by_role("button", name="生成三维视图图片", exact=True)
+                ).to_be_enabled(timeout=30000)
                 page.screenshot(path=output / "native-clusters-desktop.png", full_page=True)
                 result.get_by_role("tab", name="二维结构", exact=True).click()
                 image = result.get_by_role("img", name=re.compile("^二维分子结构 · 姿势"))
                 expect(image).to_be_visible(timeout=30000)
                 assert image.evaluate("img=>img.complete && img.naturalWidth>0")
+                page.screenshot(path=output / "native-pose-2d.png", full_page=True)
                 result.get_by_role("tab", name="三维结构", exact=True).click()
                 native = json.loads((output / "result.json").read_text())
                 distance = native["pairs"][0]["rmsd_angstrom"]
@@ -81,6 +85,9 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 expect(metrics).to_contain_text(
                     "接触相似度 " + ("—" if similarity is None else f"{similarity * 100:.1f}%")
                 )
+                expect(
+                    result.get_by_role("button", name="生成三维视图图片", exact=True)
+                ).to_be_enabled(timeout=30000)
                 page.screenshot(path=output / "native-pair-overlay.png", full_page=True)
                 with page.expect_download() as downloaded:
                     result.get_by_role("link", name="下载两两比较", exact=True).click()
@@ -92,6 +99,11 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 assert "<svg" in (output / "comparison-map.svg").read_text()
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
+                heading = result.locator(".viewer-panel > .studio-heading > h3")
+                assert heading.evaluate(
+                    "e => e.scrollWidth <= e.clientWidth + 1 && "
+                    "e.getBoundingClientRect().height < 50"
+                )
                 page.screenshot(path=output / "native-clusters-mobile.png", full_page=True)
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 page.get_by_role("navigation", name="主导航").get_by_role(
@@ -126,6 +138,9 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 expect(
                     page.get_by_role("region", name="结合模式分群结果", exact=True)
                 ).to_be_visible(timeout=90000)
+                expect(
+                    page.get_by_role("button", name="生成三维视图图片", exact=True)
+                ).to_be_enabled(timeout=30000)
                 page.screenshot(path=output / "fresh-clustering-result.png", full_page=True)
                 assert created["request"]["operation"] == "pose_cluster"
                 assert not errors, errors

@@ -37,8 +37,19 @@
   min-width: 0;
   min-height: 0;
 }
+.viewer-panel > .studio-heading {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 10px;
+}
+.viewer-panel > .studio-heading > h3 {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 .viewer-heading-actions {
   display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
   gap: 6px;
 }
 .viewer-heading-actions button {
