@@ -15,6 +15,7 @@ export const researchIcons = {
   screening: BarChartOutlined,
   del: DeploymentUnitOutlined,
   molecules: ExperimentOutlined,
+  proximity: PartitionOutlined,
   biologics: DeploymentUnitOutlined,
   evaluation: BarChartOutlined,
 };

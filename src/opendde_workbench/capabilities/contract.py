@@ -43,6 +43,7 @@ class CapabilitySpec(BaseModel):
         "apbs",
         "chemprop",
         "plip",
+        "deepternary",
         "drugclip",
         "deli",
     ]

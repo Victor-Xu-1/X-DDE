@@ -80,6 +80,18 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "deepternary.model",
+    group: "design",
+    label: ["三元复合物建模", "Ternary complex modeling"],
+    note: [
+      "比较降解剂、RIPTAC、分子胶与诱导邻近分子的完整装配假设。",
+      "Compare complete PROTAC, RIPTAC, molecular-glue and proximity assemblies.",
+    ],
+    source: "deepternary",
+    modalities: ["chemical", "small_molecule", "biologic", "protein"],
+    modality_role: "research_object",
+  },
+  {
     id: "boltz.predict",
     group: "structure",
     label: ["复合物与亲和力预测", "Complex and affinity prediction"],

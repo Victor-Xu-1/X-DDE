@@ -16,6 +16,7 @@ import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { EvidenceWorkspace } from "../evidence/EvidenceWorkspace";
 import { SurfaceForm } from "../receptors/SurfaceForm";
 import { ChannelForm } from "../space/ChannelForm";
+import { ProximityForm } from "../proximity/Form";
 import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
 import { ReferenceImportForm } from "../discovery/ReferenceImportForm";
 import { TargetResearchForm } from "../discovery/TargetResearchForm";
@@ -131,6 +132,8 @@ export function ToolCenter({
                   language={language}
                   onCreated={onCreated}
                 />
+              ) : selected === "deepternary.model" ? (
+                <ProximityForm language={language} onCreated={onCreated} />
               ) : isScientificForm(selected) ? (
                 <ScientificForm
                   form={selected}

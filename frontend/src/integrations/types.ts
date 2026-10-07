@@ -1,7 +1,9 @@
 import type { BaseTask } from "../operations/types";
 import type { MoleculeRef } from "../research/types";
+import type { TernaryResult } from "../proximity/types";
 
 export type ScientificProgram =
+  | "deepternary"
   | "boltz"
   | "reinvent"
   | "ligandmpnn"
@@ -11,6 +13,7 @@ export type ScientificProgram =
   | "chemprop"
   | "plip";
 export type ScientificOperation =
+  | "ternary_model"
   | "boltz_predict"
   | "reinvent_design"
   | "ligandmpnn_design"
@@ -27,7 +30,15 @@ export interface ScientificPayload {
 export interface ScientificTask extends BaseTask {
   operation: ScientificOperation;
   inputs: {
-    role: "structure" | "ligand" | "library" | "scaffold";
+    role:
+      | "structure"
+      | "ligand"
+      | "library"
+      | "scaffold"
+      | "partner_a"
+      | "partner_b"
+      | "arm_a"
+      | "arm_b";
     source: MoleculeRef;
   }[];
   payload: ScientificPayload;
@@ -77,6 +88,7 @@ export interface NativeResult {
   potential_unit?: "kBT/e" | null;
   interactions: NativeInteraction[];
   validation_points: { smiles: string; observed: number; predicted: number }[];
+  proximity?: TernaryResult | null;
 }
 export interface PropertyModel {
   job_id: string;

@@ -35,6 +35,7 @@ from opendde_workbench.integrations.options import (
     ReinventPayload,
 )
 from opendde_workbench.pose_ensembles.contracts import ExplorationOptions
+from opendde_workbench.proximity.options import TernaryPayload
 from opendde_workbench.quality.options import QualityOptions
 from opendde_workbench.receptors.selection import EnsembleOptions, MemberSelection
 from opendde_workbench.research.constraint_contract import ConstraintSet, SpatialBoundsCondition
@@ -168,6 +169,12 @@ def main() -> None:
         "space/generated.ts": header
         + "export const channelDefaults = "
         + json.dumps(ChannelOptions().model_dump(mode="json"), indent=2)
+        + ";\n",
+        "proximity/generated.ts": header
+        + "export const defaults = "
+        + json.dumps(
+            TernaryPayload(partner_a_chain="A", partner_b_chain="B").model_dump(), indent=2
+        )
         + ";\n",
         "chemistry/generated.ts": header
         + "export const defaults = "

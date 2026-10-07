@@ -1,0 +1,164 @@
+.proximity-partner-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.8fr) minmax(400px, 1.35fr);
+  gap: 28px;
+  align-items: start;
+}
+.proximity-materials {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+.proximity-materials label {
+  display: grid;
+  gap: 8px;
+}
+.proximity-molecule {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) minmax(280px, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+.proximity-binding-region {
+  margin-top: 24px;
+  border-top: 1px solid var(--line, #e4e8f1);
+  padding-top: 16px;
+}
+.proximity-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 22px 0;
+}
+.proximity-summary dt {
+  font-size: 13px;
+  color: var(--muted, #66758b);
+  margin-bottom: 8px;
+}
+.proximity-summary dd {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+.proximity-result-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.9fr) minmax(440px, 1.35fr);
+  gap: 30px;
+  align-items: start;
+}
+.proximity-result-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+}
+.proximity-result-layout > *,
+.proximity-partner-layout > * {
+  min-width: 0;
+}
+.proximity-input-empty {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  color: var(--muted);
+  padding: 34px 16px;
+  background: linear-gradient(135deg, #f5f4ff, #f3fbfb);
+}
+.proximity-input-symbol {
+  font-size: 34px;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+}
+.proximity-input-symbol span {
+  color: #27938e;
+}
+.proximity-partner-name {
+  display: grid;
+  gap: 8px;
+  max-width: 420px;
+  margin-bottom: 20px;
+}
+.proximity-contact-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.proximity-contact-table caption {
+  text-align: left;
+  font-weight: 600;
+  padding: 12px 0;
+}
+.proximity-contact-table th,
+.proximity-contact-table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.proximity-contact-table thead th {
+  color: var(--muted);
+  font-weight: 500;
+}
+.proximity-downloads {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.proximity-caption {
+  color: var(--muted, #66758b);
+  font-size: 13px;
+}
+.proximity-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+.proximity-checks div {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line, #e4e8f1);
+  gap: 12px;
+}
+.proximity-check-pass {
+  color: #168b73;
+}
+.proximity-check-fail {
+  color: #b66d17;
+}
+.proximity-plan-options {
+  margin: 24px 0;
+}
+.proximity-expert {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line, #e4e8f1);
+}
+.proximity-expert .inline-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 14px;
+}
+@media (max-width: 1050px) {
+  .proximity-partner-layout,
+  .proximity-result-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 650px) {
+  .proximity-molecule {
+    grid-template-columns: 1fr;
+  }
+  .proximity-summary {
+    gap: 12px;
+  }
+  .proximity-summary dd {
+    font-size: 22px;
+  }
+  .proximity-checks,
+  .proximity-expert .inline-fields {
+    grid-template-columns: 1fr;
+  }
+}

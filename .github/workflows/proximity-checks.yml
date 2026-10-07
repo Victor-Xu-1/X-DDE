@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/integrations/recipes/deepternary*'
       - 'server_tests/deepternary*'
       - 'server_tests/proximity*'
+      - 'server_tests/test_proximity_browser.py'
       - 'tests/test_proximity*'
       - 'frontend/src/proximity/**'
       - '.github/workflows/proximity-checks.yml'
@@ -26,9 +27,20 @@ jobs:
           node-version: '22'
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --group browser
+      - name: Focused task, scientific contract and source-backed example checks
+        run: >-
+          uv run --locked pytest -q tests/test_proximity_contract.py
+          tests/test_integrated_science.py tests/test_native_resources.py
+          tests/test_receptor_contract.py tests/test_capabilities.py tests/test_examples.py
       - name: Official native CPU baseline on the complete MZ1 ternary case
         run: uv run --locked python server_tests/deepternary_native_probe.py --output "$RUNNER_TEMP/deepternary"
+      - name: Review real ternary result displays and downloads
+        env:
+          WB_PROXIMITY_CASE: ${{ runner.temp }}/deepternary/platform
+        run: |
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+          uv run --locked --group browser pytest -q server_tests/test_proximity_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -49,3 +61,9 @@ jobs:
             ${{ runner.temp }}/deepternary/adapter-job/output/*.csv
             ${{ runner.temp }}/deepternary/adapter-job/output/*.pdb
             ${{ runner.temp }}/deepternary/adapter-job/output/*.sdf
+            ${{ runner.temp }}/deepternary/platform/*.log
+            ${{ runner.temp }}/deepternary/platform/*.json
+            ${{ runner.temp }}/deepternary/platform/*.pdb
+            ${{ runner.temp }}/deepternary/platform/*.sdf
+            ${{ runner.temp }}/deepternary/platform/*.zip
+            ${{ runner.temp }}/deepternary/platform/*.png

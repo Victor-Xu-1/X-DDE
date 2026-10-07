@@ -74,6 +74,25 @@ export const methodChoices = [
     ],
   },
   {
+    id: "method.deepternary.model",
+    label: ["三元复合物建模", "Ternary complex modeling"],
+    default: "deepternary.model",
+    default_basis: [
+      "当前唯一接入的方法，已默认选中。",
+      "The only integrated method is selected by default.",
+    ],
+    options: [
+      {
+        id: "deepternary.model",
+        label: "deepternary",
+        note: [
+          "比较降解剂、RIPTAC、分子胶与诱导邻近分子的完整装配假设。",
+          "Compare complete PROTAC, RIPTAC, molecular-glue and proximity assemblies.",
+        ],
+      },
+    ],
+  },
+  {
     id: "method.reinvent.design",
     label: ["类似物与多目标分子设计", "Analogues and molecular optimization"],
     default: "reinvent.design",

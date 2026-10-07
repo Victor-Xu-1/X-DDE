@@ -11,6 +11,7 @@ import type { Job, Language } from "../types";
 import type { NativeCandidate, NativeResult } from "./types";
 import { InteractionResults } from "./InteractionResults";
 import { PotentialResults } from "./PotentialResults";
+import { ProximityResults } from "../proximity/Results";
 import { MetricScatter } from "../presentation/MetricScatter";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import "./results.css";
@@ -77,6 +78,14 @@ export function ScientificResults({
     return <InteractionResults job={job} result={result} language={language} />;
   if (result.program === "apbs")
     return <PotentialResults job={job} result={result} language={language} />;
+  if (result.program === "deepternary" && result.proximity)
+    return (
+      <ProximityResults
+        job={job}
+        result={result.proximity}
+        language={language}
+      />
+    );
   const url = active?.artifact ? artifactUrl(job.id, active.artifact) : null;
   const complexUrl =
     active?.geometry === "source_frame" && result.structure_artifact

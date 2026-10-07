@@ -180,6 +180,33 @@
       "bytes": 3360,
       "kind": "ligand",
       "license": "CC0-1.0"
+    },
+    "ternary_vhl": {
+      "key": "ternary_vhl",
+      "name": "5T35-native-VHL.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.4.37/5T35-native-VHL.pdb",
+      "sha256": "825bb55dae9472e34c8d318b07e5a64fcb4218ccb8c9ca0869d08f98237933db",
+      "bytes": 96228,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "ternary_brd4": {
+      "key": "ternary_brd4",
+      "name": "5T35-native-BRD4.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.4.37/5T35-native-BRD4.pdb",
+      "sha256": "3a614e8742ec8f0a850c9eacf79ec44f15c6c3c0afe7d13c3d0207a0a99c615e",
+      "bytes": 72981,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "ternary_mz1": {
+      "key": "ternary_mz1",
+      "name": "5T35-native-MZ1.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.4.37/5T35-native-MZ1.sdf",
+      "sha256": "e6c2f698d4af425e7008419b2576486467de6ae1b8fa2daa3d7a0700fed853e8",
+      "bytes": 6610,
+      "kind": "ligand",
+      "license": "CC0-1.0"
     }
   },
   "polymers": {
@@ -487,6 +514,28 @@
       "sources": [
         "https://www.rcsb.org/structure/4EY7",
         "https://doi.org/10.1021/jm300871x"
+      ]
+    },
+    {
+      "id": "mz1-native-assembly",
+      "revision": 1,
+      "label": [
+        "MZ1 · BRD4–VHL 三元装配",
+        "MZ1 · BRD4–VHL ternary assembly"
+      ],
+      "description": [
+        "使用官方处理后的 5T35 参考输入，探索完整 MZ1 三元装配并检查真实几何结果。",
+        "Explore complete MZ1 ternary assemblies from the official processed 5T35 reference inputs, with independent geometry checks."
+      ],
+      "files": [
+        "ternary_vhl",
+        "ternary_brd4",
+        "ternary_mz1"
+      ],
+      "sources": [
+        "https://www.rcsb.org/structure/5T35",
+        "https://github.com/youqingxiaozhua/DeepTernary/releases/tag/v1.0.0",
+        "https://www.nature.com/articles/s41467-025-61272-5"
       ]
     }
   ],
@@ -921,6 +970,12 @@
     "caver.paths": {
       "case_id": "ache-donepezil",
       "capability_id": "caver.paths",
+      "revision": 1,
+      "pinned_run_required": true
+    },
+    "deepternary.model": {
+      "case_id": "mz1-native-assembly",
+      "capability_id": "deepternary.model",
       "revision": 1,
       "pinned_run_required": true
     }

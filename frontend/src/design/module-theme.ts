@@ -19,6 +19,7 @@ const moduleThemes: Record<ModuleId, ModuleTheme> = {
   screening: "docking",
   del: "research",
   molecules: "molecules",
+  proximity: "molecules",
   biologics: "biologics",
   evaluation: "properties",
 };
@@ -51,6 +52,7 @@ export function workspaceTheme(
       target_research: "targets",
       reference_import: "targets",
       molecular_states: "molecules",
+      ternary_model: "molecules",
       molecule_minimize: "molecules",
       diffsbdd: "molecules",
       docking: "docking",

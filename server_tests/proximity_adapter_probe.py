@@ -79,7 +79,7 @@ def run_adapter(root, image, models):
         scientific_inputs=[item["source"] for item in inputs],
         options={"device": "cpu", "cpu": 2, "memory_mib": 6144, "seed": 31},
     )
-    (work / "request.json").write_text(request.model_dump_json(indent=2))
+    (work / "request.json").write_text(request.model_dump_json())
     (work / "bindings.json").write_text(json.dumps(bindings))
     adapter = work / "adapter"
     adapter.mkdir()

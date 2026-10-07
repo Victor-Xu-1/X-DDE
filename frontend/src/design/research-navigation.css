@@ -36,7 +36,7 @@
 }
 .studio-app .capability-sections {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 30px 32px;
+  gap: 24px 28px;
   align-items: stretch;
 }
 .capability-group {
@@ -48,7 +48,7 @@
   border-radius: 0;
   padding: 18px;
   aspect-ratio: auto;
-  min-height: 348px;
+  min-height: 320px;
   background: var(--surface);
   min-width: 0;
   box-shadow: none;

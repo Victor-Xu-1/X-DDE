@@ -1675,5 +1675,33 @@
       "通道来自已保存结构的原生几何计算；瓶颈半径、路径长度均为 Å，不是能量或亲和力。",
       "Channels are native geometry on the saved structure. Bottleneck radius and path length are Å, not energy or affinity."
     ]
+  },
+  "deepternary.model": {
+    "goal": [
+      "比较完整 MZ1–BRD4–VHL 三元装配。",
+      "Compare complete MZ1–BRD4–VHL ternary assemblies."
+    ],
+    "steps": [
+      [
+        "使用完整 MZ1 三维分子，选择 PROTAC 和完整参考复合物。",
+        "Use the complete 3D MZ1 molecule; choose PROTAC and the complete reference complex."
+      ],
+      [
+        "选择 VHL 核心链 A，并点选其分子结合端。",
+        "Choose VHL core chain A and select its molecular binding region."
+      ],
+      [
+        "选择 BRD4 核心链 B，并点选另一端；两个区域保留连接子。",
+        "Choose BRD4 core chain B and its binding region, retaining a separate linker."
+      ],
+      [
+        "先探索 3 个完整装配，比较两端接触、碰撞与立体化学。",
+        "Start with three complete assemblies; compare contacts, clashes and stereochemistry."
+      ]
+    ],
+    "interpretation": [
+      "这是基于公开参考结构的模型装配假设；基本几何检查不证明降解、协同性或细胞活性。",
+      "These are model assembly hypotheses from a public reference structure. Basic geometry does not establish degradation, cooperativity or cellular activity."
+    ]
   }
 }

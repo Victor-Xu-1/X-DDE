@@ -24,7 +24,7 @@ it("covers every existing visible scientific capability exactly once without mer
   }
 });
 it("keeps the two data research entries and one active parent for every task", () => {
-  expect(navigationItems).toHaveLength(11);
+  expect(navigationItems).toHaveLength(12);
   expect(managementItems).toHaveLength(3);
   for (const tool of filterCapabilities("all")) {
     const view = viewForTool(tool.id);
@@ -44,4 +44,5 @@ it("promotes complete workflows while preserving complementary methods", () => {
   expect(moduleForTool("regions")?.id).toBe("binding");
   expect(moduleForTool("drugclip.screen")?.id).toBe("screening");
   expect(moduleForTool("del.analyze")?.id).toBe("del");
+  expect(moduleForTool("deepternary.model")?.id).toBe("proximity");
 });

@@ -49,6 +49,7 @@ def validate_catalogue():
                     (
                         "/Victor-Xu-1/X-DDE/releases/download/examples-science-v1/",
                         "/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/",
+                        "/Victor-Xu-1/X-DDE/releases/download/v0.4.37/5T35-native-",
                     )
                 )
             )

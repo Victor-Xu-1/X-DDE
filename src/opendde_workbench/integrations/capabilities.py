@@ -4,6 +4,18 @@ from ..capabilities.contract import CapabilitySpec
 
 _ROWS = (
     (
+        "deepternary.model",
+        "design",
+        "deepternary",
+        "ternary_model",
+        ("三元复合物建模", "Ternary complex modeling"),
+        (
+            "比较降解剂、RIPTAC、分子胶与诱导邻近分子的完整装配假设。",
+            "Compare complete PROTAC, RIPTAC, molecular-glue and proximity assemblies.",
+        ),
+        ("chemical", "small_molecule", "biologic", "protein"),
+    ),
+    (
         "boltz.predict",
         "structure",
         "boltz",

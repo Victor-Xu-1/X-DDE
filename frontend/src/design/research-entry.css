@@ -4,8 +4,8 @@
   justify-content: space-between;
   align-items: end;
   gap: 16px;
-  margin: 0 0 20px;
-  padding: 6px 0 18px;
+  margin: 0 0 16px;
+  padding: 2px 0 12px;
   background-image: var(--workspace-ambient);
   background-size: auto 140px;
   background-position: right center;
@@ -18,7 +18,7 @@
   font-weight: 600;
 }
 .studio-app .catalogue-heading h2 {
-  font-size: 32px;
+  font-size: 28px;
   margin: 3px 0 0;
 }
 .catalogue-heading p {
@@ -37,11 +37,16 @@
 }
 .research-stage-nav ol {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   list-style: none;
   padding: 0;
   margin: 0;
   gap: 20px;
+}
+@media (min-width: 1450px) {
+  .research-stage-nav ol {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
 }
 .research-stage-nav li {
   display: flex;

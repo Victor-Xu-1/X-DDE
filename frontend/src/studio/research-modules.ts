@@ -7,6 +7,7 @@ export type ModuleId =
   | "screening"
   | "del"
   | "molecules"
+  | "proximity"
   | "biologics"
   | "evaluation";
 export interface ResearchModule {
@@ -107,6 +108,18 @@ export const researchModules: readonly ResearchModule[] = [
       "diffsbdd.optimize",
       "diffsbdd.export",
     ],
+  },
+  {
+    id: "proximity",
+    label: ["诱导邻近设计", "Induced proximity"],
+    short: ["邻近设计", "Proximity"],
+    purpose: [
+      "三元复合物、双功能分子与连接子研究",
+      "Ternary assemblies, bifunctional molecules and linkers",
+    ],
+    defaultTool: "deepternary.model",
+    recommended: ["deepternary.model"],
+    tools: ["deepternary.model"],
   },
   {
     id: "screening",

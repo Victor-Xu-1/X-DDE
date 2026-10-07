@@ -137,6 +137,9 @@ def main(root):
     from proximity_adapter_probe import run_adapter
 
     run_adapter(root, image_id, models)
+    from proximity_api_acceptance import run_platform
+
+    run_platform(root)
 
 
 if __name__ == "__main__":

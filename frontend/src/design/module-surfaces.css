@@ -84,16 +84,16 @@
 }
 .studio-app .capability-group {
   background-image:
-    linear-gradient(180deg, transparent 48px, var(--surface) 152px),
+    linear-gradient(180deg, transparent 36px, var(--surface) 128px),
     var(--module-art);
   background-repeat: no-repeat;
   background-position: right top;
   background-size:
-    100% 152px,
-    auto 152px;
+    100% 128px,
+    auto 128px;
 }
 .studio-app .capability-group-heading {
-  min-height: 116px;
+  min-height: 96px;
   align-items: flex-start;
   padding-top: 8px;
 }

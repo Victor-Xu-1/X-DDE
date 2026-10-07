@@ -134,6 +134,7 @@ jobs:
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           uv run --locked --group browser python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           uv run --locked --group browser python server_tests/prepare_visual_components.py
+          uv run --locked --group browser python server_tests/proximity_layout_inputs.py --state "$WB_STATE_DIR"
       - name: Check every task and archived example in real Chromium
         run: |
           .venv/bin/python -m playwright install --with-deps chromium

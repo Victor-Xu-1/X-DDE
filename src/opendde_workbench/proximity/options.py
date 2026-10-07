@@ -11,10 +11,10 @@ class TernaryPayload(BaseModel):
     input_mode: Literal["binary_poses", "shared_complex"] = "binary_poses"
     mechanism: Literal["protac", "riptac", "proximity", "molecular_glue"] = "protac"
     partner_a_name: str = Field(
-        default="Target protein", min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$"
+        default="Recruiting partner", min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$"
     )
     partner_b_name: str = Field(
-        default="Recruiting partner", min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$"
+        default="Target protein", min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$"
     )
     partner_a_chain: str = Field(min_length=1, max_length=1, pattern=r"^[A-Za-z0-9]$")
     partner_b_chain: str = Field(min_length=1, max_length=1, pattern=r"^[A-Za-z0-9]$")

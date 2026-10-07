@@ -462,6 +462,14 @@ class OutputCatalog:
             reusable = {item.name for item in result.artifacts if item.format in {"pdb", "cif"}}
             reusable.update({"result.json", result.molecule_artifact})
             artifacts = [item for item in artifacts if item.name in reusable]
+        if job.request.operation == "ternary_model":
+            from ..integrations.result import validate_result
+
+            result = validate_result(
+                json.loads(contained(root, "result.json").read_bytes()), job.request, root
+            )
+            reusable = {candidate.artifact for candidate in result.candidates} | {"result.json"}
+            artifacts = [item for item in artifacts if item.name in reusable]
         receptor_result = None
         antibody_result = None
         humanization_result = None
