@@ -295,6 +295,20 @@ never acquire holdout labels. Lower holdout error does not imply affinity or
 experimental acceptance. Expert tuning starts on a separate line from side-chain
 selection so the two actions cannot be mistaken for one checkbox label.
 
+Dataset results only offer a chart tab when a real primary view and supported
+native chart artifacts both exist. Chart-only results open directly. Loading,
+failed and changed-source chart states never reuse earlier plots or manufacture
+metadata bar charts. Failed/invalid chart reads show one explicit retry action;
+native downloads remain available. Typed document validation preserves actual
+correlation masks and rejects missing, nonfinite or mismatched plot data.
+
+Prepared and encoded library members use the existing verified dataset authority
+and bounded readonly SQL queries. Indexed results show actual member identities,
+structures and sources with search/pagination; descriptors and docking scores are
+not synthesized. Storage shards and zero unresolved-structure counters are omitted
+from the primary display. Noninteractive member names are plain text rather than
+buttons with no action.
+
 Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.
 
 Generated result previews are now derived from the declared original SDF records and byte digest, independently of optional research-version indexing. Native and qualified record counts must match the actual SDF before display. Reusable task handoffs still require a real immutable object matching the source job, output digest and record; missing historical index metadata never creates synthetic references.

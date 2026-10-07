@@ -4,7 +4,7 @@ export const resultCountLabels: Record<string, [string, string]> = {
   unique_compounds: ["独立结构", "Unique structures"],
   duplicate_chemical_records: ["重复结构记录", "Duplicate chemical records"],
   rejected_records: ["需核查记录", "Rejected records"],
-  indexed: ["索引分子", "Indexed molecules"],
+  indexed: ["可检索分子", "Searchable molecules"],
   searched_rows: ["检索分子", "Searched molecules"],
   returned: ["候选成员", "Candidates"],
   retained_3d: ["三维候选", "3D candidates"],

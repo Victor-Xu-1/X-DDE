@@ -29,6 +29,12 @@ on:
       - 'frontend/src/datasets/DatasetPicker*'
       - 'frontend/src/datasets/SourcePicker*'
       - 'frontend/src/datasets/ModelValidationPlot*'
+      - 'frontend/src/datasets/DatasetCharts*'
+      - 'frontend/src/datasets/DatasetResults*'
+      - 'frontend/src/datasets/DatasetHeatmaps*'
+      - 'frontend/src/datasets/ResearchTable*'
+      - 'frontend/src/datasets/chart-documents*'
+      - 'frontend/src/datasets/useChartDocuments*'
       - 'frontend/src/datasets/useDatasetSources*'
       - 'frontend/src/datasets/DEL*'
       - 'frontend/src/receptors/SurfaceForm*'
@@ -96,6 +102,9 @@ jobs:
           src/integrations/ScientificChoices.test.tsx
           src/datasets/SourcePicker.test.tsx
           src/datasets/ModelValidationPlot.test.tsx
+          src/datasets/DatasetCharts.test.tsx
+          src/datasets/DatasetResults.test.tsx
+          src/datasets/chart-documents.test.ts
           src/receptors/SurfaceForm.test.tsx
           src/operations/AssetPicker.test.tsx
           src/TaskForm.test.tsx

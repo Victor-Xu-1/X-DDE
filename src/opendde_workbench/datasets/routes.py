@@ -12,6 +12,7 @@ from ..artifacts import contained
 from ..examples.labels import job_labels
 from .bindings import SOURCE_ARTIFACT
 from .contract import OPERATIONS, DatasetTask
+from .member_view import member_page
 from .result import RESULT_KINDS, validate_result
 from .suppliers import catalogue
 
@@ -144,56 +145,14 @@ def register(app, store, settings):
         order: str = Query(default="record", pattern="^(record|mw|logp|qed)$"),
     ):
         _, root, result, _ = completed(job_id)
-        if result.data_kind != "library":
-            raise HTTPException(422, "This result is not a prepared compound library.")
-        file = contained(root, "library.sqlite")
-        database = sqlite3.connect(file.as_uri() + "?mode=ro&immutable=1", uri=True)
-        database.row_factory = sqlite3.Row
         try:
-            database.execute("PRAGMA query_only=ON")
-            database.execute("PRAGMA trusted_schema=OFF")
-            deadline = time.monotonic() + 5
-            database.set_progress_handler(lambda: int(time.monotonic() > deadline), 10000)
-            pattern = (
-                "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
-            )
-            clause = (
-                "WHERE c.smiles LIKE ? ESCAPE '\\' OR EXISTS "
-                "(SELECT 1 FROM records r WHERE r.compound_id=c.id "
-                "AND r.supplier_id LIKE ? ESCAPE '\\')"
-                if search
-                else ""
-            )
-            parameters = [pattern, pattern] if search else []
-            sort = {
-                "record": "c.source_record",
-                "mw": "c.mw",
-                "logp": "c.logp",
-                "qed": "c.qed DESC",
-            }[order]
-            rows = database.execute(
-                "SELECT c.id,c.smiles,c.mw,c.logp,c.tpsa,c.qed,c.hbd,c.hba,c.rotatable, "
-                "c.source_record,c.supplier,(SELECT supplier_id FROM records r WHERE "
-                "r.record=c.source_record) display_name,(SELECT COUNT(*) FROM records r "
-                "WHERE r.compound_id=c.id) offers FROM compounds c "
-                + clause
-                + " ORDER BY "
-                + sort
-                + ",c.id LIMIT ? OFFSET ?",
-                (*parameters, limit + 1, offset),
-            ).fetchall()
-            return {
-                "rows": [dict(row) for row in rows[:limit]],
-                "offset": offset,
-                "total": result.counts["unique_compounds"],
-                "has_more": len(rows) > limit,
-            }
+            return member_page(root, result, limit=limit, offset=offset, search=search, order=order)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
         except sqlite3.Error as exc:
             raise HTTPException(
                 422, "This library query exceeds its budget or the database is invalid."
             ) from exc
-        finally:
-            database.close()
 
     @app.get("/api/datasets/{job_id}/table")
     def research_table(

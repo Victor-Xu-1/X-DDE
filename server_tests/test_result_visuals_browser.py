@@ -7,7 +7,7 @@ import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from layout_browser_helpers import catalog
+from layout_browser_helpers import catalog, settle_visible_drawings
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -42,6 +42,7 @@ def test_real_structures_tables_and_sequences():
 
         def record(name):
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            settle_visible_drawings(page)
             page.screenshot(path=str(evidence / ("visual-" + name + ".png")))
             steps.append(name)
 
@@ -222,6 +223,18 @@ def test_real_structures_tables_and_sequences():
             page.locator(".alignment-residues button").first.click()
             expect(page.locator(".sequence-alignment footer")).to_contain_text("IMGT")
             record("antibody-source-alignment")
+            result("建立快速筛选库")
+            members = page.locator(".dataset-table-region tbody tr")
+            expect(members).to_have_count(20, timeout=30000)
+            expect(page.get_by_text("可检索分子", exact=True)).to_be_visible()
+            expect(page.get_by_text("分子分片", exact=True)).not_to_be_visible()
+            expect(page.get_by_role("button", name="图表与质量", exact=True)).not_to_be_visible()
+            assert page.locator(".dataset-chart").count() == 0
+            initial_member = members.first.locator("td").first.inner_text()
+            record("indexed-native-members")
+            page.get_by_role("button", name="下一页", exact=True).click()
+            expect(members.first.locator("td").first).not_to_have_text(initial_member)
+            record("indexed-native-members-page-2")
             result("DEL 研究模型")
             assessment = page.get_by_role("region", name="独立验证指标", exact=True)
             expect(assessment).to_be_visible(timeout=30000)

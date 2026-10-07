@@ -45,6 +45,7 @@ const labels: Record<string, [string, string]> = {
 };
 const views = {
   library: ["id", "smiles", "mw", "logp", "tpsa", "qed", "offers"],
+  index: ["id", "smiles", "supplier"],
   enrichment: [
     "member",
     "smiles",
@@ -110,14 +111,14 @@ export function ResearchTable({
     setBusy(true);
     setError("");
     const path =
-      view === "library"
+      view === "library" || view === "index"
         ? `/datasets/${jobId}/members`
         : `/datasets/${jobId}/table`;
     const params = new URLSearchParams({
       limit: "20",
       offset: String(offset),
       search,
-      ...(view === "library"
+      ...(view === "library" || view === "index"
         ? {}
         : { view, comparison, prioritized: String(filter) }),
     });
@@ -248,20 +249,30 @@ export function ResearchTable({
                           "Qualitative"
                         )
                       ) : key === "id" || key === "member" ? (
-                        <button
-                          type="button"
-                          className="dataset-row-title"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelect?.(row);
-                          }}
-                        >
-                          {format(
-                            key === "id"
-                              ? row.display_name || row.id
-                              : row[key],
-                          )}
-                        </button>
+                        onSelect ? (
+                          <button
+                            type="button"
+                            className="dataset-row-title"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelect?.(row);
+                            }}
+                          >
+                            {format(
+                              key === "id"
+                                ? row.display_name || row.id
+                                : row[key],
+                            )}
+                          </button>
+                        ) : (
+                          <span className="dataset-row-title">
+                            {format(
+                              key === "id"
+                                ? row.display_name || row.id
+                                : row[key],
+                            )}
+                          </span>
+                        )
                       ) : key === "value" && row.value == null ? (
                         format(row.qualifier)
                       ) : (

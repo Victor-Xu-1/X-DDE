@@ -7,6 +7,7 @@ import { DatasetCharts } from "./DatasetCharts";
 import { DefinitionView } from "./DefinitionView";
 import { resultCountLabels as names } from "./result-labels";
 import { ResearchDownloads } from "./ResearchDownloads";
+import { chartArtifacts } from "./chart-documents";
 
 export function DatasetResults({
   job,
@@ -39,9 +40,23 @@ export function DatasetResults({
           ? "followup"
           : result.data_kind === "library"
             ? "library"
-            : null;
+            : result.data_kind === "index"
+              ? "index"
+              : null;
+  const hasCharts = chartArtifacts(result.artifacts).length > 0;
+  const hasPrimary = Boolean(
+    tableView || result.candidates.length || result.data_kind === "definition",
+  );
+  const showTabs = hasCharts && hasPrimary;
+  const hasComparisons =
+    Boolean(available?.length) && tableView === "enrichment";
   const stats = Object.entries(result.counts)
-    .filter(([key]) => names[key])
+    .filter(
+      ([key, value]) =>
+        names[key] &&
+        key !== "shards" &&
+        !(key === "unresolved_structures" && value === 0),
+    )
     .slice(0, 5);
   return (
     <div className="dataset-results">
@@ -61,36 +76,42 @@ export function DatasetResults({
           language={language}
         />
       </div>
-      <div className="dataset-result-tabs">
-        <button
-          type="button"
-          aria-pressed={tab === "results"}
-          onClick={() => setTab("results")}
-        >
-          {zh ? "结果探索" : "Results"}
-        </button>
-        <button
-          type="button"
-          aria-pressed={tab === "quality"}
-          onClick={() => setTab("quality")}
-        >
-          {zh ? "图表与质量" : "Charts and quality"}
-        </button>
-        {available && available.length > 0 && tableView === "enrichment" && (
-          <select
-            value={chosen}
-            aria-label={zh ? "选择比较" : "Comparison"}
-            onChange={(e) => setChosen(e.target.value)}
-          >
-            {available.map((item) => (
-              <option value={item.id} key={item.id}>
-                {item.selection} / {item.reference}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-      {tab === "quality" ? (
+      {(showTabs || hasComparisons) && (
+        <div className="dataset-result-tabs">
+          {showTabs && (
+            <>
+              <button
+                type="button"
+                aria-pressed={tab === "results"}
+                onClick={() => setTab("results")}
+              >
+                {zh ? "结果探索" : "Results"}
+              </button>
+              <button
+                type="button"
+                aria-pressed={tab === "quality"}
+                onClick={() => setTab("quality")}
+              >
+                {zh ? "图表与质量" : "Charts and quality"}
+              </button>
+            </>
+          )}
+          {available && available.length > 0 && tableView === "enrichment" && (
+            <select
+              value={chosen}
+              aria-label={zh ? "选择比较" : "Comparison"}
+              onChange={(e) => setChosen(e.target.value)}
+            >
+              {available.map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.selection} / {item.reference}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+      {showTabs && tab === "quality" ? (
         <DatasetCharts job={job} result={result} language={language} />
       ) : (
         <>
@@ -126,7 +147,8 @@ export function DatasetResults({
           )}
           {!tableView &&
             !result.candidates.length &&
-            result.data_kind !== "definition" && (
+            result.data_kind !== "definition" &&
+            hasCharts && (
               <DatasetCharts job={job} result={result} language={language} />
             )}
         </>

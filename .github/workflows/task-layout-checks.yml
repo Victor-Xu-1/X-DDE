@@ -14,6 +14,12 @@ on:
       - 'frontend/src/receptors/surface.css'
       - 'frontend/src/datasets/datasets.css'
       - 'frontend/src/datasets/ModelValidationPlot*'
+      - 'frontend/src/datasets/DatasetResults*'
+      - 'frontend/src/datasets/DatasetCharts*'
+      - 'frontend/src/datasets/DatasetHeatmaps*'
+      - 'frontend/src/datasets/ResearchTable*'
+      - 'frontend/src/datasets/chart-documents*'
+      - 'frontend/src/datasets/useChartDocuments*'
       - 'frontend/src/pockets/**'
       - 'frontend/src/operations/**'
       - 'frontend/src/research/**'
@@ -104,6 +110,9 @@ jobs:
           src/integrations/ScientificChoices.test.tsx
           src/datasets/SourcePicker.test.tsx
           src/datasets/ModelValidationPlot.test.tsx
+          src/datasets/DatasetCharts.test.tsx
+          src/datasets/DatasetResults.test.tsx
+          src/datasets/chart-documents.test.ts
           src/receptors/SurfaceForm.test.tsx
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/StructuredResults.test.tsx
