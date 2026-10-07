@@ -164,6 +164,13 @@ reviewed responses are frozen rather than weakening checksum verification or
 changing the expected digest on each run. This input-only data release is separate
 from computed examples and software publication versions.
 
+[Isolated native verification](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37646304573)
+passed independent official MGD graph/forward-input comparison, original partner
+initialization, observed-ligand correction and complete typed native outputs for
+both 5FQD and 5HXB. Each returned three proposals; neither case had a proposal
+passing all independent geometric gates. This establishes executable core-system
+integration while keeping predictive accuracy and experimental acceptance pending.
+
 Result acceptance also covers 1280px, 1366px and 1600px desktop widths. Candidate
 table headings remain horizontal and the table fits its assigned desktop column;
 when there is insufficient space the complete-complex preview leads a single

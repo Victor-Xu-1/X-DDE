@@ -76,14 +76,14 @@ export function ProximityResults({
       },
       {
         key: "contactsA",
-        label: zh ? "端 1 接触" : "End 1 contacts",
+        label: zh ? "端 1 接触" : "Contacts 1",
         exportLabel: "Partner 1 contacting heavy atoms",
         value: (r) => r.quality.arms[0].contacting_heavy_atoms,
         numeric: true,
       },
       {
         key: "contactsB",
-        label: zh ? "端 2 接触" : "End 2 contacts",
+        label: zh ? "端 2 接触" : "Contacts 2",
         exportLabel: "Partner 2 contacting heavy atoms",
         value: (r) => r.quality.arms[1].contacting_heavy_atoms,
         numeric: true,

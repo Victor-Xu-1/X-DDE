@@ -101,6 +101,22 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             expect(page.get_by_role("button", name="开始三元建模", exact=True)).to_be_enabled()
             page.screenshot(path=str(root / "proximity-review.png"), full_page=True)
+            page.get_by_role("button", name="设置与帮助", exact=True).click()
+            page.get_by_role("menuitem", name="界面设置", exact=True).click()
+            page.locator("#settings-language").select_option("en")
+            page.get_by_role("navigation", name="Main navigation").get_by_role(
+                "button", name="Induced proximity", exact=True
+            ).click()
+            page.get_by_role("button", name="Example results", exact=True).click()
+            english = page.get_by_role("table", name="Compare assemblies", exact=True)
+            expect(english).to_be_visible()
+            for width in (1280, 1366):
+                page.set_viewport_size({"width": width, "height": 1050})
+                assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+                assert english.locator("..").evaluate(
+                    "node => node.scrollWidth <= node.clientWidth + 1"
+                ), "English assembly metrics must fit ordinary desktop widths."
+                page.screenshot(path=str(root / f"proximity-english-{width}.png"), full_page=True)
             assert not submissions, (
                 "Viewing fixed evidence and filling a template must not submit jobs."
             )
@@ -117,6 +133,7 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 "fresh_input_default": True,
                 "one_visible_step": True,
                 "readable_compact_layout": True,
+                "readable_english_desktop_layout": True,
                 "owner_inference": False,
             },
             indent=2,
