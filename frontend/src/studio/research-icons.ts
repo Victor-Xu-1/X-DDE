@@ -18,4 +18,5 @@ export const researchIcons = {
   proximity: PartitionOutlined,
   biologics: DeploymentUnitOutlined,
   evaluation: BarChartOutlined,
+  simulations: PartitionOutlined,
 };

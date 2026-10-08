@@ -1,0 +1,77 @@
+name: Molecular dynamics and free-energy checks
+on:
+  workflow_dispatch:
+    inputs:
+      check:
+        type: choice
+        default: contracts
+        options: [locks, contracts, native]
+  push:
+    paths:
+      - "src/opendde_workbench/simulations/**"
+      - "frontend/src/simulations/**"
+      - "tests/test_simulations.py"
+      - "server_tests/test_simulation_browser.py"
+      - ".github/workflows/simulation-checks.yml"
+permissions:
+  contents: read
+jobs:
+  locks:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'locks'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve reviewed conda inputs on Linux only
+        run: |
+          python scripts/resolve-openfe-lock.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openfe-reviewed-lock
+          path: src/opendde_workbench/integrations/recipes/openfe.conda.txt
+  contracts:
+    if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed simulation and shared envelope contracts
+        run: uv run --locked python -m pytest -q tests/test_simulations.py tests/test_integrated_science.py tests/test_capabilities.py
+      - name: Changed simulation UI contracts
+        working-directory: frontend
+        run: npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationResults.test.tsx
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Bilingual questionnaire and actual coordinate/result previews
+        run: uv run --locked python -m pytest -q server_tests/test_simulation_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulation-browser-evidence
+          path: outputs/simulation-browser/**
+  native:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'native'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Native explicit-water dynamics and OpenFE public TYK2 planning
+        env:
+          WB_TEST_NATIVE_SIMULATIONS: "1"
+        run: uv run --locked --with biopython==1.88 python -m pytest -q server_tests/test_native_simulations.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-simulation-evidence
+          path: outputs/native-simulations/**

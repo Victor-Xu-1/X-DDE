@@ -80,6 +80,37 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "openmm.dynamics",
+    group: "analyze",
+    label: ["分子动力学", "Molecular dynamics"],
+    note: [
+      "在显式水中研究蛋白与结合姿势的动态稳定性。",
+      "Study protein and bound-pose stability in explicit water.",
+    ],
+    source: "openmm",
+    modalities: [
+      "chemical",
+      "small_molecule",
+      "biologic",
+      "protein",
+      "antibody",
+      "rna",
+    ],
+    modality_role: "research_object",
+  },
+  {
+    id: "openfe.rbfe",
+    group: "evaluate",
+    label: ["FEP 结合自由能", "FEP binding free energy"],
+    note: [
+      "构建同系列分子的相对自由能网络，检查误差与收敛。",
+      "Plan congeneric free-energy networks and inspect uncertainty and convergence.",
+    ],
+    source: "openfe",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "deepternary.model",
     group: "design",
     label: ["三元复合物建模", "Ternary complex modeling"],

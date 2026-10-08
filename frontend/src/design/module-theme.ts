@@ -22,6 +22,7 @@ const moduleThemes: Record<ModuleId, ModuleTheme> = {
   proximity: "molecules",
   biologics: "biologics",
   evaluation: "properties",
+  simulations: "structures",
 };
 export const themeForModule = (id: ModuleId): ModuleTheme => moduleThemes[id];
 export function themeForTool(id: ToolId | null | undefined): ModuleTheme {

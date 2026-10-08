@@ -74,6 +74,44 @@ export const methodChoices = [
     ],
   },
   {
+    id: "method.openmm.dynamics",
+    label: ["分子动力学", "Molecular dynamics"],
+    default: "openmm.dynamics",
+    default_basis: [
+      "当前唯一接入的方法，已默认选中。",
+      "The only integrated method is selected by default.",
+    ],
+    options: [
+      {
+        id: "openmm.dynamics",
+        label: "openmm",
+        note: [
+          "在显式水中研究蛋白与结合姿势的动态稳定性。",
+          "Study protein and bound-pose stability in explicit water.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "method.openfe.rbfe",
+    label: ["FEP 结合自由能", "FEP binding free energy"],
+    default: "openfe.rbfe",
+    default_basis: [
+      "当前唯一接入的方法，已默认选中。",
+      "The only integrated method is selected by default.",
+    ],
+    options: [
+      {
+        id: "openfe.rbfe",
+        label: "openfe",
+        note: [
+          "构建同系列分子的相对自由能网络，检查误差与收敛。",
+          "Plan congeneric free-energy networks and inspect uncertainty and convergence.",
+        ],
+      },
+    ],
+  },
+  {
     id: "method.deepternary.model",
     label: ["三元复合物建模", "Ternary complex modeling"],
     default: "deepternary.model",

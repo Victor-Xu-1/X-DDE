@@ -207,6 +207,24 @@
       "bytes": 6610,
       "kind": "ligand",
       "license": "CC0-1.0"
+    },
+    "tyk2_protein": {
+      "bytes": 404315,
+      "kind": "structure",
+      "url": "https://raw.githubusercontent.com/OpenFreeEnergy/ExampleNotebooks/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial/tyk2_protein.pdb",
+      "key": "tyk2_protein",
+      "license": "MIT",
+      "sha256": "c8473899ea40b3f4d9382fca3a2b5f76b1e878313a7287a9240bc4322a5db79d",
+      "name": "tyk2_protein.pdb"
+    },
+    "tyk2_ligands": {
+      "bytes": 27420,
+      "kind": "ligand",
+      "url": "https://raw.githubusercontent.com/OpenFreeEnergy/ExampleNotebooks/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial/tyk2_ligands.sdf",
+      "key": "tyk2_ligands",
+      "license": "MIT",
+      "sha256": "00479cdf26039d7ce14f8f6477a6eb8d6b6645b863cbf3d830ce907b3853c361",
+      "name": "tyk2_ligands.sdf"
     }
   },
   "polymers": {
@@ -214,56 +232,41 @@
       "sequence": "SMNPPPPETSNPNKPKRQTNQLQYLLRVVLKTLWKHQFAWPFQQPVDAVKLNLPDYYKIIKTPMDMGTIKKRLENNYYWNAQECIQDFNTMFTNCYIYNKPGDDIVLMAEALEKLFLQKINELPTEE",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/3MXF/1",
       "sha256": "166bb29d57c0463e8644422f10904de8b397cac3b6a43466c4f9818bba1d81c8",
-      "chains": [
-        "A"
-      ]
+      "chains": ["A"]
     },
     "1N8Z.polymer-1.json": {
       "sequence": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAPSVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/1N8Z/1",
       "sha256": "85f11094b6437e3a00cb086dedba7e14174e02b82bc863d11122b3efc3d0fab6",
-      "chains": [
-        "A"
-      ]
+      "chains": ["A"]
     },
     "1N8Z.polymer-2.json": {
       "sequence": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIHWVRQAPGKGLEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGFYAMDYWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEP",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/1N8Z/2",
       "sha256": "ae939b165191b8cfb785860f8425eb28df388dbe6c469f5daf6e80723511aff3",
-      "chains": [
-        "B"
-      ]
+      "chains": ["B"]
     },
     "1N8Z.polymer-3.json": {
       "sequence": "TQVCTGTDMKLRLPASPETHLDMLRHLYQGCQVVQGNLELTYLPTNASLSFLQDIQEVQGYVLIAHNQVRQVPLQRLRIVRGTQLFEDNYALAVLDNGDPLNNTTPVTGASPGGLRELQLRSLTEILKGGVLIQRNPQLCYQDTILWKDIFHKNNQLALTLIDTNRSRACHPCSPMCKGSRCWGESSEDCQSLTRTVCAGGCARCKGPLPTDCCHEQCAAGCTGPKHSDCLACLHFNHSGICELHCPALVTYNTDTFESMPNPEGRYTFGASCVTACPYNYLSTDVGSCTLVCPLHNQEVTAEDGTQRCEKCSKPCARVCYGLGMEHLREVRAVTSANIQEFAGCKKIFGSLAFLPESFDGDPASNTAPLQPEQLQVFETLEEITGYLYISAWPDSLPDLSVFQNLQVIRGRILHNGAYSLTLQGLGISWLGLRSLRELGSGLALIHHNTHLCFVHTVPWDQLFRNPHQALLHTANRPEDECVGEGLACHQLCARGHCWGPGPTQCVNCSQFLRGQECVEECRVLQGLPREYVNARHCLPCHPECQPQNGSVTCFGPEADQCVACAHYKDPPFCVARCPSGVKPDLSYMPIWKFPDEEGACQPCPIN",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/1N8Z/3",
       "sha256": "c69873f9fa5112925cb3e19bf90976e201dc0753e3e1cec8f7d15e648a836d87",
-      "chains": [
-        "C"
-      ]
+      "chains": ["C"]
     },
     "2GDI.polymer-1.json": {
       "sequence": "GGACUCGGGGUGCCCUUCUGCGUGAAGGCUGAGAAAUACCCGUAUCACCUGAUCUGGAUAAUGCCAGCGUAGGGAAGUUC",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/2GDI/1",
       "sha256": "4211a1fbede2f0da4e9399edd1fe9980a238412b905507545e5cdb2831ab392a",
-      "chains": [
-        "X",
-        "Y"
-      ]
+      "chains": ["X", "Y"]
     },
     "6LBX.polymer-1.json": {
       "sequence": "METITVSTPIKQIFPDDAFAETIKANLKKKSVTDAVTQNELNSIDLISAPHSDIKSVQGIQYLPNVRLLYLGGNKLHDISALKELTNLTTLILSGNQLQSLPNGVFDKLTNLKVLWLSVNQLQSLPDGVFDKLTNLTSLRLHRNQLQSLPKGVFDKLTNLTVLRLSENQLQSLPEGVFDKLTQLKVLWLGRNQLKSVPDGVFDRLTSLQYIWLHDNPWDCTCPGIRYLSEWINKHSGVVRNSAGSVAPDSAKCSGSGKPVRSIICPTLEHHHHHH",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6LBX/1",
-      "auth_chains": [
-        "A"
-      ]
+      "auth_chains": ["A"]
     },
     "6LBX.polymer-2.json": {
       "sequence": "QCSQFLRGQECVEECRVLQGLPREYVNARHCLPCHPECQPQNGSVTCFGPEADQCVACAHYKDPPFCVARCPSGVKPDLSYMPIWKFPDEEGACQPC",
       "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6LBX/2",
-      "auth_chains": [
-        "B"
-      ]
+      "auth_chains": ["B"]
     }
   },
   "cases": [
@@ -274,11 +277,7 @@
         "BRD4–JQ1 结合口袋与先导探索",
         "BRD4–JQ1 pocket and lead exploration"
       ],
-      "files": [
-        "brd4",
-        "jq1",
-        "brd4_apo"
-      ],
+      "files": ["brd4", "jq1", "brd4_apo"],
       "sources": [
         "https://www.rcsb.org/structure/3MXF",
         "https://doi.org/10.1038/nature09504",
@@ -308,11 +307,7 @@
         "曲妥珠单抗–HER2 抗体研究",
         "Trastuzumab–HER2 antibody research"
       ],
-      "files": [
-        "her2",
-        "her2_pertuzumab",
-        "trastuzumab_fv"
-      ],
+      "files": ["her2", "her2_pertuzumab", "trastuzumab_fv"],
       "sources": [
         "https://www.rcsb.org/structure/1N8Z",
         "https://doi.org/10.1038/nature01392",
@@ -327,15 +322,8 @@
     {
       "id": "abl-inhibitors",
       "revision": 1,
-      "label": [
-        "ABL 抑制剂系列性质比较",
-        "ABL inhibitor property comparison"
-      ],
-      "files": [
-        "imatinib",
-        "dasatinib",
-        "nilotinib"
-      ],
+      "label": ["ABL 抑制剂系列性质比较", "ABL inhibitor property comparison"],
+      "files": ["imatinib", "dasatinib", "nilotinib"],
       "sources": [
         "https://www.ebi.ac.uk/chembl/explore/compound/CHEMBL941",
         "https://www.ebi.ac.uk/chembl/explore/compound/CHEMBL1421",
@@ -353,10 +341,7 @@
         "MZ1–BRD4–VHL 双功能分子体系",
         "MZ1–BRD4–VHL bifunctional complex"
       ],
-      "files": [
-        "mz1",
-        "mz1_molecule"
-      ],
+      "files": ["mz1", "mz1_molecule"],
       "sources": [
         "https://www.rcsb.org/structure/5T35",
         "https://doi.org/10.1038/nchembio.2329"
@@ -369,13 +354,8 @@
     {
       "id": "tpp-riboswitch",
       "revision": 1,
-      "label": [
-        "RNA–TPP 识别复合物",
-        "RNA–TPP recognition complex"
-      ],
-      "files": [
-        "rna"
-      ],
+      "label": ["RNA–TPP 识别复合物", "RNA–TPP recognition complex"],
+      "files": ["rna"],
       "sources": [
         "https://www.rcsb.org/structure/2GDI",
         "https://doi.org/10.1038/nature04740"
@@ -396,9 +376,7 @@
         "使用 6LBX 完整沉积蛋白序列（Rb-H2 275 aa、HER2 构建体 97 aa），预测双蛋白复合物并比较原生预测姿势；不把构建体当成完整 HER2，也不把模型评分当成实测亲和力。",
         "Use the complete deposited 6LBX protein sequences (275-aa Rb-H2 and 97-aa HER2 construct), predict the protein complex and compare native predicted poses. The construct is not full-length HER2; model scores are not measured affinity."
       ],
-      "files": [
-        "her2_domain_iv"
-      ],
+      "files": ["her2_domain_iv"],
       "sources": [
         "https://www.rcsb.org/structure/6LBX",
         "https://doi.org/10.1016/j.csbj.2021.02.013"
@@ -407,18 +385,12 @@
     {
       "id": "trastuzumab-domainiv",
       "revision": 1,
-      "label": [
-        "曲妥珠单抗–HER2 设计向导",
-        "Trastuzumab–HER2 design workflow"
-      ],
+      "label": ["曲妥珠单抗–HER2 设计向导", "Trastuzumab–HER2 design workflow"],
       "description": [
         "重、轻链复用真实 ANARCII 可变域与 CDR 标注；靶标使用 6LBX 完整沉积的 97 aa HER2 构建体。配置已通过原生校验；对话模型由用户配置后才执行代理设计。",
         "Reuse actual ANARCII variable domains and CDR annotations, with the complete deposited 97-aa HER2 construct from 6LBX. Native configuration validation is retained; agent design requires the user-configured language model."
       ],
-      "files": [
-        "her2",
-        "her2_domain_iv"
-      ],
+      "files": ["her2", "her2_domain_iv"],
       "sources": [
         "https://www.rcsb.org/structure/1N8Z",
         "https://www.rcsb.org/structure/6LBX",
@@ -436,9 +408,7 @@
         "同一人 EGFR 实验的分子系列；59 个 Murcko 骨架，实测 IC50 和换算 pIC50。",
         "Molecular series from one human EGFR assay; 59 Murcko scaffolds with measured IC50 and derived pIC50."
       ],
-      "files": [
-        "egfr_library"
-      ],
+      "files": ["egfr_library"],
       "sources": [
         "https://www.ebi.ac.uk/chembl/api/data/assay/CHEMBL944276.json",
         "https://www.ebi.ac.uk/chembl/api/data/document/CHEMBL1140899.json"
@@ -455,19 +425,12 @@
     {
       "id": "drugclip-public-library",
       "revision": 1,
-      "label": [
-        "BRD4 口袋与公开药物库",
-        "BRD4 pocket and public drug library"
-      ],
+      "label": ["BRD4 口袋与公开药物库", "BRD4 pocket and public drug library"],
       "description": [
         "使用 PDB 3MXF、JQ1 和 ChEMBL 的真实复杂分子演示库准备、六折检索和候选对接。这是操作案例，不是靶点活性基准。",
         "Public PDB 3MXF/JQ1 and complex ChEMBL molecules demonstrate library preparation, six-fold retrieval and docking. This is a workflow case, not a target-activity benchmark."
       ],
-      "files": [
-        "brd4",
-        "jq1",
-        "egfr_library"
-      ],
+      "files": ["brd4", "jq1", "egfr_library"],
       "sources": [
         "https://www.rcsb.org/structure/3MXF",
         "https://www.ebi.ac.uk/chembl/",
@@ -485,12 +448,7 @@
         "使用 DELi 官方公开库定义、原始测序数据及 BRD4 计数表。保留公开样本的实际对照类型，不把富集当作 KD。",
         "Official DELi library definition, reads and BRD4 count data, retaining actual reference types. Sequencing enrichment is not KD."
       ],
-      "files": [
-        "del_definition",
-        "del_reads",
-        "del_counts",
-        "del_followup"
-      ],
+      "files": ["del_definition", "del_reads", "del_counts", "del_followup"],
       "sources": [
         "https://github.com/Popov-Lab-UNC/DELi/tree/edeb06ca8ffe6a158c1231c4014e569e04a9b83b/examples",
         "https://doi.org/10.1186/s13321-026-01296-1"
@@ -499,18 +457,12 @@
     {
       "id": "ache-donepezil",
       "revision": 1,
-      "label": [
-        "人源 AChE–多奈哌齐通道",
-        "Human AChE–donepezil channels"
-      ],
+      "label": ["人源 AChE–多奈哌齐通道", "Human AChE–donepezil channels"],
       "description": [
         "在真实药物结合结构中，从多奈哌齐所在位置探索通向溶剂的几何路径与瓶颈。",
         "Explore static paths and bottlenecks from the bound donepezil site toward solvent in the real drug complex."
       ],
-      "files": [
-        "ache",
-        "donepezil"
-      ],
+      "files": ["ache", "donepezil"],
       "sources": [
         "https://www.rcsb.org/structure/4EY7",
         "https://doi.org/10.1021/jm300871x"
@@ -519,24 +471,34 @@
     {
       "id": "mz1-native-assembly",
       "revision": 1,
-      "label": [
-        "MZ1 · BRD4–VHL 三元装配",
-        "MZ1 · BRD4–VHL ternary assembly"
-      ],
+      "label": ["MZ1 · BRD4–VHL 三元装配", "MZ1 · BRD4–VHL ternary assembly"],
       "description": [
         "使用官方处理后的 5T35 参考输入，探索完整 MZ1 三元装配并检查真实几何结果。",
         "Explore complete MZ1 ternary assemblies from the official processed 5T35 reference inputs, with independent geometry checks."
       ],
-      "files": [
-        "ternary_vhl",
-        "ternary_brd4",
-        "ternary_mz1"
-      ],
+      "files": ["ternary_vhl", "ternary_brd4", "ternary_mz1"],
       "sources": [
         "https://www.rcsb.org/structure/5T35",
         "https://github.com/youqingxiaozhua/DeepTernary/releases/tag/v1.0.0",
         "https://www.nature.com/articles/s41467-025-61272-5"
       ]
+    },
+    {
+      "revision": 1,
+      "sources": [
+        "https://docs.openfree.energy/en/v1.12.0/tutorials/rbfe_python_tutorial.html",
+        "https://github.com/OpenFreeEnergy/ExampleNotebooks/tree/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial"
+      ],
+      "description": [
+        "官方公开 TYK2 蛋白与已对齐抑制剂系列，用于变化网络规划与相对自由能计算。",
+        "Official public TYK2 protein and aligned inhibitor series for perturbation-network planning and relative binding free energies."
+      ],
+      "label": [
+        "TYK2 同系列抑制剂自由能研究",
+        "TYK2 congeneric inhibitor free-energy study"
+      ],
+      "files": ["tyk2_protein", "tyk2_ligands"],
+      "id": "tyk2-free-energy"
     }
   ],
   "modules": {
@@ -978,6 +940,18 @@
       "capability_id": "deepternary.model",
       "revision": 1,
       "pinned_run_required": true
+    },
+    "openmm.dynamics": {
+      "pinned_run_required": true,
+      "case_id": "brd4-jq1",
+      "capability_id": "openmm.dynamics",
+      "revision": 1
+    },
+    "openfe.rbfe": {
+      "pinned_run_required": true,
+      "case_id": "tyk2-free-energy",
+      "capability_id": "openfe.rbfe",
+      "revision": 1
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."

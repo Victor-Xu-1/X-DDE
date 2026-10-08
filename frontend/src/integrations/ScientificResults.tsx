@@ -15,6 +15,8 @@ import { ProximityResults } from "../proximity/Results";
 import { MetricScatter } from "../presentation/MetricScatter";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import "./results.css";
+import { DynamicsResults } from "../simulations/DynamicsResults";
+import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
 
 export function ScientificResults({
   job,
@@ -74,6 +76,27 @@ export function ScientificResults({
       })),
     ];
   }, [rows, zh]);
+  if (result.operation === "molecular_dynamics" && result.dynamics)
+    return (
+      <DynamicsResults
+        key={job.id}
+        job={job}
+        result={result.dynamics}
+        language={language}
+        files={result.artifact_sha256}
+      />
+    );
+  if (result.operation === "binding_free_energy" && result.free_energy)
+    return (
+      <FreeEnergyResults
+        key={job.id}
+        job={job}
+        result={result.free_energy}
+        language={language}
+        files={result.artifact_sha256}
+        protein={result.structure_artifact}
+      />
+    );
   if (result.program === "plip")
     return <InteractionResults job={job} result={result} language={language} />;
   if (result.program === "apbs")

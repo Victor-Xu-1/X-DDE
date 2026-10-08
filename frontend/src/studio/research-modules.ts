@@ -9,6 +9,7 @@ export type ModuleId =
   | "molecules"
   | "proximity"
   | "biologics"
+  | "simulations"
   | "evaluation";
 export interface ResearchModule {
   id: ModuleId;
@@ -48,11 +49,10 @@ export const researchModules: readonly ResearchModule[] = [
       "Predict complexes, prepare structures and compare receptor conformations",
     ],
     defaultTool: "predict",
-    recommended: ["predict", "boltz.predict", "openmm.refine"],
+    recommended: ["predict", "boltz.predict", "biopython.prepare"],
     tools: [
       "predict",
       "boltz.predict",
-      "openmm.refine",
       "biopython.prepare",
       "biopython.ensemble",
       "features",
@@ -206,6 +206,18 @@ export const researchModules: readonly ResearchModule[] = [
       "chemprop.train",
       "chemprop.predict",
     ],
+  },
+  {
+    id: "simulations",
+    label: ["动力学与 FEP", "Dynamics and FEP"],
+    short: ["模拟", "Simulations"],
+    purpose: [
+      "研究动态稳定性与同系列分子的结合自由能",
+      "Study dynamic stability and congeneric binding free energies",
+    ],
+    defaultTool: "openmm.dynamics",
+    recommended: ["openmm.dynamics", "openfe.rbfe", "openmm.refine"],
+    tools: ["openmm.dynamics", "openfe.rbfe", "openmm.refine"],
   },
 ];
 export function moduleForTool(id: ToolId | null | undefined) {

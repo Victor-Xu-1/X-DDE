@@ -34,6 +34,20 @@ class ScientificBackend(PreparedContainerBackend):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
+        if identifier in {"openmm", "openfe"}:
+            shared.update(
+                {
+                    "native_" + name + ".py": root / "simulations" / ("native_" + name + ".py")
+                    for name in (
+                        "md_system",
+                        "md_analysis",
+                        "dynamics",
+                        "openfe",
+                        "fep_plan",
+                        "fep_result",
+                    )
+                }
+            )
         if identifier == "deepternary":
             shared = {
                 "native_proximity_" + name + ".py": root / "proximity" / ("native_" + name + ".py")

@@ -42,6 +42,8 @@ import type { DockingMode } from "../docking/types";
 import type { DiffMode } from "../diffsbdd/types";
 import { ScientificForm } from "../integrations/ScientificForm";
 import { isScientificForm } from "../integrations/types";
+import { SimulationForm } from "../simulations/SimulationForm";
+import { isSimulationForm } from "../simulations/types";
 import { DatasetForm } from "../datasets/DatasetForm";
 import { isDatasetTool } from "../datasets/dataset-model";
 
@@ -135,6 +137,12 @@ export function ToolCenter({
                 />
               ) : selected === "deepternary.model" ? (
                 <ProximityForm language={language} onCreated={onCreated} />
+              ) : isSimulationForm(selected) ? (
+                <SimulationForm
+                  form={selected}
+                  language={language}
+                  onCreated={onCreated}
+                />
               ) : isScientificForm(selected) ? (
                 <ScientificForm
                   form={selected}

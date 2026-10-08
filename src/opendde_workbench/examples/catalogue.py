@@ -44,6 +44,14 @@ def validate_catalogue():
             url.scheme != "https"
             or not (
                 url.hostname in {"files.rcsb.org", "models.rcsb.org", "www.ebi.ac.uk"}
+                or url.hostname == "raw.githubusercontent.com"
+                and url.path
+                in {
+                    "/OpenFreeEnergy/ExampleNotebooks/"
+                    "d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial/tyk2_protein.pdb",
+                    "/OpenFreeEnergy/ExampleNotebooks/"
+                    "d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial/tyk2_ligands.sdf",
+                }
                 or url.hostname == "github.com"
                 and url.path.startswith(
                     (

@@ -1,0 +1,253 @@
+.simulation-results {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.simulation-result-toolbar,
+.simulation-plot header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.simulation-result-toolbar h2,
+.simulation-plot h3 {
+  margin: 0;
+}
+.simulation-result-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.simulation-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+.simulation-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+  border-top: 1px solid var(--border-color, #e5e9f0);
+  padding-top: 22px;
+}
+.simulation-main-grid > *,
+.simulation-secondary-grid > * {
+  min-width: 0;
+}
+.simulation-condition-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  margin-block: 20px;
+}
+.simulation-condition-row label {
+  display: grid;
+  gap: 7px;
+}
+.simulation-ligand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  max-height: 560px;
+  overflow: auto;
+}
+.simulation-ligand-grid > label {
+  padding: 12px;
+  border: 1px solid var(--border-color, #e5e9f0);
+  border-radius: 8px;
+  min-width: 0;
+}
+.simulation-ligand-grid > label.is-selected {
+  border-color: #5865d8;
+  background: color-mix(in srgb, #5865d8 5%, transparent);
+}
+.simulation-ligand-grid > label > span {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-weight: 600;
+}
+.simulation-ligand-grid .molecule-image,
+.simulation-molecule-pair .molecule-image {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.simulation-ligand-grid .molecule-image img {
+  min-width: 0;
+  max-width: 100%;
+}
+.simulation-plot {
+  min-width: 0;
+  padding: 0;
+}
+.simulation-plot svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  color: var(--text-primary, #263348);
+}
+.simulation-plot svg text {
+  font-size: 11px;
+  fill: currentColor;
+  font-family: inherit;
+}
+.simulation-plot .plot-grid line {
+  stroke: var(--border-color, #e5e9f0);
+  stroke-width: 1;
+}
+.simulation-plot .plot-cursor {
+  stroke: #aab2c9;
+  stroke-dasharray: 4 4;
+}
+.simulation-plot circle[role="button"]:focus {
+  fill: #5865d8;
+  outline: 2px solid #18998b;
+}
+.simulation-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.simulation-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.simulation-legend i {
+  display: block;
+  width: 14px;
+  height: 3px;
+}
+.trajectory-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block: 12px;
+  flex-wrap: wrap;
+}
+.trajectory-controls input {
+  flex: 1;
+  min-width: 120px;
+}
+.simulation-readouts {
+  display: flex;
+  gap: 24px;
+  margin: 18px 0 0;
+  flex-wrap: wrap;
+}
+.simulation-readouts dt {
+  font-size: 12px;
+  color: var(--text-muted, #6b7588);
+}
+.simulation-readouts dd {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0 0;
+}
+.simulation-occupancy {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.simulation-occupancy meter {
+  max-width: 100px;
+  width: 45%;
+  height: 8px;
+}
+.simulation-method {
+  border-top: 1px solid var(--border-color, #e5e9f0);
+  padding-top: 14px;
+}
+.simulation-method summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.simulation-method p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.simulation-method .download-actions {
+  margin-top: 16px;
+}
+.simulation-molecule-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.simulation-molecule-pair h4 {
+  margin: 4px 0 8px;
+}
+.simulation-molecule-pair .molecule-image img {
+  min-width: 0;
+  max-width: 100%;
+  height: 170px;
+}
+.fep-network svg,
+.fep-heatmap svg,
+.fep-forest svg {
+  width: 100%;
+  height: auto;
+}
+.fep-network circle {
+  fill: var(--surface, #fff);
+  stroke: #5865d8;
+  stroke-width: 2;
+}
+.fep-network .is-selected circle {
+  fill: #e6f5f1;
+  stroke: #18998b;
+}
+.fep-network text,
+.fep-forest text {
+  font: 12px inherit;
+  fill: currentColor;
+}
+.fep-network g[role="button"] {
+  cursor: pointer;
+}
+.fep-network g[role="button"]:focus {
+  outline: 2px solid #18998b;
+}
+.fep-heatmap {
+  max-width: 440px;
+  margin-inline: auto;
+}
+.fep-heatmap svg text {
+  font: 11px inherit;
+  fill: currentColor;
+}
+.fep-heatmap rect {
+  stroke: var(--surface, #fff);
+  stroke-width: 1;
+}
+@media (max-width: 1000px) {
+  .simulation-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .simulation-secondary-grid {
+    gap: 18px;
+  }
+}
+@media (max-width: 600px) {
+  .simulation-secondary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .simulation-result-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .simulation-readouts {
+    gap: 16px;
+  }
+  .simulation-molecule-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .simulation-plot header {
+    flex-wrap: wrap;
+  }
+}

@@ -72,6 +72,10 @@ def add_bound_ligand(modeller, request):
 
 
 def run(request):
+    if request["operation"] == "molecular_dynamics":
+        from native_dynamics import run as dynamics
+
+        return dynamics(request)
     import numpy as np
     import openmm
     from openmm import app, unit

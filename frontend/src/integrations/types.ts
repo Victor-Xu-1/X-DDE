@@ -1,6 +1,7 @@
 import type { BaseTask } from "../operations/types";
 import type { MoleculeRef } from "../research/types";
 import type { TernaryResult } from "../proximity/types";
+import type { DynamicsResult, FreeEnergyResult } from "../simulations/types";
 import { nativeOperations, nativeOperationPrograms } from "./operations";
 
 export type ScientificOperation = (typeof nativeOperations)[number];
@@ -72,6 +73,8 @@ export interface NativeResult {
   interactions: NativeInteraction[];
   validation_points: { smiles: string; observed: number; predicted: number }[];
   proximity?: TernaryResult | null;
+  dynamics?: DynamicsResult | null;
+  free_energy?: FreeEnergyResult | null;
 }
 export interface PropertyModel {
   job_id: string;

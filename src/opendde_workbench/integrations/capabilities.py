@@ -4,6 +4,30 @@ from ..capabilities.contract import CapabilitySpec
 
 _ROWS = (
     (
+        "openmm.dynamics",
+        "analyze",
+        "openmm",
+        "molecular_dynamics",
+        ("分子动力学", "Molecular dynamics"),
+        (
+            "在显式水中研究蛋白与结合姿势的动态稳定性。",
+            "Study protein and bound-pose stability in explicit water.",
+        ),
+        ("chemical", "small_molecule", "biologic", "protein", "antibody", "rna"),
+    ),
+    (
+        "openfe.rbfe",
+        "evaluate",
+        "openfe",
+        "binding_free_energy",
+        ("FEP 结合自由能", "FEP binding free energy"),
+        (
+            "构建同系列分子的相对自由能网络，检查误差与收敛。",
+            "Plan congeneric free-energy networks and inspect uncertainty and convergence.",
+        ),
+        ("chemical", "small_molecule"),
+    ),
+    (
         "deepternary.model",
         "design",
         "deepternary",
@@ -136,7 +160,9 @@ CAPABILITIES = tuple(
         source=engine,
         modalities=modalities,
         modality_role="research_object",
-        frontend_form="integrated",
+        frontend_form="simulation"
+        if identifier in {"openmm.dynamics", "openfe.rbfe"}
+        else "integrated",
     )
     for identifier, group, engine, operation, label, note, modalities in _ROWS
 )

@@ -12,6 +12,7 @@ CONTAINER_STYLES = {
     "ligandmpnn": "preparation",
     "boltzgen": "preparation",
     "openmm": "preparation",
+    "openfe": "preparation",
     "apbs": "preparation",
     "chemprop": "preparation",
     "plip": "preparation",

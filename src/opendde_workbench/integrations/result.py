@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..artifacts import contained
 from ..proximity.result_models import TernaryResult
+from ..simulations.results import DynamicsResult, FreeEnergyResult, validate_simulation
 
 
 class NativeMetric(BaseModel):
@@ -42,6 +43,8 @@ class NativeResult(BaseModel):
     model_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     proximity: TernaryResult | None = None
+    dynamics: DynamicsResult | None = None
+    free_energy: FreeEnergyResult | None = None
     structure_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_unit: Literal["kBT/e"] | None = None
     interactions: list["NativeInteraction"] = Field(default_factory=list, max_length=1000)
@@ -134,4 +137,5 @@ def validate_result(value, request, output):
         validate_ternary(result, request, output)
     elif result.proximity is not None:
         raise ValueError("Ternary evidence belongs only to its exact native operation.")
+    validate_simulation(result, request)
     return result

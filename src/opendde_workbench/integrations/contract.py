@@ -4,10 +4,11 @@ import re
 from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Discriminator, Field, Tag, model_validator
 
 from ..proximity.options import TernaryPayload
 from ..scientific_objects import MoleculeRef
+from ..simulations.options import DynamicsPayload, FreeEnergyPayload, payload_tag
 from ..task_metadata import TaskMetadata
 from .options import (
     BoltzGenPayload,
@@ -28,6 +29,8 @@ OPERATIONS = {
     "ligandmpnn_design": "ligandmpnn",
     "boltzgen_design": "boltzgen",
     "structure_refine": "openmm",
+    "molecular_dynamics": "openmm",
+    "binding_free_energy": "openfe",
     "electrostatics": "apbs",
     "chemprop_train": "chemprop",
     "chemprop_predict": "chemprop",
@@ -44,16 +47,18 @@ class MaterialInput(BaseModel):
 
 
 Payload = Annotated[
-    BoltzPayload
-    | ReinventPayload
-    | LigandMPNNPayload
-    | BoltzGenPayload
-    | RefinementPayload
-    | ElectrostaticsPayload
-    | ChempropPayload
-    | InteractionPayload
-    | TernaryPayload,
-    Field(discriminator="kind"),
+    Annotated[BoltzPayload, Tag("boltz")]
+    | Annotated[ReinventPayload, Tag("reinvent")]
+    | Annotated[LigandMPNNPayload, Tag("ligandmpnn")]
+    | Annotated[BoltzGenPayload, Tag("boltzgen")]
+    | Annotated[RefinementPayload, Tag("openmm")]
+    | Annotated[DynamicsPayload, Tag("openmm_dynamics")]
+    | Annotated[FreeEnergyPayload, Tag("openfe")]
+    | Annotated[ElectrostaticsPayload, Tag("apbs")]
+    | Annotated[ChempropPayload, Tag("chemprop")]
+    | Annotated[InteractionPayload, Tag("plip")]
+    | Annotated[TernaryPayload, Tag("deepternary")],
+    Discriminator(payload_tag),
 ]
 
 
@@ -66,6 +71,8 @@ class IntegratedTask(TaskMetadata):
         "ligandmpnn_design",
         "boltzgen_design",
         "structure_refine",
+        "molecular_dynamics",
+        "binding_free_energy",
         "electrostatics",
         "chemprop_train",
         "chemprop_predict",
@@ -98,6 +105,8 @@ class IntegratedTask(TaskMetadata):
                 "Whole structures/libraries use record zero and the original conformer."
             )
         kind = self.payload.kind
+        if (self.operation == "molecular_dynamics") != isinstance(self.payload, DynamicsPayload):
+            raise ValueError("Select the dynamics protocol for a molecular-dynamics task.")
         expected = (
             {"structure"} if kind in {"ligandmpnn", "boltzgen", "openmm", "apbs", "plip"} else set()
         )
@@ -105,6 +114,9 @@ class IntegratedTask(TaskMetadata):
             from ..proximity.contract import validate_task
 
             validate_task(self)
+        elif kind == "openfe":
+            if roles != {"structure", "library"}:
+                raise ValueError("FEP requires a protein and an aligned congeneric ligand library.")
         elif kind == "openmm":
             if not expected <= roles or not roles <= {"structure", "ligand"}:
                 raise ValueError(
@@ -203,6 +215,8 @@ class IntegratedTask(TaskMetadata):
                 raise ValueError("Choose explicit one-character target chains.")
         if kind in {"boltz", "boltzgen"} and self.options.device != "cuda":
             raise ValueError("Choose the server GPU for this computationally demanding task.")
-        if kind in {"openmm", "apbs", "plip", "reinvent"} and self.options.device != "cpu":
+        if (
+            kind in {"apbs", "plip", "reinvent"} or self.operation == "structure_refine"
+        ) and self.options.device != "cpu":
             raise ValueError("This reviewed environment executes on CPU.")
         return self

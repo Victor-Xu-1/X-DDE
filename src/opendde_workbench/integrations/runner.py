@@ -16,6 +16,7 @@ def main():
         "ligandmpnn",
         "boltzgen",
         "openmm",
+        "openfe",
         "apbs",
         "chemprop",
         "plip",

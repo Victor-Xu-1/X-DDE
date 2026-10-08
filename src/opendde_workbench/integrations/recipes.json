@@ -6,11 +6,7 @@
       "name": "Boltz-2",
       "gpu": true,
       "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
-      "pip": [
-        "boltz==2.2.1",
-        "torch==2.8.0",
-        "rdkit==2026.3.6"
-      ],
+      "pip": ["boltz==2.2.1", "torch==2.8.0", "rdkit==2026.3.6"],
       "models": [
         {
           "name": "boltz2_aff.ckpt",
@@ -38,11 +34,7 @@
       "name": "BoltzGen",
       "gpu": true,
       "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
-      "pip": [
-        "boltzgen==0.3.2",
-        "torch==2.8.0",
-        "rdkit==2026.3.6"
-      ],
+      "pip": ["boltzgen==0.3.2", "torch==2.8.0", "rdkit==2026.3.6"],
       "models": [
         {
           "name": "boltz2_aff.ckpt",
@@ -237,14 +229,8 @@
       "name": "PDB2PQR + APBS",
       "gpu": false,
       "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
-      "conda": [
-        "python=3.12",
-        "apbs=3.4.1"
-      ],
-      "pip": [
-        "pdb2pqr==3.7.1",
-        "biopython==1.88"
-      ],
+      "conda": ["python=3.12", "apbs=3.4.1"],
+      "pip": ["pdb2pqr==3.7.1", "biopython==1.88"],
       "models": [],
       "license": "APBS BSD-3-Clause; PDB2PQR BSD-3-Clause; PROPKA LGPL"
     },
@@ -253,11 +239,7 @@
       "name": "PLIP",
       "gpu": false,
       "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
-      "conda": [
-        "python=3.12",
-        "plip=3.0.1",
-        "openbabel=3.2.1"
-      ],
+      "conda": ["python=3.12", "plip=3.0.1", "openbabel=3.2.1"],
       "pip": [],
       "models": [],
       "license": "PLIP GPL-2.0; Open Babel GPL-2.0"
@@ -267,11 +249,7 @@
       "name": "Chemprop custom property models",
       "gpu": false,
       "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
-      "pip": [
-        "chemprop==2.3.1",
-        "torch==2.8.0",
-        "rdkit==2026.3.6"
-      ],
+      "pip": ["chemprop==2.3.1", "torch==2.8.0", "rdkit==2026.3.6"],
       "models": [],
       "license": "MIT; user datasets retain their own terms",
       "system_packages": [
@@ -426,10 +404,7 @@
       "name": "DELi DEL informatics",
       "gpu": false,
       "base": "docker.io/library/python@sha256:88310c082760d93ac7c74d579e95e53a4ab6ea52dd8901abc61a103daf488ac4",
-      "pip": [
-        "deli-chem==0.2.1",
-        "rdkit==2026.3.6"
-      ],
+      "pip": ["deli-chem==0.2.1", "rdkit==2026.3.6"],
       "models": [],
       "license": "MIT DELi; individual dependency terms; user library/count data retains its own terms",
       "system_packages": [
@@ -451,11 +426,7 @@
         "rdkit==2023.9.3",
         "numpy==1.26.4"
       ],
-      "system_packages": [
-        "libgl1",
-        "libglib2.0-0",
-        "libcurl4"
-      ],
+      "system_packages": ["libgl1", "libglib2.0-0", "libcurl4"],
       "source": {
         "url": "https://github.com/youqingxiaozhua/DeepTernary/archive/827821dccca31a5918bd0355e2d6bf70c072b6dd.zip",
         "sha256": "985aac93e0bcbdc5fd0f66689aecd2fdf6bcab46540a4a80ffb351c59b383eec",
@@ -486,6 +457,21 @@
         }
       ],
       "license": "Apache-2.0 repository; official v1.0.0 checkpoints, upstream and third-party notices apply"
+    },
+    "openfe": {
+      "license": "OpenFE MIT; OpenMM MIT/LGPL; OpenFF MIT; AmberTools component licenses",
+      "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
+      "pip": [],
+      "models": [],
+      "conda": [
+        "python=3.12",
+        "openfe=1.12.0",
+        "openmm=8.4.0",
+        "pdbfixer=1.12.0"
+      ],
+      "gpu": false,
+      "version": "1.12.0",
+      "name": "OpenFE binding free energy"
     }
   }
 }

@@ -79,8 +79,17 @@ const definitions: GroupDefinition[] = [
         "plip",
         "apbs",
         "chemprop",
-        "openmm",
       ].includes(p.id),
+  },
+  {
+    id: "simulations",
+    title: ["动力学与结合自由能", "Dynamics and binding free energy"],
+    recommendation: [
+      "OpenMM 动力学与结构优化；OpenFE 相对结合自由能",
+      "OpenMM dynamics and refinement; OpenFE relative binding free energy",
+    ],
+    recommended: ["openmm", "openfe"],
+    matches: (p) => ["openmm", "openfe"].includes(p.id),
   },
   {
     id: "prediction",
