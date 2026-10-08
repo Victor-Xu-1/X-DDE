@@ -43,6 +43,11 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         page.goto(base + "/#task=" + case["pin"]["job_id"])
         root = page.locator(".dataset-results")
         expect(root).to_be_visible(timeout=30000)
+        charts_tab = root.get_by_role(
+            "button", name="Charts and quality" if language == "en" else "图表与质量", exact=True
+        )
+        if charts_tab.count():
+            charts_tab.click()
         chart = root.locator(".research-plot").first
         plot = chart.locator(".research-plot-canvas")
         expect(plot).to_have_attribute("aria-busy", "false", timeout=30000)
