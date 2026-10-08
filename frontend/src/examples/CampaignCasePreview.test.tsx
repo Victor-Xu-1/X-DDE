@@ -66,7 +66,7 @@ it("shows the existing reference and exact mutable sequences without pretending 
       name: "Antibody variable domain · Input chain B",
     }),
   ).toBeVisible();
-  const marks = screen.getAllByRole("button", { name: "CDR", exact: true });
+  const marks = screen.getAllByRole("button", { name: /^CDR$/ });
   expect(marks[0]).toHaveAttribute("title", "CDR · 2–3");
   expect(marks[1]).toHaveAttribute("title", "CDR · 7–7");
   expect(
