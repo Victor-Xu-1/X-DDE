@@ -18,6 +18,7 @@ EVIDENCE = Path("server_tests/evidence/admet-inspection")
 def capture(page, name):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=EVIDENCE / (name + ".png"), full_page=True)
+    page.screenshot(path=EVIDENCE / (name + "-viewport.png"))
     assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1"), name
 
 
@@ -58,6 +59,10 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     expect(selected.locator(".molecule-image")).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
+    drawing = selected.locator(".molecule-image img")
+    bounds = drawing.bounding_box()
+    parent = selected.locator(".admet-molecule-drawing").bounding_box()
+    assert bounds and parent and bounds["width"] <= parent["width"] + 1
     expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
