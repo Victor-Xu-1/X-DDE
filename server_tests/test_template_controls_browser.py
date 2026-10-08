@@ -153,6 +153,10 @@ def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_pag
             expect(result.locator("table").first).to_be_visible(timeout=30000)
         if capability in {"predict", "admet.predict"}:
             expect(result.locator(".viewer-tools").first).to_be_visible(timeout=45000)
+        if capability in {"admet.predict", "del.analyze"}:
+            expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
+                "data-drawing-state", "ready", timeout=45000
+            )
         if capability == "predict":
             expect(
                 page.get_by_role("group", name="工作区" if index == 0 else "Workspace", exact=True)
@@ -251,4 +255,7 @@ def test_failed_metadata_retry_and_public_preview_preserve_real_sequence_input(c
             "button", name="示例结果" if index == 0 else "Example results", exact=True
         ).click()
         expect(region.locator(".module-example-result table").first).to_be_visible(timeout=30000)
+        expect(region.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
+            "data-drawing-state", "ready", timeout=45000
+        )
         capture(page, f"{language}-{width}-dark-public-result")
