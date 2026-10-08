@@ -1,7 +1,7 @@
 """Inspect physical output metadata and vectors without changing scientific source data."""
 
-import struct
 import json
+import struct
 import xml.etree.ElementTree as ET
 
 from playwright.sync_api import expect
