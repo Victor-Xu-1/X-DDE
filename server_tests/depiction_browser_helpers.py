@@ -30,6 +30,8 @@ def settle_visible_drawings(page):
                 }
                 return bounds.width > 0 && bounds.height > 0 && right > left && bottom > top;
             };
+            if ([...document.querySelectorAll('main [aria-busy="true"]')].some(visible))
+                return false;
             return [...document.querySelectorAll('main .molecule-image')]
                 .filter(visible).every(node => {
                     const state = node.dataset.drawingState;
