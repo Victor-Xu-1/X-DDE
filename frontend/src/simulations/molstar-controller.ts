@@ -105,10 +105,16 @@ export class MolecularController {
           {
             type: "ball-and-stick",
             typeParams: {
-              sizeFactor: 0.12,
+              sizeFactor: 0.08,
               visuals: ["intra-bond", "inter-bond"],
             },
             color: "element-symbol",
+            colorParams: {
+              carbonColor: {
+                name: "uniform",
+                params: { value: Color(0x879bb3), saturation: 0, lightness: 0 },
+              },
+            },
           },
         ),
       }),
