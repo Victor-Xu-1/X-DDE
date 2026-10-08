@@ -14,3 +14,10 @@
 .sequence-score-results .research-table td {
   padding: 10px 8px;
 }
+.sequence-score-results .research-table table {
+  table-layout: fixed;
+}
+.sequence-score-results .research-table th,
+.sequence-score-results .column-sort {
+  white-space: normal;
+}

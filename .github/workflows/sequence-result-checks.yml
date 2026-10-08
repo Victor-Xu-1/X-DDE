@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'frontend/src/presentation/SequenceTrack*'
+      - 'frontend/src/presentation/sequence-track.css'
       - 'frontend/src/presentation/result-inspection.css'
       - 'frontend/src/operations/SequenceScoreResults*'
       - 'frontend/src/operations/sequence-scores.css'

@@ -75,6 +75,11 @@ def capture_views(page, panel, name):
         left = panel.locator(".result-inspection-list").bounding_box()
         right = panel.locator(".result-inspection-detail").bounding_box()
         assert left and right
+        for table in panel.locator(".result-inspection-list table").all():
+            bounds = table.bounding_box()
+            assert bounds and bounds["width"] <= left["width"] + 1, (
+                "Result columns extend beyond the visible list"
+            )
         if width > 1000:
             assert left["x"] + left["width"] <= right["x"] and abs(left["y"] - right["y"]) <= 3
         else:

@@ -52,6 +52,7 @@ on:
       - 'frontend/src/research/research.css'
       # Sequence and QC inspections use their own focused native-result gate.
       - '!frontend/src/presentation/SequenceTrack*'
+      - '!frontend/src/presentation/sequence-track.css'
       - '!frontend/src/presentation/result-inspection.css'
       - '!frontend/src/operations/SequenceScoreResults*'
       - '!frontend/src/operations/sequence-scores.css'
@@ -105,6 +106,7 @@ on:
       - 'frontend/src/research/research.css'
       # Sequence and QC inspections use their own focused native-result gate.
       - '!frontend/src/presentation/SequenceTrack*'
+      - '!frontend/src/presentation/sequence-track.css'
       - '!frontend/src/presentation/result-inspection.css'
       - '!frontend/src/operations/SequenceScoreResults*'
       - '!frontend/src/operations/sequence-scores.css'
