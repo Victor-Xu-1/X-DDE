@@ -24,9 +24,10 @@ export function InteractivePlot({
   callback.current = onPoint;
   const queue = useRef(Promise.resolve());
   const [error, setError] = useState(false);
+  const [dragMode, setDragMode] = useState<"zoom" | "pan">("zoom");
   const plot = useRef<typeof Plotly | null>(null);
   const zh = language === "zh";
-  const signature = JSON.stringify({ data, layout, height, title });
+  const signature = JSON.stringify({ data, layout, height, title, dragMode });
   useEffect(() => {
     const target = element.current!;
     let disposed = false;
@@ -67,7 +68,7 @@ export function InteractivePlot({
             paper_bgcolor: "transparent",
             plot_bgcolor: "transparent",
             hovermode: "closest",
-            dragmode: "zoom",
+            dragmode: dragMode,
             uirevision: title,
             legend: { orientation: "h", y: -0.26, x: 0 },
             ...layout,
@@ -76,7 +77,7 @@ export function InteractivePlot({
             responsive: true,
             displaylogo: false,
             scrollZoom: true,
-            modeBarButtonsToRemove: ["toImage", "lasso2d", "select2d"],
+            displayModeBar: false,
           },
         );
         target.removeAllListeners("plotly_click");
@@ -96,22 +97,47 @@ export function InteractivePlot({
     <section className="simulation-plot">
       <header>
         <h3>{title}</h3>
-        <button
-          type="button"
-          className="text-button"
-          onClick={() => {
-            if (plot.current && element.current)
-              void plot.current.downloadImage(element.current, {
-                format: "svg",
-                width: 1000,
-                height: 600,
-                filename: title,
-              });
-          }}
-          aria-label={`${zh ? "下载" : "Download"} ${title} SVG`}
-        >
-          SVG ↓
-        </button>
+        <div className="simulation-chart-controls">
+          <select
+            aria-label={zh ? "图表操作" : "Chart interaction"}
+            value={dragMode}
+            onChange={(event) =>
+              setDragMode(event.target.value as "zoom" | "pan")
+            }
+          >
+            <option value="zoom">{zh ? "缩放" : "Zoom"}</option>
+            <option value="pan">{zh ? "平移" : "Pan"}</option>
+          </select>
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              if (plot.current && element.current)
+                void plot.current.relayout(element.current, {
+                  "xaxis.autorange": true,
+                  "yaxis.autorange": true,
+                });
+            }}
+          >
+            {zh ? "重置" : "Reset"}
+          </button>
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              if (plot.current && element.current)
+                void plot.current.downloadImage(element.current, {
+                  format: "svg",
+                  width: 1000,
+                  height: 600,
+                  filename: title,
+                });
+            }}
+            aria-label={`${zh ? "下载" : "Download"} ${title} SVG`}
+          >
+            SVG ↓
+          </button>
+        </div>
       </header>
       {error && (
         <p role="alert">

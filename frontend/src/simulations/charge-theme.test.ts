@@ -1,4 +1,8 @@
-import { expect, it } from "vitest";
+import { afterAll, expect, it, vi } from "vitest";
+const worker = vi.hoisted(() =>
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:charge-theme-worker"),
+);
+afterAll(() => worker.mockRestore());
 import { parsePDB } from "molstar/lib/mol-io/reader/pdb/parser";
 import { trajectoryFromPDB } from "molstar/lib/mol-model-formats/structure/pdb";
 import { Structure, StructureElement } from "molstar/lib/mol-model/structure";

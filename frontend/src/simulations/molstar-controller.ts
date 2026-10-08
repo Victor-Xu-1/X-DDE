@@ -76,7 +76,12 @@ export class MolecularController {
     this.resizeObserver.observe(container);
     this.plugin.behaviors.interaction.hover.subscribe(({ current }) =>
       onAtom?.(
-        lociLabel(current.loci, { htmlStyling: false, granularity: "element" }),
+        Loci.isEmpty(current.loci)
+          ? ""
+          : lociLabel(current.loci, {
+              htmlStyling: false,
+              granularity: "element",
+            }),
       ),
     );
     await this.plugin.state.updateBehavior(
@@ -214,7 +219,8 @@ export class MolecularController {
       }
       signal.throwIfAborted();
     }
-    this.reset();
+    if (!frames && this.ligandStructure) this.focusLigand();
+    else this.reset();
   }
 
   setFrame(index: number, ready: () => void) {

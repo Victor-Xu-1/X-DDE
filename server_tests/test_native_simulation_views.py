@@ -96,7 +96,14 @@ def test_native_result_views_and_downloads(case, language):
                 "el => el.on('plotly_click', event => {"
                 " el.dataset.clickedX = String(event.points[0]?.x); })"
             )
-            plot.locator(".scatterlayer .point").nth(2).click()
+            plot.evaluate("el => el.scrollIntoView({ block: 'center' })")
+            point = plot.locator(".scatterlayer .point").nth(2)
+            box = point.bounding_box()
+            assert box is not None
+            x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+            page.mouse.move(x, y)
+            expect(plot.locator(".hoverlayer .hovertext")).to_be_visible()
+            page.mouse.click(x, y)
             assert plot.get_attribute("data-clicked-x") is not None, (
                 "Native Plotly point click was not delivered."
             )

@@ -208,6 +208,18 @@ export function MolecularViewport({
       {view.surface && (
         <SurfaceLegend summary={surfaceSummary} language={language} />
       )}
+      {sources.filter((source) => source.role === "ligand").length > 1 && (
+        <div className="simulation-pose-legend">
+          {sources
+            .filter((source) => source.role === "ligand")
+            .map((source, i) => (
+              <span key={source.url}>
+                <i style={{ background: i ? "#23b8d0" : "#36bf65" }} />
+                {i ? "B" : "A"} · {source.label}
+              </span>
+            ))}
+        </div>
+      )}
       <p className="field-help simulation-atom-label">
         {atom ||
           (zh
