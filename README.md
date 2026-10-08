@@ -1,10 +1,12 @@
 # X-DDE
 
+**中文** · [English](README.en.md)
+
 **面向早期药物发现的可视化研究平台。**
 
 把分散的科学软件、模型和研究文件，组织成可以衔接的研究流程。从靶点、结构和口袋开始，开展小分子、生物药、高通量筛选与 DEL 研究；在同一工作台中准备任务、检查结果、修改材料并继续下一步。
 
-[安装与使用](#快速开始) · [实际页面](#操作页面是什么样) · [研究能力](#能完成哪些工作) · [平台架构](#架构如何设计) · [English](#english) · [最新发行版](https://github.com/Victor-Xu-1/X-DDE/releases) · [Apache-2.0](LICENSE)
+[安装与使用](#快速开始) · [实际页面](#操作页面是什么样) · [研究能力](#能完成哪些工作) · [平台架构](#架构如何设计) · [最新发行版](https://github.com/Victor-Xu-1/X-DDE/releases) · [Apache-2.0](LICENSE)
 
 ## 为什么需要 X-DDE
 
@@ -61,7 +63,7 @@ flowchart LR
 
 ## 操作页面是什么样
 
-以下是 **v0.4.49 的实际 Chromium 页面截图**，使用公开研究输入与归档的原生结果。结构、表格、分子和数值来自软件实际页面。架构插图单独用于解释设计，不代替运行截图。
+以下是 **v0.4.49 实际运行的英文界面截图**，使用公开研究输入与归档的原生结果。结构、表格、分子和数值来自软件实际页面，未重新绘制或替换图片文字。架构插图单独用于解释设计，不代替运行截图。
 
 ### 1. 像填问卷一样准备任务
 
@@ -91,11 +93,11 @@ flowchart LR
 
 ### 4. 把 DEL 和生物药材料也变成可阅读的结果
 
-DEL 页面保留成员结构、靶点与对照计数、富集区间和重复信息。抗体模板提供真实可变域序列与可调整的 CDR 位置，并可切换参考结构。
+DEL 页面保留成员结构、靶点与对照计数、富集区间和重复信息。抗体模板提供真实可变域序列与可调整的 CDR 位置，并可切换参考结构；通过 **Setup example（配置示例）** 查看材料，不会启动设计。
 
 ![UNCDEL006–BRD4 公开研究：实际 DEL 富集与成员结构](docs/images/del-enrichment.jpg)
 
-![曲妥珠单抗–HER2 设计输入模板：实际可变域序列与 CDR](docs/images/antibody-template.png)
+![曲妥珠单抗–HER2 设计输入模板：实际可变域序列与 CDR](docs/images/antibody-template.jpg)
 
 抗体图展示经验证的**设计输入模板**，尚未运行新的设计任务；实验参考结构、输入材料与新生成的模型结果保持区分。
 
@@ -146,7 +148,7 @@ DEL 页面保留成员结构、靶点与对照计数、富集区间和重复信�
 
 启动后，在 **设置与帮助 → 安装与运行** 选择统一安装目录，按研究用途准备所需组件。各个科学环境分别管理，已有组件显示“已安装”，维护菜单提供修复、升级与卸载。大型模型与数据库按需配置。
 
-![实际组件管理页：统一目录、用途筛选与独立组件状态](docs/images/component-management.png)
+![实际组件管理页：统一目录、用途筛选与独立组件状态](docs/images/component-management.jpg)
 
 Windows 默认入口放在 `E:\WSL\apps\x-dde`。Linux 环境、模型与数据的位置按安装时的 WSL 存储和组件目录确定；选择 E 盘入口不会自动迁移已有系统磁盘。详细步骤、已有环境连接、服务器访问和故障恢复见 [使用与运行](docs/user-guide.md)。
 
@@ -171,16 +173,6 @@ GPU 推理、服务器吞吐、模型科学准确性和具体实验结论按实�
 | 真实模板、公开来源与计算结果 | [研究案例](docs/design/research-examples.md) |
 | 原生运行、硬件与科学验收 | [服务器验收](docs/server-acceptance.md) |
 | 参与开发、专项检查与发布编号 | [开发与发布](docs/development.md) |
-
-## English
-
-**X-DDE is a visual research platform for early drug discovery.** It connects scientific tools and research assets across target research, structure prediction, pockets and docking, small-molecule design, biologics, high-throughput screening, DEL analysis and early property assessment.
-
-The main problem it addresses is the work between tools: different environments, file formats and parameters; disconnected outputs; and results that are difficult to inspect or reuse. X-DDE provides one-step-at-a-time task preparation, optional expert controls, linked candidate tables and 2D / 3D / sequence inspection, independent component management, and versioned inputs and outputs.
-
-X-DDE owns both the frontend and the platform backend. External scientific programs run in isolated managed environments through typed adapters. A prepared receptor can feed pocket analysis; a chosen pocket can feed generation or screening; molecules can continue into properties, docking and quality checks; protein candidates can continue into folding and interface analysis. Original materials and result identities remain available.
-
-The images above include real v0.4.49 browser captures of public research cases and clearly identified input templates. The 71 task entries do not imply that every runtime and model is installed, scientifically accepted, or licensed for every use. Download installers from [Releases](https://github.com/Victor-Xu-1/X-DDE/releases); see the [user guide](docs/user-guide.md) and [server acceptance](docs/server-acceptance.md) for deployment and verification.
 
 ## 许可证与来源
 

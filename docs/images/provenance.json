@@ -1,66 +1,72 @@
 {
   "screenshot_version": "0.4.49",
   "screenshot_revision": "0d8d29e00b03462adef31d90bf359ad85b7646f4",
-  "browser_run": "https://github.com/Victor-Xu-1/X-DDE/actions/runs/37722758677",
+  "capture_method": "Direct browser captures of the running application after selecting English in the interface language setting",
+  "screenshot_language": "en",
   "screenshots_unmodified": true,
+  "native_case_validation_run": "https://github.com/Victor-Xu-1/X-DDE/actions/runs/37722758677",
   "screenshots": [
     {
       "file": "guided-task.jpg",
-      "source_image": "1440-预测分子与复合物结构-step-1.jpg",
       "kind": "input_template",
-      "sha256": "3ffa76caac2975e2ac24e1dce8ad2f1d664ecce9e7992738a91602b840a32b21"
+      "language": "en",
+      "sha256": "4f9be54687ed309cf7ea06d5c8b9b41855d46076c89d95d4fa56078cf0f1950b"
     },
     {
       "file": "structure-and-pocket.jpg",
-      "source_image": "1440-预测分子与复合物结构-result.jpg",
       "kind": "native_prediction",
-      "sha256": "9d459bef7e7163deb4880687c21ef8acd92b1b2b779909af771a2591d76f45b7"
+      "language": "en",
+      "sha256": "4e7a8883713e130df68424688347678632435f0c3526cddeff3ecd5023411ef2"
     },
     {
       "file": "molecule-properties.jpg",
-      "source_image": "1440-性质与早期安全性预测-result.jpg",
       "kind": "native_prediction",
-      "sha256": "eb5917db09595792ee6c972b0f7ebfbe6ecf96f32e6c5b56a843fced961b1304"
+      "language": "en",
+      "sha256": "93d85d3233b61afe2ec3fe5f3b1e83dfe869eef734c7727bf1ff157ed341a9a6"
     },
     {
       "file": "screening-candidates.jpg",
-      "source_image": "1440-高通量筛选-result.jpg",
       "kind": "native_retrieval_free_conformer",
-      "sha256": "3b0b18a17677c02e0d926fe3955e8d243e2496bd3746df9ead70f8d7a414cd9b"
+      "language": "en",
+      "sha256": "b9debee8b3a39cdfa7ea4d85165a968880efbcc5864e8d001a41951c9f0855a1"
     },
     {
       "file": "del-enrichment.jpg",
-      "source_image": "1440-DEL-富集与命中-result.jpg",
       "kind": "public_data_native_analysis",
-      "sha256": "ba30f9125ad8478be01c7ff82162bbc05c1a0ae9063d3bcd423d99838fe33d4e"
+      "language": "en",
+      "sha256": "1fe9befad59cc50c2093bc95ebdb9b9ec58e421547e7c83e2d1bd26ee0f98bc8"
     },
     {
-      "file": "antibody-template.png",
-      "source_image": "campaign-sequence-cdr-1440.png",
+      "file": "antibody-template.jpg",
       "kind": "input_template",
-      "sha256": "078bc358208b08760d15d7309958c747543a87f6835068a3e781c18d280e8733"
+      "language": "en",
+      "sha256": "0dc0d195c89237b10489d7df32d0c7e3531b2937d260db8ec7d2723c3bcbd03f"
     },
     {
-      "file": "component-management.png",
-      "source_image": "components-1440-0.png",
+      "file": "component-management.jpg",
       "kind": "actual_component_ui",
-      "sha256": "91716357ddd146c42cf636e9f3e42b263a32caf483866bd972f63a459e62bbef"
+      "language": "en",
+      "sha256": "4eeb204c2fe16ecb087ae89c7e05ef4b1977e804ef120290b40081040db1b967"
     }
   ],
   "illustrations": [
     {
       "file": "platform-architecture.png",
       "kind": "explanatory_illustration",
-      "role": "platform_architecture",
       "generator": "built-in imagegen",
       "sha256": "a26783e8120e0429efc65d15acce97983ebe6dcd045bc7c2c0f52ee5f656c4e3"
     },
     {
       "file": "connected-research.png",
       "kind": "explanatory_illustration",
-      "role": "research_asset_flow",
       "generator": "built-in imagegen",
       "sha256": "5c05774e2715ac3a743f33ed4a649d3c110670f8d6fec48cd8d9b702bc10396e"
+    },
+    {
+      "file": "connected-research-en.png",
+      "kind": "explanatory_illustration",
+      "generator": "built-in imagegen",
+      "sha256": "9b4956bf2665872ae2d31a7cb69b76e82f5588abc8cb102a3900e0c9c9fb4ce9"
     }
   ]
 }
