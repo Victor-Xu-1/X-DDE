@@ -91,7 +91,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
             table = page.get_by_role("table", name="蛋白接触残基", exact=True)
             expect(table.locator("tbody tr")).to_have_count(5)
             expect(page.get_by_role("button", name="整体骨架", exact=True)).to_have_class(
-                re.compile("active")
+                re.compile(r"\bselected\b")
             )
             left = page.locator(".epitope-contact-list").first.bounding_box()
             right = page.locator(".epitope-contact-map").bounding_box()
