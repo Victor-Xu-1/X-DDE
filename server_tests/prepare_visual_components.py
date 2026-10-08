@@ -26,9 +26,11 @@ for component in requested:
     if component in manager.store.installed():
         continue
     assert not any(row["state"] in {"queued", "running", "pausing"} for row in manager.store.rows())
-    operation = manager.enqueue(component, "install")[0]
-    manager.tick()
-    assert manager.store.get(operation)["state"] == "succeeded", manager.store.get(operation)
+    operations = manager.enqueue(component, "install")
+    for _ in operations:
+        manager.tick()
+    for operation in operations:
+        assert manager.store.get(operation)["state"] == "succeeded", manager.store.get(operation)
 if "ketcher" in requested:
     assert (Path(manager.store.installed()["ketcher"]["web"]) / "index.html").is_file()
 for component, count in (("public-dataset-examples", 14), ("public-pose-examples", 2)):
