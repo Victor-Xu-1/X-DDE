@@ -260,7 +260,9 @@ def test_real_structures_tables_and_sequences():
                 else:
                     assert table["y"] + table["height"] <= panel["y"]
                 inspector.scroll_into_view_if_needed()
-                expect(inspector.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled()
+                expect(
+                    inspector.get_by_role("button", name="生成三维视图图片", exact=True)
+                ).to_be_enabled()
                 record(f"indexed-member-inspector-{width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
             page.get_by_role("button", name="下一页", exact=True).click()
