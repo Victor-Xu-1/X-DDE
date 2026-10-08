@@ -1703,5 +1703,53 @@
       "这是基于公开参考结构的模型装配假设；基本几何检查不证明降解、协同性或细胞活性。",
       "These are model assembly hypotheses from a public reference structure. Basic geometry does not establish degradation, cooperativity or cellular activity."
     ]
+  },
+  "openmm.dynamics": {
+    "interpretation": [
+      "RMSD、RMSF 和接触占有率来自实际采样；短模拟不证明收敛或实验稳定性。",
+      "RMSD, RMSF and contact occupancy come from actual sampling; short runs do not establish convergence or experimental stability."
+    ],
+    "steps": [
+      [
+        "使用公开 BRD4/JQ1 或本次准备的完整蛋白结构。",
+        "Use the public BRD4/JQ1 example or a complete protein structure."
+      ],
+      [
+        "选择蛋白或蛋白与结合配体，再选择采样长度。",
+        "Choose protein-only or a protein with its bound ligand, then a sampling duration."
+      ],
+      [
+        "选择温度与独立重复；专家模式可调整采样。",
+        "Choose temperature and independent repeats; use Expert adjustments for custom sampling."
+      ],
+      [
+        "确认条件后提交，在结果页同步查看轨迹与曲线。",
+        "Review conditions and submit, then inspect linked trajectories and curves."
+      ]
+    ]
+  },
+  "openfe.rbfe": {
+    "interpretation": [
+      "ΔΔG 为 B 相对 A 的结合自由能变化；同时检查误差、采样重叠与前向/反向收敛。",
+      "ΔΔG compares B against A; inspect uncertainty, sampling overlap and forward/reverse convergence alongside it."
+    ],
+    "steps": [
+      [
+        "使用已准备的蛋白与同坐标系的抑制剂 SDF 系列。",
+        "Use a prepared protein and an inhibitor SDF series in the same binding coordinate frame."
+      ],
+      [
+        "用结构预览选择 2–12 个同系列、相同净电荷的分子。",
+        "Select 2–12 congeneric, same-net-charge molecules using their structure previews."
+      ],
+      [
+        "先检查原子映射，再选择双环境 FEP 与独立重复。",
+        "Inspect atom maps first, then choose both thermodynamic legs and independent repeats."
+      ],
+      [
+        "确认计算成本；规划结果不包含已计算的自由能。",
+        "Review the sampling budget; a planned network contains no calculated free energies."
+      ]
+    ]
   }
 }

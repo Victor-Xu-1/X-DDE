@@ -2,7 +2,8 @@ import { useState } from "react";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { LibraryInput } from "../integrations/LibraryInput";
 import { ChoiceCards } from "../guided/ChoiceCards";
-import { Hint } from "../guided/Hint";
+import { SimulationConditions } from "./SimulationConditions";
+import { SimulationReview } from "./SimulationReview";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
@@ -30,7 +31,7 @@ export function SimulationForm({
 }) {
   const zh = language === "zh",
     fep = form === "openfe.rbfe",
-    [program, operation] = simulationForms[form];
+    [, operation] = simulationForms[form];
   const preset = useExampleTask(operation),
     exampleProtein = useExampleReference("protein_only"),
     exampleLigand = useExampleReference(fep ? "tyk2_ligands" : "jq1");
@@ -53,8 +54,7 @@ export function SimulationForm({
         ...preset?.payload,
       }) as SimulationPayload,
   );
-  const [expert, setExpert] = useState(false),
-    [name, setName] = useState("");
+  const [name, setName] = useState("");
   const [options, setOptions] = useState<ScientificTask["options"]>({
     device: fep ? "cpu" : "cuda",
     cpu: 2,
@@ -260,211 +260,28 @@ export function SimulationForm({
           title: zh ? "设置模拟条件" : "Choose simulation conditions",
           valid: settingsValid,
           content: (
-            <>
-              {fep && (
-                <ChoiceCards
-                  label={zh ? "计算阶段" : "Calculation stage"}
-                  value={payload.stage ?? "plan"}
-                  onChange={(v) => {
-                    update({ stage: v as "plan" | "calculate" });
-                    setOptions((o) => ({
-                      ...o,
-                      device: v === "plan" ? "cpu" : "cuda",
-                    }));
-                  }}
-                  options={[
-                    {
-                      value: "plan",
-                      label: [
-                        "先检查变化网络 · 推荐",
-                        "Inspect the network first · Recommended",
-                      ],
-                      note: [
-                        "显示原子映射，不报告自由能",
-                        "Inspect atom maps without claiming free energies",
-                      ],
-                    },
-                    {
-                      value: "calculate",
-                      label: ["执行 FEP 计算", "Run FEP calculations"],
-                      note: [
-                        "两个环境、独立重复与误差分析",
-                        "Both thermodynamic legs, independent repeats and uncertainty",
-                      ],
-                    },
-                  ].map((c) => ({
-                    value: c.value,
-                    title: c.label[zh ? 0 : 1],
-                    note: c.note[zh ? 0 : 1],
-                  }))}
-                />
-              )}
-              <div className="simulation-condition-row">
-                <label>
-                  {zh ? "温度" : "Temperature"}
-                  <select
-                    value={payload.temperature_kelvin}
-                    onChange={(e) =>
-                      update({ temperature_kelvin: Number(e.target.value) })
-                    }
-                  >
-                    {[298.15, 300, 310].map((t) => (
-                      <option key={t} value={t}>
-                        {t} K
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  {zh ? "独立重复" : "Independent repeats"}
-                  <select
-                    value={payload.repeats}
-                    onChange={(e) =>
-                      update({ repeats: Number(e.target.value) })
-                    }
-                  >
-                    {[1, 3].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                  <Hint
-                    label={zh ? "独立重复说明" : "About independent repeats"}
-                  >
-                    {zh
-                      ? "独立重复帮助判断结果是否稳健。单次短模拟不能证明收敛。"
-                      : "Independent repeats help assess robustness. One short simulation does not establish convergence."}
-                  </Hint>
-                </label>
-                <label>
-                  {zh ? "计算设备" : "Compute device"}
-                  <select
-                    value={options.device}
-                    onChange={(e) =>
-                      setOptions((o) => ({
-                        ...o,
-                        device: e.target.value as "cpu" | "cuda",
-                      }))
-                    }
-                  >
-                    <option value="cuda">GPU · CUDA</option>
-                    <option value="cpu">CPU</option>
-                  </select>
-                </label>
-              </div>
-              <label className="check-row">
-                <input
-                  type="checkbox"
-                  checked={expert}
-                  onChange={(e) => setExpert(e.target.checked)}
-                />
-                {zh ? "专家微调" : "Expert adjustments"}
-              </label>
-              {expert && (
-                <div className="simulation-condition-row">
-                  <label>
-                    {zh ? "生产采样（ns）" : "Production sampling (ns)"}
-                    <input
-                      type="number"
-                      min={fep ? 0.02 : 0.002}
-                      max={fep ? 50 : 500}
-                      step="any"
-                      value={payload.production_ns}
-                      onChange={(e) =>
-                        update({ production_ns: Number(e.target.value) })
-                      }
-                    />
-                  </label>
-                  <label>
-                    {zh ? "平衡采样（ns）" : "Equilibration (ns)"}
-                    <input
-                      type="number"
-                      min={fep ? 0.02 : 0.002}
-                      max={5}
-                      step="any"
-                      value={payload.equilibration_ns}
-                      onChange={(e) =>
-                        update({ equilibration_ns: Number(e.target.value) })
-                      }
-                    />
-                  </label>
-                  {fep && (
-                    <label>
-                      {zh ? "变化网络" : "Perturbation network"}
-                      <select
-                        value={String(payload.network)}
-                        onChange={(e) => update({ network: e.target.value })}
-                      >
-                        <option value="redundant">
-                          {zh
-                            ? "包含冗余连接"
-                            : "Include redundant connections"}
-                        </option>
-                        <option value="minimal">
-                          {zh ? "最小连接网络" : "Minimal connected network"}
-                        </option>
-                      </select>
-                    </label>
-                  )}
-                </div>
-              )}
-            </>
+            <SimulationConditions
+              fep={fep}
+              payload={payload}
+              update={update}
+              options={options}
+              setOptions={setOptions}
+              language={language}
+            />
           ),
         },
         {
           title: zh ? "确认并提交" : "Review and submit",
           valid: inputValid && selectionValid && settingsValid,
           content: (
-            <>
-              <label>
-                {zh ? "任务名称（可选）" : "Task name (optional)"}
-                <input
-                  maxLength={80}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </label>
-              <table className="compact-table">
-                <tbody>
-                  <tr>
-                    <th>{zh ? "计算引擎" : "Backend"}</th>
-                    <td>{fep ? "OpenFE 1.12.0" : "OpenMM 8.6.1"}</td>
-                  </tr>
-                  <tr>
-                    <th>{zh ? "材料" : "Inputs"}</th>
-                    <td>
-                      {inputs.length} {zh ? "份文件" : "files"}
-                      {fep
-                        ? ` · ${payload.records?.length} ${zh ? "个分子" : "ligands"}`
-                        : ""}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>{zh ? "采样" : "Sampling"}</th>
-                    <td>
-                      {payload.production_ns} ns × {payload.repeats}{" "}
-                      {zh ? "次重复" : "repeats"}
-                      {fep
-                        ? ` × ${payload.lambda_windows} λ × 2 ${zh ? "环境 / 每条变化" : "legs / edge"}`
-                        : ""}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>{zh ? "结果" : "Output"}</th>
-                    <td>
-                      {fep && payload.stage === "plan"
-                        ? zh
-                          ? "变化网络与原子映射"
-                          : "Perturbation network and atom maps"
-                        : fep
-                          ? "ΔΔG ± uncertainty · MBAR"
-                          : "3D · RMSD · RMSF · contacts"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </>
+            <SimulationReview
+              fep={fep}
+              payload={payload}
+              inputs={inputs}
+              name={name}
+              setName={setName}
+              language={language}
+            />
           ),
         },
       ]}

@@ -24,7 +24,9 @@ it("covers every existing visible scientific capability exactly once without mer
   }
 });
 it("keeps the two data research entries and one active parent for every task", () => {
-  expect(navigationItems).toHaveLength(12);
+  expect(navigationItems).toHaveLength(researchModules.length + 3);
+  expect(moduleForTool("openmm.dynamics")?.id).toBe("simulations");
+  expect(moduleForTool("openfe.rbfe")?.id).toBe("simulations");
   expect(managementItems).toHaveLength(3);
   for (const tool of filterCapabilities("all")) {
     const view = viewForTool(tool.id);

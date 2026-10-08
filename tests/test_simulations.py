@@ -54,7 +54,16 @@ def test_simulations_share_existing_queue_router_and_openmm_environment(tmp_path
     assert engine_for(md.operation).id == "openmm"
     assert engine_for(fep.operation).id == "openfe"
     for identifier in ("openmm", "openfe", "deepternary"):
-        backend = ScientificBackend(Settings(state_dir=tmp_path), identifier)
+        backend = ScientificBackend(
+            Settings(
+                state_dir=tmp_path,
+                image_file=tmp_path / "image",
+                code_file=tmp_path / "code",
+                model_dir=tmp_path / "models",
+                cache_dir=tmp_path / "cache",
+            ),
+            identifier,
+        )
         assert len(backend.files) == len(set(backend.files)) <= 32
         for name in backend.files:
             assert backend.shared_sources.get(name, backend.root / name).is_file()
