@@ -14,6 +14,9 @@ import type { StateObjectSelector } from "molstar/lib/mol-state";
 import type { PluginStateObject as SO } from "molstar/lib/mol-plugin-state/objects";
 import { readStructure } from "./trajectory-source";
 import { sampledTrajectory, NativeTrajectory } from "./native-trajectory";
+import { ChargeTheme, chargeCoverage } from "./charge-theme";
+import { MolecularSurfaceRepresentationProvider } from "molstar/lib/mol-repr/structure/representation/molecular-surface";
+import type { SurfaceSummary } from "../viewer/protocol";
 import type { Residue } from "./types";
 
 export interface StructureSource {
@@ -49,6 +52,7 @@ export class MolecularController {
   private queue = Promise.resolve();
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
+  surfaceSummary: SurfaceSummary | null = null;
 
   async initialize(
     canvas: HTMLCanvasElement,
@@ -56,6 +60,9 @@ export class MolecularController {
     onAtom?: (label: string) => void,
   ) {
     await this.plugin.init();
+    this.plugin.representation.structure.themes.colorThemeRegistry.add(
+      ChargeTheme,
+    );
     if (!(await this.plugin.initViewerAsync(canvas, container)))
       throw new Error("WebGL is unavailable.");
     this.plugin.canvas3d?.setProps({
@@ -158,15 +165,18 @@ export class MolecularController {
             await this.plugin.builders.structure.representation.addRepresentation(
               polymer,
               {
-                type: "molecular-surface",
-                typeParams: { alpha: 0.16, ignoreHydrogens: true },
-                color: "chain-id",
+                type: MolecularSurfaceRepresentationProvider,
+                typeParams: { alpha: 0.45, ignoreHydrogens: true },
+                color: ChargeTheme,
               },
             );
           this.visibility.push(
             { ref: ribbon.ref, kind: "protein" },
             { ref: surface.ref, kind: "surface" },
           );
+          this.surfaceSummary = polymer.obj
+            ? chargeCoverage(polymer.obj.data)
+            : null;
         }
       }
       const ligand =

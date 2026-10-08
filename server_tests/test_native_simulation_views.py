@@ -92,7 +92,14 @@ def test_native_result_views_and_downloads(case, language):
             expect(root.locator(".js-plotly-plot").first).to_be_visible(timeout=30000)
             # Actual plotted points select the exact native trajectory frame.
             plot = root.locator(".js-plotly-plot").first
-            plot.locator(".scatterlayer .point").nth(2).click(force=True)
+            plot.evaluate(
+                "el => el.on('plotly_click', event => {"
+                " el.dataset.clickedX = String(event.points[0]?.x); })"
+            )
+            plot.locator(".scatterlayer .point").nth(2).click()
+            assert plot.get_attribute("data-clicked-x") is not None, (
+                "Native Plotly point click was not delivered."
+            )
             expect(viewer).to_have_attribute("data-frame", "2", timeout=30000)
             # View export is separate from scientific coordinate-file download.
             with page.expect_download() as export:
@@ -143,7 +150,9 @@ def test_native_result_views_and_downloads(case, language):
                 ).click()
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
-            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            page.wait_for_function(
+                "() => document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
+            )
             root.scroll_into_view_if_needed()
             page.screenshot(path=str(evidence / f"{language}-{width}-results.png"), full_page=True)
             page.screenshot(

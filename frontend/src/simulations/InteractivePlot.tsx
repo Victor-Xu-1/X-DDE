@@ -26,6 +26,7 @@ export function InteractivePlot({
   const [error, setError] = useState(false);
   const plot = useRef<typeof Plotly | null>(null);
   const zh = language === "zh";
+  const signature = JSON.stringify({ data, layout, height, title });
   useEffect(() => {
     const target = element.current!;
     let disposed = false;
@@ -90,7 +91,7 @@ export function InteractivePlot({
     return () => {
       active = false;
     };
-  }, [data, layout, height, title]);
+  }, [signature]);
   return (
     <section className="simulation-plot">
       <header>

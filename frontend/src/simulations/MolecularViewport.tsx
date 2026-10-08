@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { Residue } from "./types";
+import { SurfaceLegend } from "../viewer/SurfaceLegend";
+import type { SurfaceSummary } from "../viewer/protocol";
 import type {
   MolecularController,
   MolecularView,
@@ -31,6 +33,9 @@ export function MolecularViewport({
     [failure, setFailure] = useState("");
   const [presentedFrame, setPresentedFrame] = useState(0);
   const [atom, setAtom] = useState("");
+  const [surfaceSummary, setSurfaceSummary] = useState<SurfaceSummary | null>(
+    null,
+  );
   const [view, setView] = useState<MolecularView>({
     protein: true,
     surface: false,
@@ -57,6 +62,7 @@ export function MolecularViewport({
         };
         await instance.load(input.sources, input.frames, signal.signal);
         if (!signal.signal.aborted) {
+          setSurfaceSummary(instance.surfaceSummary);
           setLoaded(true);
           ready.current?.();
         }
@@ -199,6 +205,9 @@ export function MolecularViewport({
           </p>
         )}
       </div>
+      {view.surface && (
+        <SurfaceLegend summary={surfaceSummary} language={language} />
+      )}
       <p className="field-help simulation-atom-label">
         {atom ||
           (zh
