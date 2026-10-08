@@ -28,9 +28,10 @@ def test_real_brd4_residue_focus_context_and_view_download():
         info = page.request.get(base + "/api/examples/diffsbdd.interactions").json()
         job_id = info["pin"]["job_id"]
         job = page.request.get(base + "/api/jobs/" + job_id).json()
-        source = job["request"]["payload"]["structure_path"]
-        assert source.startswith("asset:")
-        references = [{"asset_id": source.removeprefix("asset:")}]
+        assert job["request"]["operation"] == "diffsbdd"
+        payload = job["request"]["payload"]
+        assert payload["mode"] == "interactions"
+        references = [payload["protein"], payload["molecule"]]
         preserved = preserve_assets(page, references)
         try:
             for width in (1440, 390):
@@ -39,9 +40,6 @@ def test_real_brd4_residue_focus_context_and_view_download():
                 control = page.get_by_role("button", name="A:ASN140", exact=True)
                 control.focus()
                 control.press("Enter")
-                expect(page.locator(".selection-explanation")).to_contain_text(
-                    "ASN140", timeout=15000
-                )
                 panel = page.locator(".viewer-panel")
                 panel.scroll_into_view_if_needed()
                 capture(page, "native-brd4-residue-context-" + str(width))

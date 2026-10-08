@@ -112,7 +112,7 @@ def test_real_receptor_ensemble_overlay_and_pocket_handoff(tmp_path):
                     )
                     page.get_by_role("button", name="用此受体寻找口袋", exact=True).click()
                     selected = page.get_by_role(
-                        "combobox", name="选择蛋白结构 · 复用研究资产", exact=True
+                        "combobox", name="选择蛋白结构 · 历史文件", exact=True
                     )
                     expect(selected).not_to_have_value("")
                     page.get_by_role("button", name="下一步", exact=True).click()

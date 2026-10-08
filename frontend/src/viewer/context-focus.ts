@@ -9,11 +9,21 @@ export function focusDisplayContext(
   pairedModel: number | null,
   viewport?: ViewportSize,
 ) {
-  const positions = anchors.flatMap((atom) => {
+  const anchorPositions = anchors.flatMap((atom) => {
     const point = finiteCoordinates(atom);
     return point ? [point] : [];
   });
-  if (!positions.length) return false;
+  if (!anchorPositions.length) return false;
+  // Keep an explicitly paired ligand complete when focusing one of its contacts.
+  const positions = [
+    ...anchorPositions,
+    ...(pairedModel === null
+      ? []
+      : viewer.selectedAtoms({ model: pairedModel }).flatMap((atom) => {
+          const point = finiteCoordinates(atom);
+          return point ? [point] : [];
+        })),
+  ];
   const lower = [Infinity, Infinity, Infinity],
     upper = [-Infinity, -Infinity, -Infinity];
   for (const point of positions)

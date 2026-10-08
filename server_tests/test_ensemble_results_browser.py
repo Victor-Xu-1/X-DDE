@@ -97,11 +97,11 @@ def test_native_pose_result_selection_downloads_and_handoff():
             page.get_by_role("button", name="← 返回结果", exact=True).click()
             result.get_by_role("button", name="在配套受体上重新评分", exact=True).click()
             expect(
-                page.get_by_role("combobox", name="受体结构 · 复用研究资产", exact=True)
-            ).to_have_value(outcome["combination"]["receptor"]["version_id"])
+                page.get_by_role("combobox", name="受体结构 · 历史文件", exact=True)
+            ).to_have_value("version:" + outcome["combination"]["receptor"]["version_id"])
             expect(
-                page.get_by_role("combobox", name="选择分子或已有姿势 · 复用研究资产", exact=True)
-            ).to_have_value(selected["reference"]["version_id"])
+                page.get_by_role("combobox", name="选择分子或已有姿势 · 历史文件", exact=True)
+            ).to_have_value("version:" + selected["reference"]["version_id"])
             capture(page, "native-pose-rescore-handoff")
             assert (
                 preserve_assets(
@@ -193,7 +193,7 @@ def test_native_receptor_members_overlay_downloads_and_pocket_handoff():
             result.get_by_role("button", name="用此受体寻找口袋", exact=True).click()
             expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
             expect(
-                page.get_by_role("combobox", name="选择蛋白结构 · 复用研究资产", exact=True)
+                page.get_by_role("combobox", name="选择蛋白结构 · 历史文件", exact=True)
             ).not_to_have_value("")
             capture(page, "native-receptor-pocket-handoff")
             assert preserve_assets(page, originals) == preserved

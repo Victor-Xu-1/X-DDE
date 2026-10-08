@@ -247,8 +247,11 @@ it("an aligned receptor and source pose colors only the receptor, while true com
   const models = [model, pose];
   viewer.getModel = ((index: number) => models[index]) as GLViewer["getModel"];
   viewer.selectedAtoms = ((selection: AtomSelectionSpec) =>
-    models[Number(selection.model ?? 0)].selectedAtoms(
-      selection,
+    (Array.isArray(selection.model)
+      ? selection.model
+      : [selection.model ?? 0]
+    ).flatMap((index) =>
+      models[Number(index)].selectedAtoms(selection),
     )) as GLViewer["selectedAtoms"];
   const scene = new MolecularScene(viewer, emit);
   scene.inspect(true, false, ["pdb", "sdf"], 1);
@@ -266,8 +269,14 @@ it("an aligned receptor and source pose colors only the receptor, while true com
   });
   expectSticks(pose.selectedAtoms({}));
   await scene.configure({ mode: "pocket" });
-  expect(viewer.zoomTo).toHaveBeenLastCalledWith({ model: 1 });
-  expect(viewer.zoom).toHaveBeenLastCalledWith(0.75);
+  expect(viewer.zoomTo).toHaveBeenLastCalledWith(
+    expect.objectContaining({ model: [0, 1], predicate: expect.any(Function) }),
+  );
+  expect(viewer.zoom).toHaveBeenLastCalledWith(0.85);
+  scene.focusModel(1);
+  expect(viewer.zoomTo).toHaveBeenLastCalledWith(
+    expect.objectContaining({ model: [0, 1] }),
+  );
   vi.mocked(viewer.zoomTo).mockClear();
   vi.mocked(viewer.addSurface).mockClear();
   emit.mockClear();

@@ -238,9 +238,7 @@ window.addEventListener("message", (event) => {
     value < 3 &&
     viewer.getModel(value)
   ) {
-    viewer.zoomTo({ model: value });
-    viewer.zoom(focusedViewScale);
-    viewer.render();
+    scene.focusModel(value);
   }
   if (
     type === "focus-models" &&

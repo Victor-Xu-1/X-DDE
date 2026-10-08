@@ -10,7 +10,7 @@ import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
 import { focusDisplayContext } from "./context-focus";
-import type { ViewportSize } from "./camera-resize";
+import { viewportFitFactor, type ViewportSize } from "./camera-resize";
 import {
   residueRef as ref,
   residueSelection as sel,
@@ -440,16 +440,46 @@ export class MolecularScene {
     const atoms = this.viewer.selectedAtoms({ model: 0, ...sel(residue) });
     if (atoms.length) {
       await this.pick(atoms[0]);
-      focusDisplayContext(
-        this.viewer,
-        atoms,
-        this.complexModel,
-        this.viewport?.(),
-      );
+      this.focusAtoms(atoms);
     }
+  }
+  private focusAtoms(anchors: mol.AtomSpec[]) {
+    if (!anchors.length) return;
+    const ligand =
+      this.info.hasInteractionContext && this.complexModel === null
+        ? this.info.ligands.find((row) => row.key === this.options.ligand)
+        : null;
+    focusDisplayContext(
+      this.viewer,
+      ligand
+        ? [
+            ...anchors,
+            ...this.viewer.selectedAtoms({ model: 0, ...sel(ligand) }),
+          ]
+        : anchors,
+      this.complexModel,
+      this.viewport?.(),
+    );
   }
   focusChannel() {
     if (this.channelGeometry) focusChannel(this.viewer, this.channelGeometry);
+  }
+  focusModel(index: number) {
+    if (this.info.hasInteractionContext && this.complexModel === index) {
+      focusDisplayContext(
+        this.viewer,
+        this.viewer.selectedAtoms({ model: index }),
+        index,
+        this.viewport?.(),
+      );
+      return;
+    }
+    this.viewer.zoomTo({ model: index });
+    this.viewer.zoom(
+      focusedViewScale *
+        (this.viewport ? viewportFitFactor(this.viewport()) : 1),
+    );
+    this.viewer.render();
   }
   focusLigand() {
     const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);
@@ -460,8 +490,20 @@ export class MolecularScene {
           ? { model: 0, ...sel(ligand) }
           : null;
     if (selection) {
+      if (this.info.hasPolymer) {
+        focusDisplayContext(
+          this.viewer,
+          this.viewer.selectedAtoms(selection),
+          this.complexModel,
+          this.viewport?.(),
+        );
+        return;
+      }
       this.viewer.zoomTo(selection);
-      this.viewer.zoom(focusedViewScale);
+      this.viewer.zoom(
+        focusedViewScale *
+          (this.viewport ? viewportFitFactor(this.viewport()) : 1),
+      );
       this.viewer.render();
     }
   }
@@ -483,11 +525,8 @@ export class MolecularScene {
       this.emit("selected", null);
       this.emit("distance", null);
     } else if (action === "focus") {
-      focusDisplayContext(
-        this.viewer,
+      this.focusAtoms(
         this.viewer.selectedAtoms({ model: 0, index: this.selected }),
-        this.complexModel,
-        this.viewport?.(),
       );
     } else if (action === "hide") {
       for (const index of this.selected) this.hidden.add(index);

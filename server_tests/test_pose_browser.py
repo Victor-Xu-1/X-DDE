@@ -129,7 +129,7 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     expect(
                         page.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
                     ).to_be_visible(timeout=30000)
-                    expect(result.get_by_text("经验对接分数:", exact=False).first).to_be_visible()
+                    expect(result.get_by_text("经验对接分数", exact=True).first).to_be_visible()
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
                         assert page.evaluate(
@@ -145,13 +145,13 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                     page.get_by_role("button", name="← 返回结果", exact=True).click()
                     result.get_by_role("button", name="在配套受体上重新评分", exact=True).click()
                     expect(
-                        page.get_by_role("combobox", name="受体结构 · 复用研究资产", exact=True)
-                    ).to_have_value(outcome["combination"]["receptor"]["version_id"])
+                        page.get_by_role("combobox", name="受体结构 · 历史文件", exact=True)
+                    ).to_have_value("version:" + outcome["combination"]["receptor"]["version_id"])
                     expect(
                         page.get_by_role(
-                            "combobox", name="选择分子或已有姿势 · 复用研究资产", exact=True
+                            "combobox", name="选择分子或已有姿势 · 历史文件", exact=True
                         )
-                    ).to_have_value(reference["version_id"])
+                    ).to_have_value("version:" + reference["version_id"])
                     page.screenshot(
                         path=str(evidence / "pose-paired-rescore-handoff-390.png"), full_page=True
                     )

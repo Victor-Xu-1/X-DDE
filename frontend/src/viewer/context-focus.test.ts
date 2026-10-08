@@ -38,8 +38,8 @@ const source = (atoms: AtomSpec[]) =>
     x: atom.x,
     y: atom.y,
     z: atom.z,
-    bonds: atom.bonds,
-    bondOrder: atom.bondOrder,
+    bonds: [...(atom.bonds ?? [])],
+    bondOrder: [...(atom.bondOrder ?? [])],
   }));
 
 it("frames a real protein residue with surrounding source atoms, rather than magnifying the residue alone", () => {
@@ -86,4 +86,24 @@ it("does not reset or move a view when selection coordinates are empty or non-fi
     expect(focusDisplayContext(viewer, anchors, null)).toBe(false);
   expect(viewer.zoomTo).not.toHaveBeenCalled();
   expect(viewer.render).not.toHaveBeenCalled();
+});
+
+it("keeps the complete explicitly paired ligand inside a contact-focused view", () => {
+  const anchor = { x: 0, y: 0, z: 0 };
+  const ligand = [
+    { x: 4, y: 0, z: 0 },
+    { x: 18, y: 0, z: 0 },
+  ];
+  const viewer = {
+    selectedAtoms: vi.fn().mockReturnValue(ligand),
+    zoomTo: vi.fn(),
+    zoom: vi.fn(),
+    render: vi.fn(),
+  } as unknown as GLViewer;
+  expect(focusDisplayContext(viewer, [anchor], 1)).toBe(true);
+  const selection = vi.mocked(viewer.zoomTo).mock.calls[0][0]!;
+  expect(ligand.every((atom) => selection.predicate!(atom as AtomSpec))).toBe(
+    true,
+  );
+  expect(selection.predicate!({ x: 40, y: 0, z: 0 } as AtomSpec)).toBe(false);
 });
