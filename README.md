@@ -1,352 +1,189 @@
 # X-DDE
 
-[中文](#中文) · [English](#english) · [能力与源码对照](docs/design/README.md) · [服务器验收](docs/server-acceptance.md)
+**面向早期药物发现的可视化研究平台。**
 
-X-DDE is an independent Apache-2.0 drug research platform. X-DDE owns both its frontend and unified backend. OpenDDE, DiffSBDD, Harness, editors and other integrated software are managed environments/components beneath the platform; their native scientific programs, dependencies, models and licenses retain their actual identities.
+把分散的科学软件、模型和研究文件，组织成可以衔接的研究流程。从靶点、结构和口袋开始，开展小分子、生物药、高通量筛选与 DEL 研究；在同一工作台中准备任务、检查结果、修改材料并继续下一步。
 
-后续实施范围、当前状态、WP1–WP7 依赖与 76 项任务见[统一实施路线](docs/design/README.md#统一实施路线与未完成任务)。该清单描述待交付工作，不表示已具备全部科学能力。
+[安装与使用](#快速开始) · [实际页面](#操作页面是什么样) · [研究能力](#能完成哪些工作) · [平台架构](#架构如何设计) · [English](#english) · [最新发行版](https://github.com/Victor-Xu-1/X-DDE/releases) · [Apache-2.0](LICENSE)
 
-**平台关系：X-DDE 负责前端和后端，其余软件均作为集成环境。** X-DDE 后端拥有公共 API、业务规则、项目、任务、科学对象、版本、工作流、环境管理与证据。集成环境提供真实科学程序、模型和依赖，不拥有平台业务或数据权威。
+## 为什么需要 X-DDE
 
-环境准备和科学执行分别接入：**X-DDE 环境管理 → 配置适配器 → 集成环境**；**X-DDE 科学任务 → 科学/执行适配器 → 环境中的真实程序 → X-DDE 资产与证据**。产品中的 OpenDDE 环境配置接口当前使用已审查的 OpenDDE Harness 安装器，只有源码准备、镜像校验和模型资源准备等实际支持的动作。暂停、取消、重试、升级与卸载的部署策略和进程管理由 X-DDE 承担，不虚构上游 API。DiffSBDD、编辑器和 Harness 客户端使用各自实际安装配方，不要求通过 OpenDDE 配置。
+药物发现已经有很多优秀的开源工具。困难往往出现在工具之间：环境难安装，参数和文件格式各不相同，一个任务的结果很难直接交给下一个任务。研究人员还需要判断，眼前看到的是原始实验结构、模型预测，还是仅供启动的输入模板。
 
-已有 OpenDDE 原生预测与化学工具继续通过 X-DDE 科学适配器执行；原生 Harness 流程保留内部运行机制，X-DDE 管理顶层业务与引用。运行状态页以集成环境组织信息，配置工具来源收在详情中。平台就绪、配置客户端可用、环境/模型就绪和科学验收互相区分。
+X-DDE 把这些交接工作放到平台中，让药化和生物药研究人员围绕研究问题操作，同时让计算专家保留对方法、参数和结果的控制。
 
-科学运行在既有任务数据库中绑定不可覆盖的环境元数据版本，并分别记录环境准备来源与实际科学软件。`GET /api/jobs/{id}/environment` 返回该记录；历史未登记任务返回明确的 404。该记录是安装/配置元数据快照，不声称冻结管理员外部修改的环境文件或验证所有模型权重；实际原生来源、摘要和科学验证范围仍须核对。部署 API 继续保护排队/运行中的科学任务，不能在使用中更新组件。
+| 研究中常见的问题 | X-DDE 的处理方式 | 给研究人员带来的变化 |
+| --- | --- | --- |
+| 工具各自安装，依赖、模型和数据容易混在一起 | 按研究用途管理组件，科学环境独立安装 | 在一个地方选择安装位置、查看就绪状态和维护组件 |
+| 界面一上来就是几十个参数 | 一页一步、推荐方案、选项说明与专家微调 | 先回答研究问题，再确认真正需要的参数 |
+| 结构、分子和序列在软件间反复搬运 | 统一研究资产、明确输入版本、直接交接下一项任务 | 口袋可以用于生成，分子可以用于性质预测和对接 |
+| 结果只有文件、数字或难读的日志 | 候选表格与二维、三维、序列及分析图联动 | 点击候选查看结构，调整视图，下载结果 |
+| 修改后找不到原始材料，也不知道结果从哪里来 | 保留原始文件、派生版本与任务来源关系 | 可以修改、比较、回到原始版本并继续研究 |
+| 示例太简单，或者演示任务挤进个人任务列表 | 每个任务提供模块内的公开研究模板；已有计算单独展示 | 用真实案例学习输入方式和结果阅读，再提交自己的新任务 |
 
-新组件目录使用 `x-dde-managed`，旧安装与研究数据原位保留。WSL 的历史发行版名称、Python 内部包名和原生 CLI 不代表平台所有权。
+## 能完成哪些工作
 
-平台使用统一项目、科学资产版本和来源关系组织研究。结构、分子、序列和分析结果能通过实际输入输出关联，修改保留原始版本。正在开发的资产网络与 DiffSBDD 集成状态、模块边界及服务器验收要求见[权威架构说明](docs/design/README.md#x-dde-平台架构与资产关系)，候选分支能力不等于已发布能力。
+当前任务目录提供 **71 个任务入口**，按研究流程组织，也支持生物药、化药、抗体、蛋白、肽、小分子、RNA 和 DNA 等重叠分类。具体执行能力由所选科学环境、模型资源、输入和硬件决定。
 
-**0.4 release candidate:** guided installation, background component management, terminal start/stop, Ketcher and Mol* are available. Scientific GPU, multi-GPU, MSA/template databases, remote services and real LLM campaigns still require target-server acceptance. Installation success is not scientific readiness.
+| 研究方向 | 可以开展的工作 | 主要输出或下一步 |
+| --- | --- | --- |
+| **靶点研究** | 疾病关联与靶点证据查询、获取规范序列、公开结构和已有活性材料 | 有来源的研究材料，交给结构与候选研究 |
+| **结构预测** | 蛋白与复合物预测、已有结构准备、受体构象对齐和比较 | 结构、原生置信度、对齐结果与可下载文件 |
+| **口袋与结合模式** | 候选口袋、对接与重评分、多受体和分子状态探索、相互作用与姿势质控 | 候选位点、多个结合姿势、原生分数和接触分析 |
+| **小分子设计** | 口袋条件生成、类似物与局部设计、分子状态和游离构象准备 | 新分子或派生版本，继续计算性质、对接或筛选 |
+| **生物药研究** | 抗体编号与 CDR、框架优化、蛋白与肽设计、序列评分、折叠与界面检查 | 序列、CDR 位置、结构候选及界面结果 |
+| **诱导邻近设计** | 三元复合物装配假设、降解剂及其他双功能分子的相关结构探索 | 装配候选和来源明确的结构假设 |
+| **高通量筛选** | 供应商文件导入、分子库准备、可复用分片索引、口袋条件检索、多样性整理和重点候选对接 | 保留货号与库来源的候选集合及实际姿势 |
+| **DEL 研究** | 库定义、成员结构、测序解码、UMI 与计数、富集与对照、砌块系列、研究模型和候选交接 | 计数、富集证据、系列图表、候选结构及实验回填 |
+| **性质与早期安全性** | 基础描述符、41 个模型预测终点、结构风险提示、骨架代表选择与实验数据模型 | 分子表格、原始单位、筛选结果和可继续使用的分子 |
 
-## 更新编号 / Publication counter
+RNA / DNA 当前主要用于结构输入、复合物预测及相应特征准备，不代表通用核酸药物设计。合成路线、逆合成及湿实验自动化不在当前范围。
 
-每次向主分支推送可发布更新，末位递增一次：`v0.1.99 → v0.1.100 → v0.2.0`。末位上限为 100（包含 100），中间位上限为 10（包含 10）；`v0.10.100 → v1.0.0`，之后继续使用相同进位规则。该规则由 `v0.4.0rc6` 升级至 `v0.4.1` 时引入，保留历史版本，不再新增 `rc` 编号。版本计数不改变科学验收、API 或数据迁移规则。审核后的主分支使用 GitHub Actions 的 **Release installers** 工作流，指定对应的数字标签生成发行包；它校验版本、校验和与 Windows 启动入口后发布，不递归触发所有科研模块的测试。
+### 把单次计算接成研究流程
 
-发布前执行 `uv run python scripts/release-version.py bump`，统一更新 Python、前端、锁文件与安装器。候选批次内修正不重复递增；主分支每次发布必须通过版本递增及当前改动的专项 CI，之后创建对应版本标签。`check --base 完整SHA` 会拒绝漏增、跳号或镜像版本不一致。
-
-Each publication to main increments PATCH once (0..100); carry to MINOR (0..10), then MAJOR. Historical releases remain intact. The numeric counter is separate from compatibility contracts and scientific acceptance.
-
-## 简单安装 / Quick installation
-
-从 [GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases) 下载 `install.ps1`（Windows）或 `install.sh`（Linux）。安装器下载带校验和的发行包，不需要编译前端，也不要求安装 Node.js。
-
-Windows PowerShell：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
-X-DDE UI
+```mermaid
+flowchart LR
+  T[靶点证据与材料] --> S[准备或预测结构]
+  S --> P[选择口袋]
+  P --> M[分子生成或分子库筛选]
+  M --> D[结合姿势与质量检查]
+  M --> A[性质与早期安全性]
+  D --> C[比较候选并交接下一步]
+  A --> C
+  S --> B[蛋白或抗体序列设计]
+  B --> F[折叠与界面分析]
+  F --> C
+  R[DEL 测序与库定义] --> E[解码、计数与富集]
+  E --> M
 ```
 
-已安装 WSL 的用户可指定发行版、Linux 用户和 E 盘位置：
+这些是可衔接的研究路径。每次交接选择实际材料与版本，确认方案后运行对应任务。
 
-```powershell
-.\install.ps1 -Distribution OpenDDE -LinuxUser opendde -InstallRoot E:\WSL\apps\x-dde
-```
+## 操作页面是什么样
 
-Windows 安装器使用 Windows 网络下载并校验发行文件，交给 WSL 安装；无需先调整 WSL 的 GitHub 代理。默认入口为 `E:\WSL\apps\x-dde`；E 盘不可用时会停止并提示明确选择安装位置，不会静默写入 C 盘。升级会复用该目录保存的发行版和 Linux 用户。默认布局中新建的 WSL 磁盘位于 `E:\WSL\distros`；选择 E 盘安装目录时会核对已有发行版的真实注册位置，已有磁盘不自动迁移。Python 程序环境安装到 WSL 的 Linux 磁盘，避免 Windows 挂载盘不支持 Linux 符号链接导致安装失败。安装与启动的 Windows 临时文件放在安装目录的 `tmp`，Linux 安装临时文件及缓存留在 Linux 程序目录。模型、代码缓存与编辑器使用面板统一选择的组件目录；Linux 可执行环境保留在同一 WSL 的 Linux 存储中。Windows 首次启用 WSL2 可能需要管理员操作和重启；安装器会显示准确的后续步骤，不会删除现有发行版。[WSL 官方安装命令](https://learn.microsoft.com/en-us/windows/wsl/basic-commands)。Windows 命令名和参数均忽略大小写；在新的终端中可直接使用 `X-DDE UI`、`xdde dashboard`。
+以下是 **v0.4.49 的实际 Chromium 页面截图**，使用公开研究输入与归档的原生结果。结构、表格、分子和数值来自软件实际页面。架构插图单独用于解释设计，不代替运行截图。
 
-Linux x86-64 / WSL2：
+### 1. 像填问卷一样准备任务
 
-```bash
-bash install.sh
-export PATH="$HOME/.local/share/opendde-workbench/app/bin:$PATH"
-X-DDE UI
-```
+选择研究目的 → 填写或上传材料 → 选择方案 → 确认提交 → 查看结果。一页只显示当前一步，右下角进入下一步。普通模式使用推荐选项，专家模式展开参数。新任务默认使用新材料，**历史文件**需要主动选择。
 
-主命令为 `X-DDE UI`、`x-dde ui` 或 `xdde dashboard`。之前的 `OpenDDE UI`、`opendde dashboard`、`OPENDDE UI` 均指向同一启动器；命令参数不区分大小写。再次运行安装器即可更新工作台，研究数据不随程序更新移除。
+![分步任务页面：BRD4–JQ1 模板中的研究目的选择](docs/images/guided-task.jpg)
 
-| 命令 / Command | 作用 / Behavior |
+模块内的 **使用此模板** 帮助填写真实研究输入；**示例结果** 展示保留的实际输出。加载模板不会直接启动计算，也不会把演示任务添加到个人任务列表。
+
+### 2. 让结构和候选表格一起工作
+
+点击表格中的候选，查看对应的三维结构、链、配体、口袋和置信度。支持旋转、缩放、点选、显示调整、表面着色与视图下载；原始科学文件仍可独立下载。
+
+![BRD4–JQ1 原生结构预测结果、配体和口袋预览](docs/images/structure-and-pocket.jpg)
+
+图中为 BRD4–JQ1 公开案例的模型结果。模型置信度不是实测结合活性；几何接触距离不自动解释成氢键、作用能或亲和力。
+
+### 3. 用分子结构读性质，用候选结构读筛选
+
+二维结构、候选指标和三维分子联动显示。性质保留模型原始终点与单位；筛选保留库成员编号和检索分数，重点候选再进入独立对接。
+
+![ABL 抑制剂系列：实际二维结构、性质预测与三维分子](docs/images/molecule-properties.jpg)
+
+![BRD4 口袋条件筛选：候选表与所选分子的游离构象](docs/images/screening-candidates.jpg)
+
+筛选图使用 177 个公开研究分子的真实案例；右侧是游离构象，不是预测结合姿势，也不代表供应商全库或十亿级性能测试。
+
+### 4. 把 DEL 和生物药材料也变成可阅读的结果
+
+DEL 页面保留成员结构、靶点与对照计数、富集区间和重复信息。抗体模板提供真实可变域序列与可调整的 CDR 位置，并可切换参考结构。
+
+![UNCDEL006–BRD4 公开研究：实际 DEL 富集与成员结构](docs/images/del-enrichment.jpg)
+
+![曲妥珠单抗–HER2 设计输入模板：实际可变域序列与 CDR](docs/images/antibody-template.png)
+
+抗体图展示经验证的**设计输入模板**，尚未运行新的设计任务；实验参考结构、输入材料与新生成的模型结果保持区分。
+
+## 架构如何设计
+
+**X-DDE 负责前端与平台后端。OpenDDE、Boltz-2、DiffSBDD、GNINA 等科学软件是独立集成环境。**
+
+平台统一管理项目、任务、工作流、研究资产、环境部署和结果展示。每个科学工具通过明确的适配器接入，保留自己的运行环境、原生方法、模型和许可证；某一个引擎缺失不会决定整个平台是否可用。
+
+![X-DDE 架构总览：研究工作台、平台后端、独立科学环境和研究来源关系](docs/images/platform-architecture.png)
+
+| 层次 | 负责什么 | 为什么这样划分 |
+| --- | --- | --- |
+| **研究工作台** | 分步任务、模型选择、2D / 3D / 序列、候选比较和下载 | 让用户按研究问题操作，避免直接面对原生命令 |
+| **X-DDE 平台后端** | API 校验、任务与工作流、资产版本、部署管理和结果归属 | 多个工具共享同一套任务和数据管理 |
+| **执行与部署适配器** | 校验原生输入、调用真实程序、准备独立环境与资源 | 明确区分“环境装好了”和“计算有效完成了” |
+| **独立科学环境** | 各自的科学软件、模型、依赖及原生计算 | 避免依赖冲突，支持同一任务中的合适模型切换 |
+| **研究资产与来源关系** | 原始材料、派生版本、输入输出关联和历史结果 | 修改可追溯，下游使用确切材料，不猜“最新文件” |
+
+执行链路是 **任务表单 → X-DDE API → 同一持久任务队列与后端路由 → 原生程序 → 平台研究资产与结果**。环境安装走部署适配器，科学计算走执行适配器。平台不复制另一套工作台或科学代理循环。
+
+### 资产可以修改，也可以继续使用
+
+![研究材料如何成为下一步的输入：小分子、生物药与 DEL 研究路径](docs/images/connected-research.png)
+
+| 已有材料或结果 | 可以交给的下一步 |
 | --- | --- |
-| `X-DDE UI` / `xdde dashboard` | 后台启动，自动打开浏览器 / Start and open browser |
-| `xdde stop` / `X-DDE UI close` | 安全关闭；正在运行的任务或安装需先停止/暂停 |
-| `xdde restart` | 重启并载入新的计算组件配置 |
-| `xdde status` | 查看端口和服务状态 |
-| `xdde logs` | 查看最近的启动日志 |
-| `xdde doctor` | 检查系统与服务配置 |
-| `xdde ui --port 4321` | 选择其他本地端口 |
-| `xdde ui --no-auto-deploy` | 首次启动不自动创建安装任务 |
-| `xdde ui --no-browser` | 启动但不打开浏览器 |
+| 规范序列、公开结构或预测模型 | 结构准备、口袋寻找、蛋白设计与界面分析 |
+| 已确认的受体与口袋 | 口袋条件生成、快速筛选、明确搜索区域的对接 |
+| 新分子、库候选或派生分子版本 | 性质、状态与构象准备、对接和姿势质控 |
+| 蛋白或抗体候选序列 | 折叠、序列评分、界面比较及下一轮设计 |
+| DEL 富集成员与砌块系列 | 结构交接、性质与对接、后续实验结果回填 |
 
-首次使用：打开左侧底部 **设置与帮助 → 安装与运行 → 组件安装**。在页面顶部选择统一安装目录，再从基础与预览、口袋/对接/性质、结构预测、分子生成、抗体与生物药五组选择“部署推荐组合”，也可单独安装。组合部署先读取最新安装状态，只补齐缺失项；依赖仍由 X-DDE 后端的同一安装队列处理，暂停、继续使用现有操作。OpenDDE 推荐计算环境与标准模型，DiffSBDD 推荐独立环境与 CrossDocked Cα 条件模型；抗体模型、其他权重及大型搜索数据库按需选择。每个集成环境仍独立安装，不合并其依赖环境。
+修改产生派生版本，原始文件保留。不同科学方法的分数保留各自含义与单位，距离、置信度、对接分数和实验活性分别解释。
 
-组件页使用全宽自适应多列卡片和用途筛选。已安装组件的主按钮为不可重复部署的“已安装”，修复、升级、卸载与许可证详情收在“维护”。统一安装目录直接显示，可选推荐目录或填写绝对路径；Windows 路径自动转换为 WSL 路径。已有组件或未结束的部署会锁定目录，不会自动搬动环境。普通用户页面不显示安装历史、终端命令、原始 JSON、哈希或工程附件；排队、运行、暂停及最新失败仍直接显示。组合提交部分失败时刷新真实进度，重新部署只补齐剩余项，不重装已有组件。安装成功和科学计算就绪分别显示。
+大分子库采用流式准备、分片索引和有界候选检索，前端按页展示结果，以控制内存占用。先做口袋条件检索，再对重点候选进行较慢的姿势计算。[高通量筛选与 DEL 的方法、规模及许可范围](docs/design/screening-and-del.md)有独立说明。
 
-默认启动仍会后台安排编辑器、Harness、OpenDDE 原生代码和计算镜像，模型按组合或单项选择。下载需要能访问 GitHub、npm、PyPI 和 Docker Hub；失败会保留诊断并提供重试。`--no-auto-deploy` 适合只看界面或先选择其他磁盘。
+## 快速开始
 
-配体预览使用适度加粗的绿色棒状结构和元素配色，覆盖独立分子、蛋白复合物、叠加、区域与点选高亮；Mol* 共用 0.14 棒半径，Ketcher 保留原生细线。显示样式不改变原始坐标和键级。
+从 [GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases) 下载 Windows 的 `install.ps1` 或 Linux / WSL 的 `install.sh`。发行包已经包含构建好的前端，使用者不需要安装 Node.js 或编译页面。
 
-点击“分子表面”直接显示部分电荷着色：负电红色、近零白色、正电蓝色，固定范围 ±0.6 e。优先读取明确提供的有限部分电荷，蛋白标准氨基酸可用 3Dmol 原生电荷表近似；输入的无效电荷不替换为估算，MOL2 `NO_CHARGES` 不视为有效电荷。无数据原子为灰色，覆盖数量和来源可通过图例说明查看。独立分子和实际对齐的受体/配体也可打开表面，真正的构象比较不改变比较配色。该展示不改写原子属性、源文件或结构；这是原子部分电荷近似，不是 APBS/PB 电势计算，不考虑 pH、盐浓度或溶剂。
+| 系统 | 安装 | 启动 |
+| --- | --- | --- |
+| Windows PowerShell | `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1` | `X-DDE UI` |
+| Linux / WSL | `bash install.sh`，按安装提示配置命令路径 | `xdde dashboard` |
 
-已对齐的受体与独立 SDF 姿势属于一个复合物，默认只突出 4 Å 内最近的 5 个接触残基，显示虚线、名称和实际距离；其余原子显示收起，蛋白骨架保持清晰的链配色，不随接触残基数量淡化；口袋高亮保留连续骨架。预览入口按工作台版本加载，界面启动资源不持久缓存，升级后自动使用新的预览样式。可选择 3 个、5 个或全部（最多 60 个），接触明细默认折叠；可用“显示相互作用”和“残基与距离”关闭。纯配体和真正的构象叠加比较不生成这些接触。该预览层只读取现有坐标，不修改源文件；几何近接不自动判断氢键或疏水作用，化学类型使用原生相互作用分析模块。 当前姿势有原生 GNINA 经验对接分数时，预览旁显示整体评分和方法；没有评分时不补零。该数值不拆分给残基，不转换成力或亲和力；逐残基作用能明确标注“未计算”。
+常用命令：`xdde stop` 关闭，`xdde status` 查看状态，`xdde restart` 重启。Windows 命令及启动参数支持大小写兼容；历史 OpenDDE 命令保留为启动器别名。
 
-每个任务默认新建，材料从上传新文件或填写序列开始。选择 **历史文件** 才会打开已保存材料；不会自动选择旧结果。模块内的 **使用此模板** 按步骤加载真实研发输入，**示例结果** 在当前模块展示已固定的真实输出，不向个人任务记录添加演示任务。用模板提交后是独立的新任务；原始示例计算、文件与来源保留。
+启动后，在 **设置与帮助 → 安装与运行** 选择统一安装目录，按研究用途准备所需组件。各个科学环境分别管理，已有组件显示“已安装”，维护菜单提供修复、升级与卸载。大型模型与数据库按需配置。
 
-Every task starts with fresh uploads or typed inputs. Historical files are opt-in. Use this template provides guided research inputs; Example results stays in the module. Template-derived submissions are new personal tasks, and the original evidence remains available.
+![实际组件管理页：统一目录、用途筛选与独立组件状态](docs/images/component-management.png)
 
-**高通量筛选的公开结构库**：v0.4.31 提供 9 家供应商的 16 份已核对结构文件（3,841,777 条原始记录），包括 ChemDiv 2026.09 整库四分卷及砌块；在“分子库管理 → 公开结构库”选择并安装，自动匹配供应商货号字段。混合编码的文字属性使用已审查的 UTF-8 工作版本，原始下载保留。实际化学准备与索引另行运行，35 个目录条目不表示 35 家完整商业库都已取得。范围、获取方式和许可见 [供应商结构文件](docs/design/supplier-structure-files.md)。
+Windows 默认入口放在 `E:\WSL\apps\x-dde`。Linux 环境、模型与数据的位置按安装时的 WSL 存储和组件目录确定；选择 E 盘入口不会自动迁移已有系统磁盘。详细步骤、已有环境连接、服务器访问和故障恢复见 [使用与运行](docs/user-guide.md)。
 
-主导航按靶点、结构、口袋与对接、小分子、生物药和性质组织科研任务。研究空间统一项目、历史文件与结构编辑；任务与结果统一进度、分析、报告和下载。底部 **设置与帮助** 提供安装与运行、界面设置和使用帮助；界面设置可切换中文/英文及暖色、纯白、夜间黑主题，偏好保存在当前浏览器。
+## 当前范围与科学使用
 
-The main navigation groups research by targets, structures, pockets/docking, molecules, biologics and properties. Research workspace combines projects, historical files and editors; Tasks and results combines progress, analysis and downloads. Settings and help contains installation/runtime, appearance/language and help. Browser preferences retain the selected Chinese/English language and theme.
+- **已提供的工作台与适配器**、**机器上的安装状态**、**原生程序运行验证**和**具体科学结论**是不同层次。71 个入口不表示任何一台机器已经准备好所有计算资源。
+- 公开案例使用 BRD4–JQ1、曲妥珠单抗–HER2、ABL 抑制剂、MZ1 三元复合物、RNA–TPP 及公开 DEL 研究材料。已有计算保留原生结果；仅有输入的模块明确显示为模板。[案例来源与结果身份](docs/design/research-examples.md)可单独查看。
+- 供应商目录支持官方公开下载和合法已有文件导入。目录条目不代表平台已获得全部商业库、实时库存或采购授权。[已核对资源与覆盖范围](docs/design/supplier-structure-files.md)有逐项记录。
+- 模型、权重、第三方数据和输出可能有独立使用限制，包括非商业科研限制；X-DDE 的代码许可证不替代这些条款。
+- 当前采用单用户工作台与本机环回访问。服务器部署使用受控访问或 SSH 隧道，不作为无鉴权公网服务直接暴露。
 
-部署状态由 SQLite 保存。暂停会终止该安装步骤的子进程；继续时复用已验证下载和完整 Docker 层，部分步骤可能从头执行。Docker 守护进程可能在客户端暂停后短暂完成当前层。升级仅使用工作台组件目录审核过的版本；更新工作台可以获取新目录。卸载移除独立编辑器/客户端安装文件并停用组件，保留研究结果、模型、下载缓存、原生源码缓存和共享 Docker 镜像。新位置的组件目录由 X-DDE 标记归属；升级复用已有目录与归属标记，不自动搬动环境或研究数据。同一位置同时存在新旧组件目录时拒绝猜测，提示管理员核对。更改安装位置不自动迁移已有数据。
+GPU 推理、服务器吞吐、模型科学准确性和具体实验结论按实际环境验收，不从页面截图推导。[服务器验收](docs/server-acceptance.md)与[独立科学环境](docs/scientific-upgrade.md)记录具体要求。
 
-Ubuntu 系统依赖：`sudo $(command -v xdde) setup system` 安装 Docker 与基础工具；Docker 用户访问按 [Docker 官方说明](https://docs.docker.com/engine/install/linux-postinstall/) 配置，GPU 按 [NVIDIA Container Toolkit 官方说明](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) 配置。网页不自动获得管理员权限。Harness 计算服务、共享目录和 LLM 凭据仍在下方环境配置中设置；不会把“已安装”显示成“已能推理”。
+## 文档导航
 
-**分子与结构**：Ketcher 画分子、打开 MOL/SDF/SMILES、保存到工作台分子库、交接性质计算；Mol* 打开本地蛋白/复合物、查看序列、选择残基、修改显示与导出视图。Mol* 的显示编辑不是蛋白序列设计或结构能量优化。编辑器依赖在本机托管；Mol* 运行在独立的浏览器沙箱中，不能读取工作台会话和上传库。两者保留各自上游许可证，Apache-2.0 仅覆盖本平台自有代码。
-
-改名保留原内部模块与数据目录，已有记录不需要迁移。安装状态和数据默认保存在 `~/.local/share/opendde-workbench`，可用 `WB_HOME` 和 `WB_STATE_DIR` 覆盖。计算组件更改后执行 `xdde restart`；显式 `WB_*` 设置优先于组件管理器。仅监听本机环回地址，服务器远程使用请通过 SSH 隧道。
-
-容器安装网络：默认保留 Docker 的网络配置。若管理员关闭了 Docker 桥接，或代理只监听本机环回地址，在启动平台的环境中设置 `WB_INSTALL_BUILD_NETWORK=host`，并设置现有的 `HTTP_PROXY`、`HTTPS_PROXY` 和 `NO_PROXY`。这只影响受审查的软件安装步骤；科学任务继续使用其离线网络设置。代理凭据不放入命令行参数、案例或仓库。
-
-验证范围：自动 CI 只运行改动模块和直接相关检查；全局科学、浏览器和回归套件保留在手动工作流中，必须明确勾选 `full_suite` 才会执行。安装网络改动对应 `tests/test_install_network.py` 和 `tests/test_deployment.py`，不会触发其他科学模型验收。
-
-模板与 RNA 数据库可在组件管理中安装“模板与 RNA 搜索数据库”。它会先安装固定源码摘要的 Zstandard，然后调用既有 OpenDDE 下载器安装 PDB SEQRES、NT-RNA、Rfam 和 RNAcentral。至少保留 110 GiB 安装空间；数据库保留在组件安装目录的 `models/opendde/search_database`，不写入 Windows 用户目录。数据库完成状态核对原生解压和文件清单，不冒充上游公布了每个 FASTA 的 SHA-256。
-
-对于管理员关闭 Docker 桥接的主机，可以额外设置 `WB_ENGINE_NETWORK=host`。仅用户明确允许网络的 MSA、模板或资源任务使用它并继承已配置的代理；离线预测仍为 `--network none`。压缩工具由组件管理器配置，无需普通用户自行设置命令路径。
-
-## 中文
-
-### 从研究目标进入
-
-“全部能力”按设计、结构预测、性质与评分、分析、检索、输入准备、资源配置组织入口。
-
-- **高通量筛选与 DEL：**35 个供应商条目的统一文件接入、可复用六模型分片索引、口袋–分子联合检索/多样性整理/批量对接；DEL 库定义、化学成员、测序解码、UMI 计数、富集与对照、砌块系列、研究模型训练与应用、候选交接和实验回填。14 个模块采用分步问卷，并保留模块内真实模板及已计算结果。科学方法、实际验收与规模边界见[高通量筛选与 DEL](docs/design/screening-and-del.md)。
-- **小分子研究：**直接批量计算 SMILES/SDF 的 MW、LogP、TPSA、QED、SA、HBD/HBA 和可旋转键；预测小分子或蛋白–配体结构；查看配体口袋、原生置信度、构象叠加、RMSD 和近邻接触。
-- **抗体设计：**使用 Harness 原生 VHH、scFv、VH/VL 设计流程；选择 CDR 和固定位置，审阅目标与计算预算后启动。查看轮次、阶段、候选和结构；调整后续提案数/反思间隔，停止任务，生成表位、相互作用和完整搜索历史分析。
-- **序列与候选工具：**ESM2 评分、ESM2 引导提案、SolubleMPNN、候选折叠与评分、ProTrek 序列/结构检索、表位/PLIP 分析、目标对齐后的结合链 RMSD、进化分析、两次候选集比较。
-- **完整原生输入：**蛋白、小分子、DNA、RNA、CCD 离子；链 ID/拷贝、残基修饰、单记录三维配体文件、共价连接、已上传 MSA/模板；PDB/CIF 转换、原生 JSON 导入和批量提交。已有结果可直接转为下一步输入。
-- **特征与计算控制：**MSA、MSA＋模板、完整蛋白/模板/RNA 特征准备；多种子、TFG、原子置信度、CPU/CUDA、计算内核、缓存/融合/TF32、确定性设置、FoldCP 和服务器登记的自定义 checkpoint。
-
-普通模式提供表单与预设，专业术语带说明；专家模式开放科学参数。抗体序列点选使用从 **1** 开始的编号，提交时转换为 Harness 原生的从 **0** 开始的编号。OpenDDE 共价连接使用其原生的从 **1** 开始的实体/拷贝/位置编号。专家 JSON 遵循所选工具的原生契约。
-
-三维查看器使用绿色配体细棒、清晰的蛋白色带，支持邻域残基、点选、搜索、显示编辑、隐藏/恢复和两点测距。输入原子检查用于拓扑编辑，**不是**预测结合姿势。显示样式编辑不改变坐标；共价编辑器明确生成新的输入连接。
-
-### 能力边界
-
-公开的 OpenDDE 是结构预测/共折叠引擎；Harness 提供抗体设计流程和相应工具。审计版本没有独立的通用小分子从头生成、完整 ADMET 或经过校准的结合亲和力模型。QED/SA/LogP 是计算描述符，不是实验药效。
-
-Harness 的 `developability_filter.py` 在公开版本中是返回 `available: false` 的空实现，因此不提供“客观可开发性预测”按钮。设计流程可使用其原生 LLM 质量判断，来源与不确定性须保留。原生服务返回 unavailable 时，工作台保留失败/不可用信息，不编造结果。
-
-### 环境和安装
-
-目标环境为 Linux 或 Windows WSL2、Python 3.12、Node.js 22、uv、Docker。CUDA 预测需 NVIDIA 容器支持；CPU 模式和 RDKit 性质任务不要求 GPU。FoldCP 需至少两张 GPU。模板/RNA 数据库由管理员安装或从资源页明确下载，不在普通预测中自动安装。搜索数据库整包需要至少 110 GiB 空间，镜像需包含 zstd、HMMER、kalign。
-
-以下命令在**目标服务器**执行；本次版本的完整部署验收尚待执行：
-
-```bash
-git clone https://github.com/Victor-Xu-1/X-DDE.git
-cd X-DDE
-git checkout main
-cd frontend
-npm ci
-npm run build
-cd ..
-uv sync --locked --group dev
-cp .env.example .env
-```
-
-配置含义：
-
-| 设置 | 内容 |
+| 我想了解 | 文档 |
 | --- | --- |
-| `WB_STATE_DIR` | 可写数据目录：SQLite、不可变上传、任务快照、结果、设计交接记录。 |
-| `WB_IMAGE_FILE` | 文本文件，内容为带 `@sha256:` 的固定 Docker 镜像引用。 |
-| `WB_CODE_FILE` | 文本文件，内容为外部运行代码根目录；包含 `external/opendde/runner/batch_inference.py`。 |
-| `WB_MODEL_DIR` | OpenDDE 的 `checkpoint/`、`common/`、`search_database/` 根目录。 |
-| `WB_CACHE_DIR` | 可写计算缓存。 |
-| `WB_MSA_URL` | 可选的管理员配置 MSA 服务；未设时由原生运行环境采用其默认服务。 |
-| `WB_CHECKPOINTS_FILE` | 可选 JSON，映射自定义 ID 到 checkpoint 目录内的 `.pt` 文件名；不接受客户端任意路径。 |
-| `WB_HARNESS_PYTHON` | **已安装 OpenDDE Harness 的独立 Python 解释器**。工作台不复制或替代原生代理。 |
-| `WB_HARNESS_URL` / `WB_HARNESS_TOKEN` | 固定计算服务地址和服务端凭据；浏览器不接收令牌。 |
-| `WB_HARNESS_SHARED_DIR` | 工作台主机上可访问的 Harness 计算输出根目录。文件工具需共享挂载，并以相同服务 UID 读写共享输入。 |
-| `WB_HARNESS_REMOTE_DIR` | 同一个目录在计算服务主机/容器内的绝对路径；同路径时可留空。 |
-| `WB_ANARCII_IMAGE` | 管理器安装的固定 ANARCII CPU 镜像 ID；可独立编号抗体，模型来自固定 wheel，无需 OpenDDE。 |
-| `WB_ADMET_IMAGE` | 管理器安装的固定 ADMET-AI CPU 镜像 ID；预测 41 个原始性质/早期安全性终点，无需 OpenDDE。 |
-| `WB_DIFFSBDD_PYTHON` / `WB_DIFFSBDD_SOURCE` | DiffSBDD 独立解释器与经过审查的原生源码；安装管理会自动记录。 |
-| `WB_DIFFSBDD_HOME` / `WB_DIFFSBDD_MANIFEST_SHA256` | DiffSBDD 运行根目录与可信安装清单摘要；仅管理员覆盖，不接受浏览器任意路径。 |
-
-OpenDDE 镜像须包含其推理依赖、RDKit 和 Biotite。`WB_MODEL_DIR/checkpoint/opendde.pt` 和可选的 `opendde_abag.pt` 为对应预测所需权重。公开源码、权重、数据库和模型服务均不打包进此仓库。
-
-Harness 的 LLM、工具模型与计算池按上游安装文档配置。启动工作台的用户必须能够读取该用户的默认 `~/.opendde_harness/config.json`；原生 detached worker 使用这个默认配置。不要把真实凭据放进设计 JSON/YAML。可在服务器 `.env` 设置 `OPENDDE_HARNESS_PROTEIN_DESIGN_ROOT` 指定原生任务目录。
-
-自定义 checkpoint 注册示例（文件由管理员管理）：
-
-```json
-{"my_finetuned_model": "my_finetuned_model.pt"}
-```
-
-启动：
-
-```bash
-set -a
-. ./.env
-set +a
-uv run --locked x-dde-server --port 4320
-```
-
-工作台仅绑定 `127.0.0.1`，采用同源 CSRF 和 Host 校验。服务器使用 SSH 转发访问：
-
-```bash
-ssh -L 4320:127.0.0.1:4320 USER@SERVER
-```
-
-浏览器打开 `http://127.0.0.1:4320/`。这是单用户研究工作台；不要直接作为无鉴权公网服务暴露。E 盘支持的 WSL 发行版仍可保存代码、模型和数据，程序更新前需安全关闭正在运行的服务。
-
-### 验证、构建与部署
-
-单维护者阶段采用直接提交主分支、简短源码审查、相关检查通过后发布。后续其他线程的独立优化可提交 PR，由主维护者审核并线。
-
-```bash
-cd frontend
-npm run check
-npm test
-npm run build
-cd ..
-uv run --locked ruff check src tests server_tests
-uv run --locked pytest -q
-uv build --wheel
-```
-
-CI 使用真实 SQLite、文件和受控子进程检查应用协议，也在独立远程环境执行固定版本的化学/结构解析、受体对齐、P2Rank 和 GNINA CPU 原生链路；这些证据不替代 GPU 模型采样、真实服务/LLM 或广泛靶点科学验收。真实科学运行与浏览器验收见 [服务器验收说明](docs/server-acceptance.md)。新增测试已提供；本机未运行测试套件或推理。每个发布候选都必须通过其精确提交对应的 CI。
-
-浏览器 CI 使用独立临时服务和锁定的 `browser` 开发依赖，验证三种主题、资产页文字对比度、窄屏布局、管理菜单、备注版本持久化、中英文刷新和指定分子的性质输入交接。测试只登记小型输入资产，不提交科学计算任务；截图和日志保存在 CI 附件中，不进入仓库或发行包。共享界面样式按职责拆分在 `frontend/src/design/`，颜色统一来自 `tokens.css`，资产页使用同一套语义颜色。
-
-部署前备份 `WB_STATE_DIR` 并停止工作台，确认原生设计任务已结束或明确交接；构建并安装精确提交对应的 wheel 后启动。0.3 只新增 `assets`、`batches`、`design_plans`、`queue_control` 表，保留旧任务。回退到 0.2 前须使用升级前的数据备份：0.2 不认识新增任务类型。不要直接删除共享模型、原生 Harness 任务或用户数据。
-
-### 架构和故障恢复
-
-- `frontend/src/operations`：能力目录、各任务表单、文件/原子/残基选择、原生参数编辑、设计计划和结果展示。
-- `entities` / `parameters` / `prediction` / `requests`：显式输入契约；`native_arguments` / `native_task` 只调用固定版本的原生命令。
-- `store` / `worker`：单一持久队列，批次原子提交，有限日志、超时、取消和重启恢复。普通预测/资源任务等待本工作台发起的原生设计结束，避免争抢同一计算资源；外部手动启动的进程仍需管理员协调。
-- `assets`：UUID 输入、类型/大小限制、SHA-256 快照、引用保护、结果复用和路径边界检查。
-- `harness_contract` / `harness_compute`：科学工具白名单、原生请求校验、管理路径映射、固定服务地址、原生计算客户端。
-- `harness_service` / `harness_bridge`：审阅计划与幂等交接，实际生命周期、种群和代理循环始终属于原生 Harness。响应丢失时核对已有任务，禁止自动重复启动。
-- `analysis` / `molecule_math` / `confidence`：真实描述符、唯一的多种子构象标识、原生 PAE/PDE/接触概率与逐原子置信度。
-
-常见恢复路径：
-
-- **资源缺失：**到资源页检查文件状态；存在状态不是哈希或科学准确性验证。检查 Docker、代码根目录和模型文件。
-- **Harness 不可用：**检查解释器、默认原生配置、固定服务地址/令牌以及共享存储映射；不要把服务器路径填写到浏览器参数中。
-- **设计启动状态不确定：**在“抗体设计 → 恢复未启动/待核对计划”恢复计划并核对。原生启动仍在运行时不能重复启动；已无原生任务时恢复为待审阅状态。
-- **不能取消同步工具：**原生 ESM/分析等同步接口派发后没有取消协议；队列中可取消，派发后等待返回。异步折叠支持取消；远端取消无法确认时暂停队列，先检查原生服务。
-- **多记录 SDF：**性质计算支持多记录；结构预测的每个配体须为单个三维记录，不会悄悄只读取第一条。
-- **大置信度文件：**交互读取最多 64 MiB，矩阵按明确间隔取样；完整文件仍可下载，坐标为原生 token 索引。
-- **旧浏览器页面没有新功能：**先查看 `xdde version`、`xdde status`，更新后执行 `xdde restart` 并刷新浏览器。
+| 安装、启动、连接已有环境和故障恢复 | [使用与运行](docs/user-guide.md) |
+| 平台职责、具体能力与原生接口 | [架构与能力对照](docs/design/README.md) |
+| 快速筛选、商业库与 DEL | [高通量筛选与 DEL](docs/design/screening-and-del.md) |
+| 三元复合物及双功能分子 | [诱导邻近设计](docs/design/proximity-design.md) |
+| 真实模板、公开来源与计算结果 | [研究案例](docs/design/research-examples.md) |
+| 原生运行、硬件与科学验收 | [服务器验收](docs/server-acceptance.md) |
+| 参与开发、专项检查与发布编号 | [开发与发布](docs/development.md) |
 
 ## English
 
-The capability matrix records currently integrated software and audited upstream source. The implemented adapters, available UI and pending integration work are distinguished in [the matrix](docs/design/README.md); runtime and scientific acceptance depend on the selected engine and target server. X-DDE has its own platform server independently of these environments. The audited OpenDDE/Harness distribution does not provide objective developability, generic small-molecule de novo generation, complete ADMET or calibrated affinity. These are current integration boundaries, not restrictions on X-DDE's platform architecture; additional software requires a real adapter and acceptance evidence.
+**X-DDE is a visual research platform for early drug discovery.** It connects scientific tools and research assets across target research, structure prediction, pockets and docking, small-molecule design, biologics, high-throughput screening, DEL analysis and early property assessment.
 
-Install/build using the commands above, configure `.env.example`, and run the app on loopback. For Harness, configure an existing native installation and its default provider configuration. Scientific file tools require a shared directory mapped to the compute output root. The browser uses uploaded IDs, not filesystem paths or credentials. Native campaigns retain their own lifecycle; Workbench stores reviewed handoffs and never implements a second agent loop.
+The main problem it addresses is the work between tools: different environments, file formats and parameters; disconnected outputs; and results that are difficult to inspect or reuse. X-DDE provides one-step-at-a-time task preparation, optional expert controls, linked candidate tables and 2D / 3D / sequence inspection, independent component management, and versioned inputs and outputs.
 
-0.4 remains a release candidate until the target-server matrix, native inference and service/LLM calls pass. See [server acceptance](docs/server-acceptance.md). Local acceptance covers installation, lifecycle and browser/editor behavior; it does not establish scientific inference readiness.
+X-DDE owns both the frontend and the platform backend. External scientific programs run in isolated managed environments through typed adapters. A prepared receptor can feed pocket analysis; a chosen pocket can feed generation or screening; molecules can continue into properties, docking and quality checks; protein candidates can continue into folding and interface analysis. Original materials and result identities remain available.
 
-On Windows, updates reuse the distribution/account in `bin/workbench.json`. A new application setup prefers an existing shared `WSL` distribution. If a fresh Linux installation is required, the default E: system disk lives under `E:\WSL\system`; an existing `ext4.vhdx` is never overwritten or migrated automatically. The owner's source/runtime/data/cache remain in that E-backed disk, accessed through `\\wsl.localhost\WSL\`. Internal Linux paths such as `/opt/opendde` remain valid.
+The images above include real v0.4.49 browser captures of public research cases and clearly identified input templates. The 71 task entries do not imply that every runtime and model is installed, scientifically accepted, or licensed for every use. Download installers from [Releases](https://github.com/Victor-Xu-1/X-DDE/releases); see the [user guide](docs/user-guide.md) and [server acceptance](docs/server-acceptance.md) for deployment and verification.
 
-## License and provenance
+## 许可证与来源
 
-X-DDE original code is [Apache-2.0](LICENSE), with attribution retained in [NOTICE](NOTICE). [OpenDDE](https://github.com/aurekaresearch/OpenDDE) and [OpenDDE Harness](https://github.com/aurekaresearch/OpenDDE-Harness) remain external dependencies under their upstream licenses. The owner-provided reference image is retained for style only; its third-party artwork and marks are not relicensed by the code license. No upstream model weights, private data, secrets or proprietary editor implementation are included.
+X-DDE 自有代码采用 [Apache-2.0](LICENSE)，归属说明保留在 [NOTICE](NOTICE)。集成的软件、模型、权重和数据保留其各自的许可证；历史 MIT 发行版保留当时随包发布的条款。仓库不包含私人研究数据、模型服务密钥或上游大型权重。
 
-The current source uses Apache-2.0. Previously published MIT releases retain the license distributed with those releases; third-party code and models are not relicensed.
-
-能力目录由后端维护。修改能力或 DiffSBDD 参数契约后，在已安装锁定依赖的源码目录执行 `PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py`，CI 使用同一命令的 `--check` 检查前端是否同步。界面支持八个 DiffSBDD 模型和四类设计任务，服务器就绪与科学验收状态分别记录。
-
-
-GNINA binding-pose tasks have independent component management and three entries: bounded docking, existing-pose scoring and local minimization. P2Rank pockets can pass their receptor and center into the search form; selected poses are saved as reusable immutable molecule versions. CPU empirical scoring is the guided default, with explicit coordinate-frame confirmation and expert CNN/GPU budgets. Configuration readiness is separate from scientific benchmark acceptance; see [server acceptance](docs/server-acceptance.md) and the canonical [design contract](docs/design/README.md).
-
-分子准备由独立的 Chemistry 集成环境提供，复用 X-DDE 的现有任务、资产和环境管理。启动工作台后，在“安装与组件”安装 Chemistry；如由服务器管理员预先构建镜像，可在 `.env` 设置 `WB_CHEMISTRY_IMAGE=sha256:<完整镜像ID>`，然后重启。镜像必须匹配仓库中的固定版本、哈希锁和标签，不接受可变 tag。“分子准备”默认保留当前化学状态并生成游离三维构象，也可选择近生理或更宽 pH 的状态枚举；专家参数由服务端校验。输出为有原子对应和方法版本的状态/构象集合，每个成员可接着计算性质或重新对接。状态数量不代表优势状态比例，力场能量不代表亲和力；自由构象不能作为受体对齐的已有结合姿势。原生库和测试只在 CI/目标服务器安装及运行，本机预览不自动安装该环境。
-
-受体构象由独立 Biopython 环境处理，可在“安装与组件”安装或设置固定镜像 ID WB_BIOPYTHON_IMAGE 后重启。在“受体构象”选择具体 PDB/mmCIF 版本，完成已有结构刚体对齐后，分别为对齐成员运行口袋寻找。受体结果的“比较各构象的口袋”选择至少两个已成功口袋任务，提供常规/严格/扩大探索及专家阈值，保存可复用的跨构象位点集合。关联基于共同坐标和明确残基对应，未匹配不代表生物学位点消失；体积、可达性和隐蔽位点并未由这个步骤计算。
-
-在“全部能力”的“多受体与状态姿势探索”中，可复用位点集合、保存的 SDF 版本以及准备后的状态/构象，选择探索深度并先保存审阅计划。启动使用独立 GNINA 环境和现有任务队列；缺少环境时保留计划并提示配置。结束后保存全部组合及姿势集合，可预览或继续计算性质、在配套受体上评分/最小化。失败、取消和未尝试组合保留，集合不代表实验结合确证。
-
-
-### Task preparation interface
-Task preparation uses one visible question page at a time: choose inputs or purpose,
-prepare materials, choose recommended settings (expert controls are optional), and
-review before submission. Next is on the right, Back on the left. Hidden panels retain
-drafts but cannot dispatch tasks. Native input validity is rechecked across all prior
-pages before forward navigation or submission.
-
-Prediction, all Harness tools, DiffSBDD modes, antibody campaigns, preparation,
-imports, resources, saved research plans use the same questionnaire authority. Native atom inspection is an explicit preparation
-action inside the preview question, without a redundant second wizard. Saving a plan or region is distinct from starting computation;
-results links always use the actual returned job, plan or run. The supplied Boltz Lab
-screenshots informed choice-driven guidance and candidate/3D layout. The referenced
-authenticated new-target wizard redirected to login, so its unseen steps are not claimed
-as inspected. X-DDE retains only capabilities supported by its actual integrations.
-
-The structure-results view puts candidates beside their actual 3D preview and collapses
-secondary metrics. Model execution and scientific integration verification run in the
-target environment/remote CI; the owner machine does not run scientific jobs.
-
-
-早期发现的新候选入口为 **疾病找靶点** 与 **靶点与研究材料**：名称搜索 → 明确选择 → 内容选择 → 确认查询 → 来源证据/材料复用。使用官方 Open Targets、UniProt、ChEMBL，只发送填写的名称/数据库编号；查询适配器无需模型安装，具体源站可能不可用。规范序列可登记资产并交接结构预测；PDB仅为索引。候选接口/源码不表示已安装发行版更新，当前验收状态见[统一模块路线](docs/design/README.md#早期发现模块与开源选型2026-10-01)。合成/逆合成暂不在实施范围。
-
-
-**Independent conformation/pose quality:** install PoseBusters in *Installation & components*, then open *Conformation and pose quality* from *All capabilities*. Select an exact3D SDF molecular version, choose free conformation / protein pose / cognate reference comparison, confirm the optional receptor frame, and submit after review. The tool preserves original assets and distinguishes native pass, fail and unavailable checks. It evaluates plausibility; it is not an affinity or experimental-activity predictor. Use *Structure preparation* first for multi-model/alternate-location receptors; this adapter accepts a prepared PDB receptor. See [server acceptance](docs/server-acceptance.md) for actual remote verification and its limits.
-
-**性质与早期安全性预测 / ADMET predictions:** 在“安装与组件”安装独立 ADMET-AI CPU 环境。从“全部能力”进入“性质与早期安全性预测”，依次选择单个研究分子或一组 SDF 候选、具体来源、结果分组，再确认提交。单个分子可复用确切版本；整组最多 50 条原始记录，文件最多 8 MiB，每分子最多 256 个非氢原子。模型始终计算 41 个原始终点，分组只改变显示。无效记录和重复项保留编号；点击结果行预览对应原始结构，并可继续复用原分子进行准备。ADMET-AI 2.0.1 / Chemprop 2.2.2 独立安装，至少留 6 GiB 暂存空间；CPU 无需 GPU。结果显示上游单位、物种、标签说明和参考指标，不提供未经验证的适用域、可靠性区间或临床判断。DrugBank 参考/百分位关闭且参考文件从镜像安装层移除。环境、模型、第三方数据的条款独立于 X-DDE Apache-2.0。真实推理与浏览器验收命令见 [server acceptance](docs/server-acceptance.md)。
-
-**抗体人源参考与框架优化 / Antibody reference and framework proposals:** 在“安装与组件”部署独立 Sapiens / ANARCII / Promb CPU 环境。从“全部能力”进入抗体模块，按四步提供完整可变域、选择常规 VH/VL 或探索性 VHH、选择只评估或保留 CDR 的框架建议、确认递交。支持最多 20 条 70–200 残基可变域，文件最多 2 MiB；完整链/scFv 先通过抗体编号模块提取域。推荐少量改动，专家可调整总修改位置、轮数和资源预算。原始序列不覆盖；真正变化的候选保存为新版本并与原始输入关联，可复用到结构预测或再次评估。模型原生残基概率与固定人类 OAS 9 肽匹配分开显示，VHH 只作人类重链参考探索。软件验收、结合保留、重轻链配对与临床免疫原性是不同结论；后者没有被本模块预测。固定依赖、模型资源和参考身份见包内 manifest；上游软件/模型/数据条款各自保留。服务器验收见 [server acceptance](docs/server-acceptance.md)。
-
-
-### Managed native compute service
-
-X-DDE owns the loopback native scientific service lifecycle. The reviewed Harness
-factory supplies Docker arguments; it remains one integrated environment among others.
-After installing Harness, runtime, compute image and a checkpoint, restart X-DDE.
-Startup creates a private `state/compute-service.json` (0600), then starts only the
-container tied to that state. Installation & components offers Start/Stop and separate
-running/resource-ready states. A stop is refused while platform or native tasks are
-active; user assets, other containers and the shared WSL/Docker daemon are preserved.
-Stopping explicitly disables automatic service start until the user starts it again.
-
-No LLM provider or API key is required for local scientific tools. Model providers
-for conversational campaigns remain a separate account configuration. Explicit
-`WB_HARNESS_*` settings can still connect an operator-managed service; X-DDE never
-starts or stops it unless it has an owned private service record. Service tokens are
-passed over private subprocess input/environment and never returned by public APIs.
-
-WSL native kernel compilation probes the actual CUDA loader in the installed image,
-then configures `LIBRARY_PATH` only in the owned service. Host networking is used only
-when the saved instance configuration selects it, and listens on 127.0.0.1; X-DDE
-never rewrites Docker networking or restarts the shared WSL distribution. Existing
-owned containers can be adopted by their exact Docker ID; arbitrary containers
-sharing a name or an owner label are not enough. When an installed environment revision changes, the service panel offers Apply
-environment update. It retires only the proven idle, owned container, preserves
-its storage and private connection, then starts the reviewed new image/code.
-Restart X-DDE after component changes to refresh the platform execution settings.
-
-
-### Research navigation
-
-The sidebar follows six research workflows: target research, structure prediction,
-pockets and docking, small-molecule design, biologics research, and properties and
-safety. Each workflow opens a new task by default and offers a short task selector:
-common tasks first, then explicit supplementary methods. The shared presentation
-registry in `frontend/src/studio/research-modules.ts` covers all 44 existing scientific
-capabilities without changing their native contracts or isolated environments.
-
-Research workspace combines projects, research files/relationships and the structure
-editor. Tasks and results combines progress, the actual prediction or native result,
-analysis and downloads; prediction results use one shared renderer in both entry and
-history. Installation and runtime combines component lifecycle management and live
-environment readiness. Settings and help has three direct destinations: installation
-and runtime, interface preferences, and the usage guide. The static account placeholder,
-separate overview and duplicate analysis/export pages have been retired. Full catalogue
-entries are compact rows grouped by workflow with three common tasks visible and supplementary methods explicitly expandable; overlapping drug-modality filters remain.
-
-
-### 分子库的结构风险与骨架选择 / Structural alerts and scaffold representatives
-
-在 **性质与安全性 → 研究任务 → 分子库与早期筛选** 中，上传新 SDF 分子库，第二步选择“检查结构风险”或“按骨架挑代表”。结构风险使用现有固定版本 RDKit 的 PAINS/Brenk 规则；默认提示后保留候选，暂时排除需明确选择。规则命中不是毒性或无活性结论，未命中不证明安全。
-
-骨架选择使用保留手性的 Murcko 骨架，先覆盖不同结构组，再按每组数量挑选；组内顺序来自输入文件，不代表活性排名。无环分子保留各自完整化学身份，多片段记录原位保留但不参与此项选择，不自动脱盐或枚举状态。专家可调每组上限和规则目录。结果展示规则、骨架组、未选原因与可下载 CSV；选中 SDF 和确切分子记录可继续准备构象、计算性质或对接。历史结果保持原样，未运行的检查不补成阴性结果。
-
-The existing Chemistry environment provides both methods; no additional model or environment is needed. Choose the purpose, then an explicit alert policy or per-scaffold budget and review before submission. Native schema 2 adds actual rule/group evidence and a checked CSV artifact; schema 1 records remain readable and unevaluated. Input molecular identities, stereochemistry, isotopes, charges, coordinates and properties are retained. The methods do not estimate activity, experimental toxicity or affinity.
-
-独立科学环境与实际支持范围：[科学环境升级说明](docs/scientific-upgrade.md)。
+架构插图是设计说明，实际页面截图保留原始显示内容。图片来源与版本见 [图片说明](docs/images/README.md)。
