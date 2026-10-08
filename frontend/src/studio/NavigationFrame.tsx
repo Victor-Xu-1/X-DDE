@@ -67,6 +67,24 @@ export function NavigationFrame({
         aria-label={zh ? "研究导航" : "Research navigation"}
         onCancel={() => setOpen(false)}
         onClose={() => setOpen(false)}
+        onKeyDown={(event) => {
+          if (event.key !== "Tab") return;
+          const focusable = Array.from(
+            event.currentTarget.querySelectorAll<HTMLElement>(
+              "button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex]:not([tabindex='-1'])",
+            ),
+          ).filter((node) => node.getClientRects().length > 0);
+          const current = focusable.indexOf(
+            document.activeElement as HTMLElement,
+          );
+          if (event.shiftKey && current === 0) {
+            event.preventDefault();
+            focusable.at(-1)?.focus();
+          } else if (!event.shiftKey && current === focusable.length - 1) {
+            event.preventDefault();
+            focusable[0]?.focus();
+          }
+        }}
         onClick={(event) => {
           if (event.target === event.currentTarget) close();
         }}
