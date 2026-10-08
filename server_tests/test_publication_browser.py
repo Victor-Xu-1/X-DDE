@@ -92,7 +92,10 @@ def test_retained_matrix_and_channel_vectors(capability, language):
     evidence = Path("outputs/publication-browser") / capability
     evidence.mkdir(parents=True, exist_ok=True)
     with (
-        platform(Settings.from_env().state_dir, evidence / (language + ".log")) as base,
+        platform(
+            Settings.from_env().state_dir.parent / "publication-cases" / capability,
+            evidence / (language + ".log"),
+        ) as base,
         sync_playwright() as p,
     ):
         browser = p.chromium.launch()
