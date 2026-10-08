@@ -101,7 +101,12 @@ describe("module templates", () => {
       screen.getByRole("heading", { name: /BRD4–JQ1 template/ }),
     ).toBeVisible();
     expect(screen.getByText("Public example")).toBeVisible();
-    expect(screen.getAllByText(/BRD4–JQ1 template/)).toHaveLength(1);
+    expect(
+      screen.getAllByRole("heading", { name: /BRD4–JQ1 template/ }),
+    ).toHaveLength(1);
+    expect(
+      screen.getByText("BRD4–JQ1 template", { selector: "strong" }),
+    ).not.toBeVisible();
     expect(
       screen.getByRole("region", { name: "In-module example results" }),
     ).toBeVisible();

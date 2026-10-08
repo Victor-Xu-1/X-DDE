@@ -83,7 +83,7 @@ it("keeps public previews outside personal prediction tabs and preserves the inp
     fireEvent.click(await screen.findByRole("button", { name: "示例结果" }));
     expect(await screen.findByText("Retained native preview")).toBeVisible();
     expect(
-      screen.getByRole("group", { name: "工作区", hidden: true }),
+      screen.getByLabelText("工作区", { selector: "div" }),
     ).not.toBeVisible();
     expect(sequence).not.toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "返回任务填写" }));
