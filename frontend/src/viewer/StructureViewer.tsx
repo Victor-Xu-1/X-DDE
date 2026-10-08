@@ -234,7 +234,7 @@ export function StructureViewer({
       requestedKey.current = key;
       send("load", {
         urls,
-        ligandContext,
+        ...(ligandContext ? {} : { ligandContext: false }),
         comparison,
         focusModel,
         ...(focusModels ? { focusModels } : {}),
