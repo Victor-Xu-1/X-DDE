@@ -47,3 +47,9 @@ class PreviewMinimizeInput(ScientificModel):
         elif self.receptor is not None or self.coordinate_basis is not None:
             raise ValueError("Unbound minimization must not silently discard a receptor context.")
         return self
+
+
+class InitialPoseInput(ScientificModel):
+    source: PoseSource
+    method: Literal["MMFF94s", "UFF"] = "MMFF94s"
+    retry: bool = Field(default=False, strict=True)

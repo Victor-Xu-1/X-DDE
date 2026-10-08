@@ -64,6 +64,13 @@ export const commonEndpoints = new Set([
 export function endpointName(e: Endpoint, zh: boolean) {
   return zh ? (names[e.id] ?? e.name) : e.name;
 }
+export function endpointUnit(e: Endpoint, zh: boolean) {
+  return e.task_type === "classification"
+    ? zh
+      ? "分数 0–1"
+      : "Score 0–1"
+    : e.unit;
+}
 export function speciesName(species: string, zh: boolean) {
   return zh
     ? ((
@@ -124,5 +131,8 @@ export function failureReason(reason: string | null, zh: boolean) {
       "Native model prediction unavailable",
     ],
   };
-  return labels[reason ?? ""]?.[zh ? 0 : 1] ?? reason ?? "";
+  return (
+    labels[reason ?? ""]?.[zh ? 0 : 1] ??
+    (zh ? "此记录暂未得到有效预测" : "Prediction unavailable for this record")
+  );
 }

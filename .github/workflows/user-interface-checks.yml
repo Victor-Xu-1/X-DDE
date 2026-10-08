@@ -85,6 +85,8 @@ on:
       - '!frontend/src/TaskForm*'
       - '!frontend/src/studio/HomeWorkspace*'
       - '!frontend/src/presentation/result-layout.css'
+      # Molecular property pages use their focused inspection gate.
+      - '!frontend/src/admet/**'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -159,6 +161,8 @@ on:
       - '!frontend/src/TaskForm*'
       - '!frontend/src/studio/HomeWorkspace*'
       - '!frontend/src/presentation/result-layout.css'
+      # Molecular property pages use their focused inspection gate.
+      - '!frontend/src/admet/**'
   workflow_dispatch:
 jobs:
   presentation:

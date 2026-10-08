@@ -48,8 +48,19 @@ it("accepts only bounded explicit viewer layouts and preserves source URLs", () 
     { ...input, focusModel: 2 },
     { ...input, focusModel: 1.2 },
     { ...input, comparison: "false" },
+    { ...input, initialPosePrepared: "true" },
   ])
     expect(() => viewerLoad(value)).toThrow();
+});
+
+it("preserves an explicit computed-pose qualification without changing source records", () => {
+  const value = {
+    urls: ["/api/assets/prepared-pose"],
+    records: [3],
+    comparison: false,
+    initialPosePrepared: true,
+  };
+  expect(viewerLoad(value)).toEqual(value);
 });
 
 it("keeps explicit whole-assembly presentation separate from the existing automatic pocket view", () => {

@@ -4,7 +4,12 @@ import {
   type ResearchColumn,
 } from "../presentation/ResearchTable";
 import { MoleculeImage } from "../presentation/MoleculeImage";
-import { commonEndpoints, endpointName, failureReason } from "./labels";
+import {
+  commonEndpoints,
+  endpointName,
+  endpointUnit,
+  failureReason,
+} from "./labels";
 import type { AdmetResult, AdmetRow } from "./types";
 export function AdmetRecordTable({
   result,
@@ -18,11 +23,7 @@ export function AdmetRecordTable({
   onSelect(row: AdmetRow): void;
 }) {
   const zh = language === "zh";
-  const endpoints = result.endpoints.filter(
-    (e) =>
-      result.options.view === "all" ||
-      (result.options.view === "safety") === (e.category === "Toxicity"),
-  );
+  const endpoints = result.endpoints;
   const columns: ResearchColumn<AdmetRow>[] = [
     {
       key: "molecule",
@@ -65,19 +66,25 @@ export function AdmetRecordTable({
     },
     ...endpoints.map((e) => ({
       key: e.id,
-      label: endpointName(e, zh),
-      exportLabel:
-        endpointName(e, zh) +
-        " (" +
-        (e.task_type === "classification" ? "score 0–1" : e.unit) +
-        ")",
+      label: (
+        <span className="admet-endpoint-label">
+          {endpointName(e, zh)}
+          <small>{endpointUnit(e, zh)}</small>
+        </span>
+      ),
+      exportLabel: endpointName(e, zh) + " (" + endpointUnit(e, zh) + ")",
       numeric: true,
       value: (row: AdmetRow) =>
         row.status === "predicted" ? row.predictions[e.id] : null,
     })),
   ];
-  const core = endpoints.filter((endpoint) => commonEndpoints.has(endpoint.id));
-  const primary = (core.length ? core : endpoints).slice(0, 2);
+  const preferred = endpoints.filter(
+    (e) =>
+      result.options.view === "all" ||
+      (result.options.view === "safety") === (e.category === "Toxicity"),
+  );
+  const core = preferred.filter((endpoint) => commonEndpoints.has(endpoint.id));
+  const primary = (core.length ? core : preferred).slice(0, 2);
   return (
     <ResearchTable
       rows={result.rows}
@@ -89,6 +96,7 @@ export function AdmetRecordTable({
       rowId={(row) => String(row.record)}
       language={language}
       title={zh ? "候选分子" : "Candidate molecules"}
+      exportName="admet-candidate-predictions.csv"
       selected={selected == null ? null : String(selected)}
     />
   );

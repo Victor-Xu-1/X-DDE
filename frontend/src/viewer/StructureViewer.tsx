@@ -35,6 +35,7 @@ import { useViewerSnapshot } from "./useViewerSnapshot";
 import { usePoseOptimization } from "./usePoseOptimization";
 import { poseSource } from "./pose-source";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
+import { InitialPoseStatus } from "./InitialPoseStatus";
 import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
@@ -113,10 +114,14 @@ export function StructureViewer({
     poseIndex,
   );
   const { urls, records, score: nativeScore } = optimization.pose;
+  const optimizationReceiver = useRef(optimization);
+  optimizationReceiver.current = optimization;
   const frame = useRef<HTMLIFrameElement>(null),
     zh = language === "zh",
     key =
       urls.join("|") +
+      ":" +
+      optimization.initialReady +
       ":" +
       (records?.join(",") ?? "") +
       ":" +
@@ -175,6 +180,15 @@ export function StructureViewer({
       )
         return;
       const { type, detail } = event.data;
+      if (type === "initial-pose-required") {
+        setStatus("preparing");
+        if (optimizationReceiver.current.pose.source) {
+          void optimizationReceiver.current.prepareInitial();
+        } else
+          setError(
+            "Use a registered SDF/MOL source to prepare a calculated 3D pose.",
+          );
+      }
       if (type === "snapshot") snapshotReceiver.current(detail);
       if (type === "ready") setReady(true);
       if (type === "selected") {
@@ -234,6 +248,7 @@ export function StructureViewer({
       requestedKey.current = key;
       send("load", {
         urls,
+        initialPosePrepared: optimization.initialReady,
         ...(ligandContext ? {} : { ligandContext: false }),
         comparison,
         focusModel,
@@ -458,6 +473,9 @@ export function StructureViewer({
             {zh ? "正在读取结构…" : "Loading structure…"}
           </div>
         )}
+        {status === "preparing" && (
+          <InitialPoseStatus state={optimization} language={language} />
+        )}
         {status === "empty" && (
           <div className="viewer-message">
             <strong>
@@ -481,6 +499,7 @@ export function StructureViewer({
                 setError("");
                 send("load", {
                   urls,
+                  initialPosePrepared: optimization.initialReady,
                   comparison,
                   focusModel,
                   ...(focusModels ? { focusModels } : {}),

@@ -18,6 +18,8 @@ class MoleculeMinimizeResult(ScientificModel):
     source: MoleculeRef
     options: MinimizationOptions
     method: Literal["MMFF94s", "UFF"]
+    initialization: Literal["existing_coordinates", "ETKDGv3"] = "existing_coordinates"
+    initialization_seed: int | None = None
     geometry_frame: Literal["unbound_pose"]
     energy_before: float = Field(allow_inf_nan=False)
     energy_after: float = Field(allow_inf_nan=False)
@@ -36,6 +38,11 @@ class MoleculeMinimizeResult(ScientificModel):
 
     @model_validator(mode="after")
     def consistency(self) -> Self:
+        expected = "ETKDGv3" if self.options.initialize_3d else "existing_coordinates"
+        if self.initialization != expected or self.initialization_seed != (
+            self.options.seed if self.options.initialize_3d else None
+        ):
+            raise ValueError("Pose initialization differs from its declared geometry method.")
         if self.method != self.options.force_field or self.energy_after > self.energy_before + 1e-3:
             raise ValueError("Optimized pose method or energy evidence is inconsistent.")
         if (

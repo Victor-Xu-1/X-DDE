@@ -65,6 +65,67 @@ it("saves then switches pose, supports undo/redo, and minimizes the actually sel
   ).toMatchObject({ source: base.source, method: "UFF" });
 });
 
+it("prepares an initial 3D pose through the same queue and starts history at the calculated pose", async () => {
+  vi.mocked(api.post).mockImplementation(async (path) =>
+    path.endsWith("/save") ? saved : { state: "task", job: { id: next } },
+  );
+  vi.mocked(request).mockResolvedValue({ id: next, status: "succeeded" });
+  const { result } = renderHook(() => usePoseOptimization(base, 0));
+  expect(result.current.initialReady).toBe(false);
+  await act(async () => {
+    await result.current.prepareInitial();
+  });
+  await waitFor(() => expect(result.current.initialReady).toBe(true));
+  expect(result.current.count).toBe(1);
+  expect(result.current.pose.urls).toEqual([`/api/assets/${next}`]);
+  act(() => result.current.previous());
+  expect(result.current.pose.urls).toEqual([`/api/assets/${next}`]);
+  expect(vi.mocked(api.post).mock.calls[0]).toEqual([
+    "/research/poses/initial",
+    { source: base.source, method: "MMFF94s", retry: false },
+    expect.any(String),
+  ]);
+  await act(async () => {
+    await result.current.prepareInitial();
+  });
+  expect(vi.mocked(api.post)).toHaveBeenCalledTimes(2);
+});
+
+it("reuses a qualified calculated record without minimization and does not change other models", async () => {
+  const object = {
+    ...saved.pose,
+    reference: { ...saved.pose.reference, record: 3 },
+    relation: "prepared_from",
+  };
+  vi.mocked(api.post).mockResolvedValue({ state: "ready", pose: object });
+  const { result } = renderHook(() => usePoseOptimization(base, 0));
+  await act(async () => {
+    await result.current.prepareInitial();
+  });
+  expect(result.current.initialReady).toBe(true);
+  expect(result.current.pose.records).toEqual([3]);
+  expect(vi.mocked(request)).not.toHaveBeenCalled();
+});
+
+it("keeps preparation failure visible and retries explicitly with a selected force field", async () => {
+  vi.mocked(api.post).mockRejectedValue(new Error("Environment unavailable"));
+  const { result } = renderHook(() => usePoseOptimization(base, 0));
+  await act(async () => {
+    await result.current.prepareInitial();
+  });
+  expect(result.current.initialReady).toBe(false);
+  expect(result.current.phase).toBe("error");
+  expect(result.current.pose.urls).toEqual(base.urls);
+  await act(async () => {
+    await result.current.prepareInitial("UFF", true);
+  });
+  expect(vi.mocked(api.post).mock.calls[1][1]).toEqual({
+    source: base.source,
+    method: "UFF",
+    retry: true,
+  });
+});
+
 it("keeps the prior pose and stable submission key after an uncertain transport failure", async () => {
   vi.mocked(api.post).mockRejectedValue(new Error("Network timeout"));
   const { result } = renderHook(() => usePoseOptimization(base, 0));

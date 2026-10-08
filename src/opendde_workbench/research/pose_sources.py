@@ -113,7 +113,7 @@ class PoseSources:
             raise ValueError(CONSTRAINT_NOTICE)
 
     def validate_file(self, asset, record, receptor):
-        suffixes = {".pdb", ".cif"} if receptor else {".sdf", ".mol"}
+        suffixes = {".pdb", ".cif"} if receptor else {".sdf", ".mol", ".mol2"}
         if asset.kind != ("structure" if receptor else "ligand") or asset.suffix not in suffixes:
             raise ValueError(
                 "Choose a receptor PDB/CIF or a ligand SDF/MOL with explicit chemical bonds."

@@ -12,6 +12,8 @@ from urllib.request import urlopen
 
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.test_navigation_shell_browser import settings
+
 
 def test_real_preview_minimization_history_and_download():
     evidence = Path("server_tests/evidence/pose-minimization").resolve()
@@ -51,6 +53,9 @@ def test_real_preview_minimization_history_and_download():
                 page = browser.new_page(viewport={"width": 1440, "height": 1100})
                 errors = []
                 page.on("pageerror", lambda error: errors.append(str(error)))
+                page.goto(base)
+                settings(page, "en")
+                page.locator("#settings-language").select_option("zh")
                 page.goto(base + "/#task=" + config["free_job"])
                 action = page.get_by_role("button", name="能量最小化", exact=True)
                 expect(action).to_be_visible(timeout=30000)

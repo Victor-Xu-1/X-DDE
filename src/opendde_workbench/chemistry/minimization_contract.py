@@ -1,4 +1,4 @@
-"""Optimize an exact existing 3D record; never embed or enumerate a different state."""
+"""Optimize an exact molecular record, with optional explicit initial 3D generation."""
 
 from typing import Literal, Self
 from uuid import UUID

@@ -144,7 +144,7 @@ export function AdmetForm({
                     void single.choose(value?.asset_id ?? "");
                   }}
                   language={language}
-                  label={zh ? "选择分子版本" : "Choose a molecular version"}
+                  label={zh ? "研究分子" : "Research molecule"}
                 />
               ) : (
                 <AssetPicker

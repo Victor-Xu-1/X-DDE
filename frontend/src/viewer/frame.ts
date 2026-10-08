@@ -121,6 +121,20 @@ async function load(input: ViewerLoad) {
         input.records?.[sourceIndex] ?? 0,
         format,
       );
+      if (["sdf", "mol", "mol2"].includes(format)) {
+        if (urls.length === 1 && !input.initialPosePrepared) {
+          notify("initial-pose-required");
+          return;
+        }
+        if (
+          ["sdf", "mol"].includes(format) &&
+          !/\b3D\b/.test(record.split(/\r?\n/)[1] ?? "")
+        ) {
+          throw new Error(
+            "This ligand has only 2D coordinates. Prepare and dock a 3D pose before displaying it with a receptor.",
+          );
+        }
+      }
       inputCharges.push(inputChargesDeclared(record, format));
       const model = viewer.addModel(record, format);
       if (!model.selectedAtoms({}).length)

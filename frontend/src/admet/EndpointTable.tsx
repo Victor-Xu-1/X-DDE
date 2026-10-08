@@ -7,6 +7,7 @@ import {
   commonEndpoints,
   endpointHint,
   endpointName,
+  endpointUnit,
   speciesName,
 } from "./labels";
 
@@ -19,21 +20,29 @@ export function EndpointTable({
   result: AdmetResult;
   row: AdmetRow;
 }) {
-  const zh = language === "zh",
-    [all, setAll] = useState(false),
-    [category, setCategory] = useState("");
-  const available = result.endpoints.filter(
-    (e) =>
-      result.options.view === "all" ||
-      (result.options.view === "safety") === (e.category === "Toxicity"),
+  const zh = language === "zh";
+  const [category, setCategory] = useState(
+    result.options.view === "safety"
+      ? "Toxicity"
+      : result.options.view === "adme"
+        ? "adme"
+        : "common",
   );
+  const available = result.endpoints;
   const visible = available.filter(
     (e) =>
-      (!category || e.category === category) &&
-      (all || category || commonEndpoints.has(e.id)),
+      category === "all" ||
+      (category === "common"
+        ? commonEndpoints.has(e.id)
+        : category === "adme"
+          ? e.category !== "Toxicity"
+          : e.category === category),
   );
   return (
-    <section aria-label={zh ? "性质预测" : "Predicted properties"}>
+    <section
+      className="admet-endpoints"
+      aria-label={zh ? "性质预测" : "Predicted properties"}
+    >
       <div className="admet-result-toolbar">
         <label className="field">
           {zh ? "结果分组" : "Result group"}
@@ -41,7 +50,13 @@ export function EndpointTable({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">{zh ? "常用结果" : "Common endpoints"}</option>
+            <option value="common">
+              {zh ? "常用结果" : "Common endpoints"}
+            </option>
+            <option value="all">{zh ? "全部结果" : "All endpoints"}</option>
+            <option value="adme">
+              {zh ? "吸收与体内过程" : "ADME endpoints"}
+            </option>
             {[...new Set(available.map((e) => e.category))].map((name) => (
               <option key={name} value={name}>
                 {zh ? (categoryLabels[name] ?? name) : name}
@@ -49,17 +64,16 @@ export function EndpointTable({
             ))}
           </select>
         </label>
-        <label className="checkbox-line">
-          <input
-            type="checkbox"
-            checked={all}
-            onChange={(e) => setAll(e.target.checked)}
-          />
-          {zh ? "显示全部终点" : "Show every endpoint"}
-        </label>
+        <span className="field-help" aria-live="polite">
+          {visible.length} / {available.length}
+        </span>
       </div>
       <div className="table-scroll">
-        <table>
+        <table
+          aria-label={
+            zh ? "所选分子的预测性质" : "Selected molecule predictions"
+          }
+        >
           <thead>
             <tr>
               <th>{zh ? "预测终点" : "Endpoint"}</th>
@@ -70,7 +84,7 @@ export function EndpointTable({
           </thead>
           <tbody>
             {visible.map((e) => (
-              <tr key={e.id}>
+              <tr key={e.id} data-endpoint-id={e.id}>
                 <td>
                   <span title={e.name}>{endpointName(e, zh)}</span>
                   <Hint
@@ -83,13 +97,7 @@ export function EndpointTable({
                   </Hint>
                 </td>
                 <td>{row.predictions[e.id]?.toPrecision(4) ?? "—"}</td>
-                <td>
-                  {e.task_type === "classification"
-                    ? zh
-                      ? "分数 0–1"
-                      : "Score 0–1"
-                    : e.unit}
-                </td>
+                <td>{endpointUnit(e, zh)}</td>
                 <td>{speciesName(e.species, zh)}</td>
               </tr>
             ))}

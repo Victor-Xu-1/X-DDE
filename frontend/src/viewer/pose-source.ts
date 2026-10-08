@@ -1,4 +1,5 @@
 import type { PoseSource, PreviewPose, SavedPose } from "./pose-types";
+import type { ScientificObject } from "../research/types";
 
 const uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 /** Only native platform sources are eligible; never send an arbitrary URL to a compute service. */
@@ -76,6 +77,37 @@ export function optimizedPose(
       : previous.receptor,
     score: saved.native_score,
     energy: saved.energy,
+    versionId: object.id,
+  };
+}
+
+/** Reuse an exact server-qualified computed pose; never accept a browser filesystem path. */
+export function computedPose(
+  previous: PreviewPose,
+  object: ScientificObject,
+  index: number,
+): PreviewPose {
+  const ref = object.reference;
+  if (
+    object.kind !== "molecule" ||
+    ref.version_id !== object.id ||
+    !new RegExp(`^${uuid}$`, "i").test(ref.asset_id) ||
+    !Number.isSafeInteger(ref.record) ||
+    ref.record < 0 ||
+    ref.record > 499 ||
+    ref.conformer !== 0
+  ) {
+    throw new Error("Computed pose identity is invalid.");
+  }
+  const urls = [...previous.urls];
+  const records = previous.records ? [...previous.records] : urls.map(() => 0);
+  urls[index] = `/api/assets/${ref.asset_id}`;
+  records[index] = ref.record;
+  return {
+    ...previous,
+    urls,
+    records,
+    source: { kind: "version", version_id: object.id },
     versionId: object.id,
   };
 }

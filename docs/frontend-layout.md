@@ -2,6 +2,29 @@
 
 ## Commercial workflow references and graphical results
 
+Molecular-property results use linked candidate and selected-molecule columns.
+The candidate table and finite-value property landscape are separate views that
+retain selection and filtering. The selected molecule opens with its native
+Ketcher 2D drawing and prediction table; an explicit 3D tab retains the original
+coordinates, capture, download and pose-history controls. Candidate columns show
+their native units. The initial ADME/safety choice selects a view without hiding
+other computed endpoints; a single group selector reaches all results. No common
+risk percentage, aggregate drug score or fabricated uncertainty is introduced.
+Empty outputs and rejected records retain their original identities and explain
+the next input action. These pages have focused component and archived-native
+browser checks; inspecting predictions never recomputes the ADMET model. Initial
+3D preparation is a separate native calculation that reuses its saved pose.
+
+Opening a free-ligand 3D view qualifies its initial pose before rendering. Existing
+native calculated poses retain their coordinates; other registered SDF/MOL/MOL2
+records use seeded ETKDGv3 and explicit MMFF94s minimization through the existing
+Chemistry queue. No protonation, tautomer or stereo enumeration is performed.
+The computed child is saved separately and reused on reopening; failures remain
+visible with explicit retry/UFF choice. A 2D record is never rendered as a flat 3D
+pose or inserted into a receptor frame. Original files and the independent 2D view
+remain available. A genuinely planar calculated molecule stays physically planar;
+display code never displaces atoms to make it look three-dimensional.
+
 The visual system uses a continuous cool-white canvas, indigo/violet actions, teal scientific accents, readable
 typography and a single spacing palette. Section titles, whitespace and subtle
 horizontal rules organize pages without nested framed cards or raised panels. Scientific

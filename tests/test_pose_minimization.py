@@ -12,7 +12,8 @@ from opendde_workbench.chemistry.minimization_result import validate_minimizatio
 from opendde_workbench.engine_registry import engine_for
 from opendde_workbench.models import Status
 from opendde_workbench.requests import TASK_ADAPTER, input_identifiers
-from opendde_workbench.research.pose_contract import PreviewMinimizeInput
+from opendde_workbench.research.initial_pose import InitialPosePreparation
+from opendde_workbench.research.pose_contract import InitialPoseInput, PreviewMinimizeInput
 from opendde_workbench.research.pose_minimization import PoseMinimization
 from opendde_workbench.store import Store
 
@@ -47,6 +48,26 @@ def context(settings):
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     return store, assets, PoseMinimization(store, assets, settings)
+
+
+def test_initial_preview_uses_bounded_generation_without_changing_the_original(settings):
+    store, assets, _ = context(settings)
+    # Protocol-only fixture. Actual complex chemistry is accepted in native CI.
+    raw = b"original molecule\nsource 2D\n\n0 0 V2000\nM  END\n$$$$\n"
+    asset = assets.save("original.sdf", "ligand", raw + raw)
+    initial = InitialPosePreparation(store, assets, settings)
+    value = InitialPoseInput.model_validate(
+        {"source": {"kind": "asset", "asset_id": asset.id, "record": 1}}
+    )
+    task, pose = initial.resolve(value)
+    assert pose is None and task.options.initialize_3d
+    assert task.options.force_field == "MMFF94s" and task.options.seed == 2026
+    assert task.molecule.record == 1 and task.molecule.version_id
+    assert assets.path(asset).read_bytes() == raw + raw
+    assert initial.resolve(value)[0] == task
+    assert task.operation == "molecule_minimize" and engine_for(task.operation).id == "chemistry"
+    with pytest.raises(ValidationError):
+        InitialPoseInput.model_validate({"source": value.source, "method": "auto"})
 
 
 def test_preview_resolution_keeps_exact_record_and_confirmed_receptor(settings):

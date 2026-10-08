@@ -83,15 +83,15 @@ export function AdmetSettings({
             ))}
           </select>
         </label>
-        <label className="field">
-          {zh ? "任务名称（可选）" : "Task name (optional)"}
-          <input
-            value={name}
-            maxLength={80}
-            onChange={(e) => onName(e.target.value)}
-          />
-        </label>
       </details>
+      <label className="field">
+        {zh ? "任务名称（可选）" : "Task name (optional)"}
+        <input
+          value={name}
+          maxLength={80}
+          onChange={(e) => onName(e.target.value)}
+        />
+      </label>
     </>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import type { Job, Status } from "../types";
-import { optimizedPose } from "./pose-source";
+import { optimizedPose, computedPose } from "./pose-source";
+import type { ScientificObject } from "../research/types";
 import type { PreviewPose, SavedPose } from "./pose-types";
 
 type Phase = Status | "idle" | "submitting" | "saving" | "error";
@@ -12,6 +13,8 @@ interface State {
   phase: Phase;
   job: string | null;
   error: unknown;
+  initialReady: boolean;
+  initializing: boolean;
 }
 
 /** View history is local; durable poses and lineage belong to X-DDE's scientific store. */
@@ -24,6 +27,8 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
     phase: "idle",
     job: null,
     error: "",
+    initialReady: false,
+    initializing: false,
   });
   const [state, setState] = useState<State>(initial);
   const [poll, setPoll] = useState(0);
@@ -83,13 +88,17 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
             throw new Error("Saved pose belongs to another task.");
           const next = optimizedPose(state.history[state.cursor], saved, index);
           setState((s) => {
-            const history = [...s.history.slice(0, s.cursor + 1), next];
+            const history = s.initializing
+              ? [next]
+              : [...s.history.slice(0, s.cursor + 1), next];
             return {
               ...s,
               history,
               cursor: history.length - 1,
               phase: "idle",
               error: "",
+              initialReady: s.initialReady || s.initializing,
+              initializing: false,
             };
           });
           intent.current = null;
@@ -141,7 +150,13 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
     const serialized = JSON.stringify(body);
     if (intent.current?.body !== serialized)
       intent.current = { body: serialized, key: crypto.randomUUID() };
-    setState((s) => ({ ...s, phase: "submitting", error: "", job: null }));
+    setState((s) => ({
+      ...s,
+      phase: "submitting",
+      error: "",
+      job: null,
+      initializing: false,
+    }));
     try {
       const job = await api.post<Job>(
         "/research/poses/minimize",
@@ -152,6 +167,53 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
         setState((s) => ({ ...s, job: job.id, phase: "queued" }));
         setPoll((n) => n + 1);
       }
+    } catch (error) {
+      if (generation === epoch.current)
+        setState((s) => ({ ...s, phase: "error", error }));
+    } finally {
+      if (generation === epoch.current) submitting.current = false;
+    }
+  }
+
+  async function prepareInitial(
+    method: "MMFF94s" | "UFF" = "MMFF94s",
+    retry = false,
+  ) {
+    if (busy || submitting.current || visible.initialReady || !pose.source)
+      return;
+    const generation = epoch.current;
+    submitting.current = true;
+    setState((s) => ({
+      ...s,
+      phase: "submitting",
+      job: null,
+      error: "",
+      initializing: true,
+    }));
+    try {
+      const response = await api.post<
+        { state: "ready"; pose: ScientificObject } | { state: "task"; job: Job }
+      >(
+        "/research/poses/initial",
+        { source: pose.source, method, retry },
+        crypto.randomUUID(),
+      );
+      if (generation !== epoch.current) return;
+      if (response.state === "ready") {
+        const next = computedPose(pose, response.pose, index);
+        setState((s) => ({
+          ...s,
+          history: [next],
+          cursor: 0,
+          phase: "idle",
+          error: "",
+          initialReady: true,
+          initializing: false,
+        }));
+      } else if (response.state === "task" && response.job?.id) {
+        setState((s) => ({ ...s, job: response.job.id, phase: "queued" }));
+        setPoll((n) => n + 1);
+      } else throw new Error("Initial pose response is invalid.");
     } catch (error) {
       if (generation === epoch.current)
         setState((s) => ({ ...s, phase: "error", error }));
@@ -181,6 +243,9 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
     cursor: visible.cursor,
     count: visible.history.length,
     minimize,
+    prepareInitial,
+    initialReady: visible.initialReady,
+    initializing: visible.initializing,
     cancel,
     refresh: () => {
       setState((s) => ({ ...s, phase: "queued", error: "" }));

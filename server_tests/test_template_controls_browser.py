@@ -151,7 +151,7 @@ def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_pag
         expect(result).to_be_visible()
         if capability != "campaign":
             expect(result.locator("table").first).to_be_visible(timeout=30000)
-        if capability in {"predict", "admet.predict"}:
+        if capability == "predict":
             expect(result.locator(".viewer-tools").first).to_be_visible(timeout=45000)
         if capability in {"admet.predict", "del.analyze"}:
             expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(

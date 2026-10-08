@@ -271,7 +271,7 @@ class AssetStore:
             if (
                 asset.kind != "ligand"
                 or asset.suffix
-                not in ({".sdf", ".mol"} if request.operation == "molecule_minimize" else {".sdf"})
+                not in ({".sdf", ".mol", ".mol2"} if request.operation == "molecule_minimize" else {".sdf"})
                 or asset.sha256 != ref.sha256
                 or ref.conformer != 0
             ):

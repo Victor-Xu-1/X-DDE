@@ -1,4 +1,4 @@
-"""Real RDKit minimization from the submitted coordinates, without conformer generation."""
+"""Native minimization; initial 3D generation is explicit and never changes chemical state."""
 
 import hashlib
 import math
@@ -50,15 +50,22 @@ def load_pose(request, bindings, job):
         molecules = [
             Chem.MolFromMolBlock(raw.decode("utf-8-sig"), removeHs=False, strictParsing=True)
         ]
+    elif file.suffix == ".mol2":
+        molecules = [
+            Chem.MolFromMol2Block(
+                raw.decode("utf-8-sig"), removeHs=False, cleanupSubstructures=False
+            )
+        ]
     else:
-        raise ValueError("Minimization requires an SDF/MOL with explicit chemical bonds.")
+        raise ValueError("Minimization requires an SDF/MOL/MOL2 with explicit chemical bonds.")
     record = ref.get("record", 0)
     if not 0 <= record < len(molecules) or molecules[record] is None:
         raise ValueError("The selected pose record is absent or chemically invalid.")
     molecule = molecules[record]
     if not 2 <= molecule.GetNumAtoms() <= 256 or len(Chem.GetMolFrags(molecule)) != 1:
         raise ValueError("Choose one connected small molecule with 2 to 256 source atoms.")
-    check_geometry(molecule)
+    if not request["options"].get("initialize_3d", False):
+        check_geometry(molecule)
     return molecule
 
 
@@ -67,8 +74,19 @@ def run_minimization(request, bindings, job, output):
 
     options = MinimizationOptions.model_validate(request["options"])
     source = load_pose(request, bindings, job)
-    # Completing implicit H keeps the chemical state; no protonation or embedding is performed.
-    work = Chem.AddHs(Chem.Mol(source), addCoords=True)
+    work = Chem.AddHs(Chem.Mol(source), addCoords=not options.initialize_3d)
+    if options.initialize_3d:
+        from rdkit.Chem import AllChem
+
+        work.RemoveAllConformers()
+        params = AllChem.ETKDGv3()
+        params.randomSeed = options.seed
+        params.maxIterations = 500
+        params.timeout = min(60, options.time_limit_seconds // 2)
+        params.enforceChirality = True
+        params.numThreads = 1
+        if AllChem.EmbedMolecule(work, params) != 0:
+            raise ValueError("A valid three-dimensional conformer could not be generated.")
     final = Chem.Mol(work)  # Preserve graph/atom order before native force-field initialization.
     check_geometry(work)
     field = force_field(work, options.force_field)
@@ -79,8 +97,13 @@ def run_minimization(request, bindings, job, output):
     for index in range(final.GetNumAtoms()):
         final.GetConformer().SetAtomPosition(index, work.GetConformer().GetAtomPosition(index))
     check_geometry(final)
-    check_stereo(source, final)
+    check_stereo(source, final, generated=options.initialize_3d)
     final.SetProp("X-DDE optimization", options.force_field)
+    final.SetProp(
+        "X-DDE initialization", "ETKDGv3" if options.initialize_3d else "existing_coordinates"
+    )
+    if options.initialize_3d:
+        final.SetIntProp("X-DDE initialization seed", options.seed)
     final.SetProp("X-DDE source SHA256", request["molecule"]["sha256"])
     file = output / "minimized.sdf"
     writer = Chem.SDWriter(str(file))
@@ -92,7 +115,7 @@ def run_minimization(request, bindings, job, output):
     if len(saved) != 1 or saved[0] is None:
         raise ValueError("Optimized pose failed its independent saved-file parse.")
     check_geometry(saved[0])
-    check_stereo(source, saved[0])
+    check_stereo(source, saved[0], generated=options.initialize_3d)
     energy_after = force_field(saved[0], options.force_field).CalcEnergy()
     if not all(math.isfinite(x) for x in (energy_before, energy_after)):
         raise ValueError("Force-field energy is not finite.")
@@ -105,6 +128,8 @@ def run_minimization(request, bindings, job, output):
         "source": request["molecule"],
         "options": options.model_dump(),
         "method": options.force_field,
+        "initialization": "ETKDGv3" if options.initialize_3d else "existing_coordinates",
+        "initialization_seed": options.seed if options.initialize_3d else None,
         "geometry_frame": "unbound_pose",
         "energy_before": energy_before,
         "energy_after": energy_after,

@@ -9,3 +9,100 @@
 .admet-result-toolbar .field {
   margin: 0;
 }
+.admet-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(440px, 1.1fr);
+  align-items: start;
+  gap: 28px;
+}
+.admet-workspace > section {
+  min-width: 0;
+}
+.admet-workspace .research-tab-list {
+  margin: 0 0 16px;
+}
+.admet-candidates .research-table-scroll {
+  max-height: 480px;
+}
+.admet-endpoint-label {
+  display: grid;
+  gap: 4px;
+  text-align: right;
+}
+.admet-endpoint-label small {
+  font-size: 11px;
+  font-weight: 400;
+}
+.admet-molecule-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  margin-bottom: 8px;
+}
+.admet-molecule-header h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+.admet-molecule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admet-molecule-actions .secondary-button {
+  font-size: 12px;
+  min-height: 34px;
+}
+.admet-molecule-drawing .molecule-image {
+  min-height: 220px;
+  padding: 12px 0;
+}
+.admet-molecule-drawing .molecule-image img {
+  height: 160px;
+}
+.admet-molecule-drawing .molecule-drawing-style {
+  margin-bottom: 6px;
+}
+.admet-selected-molecule .viewer-panel {
+  padding: 0;
+  border: 0;
+}
+.studio-app .admet-selected-molecule .viewer-panel .molecular-stage {
+  height: 350px;
+  min-height: 280px;
+}
+.admet-endpoints table {
+  font-variant-numeric: tabular-nums;
+}
+.admet-endpoints .table-scroll > table {
+  min-width: 470px;
+}
+.admet-empty {
+  padding: 24px 0;
+  color: var(--muted);
+}
+.admet-empty h3,
+.admet-empty h4 {
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+@media (max-width: 1150px) {
+  .admet-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+@media (max-width: 640px) {
+  .admet-candidates .research-table-scroll {
+    max-height: 370px;
+  }
+  .admet-molecule-actions {
+    width: 100%;
+  }
+  .admet-endpoints .admet-result-toolbar {
+    align-items: end;
+  }
+}

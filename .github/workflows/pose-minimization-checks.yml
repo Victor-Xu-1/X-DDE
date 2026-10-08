@@ -3,14 +3,19 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'src/opendde_workbench/chemistry/*minimization*.py'
-      - 'src/opendde_workbench/research/pose_*.py'
-      - 'src/opendde_workbench/research/minimized_outputs.py'
-      - 'frontend/src/viewer/*Pose*'
-      - 'frontend/src/viewer/pose-*'
-      - 'tests/test_pose_minimization.py'
-      - 'server_tests/*pose_minimization*'
-      - '.github/workflows/pose-minimization-checks.yml'
+      - "src/opendde_workbench/chemistry/*minimization*.py"
+      - "src/opendde_workbench/research/pose_*.py"
+      - "src/opendde_workbench/research/initial_pose.py"
+      - "frontend/src/viewer/*Initial*"
+      - "frontend/src/viewer/usePoseOptimization*"
+      - "frontend/src/viewer/pose-source*"
+      - "server_tests/*initial_pose*"
+      - "src/opendde_workbench/research/minimized_outputs.py"
+      - "frontend/src/viewer/*Pose*"
+      - "frontend/src/viewer/pose-*"
+      - "tests/test_pose_minimization.py"
+      - "server_tests/*pose_minimization*"
+      - ".github/workflows/pose-minimization-checks.yml"
 permissions:
   contents: read
 jobs:
@@ -18,12 +23,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
-      WB_AUTO_DEPLOY: '0'
+      WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - name: Build and focused pose/save/preview regressions
         run: |
@@ -43,15 +48,17 @@ jobs:
         run: |
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           echo "WB_MIN_REFERENCE_STATE=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          echo "WB_MIN_REFERENCE_HOME=$WB_HOME" >> "$GITHUB_ENV"
       - name: Run the exact existing 3D pose through native Chemistry and GNINA
         env:
-          WB_TEST_NATIVE_MINIMIZATION: '1'
-        run: uv run --locked pytest -q -s server_tests/test_native_pose_minimization.py
+          WB_TEST_NATIVE_MINIMIZATION: "1"
+        run: uv run --locked pytest -q -s server_tests/test_native_pose_minimization.py server_tests/test_native_initial_pose.py
       - name: Real browser save, undo, redo and exact SDF download
         run: |
           uv run --locked --group browser python -m playwright install --with-deps chromium
-          uv run --locked --group browser pytest -q server_tests/test_pose_minimization_browser.py
+          uv run --locked --group browser pytest -q server_tests/test_pose_minimization_browser.py server_tests/test_initial_pose_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -61,3 +68,6 @@ jobs:
             server_tests/evidence/pose-minimization/*.sdf
             server_tests/evidence/pose-minimization/*.png
             server_tests/evidence/pose-minimization/*.log
+            server_tests/evidence/initial-pose/*.json
+            server_tests/evidence/initial-pose/*.png
+            server_tests/evidence/initial-pose/*.log

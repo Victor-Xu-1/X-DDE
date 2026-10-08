@@ -52,6 +52,10 @@ class PoseMinimization:
         energy, native_score, receptor = None, None, None
         if job.request.operation == "molecule_minimize":
             result = validate_minimization(value, job.request, root)
+            if job.request.options.initialize_3d and not result.converged:
+                raise ValueError(
+                    "Initial 3D optimization did not converge; no prepared pose is displayed."
+                )
             artifact = result.artifact
             energy = {
                 "before": result.energy_before,

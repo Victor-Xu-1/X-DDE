@@ -22,18 +22,36 @@ def check_geometry(molecule):
         raise ValueError("Coincident atom coordinates are not a usable existing pose.")
 
 
-def check_stereo(source, result):
+def check_stereo(source, result, *, generated=False):
     from rdkit import Chem
 
     before, after = Chem.Mol(source), Chem.Mol(result)
-    Chem.AssignStereochemistryFrom3D(before, replaceExistingTags=True)
+    if generated:
+        Chem.AssignStereochemistry(before, cleanIt=True, force=True)
+    else:
+        Chem.AssignStereochemistryFrom3D(before, replaceExistingTags=True)
     Chem.AssignStereochemistryFrom3D(after, replaceExistingTags=True)
     # Check declared tetrahedral centers independently of the retained graph tags.
     for atom in source.GetAtoms():
         if atom.GetChiralTag() != Chem.ChiralType.CHI_UNSPECIFIED:
             i = atom.GetIdx()
-            if before.GetAtomWithIdx(i).GetChiralTag() != after.GetAtomWithIdx(i).GetChiralTag():
+            first, second = before.GetAtomWithIdx(i), after.GetAtomWithIdx(i)
+            mismatch = (
+                (
+                    not first.HasProp("_CIPCode")
+                    or not second.HasProp("_CIPCode")
+                    or first.GetProp("_CIPCode") != second.GetProp("_CIPCode")
+                )
+                if generated
+                else first.GetChiralTag() != second.GetChiralTag()
+            )
+            if mismatch:
                 raise ValueError("Optimization changed the coordinate-defined stereochemistry.")
+    for bond in before.GetBonds():
+        if bond.GetStereo() in {Chem.BondStereo.STEREOE, Chem.BondStereo.STEREOZ} and (
+            after.GetBondWithIdx(bond.GetIdx()).GetStereo() != bond.GetStereo()
+        ):
+            raise ValueError("Optimization changed declared double-bond stereochemistry.")
     if identity(source) != identity(result):
         raise ValueError(
             "Optimization changed molecular identity, isotope, charge or stereochemistry."

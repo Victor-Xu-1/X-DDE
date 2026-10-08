@@ -4,30 +4,30 @@ import { StateForm } from "../chemistry/StateForm";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import type { AdmetResult } from "./types";
-import { EndpointTable } from "./EndpointTable";
-import { failureReason, commonEndpoints, endpointName } from "./labels";
-import { AdmetRecordTable } from "./AdmetRecordTable";
-import { MolecularPreview } from "../presentation/MolecularPreview";
-import { MetricScatter } from "../presentation/MetricScatter";
+import { AdmetCandidateViews } from "./AdmetCandidateViews";
+import { AdmetSelectedMolecule } from "./AdmetSelectedMolecule";
 import "./admet.css";
 
-export function AdmetResults({
-  job,
-  result,
-  language,
-  onCreated,
-}: {
+type Props = {
   job: Job;
   result: AdmetResult;
   language: Language;
   onCreated?(job: Job): void;
-}) {
-  const zh = language === "zh",
-    [selected, setSelected] = useState(
-      result.rows.find((row) => row.status === "predicted")?.record ??
-        result.rows[0]?.record,
-    ),
-    [next, setNext] = useState<MoleculeRef | null>(null);
+};
+
+export function AdmetResults(props: Props) {
+  return <AdmetWorkspace key={props.job.id} {...props} />;
+}
+
+function AdmetWorkspace({ job, result, language, onCreated }: Props) {
+  const zh = language === "zh";
+  const [selected, setSelected] = useState(
+    result.rows.find((row) => row.status === "predicted")?.record ??
+      result.rows[0]?.record,
+  );
+  const [next, setNext] = useState<MoleculeRef | null>(null);
+  const current =
+    result.rows.find((row) => row.record === selected) ?? result.rows[0];
   if (next && onCreated)
     return (
       <section>
@@ -45,20 +45,6 @@ export function AdmetResults({
         />
       </section>
     );
-  const current =
-    result.rows.find((row) => row.record === selected) ?? result.rows[0];
-  const plotMetrics = result.endpoints
-    .filter((endpoint) => commonEndpoints.has(endpoint.id))
-    .map((endpoint) => ({
-      key: endpoint.id,
-      label:
-        endpointName(endpoint, zh) +
-        " (" +
-        (endpoint.task_type === "classification" ? "0–1" : endpoint.unit) +
-        ")",
-      value: (row: AdmetResult["rows"][number]) =>
-        row.status === "predicted" ? row.predictions[endpoint.id] : null,
-    }));
   return (
     <section
       className="admet-results"
@@ -77,69 +63,33 @@ export function AdmetResults({
           {zh ? "下载预测表" : "Download prediction table"}
         </a>
       </div>
-      <div className="result-master-detail">
-        <div className="result-inspector">
-          <AdmetRecordTable
+      {current ? (
+        <div className="admet-workspace">
+          <AdmetCandidateViews
             result={result}
             language={language}
-            selected={current?.record}
+            selected={current.record}
             onSelect={(row) => setSelected(row.record)}
           />
-          <MetricScatter
-            rows={result.rows}
-            metrics={plotMetrics}
+          <AdmetSelectedMolecule
+            key={current.record}
+            job={job}
+            result={result}
+            row={current}
             language={language}
-            label={zh ? "候选性质对比" : "Candidate property landscape"}
-            rowId={(row) => String(row.record)}
-            rowLabel={(row) => row.name}
-            selected={String(current?.record)}
-            onSelect={(row) => setSelected(row.record)}
+            onPrepare={onCreated ? setNext : undefined}
           />
         </div>
-        <div className="result-inspector">
-          {current && (
-            <>
-              <header>
-                <h3>
-                  #{current.record + 1} · {current.name}
-                </h3>
-                {current.status === "predicted" &&
-                  current.reference &&
-                  onCreated && (
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      onClick={() => setNext(current.reference!)}
-                    >
-                      {zh
-                        ? "复用原始分子 → 分子准备"
-                        : "Reuse original molecule → preparation"}
-                    </button>
-                  )}
-              </header>
-              {current.preview && (
-                <MolecularPreview
-                  source={current.smiles ? { smiles: current.smiles } : null}
-                  label={current.name}
-                  urls={[artifactUrl(job.id, current.preview)]}
-                  language={language}
-                  defaultView="3d"
-                />
-              )}
-              {current.status === "predicted" ? (
-                <EndpointTable
-                  key={job.id + ":" + current.record}
-                  language={language}
-                  result={result}
-                  row={current}
-                />
-              ) : (
-                <p role="status">{failureReason(current.reason, zh)}</p>
-              )}
-            </>
-          )}
+      ) : (
+        <div className="admet-empty">
+          <h3>{zh ? "没有分子结果" : "No molecule results"}</h3>
+          <p>
+            {zh
+              ? "请检查输入文件中是否有可读取的分子记录。"
+              : "Check that the input file contains readable molecule records."}
+          </p>
         </div>
-      </div>
+      )}
     </section>
   );
 }

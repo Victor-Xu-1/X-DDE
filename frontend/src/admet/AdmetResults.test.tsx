@@ -106,15 +106,18 @@ it("retains invalid/duplicate original indices and switches exact previews and r
     />,
   );
   expect(screen.getByRole("status")).toHaveTextContent("Predicted 3 / 4");
+  expect(screen.queryByLabelText("Selected structure")).toBeNull();
+  await user.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(screen.getByLabelText("Selected structure")).toHaveTextContent(
     "source-record-2.sdf",
   );
   await user.click(screen.getByRole("button", { name: /#1 · Candidate 1/ }));
   expect(screen.queryByLabelText("Selected structure")).toBeNull();
   expect(
-    screen.queryByRole("button", { name: /Reuse original molecule/ }),
+    screen.queryByRole("button", { name: "Prepare this molecule" }),
   ).toBeNull();
   await user.click(screen.getByRole("button", { name: /#3 · Candidate 3/ }));
+  await user.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(screen.getByLabelText("Selected structure")).toHaveTextContent(
     "source-record-3.sdf",
   );
@@ -122,12 +125,13 @@ it("retains invalid/duplicate original indices and switches exact previews and r
     screen.getByRole("button", { name: /#3 · Candidate 3/ }),
   ).toHaveTextContent("Same representation as record #2");
   await user.click(
-    screen.getByRole("button", { name: /Reuse original molecule/ }),
+    screen.getByRole("button", { name: "Prepare this molecule" }),
   );
   expect(
     JSON.parse(screen.getByLabelText("Reused source").textContent!),
   ).toEqual(result.rows[2].reference);
   await user.click(screen.getByRole("button", { name: "Back to predictions" }));
+  await user.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(screen.getByLabelText("Selected structure")).toHaveTextContent(
     "source-record-3.sdf",
   );
@@ -146,8 +150,9 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
   expect(
     screen.queryByRole("button", { name: "Half life meaning" }),
   ).toBeNull();
-  await user.click(
-    screen.getByRole("checkbox", { name: "Show every endpoint" }),
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Result group" }),
+    "all",
   );
   const halfLifeHelp = screen.getByRole("button", {
     name: "Half life meaning",
@@ -168,4 +173,93 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
   expect(
     screen.getByRole("link", { name: "Download prediction table" }),
   ).toHaveAttribute("href", "/api/jobs/job/download?name=predictions.csv");
+});
+
+it("keeps all endpoints reachable when early safety was chosen as the initial view", async () => {
+  const user = userEvent.setup();
+  render(
+    <AdmetResults
+      job={{ id: "job" } as Job}
+      result={{ ...result, options: { ...result.options, view: "safety" } }}
+      language="en"
+    />,
+  );
+  expect(screen.getByRole("combobox", { name: "Result group" })).toHaveValue(
+    "Toxicity",
+  );
+  expect(
+    screen.queryByRole("button", { name: "Solubility meaning" }),
+  ).toBeNull();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Result group" }),
+    "all",
+  );
+  expect(
+    screen.getByRole("button", { name: "Solubility meaning" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Half life meaning" }),
+  ).toBeVisible();
+  await user.click(screen.getByText("Columns", { selector: "summary" }));
+  await user.click(
+    screen.getByRole("checkbox", { name: /Solubility.*log mol\/L/ }),
+  );
+  expect(
+    screen.getByRole("button", { name: /Solubility.*log mol\/L/ }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "Download original molecule" }),
+  ).toHaveAttribute("href", "/api/jobs/job/download?name=source-record-2.sdf");
+});
+
+it("links the property landscape to exact record selection and preserves the table view", async () => {
+  const user = userEvent.setup();
+  render(
+    <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
+  );
+  await user.type(screen.getByRole("searchbox"), "Candidate 3");
+  await user.click(screen.getByRole("tab", { name: "Property landscape" }));
+  await user.click(screen.getByRole("button", { name: /^Candidate 4: / }));
+  expect(
+    screen.getByRole("heading", { name: "#4 · Candidate 4" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("tab", { name: "Candidate molecules 4" }));
+  expect(screen.getByRole("searchbox")).toHaveValue("Candidate 3");
+});
+
+it("resets record selection for another result and makes empty and rejected outputs explicit", async () => {
+  const user = userEvent.setup();
+  const view = render(
+    <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
+  );
+  await user.click(screen.getByRole("button", { name: /#3 · Candidate 3/ }));
+  view.rerender(
+    <AdmetResults
+      job={{ id: "another-job" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  expect(
+    screen.getByRole("heading", { name: "#2 · Candidate 2" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: /#1 · Candidate 1/ }));
+  expect(screen.queryByRole("tab", { name: "3D structure" })).toBeNull();
+  expect(
+    screen.queryByRole("region", { name: "Predicted properties" }),
+  ).toBeNull();
+  expect(
+    within(screen.getByRole("region", { name: "Selected molecule" })).getByText(
+      "Record cannot be parsed",
+    ),
+  ).toBeVisible();
+  view.rerender(
+    <AdmetResults
+      job={{ id: "empty" } as Job}
+      result={{ ...result, rows: [], predicted_count: 0 }}
+      language="en"
+    />,
+  );
+  expect(screen.getByText("No molecule results")).toBeVisible();
+  expect(screen.queryByRole("tablist")).toBeNull();
 });
