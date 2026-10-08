@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterAll, expect, it, vi } from "vitest";
 const worker = vi.hoisted(() =>
   vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:display-worker"),
@@ -16,10 +17,7 @@ function fixture() {
   const model = new GLModel(0);
   model.addMolData(
     readFileSync(
-      new URL(
-        "../../../server_tests/fixtures/surface-3mxf.pdb",
-        import.meta.url,
-      ),
+      resolve(process.cwd(), "../server_tests/fixtures/surface-3mxf.pdb"),
       "utf8",
     ),
     "pdb",
