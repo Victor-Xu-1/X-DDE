@@ -1,5 +1,5 @@
 import type { Language } from "../types";
-import { InteractivePlot } from "./InteractivePlot";
+import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 
 export function OverlapHeatmap({
   matrix,

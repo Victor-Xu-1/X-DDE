@@ -26,6 +26,11 @@ on:
       - "!frontend/src/simulations/molstar-controller.ts"
       - "!frontend/src/simulations/molstar-figure.ts"
       - "!frontend/src/simulations/molstar-figure.test.ts"
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/simulations/FreeEnergyForest.tsx"
+      - "!frontend/src/simulations/OverlapHeatmap.tsx"
+      - "!frontend/src/simulations/SimulationPlot.tsx"
+      - "!frontend/src/simulations/SimulationResults.test.tsx"
 permissions:
   contents: read
 jobs:

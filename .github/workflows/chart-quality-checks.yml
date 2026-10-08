@@ -1,0 +1,68 @@
+name: Interactive statistical preview checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/presentation/plots/**"
+      - "frontend/src/datasets/CountBars*"
+      - "frontend/src/datasets/DatasetCharts*"
+      - "frontend/src/datasets/DatasetHeatmaps*"
+      - "frontend/src/datasets/SampleCorrelationPlot*"
+      - "frontend/src/datasets/SeriesEnrichmentPlot*"
+      - "frontend/src/datasets/series-map*"
+      - "frontend/src/datasets/SequencingQualityPlot*"
+      - "frontend/src/datasets/ModelValidationPlot*"
+      - "frontend/src/datasets/chart-documents*"
+      - "frontend/src/datasets/statistical-plots*"
+      - "frontend/src/datasets/PlotFrame.tsx"
+      - "frontend/src/viewer/appearance.ts"
+      - "frontend/src/viewer/scene.ts"
+      - "frontend/src/simulations/SimulationPlot.tsx"
+      - "frontend/src/simulations/OverlapHeatmap.tsx"
+      - "frontend/src/simulations/FreeEnergyForest.tsx"
+      - "frontend/src/simulations/SimulationResults.test.tsx"
+      - "server_tests/test_statistical_previews_browser.py"
+      - "scripts/generate-plotly-css.py"
+      - ".github/workflows/chart-quality-checks.yml"
+permissions:
+  contents: read
+jobs:
+  statistical-previews:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed chart, document, structure appearance and direct simulation consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/DatasetCharts.test.tsx src/datasets/chart-documents.test.ts
+          src/datasets/series-map.test.ts src/datasets/statistical-plots.test.tsx
+          src/presentation/plots/types.test.ts src/publication/settings-svg.test.ts
+          src/publication/embedded-raster.test.ts src/viewer/style.test.ts
+          src/simulations/SimulationResults.test.tsx
+      - name: Restore public research cases and graphical tools; never re-run science for layout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-charts" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-charts/state" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-dataset-examples
+          uv run --locked playwright install chromium --with-deps
+      - name: Actual bilingual statistical charts, interactions and paper figures
+        run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: statistical-preview-evidence
+          path: outputs/statistical-previews/**

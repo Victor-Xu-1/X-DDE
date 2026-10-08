@@ -29,6 +29,10 @@ on:
       - "server_tests/test_native_simulation_views.py"
       - "server_tests/*publication*"
       - ".github/workflows/publication-checks.yml"
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/publication/embedded-raster.test.ts"
+      - "!frontend/src/publication/embedded-raster.ts"
+      - "!frontend/src/publication/svg.ts"
 permissions:
   contents: read
 jobs:

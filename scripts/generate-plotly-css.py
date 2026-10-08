@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "frontend/node_modules/plotly.js-cartesian-dist-min"
-OUTPUT = ROOT / "frontend/src/simulations/plotly-native.css"
+OUTPUT = ROOT / "frontend/src/presentation/plots/plotly-native.css"
 
 
 def generate():

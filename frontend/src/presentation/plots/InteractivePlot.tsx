@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Plotly from "plotly.js";
-import type { Language } from "../types";
+import type { Language } from "../../types";
 import "./plotly-native.css";
-import { FigureExport } from "../publication/FigureExport";
-import { plotlyFigure } from "../publication/plotly";
+import "./plots.css";
+import { FigureExport } from "../../publication/FigureExport";
+import { plotlyFigure } from "../../publication/plotly";
+import { nativeTraces, type ChartTrace } from "./types";
 
 export function InteractivePlot({
   title,
@@ -14,7 +16,7 @@ export function InteractivePlot({
   height = 280,
 }: {
   title: string;
-  data: Plotly.Data[];
+  data: ChartTrace[];
   layout?: Partial<Plotly.Layout>;
   language: Language;
   onPoint?(point: Plotly.PlotDatum): void;
@@ -27,6 +29,7 @@ export function InteractivePlot({
   callback.current = onPoint;
   const queue = useRef(Promise.resolve());
   const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState("");
   const [dragMode, setDragMode] = useState<"zoom" | "pan">("zoom");
   const plot = useRef<typeof Plotly | null>(null);
   const zh = language === "zh";
@@ -49,12 +52,17 @@ export function InteractivePlot({
     return () => {
       disposed = true;
       observer.disconnect();
-      void ready.then((p) => p.purge(target));
+      // Active import failures are reported by the render queue; cleanup has no renderer to purge.
+      void ready.then(
+        (p) => p.purge(target),
+        () => {},
+      );
       plot.current = null;
     };
   }, []);
   useEffect(() => {
     let active = true;
+    setError(false);
     queue.current = queue.current
       .then(async () => {
         const target = element.current,
@@ -62,7 +70,7 @@ export function InteractivePlot({
         if (!active || !target || !p) return;
         await p.react(
           target,
-          data,
+          nativeTraces(data),
           {
             autosize: true,
             height,
@@ -87,7 +95,10 @@ export function InteractivePlot({
         target.on("plotly_click", (event) => {
           if (event.points[0]) callback.current?.(event.points[0]);
         });
-        if (active) setError(false);
+        if (active) {
+          setError(false);
+          setLoaded(signature);
+        }
       })
       .catch(() => {
         if (active) setError(true);
@@ -97,10 +108,10 @@ export function InteractivePlot({
     };
   }, [signature]);
   return (
-    <section className="simulation-plot">
+    <section className="research-plot">
       <header>
         <h3>{title}</h3>
-        <div className="simulation-chart-controls">
+        <div className="research-chart-controls">
           <select
             aria-label={zh ? "图表操作" : "Chart interaction"}
             value={dragMode}
@@ -114,6 +125,7 @@ export function InteractivePlot({
           <button
             type="button"
             className="text-button"
+            disabled={loaded !== signature || error}
             onClick={() => {
               if (plot.current && element.current)
                 void plot.current.relayout(element.current, {
@@ -128,6 +140,7 @@ export function InteractivePlot({
             language={language}
             filename={title}
             format="svg"
+            disabled={loaded !== signature || error}
             render={async (settings) => {
               if (!plot.current || !element.current)
                 throw new Error("Chart is not ready.");
@@ -143,11 +156,17 @@ export function InteractivePlot({
             : "Interactive chart could not load. Please refresh the page."}
         </p>
       )}
+      {!error && loaded !== signature && (
+        <p role="status" className="research-plot-status">
+          {zh ? "正在加载交互图表…" : "Loading interactive chart…"}
+        </p>
+      )}
       <div
         ref={element}
-        className="simulation-interactive-plot"
+        className="research-plot-canvas"
         role="application"
         aria-label={title}
+        aria-busy={loaded !== signature}
         style={{ minHeight: height }}
       />
     </section>

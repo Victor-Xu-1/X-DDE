@@ -1,4 +1,5 @@
 import { validFigure, type FigureSettings } from "./settings";
+import { embeddedRaster } from "./embedded-raster";
 /** Physical print sizing on a cloned vector figure; no scientific data or source DOM edits. */
 export function printSvg(
   source: SVGSVGElement,
@@ -49,7 +50,8 @@ export function printSvg(
         );
       if (
         ["href", "xlink:href"].includes(attribute.name) &&
-        !attribute.value.startsWith("#")
+        !attribute.value.startsWith("#") &&
+        !(node.localName === "image" && embeddedRaster(attribute.value))
       )
         throw new Error(
           "External content is not permitted in a scientific vector figure.",

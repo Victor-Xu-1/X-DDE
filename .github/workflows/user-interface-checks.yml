@@ -98,6 +98,17 @@ on:
       - "!frontend/src/simulations/DynamicsResults.tsx"
       - "!frontend/src/presentation/useReveal.test.tsx"
       - "!frontend/src/presentation/useReveal.ts"
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/datasets/DatasetCharts.test.tsx"
+      - "!frontend/src/datasets/DatasetCharts.tsx"
+      - "!frontend/src/datasets/ModelValidationPlot.tsx"
+      - "!frontend/src/datasets/chart-documents.ts"
+      - "!frontend/src/presentation/plots/InteractivePlot.tsx"
+      - "!frontend/src/presentation/plots/plotly-native.css"
+      - "!frontend/src/presentation/plots/plots.css"
+      - "!frontend/src/presentation/plots/types.test.ts"
+      - "!frontend/src/presentation/plots/types.ts"
+      - "!frontend/src/simulations/SimulationResults.test.tsx"
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -185,6 +196,13 @@ on:
       - "!frontend/src/simulations/DynamicsResults.tsx"
       - "!frontend/src/presentation/useReveal.test.tsx"
       - "!frontend/src/presentation/useReveal.ts"
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/presentation/plots/InteractivePlot.tsx"
+      - "!frontend/src/presentation/plots/plotly-native.css"
+      - "!frontend/src/presentation/plots/plots.css"
+      - "!frontend/src/presentation/plots/types.test.ts"
+      - "!frontend/src/presentation/plots/types.ts"
+      - "!frontend/src/simulations/SimulationResults.test.tsx"
   workflow_dispatch:
 jobs:
   presentation:

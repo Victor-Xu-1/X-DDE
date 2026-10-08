@@ -1,7 +1,8 @@
-import { Bars } from "./PlotFrame";
+import { Bars } from "./CountBars";
 import { SequencingQualityPlot } from "./SequencingQualityPlot";
 import { ModelValidationPlot } from "./ModelValidationPlot";
-import { SampleCorrelationPlot, SeriesEnrichmentPlot } from "./DatasetHeatmaps";
+import { SampleCorrelationPlot } from "./SampleCorrelationPlot";
+import { SeriesEnrichmentPlot } from "./SeriesEnrichmentPlot";
 import { useChartDocuments } from "./useChartDocuments";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
@@ -93,7 +94,11 @@ export function DatasetCharts({
         />
       )}
       {series && (
-        <SeriesEnrichmentPlot series={series.series} language={language} />
+        <SeriesEnrichmentPlot
+          series={series.series}
+          totalSeries={series.total_series}
+          language={language}
+        />
       )}
       {model &&
         (model.heldout_predictions.length ? (

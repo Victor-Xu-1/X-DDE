@@ -38,6 +38,9 @@ on:
       - "!frontend/src/viewer/frame.ts"
       - "!frontend/src/viewer/useViewerSnapshot.test.ts"
       - "!frontend/src/viewer/useViewerSnapshot.ts"
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/viewer/appearance.ts"
+      - "!frontend/src/viewer/scene.ts"
 permissions:
   contents: read
 jobs:

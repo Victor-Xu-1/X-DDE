@@ -29,7 +29,7 @@ vi.mock("./MolecularViewport", () => ({
 vi.mock("./FreeEnergyNetwork", () => ({
   FreeEnergyNetwork: () => <div>Interactive network</div>,
 }));
-vi.mock("./InteractivePlot", () => ({
+vi.mock("../presentation/plots/InteractivePlot", () => ({
   InteractivePlot: ({
     title,
     data,

@@ -151,6 +151,17 @@ on:
       - "!frontend/src/viewer/useViewerSnapshot.ts"
       - "!frontend/src/presentation/useReveal.test.tsx"
       - "!frontend/src/presentation/useReveal.ts"
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/datasets/DatasetCharts.test.tsx"
+      - "!frontend/src/datasets/DatasetCharts.tsx"
+      - "!frontend/src/datasets/ModelValidationPlot.tsx"
+      - "!frontend/src/datasets/chart-documents.ts"
+      - "!frontend/src/presentation/plots/InteractivePlot.tsx"
+      - "!frontend/src/presentation/plots/plotly-native.css"
+      - "!frontend/src/presentation/plots/plots.css"
+      - "!frontend/src/presentation/plots/types.test.ts"
+      - "!frontend/src/presentation/plots/types.ts"
+      - "!frontend/src/viewer/appearance.ts"
   workflow_dispatch:
 permissions:
   contents: read

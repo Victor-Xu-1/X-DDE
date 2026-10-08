@@ -28,6 +28,9 @@ The four preparation pages show one step at a time; the fifth step displays resu
 
 ## Interactive research previews / 网页交互预览
 
+The native Plotly chart authority is now shared under `frontend/src/presentation/plots`, including the generated, locked native stylesheet. Dynamics, FEP and DEL statistics use the same interaction, data-loading and figure-export boundary. Scientific methods, input/output authorities and managed environments remain independent.
+原生 Plotly 图表统一位于 `frontend/src/presentation/plots`，包括由固定依赖生成的样式。动力学、FEP 与 DEL 统计复用同一交互、数据加载和图件导出组件；科学方法、研究数据权威与独立集成环境保持原有职责。
+
 Figure export uses real print widths (89 or 183 mm), 300/600 dpi native PNG rendering and editable SVG plots with 7–9 pt type. PNG files include physical-resolution metadata without resampling their pixels. Native 3D cameras and graph positions are retained; trajectory playback pauses for export. Plot exports preserve the current ranges, original values, error bars and units. Transparent backgrounds are optional. These presets support figure preparation; the destination journal's requirements and scientific validity still need checking.
 文献图导出支持 89/183 mm 实际版面宽度、300/600 dpi 原生 PNG 渲染及 7–9 pt 可编辑 SVG 图表。PNG 写入物理分辨率信息，不对原始渲染像素重新采样。保留三维视角与网络位置；导出时暂停轨迹播放。图表保留当前坐标范围、原始数值、误差与单位，可选择透明背景。预设用于整理图件，目标期刊规范和科学结论仍需单独核对。
 

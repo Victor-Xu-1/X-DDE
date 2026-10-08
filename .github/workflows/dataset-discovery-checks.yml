@@ -9,7 +9,18 @@ on:
       - 'tests/test_dataset*'
       - 'tests/test_supplier*'
       - 'server_tests/*dataset*'
-      - '.github/workflows/dataset-discovery-checks.yml'
+      # Shared interactive charts and appearance use chart-quality-checks.yml.
+      - "!frontend/src/datasets/CountBars.tsx"
+      - "!frontend/src/datasets/DatasetCharts.test.tsx"
+      - "!frontend/src/datasets/DatasetCharts.tsx"
+      - "!frontend/src/datasets/ModelValidationPlot.tsx"
+      - "!frontend/src/datasets/SampleCorrelationPlot.tsx"
+      - "!frontend/src/datasets/SequencingQualityPlot.tsx"
+      - "!frontend/src/datasets/SeriesEnrichmentPlot.tsx"
+      - "!frontend/src/datasets/chart-documents.ts"
+      - "!frontend/src/datasets/series-map.test.ts"
+      - "!frontend/src/datasets/series-map.ts"
+      - "!frontend/src/datasets/statistical-plots.test.tsx"
   workflow_dispatch:
     inputs:
       engine:

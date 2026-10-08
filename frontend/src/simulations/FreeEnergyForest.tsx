@@ -1,6 +1,6 @@
 import type { Language } from "../types";
 import type { FreeEnergyEdge } from "./types";
-import { InteractivePlot } from "./InteractivePlot";
+import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 
 export function FreeEnergyForest({
   edges,

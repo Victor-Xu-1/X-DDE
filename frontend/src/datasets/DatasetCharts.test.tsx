@@ -38,6 +38,24 @@ const result = (role = "independent_holdout_evaluation") =>
   }) as DatasetResult;
 const json = (value: unknown) =>
   new Response(JSON.stringify(value), { status: 200 });
+vi.mock("../presentation/plots/InteractivePlot", () => ({
+  InteractivePlot: ({
+    title,
+    data,
+  }: {
+    title: string;
+    data: { y?: unknown[] }[];
+  }) => (
+    <div role="application" aria-label={title}>
+      {data
+        .flatMap((trace) => trace.y ?? [])
+        .filter((value) => typeof value === "string")
+        .map((value) => (
+          <span key={String(value)}>{String(value)}</span>
+        ))}
+    </div>
+  ),
+}));
 
 it("shows loading and retry instead of metadata plots or internal errors", async () => {
   let settle!: (response: Response) => void;
@@ -64,7 +82,7 @@ it("shows loading and retry instead of metadata plots or internal errors", async
   expect(screen.queryByText(/Traceback|private paths/)).toBeNull();
   await userEvent.setup().click(screen.getByRole("button", { name: "Retry" }));
   expect(
-    await screen.findByRole("img", {
+    await screen.findByRole("application", {
       name: "Independent holdout · observed vs predicted enrichment",
     }),
   ).toBeVisible();
@@ -82,7 +100,7 @@ it("rejects incomplete native chart documents instead of drawing zero or placeho
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "图表暂时无法读取",
   );
-  expect(screen.queryByRole("img")).toBeNull();
+  expect(screen.queryByRole("application")).toBeNull();
 });
 
 it("never retains a previous study's chart after switching native sources", async () => {

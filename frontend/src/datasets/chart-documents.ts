@@ -16,12 +16,20 @@ export interface SeriesRow {
   block_b: string;
   score: number;
   members: number;
+  cycle_a?: number;
+  cycle_b?: number;
+  lower?: number;
+  upper?: number;
 }
 export interface ChartDocuments {
   sequencing_quality?: SequencingDocument;
   count_quality?: CountDocument;
   barcode_quality?: { cycles: { set: string; members: number }[] };
-  del_series_visualization?: { series: SeriesRow[] };
+  del_series_visualization?: {
+    series: SeriesRow[];
+    total_series?: number;
+    shown?: number;
+  };
   independent_holdout_evaluation?: {
     heldout_predictions: { observed: number; predicted: number }[];
   };
@@ -114,8 +122,28 @@ export function validateChartDocument(role: string, value: unknown) {
           typeof row.block_a === "string" &&
           (row.kind !== "di" || typeof row.block_b === "string") &&
           finite(row.score) &&
-          count(row.members),
+          row.score >= 0 &&
+          count(row.members) &&
+          (row.cycle_a === undefined || count(row.cycle_a)) &&
+          (row.cycle_b === undefined ||
+            (Number.isInteger(row.cycle_b) &&
+              Number(row.cycle_b) >= (row.kind === "di" ? 0 : -1))) &&
+          ((row.lower === undefined && row.upper === undefined) ||
+            (finite(row.lower) &&
+              finite(row.upper) &&
+              row.lower >= 0 &&
+              row.upper >= row.lower)),
       );
+    valid =
+      valid &&
+      (value.total_series === undefined ||
+        (count(value.total_series) &&
+          value.total_series >=
+            (Array.isArray(value.series) ? value.series.length : 0))) &&
+      (value.shown === undefined ||
+        (count(value.shown) &&
+          value.shown ===
+            (Array.isArray(value.series) ? value.series.length : 0)));
   } else if (
     role === "independent_holdout_evaluation" ||
     role === "research_model_application"

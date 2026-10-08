@@ -1,0 +1,55 @@
+.research-plot {
+  min-width: 0;
+}
+.research-plot header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.research-plot h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.research-chart-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.research-chart-controls select {
+  font-size: 12px;
+  padding: 4px 6px;
+  max-width: 90px;
+}
+.research-plot-canvas {
+  width: 100%;
+  min-width: 0;
+}
+.research-plot-canvas[aria-busy="true"] {
+  visibility: hidden;
+}
+.research-plot-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+.dataset-map-controls {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.dataset-map-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.dataset-map-controls select {
+  max-width: 200px;
+  padding: 5px 7px;
+}

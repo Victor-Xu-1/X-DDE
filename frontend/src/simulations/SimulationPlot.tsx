@@ -1,6 +1,6 @@
 import type { Data } from "plotly.js";
 import type { Language } from "../types";
-import { InteractivePlot } from "./InteractivePlot";
+import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 
 export interface PlotSeries {
   label: string;

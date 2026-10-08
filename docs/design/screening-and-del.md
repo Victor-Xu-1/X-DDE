@@ -132,3 +132,14 @@ DrugCLIP 代码为 Apache-2.0；当前官方权重、预编码数据和模型输
 - [GNINA](https://github.com/gnina/gnina)、[PLIP](https://github.com/pharmai/plip)、[RDKit](https://github.com/rdkit/rdkit)。
 - [DELi](https://github.com/Popov-Lab-UNC/DELi)、[解码文档](https://dna-encoded-library-informatics-deli.readthedocs.io/en/latest/decoding_docs/run_decode.html)、[真实示例](https://github.com/Popov-Lab-UNC/DELi/blob/main/examples/README.md)、[2026 论文](https://link.springer.com/article/10.1186/s13321-026-01296-1)。
 - [公开结果包](https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-datasets-v3)。原始输入及许可保留在案例清单中；私有 DrugCLIP 页面和账户信息不公开分发。
+
+## Interactive statistical inspection / 交互式统计预览
+
+Read quality, sequencing depth, sample correlation, building-block enrichment and model validation use the shared native Plotly renderer. Hover retains complete sample labels and reported values; zoom, pan, reset and the standard physical-width figure export are available. Bar plots retain every supplied row. Observed-versus-predicted plots include negative predictions and use equal axis scaling for their identity line.
+测序质量、测序深度、样本相关性、砌块富集与模型验证统一使用原生 Plotly 图表。支持完整名称与数值悬停、缩放、平移、重置及实际版面尺寸导出。条形图保留全部已提供记录，预测图保留负值并以相等轴比例显示一致性参考线。
+
+Correlation masks preserve unavailable entries as gray and keep genuine zero correlations numeric. Series maps preserve cycle identity and report the source excerpt count. Gray cells mean not reported in the current view: a top-series excerpt cannot establish that a missing combination was experimentally unobserved. Logarithmic color uses log2(1+enrichment), while hover retains raw enrichment, observed member counts and reported count-posterior intervals. Missing intervals are explicitly unreported. Model application is never relabeled independent validation.
+相关性掩码保留无法计算的灰色位置，真实零相关仍为数值。系列热图区分库周期并保留截取范围；灰色表示当前视图未报告，不能从高排名系列片段推断组合未被实验观察。对数颜色为 log2(1+富集)，悬停保留原始富集、观察成员数及已报告的计数后验区间；缺失区间明确标为未报告。模型应用不改称独立验证。
+
+SVG export keeps editable axes and labels. Native heatmaps can include a bounded, self-contained PNG cell layer; active embedded documents and external resources are rejected. UI acceptance reuses published native cases and never launches new sequencing/model tasks for layout.
+SVG 保留可编辑坐标和文字；原生热图可带有受限、独立的 PNG 色块层，拒绝活动文档及外部资源。界面验收复用已发布原生案例，不为检查布局重新启动测序或模型任务。
