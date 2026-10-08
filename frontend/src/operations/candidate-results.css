@@ -9,3 +9,10 @@
 .sequence-candidate-results .result-inspector > header > h3 {
   overflow-wrap: anywhere;
 }
+.sequence-candidate-results .research-table td:has(.record-select) {
+  min-width: 136px;
+}
+.sequence-candidate-results .research-table .record-select {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}

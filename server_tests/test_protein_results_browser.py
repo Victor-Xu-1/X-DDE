@@ -77,6 +77,12 @@ def test_fold_has_one_explicit_candidate_structure_and_reachable_sequence(protei
     expect(panel.locator("thead th")).to_have_count(4)
     for width in (1440, 390):
         page.set_viewport_size({"width": width, "height": 1000})
+        assert (
+            panel.locator(".record-select").first.evaluate(
+                "element => getComputedStyle(element).whiteSpace"
+            )
+            == "nowrap"
+        )
         capture(page, root, f"protein-fold-structure-{width}")
     page.set_viewport_size({"width": 1440, "height": 1000})
     panel.get_by_role("tab", name="序列对照", exact=True).click()
