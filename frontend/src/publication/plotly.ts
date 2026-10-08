@@ -17,6 +17,14 @@ export async function plotlyFigure(
     JSON.stringify({ data: source.data, layout: source.layout }),
   ) as { data: Plotly.Data[]; layout: Partial<Plotly.Layout> };
   const width = Math.round((settings.widthMm / 25.4) * 72);
+  for (const trace of copy.data) {
+    if (trace.type !== "scatter") continue;
+    const line = trace as Plotly.ScatterData;
+    line.line = { ...line.line, width: 0.9 };
+    if (line.marker) line.marker = { ...line.marker, size: 3.5 };
+    if (line.error_y)
+      line.error_y = { ...line.error_y, thickness: 0.7, width: 2.5 };
+  }
   const matrix = copy.data.some((trace) => trace.type === "heatmap");
   const count = Math.max(
     0,

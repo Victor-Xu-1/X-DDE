@@ -245,6 +245,27 @@ export function MolecularViewport({
       {view.surface && (
         <SurfaceLegend summary={surfaceSummary} language={language} />
       )}
+      {view.protein && (
+        <div
+          className="simulation-pose-legend"
+          aria-label={
+            zh ? "蛋白二级结构颜色" : "Protein secondary structure colors"
+          }
+        >
+          <span>
+            <i style={{ background: "#eb777a" }} />
+            {zh ? "螺旋" : "Helix"}
+          </span>
+          <span>
+            <i style={{ background: "#e8bd48" }} />
+            {zh ? "折叠片" : "Sheet"}
+          </span>
+          <span>
+            <i style={{ background: "#8ea6bf" }} />
+            {zh ? "环与转角" : "Loop and turn"}
+          </span>
+        </div>
+      )}
       {sources.filter((source) => source.role === "ligand").length > 1 && (
         <div className="simulation-pose-legend">
           {sources

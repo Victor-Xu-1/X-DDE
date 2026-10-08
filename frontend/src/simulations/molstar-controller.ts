@@ -171,7 +171,29 @@ export class MolecularController {
           const ribbon =
             await this.plugin.builders.structure.representation.addRepresentation(
               polymer,
-              { type: "cartoon", color: "chain-id" },
+              {
+                type: "cartoon",
+                color: "secondary-structure",
+                colorParams: {
+                  saturation: 0,
+                  colors: {
+                    name: "custom",
+                    params: {
+                      alphaHelix: Color(0xeb777a),
+                      threeTenHelix: Color(0xd07ba4),
+                      piHelix: Color(0xb781bb),
+                      betaTurn: Color(0x719bc4),
+                      betaStrand: Color(0xe8bd48),
+                      coil: Color(0x8ea6bf),
+                      bend: Color(0x8ea6bf),
+                      turn: Color(0x8ea6bf),
+                      dna: Color(0x8b87ca),
+                      rna: Color(0xbb7bb8),
+                      carbohydrate: Color(0xaca6ce),
+                    },
+                  },
+                },
+              },
             );
           const surface =
             await this.plugin.builders.structure.representation.addRepresentation(
@@ -239,7 +261,7 @@ export class MolecularController {
         this.boundContacts.push(ligandLoci(pair, ligand.obj.data.models));
       }
     }
-    if (!frames && this.ligandStructure) this.focusLigand();
+    if (this.ligandStructure) this.focusLigand();
     else this.reset();
   }
 

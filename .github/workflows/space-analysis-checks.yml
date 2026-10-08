@@ -14,7 +14,9 @@ on:
       - 'tests/test_space_frame.py'
       - 'tests/test_caver_profiles.py'
       - 'tests/test_channel_analysis.py'
-      - '.github/workflows/space-analysis-checks.yml'
+      # Native execution is selected by scientific source changes or explicit dispatch.
+      # Shared print sizing has a readonly retained-case gate; no channel recomputation for styles.
+      - '!frontend/src/space/ChannelProfile.tsx'
 permissions:
   contents: read
 jobs:

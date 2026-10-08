@@ -8,9 +8,11 @@ export async function networkFigure(
   element: HTMLElement,
   settings: FigureSettings,
 ) {
-  const bounds = element.getBoundingClientRect();
-  const size = figureDimensions(settings, bounds.width / bounds.height);
-  const scale = size.width / bounds.width;
+  if (!element.isConnected) throw new Error("The network view closed.");
+  const width = graph.width(),
+    height = graph.height();
+  const size = figureDimensions(settings, width / height);
+  const scale = size.width / width;
   const style = graph.json().style;
   try {
     graph
@@ -27,8 +29,10 @@ export async function networkFigure(
     return await dataUrlBlob(
       graph.png({
         full: false,
+        // A specified dimension suppresses DPR multiplication. The subpixel epsilon
+        // compensates canvas integer truncation without resampling the native pixels.
+        scale: (size.width + 0.01) / width,
         maxWidth: size.width,
-        maxHeight: size.height,
         bg: settings.transparent ? undefined : "#ffffff",
       }),
     );

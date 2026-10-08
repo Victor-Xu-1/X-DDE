@@ -71,8 +71,9 @@ export function FreeEnergyNetwork({
             format="png"
             disabled={failure}
             aspect={() => {
-              const bounds = container.current!.getBoundingClientRect();
-              return bounds.width / bounds.height;
+              return graph.current
+                ? graph.current.width() / graph.current.height()
+                : 1.5;
             }}
             render={async (settings) => {
               if (!graph.current || !container.current)

@@ -13,6 +13,8 @@ on:
       - 'src/opendde_workbench/examples/analysis_validation.py'
       - 'src/opendde_workbench/examples/pose_bundle_release.py'
       - 'server_tests/pose_case_install_acceptance.py'
+      # Shared print sizing has a readonly retained-case gate; no reclustering for styles.
+      - '!frontend/src/poses/ClusterMatrix.tsx'
       - 'scripts/stage-release-examples.py'
       - '.github/workflows/pose-cluster-checks.yml'
 permissions:
