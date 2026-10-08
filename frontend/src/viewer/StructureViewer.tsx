@@ -40,6 +40,7 @@ import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
 interface Props {
+  ligandContext?: boolean;
   initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
   attachmentGeometry?: AttachmentGeometry;
@@ -62,6 +63,7 @@ interface Props {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewer({
+  ligandContext = true,
   initialMode,
   urls: originalUrls,
   language,
@@ -123,6 +125,7 @@ export function StructureViewer({
         electrostaticMap,
         channelGeometry,
         initialMode,
+        ligandContext,
       });
   const overlay = urls.length > 1;
   const requestedKey = useRef<string | null>(key);
@@ -231,6 +234,7 @@ export function StructureViewer({
       requestedKey.current = key;
       send("load", {
         urls,
+        ligandContext,
         comparison,
         focusModel,
         ...(focusModels ? { focusModels } : {}),
@@ -417,7 +421,8 @@ export function StructureViewer({
             .filter(
               ([id]) =>
                 id !== "pocket" ||
-                (scene.hasPolymer &&
+                (ligandContext &&
+                  scene.hasPolymer &&
                   (scene.ligands.length > 0 || scene.hasInteractionContext)),
             )
             .map(([id, cn, en]) => (
@@ -604,10 +609,11 @@ export function StructureViewer({
               {zh ? "拖动旋转 · 滚轮缩放" : "Drag to rotate · Scroll to zoom"}
             </span>
           </div>
-          {scene.hasInteractionContext && !comparison && (
+          {ligandContext && scene.hasInteractionContext && !comparison && (
             <PoseScore value={nativeScore} language={language} />
           )}
-          {scene.hasInteractionContext &&
+          {ligandContext &&
+            scene.hasInteractionContext &&
             !comparison &&
             nativeInteractions === undefined && (
               <InteractionControls
@@ -619,7 +625,7 @@ export function StructureViewer({
                 onChange={configure}
               />
             )}
-          {nativeInteractions !== undefined && (
+          {ligandContext && nativeInteractions !== undefined && (
             <div className="inline-fields">
               <label className="checkbox-label">
                 <input
@@ -659,6 +665,7 @@ export function StructureViewer({
           )}
           {!overlay && (
             <ViewerControls
+              ligandContext={ligandContext}
               language={language}
               scene={scene}
               options={options}

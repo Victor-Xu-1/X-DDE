@@ -3,6 +3,7 @@ import type { NativeInteraction } from "../integrations/types";
 import { channelGeometry, type ChannelGeometry } from "./channel-geometry";
 import type { ViewMode } from "./protocol";
 export interface ViewerLoad {
+  ligandContext?: boolean;
   initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
   urls: string[];
@@ -38,6 +39,10 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid structure sources");
   const sourceCount = v.urls.length;
+  if (v.ligandContext !== undefined && typeof v.ligandContext !== "boolean")
+    throw new Error("Invalid ligand display context");
+  if (v.ligandContext === false && v.initialMode === "pocket")
+    throw new Error("Pocket display requires a ligand context");
   if (
     v.initialMode !== undefined &&
     (typeof v.initialMode !== "string" ||
@@ -72,6 +77,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid molecular records");
   return {
+    ...(v.ligandContext === undefined
+      ? {}
+      : { ligandContext: v.ligandContext as boolean }),
     ...(v.initialMode === undefined
       ? {}
       : { initialMode: v.initialMode as ViewMode }),

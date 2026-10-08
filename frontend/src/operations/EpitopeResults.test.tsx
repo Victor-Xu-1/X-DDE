@@ -15,15 +15,18 @@ const viewer = vi.fn(
   ({
     focusResidue,
     initialMode,
+    ligandContext,
   }: {
     focusResidue?: { residue: string; nonce: number };
     initialMode?: string;
+    ligandContext?: boolean;
   }) => (
     <div
       role="region"
       aria-label="Test structure viewer"
       data-focus={focusResidue?.residue}
       data-mode={initialMode}
+      data-ligand-context={ligandContext}
     />
   ),
 );
@@ -90,6 +93,9 @@ it("shows the real top five, expands all, and locates repeated selections withou
   expect(
     screen.getByRole("region", { name: "Test structure viewer" }),
   ).toHaveAttribute("data-mode", "cartoon");
+  expect(
+    screen.getByRole("region", { name: "Test structure viewer" }),
+  ).toHaveAttribute("data-ligand-context", "false");
   const user = userEvent.setup();
   const button = within(table).getByRole("button", { name: "C:PRO570" });
   await user.click(button);

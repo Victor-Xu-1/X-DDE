@@ -8,6 +8,7 @@ import {
 } from "./protocol";
 import type { Language } from "../types";
 export function ViewerControls({
+  ligandContext = true,
   language,
   scene,
   options,
@@ -17,6 +18,7 @@ export function ViewerControls({
   onOptions,
   send,
 }: {
+  ligandContext?: boolean;
   language: Language;
   scene: SceneInfo;
   options: ViewerOptions;
@@ -35,7 +37,7 @@ export function ViewerControls({
     .slice(0, 80);
   return (
     <fieldset className="viewer-controls" disabled={disabled}>
-      {scene.hasPolymer && scene.ligands.length > 0 && (
+      {ligandContext && scene.hasPolymer && scene.ligands.length > 0 && (
         <div className="pocket-controls">
           <label>
             {zh ? "中心配体" : "Central ligand"}

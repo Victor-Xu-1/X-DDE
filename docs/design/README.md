@@ -50,6 +50,12 @@ water is separated from the protein list; source totals and CDR analysis remain
 available in the folded details. Without a declared source, residue names are text
 and never present an inactive structure action.
 
+Protein-interface inspection does not present incidental glycan/ligand proximity
+as antibody–antigen contacts. Epitope views retain all original structure components
+but omit ligand-pocket controls and their automatic proximity annotations. Native
+protein-contact counts remain in their own source-bound table; backbone, surface,
+chain focus, residue selection and image/original-structure downloads remain available.
+
 Whole-structure camera fitting accounts for both viewport axes at initial load and
 on reset. A portrait stage uses the same limiting-axis scale as a desktop view
 resized to portrait, preserving coordinates and rotation. Full-complex overview

@@ -73,6 +73,7 @@ export function EpitopeResults({
               urls={["/api/assets/" + source.asset_id]}
               language={language}
               initialMode="cartoon"
+              ligandContext={false}
               focusResidue={selected}
             />
           </div>

@@ -130,6 +130,10 @@ async function load(input: ViewerLoad) {
       inputCharges,
     );
     scene.nativeInteractions = input.nativeInteractions;
+    if (input.ligandContext === false) {
+      scene.options.interactions = false;
+      scene.options.mode = "cartoon";
+    }
     if (input.initialMode) {
       scene.options.mode = input.initialMode;
       if (input.initialMode === "cartoon") scene.options.labels = false;

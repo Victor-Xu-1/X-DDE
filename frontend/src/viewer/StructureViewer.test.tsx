@@ -4,6 +4,58 @@ import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 import { defaultOptions } from "./protocol";
 
+it("keeps protein interface selection and downloads without showing incidental glycan pocket contacts", () => {
+  render(
+    <StructureViewer
+      urls={["/api/assets/protein-interface"]}
+      language="en"
+      ligandContext={false}
+      initialMode="cartoon"
+    />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      ),
+    );
+  message("ready");
+  expect(
+    post.mock.calls.find(([data]) => data.type === "load")?.[0].value
+      .ligandContext,
+  ).toBe(false);
+  message("loaded", {
+    atoms: 100,
+    chains: ["A", "C"],
+    hasPolymer: true,
+    hasInteractionContext: true,
+    ligands: [
+      { key: "C:NAG766", chain: "C", resn: "NAG", resi: 766, icode: "" },
+    ],
+    residues: [],
+    options: { ...defaultOptions, mode: "cartoon", interactions: false },
+  });
+  expect(
+    screen.getByRole("button", { name: "Backbone", pressed: true }),
+  ).toBeVisible();
+  expect(screen.getByRole("button", { name: "Surface" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
+  expect(screen.getByText("Selection and display editing")).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Ligand and pocket" }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Central ligand")).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Show interactions")).not.toBeInTheDocument();
+});
+
 it("defers residue focus until the requested scene is loaded and retains repeated selections", () => {
   const props = {
     urls: ["/api/assets/aa-11"],

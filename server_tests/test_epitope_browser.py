@@ -89,6 +89,9 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
             open_result()
             table = page.get_by_role("table", name="蛋白接触残基", exact=True)
             expect(table.locator("tbody tr")).to_have_count(5)
+            expect(page.get_by_role("button", name="配体与口袋", exact=True)).to_have_count(0)
+            expect(page.get_by_label("中心配体", exact=True)).to_have_count(0)
+            expect(page.get_by_label("显示相互作用", exact=True)).to_have_count(0)
             expect(page.get_by_role("button", name="整体骨架", exact=True)).to_have_attribute(
                 "aria-pressed", "true"
             )

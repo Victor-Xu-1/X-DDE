@@ -1,5 +1,20 @@
 import { expect, it } from "vitest";
 import { complexLigandModel, viewerLoad } from "./source-layout";
+it("separates protein-interface presentation from incidental ligand proximity without changing source identity", () => {
+  const input = {
+    urls: ["/api/assets/antibody-complex"],
+    comparison: false,
+    ligandContext: false,
+    initialMode: "cartoon",
+  };
+  expect(viewerLoad(input)).toEqual(input);
+  expect(() => viewerLoad({ ...input, initialMode: "pocket" })).toThrow(
+    "Pocket display requires a ligand context",
+  );
+  expect(() => viewerLoad({ ...input, ligandContext: "false" })).toThrow(
+    "Invalid ligand display context",
+  );
+});
 it("treats an explicit receptor plus source pose as a complex, but does not connect comparisons or unrelated molecules", () => {
   const input = {
     urls: ["receptor", "pose"],
