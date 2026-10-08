@@ -12,6 +12,8 @@ import { Navigation } from "./Navigation";
 
 let compact = true;
 let resize: (() => void) | undefined;
+let originalShow: PropertyDescriptor | undefined;
+let originalClose: PropertyDescriptor | undefined;
 beforeEach(() => {
   compact = true;
   vi.stubGlobal("matchMedia", () => ({
@@ -23,22 +25,41 @@ beforeEach(() => {
     },
     removeEventListener: vi.fn(),
   }));
-  vi.spyOn(HTMLDialogElement.prototype, "showModal").mockImplementation(
-    function (this: HTMLDialogElement) {
+  // JSDOM has no native modal implementation. Real focus trapping is checked in Chromium.
+  originalShow = Object.getOwnPropertyDescriptor(
+    HTMLDialogElement.prototype,
+    "showModal",
+  );
+  originalClose = Object.getOwnPropertyDescriptor(
+    HTMLDialogElement.prototype,
+    "close",
+  );
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
       this.open = true;
     },
-  );
-  vi.spyOn(HTMLDialogElement.prototype, "close").mockImplementation(function (
-    this: HTMLDialogElement,
-  ) {
-    this.open = false;
-    this.dispatchEvent(new Event("close"));
+  });
+  Object.defineProperty(HTMLDialogElement.prototype, "close", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
+      this.open = false;
+      this.dispatchEvent(new Event("close"));
+    },
   });
 });
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  for (const [name, descriptor] of [
+    ["showModal", originalShow],
+    ["close", originalClose],
+  ] as const) {
+    if (descriptor)
+      Object.defineProperty(HTMLDialogElement.prototype, name, descriptor);
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
+  }
   resize = undefined;
 });
 

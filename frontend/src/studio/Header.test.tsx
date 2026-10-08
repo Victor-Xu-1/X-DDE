@@ -101,7 +101,8 @@ it("uses readable Chinese task statuses and closes notifications with Escape", a
   ).toBeVisible();
   await user.keyboard("{Escape}");
   expect(trigger).toHaveFocus();
+  expect(trigger.closest("details")).not.toHaveAttribute("open");
   expect(
-    screen.queryByRole("button", { name: "BRD4 binding study · 失败" }),
-  ).toBeNull();
+    screen.getByRole("button", { name: "BRD4 binding study · 失败" }),
+  ).not.toBeVisible();
 });
