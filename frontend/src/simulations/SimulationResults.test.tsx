@@ -15,10 +15,16 @@ vi.mock("./MolecularViewport", () => ({
   MolecularViewport: ({
     frames,
     frame,
+    ligandContext,
   }: {
     frames: string[];
     frame: number;
-  }) => <div data-testid="coordinate-view">{frames[frame]}</div>,
+    ligandContext: boolean;
+  }) => (
+    <div data-testid="coordinate-view" data-ligand-context={ligandContext}>
+      {frames[frame]}
+    </div>
+  ),
 }));
 vi.mock("./FreeEnergyNetwork", () => ({
   FreeEnergyNetwork: () => <div>Interactive network</div>,
@@ -102,6 +108,14 @@ it("links a sampled time to the exact downloadable snapshot and retains Å/ns un
     "frame-1.pdb",
   );
   const timeline = screen.getByRole("slider", { name: "Trajectory time" });
+  expect(screen.getByTestId("coordinate-view")).toHaveAttribute(
+    "data-ligand-context",
+    "false",
+  );
+  expect(screen.queryByText("Ligand RMSD")).toBeNull();
+  expect(
+    screen.queryByRole("table", { name: "Binding-contact occupancy" }),
+  ).toBeNull();
   timeline.focus();
   await user.keyboard("{ArrowRight}");
   // JSDOM does not implement native range keyboard stepping; chart activation does.

@@ -115,6 +115,7 @@ export class MolecularController {
     sources: StructureSource[],
     frames: string[] | undefined,
     signal: AbortSignal,
+    ligandContext = true,
   ) {
     const entries = frames
       ? [
@@ -186,11 +187,12 @@ export class MolecularController {
             : null;
         }
       }
-      const ligand =
-        await this.plugin.builders.structure.tryCreateComponentStatic(
-          structure,
-          entry.role === "ligand" ? "all" : "ligand",
-        );
+      const ligand = ligandContext
+        ? await this.plugin.builders.structure.tryCreateComponentStatic(
+            structure,
+            entry.role === "ligand" ? "all" : "ligand",
+          )
+        : undefined;
       if (ligand) {
         const representation =
           await this.plugin.builders.structure.representation.addRepresentation(

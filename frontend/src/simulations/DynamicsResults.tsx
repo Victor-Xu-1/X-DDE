@@ -28,6 +28,7 @@ export function DynamicsResults({
   const [focusResidue, setFocusResidue] = useState<Residue | null>(null);
   const current = result.replicas[repeat] ?? result.replicas[0],
     snapshot = current.frames[frame] ?? current.frames[0];
+  const hasLigand = current.frames.some((f) => f.ligand_rmsd_angstrom !== null);
   const frameReady = useRef(false);
   useEffect(() => {
     frameReady.current = false;
@@ -95,6 +96,7 @@ export function DynamicsResults({
             }}
             frames={current.frames.map((f) => artifactUrl(job.id, f.artifact))}
             frame={frame}
+            ligandContext={hasLigand}
             focusResidue={focusResidue}
             language={language}
           />
@@ -143,10 +145,12 @@ export function DynamicsResults({
               <dt>{zh ? "骨架 RMSD" : "Backbone RMSD"}</dt>
               <dd>{snapshot.backbone_rmsd_angstrom.toFixed(2)} Å</dd>
             </div>
-            <div>
-              <dt>{zh ? "配体 RMSD" : "Ligand RMSD"}</dt>
-              <dd>{snapshot.ligand_rmsd_angstrom?.toFixed(2) ?? "—"} Å</dd>
-            </div>
+            {hasLigand && (
+              <div>
+                <dt>{zh ? "配体 RMSD" : "Ligand RMSD"}</dt>
+                <dd>{snapshot.ligand_rmsd_angstrom?.toFixed(2)} Å</dd>
+              </div>
+            )}
             <div>
               <dt>{zh ? "回转半径" : "Radius of gyration"}</dt>
               <dd>{snapshot.radius_gyration_angstrom.toFixed(2)} Å</dd>
@@ -238,7 +242,13 @@ export function DynamicsResults({
           />
         </div>
       </div>
-      <div className="simulation-secondary-grid">
+      <div
+        className={
+          hasLigand
+            ? "simulation-secondary-grid"
+            : "simulation-secondary-grid is-single"
+        }
+      >
         <SimulationPlot
           title={zh ? "残基波动" : "Residue fluctuations"}
           xLabel={zh ? "残基序列位置" : "Residue sequence position"}
@@ -256,33 +266,35 @@ export function DynamicsResults({
             setFocusResidue(current.residues[Math.round(position) - 1] ?? null)
           }
         />
-        <ResearchTable
-          rows={current.contacts}
-          language={language}
-          title={zh ? "结合接触占有率" : "Binding-contact occupancy"}
-          onSelect={(row) => setFocusResidue(row)}
-          rowId={(r) => `${r.chain}:${r.number}:${r.insertion}`}
-          exportName="contact-occupancy.csv"
-          columns={[
-            {
-              key: "residue",
-              label: zh ? "氨基酸" : "Residue",
-              value: (r) => `${r.chain}:${r.name}${r.number}${r.insertion}`,
-            },
-            {
-              key: "occupancy",
-              label: zh ? "接触占有率" : "Occupancy",
-              numeric: true,
-              value: (r) => r.occupancy,
-              render: (r) => (
-                <span className="simulation-occupancy">
-                  <meter min={0} max={1} value={r.occupancy} />
-                  {(r.occupancy * 100).toFixed(1)}%
-                </span>
-              ),
-            },
-          ]}
-        />
+        {hasLigand && (
+          <ResearchTable
+            rows={current.contacts}
+            language={language}
+            title={zh ? "结合接触占有率" : "Binding-contact occupancy"}
+            onSelect={(row) => setFocusResidue(row)}
+            rowId={(r) => `${r.chain}:${r.number}:${r.insertion}`}
+            exportName="contact-occupancy.csv"
+            columns={[
+              {
+                key: "residue",
+                label: zh ? "氨基酸" : "Residue",
+                value: (r) => `${r.chain}:${r.name}${r.number}${r.insertion}`,
+              },
+              {
+                key: "occupancy",
+                label: zh ? "接触占有率" : "Occupancy",
+                numeric: true,
+                value: (r) => r.occupancy,
+                render: (r) => (
+                  <span className="simulation-occupancy">
+                    <meter min={0} max={1} value={r.occupancy} />
+                    {(r.occupancy * 100).toFixed(1)}%
+                  </span>
+                ),
+              },
+            ]}
+          />
+        )}
       </div>
       <details className="simulation-method">
         <summary>

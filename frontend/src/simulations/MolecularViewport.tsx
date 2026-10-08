@@ -13,6 +13,7 @@ export function MolecularViewport({
   sources = [],
   frames,
   frame = 0,
+  ligandContext = true,
   language,
   focusResidue,
   onReady,
@@ -20,6 +21,7 @@ export function MolecularViewport({
   sources?: StructureSource[];
   frames?: string[];
   frame?: number;
+  ligandContext?: boolean;
   language: Language;
   focusResidue?: Residue | null;
   onReady?(): void;
@@ -50,7 +52,7 @@ export function MolecularViewport({
     !frames &&
     sources.filter((source) => source.role === "ligand").length > 1 &&
     view.ligand === "all";
-  const sourceKey = JSON.stringify({ sources, frames });
+  const sourceKey = JSON.stringify({ sources, frames, ligandContext });
   useEffect(() => {
     const signal = new AbortController();
     let instance: MolecularController | undefined;
@@ -66,8 +68,14 @@ export function MolecularViewport({
         const input = JSON.parse(sourceKey) as {
           sources: StructureSource[];
           frames?: string[];
+          ligandContext: boolean;
         };
-        await instance.load(input.sources, input.frames, signal.signal);
+        await instance.load(
+          input.sources,
+          input.frames,
+          signal.signal,
+          input.ligandContext,
+        );
         if (!signal.signal.aborted) {
           setSurfaceSummary(instance.surfaceSummary);
           setLoaded(true);
@@ -122,13 +130,15 @@ export function MolecularViewport({
         >
           {zh ? "全景" : "Overview"}
         </button>
-        <button
-          type="button"
-          className="text-button"
-          onClick={() => controller.current?.focusLigand()}
-        >
-          {zh ? "配体与口袋" : "Ligand and pocket"}
-        </button>
+        {ligandContext && (
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => controller.current?.focusLigand()}
+          >
+            {zh ? "配体与口袋" : "Ligand and pocket"}
+          </button>
+        )}
         <button
           type="button"
           className="text-button"
@@ -145,24 +155,25 @@ export function MolecularViewport({
         >
           {zh ? "表面" : "Surface"}
         </button>
-        {(frames || sources.some((source) => source.role === "ligand")) && (
-          <button
-            type="button"
-            className="text-button"
-            aria-pressed={view.contacts && !comparing}
-            disabled={comparing}
-            title={
-              comparing
-                ? zh
-                  ? "选择 A 或 B 查看对应作用位点"
-                  : "Select A or B to inspect its binding contacts"
-                : undefined
-            }
-            onClick={() => toggle("contacts")}
-          >
-            {zh ? "作用位点" : "Binding contacts"}
-          </button>
-        )}
+        {ligandContext &&
+          (frames || sources.some((source) => source.role === "ligand")) && (
+            <button
+              type="button"
+              className="text-button"
+              aria-pressed={view.contacts && !comparing}
+              disabled={comparing}
+              title={
+                comparing
+                  ? zh
+                    ? "选择 A 或 B 查看对应作用位点"
+                    : "Select A or B to inspect its binding contacts"
+                  : undefined
+              }
+              onClick={() => toggle("contacts")}
+            >
+              {zh ? "作用位点" : "Binding contacts"}
+            </button>
+          )}
         {sources.filter((s) => s.role === "ligand").length > 1 && (
           <select
             aria-label={zh ? "结合姿势显示" : "Binding pose display"}

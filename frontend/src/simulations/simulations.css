@@ -36,6 +36,9 @@
 .simulation-secondary-grid > * {
   min-width: 0;
 }
+.simulation-secondary-grid.is-single {
+  grid-template-columns: minmax(0, 1fr);
+}
 .simulation-condition-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
