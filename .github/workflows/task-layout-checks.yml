@@ -57,6 +57,10 @@ on:
       - 'server_tests/test_binding_entry_browser.py'
       - 'server_tests/test_target_selection_browser.py'
       - 'server_tests/test_epitope_browser.py'
+      - 'server_tests/test_protein_results_browser.py'
+      - 'frontend/src/examples/CampaignCasePreview*'
+      - 'frontend/src/examples/campaign-preview*'
+      - 'frontend/src/examples/ExampleJobResult*'
       - 'server_tests/*layout*'
       - 'server_tests/*researcher*'
       - 'server_tests/test_module_surfaces_browser.py'
@@ -164,6 +168,11 @@ jobs:
           src/viewer/source-layout.test.ts
           src/viewer/PoseScore.test.tsx
           src/operations/HarnessResults.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx
+          src/operations/candidate-structures.test.ts
+          src/operations/StructureComparisonResults.test.tsx
+          src/examples/CampaignCasePreview.test.tsx
+          src/examples/ExampleJobResult.test.tsx
           src/operations/OperationResults.test.tsx
           src/operations/PreparedInputResults.test.tsx
           src/operations/native-report.test.ts
@@ -195,7 +204,7 @@ jobs:
           if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
           .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py
           if [ "$WB_LAYOUT_WIDTH" = 1440 ] && [ "$WB_LAYOUT_SHARD" = 0 ]; then
-            .venv/bin/python -m pytest -q server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py server_tests/test_module_surfaces_browser.py server_tests/test_binding_entry_browser.py server_tests/test_target_selection_browser.py server_tests/test_epitope_browser.py
+            .venv/bin/python -m pytest -q server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py server_tests/test_module_surfaces_browser.py server_tests/test_binding_entry_browser.py server_tests/test_target_selection_browser.py server_tests/test_epitope_browser.py server_tests/test_protein_results_browser.py
           fi
       - uses: actions/upload-artifact@v4
         if: always()

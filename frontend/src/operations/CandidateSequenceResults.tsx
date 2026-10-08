@@ -14,6 +14,8 @@ import {
   record,
 } from "./candidate-sequence-model";
 import { mutationDescription } from "./sequence-result";
+import { candidateStructure } from "./candidate-structures";
+import "./candidate-results.css";
 
 export function CandidateSequenceResults({
   job,
@@ -37,6 +39,20 @@ export function CandidateSequenceResults({
   const current = rows.find((row) => row.index === selected) ?? rows[0];
   if (!current) return null;
   const keys = [...new Set(rows.flatMap((row) => Object.keys(row.metrics)))];
+  const structure = candidateStructure(current.value, structures);
+  const claimed = new Set(
+    rows.flatMap((row) => {
+      const file = candidateStructure(row.value, structures);
+      return file ? [file] : [];
+    }),
+  );
+  const unassigned = [...new Set(structures)].filter(
+    (name) => !claimed.has(name),
+  );
+  const candidateLabel = (row: typeof current) =>
+    typeof row.value.candidate_id === "string" && row.value.candidate_id.trim()
+      ? row.value.candidate_id
+      : (zh ? "候选 " : "Candidate ") + (row.index + 1);
   const payload =
     job.request.operation === "harness" ? job.request.payload : {};
   const original = record(payload.parent_chains);
@@ -94,14 +110,18 @@ export function CandidateSequenceResults({
       content: tree,
     },
   ];
-  if (structures.length === rows.length && structures[current.index])
-    tabs.push({
+  if (structure)
+    tabs.unshift({
       id: "structure",
       label: zh ? "三维结构" : "3D structure",
       content: (
         <StructureViewer
           language={language}
-          urls={[artifactUrl(job.id, structures[current.index])]}
+          urls={[artifactUrl(job.id, structure)]}
+          initialMode="cartoon"
+          ligandContext={
+            job.request.operation !== "harness" || job.request.tool !== "fold"
+          }
         />
       ),
     });
@@ -121,20 +141,29 @@ export function CandidateSequenceResults({
             rowId={(row) => String(row.index)}
             selected={String(current.index)}
             onSelect={(row) => setSelected(row.index)}
+            initialVisibleColumns={[
+              "candidate",
+              "length",
+              ...["iptm", "plddt", "esm2_llr"].filter((key) =>
+                keys.includes(key),
+              ),
+            ]}
             columns={[
               {
                 key: "candidate",
                 label: zh ? "候选" : "Candidate",
-                value: (row) => (zh ? "候选 " : "Candidate ") + (row.index + 1),
+                value: candidateLabel,
               },
               {
                 key: "length",
                 label: zh ? "总长度 (aa)" : "Total length (aa)",
                 value: (row) =>
-                  row.chains.reduce(
-                    (sum, chain) => sum + chain.sequence.length,
-                    0,
-                  ),
+                  row.chains.length
+                    ? row.chains.reduce(
+                        (sum, chain) => sum + chain.sequence.length,
+                        0,
+                      )
+                    : null,
                 numeric: true,
               },
               ...keys.map((key) => ({
@@ -145,15 +174,13 @@ export function CandidateSequenceResults({
               })),
             ]}
           />
-          {keys.length > 0 && (
+          {keys.length > 0 && rows.length > 1 && (
             <MetricScatter
               rows={rows}
               language={language}
               label={zh ? "候选指标比较" : "Candidate metric comparison"}
               rowId={(row) => String(row.index)}
-              rowLabel={(row) =>
-                (zh ? "候选 " : "Candidate ") + (row.index + 1)
-              }
+              rowLabel={candidateLabel}
               selected={String(current.index)}
               onSelect={(row) => setSelected(row.index)}
               metrics={[
@@ -174,9 +201,7 @@ export function CandidateSequenceResults({
         </div>
         <div className="result-inspector">
           <header>
-            <h3>
-              {zh ? "候选" : "Candidate"} {current.index + 1}
-            </h3>
+            <h3>{candidateLabel(current)}</h3>
           </header>
           <ResearchTabs
             key={current.index}
@@ -207,6 +232,29 @@ export function CandidateSequenceResults({
           </details>
         </div>
       </div>
+      {unassigned.length > 0 && (
+        <details className="candidate-unassigned">
+          <summary>
+            {zh ? "其他结构文件" : "Other structure files"} ·{" "}
+            {unassigned.length}
+          </summary>
+          <p className="field-help">
+            {zh
+              ? "这些文件尚未明确关联到候选，按原始结构单独查看。"
+              : "These files have no explicit candidate link and are inspected independently."}
+          </p>
+          {unassigned.map((name) => (
+            <details key={name}>
+              <summary>{name}</summary>
+              <StructureViewer
+                urls={[artifactUrl(job.id, name)]}
+                language={language}
+                initialMode="cartoon"
+              />
+            </details>
+          ))}
+        </details>
+      )}
     </section>
   );
 }

@@ -143,6 +143,11 @@ jobs:
           src/operations/filter.test.ts
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/OperationResults.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx
+          src/operations/candidate-structures.test.ts
+          src/operations/StructureComparisonResults.test.tsx
+          src/examples/CampaignCasePreview.test.tsx
+          src/examples/ExampleJobResult.test.tsx
           src/admet/AdmetResults.test.tsx
           src/quality/tests/QualityResults.test.tsx
           src/antibodies/AntibodyNumberResults.test.tsx

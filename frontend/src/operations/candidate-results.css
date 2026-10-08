@@ -1,0 +1,11 @@
+.studio-app .sequence-candidate-results .result-inspector .viewer-panel {
+  padding: 0;
+}
+.sequence-candidate-results .candidate-unassigned {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.sequence-candidate-results .result-inspector > header > h3 {
+  overflow-wrap: anywhere;
+}

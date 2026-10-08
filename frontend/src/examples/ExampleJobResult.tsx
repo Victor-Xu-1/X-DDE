@@ -16,14 +16,12 @@ export function ExampleJobResult({
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const [structures, setStructures] = useState<string[]>([]);
   const prediction = isPrediction(job.request);
   useEffect(() => {
     const controller = new AbortController();
     setError("");
     setAnalysis(null);
     setSelected(null);
-    setStructures([]);
     if (prediction) {
       void api
         .analysis(job.id, controller.signal)
@@ -32,20 +30,6 @@ export function ExampleJobResult({
             setAnalysis(value);
             setSelected(value.candidates[0]?.id ?? null);
           }
-        })
-        .catch((failure) => {
-          if (!controller.signal.aborted) setError(String(failure));
-        });
-    } else if (job.request.operation === "harness") {
-      void api
-        .artifacts(job.id, controller.signal)
-        .then((values) => {
-          if (!controller.signal.aborted)
-            setStructures(
-              values
-                .filter((value) => /\.(cif|pdb|sdf)$/.test(value.name))
-                .map((value) => value.name),
-            );
         })
         .catch((failure) => {
           if (!controller.signal.aborted) setError(String(failure));
@@ -83,12 +67,6 @@ export function ExampleJobResult({
         </div>
       ) : (
         <OperationResults job={job} language={language} />
-      )}
-      {structures.length > 0 && (
-        <StructureViewer
-          urls={[artifactUrl(job.id, structures[0])]}
-          language={language}
-        />
       )}
     </section>
   );

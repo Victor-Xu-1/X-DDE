@@ -40,6 +40,7 @@ import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { MinimizedPoseResults } from "../viewer/MinimizedPoseResults";
 import { HarnessResults } from "./HarnessResults";
+import { sequenceCandidateResult } from "./candidate-structures";
 import { researchError } from "../presentation/research-content";
 import { ScientificResults } from "../integrations/ScientificResults";
 import type { NativeResult } from "../integrations/types";
@@ -62,8 +63,13 @@ export function OperationResults({
   onCreated?(job: Job): void;
 }) {
   const zh = language === "zh";
-  const [data, setData] = useState<OperationResult | null>(null),
-    [error, setError] = useState("");
+  const [response, setResponse] = useState<{
+    jobId: string;
+    data: OperationResult | null;
+    error: string;
+  } | null>(null);
+  const data = response?.jobId === job.id ? response.data : null;
+  const error = response?.jobId === job.id ? response.error : "";
   const supported = [
     ...datasetOperations,
     ...nativeOperations,
@@ -94,17 +100,18 @@ export function OperationResults({
     "prep",
   ].includes(job.request.operation ?? "");
   useEffect(() => {
-    setData(null);
-    setError("");
+    setResponse(null);
     const controller = new AbortController();
     if (supported)
       void api
         .result(job.id, controller.signal)
         .then((value) => {
-          if (!controller.signal.aborted) setData(value);
+          if (!controller.signal.aborted)
+            setResponse({ jobId: job.id, data: value, error: "" });
         })
         .catch((e) => {
-          if (!controller.signal.aborted) setError(String(e));
+          if (!controller.signal.aborted)
+            setResponse({ jobId: job.id, data: null, error: String(e) });
         });
     return () => controller.abort();
   }, [job.id, supported]);
@@ -255,24 +262,26 @@ export function OperationResults({
           onDraft={onDraft}
         />
       )}
-      {typeof data.structure === "string" && (
-        <section aria-label={zh ? "输入结构" : "Input structure"}>
-          {job.request.operation === "inspect" && (
-            <h3>
-              {zh
-                ? "输入结构预览（非预测结果）"
-                : "Input structure preview (not a prediction)"}
-            </h3>
-          )}
-          <StructureViewer
-            urls={[artifactUrl(job.id, data.structure)]}
-            language={language}
-            comparison={false}
-            focusResidue={null}
-          />
-        </section>
-      )}
+      {typeof data.structure === "string" &&
+        !sequenceCandidateResult(job, data) && (
+          <section aria-label={zh ? "输入结构" : "Input structure"}>
+            {job.request.operation === "inspect" && (
+              <h3>
+                {zh
+                  ? "输入结构预览（非预测结果）"
+                  : "Input structure preview (not a prediction)"}
+              </h3>
+            )}
+            <StructureViewer
+              urls={[artifactUrl(job.id, data.structure)]}
+              language={language}
+              comparison={false}
+              focusResidue={null}
+            />
+          </section>
+        )}
       {Array.isArray(data.structures) &&
+        !sequenceCandidateResult(job, data) &&
         data.structures
           .filter((v): v is string => typeof v === "string")
           .map((name, i) => (

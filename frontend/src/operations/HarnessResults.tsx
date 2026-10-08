@@ -9,6 +9,10 @@ import { CandidateSequenceResults } from "./CandidateSequenceResults";
 import { EpitopeResults } from "./EpitopeResults";
 import { SequenceScoreResults } from "./SequenceScoreResults";
 import { StructureComparisonResults } from "./StructureComparisonResults";
+import {
+  resultStructureFiles,
+  sequenceCandidateResult,
+} from "./candidate-structures";
 const object = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v)
     ? (v as Record<string, unknown>)
@@ -48,21 +52,13 @@ export function HarnessResults({
       />
     );
   }
-  if (
-    ["esm2", "mpnn", "fold"].includes(tool) &&
-    Array.isArray(content.candidates)
-  ) {
+  const candidates = sequenceCandidateResult(job, data);
+  if (candidates) {
     return (
       <CandidateSequenceResults
         job={job}
-        candidates={content.candidates.map(object)}
-        structures={
-          Array.isArray(data.structures)
-            ? data.structures.filter(
-                (value): value is string => typeof value === "string",
-              )
-            : []
-        }
+        candidates={candidates}
+        structures={resultStructureFiles(data)}
         language={language}
       />
     );

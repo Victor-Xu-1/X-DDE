@@ -56,6 +56,17 @@ but omit ligand-pocket controls and their automatic proximity annotations. Nativ
 protein-contact counts remain in their own source-bound table; backbone, surface,
 chain focus, residue selection and image/original-structure downloads remain available.
 
+Protein candidate results have one presentation owner. The selected candidate's
+native `structure_path` must match a registered result file; matching array lengths
+or ordering never establishes a scientific correspondence. The structure appears
+first when explicitly linked, with the exact sequence in an alternate view. Native
+files without a candidate link remain independently inspectable and downloadable.
+Small structure-comparison summaries use compact native values and full-precision
+CSV downloads, with independent original-coordinate previews when aligned output
+is absent. Antibody design templates show their actual inputs, CDR positions and
+unchanged deposited reference structures. Input chain names are design labels;
+they do not imply a matching reference-chain identifier or a new predicted complex.
+
 Whole-structure camera fitting accounts for both viewport axes at initial load and
 on reset. A portrait stage uses the same limiting-axis scale as a desktop view
 resized to portrait, preserving coordinates and rotation. Full-complex overview
