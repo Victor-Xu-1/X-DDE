@@ -13,6 +13,7 @@ on:
       - 'frontend/src/studio.css'
       - 'frontend/src/design/workspaces.css'
       - 'server_tests/test_navigation_shell_browser.py'
+      - 'server_tests/prepare_shell_history.py'
       - '.github/workflows/navigation-shell-checks.yml'
 permissions:
   contents: read
@@ -49,6 +50,7 @@ jobs:
       - name: Real page navigation, modal focus and task search in Chromium
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_shell_history.py
           .venv/bin/python -m playwright install --with-deps chromium
           mkdir -p server_tests/evidence/navigation-shell
           .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/navigation-shell/service.log 2>&1 &

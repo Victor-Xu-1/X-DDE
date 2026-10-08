@@ -183,7 +183,9 @@ def test_navigation_and_search_preserve_inputs_and_select_exact_existing_tasks(s
     expect(sequence).to_have_value(value)
 
     base = os.environ["WB_BROWSER_URL"]
-    job_id = page.request.get(base + "/api/examples/esm").json()["pin"]["job_id"]
+    # Public module examples deliberately stay out of personal task search.
+    # Use the isolated, source-verified historical task restored before startup.
+    job_id = json.loads((EVIDENCE / "searchable-native-history.json").read_text())["job_id"]
     search_trigger.click()
     search.fill(job_id)
     result = page.get_by_role("region", name="任务搜索结果", exact=True)
