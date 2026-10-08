@@ -62,7 +62,7 @@ export function InteractionControls({
         </label>
         <Hint label={zh ? "相互作用显示说明" : "Interaction display help"}>
           {zh
-            ? "默认突出最近的 5 个接触残基，蛋白骨架保持可见。文字随视角避让配体；空间不足时收起部分文字，完整距离仍在接触明细中。这是按重原子距离选择的观察列表，不是药效或作用强弱排名。虚线为 4 Å 内的几何近接；红色为小于 1.5 Å 的过近接触。‘全部’最多显示 60 个残基。化学类型和逐残基作用能需要专门分析。"
+            ? "默认突出最近的 5 个接触残基，蛋白骨架保持可见。文字随视角避让配体；空间不足时收起部分文字，完整距离仍在接触明细中。这是按重原子距离选择的观察列表，不是关键药效残基或作用强弱排名。虚线为 4 Å 内的几何近接；红色为小于 1.5 Å 的过近接触。‘全部’最多显示 60 个残基。化学类型和逐残基作用能需要专门分析。"
             : "The closest 5 contact residues are highlighted and the backbone stays visible. Labels avoid the ligand as the view changes; crowded labels may hide, while complete distances remain in Contact details. This distance-based list is not an efficacy or strength ranking. Dashes mark contacts within 4 Å; red marks distances below 1.5 Å. All displays up to 60 residues. Chemical types and per-residue energies require separate analysis."}
         </Hint>
         {enabled && summary && (
