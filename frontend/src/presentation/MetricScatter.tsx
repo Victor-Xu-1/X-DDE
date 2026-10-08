@@ -1,7 +1,6 @@
 import "./metric-scatter.css";
 import { useEffect, useRef, useState } from "react";
-import { DownloadOutlined } from "@ant-design/icons";
-import { exportSvg } from "./visual-export";
+import { SvgFigureExport } from "../publication/SvgFigureExport";
 import type { Language } from "../types";
 export interface PlotMetric<T> {
   key: string;
@@ -83,16 +82,11 @@ export function MetricScatter<T>({
         <span>
           {points.length} / {rows.length}
         </span>
-        <button
-          type="button"
-          className="visual-export-button"
-          aria-label={zh ? "下载当前图表 SVG" : "Download current chart SVG"}
-          onClick={() => {
-            if (plot.current) exportSvg(plot.current, label);
-          }}
-        >
-          <DownloadOutlined /> SVG
-        </button>
+        <SvgFigureExport
+          language={language}
+          source={() => plot.current}
+          filename={label}
+        />
       </header>
       <div className="scatter-axes">
         <label>

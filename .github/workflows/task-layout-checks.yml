@@ -137,6 +137,20 @@ on:
       - "!frontend/src/viewer/donor-hydrogens*"
       - "!frontend/src/integrations/LibraryInput.tsx"
       - "!frontend/src/operations/OperationResults.tsx"
+      # Print export and shared entry motion use publication-checks.yml.
+      - "!frontend/src/guided/Questionnaire.tsx"
+      - "!frontend/src/presentation/InteractionDiagram.test.tsx"
+      - "!frontend/src/presentation/InteractionDiagram.tsx"
+      - "!frontend/src/presentation/MetricBars.tsx"
+      - "!frontend/src/presentation/MetricScatter.tsx"
+      - "!frontend/src/presentation/MoleculeImage.tsx"
+      - "!frontend/src/presentation/ResearchTabs.tsx"
+      - "!frontend/src/viewer/capture.test.ts"
+      - "!frontend/src/viewer/capture.ts"
+      - "!frontend/src/viewer/useViewerSnapshot.test.ts"
+      - "!frontend/src/viewer/useViewerSnapshot.ts"
+      - "!frontend/src/presentation/useReveal.test.tsx"
+      - "!frontend/src/presentation/useReveal.ts"
   workflow_dispatch:
 permissions:
   contents: read

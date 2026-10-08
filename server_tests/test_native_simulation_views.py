@@ -6,6 +6,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
+from server_tests.publication_browser_helpers import export_figure, inspect_png, inspect_svg
 
 
 @pytest.mark.parametrize("case", ["openmm.dynamics", "openfe.rbfe", "openfe.calculation"])
@@ -128,11 +129,29 @@ def test_native_result_views_and_downloads(case, language):
             )
             expect(viewer).to_have_attribute("data-frame", "2", timeout=30000)
             # View export is separate from scientific coordinate-file download.
-            with page.expect_download() as export:
+            png = export_figure(
+                page,
                 viewer.get_by_role(
                     "button", name="Download view" if language == "en" else "下载视图"
-                ).click()
-            assert export.value.suggested_filename.endswith(".png")
+                ),
+                evidence,
+                language + "-md-figure",
+                language,
+            )
+            inspect_png(png)
+            expect(viewer).to_have_attribute("data-frame", "2")
+            chart = root.locator(".simulation-plot").first
+            svg = export_figure(
+                page,
+                chart.get_by_role(
+                    "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓"
+                ),
+                evidence,
+                language + "-md-curve",
+                language,
+                "SVG",
+            )
+            inspect_svg(svg, "RMSD" if language == "en" else "RMSD")
         else:
             expect(
                 root.get_by_role(
@@ -149,6 +168,17 @@ def test_native_result_views_and_downloads(case, language):
             assert images.evaluate_all(
                 "images => images.every(image => image.complete && image.naturalWidth > 0)"
             )
+            network = root.locator(".fep-network")
+            png = export_figure(
+                page,
+                network.get_by_role(
+                    "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓"
+                ),
+                evidence,
+                language + "-fep-network",
+                language,
+            )
+            inspect_png(png)
             root.get_by_role(
                 "tab", name="Binding poses" if language == "en" else "结合姿势", exact=True
             ).click()
@@ -160,6 +190,16 @@ def test_native_result_views_and_downloads(case, language):
             root.get_by_role(
                 "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
             ).select_option("all")
+            png = export_figure(
+                page,
+                pose.get_by_role(
+                    "button", name="Download view" if language == "en" else "下载视图"
+                ),
+                evidence,
+                language + "-fep-pose",
+                language,
+            )
+            inspect_png(png)
             if case == "openfe.calculation":
                 root.get_by_role(
                     "tab", name="Sampling and convergence" if language == "en" else "采样与收敛"

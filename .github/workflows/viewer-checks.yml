@@ -29,6 +29,14 @@ on:
       - "frontend/src/editors/scientificEditor*"
       - "frontend/src/regions/AtomSelection.tsx"
       - "frontend/src/regions/RegionResult.tsx"
+      # Print export and shared entry motion use publication-checks.yml.
+      - "!frontend/src/viewer/StructureViewer.tsx"
+      - "!frontend/src/viewer/capture.test.ts"
+      - "!frontend/src/viewer/capture.ts"
+      - "!frontend/src/viewer/contact-labels.ts"
+      - "!frontend/src/viewer/frame.ts"
+      - "!frontend/src/viewer/useViewerSnapshot.test.ts"
+      - "!frontend/src/viewer/useViewerSnapshot.ts"
 permissions:
   contents: read
 jobs:

@@ -27,6 +27,6 @@ describe("native contact relationships", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent(
       /线条不表示作用能或亲和力/,
     );
-    expect(screen.getByRole("button", { name: "下载图表 SVG" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /文献图导出/ })).toBeEnabled();
   });
 });

@@ -13,7 +13,7 @@ it("accepts bounded PNGs and refuses active documents or oversized payloads", ()
   expect(
     validSnapshot({
       id: "capture",
-      png: "data:image/png;base64," + "A".repeat(12 * 1024 ** 2),
+      png: "data:image/png;base64," + "A".repeat(64 * 1024 ** 2),
     }),
   ).toBe(false);
   expect(validSnapshot(null)).toBe(false);

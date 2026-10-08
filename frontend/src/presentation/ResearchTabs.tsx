@@ -1,5 +1,6 @@
 import "./research-tabs.css";
 import { useId, useRef, useState, type ReactNode } from "react";
+import { useReveal } from "./useReveal";
 export function ResearchTabs({
   tabs,
   label,
@@ -17,6 +18,8 @@ export function ResearchTabs({
   const [visited, setVisited] = useState(new Set([tabs[0]?.id]));
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const current = tabs.some((t) => t.id === active) ? active : tabs[0]?.id;
+  const panel = useRef<HTMLElement>(null);
+  useReveal(panel, current ?? "");
   return (
     <div className="research-tabs">
       <div className="research-tab-list" role="tablist" aria-label={label}>
@@ -63,6 +66,7 @@ export function ResearchTabs({
       {tabs.map((tab) => (
         <section
           role="tabpanel"
+          ref={current === tab.id ? panel : undefined}
           key={tab.id}
           id={id + "-panel-" + tab.id}
           aria-labelledby={id + "-tab-" + tab.id}

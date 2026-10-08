@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type * as Plotly from "plotly.js";
 import type { Language } from "../types";
 import "./plotly-native.css";
+import { FigureExport } from "../publication/FigureExport";
+import { plotlyFigure } from "../publication/plotly";
 
 export function InteractivePlot({
   title,
@@ -122,22 +124,16 @@ export function InteractivePlot({
           >
             {zh ? "重置" : "Reset"}
           </button>
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => {
-              if (plot.current && element.current)
-                void plot.current.downloadImage(element.current, {
-                  format: "svg",
-                  width: 1000,
-                  height: 600,
-                  filename: title,
-                });
+          <FigureExport
+            language={language}
+            filename={title}
+            format="svg"
+            render={async (settings) => {
+              if (!plot.current || !element.current)
+                throw new Error("Chart is not ready.");
+              return plotlyFigure(plot.current, element.current, settings);
             }}
-            aria-label={`${zh ? "下载" : "Download"} ${title} SVG`}
-          >
-            SVG ↓
-          </button>
+          />
         </div>
       </header>
       {error && (

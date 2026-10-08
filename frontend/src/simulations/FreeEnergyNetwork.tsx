@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { Core } from "cytoscape";
 import type { Language } from "../types";
 import type { FreeEnergyResult } from "./types";
+import { FigureExport } from "../publication/FigureExport";
+import { networkFigure } from "../publication/cytoscape";
 
 export function FreeEnergyNetwork({
   result,
@@ -63,23 +65,21 @@ export function FreeEnergyNetwork({
           >
             {zh ? "适应画布" : "Fit network"}
           </button>
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => {
-              if (!graph.current) return;
-              const a = document.createElement("a");
-              a.href = graph.current.png({
-                full: true,
-                scale: 2,
-                bg: "#ffffff",
-              });
-              a.download = "X-DDE-FEP-network.png";
-              a.click();
+          <FigureExport
+            language={language}
+            filename="X-DDE-FEP-network"
+            format="png"
+            disabled={failure}
+            aspect={() => {
+              const bounds = container.current!.getBoundingClientRect();
+              return bounds.width / bounds.height;
             }}
-          >
-            PNG ↓
-          </button>
+            render={async (settings) => {
+              if (!graph.current || !container.current)
+                throw new Error("Network is not ready.");
+              return networkFigure(graph.current, container.current, settings);
+            }}
+          />
         </div>
       </header>
       {failure && (

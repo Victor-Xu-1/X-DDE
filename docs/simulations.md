@@ -28,6 +28,12 @@ The four preparation pages show one step at a time; the fifth step displays resu
 
 ## Interactive research previews / 网页交互预览
 
+Figure export uses real print widths (89 or 183 mm), 300/600 dpi native PNG rendering and editable SVG plots with 7–9 pt type. PNG files include physical-resolution metadata without resampling their pixels. Native 3D cameras and graph positions are retained; trajectory playback pauses for export. Plot exports preserve the current ranges, original values, error bars and units. Transparent backgrounds are optional. These presets support figure preparation; the destination journal's requirements and scientific validity still need checking.
+文献图导出支持 89/183 mm 实际版面宽度、300/600 dpi 原生 PNG 渲染及 7–9 pt 可编辑 SVG 图表。PNG 写入物理分辨率信息，不对原始渲染像素重新采样。保留三维视角与网络位置；导出时暂停轨迹播放。图表保留当前坐标范围、原始数值、误差与单位，可选择透明背景。预设用于整理图件，目标期刊规范和科学结论仍需单独核对。
+
+Shared questionnaire and result-tab entry transitions retain the same fields and scientific objects. Reduced-motion preferences disable these entry animations; keyboard navigation remains available. Native capture failures, source changes and oversized output remain explicit errors, without synthetic fallback images.
+问卷步骤和结果标签页切换保留原有输入与科学对象；减少动态效果的系统设置会关闭过渡动画，键盘操作仍可用。原生渲染失败、材料变化或超出导出尺寸会明确报错，不生成替代的假图件。
+
 | Responsibility / 职责                       | Implementation / 实现                                                       | Research interaction / 研究操作                                                                                                                                                        |
 | ------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 3D structures and trajectories / 三维与轨迹 | Mol* 5.13.0, MIT; same reviewed version as the existing structure workspace | Native sampled-frame playback, rotation, zoom, ligand/pocket focus, residue selection, A/B pose overlay and view export / 原生采样帧播放、旋转缩放、口袋聚焦、残基定位、姿势叠合与导出 |

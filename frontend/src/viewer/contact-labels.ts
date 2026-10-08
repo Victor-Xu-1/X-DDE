@@ -27,6 +27,28 @@ export class ContactLabelLayer {
   private ligand: XYZ[] = [];
   private updating = false;
   constructor(private viewer: GLViewer) {}
+  printFont(size: number) {
+    const previous = this.entries.map(({ label }) => ({
+      label,
+      style: { ...label.getStyle() },
+    }));
+    const restore = () => {
+      for (const { label, style } of previous)
+        this.viewer.setLabelStyle(label, style);
+    };
+    try {
+      for (const { label, style } of previous)
+        this.viewer.setLabelStyle(label, {
+          ...style,
+          font: "Arial",
+          fontSize: size,
+        });
+    } catch (error) {
+      restore();
+      throw error;
+    }
+    return restore;
+  }
   clear() {
     this.entries = [];
     this.ligand = [];

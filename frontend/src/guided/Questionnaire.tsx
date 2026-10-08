@@ -12,6 +12,7 @@ import { TemplatePreviewContext } from "../examples/context";
 import { TemplateStepHelp } from "../examples/TemplateStepHelp";
 import { firstInvalidQuestion } from "./questionnaire-validity";
 import { researchError } from "../presentation/research-content";
+import { useReveal } from "../presentation/useReveal";
 export interface QuestionStep {
   title: string;
   actions?: ReactNode;
@@ -54,6 +55,8 @@ export function GuidedSteps<T extends { id: string }>({
     mounted = useRef(true),
     pending = useRef(false),
     panels = useRef<(HTMLFieldSetElement | null)[]>([]);
+  const activePanel = useRef<HTMLFieldSetElement | null>(null);
+  useReveal(activePanel, current);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -166,6 +169,7 @@ export function GuidedSteps<T extends { id: string }>({
         <fieldset
           ref={(node) => {
             panels.current[index] = node;
+            if (current === index) activePanel.current = node;
           }}
           key={index}
           hidden={current !== index}

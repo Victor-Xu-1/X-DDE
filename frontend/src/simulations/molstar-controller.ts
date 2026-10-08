@@ -18,6 +18,8 @@ import { ChargeTheme, chargeCoverage } from "./charge-theme";
 import { MolecularSurfaceRepresentationProvider } from "molstar/lib/mol-repr/structure/representation/molecular-surface";
 import type { SurfaceSummary } from "../viewer/protocol";
 import type { Residue } from "./types";
+import type { FigureSettings } from "../publication/settings";
+import { molecularFigure } from "./molstar-figure";
 import { boundPair, ligandLoci, NativeBoundPair } from "./bound-pairs";
 
 export interface StructureSource {
@@ -53,6 +55,7 @@ export class MolecularController {
   private queue = Promise.resolve();
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
+  private viewport?: HTMLDivElement;
   surfaceSummary: SurfaceSummary | null = null;
   private boundContacts: ReturnType<typeof ligandLoci>[] = [];
 
@@ -62,6 +65,7 @@ export class MolecularController {
     onAtom?: (label: string) => void,
   ) {
     await this.plugin.init();
+    this.viewport = container;
     this.plugin.representation.structure.themes.colorThemeRegistry.add(
       ChargeTheme,
     );
@@ -334,10 +338,18 @@ export class MolecularController {
         ),
       );
   }
-  snapshot() {
-    return this.plugin.helpers.viewportScreenshot?.download(
-      "X-DDE-structure.png",
+  figure(settings: FigureSettings): Promise<Blob> {
+    const render = () => {
+      if (!this.viewport) throw new Error("The molecular view is not ready.");
+      return molecularFigure(this.plugin, this.viewport, settings);
+    };
+    const result = this.queue.then(render);
+    // The caller receives the actual failure. Settling the queue keeps later frame selection usable.
+    this.queue = result.then(
+      () => {},
+      () => {},
     );
+    return result;
   }
   dispose() {
     this.resizeObserver?.disconnect();

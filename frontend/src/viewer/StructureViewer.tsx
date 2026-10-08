@@ -32,6 +32,7 @@ import type { DisplayResidue } from "./residue-region";
 import { researchError } from "../presentation/research-content";
 import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
+import { FigureExport } from "../publication/FigureExport";
 import { usePoseOptimization } from "./usePoseOptimization";
 import { poseSource } from "./pose-source";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
@@ -403,6 +404,17 @@ export function StructureViewer({
             <option value="2">{zh ? "清晰 2×" : "Clear 2×"}</option>
             <option value="3">{zh ? "精细 3×" : "Fine 3×"}</option>
           </select>
+          <FigureExport
+            language={language}
+            filename="X-DDE-structure"
+            format="png"
+            aspect={() => {
+              const bounds = frame.current?.getBoundingClientRect();
+              return bounds ? bounds.width / bounds.height : 1.5;
+            }}
+            disabled={!loaded || snapshot.busy}
+            render={(settings) => snapshot.figure(send, settings)}
+          />
           <button
             type="button"
             disabled={!loaded || snapshot.busy}

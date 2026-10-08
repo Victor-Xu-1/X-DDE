@@ -18,6 +18,13 @@ on:
       - "tests/test_simulations.py"
       - "server_tests/test_simulation_browser.py"
       - ".github/workflows/simulation-checks.yml"
+      # Print export and shared entry motion use publication-checks.yml.
+      - "!frontend/src/simulations/DynamicsResults.tsx"
+      - "!frontend/src/simulations/FreeEnergyNetwork.tsx"
+      - "!frontend/src/simulations/InteractivePlot.tsx"
+      - "!frontend/src/simulations/MolecularViewport.tsx"
+      - "!frontend/src/simulations/molstar-controller.ts"
+      - "!frontend/src/simulations/molstar-figure.ts"
 permissions:
   contents: read
 jobs:

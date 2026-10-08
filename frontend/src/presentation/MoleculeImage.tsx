@@ -14,6 +14,9 @@ import {
 } from "./depiction-renderer";
 import type { Language } from "../types";
 import "./molecule-image.css";
+import { FigureExport } from "../publication/FigureExport";
+import { dataUrlBlob } from "../publication/png-resolution";
+import { printSvg } from "../publication/svg";
 const DrawingContext = createContext<DepictionRenderer | null | undefined>(
   undefined,
 );
@@ -166,9 +169,19 @@ export function MoleculeImage({
         />
       )}
       {!compact && url && (
-        <a href={url} download="molecule.svg">
-          {zh ? "下载结构图片" : "Download structure image"}
-        </a>
+        <FigureExport
+          language={language}
+          filename={label + "-structure"}
+          format="svg"
+          render={async (settings) => {
+            const blob = await dataUrlBlob(url);
+            const svg = new DOMParser().parseFromString(
+              await blob.text(),
+              "image/svg+xml",
+            ).documentElement;
+            return printSvg(svg as unknown as SVGSVGElement, settings);
+          }}
+        />
       )}
       {!compact && error && source && (
         <button

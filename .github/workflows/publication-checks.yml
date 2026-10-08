@@ -1,0 +1,86 @@
+name: Scientific figure and interaction checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/publication/**"
+      - "frontend/src/presentation/useReveal*"
+      - "frontend/src/presentation/ResearchTabs.tsx"
+      - "frontend/src/presentation/MetricScatter.tsx"
+      - "frontend/src/presentation/MetricBars.tsx"
+      - "frontend/src/presentation/InteractionDiagram*"
+      - "frontend/src/presentation/MoleculeImage.tsx"
+      - "frontend/src/guided/Questionnaire.tsx"
+      - "frontend/src/viewer/capture*"
+      - "frontend/src/viewer/useViewerSnapshot*"
+      - "frontend/src/viewer/StructureViewer.tsx"
+      - "frontend/src/viewer/frame.ts"
+      - "frontend/src/viewer/contact-labels.ts"
+      - "frontend/src/poses/ClusterMatrix.tsx"
+      - "frontend/src/space/ChannelProfile.tsx"
+      - "frontend/src/simulations/InteractivePlot.tsx"
+      - "frontend/src/simulations/MolecularViewport.tsx"
+      - "frontend/src/simulations/molstar-controller.ts"
+      - "frontend/src/simulations/molstar-figure.ts"
+      - "frontend/src/simulations/FreeEnergyNetwork.tsx"
+      - "frontend/src/simulations/DynamicsResults.tsx"
+      - "server_tests/test_native_simulation_views.py"
+      - "server_tests/*publication*"
+      - ".github/workflows/publication-checks.yml"
+permissions:
+  contents: read
+jobs:
+  publication:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Physical figures, native capture restoration and direct questionnaire/chart consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/publication/settings-svg.test.ts src/publication/png-resolution.test.ts
+          src/publication/FigureExport.test.tsx src/presentation/useReveal.test.tsx
+          src/presentation/MetricScatter.test.tsx src/presentation/InteractionDiagram.test.tsx
+          src/presentation/depiction-renderer.test.ts src/guided/Questionnaire.test.tsx
+          src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts src/viewer/StructureViewer.test.tsx
+          src/viewer/contact-labels.test.ts src/viewer/native-contact-labels.test.ts
+          src/simulations/SimulationResults.test.tsx
+      - name: Existing bootstrap and request-origin security contracts
+        run: >-
+          uv run --locked pytest -q
+          tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
+          tests/test_api_security.py::test_csrf_origin_and_host_boundaries
+      - name: Restore retained real MD, FEP plan and BRD4 case; no scientific execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
+          gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - name: Restore case data and managed editor in isolated CI state
+        run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-pose-examples
+          uv run --locked playwright install chromium --with-deps
+      - name: Bilingual native figure downloads, retained views and responsive questionnaires
+        run: >-
+          uv run --locked pytest -x -q server_tests/test_native_simulation_views.py
+          server_tests/test_publication_browser.py server_tests/test_simulation_browser.py -k 'not calculation'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scientific-figure-evidence
+          path: |
+            outputs/native-simulations/openmm.dynamics/browser/**
+            outputs/native-simulations/openfe.rbfe/browser/**
+            outputs/publication-browser/**
+            outputs/simulation-browser/**

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { Language } from "../types";
-import { exportSvg } from "./visual-export";
+import { SvgFigureExport } from "../publication/SvgFigureExport";
 import type { PlotMetric } from "./MetricScatter";
 /** Native numerical values only; bars retain units and never infer a model score. */
 export function MetricBars<T>({
@@ -35,15 +35,11 @@ export function MetricBars<T>({
     <section className="result-section-card metric-bars" aria-label={title}>
       <header className="evidence-material-toolbar">
         <h3>{title}</h3>
-        <button
-          type="button"
-          className="visual-export-button"
-          onClick={() => {
-            if (svg.current) exportSvg(svg.current, title);
-          }}
-        >
-          {zh ? "下载图表 SVG" : "Download chart SVG"}
-        </button>
+        <SvgFigureExport
+          language={language}
+          source={() => svg.current}
+          filename={title}
+        />
       </header>
       <label>
         {zh ? "显示指标" : "Metric"}{" "}

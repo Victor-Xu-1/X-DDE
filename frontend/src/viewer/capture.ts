@@ -1,4 +1,6 @@
 import type { GLViewer } from "3dmol";
+import { figureDimensions, type FigureSettings } from "../publication/settings";
+import { contactLabelLayer } from "./contact-labels";
 export function captureDimensions(
   width: number,
   height: number,
@@ -25,6 +27,57 @@ export function captureDimensions(
     Math.max(1, Math.floor(width * factor)),
     Math.max(1, Math.floor(height * factor)),
   ] as const;
+}
+/** Render at the requested physical output size; viewport, camera and annotations are restored. */
+export function captureFigure(
+  viewer: GLViewer,
+  element: HTMLElement,
+  settings: FigureSettings,
+) {
+  const bounds = element.getBoundingClientRect(),
+    ratio = viewer.getCanvas().width / bounds.width;
+  if (!Number.isFinite(ratio) || ratio <= 0)
+    throw new Error("The native canvas is not ready.");
+  const size = figureDimensions(settings, bounds.width / bounds.height);
+  const previousWidth = element.style.width,
+    previousHeight = element.style.height,
+    view = viewer.getView();
+  const labels = contactLabelLayer(viewer);
+  const restore = labels.printFont((settings.fontPt * settings.dpi) / 72);
+  try {
+    element.style.width = size.width / ratio + "px";
+    element.style.height = size.height / ratio + "px";
+    viewer.setBackgroundColor("white", settings.transparent ? 0 : 1);
+    viewer.resize();
+    viewer.setView(view);
+    labels.layout();
+    viewer.render();
+    const canvas = viewer.getCanvas();
+    if (
+      Math.abs(canvas.width - size.width) > 2 ||
+      Math.abs(canvas.height - size.height) > 2
+    )
+      throw new Error(
+        "Native canvas did not reach the requested figure resolution.",
+      );
+    return viewer.pngURI();
+  } finally {
+    try {
+      restore();
+    } finally {
+      element.style.width = previousWidth;
+      element.style.height = previousHeight;
+      const background =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--chart-bg")
+          .trim() || "white";
+      viewer.setBackgroundColor(background, 1);
+      viewer.resize();
+      viewer.setView(view);
+      labels.layout();
+      viewer.render();
+    }
+  }
 }
 /** Render genuine geometry at export resolution, then restore the exact view and layout. */
 export function captureView(

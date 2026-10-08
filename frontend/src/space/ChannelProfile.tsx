@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { exportSvg } from "../presentation/visual-export";
+import { SvgFigureExport } from "../publication/SvgFigureExport";
 import type { Language } from "../types";
 import type { Channel } from "./types";
 export function ChannelProfile({
@@ -29,14 +29,11 @@ export function ChannelProfile({
     <div className="channel-profile">
       <div className="channel-profile-heading">
         <h4>{zh ? "沿路径的可用半径" : "Available radius along path"}</h4>
-        <button
-          type="button"
-          onClick={() =>
-            ref.current && exportSvg(ref.current, "channel-radius-profile")
-          }
-        >
-          {zh ? "下载图表" : "Download chart"}
-        </button>
+        <SvgFigureExport
+          language={language}
+          source={() => ref.current}
+          filename={"channel-radius-profile"}
+        />
       </div>
       <svg
         ref={ref}

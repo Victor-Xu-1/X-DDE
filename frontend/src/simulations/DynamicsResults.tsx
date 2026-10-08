@@ -91,6 +91,7 @@ export function DynamicsResults({
         <section className="simulation-trajectory">
           <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
           <MolecularViewport
+            onExport={() => setPlaying(false)}
             onReady={() => {
               frameReady.current = true;
             }}

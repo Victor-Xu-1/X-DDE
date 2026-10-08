@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { exportSvg } from "../presentation/visual-export";
+import { SvgFigureExport } from "../publication/SvgFigureExport";
 import type { Language } from "../types";
 import type { PoseClusterResult, ClusterPair } from "./cluster-types";
 export function ClusterMatrix({
@@ -35,13 +35,11 @@ export function ClusterMatrix({
             </option>
           </select>
         </label>
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={() => svg.current && exportSvg(svg.current, "binding-modes")}
-        >
-          {zh ? "下载比较图" : "Download comparison map"}
-        </button>
+        <SvgFigureExport
+          language={language}
+          source={() => svg.current}
+          filename={"binding-modes"}
+        />
       </div>
       <div className="cluster-matrix-scroll">
         <svg

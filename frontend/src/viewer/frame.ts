@@ -13,7 +13,8 @@ import { validSource } from "./protocol";
 import { spatialMolecule } from "./initial-geometry";
 import { initializeTheme } from "../theme";
 import "./frame.css";
-import { captureView } from "./capture";
+import { captureView, captureFigure } from "./capture";
+import { validFigure } from "../publication/settings";
 import { potentialData } from "./scientific-overlay";
 import {
   resizeZoomFactor,
@@ -299,17 +300,25 @@ window.addEventListener("message", (event) => {
     typeof capture === "object" &&
     typeof capture.id === "string" &&
     /^[0-9a-f-]{36}$/.test(capture.id) &&
-    [1, 2, 3].includes(capture.scale) &&
+    ("figure" in capture
+      ? validFigure(capture.figure)
+      : [1, 2, 3].includes(capture.scale)) &&
     viewer.getModel(0)
   ) {
     try {
       notify("snapshot", {
         id: capture.id,
-        png: captureView(
-          viewer,
-          document.getElementById("molecule")!,
-          capture.scale,
-        ),
+        png: validFigure(capture.figure)
+          ? captureFigure(
+              viewer,
+              document.getElementById("molecule")!,
+              capture.figure,
+            )
+          : captureView(
+              viewer,
+              document.getElementById("molecule")!,
+              capture.scale,
+            ),
       });
     } catch {
       notify("snapshot", { id: capture.id, png: null });

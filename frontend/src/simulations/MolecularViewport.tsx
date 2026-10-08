@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { Residue } from "./types";
 import { SurfaceLegend } from "../viewer/SurfaceLegend";
+import { FigureExport } from "../publication/FigureExport";
 import type { SurfaceSummary } from "../viewer/protocol";
 import type {
   MolecularController,
@@ -17,6 +18,7 @@ export function MolecularViewport({
   language,
   focusResidue,
   onReady,
+  onExport,
 }: {
   sources?: StructureSource[];
   frames?: string[];
@@ -25,6 +27,7 @@ export function MolecularViewport({
   language: Language;
   focusResidue?: Residue | null;
   onReady?(): void;
+  onExport?(): void;
 }) {
   const container = useRef<HTMLDivElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
@@ -190,15 +193,23 @@ export function MolecularViewport({
             <option value="b">B</option>
           </select>
         )}
-        <button
-          type="button"
-          className="text-button"
-          onClick={() => {
-            void controller.current?.snapshot();
+        <FigureExport
+          language={language}
+          filename="X-DDE-structure"
+          format="png"
+          disabled={!loaded}
+          label={zh ? "下载视图" : "Download view"}
+          onStart={onExport}
+          aspect={() => {
+            const bounds = container.current?.getBoundingClientRect();
+            return bounds ? bounds.width / bounds.height : 1.5;
           }}
-        >
-          {zh ? "下载视图" : "Download view"} ↓
-        </button>
+          render={(settings) => {
+            if (!controller.current)
+              throw new Error("The molecular view is not ready.");
+            return controller.current.figure(settings);
+          }}
+        />
         <button
           type="button"
           className="text-button"

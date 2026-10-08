@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GLViewer } from "3dmol";
-import { captureDimensions, captureView } from "./capture";
+import { captureDimensions, captureView, captureFigure } from "./capture";
+import { defaultFigure } from "../publication/settings";
 describe("Native export resolution and restoration", () => {
   it("bounds geometry rendering while retaining the requested aspect ratio", () => {
     expect(captureDimensions(400, 300, 2)).toEqual([800, 600]);
@@ -38,4 +39,40 @@ describe("Native export resolution and restoration", () => {
     expect(setView).toHaveBeenLastCalledWith(view);
     expect(resize).toHaveBeenCalledTimes(2);
   });
+});
+it("renders at real print pixels and restores the original native camera on failure", () => {
+  const element = document.createElement("div");
+  element.style.width = "100%";
+  vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
+    width: 400,
+    height: 300,
+  } as DOMRect);
+  let width = 800;
+  const camera = [0, 1, 2, 3],
+    setView = vi.fn(),
+    background = vi.fn();
+  const viewer = {
+    getView: () => camera,
+    getCanvas: () => ({ width }),
+    setView,
+    setBackgroundColor: background,
+    resize: () => {
+      width = element.style.width.endsWith("px")
+        ? Math.round(parseFloat(element.style.width) * 2)
+        : 800;
+    },
+    render: vi.fn(),
+    pngURI: () => {
+      expect(width).toBe(2102);
+      throw new Error("native capture failed");
+    },
+  } as unknown as GLViewer;
+  expect(() => captureFigure(viewer, element, defaultFigure)).toThrow(
+    "native capture failed",
+  );
+  expect(element.style.width).toBe("100%");
+  expect(element.style.height).toBe("");
+  expect(width).toBe(800);
+  expect(setView).toHaveBeenLastCalledWith(camera);
+  expect(background).toHaveBeenLastCalledWith("white", 1);
 });

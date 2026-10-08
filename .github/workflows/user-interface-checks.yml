@@ -87,6 +87,17 @@ on:
       - '!frontend/src/presentation/result-layout.css'
       # Molecular property pages use their focused inspection gate.
       - '!frontend/src/admet/**'
+      # Print export and shared entry motion use publication-checks.yml.
+      - "!frontend/src/guided/Questionnaire.tsx"
+      - "!frontend/src/presentation/InteractionDiagram.test.tsx"
+      - "!frontend/src/presentation/InteractionDiagram.tsx"
+      - "!frontend/src/presentation/MetricBars.tsx"
+      - "!frontend/src/presentation/MetricScatter.tsx"
+      - "!frontend/src/presentation/MoleculeImage.tsx"
+      - "!frontend/src/presentation/ResearchTabs.tsx"
+      - "!frontend/src/simulations/DynamicsResults.tsx"
+      - "!frontend/src/presentation/useReveal.test.tsx"
+      - "!frontend/src/presentation/useReveal.ts"
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -163,6 +174,17 @@ on:
       - '!frontend/src/presentation/result-layout.css'
       # Molecular property pages use their focused inspection gate.
       - '!frontend/src/admet/**'
+      # Print export and shared entry motion use publication-checks.yml.
+      - "!frontend/src/guided/Questionnaire.tsx"
+      - "!frontend/src/presentation/InteractionDiagram.test.tsx"
+      - "!frontend/src/presentation/InteractionDiagram.tsx"
+      - "!frontend/src/presentation/MetricBars.tsx"
+      - "!frontend/src/presentation/MetricScatter.tsx"
+      - "!frontend/src/presentation/MoleculeImage.tsx"
+      - "!frontend/src/presentation/ResearchTabs.tsx"
+      - "!frontend/src/simulations/DynamicsResults.tsx"
+      - "!frontend/src/presentation/useReveal.test.tsx"
+      - "!frontend/src/presentation/useReveal.ts"
   workflow_dispatch:
 jobs:
   presentation:

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { Language } from "../types";
-import { exportSvg } from "./visual-export";
+import { SvgFigureExport } from "../publication/SvgFigureExport";
 import { Hint } from "../guided/Hint";
 export interface InteractionEdge {
   left: string;
@@ -50,15 +50,11 @@ export function InteractionDiagram({
               : "Schematic layout, not a 2D atom map. Types and distances come from contact records; line width does not encode energy or affinity."}
           </Hint>
         </h3>
-        <button
-          type="button"
-          className="visual-export-button"
-          onClick={() => {
-            if (view.current) exportSvg(view.current, label + "-contacts");
-          }}
-        >
-          {zh ? "下载图表 SVG" : "Download chart SVG"}
-        </button>
+        <SvgFigureExport
+          language={language}
+          source={() => view.current}
+          filename={label + "-contacts"}
+        />
       </header>
       <div className="editor-toolbar">
         <label>

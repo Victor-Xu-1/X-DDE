@@ -1,0 +1,83 @@
+.figure-export-dialog {
+  width: min(440px, calc(100vw - 32px));
+  border: 1px solid var(--line, #e0e5ee);
+  border-radius: 16px;
+  padding: 24px;
+  color: var(--ink, #19304f);
+  background: var(--surface, #fff);
+  box-shadow: 0 24px 90px #263d6630;
+}
+.figure-export-dialog::backdrop {
+  background: #152b4e40;
+  backdrop-filter: blur(3px);
+}
+.figure-export-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.figure-export-dialog h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.figure-export-dialog fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 16px;
+}
+.figure-export-dialog label {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+}
+.figure-export-dialog .figure-background {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.figure-export-dialog .figure-background input {
+  width: auto;
+}
+.figure-output-spec {
+  margin: 20px 0 8px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent, #564ad8);
+  font-size: 13px;
+}
+.figure-export-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.figure-export-dialog .text-button {
+  color: var(--muted, #65748c);
+}
+.figure-export-dialog:focus {
+  outline: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .figure-export-dialog[open] {
+    animation: figure-dialog-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .figure-export-trigger {
+    transition:
+      color 140ms,
+      transform 140ms;
+  }
+  .figure-export-trigger:hover {
+    transform: translateY(-1px);
+  }
+}
+@keyframes figure-dialog-enter {
+  from {
+    opacity: 0.4;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
