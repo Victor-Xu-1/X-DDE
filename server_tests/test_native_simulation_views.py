@@ -18,6 +18,21 @@ def test_native_result_views_and_downloads(case, language):
     identifier = (source / "job-id.txt").read_text()
     evidence = source / "browser"
     evidence.mkdir(exist_ok=True)
+    # Deploy only the reviewed graphical editor, using the same managed component registry.
+    import json
+    from uuid import uuid4
+
+    from opendde_workbench.deployment.installers import install
+    from opendde_workbench.locations import atomic_json
+
+    config = json.loads((source / "state/deployment.json").read_text())
+    component_root = Path(config["root"])
+    installed = json.loads((component_root / "installed.json").read_text())
+    if "ketcher" not in installed:
+        installed["ketcher"] = install(
+            "ketcher", component_root, installed, str(uuid4()), print, lambda: None
+        )
+        atomic_json(component_root / "installed.json", installed)
     with platform(source / "state", evidence / (language + ".log")) as base, sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})

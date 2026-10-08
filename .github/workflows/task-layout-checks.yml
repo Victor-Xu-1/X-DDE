@@ -134,6 +134,8 @@ on:
       - "!frontend/src/design/module-theme.ts"
       - "!frontend/src/examples/guide-data.json"
       - "!frontend/src/studio/research-modules.test.ts"
+      - "!frontend/src/viewer/donor-hydrogens*"
+      - "!frontend/src/integrations/LibraryInput.tsx"
   workflow_dispatch:
 permissions:
   contents: read

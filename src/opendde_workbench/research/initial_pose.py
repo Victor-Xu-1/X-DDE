@@ -14,6 +14,8 @@ COMPUTED_OPERATIONS = {
     "docking",
     "diffsbdd",
     "dataset_dock",
+    "structure_refine",
+    "molecular_dynamics",
 }
 
 

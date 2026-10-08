@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { ResearchTabs } from "../presentation/ResearchTabs";
@@ -27,12 +27,18 @@ export function DynamicsResults({
     [playing, setPlaying] = useState(false);
   const current = result.replicas[repeat] ?? result.replicas[0],
     snapshot = current.frames[frame] ?? current.frames[0];
+  const frameReady = useRef(false);
+  useEffect(() => {
+    frameReady.current = false;
+  }, [snapshot.artifact]);
   useEffect(() => {
     if (!playing) return;
-    const timer = setInterval(
-      () => setFrame((i) => (i + 1) % current.frames.length),
-      1200,
-    );
+    const timer = setInterval(() => {
+      if (frameReady.current) {
+        frameReady.current = false;
+        setFrame((i) => (i + 1) % current.frames.length);
+      }
+    }, 1200);
     return () => clearInterval(timer);
   }, [playing, current.frames.length]);
   const label = (n: number) => `${zh ? "重复" : "Repeat"} ${n}`;
@@ -83,6 +89,9 @@ export function DynamicsResults({
         <section className="simulation-trajectory">
           <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
           <StructureViewer
+            onSceneLoaded={() => {
+              frameReady.current = true;
+            }}
             trajectoryKey={`${job.id}:${current.repeat}`}
             urls={[artifactUrl(job.id, snapshot.artifact)]}
             language={language}
@@ -135,94 +144,90 @@ export function DynamicsResults({
             </div>
           </dl>
         </section>
-        <ResearchTabs
-          label={zh ? "稳定性曲线" : "Stability curves"}
-          tabs={[
-            {
-              id: "backbone",
-              label: "RMSD",
-              content: (
-                <SimulationPlot
-                  title={zh ? "骨架稳定性" : "Backbone stability"}
-                  xLabel="Time (ns)"
-                  yLabel="RMSD (Å)"
-                  series={stability}
-                  selectedX={snapshot.time_ns}
-                  onSelect={chooseTime}
-                  language={language}
-                />
-              ),
-            },
-            {
-              id: "ligand",
-              label: zh ? "配体稳定性" : "Ligand stability",
-              content: (
-                <SimulationPlot
-                  title={zh ? "结合姿势稳定性" : "Bound-pose stability"}
-                  xLabel="Time (ns)"
-                  yLabel="Ligand RMSD (Å)"
-                  series={result.replicas.map((r, i) => ({
-                    label: label(r.repeat),
-                    color: colors[i],
-                    points: r.frames
-                      .filter((f) => f.ligand_rmsd_angstrom != null)
-                      .map((f) => ({
+        <div className="simulation-time-plots">
+          <SimulationPlot
+            title={zh ? "骨架稳定性" : "Backbone stability"}
+            xLabel="Time (ns)"
+            yLabel="RMSD (Å)"
+            series={stability}
+            selectedX={snapshot.time_ns}
+            onSelect={chooseTime}
+            language={language}
+          />
+          <ResearchTabs
+            label={zh ? "稳定性曲线" : "Stability curves"}
+            tabs={[
+              {
+                id: "ligand",
+                label: zh ? "配体稳定性" : "Ligand stability",
+                content: (
+                  <SimulationPlot
+                    title={zh ? "结合姿势稳定性" : "Bound-pose stability"}
+                    xLabel="Time (ns)"
+                    yLabel="Ligand RMSD (Å)"
+                    series={result.replicas.map((r, i) => ({
+                      label: label(r.repeat),
+                      color: colors[i],
+                      points: r.frames
+                        .filter((f) => f.ligand_rmsd_angstrom != null)
+                        .map((f) => ({
+                          x: f.time_ns,
+                          y: f.ligand_rmsd_angstrom!,
+                        })),
+                    }))}
+                    selectedX={snapshot.time_ns}
+                    onSelect={chooseTime}
+                    language={language}
+                  />
+                ),
+              },
+              {
+                id: "radius",
+                label: "Rg",
+                content: (
+                  <SimulationPlot
+                    title={zh ? "结构紧致度" : "Structural compactness"}
+                    xLabel="Time (ns)"
+                    yLabel="Rg (Å)"
+                    series={result.replicas.map((r, i) => ({
+                      label: label(r.repeat),
+                      color: colors[i],
+                      points: r.frames.map((f) => ({
                         x: f.time_ns,
-                        y: f.ligand_rmsd_angstrom!,
+                        y: f.radius_gyration_angstrom,
                       })),
-                  }))}
-                  selectedX={snapshot.time_ns}
-                  onSelect={chooseTime}
-                  language={language}
-                />
-              ),
-            },
-            {
-              id: "radius",
-              label: "Rg",
-              content: (
-                <SimulationPlot
-                  title={zh ? "结构紧致度" : "Structural compactness"}
-                  xLabel="Time (ns)"
-                  yLabel="Rg (Å)"
-                  series={result.replicas.map((r, i) => ({
-                    label: label(r.repeat),
-                    color: colors[i],
-                    points: r.frames.map((f) => ({
-                      x: f.time_ns,
-                      y: f.radius_gyration_angstrom,
-                    })),
-                  }))}
-                  selectedX={snapshot.time_ns}
-                  onSelect={chooseTime}
-                  language={language}
-                />
-              ),
-            },
-            {
-              id: "energy",
-              label: zh ? "势能" : "Potential energy",
-              content: (
-                <SimulationPlot
-                  title={zh ? "体系势能" : "System potential energy"}
-                  xLabel="Time (ns)"
-                  yLabel="Energy (kJ/mol)"
-                  series={result.replicas.map((r, i) => ({
-                    label: label(r.repeat),
-                    color: colors[i],
-                    points: r.frames.map((f) => ({
-                      x: f.time_ns,
-                      y: f.potential_kj_mol,
-                    })),
-                  }))}
-                  selectedX={snapshot.time_ns}
-                  onSelect={chooseTime}
-                  language={language}
-                />
-              ),
-            },
-          ]}
-        />
+                    }))}
+                    selectedX={snapshot.time_ns}
+                    onSelect={chooseTime}
+                    language={language}
+                  />
+                ),
+              },
+              {
+                id: "energy",
+                label: zh ? "势能" : "Potential energy",
+                content: (
+                  <SimulationPlot
+                    title={zh ? "体系势能" : "System potential energy"}
+                    xLabel="Time (ns)"
+                    yLabel="Energy (kJ/mol)"
+                    series={result.replicas.map((r, i) => ({
+                      label: label(r.repeat),
+                      color: colors[i],
+                      points: r.frames.map((f) => ({
+                        x: f.time_ns,
+                        y: f.potential_kj_mol,
+                      })),
+                    }))}
+                    selectedX={snapshot.time_ns}
+                    onSelect={chooseTime}
+                    language={language}
+                  />
+                ),
+              },
+            ]}
+          />
+        </div>
       </div>
       <div className="simulation-secondary-grid">
         <SimulationPlot
