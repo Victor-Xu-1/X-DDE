@@ -2,8 +2,10 @@ import { artifactUrl } from "../api";
 import { Hint } from "../guided/Hint";
 import type { Job, Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
-import { checkLabels } from "./labels";
 import type { PoseQualityResult } from "./types";
+import { QualityCheckList } from "./QualityCheckList";
+import "../presentation/result-inspection.css";
+import "./quality-results.css";
 
 export function QualityResults({
   job,
@@ -17,11 +19,6 @@ export function QualityResults({
   const zh = language === "zh",
     counts = { pass: 0, fail: 0, unavailable: 0 };
   result.checks.forEach((row) => counts[row.outcome]++);
-  const outcome = {
-    pass: zh ? "通过" : "Pass",
-    fail: zh ? "需要复核" : "Needs review",
-    unavailable: zh ? "未能计算" : "Not calculated",
-  };
   return (
     <section
       className="discovery-results"
@@ -41,42 +38,37 @@ export function QualityResults({
               : "Checks are incomplete"}{" "}
         · {zh ? "通过" : "Pass"} {counts.pass} / {result.checks.length}
       </p>
-      <StructureViewer
-        urls={Object.keys(result.previews_sha256)
-          .sort((a, b) =>
-            a.endsWith(".pdb") ? -1 : b.endsWith(".pdb") ? 1 : 0,
-          )
-          .map((name) => artifactUrl(job.id, name))}
-        language={language}
-        molecularSource={{ url: artifactUrl(job.id, "molecule-preview.sdf") }}
-        focusModel={result.inputs.protein ? 1 : 0}
-      />
-      <details open={counts.fail > 0 || counts.unavailable > 0}>
-        <summary>
-          {zh ? "查看全部质控项目" : "Inspect all quality checks"} ·{" "}
-          {result.checks.length}
-        </summary>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>{zh ? "检查项目" : "Check"}</th>
-                <th>{zh ? "结果" : "Outcome"}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.checks.map((row) => (
-                <tr key={row.id}>
-                  <td title={row.id}>
-                    {checkLabels[row.id]?.[zh ? 0 : 1] ?? row.id}
-                  </td>
-                  <td>{outcome[row.outcome]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="result-inspection">
+        <QualityCheckList
+          key={job.id}
+          checks={result.checks}
+          language={language}
+        />
+        <div className="result-inspection-detail">
+          {Object.keys(result.previews_sha256).length > 0 ? (
+            <StructureViewer
+              urls={Object.keys(result.previews_sha256)
+                .sort((a, b) =>
+                  a.endsWith(".pdb") ? -1 : b.endsWith(".pdb") ? 1 : 0,
+                )
+                .map((name) => artifactUrl(job.id, name))}
+              language={language}
+              molecularSource={{
+                url: artifactUrl(job.id, "molecule-preview.sdf"),
+              }}
+              focusModel={result.inputs.protein ? 1 : 0}
+            />
+          ) : (
+            <div className="result-inspection-empty" role="status">
+              <p>
+                {zh
+                  ? "本次质控未提供可预览的结构。"
+                  : "This quality result contains no preview structure."}
+              </p>
+            </div>
+          )}
         </div>
-      </details>
+      </div>
       <Hint
         label={
           zh

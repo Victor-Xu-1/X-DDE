@@ -79,6 +79,19 @@ on:
       - 'server_tests/depiction_browser_helpers.py'
       - 'server_tests/layout_browser_helpers.py'
       - 'server_tests/layout_coverage.py'
+      # Sequence and QC inspections use their own focused native-result gate.
+      - '!frontend/src/presentation/SequenceTrack*'
+      - '!frontend/src/presentation/result-inspection.css'
+      - '!frontend/src/operations/SequenceScoreResults*'
+      - '!frontend/src/operations/sequence-scores.css'
+      - '!frontend/src/antibodies/AntibodyNumberResults*'
+      - '!frontend/src/humanization/HumanizationResults*'
+      - '!frontend/src/humanization/SequenceAlignment*'
+      - '!frontend/src/humanization/SequenceComparison*'
+      - '!frontend/src/humanization/ReferenceMetrics*'
+      - '!frontend/src/humanization/humanization.css'
+      - '!frontend/src/humanization/sequence-alignment.css'
+      - '!frontend/src/quality/QualityResults*'
   workflow_dispatch:
 permissions:
   contents: read

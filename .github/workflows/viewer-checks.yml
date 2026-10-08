@@ -29,9 +29,6 @@ on:
       - 'frontend/src/editors/scientificEditor*'
       - 'frontend/src/regions/AtomSelection.tsx'
       - 'frontend/src/regions/RegionResult.tsx'
-      - '.github/workflows/viewer-checks.yml'
-      - '.github/workflows/task-layout-checks.yml'
-      - '.github/workflows/user-interface-checks.yml'
 permissions:
   contents: read
 jobs:

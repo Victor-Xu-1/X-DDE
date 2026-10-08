@@ -4,10 +4,15 @@
   gap: 2px;
   margin: 1rem 0;
 }
-.antibody-sequence span {
+.antibody-sequence button {
   font-family: monospace;
   padding: 0.25rem 0.3rem;
   border-radius: 3px;
+  border: 1px solid transparent;
+  color: var(--ink);
+}
+.antibody-sequence button[aria-pressed="true"] {
+  border-color: var(--accent);
 }
 .antibody-sequence .framework {
   background: var(--surface-muted);
@@ -15,4 +20,31 @@
 .antibody-sequence .cdr {
   background: var(--accent-soft);
   color: var(--accent);
+}
+.antibody-cdr-table td,
+.antibody-cdr-table th {
+  padding: 10px 8px;
+  vertical-align: top;
+  font-size: 12px;
+}
+.antibody-cdr-table .sequence-cell {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.antibody-cdr-table tr.is-selected {
+  background: var(--surface-hover);
+}
+.cdr-select {
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 0;
+  font: inherit;
+}
+.cdr-select[aria-pressed="true"] {
+  font-weight: 700;
+}
+.cdr-select:disabled {
+  color: var(--muted);
 }

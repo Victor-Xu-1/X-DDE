@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
@@ -93,6 +93,60 @@ it("shows separate native metrics and only hands off the actual changed version"
   expect(
     screen.getByRole("table", { name: "1 final changed positions" }),
   ).toHaveTextContent("Y");
+});
+
+it("an evaluation-only result has no empty proposal column and selection does not leak into another task", async () => {
+  const user = userEvent.setup();
+  const evaluated = {
+    ...result,
+    options: { ...result.options, mode: "evaluate" },
+    rows: [
+      {
+        ...result.rows[0],
+        proposal: null,
+        proposal_evaluation: null,
+        reference: undefined,
+        artifact: null,
+      },
+    ],
+  } as HumanizationResult;
+  const view = render(
+    <HumanizationResults job={job} result={evaluated} language="en" />,
+  );
+  const metrics = screen.getByRole("table", {
+    name: "Reference evaluation of the same sequence",
+  });
+  expect(within(metrics).getAllByRole("columnheader")).toHaveLength(2);
+  expect(screen.queryByRole("button", { name: "Proposal · 1 · Y" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Original · 1 · A" }));
+  expect(
+    screen.getByText("Source position 1 · IMGT 1 · framework · A"),
+  ).toBeVisible();
+  view.rerender(
+    <HumanizationResults
+      job={{ ...job, id: "another-task" }}
+      result={evaluated}
+      language="en"
+    />,
+  );
+  expect(
+    screen.queryByText("Source position 1 · IMGT 1 · framework · A"),
+  ).toBeNull();
+});
+
+it("a changed-position row locates the exact original and proposed residues in one aligned column", async () => {
+  const user = userEvent.setup();
+  render(<HumanizationResults job={job} result={result} language="en" />);
+  await user.click(screen.getByRole("button", { name: "Locate IMGT 1" }));
+  expect(
+    screen.getByRole("button", { name: "Original · 1 · A" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByRole("button", { name: "Proposal · 1 · Y" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByText("Source position 1 · IMGT 1 · framework · A → Y"),
+  ).toBeVisible();
 });
 it("does not fabricate candidates for failed records", () => {
   const failed = {

@@ -5,7 +5,8 @@
   white-space: normal;
 }
 .humanization-metrics td {
-  white-space: nowrap;
+  white-space: normal;
+  font-variant-numeric: tabular-nums;
 }
 .humanization-legend {
   font-size: 12px;
@@ -15,4 +16,36 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+.humanization-metrics th,
+.humanization-metrics td,
+.humanization-changes th,
+.humanization-changes td {
+  padding: 10px 8px;
+  vertical-align: top;
+  font-size: 12px;
+}
+.humanization-metrics caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+.humanization-legend {
+  margin: 0;
+  color: var(--muted);
+}
+.humanization-changes .is-selected {
+  background: var(--surface-hover);
+}
+.alignment-select {
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  padding: 2px 0;
+}
+.alignment-select[aria-pressed="true"] {
+  font-weight: 700;
 }

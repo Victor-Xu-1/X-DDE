@@ -1,0 +1,25 @@
+.quality-check-scroll {
+  max-height: 430px;
+}
+.quality-check-scroll td,
+.quality-check-scroll th {
+  padding: 10px 8px;
+  font-size: 12px;
+  vertical-align: top;
+}
+.quality-outcome {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.quality-outcome.is-pass {
+  color: var(--teal);
+}
+.quality-outcome.is-fail {
+  color: var(--danger);
+}
+.quality-outcome.is-unavailable {
+  color: var(--muted);
+}

@@ -1,0 +1,16 @@
+.sequence-score-results > .result-inspection-heading {
+  margin-bottom: 16px;
+}
+.sequence-score-results .metric-scatter {
+  padding: 12px 0;
+}
+.sequence-score-results .metric-scatter svg {
+  max-height: 230px;
+}
+.sequence-score-results .research-table-toolbar {
+  gap: 8px;
+}
+.sequence-score-results .research-table th,
+.sequence-score-results .research-table td {
+  padding: 10px 8px;
+}

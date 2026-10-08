@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
@@ -100,4 +100,82 @@ it("hands off the exact saved domain sequence and exposes failed inputs without 
   expect(
     screen.queryByRole("link", { name: "Download this domain sequence" }),
   ).toBeNull();
+});
+
+it("links CDRs to absolute full-input positions and keeps IMGT insertions and domain exports intact", async () => {
+  const result = {
+    input_records: [{ id: "heavy", sequence: "AAAACDETTTTT" }],
+    domains: [
+      {
+        id: "heavy-domain",
+        source_id: "heavy",
+        available: true,
+        chain_type: "H",
+        start: 4,
+        end: 6,
+        sequence: "CDE",
+        artifact: "domain.fasta",
+        numbering: [
+          {
+            number: 27,
+            insertion: "",
+            amino_acid: "C",
+            source_position: 5,
+            region: "CDR1",
+          },
+          {
+            number: 27,
+            insertion: "A",
+            amino_acid: "D",
+            source_position: 6,
+            region: "CDR1",
+          },
+          {
+            number: 28,
+            insertion: "",
+            amino_acid: "E",
+            source_position: 7,
+            region: "framework",
+          },
+        ],
+      },
+    ],
+  } as unknown as AntibodyNumberResult;
+  const user = userEvent.setup();
+  const view = render(
+    <AntibodyNumberResults
+      job={{ id: "first" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  expect(screen.getByText("Original positions 5–7")).toBeVisible();
+  expect(
+    screen.getByRole("region", { name: "Full input sequence · heavy" }),
+  ).toHaveTextContent("12 aa");
+  await user.click(
+    within(screen.getByRole("table", { name: "CDR regions" })).getByRole(
+      "button",
+      { name: "CDR1" },
+    ),
+  );
+  expect(screen.getByText("Sequence position 5 · C · CDR1")).toBeVisible();
+  expect(
+    screen.getByRole("button", {
+      name: "Full input sequence · heavy · 5 C · CDR1",
+    }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByRole("link", { name: "Download this domain sequence" }),
+  ).toHaveAttribute("href", "/api/jobs/first/download?name=domain.fasta");
+  await user.click(screen.getByText("Complete IMGT numbering"));
+  expect(screen.getByText("27A")).toBeVisible();
+  view.rerender(
+    <AntibodyNumberResults
+      job={{ id: "second" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  expect(screen.queryByText("Sequence position 5 · C · CDR1")).toBeNull();
 });

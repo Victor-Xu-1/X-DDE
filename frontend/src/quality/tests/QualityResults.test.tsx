@@ -1,8 +1,10 @@
-import { render, screen } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../../types";
 import { QualityResults } from "../QualityResults";
 import type { PoseQualityResult } from "../types";
+afterEach(cleanup);
 
 vi.mock("../../viewer/StructureViewer", () => ({
   StructureViewer: () => <span>Real source preview</span>,
@@ -36,4 +38,34 @@ it("keeps failed and unavailable checks distinct without fabricating a quality p
   expect(screen.getByText("Real source preview")).toBeVisible();
   expect(screen.queryByRole("link", { name: "下载质控报告" })).toBeNull();
   expect(screen.queryByText(/原始指标与来源|native_config_sha256/)).toBeNull();
+});
+
+it("keeps all check categories reachable and never treats a missing preview or check as a pass", async () => {
+  const result = {
+    classification: "incomplete",
+    inputs: {},
+    previews_sha256: {},
+    checks: [
+      { id: "bond_lengths", outcome: "pass" },
+      { id: "bond_angles", outcome: "fail" },
+      { id: "internal_energy", outcome: "unavailable" },
+    ],
+  } as unknown as PoseQualityResult;
+  const user = userEvent.setup();
+  render(
+    <QualityResults job={{ id: "job" } as Job} result={result} language="en" />,
+  );
+  expect(
+    screen.getByText("This quality result contains no preview structure."),
+  ).toBeVisible();
+  const table = screen.getByRole("table", { name: "Quality check outcomes" });
+  expect(within(table).getAllByRole("row")).toHaveLength(4);
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Which checks?" }),
+    "unavailable",
+  );
+  expect(within(table).getAllByRole("row")).toHaveLength(2);
+  expect(within(table).getByText("Not calculated")).toBeVisible();
+  expect(within(table).queryByText("Pass")).toBeNull();
+  expect(screen.queryByText("Real source preview")).toBeNull();
 });

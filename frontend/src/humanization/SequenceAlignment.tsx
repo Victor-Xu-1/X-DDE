@@ -1,101 +1,115 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import type { Language } from "../types";
 import type { EvaluationRow } from "./types";
 import "./sequence-alignment.css";
 export function SequenceAlignment({
   row,
   language,
+  selectedPosition,
+  onSelect,
 }: {
   row: EvaluationRow;
   language: Language;
+  selectedPosition: number | null;
+  onSelect(position: number): void;
 }) {
   const zh = language === "zh",
-    [position, setPosition] = useState<number | null>(null);
-  const residues = row.numbering,
-    blocks = Array.from({ length: Math.ceil(residues.length / 30) }, (_, i) =>
-      residues.slice(i * 30, (i + 1) * 30),
-    );
-  const selected = residues.find((r) => r.source_position === position);
+    scroll = useRef<HTMLDivElement>(null);
+  const selected = row.numbering.find(
+    (residue) => residue.source_position === selectedPosition,
+  );
+  useEffect(() => {
+    if (selectedPosition != null)
+      scroll.current
+        ?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')
+        ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [selectedPosition]);
   return (
     <section
       className="sequence-alignment"
       aria-label={
-        zh ? "原始与建议序列比较" : "Original and proposed sequence comparison"
+        row.proposal
+          ? zh
+            ? "原始与建议序列比较"
+            : "Original and proposed sequence comparison"
+          : zh
+            ? "输入序列与 CDR"
+            : "Input sequence and CDRs"
       }
     >
       <header>
         <h3>{zh ? "序列与 CDR 对照" : "Sequence & CDR alignment"}</h3>
-        <span>IMGT · {residues.length} aa</span>
+        <span>IMGT · {row.numbering.length} aa</span>
       </header>
-      <div className="alignment-scroll">
-        {blocks.map((block, index) => (
-          <div className="alignment-block" key={index}>
-            <span className="alignment-label">{zh ? "原始" : "Original"}</span>
-            <div className="alignment-residues">
-              {block.map((r) => (
+      {row.proposal && (
+        <p className="alignment-row-key">
+          {zh
+            ? "每列上方：原始序列 · 下方：修改建议"
+            : "Each column: original above · proposal below"}
+        </p>
+      )}
+      <div className="alignment-scroll" ref={scroll}>
+        <div className="alignment-pairs">
+          {row.numbering.map((residue) => {
+            const selected = selectedPosition === residue.source_position;
+            const originalLabel =
+              (zh ? "原始" : "Original") +
+              " · " +
+              residue.source_position +
+              " · " +
+              residue.amino_acid;
+            const location = `IMGT ${residue.number}${residue.insertion} · ${residue.region} · ${zh ? "原始位置" : "Source position"} ${residue.source_position}`;
+            return (
+              <div className="alignment-pair" key={residue.source_position}>
+                <small>{residue.source_position}</small>
                 <button
-                  key={r.source_position}
                   type="button"
                   className={
-                    (r.region !== "framework" ? "is-cdr " : "") +
-                    (position === r.source_position ? "is-selected" : "")
+                    (residue.region !== "framework" ? "is-cdr " : "") +
+                    (selected ? "is-selected" : "")
                   }
-                  title={
-                    "IMGT " +
-                    r.number +
-                    r.insertion +
-                    " · " +
-                    r.region +
-                    " · " +
-                    (zh ? "原始位置 " : "Source position ") +
-                    r.source_position
-                  }
-                  onClick={() => setPosition(r.source_position)}
+                  aria-label={originalLabel}
+                  aria-pressed={selected}
+                  title={location}
+                  onClick={() => onSelect(residue.source_position)}
                 >
-                  <small>{r.source_position}</small>
-                  {r.amino_acid}
+                  {residue.amino_acid}
                 </button>
-              ))}
-            </div>
-            {row.proposal && (
-              <>
-                <span className="alignment-label">
-                  {zh ? "建议" : "Proposal"}
-                </span>
-                <div className="alignment-residues">
-                  {block.map((r) => (
-                    <button
-                      key={r.source_position}
-                      type="button"
-                      className={
-                        (r.region !== "framework" ? "is-cdr " : "") +
-                        (row.proposal![r.source_position - 1] !== r.amino_acid
-                          ? "is-modified "
-                          : "") +
-                        (position === r.source_position ? "is-selected" : "")
-                      }
-                      title={
-                        "IMGT " +
-                        r.number +
-                        r.insertion +
-                        " · " +
-                        r.region +
-                        " · " +
-                        r.amino_acid +
-                        " → " +
-                        row.proposal![r.source_position - 1]
-                      }
-                      onClick={() => setPosition(r.source_position)}
-                    >
-                      <small>{r.source_position}</small>
-                      {row.proposal![r.source_position - 1]}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+                {row.proposal && (
+                  <button
+                    type="button"
+                    className={
+                      (residue.region !== "framework" ? "is-cdr " : "") +
+                      (row.proposal[residue.source_position - 1] !==
+                      residue.amino_acid
+                        ? "is-modified "
+                        : "") +
+                      (selected ? "is-selected" : "")
+                    }
+                    aria-label={
+                      (zh ? "建议" : "Proposal") +
+                      " · " +
+                      residue.source_position +
+                      " · " +
+                      row.proposal[residue.source_position - 1]
+                    }
+                    aria-pressed={selected}
+                    title={
+                      location +
+                      " · " +
+                      residue.amino_acid +
+                      " → " +
+                      row.proposal[residue.source_position - 1]
+                    }
+                    onClick={() => onSelect(residue.source_position)}
+                  >
+                    {row.proposal[residue.source_position - 1]}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
       {selected && (
         <footer>

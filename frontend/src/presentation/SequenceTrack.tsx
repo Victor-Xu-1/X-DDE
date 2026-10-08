@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import "./sequence-track.css";
 import { DownloadOutlined } from "@ant-design/icons";
@@ -15,6 +15,7 @@ export function SequenceTrack({
   label,
   regions = [],
   onSelect,
+  selectedPosition,
   unit = "aa",
 }: {
   sequence: string;
@@ -22,10 +23,39 @@ export function SequenceTrack({
   label: string;
   regions?: readonly SequenceRegion[];
   onSelect?(position: number): void;
+  selectedPosition?: number | null;
   unit?: "aa" | "nt";
 }) {
-  const zh = language === "zh",
-    [position, setPosition] = useState<number | null>(null);
+  const zh = language === "zh";
+  const [selection, setSelection] = useState({
+    sequence,
+    label,
+    position: null as number | null,
+  });
+  const scroll = useRef<HTMLDivElement>(null);
+  const requested =
+    selectedPosition !== undefined
+      ? selectedPosition
+      : selection.sequence === sequence && selection.label === label
+        ? selection.position
+        : null;
+  const position =
+    requested != null &&
+    Number.isInteger(requested) &&
+    requested >= 1 &&
+    requested <= sequence.length
+      ? requested
+      : null;
+  function select(position: number) {
+    setSelection({ sequence, label, position });
+    onSelect?.(position);
+  }
+  useEffect(() => {
+    if (position != null)
+      scroll.current
+        ?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')
+        ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [position, sequence]);
   const selectedRegion = regions.find(
     (region) =>
       position != null && position >= region.start && position <= region.end,
@@ -76,14 +106,14 @@ export function SequenceTrack({
                   "%",
               }}
               title={region.label + " · " + region.start + "–" + region.end}
-              onClick={() => setPosition(region.start)}
+              onClick={() => select(region.start)}
             >
               {region.label}
             </button>
           ))}
         </div>
       )}
-      <div className="sequence-track-scroll">
+      <div className="sequence-track-scroll" ref={scroll}>
         <div className="sequence-residue-grid">
           {Array.from(sequence).map((aa, index) => {
             const region = regions.find(
@@ -108,10 +138,8 @@ export function SequenceTrack({
                 title={
                   index + 1 + " · " + aa + (region ? " · " + region.label : "")
                 }
-                onClick={() => {
-                  setPosition(index + 1);
-                  onSelect?.(index + 1);
-                }}
+                aria-pressed={position === index + 1}
+                onClick={() => select(index + 1)}
               >
                 <small>{index % 10 === 0 ? index + 1 : ""}</small>
                 {aa}
