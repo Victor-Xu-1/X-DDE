@@ -248,7 +248,7 @@ export function StructureViewer({
       requestedKey.current = key;
       send("load", {
         urls,
-        initialPosePrepared: optimization.initialReady,
+        ...(optimization.initialReady ? { initialPosePrepared: true } : {}),
         ...(ligandContext ? {} : { ligandContext: false }),
         comparison,
         focusModel,
@@ -499,7 +499,9 @@ export function StructureViewer({
                 setError("");
                 send("load", {
                   urls,
-                  initialPosePrepared: optimization.initialReady,
+                  ...(optimization.initialReady
+                    ? { initialPosePrepared: true }
+                    : {}),
                   comparison,
                   focusModel,
                   ...(focusModels ? { focusModels } : {}),

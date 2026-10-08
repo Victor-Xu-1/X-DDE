@@ -223,7 +223,12 @@ it("links the property landscape to exact record selection and preserves the tab
   expect(
     screen.getByRole("heading", { name: "#4 · Candidate 4" }),
   ).toBeVisible();
-  await user.click(screen.getByRole("tab", { name: "Candidate molecules 4" }));
+  await user.click(
+    within(screen.getByRole("tablist", { name: "Candidate views" })).getByRole(
+      "tab",
+      { name: /^Candidate molecules/ },
+    ),
+  );
   expect(screen.getByRole("searchbox")).toHaveValue("Candidate 3");
 });
 

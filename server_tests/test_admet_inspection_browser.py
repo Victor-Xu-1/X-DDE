@@ -110,7 +110,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     downloaded = pending.value
     downloaded.save_as(EVIDENCE / f"{language}-{width}-landscape.svg")
     assert b"<svg" in Path(downloaded.path()).read_bytes()
-    result.get_by_role("tab", name=re.compile("^(候选分子|Candidate molecules) ")).click()
+    result.get_by_role("tab", name=re.compile("^(候选分子|Candidate molecules)")).click()
     # Initial 3D calculation is accepted by the isolated native pose gate; this
     # inspection gate checks original model predictions without recomputation.
     csv = page.request.get(

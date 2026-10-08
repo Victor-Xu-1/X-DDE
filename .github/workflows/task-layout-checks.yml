@@ -113,6 +113,13 @@ on:
       - '!frontend/src/TaskForm*'
       - '!frontend/src/studio/HomeWorkspace*'
       - '!frontend/src/presentation/result-layout.css'
+      # Initial 3D qualification is covered by native pose and viewer gates.
+      - '!frontend/src/viewer/StructureViewer*'
+      - '!frontend/src/viewer/InitialPoseStatus*'
+      - '!frontend/src/viewer/usePoseOptimization*'
+      - '!frontend/src/viewer/pose-source*'
+      - '!frontend/src/viewer/source-layout*'
+      - '!frontend/src/viewer/viewer.css'
   workflow_dispatch:
 permissions:
   contents: read
