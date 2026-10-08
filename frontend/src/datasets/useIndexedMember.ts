@@ -34,7 +34,7 @@ export function useIndexedMember(jobId: string, memberId: string | null) {
     setState({ key, detail: null, saved: null, phase: "loading" });
     void request<IndexedMember>(
       `/datasets/${jobId}/members/detail?${new URLSearchParams({ member_id: memberId })}`,
-      { signal: controller.signal },
+      { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) },
     )
       .then((detail) => {
         const url = new URL(detail.url, location.origin);
