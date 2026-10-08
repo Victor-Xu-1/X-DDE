@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CloseOutlined, SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import { historyChoiceLabel } from "../presentation/history-choice";
 import type { Job, Language } from "../types";
 
@@ -112,7 +112,7 @@ export function TaskSearch({
           aria-label={zh ? "关闭任务搜索" : "Close task search"}
           onClick={close}
         >
-          <CloseOutlined />
+          {zh ? "取消" : "Cancel"}
         </button>
         {query.trim() && (
           <div

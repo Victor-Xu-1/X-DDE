@@ -22,6 +22,12 @@
 .page-context {
   min-width: 0;
 }
+.compact-search-close {
+  width: auto;
+  min-width: 48px;
+  padding: 0 8px;
+  font-size: 12px;
+}
 .page-context-title {
   min-width: 0;
   overflow-wrap: anywhere;
