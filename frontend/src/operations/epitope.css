@@ -8,6 +8,12 @@
 .epitope-contact-map {
   min-width: 0;
 }
+.studio-app .epitope-contact-map > .viewer-panel {
+  padding: 0;
+}
+.epitope-contact-heading {
+  min-height: 32px;
+}
 .epitope-contact-heading,
 .epitope-contact-actions {
   display: flex;

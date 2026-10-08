@@ -96,6 +96,12 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
             right = page.locator(".epitope-contact-map").bounding_box()
             assert left and right and left["x"] + left["width"] <= right["x"]
             assert abs(left["y"] - right["y"]) <= 2 and right["y"] < 500
+            contact_heading = page.locator(".epitope-contact-heading h3").bounding_box()
+            structure_heading = page.locator(
+                ".epitope-contact-map .studio-heading h3"
+            ).bounding_box()
+            assert contact_heading and structure_heading
+            assert abs(contact_heading["y"] - structure_heading["y"]) <= 4
             capture("epitope-native-desktop")
             first = protein[0]
             label = f"{first['chain']}:{first['residue_name']}{first['residue_id']}"
