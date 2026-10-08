@@ -6,6 +6,7 @@ export function printSvg(
 ): Blob {
   if (
     !validFigure(settings) ||
+    source.namespaceURI !== "http://www.w3.org/2000/svg" ||
     source.localName !== "svg" ||
     source.querySelector("parsererror")
   )

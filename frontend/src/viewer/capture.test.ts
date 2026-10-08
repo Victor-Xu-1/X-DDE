@@ -2,6 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import type { GLViewer } from "3dmol";
 import { captureDimensions, captureView, captureFigure } from "./capture";
 import { defaultFigure } from "../publication/settings";
+// The native WebGL worker has no JSDOM canvas. Browser gates use the real SDK;
+// this isolated test checks capture dimensions and exact restoration on failure.
+vi.mock("3dmol", () => ({
+  Vector2: class {
+    constructor(
+      public x: number,
+      public y: number,
+    ) {}
+  },
+}));
 describe("Native export resolution and restoration", () => {
   it("bounds geometry rendering while retaining the requested aspect ratio", () => {
     expect(captureDimensions(400, 300, 2)).toEqual([800, 600]);
