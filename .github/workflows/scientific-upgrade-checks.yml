@@ -33,10 +33,10 @@ permissions:
   contents: read
 jobs:
   simulations:
-    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["simulation-lock","simulation-native"]'), inputs.check)
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["simulation-lock","simulation-native","simulation-views"]'), inputs.check)
     uses: ./.github/workflows/simulation-checks.yml
     with:
-      check: ${{ inputs.check == 'simulation-lock' && 'locks' || 'native' }}
+      check: ${{ inputs.check == 'simulation-lock' && 'locks' || inputs.check == 'simulation-views' && 'md-views' || 'native' }}
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

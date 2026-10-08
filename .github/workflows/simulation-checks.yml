@@ -10,7 +10,7 @@ on:
       check:
         type: choice
         default: contracts
-        options: [locks, contracts, native]
+        options: [locks, contracts, native, md-views]
   push:
     paths:
       - "src/opendde_workbench/simulations/**"
@@ -21,6 +21,31 @@ on:
 permissions:
   contents: read
 jobs:
+  md-views:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'md-views'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Reuse unchanged actual MD calculation; never repeat inference for layout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 37796009387 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Actual MD snapshots, quantitative curves and downloads
+        run: uv run --locked python -m pytest -q server_tests/test_native_simulation_views.py -k openmm
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-md-view-evidence
+          path: outputs/native-simulations/openmm.dynamics/browser/**
   locks:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'locks'
     runs-on: ubuntu-24.04

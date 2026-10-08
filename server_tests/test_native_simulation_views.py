@@ -27,7 +27,11 @@ def test_native_result_views_and_downloads(case, language):
 
     config = json.loads((source / "state/deployment.json").read_text())
     component_root = Path(config["root"])
-    installed = json.loads((component_root / "installed.json").read_text())
+    installed = (
+        json.loads((component_root / "installed.json").read_text())
+        if (component_root / "installed.json").is_file()
+        else {}
+    )
     if "ketcher" not in installed:
         installed["ketcher"] = install(
             "ketcher", component_root, installed, str(uuid4()), print, lambda: None
