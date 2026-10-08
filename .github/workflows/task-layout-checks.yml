@@ -34,6 +34,7 @@ on:
       - '!frontend/src/viewer/frame.ts'
       - '!frontend/src/viewer/scene.ts'
       - '!frontend/src/viewer/context-focus*'
+      - '!frontend/src/viewer/style.test.ts'
       - 'frontend/src/presentation/**'
       - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/docking/DockingResults*'
