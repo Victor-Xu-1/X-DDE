@@ -176,6 +176,7 @@ def test_questionnaire_preserves_preference_and_public_preview_context(case_page
         settings(page, language)
         page.get_by_role("radio", name="深色" if zh else "Dark", exact=True).check()
         _, result, _, _ = native_result(page, language)
+        result.locator(".admet-selected-molecule").scroll_into_view_if_needed()
         expect(result.locator(".admet-molecule-drawing .molecule-image")).to_have_attribute(
             "data-drawing-state", "ready", timeout=45000
         )

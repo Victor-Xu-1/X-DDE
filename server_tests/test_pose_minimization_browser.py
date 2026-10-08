@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -114,7 +115,7 @@ def test_real_preview_minimization_history_and_download():
                     result = json.load(response)
                 assert hashlib.sha256(file.read_bytes()).hexdigest() == result["artifact_sha256"]
                 previous.click()
-                expect(page.get_by_text("pose 1/2", exact=True)).to_be_visible()
+                expect(page.locator(".pose-version-label")).to_have_text(re.compile(r"^pose 1/2"))
                 expect(page.locator(".pose-energy")).not_to_be_visible()
                 page.get_by_role("button", name="下一个 pose", exact=True).click()
                 expect(page.get_by_text("pose 2/2 · 已保存", exact=True)).to_be_visible()

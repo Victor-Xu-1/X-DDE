@@ -88,10 +88,20 @@ def test_initial_admet_ligand_is_computed_saved_and_reused_in_the_real_browser()
                     "data-drawing-state", "ready", timeout=45000
                 )
                 expect(panel.locator(".molecular-stage")).to_have_count(0)
-                panel.get_by_role("tab", name="3D structure", exact=True).click()
-                expect(
-                    panel.get_by_text("Preparing an optimized 3D conformer…", exact=True)
-                ).to_be_visible(timeout=30000)
+                with page.expect_response(
+                    lambda response: (
+                        response.url.endswith("/api/research/poses/initial")
+                        and response.request.method == "POST"
+                    )
+                ) as reply:
+                    panel.get_by_role("tab", name="3D structure", exact=True).click()
+                initial_reply = reply.value
+                (evidence / "initial-response.json").write_text(
+                    json.dumps(
+                        {"status": initial_reply.status, "body": initial_reply.json()}, indent=2
+                    )
+                )
+                assert initial_reply.status == 200, initial_reply.text()
                 expect(page.locator("html")).to_have_attribute(
                     "data-initial-atoms", re.compile(r"^[1-9][0-9]+$"), timeout=180000
                 )
