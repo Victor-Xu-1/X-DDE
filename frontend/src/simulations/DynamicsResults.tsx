@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { artifactUrl } from "../api";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { MolecularViewport } from "./MolecularViewport";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import { ResearchTable } from "../presentation/ResearchTable";
 import type { Job, Language } from "../types";
 import { SimulationPlot } from "./SimulationPlot";
 import { SimulationFiles } from "./SimulationFiles";
-import type { DynamicsResult } from "./types";
+import type { DynamicsResult, Residue } from "./types";
 import "./simulations.css";
 
 const colors = ["#5865d8", "#18998b", "#b773ab"];
@@ -25,6 +25,7 @@ export function DynamicsResults({
     [repeat, setRepeat] = useState(0),
     [frame, setFrame] = useState(0),
     [playing, setPlaying] = useState(false);
+  const [focusResidue, setFocusResidue] = useState<Residue | null>(null);
   const current = result.replicas[repeat] ?? result.replicas[0],
     snapshot = current.frames[frame] ?? current.frames[0];
   const frameReady = useRef(false);
@@ -88,12 +89,13 @@ export function DynamicsResults({
       <div className="simulation-main-grid">
         <section className="simulation-trajectory">
           <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
-          <StructureViewer
-            onSceneLoaded={() => {
+          <MolecularViewport
+            onReady={() => {
               frameReady.current = true;
             }}
-            trajectoryKey={`${job.id}:${current.repeat}`}
-            urls={[artifactUrl(job.id, snapshot.artifact)]}
+            frames={current.frames.map((f) => artifactUrl(job.id, f.artifact))}
+            frame={frame}
+            focusResidue={focusResidue}
             language={language}
           />
           <div className="trajectory-controls">
@@ -129,6 +131,13 @@ export function DynamicsResults({
               {zh ? "下载当前结构" : "Download frame"} ↓
             </a>
           </div>
+          <p className="field-help">
+            {zh ? "采样帧" : "Sampled frame"} {frame + 1} /{" "}
+            {current.frames.length} ·{" "}
+            {zh
+              ? "原始轨迹可完整下载"
+              : "Full native trajectory available for download"}
+          </p>
           <dl className="simulation-readouts">
             <div>
               <dt>{zh ? "骨架 RMSD" : "Backbone RMSD"}</dt>
@@ -243,11 +252,15 @@ export function DynamicsResults({
             })),
           }))}
           language={language}
+          onSelect={(position) =>
+            setFocusResidue(current.residues[Math.round(position) - 1] ?? null)
+          }
         />
         <ResearchTable
           rows={current.contacts}
           language={language}
           title={zh ? "结合接触占有率" : "Binding-contact occupancy"}
+          onSelect={(row) => setFocusResidue(row)}
           rowId={(r) => `${r.chain}:${r.number}:${r.insertion}`}
           exportName="contact-occupancy.csv"
           columns={[

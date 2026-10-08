@@ -26,6 +26,24 @@ flowchart LR
 The four preparation pages show one step at a time; the fifth step displays results. New tasks start with new inputs. Historical files and public templates require explicit selection. The sole backend is already selected and future alternatives can use the existing method selector.
 准备过程每页仅显示一步，第五步查看结果。新任务默认使用新材料；历史文件和公开模板需明确选择。唯一后端已默认选中，将来的同类后端使用现有模型选择器。
 
+## Interactive research previews / 网页交互预览
+
+| Responsibility / 职责                       | Implementation / 实现                                                       | Research interaction / 研究操作                                                                                                                                                        |
+| ------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3D structures and trajectories / 三维与轨迹 | Mol* 5.13.0, MIT; same reviewed version as the existing structure workspace | Native sampled-frame playback, rotation, zoom, ligand/pocket focus, residue selection, A/B pose overlay and view export / 原生采样帧播放、旋转缩放、口袋聚焦、残基定位、姿势叠合与导出 |
+| Quantitative plots / 定量图表               | Plotly.js cartesian 4.1.2, MIT                                              | Hover values, zoom/pan, time-to-frame selection, native error bars, MBAR heatmaps and SVG export / 悬停数值、缩放平移、时间联动、误差线、重叠热图与导出                                |
+| FEP network / FEP 网络                      | Cytoscape.js 3.34.3, MIT                                                    | Drag nodes, zoom, select transformations, link exact molecular structures and export a network view / 拖动节点、缩放、选择变化、关联精确结构与导出                                     |
+| 2D chemistry / 二维化学结构                 | Existing managed Ketcher                                                    | Explicit bonds and native structures; existing chemical editing and research-file authorities / 原生结构与显式键型，沿用化学编辑及研究文件管理                                         |
+
+These are live data-driven browser components, not screenshot previews. Only selected modules load their graphics bundles. MD reads exact sampled PDB frames on demand and keeps three recently used parsed frames plus the reference model; each file is bounded to 64 MiB and atom-order/topology changes are rejected. Native DCDs, all snapshots and scientific reports remain separately downloadable. Playback uses the actual sampling time; it does not create interpolated conformations or start a simulation.
+这些组件直接在网页中交互，由实际结果数据驱动；选中相关模块后才加载图形库。动力学按需读取精确采样帧，保留三个近期解析帧及参考模型，单文件限制 64 MiB，拒绝原子顺序或拓扑变化。原始 DCD、所有结构帧与研究报告仍可完整下载。播放采用实际采样时间，不生成插值构象或启动计算。
+
+The MD/FEP pages replace their prior 3Dmol snapshot renderer and hand-built chart/network implementations. NGL and a second trajectory service are not added. Other X-DDE structure pages retain the reviewed 3Dmol selection, editing and electrostatics contracts until equivalent behavior is migrated and verified; removing them early would discard existing research functionality. The shared Mol* version remains pinned in the frontend lock and managed component catalogue.
+动力学和 FEP 页面替换原先的 3Dmol 单帧渲染及手工图表、网络实现，不引入 NGL 或第二套轨迹服务。其他结构页面的 3Dmol 选区、编辑及电性功能在等价迁移并检查前保留，避免丢失研究功能。前端与组件管理使用同一固定 Mol* 版本。
+
+Software checks reuse retained native MD results and a genuine OpenFE TYK2 plan. New scientific calculation runs are deferred under the current software-first instruction. The last FEP calculation smoke run did not pass its periodic-box cutoff check; the adapter now retains the reviewed upstream 1.5 nm solvent padding, and target-server calculation acceptance remains pending. An interactive planned network must never be presented as a calculated binding free energy.
+软件检查复用已保存的原生动力学结果与真实 OpenFE TYK2 变化计划。依照当前“先完成软件”的要求，新科学计算暂缓。上次 FEP 短计算未通过周期盒截断距离检查，适配器现恢复上游固定版本的 1.5 nm 溶剂缓冲设置；目标服务器计算验收仍待进行。交互式变化计划不能被表述为已计算的结合自由能。
+
 Dynamics uses native minimization, NVT equilibration and NPT production. Coordinate analysis aligns the backbone to the first production snapshot. Ligands are reimaged as connected molecules in that frame; contacts use periodic minimum-image distances. Residue RMSF uses sampled aligned heavy atoms. Contact occupancy is a geometric frequency at 4 Å, not an interaction force or energy. Original inputs and raw trajectories remain intact. Checkpoints require their matching native system, integrator and runtime; portable XML states are also exported. Automatic restart from a downloaded checkpoint is not exposed as an implemented task feature.
 动力学执行原生最小化、NVT 平衡和 NPT 生产采样。分析以首个生产采样结构的骨架为参考对齐，按周期边界处理完整配体和接触距离。残基 RMSF 来自对齐重原子；接触占有率按 4 Å 距离统计，不是作用力或能量。原始材料和原始轨迹完整保留。检查点须匹配对应的体系、积分器与运行环境，同时导出可移植 XML 状态；当前任务尚未提供从下载检查点自动续跑的入口。
 

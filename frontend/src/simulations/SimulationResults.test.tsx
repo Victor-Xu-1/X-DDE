@@ -11,9 +11,35 @@ vi.mock("./SimulationForm", () => ({
   ),
 }));
 
-vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: ({ urls }: { urls: string[] }) => (
-    <div data-testid="coordinate-view">{urls.join(" ")}</div>
+vi.mock("./MolecularViewport", () => ({
+  MolecularViewport: ({
+    frames,
+    frame,
+  }: {
+    frames: string[];
+    frame: number;
+  }) => <div data-testid="coordinate-view">{frames[frame]}</div>,
+}));
+vi.mock("./FreeEnergyNetwork", () => ({
+  FreeEnergyNetwork: () => <div>Interactive network</div>,
+}));
+vi.mock("./InteractivePlot", () => ({
+  InteractivePlot: ({
+    title,
+    data,
+    onPoint,
+  }: {
+    title: string;
+    data: { x: number[]; y: number[] }[];
+    onPoint?(point: { x: number; pointIndex: number }): void;
+  }) => (
+    <section role="application" aria-label={title}>
+      {data[0]?.x.map((x, i) => (
+        <button key={i} onClick={() => onPoint?.({ x, pointIndex: i })}>
+          {x.toPrecision(4)} {title}
+        </button>
+      ))}
+    </section>
   ),
 }));
 vi.mock("../presentation/MoleculeImage", () => ({
@@ -79,7 +105,9 @@ it("links a sampled time to the exact downloadable snapshot and retains Å/ns un
   timeline.focus();
   await user.keyboard("{ArrowRight}");
   // JSDOM does not implement native range keyboard stepping; chart activation does.
-  await user.click(screen.getByRole("button", { name: /0.02000 Time \(ns\)/ }));
+  await user.click(
+    screen.getByRole("button", { name: /0.02000 Backbone stability/ }),
+  );
   expect(screen.getByTestId("coordinate-view")).toHaveTextContent(
     "frame-2.pdb",
   );
@@ -88,7 +116,7 @@ it("links a sampled time to the exact downloadable snapshot and retains Å/ns un
     expect.stringContaining("frame-2.pdb"),
   );
   expect(
-    screen.getByRole("img", { name: /Residue fluctuations/ }),
+    screen.getByRole("application", { name: /Residue fluctuations/ }),
   ).toBeVisible();
 });
 it("planned FEP networks display mapped structures and never invented free-energy bars", async () => {

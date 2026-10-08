@@ -23,7 +23,8 @@ def protocol(request):
     settings.lambda_settings.lambda_windows = payload["lambda_windows"]
     settings.simulation_settings.n_replicas = payload["lambda_windows"]
     settings.engine_settings.compute_platform = request["options"]["device"]
-    settings.solvation_settings.solvent_padding = 1 * unit.nanometer
+    # Retain the reviewed upstream 1.5 nm padding. A reduced small-ligand box
+    # can violate the native periodic nonbonded cutoff during HREX setup.
     settings.partial_charge_settings.partial_charge_method = "am1bcc"
     settings.partial_charge_settings.off_toolkit_backend = "ambertools"
     return RelativeHybridTopologyProtocol(settings)

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { MoleculeImage } from "../presentation/MoleculeImage";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { MolecularViewport } from "./MolecularViewport";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import { ResearchTable } from "../presentation/ResearchTable";
 import type { Job, Language } from "../types";
@@ -174,21 +174,21 @@ export function FreeEnergyResults({
                     id: "structure",
                     label: zh ? "结合姿势" : "Binding poses",
                     content: (
-                      <ResearchTabs
-                        label={zh ? "分子姿势" : "Molecular poses"}
-                        tabs={[a, b].map((n) => ({
-                          id: n.id,
-                          label: n.id,
-                          content: (
-                            <StructureViewer
-                              urls={[
-                                artifactUrl(job.id, protein),
-                                artifactUrl(job.id, n.artifact),
-                              ]}
-                              language={language}
-                            />
-                          ),
-                        }))}
+                      <MolecularViewport
+                        sources={[
+                          {
+                            url: artifactUrl(job.id, protein),
+                            format: "pdb",
+                            role: "protein",
+                          },
+                          ...[a, b].map((n) => ({
+                            url: artifactUrl(job.id, n.artifact),
+                            format: "sdf" as const,
+                            role: "ligand" as const,
+                            label: n.id,
+                          })),
+                        ]}
+                        language={language}
                       />
                     ),
                   },

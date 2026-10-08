@@ -49,11 +49,12 @@ def test_native_result_views_and_downloads(case, language):
         )
         expect(root).to_be_visible(timeout=30000)
         if case == "openmm.dynamics":
-            viewer = root.locator("iframe").first
+            viewer = root.get_by_test_id("molstar-viewport")
             expect(viewer).to_be_visible()
-            expect(root.locator("canvas")).to_have_count(0)
-            # The molecular canvas lives in the real isolated viewer frame.
-            expect(viewer.content_frame.locator("canvas").first).to_be_visible(timeout=30000)
+            expect(viewer.locator("canvas")).to_be_visible(timeout=30000)
+            expect(viewer.locator(".simulation-webgl")).to_have_attribute(
+                "data-loaded", "true", timeout=45000
+            )
             page.get_by_role(
                 "slider", name="Trajectory time" if language == "en" else "轨迹时间"
             ).fill("3")
@@ -64,34 +65,65 @@ def test_native_result_views_and_downloads(case, language):
             ).to_have_attribute(
                 "href", f"/api/jobs/{identifier}/download?name=repeat-1-frame-0004.pdb"
             )
+            expect(viewer).to_have_attribute("data-frame", "3", timeout=30000)
             expect(
                 root.get_by_role(
-                    "img",
-                    name="Residue fluctuations: Residue sequence position, RMSF (Å)"
-                    if language == "en"
-                    else "残基波动: 残基序列位置, RMSF (Å)",
+                    "application",
+                    name="Residue fluctuations" if language == "en" else "残基波动",
+                    exact=True,
                 )
             ).to_be_visible()
+            expect(root.locator(".js-plotly-plot").first).to_be_visible(timeout=30000)
+            # Actual plotted points select the exact native trajectory frame.
+            plot = root.locator(".js-plotly-plot").first
+            plot.locator(".scatterlayer .point").nth(2).click(force=True)
+            expect(viewer).to_have_attribute("data-frame", "2", timeout=30000)
+            # View export is separate from scientific coordinate-file download.
+            with page.expect_download() as export:
+                viewer.get_by_role(
+                    "button", name="Download view" if language == "en" else "下载视图"
+                ).click()
+            assert export.value.suggested_filename.endswith(".png")
         else:
             expect(
                 root.get_by_role(
-                    "img",
+                    "application",
                     name="Relative binding free-energy perturbation network"
                     if language == "en"
                     else "相对结合自由能变化网络",
                 )
             ).to_be_visible()
+            expect(root.locator(".fep-network-canvas canvas").first).to_be_visible(timeout=30000)
             # Native Ketcher 2D drawings are part of this actual result inspection.
             images = root.locator(".simulation-molecule-pair img")
             expect(images).to_have_count(2, timeout=30000)
             assert images.evaluate_all(
                 "images => images.every(image => image.complete && image.naturalWidth > 0)"
             )
+            root.get_by_role(
+                "tab", name="Binding poses" if language == "en" else "结合姿势", exact=True
+            ).click()
+            pose = root.get_by_test_id("molstar-viewport")
+            expect(pose.locator(".simulation-webgl")).to_have_attribute(
+                "data-loaded", "true", timeout=45000
+            )
+            root.get_by_role(
+                "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
+            ).select_option("b")
+            root.get_by_role(
+                "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
+            ).select_option("all")
             if case == "openfe.calculation":
                 root.get_by_role(
                     "tab", name="Sampling and convergence" if language == "en" else "采样与收敛"
                 ).click()
-                expect(root.get_by_role("img", name="MBAR overlap matrix")).to_be_visible()
+                expect(
+                    root.get_by_role(
+                        "application",
+                        name="Sampling overlap" if language == "en" else "采样重叠",
+                        exact=True,
+                    )
+                ).to_be_visible()
                 root.get_by_role(
                     "tab", name="Convergence" if language == "en" else "收敛曲线", exact=True
                 ).click()
@@ -100,5 +132,8 @@ def test_native_result_views_and_downloads(case, language):
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             root.scroll_into_view_if_needed()
             page.screenshot(path=str(evidence / f"{language}-{width}-results.png"), full_page=True)
+            page.screenshot(
+                path=str(evidence / f"{language}-{width}-viewport.png"), full_page=False
+            )
         assert not errors
         browser.close()

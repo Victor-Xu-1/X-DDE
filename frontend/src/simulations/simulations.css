@@ -256,3 +256,78 @@
   gap: 22px;
   min-width: 0;
 }
+.simulation-webgl {
+  position: relative;
+  height: clamp(320px, 32vw, 460px);
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+}
+.simulation-webgl canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.simulation-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 10px;
+  min-height: 42px;
+}
+.simulation-view-controls button {
+  font-size: 12px;
+}
+.simulation-view-controls button[aria-pressed="true"] {
+  color: #18998b;
+  background: #e7f5f0;
+}
+.simulation-view-controls select {
+  max-width: 170px;
+}
+.simulation-view-status {
+  position: absolute;
+  inset: 40% 16px auto;
+  text-align: center;
+}
+.simulation-atom-label {
+  min-height: 20px;
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.simulation-interactive-plot {
+  width: 100%;
+  min-width: 0;
+}
+.fep-network-canvas {
+  width: 100%;
+  height: 330px;
+  background: linear-gradient(145deg, #fcfdff, #f7fbfd);
+}
+.simulation-network-selection {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  margin-top: 10px;
+}
+.simulation-network-selection select {
+  min-width: 0;
+  flex: 1;
+}
+.simulation-molecular-viewport:fullscreen {
+  background: #fff;
+  padding: 16px;
+}
+.simulation-molecular-viewport:fullscreen .simulation-webgl {
+  height: calc(100vh - 90px);
+}
+@media (max-width: 600px) {
+  .simulation-webgl {
+    height: 350px;
+  }
+  .simulation-network-selection {
+    flex-wrap: wrap;
+  }
+}
