@@ -144,6 +144,7 @@ export function OperationResults({
         job={job}
         result={data as unknown as NativeResult}
         language={language}
+        onCreated={onCreated}
       />
     );
   return (

@@ -24,17 +24,20 @@ export function SimulationForm({
   form,
   language,
   onCreated,
+  initialTask,
 }: {
   form: SimulationFormId;
   language: Language;
   onCreated(job: Job): void;
+  initialTask?: ScientificTask;
 }) {
   const zh = language === "zh",
     fep = form === "openfe.rbfe",
     [, operation] = simulationForms[form];
-  const preset = useExampleTask(operation),
+  const exampleTask = useExampleTask(operation),
     exampleProtein = useExampleReference("protein_only"),
     exampleLigand = useExampleReference(fep ? "tyk2_ligands" : "jq1");
+  const preset = initialTask ?? exampleTask;
   const [structure, setStructure] = useState<MoleculeRef | null>(
     preset?.inputs.find((i) => i.role === "structure")?.source ??
       exampleProtein,
@@ -60,6 +63,7 @@ export function SimulationForm({
     cpu: 2,
     memory_mib: 8192,
     seed: 101,
+    ...initialTask?.options,
   });
   const availability = useTaskReadiness(form),
     run = useTaskSubmit(onCreated);

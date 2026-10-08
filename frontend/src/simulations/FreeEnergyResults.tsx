@@ -10,6 +10,7 @@ import { FreeEnergyNetwork } from "./FreeEnergyNetwork";
 import { FreeEnergyDiagnostics } from "./FreeEnergyDiagnostics";
 import { FreeEnergyForest } from "./FreeEnergyForest";
 import { SimulationFiles } from "./SimulationFiles";
+import { SimulationForm } from "./SimulationForm";
 import "./simulations.css";
 
 export function FreeEnergyResults({
@@ -18,16 +19,45 @@ export function FreeEnergyResults({
   language,
   files,
   protein,
+  onCreated,
 }: {
   job: Job;
   result: FreeEnergyResult;
   language: Language;
   files: Record<string, string>;
   protein?: string | null;
+  onCreated?(job: Job): void;
 }) {
   const zh = language === "zh",
     [selected, setSelected] = useState(result.edges[0].id);
   const edge = result.edges.find((e) => e.id === selected) ?? result.edges[0];
+  const [continuing, setContinuing] = useState(false);
+  if (
+    continuing &&
+    onCreated &&
+    job.request.operation === "binding_free_energy"
+  )
+    return (
+      <section>
+        <button
+          type="button"
+          className="text-button"
+          onClick={() => setContinuing(false)}
+        >
+          {zh ? "返回变化网络" : "Back to perturbation network"}
+        </button>
+        <SimulationForm
+          form="openfe.rbfe"
+          language={language}
+          onCreated={onCreated}
+          initialTask={{
+            ...job.request,
+            payload: { ...job.request.payload, stage: "calculate" },
+            options: { ...job.request.options, device: "cuda" },
+          }}
+        />
+      </section>
+    );
   const a = result.nodes.find((n) => n.id === edge.a)!,
     b = result.nodes.find((n) => n.id === edge.b)!;
   return (
@@ -44,6 +74,17 @@ export function FreeEnergyResults({
               : "Calculated · Scientific review required"}
         </span>
       </div>
+      {result.stage === "plan" &&
+        onCreated &&
+        job.request.operation === "binding_free_energy" && (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setContinuing(true)}
+          >
+            {zh ? "确认并执行 FEP" : "Review and run FEP"}
+          </button>
+        )}
       <div className="simulation-main-grid">
         <FreeEnergyNetwork
           result={result}

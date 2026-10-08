@@ -136,6 +136,7 @@ on:
       - "!frontend/src/studio/research-modules.test.ts"
       - "!frontend/src/viewer/donor-hydrogens*"
       - "!frontend/src/integrations/LibraryInput.tsx"
+      - "!frontend/src/operations/OperationResults.tsx"
   workflow_dispatch:
 permissions:
   contents: read

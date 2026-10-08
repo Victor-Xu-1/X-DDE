@@ -22,10 +22,12 @@ export function ScientificResults({
   job,
   result,
   language,
+  onCreated,
 }: {
   job: Job;
   result: NativeResult;
   language: Language;
+  onCreated?(job: Job): void;
 }) {
   const zh = language === "zh",
     rows = result.candidates;
@@ -95,6 +97,7 @@ export function ScientificResults({
         language={language}
         files={result.artifact_sha256}
         protein={result.structure_artifact}
+        onCreated={onCreated}
       />
     );
   if (result.program === "plip")
