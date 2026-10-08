@@ -34,6 +34,7 @@ on:
       - "!frontend/src/viewer/capture.test.ts"
       - "!frontend/src/viewer/capture.ts"
       - "!frontend/src/viewer/contact-labels.ts"
+      - "!frontend/src/viewer/viewer.css"
       - "!frontend/src/viewer/frame.ts"
       - "!frontend/src/viewer/useViewerSnapshot.test.ts"
       - "!frontend/src/viewer/useViewerSnapshot.ts"

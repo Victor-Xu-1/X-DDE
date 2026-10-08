@@ -15,6 +15,7 @@ on:
       - "frontend/src/viewer/useViewerSnapshot*"
       - "frontend/src/viewer/StructureViewer.tsx"
       - "frontend/src/viewer/frame.ts"
+      - "frontend/src/viewer/viewer.css"
       - "frontend/src/viewer/contact-labels.ts"
       - "frontend/src/poses/ClusterMatrix.tsx"
       - "frontend/src/space/ChannelProfile.tsx"
