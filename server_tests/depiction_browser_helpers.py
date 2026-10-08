@@ -16,6 +16,10 @@ def settle_visible_drawings(page):
                 let bottom = Math.min(innerHeight, bounds.bottom);
                 for (let parent = node.parentElement; parent; parent = parent.parentElement) {
                     const style = getComputedStyle(parent);
+                    if (style.display === 'none' || style.visibility === 'hidden' ||
+                        style.visibility === 'collapse') return false;
+                    if (parent.tagName === 'DETAILS' && !parent.open &&
+                        !parent.querySelector(':scope > summary')?.contains(node)) return false;
                     const clip = parent.getBoundingClientRect();
                     if (['auto','scroll','hidden','clip'].includes(style.overflowX)) {
                         left = Math.max(left, clip.left); right = Math.min(right, clip.right);
