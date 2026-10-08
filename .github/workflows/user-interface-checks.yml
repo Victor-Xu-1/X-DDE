@@ -121,6 +121,7 @@ jobs:
           src/presentation/depiction-renderer.test.ts
           src/viewer/useViewerSnapshot.test.ts
           src/viewer/capture.test.ts
+          src/viewer/camera-resize.test.ts
           src/presentation/research-files.test.tsx
           src/presentation/research-graph.test.ts
           src/research/ResearchWorkspace.test.tsx

@@ -13,6 +13,7 @@ import { initializeTheme } from "../theme";
 import "./frame.css";
 import { captureView } from "./capture";
 import { potentialData } from "./scientific-overlay";
+import { resizeZoomFactor, type ViewportSize } from "./camera-resize";
 initializeTheme();
 const background = () =>
   getComputedStyle(document.documentElement)
@@ -29,8 +30,18 @@ new MutationObserver(() => {
   attributes: true,
   attributeFilter: ["data-theme"],
 });
-new ResizeObserver(() => {
+let previousViewport: ViewportSize | null = null;
+new ResizeObserver(([entry]) => {
+  const next = {
+    width: entry.contentRect.width,
+    height: entry.contentRect.height,
+  };
   viewer.resize();
+  if (previousViewport && viewer.getModel(0)) {
+    const factor = resizeZoomFactor(previousViewport, next);
+    if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
+  }
+  if (next.width > 0 && next.height > 0) previousViewport = next;
   viewer.render();
 }).observe(document.getElementById("molecule")!);
 function notify(type: string, detail: unknown = {}) {

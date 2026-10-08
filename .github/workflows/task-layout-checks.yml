@@ -108,6 +108,7 @@ jobs:
           src/presentation/depiction-renderer.test.ts
           src/viewer/useViewerSnapshot.test.ts
           src/viewer/capture.test.ts
+          src/viewer/camera-resize.test.ts
           src/guided/Questionnaire.test.tsx
           src/integrations/StructureTargetSelection.test.tsx
           src/integrations/PropertyModelSelection.test.tsx
