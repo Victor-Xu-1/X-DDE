@@ -63,6 +63,7 @@ on:
       - '!frontend/src/humanization/humanization.css'
       - '!frontend/src/humanization/sequence-alignment.css'
       - '!frontend/src/quality/QualityResults*'
+      - '!frontend/src/quality/tests/QualityResults.test.tsx'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -115,6 +116,7 @@ on:
       - '!frontend/src/humanization/humanization.css'
       - '!frontend/src/humanization/sequence-alignment.css'
       - '!frontend/src/quality/QualityResults*'
+      - '!frontend/src/quality/tests/QualityResults.test.tsx'
   workflow_dispatch:
 jobs:
   presentation:

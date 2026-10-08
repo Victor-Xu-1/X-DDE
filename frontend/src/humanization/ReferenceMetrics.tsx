@@ -32,7 +32,7 @@ export function ReferenceMetrics({
         </thead>
         <tbody>
           <tr>
-            <th>
+            <th scope="row">
               Sapiens ·{" "}
               {zh ? "平均原生残基概率" : "Mean native residue probability"}
             </th>
@@ -55,7 +55,7 @@ export function ReferenceMetrics({
             )}
           </tr>
           <tr>
-            <th>
+            <th scope="row">
               OAS ·{" "}
               {zh ? "人类参考肽段匹配" : "Human reference peptide matches"}
             </th>
