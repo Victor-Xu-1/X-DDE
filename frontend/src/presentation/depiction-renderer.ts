@@ -15,7 +15,10 @@ async function readStructure(source: DepictionSource, signal: AbortSignal) {
     !Number.isInteger(record) ||
     record < 0 ||
     record > 10000 ||
-    !/^\/api\/(assets|jobs)\//.test(source.url)
+    !(
+      /^\/api\/(assets|jobs)\//.test(source.url) ||
+      /^\/api\/datasets\/[0-9a-f-]+\/members\/structure\?/.test(source.url)
+    )
   )
     throw new Error("Select an exact local molecular record.");
   const response = await fetch(source.url, { signal });

@@ -5,6 +5,7 @@ import type { Language } from "../types";
 import type { ToolId } from "../operations/catalog";
 import { methodChoices } from "./method-choices";
 import "./method-switch.css";
+import { researchText } from "../presentation/research-content";
 export function MethodSwitch({
   value,
   language,
@@ -56,7 +57,7 @@ export function MethodSwitch({
             if (value !== option.id) onChange(option.id);
           }}
         >
-          {option.label}
+          {researchText(option.label, zh)}
           {group.default === option.id && (
             <small>{zh ? "默认" : "Default"}</small>
           )}
@@ -69,7 +70,7 @@ export function MethodSwitch({
         <p>{group.default_basis[zh ? 0 : 1]}</p>
         {group.options.map((option) => (
           <p key={option.id}>
-            {option.label}: {option.note[zh ? 0 : 1]}
+            {researchText(option.label, zh)}: {option.note[zh ? 0 : 1]}
           </p>
         ))}
         <p>

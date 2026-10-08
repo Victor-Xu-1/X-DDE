@@ -20,6 +20,9 @@ on:
       - 'frontend/src/datasets/ResearchTable*'
       - 'frontend/src/datasets/chart-documents*'
       - 'frontend/src/datasets/useChartDocuments*'
+      - 'frontend/src/datasets/IndexedLibraryResults*'
+      - 'frontend/src/datasets/useIndexedMember*'
+      - 'frontend/src/datasets/supplier-label*'
       - 'frontend/src/pockets/**'
       - 'frontend/src/operations/**'
       - 'frontend/src/research/**'
@@ -113,6 +116,9 @@ jobs:
           src/datasets/ModelValidationPlot.test.tsx
           src/datasets/DatasetCharts.test.tsx
           src/datasets/DatasetResults.test.tsx
+          src/datasets/IndexedLibraryResults.test.tsx
+          src/datasets/ResearchTable.test.tsx
+          src/datasets/indexed-source.test.ts
           src/datasets/chart-documents.test.ts
           src/receptors/SurfaceForm.test.tsx
           src/operations/ToolQuestionnaires.test.tsx

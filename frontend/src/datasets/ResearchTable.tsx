@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import { evidenceNotes } from "./evidence-labels";
+import { supplierLabel } from "./supplier-label";
 
 export type TableRow = Record<string, string | number | null>;
 interface Page {
@@ -87,6 +88,7 @@ export function ResearchTable({
   onSelect,
   onSelection,
   selection = [],
+  onRowsLoaded,
 }: {
   jobId: string;
   view: keyof typeof views;
@@ -95,7 +97,10 @@ export function ResearchTable({
   onSelect?(row: TableRow): void;
   onSelection?(ids: string[]): void;
   selection?: string[];
+  onRowsLoaded?(rows: TableRow[]): void;
 }) {
+  const receiver = useRef(onRowsLoaded);
+  receiver.current = onRowsLoaded;
   const zh = language === "zh",
     [page, setPage] = useState<Page | null>(null),
     [offset, setOffset] = useState(0),
@@ -124,7 +129,10 @@ export function ResearchTable({
     });
     void request<Page>(`${path}?${params}`, { signal: c.signal })
       .then((value) => {
-        if (!c.signal.aborted) setPage(value);
+        if (!c.signal.aborted) {
+          setPage(value);
+          receiver.current?.(value.rows);
+        }
       })
       .catch((e) => {
         if (!c.signal.aborted) setError(String(e));
@@ -170,13 +178,18 @@ export function ResearchTable({
           </Hint>
         )}
       </div>
-      <div className="dataset-table-scroll" aria-busy={busy}>
+      <div
+        className={`dataset-table-scroll dataset-${view}-table`}
+        aria-busy={busy}
+      >
         <table>
           <thead>
             <tr>
-              {onSelection && <th aria-label={zh ? "选择" : "Select"} />}{" "}
+              {onSelection && <th aria-label={zh ? "选择" : "Select"} />}
               {views[view].map((key) => (
-                <th key={key}>{labels[key]?.[zh ? 0 : 1] ?? key}</th>
+                <th key={key} className={`dataset-column-${key}`}>
+                  {labels[key]?.[zh ? 0 : 1] ?? key}
+                </th>
               ))}
             </tr>
           </thead>
@@ -205,13 +218,13 @@ export function ResearchTable({
                     </td>
                   )}
                   {views[view].map((key) => (
-                    <td key={key}>
+                    <td key={key} className={`dataset-column-${key}`}>
                       {key === "smiles" ? (
                         row.smiles ? (
                           <MoleculeImage
                             source={{ smiles: String(row.smiles) }}
                             language={language}
-                            label={id}
+                            label={String(row.display_name || id)}
                             compact
                           />
                         ) : (
@@ -219,6 +232,8 @@ export function ResearchTable({
                             {zh ? "结构待解析" : "Unresolved"}
                           </span>
                         )
+                      ) : key === "supplier" ? (
+                        supplierLabel(row.supplier, zh)
                       ) : key === "flags" ? (
                         <span
                           className="dataset-evidence-notes"

@@ -17,7 +17,7 @@ from .result import RESULT_KINDS, validate_result
 from .suppliers import catalogue
 
 
-def register(app, store, settings):
+def register(app, store, settings, assets, mutation):
     @app.get("/api/datasets/public-files")
     def public_files():
         from ..assets import AssetStore
@@ -47,8 +47,10 @@ def register(app, store, settings):
         return job, root, result, hashlib.sha256(content).hexdigest()
 
     from .exploration_routes import register as register_exploration
+    from .member_inspection import register as register_member_inspection
 
     register_exploration(app, completed)
+    register_member_inspection(app, store, assets, mutation, completed)
 
     @app.get("/api/datasets/{job_id}/summary")
     def summary(job_id: UUID):

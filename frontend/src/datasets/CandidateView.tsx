@@ -6,6 +6,7 @@ import { Hint } from "../guided/Hint";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 import { CandidateHandoff } from "./CandidateHandoff";
+import { supplierLabel } from "./supplier-label";
 export function CandidateView({
   job,
   result,
@@ -103,7 +104,7 @@ export function CandidateView({
                           <MoleculeImage
                             source={{ smiles: row.smiles }}
                             language={language}
-                            label={row.id}
+                            label={row.display_name || row.id}
                             compact
                           />
                         ) : (
@@ -118,13 +119,7 @@ export function CandidateView({
                         >
                           {row.display_name || row.id}
                         </button>
-                        <small>
-                          {row.supplier === "custom"
-                            ? zh
-                              ? "研究库"
-                              : "Research library"
-                            : row.supplier}
-                        </small>
+                        <small>{supplierLabel(row.supplier, zh)}</small>
                       </td>
                       {hasScore && (
                         <td>

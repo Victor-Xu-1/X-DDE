@@ -38,6 +38,7 @@ jobs:
           tests/test_dataset_contracts.py tests/test_api_security.py
           tests/test_dataset_worker.py tests/test_dataset_resources.py
           tests/test_dataset_views.py tests/test_dataset_member_view.py
+          tests/test_dataset_member_inspection.py
           tests/test_dataset_workflows.py tests/test_workflows.py
           tests/test_case_bundle.py tests/test_case_bundle_sources.py
           tests/test_example_library.py tests/test_example_pins.py tests/test_examples.py

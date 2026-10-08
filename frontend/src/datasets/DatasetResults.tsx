@@ -8,6 +8,7 @@ import { DefinitionView } from "./DefinitionView";
 import { resultCountLabels as names } from "./result-labels";
 import { ResearchDownloads } from "./ResearchDownloads";
 import { chartArtifacts } from "./chart-documents";
+import { IndexedLibraryResults } from "./IndexedLibraryResults";
 
 export function DatasetResults({
   job,
@@ -123,7 +124,14 @@ export function DatasetResults({
               onCreated={onCreated}
             />
           )}
-          {tableView && (
+          {tableView === "index" && (
+            <IndexedLibraryResults
+              key={job.id}
+              jobId={job.id}
+              language={language}
+            />
+          )}
+          {tableView && tableView !== "index" && (
             <ResearchTable
               jobId={job.id}
               view={tableView}

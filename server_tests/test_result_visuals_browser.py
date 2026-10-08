@@ -231,7 +231,26 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_role("button", name="图表与质量", exact=True)).not_to_be_visible()
             assert page.locator(".dataset-chart").count() == 0
             initial_member = members.first.locator("td").first.inner_text()
+            inspector = page.get_by_role("region", name="入库分子结构检查", exact=True)
+            expect(inspector.get_by_role("heading", name=initial_member, exact=True)).to_be_visible(
+                timeout=30000
+            )
+            expect(
+                inspector.get_by_role("button", name="生成三维视图图片", exact=True)
+            ).to_be_enabled(timeout=30000)
+            molecule_file = download(
+                inspector.get_by_role("link", name="原始构象 MOL", exact=True), "indexed-member.mol"
+            )
+            assert "M  END" in molecule_file.read_text()
+            assert page.locator(".dataset-column-id").first.bounding_box()["width"] >= 150
             record("indexed-native-members")
+            second_member = members.nth(1).locator("td").first.inner_text()
+            members.nth(1).get_by_role("button", name=second_member, exact=True).click()
+            expect(inspector.get_by_role("heading", name=second_member, exact=True)).to_be_visible()
+            expect(
+                inspector.get_by_role("button", name="生成三维视图图片", exact=True)
+            ).to_be_enabled(timeout=30000)
+            record("indexed-native-member-selection")
             page.get_by_role("button", name="下一页", exact=True).click()
             expect(members.first.locator("td").first).not_to_have_text(initial_member)
             record("indexed-native-members-page-2")

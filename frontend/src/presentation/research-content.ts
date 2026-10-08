@@ -31,6 +31,10 @@ export function unwrapResult(value: unknown): unknown {
   return value;
 }
 const messages: Record<string, [string, string]> = {
+  "Pocket–molecule joint retrieval": [
+    "口袋–分子联合检索",
+    "Pocket–molecule joint retrieval",
+  ],
   "No antibody-like structural analogs passed the domain filter.": [
     "未找到符合结构域筛选条件的相似抗体结构。",
     "No antibody-like structural analogs passed the domain filter.",

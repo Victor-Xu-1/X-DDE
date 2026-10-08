@@ -95,6 +95,7 @@ export const validSource = (raw: string, origin: string) => {
     !(
       /^\/api\/assets\/[0-9a-f-]+$/.test(url.pathname) ||
       /^\/api\/jobs\/[0-9a-f-]+\/download$/.test(url.pathname) ||
+      /^\/api\/datasets\/[0-9a-f-]+\/members\/structure$/.test(url.pathname) ||
       /^\/api\/harness\/campaigns\/[A-Za-z0-9._-]+\/structure$/.test(
         url.pathname,
       )

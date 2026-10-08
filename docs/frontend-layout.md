@@ -314,6 +314,18 @@ from departed pages are skipped before editor mutation, while a deduplicated
 drawing remains live when another consumer still needs it. Native timeout and
 pending-work limits are retained; the scientific source is never changed.
 
+Indexed libraries pair the member table with an exact native MOL inspector.
+Preview/download reads are side-effect free. Selecting a member loads its actual
+stored coordinates with a report-bound URL; no new embedding, optimization or
+binding pose is implied. Explicit preservation copies the unchanged MOL through
+the existing AssetStore/ScientificStore and links the original job. Retry is
+idempotent; saved files enable the existing pose/edit/task pathways.
+
+Member identifiers retain minimum column widths on compact screens; tables scroll
+within their own region. Supplied names are used in molecule alt text, custom
+sources read as research libraries, and the retrieval model label is localized.
+The table header no longer creates an invalid whitespace node under a row.
+
 Native candidate-set comparisons now pair numeric tables with selectable SVG bar charts. Recurring mutations retain both native denominators and missing improvement scores; no genealogy is drawn when the native result has no parent-child tree. Target MSA results show the original query sequence and native alignment depth, with FASTA and result JSON downloads; historical jobs without attached A3M files do not claim a portable alignment matrix.
 
 Generated result previews are now derived from the declared original SDF records and byte digest, independently of optional research-version indexing. Native and qualified record counts must match the actual SDF before display. Reusable task handoffs still require a real immutable object matching the source job, output digest and record; missing historical index metadata never creates synthetic references.
