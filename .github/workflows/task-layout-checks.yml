@@ -132,6 +132,8 @@ on:
       - "!frontend/src/studio/research-modules.ts"
       - "!frontend/src/studio/research-icons.ts"
       - "!frontend/src/design/module-theme.ts"
+      - "!frontend/src/examples/guide-data.json"
+      - "!frontend/src/studio/research-modules.test.ts"
   workflow_dispatch:
 permissions:
   contents: read

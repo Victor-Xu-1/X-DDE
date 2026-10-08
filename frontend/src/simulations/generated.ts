@@ -12,6 +12,8 @@ export const simulationDefaults = {
     timestep_fs: 2,
     frames: 100,
     repeats: 1,
+    time_limit_seconds: 86400,
+    output_bytes: 8589934592,
   },
   freeEnergy: {
     kind: "openfe",
@@ -23,5 +25,7 @@ export const simulationDefaults = {
     repeats: 3,
     lambda_windows: 11,
     temperature_kelvin: 298.15,
+    time_limit_seconds: 604800,
+    output_bytes: 34359738368,
   },
 } as const;

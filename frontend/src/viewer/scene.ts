@@ -5,6 +5,7 @@ import {
   focusedViewScale,
 } from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
+import { nonDonorLigandHydrogens } from "./donor-hydrogens";
 import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
@@ -287,6 +288,12 @@ export class MolecularScene {
       });
     }
     await this.paintSurface();
+    const hydrogenIndices = nonDonorLigandHydrogens(
+      v.selectedAtoms({ model: 0 }),
+      !this.info.hasPolymer,
+    );
+    if (hydrogenIndices.length)
+      v.setStyle({ model: 0, index: hydrogenIndices }, {});
     v.render();
   }
   async showAttachments(value: unknown) {

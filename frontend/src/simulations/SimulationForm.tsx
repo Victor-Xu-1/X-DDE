@@ -180,6 +180,7 @@ export function SimulationForm({
               )}
               {fep ? (
                 <LibraryInput
+                  selectRecords
                   value={ligand}
                   onChange={(v) => {
                     setLigand(v);

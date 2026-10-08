@@ -42,6 +42,7 @@ import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
 interface Props {
+  trajectoryKey?: string;
   ligandContext?: boolean;
   initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
@@ -65,6 +66,7 @@ interface Props {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewer({
+  trajectoryKey,
   ligandContext = true,
   initialMode,
   urls: originalUrls,
@@ -115,6 +117,7 @@ export function StructureViewer({
     poseIndex,
   );
   const { urls, records, score: nativeScore } = optimization.pose;
+  const previousTrajectory = useRef<string | undefined>(undefined);
   const optimizationReceiver = useRef(optimization);
   optimizationReceiver.current = optimization;
   const frame = useRef<HTMLIFrameElement>(null),
@@ -246,11 +249,14 @@ export function StructureViewer({
     setSiteStatus(null);
     setError("");
     setScene(emptyScene);
-    setOptions(defaultOptions);
+    if (!trajectoryKey || previousTrajectory.current !== trajectoryKey)
+      setOptions(defaultOptions);
+    previousTrajectory.current = trajectoryKey;
     if (ready && urls.length) {
       requestedKey.current = key;
       send("load", {
         urls,
+        ...(trajectoryKey ? { trajectoryKey } : {}),
         ...(optimization.initialReady ? { initialPosePrepared: true } : {}),
         ...(ligandContext ? {} : { ligandContext: false }),
         comparison,
@@ -268,7 +274,7 @@ export function StructureViewer({
       if (ready) send("clear");
       setStatus("empty");
     }
-  }, [ready, key, comparison, focusModel, focusKey]);
+  }, [ready, key, comparison, focusModel, focusKey, trajectoryKey]);
   useEffect(() => {
     if (!focusLigand) {
       focusedLigand.current = null;
@@ -502,6 +508,7 @@ export function StructureViewer({
                 setError("");
                 send("load", {
                   urls,
+                  ...(trajectoryKey ? { trajectoryKey } : {}),
                   ...(optimization.initialReady
                     ? { initialPosePrepared: true }
                     : {}),

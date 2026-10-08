@@ -83,6 +83,7 @@ export function DynamicsResults({
         <section className="simulation-trajectory">
           <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
           <StructureViewer
+            trajectoryKey={`${job.id}:${current.repeat}`}
             urls={[artifactUrl(job.id, snapshot.artifact)]}
             language={language}
           />

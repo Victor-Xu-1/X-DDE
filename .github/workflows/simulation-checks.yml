@@ -70,11 +70,14 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --group browser
       - name: Native explicit-water dynamics and OpenFE public TYK2 planning
         env:
           WB_TEST_NATIVE_SIMULATIONS: "1"
         run: uv run --locked --with biopython==1.88 python -m pytest -q server_tests/test_native_simulations.py
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Inspect real native structures, trajectories, maps and diagnostics
+        run: uv run --locked python -m pytest -q server_tests/test_native_simulation_views.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

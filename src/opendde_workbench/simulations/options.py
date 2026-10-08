@@ -18,6 +18,8 @@ class DynamicsPayload(BaseModel):
     timestep_fs: Literal[1, 2] = 2
     frames: int = Field(default=100, ge=2, le=200)
     repeats: int = Field(default=1, ge=1, le=3)
+    time_limit_seconds: int = Field(default=86400, ge=300, le=604800)
+    output_bytes: int = Field(default=8 * 1024**3, ge=128 * 1024**2, le=64 * 1024**3)
 
     @model_validator(mode="after")
     def sampling(self) -> Self:
@@ -38,6 +40,8 @@ class FreeEnergyPayload(BaseModel):
     repeats: int = Field(default=3, ge=1, le=6)
     lambda_windows: Literal[11, 16, 24] = 11
     temperature_kelvin: float = Field(default=298.15, ge=273.15, le=330)
+    time_limit_seconds: int = Field(default=604800, ge=300, le=604800)
+    output_bytes: int = Field(default=32 * 1024**3, ge=128 * 1024**2, le=64 * 1024**3)
 
     @model_validator(mode="after")
     def records_unique(self) -> Self:

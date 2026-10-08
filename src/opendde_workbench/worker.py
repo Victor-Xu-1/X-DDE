@@ -168,6 +168,8 @@ class Worker:
                 timeout = (
                     job.request.time_limit_seconds
                     if isinstance(job.request, DatasetTask)
+                    else job.request.payload.time_limit_seconds
+                    if job.request.operation in {"molecular_dynamics", "binding_free_energy"}
                     else 24 * 3600
                     if job.request.operation == "resources"
                     else 150
@@ -185,7 +187,13 @@ class Worker:
                     for p in measured.rglob("*")
                     if p.is_file() and not p.is_symlink()
                 )
-                budget = job.request.output_bytes if is_dataset else 1024**3
+                budget = (
+                    job.request.output_bytes
+                    if is_dataset
+                    else job.request.payload.output_bytes
+                    if job.request.operation in {"molecular_dynamics", "binding_free_energy"}
+                    else 1024**3
+                )
                 if size > budget:
                     error = "Task output exceeded its selected storage budget."
                     await self.engine.stop(job.id)

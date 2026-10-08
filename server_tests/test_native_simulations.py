@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import sqlite3
 import time
 from pathlib import Path
 from uuid import uuid4
@@ -41,7 +42,7 @@ def test_native_public_simulation_pipeline(tmp_path, capability):
     assets = AssetStore(store, state / "assets")
     prepared = prepare_example(capability, ScientificStore(store, assets), state / "public")
     original = {
-        o.reference.asset_id: assets.path(assets.get(o.reference.asset_id)).read_bytes()
+        str(o.reference.asset_id): assets.path(assets.get(o.reference.asset_id)).read_bytes()
         for o in prepared.objects.values()
     }
     request = prepared.request
@@ -80,7 +81,16 @@ def test_native_public_simulation_pipeline(tmp_path, capability):
                 if job["status"] in {"succeeded", "failed", "cancelled"}:
                     break
                 time.sleep(0.5)
-            assert job["status"] == "succeeded", client.get(f"/api/jobs/{identifier}/logs").json()
+            if job["status"] != "succeeded":
+                diagnostic = client.get(f"/api/jobs/{identifier}/logs").json()["text"]
+                print(diagnostic[-16000:])
+                failure_dir = Path("outputs/native-simulations") / (suffix + "-failure")
+                failure_dir.mkdir(parents=True, exist_ok=True)
+                (failure_dir / "native.log").write_text(diagnostic)
+                (failure_dir / "request.json").write_text(json.dumps(job["request"]))
+            assert job["status"] == "succeeded", (
+                "Native simulation failed; see captured native diagnostics."
+            )
             response = client.get(f"/api/jobs/{identifier}/result")
             assert response.status_code == 200, response.text
             report = response.json()
@@ -106,6 +116,18 @@ def test_native_public_simulation_pipeline(tmp_path, capability):
                     }
                 )
             )
+            snapshot = evidence / "state"
+            shutil.copytree(
+                state,
+                snapshot,
+                dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns(
+                    "jobs.sqlite3", "jobs.sqlite3-wal", "jobs.sqlite3-shm"
+                ),
+            )
+            with store.connect() as db, sqlite3.connect(snapshot / "jobs.sqlite3") as saved:
+                db.backup(saved)
+            (evidence / "job-id.txt").write_text(identifier)
             return report
 
         report = submit(request, capability)

@@ -3,6 +3,7 @@ import type { NativeInteraction } from "../integrations/types";
 import { channelGeometry, type ChannelGeometry } from "./channel-geometry";
 import type { ViewMode } from "./protocol";
 export interface ViewerLoad {
+  trajectoryKey?: string;
   initialPosePrepared?: boolean;
   ligandContext?: boolean;
   initialMode?: ViewMode;
@@ -40,6 +41,12 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid structure sources");
   const sourceCount = v.urls.length;
+  if (
+    v.trajectoryKey !== undefined &&
+    (typeof v.trajectoryKey !== "string" ||
+      !/^[A-Za-z0-9_.:-]{1,100}$/.test(v.trajectoryKey))
+  )
+    throw new Error("Invalid trajectory identity");
   if (
     v.initialPosePrepared !== undefined &&
     typeof v.initialPosePrepared !== "boolean"
@@ -83,6 +90,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid molecular records");
   return {
+    ...(v.trajectoryKey === undefined
+      ? {}
+      : { trajectoryKey: v.trajectoryKey as string }),
     ...(v.initialPosePrepared === undefined
       ? {}
       : { initialPosePrepared: v.initialPosePrepared as boolean }),

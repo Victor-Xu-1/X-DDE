@@ -3,32 +3,32 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'frontend/src/viewer/**'
-      - 'frontend/src/poses/PoseResults*'
-      - 'frontend/src/poses/PoseList*'
-      - 'frontend/src/poses/PoseOutcomeList*'
-      - 'frontend/src/poses/PoseDetail*'
-      - 'frontend/src/receptors/ReceptorResults*'
-      - 'frontend/src/receptors/ReceptorMember*'
-      - 'frontend/src/receptors/receptors.css'
-      - 'frontend/src/presentation/ensemble-results.css'
-      - 'frontend/src/diffsbdd/ScientificDetails*'
-      - 'frontend/src/diffsbdd/InteractionResults*'
-      - 'frontend/src/diffsbdd/interaction-results.css'
-      - 'frontend/src/diffsbdd/diffsbdd.css'
-      - 'server_tests/test_ensemble_results_browser.py'
-      - 'server_tests/test_context_camera_browser.py'
-      - 'server_tests/ensemble_browser_helpers.py'
-      - 'server_tests/prepare_visual_components.py'
-      - 'frontend/src/docking/poseScore*'
-      - 'frontend/src/docking/DockingResults*'
-      - 'frontend/src/docking/types.ts'
-      - 'frontend/src/editors/molstar*'
-      - 'frontend/src/editors/ketcher*'
-      - 'frontend/src/editors/Editors.tsx'
-      - 'frontend/src/editors/scientificEditor*'
-      - 'frontend/src/regions/AtomSelection.tsx'
-      - 'frontend/src/regions/RegionResult.tsx'
+      - "frontend/src/viewer/**"
+      - "frontend/src/poses/PoseResults*"
+      - "frontend/src/poses/PoseList*"
+      - "frontend/src/poses/PoseOutcomeList*"
+      - "frontend/src/poses/PoseDetail*"
+      - "frontend/src/receptors/ReceptorResults*"
+      - "frontend/src/receptors/ReceptorMember*"
+      - "frontend/src/receptors/receptors.css"
+      - "frontend/src/presentation/ensemble-results.css"
+      - "frontend/src/diffsbdd/ScientificDetails*"
+      - "frontend/src/diffsbdd/InteractionResults*"
+      - "frontend/src/diffsbdd/interaction-results.css"
+      - "frontend/src/diffsbdd/diffsbdd.css"
+      - "server_tests/test_ensemble_results_browser.py"
+      - "server_tests/test_context_camera_browser.py"
+      - "server_tests/ensemble_browser_helpers.py"
+      - "server_tests/prepare_visual_components.py"
+      - "frontend/src/docking/poseScore*"
+      - "frontend/src/docking/DockingResults*"
+      - "frontend/src/docking/types.ts"
+      - "frontend/src/editors/molstar*"
+      - "frontend/src/editors/ketcher*"
+      - "frontend/src/editors/Editors.tsx"
+      - "frontend/src/editors/scientificEditor*"
+      - "frontend/src/regions/AtomSelection.tsx"
+      - "frontend/src/regions/RegionResult.tsx"
 permissions:
   contents: read
 jobs:
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      WB_AUTO_DEPLOY: '0'
+      WB_AUTO_DEPLOY: "0"
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +60,7 @@ jobs:
         run: >-
           npx vitest run src/viewer/atom-region.test.ts src/viewer/channel-geometry.test.ts
           src/viewer/attachment-geometry.test.ts
+          src/viewer/donor-hydrogens.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/geometry.test.ts src/viewer/initial-geometry.test.ts
           src/viewer/ViewerControls.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/source-layout.test.ts src/viewer/focus-layout.test.ts

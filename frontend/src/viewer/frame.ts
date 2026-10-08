@@ -63,6 +63,7 @@ const scene = new MolecularScene(viewer, notify, () =>
 let controller: AbortController | null = null,
   generation = 0;
 let loadedSourceIdentity: string | null = null;
+let loadedTrajectoryKey: string | undefined;
 function reset() {
   const viewport = document.getElementById("molecule")!.getBoundingClientRect();
   viewer.zoomTo();
@@ -79,9 +80,14 @@ async function load(input: ViewerLoad) {
     comparison: input.comparison,
   });
   const retainedView =
-    input.channelGeometry && loadedSourceIdentity === sourceIdentity
+    (input.channelGeometry && loadedSourceIdentity === sourceIdentity) ||
+    (input.trajectoryKey &&
+      loadedTrajectoryKey === input.trajectoryKey &&
+      loadedSourceIdentity)
       ? viewer.getView()
       : undefined;
+  const retainedOptions =
+    input.trajectoryKey && retainedView ? { ...scene.options } : undefined;
   loadedSourceIdentity = null;
   controller?.abort();
   controller = new AbortController();
@@ -161,6 +167,7 @@ async function load(input: ViewerLoad) {
       scene.options.mode = input.initialMode;
       if (input.initialMode === "cartoon") scene.options.labels = false;
     }
+    if (retainedOptions) Object.assign(scene.options, retainedOptions);
     scene.channelGeometry = input.channelGeometry;
     if (input.channelGeometry) {
       scene.options.mode = "cartoon";
@@ -191,7 +198,12 @@ async function load(input: ViewerLoad) {
     if (retainedView) viewer.setView(retainedView);
     else if (scene.channelGeometry) scene.focusChannel();
     loadedSourceIdentity = sourceIdentity;
-    if (scene.options.mode === "pocket" && !scene.channelGeometry)
+    loadedTrajectoryKey = input.trajectoryKey;
+    if (
+      !retainedView &&
+      scene.options.mode === "pocket" &&
+      !scene.channelGeometry
+    )
       scene.focusLigand();
     notify("loaded", { ...scene.info, options: scene.options });
   } catch (error) {

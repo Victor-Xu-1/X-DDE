@@ -18,6 +18,7 @@ def run(request):
     replicas = []
     candidates = []
     for repeat in range(payload["repeats"]):
+        prefix = f"repeat-{repeat + 1}"
         system = openmm.XmlSerializer.deserialize(openmm.XmlSerializer.serialize(template))
         integrator = openmm.LangevinMiddleIntegrator(
             payload["temperature_kelvin"] * unit.kelvin,
@@ -48,9 +49,12 @@ def run(request):
         barostat.setRandomNumberSeed(seed)
         system.addForce(barostat)
         simulation.context.reinitialize(preserveState=True)
+        (output / (prefix + "-system.xml")).write_text(openmm.XmlSerializer.serialize(system))
+        (output / (prefix + "-integrator.xml")).write_text(
+            openmm.XmlSerializer.serialize(integrator)
+        )
         nsteps = round(payload["production_ns"] / step_ns)
         interval = max(1, nsteps // payload["frames"])
-        prefix = f"repeat-{repeat + 1}"
         dcd = prefix + ".dcd"
         simulation.reporters.append(
             app.DCDReporter(str(output / dcd), interval, enforcePeriodicBox=False)
@@ -66,7 +70,9 @@ def run(request):
                 volume=True,
             )
         )
-        analysis = TrajectoryAnalysis(topology)
+        analysis = TrajectoryAnalysis(
+            topology, [system.getParticleMass(i).value_in_unit(unit.dalton) for i in solute_indices]
+        )
         snapshots = []
         previous = 0
         for index in range(payload["frames"]):
@@ -80,7 +86,8 @@ def run(request):
             if not np.isfinite(energy):
                 raise ValueError("Dynamics returned nonfinite energy; inspect the prepared system.")
             xyz = state.getPositions(asNumpy=True).value_in_unit(unit.angstrom)[solute_indices]
-            aligned, rmsd, ligand_rmsd, rg = analysis.add(xyz)
+            box = state.getPeriodicBoxVectors(asNumpy=True).value_in_unit(unit.angstrom)
+            aligned, rmsd, ligand_rmsd, rg = analysis.add(xyz, box)
             name = f"{prefix}-frame-{index + 1:04d}.pdb"
             with (output / name).open("w") as stream:
                 app.PDBFile.writeFile(topology, aligned * unit.angstrom, stream, keepIds=True)
@@ -133,6 +140,26 @@ def run(request):
                 "geometry": "source_frame",
             }
         )
+        if ligand is not None:
+            from rdkit import Chem
+
+            ligand_indices = [a.index for a in topology.atoms() if a.residue.name == "XLG"]
+            if len(ligand_indices) != ligand.GetNumAtoms():
+                raise ValueError("Ligand atom correspondence changed during dynamics preparation.")
+            for atom, index in enumerate(ligand_indices):
+                ligand.GetConformer().SetAtomPosition(atom, aligned[index])
+            ligand_name = prefix + "-ligand.sdf"
+            with Chem.SDWriter(str(output / ligand_name)) as writer:
+                writer.write(ligand)
+            candidates.append(
+                {
+                    "id": prefix + "-ligand",
+                    "artifact": ligand_name,
+                    "smiles": Chem.MolToSmiles(ligand, isomericSmiles=True),
+                    "metrics": [],
+                    "geometry": "source_frame",
+                }
+            )
         del simulation, integrator
     (output / "system.xml").write_text(openmm.XmlSerializer.serialize(template))
     with (output / "solvated-system.pdb").open("w") as stream:

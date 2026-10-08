@@ -8,10 +8,12 @@ export function LibraryInput({
   language,
   value,
   onChange,
+  selectRecords = false,
 }: {
   language: Language;
   value: MoleculeRef | null;
   onChange(value: MoleculeRef | null): void;
+  selectRecords?: boolean;
 }) {
   const input = useSdfAsset(language),
     zh = language === "zh";
@@ -42,9 +44,13 @@ export function LibraryInput({
       {input.asset && (
         <p>
           {input.asset.name} ·{" "}
-          {zh
-            ? "使用整个文件中的记录"
-            : "Uses all original records in this file"}
+          {selectRecords
+            ? zh
+              ? "下一步选择用于计算的分子"
+              : "Select molecules for calculation in the next step"
+            : zh
+              ? "使用整个文件中的记录"
+              : "Uses all original records in this file"}
         </p>
       )}
     </>

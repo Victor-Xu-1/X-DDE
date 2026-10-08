@@ -1,5 +1,16 @@
 import { expect, it } from "vitest";
 import { complexLigandModel, viewerLoad } from "./source-layout";
+it("retains a bounded trajectory group while source snapshots remain exact", () => {
+  const input = {
+    urls: ["/api/jobs/native/download?name=repeat-1-frame-1.pdb"],
+    comparison: false,
+    trajectoryKey: "native:1",
+  };
+  expect(viewerLoad(input)).toEqual(input);
+  expect(() => viewerLoad({ ...input, trajectoryKey: "../arbitrary" })).toThrow(
+    "Invalid trajectory identity",
+  );
+});
 it("separates protein-interface presentation from incidental ligand proximity without changing source identity", () => {
   const input = {
     urls: ["/api/assets/antibody-complex"],

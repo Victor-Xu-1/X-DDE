@@ -129,6 +129,6 @@ def build(request):
         network,
         nodes,
         edges,
-        openfe.ProteinComponent.from_pdb_file(source),
+        openfe.ProteinComponent.from_pdb_file(str(source)),
         openfe.SolventComponent(),
     )
