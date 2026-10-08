@@ -42,7 +42,9 @@ export function ExampleGuide({
     <details className="example-guide" ref={node} key={capability}>
       <summary aria-label={label} title={label}>
         <InfoCircleOutlined aria-hidden="true" />
-        <span>{zh ? "案例说明" : "Case guide"}</span>
+        <span className="example-guide-caption">
+          {zh ? "案例说明" : "Case guide"}
+        </span>
       </summary>
       <div className="example-guide-content">
         <strong>{info.case.label[zh ? 0 : 1]}</strong>

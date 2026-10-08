@@ -191,6 +191,14 @@
   border: 0;
 }
 @media (max-width: 850px) {
+  .example-guide-content {
+    position: fixed;
+    inset-inline: 24px;
+    top: 76px;
+    width: auto;
+    max-width: 440px;
+    max-height: calc(100dvh - 108px);
+  }
   .template-result-grid {
     grid-template-columns: 1fr;
   }
@@ -218,7 +226,7 @@
     min-width: 36px;
     justify-content: center;
   }
-  .example-guide > summary > span {
+  .example-guide > summary > .example-guide-caption {
     display: none;
   }
   .example-guide-content {
@@ -226,6 +234,7 @@
     inset-inline: 16px;
     top: 76px;
     width: auto;
+    max-width: none;
     max-height: calc(100dvh - 108px);
   }
 }

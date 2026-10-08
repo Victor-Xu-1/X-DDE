@@ -71,8 +71,16 @@ def open_case(page, language, capability, labels):
 
 
 def capture(page, name):
-    assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
     page.screenshot(path=EVIDENCE / (name + ".png"))
+    overflowing = page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+    if overflowing:
+        elements = page.locator("main *").evaluate_all(
+            "elements => elements.map(e => ({tag:e.tagName, class:e.className, text:e.textContent.slice(0,100), x:e.getBoundingClientRect().x, right:e.getBoundingClientRect().right, width:e.getBoundingClientRect().width})).filter(e=>e.width>0 && (e.x<0 || e.right>innerWidth+1)).slice(0,30)"
+        )
+        (EVIDENCE / (name + "-overflow.json")).write_text(
+            json.dumps(elements, ensure_ascii=False, indent=2)
+        )
+    assert not overflowing, name
 
 
 def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_page):
@@ -82,11 +90,12 @@ def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_pag
     for capability, labels in CASES:
         region = open_case(page, language, capability, labels)
         info = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples/" + capability).json()
+        expect(region.locator(".example-case-name")).to_contain_text(info["case"]["label"][index])
         setup = bool(info.get("record_pin") and not info["record_pin"]["computed_result_available"])
         kind = ("配置示例", "Setup example") if setup else ("示例结果", "Example results")
         trigger = region.get_by_role("button", name=kind[index], exact=True)
-        expect(trigger).to_be_visible()
         capture(page, f"{language}-{width}-{capability}-input")
+        expect(trigger).to_be_visible()
         trigger.click()
         title = region.locator(".example-case-title h2")
         expect(title).to_have_text(info["case"]["label"][index])
