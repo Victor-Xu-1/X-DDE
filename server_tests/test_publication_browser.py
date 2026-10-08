@@ -159,8 +159,21 @@ def test_retained_matrix_and_channel_vectors(capability, language):
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             chart.scroll_into_view_if_needed()
-            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=str(evidence / f"{language}-{width}.png"), full_page=False)
+            geometry = page.evaluate("""() => ({
+              width: innerWidth, document: document.documentElement.scrollWidth,
+              overflow: Array.from(document.querySelectorAll('body *')).filter(el => {
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1);
+              }).slice(0,30).map(el => ({ tag: el.tagName, class: String(el.className),
+                bounds: el.getBoundingClientRect().toJSON() })) })""")
+            if geometry["document"] > width + 1:
+                import json
+
+                (evidence / f"{language}-{width}-overflow.json").write_text(
+                    json.dumps(geometry, ensure_ascii=False), encoding="utf-8"
+                )
+            assert geometry["document"] <= width + 1, geometry
         assert not errors and not submissions
         assert before == page.request.get(base + "/api/jobs").json()
         browser.close()
