@@ -101,6 +101,25 @@ def test_native_result_views_and_downloads(case, language):
             box = point.bounding_box()
             assert box is not None
             x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+            page.screenshot(
+                path=str(evidence / (language + "-md-plot-inspection.png")), full_page=False
+            )
+            import json
+
+            geometry = page.evaluate(
+                """({x,y}) => ({ x,y,
+              hit: document.elementFromPoint(x,y)?.outerHTML.slice(0,500),
+              charts: Array.from(document.querySelectorAll('.js-plotly-plot')).map(el => ({
+                bounds: el.getBoundingClientRect().toJSON(),
+                svgs: Array.from(el.querySelectorAll('.main-svg')).map(s => ({
+                  bounds: s.getBoundingClientRect().toJSON(),
+                  width: s.getAttribute('width'), height: s.getAttribute('height')
+                }))
+              }))
+            })""",
+                {"x": x, "y": y},
+            )
+            (evidence / (language + "-plot-geometry.json")).write_text(json.dumps(geometry))
             page.mouse.move(x, y)
             expect(plot.locator(".hoverlayer .hovertext")).to_be_visible()
             page.mouse.click(x, y)

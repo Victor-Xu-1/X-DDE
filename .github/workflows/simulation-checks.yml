@@ -40,7 +40,7 @@ jobs:
           gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
       - run: uv run --locked playwright install chromium --with-deps
       - name: Actual MD snapshots, quantitative curves and downloads
-        run: uv run --locked python -m pytest -q server_tests/test_native_simulation_views.py -k 'not calculation'
+        run: uv run --locked python -m pytest -x -q server_tests/test_native_simulation_views.py -k 'not calculation'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
