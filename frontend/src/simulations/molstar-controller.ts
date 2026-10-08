@@ -18,6 +18,7 @@ import { ChargeTheme, chargeCoverage } from "./charge-theme";
 import { MolecularSurfaceRepresentationProvider } from "molstar/lib/mol-repr/structure/representation/molecular-surface";
 import type { SurfaceSummary } from "../viewer/protocol";
 import type { Residue } from "./types";
+import { boundPair, ligandLoci, NativeBoundPair } from "./bound-pairs";
 
 export interface StructureSource {
   url: string;
@@ -53,6 +54,7 @@ export class MolecularController {
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
   surfaceSummary: SurfaceSummary | null = null;
+  private boundContacts: ReturnType<typeof ligandLoci>[] = [];
 
   async initialize(
     canvas: HTMLCanvasElement,
@@ -219,6 +221,18 @@ export class MolecularController {
       }
       signal.throwIfAborted();
     }
+    if (!frames && this.structures[0]?.obj) {
+      for (const ligand of this.structures.slice(1)) {
+        if (!ligand.obj) continue;
+        const pair = boundPair(this.structures[0].obj.data, ligand.obj.data);
+        await this.plugin
+          .build()
+          .toRoot()
+          .apply(NativeBoundPair, { structure: pair })
+          .commit();
+        this.boundContacts.push(ligandLoci(pair, ligand.obj.data.models));
+      }
+    }
     if (!frames && this.ligandStructure) this.focusLigand();
     else this.reset();
   }
@@ -257,8 +271,18 @@ export class MolecularController {
             : view.ligand === "all" || view.ligand === item.kind;
       setSubtreeVisibility(this.plugin.state.data, item.ref, !visible);
     }
-    if (!view.contacts) this.plugin.managers.structure.focus.clear();
-    else if (this.trajectory && this.ligandStructure?.obj) {
+    if (
+      !view.contacts ||
+      (!this.trajectory &&
+        this.boundContacts.length > 1 &&
+        view.ligand === "all")
+    )
+      this.plugin.managers.structure.focus.clear();
+    else if (!this.trajectory && this.boundContacts.length) {
+      this.plugin.managers.structure.focus.setFromLoci(
+        this.boundContacts[view.ligand === "b" ? 1 : 0],
+      );
+    } else if (this.trajectory && this.ligandStructure?.obj) {
       const loci = StructureSelection.toLociWithSourceUnits(
         Script.getStructureSelection(
           (q) => q.struct.generator.all(),

@@ -77,7 +77,7 @@ jobs:
         run: uv run --locked python -m pytest -q tests/test_simulations.py tests/test_integrated_science.py tests/test_capabilities.py
       - name: Changed simulation UI contracts
         working-directory: frontend
-        run: npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationResults.test.tsx src/simulations/native-trajectory.test.ts src/simulations/charge-theme.test.ts
+        run: npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationResults.test.tsx src/simulations/native-trajectory.test.ts src/simulations/charge-theme.test.ts src/simulations/bound-pairs.test.ts
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual questionnaire and actual coordinate/result previews
         run: uv run --locked python -m pytest -q server_tests/test_simulation_browser.py

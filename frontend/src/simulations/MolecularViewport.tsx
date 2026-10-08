@@ -40,9 +40,16 @@ export function MolecularViewport({
     protein: true,
     surface: false,
     contacts: true,
-    ligand: "all",
+    ligand:
+      sources.filter((source) => source.role === "ligand").length > 1
+        ? "a"
+        : "all",
   });
   const zh = language === "zh";
+  const comparing =
+    !frames &&
+    sources.filter((source) => source.role === "ligand").length > 1 &&
+    view.ligand === "all";
   const sourceKey = JSON.stringify({ sources, frames });
   useEffect(() => {
     const signal = new AbortController();
@@ -138,11 +145,19 @@ export function MolecularViewport({
         >
           {zh ? "表面" : "Surface"}
         </button>
-        {frames && (
+        {(frames || sources.some((source) => source.role === "ligand")) && (
           <button
             type="button"
             className="text-button"
-            aria-pressed={view.contacts}
+            aria-pressed={view.contacts && !comparing}
+            disabled={comparing}
+            title={
+              comparing
+                ? zh
+                  ? "选择 A 或 B 查看对应作用位点"
+                  : "Select A or B to inspect its binding contacts"
+                : undefined
+            }
             onClick={() => toggle("contacts")}
           >
             {zh ? "作用位点" : "Binding contacts"}
