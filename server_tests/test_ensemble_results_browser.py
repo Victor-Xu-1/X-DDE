@@ -57,7 +57,7 @@ def test_native_pose_result_selection_downloads_and_handoff():
             preserved = preserve_assets(
                 page, [outcome["combination"]["receptor"], *[pose["reference"] for pose in poses]]
             )
-            for width in (1440, 390):
+            for width in (1440, 1331, 390):
                 geometries.append(paired_layout(page, width, ".pose-detail"))
                 selected = poses[-1]
                 button = result.get_by_role(

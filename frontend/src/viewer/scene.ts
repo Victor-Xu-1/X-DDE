@@ -10,6 +10,7 @@ import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
 import { focusDisplayContext } from "./context-focus";
+import { contactLabelLayer } from "./contact-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
 import {
   residueRef as ref,
@@ -88,6 +89,7 @@ export class MolecularScene {
     private viewport?: () => ViewportSize,
   ) {}
   resetState() {
+    contactLabelLayer(this.viewer).clear();
     this.nativeInteractions = undefined;
     this.channelGeometry = undefined;
     this.attachmentGeometry = undefined;
@@ -224,6 +226,7 @@ export class MolecularScene {
   }
   private async draw() {
     const v = this.viewer;
+    contactLabelLayer(v).clear();
     v.removeAllSurfaces();
     v.removeAllLabels();
     v.removeAllShapes();
@@ -345,6 +348,16 @@ export class MolecularScene {
       this.emit("contacts", null);
       return;
     }
+    const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);
+    const ligandAtoms =
+      this.complexModel === null
+        ? ligand
+          ? this.viewer.selectedAtoms({ model: 0, ...sel(ligand) })
+          : []
+        : this.viewer.selectedAtoms({ model: this.complexModel });
+    contactLabelLayer(this.viewer).protectLigand(
+      ligandAtoms.filter((atom) => finiteCoordinates(atom)).map(position),
+    );
     if (this.nativeInteractions !== undefined) {
       paintNativeContacts(
         this.viewer,
@@ -355,13 +368,6 @@ export class MolecularScene {
       this.emit("contacts", null);
       return;
     }
-    const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);
-    const ligandAtoms =
-      this.complexModel === null
-        ? ligand
-          ? this.viewer.selectedAtoms({ model: 0, ...sel(ligand) })
-          : []
-        : this.viewer.selectedAtoms({ model: this.complexModel });
     const residueKeys = new Set(this.info.residues.map((r) => r.key));
     const protein = this.viewer
       .selectedAtoms({ model: 0 })

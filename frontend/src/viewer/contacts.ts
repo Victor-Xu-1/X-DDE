@@ -1,4 +1,5 @@
 import type { AtomSpec, GLViewer } from "3dmol";
+import { contactLabelLayer } from "./contact-labels";
 import {
   atomPosition,
   finiteCoordinates,
@@ -99,18 +100,12 @@ export function paintContacts(
       }
     }
     if (labels)
-      viewer.addLabel(
-        `${residueLabel(residueRef(contact.protein))} · ${contact.distance.toFixed(2)} Å`,
+      contactLabelLayer(viewer).add([
         {
+          text: `${residueLabel(residueRef(contact.protein))} · ${contact.distance.toFixed(2)} Å`,
           position: end,
-          fontSize: 12,
-          fontColor: "#445954",
-          backgroundColor: "white",
-          backgroundOpacity: 0.8,
-          showBackground: true,
-          inFront: true,
         },
-      );
+      ]);
   }
   return {
     cutoff: contactCutoff,

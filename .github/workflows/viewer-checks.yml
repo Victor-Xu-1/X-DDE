@@ -12,6 +12,10 @@ on:
       - 'frontend/src/receptors/ReceptorMember*'
       - 'frontend/src/receptors/receptors.css'
       - 'frontend/src/presentation/ensemble-results.css'
+      - 'frontend/src/diffsbdd/ScientificDetails*'
+      - 'frontend/src/diffsbdd/InteractionResults*'
+      - 'frontend/src/diffsbdd/interaction-results.css'
+      - 'frontend/src/diffsbdd/diffsbdd.css'
       - 'server_tests/test_ensemble_results_browser.py'
       - 'server_tests/test_context_camera_browser.py'
       - 'server_tests/ensemble_browser_helpers.py'
@@ -72,6 +76,9 @@ jobs:
           src/poses/PoseResults.test.tsx src/receptors/ReceptorResults.test.tsx
           src/poses/PoseWorkspace.test.tsx src/poses/PoseScoreComparison.test.tsx
           src/operations/OperationResults.test.tsx src/examples/ExampleJobResult.test.tsx
+          src/viewer/contact-label-layout.test.ts src/viewer/contact-labels.test.ts
+          src/viewer/native-contact-labels.test.ts
+          src/diffsbdd/InteractionResults.test.tsx src/diffsbdd/DiffResults.test.tsx
       - name: Restore exact native cases and graphical editor without inference
         env:
           GH_TOKEN: ${{ github.token }}

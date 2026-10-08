@@ -1,6 +1,7 @@
 import { interactionColors, validatePotentialGrid } from "./scientific-data";
 import * as mol from "3dmol";
 import type { NativeInteraction } from "../integrations/types";
+import { contactLabelLayer } from "./contact-labels";
 
 export function paintNativeContacts(
   viewer: mol.GLViewer,
@@ -16,9 +17,10 @@ export function paintNativeContacts(
         .map((r) => `${r.chain}:${r.number}:${r.residue}`),
     ),
   ].slice(0, limit === "all" ? 60 : limit);
-  for (const row of rows.filter((r) =>
-    keys.includes(`${r.chain}:${r.number}:${r.residue}`),
-  )) {
+  const labeled = new Set<string>();
+  for (const row of [...rows]
+    .sort((a, b) => a.distance - b.distance)
+    .filter((r) => keys.includes(`${r.chain}:${r.number}:${r.residue}`))) {
     const residue = atoms.filter(
       (a) =>
         a.chain === row.chain &&
@@ -66,17 +68,13 @@ export function paintNativeContacts(
         dashed: true,
         linewidth: 2,
       });
-    if (labels)
-      viewer.addLabel(
-        `${row.chain}:${row.residue}${row.number} · ${row.distance.toFixed(2)} Å`,
-        {
-          position: start,
-          fontSize: 12,
-          fontColor: "#324c62",
-          backgroundColor: "white",
-          backgroundOpacity: 0.8,
-        },
-      );
+    const labelKey = `${row.chain}:${row.residue}${row.number}`;
+    if (labels && !labeled.has(labelKey)) {
+      contactLabelLayer(viewer).add([
+        { text: `${labelKey} · ${row.distance.toFixed(2)} Å`, position: start },
+      ]);
+      labeled.add(labelKey);
+    }
   }
 }
 export function potentialData(text: string) {

@@ -44,6 +44,10 @@ def paired_layout(page, width, detail_selector):
     left = layout.locator(".ensemble-result-list").bounding_box()
     right = layout.locator(detail_selector).bounding_box()
     assert left and right
+    table = layout.locator(".pose-selection-table table")
+    if table.count():
+        bounds = table.bounding_box()
+        assert bounds and bounds["width"] <= left["width"] + 1, "Pose status column is clipped"
     if width > 1000:
         assert left["x"] + left["width"] <= right["x"] and abs(left["y"] - right["y"]) <= 3
     else:

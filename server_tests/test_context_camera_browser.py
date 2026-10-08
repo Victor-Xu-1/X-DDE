@@ -34,12 +34,14 @@ def test_real_brd4_residue_focus_context_and_view_download():
         references = [payload["protein"], payload["molecule"]]
         preserved = preserve_assets(page, references)
         try:
-            for width in (1440, 390):
+            for width in (1440, 1331, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
                 open_result(page, "分子相互作用")
                 control = page.get_by_role("button", name="A:ASN140", exact=True)
                 control.focus()
                 control.press("Enter")
+                expect(control).to_have_attribute("aria-pressed", "true")
+                expect(control).to_have_css("background-color", "rgba(0, 0, 0, 0)")
                 panel = page.locator(".viewer-panel")
                 panel.scroll_into_view_if_needed()
                 capture(page, "native-brd4-residue-context-" + str(width))

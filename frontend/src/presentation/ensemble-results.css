@@ -37,7 +37,7 @@
 .pose-selection-table {
   max-height: 490px;
 }
-.pose-selection-table table {
+.pose-table.pose-selection-table table {
   min-width: 0;
 }
 .pose-selection-table td,

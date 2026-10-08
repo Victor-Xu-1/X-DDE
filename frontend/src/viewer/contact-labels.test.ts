@@ -1,0 +1,74 @@
+import { afterAll, expect, it, vi } from "vitest";
+const worker = vi.hoisted(() =>
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:label-worker"),
+);
+afterAll(() => worker.mockRestore());
+import type { GLViewer, Label } from "3dmol";
+import { ContactLabelLayer } from "./contact-labels";
+
+function fixture() {
+  const labels: Label[] = [];
+  const viewer = {
+    getCanvas: () => ({
+      getBoundingClientRect: () => ({
+        left: 0,
+        top: 0,
+        width: 306,
+        height: 520,
+      }),
+    }),
+    modelToScreen: (points: { x: number; y: number }[]) =>
+      points.map((point) => ({ x: point.x, y: point.y })),
+    addLabel: vi.fn((text: string, style: unknown) => {
+      const value = {
+        text,
+        canvas: { width: 124, height: 23 },
+        sprite: { visible: true, material: {} },
+        getStyle: () => style,
+        show: () => {
+          value.sprite.visible = true;
+        },
+        hide: () => {
+          value.sprite.visible = false;
+        },
+      } as unknown as Label;
+      labels.push(value);
+      return value;
+    }),
+    render: vi.fn(),
+  } as unknown as GLViewer;
+  const layer = new ContactLabelLayer(viewer);
+  vi.mocked(viewer.render).mockImplementation(() => {
+    layer.layout();
+    return viewer;
+  });
+  return { viewer, layer, labels };
+}
+it("moves native screen offsets without moving molecular anchors or recreating textures", () => {
+  const { viewer, layer, labels } = fixture();
+  const rows = Array.from({ length: 5 }, (_, index) => ({
+    text: "A:ASN" + index + " · 3.20 Å",
+    position: { x: 150 + index, y: 250 + index, z: 2 },
+  }));
+  const before = structuredClone(rows);
+  layer.add(rows);
+  layer.protectLigand([{ x: 150, y: 250, z: 2 }]);
+  layer.layout();
+  expect(viewer.addLabel).toHaveBeenCalledTimes(5);
+  expect(viewer.render).toHaveBeenCalledTimes(1);
+  expect(labels.every((label) => label.sprite.material?.screenOffset)).toBe(
+    true,
+  );
+  expect(rows).toEqual(before);
+  layer.layout();
+  expect(viewer.render).toHaveBeenCalledTimes(1);
+});
+it("drops label ownership on source reset so a later camera callback cannot reuse old labels", () => {
+  const { viewer, layer } = fixture();
+  layer.add([
+    { text: "A:ASN140 · 3.20 Å", position: { x: 150, y: 250, z: 0 } },
+  ]);
+  layer.clear();
+  layer.layout();
+  expect(viewer.render).not.toHaveBeenCalled();
+});

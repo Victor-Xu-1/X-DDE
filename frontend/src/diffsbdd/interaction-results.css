@@ -1,0 +1,33 @@
+.interaction-results,
+.interaction-contact-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+}
+.interaction-contact-table {
+  max-height: 500px;
+  min-width: 0;
+  overflow: auto;
+}
+.interaction-contact-table table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.interaction-contact-table th,
+.interaction-contact-table td {
+  padding: 12px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.interaction-contact-table tr.is-selected {
+  background: var(--surface-hover);
+}
+@media (max-width: 1000px) {
+  .interaction-results .ensemble-result-layout > .viewer-panel {
+    grid-row: 1;
+  }
+}

@@ -17,6 +17,7 @@ on:
       # Paired-result inspection is verified by viewer-checks.yml.
       - '!frontend/src/poses/PoseResults*'
       - '!frontend/src/receptors/ReceptorResults*'
+      - '!frontend/src/diffsbdd/InteractionResults*'
       - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'
@@ -65,6 +66,7 @@ on:
       # Paired-result inspection is verified by viewer-checks.yml.
       - '!frontend/src/poses/PoseResults*'
       - '!frontend/src/receptors/ReceptorResults*'
+      - '!frontend/src/diffsbdd/InteractionResults*'
       - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'
