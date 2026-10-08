@@ -17,6 +17,7 @@ on:
             chemprop,
             simulation-lock,
             simulation-native,
+            simulation-views,
             all,
           ]
       runner:
