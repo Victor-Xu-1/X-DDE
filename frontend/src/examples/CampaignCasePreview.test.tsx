@@ -66,8 +66,9 @@ it("shows the existing reference and exact mutable sequences without pretending 
       name: "Antibody variable domain · Input chain B",
     }),
   ).toBeVisible();
-  expect(screen.getByRole("button", { name: "CDR · 2–3" })).toBeVisible();
-  expect(screen.getByRole("button", { name: "CDR · 7–7" })).toBeVisible();
+  const marks = screen.getAllByRole("button", { name: "CDR", exact: true });
+  expect(marks[0]).toHaveAttribute("title", "CDR · 2–3");
+  expect(marks[1]).toHaveAttribute("title", "CDR · 7–7");
   expect(
     screen.getByRole("button", { name: "Download this sequence FASTA" }),
   ).toBeVisible();
@@ -76,8 +77,8 @@ it("shows the existing reference and exact mutable sequences without pretending 
 it("retains zero-based input identity and refuses out-of-range CDR marks without silently filtering them", () => {
   const positions = [2, 0, 1, 2, 5];
   expect(mutableRegions("ABCDEF", positions)).toEqual([
-    { start: 1, end: 3, label: "CDR · 1–3" },
-    { start: 6, end: 6, label: "CDR · 6–6" },
+    { start: 1, end: 3, label: "CDR" },
+    { start: 6, end: 6, label: "CDR" },
   ]);
   expect(positions).toEqual([2, 0, 1, 2, 5]);
   expect(mutableRegions("ABC", [-1])).toBeNull();

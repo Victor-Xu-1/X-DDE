@@ -41,10 +41,7 @@ export function mutableRegions(
     if (current && current.end === index) current.end = index + 1;
     else regions.push({ start: index + 1, end: index + 1, label: "CDR" });
   }
-  return regions.map((region) => ({
-    ...region,
-    label: `CDR · ${region.start}–${region.end}`,
-  }));
+  return regions;
 }
 
 export function campaignReference(example: PreparedExample, name: string) {

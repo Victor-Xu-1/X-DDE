@@ -149,6 +149,7 @@ def test_campaign_template_previews_exact_inputs_without_generating_a_design(pro
     panel.get_by_role("tab", name="序列与 CDR", exact=True).click()
     expect(panel.locator(".sequence-track")).to_be_visible()
     expect(panel.locator(".sequence-region-map button")).to_have_count(3)
+    expect(panel.locator(".sequence-region-map button")).to_have_text(["CDR", "CDR", "CDR"])
     raw = download(
         page,
         panel.get_by_role("button", name="下载此序列 FASTA", exact=True),
