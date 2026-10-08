@@ -42,6 +42,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           cd frontend
           npm ci
+          python ../scripts/generate-plotly-css.py --check
           npm run build
           cd ..
           uv sync --locked --group dev
