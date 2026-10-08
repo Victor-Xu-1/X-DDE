@@ -8,7 +8,7 @@ from ..chemistry.sdf_io import split_records
 from ..models import Status
 from .contracts import VersionInput
 from .outputs import OutputCatalog
-from .pose_contract import ArtifactPoseSource, AssetPoseSource
+from .pose_contract import ArtifactPoseSource, AssetPoseSource, VersionPoseSource
 from .storage import ScientificStore
 
 CONSTRAINT_NOTICE = (
@@ -32,6 +32,42 @@ class PoseSources:
                 raise ValueError(CONSTRAINT_NOTICE)
             root = self.settings.state_dir / "jobs" / job.id / "output"
             file = contained(root, source.name)
+            if job.request.operation == "admet_predict" and not receptor:
+                from ..admet.presentation import present_admet
+                from ..scientific_objects import MoleculeRef
+
+                manifest = contained(root, "result.json")
+                if manifest.stat().st_size > 2 * 1024**2:
+                    raise ValueError("ADMET report exceeds its bounded pose-resolution size.")
+                result = present_admet(json.loads(manifest.read_text()), job, root, self.assets)
+                row = next(
+                    (
+                        row
+                        for row in result["rows"]
+                        if row["preview"] == source.name and row["status"] == "predicted"
+                    ),
+                    None,
+                )
+                if source.record or row is None or not row.get("reference"):
+                    raise ValueError(
+                        "Choose one declared ADMET preview and its exact original molecule."
+                    )
+                reference = MoleculeRef.model_validate(row["reference"])
+                self.scientific.validate_reference(reference)
+                selected = self.resolve(
+                    VersionPoseSource(kind="version", version_id=reference.version_id)
+                    if reference.version_id
+                    else AssetPoseSource(
+                        kind="asset", asset_id=reference.asset_id, record=reference.record
+                    )
+                )
+                if (
+                    selected.asset_id != reference.asset_id
+                    or selected.sha256 != reference.sha256
+                    or selected.record != reference.record
+                ):
+                    raise ValueError("ADMET preview differs from its original molecular record.")
+                return selected
             if job.request.operation == "pose_quality":
                 from ..quality.result import validate_quality
 

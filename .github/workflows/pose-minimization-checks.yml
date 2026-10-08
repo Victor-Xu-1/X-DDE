@@ -35,7 +35,7 @@ jobs:
           npm ci --prefix frontend
           npm run build --prefix frontend
           cd frontend
-          npx vitest run src/viewer/pose-source.test.ts src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/source-layout.test.ts src/docking/DockingResults.test.tsx src/quality/tests/QualityResults.test.tsx src/poses/PoseResults.test.tsx
+          npx vitest run src/viewer/pose-source.test.ts src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/source-layout.test.ts src/viewer/initial-geometry.test.ts src/docking/DockingResults.test.tsx src/quality/tests/QualityResults.test.tsx src/poses/PoseResults.test.tsx
           cd ..
           uv sync --locked --group dev --group browser
           uv run --locked pytest -q tests/test_pose_minimization.py tests/test_chemistry_contract.py tests/test_engine_registry.py

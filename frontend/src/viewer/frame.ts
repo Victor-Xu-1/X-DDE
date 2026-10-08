@@ -10,6 +10,7 @@ import {
 import { MolecularScene } from "./scene";
 import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
+import { spatialMolecule } from "./initial-geometry";
 import { initializeTheme } from "../theme";
 import "./frame.css";
 import { captureView } from "./capture";
@@ -126,17 +127,21 @@ async function load(input: ViewerLoad) {
           notify("initial-pose-required");
           return;
         }
-        if (
-          ["sdf", "mol"].includes(format) &&
-          !/\b3D\b/.test(record.split(/\r?\n/)[1] ?? "")
-        ) {
-          throw new Error(
-            "This ligand has only 2D coordinates. Prepare and dock a 3D pose before displaying it with a receptor.",
-          );
-        }
       }
       inputCharges.push(inputChargesDeclared(record, format));
       const model = viewer.addModel(record, format);
+      if (
+        ["sdf", "mol", "mol2"].includes(format) &&
+        !spatialMolecule(
+          model.selectedAtoms({}),
+          /\b3D\b/.test(record.split(/\r?\n/)[1] ?? ""),
+        )
+      ) {
+        viewer.clear();
+        throw new Error(
+          "This ligand has only 2D coordinates. Prepare and dock a 3D pose before displaying it with a receptor.",
+        );
+      }
       if (!model.selectedAtoms({}).length)
         throw new Error("No atoms were found in the structure");
     }

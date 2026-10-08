@@ -116,6 +116,7 @@ on:
       # Initial 3D qualification is covered by native pose and viewer gates.
       - '!frontend/src/viewer/StructureViewer*'
       - '!frontend/src/viewer/InitialPoseStatus*'
+      - '!frontend/src/viewer/initial-geometry*'
       - '!frontend/src/viewer/usePoseOptimization*'
       - '!frontend/src/viewer/pose-source*'
       - '!frontend/src/viewer/pose-errors*'
