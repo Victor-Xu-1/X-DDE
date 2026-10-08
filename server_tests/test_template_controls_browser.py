@@ -75,7 +75,13 @@ def capture(page, name):
     overflowing = page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
     if overflowing:
         elements = page.locator("main *").evaluate_all(
-            "elements => elements.map(e => ({tag:e.tagName, class:e.className, text:e.textContent.slice(0,100), x:e.getBoundingClientRect().x, right:e.getBoundingClientRect().right, width:e.getBoundingClientRect().width})).filter(e=>e.width>0 && (e.x<0 || e.right>innerWidth+1)).slice(0,30)"
+            """elements => elements.map(e => {
+                const bounds = e.getBoundingClientRect();
+                return {tag:e.tagName, class:e.getAttribute('class'),
+                    text:e.textContent.slice(0,100), x:bounds.x,
+                    right:bounds.right, width:bounds.width};
+            }).filter(e => e.width > 0 &&
+                (e.x < 0 || e.right > innerWidth + 1)).slice(0,30)"""
         )
         (EVIDENCE / (name + "-overflow.json")).write_text(
             json.dumps(elements, ensure_ascii=False, indent=2)

@@ -45,6 +45,7 @@ jobs:
           uv sync --locked --group dev --group browser
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-dataset-examples
       - name: Native case context, keyboard return and failure recovery
         run: |
           .venv/bin/python -m playwright install --with-deps chromium

@@ -115,6 +115,9 @@
   font-size: 13px;
   line-height: 1.65;
 }
+.example-guide:not([open]) > .example-guide-content {
+  display: none;
+}
 .example-guide-content > p {
   color: var(--muted);
   margin: 8px 0;
