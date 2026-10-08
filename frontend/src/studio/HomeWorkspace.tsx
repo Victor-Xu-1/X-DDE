@@ -6,6 +6,7 @@ import { translator } from "../i18n";
 import { PredictionResults } from "./PredictionResults";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
 export function HomeWorkspace(p: PredictionWorkspaceProps) {
+  const [showingExample, setShowingExample] = useState(false);
   const [showInput, setShowInput] = useState(
     () => !/^#task=[0-9a-f-]+$/.test(location.hash),
   );
@@ -24,7 +25,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
       p.active && !showInput && Boolean(p.job && isPrediction(p.job.request));
   return (
     <div
-      className={`prediction-workspace task-workspace ${showResults ? "is-result" : "is-input"}`}
+      className={`prediction-workspace task-workspace ${showResults || (showInput && showingExample) ? "is-result" : "is-input"}`}
     >
       <h1 className="sr-only">{zh ? "结构预测" : "Structure prediction"}</h1>
       {p.connectionError && (
@@ -38,6 +39,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
           className="workspace-mode segmented"
           role="group"
           aria-label={zh ? "工作区" : "Workspace"}
+          hidden={showInput && showingExample}
         >
           <button
             aria-pressed={showInput}
@@ -56,7 +58,10 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
           </button>
         </div>
         {(p.projects.length > 0 || !showInput) && (
-          <div className="workbench-toolbar guided-toolbar">
+          <div
+            className="workbench-toolbar guided-toolbar"
+            hidden={showInput && showingExample}
+          >
             <label hidden={!p.projects.length}>
               {zh ? "研究项目" : "Project"}
               <select
@@ -121,6 +126,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
               ready={p.ready}
               abagAvailable={Boolean(p.health?.engine.models?.abag)}
               initialRequest={p.draft}
+              onPreviewChange={setShowingExample}
               onSubmit={async (value, key) => {
                 const created = await p.onSubmit(value, key);
                 setShowInput(false);

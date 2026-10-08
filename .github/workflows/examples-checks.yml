@@ -6,21 +6,31 @@ on:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleToolbar*'
+      - '!frontend/src/examples/ExampleGuide*'
+      - '!frontend/src/examples/ExampleFeedback*'
+      - '!frontend/src/examples/useExampleTemplate*'
+      - '!frontend/src/examples/examples.css'
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
-      - '.github/workflows/examples-checks.yml'
   pull_request:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleToolbar*'
+      - '!frontend/src/examples/ExampleGuide*'
+      - '!frontend/src/examples/ExampleFeedback*'
+      - '!frontend/src/examples/useExampleTemplate*'
+      - '!frontend/src/examples/examples.css'
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
-      - '.github/workflows/examples-checks.yml'
 permissions:
   contents: read
 jobs:

@@ -10,6 +10,11 @@ export interface ExampleTemplateOptions {
   onClear?(): void;
   onPreviewChange?(value: boolean): void;
 }
+export type ExampleAction = "metadata" | "template" | "result";
+export interface ExampleFailure {
+  action: ExampleAction;
+  reason: string;
+}
 export function useExampleTemplate({
   capability,
   language,
@@ -18,9 +23,14 @@ export function useExampleTemplate({
   onPreviewChange,
 }: ExampleTemplateOptions) {
   const intent = useRef(0);
-  const [info, setInfo] = useState<ExampleInfo | null>(null),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+  const [metadataRevision, setMetadataRevision] = useState(0);
+  const [loadingInfo, setLoadingInfo] = useState(true);
+  const [pending, setPending] = useState<Exclude<
+    ExampleAction,
+    "metadata"
+  > | null>(null);
+  const [failure, setFailure] = useState<ExampleFailure | null>(null);
+  const [info, setInfo] = useState<ExampleInfo | null>(null);
   const [loaded, setLoaded] = useState(false),
     [result, setResult] = useState<{
       job?: Job;
@@ -29,9 +39,10 @@ export function useExampleTemplate({
   useEffect(() => {
     const controller = new AbortController();
     intent.current++;
-    setBusy(false);
+    setPending(null);
+    setFailure(null);
+    setLoadingInfo(true);
     setInfo(null);
-    setError("");
     setResult(null);
     setLoaded(false);
     onPreviewChange?.(false);
@@ -48,24 +59,34 @@ export function useExampleTemplate({
         if (!controller.signal.aborted) setInfo(value);
       })
       .catch((failure) => {
-        if (!controller.signal.aborted) setError(String(failure));
+        if (!controller.signal.aborted) {
+          setFailure({ action: "metadata", reason: String(failure) });
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingInfo(false);
       });
     return () => {
       intent.current++;
       controller.abort();
     };
-  }, [capability]);
-  async function act(action: (current: () => boolean) => Promise<void>) {
+  }, [capability, metadataRevision]);
+  async function act(
+    kind: Exclude<ExampleAction, "metadata">,
+    action: (current: () => boolean) => Promise<void>,
+  ) {
     const revision = intent.current,
       current = () => revision === intent.current;
-    setBusy(true);
-    setError("");
+    setPending(kind);
+    setFailure(null);
     try {
       await action(current);
     } catch (failure) {
-      if (current()) setError(String(failure));
+      if (current()) {
+        setFailure({ action: kind, reason: String(failure) });
+      }
     } finally {
-      if (current()) setBusy(false);
+      if (current()) setPending(null);
     }
   }
   function closeResult() {
@@ -73,7 +94,7 @@ export function useExampleTemplate({
     onPreviewChange?.(false);
   }
   const loadTemplate = () =>
-    act(async (current) => {
+    act("template", async (current) => {
       const prepared = await api.post<PreparedExample>(
         `/examples/${capability}/prepare`,
         {},
@@ -90,7 +111,7 @@ export function useExampleTemplate({
       });
     });
   const showResult = () =>
-    act(async (current) => {
+    act("result", async (current) => {
       if (!info) return;
       const value = info.pin
         ? { job: await request<Job>(`/jobs/${info.pin.job_id}`) }
@@ -109,15 +130,23 @@ export function useExampleTemplate({
     setLoaded(false);
     onClear?.();
   }
+  function retry() {
+    if (failure?.action === "metadata")
+      setMetadataRevision((value) => value + 1);
+    else if (failure?.action === "template") void loadTemplate();
+    else if (failure?.action === "result") void showResult();
+  }
   return {
     info,
-    busy,
-    error,
+    loadingInfo,
+    pending,
+    failure,
     loaded,
     result,
     loadTemplate,
     showResult,
     closeResult,
     clear,
+    retry,
   };
 }

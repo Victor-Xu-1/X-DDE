@@ -49,6 +49,52 @@ const props: ComponentProps<typeof HomeWorkspace> = {
   onReuse: vi.fn(),
   onSubmit: vi.fn(),
 };
+vi.mock("../examples/ExampleJobResult", () => ({
+  ExampleJobResult: () => <p>Retained native preview</p>,
+}));
+
+it("keeps public previews outside personal prediction tabs and preserves the input when returning", async () => {
+  const { request } = await import("../api");
+  const transport = vi.spyOn(await import("../api"), "request");
+  transport.mockImplementation((path, init) => {
+    if (path === "/examples/predict")
+      return Promise.resolve({
+        module: { capability_id: "predict", case_id: "brd4-jq1", revision: 1 },
+        case: {
+          id: "brd4-jq1",
+          revision: 1,
+          label: ["BRD4–JQ1", "BRD4–JQ1"],
+          description: ["公开复合物", "Public complex"],
+          sources: [],
+        },
+        files: [],
+        computed_result_available: true,
+        pin: { job_id: "retained-example", artifact_sha256: {} },
+      });
+    if (path === "/jobs/retained-example")
+      return Promise.resolve({ ...props.job, id: "retained-example" });
+    return request(path, init);
+  });
+  try {
+    render(<HomeWorkspace {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "下一步" }));
+    const sequence = screen.getByLabelText("单字母氨基酸序列");
+    fireEvent.change(sequence, { target: { value: "MSSATQQK" } });
+    fireEvent.click(await screen.findByRole("button", { name: "示例结果" }));
+    expect(await screen.findByText("Retained native preview")).toBeVisible();
+    expect(
+      screen.getByRole("group", { name: "工作区", hidden: true }),
+    ).not.toBeVisible();
+    expect(sequence).not.toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "返回任务填写" }));
+    expect(screen.getByRole("group", { name: "工作区" })).toBeVisible();
+    expect(sequence).toBeVisible();
+    expect(sequence).toHaveValue("MSSATQQK");
+    expect(props.onSubmit).not.toHaveBeenCalled();
+  } finally {
+    transport.mockRestore();
+  }
+});
 it("separates task entry from structure review while preserving the draft", () => {
   const { rerender } = render(<HomeWorkspace {...props} />);
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));

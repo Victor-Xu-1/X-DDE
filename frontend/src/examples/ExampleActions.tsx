@@ -1,156 +1,80 @@
+import { useEffect, useRef } from "react";
 import {
   useExampleTemplate,
   type ExampleTemplateOptions,
 } from "./useExampleTemplate";
-import { templateGuide } from "./guide";
 import { ExampleJobResult } from "./ExampleJobResult";
 import { ExampleRecordResult } from "./ExampleRecordResult";
+import { ExampleToolbar } from "./ExampleToolbar";
+import { ExampleFeedback } from "./ExampleFeedback";
 import { TemplatePreviewContext } from "./context";
 import "./examples.css";
-import { Hint } from "../guided/Hint";
+
 export function ExampleActions(
   options: ExampleTemplateOptions & { onBack?(): void },
 ) {
   const { capability, language, onBack } = options;
+  const state = useExampleTemplate(options);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const resultRef = useRef<HTMLButtonElement>(null);
+  const returning = useRef(false);
+  useEffect(() => {
+    if (state.result) titleRef.current?.focus();
+    else if (returning.current) {
+      resultRef.current?.focus();
+      returning.current = false;
+    }
+  }, [state.result]);
   const zh = language === "zh";
-  const {
-    info,
-    busy,
-    error,
-    loaded,
-    result,
-    loadTemplate,
-    showResult,
-    closeResult,
-    clear,
-  } = useExampleTemplate(options);
   return (
     <section
-      className="module-template"
+      className={"module-template" + (state.result ? " is-preview" : "")}
       aria-label={zh ? "模块使用模板" : "Module usage template"}
     >
-      <div className="example-actions">
-        {onBack && (
+      {state.info ? (
+        <ExampleToolbar
+          info={state.info}
+          capability={capability}
+          language={language}
+          previewing={Boolean(state.result)}
+          loaded={state.loaded}
+          pending={state.pending}
+          titleRef={titleRef}
+          resultRef={resultRef}
+          onBack={onBack}
+          onLoad={() => void state.loadTemplate()}
+          onShowResult={() => void state.showResult()}
+          onClear={state.clear}
+          onClose={() => {
+            returning.current = true;
+            state.closeResult();
+          }}
+        />
+      ) : (
+        onBack && (
           <button type="button" className="text-button" onClick={onBack}>
-            <span aria-hidden="true">← </span>
             {zh ? "返回全部能力" : "Back to all capabilities"}
           </button>
-        )}
-        {info && (
-          <>
-            {!result && (
-              <span title={info.case.description[zh ? 0 : 1]}>
-                {zh ? "真实模板：" : "Real template: "}
-                {info.case.label[zh ? 0 : 1]}
-              </span>
-            )}
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={busy}
-              onClick={() => void loadTemplate()}
-            >
-              {busy
-                ? zh
-                  ? "正在准备…"
-                  : "Preparing…"
-                : zh
-                  ? "使用此模板"
-                  : "Use this template"}
-            </button>
-            {(info.pin || info.record_pin) && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={busy}
-                onClick={() => void showResult()}
-              >
-                {info.record_pin && !info.record_pin.computed_result_available
-                  ? zh
-                    ? "配置示例"
-                    : "Setup example"
-                  : zh
-                    ? "示例结果"
-                    : "Example results"}
-              </button>
-            )}
-            {(loaded || result) && (
-              <button
-                type="button"
-                className="text-button"
-                disabled={busy}
-                onClick={clear}
-              >
-                {zh ? "新建空白任务" : "New blank task"}
-              </button>
-            )}
-            <details>
-              <summary>
-                {zh ? "模板说明与来源" : "Template guide & sources"}
-              </summary>
-              <p>{info.case.description[zh ? 0 : 1]}</p>
-              <ol>
-                {templateGuide(capability, language)
-                  .steps.slice(0, 3)
-                  .map((text) => (
-                    <li key={text}>{text}</li>
-                  ))}
-              </ol>
-              <ul>
-                {info.case.sources.map((url) => (
-                  <li key={url}>
-                    <a href={url} target="_blank" rel="noreferrer">
-                      {new URL(url).hostname}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </>
-        )}
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-      </div>
-      {result && (
+        )
+      )}
+      <ExampleFeedback
+        language={language}
+        pending={state.loadingInfo ? "metadata" : state.pending}
+        failure={state.failure}
+        onRetry={state.retry}
+      />
+      {state.result && (
         <section
           className="module-example-result"
           aria-label={zh ? "模块内示例结果" : "In-module example results"}
         >
-          <div className="section-heading">
-            <h2>
-              {info?.case.label[zh ? 0 : 1] ??
-                (zh ? "示例结果" : "Example results")}
-              <span className="example-result-kind">
-                {info?.record_pin && !info.record_pin.computed_result_available
-                  ? zh
-                    ? "配置示例"
-                    : "Setup example"
-                  : zh
-                    ? "公开示例"
-                    : "Public example"}
-              </span>
-              <Hint label={zh ? "结果解读说明" : "Result interpretation help"}>
-                {templateGuide(capability, language).interpretation}
-              </Hint>
-            </h2>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={closeResult}
-            >
-              {zh ? "返回任务填写" : "Return to task form"}
-            </button>
-          </div>
           <TemplatePreviewContext.Provider value={true}>
-            {result.job && (
-              <ExampleJobResult job={result.job} language={language} />
+            {state.result.job && (
+              <ExampleJobResult job={state.result.job} language={language} />
             )}
-            {result.example && (
+            {state.result.example && (
               <ExampleRecordResult
-                example={result.example}
+                example={state.result.example}
                 language={language}
               />
             )}

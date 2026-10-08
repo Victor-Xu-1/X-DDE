@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ExampleActions } from "./ExampleActions";
 import type { ExampleInfo } from "./types";
@@ -28,11 +35,11 @@ const info: ExampleInfo = {
   computed_result_available: false,
   pin: null,
 };
+beforeEach(() => {
+  transport.request.mockReset().mockResolvedValue(info);
+  transport.post.mockReset();
+});
 describe("module templates", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    transport.request.mockResolvedValue(info);
-  });
   it("starts blank and loads a template only by explicit choice without submitting", async () => {
     const onLoad = vi.fn(),
       prepared = {
@@ -102,11 +109,20 @@ describe("module templates", () => {
     expect(transport.post).not.toHaveBeenCalled();
     expect(location.href).toBe(url);
     expect(onPreviewChange).toHaveBeenLastCalledWith(true);
+    expect(
+      screen.queryByRole("button", { name: "Example results" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: /BRD4–JQ1 template/ }),
+    ).toHaveFocus();
     fireEvent.click(
       screen.getByRole("button", { name: "Return to task form" }),
     );
     expect(onPreviewChange).toHaveBeenLastCalledWith(false);
     expect(screen.queryByText("Native output native-task")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Example results" }),
+    ).toHaveFocus();
   });
   it("opens a verified compound result without loading it into a live plan", async () => {
     transport.request.mockResolvedValue({
@@ -160,12 +176,102 @@ describe("module templates", () => {
       <ExampleActions capability="gnina.dock" language="en" onLoad={vi.fn()} />,
     );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Reviewed template metadata is unavailable",
+      "Example guide unavailable",
     );
     expect(
       screen.queryByRole("button", { name: "Use this template" }),
     ).toBeNull();
   });
+});
+
+it("shows metadata loading and lets the researcher retry without changing inputs", async () => {
+  let reject: (value: Error) => void = () => {};
+  transport.request.mockReturnValueOnce(
+    new Promise((_resolve, failure) => {
+      reject = failure;
+    }),
+  );
+  const onLoad = vi.fn();
+  const { rerender } = render(
+    <ExampleActions capability="gnina.dock" language="en" onLoad={onLoad} />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("Loading example");
+  await act(async () =>
+    reject(new Error("ConnectionRefused: /srv/private/runtime.log")),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Example guide unavailable",
+  );
+  expect(screen.queryByText(/runtime.log|ConnectionRefused/)).toBeNull();
+  rerender(
+    <ExampleActions capability="gnina.dock" language="zh" onLoad={onLoad} />,
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent("案例说明暂不可用");
+  transport.request.mockResolvedValueOnce(info);
+  fireEvent.click(screen.getByRole("button", { name: "重试" }));
+  expect(
+    await screen.findByRole("button", { name: "使用此模板" }),
+  ).toBeEnabled();
+  expect(onLoad).not.toHaveBeenCalled();
+  expect(transport.post).not.toHaveBeenCalled();
+});
+
+it("names result loading correctly and retries the same public result without preparing inputs", async () => {
+  let reject: (value: Error) => void = () => {};
+  transport.request.mockResolvedValueOnce({
+    ...info,
+    pin: { job_id: "native-task", artifact_sha256: {} },
+    computed_result_available: true,
+  });
+  transport.request.mockReturnValueOnce(
+    new Promise((_resolve, failure) => {
+      reject = failure;
+    }),
+  );
+  const onLoad = vi.fn();
+  render(
+    <ExampleActions capability="gnina.dock" language="en" onLoad={onLoad} />,
+  );
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Example results" }),
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("Opening example");
+  expect(
+    screen.getByRole("button", { name: "Opening example…" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Use this template" }),
+  ).toBeDisabled();
+  await act(async () => reject(new Error("Failed to fetch")));
+  const alert = await screen.findByRole("alert");
+  expect(alert).toHaveTextContent("Example results unavailable");
+  transport.request.mockResolvedValueOnce({
+    id: "native-task",
+    status: "succeeded",
+  });
+  fireEvent.click(within(alert).getByRole("button", { name: "Retry" }));
+  expect(await screen.findByText("Native output native-task")).toBeVisible();
+  expect(transport.request).toHaveBeenLastCalledWith("/jobs/native-task");
+  expect(onLoad).not.toHaveBeenCalled();
+  expect(transport.post).not.toHaveBeenCalled();
+});
+
+it("preserves setup-only provenance when presenting a record without computed output", async () => {
+  transport.request.mockResolvedValueOnce({
+    ...info,
+    record_pin: { record_id: "setup", computed_result_available: false },
+  });
+  transport.post.mockResolvedValueOnce({
+    module: info.module,
+    record: { kind: "campaign" },
+  });
+  render(
+    <ExampleActions capability="gnina.dock" language="en" onLoad={vi.fn()} />,
+  );
+  fireEvent.click(await screen.findByRole("button", { name: "Setup example" }));
+  expect(await screen.findByText("Verified compound output")).toBeVisible();
+  expect(screen.getByText("Setup example")).toBeVisible();
+  expect(screen.queryByText("Public example")).toBeNull();
 });
 
 it("ignores a template response after the user changes modules", async () => {

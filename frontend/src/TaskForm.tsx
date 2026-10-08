@@ -27,6 +27,7 @@ interface Props {
   ready: boolean;
   abagAvailable?: boolean;
   initialRequest?: Prediction | null;
+  onPreviewChange?(value: boolean): void;
   onSubmit(value: Prediction, key: string): Promise<Job>;
 }
 export function TaskForm({
@@ -35,6 +36,7 @@ export function TaskForm({
   initialRequest,
   onSubmit,
   abagAvailable = false,
+  onPreviewChange,
 }: Props) {
   const t = translator(language),
     zh = language === "zh";
@@ -276,7 +278,10 @@ export function TaskForm({
       <ExampleActions
         capability="predict"
         language={language}
-        onPreviewChange={setPreviewing}
+        onPreviewChange={(value) => {
+          setPreviewing(value);
+          onPreviewChange?.(value);
+        }}
         onClear={() => {
           setExample(null);
           setName("");

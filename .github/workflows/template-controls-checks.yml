@@ -1,0 +1,61 @@
+name: Public case controls and context checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'frontend/src/examples/ExampleActions*'
+      - 'frontend/src/examples/ExampleToolbar*'
+      - 'frontend/src/examples/ExampleGuide*'
+      - 'frontend/src/examples/ExampleFeedback*'
+      - 'frontend/src/examples/useExampleTemplate*'
+      - 'frontend/src/examples/examples.css'
+      - 'frontend/src/TaskForm*'
+      - 'frontend/src/studio/HomeWorkspace*'
+      - 'server_tests/test_template_controls_browser.py'
+      - '.github/workflows/template-controls-checks.yml'
+permissions:
+  contents: read
+jobs:
+  public-case-controls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build and check the changed controls and direct consumers
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          cd frontend
+          npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleJobResult.test.tsx src/examples/guide.test.ts src/TaskForm.test.tsx src/studio/HomeWorkspace.test.tsx src/operations/ToolCenter.test.tsx
+      - name: Restore reviewed public results into isolated state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-case-controls" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-case-controls/state" >> "$GITHUB_ENV"
+          uv sync --locked --group dev --group browser
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+      - name: Native case context, keyboard return and failure recovery
+        run: |
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/template-controls
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/template-controls/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -q server_tests/test_template_controls_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-template-controls-evidence
+          path: server_tests/evidence/template-controls
+          if-no-files-found: warn

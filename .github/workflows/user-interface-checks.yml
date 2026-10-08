@@ -75,6 +75,15 @@ on:
       - '!frontend/src/studio/ModuleTaskPicker*'
       - '!frontend/src/studio.css'
       - '!frontend/src/design/workspaces.css'
+      # Public case controls have a focused native gate.
+      - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleToolbar*'
+      - '!frontend/src/examples/ExampleGuide*'
+      - '!frontend/src/examples/ExampleFeedback*'
+      - '!frontend/src/examples/useExampleTemplate*'
+      - '!frontend/src/examples/examples.css'
+      - '!frontend/src/TaskForm*'
+      - '!frontend/src/studio/HomeWorkspace*'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -139,6 +148,15 @@ on:
       - '!frontend/src/studio/ModuleTaskPicker*'
       - '!frontend/src/studio.css'
       - '!frontend/src/design/workspaces.css'
+      # Public case controls have a focused native gate.
+      - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleToolbar*'
+      - '!frontend/src/examples/ExampleGuide*'
+      - '!frontend/src/examples/ExampleFeedback*'
+      - '!frontend/src/examples/useExampleTemplate*'
+      - '!frontend/src/examples/examples.css'
+      - '!frontend/src/TaskForm*'
+      - '!frontend/src/studio/HomeWorkspace*'
   workflow_dispatch:
 jobs:
   presentation:
