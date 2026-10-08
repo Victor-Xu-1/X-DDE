@@ -94,6 +94,19 @@ class ScientificBackend(PreparedContainerBackend):
             "--env",
             "NUMBA_CACHE_DIR=/tmp/numba",
         ]
+        if self.program == "openfe":
+            # OpenFF imports Torch while discovering optional toolkits. A task UID
+            # deliberately has no image passwd entry; keep native caches in tmpfs.
+            args += [
+                "--env",
+                "USER=xdde",
+                "--env",
+                "LOGNAME=xdde",
+                "--env",
+                "TORCHINDUCTOR_CACHE_DIR=/tmp/torch-inductor",
+                "--env",
+                "OPENMM_CPU_THREADS=" + str(job.request.options.cpu),
+            ]
         if job.request.options.device == "cuda":
             args += ["--gpus", "device=0"]
         if PROGRAMS[self.program]["models"]:
