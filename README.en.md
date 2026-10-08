@@ -105,6 +105,18 @@ DEL results retain member structures, target/control counts, enrichment interval
 
 The antibody image shows a validated **input template**, without a new design run. Experimental reference structures, supplied materials and newly generated model outputs retain distinct identities.
 
+### Interactive dynamics and binding free energy
+
+Mol* renders live 3D structures and sampled trajectories; Plotly charts link sampled times to structures and provide hover, zoom, pan and SVG export. FEP uses a draggable Cytoscape network, Ketcher structures and selected-pose interaction inspection. Original research files remain separately downloadable.
+
+![Actual English interactive MD result: 3D playback and linked stability plots](docs/images/dynamics-interactive.png)
+
+This BRD4/JQ1 view uses retained native short-simulation output to demonstrate interaction and downloads. It is not evidence of production convergence or affinity accuracy.
+
+![Actual English TYK2 perturbation network and bound-pose overlay](docs/images/fep-interactive.png)
+
+The TYK2 image is a genuine planned network, with no calculated binding free energy. The software also implements native uncertainty, overlap and convergence views for completed calculations; target-server calculation validation is deferred under the current software-first workflow. See [methods and preview architecture](docs/simulations.md).
+
 ## How the architecture works
 
 **X-DDE owns the frontend and platform backend. Scientific software such as OpenDDE, Boltz-2, DiffSBDD and GNINA runs in independent integrated environments.**
