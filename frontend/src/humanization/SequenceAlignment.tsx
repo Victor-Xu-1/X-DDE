@@ -58,7 +58,9 @@ export function SequenceAlignment({
               residue.source_position +
               " · " +
               residue.amino_acid;
-            const location = `IMGT ${residue.number}${residue.insertion} · ${residue.region} · ${zh ? "原始位置" : "Source position"} ${residue.source_position}`;
+            const region =
+              residue.region === "framework" && zh ? "框架" : residue.region;
+            const location = `IMGT ${residue.number}${residue.insertion} · ${region} · ${zh ? "原始位置" : "Source position"} ${residue.source_position}`;
             return (
               <div className="alignment-pair" key={residue.source_position}>
                 <small>{residue.source_position}</small>
@@ -115,7 +117,9 @@ export function SequenceAlignment({
         <footer>
           {zh ? "原始位置 " : "Source position "}
           {selected.source_position} · IMGT {selected.number}
-          {selected.insertion} · {selected.region} · {selected.amino_acid}
+          {selected.insertion} ·{" "}
+          {selected.region === "framework" && zh ? "框架" : selected.region} ·{" "}
+          {selected.amino_acid}
           {row.proposal && " → " + row.proposal[selected.source_position - 1]}
         </footer>
       )}
