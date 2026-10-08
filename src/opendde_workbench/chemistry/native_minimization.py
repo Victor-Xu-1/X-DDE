@@ -94,6 +94,8 @@ def run_minimization(request, bindings, job, output):
     code = field.Minimize(maxIts=options.max_iterations, forceTol=1e-4, energyTol=1e-6)
     if code not in {0, 1}:
         raise ValueError("Native force-field minimization failed.")
+    if options.initialize_3d and code != 0:
+        raise ValueError("Initial 3D optimization did not converge; no calculated pose was saved.")
     for index in range(final.GetNumAtoms()):
         final.GetConformer().SetAtomPosition(index, work.GetConformer().GetAtomPosition(index))
     check_geometry(final)

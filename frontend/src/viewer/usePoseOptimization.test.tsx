@@ -107,6 +107,36 @@ it("reuses a qualified calculated record without minimization and does not chang
   expect(vi.mocked(request)).not.toHaveBeenCalled();
 });
 
+it("preserves an indexed member by its report digest before preparing its initial pose", async () => {
+  vi.mocked(api.post).mockImplementation(async (path) =>
+    path.endsWith("/preserve")
+      ? saved.pose
+      : { state: "ready", pose: saved.pose },
+  );
+  const indexed = {
+    kind: "indexed" as const,
+    job_id: old,
+    member_id: "supplier:candidate",
+    report_sha256: "a".repeat(64),
+  };
+  const { result } = renderHook(() =>
+    usePoseOptimization({ ...base, source: indexed }, 0),
+  );
+  await act(async () => {
+    await result.current.prepareInitial();
+  });
+  expect(vi.mocked(api.post).mock.calls[0]).toEqual([
+    `/datasets/${old}/members/preserve`,
+    { member_id: indexed.member_id, report_sha256: indexed.report_sha256 },
+  ]);
+  expect(vi.mocked(api.post).mock.calls[1][1]).toEqual({
+    source: { kind: "version", version_id: next },
+    method: "MMFF94s",
+    retry: false,
+  });
+  expect(result.current.initialReady).toBe(true);
+});
+
 it("keeps preparation failure visible and retries explicitly with a selected force field", async () => {
   vi.mocked(api.post).mockRejectedValue(new Error("Environment unavailable"));
   const { result } = renderHook(() => usePoseOptimization(base, 0));

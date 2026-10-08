@@ -118,6 +118,8 @@ on:
       - '!frontend/src/viewer/InitialPoseStatus*'
       - '!frontend/src/viewer/usePoseOptimization*'
       - '!frontend/src/viewer/pose-source*'
+      - '!frontend/src/viewer/pose-errors*'
+      - '!frontend/src/viewer/pose-types.ts'
       - '!frontend/src/viewer/source-layout*'
       - '!frontend/src/viewer/viewer.css'
   workflow_dispatch:
