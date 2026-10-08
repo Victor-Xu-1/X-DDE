@@ -183,6 +183,7 @@ export function MolecularViewport({
         role="application"
         aria-label={zh ? "交互式三维分子" : "Interactive 3D molecules"}
         data-loaded={loaded}
+        data-error={failure || undefined}
       >
         <canvas ref={canvas} />
         {!loaded && !failure && (

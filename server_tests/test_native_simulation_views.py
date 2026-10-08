@@ -48,13 +48,25 @@ def test_native_result_views_and_downloads(case, language):
             "dynamics-results" if case == "openmm.dynamics" else "free-energy-results"
         )
         expect(root).to_be_visible(timeout=30000)
+
+        def loaded(viewer):
+            scene = viewer.locator(".simulation-webgl")
+            page.wait_for_function(
+                "() => { const scene = document.querySelector('.simulation-webgl'); return scene?.dataset.loaded === 'true' || !!scene?.dataset.error; }",
+                timeout=45000,
+            )
+            if scene.get_attribute("data-error"):
+                page.screenshot(
+                    path=str(evidence / (language + "-load-failure.png")), full_page=True
+                )
+            assert scene.get_attribute("data-error") is None, scene.get_attribute("data-error")
+            expect(scene).to_have_attribute("data-loaded", "true")
+
         if case == "openmm.dynamics":
             viewer = root.get_by_test_id("molstar-viewport")
             expect(viewer).to_be_visible()
             expect(viewer.locator("canvas")).to_be_visible(timeout=30000)
-            expect(viewer.locator(".simulation-webgl")).to_have_attribute(
-                "data-loaded", "true", timeout=45000
-            )
+            loaded(viewer)
             page.get_by_role(
                 "slider", name="Trajectory time" if language == "en" else "轨迹时间"
             ).fill("3")
@@ -104,9 +116,7 @@ def test_native_result_views_and_downloads(case, language):
                 "tab", name="Binding poses" if language == "en" else "结合姿势", exact=True
             ).click()
             pose = root.get_by_test_id("molstar-viewport")
-            expect(pose.locator(".simulation-webgl")).to_have_attribute(
-                "data-loaded", "true", timeout=45000
-            )
+            loaded(pose)
             root.get_by_role(
                 "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
             ).select_option("b")
