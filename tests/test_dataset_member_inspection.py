@@ -26,7 +26,7 @@ def prepared_index(settings):
         {
             "name": "controlled indexed record",
             "operation": "drugclip_index",
-            "payload": {"kind": "drugclip", "mode": "index"},
+            "payload": {"kind": "drugclip", "mode": "index", "use": "non_commercial"},
             "sources": [{"role": "library", "job_id": str(uuid4()), "report_sha256": "a" * 64}],
         }
     )
