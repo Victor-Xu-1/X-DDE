@@ -7,7 +7,18 @@ on:
         type: choice
         default: contracts
         options:
-          [contracts, chemistry, admet, openmm, apbs, plip, chemprop, all]
+          [
+            contracts,
+            chemistry,
+            admet,
+            openmm,
+            apbs,
+            plip,
+            chemprop,
+            simulation-lock,
+            simulation-native,
+            all,
+          ]
       runner:
         description: Hosted Linux runner; native containers retain their fixed base images
         type: choice
@@ -21,6 +32,11 @@ on:
 permissions:
   contents: read
 jobs:
+  simulations:
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["simulation-lock","simulation-native"]'), inputs.check)
+    uses: ./.github/workflows/simulation-checks.yml
+    with:
+      check: ${{ inputs.check == 'simulation-lock' && 'locks' || 'native' }}
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

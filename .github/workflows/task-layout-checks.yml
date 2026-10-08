@@ -5,13 +5,6 @@ on:
     paths:
       - "frontend/src/guided/**"
       - "frontend/src/integrations/**"
-      - "!frontend/src/studio/research-modules.ts"
-      - "!frontend/src/studio/method-choices.ts"
-      - "!frontend/src/operations/catalog.ts"
-      - "!frontend/src/operations/ToolCenter.tsx"
-      - "!frontend/src/integrations/operations.ts"
-      - "!frontend/src/integrations/types.ts"
-      - "!frontend/src/integrations/ScientificResults.tsx"
       - "frontend/src/datasets/SourcePicker*"
       - "frontend/src/datasets/useDatasetSources*"
       - "frontend/src/datasets/DEL*"
@@ -130,6 +123,15 @@ on:
       - "!frontend/src/viewer/pose-types.ts"
       - "!frontend/src/viewer/source-layout*"
       - "!frontend/src/viewer/viewer.css"
+      - "!frontend/src/integrations/ScientificResults.tsx"
+      - "!frontend/src/integrations/types.ts"
+      - "!frontend/src/integrations/operations.ts"
+      - "!frontend/src/operations/ToolCenter.tsx"
+      - "!frontend/src/operations/catalog.ts"
+      - "!frontend/src/studio/method-choices.ts"
+      - "!frontend/src/studio/research-modules.ts"
+      - "!frontend/src/studio/research-icons.ts"
+      - "!frontend/src/design/module-theme.ts"
   workflow_dispatch:
 permissions:
   contents: read

@@ -1,5 +1,10 @@
 name: Molecular dynamics and free-energy checks
 on:
+  workflow_call:
+    inputs:
+      check:
+        type: string
+        default: contracts
   workflow_dispatch:
     inputs:
       check:
