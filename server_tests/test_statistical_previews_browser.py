@@ -53,6 +53,31 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         (evidence / (language + "-native-traces.json")).write_text(
             json.dumps(traces, ensure_ascii=False), encoding="utf-8"
         )
+        plot.scroll_into_view_if_needed()
+        kind = traces[0].get("type")
+        if kind in {"bar", "scatter"}:
+            marker = plot.locator(
+                ".barlayer .point path" if kind == "bar" else ".scatterlayer .point"
+            ).first
+            bounds = marker.bounding_box()
+            assert bounds
+            page.mouse.move(
+                bounds["x"] + bounds["width"] / 2,
+                bounds["y"] + bounds["height"] / 2,
+            )
+            expect(plot.locator(".hoverlayer .hovertext").first).to_be_visible()
+        elif kind == "heatmap":
+            bounds = plot.locator(".heatmaplayer image").first.bounding_box()
+            assert bounds
+            columns, rows = len(traces[0]["x"]), len(traces[0]["y"])
+            page.mouse.move(
+                bounds["x"] + bounds["width"] / columns / 2,
+                bounds["y"] + bounds["height"] / rows / 2,
+            )
+            expect(plot.locator(".hoverlayer .hovertext").first).to_be_visible()
+            expect(plot.locator(".hoverlayer")).to_contain_text(
+                "Enrichment" if language == "en" else "富集"
+            )
         chart.get_by_role(
             "combobox", name="Chart interaction" if language == "en" else "图表操作"
         ).select_option("pan")
