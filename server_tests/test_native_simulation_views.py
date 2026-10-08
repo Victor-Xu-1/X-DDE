@@ -52,14 +52,18 @@ def test_native_result_views_and_downloads(case, language):
         def loaded(viewer):
             scene = viewer.locator(".simulation-webgl")
             page.wait_for_function(
-                "() => { const scene = document.querySelector('.simulation-webgl'); return scene?.dataset.loaded === 'true' || !!scene?.dataset.error; }",
+                "() => { const scene = document.querySelector('.simulation-webgl');"
+                " return scene?.dataset.loaded === 'true' || !!scene?.dataset.error; }",
                 timeout=45000,
             )
             if scene.get_attribute("data-error"):
                 page.screenshot(
                     path=str(evidence / (language + "-load-failure.png")), full_page=True
                 )
-            assert scene.get_attribute("data-error") is None, scene.get_attribute("data-error")
+            assert scene.get_attribute("data-error") is None, (
+                scene.get_attribute("data-error"),
+                errors,
+            )
             expect(scene).to_have_attribute("data-loaded", "true")
 
         if case == "openmm.dynamics":

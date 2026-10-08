@@ -1,5 +1,6 @@
 import { PluginContext } from "molstar/lib/mol-plugin/context";
 import { DefaultPluginSpec } from "molstar/lib/mol-plugin/spec";
+import { PluginConfig } from "molstar/lib/mol-plugin/config";
 import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
 import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/state";
 import { lociLabel } from "molstar/lib/mol-theme/label";
@@ -28,7 +29,14 @@ export interface MolecularView {
   ligand: "all" | "a" | "b";
 }
 export class MolecularController {
-  private plugin = new PluginContext(DefaultPluginSpec());
+  private plugin = new PluginContext({
+    ...DefaultPluginSpec(),
+    config: [
+      // Use the official viewer policy: software WebGL is valid when hardware
+      // acceleration is unavailable. This never substitutes molecular data.
+      [PluginConfig.General.AllowMajorPerformanceCaveat, true],
+    ],
+  });
   private model?: StateObjectSelector<SO.Molecule.Model>;
   private structures: StateObjectSelector<SO.Molecule.Structure>[] = [];
   private visibility: {
