@@ -22,6 +22,7 @@ on:
       - "frontend/src/simulations/MolecularViewport.tsx"
       - "frontend/src/simulations/molstar-controller.ts"
       - "frontend/src/simulations/molstar-figure.ts"
+      - "frontend/src/simulations/molstar-figure.test.ts"
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "frontend/src/simulations/DynamicsResults.tsx"
       - "server_tests/test_native_simulation_views.py"
@@ -53,7 +54,7 @@ jobs:
           src/presentation/depiction-renderer.test.ts src/guided/Questionnaire.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts src/viewer/StructureViewer.test.tsx
           src/viewer/contact-labels.test.ts src/viewer/native-contact-labels.test.ts
-          src/simulations/SimulationResults.test.tsx
+          src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts
       - name: Existing bootstrap and request-origin security contracts
         run: >-
           uv run --locked pytest -q

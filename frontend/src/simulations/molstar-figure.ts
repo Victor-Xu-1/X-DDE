@@ -16,7 +16,7 @@ export async function molecularFigure(
   const values = helper.values,
     crop = helper.behaviors.relativeCrop.value,
     cropParams = helper.behaviors.cropParams.value;
-  const processing = canvas.props.postprocessing;
+  const processing = structuredClone(canvas.props.postprocessing);
   try {
     // The native screenshot helper otherwise forces 128 occlusion samples for
     // every high-resolution AA pass. Balanced lighting retains full native

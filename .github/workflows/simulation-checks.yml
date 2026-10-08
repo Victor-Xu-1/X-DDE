@@ -25,6 +25,7 @@ on:
       - "!frontend/src/simulations/MolecularViewport.tsx"
       - "!frontend/src/simulations/molstar-controller.ts"
       - "!frontend/src/simulations/molstar-figure.ts"
+      - "!frontend/src/simulations/molstar-figure.test.ts"
 permissions:
   contents: read
 jobs:
