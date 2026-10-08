@@ -138,22 +138,24 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                         result.scroll_into_view_if_needed()
                         page.screenshot(path=str(evidence / f"pose-ensemble-{width}.png"))
                     result.get_by_role("button", name="计算此姿势分子性质", exact=True).click()
-                    result.get_by_role("button", name="下一步", exact=True).click()
+                    page.get_by_role("button", name="下一步", exact=True).click()
                     expect(
-                        result.get_by_role("combobox", name="分子文件（可含多个记录）", exact=True)
+                        page.get_by_role("combobox", name="分子文件（可含多个记录）", exact=True)
                     ).to_have_value(reference["asset_id"])
+                    page.get_by_role("button", name="← 返回结果", exact=True).click()
                     result.get_by_role("button", name="在配套受体上重新评分", exact=True).click()
                     expect(
-                        result.get_by_role("combobox", name="受体结构 · 复用研究资产", exact=True)
+                        page.get_by_role("combobox", name="受体结构 · 复用研究资产", exact=True)
                     ).to_have_value(outcome["combination"]["receptor"]["version_id"])
                     expect(
-                        result.get_by_role(
+                        page.get_by_role(
                             "combobox", name="选择分子或已有姿势 · 复用研究资产", exact=True
                         )
                     ).to_have_value(reference["version_id"])
                     page.screenshot(
                         path=str(evidence / "pose-paired-rescore-handoff-390.png"), full_page=True
                     )
+                    page.get_by_role("button", name="← 返回结果", exact=True).click()
                     result.get_by_text("比较原生评分", exact=True).click()
                     result.get_by_role("combobox", name="比较哪些姿势？", exact=True).select_option(
                         "all"

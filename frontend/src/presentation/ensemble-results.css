@@ -1,0 +1,107 @@
+.ensemble-result-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+  gap: 24px;
+  align-items: start;
+  min-width: 0;
+}
+.ensemble-result-list,
+.pose-detail,
+.receptor-overlay-detail {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.ensemble-result-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 32px;
+}
+.ensemble-result-heading h3,
+.ensemble-result-list > h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.ensemble-result-heading > a {
+  margin-left: auto;
+  font-size: 12px;
+}
+.ensemble-count {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.pose-selection-table {
+  max-height: 490px;
+}
+.pose-selection-table table {
+  min-width: 0;
+}
+.pose-selection-table td,
+.pose-selection-table th {
+  padding: 10px 8px;
+  vertical-align: top;
+  font-size: 12px;
+}
+.pose-selection-table tr.is-selected,
+.receptor-member-table tr.is-selected {
+  background: var(--surface-hover);
+}
+.result-row-button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  text-align: left;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.result-row-button[aria-pressed="true"] {
+  font-weight: 700;
+}
+.result-row-button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+.pose-native-metric {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.pose-native-metric small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+.ensemble-empty-preview {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 8px;
+  min-height: 280px;
+  padding: 20px;
+  color: var(--muted);
+  background: var(--surface-hover);
+}
+.ensemble-empty-preview p {
+  margin: 0;
+}
+@media (max-width: 1000px) {
+  .ensemble-result-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .ensemble-result-layout > .pose-detail,
+  .ensemble-result-layout > .receptor-overlay-detail {
+    grid-row: 1;
+  }
+  .pose-selection-table {
+    max-height: 320px;
+  }
+}

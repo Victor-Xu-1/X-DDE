@@ -30,7 +30,12 @@ on:
       - 'frontend/src/design/**'
       - 'frontend/src/humanization/**'
       - 'frontend/src/viewer/**'
+      # Camera and paired-result changes are verified by viewer-checks.yml.
+      - '!frontend/src/viewer/frame.ts'
+      - '!frontend/src/viewer/scene.ts'
+      - '!frontend/src/viewer/context-focus*'
       - 'frontend/src/presentation/**'
+      - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/docking/DockingResults*'
       - 'frontend/src/editors/scientificEditor*'
       - 'frontend/src/antibodies/AntibodyNumberResults*'
@@ -68,7 +73,6 @@ on:
       - 'server_tests/depiction_browser_helpers.py'
       - 'server_tests/layout_browser_helpers.py'
       - 'server_tests/layout_coverage.py'
-      - '.github/workflows/task-layout-checks.yml'
   workflow_dispatch:
 permissions:
   contents: read

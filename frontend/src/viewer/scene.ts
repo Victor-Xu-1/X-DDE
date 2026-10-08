@@ -9,6 +9,8 @@ import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
+import { focusDisplayContext } from "./context-focus";
+import type { ViewportSize } from "./camera-resize";
 import {
   residueRef as ref,
   residueSelection as sel,
@@ -83,6 +85,7 @@ export class MolecularScene {
   constructor(
     private viewer: mol.GLViewer,
     private emit: Emit,
+    private viewport?: () => ViewportSize,
   ) {}
   resetState() {
     this.nativeInteractions = undefined;
@@ -434,12 +437,15 @@ export class MolecularScene {
       (r) => r.key === key || residueLabel(r) === key,
     );
     if (!residue) return;
-    const atoms = this.viewer.selectedAtoms(sel(residue));
+    const atoms = this.viewer.selectedAtoms({ model: 0, ...sel(residue) });
     if (atoms.length) {
       await this.pick(atoms[0]);
-      this.viewer.zoomTo(sel(residue));
-      this.viewer.zoom(1.5);
-      this.viewer.render();
+      focusDisplayContext(
+        this.viewer,
+        atoms,
+        this.complexModel,
+        this.viewport?.(),
+      );
     }
   }
   focusChannel() {
@@ -477,8 +483,12 @@ export class MolecularScene {
       this.emit("selected", null);
       this.emit("distance", null);
     } else if (action === "focus") {
-      this.viewer.zoomTo({ index: this.selected });
-      this.viewer.zoom(1.25);
+      focusDisplayContext(
+        this.viewer,
+        this.viewer.selectedAtoms({ model: 0, index: this.selected }),
+        this.complexModel,
+        this.viewport?.(),
+      );
     } else if (action === "hide") {
       for (const index of this.selected) this.hidden.add(index);
       this.selected = [];

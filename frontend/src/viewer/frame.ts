@@ -54,7 +54,9 @@ function notify(type: string, detail: unknown = {}) {
     location.origin,
   );
 }
-const scene = new MolecularScene(viewer, notify);
+const scene = new MolecularScene(viewer, notify, () =>
+  document.getElementById("molecule")!.getBoundingClientRect(),
+);
 let controller: AbortController | null = null,
   generation = 0;
 let loadedSourceIdentity: string | null = null;

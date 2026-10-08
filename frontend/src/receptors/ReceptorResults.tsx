@@ -1,8 +1,12 @@
+import "../presentation/ensemble-results.css";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
+import { Hint } from "../guided/Hint";
 import { useEffect, useState } from "react";
 import { artifactUrl, request } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { PocketForm } from "../pockets/PocketForm";
+import { ReceptorMemberTable } from "./ReceptorMemberTable";
+import { ReceptorMemberDetails } from "./ReceptorMemberDetails";
 import type { Job, Language } from "../types";
 import type { ReceptorResult, ReceptorSet } from "./types";
 import "./receptors.css";
@@ -22,6 +26,7 @@ export function ReceptorResults({
     data.members.find((row) => row.artifact && row.status === "aligned")
       ?.index ??
     data.members.find((row) => row.artifact)?.index ??
+    data.members[0]?.index ??
     null;
   const [sets, setSets] = useState<ReceptorSet[]>([]),
     [loading, setLoading] = useState(true),
@@ -30,38 +35,42 @@ export function ReceptorResults({
     [next, setNext] = useState(false),
     [message, setMessage] = useState("");
   useEffect(() => {
-    const c = new AbortController();
+    const controller = new AbortController();
     setLoading(true);
     setSets([]);
     setError("");
     setSelected(initialSelection);
     setNext(false);
     void request<ReceptorSet[]>(
-      `/research/receptor-ensembles?source_job=${encodeURIComponent(job.id)}`,
-      { signal: c.signal },
+      "/research/receptor-ensembles?source_job=" + encodeURIComponent(job.id),
+      { signal: controller.signal },
     )
-      .then((v) => {
-        if (!c.signal.aborted) setSets(v);
+      .then((value) => {
+        if (!controller.signal.aborted) setSets(value);
       })
       .catch((e) => {
-        if (!c.signal.aborted) setError(String(e));
+        if (!controller.signal.aborted) setError(String(e));
       })
       .finally(() => {
-        if (!c.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       });
-    return () => c.abort();
-  }, [job.id]);
-  const member = data.members.find((m) => m.index === selected),
-    reference = data.members[data.options.reference_index],
+    return () => controller.abort();
+  }, [job.id, initialSelection]);
+  const member = data.members.find((row) => row.index === selected),
+    reference = data.members.find(
+      (row) => row.index === data.options.reference_index,
+    ),
     saved = sets
-      .flatMap((s) => s.members)
-      .find((m) => m.evidence.index === selected)?.reference;
+      .flatMap((set) => set.members)
+      .find((row) => row.evidence.index === selected)?.reference;
   const urls = member?.artifact
     ? [
         ...new Set(
-          [reference.artifact, member.artifact].filter((v): v is string => !!v),
+          [reference?.artifact, member.artifact].filter(
+            (file): file is string => !!file,
+          ),
         ),
-      ].map((v) => artifactUrl(job.id, v))
+      ].map((file) => artifactUrl(job.id, file))
     : [];
   if (next && saved)
     return (
@@ -80,6 +89,7 @@ export function ReceptorResults({
             )
           }
         />
+        {message && <p role="status">{message}</p>}
       </ResearchHandoff>
     );
   return (
@@ -88,119 +98,115 @@ export function ReceptorResults({
       aria-label={zh ? "受体构象集合结果" : "Receptor ensemble results"}
       aria-busy={loading}
     >
-      <p>
-        {zh ? "通过对齐的成员" : "Aligned members"}: {data.qualified_count} /{" "}
-        {data.members.length}
-      </p>
-      <p className="field-help">
-        {zh
-          ? "这是已有结构的刚体对齐。骨架与坐标检查不代表完整原子参数化；B 因子不自动解释为预测置信度。"
-          : "Rigid alignment of supplied structures. Coordinate/backbone checks do not imply full atom parameterization; B-factors are not automatically prediction confidence."}
-      </p>
+      <header className="ensemble-result-heading">
+        <h3>
+          {zh ? "已对齐受体" : "Aligned receptors"}{" "}
+          <span className="ensemble-count">
+            {data.qualified_count} / {data.members.length}
+          </span>
+        </h3>
+        <Hint label={zh ? "结构对齐说明" : "Structural alignment help"}>
+          {zh
+            ? "这是已有结构的刚体对齐。骨架与坐标检查不代表完整原子参数化；B 因子不自动解释为预测置信度。"
+            : "Rigid alignment of supplied structures. Coordinate and backbone checks do not imply full atom parameterization; B-factors are not automatically prediction confidence."}
+        </Hint>
+      </header>
       {data.qualified_count < 2 && (
-        <p role="status">
+        <p role="status" className="field-help">
           {zh
             ? "需要至少两个通过检查的成员，才能进行多构象比较。"
             : "At least two qualified members are needed for multi-conformation comparison."}
         </p>
       )}
+      <div className="ensemble-result-layout">
+        <div className="ensemble-result-list">
+          <h3>{zh ? "选择受体" : "Select a receptor"}</h3>
+          <ReceptorMemberTable
+            members={data.members}
+            selected={selected}
+            language={language}
+            onSelect={(index) => {
+              setSelected(index);
+              setNext(false);
+            }}
+          />
+          {member && (
+            <ReceptorMemberDetails
+              member={member}
+              jobId={job.id}
+              language={language}
+            />
+          )}
+        </div>
+        <section
+          className="receptor-overlay-detail"
+          aria-label={zh ? "所选受体预览" : "Selected receptor preview"}
+        >
+          <header className="ensemble-result-heading">
+            <h3>
+              {member
+                ? (zh ? "受体 " : "Receptor ") + (member.index + 1)
+                : zh
+                  ? "结构预览"
+                  : "Structure preview"}
+            </h3>
+          </header>
+          {urls.length > 0 ? (
+            <>
+              <StructureViewer
+                key={job.id + ":" + selected}
+                urls={urls}
+                language={language}
+                comparison={urls.length > 1}
+              />
+              <p className="field-help receptor-overlay-legend">
+                {urls.length > 1
+                  ? zh
+                    ? "蓝色：参照 · 橙色：所选受体。完全重合时可互相遮挡。"
+                    : "Blue: reference · Orange: selected receptor. Identical overlays can occlude each other."
+                  : zh
+                    ? "当前显示单个结构。"
+                    : "One structure is displayed."}
+              </p>
+              {saved && member?.quality?.backbone_complete && (
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => setNext(true)}
+                >
+                  {zh ? "用此受体寻找口袋" : "Find pockets on this receptor"}
+                </button>
+              )}
+            </>
+          ) : (
+            <div className="ensemble-empty-preview" role="status">
+              <strong>
+                {zh
+                  ? "没有可查看的对齐结构"
+                  : "No aligned structure to inspect"}
+              </strong>
+              <p>
+                {zh
+                  ? "查看所选成员的原因，或选择其他受体。"
+                  : "Inspect the selected member's reason or choose another receptor."}
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
       {loading && (
         <p role="status">
-          {zh ? "读取已登记的受体集合…" : "Loading indexed receptor ensemble…"}
+          {zh
+            ? "正在读取可继续使用的结构…"
+            : "Loading structures for the next step…"}
         </p>
       )}
       {!loading && !error && !sets.length && (
-        <p role="status">
+        <p role="status" className="field-help">
           {zh
-            ? "尚未登记可复用集合，请在任务资产登记中检查并重试。"
-            : "No reusable ensemble was indexed. Check task asset indexing and retry."}
+            ? "结构尚未登记为历史文件，暂时不能用于下一步。请刷新后重试。"
+            : "These structures are not yet available as historical files for the next step. Refresh and try again."}
         </p>
-      )}
-      {data.members.map((row) => (
-        <details className="receptor-input" key={row.index}>
-          <summary>
-            {zh ? "受体" : "Receptor"} {row.index + 1} ·{" "}
-            {row.status === "reference"
-              ? zh
-                ? "参照结构"
-                : "Reference"
-              : row.status === "aligned"
-                ? zh
-                  ? "已对齐"
-                  : "Aligned"
-                : zh
-                  ? "未通过"
-                  : "Rejected"}
-            {row.transformation
-              ? ` · Cα RMSD ${row.transformation.rmsd_angstrom.toFixed(3)} Å`
-              : ""}
-          </summary>
-          {row.reason && <p role="alert">{row.reason}</p>}
-          {row.correspondence && (
-            <p>
-              {zh ? "匹配锚点" : "Matched anchors"}:{" "}
-              {row.correspondence.pair_count} ·{" "}
-              {zh ? "序列一致率" : "Sequence identity"}:{" "}
-              {(row.correspondence.identity * 100).toFixed(1)}% ·{" "}
-              {zh ? "覆盖率" : "Coverage"}:{" "}
-              {(row.correspondence.coverage * 100).toFixed(1)}%
-            </p>
-          )}
-          {row.quality && (
-            <p>
-              {zh ? "模型" : "Model"} {row.quality.selected_model_index + 1} ·{" "}
-              {zh ? "链" : "Chains"} {row.quality.selected_chains.join(", ")} ·{" "}
-              {row.quality.atom_count} {zh ? "个原子" : "atoms"}
-              {!row.quality.backbone_complete
-                ? " · " +
-                  (zh
-                    ? "骨架不完整，仅用于几何比较"
-                    : "Incomplete backbone; geometry comparison only")
-                : ""}
-            </p>
-          )}
-          {row.artifact && (
-            <div className="receptor-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                aria-pressed={selected === row.index}
-                onClick={() => {
-                  setSelected(row.index);
-                  setNext(false);
-                }}
-              >
-                {zh ? "叠合预览此受体" : "Overlay this receptor"}
-              </button>
-              <a href={artifactUrl(job.id, row.artifact)} download>
-                {zh ? "下载对齐结构" : "Download aligned structure"}
-              </a>
-            </div>
-          )}
-        </details>
-      ))}
-      {urls.length > 0 && !next && (
-        <>
-          <p className="field-help">
-            {zh
-              ? "蓝色为参照受体，橙色为所选受体；完全重合时可见颜色会互相遮挡。"
-              : "Blue is the reference and orange is the selected receptor; identical overlays can occlude one another."}
-          </p>
-          <StructureViewer
-            urls={urls}
-            language={language}
-            comparison={urls.length > 1}
-          />
-        </>
-      )}
-      {saved && member?.quality?.backbone_complete && !next && (
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => setNext(true)}
-        >
-          {zh ? "用此受体寻找口袋" : "Find pockets on this receptor"}
-        </button>
       )}
       {!loading && sets.length > 0 && data.qualified_count >= 2 && (
         <details>
@@ -210,13 +216,11 @@ export function ReceptorResults({
           <SiteWorkspace ensemble={sets[0]} language={language} />
         </details>
       )}
-
       {error && (
         <p role="alert" className="error-box">
           {error}
         </p>
       )}
-      {message && <p role="status">{message}</p>}
     </section>
   );
 }

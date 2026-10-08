@@ -14,6 +14,10 @@ on:
       - 'frontend/src/studio/runtime-status.css'
       - 'frontend/src/operations/filter*'
       - 'frontend/src/**/*Results*'
+      # Paired-result inspection is verified by viewer-checks.yml.
+      - '!frontend/src/poses/PoseResults*'
+      - '!frontend/src/receptors/ReceptorResults*'
+      - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'
       - 'frontend/src/studio/HomeWorkspace*'
@@ -45,7 +49,6 @@ on:
       - 'frontend/src/workflow.css'
       - 'frontend/src/research/ObjectInspector*'
       - 'frontend/src/research/research.css'
-      - '.github/workflows/user-interface-checks.yml'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -59,6 +62,10 @@ on:
       - 'frontend/src/studio/runtime-status.css'
       - 'frontend/src/operations/filter*'
       - 'frontend/src/**/*Results*'
+      # Paired-result inspection is verified by viewer-checks.yml.
+      - '!frontend/src/poses/PoseResults*'
+      - '!frontend/src/receptors/ReceptorResults*'
+      - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'
       - 'frontend/src/studio/HomeWorkspace*'
@@ -80,7 +87,6 @@ on:
       - 'frontend/src/workflow.css'
       - 'frontend/src/research/ObjectInspector*'
       - 'frontend/src/research/research.css'
-      - '.github/workflows/user-interface-checks.yml'
   workflow_dispatch:
 jobs:
   presentation:

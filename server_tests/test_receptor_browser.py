@@ -92,10 +92,9 @@ def test_real_receptor_ensemble_overlay_and_pocket_handoff(tmp_path):
                     expect(
                         page.get_by_role("region", name="受体构象集合结果", exact=True)
                     ).to_be_visible()
-                    page.locator(".receptor-results > details").nth(1).locator(
-                        "summary"
-                    ).first.click()
-                    page.get_by_role("button", name="叠合预览此受体", exact=True).click()
+                    page.get_by_role("table", name="受体构象", exact=True).get_by_role(
+                        "button", name="受体 2", exact=True
+                    ).click()
                     expect(page.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(
                         timeout=30000
                     )
@@ -104,7 +103,7 @@ def test_real_receptor_ensemble_overlay_and_pocket_handoff(tmp_path):
                     ).to_be_visible(timeout=30000)
                     expect(
                         page.get_by_text(
-                            "蓝色为参照受体，橙色为所选受体；完全重合时可见颜色会互相遮挡。",
+                            "蓝色：参照 · 橙色：所选受体。完全重合时可互相遮挡。",
                             exact=True,
                         )
                     ).to_be_visible()

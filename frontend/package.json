@@ -2,7 +2,7 @@
   "name": "x-dde-ui",
   "private": true,
   "license": "Apache-2.0",
-  "version": "0.4.51",
+  "version": "0.4.52",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
