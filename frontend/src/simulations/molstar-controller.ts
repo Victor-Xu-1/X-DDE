@@ -40,6 +40,7 @@ export class MolecularController {
   private ligandStructure?: StateObjectSelector<SO.Molecule.Structure>;
   private queue = Promise.resolve();
   private requestedFrame = 0;
+  private resizeObserver?: ResizeObserver;
 
   async initialize(
     canvas: HTMLCanvasElement,
@@ -53,6 +54,11 @@ export class MolecularController {
       renderer: { backgroundColor: Color(0xffffff) },
       camera: { manualReset: true },
     });
+    this.resizeObserver = new ResizeObserver(() => {
+      if (container.offsetWidth > 0 && container.offsetHeight > 0)
+        this.plugin.handleResize();
+    });
+    this.resizeObserver.observe(container);
     this.plugin.behaviors.interaction.hover.subscribe(({ current }) =>
       onAtom?.(
         lociLabel(current.loci, { htmlStyling: false, granularity: "element" }),
@@ -279,9 +285,12 @@ export class MolecularController {
       );
   }
   snapshot() {
-    return this.plugin.helpers.viewportScreenshot?.download("X-DDE-structure");
+    return this.plugin.helpers.viewportScreenshot?.download(
+      "X-DDE-structure.png",
+    );
   }
   dispose() {
+    this.resizeObserver?.disconnect();
     this.plugin.dispose();
   }
 }

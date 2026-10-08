@@ -83,46 +83,6 @@
   min-width: 0;
   padding: 0;
 }
-.simulation-plot svg {
-  width: 100%;
-  height: auto;
-  overflow: visible;
-  color: var(--text-primary, #263348);
-}
-.simulation-plot svg text {
-  font-size: 11px;
-  fill: currentColor;
-  font-family: inherit;
-}
-.simulation-plot .plot-grid line {
-  stroke: var(--border-color, #e5e9f0);
-  stroke-width: 1;
-}
-.simulation-plot .plot-cursor {
-  stroke: #aab2c9;
-  stroke-dasharray: 4 4;
-}
-.simulation-plot circle[role="button"]:focus {
-  fill: #5865d8;
-  outline: 2px solid #18998b;
-}
-.simulation-legend {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  margin-top: 4px;
-}
-.simulation-legend span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.simulation-legend i {
-  display: block;
-  width: 14px;
-  height: 3px;
-}
 .trajectory-controls {
   display: flex;
   align-items: center;
@@ -186,44 +146,6 @@
   min-width: 0;
   max-width: 100%;
   height: 170px;
-}
-.fep-network svg,
-.fep-heatmap svg,
-.fep-forest svg {
-  width: 100%;
-  height: auto;
-}
-.fep-network circle {
-  fill: var(--surface, #fff);
-  stroke: #5865d8;
-  stroke-width: 2;
-}
-.fep-network .is-selected circle {
-  fill: #e6f5f1;
-  stroke: #18998b;
-}
-.fep-network text,
-.fep-forest text {
-  font: 12px inherit;
-  fill: currentColor;
-}
-.fep-network g[role="button"] {
-  cursor: pointer;
-}
-.fep-network g[role="button"]:focus {
-  outline: 2px solid #18998b;
-}
-.fep-heatmap {
-  max-width: 440px;
-  margin-inline: auto;
-}
-.fep-heatmap svg text {
-  font: 11px inherit;
-  fill: currentColor;
-}
-.fep-heatmap rect {
-  stroke: var(--surface, #fff);
-  stroke-width: 1;
 }
 @media (max-width: 1000px) {
   .simulation-main-grid {
