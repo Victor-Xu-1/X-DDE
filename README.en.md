@@ -16,30 +16,30 @@ Drug discovery already has many excellent open-source tools. The friction often 
 
 X-DDE brings these handoffs into the platform. Medicinal chemists and biologics researchers work around research questions, while computational experts retain control over methods, settings and interpretation.
 
-| Common research problem | How X-DDE addresses it | What changes for researchers |
-| --- | --- | --- |
-| Separate installations and conflicting dependencies, models or data | Components organized by research use; isolated scientific environments | One place to choose storage, inspect readiness and maintain components |
-| Dozens of parameters before the purpose is clear | One visible step at a time, recommended choices, explanations and expert controls | Answer the research question before reviewing the settings that matter |
-| Repeatedly moving structures, molecules and sequences between tools | Shared research assets, explicit input versions and direct handoffs | Use pockets for generation; pass molecules into properties and docking |
-| Results presented as files, numbers or technical logs | Linked candidate tables, 2D / 3D structures, sequences and analysis charts | Select a candidate, inspect its structure, adjust the view and download results |
-| Original materials and result origins become difficult to track | Preserve source files, derived versions and task relationships | Revise, compare, return to originals and continue the research |
-| Toy examples or demonstration jobs clutter personal history | Public research templates inside each task, with computed outcomes presented separately | Learn inputs and result interpretation from real cases, then submit a new personal task |
+| Common research problem                                             | How X-DDE addresses it                                                                  | What changes for researchers                                                            |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Separate installations and conflicting dependencies, models or data | Components organized by research use; isolated scientific environments                  | One place to choose storage, inspect readiness and maintain components                  |
+| Dozens of parameters before the purpose is clear                    | One visible step at a time, recommended choices, explanations and expert controls       | Answer the research question before reviewing the settings that matter                  |
+| Repeatedly moving structures, molecules and sequences between tools | Shared research assets, explicit input versions and direct handoffs                     | Use pockets for generation; pass molecules into properties and docking                  |
+| Results presented as files, numbers or technical logs               | Linked candidate tables, 2D / 3D structures, sequences and analysis charts              | Select a candidate, inspect its structure, adjust the view and download results         |
+| Original materials and result origins become difficult to track     | Preserve source files, derived versions and task relationships                          | Revise, compare, return to originals and continue the research                          |
+| Toy examples or demonstration jobs clutter personal history         | Public research templates inside each task, with computed outcomes presented separately | Learn inputs and result interpretation from real cases, then submit a new personal task |
 
 ## What you can do
 
-The current catalogue has **71 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
+The current catalogue has **73 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
 
-| Research area | Supported work | Outputs or next steps |
-| --- | --- | --- |
-| **Target research** | Disease associations, target evidence, canonical sequences, public structures and measured-activity records | Source-linked research materials for structure and candidate work |
-| **Structure prediction** | Protein and complex prediction, structure preparation, receptor alignment and comparison | Structures, native confidence, alignment results and downloadable files |
-| **Pockets and binding modes** | Pocket discovery, docking and rescoring, receptor/state exploration, interactions and pose quality | Candidate sites, multiple poses, native scores and contact analysis |
-| **Small-molecule design** | Pocket-conditioned generation, analogues and local design, chemical states and unbound conformers | New molecules or derived versions for properties, docking or screening |
-| **Biologics research** | Antibody numbering and CDRs, framework proposals, protein/peptide design, sequence scoring, folding and interface review | Sequences, CDR positions, structural candidates and interface results |
-| **Induced proximity** | Ternary assembly hypotheses and related structural exploration of degraders and bifunctional molecules | Candidate assemblies and traceable structural hypotheses |
-| **High-throughput screening** | Supplier-file import, library preparation, reusable sharded indexes, pocket-conditioned retrieval, diversity selection and shortlisted docking | Candidates retaining library/supplier identifiers and actual poses |
-| **DEL research** | Library definitions, member structures, read decoding, UMI/counts, enrichment and controls, building-block series, research models and handoffs | Counts, enrichment evidence, series charts, candidate structures and experimental follow-up |
-| **Properties and early safety** | Descriptors, 41 model endpoints, structural alerts, scaffold representatives and models from experimental data | Molecular tables, native units, selected candidates and reusable molecules |
+| Research area                   | Supported work                                                                                                                                  | Outputs or next steps                                                                       |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Target research**             | Disease associations, target evidence, canonical sequences, public structures and measured-activity records                                     | Source-linked research materials for structure and candidate work                           |
+| **Structure prediction**        | Protein and complex prediction, structure preparation, receptor alignment and comparison                                                        | Structures, native confidence, alignment results and downloadable files                     |
+| **Pockets and binding modes**   | Pocket discovery, docking and rescoring, receptor/state exploration, interactions and pose quality                                              | Candidate sites, multiple poses, native scores and contact analysis                         |
+| **Small-molecule design**       | Pocket-conditioned generation, analogues and local design, chemical states and unbound conformers                                               | New molecules or derived versions for properties, docking or screening                      |
+| **Biologics research**          | Antibody numbering and CDRs, framework proposals, protein/peptide design, sequence scoring, folding and interface review                        | Sequences, CDR positions, structural candidates and interface results                       |
+| **Induced proximity**           | Ternary assembly hypotheses and related structural exploration of degraders and bifunctional molecules                                          | Candidate assemblies and traceable structural hypotheses                                    |
+| **High-throughput screening**   | Supplier-file import, library preparation, reusable sharded indexes, pocket-conditioned retrieval, diversity selection and shortlisted docking  | Candidates retaining library/supplier identifiers and actual poses                          |
+| **DEL research**                | Library definitions, member structures, read decoding, UMI/counts, enrichment and controls, building-block series, research models and handoffs | Counts, enrichment evidence, series charts, candidate structures and experimental follow-up |
+| **Properties and early safety** | Descriptors, 41 model endpoints, structural alerts, scaffold representatives and models from experimental data                                  | Molecular tables, native units, selected candidates and reusable molecules                  |
 
 RNA / DNA support currently focuses on structural inputs, complex prediction and relevant feature preparation; it is not a general nucleic-acid drug-design system. Synthesis routes, retrosynthesis and wet-lab automation are outside the current scope.
 
@@ -111,13 +111,13 @@ The platform manages projects, tasks, workflows, research assets, environment de
 
 ![X-DDE architecture: research workspace, platform backend, isolated scientific environments and lineage](docs/images/platform-architecture.png)
 
-| Layer | Responsibilities | Purpose |
-| --- | --- | --- |
-| **Research workspace** | Guided tasks, method selection, 2D / 3D / sequence inspection, comparisons and downloads | Let researchers work with research questions and visible results |
-| **X-DDE platform backend** | Validated APIs, tasks/workflows, asset versions, deployment and result ownership | Give multiple tools one task and data authority |
-| **Execution and deployment adapters** | Validate native inputs, invoke real programs, prepare isolated environments and resources | Distinguish installation from valid completed computation |
-| **Independent scientific environments** | Each tool's scientific programs, models, dependencies and native execution | Isolate dependencies and support suitable alternatives within a task |
-| **Assets and lineage** | Source materials, derived versions, input/output relationships and history | Reuse exact materials, retain originals and trace changes |
+| Layer                                   | Responsibilities                                                                          | Purpose                                                              |
+| --------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Research workspace**                  | Guided tasks, method selection, 2D / 3D / sequence inspection, comparisons and downloads  | Let researchers work with research questions and visible results     |
+| **X-DDE platform backend**              | Validated APIs, tasks/workflows, asset versions, deployment and result ownership          | Give multiple tools one task and data authority                      |
+| **Execution and deployment adapters**   | Validate native inputs, invoke real programs, prepare isolated environments and resources | Distinguish installation from valid completed computation            |
+| **Independent scientific environments** | Each tool's scientific programs, models, dependencies and native execution                | Isolate dependencies and support suitable alternatives within a task |
+| **Assets and lineage**                  | Source materials, derived versions, input/output relationships and history                | Reuse exact materials, retain originals and trace changes            |
 
 The execution path is **task form → X-DDE API → one persistent task queue and backend router → native program → platform assets and results**. Installation uses deployment adapters; scientific work uses execution adapters. The platform does not copy a competing workbench or scientific-agent loop.
 
@@ -125,13 +125,13 @@ The execution path is **task form → X-DDE API → one persistent task queue an
 
 ![How research assets connect small-molecule, biologics and DEL workflows](docs/images/connected-research-en.png)
 
-| Existing material or result | Possible next step |
-| --- | --- |
-| Canonical sequences, public structures or predicted models | Structure preparation, pockets, protein design and interface analysis |
-| Confirmed receptors and pockets | Pocket-conditioned generation, fast screening and bounded docking |
-| New molecules, library candidates or derived molecular versions | Properties, chemical states/conformers, docking and pose quality |
-| Protein or antibody candidate sequences | Folding, sequence scoring, interface comparison and further design |
-| DEL enriched members and building-block series | Structural handoff, properties/docking and experimental follow-up |
+| Existing material or result                                     | Possible next step                                                    |
+| --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Canonical sequences, public structures or predicted models      | Structure preparation, pockets, protein design and interface analysis |
+| Confirmed receptors and pockets                                 | Pocket-conditioned generation, fast screening and bounded docking     |
+| New molecules, library candidates or derived molecular versions | Properties, chemical states/conformers, docking and pose quality      |
+| Protein or antibody candidate sequences                         | Folding, sequence scoring, interface comparison and further design    |
+| DEL enriched members and building-block series                  | Structural handoff, properties/docking and experimental follow-up     |
 
 Edits create derived versions while source files remain available. Distances, confidence, docking scores and experimental activity are interpreted with their own meanings and units.
 
@@ -141,10 +141,10 @@ Large libraries use streaming preparation, sharded indexes and bounded candidate
 
 Download `install.ps1` for Windows or `install.sh` for Linux / WSL from [GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases). Release packages contain the built frontend; users do not need Node.js or a frontend build.
 
-| System | Install | Start |
-| --- | --- | --- |
-| Windows PowerShell | `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1` | `X-DDE UI` |
-| Linux / WSL | `bash install.sh`, then follow the command-path instructions | `xdde dashboard` |
+| System             | Install                                                             | Start            |
+| ------------------ | ------------------------------------------------------------------- | ---------------- |
+| Windows PowerShell | `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1` | `X-DDE UI`       |
+| Linux / WSL        | `bash install.sh`, then follow the command-path instructions        | `xdde dashboard` |
 
 Use `xdde stop` to stop, `xdde status` to inspect status, and `xdde restart` to restart. Windows commands and startup arguments support case compatibility. Historical OpenDDE commands remain launcher aliases.
 
@@ -156,7 +156,7 @@ The default Windows entry is `E:\WSL\apps\x-dde`. Linux environments, models and
 
 ## Current scope and scientific use
 
-- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 71 entries do not mean every machine already has all required resources.
+- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 73 entries do not mean every machine already has all required resources.
 - Public cases include BRD4–JQ1, trastuzumab–HER2, ABL inhibitors, MZ1 ternary assemblies, RNA–TPP and public DEL research. Calculated cases retain native outputs; input-only examples are explicitly templates. See [case provenance and identities](docs/design/research-examples.md).
 - Supplier access uses official public downloads and legitimately obtained files. Catalogue entries are not possession of every commercial library, live inventory or procurement authorization. See [verified resources and coverage](docs/design/supplier-structure-files.md).
 - Models, weights, third-party data and outputs can have independent restrictions, including noncommercial research terms. X-DDE's code license does not replace them.
@@ -166,15 +166,16 @@ GPU inference, server throughput, scientific accuracy and experimental conclusio
 
 ## Documentation
 
-| Question | Document |
-| --- | --- |
-| Installation, startup, existing environments and recovery | [User guide](docs/user-guide.md) |
+| Question                                                         | Document                                                     |
+| ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| Installation, startup, existing environments and recovery        | [User guide](docs/user-guide.md)                             |
+| Molecular dynamics, FEP and linked previews                      | [Simulation and free-energy guide](docs/simulations.md)      |
 | Platform responsibilities, supported tools and native interfaces | [Architecture and capability mapping](docs/design/README.md) |
-| Fast screening, supplier libraries and DEL | [Screening and DEL](docs/design/screening-and-del.md) |
-| Ternary complexes and bifunctional molecules | [Induced proximity](docs/design/proximity-design.md) |
-| Real templates, public sources and native results | [Research cases](docs/design/research-examples.md) |
-| Native execution, hardware and scientific acceptance | [Server acceptance](docs/server-acceptance.md) |
-| Development, focused verification and publication numbering | [Development and release](docs/development.md) |
+| Fast screening, supplier libraries and DEL                       | [Screening and DEL](docs/design/screening-and-del.md)        |
+| Ternary complexes and bifunctional molecules                     | [Induced proximity](docs/design/proximity-design.md)         |
+| Real templates, public sources and native results                | [Research cases](docs/design/research-examples.md)           |
+| Native execution, hardware and scientific acceptance             | [Server acceptance](docs/server-acceptance.md)               |
+| Development, focused verification and publication numbering      | [Development and release](docs/development.md)               |
 
 This overview is available in full in both languages. Some detailed technical documents linked above currently use Chinese or mixed bilingual text.
 

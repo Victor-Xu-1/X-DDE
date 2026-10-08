@@ -83,6 +83,8 @@ def build(request):
         "VAL",
         "HOH",
         "WAT",
+        "ACE",
+        "NME",
     }
     if any(residue.name not in standard for residue in protein_topology.residues()):
         raise ValueError(
