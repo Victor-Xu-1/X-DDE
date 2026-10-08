@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Plotly from "plotly.js";
 import type { Language } from "../types";
+import "./plotly-native.css";
 
 export function InteractivePlot({
   title,
