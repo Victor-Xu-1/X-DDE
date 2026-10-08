@@ -133,11 +133,11 @@ export function translator(language: Language) {
 }
 export function restoreLanguage(): Language {
   try {
-    return localStorage.getItem("opendde-workbench.language") === "en"
-      ? "en"
-      : "zh";
+    return localStorage.getItem("opendde-workbench.language") === "zh"
+      ? "zh"
+      : "en";
   } catch {
-    return "zh";
+    return "en";
   }
 }
 export function persistLanguage(language: Language): boolean {

@@ -112,6 +112,7 @@ on:
       - '!frontend/src/examples/examples.css'
       - '!frontend/src/TaskForm*'
       - '!frontend/src/studio/HomeWorkspace*'
+      - '!frontend/src/presentation/result-layout.css'
   workflow_dispatch:
 permissions:
   contents: read

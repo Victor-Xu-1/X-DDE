@@ -84,6 +84,7 @@ on:
       - '!frontend/src/examples/examples.css'
       - '!frontend/src/TaskForm*'
       - '!frontend/src/studio/HomeWorkspace*'
+      - '!frontend/src/presentation/result-layout.css'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -157,6 +158,7 @@ on:
       - '!frontend/src/examples/examples.css'
       - '!frontend/src/TaskForm*'
       - '!frontend/src/studio/HomeWorkspace*'
+      - '!frontend/src/presentation/result-layout.css'
   workflow_dispatch:
 jobs:
   presentation:

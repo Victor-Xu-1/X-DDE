@@ -39,6 +39,8 @@ describe("language state", () => {
   it("provides both locales and persists the selection", () => {
     for (const pair of Object.values(messages))
       expect(pair.every((value) => value.length > 0)).toBe(true);
+    expect(restoreLanguage()).toBe("en");
+    expect(persistLanguage("zh")).toBe(true);
     expect(restoreLanguage()).toBe("zh");
     expect(persistLanguage("en")).toBe(true);
     expect(restoreLanguage()).toBe("en");
@@ -47,11 +49,17 @@ describe("language state", () => {
   });
   it("reports blocked persistence and rejects invalid stored language", () => {
     localStorage.setItem("opendde-workbench.language", "invalid");
-    expect(restoreLanguage()).toBe("zh");
+    expect(restoreLanguage()).toBe("en");
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("blocked");
     });
     expect(persistLanguage("en")).toBe(false);
+  });
+  it("starts in English when browser storage cannot be read", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    expect(restoreLanguage()).toBe("en");
   });
 });
 

@@ -18,6 +18,35 @@ CASES = [
 ]
 
 
+def test_default_english_and_language_selection_survive_refresh():
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    base = os.environ["WB_BROWSER_URL"]
+    with sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.goto(base)
+        before = page.request.get(base + "/api/jobs").json()
+        expect(page.locator("html")).to_have_attribute("lang", "en")
+        expect(page.get_by_role("navigation", name="Main navigation", exact=True)).to_be_visible()
+        capture(page, "default-english-first-visit")
+        settings(page, "en")
+        expect(page.locator("#settings-language")).to_have_value("en")
+        page.locator("#settings-language").select_option("zh")
+        expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
+        page.reload()
+        expect(page.get_by_role("navigation", name="主导航", exact=True)).to_be_visible()
+        expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
+        settings(page, "zh")
+        expect(page.locator("#settings-language")).to_have_value("zh")
+        capture(page, "saved-chinese-language")
+        page.locator("#settings-language").select_option("en")
+        page.reload()
+        expect(page.get_by_role("navigation", name="Main navigation", exact=True)).to_be_visible()
+        expect(page.locator("html")).to_have_attribute("lang", "en")
+        assert before == page.request.get(base + "/api/jobs").json()
+        browser.close()
+
+
 @pytest.fixture(
     params=[(language, width) for language in ("zh", "en") for width in (1440, 768, 390)]
 )
@@ -43,9 +72,10 @@ def case_page(request):
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        if language == "en":
-            settings(page, "zh")
-            page.locator("#settings-language").select_option("en")
+        expect(page.locator("html")).to_have_attribute("lang", "en")
+        if language == "zh":
+            settings(page, "en")
+            page.locator("#settings-language").select_option("zh")
         yield page, language, width
         assert not errors, errors
         assert not submissions, submissions

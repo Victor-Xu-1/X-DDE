@@ -44,6 +44,8 @@ def shell_page():
             ),
         )
         page.goto(os.environ["WB_BROWSER_URL"])
+        settings(page, "en")
+        page.locator("#settings-language").select_option("zh")
         before = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/jobs").json()
         yield page
         assert not errors, errors

@@ -11,6 +11,10 @@ on:
       - 'frontend/src/examples/examples.css'
       - 'frontend/src/TaskForm*'
       - 'frontend/src/studio/HomeWorkspace*'
+      - 'frontend/src/i18n.ts'
+      - 'frontend/src/form-model.test.ts'
+      - 'frontend/index.html'
+      - 'frontend/src/presentation/result-layout.css'
       - 'server_tests/test_template_controls_browser.py'
       - '.github/workflows/template-controls-checks.yml'
 permissions:
@@ -34,6 +38,7 @@ jobs:
           npm run build --prefix frontend
           cd frontend
           npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleJobResult.test.tsx src/examples/guide.test.ts src/TaskForm.test.tsx src/studio/HomeWorkspace.test.tsx src/operations/ToolCenter.test.tsx
+          npx vitest run src/form-model.test.ts src/studio/InterfaceSettings.test.tsx src/App.test.tsx src/admet/AdmetResults.test.tsx src/docking/DockingResults.test.tsx src/chemistry/StateResults.test.tsx
       - name: Restore reviewed public results into isolated state
         env:
           GH_TOKEN: ${{ github.token }}
