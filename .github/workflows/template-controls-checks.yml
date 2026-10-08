@@ -38,8 +38,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "WB_HOME=$RUNNER_TEMP/x-dde-case-controls" >> "$GITHUB_ENV"
-          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-case-controls/state" >> "$GITHUB_ENV"
+          export WB_HOME="$RUNNER_TEMP/x-dde-case-controls"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
           uv sync --locked --group dev --group browser
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
