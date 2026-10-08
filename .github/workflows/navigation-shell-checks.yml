@@ -1,0 +1,65 @@
+name: Research navigation and header checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'frontend/src/studio/Navigation*'
+      - 'frontend/src/studio/navigation-frame.css'
+      - 'frontend/src/studio/Header*'
+      - 'frontend/src/studio/header.css'
+      - 'frontend/src/studio/TaskSearch*'
+      - 'frontend/src/studio/TaskNotifications*'
+      - 'frontend/src/studio/ModuleTaskPicker*'
+      - 'frontend/src/studio.css'
+      - 'frontend/src/design/workspaces.css'
+      - 'server_tests/test_navigation_shell_browser.py'
+      - '.github/workflows/navigation-shell-checks.yml'
+permissions:
+  contents: read
+jobs:
+  research-shell:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Navigation, header and direct application consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/Navigation.test.tsx
+          src/studio/NavigationFrame.test.tsx src/studio/Header.test.tsx
+          src/studio/MethodSwitch.test.tsx src/studio/BindingEntryDialog.test.tsx
+          src/studio/research-modules.test.ts src/studio/InterfaceSettings.test.tsx
+          src/App.test.tsx src/studio/TaskWorkspace.test.tsx
+      - name: Restore reviewed public state without inference
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-research-shell" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-research-shell/state" >> "$GITHUB_ENV"
+          uv sync --locked --group dev --group browser
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - name: Real page navigation, modal focus and task search in Chromium
+        run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/navigation-shell
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/navigation-shell/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -q server_tests/test_navigation_shell_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-navigation-shell-evidence
+          path: server_tests/evidence/navigation-shell
+          if-no-files-found: warn

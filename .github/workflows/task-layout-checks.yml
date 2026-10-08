@@ -93,6 +93,16 @@ on:
       - '!frontend/src/humanization/humanization.css'
       - '!frontend/src/humanization/sequence-alignment.css'
       - '!frontend/src/quality/QualityResults*'
+      # Shared research-shell changes have a focused native navigation gate.
+      - '!frontend/src/studio/Navigation*'
+      - '!frontend/src/studio/navigation-frame.css'
+      - '!frontend/src/studio/Header*'
+      - '!frontend/src/studio/header.css'
+      - '!frontend/src/studio/TaskSearch*'
+      - '!frontend/src/studio/TaskNotifications*'
+      - '!frontend/src/studio/ModuleTaskPicker*'
+      - '!frontend/src/studio.css'
+      - '!frontend/src/design/workspaces.css'
   workflow_dispatch:
 permissions:
   contents: read

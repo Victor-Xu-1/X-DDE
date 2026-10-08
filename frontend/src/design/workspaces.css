@@ -23,20 +23,6 @@
 .task-page-list button.active {
   background: var(--accent-soft);
 }
-@media (max-width: 960px) {
-  .studio-sidebar nav button {
-    flex-direction: column;
-    gap: 3px;
-    padding: 8px 3px;
-    min-height: 58px;
-  }
-  .studio-sidebar nav button .nav-short {
-    display: block;
-    font-size: 10px;
-    line-height: 1.3;
-    font-weight: 500;
-  }
-}
 @media (max-width: 640px) {
   .theme-option > small {
     grid-column: 2;
@@ -133,77 +119,11 @@ dialog::backdrop {
   }
 }
 @media (max-width: 960px) {
-  .studio-app {
-    grid-template-columns: 72px minmax(0, 1fr);
-  }
-  .studio-sidebar {
-    padding: 14px 8px 10px;
-  }
-  .studio-sidebar nav button > span:not(.anticon),
-  .management-trigger-copy,
-  .management-more {
-    display: none;
-  }
-  .studio-sidebar nav button {
-    justify-content: center;
-    padding: 10px;
-    position: relative;
-  }
-  .studio-sidebar nav button .anticon {
-    display: inline-flex;
-  }
-  .studio-sidebar nav button b {
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    min-width: 16px;
-    height: 16px;
-    font-size: 10px;
-  }
-  .management-trigger {
-    padding: 8px;
-    justify-content: center;
-  }
-  .studio-topbar {
-    padding: 0 24px;
-  }
   .task-page-grid {
     grid-template-columns: 1fr;
   }
-  .page-context {
-    display: none;
-  }
 }
 @media (max-width: 640px) {
-  .studio-app {
-    grid-template-columns: 56px minmax(0, 1fr);
-  }
-  .studio-sidebar {
-    padding: 8px 5px;
-  }
-  .studio-sidebar nav {
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  .studio-sidebar nav button {
-    min-width: 0;
-    min-height: 44px;
-    width: 100%;
-    flex: 0 0 auto;
-  }
-  .studio-topbar {
-    height: 58px;
-    padding: 0 16px;
-    gap: 8px;
-  }
-  .global-search {
-    width: 100%;
-    margin: 0;
-  }
-  .top-actions > .top-popover:first-child {
-    display: block;
-  }
   .studio-content {
     padding: 24px 16px 16px;
   }

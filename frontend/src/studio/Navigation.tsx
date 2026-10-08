@@ -9,6 +9,7 @@ import {
   MoreOutlined,
 } from "@ant-design/icons";
 import type { Job, Language } from "../types";
+import { NavigationFrame } from "./NavigationFrame";
 import { researchIcons } from "./research-icons";
 import {
   navigationItems,
@@ -28,7 +29,19 @@ const managementIcons = {
   settings: SettingOutlined,
   help: QuestionCircleOutlined,
 };
-export function Navigation({
+export function Navigation(props: {
+  view: View;
+  onView(value: View): void;
+  language: Language;
+  jobs: Job[];
+}) {
+  return (
+    <NavigationFrame language={props.language} onView={props.onView}>
+      {(navigate) => <SidebarNavigation {...props} onView={navigate} />}
+    </NavigationFrame>
+  );
+}
+function SidebarNavigation({
   view,
   onView,
   language,

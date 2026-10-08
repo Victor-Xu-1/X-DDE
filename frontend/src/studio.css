@@ -863,59 +863,14 @@ body {
   }
 }
 @media (max-width: 800px) {
-  .studio-app {
-    grid-template-columns: 64px minmax(0, 1fr);
-  }
-  .studio-sidebar {
-    padding: 9px 5px;
-  }
-  .studio-sidebar nav button {
-    justify-content: center;
-    padding: 8px;
-  }
-  .studio-sidebar nav button span {
-    display: none;
-  }
   .sidebar-status {
     display: none;
   }
   .studio-content {
     padding: 11px;
   }
-  .studio-topbar {
-    padding: 0 9px;
-  }
 }
 @media (max-width: 580px) {
-  .studio-app {
-    display: block;
-  }
-  .studio-sidebar {
-    height: auto;
-    position: static;
-    display: block;
-    padding: 6px;
-  }
-  .studio-sidebar nav {
-    flex-direction: row;
-    overflow-x: auto;
-    margin: 0;
-    white-space: nowrap;
-  }
-  .studio-sidebar nav button {
-    min-width: 39px;
-    flex: 0 0 39px;
-  }
-  .studio-topbar {
-    top: 0;
-  }
-  .global-search {
-    width: min(45vw, 280px);
-  }
-  .account-menu summary span:last-child,
-  .top-actions > .top-popover:first-child {
-    display: none;
-  }
   .top-actions {
     gap: 8px;
   }
@@ -1075,42 +1030,7 @@ body {
   border-radius: 8px;
   background: var(--surface);
 }
-@media (max-width: 800px) {
-  .studio-sidebar nav button .anticon {
-    display: inline-flex;
-  }
-  .studio-sidebar nav button > span:not(.anticon) {
-    display: none;
-  }
-  .management-trigger {
-    justify-content: center;
-    padding: 5px;
-  }
-  .management-trigger-copy,
-  .management-more {
-    display: none;
-  }
-}
 @media (max-width: 580px) {
-  .studio-app {
-    display: grid;
-    grid-template-columns: 56px minmax(0, 1fr);
-  }
-  .studio-sidebar nav {
-    flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
-    white-space: normal;
-  }
-  .studio-sidebar nav button {
-    flex: 0 0 auto;
-    min-width: 0;
-    width: 100%;
-    min-height: 44px;
-  }
-  .management-trigger {
-    min-height: 44px;
-  }
   .management-card {
     padding: 16px;
   }

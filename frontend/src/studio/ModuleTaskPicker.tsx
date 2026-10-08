@@ -30,6 +30,7 @@ export function ModuleTaskPicker({
         {zh ? "研究任务" : "Research task"}
         <select
           value={value}
+          title={toolLabel(value, language)}
           onChange={(event) => onChange(event.target.value as ToolId)}
         >
           <optgroup label={zh ? "常用任务" : "Common tasks"}>
