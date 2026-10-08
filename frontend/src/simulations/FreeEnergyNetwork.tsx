@@ -69,6 +69,7 @@ export function FreeEnergyNetwork({
             language={language}
             filename="X-DDE-FEP-network"
             format="png"
+            typography
             disabled={failure}
             aspect={() => {
               return graph.current

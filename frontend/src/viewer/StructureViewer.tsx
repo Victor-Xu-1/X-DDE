@@ -408,6 +408,7 @@ export function StructureViewer({
             language={language}
             filename="X-DDE-structure"
             format="png"
+            typography
             aspect={() => {
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;

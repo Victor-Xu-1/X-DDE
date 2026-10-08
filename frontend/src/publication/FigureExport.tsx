@@ -18,6 +18,7 @@ export function FigureExport({
   disabled = false,
   label,
   onStart,
+  typography = format === "svg",
 }: {
   language: Language;
   filename: string;
@@ -27,6 +28,7 @@ export function FigureExport({
   disabled?: boolean;
   label?: string;
   onStart?(): void;
+  typography?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -47,6 +49,7 @@ export function FigureExport({
           aspect={typeof aspect === "function" ? aspect() : aspect}
           render={render}
           onStart={onStart}
+          typography={typography}
           onClose={() => setOpen(false)}
         />
       )}
@@ -61,6 +64,7 @@ function ExportDialog({
   render,
   onClose,
   onStart,
+  typography,
 }: {
   language: Language;
   filename: string;
@@ -69,6 +73,7 @@ function ExportDialog({
   render(settings: FigureSettings): Promise<Blob>;
   onClose(): void;
   onStart?(): void;
+  typography: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     title = useId();
@@ -167,23 +172,25 @@ function ExportDialog({
             </select>
           </label>
         ) : null}
-        <label>
-          {zh ? "印刷字号" : "Printed type size"}
-          <select
-            value={settings.fontPt}
-            onChange={(e) =>
-              update({
-                fontPt: Number(e.target.value) as FigureSettings["fontPt"],
-              })
-            }
-          >
-            {[7, 8, 9].map((n) => (
-              <option key={n} value={n}>
-                {n} pt
-              </option>
-            ))}
-          </select>
-        </label>
+        {typography && (
+          <label>
+            {zh ? "印刷字号" : "Printed type size"}
+            <select
+              value={settings.fontPt}
+              onChange={(e) =>
+                update({
+                  fontPt: Number(e.target.value) as FigureSettings["fontPt"],
+                })
+              }
+            >
+              {[7, 8, 9].map((n) => (
+                <option key={n} value={n}>
+                  {n} pt
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="figure-background">
           <input
             type="checkbox"
