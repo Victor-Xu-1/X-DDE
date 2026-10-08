@@ -66,7 +66,8 @@ export function FigureDialog({
       if (!active.current) return;
       downloadBlob(blob, filename + "." + format);
       onClose();
-    } catch {
+    } catch (error) {
+      console.warn("Native figure export failed", error);
       if (active.current) setError(true);
     } finally {
       if (active.current) setBusy(false);

@@ -1,6 +1,7 @@
 """Inspect physical output metadata and vectors without changing scientific source data."""
 
 import struct
+import json
 import xml.etree.ElementTree as ET
 
 from playwright.sync_api import expect
@@ -12,10 +13,25 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG"):
     expect(dialog).to_be_visible()
     evidence.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(evidence / (filename + "-choices.png")), full_page=False)
-    with page.expect_download(timeout=45000) as download:
-        dialog.get_by_role(
-            "button", name=("导出 " if language == "zh" else "Export ") + format, exact=True
-        ).click()
+    messages = []
+    page.on(
+        "console",
+        lambda message: (
+            messages.append(message.text) if message.type in {"error", "warning"} else None
+        ),
+    )
+    try:
+        with page.expect_download(timeout=45000) as download:
+            dialog.get_by_role(
+                "button", name=("导出 " if language == "zh" else "Export ") + format, exact=True
+            ).click()
+    except Exception:
+        page.screenshot(path=str(evidence / (filename + "-failure.png")), full_page=False)
+        (evidence / (filename + "-failure.json")).write_text(
+            json.dumps({"messages": messages, "dialog": dialog.inner_text()}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        raise
     path = evidence / (filename + "." + format.lower())
     download.value.save_as(path)
     expect(dialog).to_have_count(0)
