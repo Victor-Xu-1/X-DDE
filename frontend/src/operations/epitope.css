@@ -1,0 +1,119 @@
+.epitope-contact-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.45fr);
+  gap: 28px;
+  align-items: start;
+}
+.epitope-contact-list,
+.epitope-contact-map {
+  min-width: 0;
+}
+.epitope-contact-heading,
+.epitope-contact-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.epitope-contact-heading h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.epitope-contact-actions {
+  justify-content: space-between;
+}
+.epitope-contact-actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.epitope-contact-actions select {
+  width: auto;
+  min-width: 76px;
+  min-height: 32px;
+  padding: 5px 8px;
+}
+.epitope-contact-scroll {
+  max-height: 360px;
+  overflow: auto;
+}
+.epitope-contact-scroll table {
+  width: 100%;
+  min-width: 0;
+}
+.epitope-contact-scroll th {
+  white-space: nowrap;
+}
+.epitope-contact-scroll thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-hover);
+  z-index: 1;
+}
+.epitope-residue-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 4px 0;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.epitope-residue-button:hover,
+.epitope-residue-button[aria-pressed="true"] {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.epitope-residue-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.epitope-contact-scroll tr[data-selected] {
+  background: var(--surface-hover);
+}
+.epitope-count {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.epitope-count > i {
+  width: 64px;
+  max-width: 45%;
+  height: 4px;
+  background: var(--surface-hover);
+  border-radius: 2px;
+}
+.epitope-count > i > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+.epitope-contact-help {
+  margin-top: 12px;
+}
+.epitope-analysis-details {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 1100px) {
+  .epitope-contact-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .epitope-contact-map {
+    grid-row: 1;
+  }
+  .epitope-contact-help {
+    display: none;
+  }
+}

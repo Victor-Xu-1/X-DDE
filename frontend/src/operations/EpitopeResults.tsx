@@ -3,12 +3,10 @@ import type { Job, Language } from "../types";
 import { ResultTree } from "./StructuredResults";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { harnessSource } from "../presentation/task-sources";
-interface ContactResidue {
-  chain: string;
-  residue_id: number;
-  residue_name: string;
-  contacts: number;
-}
+import { contactRecords, proteinContacts } from "./epitope-contacts";
+import { EpitopeContactList } from "./EpitopeContactList";
+import "./epitope.css";
+
 export function EpitopeResults({
   job,
   value,
@@ -18,79 +16,76 @@ export function EpitopeResults({
   value: Record<string, unknown>;
   language: Language;
 }) {
-  const zh = language === "zh",
-    rows = Array.isArray(value.epitope_residues)
-      ? (value.epitope_residues as ContactResidue[])
-      : [];
-  const protein = rows.filter(
-    (r) => !["HOH", "WAT", "H2O", "DOD"].includes(r.residue_name),
-  );
-  const water = rows.length - protein.length,
-    top = [...protein].sort((a, b) => b.contacts - a.contacts).slice(0, 5);
-  const source = harnessSource(job, "structure_path"),
-    [focus, setFocus] = useState<{ residue: string; nonce: number } | null>(
-      null,
-    );
-  return (
-    <section>
-      <h3>
-        {zh ? "蛋白接触残基" : "Protein contact residues"}: {protein.length}
-      </h3>
-      <p className="field-help">
+  const zh = language === "zh";
+  const source = harnessSource(job, "structure_path");
+  const sourceKey = `${job.id}:${source?.asset_id ?? ""}`;
+  const [focus, setFocus] = useState<{
+    source: string;
+    residue: string;
+    nonce: number;
+  } | null>(null);
+  let rows;
+  try {
+    rows = contactRecords(value.epitope_residues);
+  } catch {
+    return (
+      <p role="alert" className="error-box">
         {zh
-          ? "按接触数量展示前 5 个残基；这是结构近接信息，不是药效重要性排名。"
-          : "The 5 residues with the most contacts are shown; this is structural proximity, not a pharmacological importance ranking."}
-        {water > 0 &&
-          (zh
-            ? " 原始结果另含 " + water + " 个结构水条目。"
-            : " Native results also include " +
-              water +
-              " structural-water entries.")}
+          ? "接触结果不完整，暂时无法显示残基。请查看原始结果文件。"
+          : "The contact records are incomplete. Check the original result file."}
       </p>
-      <div className="table-scroll">
-        <table aria-label={zh ? "蛋白接触残基" : "Protein contact residues"}>
-          <thead>
-            <tr>
-              <th>{zh ? "残基" : "Residue"}</th>
-              <th>{zh ? "接触数量" : "Contact count"}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {top.map((r, i) => (
-              <tr key={i}>
-                <th>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFocus({
-                        residue: r.chain + ":" + r.residue_name + r.residue_id,
-                        nonce: Date.now(),
-                      })
-                    }
-                  >
-                    {r.chain}:{r.residue_name}
-                    {r.residue_id}
-                  </button>
-                </th>
-                <td>{r.contacts}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {source && (
-        <StructureViewer
-          urls={["/api/assets/" + source.asset_id]}
+    );
+  }
+  const protein = proteinContacts(rows);
+  const selected = focus?.source === sourceKey ? focus : null;
+  const details = Object.fromEntries(
+    Object.entries(value).filter(([key]) => key !== "epitope_residues"),
+  );
+  return (
+    <section
+      className="epitope-results"
+      aria-label={zh ? "表位接触结果" : "Epitope contact results"}
+    >
+      <div
+        className={source ? "epitope-contact-layout" : "epitope-contact-list"}
+      >
+        <EpitopeContactList
+          key={sourceKey}
+          protein={protein}
+          water={rows.length - protein.length}
           language={language}
-          focusResidue={focus}
+          selected={selected?.residue ?? null}
+          onSelect={
+            source
+              ? (residue) =>
+                  setFocus((previous) => ({
+                    source: sourceKey,
+                    residue,
+                    nonce: (previous?.nonce ?? 0) + 1,
+                  }))
+              : undefined
+          }
         />
+        {source && (
+          <div className="epitope-contact-map">
+            <StructureViewer
+              key={sourceKey}
+              urls={["/api/assets/" + source.asset_id]}
+              language={language}
+              initialMode="cartoon"
+              focusResidue={selected}
+            />
+          </div>
+        )}
+      </div>
+      {Object.keys(details).length > 0 && (
+        <details className="epitope-analysis-details">
+          <summary>
+            {zh ? "CDR 与接触分析明细" : "CDR and contact analysis details"}
+          </summary>
+          <ResultTree value={details} zh={zh} />
+        </details>
       )}
-      <details>
-        <summary>
-          {zh ? "全部接触与 CDR 贡献" : "All contacts & CDR contributions"}
-        </summary>
-        <ResultTree value={value} zh={zh} />
-      </details>
     </section>
   );
 }

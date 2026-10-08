@@ -278,8 +278,9 @@ export function StructureViewer({
     }
   }, [ready, status, loadedKey, key, attachmentKey]);
   useEffect(() => {
-    if (ready && focusResidue) send("residue", focusResidue.residue);
-  }, [ready, focusResidue]);
+    if (ready && status === "loaded" && loadedKey === key && focusResidue)
+      send("residue", focusResidue.residue);
+  }, [ready, status, loadedKey, key, focusResidue]);
   const regionKey = highlightedAtoms?.join(",") ?? "";
   const siteKey = JSON.stringify(residueRegion ?? []);
   useEffect(() => {

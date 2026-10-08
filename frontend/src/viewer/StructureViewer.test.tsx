@@ -4,6 +4,63 @@ import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 import { defaultOptions } from "./protocol";
 
+it("defers residue focus until the requested scene is loaded and retains repeated selections", () => {
+  const props = {
+    urls: ["/api/assets/aa-11"],
+    language: "en" as const,
+    focusResidue: { residue: "C:PRO572", nonce: 1 },
+  };
+  const { rerender } = render(<StructureViewer {...props} />);
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      );
+    });
+  const scene = {
+    chains: ["C"],
+    atoms: 100,
+    hasPolymer: true,
+    residues: [],
+    ligands: [],
+    options: defaultOptions,
+  };
+  const focuses = () =>
+    post.mock.calls.filter(([data]) => data.type === "residue");
+  message("ready");
+  expect(focuses()).toHaveLength(0);
+  message("loaded", scene);
+  expect(focuses()).toHaveLength(1);
+  expect(focuses()[0][0].value).toBe("C:PRO572");
+  rerender(
+    <StructureViewer
+      {...props}
+      focusResidue={{ residue: "C:PRO572", nonce: 2 }}
+    />,
+  );
+  expect(focuses()).toHaveLength(2);
+  post.mockClear();
+  rerender(
+    <StructureViewer
+      {...props}
+      urls={["/api/assets/bb-22"]}
+      focusResidue={{ residue: "C:PRO573", nonce: 3 }}
+    />,
+  );
+  expect(focuses()).toHaveLength(0);
+  message("loaded", scene);
+  expect(focuses()).toHaveLength(1);
+  expect(focuses()[0][0].value).toBe("C:PRO573");
+});
+
 it("centers only a selected ligand in the current loaded source, without resetting a user's camera on rerender", () => {
   const props = {
     urls: ["/api/assets/aa-11"],

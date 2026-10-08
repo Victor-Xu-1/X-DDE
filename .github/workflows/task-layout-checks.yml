@@ -56,6 +56,7 @@ on:
       - 'frontend/src/workflow.css'
       - 'server_tests/test_binding_entry_browser.py'
       - 'server_tests/test_target_selection_browser.py'
+      - 'server_tests/test_epitope_browser.py'
       - 'server_tests/*layout*'
       - 'server_tests/*researcher*'
       - 'server_tests/test_module_surfaces_browser.py'
@@ -194,7 +195,7 @@ jobs:
           if ! curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null; then cat server_tests/evidence/task-layout/service.log; exit 1; fi
           .venv/bin/python -m pytest -q server_tests/test_task_layout_browser.py
           if [ "$WB_LAYOUT_WIDTH" = 1440 ] && [ "$WB_LAYOUT_SHARD" = 0 ]; then
-            .venv/bin/python -m pytest -q server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py server_tests/test_module_surfaces_browser.py server_tests/test_binding_entry_browser.py server_tests/test_target_selection_browser.py
+            .venv/bin/python -m pytest -q server_tests/test_researcher_browser.py server_tests/test_component_layout_browser.py server_tests/test_result_visuals_browser.py server_tests/test_module_surfaces_browser.py server_tests/test_binding_entry_browser.py server_tests/test_target_selection_browser.py server_tests/test_epitope_browser.py
           fi
       - uses: actions/upload-artifact@v4
         if: always()

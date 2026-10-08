@@ -40,6 +40,16 @@ drawings to finish loading or show an explicit unavailable state; loading frames
 are not visual acceptance. These changes apply to the shared table/drawing
 consumers and require their focused browser checks, not unrelated scientific suites.
 
+Epitope results place native residue contacts beside the original complex at desktop
+widths; compact views prioritize the structure and stack the contact list below.
+Residue selection locates the same source residue without rewriting coordinates.
+The default five contacts can be expanded, and CSV downloads retain every protein
+contact and exact native count independently of the current display choice. Counts
+indicate structural proximity, not interaction strength or binding energy. Structural
+water is separated from the protein list; source totals and CDR analysis remain
+available in the folded details. Without a declared source, residue names are text
+and never present an inactive structure action.
+
 ## Product hierarchy
 
 新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录已实现的 14 个专用模块及验收；v0.4.31 又完成 9 家供应商、16 份公开结构文件的实际安装。该专项完成不代表下面的 76 项平台路线图全部完成；供应商受限数据、目标服务器 GPU/规模性能和实验验证仍分别确认。
