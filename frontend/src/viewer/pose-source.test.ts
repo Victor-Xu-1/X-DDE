@@ -24,6 +24,18 @@ it("resolves only exact same-origin native files and SDF records", () => {
   expect(poseSource(`/api/assets/${id}`, -1)).toBeNull();
 });
 
+it("binds indexed members to their original result digest before preservation and 3D preparation", () => {
+  const url = `/api/datasets/${id}/members/structure?member_id=vendor%3Acandidate&report_sha256=${"a".repeat(64)}`;
+  expect(poseSource(url)).toEqual({
+    kind: "indexed",
+    job_id: id,
+    member_id: "vendor:candidate",
+    report_sha256: "a".repeat(64),
+  });
+  expect(poseSource(url, 1)).toBeNull();
+  expect(poseSource(url + "&member_id=another")).toBeNull();
+});
+
 it("replaces only the ligand with the saved version and clears stale docking scores", () => {
   const base: PreviewPose = {
     urls: ["/api/assets/receptor", "/api/assets/old-pose"],

@@ -58,7 +58,7 @@ jobs:
       - name: Real browser save, undo, redo and exact SDF download
         run: |
           uv run --locked --group browser python -m playwright install --with-deps chromium
-          uv run --locked --group browser pytest -q server_tests/test_pose_minimization_browser.py server_tests/test_initial_pose_browser.py
+          uv run --locked --group browser python -m pytest -q server_tests/test_pose_minimization_browser.py server_tests/test_initial_pose_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -191,11 +191,23 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
       initializing: true,
     }));
     try {
+      let source = pose.source;
+      if (source.kind === "indexed") {
+        const object = await api.post<ScientificObject>(
+          `/datasets/${source.job_id}/members/preserve`,
+          {
+            member_id: source.member_id,
+            report_sha256: source.report_sha256,
+          },
+        );
+        if (generation !== epoch.current) return;
+        source = computedPose(pose, object, index).source!;
+      }
       const response = await api.post<
         { state: "ready"; pose: ScientificObject } | { state: "task"; job: Job }
       >(
         "/research/poses/initial",
-        { source: pose.source, method, retry },
+        { source, method, retry },
         crypto.randomUUID(),
       );
       if (generation !== epoch.current) return;

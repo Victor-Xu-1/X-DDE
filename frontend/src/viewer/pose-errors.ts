@@ -1,6 +1,14 @@
 import { researchError } from "../presentation/research-content";
 export function poseError(value: unknown, zh: boolean) {
   const message = String(value);
+  if (/only 2D coordinates/i.test(message))
+    return zh
+      ? "此配体只有二维结构。请先生成三维构象并进行对接，再查看它在受体中的位置。"
+      : "This ligand has only a 2D structure. Generate a 3D conformer and dock it before inspecting its position in this receptor.";
+  if (/registered SDF\/MOL source/i.test(message))
+    return zh
+      ? "请先将分子保存或导入工作台，再准备可计算的三维构象。"
+      : "Save or import the molecule into the workbench before preparing its calculated 3D conformer.";
   if (/transfer.*molecular constraints/i.test(message))
     return zh
       ? "这个姿势带有研究约束。请先确认新版本的约束，再进行优化；原 pose 已保留。"

@@ -5,6 +5,12 @@ import type { NativePoseScore } from "./PoseScore";
 export type PoseSource =
   | { kind: "asset"; asset_id: string; record: number }
   | { kind: "artifact"; job_id: string; name: string; record: number }
+  | {
+      kind: "indexed";
+      job_id: string;
+      member_id: string;
+      report_sha256: string;
+    }
   | { kind: "version"; version_id: string };
 export interface MoleculeMinimizeTask extends BaseTask {
   operation: "molecule_minimize";

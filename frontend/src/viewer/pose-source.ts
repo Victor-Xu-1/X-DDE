@@ -18,6 +18,28 @@ export function poseSource(
       new RegExp(`^/api/assets/(${uuid})$`, "i"),
     );
     if (asset) return { kind: "asset", asset_id: asset[1], record };
+    const indexed = url.pathname.match(
+      new RegExp(`^/api/datasets/(${uuid})/members/structure$`, "i"),
+    );
+    if (indexed) {
+      const member = url.searchParams.get("member_id"),
+        digest = url.searchParams.get("report_sha256");
+      return record === 0 &&
+        member &&
+        member.length <= 160 &&
+        !/[\x00-\x1f\x7f]/.test(member) &&
+        digest &&
+        /^[a-f0-9]{64}$/.test(digest) &&
+        url.searchParams.getAll("member_id").length === 1 &&
+        url.searchParams.getAll("report_sha256").length === 1
+        ? {
+            kind: "indexed",
+            job_id: indexed[1],
+            member_id: member,
+            report_sha256: digest,
+          }
+        : null;
+    }
     const task = url.pathname.match(
       new RegExp(`^/api/jobs/(${uuid})/download$`, "i"),
     );

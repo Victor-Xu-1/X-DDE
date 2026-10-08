@@ -36,6 +36,7 @@ import { usePoseOptimization } from "./usePoseOptimization";
 import { poseSource } from "./pose-source";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
 import { InitialPoseStatus } from "./InitialPoseStatus";
+import { poseError } from "./pose-errors";
 import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
@@ -184,10 +185,12 @@ export function StructureViewer({
         setStatus("preparing");
         if (optimizationReceiver.current.pose.source) {
           void optimizationReceiver.current.prepareInitial();
-        } else
+        } else {
+          setStatus("error");
           setError(
             "Use a registered SDF/MOL source to prepare a calculated 3D pose.",
           );
+        }
       }
       if (type === "snapshot") snapshotReceiver.current(detail);
       if (type === "ready") setReady(true);
@@ -492,7 +495,7 @@ export function StructureViewer({
         )}
         {error && (
           <div className="viewer-error" role="alert">
-            {researchError(error, zh)}
+            {poseError(error, zh)}
             <button
               type="button"
               onClick={() => {

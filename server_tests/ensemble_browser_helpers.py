@@ -6,13 +6,23 @@ from pathlib import Path
 
 from layout_browser_helpers import catalog
 from playwright.sync_api import expect
+from test_navigation_shell_browser import settings
 
 EVIDENCE = Path("server_tests/evidence/ensemble")
 
 
 def open_result(page, name):
+    if page.locator("html").get_attribute("lang") == "en":
+        settings(page, "en")
+        page.locator("#settings-language").select_option("zh")
     catalog(page)
-    page.get_by_role("button", name=name, exact=True).and_(page.locator(".tool-card")).click()
+    card = page.get_by_role("button", name=name, exact=True, include_hidden=True).and_(
+        page.locator(".tool-card")
+    )
+    closed = card.locator("xpath=ancestor::details[not(@open)]")
+    if closed.count():
+        closed.locator("summary").first.click()
+    card.click()
     page.locator(".module-template:visible").get_by_role(
         "button", name="示例结果", exact=True
     ).click()
