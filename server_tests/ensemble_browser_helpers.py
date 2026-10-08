@@ -6,7 +6,7 @@ from pathlib import Path
 
 from layout_browser_helpers import catalog
 from playwright.sync_api import expect
-from test_navigation_shell_browser import settings
+from test_navigation_shell_browser import open_navigation, settings
 
 EVIDENCE = Path("server_tests/evidence/ensemble")
 
@@ -15,6 +15,7 @@ def open_result(page, name):
     if page.locator("html").get_attribute("lang") == "en":
         settings(page, "en")
         page.locator("#settings-language").select_option("zh")
+    open_navigation(page, "zh")
     catalog(page)
     card = page.get_by_role("button", name=name, exact=True, include_hidden=True).and_(
         page.locator(".tool-card")
