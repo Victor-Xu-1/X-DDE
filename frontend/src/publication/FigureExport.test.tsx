@@ -74,8 +74,13 @@ it("prevents duplicate exports and never downloads after the source view is clos
   fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
   expect(screen.getByRole("button", { name: "Rendering… SVG" })).toBeDisabled();
   expect(native).toHaveBeenCalledOnce();
-  view.unmount();
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByRole("button", { name: /Export figure/ })).toBeDisabled();
   finish(new Blob(["<svg/>"], { type: "image/svg+xml" }));
-  await Promise.resolve();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: /Export figure/ })).toBeEnabled(),
+  );
   expect(download).not.toHaveBeenCalled();
+  view.unmount();
 });

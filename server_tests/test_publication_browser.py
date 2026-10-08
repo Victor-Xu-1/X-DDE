@@ -18,7 +18,10 @@ def test_native_classic_figure_camera_and_source_integrity(language):
     evidence.mkdir(parents=True, exist_ok=True)
     with platform(state, evidence / (language + ".log")) as base, sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page = browser.new_page(
+            viewport={"width": 1440, "height": 1000},
+            device_scale_factor=2 if language == "en" else 1,
+        )
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))

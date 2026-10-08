@@ -47,6 +47,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/publication/settings-svg.test.ts src/publication/png-resolution.test.ts
+          src/publication/render-deadline.test.ts
           src/publication/FigureExport.test.tsx src/presentation/useReveal.test.tsx
           src/presentation/MetricScatter.test.tsx src/presentation/InteractionDiagram.test.tsx
           src/presentation/depiction-renderer.test.ts src/guided/Questionnaire.test.tsx

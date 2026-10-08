@@ -34,6 +34,9 @@ Figure export uses real print widths (89 or 183 mm), 300/600 dpi native PNG rend
 Shared questionnaire and result-tab entry transitions retain the same fields and scientific objects. Reduced-motion preferences disable these entry animations; keyboard navigation remains available. Native capture failures, source changes and oversized output remain explicit errors, without synthetic fallback images.
 问卷步骤和结果标签页切换保留原有输入与科学对象；减少动态效果的系统设置会关闭过渡动画，键盘操作仍可用。原生渲染失败、材料变化或超出导出尺寸会明确报错，不生成替代的假图件。
 
+Protein ribbons remain opaque and distinguish helices, sheets and loops; bound ligands retain contrasting sticks. Ligand-containing trajectories initially focus on the pocket, with an overview action for the complete structure. Figure dialogs remain closable during rendering, refuse duplicate native captures and bound the wait to 30 seconds. Closing or changing the source suppresses late downloads; renderer cleanup restores the live view.
+蛋白骨架保持可见，螺旋、折叠片和环分别着色，配体用不同颜色的棒状结构呈现。含配体的轨迹初始聚焦口袋，可通过“全景”查看完整结构。渲染期间仍可关闭导出对话框，禁止重复提交，等待上限为 30 秒；关闭或更换材料后不会继续下载过时的图件，渲染结束会恢复原有视图。
+
 | Responsibility / 职责                       | Implementation / 实现                                                       | Research interaction / 研究操作                                                                                                                                                        |
 | ------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 3D structures and trajectories / 三维与轨迹 | Mol* 5.13.0, MIT; same reviewed version as the existing structure workspace | Native sampled-frame playback, rotation, zoom, ligand/pocket focus, residue selection, A/B pose overlay and view export / 原生采样帧播放、旋转缩放、口袋聚焦、残基定位、姿势叠合与导出 |
