@@ -109,6 +109,8 @@ The antibody image shows a validated **input template**, without a new design ru
 
 Mol* renders live 3D structures and sampled trajectories; Plotly charts link sampled times to structures and provide hover, zoom, pan and SVG export. FEP uses a draggable Cytoscape network, Ketcher structures and selected-pose interaction inspection. Original research files remain separately downloadable.
 
+Research figure export offers 89/183 mm widths, native 300/600 dpi PNGs and editable SVG plots with physical type sizes. View changes retain the original structures and values; dialogs can be closed during rendering, and compact panels keep their controls within the available width.
+
 ![Actual English interactive MD result: 3D playback and linked stability plots](docs/images/dynamics-interactive.png)
 
 This BRD4/JQ1 view uses retained native short-simulation output to demonstrate interaction and downloads. It is not evidence of production convergence or affinity accuracy.

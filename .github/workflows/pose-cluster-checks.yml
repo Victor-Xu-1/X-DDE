@@ -16,7 +16,7 @@ on:
       # Shared print sizing has a readonly retained-case gate; no reclustering for styles.
       - '!frontend/src/poses/ClusterMatrix.tsx'
       - 'scripts/stage-release-examples.py'
-      - '.github/workflows/pose-cluster-checks.yml'
+      # Native execution is selected by scientific source changes or explicit dispatch.
 permissions:
   contents: read
 jobs:
