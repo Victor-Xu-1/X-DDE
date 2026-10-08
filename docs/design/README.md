@@ -50,6 +50,11 @@ water is separated from the protein list; source totals and CDR analysis remain
 available in the folded details. Without a declared source, residue names are text
 and never present an inactive structure action.
 
+Whole-structure camera fitting accounts for both viewport axes at initial load and
+on reset. A portrait stage uses the same limiting-axis scale as a desktop view
+resized to portrait, preserving coordinates and rotation. Full-complex overview
+must not apply a second automatic zoom-in that cuts off either interaction partner.
+
 ## Product hierarchy
 
 新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录已实现的 14 个专用模块及验收；v0.4.31 又完成 9 家供应商、16 份公开结构文件的实际安装。该专项完成不代表下面的 76 项平台路线图全部完成；供应商受限数据、目标服务器 GPU/规模性能和实验验证仍分别确认。

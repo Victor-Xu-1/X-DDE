@@ -425,6 +425,7 @@ export function StructureViewer({
                 type="button"
                 key={id}
                 className={options.mode === id ? "selected" : ""}
+                aria-pressed={options.mode === id}
                 disabled={!loaded || comparison}
                 onClick={() => configure({ mode: id })}
               >

@@ -3,6 +3,15 @@ export interface ViewportSize {
   height: number;
 }
 
+/** 3Dmol's zoomTo fits the vertical field of view; portrait stages also need width. */
+export function viewportFitFactor(viewport: ViewportSize) {
+  return [viewport.width, viewport.height].every(
+    (n) => Number.isFinite(n) && n > 0,
+  )
+    ? Math.min(1, viewport.width / viewport.height)
+    : 1;
+}
+
 /** Preserve the focused region and rotation while fitting the limiting viewport axis. */
 export function resizeZoomFactor(previous: ViewportSize, next: ViewportSize) {
   if (
@@ -11,8 +20,5 @@ export function resizeZoomFactor(previous: ViewportSize, next: ViewportSize) {
     )
   )
     return 1;
-  return (
-    Math.min(1, next.width / next.height) /
-    Math.min(1, previous.width / previous.height)
-  );
+  return viewportFitFactor(next) / viewportFitFactor(previous);
 }

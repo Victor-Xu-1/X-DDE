@@ -5,7 +5,6 @@ import hashlib
 import io
 import json
 import os
-import re
 import struct
 from pathlib import Path
 
@@ -90,8 +89,8 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
             open_result()
             table = page.get_by_role("table", name="蛋白接触残基", exact=True)
             expect(table.locator("tbody tr")).to_have_count(5)
-            expect(page.get_by_role("button", name="整体骨架", exact=True)).to_have_class(
-                re.compile(r"\bselected\b")
+            expect(page.get_by_role("button", name="整体骨架", exact=True)).to_have_attribute(
+                "aria-pressed", "true"
             )
             left = page.locator(".epitope-contact-list").first.bounding_box()
             right = page.locator(".epitope-contact-map").bounding_box()
@@ -133,14 +132,46 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
             assert 500 < width <= 4096 and 400 < height <= 4096
             page.get_by_role("button", name="关闭图片", exact=True).click()
             page.set_viewport_size({"width": 390, "height": 1000})
+            # Open a fresh portrait scene, not only a scene resized after fitting on desktop.
+            open_result()
             right = page.locator(".epitope-contact-map").bounding_box()
             left = page.locator(".epitope-contact-list").first.bounding_box()
             assert right and left and right["y"] + right["height"] <= left["y"]
             page.locator(".epitope-results").scroll_into_view_if_needed()
             capture("epitope-native-compact")
+            page.get_by_role("button", name="生成三维视图图片", exact=True).click()
+            expect(page.get_by_role("img", name="当前三维视图图片", exact=True)).to_be_visible(
+                timeout=10000
+            )
+            bounds = page.evaluate("""async () => {
+                const image = document.querySelector('.viewer-snapshot img');
+                await image.decode();
+                const canvas = document.createElement('canvas');
+                canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+                const context = canvas.getContext('2d'); context.drawImage(image,0,0);
+                const {data} = context.getImageData(0,0,canvas.width,canvas.height);
+                const bg = [...data.slice(0,4)];
+                let x0=canvas.width,y0=canvas.height,x1=-1,y1=-1,count=0;
+                for(let y=0;y<canvas.height;y++) for(let x=0;x<canvas.width;x++) {
+                    const i=(y*canvas.width+x)*4;
+                    if(data[i+3]>20 && [0,1,2].some(c=>Math.abs(data[i+c]-bg[c])>20)) {
+                        x0=Math.min(x0,x);y0=Math.min(y0,y);
+                        x1=Math.max(x1,x);y1=Math.max(y1,y);count++;
+                    }
+                }
+                return {x0,y0,x1,y1,count,width:canvas.width,height:canvas.height};
+            }""")
+            assert bounds["count"] > 1000, bounds
+            assert bounds["x0"] > 3 and bounds["x1"] < bounds["width"] - 4, bounds
+            assert bounds["y0"] > 3 and bounds["y1"] < bounds["height"] - 4, bounds
+            download(
+                page.get_by_role("link", name="下载视图 PNG", exact=True),
+                "native-epitope-compact.png",
+            )
+            page.get_by_role("button", name="关闭图片", exact=True).click()
             page.get_by_role("button", name="设置与帮助", exact=True).click()
             page.get_by_role("menuitem", name="界面设置", exact=True).click()
-            page.get_by_label("界面语言", exact=True).select_option("en")
+            page.locator("#settings-language").select_option("en")
             page.set_viewport_size({"width": 1440, "height": 1000})
             open_result(english=True)
             expect(page.get_by_role("combobox", name="Show residues", exact=True)).to_have_value(

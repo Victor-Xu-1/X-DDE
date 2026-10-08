@@ -1,5 +1,17 @@
 import { expect, it } from "vitest";
-import { resizeZoomFactor } from "./camera-resize";
+import { resizeZoomFactor, viewportFitFactor } from "./camera-resize";
+
+it("fits both axes on the first portrait render and uses the same scale after resizing", () => {
+  const wide = { width: 820, height: 440 },
+    narrow = { width: 290, height: 440 };
+  expect(viewportFitFactor(wide)).toBe(1);
+  expect(viewportFitFactor(narrow)).toBeCloseTo(290 / 440);
+  expect(viewportFitFactor(wide) * resizeZoomFactor(wide, narrow)).toBeCloseTo(
+    viewportFitFactor(narrow),
+  );
+  expect(viewportFitFactor({ width: 0, height: 440 })).toBe(1);
+  expect(viewportFitFactor({ width: 290, height: Infinity })).toBe(1);
+});
 
 it("backs the same view away when the width becomes limiting and reverses without zoom drift", () => {
   const wide = { width: 550, height: 400 },

@@ -39,6 +39,9 @@ it("defers residue focus until the requested scene is loaded and retains repeate
   expect(focuses()).toHaveLength(0);
   message("loaded", scene);
   expect(focuses()).toHaveLength(1);
+  expect(
+    screen.getByRole("button", { name: "Backbone", pressed: true }),
+  ).toBeVisible();
   expect(focuses()[0][0].value).toBe("C:PRO572");
   rerender(
     <StructureViewer

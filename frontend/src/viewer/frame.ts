@@ -13,7 +13,11 @@ import { initializeTheme } from "../theme";
 import "./frame.css";
 import { captureView } from "./capture";
 import { potentialData } from "./scientific-overlay";
-import { resizeZoomFactor, type ViewportSize } from "./camera-resize";
+import {
+  resizeZoomFactor,
+  viewportFitFactor,
+  type ViewportSize,
+} from "./camera-resize";
 initializeTheme();
 const background = () =>
   getComputedStyle(document.documentElement)
@@ -55,8 +59,11 @@ let controller: AbortController | null = null,
   generation = 0;
 let loadedSourceIdentity: string | null = null;
 function reset() {
+  const viewport = document.getElementById("molecule")!.getBoundingClientRect();
   viewer.zoomTo();
-  viewer.zoom(0.85);
+  viewer.zoom(0.85 * viewportFitFactor(viewport));
+  if (viewport.width > 0 && viewport.height > 0)
+    previousViewport = { width: viewport.width, height: viewport.height };
   viewer.render();
 }
 async function load(input: ViewerLoad) {
@@ -154,12 +161,6 @@ async function load(input: ViewerLoad) {
     await scene.paint();
     if (current !== generation) return;
     reset();
-    if (!retainedView && input.initialMode === "cartoon") {
-      // Leave room around both partners when the result inspector is a narrow
-      // desktop column. Users can zoom further without losing the initial overview.
-      viewer.zoom(1.2);
-      viewer.render();
-    }
     if (retainedView) viewer.setView(retainedView);
     else if (scene.channelGeometry) scene.focusChannel();
     loadedSourceIdentity = sourceIdentity;
@@ -284,8 +285,15 @@ window.addEventListener("message", (event) => {
     viewer.render();
   }
   if (type === "chain" && typeof value === "string") {
-    viewer.zoomTo(value === "all" ? {} : { chain: value });
-    viewer.render();
+    if (value === "all") reset();
+    else {
+      const viewport = document
+        .getElementById("molecule")!
+        .getBoundingClientRect();
+      viewer.zoomTo({ chain: value });
+      viewer.zoom(viewportFitFactor(viewport));
+      viewer.render();
+    }
   }
 });
 notify("ready");
