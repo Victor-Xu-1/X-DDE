@@ -66,7 +66,7 @@ export function ReceptorMemberTable({
                 }
               >
                 {member.transformation
-                  ? Number(member.transformation.rmsd_angstrom.toPrecision(6))
+              ? member.transformation.rmsd_angstrom.toFixed(3)
                   : "—"}
               </td>
             </tr>

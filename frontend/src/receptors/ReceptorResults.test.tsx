@@ -116,7 +116,7 @@ it("links the selected member to its actual aligned overlay and original/aligned
       client.artifactUrl(job.id, "aligned-1.pdb"),
     ],
   });
-  expect(screen.getByTitle("1.23456789")).toHaveTextContent("1.23457");
+  expect(screen.getByTitle("1.23456789")).toHaveTextContent("1.235");
   expect(
     screen.getByRole("link", { name: "Download original structure" }),
   ).toHaveAttribute("href", "/api/assets/original-1");
