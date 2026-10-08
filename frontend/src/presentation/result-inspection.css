@@ -59,6 +59,9 @@
   padding: 0;
   margin: 0;
 }
+.result-inspection-detail .sequence-track-scroll {
+  max-height: 420px;
+}
 @media (max-width: 1000px) {
   .result-inspection {
     grid-template-columns: minmax(0, 1fr);

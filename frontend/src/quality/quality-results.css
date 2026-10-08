@@ -23,3 +23,19 @@
 .quality-outcome.is-unavailable {
   color: var(--muted);
 }
+.studio-app
+  .task-workspace.is-result
+  .quality-results
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
+  height: 360px;
+}
+@media (max-width: 580px) {
+  .studio-app
+    .task-workspace.is-result
+    .quality-results
+    .viewer-panel:not(:fullscreen)
+    .molecular-stage {
+    height: 300px;
+  }
+}

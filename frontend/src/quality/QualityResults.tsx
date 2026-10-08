@@ -21,7 +21,7 @@ export function QualityResults({
   result.checks.forEach((row) => counts[row.outcome]++);
   return (
     <section
-      className="discovery-results"
+      className="discovery-results quality-results"
       aria-label={zh ? "构象与姿势质控结果" : "Pose quality results"}
     >
       <p role="status">
