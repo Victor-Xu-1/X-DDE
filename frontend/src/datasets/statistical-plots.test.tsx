@@ -30,8 +30,7 @@ it("keeps negative model predictions within native autoscaling and labels non-in
       application
     />,
   );
-  expect(screen.getByRole("application")).toHaveAttribute(
-    "aria-label",
+  expect(screen.getByRole("application").getAttribute("aria-label")).toMatch(
     /not independent validation/,
   );
   const chart = delivered.at(-1)!;

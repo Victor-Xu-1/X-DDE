@@ -140,7 +140,7 @@ def test_native_result_views_and_downloads(case, language):
             )
             inspect_png(png)
             expect(viewer).to_have_attribute("data-frame", "2")
-            chart = root.locator(".simulation-plot").first
+            chart = root.locator(".research-plot").first
             svg = export_figure(
                 page,
                 chart.get_by_role(
