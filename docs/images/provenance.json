@@ -1,22 +1,21 @@
 {
-  "screenshot_version": "0.4.49",
-  "screenshot_revision": "0d8d29e00b03462adef31d90bf359ad85b7646f4",
+  "screenshot_version": "0.4.53",
+  "screenshot_revision": "1231425a333c0924d35c229084e9e2924cbe38fe",
   "capture_method": "Direct browser captures of the running application after selecting English in the interface language setting",
   "screenshot_language": "en",
   "screenshots_unmodified": true,
-  "native_case_validation_run": "https://github.com/Victor-Xu-1/X-DDE/actions/runs/37722758677",
   "screenshots": [
     {
       "file": "guided-task.jpg",
       "kind": "input_template",
       "language": "en",
-      "sha256": "4f9be54687ed309cf7ea06d5c8b9b41855d46076c89d95d4fa56078cf0f1950b"
+      "sha256": "26211c6d2e844c2379fafa70965ee7be775f1ec91c5c0246ec901050a485d034"
     },
     {
       "file": "structure-and-pocket.jpg",
       "kind": "native_prediction",
       "language": "en",
-      "sha256": "4e7a8883713e130df68424688347678632435f0c3526cddeff3ecd5023411ef2"
+      "sha256": "568234c256e9f25daa57e0ef595578b43c4b73be99eacb7162ce77ee2431ace0"
     },
     {
       "file": "molecule-properties.jpg",
@@ -68,5 +67,9 @@
       "generator": "built-in imagegen",
       "sha256": "9b4956bf2665872ae2d31a7cb69b76e82f5588abc8cb102a3900e0c9c9fb4ce9"
     }
-  ]
+  ],
+  "capture_date": "2026-10-08",
+  "capture_review": "All seven public module screenshots visually reviewed; no new inference or component installation",
+  "prior_native_case_validation_run": "https://github.com/Victor-Xu-1/X-DDE/actions/runs/37722758677",
+  "prior_preview_validation_run": "https://github.com/Victor-Xu-1/X-DDE/actions/runs/37738860843"
 }

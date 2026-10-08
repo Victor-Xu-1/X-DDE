@@ -1,12 +1,12 @@
 # 项目介绍图片
 
-[返回项目介绍](../../README.md)
+[中文介绍](../../README.md) · [English overview](../../README.en.md)
 
 ## 实际软件页面
 
-这些图片重新截取自实际运行的 X-DDE **v0.4.49 英文界面**，使用公开研究输入与保留的原生计算结果。截图未经重新绘制，没有替换图片文字，也没有加入虚构数字或生成的分子结构。中英文介绍均引用同一组英文软件截图。
+这些图片重新截取自实际运行的 X-DDE **v0.4.53 英文界面**，使用公开研究输入与保留的原生计算结果。截图未经重新绘制，没有替换图片文字，也没有加入虚构数字或生成的分子结构。中英文介绍均引用同一组英文软件截图。
 
-软件来源：[提交 0d8d29e](https://github.com/Victor-Xu-1/X-DDE/commit/0d8d29e00b03462adef31d90bf359ad85b7646f4)、[原生案例浏览器验证](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37722758677)、[对应发行版](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.4.49)。本组截图通过软件语言设置切换到 English 后直接采集。图中的安装状态是真实实例的状态；查看已归档结果不等于再次运行模型。
+软件来源：[提交 1231425](https://github.com/Victor-Xu-1/X-DDE/commit/1231425a333c0924d35c229084e9e2924cbe38fe)、[对应发行版](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.4.53)。本组截图通过软件语言设置切换到 English 后直接采集，并逐图检查。使用既有公开案例，没有再次启动模型或安装组件。图中的安装状态是真实实例的状态。原生案例的先前浏览器验证见 [v0.4.49 案例检查](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37722758677)；三维接触和相机更新另经 [v0.4.53 专项检查](https://github.com/Victor-Xu-1/X-DDE/actions/runs/37738860843)，这些检查与本次截图采集分别记录。
 
 | 图片 | 展示内容 | 身份 |
 | --- | --- | --- |
@@ -28,6 +28,6 @@
 
 ## English
 
-All seven interface images are direct captures of the running v0.4.49 application after selecting **English** in its language settings. Both complete README versions use these English interface captures. Screenshot text and scientific content were not repainted or replaced. Native results, unbound conformers, input-only design examples and actual installation states remain distinct.
+All seven interface images are direct captures of the running v0.4.53 application after selecting **English** in its language settings. Both complete README versions use these English interface captures. Screenshot text and scientific content were not repainted or replaced. Native results, unbound conformers, input-only design examples and actual installation states remain distinct. Existing public cases were inspected without running new inference or installing components. Capture revision and prior automated validation are recorded separately in the provenance file.
 
 The three infographic assets explain architecture and research flow; they are not application screenshots or experimental results. File identities, capture language and roles are recorded in [provenance.json](provenance.json).

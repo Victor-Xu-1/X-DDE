@@ -2,6 +2,8 @@
 
 [中文](README.md) · **English**
 
+Use the links above to switch between the complete Chinese and English overviews. Both versions show actual software pages captured in the **English interface**.
+
 **A visual research platform for early drug discovery.**
 
 Connect scientific tools, models and research files into usable research workflows. Start with targets, structures and pockets; explore small molecules, biologics, high-throughput screening and DNA-encoded libraries. Prepare tasks, inspect results, revise materials and continue the next step in one workspace.
@@ -63,7 +65,7 @@ These are connected research paths. Each handoff selects actual materials and ve
 
 ## What the interface looks like
 
-The images below are **actual English-language pages from the running v0.4.49 software**, using public research inputs and retained native results. Structures, tables, molecules and values come directly from the application. No screenshot text has been repainted or translated in the image. Architecture illustrations are separate explanatory visuals.
+The images below are **actual English-language pages from the running v0.4.53 software**, using public research inputs and retained native results. Structures, tables, molecules and values come directly from the application. No screenshot text has been repainted or translated in the image. Architecture illustrations are separate explanatory visuals.
 
 ### 1. Prepare tasks like a questionnaire
 
