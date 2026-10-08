@@ -251,6 +251,18 @@ def test_real_structures_tables_and_sequences():
                 inspector.get_by_role("button", name="生成三维视图图片", exact=True)
             ).to_be_enabled(timeout=30000)
             record("indexed-native-member-selection")
+            for width in (1440, 390):
+                page.set_viewport_size({"width": width, "height": 1000})
+                table = page.locator(".dataset-indexed-workspace > section").first.bounding_box()
+                panel = inspector.bounding_box()
+                if width == 1440:
+                    assert table["x"] + table["width"] <= panel["x"]
+                else:
+                    assert table["y"] + table["height"] <= panel["y"]
+                inspector.scroll_into_view_if_needed()
+                expect(inspector.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled()
+                record(f"indexed-member-inspector-{width}")
+            page.set_viewport_size({"width": 1440, "height": 1000})
             page.get_by_role("button", name="下一页", exact=True).click()
             expect(members.first.locator("td").first).not_to_have_text(initial_member)
             record("indexed-native-members-page-2")
