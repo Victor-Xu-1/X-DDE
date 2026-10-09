@@ -71,8 +71,7 @@ jobs:
           echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
           gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
-          gh run download 37818969527 --repo "$GITHUB_REPOSITORY" --name pose-cluster-acceptance --dir outputs/retained-cluster
-          gh run download 37818969518 --repo "$GITHUB_REPOSITORY" --name caver-native-evidence --dir outputs/retained-channels
+          .venv/bin/python server_tests/download_publication_cases.py
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Restore case data and managed editor in isolated CI state
         run: |

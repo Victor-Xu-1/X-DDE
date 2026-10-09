@@ -5,6 +5,7 @@ import shutil
 from dataclasses import replace
 from pathlib import Path
 
+from opendde_workbench.examples import channel_bundle_release, pose_bundle_release
 from opendde_workbench.examples.bundle import restore_bundle
 from opendde_workbench.settings import Settings
 
@@ -13,13 +14,13 @@ assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"
 for name, path, digest in (
     (
         "pose.cluster",
-        "outputs/retained-cluster/x-dde-pose-cases-v1.zip",
-        "0f5a67032ca936974a2eacc9c084c805a3147afa98d5ea3c7aa1015dc1c5d54c",
+        "outputs/retained-publication/x-dde-pose-cases-v1.zip",
+        pose_bundle_release.SHA256,
     ),
     (
         "caver.paths",
-        "outputs/retained-channels/platform/x-dde-channel-cases-v1.zip",
-        "b874e0ec116dda343a7b310edbf7923b7eeb5f432ab9c7d3dd49ba6d58bf82c7",
+        "outputs/retained-publication/x-dde-channel-cases-v1.zip",
+        channel_bundle_release.SHA256,
     ),
 ):
     # These archives retain distinct immutable versions of shared public inputs.
