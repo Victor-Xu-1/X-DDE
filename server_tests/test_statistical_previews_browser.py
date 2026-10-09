@@ -50,7 +50,21 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             charts_tab.click()
         chart = root.locator(".research-plot").first
         plot = chart.locator(".research-plot-canvas")
-        expect(plot).to_have_attribute("aria-busy", "false", timeout=30000)
+        try:
+            expect(plot).to_have_attribute("aria-busy", "false", timeout=30000)
+        except Exception:
+            page.screenshot(path=str(evidence / (language + "-load-failure.png")), full_page=True)
+            (evidence / (language + "-load-failure.txt")).write_text(
+                page.content(), encoding="utf-8"
+            )
+            (evidence / (language + "-case.json")).write_text(
+                json.dumps(case, ensure_ascii=False), encoding="utf-8"
+            )
+            (evidence / (language + "-job.json")).write_text(
+                page.request.get(base + "/api/jobs/" + case["pin"]["job_id"]).text(),
+                encoding="utf-8",
+            )
+            raise
         traces = plot.evaluate("el => JSON.parse(JSON.stringify(el.data))")
         assert traces and any(
             trace.get("x") or trace.get("y") or trace.get("z") for trace in traces
