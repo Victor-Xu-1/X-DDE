@@ -36,7 +36,7 @@ def test_native_record_cells_and_keyboard_update_the_exact_inspector(capability,
         result_url = base + f"/api/jobs/{job_id}/result"
         native = page.request.get(result_url).json()
         page.goto(base + "#task=" + job_id)
-        table = page.locator(".result-master-detail .research-table").first
+        table = page.get_by_role("main").locator(".research-table").first
         expect(table).to_be_visible()
         candidates = table.locator("tbody tr.is-selectable")
         expect(candidates.nth(1)).to_be_visible()
@@ -131,6 +131,9 @@ def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(
         )
         assert len(identifiers) >= 74
         for capability in identifiers:
+            (EVIDENCE / f"{language}-entry-progress.json").write_text(
+                json.dumps({"current": capability, "completed": inspected}, indent=2)
+            )
             open_navigation(page, language).get_by_role("button", name=all_name, exact=True).click()
             card = page.locator('button[data-capability="' + capability + '"]').first
             if not card.is_visible():
