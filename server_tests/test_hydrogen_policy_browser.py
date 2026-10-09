@@ -73,7 +73,8 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         page.get_by_role("button", name="Molecule sketch · Ketcher", exact=True).click()
         page.wait_for_function(
             """() => {
-              const editor=document.querySelector('.editor-workspace iframe')?.contentWindow?.ketcher;
+              const frame=document.querySelector('.editor-workspace iframe');
+              const editor=frame?.contentWindow?.ketcher;
               return editor?.editor?.options().showHydrogenLabels === 'Hetero';
             }""",
             timeout=45000,
@@ -100,6 +101,30 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         assert not non_donor_hydrogens(edited["ket"])
         (EVIDENCE / "native-folded-editor.mol").write_text(edited["mol"])
         page.screenshot(path=EVIDENCE / "explicit-hydrogen-editor.png")
+        identities = page.evaluate("""async () => {
+          const editor=document.querySelector('.editor-workspace iframe').contentWindow.ketcher;
+          const cases=['[13CH3][C@@H]([NH3+])c1ccccc1.[Cl-]',
+            '[13CH3][C@H]([NH3+])c1ccccc1.[Cl-]', 'c1ccc2[nH]ccc2c1'];
+          const rows=[];
+          for (const source of cases) {
+            await editor.setMolecule(source);
+            const before=await editor.getInChIKey();
+            const copy=await editor.structService.toggleExplicitHydrogens({
+              struct:source,mode:'fold',output_format:'chemical/x-mdl-molfile'});
+            await editor.setMolecule(copy.struct);
+            await editor.layout(); await editor.dearomatize();
+            rows.push({source,before,after:await editor.getInChIKey(),
+              ket:JSON.parse(await editor.getKet())});
+          }
+          return rows;
+        }""")
+        for row in identities:
+            assert row["before"] and row["before"] == row["after"]
+            assert not non_donor_hydrogens(row["ket"])
+        assert identities[0]["after"] != identities[1]["after"]
+        (EVIDENCE / "native-stereo-charge-isotope-identity.json").write_text(
+            json.dumps(identities, indent=2)
+        )
         assert hashlib.sha256(file.read_bytes()).hexdigest() == original
         assert not errors and not submissions, (errors, submissions)
         assert page.request.get(base + "/api/jobs").json() == []
