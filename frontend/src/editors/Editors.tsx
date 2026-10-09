@@ -37,6 +37,7 @@ export function Editors({
   const zh = language === "zh";
   const [origin, setOrigin] = useState<ScientificObject | null>(initialObject);
   const [loaded, setLoaded] = useState(false);
+  const [ketcherReady, setKetcherReady] = useState(false);
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -59,6 +60,7 @@ export function Editors({
           observeHydrogenDisplay(editor, controller.signal, (failure) =>
             setError(String(failure)),
           );
+          setKetcherReady(true);
         }
       })
       .catch((failure) => {
@@ -220,7 +222,7 @@ export function Editors({
                     zh ? "打开 MOL / SDF / SMILES" : "Open MOL / SDF / SMILES"
                   }
                   accept=".mol,.sdf,.smi,.smiles"
-                  disabled={busy}
+                  disabled={busy || !ketcherReady}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file)
@@ -237,7 +239,7 @@ export function Editors({
                 />
               </label>
               <button
-                disabled={busy}
+                disabled={busy || !ketcherReady}
                 title={
                   zh
                     ? "保存到工作台的分子文件库，后续任务可以直接选择。"
@@ -259,12 +261,12 @@ export function Editors({
               <AlignedEditAction
                 origin={origin}
                 language={language}
-                busy={busy}
+                busy={busy || !ketcherReady}
                 execute={action}
                 onCreated={onCreated}
               />
               <button
-                disabled={busy}
+                disabled={busy || !ketcherReady}
                 onClick={() =>
                   void action(async (editor) => {
                     setPropertyObject(await saveMolecule(editor));

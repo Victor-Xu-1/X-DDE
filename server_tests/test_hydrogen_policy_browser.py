@@ -58,7 +58,7 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         (EVIDENCE / "native-folded-preview.svg").write_bytes(
             base64.b64decode(image.split(",", 1)[1])
         )
-        page.screenshot(path=EVIDENCE / "explicit-hydrogen-sdf-preview.png")
+        page.screenshot(path=EVIDENCE / "explicit-hydrogen-sdf-preview.png", full_page=True)
         page.get_by_role("button", name="Preview study inputs", exact=True).click()
         preview = page.locator(".study-input-preview")
         expect(preview.locator(".viewer-message")).to_have_count(0, timeout=45000)
@@ -71,9 +71,18 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         ).click()
         page.get_by_role("button", name="Structure editor", exact=True).click()
         page.get_by_role("button", name="Molecule sketch · Ketcher", exact=True).click()
+        page.wait_for_function(
+            """() => {
+              const editor=document.querySelector('.editor-workspace iframe')?.contentWindow?.ketcher;
+              return editor?.editor?.options().showHydrogenLabels === 'Hetero';
+            }""",
+            timeout=45000,
+        )
         file = catalogue.ROOT / "inputs/STAT6-user-warhead.sdf"
         original = hashlib.sha256(file.read_bytes()).hexdigest()
-        page.locator('.editor-workspace input[type="file"]').set_input_files(str(file))
+        upload = page.locator('.editor-workspace input[type="file"]')
+        expect(upload).to_be_enabled()
+        upload.set_input_files(str(file))
         frame = page.locator(".editor-workspace iframe").first
         expect(frame).to_be_visible()
         page.wait_for_function(
