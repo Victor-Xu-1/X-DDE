@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import "./active-indicator.css";
 
 /** Track the real selected control across labels, scrolling and responsive widths. */
@@ -14,7 +14,8 @@ export function ActiveIndicator({
     y: number;
     width: number;
   } | null>(null);
-  useLayoutEffect(() => {
+  // Parent host refs attach after child layout effects; measure after the full commit.
+  useEffect(() => {
     const parent = container.current;
     const active = parent?.querySelector<HTMLElement>(
       ':scope > button[aria-selected="true"], :scope > button[aria-current="step"], :scope > button[aria-pressed="true"]',
