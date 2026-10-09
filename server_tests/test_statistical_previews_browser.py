@@ -84,7 +84,30 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
                 bounds["x"] + bounds["width"] / 2,
                 bounds["y"] + bounds["height"] / 2,
             )
-            expect(plot.locator(".hoverlayer .hovertext").first).to_be_visible()
+            try:
+                expect(plot.locator(".hoverlayer .hovertext").first).to_be_visible()
+            except Exception:
+                page.screenshot(
+                    path=str(evidence / (language + "-hover-failure.png")), full_page=False
+                )
+                state = page.evaluate(
+                    """({x,y}) => ({
+                  hit: document.elementFromPoint(x,y)?.outerHTML.slice(0,500),
+                  viewport: {width:innerWidth,height:innerHeight},
+                  plots: Array.from(document.querySelectorAll('.js-plotly-plot')).map(el => ({
+                    bounds:el.getBoundingClientRect().toJSON(),
+                    svgs:Array.from(el.querySelectorAll('.main-svg'))
+                      .map(s => s.getBoundingClientRect().toJSON())
+                  })) })""",
+                    {
+                        "x": bounds["x"] + bounds["width"] / 2,
+                        "y": bounds["y"] + bounds["height"] / 2,
+                    },
+                )
+                (evidence / (language + "-hover-failure.json")).write_text(
+                    json.dumps(state), encoding="utf-8"
+                )
+                raise
         elif kind == "heatmap":
             bounds = plot.locator(".heatmaplayer image").first.bounding_box()
             assert bounds
