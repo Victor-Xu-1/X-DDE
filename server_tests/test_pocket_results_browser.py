@@ -94,7 +94,13 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
             name=("口袋 " if language == "zh" else "Pocket ") + str(site["rank"]),
             exact=True,
         )
-        selected_row = table.locator("tbody tr").filter(has=control)
+        selected_row = table.locator("tbody tr").filter(
+            has=page.get_by_role(
+                "button",
+                name=("口袋 " if language == "zh" else "Pocket ") + str(site["rank"]),
+                exact=True,
+            )
+        )
         selected_row.locator("td").nth(1).click()
         expect(selected_row).to_have_attribute("aria-selected", "true")
         table.locator("tbody tr").first.locator("td").nth(2).click()

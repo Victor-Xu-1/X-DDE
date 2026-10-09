@@ -89,6 +89,72 @@ def test_native_record_cells_and_keyboard_update_the_exact_inspector(capability,
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
+def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(language):
+    """Entry/switch controls only; no materials, uploads, submissions or calculations."""
+    base = os.environ["WB_BROWSER_URL"]
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors, submissions, inspected = [], [], []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "request",
+            lambda request: submissions.append(request.url) if request.method == "POST" else None,
+        )
+        page.goto(base)
+        before_jobs = page.request.get(base + "/api/jobs").json()
+        if language == "zh":
+            settings(page, "en")
+            page.locator("#settings-language").select_option("zh")
+        all_name = "全部能力" if language == "zh" else "All capabilities"
+        open_navigation(page, language).get_by_role("button", name=all_name, exact=True).click()
+        cards = page.locator("button[data-capability]")
+        expect(cards.first).to_be_attached()
+        identifiers = list(
+            dict.fromkeys(
+                cards.evaluate_all(
+                    "elements => elements.map(element => element.dataset.capability)"
+                )
+            )
+        )
+        assert len(identifiers) >= 74
+        for capability in identifiers:
+            open_navigation(page, language).get_by_role("button", name=all_name, exact=True).click()
+            card = page.locator('button[data-capability="' + capability + '"]').first
+            if not card.is_visible():
+                card.locator("xpath=ancestor::details").locator("summary").click()
+            card.click()
+            template = page.get_by_role(
+                "region",
+                name="模块使用模板" if language == "zh" else "Module usage template",
+                exact=True,
+            )
+            expect(template).to_contain_text("STAT6")
+            picker = page.locator(".module-task-picker select").first
+            if picker.count():
+                expect(picker).to_have_value(capability)
+            methods = page.locator(".task-model-switch")
+            expect(methods).to_have_count(1)
+            expect(methods.locator('button[aria-pressed="true"]')).to_have_count(1)
+            buttons = methods.locator("button[aria-pressed]")
+            switched = False
+            if buttons.count() > 1:
+                index = 1 if buttons.nth(0).get_attribute("aria-pressed") == "true" else 0
+                buttons.nth(index).click()
+                expect(buttons.nth(index)).to_have_attribute("aria-pressed", "true")
+                switched = True
+            inspected.append({"capability": capability, "backend_switch": switched})
+        assert page.request.get(base + "/api/jobs").json() == before_jobs
+        assert not errors and not submissions, {"errors": errors, "submissions": submissions}
+        (EVIDENCE / f"{language}-all-task-entry-switches.json").write_text(
+            json.dumps({"entries": inspected, "scientific_execution": False}, indent=2)
+        )
+        page.screenshot(path=EVIDENCE / f"{language}-last-task-entry.png")
+        browser.close()
+
+
+@pytest.mark.parametrize("language", ["en", "zh"])
 def test_shared_sidebar_switches_every_destination_from_an_existing_result(language):
     base = os.environ["WB_BROWSER_URL"]
     EVIDENCE.mkdir(parents=True, exist_ok=True)
