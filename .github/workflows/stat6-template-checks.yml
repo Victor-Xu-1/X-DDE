@@ -76,7 +76,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          uv run --locked --group browser pytest -q server_tests/test_stat6_templates_browser.py
+          uv run --locked --group browser python -m pytest -q server_tests/test_stat6_templates_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
