@@ -17,6 +17,8 @@ export async function molecularFigure(
     crop = helper.behaviors.relativeCrop.value,
     cropParams = helper.behaviors.cropParams.value;
   const processing = structuredClone(canvas.props.postprocessing);
+  const pass = helper.imagePass;
+  const sampling = structuredClone(pass.props.multiSample);
   try {
     // The native screenshot helper otherwise forces 128 occlusion samples for
     // every high-resolution AA pass. Balanced lighting retains full native
@@ -24,6 +26,10 @@ export async function molecularFigure(
     canvas.setProps({
       postprocessing: { occlusion: { name: "off", params: {} } },
     });
+    // Four native jitter samples at the requested print resolution bound work
+    // for large paired scenes; the helper's default sixteen samples can stall
+    // software WebGL. Scientific geometry and the live viewport are unchanged.
+    pass.setProps({ multiSample: { ...sampling, mode: "on", sampleLevel: 2 } });
     helper.behaviors.values.next({
       ...values,
       resolution: {
@@ -37,6 +43,7 @@ export async function molecularFigure(
     helper.behaviors.relativeCrop.next({ x: 0, y: 0, width: 1, height: 1 });
     return await dataUrlBlob(await helper.getImageDataUri());
   } finally {
+    pass.setProps({ multiSample: sampling });
     canvas.setProps({ postprocessing: processing });
     helper.behaviors.values.next(values);
     helper.behaviors.cropParams.next(cropParams);

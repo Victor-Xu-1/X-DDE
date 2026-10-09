@@ -36,7 +36,18 @@ it("restores native lighting, crop and screenshot values even when rendering fai
       Object.assign(canvas.props.postprocessing, next.postprocessing),
     ),
   };
+  const sampling = {
+    mode: "on",
+    sampleLevel: 4,
+    reduceFlicker: true,
+    reuseOcclusion: false,
+  };
+  const pass = {
+    props: { multiSample: { ...sampling } },
+    setProps: vi.fn((next) => Object.assign(pass.props, next)),
+  };
   const helper = {
+    imagePass: pass,
     get values() {
       return values.value;
     },
@@ -47,6 +58,7 @@ it("restores native lighting, crop and screenshot values even when rendering fai
         params: { width: 2102, height: 1577 },
       });
       expect(canvas.props.postprocessing.occlusion.name).toBe("off");
+      expect(pass.props.multiSample).toEqual({ ...sampling, sampleLevel: 2 });
       throw new Error("Native capture failed");
     }),
   };
@@ -66,4 +78,5 @@ it("restores native lighting, crop and screenshot values even when rendering fai
   expect(helper.values).toEqual(initial);
   expect(crop.value).toEqual({ x: 0.1, y: 0, width: 0.8, height: 1 });
   expect(cropParams.value.auto).toBe(true);
+  expect(pass.props.multiSample).toEqual(sampling);
 });
