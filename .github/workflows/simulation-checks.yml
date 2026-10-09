@@ -41,6 +41,12 @@ on:
       - "!frontend/src/simulations/FreeEnergyDiagnostics.tsx"
       - "!frontend/src/simulations/FreeEnergyResults.tsx"
       - "!frontend/src/simulations/sample-selection.ts"
+      # Questionnaire-only edits use their focused browser/review workflow.
+      - "!frontend/src/simulations/SimulationForm*"
+      - "!frontend/src/simulations/SimulationConditions.tsx"
+      - "!frontend/src/simulations/SimulationReview*"
+      - "!frontend/src/simulations/SimulationInputs.tsx"
+      - "!frontend/src/simulations/simulations.css"
 permissions:
   contents: read
 jobs:

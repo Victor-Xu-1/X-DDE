@@ -27,6 +27,10 @@ flowchart LR
 The four preparation pages show one step at a time; the fifth step displays results. New tasks start with new inputs. Historical files and public templates require explicit selection. OpenMM retains the reviewed default; GROMACS uses the same method selector and independently reported environment readiness. FEP selects OpenFE and offers LoMap or Kartograf atom mapping under Expert adjustments. The historical LoMap default remains unchanged in canonical task bytes.
 准备过程每页仅显示一步，第五步查看结果。新任务默认使用新材料；历史文件和公开模板需明确选择。OpenMM 保留当前默认，GROMACS 使用同一后端选择器并单独报告环境准备状态。FEP 默认选中 OpenFE，专家设置可选择 LoMap 或 Kartograf 原子映射；历史 LoMap 默认不会改变原任务校验身份。
 
+Before submission, the review shows the selected source filenames, study system, actual backend and compute device. Dynamics and FEP calculations report the chosen equilibration, temperature and production sampling. A FEP planning request shows the selected atom mapper and network without presenting future sampling or free-energy estimates as completed work. Source filenames are read from the existing asset metadata API and checked against the selected file identity; an unavailable or mismatched record offers an explicit retry. Reviewing inputs never creates a scientific task.
+
+提交前，确认页显示所选原始文件名、研究对象、实际后端和计算设备。动力学及 FEP 计算显示已选择的平衡时长、温度和生产采样条件；FEP 网络规划显示原子映射与连接方案，不把未来模拟或自由能结果显示成已完成工作。文件名通过现有材料元数据接口读取，并校验所选文件身份；读取失败或身份不一致时可明确重试。查看确认页不会创建计算任务。
+
 ## Backend responsibilities / 后端工具职责
 
 | Responsibility / 职责                               | Integrated tool / 工具                          | Boundary / 边界                                                                                                                                                               |

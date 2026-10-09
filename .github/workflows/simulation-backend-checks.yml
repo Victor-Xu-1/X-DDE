@@ -22,7 +22,7 @@ on:
       - "frontend/src/studio/MethodSwitch.test.tsx"
       - "frontend/src/examples/guide-data.json"
       - "server_tests/check_simulation_environment.py"
-      - "server_tests/test_gromacs_switch_browser.py"
+      # Questionnaire-only browser assertions use simulation-questionnaire-checks.yml.
       - ".github/workflows/simulation-backend-checks.yml"
 permissions:
   contents: read

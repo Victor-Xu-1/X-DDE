@@ -1,0 +1,39 @@
+name: Simulation questionnaires and review
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/simulations/SimulationForm*"
+      - "frontend/src/simulations/SimulationConditions.tsx"
+      - "frontend/src/simulations/SimulationReview*"
+      - "frontend/src/simulations/SimulationInputs.tsx"
+      - "frontend/src/simulations/simulations.css"
+      - "server_tests/test_gromacs_switch_browser.py"
+      - ".github/workflows/simulation-questionnaire-checks.yml"
+permissions:
+  contents: read
+jobs:
+  questionnaires:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed questionnaires, truthful review and original-file identity
+        working-directory: frontend
+        run: npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationReview.test.tsx
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Actual bilingual backend choice, aligned controls and source-named review
+        run: uv run --locked python -m pytest -x -q server_tests/test_gromacs_switch_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulation-questionnaire-evidence
+          path: outputs/gromacs-switch/**

@@ -78,12 +78,30 @@ def test_switch_gromacs_keep_questionnaire_and_review_native_engine(tmp_path, la
         expect(next_button).to_be_enabled()
         for step in range(1, 5):
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            if step == 3:
+                controls = [
+                    page.get_by_role("combobox", name=name, exact=True).bounding_box()
+                    for name in (
+                        ("Temperature", "Independent repeats", "Compute device")
+                        if language == "en"
+                        else ("温度", "独立重复", "计算设备")
+                    )
+                ]
+                if width >= 768:
+                    assert all(box for box in controls)
+                    assert (
+                        max(box["y"] for box in controls) - min(box["y"] for box in controls) <= 1
+                    )
+            if step == 4:
+                expect(page.get_by_text("BRD4-protein.pdb", exact=True)).to_be_visible()
             page.screenshot(
                 path=str(evidence / f"{language}-{width}-step-{step}.png"), full_page=True
             )
             if step < 4:
                 next_button.click()
-        expect(page.get_by_role("cell", name="GROMACS 2026.3", exact=True)).to_be_visible()
+        expect(page.get_by_text("GROMACS 2026.3", exact=True)).to_be_visible()
+        expect(page.get_by_text("1 files", exact=True)).to_have_count(0)
+        expect(page.get_by_text("1 repeats", exact=True)).to_have_count(0)
         expect(
             page.get_by_role(
                 "button", name="Submit simulation" if language == "en" else "提交模拟", exact=True

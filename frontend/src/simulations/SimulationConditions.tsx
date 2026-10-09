@@ -63,7 +63,9 @@ export function SimulationConditions({
       )}
       <div className="simulation-condition-row">
         <label>
-          {zh ? "温度" : "Temperature"}
+          <span className="simulation-field-heading">
+            {zh ? "温度" : "Temperature"}
+          </span>
           <select
             value={payload.temperature_kelvin}
             onChange={(e) =>
@@ -78,8 +80,16 @@ export function SimulationConditions({
           </select>
         </label>
         <label>
-          {zh ? "独立重复" : "Independent repeats"}
+          <span className="simulation-field-heading">
+            {zh ? "独立重复" : "Independent repeats"}
+            <Hint label={zh ? "独立重复说明" : "About independent repeats"}>
+              {zh
+                ? "独立重复帮助判断结果是否稳健。单次短模拟不能证明收敛。"
+                : "Independent repeats help assess robustness. One short simulation does not establish convergence."}
+            </Hint>
+          </span>
           <select
+            aria-label={zh ? "独立重复" : "Independent repeats"}
             value={payload.repeats}
             onChange={(e) => update({ repeats: Number(e.target.value) })}
           >
@@ -89,14 +99,11 @@ export function SimulationConditions({
               </option>
             ))}
           </select>
-          <Hint label={zh ? "独立重复说明" : "About independent repeats"}>
-            {zh
-              ? "独立重复帮助判断结果是否稳健。单次短模拟不能证明收敛。"
-              : "Independent repeats help assess robustness. One short simulation does not establish convergence."}
-          </Hint>
         </label>
         <label>
-          {zh ? "计算设备" : "Compute device"}
+          <span className="simulation-field-heading">
+            {zh ? "计算设备" : "Compute device"}
+          </span>
           <select
             value={options.device}
             onChange={(e) =>

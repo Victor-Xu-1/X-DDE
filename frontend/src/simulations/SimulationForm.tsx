@@ -291,6 +291,7 @@ export function SimulationForm({
               fep={fep}
               payload={payload}
               inputs={inputs}
+              options={options}
               name={name}
               setName={setName}
               language={language}
