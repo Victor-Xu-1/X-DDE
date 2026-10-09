@@ -37,8 +37,14 @@ export function InteractivePlot({
   useEffect(() => {
     const target = element.current!;
     let disposed = false;
+    let renderedWidth = target.getBoundingClientRect().width;
     const observer = new ResizeObserver(() => {
-      if (plot.current && target.data && target.offsetWidth > 0)
+      const width = target.getBoundingClientRect().width;
+      // Native drag/layout events can notify the observer without a width change.
+      // Resizing those scenes resets constrained axes to their configured ranges.
+      if (Math.abs(width - renderedWidth) < 0.5) return;
+      renderedWidth = width;
+      if (plot.current && target.data && width > 0)
         void plot.current.Plots.resize(target);
     });
     observer.observe(target);
