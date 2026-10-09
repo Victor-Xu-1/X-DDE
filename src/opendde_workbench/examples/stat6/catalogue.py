@@ -105,6 +105,10 @@ def study_context(capability):
         "gnina.minimize",
         "openmm.refine",
         "posebusters.check",
+        "diffsbdd.interactions",
+        "diffsbdd.inpaint",
+        "diffsbdd.diversify",
+        "diffsbdd.optimize",
     }:
         requirements.append(
             (

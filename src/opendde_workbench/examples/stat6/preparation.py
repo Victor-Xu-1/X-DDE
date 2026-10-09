@@ -63,6 +63,23 @@ def prepare_stat6(capability, scientific, *, records=None):
         "receptor_a": originals["stat6_receptor"],
         "receptor_b": originals["stat6_alternative_receptor"],
     }
+    if capability in {
+        "gnina.score",
+        "gnina.minimize",
+        "posebusters.check",
+        "diffsbdd.interactions",
+        "diffsbdd.inpaint",
+        "diffsbdd.diversify",
+        "diffsbdd.optimize",
+        "openmm.dynamics",
+        "gromacs.dynamics",
+        "openfe.rbfe",
+    }:
+        # Unbound conformers remain available in the reference preview, but
+        # never prefill a field that requires an aligned calculated binding pose.
+        objects.pop("ligand")
+    if capability == "diffsbdd.pocket":
+        objects["ligand"] = originals["bound_reference"]
     sequence = "".join(verified_input("stat6_sequence").decode().splitlines()[1:])
     if len(sequence) != 847:
         raise ValueError("The fixed canonical STAT6 sequence differs from its reviewed length.")

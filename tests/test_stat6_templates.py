@@ -59,6 +59,17 @@ def test_repeat_preparation_reuses_exact_study_versions_without_changing_origina
 
 
 @pytest.mark.parametrize(
+    "key", ["gnina.score", "diffsbdd.interactions", "openmm.dynamics", "openfe.rbfe"]
+)
+def test_unbound_conformer_does_not_prefill_a_binding_pose_field(tmp_path, key):
+    store, scientific = scientific_store(tmp_path)
+    prepared = prepare_stat6(key, scientific)
+    assert "study_ligand" in prepared.objects and "ligand" not in prepared.objects
+    assert prepared.study["required_materials"]
+    assert store.list_jobs() == []
+
+
+@pytest.mark.parametrize(
     "key", ["del.analyze", "antibody.humanize", "openfe.rbfe", "deepternary.model"]
 )
 def test_missing_experimental_inputs_are_explicit_and_no_prior_result_is_substituted(tmp_path, key):
