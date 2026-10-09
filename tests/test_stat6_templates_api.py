@@ -75,7 +75,7 @@ def test_archive_is_explicit_and_does_not_replace_active_study_pins(tmp_path):
 def test_archived_molecule_job_cannot_be_pinned_as_a_stat6_result(tmp_path):
     store, scientific = scientific_store(tmp_path)
     old = scientific.assets.save("old-case.sdf", "ligand", b"controlled protocol input\n$$$$\n")
-    request = Properties(ligand_files=[old.id])
+    request = Properties(name="controlled archived molecule boundary", ligand_files=[old.id])
     job = store.create(request, str(uuid4()), 20, 500)
     store.claim(job.id)
     store.finish(job.id, Status.SUCCEEDED)

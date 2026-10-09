@@ -52,6 +52,8 @@ def study_request(capability, objects, sequences):
             "name": "STAT6 · experimental reference",
             "source": "pdb",
             "identifier": "9BIG",
+            "format": "cif",
+            "allow_external": True,
         }
     if capability == "discovery.target":
         return {
@@ -59,6 +61,7 @@ def study_request(capability, objects, sequences):
             "name": "STAT6 · target evidence",
             "entity": "target",
             "identifier": "ENSG00000166888",
+            "allow_external": True,
         }
     if capability == "library.import":
         molecule = reference("ligand")
