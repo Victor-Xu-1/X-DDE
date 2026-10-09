@@ -31,21 +31,35 @@ export function CountEvidencePlot({
     <section>
       <InteractivePlot
         language={language}
+        height={Math.max(300, Math.min(640, rows.length * 58 + 100))}
         title={zh ? "样本读段与 UMI" : "Sample reads and UMIs"}
         data={series.map((item) => ({
           type: "bar",
+          orientation: "h",
           name: item.label,
-          x: rows.map((row) => row.sample),
-          y: rows.map((row) => row[item.key]),
-          marker: { color: item.color },
-          hovertemplate: "%{x}<br>%{fullData.name}: %{y:,}<extra></extra>",
+          x: rows.map((row) => row[item.key]),
+          y: rows.map((row) => row.sample),
+          text: rows.map((row) =>
+            row[item.key] == null ? "" : row[item.key]!.toLocaleString(),
+          ),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: item.color, line: { color: "white", width: 1 } },
+          hovertemplate: "%{y}<br>%{fullData.name}: %{x:,}<extra></extra>",
         }))}
         layout={{
           barmode: "group",
-          xaxis: { title: { text: zh ? "样本" : "Sample" }, automargin: true },
-          yaxis: {
+          bargap: 0.35,
+          bargroupgap: 0.1,
+          margin: { l: 124, r: 48, t: 12, b: 70 },
+          xaxis: {
             title: { text: zh ? "原生计数" : "Native count" },
             rangemode: "tozero",
+          },
+          yaxis: {
+            title: { text: zh ? "样本" : "Sample" },
+            automargin: true,
+            autorange: "reversed",
           },
         }}
       />
