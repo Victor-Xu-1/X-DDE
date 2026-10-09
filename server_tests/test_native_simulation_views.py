@@ -182,6 +182,14 @@ def test_native_result_views_and_downloads(case, language):
                 language,
             )
             inspect_png(png)
+            controls = network.locator(".research-chart-controls")
+            fit = controls.get_by_role(
+                "button", name="Fit network" if language == "en" else "适应画布"
+            ).bounding_box()
+            export = controls.get_by_role(
+                "button", name="Export figure ↓" if language == "en" else "文献图导出 ↓"
+            ).bounding_box()
+            assert fit and export and export["x"] - fit["x"] - fit["width"] >= 7
             root.get_by_role(
                 "tab", name="Binding poses" if language == "en" else "结合姿势", exact=True
             ).click()

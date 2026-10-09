@@ -24,7 +24,6 @@ on:
       - "frontend/src/simulations/molstar-controller.ts"
       - "frontend/src/simulations/molstar-figure.ts"
       - "frontend/src/simulations/molstar-figure.test.ts"
-      - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "server_tests/*publication*"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
       # Shared interactive charts and appearance use chart-quality-checks.yml.

@@ -11,6 +11,7 @@ on:
       - "frontend/src/simulations/FreeEnergyDiagnostics.tsx"
       - "frontend/src/simulations/FreeEnergyForest.tsx"
       - "frontend/src/simulations/FreeEnergyResults.tsx"
+      - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "frontend/src/publication/plotly*"
       - "frontend/src/presentation/plots/InteractivePlot*"
       - "server_tests/test_fep_diagnostics_browser.py"

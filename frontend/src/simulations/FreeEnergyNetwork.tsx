@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import type { FreeEnergyResult } from "./types";
 import { FigureExport } from "../publication/FigureExport";
 import { networkFigure } from "../publication/cytoscape";
+import "../presentation/plots/plots.css";
 
 export function FreeEnergyNetwork({
   result,
@@ -57,7 +58,7 @@ export function FreeEnergyNetwork({
     <section className="fep-network simulation-plot">
       <header>
         <h3>{zh ? "分子变化网络" : "Molecular perturbation network"}</h3>
-        <div>
+        <div className="research-chart-controls">
           <button
             type="button"
             className="text-button"
