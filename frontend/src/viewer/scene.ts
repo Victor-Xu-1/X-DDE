@@ -10,6 +10,7 @@ import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
+import { retainSourceDepth } from "./source-depth";
 import { focusDisplayContext } from "./context-focus";
 import { contactLabelLayer } from "./contact-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
@@ -206,7 +207,10 @@ export class MolecularScene {
     await this.paint();
     if (region.indices.length) {
       this.viewer.zoomTo({ model: 0, index: region.indices });
-      this.viewer.zoom(0.85);
+      retainSourceDepth(this.viewer);
+      this.viewer.zoom(
+        0.85 * (this.viewport ? viewportFitFactor(this.viewport()) : 1),
+      );
       this.viewer.render();
     }
     this.emit("site-region", {

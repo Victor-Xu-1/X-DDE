@@ -19,7 +19,7 @@ on:
       - "frontend/src/datasets/statistical-plots*"
       - "frontend/src/datasets/PlotFrame.tsx"
       - "frontend/src/viewer/appearance.ts"
-      - "frontend/src/viewer/scene.ts"
+      # Source depth and native region focus use pocket-result-checks.yml.
       - "frontend/src/viewer/style.ts"
       - "frontend/src/simulations/OverlapHeatmap.tsx"
       - "server_tests/test_statistical_previews_browser.py"

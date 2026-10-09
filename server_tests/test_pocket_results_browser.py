@@ -139,7 +139,8 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
             name="探索这个口袋的结合模式" if language == "zh" else "Explore poses in this pocket",
             exact=True,
         ).click()
-        expect(page.locator(".task-workspace.is-input .questionnaire")).to_be_visible()
+        expect(page.locator(".task-workspace.is-input .questionnaire:visible")).to_have_count(1)
+        expect(page.locator(".task-workspace.is-input .questionnaire:visible")).to_be_visible()
         expect(
             page.locator(".task-workspace.is-input .questionnaire > fieldset:visible")
         ).to_have_count(1)
