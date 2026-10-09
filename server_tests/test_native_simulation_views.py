@@ -93,10 +93,7 @@ def test_native_result_views_and_downloads(case, language):
             expect(root.locator(".js-plotly-plot").first).to_be_visible(timeout=30000)
             # Actual plotted points select the exact native trajectory frame.
             plot = root.locator(".js-plotly-plot").first
-            plot.evaluate(
-                "el => el.on('plotly_click', event => {"
-                " el.dataset.clickedX = String(event.points[0]?.x); })"
-            )
+            expect(plot).to_have_attribute("aria-busy", "false", timeout=30000)
             plot.evaluate("el => el.scrollIntoView({ block: 'center' })")
             point = plot.locator(".scatterlayer .point").nth(2)
             box = point.bounding_box()
@@ -124,10 +121,16 @@ def test_native_result_views_and_downloads(case, language):
             page.mouse.move(x, y)
             expect(plot.locator(".hoverlayer .hovertext")).to_be_visible()
             page.mouse.click(x, y)
-            assert plot.get_attribute("data-clicked-x") is not None, (
-                "Native Plotly point click was not delivered."
-            )
+            # Assert the real consumer. Plotly.react owns/replaces chart event
+            # listeners, so an extra test listener is not a reliable completion signal.
             expect(viewer).to_have_attribute("data-frame", "2", timeout=30000)
+            expect(
+                root.get_by_role(
+                    "link", name="Download frame" if language == "en" else "下载当前结构"
+                )
+            ).to_have_attribute(
+                "href", f"/api/jobs/{identifier}/download?name=repeat-1-frame-0003.pdb"
+            )
             # View export is separate from scientific coordinate-file download.
             png = export_figure(
                 page,

@@ -1,92 +1,92 @@
 name: User interface checks
 on:
   push:
-    branches: ['**']
+    branches: ["**"]
     paths:
-      - 'frontend/src/presentation/**'
-      - 'frontend/src/integrations/**'
-      - 'frontend/src/App.tsx'
-      - 'frontend/src/App.test.tsx'
-      - 'frontend/src/TaskDetail*'
-      - 'frontend/src/useWorkbench*'
-      - 'frontend/src/studio/RuntimeStatus*'
-      - 'frontend/src/studio/EnvironmentStatusTable*'
-      - 'frontend/src/studio/runtime-status.css'
-      - 'frontend/src/operations/filter*'
-      - 'frontend/src/**/*Results*'
+      - "frontend/src/presentation/**"
+      - "frontend/src/integrations/**"
+      - "frontend/src/App.tsx"
+      - "frontend/src/App.test.tsx"
+      - "frontend/src/TaskDetail*"
+      - "frontend/src/useWorkbench*"
+      - "frontend/src/studio/RuntimeStatus*"
+      - "frontend/src/studio/EnvironmentStatusTable*"
+      - "frontend/src/studio/runtime-status.css"
+      - "frontend/src/operations/filter*"
+      - "frontend/src/**/*Results*"
       # Paired-result inspection is verified by viewer-checks.yml.
-      - '!frontend/src/poses/PoseResults*'
-      - '!frontend/src/receptors/ReceptorResults*'
-      - '!frontend/src/diffsbdd/InteractionResults*'
-      - '!frontend/src/presentation/ensemble-results.css'
-      - 'frontend/src/research/ResearchWorkspace*'
-      - 'frontend/src/operations/ToolCenter*'
-      - 'frontend/src/studio/HomeWorkspace*'
-      - 'frontend/src/deployment/**'
-      - 'frontend/src/design/**'
-      - 'frontend/src/humanization/**'
-      - 'frontend/src/guided/questionnaire.css'
-      - 'frontend/src/guided/Questionnaire*'
-      - 'frontend/src/TaskForm*'
-      - 'frontend/src/operations/AssetPicker*'
-      - 'frontend/src/operations/HarnessForm*'
-      - 'frontend/src/operations/CampaignForm*'
-      - 'frontend/src/datasets/DatasetPicker*'
-      - 'frontend/src/datasets/SourcePicker*'
-      - 'frontend/src/datasets/ModelValidationPlot*'
-      - 'frontend/src/datasets/DatasetCharts*'
-      - 'frontend/src/datasets/DatasetResults*'
-      - 'frontend/src/datasets/DatasetHeatmaps*'
-      - 'frontend/src/datasets/ResearchTable*'
-      - 'frontend/src/datasets/chart-documents*'
-      - 'frontend/src/datasets/useChartDocuments*'
-      - 'frontend/src/datasets/IndexedLibraryResults*'
-      - 'frontend/src/datasets/useIndexedMember*'
-      - 'frontend/src/datasets/supplier-label*'
-      - 'frontend/src/datasets/useDatasetSources*'
-      - 'frontend/src/datasets/DEL*'
-      - 'frontend/src/receptors/SurfaceForm*'
-      - 'frontend/src/editors/Editors*'
-      - 'frontend/src/workflow.css'
-      - 'frontend/src/research/ObjectInspector*'
-      - 'frontend/src/research/research.css'
+      - "!frontend/src/poses/PoseResults*"
+      - "!frontend/src/receptors/ReceptorResults*"
+      - "!frontend/src/diffsbdd/InteractionResults*"
+      - "!frontend/src/presentation/ensemble-results.css"
+      - "frontend/src/research/ResearchWorkspace*"
+      - "frontend/src/operations/ToolCenter*"
+      - "frontend/src/studio/HomeWorkspace*"
+      - "frontend/src/deployment/**"
+      - "frontend/src/design/**"
+      - "frontend/src/humanization/**"
+      - "frontend/src/guided/questionnaire.css"
+      - "frontend/src/guided/Questionnaire*"
+      - "frontend/src/TaskForm*"
+      - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/operations/HarnessForm*"
+      - "frontend/src/operations/CampaignForm*"
+      - "frontend/src/datasets/DatasetPicker*"
+      - "frontend/src/datasets/SourcePicker*"
+      - "frontend/src/datasets/ModelValidationPlot*"
+      - "frontend/src/datasets/DatasetCharts*"
+      - "frontend/src/datasets/DatasetResults*"
+      - "frontend/src/datasets/DatasetHeatmaps*"
+      - "frontend/src/datasets/ResearchTable*"
+      - "frontend/src/datasets/chart-documents*"
+      - "frontend/src/datasets/useChartDocuments*"
+      - "frontend/src/datasets/IndexedLibraryResults*"
+      - "frontend/src/datasets/useIndexedMember*"
+      - "frontend/src/datasets/supplier-label*"
+      - "frontend/src/datasets/useDatasetSources*"
+      - "frontend/src/datasets/DEL*"
+      - "frontend/src/receptors/SurfaceForm*"
+      - "frontend/src/editors/Editors*"
+      - "frontend/src/workflow.css"
+      - "frontend/src/research/ObjectInspector*"
+      - "frontend/src/research/research.css"
       # Sequence and QC inspections use their own focused native-result gate.
-      - '!frontend/src/presentation/SequenceTrack*'
-      - '!frontend/src/presentation/sequence-track.css'
-      - '!frontend/src/presentation/result-inspection.css'
-      - '!frontend/src/operations/SequenceScoreResults*'
-      - '!frontend/src/operations/sequence-scores.css'
-      - '!frontend/src/antibodies/AntibodyNumberResults*'
-      - '!frontend/src/humanization/HumanizationResults*'
-      - '!frontend/src/humanization/SequenceAlignment*'
-      - '!frontend/src/humanization/SequenceComparison*'
-      - '!frontend/src/humanization/ReferenceMetrics*'
-      - '!frontend/src/humanization/humanization.css'
-      - '!frontend/src/humanization/sequence-alignment.css'
-      - '!frontend/src/quality/QualityResults*'
-      - '!frontend/src/quality/tests/QualityResults.test.tsx'
+      - "!frontend/src/presentation/SequenceTrack*"
+      - "!frontend/src/presentation/sequence-track.css"
+      - "!frontend/src/presentation/result-inspection.css"
+      - "!frontend/src/operations/SequenceScoreResults*"
+      - "!frontend/src/operations/sequence-scores.css"
+      - "!frontend/src/antibodies/AntibodyNumberResults*"
+      - "!frontend/src/humanization/HumanizationResults*"
+      - "!frontend/src/humanization/SequenceAlignment*"
+      - "!frontend/src/humanization/SequenceComparison*"
+      - "!frontend/src/humanization/ReferenceMetrics*"
+      - "!frontend/src/humanization/humanization.css"
+      - "!frontend/src/humanization/sequence-alignment.css"
+      - "!frontend/src/quality/QualityResults*"
+      - "!frontend/src/quality/tests/QualityResults.test.tsx"
       # Shared research-shell changes have a focused native navigation gate.
-      - '!frontend/src/studio/Navigation*'
-      - '!frontend/src/studio/navigation-frame.css'
-      - '!frontend/src/studio/Header*'
-      - '!frontend/src/studio/header.css'
-      - '!frontend/src/studio/TaskSearch*'
-      - '!frontend/src/studio/TaskNotifications*'
-      - '!frontend/src/studio/ModuleTaskPicker*'
-      - '!frontend/src/studio.css'
-      - '!frontend/src/design/workspaces.css'
+      - "!frontend/src/studio/Navigation*"
+      - "!frontend/src/studio/navigation-frame.css"
+      - "!frontend/src/studio/Header*"
+      - "!frontend/src/studio/header.css"
+      - "!frontend/src/studio/TaskSearch*"
+      - "!frontend/src/studio/TaskNotifications*"
+      - "!frontend/src/studio/ModuleTaskPicker*"
+      - "!frontend/src/studio.css"
+      - "!frontend/src/design/workspaces.css"
       # Public case controls have a focused native gate.
-      - '!frontend/src/examples/ExampleActions*'
-      - '!frontend/src/examples/ExampleToolbar*'
-      - '!frontend/src/examples/ExampleGuide*'
-      - '!frontend/src/examples/ExampleFeedback*'
-      - '!frontend/src/examples/useExampleTemplate*'
-      - '!frontend/src/examples/examples.css'
-      - '!frontend/src/TaskForm*'
-      - '!frontend/src/studio/HomeWorkspace*'
-      - '!frontend/src/presentation/result-layout.css'
+      - "!frontend/src/examples/ExampleActions*"
+      - "!frontend/src/examples/ExampleToolbar*"
+      - "!frontend/src/examples/ExampleGuide*"
+      - "!frontend/src/examples/ExampleFeedback*"
+      - "!frontend/src/examples/useExampleTemplate*"
+      - "!frontend/src/examples/examples.css"
+      - "!frontend/src/TaskForm*"
+      - "!frontend/src/studio/HomeWorkspace*"
+      - "!frontend/src/presentation/result-layout.css"
       # Molecular property pages use their focused inspection gate.
-      - '!frontend/src/admet/**'
+      - "!frontend/src/admet/**"
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/guided/Questionnaire.tsx"
       - "!frontend/src/presentation/InteractionDiagram.test.tsx"
@@ -116,82 +116,84 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      # MD/FEP result interactions use simulation-view-checks.yml.
+      - "!frontend/src/simulations/FreeEnergyResults.tsx"
   pull_request:
     paths:
-      - 'frontend/src/presentation/**'
-      - 'frontend/src/integrations/**'
-      - 'frontend/src/App.tsx'
-      - 'frontend/src/App.test.tsx'
-      - 'frontend/src/TaskDetail*'
-      - 'frontend/src/useWorkbench*'
-      - 'frontend/src/studio/RuntimeStatus*'
-      - 'frontend/src/studio/EnvironmentStatusTable*'
-      - 'frontend/src/studio/runtime-status.css'
-      - 'frontend/src/operations/filter*'
-      - 'frontend/src/**/*Results*'
+      - "frontend/src/presentation/**"
+      - "frontend/src/integrations/**"
+      - "frontend/src/App.tsx"
+      - "frontend/src/App.test.tsx"
+      - "frontend/src/TaskDetail*"
+      - "frontend/src/useWorkbench*"
+      - "frontend/src/studio/RuntimeStatus*"
+      - "frontend/src/studio/EnvironmentStatusTable*"
+      - "frontend/src/studio/runtime-status.css"
+      - "frontend/src/operations/filter*"
+      - "frontend/src/**/*Results*"
       # Paired-result inspection is verified by viewer-checks.yml.
-      - '!frontend/src/poses/PoseResults*'
-      - '!frontend/src/receptors/ReceptorResults*'
-      - '!frontend/src/diffsbdd/InteractionResults*'
-      - '!frontend/src/presentation/ensemble-results.css'
-      - 'frontend/src/research/ResearchWorkspace*'
-      - 'frontend/src/operations/ToolCenter*'
-      - 'frontend/src/studio/HomeWorkspace*'
-      - 'frontend/src/deployment/**'
-      - 'frontend/src/design/**'
-      - 'frontend/src/humanization/**'
-      - 'frontend/src/guided/questionnaire.css'
-      - 'frontend/src/guided/Questionnaire*'
-      - 'frontend/src/TaskForm*'
-      - 'frontend/src/operations/AssetPicker*'
-      - 'frontend/src/operations/HarnessForm*'
-      - 'frontend/src/operations/CampaignForm*'
-      - 'frontend/src/datasets/DatasetPicker*'
-      - 'frontend/src/datasets/SourcePicker*'
-      - 'frontend/src/datasets/useDatasetSources*'
-      - 'frontend/src/datasets/DEL*'
-      - 'frontend/src/receptors/SurfaceForm*'
-      - 'frontend/src/editors/Editors*'
-      - 'frontend/src/workflow.css'
-      - 'frontend/src/research/ObjectInspector*'
-      - 'frontend/src/research/research.css'
+      - "!frontend/src/poses/PoseResults*"
+      - "!frontend/src/receptors/ReceptorResults*"
+      - "!frontend/src/diffsbdd/InteractionResults*"
+      - "!frontend/src/presentation/ensemble-results.css"
+      - "frontend/src/research/ResearchWorkspace*"
+      - "frontend/src/operations/ToolCenter*"
+      - "frontend/src/studio/HomeWorkspace*"
+      - "frontend/src/deployment/**"
+      - "frontend/src/design/**"
+      - "frontend/src/humanization/**"
+      - "frontend/src/guided/questionnaire.css"
+      - "frontend/src/guided/Questionnaire*"
+      - "frontend/src/TaskForm*"
+      - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/operations/HarnessForm*"
+      - "frontend/src/operations/CampaignForm*"
+      - "frontend/src/datasets/DatasetPicker*"
+      - "frontend/src/datasets/SourcePicker*"
+      - "frontend/src/datasets/useDatasetSources*"
+      - "frontend/src/datasets/DEL*"
+      - "frontend/src/receptors/SurfaceForm*"
+      - "frontend/src/editors/Editors*"
+      - "frontend/src/workflow.css"
+      - "frontend/src/research/ObjectInspector*"
+      - "frontend/src/research/research.css"
       # Sequence and QC inspections use their own focused native-result gate.
-      - '!frontend/src/presentation/SequenceTrack*'
-      - '!frontend/src/presentation/sequence-track.css'
-      - '!frontend/src/presentation/result-inspection.css'
-      - '!frontend/src/operations/SequenceScoreResults*'
-      - '!frontend/src/operations/sequence-scores.css'
-      - '!frontend/src/antibodies/AntibodyNumberResults*'
-      - '!frontend/src/humanization/HumanizationResults*'
-      - '!frontend/src/humanization/SequenceAlignment*'
-      - '!frontend/src/humanization/SequenceComparison*'
-      - '!frontend/src/humanization/ReferenceMetrics*'
-      - '!frontend/src/humanization/humanization.css'
-      - '!frontend/src/humanization/sequence-alignment.css'
-      - '!frontend/src/quality/QualityResults*'
-      - '!frontend/src/quality/tests/QualityResults.test.tsx'
+      - "!frontend/src/presentation/SequenceTrack*"
+      - "!frontend/src/presentation/sequence-track.css"
+      - "!frontend/src/presentation/result-inspection.css"
+      - "!frontend/src/operations/SequenceScoreResults*"
+      - "!frontend/src/operations/sequence-scores.css"
+      - "!frontend/src/antibodies/AntibodyNumberResults*"
+      - "!frontend/src/humanization/HumanizationResults*"
+      - "!frontend/src/humanization/SequenceAlignment*"
+      - "!frontend/src/humanization/SequenceComparison*"
+      - "!frontend/src/humanization/ReferenceMetrics*"
+      - "!frontend/src/humanization/humanization.css"
+      - "!frontend/src/humanization/sequence-alignment.css"
+      - "!frontend/src/quality/QualityResults*"
+      - "!frontend/src/quality/tests/QualityResults.test.tsx"
       # Shared research-shell changes have a focused native navigation gate.
-      - '!frontend/src/studio/Navigation*'
-      - '!frontend/src/studio/navigation-frame.css'
-      - '!frontend/src/studio/Header*'
-      - '!frontend/src/studio/header.css'
-      - '!frontend/src/studio/TaskSearch*'
-      - '!frontend/src/studio/TaskNotifications*'
-      - '!frontend/src/studio/ModuleTaskPicker*'
-      - '!frontend/src/studio.css'
-      - '!frontend/src/design/workspaces.css'
+      - "!frontend/src/studio/Navigation*"
+      - "!frontend/src/studio/navigation-frame.css"
+      - "!frontend/src/studio/Header*"
+      - "!frontend/src/studio/header.css"
+      - "!frontend/src/studio/TaskSearch*"
+      - "!frontend/src/studio/TaskNotifications*"
+      - "!frontend/src/studio/ModuleTaskPicker*"
+      - "!frontend/src/studio.css"
+      - "!frontend/src/design/workspaces.css"
       # Public case controls have a focused native gate.
-      - '!frontend/src/examples/ExampleActions*'
-      - '!frontend/src/examples/ExampleToolbar*'
-      - '!frontend/src/examples/ExampleGuide*'
-      - '!frontend/src/examples/ExampleFeedback*'
-      - '!frontend/src/examples/useExampleTemplate*'
-      - '!frontend/src/examples/examples.css'
-      - '!frontend/src/TaskForm*'
-      - '!frontend/src/studio/HomeWorkspace*'
-      - '!frontend/src/presentation/result-layout.css'
+      - "!frontend/src/examples/ExampleActions*"
+      - "!frontend/src/examples/ExampleToolbar*"
+      - "!frontend/src/examples/ExampleGuide*"
+      - "!frontend/src/examples/ExampleFeedback*"
+      - "!frontend/src/examples/useExampleTemplate*"
+      - "!frontend/src/examples/examples.css"
+      - "!frontend/src/TaskForm*"
+      - "!frontend/src/studio/HomeWorkspace*"
+      - "!frontend/src/presentation/result-layout.css"
       # Molecular property pages use their focused inspection gate.
-      - '!frontend/src/admet/**'
+      - "!frontend/src/admet/**"
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/guided/Questionnaire.tsx"
       - "!frontend/src/presentation/InteractionDiagram.test.tsx"
@@ -225,7 +227,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - name: Install locked frontend dependencies and build
         run: |
           npm ci --prefix frontend
