@@ -158,6 +158,7 @@ export function ScientificResults({
       {result.validation_points?.length > 1 && (
         <MetricScatter
           rows={result.validation_points}
+          identity
           language={language}
           label={
             zh

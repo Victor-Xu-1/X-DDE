@@ -1,27 +1,16 @@
 .metric-scatter {
   min-width: 0;
 }
-.metric-scatter > header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.metric-scatter > header > span {
-  color: var(--muted);
-  font-size: 12px;
-}
 .scatter-axes {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0 4px;
 }
 .scatter-axes label {
   display: grid;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   min-width: 0;
 }
@@ -30,35 +19,22 @@
   padding: 6px 8px;
   font-size: 12px;
 }
-.metric-scatter > .metric-scatter-plot {
-  width: 100%;
-  height: 265px;
-  display: block;
-  margin-top: 12px;
-  overflow: visible;
+.scatter-record-choice {
+  min-width: 0;
 }
-.metric-scatter-plot text {
-  fill: var(--muted);
+.scatter-axes.has-record-choice {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 640px) {
+  .scatter-axes.has-record-choice {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .scatter-record-choice {
+    grid-column: 1 / -1;
+  }
+}
+.scatter-record-count {
+  margin: 10px 0;
+  color: var(--muted);
   font-size: 12px;
-  font-family: var(--font);
-}
-.scatter-grid {
-  stroke: var(--line);
-  stroke-dasharray: 3 4;
-}
-.scatter-axis {
-  stroke: var(--muted);
-}
-.scatter-point {
-  fill: var(--accent);
-  fill-opacity: 0.45;
-  stroke: var(--surface);
-  stroke-width: 1;
-  cursor: pointer;
-}
-.scatter-point.selected,
-.scatter-point:hover {
-  fill-opacity: 1;
-  stroke: var(--accent);
-  stroke-width: 2;
 }

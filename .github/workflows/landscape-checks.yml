@@ -1,0 +1,62 @@
+name: Interactive molecular and sequence landscapes
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/presentation/MetricScatter*"
+      - "frontend/src/presentation/metric-scatter*"
+      - "frontend/src/integrations/ScientificResults.tsx"
+      - "frontend/src/operations/PropertyResults.test.tsx"
+      - "server_tests/test_metric_landscape_browser.py"
+      - "server_tests/test_model_landscape_browser.py"
+      - "server_tests/landscape_browser_helpers.py"
+      - ".github/workflows/landscape-checks.yml"
+permissions:
+  contents: read
+jobs:
+  landscapes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed scatter and exact direct result consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/MetricScatter.test.tsx src/presentation/metric-scatter-model.test.ts
+          src/presentation/plots/InteractivePlot.test.tsx src/admet/AdmetResults.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx src/operations/SequenceScoreResults.test.tsx
+          src/chemistry/StateResults.test.tsx src/operations/PropertyResults.test.tsx
+      - name: Restore immutable public cases, never recompute for graphics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-landscapes" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-landscapes/state" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Native molecular/sequence value, selection and physical export contracts
+        run: |
+          mkdir -p outputs/metric-landscapes
+          .venv/bin/python -m opendde_workbench --port 4330 > outputs/metric-landscapes/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -x -q server_tests/test_metric_landscape_browser.py server_tests/test_model_landscape_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metric-landscape-evidence
+          path: outputs/metric-landscapes/**

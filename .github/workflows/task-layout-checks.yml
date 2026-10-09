@@ -142,7 +142,8 @@ on:
       - "!frontend/src/presentation/InteractionDiagram.test.tsx"
       - "!frontend/src/presentation/InteractionDiagram.tsx"
       - "!frontend/src/presentation/MetricBars.tsx"
-      - "!frontend/src/presentation/MetricScatter.tsx"
+      - "!frontend/src/presentation/MetricScatter*"
+      - "!frontend/src/presentation/metric-scatter*"
       - "!frontend/src/presentation/MoleculeImage.tsx"
       - "!frontend/src/presentation/ResearchTabs.tsx"
       - "!frontend/src/viewer/capture.test.ts"
@@ -151,6 +152,11 @@ on:
       - "!frontend/src/viewer/useViewerSnapshot.ts"
       - "!frontend/src/presentation/useReveal.test.tsx"
       - "!frontend/src/presentation/useReveal.ts"
+      # Metric landscapes and exact direct consumers use landscape-checks.yml.
+      - "!frontend/src/integrations/ScientificResults.tsx"
+      - "!frontend/src/operations/CandidateSequenceResults.test.tsx"
+      - "!frontend/src/operations/PropertyResults.test.tsx"
+      - "!server_tests/test_result_visuals_browser.py"
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/presentation/plots/**"
       - "!frontend/src/datasets/DatasetCharts.test.tsx"

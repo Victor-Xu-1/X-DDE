@@ -6,7 +6,6 @@ on:
       - "frontend/src/publication/**"
       - "frontend/src/presentation/useReveal*"
       - "frontend/src/presentation/ResearchTabs.tsx"
-      - "frontend/src/presentation/MetricScatter.tsx"
       - "frontend/src/presentation/MetricBars.tsx"
       - "frontend/src/presentation/InteractionDiagram*"
       - "frontend/src/presentation/MoleculeImage.tsx"

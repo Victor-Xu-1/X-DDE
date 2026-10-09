@@ -3,6 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
 import { CandidateSequenceResults } from "./CandidateSequenceResults";
+vi.mock("../presentation/plots/InteractivePlot", () => ({
+  InteractivePlot: ({ title }: { title: string }) => (
+    <div role="application" aria-label={title} />
+  ),
+}));
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({ urls }: { urls: string[] }) => (
     <div role="region" aria-label="Native structure">

@@ -5,6 +5,11 @@ import type { Job } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { AdmetResults } from "./AdmetResults";
 import type { AdmetResult, AdmetRow, Endpoint } from "./types";
+vi.mock("../presentation/plots/InteractivePlot", () => ({
+  InteractivePlot: ({ title }: { title: string }) => (
+    <div role="application" aria-label={title} />
+  ),
+}));
 
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({ urls }: { urls: string[] }) => (
@@ -219,7 +224,10 @@ it("links the property landscape to exact record selection and preserves the tab
   );
   await user.type(screen.getByRole("searchbox"), "Candidate 3");
   await user.click(screen.getByRole("tab", { name: "Property landscape" }));
-  await user.click(screen.getByRole("button", { name: /^Candidate 4: / }));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Inspect record" }),
+    "3",
+  );
   expect(
     screen.getByRole("heading", { name: "#4 · Candidate 4" }),
   ).toBeVisible();

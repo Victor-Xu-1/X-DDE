@@ -10,6 +10,8 @@ from pathlib import Path
 from layout_browser_helpers import catalog, settle_visible_drawings
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.publication_browser_helpers import export_figure
+
 
 def test_real_structures_tables_and_sequences():
     evidence = Path("server_tests/evidence/task-layout")
@@ -91,32 +93,27 @@ def test_real_structures_tables_and_sequences():
                 page.get_by_role("link", name="下载结构图片", exact=True), "native-molecule.svg"
             )
             assert ET.fromstring(structure.read_bytes()).tag.endswith("svg")
-            plot = download(
-                page.get_by_role("button", name="下载当前图表 SVG", exact=True),
-                "native-properties.svg",
+            landscape = page.locator(".metric-scatter:visible").first
+            chart = landscape.get_by_role("application")
+            expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
+            plot = export_figure(
+                page,
+                landscape.get_by_role("button", name="文献图导出 ↓", exact=True),
+                evidence,
+                "native-properties",
+                "zh",
+                "SVG",
             )
             assert ET.fromstring(plot.read_bytes()).tag.endswith("svg")
-            # Shared plots must use available width without inflating text/markers
-            # or stretching a short result into a very tall chart.
+            # Native resizing changes canvas width without inflating type/markers.
             for chart_width in (2560, 390):
                 page.set_viewport_size({"width": chart_width, "height": 1000})
-                page.wait_for_function("""() => {
-                    const chart = document.querySelector('.metric-scatter > .metric-scatter-plot');
-                    if (!chart) return false;
-                    const width = chart.getBoundingClientRect().width;
-                    return Math.abs(chart.viewBox.baseVal.width - width) <= 1;
-                }""")
-                chart = page.locator(".metric-scatter > .metric-scatter-plot:visible").first
+                expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
                 geometry = chart.evaluate("""node => ({height:node.getBoundingClientRect().height,
-                    marker:node.querySelector('circle')?.getAttribute('r'),
-                    textSize:getComputedStyle(node.querySelector('text')).fontSize})""")
-                assert abs(geometry["height"] - 265) <= 1, geometry
-                assert geometry["marker"] in {"4", "6"}, geometry
-                assert geometry["textSize"] == "12px", geometry
-                export_control = page.locator(
-                    ".metric-scatter:visible > header .visual-export-button"
-                ).first.bounding_box()
-                assert export_control and export_control["height"] <= 44, export_control
+                    markers:node.data[0].marker.size, font:node.layout.font.size})""")
+                assert abs(geometry["height"] - 290) <= 1, geometry
+                assert set(geometry["markers"]) <= {5, 8}, geometry
+                assert geometry["font"] == 11, geometry
                 record(f"responsive-properties-{chart_width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
             result("性质与早期安全性预测")

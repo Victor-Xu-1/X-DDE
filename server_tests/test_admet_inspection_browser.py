@@ -8,6 +8,8 @@ from pathlib import Path
 
 from playwright.sync_api import expect
 
+from server_tests.landscape_browser_helpers import choose_native_point
+from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_navigation_shell_browser import settings
 from server_tests.test_template_controls_browser import CASES, open_case
 from server_tests.test_template_controls_browser import case_page as case_page
@@ -100,7 +102,9 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
         "region", name="候选性质对比" if zh else "Candidate property landscape", exact=True
     )
     last = report["rows"][-1]
-    chart.get_by_role("button", name=re.compile("^" + re.escape(last["name"]) + ": ")).click()
+    plot = chart.get_by_role("application")
+    expect(plot).to_have_attribute("aria-busy", "false", timeout=30000)
+    choose_native_point(page, plot, len(report["rows"]) - 1)
     expect(
         selected.get_by_role("heading", name=f"#{last['record'] + 1} · {last['name']}", exact=True)
     ).to_be_visible()
@@ -110,13 +114,15 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     )
     chart.get_by_role("combobox", name="横轴" if zh else "X axis", exact=True).select_option("hERG")
     capture(page, f"{language}-{width}-landscape")
-    with page.expect_download() as pending:
-        chart.get_by_role(
-            "button", name="下载当前图表 SVG" if zh else "Download current chart SVG", exact=True
-        ).click()
-    downloaded = pending.value
-    downloaded.save_as(EVIDENCE / f"{language}-{width}-landscape.svg")
-    assert b"<svg" in Path(downloaded.path()).read_bytes()
+    figure = export_figure(
+        page,
+        chart.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓", exact=True),
+        EVIDENCE,
+        f"{language}-{width}-landscape",
+        language,
+        "SVG",
+    )
+    assert b"<svg" in figure.read_bytes()
     result.get_by_role("tab", name=re.compile("^(候选分子|Candidate molecules)")).click()
     # Initial 3D calculation is accepted by the isolated native pose gate; this
     # inspection gate checks original model predictions without recomputation.
