@@ -49,7 +49,10 @@ export function ActiveIndicator({
     const observer =
       typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
     observer?.observe(parent);
-    observer?.observe(active);
+    // Earlier labels/counts can move the selected control without resizing it.
+    parent
+      .querySelectorAll(":scope > button")
+      .forEach((button) => observer?.observe(button));
     return () => observer?.disconnect();
   }, [container, selection]);
   return position ? (
