@@ -1,0 +1,58 @@
+name: Pocket result presentation checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'frontend/src/pockets/PocketResults*'
+      - 'frontend/src/pockets/PocketSelection*'
+      - 'frontend/src/pockets/pocket-results.css'
+      - 'server_tests/test_pocket_results_browser.py'
+      - '.github/workflows/pocket-result-checks.yml'
+permissions:
+  contents: read
+jobs:
+  pocket-results:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build and verify only changed result controls and direct consumers
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          cd frontend
+          npx vitest run src/pockets/PocketResults.test.tsx src/pockets/PocketForm.test.tsx src/operations/OperationResults.test.tsx src/sites/SiteWorkspace.test.tsx src/sites/model.test.ts
+      - name: Restore reviewed native pockets without running prediction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-pocket-results"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          uv sync --locked --group dev --group browser
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+      - name: Bilingual selection, pocket geometry, exports and return navigation
+        run: |
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/pocket-results
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/pocket-results/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -q server_tests/test_pocket_results_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-pocket-result-evidence
+          path: server_tests/evidence/pocket-results
+          if-no-files-found: warn

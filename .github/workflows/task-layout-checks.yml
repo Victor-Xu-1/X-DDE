@@ -185,6 +185,10 @@ on:
       - "!frontend/src/deployment/ComponentLibrary*"
       - "!frontend/src/deployment/ComponentCard.tsx"
       - "!frontend/src/deployment/components.css"
+      # Pocket result controls use retained native pockets in their dedicated gate.
+      - "!frontend/src/pockets/PocketResults*"
+      - "!frontend/src/pockets/PocketSelection*"
+      - "!frontend/src/pockets/pocket-results.css"
   workflow_dispatch:
 permissions:
   contents: read

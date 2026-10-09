@@ -8,6 +8,8 @@ import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
 import { artifactUrl } from "../api";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
+import { Hint } from "../guided/Hint";
+import { PocketSelection } from "./PocketSelection";
 export function PocketResults({
   job,
   result,
@@ -29,12 +31,6 @@ export function PocketResults({
     [continueDesign, setContinue] = useState(false),
     [continueDocking, setDocking] = useState(false),
     [message, setMessage] = useState("");
-  const usable =
-    result.protein_artifact.endsWith(".pdb") &&
-    !!selected?.residues.length &&
-    selected.residues.every(
-      (r) => r.chain.length === 1 && !r.insertion_code && !r.alternate_location,
-    );
   if (selected && (continueDesign || continueDocking))
     return (
       <ResearchHandoff
@@ -93,16 +89,19 @@ export function PocketResults({
     );
   return (
     <section className="operation-results">
-      <p className="field-help">
-        {zh
-          ? "位点概率用于比较候选口袋，不是药物结合概率。"
-          : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
-      </p>
-      <p>
-        {zh ? "候选口袋" : "Candidate pockets"}: {result.native_pocket_count}
-      </p>
+      <header className="pocket-result-heading">
+        <h2>{zh ? "候选口袋" : "Candidate pockets"}</h2>
+        <span>
+          {result.native_pocket_count} {zh ? "个候选" : "candidates"}
+        </span>
+        <Hint label={zh ? "口袋评分说明" : "Pocket scoring help"}>
+          {zh
+            ? "位点概率用于比较候选口袋，不是药物结合概率。"
+            : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
+        </Hint>
+      </header>
       {!result.pockets.length && (
-        <p>
+        <p role="status">
           {zh
             ? "此次没有返回候选口袋。请检查结构完整性、结构来源和方法适用性；没有口袋不代表该靶点无法被药物作用。"
             : "No candidate pockets were returned. Check structure completeness, input origin and method applicability; an empty result does not establish that the target is undruggable."}
@@ -164,6 +163,18 @@ export function PocketResults({
                 : "The panel shows the leading sites; others remain in the full CSV."}
             </p>
           )}
+          {selected && (
+            <PocketSelection
+              site={selected}
+              proteinArtifact={result.protein_artifact}
+              language={language}
+              onGenerate={() => setContinue(true)}
+              onDock={() => {
+                setDocking(true);
+                setContinue(false);
+              }}
+            />
+          )}
         </div>
         <StructureViewer
           urls={[artifactUrl(job.id, result.protein_artifact)]}
@@ -171,47 +182,6 @@ export function PocketResults({
           residueRegion={selected?.residues}
         />
       </div>
-      {selected && (
-        <>
-          <details>
-            <summary>
-              {zh ? "所选口袋残基" : "Selected pocket residues"}
-            </summary>
-            <p>
-              {zh ? "所选残基" : "Selected residues"}:{" "}
-              {selected.residues
-                .map((r) => `${r.chain}:${r.number}${r.insertion_code}`)
-                .join(", ")}
-            </p>
-          </details>
-          <button
-            className="secondary-button"
-            type="button"
-            disabled={!usable}
-            onClick={() => setContinue(true)}
-          >
-            {zh ? "用这个口袋生成分子" : "Generate molecules in this pocket"}
-          </button>
-          <button
-            className="secondary-button"
-            type="button"
-            disabled={!result.protein_artifact.endsWith(".pdb")}
-            onClick={() => {
-              setDocking(true);
-              setContinue(false);
-            }}
-          >
-            {zh ? "探索这个口袋的结合模式" : "Explore poses in this pocket"}
-          </button>
-          {!usable && (
-            <p className="field-help">
-              {zh
-                ? "DiffSBDD 需要 PDB、单字符链标识和无歧义残基编号；请先完成明确转换与身份映射。"
-                : "DiffSBDD requires PDB, single-character chains and unambiguous residue numbering. Convert explicitly while preserving identity mappings."}
-            </p>
-          )}
-        </>
-      )}
       {message && <p role="status">{message}</p>}
     </section>
   );
