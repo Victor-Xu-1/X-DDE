@@ -19,6 +19,7 @@ export function ModelValidationPlot({
   const values = points.flatMap((p) => [p.observed, p.predicted]);
   const min = Math.min(0, ...values),
     max = Math.max(1, ...values);
+  const padding = (max - min) * 0.08;
   const compared =
     Number.isFinite(metrics.rmse_log1p_enrichment) &&
     Number.isFinite(metrics.mean_baseline_rmse);
@@ -26,62 +27,69 @@ export function ModelValidationPlot({
     compared && metrics.rmse_log1p_enrichment < metrics.mean_baseline_rmse;
   return (
     <div className="dataset-model-validation">
-      <InteractivePlot
-        language={language}
-        title={
-          application
-            ? zh
-              ? "模型应用 · 非独立验证"
-              : "Model application · not independent validation"
-            : zh
-              ? "独立留出 · 观察与预测富集"
-              : "Independent holdout · observed vs predicted enrichment"
-        }
-        data={[
-          {
-            type: "scatter",
-            mode: "markers",
-            x: points.map((p) => p.observed),
-            y: points.map((p) => p.predicted),
-            marker: { color: "#7864dd", size: 6, opacity: 0.7 },
-            hovertemplate:
-              (zh ? "观察" : "Observed") +
-              ": %{x:.4g}<br>" +
-              (zh ? "预测" : "Predicted") +
-              ": %{y:.4g}<extra></extra>",
-          },
-        ]}
-        layout={{
-          showlegend: false,
-          xaxis: {
-            title: {
-              text: zh ? "观察 log(1＋富集)" : "Observed log(1+enrichment)",
-            },
-          },
-          yaxis: {
-            title: {
-              text: zh ? "预测 log(1＋富集)" : "Predicted log(1+enrichment)",
-            },
-            scaleanchor: "x",
-            scaleratio: 1,
-          },
-          shapes: [
+      <div className="dataset-model-plot-column">
+        <InteractivePlot
+          height={360}
+          language={language}
+          title={
+            application
+              ? zh
+                ? "模型应用 · 非独立验证"
+                : "Model application · not independent validation"
+              : zh
+                ? "独立留出 · 观察与预测富集"
+                : "Independent holdout · observed vs predicted enrichment"
+          }
+          data={[
             {
-              type: "line",
-              x0: min,
-              y0: min,
-              x1: max,
-              y1: max,
-              line: { color: "#9facbf", width: 1, dash: "dot" },
+              type: "scatter",
+              mode: "markers",
+              x: points.map((p) => p.observed),
+              y: points.map((p) => p.predicted),
+              marker: { color: "#7864dd", size: 6, opacity: 0.7 },
+              hovertemplate:
+                (zh ? "观察" : "Observed") +
+                ": %{x:.4g}<br>" +
+                (zh ? "预测" : "Predicted") +
+                ": %{y:.4g}<extra></extra>",
             },
-          ],
-        }}
-      />
-      <p className="field-help">
-        {zh
-          ? "灰色虚线：预测与观察值一致。"
-          : "Gray dotted line: equal predicted and observed values."}
-      </p>
+          ]}
+          layout={{
+            showlegend: false,
+            xaxis: {
+              range: [min - padding, max + padding],
+              constrain: "domain",
+              title: {
+                text: zh ? "观察 log(1＋富集)" : "Observed log(1+enrichment)",
+              },
+            },
+            yaxis: {
+              range: [min - padding, max + padding],
+              constrain: "domain",
+              title: {
+                text: zh ? "预测 log(1＋富集)" : "Predicted log(1+enrichment)",
+              },
+              scaleanchor: "x",
+              scaleratio: 1,
+            },
+            shapes: [
+              {
+                type: "line",
+                x0: min,
+                y0: min,
+                x1: max,
+                y1: max,
+                line: { color: "#9facbf", width: 1, dash: "dot" },
+              },
+            ],
+          }}
+        />
+        <p className="field-help">
+          {zh
+            ? "灰色虚线：预测与观察值一致。"
+            : "Gray dotted line: equal predicted and observed values."}
+        </p>
+      </div>
       {!application && (
         <section
           className="dataset-model-assessment"

@@ -36,7 +36,8 @@ it("keeps negative model predictions within native autoscaling and labels non-in
   const chart = delivered.at(-1)!;
   expect(chart.data[0].y).toEqual([-0.25]);
   expect(chart.layout.shapes[0].y0).toBe(-0.25);
-  expect(chart.layout.yaxis.range).toBeUndefined();
+  expect(chart.layout.yaxis.range[0]).toBeLessThan(-0.25);
+  expect(chart.layout.yaxis.range[1]).toBeGreaterThan(1.5);
 });
 it("uses original one-based quality positions and distinguishes unavailable correlation from zero", () => {
   render(<SequencingQualityPlot values={[20.3, 31.1]} language="zh" />);

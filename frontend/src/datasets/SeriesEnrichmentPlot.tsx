@@ -74,7 +74,7 @@ export function SeriesEnrichmentPlot({
       </div>
       <InteractivePlot
         language={language}
-        height={370}
+        height={430}
         title={zh ? "双砌块富集热图" : "Disynthon enrichment heatmap"}
         data={[
           {

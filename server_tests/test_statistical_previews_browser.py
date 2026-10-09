@@ -148,6 +148,10 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             expect(root.locator(".research-plot-canvas").last).to_have_attribute(
                 "aria-busy", "false"
             )
+            scale.select_option("log")
+            expect(root.locator(".research-plot-canvas").last).to_have_attribute(
+                "aria-busy", "false"
+            )
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             chart.scroll_into_view_if_needed()
