@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { FigureRenderQueue, figureKey } from "./figure-render-queue";
 import { pngResolution } from "./png-resolution";
 import type { FigureSettings } from "./settings";
+import { figureDataUrl } from "./figure-data-url";
 
 interface Preview {
   key: string;
+  id: number;
   url: string;
   blob: Blob;
   decoded: boolean;
@@ -27,7 +29,8 @@ export function useFigurePreview({
   const [error, setError] = useState(false),
     [attempt, setAttempt] = useState(0);
   const session = useRef<FigureRenderQueue | null>(null);
-  const url = useRef<string | null>(null);
+  const serial = useRef(0),
+    activeId = useRef<number | null>(null);
   if (!session.current)
     session.current = new FigureRenderQueue(async (value) => {
       const native = await render(value);
@@ -44,20 +47,19 @@ export function useFigurePreview({
     const controller = new AbortController();
     setPreview(null);
     setError(false);
-    if (url.current) {
-      URL.revokeObjectURL(url.current);
-      url.current = null;
-    }
+    activeId.current = null;
     if (!valid) return () => controller.abort();
     const requested = { ...settings };
     const timer = setTimeout(() => {
       void session
         .current!.request(requested, controller.signal)
-        .then((blob) => {
+        .then(async (blob) => {
           if (controller.signal.aborted) return;
-          const next = URL.createObjectURL(blob);
-          url.current = next;
-          setPreview({ key, url: next, blob, decoded: false });
+          const next = await figureDataUrl(blob, controller.signal);
+          if (controller.signal.aborted) return;
+          const id = ++serial.current;
+          activeId.current = id;
+          setPreview({ key, id, url: next, blob, decoded: false });
         })
         .catch(() => {
           if (!controller.signal.aborted) setError(true);
@@ -66,10 +68,7 @@ export function useFigurePreview({
     return () => {
       clearTimeout(timer);
       controller.abort();
-      if (url.current) {
-        URL.revokeObjectURL(url.current);
-        url.current = null;
-      }
+      activeId.current = null;
     };
   }, [key, valid, attempt]);
   const current = preview?.key === key ? preview : null;
@@ -77,14 +76,13 @@ export function useFigurePreview({
     preview: current,
     error,
     ready: !!current?.decoded && !error,
-    decoded: (readyUrl: string) =>
+    decoded: (readyId: number) =>
       setPreview((value) =>
-        value?.url === readyUrl ? { ...value, decoded: true } : value,
+        value?.id === readyId ? { ...value, decoded: true } : value,
       ),
-    failed: (failedUrl: string) => {
-      if (url.current !== failedUrl) return;
-      URL.revokeObjectURL(failedUrl);
-      url.current = null;
+    failed: (failedId: number) => {
+      if (activeId.current !== failedId) return;
+      activeId.current = null;
       setPreview(null);
       setError(true);
     },

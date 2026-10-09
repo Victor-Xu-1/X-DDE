@@ -108,6 +108,12 @@
   border-top-color: var(--accent);
   border-radius: 50%;
 }
+.figure-preview-placeholder[data-error="true"] span {
+  border: 0;
+  color: var(--muted);
+  font-size: 26px;
+  text-align: center;
+}
 @media (prefers-reduced-motion: no-preference) {
   .figure-preview[data-preparing="true"] .figure-preview-placeholder span {
     animation: figure-preview-wait 900ms linear infinite;

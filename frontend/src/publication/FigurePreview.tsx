@@ -47,20 +47,24 @@ export function FigurePreview({
       >
         {state.preview && (
           <img
-            key={state.preview.url}
+            key={state.preview.id}
             src={state.preview.url}
             alt={
               zh
                 ? "当前参数生成的原生图件"
                 : "Native figure with the selected settings"
             }
-            onLoad={() => state.decoded(state.preview!.url)}
-            onError={() => state.failed(state.preview!.url)}
+            onLoad={() => state.decoded(state.preview!.id)}
+            onError={() => state.failed(state.preview!.id)}
           />
         )}
         {!state.preview && (
-          <div className="figure-preview-placeholder" aria-hidden="true">
-            <span />
+          <div
+            className="figure-preview-placeholder"
+            data-error={state.error}
+            aria-hidden="true"
+          >
+            <span>{state.error ? "×" : null}</span>
           </div>
         )}
       </div>

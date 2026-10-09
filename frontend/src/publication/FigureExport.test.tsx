@@ -56,6 +56,7 @@ it("previews and downloads identical native bytes without rendering again", asyn
     name: "Native figure with the selected settings",
   });
   expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  expect(image.getAttribute("src")).toMatch(/^data:image\/svg\+xml;base64,/);
   fireEvent.load(image);
   fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
   const blob = await native.mock.results[0].value;
@@ -66,7 +67,7 @@ it("previews and downloads identical native bytes without rendering again", asyn
   });
   expect(onStart).toHaveBeenCalledOnce();
   expect(screen.queryByRole("dialog")).toBeNull();
-  expect(URL.revokeObjectURL).toHaveBeenCalled();
+  expect(URL.createObjectURL).not.toHaveBeenCalled();
 });
 it("refuses an incorrect native format and supports an explicit preview retry", async () => {
   const native = vi
