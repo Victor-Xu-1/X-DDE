@@ -89,7 +89,7 @@ const definitions: GroupDefinition[] = [
       "OpenMM dynamics and refinement; OpenFE relative binding free energy",
     ],
     recommended: ["openmm", "openfe"],
-    matches: (p) => ["openmm", "openfe"].includes(p.id),
+    matches: (p) => ["openmm", "gromacs", "openfe"].includes(p.id),
   },
   {
     id: "prediction",

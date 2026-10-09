@@ -51,7 +51,8 @@ def run(request):
     ]
     summary = {
         "stage": payload["stage"],
-        "method": "OpenFE hybrid topology / HREX / AM1-BCC / MBAR",
+        "method": "OpenFE hybrid topology / HREX / AM1-BCC / MBAR / "
+        + payload.get("atom_mapper", "lomap"),
         "nodes": nodes,
         "edges": edges,
         "unit": "kcal/mol",

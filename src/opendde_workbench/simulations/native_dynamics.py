@@ -2,8 +2,9 @@
 
 from pathlib import Path
 
-from native_io import csv_file, finish, metric
+from native_io import finish, metric
 from native_md_analysis import TrajectoryAnalysis
+from native_md_outputs import repeat_outputs
 from native_md_system import prepare
 
 
@@ -106,60 +107,11 @@ def run(request):
                 raise ValueError("Trajectory exceeds the 1 GiB per-replica export budget.")
         simulation.reporters.clear()
         simulation.saveState(str(output / (prefix + "-state.xml")))
-        residues, contacts = analysis.finish()
-        csv_file(
-            prefix + "-stability.csv",
-            ["time_ns", "backbone_RMSD_A", "ligand_RMSD_A", "Rg_A", "potential_kJ_mol"],
-            [
-                [
-                    r["time_ns"],
-                    r["backbone_rmsd_angstrom"],
-                    r["ligand_rmsd_angstrom"],
-                    r["radius_gyration_angstrom"],
-                    r["potential_kj_mol"],
-                ]
-                for r in snapshots
-            ],
+        row, poses = repeat_outputs(
+            prefix, seed, dcd, prefix + ".chk", snapshots, analysis, topology, ligand
         )
-        replicas.append(
-            {
-                "repeat": repeat + 1,
-                "seed": seed,
-                "trajectory": dcd,
-                "checkpoint": prefix + ".chk",
-                "frames": snapshots,
-                "residues": residues,
-                "contacts": contacts,
-            }
-        )
-        candidates.append(
-            {
-                "id": prefix,
-                "artifact": snapshots[-1]["artifact"],
-                "metrics": [],
-                "geometry": "source_frame",
-            }
-        )
-        if ligand is not None:
-            from rdkit import Chem
-
-            ligand_indices = [a.index for a in topology.atoms() if a.residue.name == "XLG"]
-            if len(ligand_indices) != ligand.GetNumAtoms():
-                raise ValueError("Ligand atom correspondence changed during dynamics preparation.")
-            for atom, index in enumerate(ligand_indices):
-                ligand.GetConformer().SetAtomPosition(atom, aligned[index])
-            ligand_name = prefix + "-ligand.sdf"
-            with Chem.SDWriter(str(output / ligand_name)) as writer:
-                writer.write(ligand)
-            candidates.append(
-                {
-                    "id": prefix + "-ligand",
-                    "artifact": ligand_name,
-                    "smiles": Chem.MolToSmiles(ligand, isomericSmiles=True),
-                    "metrics": [],
-                    "geometry": "source_frame",
-                }
-            )
+        replicas.append(row)
+        candidates.extend(poses)
         del simulation, integrator
     (output / "system.xml").write_text(openmm.XmlSerializer.serialize(template))
     with (output / "solvated-system.pdb").open("w") as stream:

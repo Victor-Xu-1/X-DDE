@@ -34,18 +34,23 @@ class ScientificBackend(PreparedContainerBackend):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
-        if identifier in {"openmm", "openfe"}:
+        if identifier in {"openmm", "openfe", "gromacs"}:
+            names = {
+                "openmm": ("md_system", "md_analysis", "dynamics", "md_outputs"),
+                "openfe": ("openfe", "fep_plan", "fep_result"),
+                "gromacs": (
+                    "md_system",
+                    "md_analysis",
+                    "md_outputs",
+                    "gromacs",
+                    "gromacs_protocol",
+                    "gromacs_files",
+                ),
+            }[identifier]
             shared.update(
                 {
                     "native_" + name + ".py": root / "simulations" / ("native_" + name + ".py")
-                    for name in (
-                        "md_system",
-                        "md_analysis",
-                        "dynamics",
-                        "openfe",
-                        "fep_plan",
-                        "fep_result",
-                    )
+                    for name in names
                 }
             )
         if identifier == "deepternary":
@@ -94,7 +99,7 @@ class ScientificBackend(PreparedContainerBackend):
             "--env",
             "NUMBA_CACHE_DIR=/tmp/numba",
         ]
-        if self.program == "openfe":
+        if self.program in {"openfe", "gromacs"}:
             # OpenFF imports Torch while discovering optional toolkits. A task UID
             # deliberately has no image passwd entry; keep native caches in tmpfs.
             args += [

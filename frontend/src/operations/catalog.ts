@@ -111,6 +111,25 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "gromacs.dynamics",
+    group: "analyze",
+    label: ["分子动力学 · GROMACS", "Molecular dynamics · GROMACS"],
+    note: [
+      "使用 GROMACS 显式水模拟，保留完整轨迹、检查点和统一稳定性分析。",
+      "Run GROMACS explicit-water dynamics with native trajectories and linked analysis.",
+    ],
+    source: "gromacs",
+    modalities: [
+      "chemical",
+      "small_molecule",
+      "biologic",
+      "protein",
+      "antibody",
+      "rna",
+    ],
+    modality_role: "research_object",
+  },
+  {
     id: "deepternary.model",
     group: "design",
     label: ["三元复合物建模", "Ternary complex modeling"],

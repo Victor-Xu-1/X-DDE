@@ -3,6 +3,7 @@ import type { ScientificTask } from "../integrations/types";
 import type { SimulationPayload } from "./types";
 export function SimulationReview({
   fep,
+  program,
   payload,
   inputs,
   name,
@@ -10,6 +11,7 @@ export function SimulationReview({
   language,
 }: {
   fep: boolean;
+  program: string;
   payload: SimulationPayload;
   inputs: ScientificTask["inputs"];
   name: string;
@@ -31,7 +33,13 @@ export function SimulationReview({
         <tbody>
           <tr>
             <th>{zh ? "计算引擎" : "Backend"}</th>
-            <td>{fep ? "OpenFE 1.12.0" : "OpenMM 8.6.1"}</td>
+            <td>
+              {program === "gromacs"
+                ? "GROMACS 2026.3"
+                : fep
+                  ? "OpenFE 1.12.0"
+                  : "OpenMM 8.6.1"}
+            </td>
           </tr>
           <tr>
             <th>{zh ? "材料" : "Inputs"}</th>

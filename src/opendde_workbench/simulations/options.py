@@ -35,6 +35,11 @@ class FreeEnergyPayload(BaseModel):
     stage: Literal["plan", "calculate"] = "plan"
     records: list[int] = Field(min_length=2, max_length=12)
     network: Literal["minimal", "redundant"] = "redundant"
+    # The historical default is omitted from canonical task bytes so retained
+    # OpenFE request/result hashes remain valid after adding this optional choice.
+    atom_mapper: Literal["lomap", "kartograf"] = Field(
+        default="lomap", exclude_if=lambda value: value == "lomap"
+    )
     production_ns: float = Field(default=5, ge=0.02, le=50)
     equilibration_ns: float = Field(default=1, ge=0.02, le=5)
     repeats: int = Field(default=3, ge=1, le=6)
@@ -49,6 +54,19 @@ class FreeEnergyPayload(BaseModel):
             r < 0 or r > 99999 for r in self.records
         ):
             raise ValueError("Select distinct original ligand records for the free-energy network.")
+        return self
+
+
+class GromacsDynamicsPayload(DynamicsPayload):
+    kind: Literal["gromacs"] = "gromacs"
+
+    @model_validator(mode="after")
+    def regular_sampling(self) -> Self:
+        steps = round(self.production_ns * 1_000_000 / self.timestep_fs)
+        if steps % self.frames:
+            raise ValueError(
+                "GROMACS sampling requires integration steps divisible by the saved frame count."
+            )
         return self
 
 

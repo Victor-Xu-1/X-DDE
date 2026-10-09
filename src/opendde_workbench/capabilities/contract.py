@@ -40,6 +40,7 @@ class CapabilitySpec(BaseModel):
         "ligandmpnn",
         "boltzgen",
         "openmm",
+        "gromacs",
         "openfe",
         "apbs",
         "chemprop",

@@ -5,6 +5,7 @@ on:
     paths:
       - "frontend/src/presentation/MetricScatter*"
       - "frontend/src/presentation/metric-scatter*"
+      - "frontend/src/presentation/plots/InteractivePlot*"
       - "frontend/src/integrations/ScientificResults.tsx"
       - "frontend/src/operations/PropertyResults.test.tsx"
       - "server_tests/test_metric_landscape_browser.py"

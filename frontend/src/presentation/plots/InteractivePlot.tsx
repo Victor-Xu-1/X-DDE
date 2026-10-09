@@ -131,8 +131,24 @@ export function InteractivePlot({
             onClick={() => {
               if (plot.current && element.current)
                 void plot.current.relayout(element.current, {
-                  "xaxis.autorange": true,
-                  "yaxis.autorange": true,
+                  "xaxis.autorange": !layout?.xaxis?.range,
+                  ...(layout?.xaxis?.range
+                    ? {
+                        "xaxis.range": [
+                          layout.xaxis.range[0],
+                          layout.xaxis.range[1],
+                        ] as [Plotly.Datum, Plotly.Datum],
+                      }
+                    : {}),
+                  "yaxis.autorange": !layout?.yaxis?.range,
+                  ...(layout?.yaxis?.range
+                    ? {
+                        "yaxis.range": [
+                          layout.yaxis.range[0],
+                          layout.yaxis.range[1],
+                        ] as [Plotly.Datum, Plotly.Datum],
+                      }
+                    : {}),
                 });
             }}
           >

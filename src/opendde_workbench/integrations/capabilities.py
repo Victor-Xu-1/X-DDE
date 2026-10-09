@@ -28,6 +28,18 @@ _ROWS = (
         ("chemical", "small_molecule"),
     ),
     (
+        "gromacs.dynamics",
+        "analyze",
+        "gromacs",
+        "gromacs_dynamics",
+        ("分子动力学 · GROMACS", "Molecular dynamics · GROMACS"),
+        (
+            "使用 GROMACS 显式水模拟，保留完整轨迹、检查点和统一稳定性分析。",
+            "Run GROMACS explicit-water dynamics with native trajectories and linked analysis.",
+        ),
+        ("chemical", "small_molecule", "biologic", "protein", "antibody", "rna"),
+    ),
+    (
         "deepternary.model",
         "design",
         "deepternary",
@@ -161,7 +173,7 @@ CAPABILITIES = tuple(
         modalities=modalities,
         modality_role="research_object",
         frontend_form="simulation"
-        if identifier in {"openmm.dynamics", "openfe.rbfe"}
+        if identifier in {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"}
         else "integrated",
     )
     for identifier, group, engine, operation, label, note, modalities in _ROWS

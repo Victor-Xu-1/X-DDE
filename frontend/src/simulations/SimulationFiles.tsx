@@ -15,6 +15,21 @@ export function SimulationFiles({
     const prefix = repeat ? `${zh ? "重复" : "Repeat"} ${repeat} · ` : "";
     if (name.endsWith(".dcd"))
       return prefix + (zh ? "完整轨迹 · DCD" : "Full trajectory · DCD");
+    if (name.endsWith(".trr"))
+      return prefix + (zh ? "完整轨迹 · TRR" : "Full trajectory · TRR");
+    if (name.endsWith(".cpt"))
+      return prefix + (zh ? "计算检查点 · CPT" : "Simulation checkpoint · CPT");
+    if (name.endsWith(".tpr"))
+      return (
+        prefix +
+        (zh ? "对应的模拟体系 · TPR" : "Matching simulation system · TPR")
+      );
+    if (name.endsWith(".edr"))
+      return prefix + (zh ? "原生能量数据 · EDR" : "Native energy data · EDR");
+    if (name === "system.top")
+      return zh ? "已参数化拓扑 · TOP" : "Parameterized topology · TOP";
+    if (name === "system.gro")
+      return zh ? "初始含溶剂体系 · GRO" : "Initial solvated system · GRO";
     if (name.endsWith("-stability.csv"))
       return prefix + (zh ? "稳定性数据 · CSV" : "Stability data · CSV");
     if (name.endsWith("-thermodynamics.csv"))
@@ -55,7 +70,9 @@ export function SimulationFiles({
           .filter(
             (name) =>
               !/-frame-/.test(name) &&
-              /\.(dcd|chk|pdb|xml|sdf|csv|graphml|zip|json)$/.test(name),
+              (/\.(dcd|chk|pdb|xml|sdf|csv|graphml|zip|json)$/.test(name) ||
+                /^repeat-\d+\.(trr|cpt|tpr|edr)$/.test(name) ||
+                ["system.top", "system.gro"].includes(name)),
           )
           .map((name) => (
             <a

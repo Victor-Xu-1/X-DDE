@@ -33,7 +33,7 @@ export function SimulationForm({
 }) {
   const zh = language === "zh",
     fep = form === "openfe.rbfe",
-    [, operation] = simulationForms[form];
+    [program, operation] = simulationForms[form];
   const exampleTask = useExampleTask(operation),
     exampleProtein = useExampleReference("protein_only"),
     exampleLigand = useExampleReference(fep ? "tyk2_ligands" : "jq1");
@@ -55,6 +55,7 @@ export function SimulationForm({
         ),
         ...(fep ? { records: [] } : {}),
         ...preset?.payload,
+        kind: program,
       }) as SimulationPayload,
   );
   const [name, setName] = useState("");
@@ -103,7 +104,13 @@ export function SimulationForm({
     payload.temperature_kelvin <= 330 &&
     Number.isInteger(payload.repeats) &&
     payload.repeats >= 1 &&
-    payload.repeats <= (fep ? 6 : 3);
+    payload.repeats <= (fep ? 6 : 3) &&
+    (program !== "gromacs" ||
+      Math.round(
+        (payload.production_ns * 1_000_000) / Number(payload.timestep_fs),
+      ) %
+        Number(payload.frames) ===
+        0);
   return (
     <Questionnaire
       language={language}
@@ -280,6 +287,7 @@ export function SimulationForm({
           valid: inputValid && selectionValid && settingsValid,
           content: (
             <SimulationReview
+              program={program}
               fep={fep}
               payload={payload}
               inputs={inputs}

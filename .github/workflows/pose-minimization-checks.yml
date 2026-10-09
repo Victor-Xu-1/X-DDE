@@ -6,6 +6,8 @@ on:
       - "src/opendde_workbench/chemistry/*minimization*.py"
       - "src/opendde_workbench/research/pose_*.py"
       - "src/opendde_workbench/research/initial_pose.py"
+      # Engine allowlist additions use simulation-backend-checks.yml; native poses are explicit.
+      - "!src/opendde_workbench/research/initial_pose.py"
       - "frontend/src/viewer/*Initial*"
       - "frontend/src/viewer/usePoseOptimization*"
       - "frontend/src/viewer/pose-source*"

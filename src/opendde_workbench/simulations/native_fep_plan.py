@@ -100,7 +100,12 @@ def build(request):
             raise ValueError(
                 "Ligand poses are outside the protein frame; align or dock them before FEP."
             )
-    mapper = openfe.LomapAtomMapper(max3d=1.0, element_change=False)
+    if request["payload"].get("atom_mapper", "lomap") == "kartograf":
+        from kartograf import KartografAtomMapper
+
+        mapper = KartografAtomMapper(atom_max_distance=0.95, atom_map_hydrogens=True)
+    else:
+        mapper = openfe.LomapAtomMapper(max3d=1.0, element_change=False)
     scorer = openfe.lomap_scorers.default_lomap_score
     planner = (
         openfe.ligand_network_planning.generate_minimal_redundant_network

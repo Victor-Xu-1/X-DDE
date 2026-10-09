@@ -20,6 +20,7 @@ export const simulationDefaults = {
     mode: "rbfe",
     stage: "plan",
     network: "redundant",
+    atom_mapper: "lomap",
     production_ns: 5,
     equilibration_ns: 1,
     repeats: 3,

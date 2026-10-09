@@ -1,18 +1,24 @@
 """CI-only Linux solver; write an explicit SHA256 lock without installing on the owner."""
 
+import argparse
 import json
 import subprocess
 from pathlib import Path
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--program", choices=("openfe", "gromacs"), default="openfe")
+program = parser.parse_args().program
 root = Path(__file__).resolve().parents[1]
 spec = json.loads((root / "src/opendde_workbench/integrations/recipes.json").read_text())[
     "programs"
-]["openfe"]
+][program]
 process = subprocess.run(
     [
         "docker",
         "run",
         "--rm",
+        "--env",
+        "CONDA_OVERRIDE_CUDA=12.9",
         "--entrypoint",
         "micromamba",
         spec["base"],
@@ -25,7 +31,7 @@ process = subprocess.run(
         "conda-forge",
         "--strict-channel-priority",
         "--prefix",
-        "/tmp/xdde-openfe-resolve",
+        "/tmp/xdde-" + program + "-resolve",
         *spec["conda"],
     ],
     check=True,
@@ -41,6 +47,6 @@ for package in sorted(packages, key=lambda p: p["name"]):
     if not url.startswith("https://conda.anaconda.org/conda-forge/") or len(digest) != 64:
         raise ValueError("Native dependency is missing a trusted channel or SHA256 identity.")
     lines.append(url + "#" + digest)
-destination = root / "src/opendde_workbench/integrations/recipes/openfe.conda.txt"
+destination = root / "src/opendde_workbench/integrations/recipes" / (program + ".conda.txt")
 destination.write_text("\n".join(lines) + "\n")
-print(f"Resolved {len(packages)} immutable Linux packages for OpenFE {spec['version']}")
+print(f"Resolved {len(packages)} immutable Linux packages for {program} {spec['version']}")

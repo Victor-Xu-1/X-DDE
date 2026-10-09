@@ -86,6 +86,8 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
         "ligandmpnn",
         "boltzgen",
         "openmm",
+        "gromacs",
+        "openfe",
         "apbs",
         "chemprop",
         "plip",

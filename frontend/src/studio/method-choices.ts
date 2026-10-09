@@ -55,6 +55,33 @@ export const methodChoices = [
     ],
   },
   {
+    id: "molecular_dynamics",
+    label: ["分子动力学", "Molecular dynamics"],
+    options: [
+      {
+        id: "openmm.dynamics",
+        label: "OpenMM",
+        note: [
+          "当前默认；保留原生最小化、显式水采样和历史结果。",
+          "Current default: native minimization, explicit-water sampling and retained results.",
+        ],
+      },
+      {
+        id: "gromacs.dynamics",
+        label: "GROMACS",
+        note: [
+          "独立 CPU/CUDA 环境；原生轨迹与检查点；科学验收待服务器执行。",
+          "Independent CPU/CUDA environment, native trajectories and checkpoints; scientific acceptance requires the target server.",
+        ],
+      },
+    ],
+    default: "openmm.dynamics",
+    default_basis: [
+      "按任务用途保留当前默认；新方法需匹配输入比较后再替换。",
+      "Keep the current task default until matched-input comparison supports replacement.",
+    ],
+  },
+  {
     id: "method.caver.paths",
     label: ["口袋通道与瓶颈", "Pocket channels and bottlenecks"],
     default: "caver.paths",
@@ -69,25 +96,6 @@ export const methodChoices = [
         note: [
           "点选起始区域，探索通向溶剂的静态几何路径和最窄位置。",
           "Select a starting region and explore static solvent paths and bottlenecks.",
-        ],
-      },
-    ],
-  },
-  {
-    id: "method.openmm.dynamics",
-    label: ["分子动力学", "Molecular dynamics"],
-    default: "openmm.dynamics",
-    default_basis: [
-      "当前唯一接入的方法，已默认选中。",
-      "The only integrated method is selected by default.",
-    ],
-    options: [
-      {
-        id: "openmm.dynamics",
-        label: "openmm",
-        note: [
-          "在显式水中研究蛋白与结合姿势的动态稳定性。",
-          "Study protein and bound-pose stability in explicit water.",
         ],
       },
     ],

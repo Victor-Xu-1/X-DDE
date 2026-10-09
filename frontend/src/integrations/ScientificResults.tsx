@@ -78,7 +78,10 @@ export function ScientificResults({
       })),
     ];
   }, [rows, zh]);
-  if (result.operation === "molecular_dynamics" && result.dynamics)
+  if (
+    ["molecular_dynamics", "gromacs_dynamics"].includes(result.operation) &&
+    result.dynamics
+  )
     return (
       <DynamicsResults
         key={job.id}

@@ -54,6 +54,22 @@ it("selects the sole backend for a task and does not dispatch when clicked", asy
   expect(change).not.toHaveBeenCalled();
 });
 
+it("switches dynamics from OpenMM to GROMACS without submitting a task", async () => {
+  const change = vi.fn(),
+    user = userEvent.setup();
+  vi.spyOn(client, "request").mockResolvedValue({
+    availability: { configuration_present: false },
+  });
+  render(
+    <MethodSwitch value="openmm.dynamics" language="en" onChange={change} />,
+  );
+  expect(
+    screen.getByRole("button", { name: /OpenMM.*Default/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await user.click(screen.getByRole("button", { name: /GROMACS/ }));
+  expect(change).toHaveBeenCalledExactlyOnceWith("gromacs.dynamics");
+});
+
 it("selects a backend even for a task outside the research navigation groups", () => {
   vi.spyOn(client, "request").mockResolvedValue({
     availability: { configuration_present: true },

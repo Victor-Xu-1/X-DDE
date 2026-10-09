@@ -138,7 +138,12 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
                 "no coordinates generated or optimized",
                 parent=original,
             )
-        if capability_id in {"apbs.potential", "openmm.refine", "openmm.dynamics"}:
+        if capability_id in {
+            "apbs.potential",
+            "openmm.refine",
+            "openmm.dynamics",
+            "gromacs.dynamics",
+        }:
             original = objects["brd4"]
             raw = scientific.assets.path(
                 scientific.assets.get(original.reference.asset_id)
@@ -193,10 +198,11 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
         from .proximity_inputs import proximity_template
 
         request = proximity_template(objects)
-    if capability_id in {"openmm.dynamics", "openfe.rbfe"} and request is None:
+    if capability_id in {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"} and request is None:
         from ..integrations.contract import IntegratedTask
 
         fep = capability_id == "openfe.rbfe"
+        gromacs = capability_id == "gromacs.dynamics"
         if fep:
             objects["protein_only"] = objects["tyk2_protein"]
         inputs = [
@@ -207,13 +213,17 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
             },
         ]
         request = IntegratedTask(
-            operation="binding_free_energy" if fep else "molecular_dynamics",
+            operation="binding_free_energy"
+            if fep
+            else "gromacs_dynamics"
+            if gromacs
+            else "molecular_dynamics",
             name=case.label[1],
             inputs=inputs,
             scientific_inputs=[item["source"] for item in inputs],
             payload={"kind": "openfe", "records": [0, 1, 2]}
             if fep
-            else {"kind": "openmm", "mode": "dynamics"},
+            else {"kind": "gromacs" if gromacs else "openmm", "mode": "dynamics"},
             options={"device": "cpu" if fep else "cuda", "memory_mib": 8192},
         ).model_dump(mode="json")
     prepared = PreparedExample(

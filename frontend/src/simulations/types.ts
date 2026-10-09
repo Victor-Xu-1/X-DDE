@@ -2,6 +2,7 @@ import type { ScientificPayload } from "../integrations/types";
 
 export const simulationForms = {
   "openmm.dynamics": ["openmm", "molecular_dynamics"],
+  "gromacs.dynamics": ["gromacs", "gromacs_dynamics"],
   "openfe.rbfe": ["openfe", "binding_free_energy"],
 } as const;
 export type SimulationFormId = keyof typeof simulationForms;

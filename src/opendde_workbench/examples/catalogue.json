@@ -952,6 +952,12 @@
       "case_id": "tyk2-free-energy",
       "capability_id": "openfe.rbfe",
       "revision": 1
+    },
+    "gromacs.dynamics": {
+      "pinned_run_required": true,
+      "case_id": "brd4-jq1",
+      "capability_id": "gromacs.dynamics",
+      "revision": 1
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."

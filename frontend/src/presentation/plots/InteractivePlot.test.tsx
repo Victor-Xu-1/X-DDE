@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { InteractivePlot } from "./InteractivePlot";
 import type { ChartTrace } from "./types";
+import userEvent from "@testing-library/user-event";
 
 const native = vi.hoisted(() => ({
   react: vi.fn(async (element, data, layout) => {
@@ -14,6 +15,7 @@ const native = vi.hoisted(() => ({
     element.on = vi.fn();
   }),
   purge: vi.fn(),
+  relayout: vi.fn(async () => {}),
   Plots: { resize: vi.fn() },
 }));
 vi.mock("plotly.js-cartesian-dist-min", () => ({ default: native }));
@@ -21,7 +23,47 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   native.react.mockClear();
+  native.relayout.mockClear();
 });
+
+it.each([undefined, [-8.4, -5.8]])(
+  "restores the configured scientific axis bounds on Reset (%s)",
+  async (range) => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const layout = {
+      xaxis: { title: { text: "Observed" }, ...(range ? { range } : {}) },
+      yaxis: { title: { text: "Predicted" }, ...(range ? { range } : {}) },
+    };
+    render(
+      <InteractivePlot
+        title="Validation"
+        data={[{ type: "scatter", x: [-8, -6], y: [-7, -6] }]}
+        layout={layout}
+        language="en"
+      />,
+    );
+    const reset = screen.getByRole("button", { name: "Reset" });
+    await waitFor(() => expect(reset).toBeEnabled());
+    await userEvent.click(reset);
+    expect(native.relayout).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      range
+        ? {
+            "xaxis.autorange": false,
+            "xaxis.range": range,
+            "yaxis.autorange": false,
+            "yaxis.range": range,
+          }
+        : { "xaxis.autorange": true, "yaxis.autorange": true },
+    );
+  },
+);
 
 it("keeps SDK normalization out of source values and stable render readiness", async () => {
   vi.stubGlobal(

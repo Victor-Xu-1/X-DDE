@@ -16,6 +16,7 @@ COMPUTED_OPERATIONS = {
     "dataset_dock",
     "structure_refine",
     "molecular_dynamics",
+    "gromacs_dynamics",
 }
 
 

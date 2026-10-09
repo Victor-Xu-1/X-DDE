@@ -133,6 +133,19 @@ export function SimulationConditions({
                 update({ production_ns: Number(e.target.value) })
               }
             />
+            {payload.kind === "gromacs" &&
+              Math.round(
+                (payload.production_ns * 1_000_000) /
+                  Number(payload.timestep_fs),
+              ) %
+                Number(payload.frames) !==
+                0 && (
+                <span role="alert">
+                  {zh
+                    ? "请选择与保存帧数匹配的采样时间，或使用推荐方案。"
+                    : "Choose sampling divisible by the saved frame count, or use a recommended plan."}
+                </span>
+              )}
           </label>
           <label>
             {zh ? "平衡采样（ns）" : "Equilibration (ns)"}
@@ -147,6 +160,27 @@ export function SimulationConditions({
               }
             />
           </label>
+          {fep && (
+            <label>
+              {zh ? "原子映射方法" : "Atom mapping method"}
+              <select
+                value={String(payload.atom_mapper ?? "lomap")}
+                onChange={(e) => update({ atom_mapper: e.target.value })}
+              >
+                <option value="lomap">LoMap</option>
+                <option value="kartograf">Kartograf</option>
+              </select>
+              <Hint
+                label={
+                  zh ? "如何选择原子映射？" : "How to choose atom mapping?"
+                }
+              >
+                {zh
+                  ? "LoMap 保留当前默认；Kartograf 按对齐的三维几何建立映射。两者都会保留原子身份，不能替代采样与收敛检查。"
+                  : "LoMap retains the current default. Kartograf maps aligned 3D geometry. Both retain atom identities; neither replaces sampling and convergence checks."}
+              </Hint>
+            </label>
+          )}
           {fep && (
             <label>
               {zh ? "变化网络" : "Perturbation network"}

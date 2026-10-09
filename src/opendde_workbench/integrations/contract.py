@@ -8,7 +8,12 @@ from pydantic import BaseModel, ConfigDict, Discriminator, Field, Tag, model_val
 
 from ..proximity.options import TernaryPayload
 from ..scientific_objects import MoleculeRef
-from ..simulations.options import DynamicsPayload, FreeEnergyPayload, payload_tag
+from ..simulations.options import (
+    DynamicsPayload,
+    FreeEnergyPayload,
+    GromacsDynamicsPayload,
+    payload_tag,
+)
 from ..task_metadata import TaskMetadata
 from .options import (
     BoltzGenPayload,
@@ -30,6 +35,7 @@ OPERATIONS = {
     "boltzgen_design": "boltzgen",
     "structure_refine": "openmm",
     "molecular_dynamics": "openmm",
+    "gromacs_dynamics": "gromacs",
     "binding_free_energy": "openfe",
     "electrostatics": "apbs",
     "chemprop_train": "chemprop",
@@ -53,6 +59,7 @@ Payload = Annotated[
     | Annotated[BoltzGenPayload, Tag("boltzgen")]
     | Annotated[RefinementPayload, Tag("openmm")]
     | Annotated[DynamicsPayload, Tag("openmm_dynamics")]
+    | Annotated[GromacsDynamicsPayload, Tag("gromacs")]
     | Annotated[FreeEnergyPayload, Tag("openfe")]
     | Annotated[ElectrostaticsPayload, Tag("apbs")]
     | Annotated[ChempropPayload, Tag("chemprop")]
@@ -72,6 +79,7 @@ class IntegratedTask(TaskMetadata):
         "boltzgen_design",
         "structure_refine",
         "molecular_dynamics",
+        "gromacs_dynamics",
         "binding_free_energy",
         "electrostatics",
         "chemprop_train",
@@ -105,7 +113,9 @@ class IntegratedTask(TaskMetadata):
                 "Whole structures/libraries use record zero and the original conformer."
             )
         kind = self.payload.kind
-        if (self.operation == "molecular_dynamics") != isinstance(self.payload, DynamicsPayload):
+        if (self.operation in {"molecular_dynamics", "gromacs_dynamics"}) != isinstance(
+            self.payload, DynamicsPayload
+        ):
             raise ValueError("Select the dynamics protocol for a molecular-dynamics task.")
         expected = (
             {"structure"} if kind in {"ligandmpnn", "boltzgen", "openmm", "apbs", "plip"} else set()
@@ -117,7 +127,8 @@ class IntegratedTask(TaskMetadata):
         elif kind == "openfe":
             if roles != {"structure", "library"}:
                 raise ValueError("FEP requires a protein and an aligned congeneric ligand library.")
-        elif kind == "openmm":
+        elif kind in {"openmm", "gromacs"}:
+            expected = {"structure"}
             if not expected <= roles or not roles <= {"structure", "ligand"}:
                 raise ValueError(
                     "Refinement needs a structure and optionally its exact bound ligand."

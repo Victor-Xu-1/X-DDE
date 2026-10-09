@@ -1,0 +1,13 @@
+# Compile with openmm, numpy and biopython excluded: the explicit conda lock
+# supplies OpenMM 8.6.1, NumPy 1.26.4 and Biopython 1.85. pip check remains required.
+pdbfixer==1.12.0
+lxml
+tinydb
+validators
+importlib_resources
+PyYAML
+setuptools==84.0.0
+wheel
+requests
+pdb2pqr==3.7.1
+netCDF4

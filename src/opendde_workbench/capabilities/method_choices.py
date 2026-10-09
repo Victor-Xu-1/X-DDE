@@ -53,6 +53,30 @@ _GROUPS = (
             },
         ),
     },
+    {
+        "id": "molecular_dynamics",
+        "label": ("分子动力学", "Molecular dynamics"),
+        "options": (
+            {
+                "id": "openmm.dynamics",
+                "label": "OpenMM",
+                "note": (
+                    "当前默认；保留原生最小化、显式水采样和历史结果。",
+                    "Current default: native minimization, explicit-water sampling "
+                    "and retained results.",
+                ),
+            },
+            {
+                "id": "gromacs.dynamics",
+                "label": "GROMACS",
+                "note": (
+                    "独立 CPU/CUDA 环境；原生轨迹与检查点；科学验收待服务器执行。",
+                    "Independent CPU/CUDA environment, native trajectories and checkpoints; "
+                    "scientific acceptance requires the target server.",
+                ),
+            },
+        ),
+    },
 )
 
 

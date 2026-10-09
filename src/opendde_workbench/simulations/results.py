@@ -105,7 +105,7 @@ class FreeEnergyResult(Evidence):
 
 
 def validate_simulation(result, request):
-    if request.operation == "molecular_dynamics":
+    if request.operation in {"molecular_dynamics", "gromacs_dynamics"}:
         evidence = result.dynamics
         if evidence is None or len(evidence.replicas) != request.payload.repeats:
             raise ValueError("Dynamics lacks its declared independent repeats.")

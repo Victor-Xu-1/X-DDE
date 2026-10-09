@@ -217,7 +217,12 @@ export const researchModules: readonly ResearchModule[] = [
     ],
     defaultTool: "openmm.dynamics",
     recommended: ["openmm.dynamics", "openfe.rbfe", "openmm.refine"],
-    tools: ["openmm.dynamics", "openfe.rbfe", "openmm.refine"],
+    tools: [
+      "openmm.dynamics",
+      "gromacs.dynamics",
+      "openfe.rbfe",
+      "openmm.refine",
+    ],
   },
 ];
 export function moduleForTool(id: ToolId | null | undefined) {
