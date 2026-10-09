@@ -39,7 +39,11 @@ The native MD/FEP binding view focuses the selected ligand, with both alternativ
 
 MD/FEP and the native structure editor share the same uniform-radius stick geometry. Atom caps match the 0.14 Å bond radius, closing junctions and terminal bonds without large atom balls; nearby residue sticks use the same geometry at 0.08 Å. Ligand hydrogen display retains the existing polar-only policy.
 
+Binding focus retains its native position, target and zoom while using the complete scene depth. A ligand-sized clipping slab no longer removes nearby receptor context; manual rotation and the native figure export retain the same scene.
+
 动力学、FEP 与原生结构编辑器共用统一半径的棒状显示。原子端点与 0.14 Å 的键半径一致，连接处和末端平滑封闭，不出现大原子球；邻近残基采用同一几何样式，半径为 0.08 Å。配体仍仅显示极性氢。
+
+结合区域定位保留原生相机位置、中心和缩放，显示深度使用完整场景，避免配体大小的裁切层移除邻近受体环境。手动旋转与文献图导出保留同一场景。
 
 原生动力学与 FEP 结合视图定位当前选中的配体；叠合模式包含两个候选。Molstar 根据原始受体环境选择较少遮挡的观察方向，仅调整相机，不修改分子坐标或物理分数。相机即时定位以保持轨迹帧导出一致，仍可手动旋转和缩放；缺失 B 时不会自动定位 A，叠合也不会生成跨配体的虚假接触。
 

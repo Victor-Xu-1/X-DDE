@@ -21,7 +21,11 @@ import type { Residue } from "./types";
 import type { FigureSettings } from "../publication/settings";
 import { molecularFigure } from "./molstar-figure";
 import { boundPair, ligandLoci, NativeBoundPair } from "./bound-pairs";
-import { bindingFocusOptions, selectedLigandFocus } from "./molecular-focus";
+import {
+  bindingDepth,
+  bindingFocusOptions,
+  selectedLigandFocus,
+} from "./molecular-focus";
 import { molstarSticks } from "../viewer/molstar-sticks";
 
 export interface StructureSource {
@@ -58,6 +62,7 @@ export class MolecularController {
   private queue = Promise.resolve();
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
+  private depthSubscription?: { unsubscribe(): void };
   private viewport?: HTMLDivElement;
   surfaceSummary: SurfaceSummary | null = null;
   private boundContacts: ReturnType<typeof ligandLoci>[] = [];
@@ -77,6 +82,18 @@ export class MolecularController {
     this.plugin.canvas3d?.setProps({
       renderer: { backgroundColor: Color(0xffffff) },
       camera: { manualReset: true },
+      cameraClipping: { far: false },
+    });
+    const nativeCanvas = this.plugin.canvas3d!;
+    this.depthSubscription = nativeCanvas.camera.stateChanged.subscribe(() => {
+      const radius = nativeCanvas.boundingSphere.radius;
+      if (nativeCanvas.camera.state.radius >= radius) return;
+      // The public native focus settles first. Widen only its scene depth;
+      // position, target, zoom and the selected source stay unchanged.
+      nativeCanvas.camera.setState(
+        bindingDepth(nativeCanvas.camera.getSnapshot(), radius),
+        0,
+      );
     });
     this.resizeObserver = new ResizeObserver(() => {
       if (container.offsetWidth > 0 && container.offsetHeight > 0)
@@ -388,6 +405,7 @@ export class MolecularController {
     return result;
   }
   dispose() {
+    this.depthSubscription?.unsubscribe();
     this.resizeObserver?.disconnect();
     this.plugin.dispose();
   }
