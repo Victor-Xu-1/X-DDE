@@ -126,6 +126,13 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
                 language,
             )
             inspect_png(figure)
+        viewer.get_by_role(
+            "button", name="定位口袋" if language == "zh" else "Focus pocket", exact=True
+        ).click()
+        page.screenshot(path=str(EVIDENCE / f"{prefix}-focused-pocket.png"))
+        viewer.get_by_role(
+            "button", name="回到全局" if language == "zh" else "Full structure", exact=True
+        ).click()
         viewer.locator(".viewer-original-downloads > summary").click()
         with page.expect_download() as download:
             viewer.get_by_role(

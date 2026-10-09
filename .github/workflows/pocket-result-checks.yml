@@ -8,6 +8,7 @@ on:
       - 'frontend/src/pockets/pocket-results.css'
       - 'frontend/src/viewer/source-depth*'
       - 'frontend/src/viewer/scene.ts'
+      - 'frontend/src/viewer/frame.ts'
       - 'server_tests/test_pocket_results_browser.py'
       - '.github/workflows/pocket-result-checks.yml'
 permissions:
@@ -31,7 +32,7 @@ jobs:
           npm run build --prefix frontend
           cd frontend
           npx vitest run src/pockets/PocketResults.test.tsx src/pockets/PocketForm.test.tsx src/operations/OperationResults.test.tsx src/sites/SiteWorkspace.test.tsx src/sites/model.test.ts
-          npx vitest run src/viewer/source-depth.test.ts src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/viewer/camera-resize.test.ts src/viewer/capture.test.ts
+          npx vitest run src/viewer/source-depth.test.ts src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/viewer/camera-resize.test.ts src/viewer/capture.test.ts src/viewer/StructureViewer.test.tsx
       - name: Restore reviewed native pockets without running prediction
         env:
           GH_TOKEN: ${{ github.token }}

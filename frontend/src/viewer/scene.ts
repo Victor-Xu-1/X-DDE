@@ -205,18 +205,21 @@ export class MolecularScene {
     );
     this.siteRegion = region.indices;
     await this.paint();
-    if (region.indices.length) {
-      this.viewer.zoomTo({ model: 0, index: region.indices });
-      retainSourceDepth(this.viewer);
-      this.viewer.zoom(
-        0.85 * (this.viewport ? viewportFitFactor(this.viewport()) : 1),
-      );
-      this.viewer.render();
-    }
+    // Selection changes the highlight, while the complete source view remains readable.
     this.emit("site-region", {
       requested: region.requested,
       matched: region.matched,
     });
+  }
+  focusSite() {
+    if (this.overlay || !this.siteRegion.length) return;
+    const focused = focusDisplayContext(
+      this.viewer,
+      this.viewer.selectedAtoms({ model: 0, index: this.siteRegion }),
+      null,
+      this.viewport?.(),
+    );
+    if (focused && retainSourceDepth(this.viewer)) this.viewer.render();
   }
   paint(): Promise<void> {
     const revision = this.revision;

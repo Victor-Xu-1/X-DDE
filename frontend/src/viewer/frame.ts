@@ -225,6 +225,7 @@ async function command(type: string, value: unknown) {
       await scene.selectResidue(value);
     if (type === "atom-region") await scene.highlightAtoms(value);
     if (type === "site-region") await scene.highlightResidues(value);
+    if (type === "focus-site") scene.focusSite();
     if (type === "attachment-geometry") await scene.showAttachments(value);
   } catch {
     notify("error", "Could not update structure display.");
@@ -260,6 +261,7 @@ window.addEventListener("message", (event) => {
       "residue",
       "atom-region",
       "site-region",
+      "focus-site",
       "attachment-geometry",
     ].includes(type)
   )
