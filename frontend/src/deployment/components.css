@@ -69,6 +69,10 @@
   .deployment-workspace .component-grid.is-engine-comparison {
     grid-template-columns: minmax(0, 1fr);
   }
+  .deployment-workspace .component-grid.is-engine-comparison .component-card {
+    min-height: 240px;
+    aspect-ratio: auto;
+  }
 }
 .deployment-workspace .component-card {
   display: flex;

@@ -68,9 +68,11 @@ export function ComponentCard({
         <h3 title={p.name}>{title}</h3>
       </div>
       <p title={description}>{description}</p>
-      <small className="component-size" title={p.size}>
-        {componentSize(p, zh)}
-      </small>
+      {(!installed || kind !== "runtime") && (
+        <small className="component-size" title={p.size}>
+          {componentSize(p, zh)}
+        </small>
+      )}
       <div className="component-actions">
         <button
           className={
@@ -112,6 +114,9 @@ export function ComponentCard({
               {zh ? "版本" : "Version"}: {installed?.version ?? p.version}
             </small>
             <small>{p.license}</small>
+            {installed && kind === "runtime" && (
+              <small>{componentSize(p, zh)}</small>
+            )}
             {installed && (
               <div className="component-maintenance-actions">
                 <button
