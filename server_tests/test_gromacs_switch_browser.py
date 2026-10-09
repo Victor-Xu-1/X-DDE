@@ -77,6 +77,15 @@ def test_switch_gromacs_keep_questionnaire_and_review_native_engine(tmp_path, la
         ).set_input_files(protein)
         expect(next_button).to_be_enabled()
         for step in range(1, 5):
+            # Entry motion intentionally translates the whole active page. Measure
+            # after its actual animation settles; do not disable product motion.
+            page.wait_for_function(
+                """() => {
+                    const panel = document.querySelector('.questionnaire fieldset:not([hidden])');
+                    return panel && panel.getAnimations({subtree:true})
+                        .every(animation => animation.playState !== 'running');
+                }"""
+            )
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             if step == 3:
                 controls = [
