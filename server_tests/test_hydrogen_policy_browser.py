@@ -73,7 +73,7 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         page.get_by_role("button", name="Molecule sketch · Ketcher", exact=True).click()
         file = catalogue.ROOT / "inputs/STAT6-user-warhead.sdf"
         original = hashlib.sha256(file.read_bytes()).hexdigest()
-        page.locator('.editor-toolbar input[type="file"]').set_input_files(str(file))
+        page.locator('.editor-workspace input[type="file"]').set_input_files(str(file))
         frame = page.locator(".editor-workspace iframe").first
         expect(frame).to_be_visible()
         page.wait_for_function(
