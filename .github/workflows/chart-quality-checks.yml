@@ -46,7 +46,7 @@ jobs:
       - name: Changed chart, document, structure appearance and direct simulation consumers
         working-directory: frontend
         run: >-
-          npx vitest run src/datasets/DatasetCharts.test.tsx src/datasets/chart-documents.test.ts
+          npx vitest run src/datasets/DatasetCharts.test.tsx src/datasets/DatasetResults.test.tsx src/datasets/chart-documents.test.ts
           src/datasets/series-map.test.ts src/datasets/statistical-plots.test.tsx
           src/datasets/count-summary.test.ts
           src/presentation/plots/types.test.ts src/publication/settings-svg.test.ts
