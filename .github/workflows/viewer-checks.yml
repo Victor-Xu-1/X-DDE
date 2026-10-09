@@ -44,6 +44,9 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      # Native stick geometry and its editor consumer use simulation-view-checks.yml.
+      - "!frontend/src/viewer/molstar-sticks.ts"
+      - "!frontend/src/editors/molstar-appearance*"
 permissions:
   contents: read
 jobs:

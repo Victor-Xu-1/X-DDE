@@ -198,9 +198,36 @@ def test_native_result_views_and_downloads(case, language):
             root.get_by_role(
                 "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
             ).select_option("b")
+            pose.get_by_role(
+                "button", name="Ligand and pocket" if language == "en" else "配体与口袋"
+            ).click()
+            expect(
+                root.get_by_role(
+                    "combobox",
+                    name="Binding pose display" if language == "en" else "结合姿势显示",
+                )
+            ).to_have_value("b")
+            png = export_figure(
+                page,
+                pose.get_by_role(
+                    "button", name="Download view" if language == "en" else "下载视图"
+                ),
+                evidence,
+                language + "-fep-pose-b",
+                language,
+            )
+            inspect_png(png)
             root.get_by_role(
                 "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
             ).select_option("all")
+            pose.get_by_role(
+                "button", name="Ligand and pocket" if language == "en" else "配体与口袋"
+            ).click()
+            expect(
+                pose.get_by_role(
+                    "button", name="Binding contacts" if language == "en" else "作用位点"
+                )
+            ).to_be_disabled()
             png = export_figure(
                 page,
                 pose.get_by_role(

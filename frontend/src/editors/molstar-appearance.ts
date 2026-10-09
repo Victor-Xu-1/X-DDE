@@ -1,4 +1,5 @@
 import { ligandBondRadius, ligandCarbonColor } from "../viewer/appearance";
+import { molstarSticks } from "../viewer/molstar-sticks";
 interface RepresentationParams {
   type: { name: string; params: Record<string, unknown> };
   colorTheme?: { name: string; params: Record<string, unknown> };
@@ -26,6 +27,7 @@ export async function applyThinLigands(plugin: AppearancePlugin) {
   // Uniform size and aspect ratio 1 make atom caps equal to bond radii.
   // Bond junctions stay smooth and isolated ions remain visible.
   const update = plugin.state.data.build();
+  const geometry = molstarSticks();
   let changed = false;
   for (const cell of plugin.state.data.cells.values()) {
     const original = cell.transform.params;
@@ -49,13 +51,10 @@ export async function applyThinLigands(plugin: AppearancePlugin) {
         name: "ball-and-stick",
         params: {
           ...params,
-          sizeFactor: ligandBondRadius,
-          sizeAspectRatio: 1,
-          adjustCylinderLength: false,
-          visuals: ["element-sphere", "intra-bond", "inter-bond"],
+          ...geometry.typeParams,
         },
       },
-      sizeTheme: { name: "uniform", params: { value: 1 } },
+      sizeTheme: { name: geometry.size, params: geometry.sizeParams },
       colorTheme: {
         name: "element-symbol",
         params: {

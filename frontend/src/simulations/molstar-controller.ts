@@ -22,6 +22,7 @@ import type { FigureSettings } from "../publication/settings";
 import { molecularFigure } from "./molstar-figure";
 import { boundPair, ligandLoci, NativeBoundPair } from "./bound-pairs";
 import { bindingFocusOptions, selectedLigandFocus } from "./molecular-focus";
+import { molstarSticks } from "../viewer/molstar-sticks";
 
 export interface StructureSource {
   url: string;
@@ -105,11 +106,7 @@ export class MolecularController {
           this.plugin,
           undefined,
           {
-            type: "ball-and-stick",
-            typeParams: {
-              sizeFactor: 0.08,
-              visuals: ["intra-bond", "inter-bond"],
-            },
+            ...molstarSticks(0.08),
             color: "element-symbol",
             colorParams: {
               carbonColor: {
@@ -232,13 +229,11 @@ export class MolecularController {
           await this.plugin.builders.structure.representation.addRepresentation(
             ligand,
             {
-              type: "ball-and-stick",
+              ...molstarSticks(),
               typeParams: {
-                sizeFactor: 0.14,
-                aspectRatio: 1,
+                ...molstarSticks().typeParams,
                 ignoreHydrogens: true,
                 ignoreHydrogensVariant: "non-polar",
-                visuals: ["intra-bond", "inter-bond"],
               },
               color: "element-symbol",
               colorParams: {

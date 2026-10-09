@@ -14,6 +14,8 @@ on:
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "frontend/src/simulations/molstar-controller.ts"
       - "frontend/src/simulations/molecular-focus*"
+      - "frontend/src/viewer/molstar-sticks.ts"
+      - "frontend/src/editors/molstar-appearance*"
       - "frontend/src/publication/plotly*"
       - "frontend/src/presentation/plots/InteractivePlot*"
       - "server_tests/test_fep_diagnostics_browser.py"
@@ -43,6 +45,7 @@ jobs:
           src/presentation/plots/InteractivePlot.test.tsx
           src/simulations/molecular-focus.test.ts src/simulations/bound-pairs.test.ts
           src/simulations/molstar-figure.test.ts
+          src/editors/molstar-appearance.test.ts
       - name: Restore retained MD and TYK2 plan; no new scientific execution
         env:
           GH_TOKEN: ${{ github.token }}

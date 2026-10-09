@@ -173,6 +173,8 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      # Native stick geometry is covered with the retained MD/FEP consumers.
+      - "!frontend/src/viewer/molstar-sticks.ts"
       # Component composition uses the focused installation-page browser gate.
       - "!frontend/src/deployment/ComponentLibrary*"
       - "!frontend/src/deployment/ComponentCard.tsx"
