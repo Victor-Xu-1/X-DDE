@@ -6,6 +6,11 @@ from pathlib import Path
 
 from .specs import PROGRAMS, recipe_digest
 
+# Network stalls must not discard a large verified dependency download after
+# pip's short default read timeout. The enclosing build still has a wall limit.
+PIP_READ_TIMEOUT_SECONDS = 120
+PIP_DOWNLOAD_RETRIES = 3
+
 
 def lock_digest(identifier):
     root = Path(__file__).parent / "recipes"
@@ -67,6 +72,7 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None)
         lines += [
             "COPY requirements.txt /tmp/requirements.txt",
             "RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt "
+            f"--timeout {PIP_READ_TIMEOUT_SECONDS} --retries {PIP_DOWNLOAD_RETRIES} "
             "&& python -m pip check",
         ]
     if source:

@@ -28,6 +28,8 @@ on:
   push:
     paths:
       - "src/opendde_workbench/integrations/**"
+      # Construction-only networking does not change scientific adapters or execution.
+      - "!src/opendde_workbench/integrations/image.py"
       - "tests/test_integrated_science.py"
       - ".github/workflows/scientific-upgrade-checks.yml"
 permissions:
