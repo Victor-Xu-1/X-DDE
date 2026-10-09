@@ -145,10 +145,12 @@ def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(
                 exact=True,
             )
             expect(template).to_contain_text("STAT6")
-            picker = page.locator(".module-task-picker select").first
+            # Other forms remain mounted to preserve drafts. Inspect only the
+            # current visible task, never a hidden retained prediction form.
+            picker = page.locator(".module-task-picker:visible select").first
             if picker.count():
                 expect(picker).to_have_value(capability)
-            methods = page.locator(".task-model-switch")
+            methods = page.locator(".task-model-switch:visible")
             expect(methods).to_have_count(1)
             expect(methods.locator('button[aria-pressed="true"]')).to_have_count(1)
             buttons = methods.locator("button[aria-pressed]")
