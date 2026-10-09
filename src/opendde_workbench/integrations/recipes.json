@@ -485,7 +485,7 @@
         "openff-toolkit-base=0.19.0",
         "openff-forcefields=2026.09.0",
         "ambertools=26.0=cuda_None_nompi_py312hd652fd9_100",
-        "rdkit=2025.09.6=py312h3ecb6ed_1",
+        "rdkit=2025.09.6",
         "openff-interchange-base=0.5.5",
         "numpy=1.26.4",
         "biopython=1.85",
