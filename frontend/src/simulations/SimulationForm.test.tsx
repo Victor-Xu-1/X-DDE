@@ -34,9 +34,11 @@ afterEach(() => {
 it.each(["openmm.dynamics", "gromacs.dynamics"] as const)(
   "%s requires new input, retains sampling through Back and submits its exact backend",
   async (form) => {
-    vi.mocked(request).mockResolvedValue({
-      availability: { configuration_present: true },
-    });
+    vi.mocked(request).mockImplementation(async (path) =>
+      path === "/assets/protein/metadata"
+        ? { id: ref.asset_id, sha256: ref.sha256, name: "BRD4-protein.pdb" }
+        : { availability: { configuration_present: true } },
+    );
     vi.mocked(api.submit).mockRejectedValue(
       new Error("Server calculation is not running"),
     );
@@ -54,6 +56,7 @@ it.each(["openmm.dynamics", "gromacs.dynamics"] as const)(
       "cpu",
     );
     await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(await screen.findByText("BRD4-protein.pdb")).toBeVisible();
     expect(api.submit).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Back" }));
     expect(
