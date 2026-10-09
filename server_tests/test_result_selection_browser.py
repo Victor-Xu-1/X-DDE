@@ -192,7 +192,7 @@ def test_shared_sidebar_switches_every_destination_from_an_existing_result(langu
         page.goto(base + "#task=" + info["pin"]["job_id"])
         expect(page.locator(".pocket-explorer")).to_be_visible()
         nav = open_navigation(page, language)
-        names = [text.strip() for text in nav.get_by_role("button").all_text_contents()]
+        names = [button.get_attribute("aria-label") for button in nav.get_by_role("button").all()]
         assert len(names) == 13
         for name in names:
             nav.get_by_role("button", name=name, exact=True).click()
