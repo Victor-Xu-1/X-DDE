@@ -25,14 +25,13 @@ on:
       - "frontend/src/simulations/molstar-figure.ts"
       - "frontend/src/simulations/molstar-figure.test.ts"
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
-      - "frontend/src/simulations/DynamicsResults.tsx"
-      - "server_tests/test_native_simulation_views.py"
       - "server_tests/*publication*"
-      - ".github/workflows/publication-checks.yml"
+      # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/publication/embedded-raster.test.ts"
       - "!frontend/src/publication/embedded-raster.ts"
       - "!frontend/src/publication/svg.ts"
+      - "!frontend/src/publication/plotly*"
 permissions:
   contents: read
 jobs:

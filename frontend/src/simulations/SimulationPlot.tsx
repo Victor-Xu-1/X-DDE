@@ -5,7 +5,7 @@ import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 export interface PlotSeries {
   label: string;
   color: string;
-  points: { x: number; y: number; error?: number }[];
+  points: { x: number; y: number; error?: number; label?: string }[];
 }
 export function SimulationPlot({
   title,
@@ -22,7 +22,7 @@ export function SimulationPlot({
   series: PlotSeries[];
   language: Language;
   selectedX?: number;
-  onSelect?(x: number): void;
+  onSelect?(x: number, seriesIndex: number, pointIndex: number): void;
 }) {
   const valid = series.map((s) => ({
     ...s,
@@ -45,6 +45,9 @@ export function SimulationPlot({
     name: s.label,
     x: s.points.map((p) => p.x),
     y: s.points.map((p) => p.y),
+    ...(s.points.some((p) => p.label !== undefined)
+      ? { customdata: s.points.map((p) => p.label ?? "") }
+      : {}),
     line: { color: s.color, width: 2.4 },
     marker: { color: s.color, size: 4 },
     ...(s.points.some((p) => p.error !== undefined)
@@ -58,6 +61,7 @@ export function SimulationPlot({
       : {}),
     hovertemplate:
       "%{fullData.name}<br>" +
+      (s.points.some((p) => p.label !== undefined) ? "%{customdata}<br>" : "") +
       xLabel +
       ": %{x:.4g}<br>" +
       yLabel +
@@ -98,7 +102,8 @@ export function SimulationPlot({
       onPoint={
         onSelect
           ? (point) => {
-              if (typeof point.x === "number") onSelect(point.x);
+              if (typeof point.x === "number")
+                onSelect(point.x, point.curveNumber, point.pointIndex);
             }
           : undefined
       }

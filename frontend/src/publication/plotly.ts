@@ -22,8 +22,10 @@ export async function plotlyFigure(
     const line = trace as Plotly.ScatterData;
     line.line = { ...line.line, width: 0.9 };
     if (line.marker) line.marker = { ...line.marker, size: 3.5 };
-    if (line.error_y)
-      line.error_y = { ...line.error_y, thickness: 0.7, width: 2.5 };
+    for (const axis of ["error_x", "error_y"] as const) {
+      if (line[axis])
+        line[axis] = { ...line[axis], thickness: 0.7, width: 2.5 };
+    }
   }
   const matrix = copy.data.some((trace) => trace.type === "heatmap");
   const count = Math.max(

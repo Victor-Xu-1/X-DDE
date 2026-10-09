@@ -37,14 +37,23 @@ vi.mock("../presentation/plots/InteractivePlot", () => ({
   }: {
     title: string;
     data: { x: number[]; y: number[] }[];
-    onPoint?(point: { x: number; pointIndex: number }): void;
+    onPoint?(point: {
+      x: number;
+      pointIndex: number;
+      curveNumber: number;
+    }): void;
   }) => (
     <section role="application" aria-label={title}>
-      {data[0]?.x.map((x, i) => (
-        <button key={i} onClick={() => onPoint?.({ x, pointIndex: i })}>
-          {x.toPrecision(4)} {title}
-        </button>
-      ))}
+      {data.flatMap((trace, curveNumber) =>
+        trace.x?.map((x, i) => (
+          <button
+            key={`${curveNumber}-${i}`}
+            onClick={() => onPoint?.({ x, pointIndex: i, curveNumber })}
+          >
+            {x.toPrecision(4)} {title}
+          </button>
+        )),
+      )}
     </section>
   ),
 }));
@@ -53,6 +62,45 @@ vi.mock("../presentation/MoleculeImage", () => ({
 }));
 const job = { id: "scientific-job" } as Job;
 afterEach(cleanup);
+it("a clicked repeat selects that repeat's exact native snapshot, not the current repeat", async () => {
+  const result: DynamicsResult = {
+    method: "OpenMM",
+    reference: "first production",
+    contact_definition: "4 Å",
+    replicas: [1, 2].map((repeat) => ({
+      repeat,
+      seed: 100 + repeat,
+      trajectory: `repeat-${repeat}.dcd`,
+      checkpoint: `repeat-${repeat}.chk`,
+      frames: [1, 2].map((frame) => ({
+        artifact: `repeat-${repeat}-frame-${frame}.pdb`,
+        time_ns: (repeat * frame) / 10,
+        backbone_rmsd_angstrom: frame / 5,
+        ligand_rmsd_angstrom: null,
+        radius_gyration_angstrom: 12,
+        potential_kj_mol: -900,
+      })),
+      residues: [],
+      contacts: [],
+    })),
+  };
+  render(
+    <DynamicsResults job={job} result={result} language="en" files={{}} />,
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: /0.4000 Backbone stability/ }),
+  );
+  expect(
+    screen.getByRole("combobox", { name: "Independent repeat" }),
+  ).toHaveValue("1");
+  expect(screen.getByTestId("coordinate-view")).toHaveTextContent(
+    "repeat-2-frame-2.pdb",
+  );
+  expect(screen.getByRole("link", { name: /Download frame/ })).toHaveAttribute(
+    "href",
+    expect.stringContaining("repeat-2-frame-2.pdb"),
+  );
+});
 it("links a sampled time to the exact downloadable snapshot and retains Å/ns units", async () => {
   const result: DynamicsResult = {
     method: "OpenMM",

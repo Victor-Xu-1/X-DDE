@@ -4,6 +4,8 @@ import { OverlapHeatmap } from "./OverlapHeatmap";
 import type { Language } from "../types";
 import type { FreeEnergyEdge } from "./types";
 import { SimulationPlot } from "./SimulationPlot";
+import { FreeEnergyCycle } from "./FreeEnergyCycle";
+import { ResearchTable } from "../presentation/ResearchTable";
 
 export function FreeEnergyDiagnostics({
   edge,
@@ -40,6 +42,19 @@ export function FreeEnergyDiagnostics({
             ± {result.uncertainty_kcal_mol.toFixed(2)} <small>kcal/mol</small>
           </dd>
         </div>
+        <div>
+          <dt>{zh ? "重复间波动" : "Between-repeat spread"}</dt>
+          <dd>
+            {result.repeat_spread_kcal_mol == null ? (
+              <small>{zh ? "未报告" : "Not reported"}</small>
+            ) : (
+              <>
+                {result.repeat_spread_kcal_mol.toFixed(2)}{" "}
+                <small>kcal/mol</small>
+              </>
+            )}
+          </dd>
+        </div>
       </dl>
       <div className="simulation-condition-row">
         <label>
@@ -74,6 +89,20 @@ export function FreeEnergyDiagnostics({
       <ResearchTabs
         label={zh ? "FEP 采样诊断" : "FEP sampling diagnostics"}
         tabs={[
+          {
+            id: "cycle",
+            label: zh ? "双环境比较" : "Thermodynamic cycle",
+            content: (
+              <FreeEnergyCycle
+                edge={edge}
+                language={language}
+                onLeg={(selected) => {
+                  setLeg(selected);
+                  setRepeat(0);
+                }}
+              />
+            ),
+          },
           {
             id: "overlap",
             label: zh ? "重叠热图" : "Overlap heatmap",
@@ -120,6 +149,50 @@ export function FreeEnergyDiagnostics({
                   ? "独立采样不足，无法生成收敛分析；应延长模拟。"
                   : "Insufficient independent samples for convergence analysis; extend the simulation."}
               </p>
+            ),
+          },
+          {
+            id: "repeats",
+            label: zh ? "重复结果" : "Independent estimates",
+            content: (
+              <ResearchTable
+                rows={result.individual.map((value, index) => ({
+                  ...value,
+                  repeat: index + 1,
+                }))}
+                title={
+                  zh
+                    ? "当前环境的独立估计"
+                    : "Independent estimates for selected leg"
+                }
+                language={language}
+                rowId={(row) => String(row.repeat)}
+                selected={String(repeat + 1)}
+                onSelect={(row) => setRepeat(row.repeat - 1)}
+                exportName={`fep-${leg}-repeats.csv`}
+                columns={[
+                  {
+                    key: "repeat",
+                    label: zh ? "重复" : "Repeat",
+                    value: (row) => row.repeat,
+                    numeric: true,
+                  },
+                  {
+                    key: "delta",
+                    label: "ΔG (kcal/mol)",
+                    value: (row) => row.delta_g,
+                    numeric: true,
+                  },
+                  {
+                    key: "uncertainty",
+                    label: zh
+                      ? "MBAR 误差（kcal/mol）"
+                      : "MBAR uncertainty (kcal/mol)",
+                    value: (row) => row.mbar_error,
+                    numeric: true,
+                  },
+                ]}
+              />
             ),
           },
         ]}

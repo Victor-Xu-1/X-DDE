@@ -248,6 +248,13 @@ export function FreeEnergyResults({
                     value: (e: typeof edge) => e.uncertainty_kcal_mol ?? null,
                   },
                   {
+                    key: "overlap",
+                    label: zh ? "最低相邻重叠" : "Minimum adjacent overlap",
+                    numeric: true,
+                    value: (e: typeof edge) =>
+                      e.minimum_adjacent_overlap ?? null,
+                  },
+                  {
                     key: "quality",
                     label: zh ? "采样检查" : "Sampling check",
                     value: (e: typeof edge) =>
@@ -255,9 +262,13 @@ export function FreeEnergyResults({
                         ? zh
                           ? "需增加采样或审查"
                           : "More sampling / review needed"
-                        : zh
-                          ? "诊断数据可用"
-                          : "Diagnostics available",
+                        : e.quality === "diagnostics_available"
+                          ? zh
+                            ? "诊断数据可用"
+                            : "Diagnostics available"
+                          : zh
+                            ? "未报告"
+                            : "Not reported",
                   },
                 ]
               : []),

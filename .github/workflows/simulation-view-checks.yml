@@ -1,0 +1,56 @@
+name: Interactive dynamics and FEP previews
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/simulations/DynamicsResults.tsx"
+      - "frontend/src/simulations/SimulationPlot.tsx"
+      - "frontend/src/simulations/SimulationResults.test.tsx"
+      - "frontend/src/simulations/sample-selection.ts"
+      - "frontend/src/simulations/FreeEnergyCycle*"
+      - "frontend/src/simulations/FreeEnergyDiagnostics.tsx"
+      - "frontend/src/simulations/FreeEnergyForest.tsx"
+      - "frontend/src/simulations/FreeEnergyResults.tsx"
+      - "frontend/src/publication/plotly*"
+      - "server_tests/test_fep_diagnostics_browser.py"
+      - "server_tests/test_native_simulation_views.py"
+      - ".github/workflows/simulation-view-checks.yml"
+permissions:
+  contents: read
+jobs:
+  previews:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed simulation previews and direct result consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/simulations/SimulationResults.test.tsx
+          src/simulations/FreeEnergyCycle.test.tsx src/publication/plotly.test.ts
+      - name: Restore retained MD and TYK2 plan; no new scientific execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Native results, controlled completed-result diagnostics and exact downloads
+        run: >-
+          uv run --locked python -m pytest -x -q
+          server_tests/test_native_simulation_views.py
+          server_tests/test_fep_diagnostics_browser.py -k 'not calculation'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulation-preview-evidence
+          path: |
+            outputs/native-simulations/openmm.dynamics/browser/**
+            outputs/native-simulations/openfe.rbfe/browser/**
+            outputs/simulation-diagnostics/**

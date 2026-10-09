@@ -21,13 +21,10 @@ on:
       - "frontend/src/viewer/appearance.ts"
       - "frontend/src/viewer/scene.ts"
       - "frontend/src/viewer/style.ts"
-      - "frontend/src/simulations/SimulationPlot.tsx"
       - "frontend/src/simulations/OverlapHeatmap.tsx"
-      - "frontend/src/simulations/FreeEnergyForest.tsx"
-      - "frontend/src/simulations/SimulationResults.test.tsx"
       - "server_tests/test_statistical_previews_browser.py"
       - "scripts/generate-plotly-css.py"
-      - ".github/workflows/chart-quality-checks.yml"
+      # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
 permissions:
   contents: read
 jobs:

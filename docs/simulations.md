@@ -31,6 +31,12 @@ The four preparation pages show one step at a time; the fifth step displays resu
 The native Plotly chart authority is now shared under `frontend/src/presentation/plots`, including the generated, locked native stylesheet. Dynamics, FEP and DEL statistics use the same interaction, data-loading and figure-export boundary. Scientific methods, input/output authorities and managed environments remain independent.
 原生 Plotly 图表统一位于 `frontend/src/presentation/plots`，包括由固定依赖生成的样式。动力学、FEP 与 DEL 统计复用同一交互、数据加载和图件导出组件；科学方法、研究数据权威与独立集成环境保持原有职责。
 
+Selecting a dynamics trace resolves its actual independent repeat before selecting the nearest saved time; the displayed structure and frame download follow that repeat. RMSF hover includes the exact chain/residue identity, and selecting it focuses that residue in the corresponding repeat. No coordinates or observations are interpolated.
+点击动力学曲线时，先定位实际点击的独立重复，再选择最接近的已保存采样时间；三维结构与下载结构属于同一次重复。RMSF 悬停显示链与残基身份，点击后聚焦对应重复中的残基，不插值结构或观测值。
+
+Completed FEP reports additionally expose the two thermodynamic legs and reported final ΔΔG in an interactive uncertainty plot, alongside native per-repeat estimates, minimum adjacent overlap and convergence. These displays preserve signed values and reported uncertainty. Missing diagnostics and single-repeat empirical spread remain unreported. The completed-result browser display contract uses explicitly controlled diagnostic values with retained TYK2 structures; it is not a native calculation or scientific acceptance result.
+完成计算后的 FEP 报告增加双环境及原生 ΔΔG 的误差图、逐重复估计、最低相邻采样重叠与收敛视图，保留原始正负号及报告误差。缺失诊断与单次重复的经验波动显示为未报告。完成结果页面的浏览器检查采用明确标注的受控诊断数值和已保存 TYK2 结构，不能表述为原生计算通过或科学验收。
+
 Figure export uses real print widths (89 or 183 mm), 300/600 dpi native PNG rendering and editable SVG plots with 7–9 pt type. PNG files include physical-resolution metadata without resampling their pixels. Native 3D cameras and graph positions are retained; trajectory playback pauses for export. Plot exports preserve the current ranges, original values, error bars and units. Transparent backgrounds are optional. These presets support figure preparation; the destination journal's requirements and scientific validity still need checking.
 文献图导出支持 89/183 mm 实际版面宽度、300/600 dpi 原生 PNG 渲染及 7–9 pt 可编辑 SVG 图表。PNG 写入物理分辨率信息，不对原始渲染像素重新采样。保留三维视角与网络位置；导出时暂停轨迹播放。图表保留当前坐标范围、原始数值、误差与单位，可选择透明背景。预设用于整理图件，目标期刊规范和科学结论仍需单独核对。
 

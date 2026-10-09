@@ -33,6 +33,7 @@ export function FreeEnergyForest({
             mode: "markers",
             x: rows.map((e) => e.delta_delta_g_kcal_mol!),
             y: rows.map((e) => e.a + " → " + e.b),
+            customdata: rows.map((e) => e.uncertainty_kcal_mol!),
             marker: {
               size: rows.map((e) => (e.id === selected ? 12 : 8)),
               color: rows.map((e) =>
@@ -45,7 +46,8 @@ export function FreeEnergyForest({
               visible: true,
               color: "#5865d8",
             },
-            hovertemplate: "%{y}<br>ΔΔG: %{x:.3f} kcal/mol<extra></extra>",
+            hovertemplate:
+              "%{y}<br>ΔΔG: %{x:.3f} ± %{customdata:.3f} kcal/mol<extra></extra>",
           },
         ]}
         layout={{

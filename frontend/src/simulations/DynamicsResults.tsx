@@ -7,6 +7,7 @@ import type { Job, Language } from "../types";
 import { SimulationPlot } from "./SimulationPlot";
 import { SimulationFiles } from "./SimulationFiles";
 import type { DynamicsResult, Residue } from "./types";
+import { sampledSelection } from "./sample-selection";
 import "./simulations.css";
 
 const colors = ["#5865d8", "#18998b", "#b773ab"];
@@ -52,18 +53,13 @@ export function DynamicsResults({
       y: f.backbone_rmsd_angstrom,
     })),
   }));
-  const chooseTime = (time: number) => {
+  const chooseTime = (time: number, seriesIndex: number) => {
+    const selection = sampledSelection(result.replicas, time, seriesIndex);
+    if (!selection) return;
     setPlaying(false);
-    setFrame(
-      current.frames.reduce(
-        (nearest, f, i) =>
-          Math.abs(f.time_ns - time) <
-          Math.abs(current.frames[nearest].time_ns - time)
-            ? i
-            : nearest,
-        0,
-      ),
-    );
+    setRepeat(selection.repeat);
+    setFrame(selection.frame);
+    setFocusResidue(null);
   };
   return (
     <div className="simulation-results" data-testid="dynamics-results">
@@ -77,6 +73,7 @@ export function DynamicsResults({
               setRepeat(Number(e.target.value));
               setFrame(0);
               setPlaying(false);
+              setFocusResidue(null);
             }}
           >
             {result.replicas.map((r, i) => (
@@ -260,12 +257,18 @@ export function DynamicsResults({
             points: r.residues.map((res, index) => ({
               x: index + 1,
               y: res.rmsf_angstrom,
+              label: `${res.chain}:${res.name}${res.number}${res.insertion}`,
             })),
           }))}
           language={language}
-          onSelect={(position) =>
-            setFocusResidue(current.residues[Math.round(position) - 1] ?? null)
-          }
+          onSelect={(position, seriesIndex) => {
+            chooseTime(snapshot.time_ns, seriesIndex);
+            setFocusResidue(
+              result.replicas[seriesIndex]?.residues[
+                Math.round(position) - 1
+              ] ?? null,
+            );
+          }}
         />
         {hasLigand && (
           <ResearchTable

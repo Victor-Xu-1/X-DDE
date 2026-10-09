@@ -204,6 +204,9 @@ def test_native_result_views_and_downloads(case, language):
                 root.get_by_role(
                     "tab", name="Sampling and convergence" if language == "en" else "采样与收敛"
                 ).click()
+                root.get_by_role(
+                    "tab", name="Overlap heatmap" if language == "en" else "重叠热图", exact=True
+                ).click()
                 expect(
                     root.get_by_role(
                         "application",

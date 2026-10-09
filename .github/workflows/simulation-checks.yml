@@ -17,7 +17,7 @@ on:
       - "frontend/src/simulations/**"
       - "tests/test_simulations.py"
       - "server_tests/test_simulation_browser.py"
-      - ".github/workflows/simulation-checks.yml"
+      # Routing-only workflow edits do not re-run scientific contracts.
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/simulations/DynamicsResults.tsx"
       - "!frontend/src/simulations/FreeEnergyNetwork.tsx"
@@ -31,6 +31,11 @@ on:
       - "!frontend/src/simulations/OverlapHeatmap.tsx"
       - "!frontend/src/simulations/SimulationPlot.tsx"
       - "!frontend/src/simulations/SimulationResults.test.tsx"
+      # Two research result pages use simulation-view-checks.yml; contracts remain separate.
+      - "!frontend/src/simulations/FreeEnergyCycle*"
+      - "!frontend/src/simulations/FreeEnergyDiagnostics.tsx"
+      - "!frontend/src/simulations/FreeEnergyResults.tsx"
+      - "!frontend/src/simulations/sample-selection.ts"
 permissions:
   contents: read
 jobs:
