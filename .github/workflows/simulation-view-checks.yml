@@ -12,6 +12,8 @@ on:
       - "frontend/src/simulations/FreeEnergyForest.tsx"
       - "frontend/src/simulations/FreeEnergyResults.tsx"
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
+      - "frontend/src/simulations/molstar-controller.ts"
+      - "frontend/src/simulations/molecular-focus*"
       - "frontend/src/publication/plotly*"
       - "frontend/src/presentation/plots/InteractivePlot*"
       - "server_tests/test_fep_diagnostics_browser.py"
@@ -39,6 +41,8 @@ jobs:
           npx vitest run src/simulations/SimulationResults.test.tsx
           src/simulations/FreeEnergyCycle.test.tsx src/publication/plotly.test.ts
           src/presentation/plots/InteractivePlot.test.tsx
+          src/simulations/molecular-focus.test.ts src/simulations/bound-pairs.test.ts
+          src/simulations/molstar-figure.test.ts
       - name: Restore retained MD and TYK2 plan; no new scientific execution
         env:
           GH_TOKEN: ${{ github.token }}

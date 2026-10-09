@@ -30,6 +30,8 @@ on:
       - "!frontend/src/publication/embedded-raster.ts"
       - "!frontend/src/publication/svg.ts"
       - "!frontend/src/publication/plotly*"
+      # Selected-ligand camera changes affect only native MD/FEP result views.
+      - "!frontend/src/simulations/molstar-controller.ts"
 permissions:
   contents: read
 jobs:

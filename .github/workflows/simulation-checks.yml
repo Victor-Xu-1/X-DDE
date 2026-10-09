@@ -47,6 +47,7 @@ on:
       - "!frontend/src/simulations/SimulationReview*"
       - "!frontend/src/simulations/SimulationInputs.tsx"
       - "!frontend/src/simulations/simulations.css"
+      - "!frontend/src/simulations/molecular-focus*"
 permissions:
   contents: read
 jobs:

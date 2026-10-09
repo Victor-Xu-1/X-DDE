@@ -21,6 +21,7 @@ import type { Residue } from "./types";
 import type { FigureSettings } from "../publication/settings";
 import { molecularFigure } from "./molstar-figure";
 import { boundPair, ligandLoci, NativeBoundPair } from "./bound-pairs";
+import { bindingFocusOptions, selectedLigandFocus } from "./molecular-focus";
 
 export interface StructureSource {
   url: string;
@@ -51,7 +52,8 @@ export class MolecularController {
   }[] = [];
   private trajectory = false;
   private frameCount = 1;
-  private ligandStructure?: StateObjectSelector<SO.Molecule.Structure>;
+  private ligandStructures: StateObjectSelector<SO.Molecule.Structure>[] = [];
+  private activeLigand: MolecularView["ligand"] = "a";
   private queue = Promise.resolve();
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
@@ -251,7 +253,7 @@ export class MolecularController {
           ref: representation.ref,
           kind: ligandIndex++ ? "b" : "a",
         });
-        this.ligandStructure ??= ligand;
+        this.ligandStructures.push(ligand);
       }
       signal.throwIfAborted();
     }
@@ -267,7 +269,7 @@ export class MolecularController {
         this.boundContacts.push(ligandLoci(pair, ligand.obj.data.models));
       }
     }
-    if (this.ligandStructure) this.focusLigand();
+    if (this.ligandStructures.length) this.focusLigand();
     else this.reset();
   }
 
@@ -296,6 +298,7 @@ export class MolecularController {
   }
 
   setView(view: MolecularView) {
+    this.activeLigand = view.ligand;
     for (const item of this.visibility) {
       const visible =
         item.kind === "protein"
@@ -316,11 +319,11 @@ export class MolecularController {
       this.plugin.managers.structure.focus.setFromLoci(
         this.boundContacts[view.ligand === "b" ? 1 : 0],
       );
-    } else if (this.trajectory && this.ligandStructure?.obj) {
+    } else if (this.trajectory && this.ligandStructures[0]?.obj) {
       const loci = StructureSelection.toLociWithSourceUnits(
         Script.getStructureSelection(
           (q) => q.struct.generator.all(),
-          this.ligandStructure.obj.data,
+          this.ligandStructures[0].obj.data,
         ),
       );
       this.plugin.managers.structure.focus.setFromLoci(loci);
@@ -347,7 +350,7 @@ export class MolecularController {
       const loci = StructureSelection.toLociWithSourceUnits(selection);
       if (Loci.isEmpty(loci)) continue;
       this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
-      this.plugin.managers.camera.focusLoci(loci);
+      this.plugin.managers.camera.focusLoci(loci, bindingFocusOptions);
       return;
     }
   }
@@ -356,15 +359,25 @@ export class MolecularController {
     this.plugin.managers.camera.reset(undefined, 0);
   }
   focusLigand() {
-    if (this.ligandStructure?.obj)
-      this.plugin.managers.camera.focusLoci(
-        StructureSelection.toLociWithSourceUnits(
-          Script.getStructureSelection(
-            (q) => q.struct.generator.all(),
-            this.ligandStructure.obj.data,
-          ),
-        ),
-      );
+    // Combined native pairs include the exact receptor context for each FEP
+    // alternative. Focusing only the standalone SDF would miss protein occlusion.
+    const loci = this.boundContacts.length
+      ? this.boundContacts
+      : this.ligandStructures.flatMap((structure) =>
+          structure.obj
+            ? [
+                StructureSelection.toLociWithSourceUnits(
+                  Script.getStructureSelection(
+                    (q) => q.struct.generator.all(),
+                    structure.obj.data,
+                  ),
+                ),
+              ]
+            : [],
+        );
+    const selected = selectedLigandFocus(loci, this.activeLigand);
+    if (selected.length)
+      this.plugin.managers.camera.focusLoci(selected, bindingFocusOptions);
   }
   figure(settings: FigureSettings): Promise<Blob> {
     const render = () => {

@@ -35,6 +35,10 @@ The installation page presents OpenMM, GROMACS and OpenFE together in the dynami
 
 安装页面在动力学与自由能分组中并排展示 OpenMM、GROMACS 和 OpenFE。主要展示项与推荐安装方案分别管理：推荐组合仍为 OpenMM 与 OpenFE，GROMACS 需明确选择。可选模型资源保留独立选择，“已安装”不会触发重新安装。
 
+The native MD/FEP binding view focuses the selected ligand, with both alternatives included when an overlay is selected. Original receptor context feeds Molstar's least-obstructed camera heuristic; it changes the viewing direction and framing, never molecular coordinates or physical scores. The camera settles immediately for frame-linked export, while manual rotation and zoom remain available. A missing B selection does not silently focus A, and overlays do not fabricate cross-ligand contacts.
+
+原生动力学与 FEP 结合视图定位当前选中的配体；叠合模式包含两个候选。Molstar 根据原始受体环境选择较少遮挡的观察方向，仅调整相机，不修改分子坐标或物理分数。相机即时定位以保持轨迹帧导出一致，仍可手动旋转和缩放；缺失 B 时不会自动定位 A，叠合也不会生成跨配体的虚假接触。
+
 ## Backend responsibilities / 后端工具职责
 
 | Responsibility / 职责                               | Integrated tool / 工具                          | Boundary / 边界                                                                                                                                                               |
