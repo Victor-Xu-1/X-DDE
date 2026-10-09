@@ -161,6 +161,11 @@ it("links a sampled time to the exact downloadable snapshot and retains Å/ns un
     "false",
   );
   expect(screen.queryByText("Ligand RMSD")).toBeNull();
+  expect(screen.queryByRole("tab", { name: "Ligand stability" })).toBeNull();
+  expect(screen.getByRole("tab", { name: "Rg" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   expect(
     screen.queryByRole("table", { name: "Binding-contact occupancy" }),
   ).toBeNull();

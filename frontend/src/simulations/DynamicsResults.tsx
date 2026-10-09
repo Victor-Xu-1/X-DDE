@@ -168,30 +168,34 @@ export function DynamicsResults({
           <ResearchTabs
             label={zh ? "稳定性曲线" : "Stability curves"}
             tabs={[
-              {
-                id: "ligand",
-                label: zh ? "配体稳定性" : "Ligand stability",
-                content: (
-                  <SimulationPlot
-                    title={zh ? "结合姿势稳定性" : "Bound-pose stability"}
-                    xLabel="Time (ns)"
-                    yLabel="Ligand RMSD (Å)"
-                    series={result.replicas.map((r, i) => ({
-                      label: label(r.repeat),
-                      color: colors[i],
-                      points: r.frames
-                        .filter((f) => f.ligand_rmsd_angstrom != null)
-                        .map((f) => ({
-                          x: f.time_ns,
-                          y: f.ligand_rmsd_angstrom!,
-                        })),
-                    }))}
-                    selectedX={snapshot.time_ns}
-                    onSelect={chooseTime}
-                    language={language}
-                  />
-                ),
-              },
+              ...(hasLigand
+                ? [
+                    {
+                      id: "ligand",
+                      label: zh ? "配体稳定性" : "Ligand stability",
+                      content: (
+                        <SimulationPlot
+                          title={zh ? "结合姿势稳定性" : "Bound-pose stability"}
+                          xLabel="Time (ns)"
+                          yLabel="Ligand RMSD (Å)"
+                          series={result.replicas.map((r, i) => ({
+                            label: label(r.repeat),
+                            color: colors[i],
+                            points: r.frames
+                              .filter((f) => f.ligand_rmsd_angstrom != null)
+                              .map((f) => ({
+                                x: f.time_ns,
+                                y: f.ligand_rmsd_angstrom!,
+                              })),
+                          }))}
+                          selectedX={snapshot.time_ns}
+                          onSelect={chooseTime}
+                          language={language}
+                        />
+                      ),
+                    },
+                  ]
+                : []),
               {
                 id: "radius",
                 label: "Rg",
