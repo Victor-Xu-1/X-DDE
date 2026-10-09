@@ -1,11 +1,12 @@
 # Molecular dynamics and FEP / 分子动力学与结合自由能
 
-X-DDE owns the questionnaire, task lifecycle, immutable inputs and linked results. OpenMM and OpenFE are independent scientific environments managed by the same platform.
-X-DDE 负责问卷式提交、任务生命周期、不可覆盖输入和结果关联。OpenMM 与 OpenFE 是同一平台管理的独立科学环境。
+X-DDE owns the questionnaire, task lifecycle, immutable inputs and linked results. OpenMM, GROMACS and OpenFE are independent scientific environments managed by the same platform. Choose OpenMM or GROMACS in the same dynamics module; the selection changes the actual executor, not a cosmetic label.
+X-DDE 负责问卷式提交、任务生命周期、不可覆盖输入和结果关联。OpenMM、GROMACS 与 OpenFE 是同一平台管理的独立科学环境。动力学模块可切换 OpenMM 或 GROMACS，切换后调用所选引擎的真实执行程序。
 
 | Study / 研究                                  | Reviewed backend / 后端                                         | Scope / 范围                                                                                                                          | Primary outputs / 主要结果                                                                                                                                                                        |
 | --------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Molecular dynamics / 动力学                   | OpenMM 8.6.1, PDBFixer, AMBER14/TIP3P and OpenFF 2.2.1          | Complete parameterizable proteins, nucleic acids and their supported bound small molecules / 可参数化完整蛋白、核酸及支持的结合小分子 | Aligned 3D snapshots, DCD, RMSD, mass-weighted heavy-atom Rg, residue RMSF, periodic heavy-atom contact occupancy, checkpoints and portable states / 对齐结构、轨迹、稳定性、接触占有率及计算状态 |
+| Alternative dynamics / 可切换动力学           | GROMACS 2026.3 CUDA build, ParmEd 4.3.1, MDTraj 1.11.0          | Same prepared AMBER14/TIP3P/OpenFF 2.2.1 systems; independent execution / 使用一致的参数化体系，独立执行                              | Native TRR/CPT/TPR/EDR, original atom identities and shared stability analysis / 原生轨迹、检查点、体系、能量与统一稳定性分析                                                                     |
 | Relative binding free energy / 相对结合自由能 | OpenFE 1.12.0, compatible OpenMM 8.4.0, Lomap, AM1-BCC and MBAR | 2–12 aligned congeneric small molecules with unchanged net charge / 2–12 个对齐、同系列且净电荷不变的小分子                           | Perturbation network and atom maps; after calculation, both thermodynamic legs, ΔΔG, uncertainty, overlap and forward/reverse analysis / 变化网络、原子映射及双环境自由能与采样诊断               |
 
 ```mermaid
@@ -23,8 +24,29 @@ flowchart LR
   E --> V
 ```
 
-The four preparation pages show one step at a time; the fifth step displays results. New tasks start with new inputs. Historical files and public templates require explicit selection. The sole backend is already selected and future alternatives can use the existing method selector.
-准备过程每页仅显示一步，第五步查看结果。新任务默认使用新材料；历史文件和公开模板需明确选择。唯一后端已默认选中，将来的同类后端使用现有模型选择器。
+The four preparation pages show one step at a time; the fifth step displays results. New tasks start with new inputs. Historical files and public templates require explicit selection. OpenMM retains the reviewed default; GROMACS uses the same method selector and independently reported environment readiness. FEP selects OpenFE and offers LoMap or Kartograf atom mapping under Expert adjustments. The historical LoMap default remains unchanged in canonical task bytes.
+准备过程每页仅显示一步，第五步查看结果。新任务默认使用新材料；历史文件和公开模板需明确选择。OpenMM 保留当前默认，GROMACS 使用同一后端选择器并单独报告环境准备状态。FEP 默认选中 OpenFE，专家设置可选择 LoMap 或 Kartograf 原子映射；历史 LoMap 默认不会改变原任务校验身份。
+
+## Backend responsibilities / 后端工具职责
+
+| Responsibility / 职责                               | Integrated tool / 工具                          | Boundary / 边界                                                                                                                                                               |
+| --------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Physical dynamics / 动力学计算                      | OpenMM or GROMACS                               | Two real executors, one task lifecycle; no silent engine or device fallback / 两种真实执行引擎，共用生命周期，不自动降级引擎或设备                                            |
+| Preparation and parameterization / 体系准备与参数化 | PDBFixer, AMBER14/TIP3P, OpenFF/AmberTools      | Resolve supported atoms, water, ions and ligand parameters; unsupported chemistry fails explicitly / 准备支持的原子、水、离子和配体参数；不支持化学明确报错                   |
+| GROMACS topology transfer / GROMACS 拓扑转换        | ParmEd                                          | Retain parameterized bonds/charges, reject unknown force forms and changed atom order / 保留参数化键和电荷，拒绝未知力场形式及原子顺序变化                                    |
+| Trajectory observations / 轨迹观测                  | Native OpenMM observations or MDTraj TRR reader | Original timestamps and coordinates; shared alignment, RMSD/RMSF/Rg and contact definitions / 原生时间与坐标，统一对齐和稳定性指标定义                                        |
+| Relative free-energy workflow / 相对自由能流程      | OpenFE, GUFE, compatible OpenMM/OpenMMTools     | Both thermodynamic legs, independent repeats, native HREX; OpenFE's compatible OpenMM 8.4.0 stays isolated / 双环境、独立重复和原生 HREX；OpenFE 兼容的 OpenMM 8.4.0 独立保留 |
+| Atom correspondence / 原子对应                      | LoMap or Kartograf                              | Explicit choice, original atom maps and bounded congeneric networks / 明确选择、原子映射和有界同系列变化网络                                                                  |
+| Charges and uncertainty / 电荷与误差                | OpenFF/AmberTools AM1-BCC; native MBAR          | Charge assignment shared between legs; signed estimates, uncertainty, overlap and convergence retained / 双环境一致电荷；保留正负号、误差、重叠和收敛诊断                     |
+
+GROMACS uses native steepest-descent minimization, V-rescale NVT equilibration and C-rescale NPT production. Its integrator and thermostat differ from OpenMM's Langevin protocol; matched systems do not imply identical trajectories. Prepared force fields are transferred through ParmEd, with explicit rejection of unsupported force expressions or changed atom/coordinate ordering. Trajectory molecules are made whole before the existing coordinate analysis; reported energies are matched to native saved-frame timestamps without interpolation. Production samples must fit the regular output stride. Native warnings remain errors; no `-maxwarn` bypass is used.
+GROMACS 执行原生最小化、V-rescale NVT 平衡和 C-rescale NPT 生产采样，与 OpenMM 的 Langevin 协议具有方法差异，不能据此承诺轨迹相同。ParmEd 转换时检查力场表达、原子顺序及初始坐标。轨迹先恢复周期盒中的完整分子，再进入现有坐标分析；势能与原生帧时间对应，不插值。生产采样须符合固定保存间隔；原生警告保持失败处理，不使用 `-maxwarn` 绕过。
+
+The reviewed GROMACS recipe pins the available conda-forge 2026.3 CUDA build and every package checksum. Upstream 2026.4 is newer, but is not silently substituted for the reviewed package. MDTraj 1.11.0 retains compatibility with the existing NumPy 1.26 preparation environment. Runtime verification covers installation, version, CLI and Python bindings without running dynamics; CPU/GPU trajectory acceptance and a matched-system comparison remain target-server requirements. A public BRD4/JQ1 input template does not claim a computed GROMACS result.
+GROMACS 配方固定 conda-forge 已发布的 2026.3 CUDA 构建及全部包校验值；上游 2026.4 较新，不自动替换已审查包。MDTraj 1.11.0 保持与现有 NumPy 1.26 准备环境兼容。环境检查验证安装、版本、命令接口和 Python 绑定，不运行动力学；CPU/GPU 轨迹与同体系比较仍须目标服务器验收。BRD4/JQ1 公开输入模板不代表已有 GROMACS 计算结果。
+
+Inside the managed GROMACS image, Python parameterization and the CUDA engine occupy separate locked prefixes. This resolves incompatible Kerberos dependencies between RDKit/PostgreSQL libraries and CUDA profiling tools without downgrading the existing OpenMM/OpenFE environments or silently removing GPU support. X-DDE still manages one GROMACS component and one task; engine-specific library paths apply only to its native subprocess.
+GROMACS 受管镜像中，Python 参数化环境与 CUDA 引擎使用独立的固定运行目录。这样隔离 RDKit/PostgreSQL 库与 CUDA 分析工具对 Kerberos 的冲突要求，无须降级原有 OpenMM/OpenFE 环境或移除 GPU 支持。工作台仍管理一个 GROMACS 组件和一个任务；引擎库目录只作用于其原生子进程。
 
 ## Interactive research previews / 网页交互预览
 
@@ -80,4 +102,4 @@ Resource limits remain in the existing worker. MD defaults to 24 hours and 8 GiB
 Public templates use the deposited BRD4/JQ1 case and the official OpenFE TYK2 inhibitor series, with immutable source checksums and source licensing. Remote tests separately validate contracts, native execution, original-byte preservation, actual browser previews and downloads. CPU smoke calculations do not establish production sampling convergence or GPU performance; target-server scientific validation remains separate.
 公开模板使用 BRD4/JQ1 沉积结构与 OpenFE 官方 TYK2 抑制剂系列，固定源文件校验值和来源许可。远端分别检查任务契约、原生执行、原始文件保留、真实浏览器预览和下载。CPU 短计算不证明生产采样已收敛或 GPU 性能；目标服务器科学验收仍为独立步骤。
 
-Primary implementation sources: [OpenMM user guide](https://docs.openmm.org/latest/userguide/application/02_running_sims.html), [OpenFE 1.12 RBFE tutorial](https://docs.openfree.energy/en/v1.12.0/tutorials/rbfe_python_tutorial.html), [OpenFE protocol and limitations](https://docs.openfree.energy/en/v1.12.0/guide/protocols/relativehybridtopology.html), [immutable TYK2 inputs](https://github.com/OpenFreeEnergy/ExampleNotebooks/tree/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial).
+Primary implementation sources: [OpenMM user guide](https://docs.openmm.org/latest/userguide/application/02_running_sims.html), [GROMACS native execution](https://manual.gromacs.org/documentation/current/user-guide/mdrun-performance.html), [reviewed GROMACS packages](https://anaconda.org/conda-forge/gromacs/files), [ParmEd parameter transfer](https://parmed.github.io/ParmEd/html/openmmobj/parmed.openmm.load_topology.html), [Kartograf mapping](https://kartograf.openfree.energy/en/latest/api/kartograf.mappers.html), [OpenFE 1.12 RBFE tutorial](https://docs.openfree.energy/en/v1.12.0/tutorials/rbfe_python_tutorial.html), [OpenFE protocol and limitations](https://docs.openfree.energy/en/v1.12.0/guide/protocols/relativehybridtopology.html), [immutable TYK2 inputs](https://github.com/OpenFreeEnergy/ExampleNotebooks/tree/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial).

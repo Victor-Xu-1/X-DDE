@@ -20,6 +20,7 @@ on:
       - "src/opendde_workbench/integrations/recipes/gromacs*"
       - "tests/test_gromacs_integration.py"
       - "frontend/src/studio/MethodSwitch.test.tsx"
+      - "frontend/src/examples/guide-data.json"
       - "server_tests/check_simulation_environment.py"
       - "server_tests/test_gromacs_switch_browser.py"
       - ".github/workflows/simulation-backend-checks.yml"
@@ -79,6 +80,7 @@ jobs:
           npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationResults.test.tsx
           src/simulations/SimulationFiles.test.tsx src/studio/MethodSwitch.test.tsx
           src/studio/research-modules.test.ts src/deployment/component-groups.test.ts
+          src/examples/guide.test.ts
       - run: .venv/bin/python -m playwright install chromium --with-deps
       - name: Actual bilingual GROMACS choice through review; never submits a calculation
         run: .venv/bin/python -m pytest -q server_tests/test_gromacs_switch_browser.py

@@ -27,7 +27,7 @@ X-DDE brings these handoffs into the platform. Medicinal chemists and biologics 
 
 ## What you can do
 
-The current catalogue has **73 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
+The current catalogue has **74 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
 
 | Research area                   | Supported work                                                                                                                                  | Outputs or next steps                                                                                         |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -40,7 +40,7 @@ The current catalogue has **73 task entries**, organized by research workflow. D
 | **High-throughput screening**   | Supplier-file import, library preparation, reusable sharded indexes, pocket-conditioned retrieval, diversity selection and shortlisted docking  | Candidates retaining library/supplier identifiers and actual poses                                            |
 | **DEL research**                | Library definitions, member structures, read decoding, UMI/counts, enrichment and controls, building-block series, research models and handoffs | Counts, enrichment evidence, series charts, candidate structures and experimental follow-up                   |
 | **Properties and early safety** | Descriptors, 41 model endpoints, structural alerts, scaffold representatives and models from experimental data                                  | Molecular tables, native units, selected candidates and reusable molecules                                    |
-| **Molecular dynamics**          | Explicit-water protein/complex dynamics with OpenMM; independent repeats and native states                                                      | Interactive 3D playback, linked RMSD/RMSF/Rg/contact occupancy, raw trajectories and downloads                |
+| **Molecular dynamics**          | Explicit-water protein/complex dynamics with switchable OpenMM / GROMACS; independent repeats and native states                                 | Interactive 3D playback, linked RMSD/RMSF/Rg/contact occupancy, raw trajectories and downloads                |
 | **Binding free energy / FEP**   | OpenFE perturbation planning and relative binding free-energy calculations for aligned, same-charge analogues                                   | Interactive molecule network, A/B poses, atom maps, native uncertainties, overlap and convergence diagnostics |
 
 RNA / DNA support currently focuses on structural inputs, complex prediction and relevant feature preparation; it is not a general nucleic-acid drug-design system. Synthesis routes, retrosynthesis and wet-lab automation are outside the current scope.
@@ -176,7 +176,7 @@ The default Windows entry is `E:\WSL\apps\x-dde`. Linux environments, models and
 
 ## Current scope and scientific use
 
-- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 73 entries do not mean every machine already has all required resources.
+- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 74 entries do not mean every machine already has all required resources.
 - Public cases include BRD4–JQ1, trastuzumab–HER2, ABL inhibitors, MZ1 ternary assemblies, RNA–TPP and public DEL research. Calculated cases retain native outputs; input-only examples are explicitly templates. See [case provenance and identities](docs/design/research-examples.md).
 - Supplier access uses official public downloads and legitimately obtained files. Catalogue entries are not possession of every commercial library, live inventory or procurement authorization. See [verified resources and coverage](docs/design/supplier-structure-files.md).
 - Models, weights, third-party data and outputs can have independent restrictions, including noncommercial research terms. X-DDE's code license does not replace them.

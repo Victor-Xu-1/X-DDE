@@ -1751,5 +1751,29 @@
         "Review the sampling budget; a planned network contains no calculated free energies."
       ]
     ]
+  },
+  "gromacs.dynamics": {
+    "steps": [
+      [
+        "选择 BRD4/JQ1 的蛋白与结合姿势，先确认原始材料。",
+        "Choose the BRD4/JQ1 protein and bound pose; confirm the source materials."
+      ],
+      [
+        "选择 GROMACS 后端、采样长度与独立重复。",
+        "Select GROMACS, a sampling duration and independent repeats."
+      ],
+      [
+        "确认准备条件；提交后调用 GROMACS 的原生最小化、NVT 和 NPT。",
+        "Review preparation conditions; a submitted task runs native GROMACS minimization, NVT and NPT."
+      ],
+      [
+        "查看真实保存的三维轨迹、稳定性曲线、关键残基接触与下载。",
+        "Inspect actual saved trajectory frames, stability curves, residue contacts and downloads."
+      ]
+    ],
+    "interpretation": [
+      "此案例当前提供真实输入模板；不将 OpenMM 的结果标成 GROMACS 计算。短轨迹、接触距离或势能不能证明结合亲和力与采样收敛。",
+      "This case provides a genuine input template; OpenMM results are not relabeled as GROMACS calculations. Short trajectories, contact distances or potential energy do not establish affinity or sampling convergence."
+    ]
   }
 }
