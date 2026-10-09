@@ -15,6 +15,7 @@ on:
       - 'server_tests/stat6_input_acceptance.py'
       - 'frontend/src/examples/ExampleToolbar.tsx'
       - 'frontend/src/examples/ExampleGuide.tsx'
+      - 'frontend/src/examples/TemplateStepHelp*'
       - 'frontend/src/examples/ExampleRecordResult.tsx'
       - 'frontend/src/examples/guide.ts'
       - 'frontend/src/examples/harness.ts'
@@ -33,6 +34,9 @@ on:
       - 'frontend/src/quality/QualityForm.tsx'
       - 'frontend/src/regions/RegionWorkspace.tsx'
       - 'frontend/src/space/ChannelForm.tsx'
+      - 'frontend/src/datasets/ScreeningReview.tsx'
+      - 'frontend/src/studio/ProjectCreateDialog.tsx'
+      - 'frontend/src/workflows/WorkflowCenter.tsx'
       - '.github/workflows/stat6-template-checks.yml'
 permissions:
   contents: read
@@ -55,7 +59,7 @@ jobs:
           uv sync --locked --group dev --group browser
           uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_templates_api.py tests/test_stat6_geometry.py tests/test_examples.py tests/test_example_records.py tests/test_example_pins.py
           cd frontend
-          npx vitest run src/examples/stat6-harness.test.ts src/examples/guide.test.ts src/examples/harness.test.ts src/examples/prediction.test.ts src/examples/ExampleActions.test.tsx src/discovery/ReferenceImportForm.test.tsx src/discovery/TargetResearchForm.test.tsx src/integrations/validation.test.ts src/receptors/ReceptorForm.test.tsx src/space/ChannelForm.test.tsx
+          npx vitest run src/examples/stat6-harness.test.ts src/examples/guide.test.ts src/examples/harness.test.ts src/examples/prediction.test.ts src/examples/ExampleActions.test.tsx src/examples/TemplateStepHelp.test.tsx src/discovery/ReferenceImportForm.test.tsx src/discovery/TargetResearchForm.test.tsx src/integrations/validation.test.ts src/receptors/ReceptorForm.test.tsx src/space/ChannelForm.test.tsx src/workflows/WorkflowCenter.test.tsx
       - name: Verify actual chemistry and deposited coordinate frames
         run: uv run --locked --with rdkit==2026.3.6 --with biopython==1.88 python server_tests/stat6_input_acceptance.py
       - name: Prepare only graphical components in isolated state

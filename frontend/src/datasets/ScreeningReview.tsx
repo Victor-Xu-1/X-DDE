@@ -109,7 +109,7 @@ export function ScreeningReview({
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
           placeholder={
-            zh ? "例如：BRD4 口袋先导筛选" : "e.g. BRD4 lead screening"
+            zh ? "例如：靶点口袋先导筛选" : "e.g. Target lead screening"
           }
         />
       </label>

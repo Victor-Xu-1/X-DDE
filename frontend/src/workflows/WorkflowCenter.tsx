@@ -98,8 +98,8 @@ export function WorkflowCenter({
       {source === "case" ? (
         <p className="field-help">
           {zh
-            ? "先探索 BRD4–JQ1 结合姿势，再自动把首个真实姿势交接给性质计算。"
-            : "Dock BRD4–JQ1, then hand the first real pose to molecular-property calculation."}
+            ? "先探索所选分子的结合姿势，再把首个真实姿势交接给性质计算。"
+            : "Dock the selected study molecule, then hand the first real pose to molecular-property calculation."}
         </p>
       ) : source === "draft" ? (
         <>
@@ -192,8 +192,8 @@ export function WorkflowCenter({
         <ol>
           <li>
             {zh
-              ? "BRD4 与 JQ1 的真实输入版本"
-              : "Exact BRD4 and JQ1 input versions"}
+              ? "本研究受体与分子的真实输入版本"
+              : "Exact receptor and molecule input versions for this study"}
           </li>
           <li>
             {zh

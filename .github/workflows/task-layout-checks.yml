@@ -192,6 +192,7 @@ on:
       - "!frontend/src/receptors/ReceptorForm.tsx"
       - "!frontend/src/discovery/ReferenceImportForm.tsx"
       - "!frontend/src/discovery/TargetResearchForm.tsx"
+      - "!frontend/src/studio/ProjectCreateDialog.tsx"
   workflow_dispatch:
 permissions:
   contents: read

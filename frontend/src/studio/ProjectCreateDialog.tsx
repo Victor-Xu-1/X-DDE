@@ -68,7 +68,7 @@ export function ProjectCreateDialog({
             required
             onChange={(e) => setName(e.target.value)}
             placeholder={
-              zh ? "例如：BRD4 先导研究" : "e.g. BRD4 lead discovery"
+              zh ? "例如：靶点先导研究" : "e.g. Target lead discovery"
             }
           />
         </label>
