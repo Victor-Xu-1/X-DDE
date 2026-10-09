@@ -86,7 +86,10 @@ export class MolecularController {
     });
     const nativeCanvas = this.plugin.canvas3d!;
     this.depthSubscription = nativeCanvas.camera.stateChanged.subscribe(() => {
-      const radius = nativeCanvas.boundingSphere.radius;
+      const radius = Math.min(
+        nativeCanvas.boundingSphere.radius,
+        nativeCanvas.camera.state.radiusMax,
+      );
       if (nativeCanvas.camera.state.radius >= radius) return;
       // The public native focus settles first. Widen only its scene depth;
       // position, target, zoom and the selected source stay unchanged.

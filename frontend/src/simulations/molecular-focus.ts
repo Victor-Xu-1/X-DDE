@@ -15,7 +15,10 @@ export const bindingFocusOptions: Partial<CameraFocusLociOptions> = {
 export function bindingDepth(snapshot: Camera.Snapshot, sceneRadius: number) {
   return {
     ...snapshot,
-    radius: Math.max(snapshot.radius, sceneRadius),
+    radius: Math.max(
+      snapshot.radius,
+      Math.min(sceneRadius, snapshot.radiusMax),
+    ),
     clipFar: false,
   };
 }

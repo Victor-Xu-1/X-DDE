@@ -40,6 +40,7 @@ it("widens scene depth without changing the selected binding view's position, ta
   expect(complete.radius).toBe(40);
   expect(complete.clipFar).toBe(false);
   expect(close.radius).toBe(8);
+  expect(bindingDepth({ ...close, radiusMax: 10 }, 40).radius).toBe(10);
   camera.setState(complete);
   camera.update();
   expect(camera.near).toBeLessThan(
