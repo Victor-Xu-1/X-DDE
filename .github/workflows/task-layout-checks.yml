@@ -4,10 +4,13 @@ on:
     branches: ["**"]
     paths:
       - "frontend/src/guided/**"
+      - "!frontend/src/guided/ChoiceCards.tsx"
       - "frontend/src/integrations/**"
       - "frontend/src/datasets/SourcePicker*"
       - "frontend/src/datasets/useDatasetSources*"
       - "frontend/src/datasets/DEL*"
+      - "!frontend/src/datasets/DELCountMaterials*"
+      - "!frontend/src/datasets/DELMaterialQuestion.tsx"
       - "frontend/src/datasets/DatasetForm*"
       - "frontend/src/receptors/SurfaceForm*"
       - "frontend/src/receptors/SurfaceRegionPicker*"

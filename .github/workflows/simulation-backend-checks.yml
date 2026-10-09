@@ -19,7 +19,7 @@ on:
       - "src/opendde_workbench/research/initial_pose.py"
       - "src/opendde_workbench/integrations/recipes/gromacs*"
       - "tests/test_gromacs_integration.py"
-      - "frontend/src/studio/MethodSwitch.test.tsx"
+      # Display-name consumers use research-material-checks.yml.
       - "frontend/src/examples/guide-data.json"
       - "server_tests/check_simulation_environment.py"
       # Questionnaire-only browser assertions use simulation-questionnaire-checks.yml.

@@ -4,6 +4,7 @@ import { Hint } from "../guided/Hint";
 import { FileSelect } from "../presentation/FileSelect";
 import type { Asset } from "../operations/types";
 import type { Language } from "../types";
+import { researchError } from "../presentation/research-content";
 import {
   PublicLibraryFiles,
   type PublicLibraryFile,
@@ -31,6 +32,8 @@ export function DatasetPicker({
   onChange,
   label,
   onResource,
+  sourceMode,
+  onBusyChange,
 }: {
   language: Language;
   kind: DataKind;
@@ -38,6 +41,8 @@ export function DatasetPicker({
   onChange(value: Asset | null): void;
   label: string;
   onResource?(value: PublicLibraryFile): void;
+  sourceMode?: "new" | "history";
+  onBusyChange?(busy: boolean): void;
 }) {
   const zh = language === "zh",
     [history, setHistory] = useState(false),
@@ -48,11 +53,14 @@ export function DatasetPicker({
     [busy, setBusy] = useState(false),
     [progress, setProgress] = useState(0),
     [error, setError] = useState("");
+  const showHistory = sourceMode ? sourceMode === "history" : history,
+    showPublic = !sourceMode && publicFiles;
   const controller = useRef<AbortController | null>(null),
     key = useRef(crypto.randomUUID());
   useEffect(() => () => controller.current?.abort(), []);
+  useEffect(() => onBusyChange?.(busy), [busy, onBusyChange]);
   useEffect(() => {
-    if (!history) return;
+    if (!showHistory) return;
     const c = new AbortController();
     void api
       .assets(c.signal)
@@ -61,29 +69,31 @@ export function DatasetPicker({
         if (!c.signal.aborted) setError(String(e));
       });
     return () => c.abort();
-  }, [history, kind]);
+  }, [showHistory, kind]);
   async function begin(selected: File, resume?: string) {
-    controller.current = new AbortController();
+    const activeUpload = new AbortController();
+    controller.current = activeUpload;
     setBusy(true);
     setError("");
     onChange(null);
     try {
       const asset = await uploadDataset(selected, kind, {
-        signal: controller.current.signal,
+        signal: activeUpload.signal,
         key: key.current,
         resume,
         onState: setState,
         onProgress: (done, total) => setProgress(done / total),
       });
+      activeUpload.signal.throwIfAborted();
       onChange(asset);
       setFile(null);
       setState(null);
       setProgress(1);
     } catch (e) {
-      if (!controller.current.signal.aborted)
+      if (!activeUpload.signal.aborted)
         setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setBusy(false);
+      if (controller.current === activeUpload) setBusy(false);
     }
   }
   async function discard() {
@@ -108,47 +118,49 @@ export function DatasetPicker({
             : "Large files upload in verified parts and can be paused/resumed. History is optional."}
         </Hint>
       </div>
-      <div className="dataset-source-tabs" role="group" aria-label={label}>
-        <button
-          type="button"
-          aria-pressed={!history && !publicFiles}
-          disabled={busy}
-          onClick={() => {
-            setHistory(false);
-            setPublicFiles(false);
-            onChange(null);
-          }}
-        >
-          {zh ? "上传新文件" : "New file"}
-        </button>
-        <button
-          type="button"
-          aria-pressed={history}
-          disabled={busy}
-          onClick={() => {
-            setHistory(true);
-            setPublicFiles(false);
-            onChange(null);
-          }}
-        >
-          {zh ? "历史文件" : "History"}
-        </button>
-        {kind === "library" && (
+      {!sourceMode && (
+        <div className="dataset-source-tabs" role="group" aria-label={label}>
           <button
             type="button"
-            aria-pressed={publicFiles}
+            aria-pressed={!history && !publicFiles}
             disabled={busy}
             onClick={() => {
-              setPublicFiles(true);
               setHistory(false);
+              setPublicFiles(false);
               onChange(null);
             }}
           >
-            {zh ? "公开结构库" : "Public libraries"}
+            {zh ? "上传新文件" : "New file"}
           </button>
-        )}
-      </div>
-      {publicFiles ? (
+          <button
+            type="button"
+            aria-pressed={history}
+            disabled={busy}
+            onClick={() => {
+              setHistory(true);
+              setPublicFiles(false);
+              onChange(null);
+            }}
+          >
+            {zh ? "历史文件" : "History"}
+          </button>
+          {kind === "library" && (
+            <button
+              type="button"
+              aria-pressed={publicFiles}
+              disabled={busy}
+              onClick={() => {
+                setPublicFiles(true);
+                setHistory(false);
+                onChange(null);
+              }}
+            >
+              {zh ? "公开结构库" : "Public libraries"}
+            </button>
+          )}
+        </div>
+      )}
+      {showPublic ? (
         <PublicLibraryFiles
           language={language}
           onChange={(resource) => {
@@ -156,7 +168,7 @@ export function DatasetPicker({
             if (resource) onResource?.(resource);
           }}
         />
-      ) : history ? (
+      ) : showHistory ? (
         <select
           aria-label={label}
           value={value?.id ?? ""}
@@ -182,10 +194,19 @@ export function DatasetPicker({
               language={language}
               variant="large"
               title={zh ? "选择研究文件" : "Choose a research file"}
-              description={formats[kind]
-                .replaceAll(".", "")
-                .split(",")
-                .join(" · ")}
+              description={
+                kind === "counts"
+                  ? zh
+                    ? "CSV · TSV（支持 gzip 压缩）"
+                    : "CSV · TSV · gzip supported"
+                  : kind === "reads"
+                    ? zh
+                      ? "FASTQ（支持 gzip 压缩）"
+                      : "FASTQ · gzip supported"
+                    : zh
+                      ? "SDF · CSV · TSV · SMILES（支持 gzip 压缩）"
+                      : "SDF · CSV · TSV · SMILES · gzip supported"
+              }
               accept={formats[kind]}
               aria-label={label}
               onChange={(e) => {
@@ -265,7 +286,7 @@ export function DatasetPicker({
       )}
       {error && (
         <p role="alert" className="error-box">
-          {error}
+          {researchError(error, zh)}
         </p>
       )}
     </section>

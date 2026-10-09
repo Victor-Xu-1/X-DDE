@@ -1,0 +1,55 @@
+name: Research method names and DEL materials
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/opendde_workbench/capabilities/method_choices.py"
+      - "src/opendde_workbench/capabilities/__init__.py"
+      - "tests/test_method_choices.py"
+      - "frontend/src/studio/method-choices.ts"
+      - "frontend/src/studio/MethodSwitch.test.tsx"
+      - "frontend/src/deployment/labels.ts"
+      - "frontend/src/guided/ChoiceCards.tsx"
+      - "frontend/src/datasets/DELCountMaterials*"
+      - "frontend/src/datasets/DELMaterialQuestion.tsx"
+      - "frontend/src/datasets/DatasetPicker*"
+      - "server_tests/test_del_material_browser.py"
+      - ".github/workflows/research-material-checks.yml"
+permissions:
+  contents: read
+jobs:
+  materials:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Display projection and unchanged native method identities
+        run: |
+          uv run --locked python scripts/generate-capability-catalog.py --check
+          uv run --locked python -m pytest -q tests/test_method_choices.py tests/test_capabilities.py
+      - name: Exact material controls, cancelled uploads and their direct consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/MethodSwitch.test.tsx
+          src/datasets/DELCountMaterials.test.tsx src/datasets/DatasetPicker.test.tsx
+          src/datasets/SourcePicker.test.tsx src/datasets/upload.test.ts
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Bilingual material transitions and existing component display; no scientific analysis
+        run: >-
+          uv run --locked python -m pytest -x -q
+          server_tests/test_del_material_browser.py server_tests/test_component_presentation_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-material-evidence
+          path: |
+            outputs/del-materials/**
+            outputs/component-presentation/**

@@ -9,6 +9,30 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 it.each([
+  ["openfe.rbfe", "OpenFE"],
+  ["reinvent.design", "REINVENT4"],
+  ["boltzgen.design", "BoltzGen"],
+  ["openmm.refine", "OpenMM"],
+  ["chemprop.predict", "Chemprop"],
+  ["apbs.potential", "APBS"],
+  ["plip.profile", "PLIP"],
+] as const)(
+  "shows the professional backend name for %s and keeps it selected",
+  async (value, label) => {
+    const change = vi.fn();
+    vi.spyOn(client, "request").mockResolvedValue({
+      availability: { configuration_present: true },
+    });
+    render(<MethodSwitch value={value} language="en" onChange={change} />);
+    const selected = screen.getByRole("button", {
+      name: new RegExp("^" + label + ".*Default"),
+    });
+    expect(selected).toHaveAttribute("aria-pressed", "true");
+    await userEvent.setup().click(selected);
+    expect(change).not.toHaveBeenCalled();
+  },
+);
+it.each([
   ["predict", "Boltz-2", "boltz.predict"],
   ["mpnn", "LigandMPNN", "ligandmpnn.design"],
 ] as const)(

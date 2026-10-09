@@ -1,4 +1,5 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
+import { DELCountMaterials } from "./DELCountMaterials";
 import { AssetPicker } from "../operations/AssetPicker";
 import { DatasetPicker } from "./DatasetPicker";
 import { SourcePicker } from "./SourcePicker";
@@ -17,8 +18,6 @@ export function DELMaterialQuestion({
   const {
     mode,
     zh,
-    inputKind,
-    setInputKind,
     language,
     asset,
     chooseDefinition,
@@ -73,23 +72,7 @@ export function DELMaterialQuestion({
           )}
         </>
       )}
-      {mode === "analyze" && (
-        <ChoiceCards<"new" | "counts">
-          label={zh ? "材料来源" : "Material source"}
-          value={inputKind}
-          onChange={setInputKind}
-          options={[
-            {
-              value: "new",
-              title: zh ? "上传新计数表" : "New count table",
-            },
-            {
-              value: "counts",
-              title: zh ? "历史计数结果" : "Historical counts",
-            },
-          ]}
-        />
-      )}
+      {mode === "analyze" && <DELCountMaterials model={model} />}
       {mode === "validate" && (
         <AssetPicker
           kind="config"
@@ -107,23 +90,26 @@ export function DELMaterialQuestion({
           onChange={setReadLanes}
         />
       )}
-      {hasFile && mode !== "validate" && mode !== "decode" && (
-        <DatasetPicker
-          kind="counts"
-          value={asset}
-          onChange={setAsset}
-          language={language}
-          label={
-            mode === "followup"
-              ? zh
-                ? "后续测量表"
-                : "Follow-up measurements"
-              : zh
-                ? "DEL 计数表"
-                : "DEL count table"
-          }
-        />
-      )}
+      {hasFile &&
+        mode !== "validate" &&
+        mode !== "decode" &&
+        mode !== "analyze" && (
+          <DatasetPicker
+            kind="counts"
+            value={asset}
+            onChange={setAsset}
+            language={language}
+            label={
+              mode === "followup"
+                ? zh
+                  ? "后续测量表"
+                  : "Follow-up measurements"
+                : zh
+                  ? "DEL 计数表"
+                  : "DEL count table"
+            }
+          />
+        )}
       {["enumerate", "decode"].includes(mode) && (
         <SourcePicker
           role="definition"

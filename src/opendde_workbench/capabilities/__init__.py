@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from ..requests import TASK_ADAPTER
 from .definitions import CAPABILITIES
-from .method_choices import method_choices
+from .method_choices import method_choices, method_name
 from .modalities import modality_catalogue
 from .runtime import availability
 
@@ -24,7 +24,7 @@ def request_schema() -> dict:
 def frontend_catalogue() -> list[dict]:
     return [
         {
-            key: spec.model_dump(mode="json")[key]
+            key: method_name(spec.source) if key == "source" else spec.model_dump(mode="json")[key]
             for key in ("id", "group", "label", "note", "source", "modalities", "modality_role")
         }
         for spec in CAPABILITIES.values()

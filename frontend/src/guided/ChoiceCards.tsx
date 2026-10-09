@@ -7,7 +7,13 @@ export function ChoiceCards<T extends string>({
 }: {
   label: string;
   value: T;
-  options: readonly { value: T; title: string; note?: string; hint?: string }[];
+  options: readonly {
+    value: T;
+    title: string;
+    note?: string;
+    hint?: string;
+    disabled?: boolean;
+  }[];
   onChange(value: T): void;
 }) {
   const id = useId();
@@ -23,6 +29,7 @@ export function ChoiceCards<T extends string>({
             type="radio"
             name={id}
             checked={value === option.value}
+            disabled={option.disabled}
             aria-label={option.title}
             onChange={() => onChange(option.value)}
           />

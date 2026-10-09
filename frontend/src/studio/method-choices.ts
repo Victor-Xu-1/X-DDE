@@ -111,7 +111,7 @@ export const methodChoices = [
     options: [
       {
         id: "openfe.rbfe",
-        label: "openfe",
+        label: "OpenFE",
         note: [
           "构建同系列分子的相对自由能网络，检查误差与收敛。",
           "Plan congeneric free-energy networks and inspect uncertainty and convergence.",
@@ -149,7 +149,7 @@ export const methodChoices = [
     options: [
       {
         id: "reinvent.design",
-        label: "reinvent",
+        label: "REINVENT4",
         note: [
           "选择类似物、R 基、连接子或性质优化方案。",
           "Choose analogues, R-groups, linkers or property optimization.",
@@ -168,7 +168,7 @@ export const methodChoices = [
     options: [
       {
         id: "boltzgen.design",
-        label: "boltzgen",
+        label: "BoltzGen",
         note: [
           "按药物形式选择设计方案，比较原生结构与界面结果。",
           "Choose a design modality and compare native structural results.",
@@ -187,7 +187,7 @@ export const methodChoices = [
     options: [
       {
         id: "openmm.refine",
-        label: "openmm",
+        label: "OpenMM",
         note: [
           "补齐已解析残基的原子并优化结构，保留原始文件。",
           "Prepare resolved atoms and refine structures while preserving originals.",
@@ -206,7 +206,7 @@ export const methodChoices = [
     options: [
       {
         id: "apbs.potential",
-        label: "apbs",
+        label: "APBS",
         note: [
           "在指定 pH 和盐浓度下计算电势并下载三维网格。",
           "Calculate potential at selected pH/salt conditions and export the grid.",
@@ -225,7 +225,7 @@ export const methodChoices = [
     options: [
       {
         id: "chemprop.train",
-        label: "chemprop",
+        label: "Chemprop",
         note: [
           "从带标签的分子库训练模型，保留骨架划分验证与原始单位。",
           "Train from labeled molecular libraries with scaffold-split validation.",
@@ -244,7 +244,7 @@ export const methodChoices = [
     options: [
       {
         id: "chemprop.predict",
-        label: "chemprop",
+        label: "Chemprop",
         note: [
           "选择已训练模型并预测新分子，保留模型版本与单位。",
           "Choose a trained model to predict new molecules with original units.",
@@ -263,7 +263,7 @@ export const methodChoices = [
     options: [
       {
         id: "plip.profile",
-        label: "plip",
+        label: "PLIP",
         note: [
           "显示原生化学相互作用类型、关键残基和真实距离。",
           "Display native interaction types, residues and coordinate distances.",

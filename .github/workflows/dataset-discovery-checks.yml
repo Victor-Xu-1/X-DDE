@@ -28,6 +28,10 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      # Exact material-source gate; no new native calculations.
+      - "!frontend/src/datasets/DELCountMaterials*"
+      - "!frontend/src/datasets/DELMaterialQuestion.tsx"
+      - "!frontend/src/datasets/DatasetPicker*"
   workflow_dispatch:
     inputs:
       engine:

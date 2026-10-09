@@ -1,0 +1,11 @@
+.del-count-material-source .questionnaire-choices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.del-count-material-source input:disabled + span {
+  opacity: 0.65;
+}
+@media (max-width: 600px) {
+  .del-count-material-source .questionnaire-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

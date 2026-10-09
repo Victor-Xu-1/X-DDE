@@ -4,7 +4,25 @@ from copy import deepcopy
 
 from .definitions import CAPABILITIES
 
-_METHOD_LABELS = {"deepternary": "DeepTernary"}
+_METHOD_LABELS = {
+    "deepternary": "DeepTernary",
+    "boltz": "Boltz-2",
+    "reinvent": "REINVENT4",
+    "boltzgen": "BoltzGen",
+    "ligandmpnn": "LigandMPNN",
+    "openmm": "OpenMM",
+    "gromacs": "GROMACS",
+    "openfe": "OpenFE",
+    "chemprop": "Chemprop",
+    "apbs": "APBS",
+    "plip": "PLIP",
+}
+
+
+def method_name(source: str) -> str:
+    """Display names never replace immutable engine identifiers or scientific sources."""
+    return _METHOD_LABELS.get(source, source)
+
 
 _GROUPS = (
     {
@@ -110,7 +128,7 @@ def method_choices():
                 "options": (
                     {
                         "id": spec.id,
-                        "label": _METHOD_LABELS.get(spec.source, spec.source),
+                        "label": method_name(spec.source),
                         "note": spec.note,
                     },
                 ),
