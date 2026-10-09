@@ -39,6 +39,7 @@ on:
       # Camera and paired-result changes are verified by viewer-checks.yml.
       - "!frontend/src/viewer/frame.ts"
       - "!frontend/src/viewer/scene.ts"
+      # Pocket prototype removal belongs to the focused selection gate.
       - "!frontend/src/viewer/source-depth*"
       - "!frontend/src/viewer/context-focus*"
       - "!frontend/src/viewer/style.test.ts"
@@ -126,6 +127,10 @@ on:
       - "!frontend/src/pockets/PocketResults*"
       - "!frontend/src/pockets/PocketSelection*"
       - "!frontend/src/pockets/pocket-results.css"
+      - "!frontend/src/presentation/ResearchTable*"
+      - "!frontend/src/presentation/research-table.css"
+      - "!frontend/src/presentation/table-selection.ts"
+      - "!frontend/src/operations/PropertyResults.tsx"
       - "!frontend/src/viewer/InitialPoseStatus*"
       - "!frontend/src/viewer/initial-geometry*"
       - "!frontend/src/viewer/usePoseOptimization*"

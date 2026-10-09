@@ -29,6 +29,93 @@ const columns = [
     numeric: true,
   },
 ];
+it("selects a whole row by pointer or keyboard without stealing comparison and nested actions", async () => {
+  const user = userEvent.setup(),
+    onSelect = vi.fn(),
+    action = vi.fn();
+  render(
+    <ResearchTable
+      rows={rows}
+      rowId={(row) => row.id}
+      language="en"
+      title="Row interactions"
+      selected="record-7"
+      onSelect={onSelect}
+      columns={[
+        ...columns,
+        {
+          key: "action",
+          label: "Action",
+          value: () => null,
+          render: () => (
+            <button type="button" onClick={action}>
+              Inspect source
+            </button>
+          ),
+        },
+      ]}
+    />,
+  );
+  const table = screen.getByRole("table", { name: "Row interactions" });
+  const row = within(table).getByRole("row", { name: /JQ1/ });
+  await user.click(within(row).getByRole("cell", { name: "2" }));
+  expect(onSelect).toHaveBeenCalledExactlyOnceWith(rows[1]);
+  onSelect.mockClear();
+  row.focus();
+  await user.keyboard("{Enter} ");
+  expect(onSelect).toHaveBeenCalledTimes(2);
+  onSelect.mockClear();
+  await user.click(
+    within(row).getByRole("button", { name: "JQ1" }),
+  );
+  expect(onSelect).toHaveBeenCalledExactlyOnceWith(rows[1]);
+  onSelect.mockClear();
+  await user.click(within(row).getByRole("checkbox", { name: "Compare JQ1" }));
+  await user.click(within(row).getByRole("button", { name: "Inspect source" }));
+  expect(action).toHaveBeenCalledOnce();
+  expect(onSelect).not.toHaveBeenCalled();
+  expect(within(table).getByRole("row", { name: /Sotorasib/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+});
+it("preserves disabled record restrictions and leaves a read-only report non-selectable", async () => {
+  const user = userEvent.setup(),
+    onSelect = vi.fn();
+  const { rerender } = render(
+    <ResearchTable
+      rows={rows}
+      columns={columns}
+      rowId={(row) => row.id}
+      title="Restricted rows"
+      language="en"
+      onSelect={onSelect}
+      canSelect={(row) => row.value !== null}
+    />,
+  );
+  const row = screen.getByRole("row", { name: /Osimertinib/ });
+  expect(row).not.toHaveAttribute("tabindex");
+  expect(
+    within(row).getByRole("button", { name: "Osimertinib" }),
+  ).toBeDisabled();
+  await user.click(row);
+  expect(onSelect).not.toHaveBeenCalled();
+  rerender(
+    <ResearchTable
+      rows={rows}
+      columns={columns}
+      rowId={(row) => row.id}
+      title="Restricted rows"
+      language="en"
+    />,
+  );
+  expect(screen.getByRole("row", { name: /JQ1/ })).not.toHaveAttribute(
+    "tabindex",
+  );
+  expect(screen.getByRole("row", { name: /JQ1/ })).not.toHaveAttribute(
+    "aria-selected",
+  );
+});
 it("keeps original record identities while searching and sorting missing values", async () => {
   const user = userEvent.setup(),
     onSelect = vi.fn();

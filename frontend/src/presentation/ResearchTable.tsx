@@ -14,6 +14,7 @@ import {
 import "./research-table.css";
 import { TableColumns } from "./TableColumns";
 import { useTableColumns } from "./useTableColumns";
+import { isRowSelectionTarget } from "./table-selection";
 
 export interface ResearchColumn<T> {
   key: string;
@@ -33,6 +34,7 @@ export function ResearchTable<T>({
   title,
   selected,
   onSelect,
+  canSelect,
   initialSort,
   initialVisibleColumns,
   compare = true,
@@ -45,6 +47,7 @@ export function ResearchTable<T>({
   title: string;
   selected?: string | null;
   onSelect?(row: T): void;
+  canSelect?(row: T): boolean;
   initialSort?: SortOrder;
   initialVisibleColumns?: readonly string[];
   compare?: boolean;
@@ -301,8 +304,46 @@ export function ResearchTable<T>({
           <tbody>
             {displayed.map((row) => {
               const key = rowId(row);
+              const selectable = !!onSelect && (canSelect?.(row) ?? true);
               return (
-                <tr key={key} className={selected === key ? "is-selected" : ""}>
+                <tr
+                  key={key}
+                  className={[
+                    selected === key ? "is-selected" : "",
+                    selectable ? "is-selectable" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  aria-selected={onSelect ? selected === key : undefined}
+                  tabIndex={selectable ? 0 : undefined}
+                  onClick={
+                    selectable
+                      ? (event) => {
+                          if (
+                            !event.defaultPrevented &&
+                            isRowSelectionTarget(
+                              event.target,
+                              event.currentTarget,
+                            )
+                          )
+                            onSelect?.(row);
+                        }
+                      : undefined
+                  }
+                  onKeyDown={
+                    selectable
+                      ? (event) => {
+                          if (
+                            event.target === event.currentTarget &&
+                            (event.key === "Enter" || event.key === " ")
+                          ) {
+                            event.preventDefault();
+                            onSelect?.(row);
+                          }
+                        }
+                      : undefined
+                  }
+                >
                   {compare && rows.length > 1 && (
                     <td className="mark-cell">
                       <input
@@ -333,6 +374,7 @@ export function ResearchTable<T>({
                           type="button"
                           className="record-select"
                           aria-pressed={selected === key}
+                          disabled={!selectable}
                           onClick={() => onSelect(row)}
                         >
                           {cell(row, column)}

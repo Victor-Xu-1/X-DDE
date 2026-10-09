@@ -35,9 +35,6 @@ function fixture(data = sdf, format = "sdf") {
     render: vi.fn(),
     zoomTo: vi.fn(),
     zoom: vi.fn(),
-    getView: vi.fn(() => [0, 0, 0, -80, 0, 0, 0, 1]),
-    getSlab: vi.fn(() => ({ near: -50, far: 50 })),
-    setSlab: vi.fn(),
   } as unknown as GLViewer;
   const emit = vi.fn(),
     scene = new MolecularScene(viewer, emit);

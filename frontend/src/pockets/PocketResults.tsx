@@ -31,6 +31,11 @@ export function PocketResults({
     [continueDesign, setContinue] = useState(false),
     [continueDocking, setDocking] = useState(false),
     [message, setMessage] = useState("");
+  function selectSite(site: Site) {
+    setSelected(site);
+    setContinue(false);
+    setDocking(false);
+  }
   if (selected && (continueDesign || continueDocking))
     return (
       <ResearchHandoff
@@ -115,6 +120,7 @@ export function PocketResults({
             language={language}
             rowId={(site) => String(site.rank)}
             selected={selected ? String(selected.rank) : null}
+            onSelect={selectSite}
             compare={false}
             columns={[
               {
@@ -126,11 +132,7 @@ export function PocketResults({
                     type="button"
                     className="record-select"
                     aria-pressed={site.rank === selected?.rank}
-                    onClick={() => {
-                      setSelected(site);
-                      setContinue(false);
-                      setDocking(false);
-                    }}
+                    onClick={() => selectSite(site)}
                   >
                     {zh ? "口袋" : "Pocket"} {site.rank}
                   </button>

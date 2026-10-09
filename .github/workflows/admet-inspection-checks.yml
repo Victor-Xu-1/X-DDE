@@ -4,8 +4,9 @@ on:
   push:
     paths:
       - "frontend/src/admet/**"
+      # Row selection is verified with native ADMET records in the shared selection gate.
+      - "!frontend/src/admet/AdmetRecordTable.tsx"
       - "server_tests/test_admet_inspection_browser.py"
-      - ".github/workflows/admet-inspection-checks.yml"
 permissions:
   contents: read
 jobs:

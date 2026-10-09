@@ -54,7 +54,7 @@ on:
       - "!frontend/src/editors/ketcher-hydrogens*"
       - "!frontend/src/editors/Editors.tsx"
       - "!frontend/src/editors/scientificEditor.ts"
-      # Native pocket selection and depth use pocket-result-checks.yml.
+      # Pocket prototype removal belongs to the focused selection gate.
       - "!frontend/src/viewer/source-depth*"
 permissions:
   contents: read

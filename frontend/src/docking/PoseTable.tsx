@@ -158,6 +158,8 @@ export function PoseTable({
       columns={columns}
       rowId={(p) => String(p.record)}
       selected={selected == null ? null : String(selected)}
+      onSelect={onSelect}
+      canSelect={(pose) => pose.valid && !!pose.artifact}
       language={language}
       title={"GNINA " + result.software_version}
     />

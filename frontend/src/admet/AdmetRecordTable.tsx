@@ -98,6 +98,7 @@ export function AdmetRecordTable({
       title={zh ? "候选分子" : "Candidate molecules"}
       exportName="admet-candidate-predictions.csv"
       selected={selected == null ? null : String(selected)}
+      onSelect={onSelect}
     />
   );
 }

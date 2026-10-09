@@ -13,7 +13,6 @@ import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
-import { retainSourceDepth } from "./source-depth";
 import { focusDisplayContext } from "./context-focus";
 import { contactLabelLayer } from "./contact-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
@@ -216,13 +215,12 @@ export class MolecularScene {
   }
   focusSite() {
     if (this.overlay || !this.siteRegion.length) return;
-    const focused = focusDisplayContext(
+    focusDisplayContext(
       this.viewer,
       this.viewer.selectedAtoms({ model: 0, index: this.siteRegion }),
       null,
       this.viewport?.(),
     );
-    if (focused && retainSourceDepth(this.viewer)) this.viewer.render();
   }
   paint(): Promise<void> {
     const revision = this.revision;

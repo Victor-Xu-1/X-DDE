@@ -98,6 +98,7 @@ export function PropertyResults({
           title={zh ? "分子性质 · RDKit 计算" : "Molecular properties · RDKit"}
           language={language}
           selected={String(selection)}
+          onSelect={(row) => setSelection(row.index)}
         />
         <div className="result-inspector">
           {current && (

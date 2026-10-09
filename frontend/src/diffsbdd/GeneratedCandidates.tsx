@@ -47,6 +47,7 @@ export function GeneratedCandidates({
         }
         language={language}
         selected={selected ? String(selected.record) : null}
+        onSelect={onSelect}
         columns={[
           {
             key: "candidate",

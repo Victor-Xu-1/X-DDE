@@ -94,8 +94,13 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
             name=("口袋 " if language == "zh" else "Pocket ") + str(site["rank"]),
             exact=True,
         )
-        control.focus()
-        page.keyboard.press("Enter")
+        selected_row = table.locator("tbody tr").filter(has=control)
+        selected_row.locator("td").nth(1).click()
+        expect(selected_row).to_have_attribute("aria-selected", "true")
+        table.locator("tbody tr").first.locator("td").nth(2).click()
+        expect(table.locator("tbody tr").first).to_have_attribute("aria-selected", "true")
+        selected_row.focus()
+        page.keyboard.press("Space")
         expect(control).to_have_attribute("aria-pressed", "true")
         expect(selection.get_by_role("heading")).to_have_text(
             ("口袋 " if language == "zh" else "Pocket ") + str(site["rank"])
