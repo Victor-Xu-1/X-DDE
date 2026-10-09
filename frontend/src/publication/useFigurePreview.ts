@@ -61,8 +61,11 @@ export function useFigurePreview({
           activeId.current = id;
           setPreview({ key, id, url: next, blob, decoded: false });
         })
-        .catch(() => {
-          if (!controller.signal.aborted) setError(true);
+        .catch((cause: unknown) => {
+          if (!controller.signal.aborted) {
+            console.warn("Native figure preview unavailable.", cause);
+            setError(true);
+          }
         });
     }, 180);
     return () => {
@@ -82,6 +85,7 @@ export function useFigurePreview({
       ),
     failed: (failedId: number) => {
       if (activeId.current !== failedId) return;
+      console.warn("Native figure preview could not be decoded.");
       activeId.current = null;
       setPreview(null);
       setError(true);

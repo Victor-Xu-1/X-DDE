@@ -122,3 +122,26 @@ it("never publishes late preview bytes after the dialog closes", async () => {
   expect(download).not.toHaveBeenCalled();
   expect(URL.createObjectURL).not.toHaveBeenCalled();
 });
+it("keeps a decode failure unavailable until a newly rendered preview loads", async () => {
+  const native = vi.fn(async () => vector());
+  render(
+    <FigureExport
+      language="en"
+      filename="result"
+      format="svg"
+      render={native}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  const oldImage = await screen.findByRole("img");
+  fireEvent.error(oldImage);
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Retry preview" }));
+  const nextImage = await screen.findByRole("img");
+  expect(nextImage).not.toBe(oldImage);
+  fireEvent.load(oldImage);
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  fireEvent.load(nextImage);
+  fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
+  expect(download).toHaveBeenCalledOnce();
+});
