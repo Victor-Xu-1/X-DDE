@@ -9,7 +9,11 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
-from server_tests.landscape_browser_helpers import choose_native_point, responsive_landscape
+from server_tests.landscape_browser_helpers import (
+    choose_native_point,
+    exercise_plot_view,
+    responsive_landscape,
+)
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
 
 CAPABILITIES = ["properties", "admet.predict", "chemistry.states", "mpnn", "esm"]
@@ -112,10 +116,7 @@ def test_native_landscape_preserves_values_links_records_and_exports(capability,
         choice.select_option(indices[0])
         expect(choice).to_have_value(indices[0])
         expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
-        panel.get_by_role(
-            "combobox", name="Chart interaction" if language == "en" else "图表操作"
-        ).select_option("pan")
-        expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
+        exercise_plot_view(page, panel, language)
         svg = export_figure(
             page,
             panel.get_by_role(

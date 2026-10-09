@@ -65,6 +65,7 @@ it("retains raw negative values and original row selection through filtered nati
   expect(plot.data[0].x).toEqual([220, 214]);
   expect(plot.data[0].y).toEqual([-0.6953, -1.1675]);
   expect(plot.data[0].marker.size).toEqual([8, 5]);
+  expect(plot.layout.uirevision).toBe("length|score");
   expect(screen.getByText(/2 \/ 3 records/)).toBeVisible();
   await userEvent.click(
     screen.getByRole("button", { name: "Native second point" }),
@@ -80,6 +81,7 @@ it("retains raw negative values and original row selection through filtered nati
     "score",
   );
   expect(chart.mock.lastCall![0].data[0].x).toEqual([-0.6953, -1.1675]);
+  expect(chart.mock.lastCall![0].layout.uirevision).toBe("score|score");
 });
 it("keeps identity axes equal and never selects a reference line as a source record", async () => {
   const onSelect = vi.fn();

@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
-from server_tests.landscape_browser_helpers import responsive_landscape
+from server_tests.landscape_browser_helpers import exercise_plot_view, responsive_landscape
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
 
 
@@ -87,6 +87,9 @@ def test_model_validation_identity_ranges_exports_and_literal_source_names(langu
             "el => el.layout.yaxis.range"
         )
         assert chart.evaluate("el => el.data[1].x") == chart.evaluate("el => el.data[1].y")
+        exercise_plot_view(
+            page, panel, language, chart.evaluate("el => el._fullLayout.xaxis.range")
+        )
         svg = export_figure(
             page,
             panel.get_by_role(

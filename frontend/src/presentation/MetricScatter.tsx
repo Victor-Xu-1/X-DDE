@@ -144,6 +144,9 @@ export function MetricScatter<T>({
           language={language}
           height={290}
           layout={{
+            // Switching units must reset a prior zoom; selecting another row keeps it.
+            // https://plotly.com/javascript/uirevision/
+            uirevision: x.key + "|" + y.key,
             showlegend: false,
             xaxis: {
               title: { text: plotText(x.label) },
