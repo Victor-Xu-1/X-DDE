@@ -8,9 +8,9 @@ function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
     structService: {
-      toggleExplicitHydrogens: vi.fn(async () => {
+      toggleExplicitHydrogens: vi.fn(async (data: { struct: string }) => {
         calls.push("fold-hydrogens");
-        return { struct: "native-hydrogen-display-copy" };
+        return { struct: `folded:${data.struct}` };
       }),
     },
     editor: {
@@ -78,9 +78,7 @@ describe("Native aromatic depiction", () => {
           output_format: "chemical/x-mdl-molfile",
         },
       );
-      expect(editor.setMolecule).toHaveBeenCalledWith(
-        "native-hydrogen-display-copy",
-      );
+      expect(editor.setMolecule).toHaveBeenCalledWith("folded:c1ccccc1");
       expect(editor.generateImage).toHaveBeenCalledWith("native-kekule-mol", {
         outputFormat: "svg",
         backgroundColor: "1,1,1",
@@ -165,8 +163,8 @@ describe("Source-aware drawing queue", () => {
       expect(await old).toBe("AbortError");
       await current;
       expect(editor.setMolecule.mock.calls.map((args) => args[0])).toEqual([
-        "c1ccccc1",
-        "CN",
+        "folded:c1ccccc1",
+        "folded:CN",
       ]);
     } finally {
       renderer.close();

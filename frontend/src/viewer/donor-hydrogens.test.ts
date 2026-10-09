@@ -4,6 +4,7 @@ vi.hoisted(() =>
 );
 import { GLModel, type AtomSpec } from "3dmol";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   nonExchangeableHydrogens,
   hideNonExchangeableHydrogens,
@@ -58,9 +59,9 @@ it("applies the same rule to protein, ligand and any other explicit non-donor hy
 it.each(["STAT6-user-warhead", "STAT6-user-PROTAC"])(
   "renders the actual minimized %s source with donor H only and unchanged pose",
   (name) => {
-    const file = new URL(
-      `../../../../src/opendde_workbench/examples/stat6/inputs/${name}.sdf`,
-      import.meta.url,
+    const file = resolve(
+      process.cwd(),
+      `../src/opendde_workbench/examples/stat6/inputs/${name}.sdf`,
     );
     const raw = readFileSync(file, "utf8"),
       model = new GLModel(0);
