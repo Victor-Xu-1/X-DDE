@@ -74,12 +74,20 @@ def test_fresh_prediction_has_no_unavailable_results_strip_or_toy_inputs(tmp_pat
             assert "CCO" not in page.locator("body").inner_text()
             assert "ethanol" not in page.locator("body").inner_text().lower()
             assert "乙醇" not in page.locator("body").inner_text()
+            page.screenshot(
+                path=str(evidence / f"{language}-{width}-input-help.png"), full_page=True
+            )
             page.keyboard.press("Escape")
+            page.keyboard.press("Tab")
+            page.mouse.move(0, 0)
+            expect(page.get_by_role("tooltip")).to_be_hidden()
             active = page.locator(".prediction-workspace .questionnaire > fieldset:not([hidden])")
             expect(active).to_have_css("transform", "none")
             expect(active).to_have_css("opacity", "1")
             expect(ligand).to_be_visible()
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            # Capture the clean page from its top; retain the help-open image separately.
+            page.evaluate("window.scrollTo({top:0,behavior:'instant'})")
             page.screenshot(
                 path=str(evidence / f"{language}-{width}-materials.png"), full_page=True
             )
