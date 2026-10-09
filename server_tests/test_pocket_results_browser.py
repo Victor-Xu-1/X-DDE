@@ -126,9 +126,7 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
                 language,
             )
             inspect_png(figure)
-        viewer.get_by_text(
-            "下载结构文件" if language == "zh" else "Download structure files", exact=True
-        ).click()
+        viewer.locator(".viewer-original-downloads > summary").click()
         with page.expect_download() as download:
             viewer.get_by_role(
                 "link", name="结构 1" if language == "zh" else "Structure 1", exact=True
