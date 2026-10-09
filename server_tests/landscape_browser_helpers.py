@@ -20,8 +20,10 @@ def exercise_plot_view(page, panel, language, bounds=None):
     page.mouse.up()
     page.wait_for_function(
         """before => {
-      const chart=Array.from(document.querySelectorAll('.metric-scatter .research-plot-canvas')).find(el=>el.offsetWidth && el.offsetHeight);
-      return chart?._fullLayout.xaxis.range.some((value,index)=>Math.abs(value-before[index])>1e-10);
+      const charts=document.querySelectorAll('.metric-scatter .research-plot-canvas');
+      const chart=Array.from(charts).find(el=>el.offsetWidth && el.offsetHeight);
+      return chart?._fullLayout.xaxis.range.some(
+        (value,index)=>Math.abs(value-before[index])>1e-10);
     }""",
         arg=before,
     )
@@ -30,8 +32,10 @@ def exercise_plot_view(page, panel, language, bounds=None):
     expected = bounds if bounds is not None else before
     page.wait_for_function(
         """expected => {
-      const chart=Array.from(document.querySelectorAll('.metric-scatter .research-plot-canvas')).find(el=>el.offsetWidth && el.offsetHeight);
-      return chart?._fullLayout.xaxis.range.every((value,index)=>Math.abs(value-expected[index])<1e-7);
+      const charts=document.querySelectorAll('.metric-scatter .research-plot-canvas');
+      const chart=Array.from(charts).find(el=>el.offsetWidth && el.offsetHeight);
+      return chart?._fullLayout.xaxis.range.every(
+        (value,index)=>Math.abs(value-expected[index])<1e-7);
     }""",
         arg=expected,
     )
