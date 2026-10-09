@@ -71,7 +71,7 @@ jobs:
           WB_BROWSER_URL: http://127.0.0.1:4330
         run: |
           mkdir -p server_tests/evidence/stat6
-          .venv/bin/python -m opendde_workbench --port 4330 --no-auto-deploy > server_tests/evidence/stat6/service.log 2>&1 &
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/stat6/service.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
