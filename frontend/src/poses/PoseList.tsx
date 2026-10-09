@@ -1,6 +1,7 @@
 import { scoreLabel } from "../docking/scoreLabels";
 import type { Language } from "../types";
 import type { PoseSet } from "./types";
+import { ResultRow } from "../presentation/ResultRow";
 
 export function PoseList({
   outcome,
@@ -33,11 +34,11 @@ export function PoseList({
         </thead>
         <tbody>
           {outcome.poses.map((pose) => (
-            <tr
+            <ResultRow
               key={pose.evidence.record}
-              className={
-                selected === pose.evidence.record ? "is-selected" : undefined
-              }
+              selected={selected === pose.evidence.record}
+              disabled={!pose.reference}
+              onSelect={() => onSelect(pose.evidence.record)}
             >
               <th scope="row">
                 <button
@@ -75,7 +76,7 @@ export function PoseList({
                     : "Available"
                   : (pose.evidence.reason ?? (zh ? "未通过" : "Rejected"))}
               </td>
-            </tr>
+            </ResultRow>
           ))}
         </tbody>
       </table>

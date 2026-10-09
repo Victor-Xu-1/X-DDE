@@ -32,6 +32,8 @@ on:
       - "!frontend/src/datasets/DELCountMaterials*"
       - "!frontend/src/datasets/DELMaterialQuestion.tsx"
       - "!frontend/src/datasets/DatasetPicker*"
+      # Row interaction is checked alongside retained molecular result selections.
+      - '!frontend/src/datasets/ResearchTable.tsx'
   workflow_dispatch:
     inputs:
       engine:

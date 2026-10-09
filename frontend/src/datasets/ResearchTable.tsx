@@ -5,6 +5,7 @@ import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import { evidenceNotes } from "./evidence-labels";
 import { supplierLabel } from "./supplier-label";
+import { ResultRow } from "../presentation/ResultRow";
 
 export type TableRow = Record<string, string | number | null>;
 interface Page {
@@ -201,10 +202,11 @@ export function ResearchTable({
                   `${row.kind}-${row.block_a}-${row.block_b}-${index}`,
               );
               return (
-                <tr
+                <ResultRow
                   key={`${id}-${index}`}
                   className={selected.has(id) ? "selected" : ""}
-                  onClick={() => onSelect?.(row)}
+                  selected={selected.has(id)}
+                  onSelect={onSelect ? () => onSelect(row) : undefined}
                 >
                   {onSelection && (
                     <td>
@@ -295,7 +297,7 @@ export function ResearchTable({
                       )}
                     </td>
                   ))}
-                </tr>
+                </ResultRow>
               );
             })}
           </tbody>

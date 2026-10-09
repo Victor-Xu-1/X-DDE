@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 import type { MemberEvidence } from "./types";
+import { ResultRow } from "../presentation/ResultRow";
 
 export function ReceptorMemberTable({
   members,
@@ -30,9 +31,10 @@ export function ReceptorMemberTable({
         </thead>
         <tbody>
           {members.map((member) => (
-            <tr
+            <ResultRow
               key={member.index}
-              className={member.index === selected ? "is-selected" : undefined}
+              selected={member.index === selected}
+              onSelect={() => onSelect(member.index)}
             >
               <th scope="row">
                 <button
@@ -66,10 +68,10 @@ export function ReceptorMemberTable({
                 }
               >
                 {member.transformation
-              ? member.transformation.rmsd_angstrom.toFixed(3)
+                  ? member.transformation.rmsd_angstrom.toFixed(3)
                   : "—"}
               </td>
-            </tr>
+            </ResultRow>
           ))}
         </tbody>
       </table>

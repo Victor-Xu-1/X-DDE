@@ -43,8 +43,19 @@ def test_native_record_cells_and_keyboard_update_the_exact_inspector(capability,
         target = candidates.nth(1)
         target.locator("td.numeric-cell").first.click()
         expect(target).to_have_attribute("aria-selected", "true")
+        # Let the actual client polling complete before checking that it retained
+        # the chosen record. This is a bounded observation, never a resubmission.
+        with page.expect_response(
+            lambda response: (
+                response.url == base + "/api/jobs" and response.request.method == "GET"
+            ),
+            timeout=15000,
+        ) as poll:
+            page.wait_for_timeout(3500)
+        assert poll.value.ok
+        expect(target).to_have_attribute("aria-selected", "true")
         if capability == "properties":
-            expect(page.locator(".properties-results .result-inspector h3")).to_have_text(
+            expect(page.locator(".properties-results .result-inspector > header h3")).to_have_text(
                 ("分子 " if zh else "Molecule ") + "2"
             )
         elif capability == "admet.predict":

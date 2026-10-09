@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { CandidatePanel } from "./CandidatePanel";
@@ -41,6 +41,15 @@ it("selects a conformer and overlays no more than three, without an empty affini
   expect(screen.queryByRole("tooltip")).toBeNull();
   await user.click(screen.getByRole("button", { name: "构象与评分说明" }));
   expect(screen.getByRole("tooltip")).toHaveTextContent("不是药效");
+  const row = screen.getByRole("row", { name: /构象 2/ });
+  await user.click(row.querySelector("td.score")!);
+  expect(select).toHaveBeenCalledExactlyOnceWith("sample-1");
+  select.mockClear();
+  row.focus();
+  await user.keyboard("{Enter}");
+  expect(select).toHaveBeenCalledExactlyOnceWith("sample-1");
+  select.mockClear();
+  expect(within(row).getByRole("button", { name: "构象 2" })).toBeEnabled();
   await user.click(screen.getByRole("button", { name: "构象 2" }));
   expect(select).toHaveBeenCalledWith("sample-1");
   await user.click(screen.getByRole("checkbox", { name: "叠加 构象 1" }));

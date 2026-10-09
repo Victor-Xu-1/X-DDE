@@ -4,6 +4,7 @@ import { DownloadOutlined } from "@ant-design/icons";
 import { artifactUrl } from "../api";
 import { MetricHelp } from "../guided/MetricHelp";
 import { Hint } from "../guided/Hint";
+import { ResultRow } from "../presentation/ResultRow";
 import type { Analysis, Job, Language } from "../types";
 const n = (v: number | null | undefined, d = 2) =>
   v == null ? "—" : v.toFixed(d);
@@ -143,7 +144,12 @@ export function CandidatePanel({
           </thead>
           <tbody>
             {candidates.map((row) => (
-              <tr key={row.id} className={row.id === selected ? "active" : ""}>
+              <ResultRow
+                key={row.id}
+                className={row.id === selected ? "active" : ""}
+                selected={row.id === selected}
+                onSelect={() => onSelect(row.id)}
+              >
                 <td>
                   <button
                     className="conformer-select"
@@ -202,7 +208,7 @@ export function CandidatePanel({
                     )}
                   </div>
                 </td>
-              </tr>
+              </ResultRow>
             ))}
           </tbody>
         </table>

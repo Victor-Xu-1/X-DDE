@@ -6,6 +6,7 @@ import { ChannelProfile } from "./ChannelProfile";
 import type { Job, Language } from "../types";
 import type { ChannelResult } from "./types";
 import "./channels.css";
+import { ResultRow } from "../presentation/ResultRow";
 export function ChannelResults({
   job,
   result,
@@ -122,9 +123,10 @@ export function ChannelResults({
                 </thead>
                 <tbody>
                   {result.channels.map((row, i) => (
-                    <tr
+                    <ResultRow
                       key={`${row.cluster}:${row.tunnel}`}
-                      aria-selected={selected === i}
+                      selected={selected === i}
+                      onSelect={() => setSelected(i)}
                     >
                       <td>
                         <button
@@ -139,7 +141,7 @@ export function ChannelResults({
                       <td>{row.bottleneck_radius_angstrom.toFixed(2)}</td>
                       <td>{row.length_angstrom.toFixed(1)}</td>
                       <td>{row.curvature.toFixed(2)}</td>
-                    </tr>
+                    </ResultRow>
                   ))}
                 </tbody>
               </table>

@@ -9,6 +9,13 @@ on:
       - 'frontend/src/presentation/ResearchTable*'
       - 'frontend/src/presentation/research-table.css'
       - 'frontend/src/presentation/table-selection.ts'
+      - 'frontend/src/presentation/ResultRow*'
+      - 'frontend/src/presentation/result-row.css'
+      - 'frontend/src/studio/CandidatePanel*'
+      - 'frontend/src/receptors/ReceptorMemberTable.tsx'
+      - 'frontend/src/poses/PoseList.tsx'
+      - 'frontend/src/space/ChannelResults.tsx'
+      - 'frontend/src/datasets/ResearchTable.tsx'
       - 'frontend/src/admet/AdmetRecordTable.tsx'
       - 'frontend/src/docking/PoseTable.tsx'
       - 'frontend/src/diffsbdd/GeneratedCandidates.tsx'
@@ -39,6 +46,7 @@ jobs:
           npm ci --prefix frontend
           npm run build --prefix frontend
           cd frontend
+          npx vitest run src/studio/CandidatePanel.test.tsx src/receptors/ReceptorResults.test.tsx src/poses/PoseResults.test.tsx src/datasets/ResearchTable.test.tsx src/datasets/IndexedLibraryResults.test.tsx src/datasets/DatasetResults.test.tsx
           npx vitest run src/presentation/ResearchTable.test.tsx src/pockets/PocketResults.test.tsx src/docking/DockingResults.test.tsx src/admet/AdmetResults.test.tsx src/diffsbdd/DiffResults.test.tsx src/operations/PropertyResults.test.tsx src/chemistry/StateResults.test.tsx src/operations/SequenceScoreResults.test.tsx src/operations/CandidateSequenceResults.test.tsx src/poses/ClusterResults.test.tsx src/evidence/EvidenceResults.test.tsx src/simulations/SimulationResults.test.tsx src/sites/SiteWorkspace.test.tsx
           npx vitest run src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/viewer/camera-resize.test.ts src/viewer/capture.test.ts src/viewer/StructureViewer.test.tsx src/viewer/donor-hydrogens.test.ts
       - name: Restore reviewed native pockets without running prediction

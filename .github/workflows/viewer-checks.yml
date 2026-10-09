@@ -54,6 +54,8 @@ on:
       - "!frontend/src/editors/ketcher-hydrogens*"
       - "!frontend/src/editors/Editors.tsx"
       - "!frontend/src/editors/scientificEditor.ts"
+      - "!frontend/src/receptors/ReceptorMemberTable.tsx"
+      - "!frontend/src/poses/PoseList.tsx"
       # Pocket prototype removal belongs to the focused selection gate.
       - "!frontend/src/viewer/source-depth*"
 permissions:
