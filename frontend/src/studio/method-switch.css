@@ -1,11 +1,12 @@
 .task-model-switch {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
-.task-model-switch > span {
+.task-model-switch > span:not(.active-control-indicator) {
   font-size: 12px;
   color: var(--muted);
   margin-right: 3px;

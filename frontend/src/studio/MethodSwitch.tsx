@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
@@ -6,6 +6,7 @@ import type { ToolId } from "../operations/catalog";
 import { methodChoices } from "./method-choices";
 import "./method-switch.css";
 import { researchText } from "../presentation/research-content";
+import { ActiveIndicator } from "../presentation/ActiveIndicator";
 export function MethodSwitch({
   value,
   language,
@@ -20,6 +21,7 @@ export function MethodSwitch({
     ),
     zh = language === "zh";
   const [ready, setReady] = useState<Record<string, boolean | null>>({});
+  const track = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!group) return;
     const controller = new AbortController();
@@ -42,6 +44,7 @@ export function MethodSwitch({
   if (!group) return null;
   return (
     <div
+      ref={track}
       className="task-model-switch"
       role="group"
       aria-label={zh ? "后端模型" : "Backend method"}
@@ -66,6 +69,7 @@ export function MethodSwitch({
           )}
         </button>
       ))}
+      <ActiveIndicator container={track} selection={value + ":" + language} />
       <Hint label={zh ? "如何选择模型？" : "How to choose a model?"}>
         <p>{group.default_basis[zh ? 0 : 1]}</p>
         {group.options.map((option) => (

@@ -210,6 +210,14 @@ on:
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/scientificEditor.ts"
       - "!frontend/src/presentation/depiction-renderer*"
+      # These shared controls and their native consumers use publication-checks.yml.
+      - "!frontend/src/guided/questionnaire.css"
+      - "!frontend/src/presentation/ResearchTabs.test.tsx"
+      - "!frontend/src/presentation/research-tabs.css"
+      - "!frontend/src/presentation/ActiveIndicator*"
+      - "!frontend/src/presentation/active-indicator.css"
+      - "!frontend/src/studio/MethodSwitch.tsx"
+      - "!frontend/src/studio/method-switch.css"
   workflow_dispatch:
 permissions:
   contents: read

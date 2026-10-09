@@ -13,6 +13,7 @@ import { TemplateStepHelp } from "../examples/TemplateStepHelp";
 import { firstInvalidQuestion } from "./questionnaire-validity";
 import { researchError } from "../presentation/research-content";
 import { useReveal } from "../presentation/useReveal";
+import { ActiveIndicator } from "../presentation/ActiveIndicator";
 export interface QuestionStep {
   title: string;
   actions?: ReactNode;
@@ -56,6 +57,7 @@ export function GuidedSteps<T extends { id: string }>({
     pending = useRef(false),
     panels = useRef<(HTMLFieldSetElement | null)[]>([]);
   const activePanel = useRef<HTMLFieldSetElement | null>(null);
+  const stepTrack = useRef<HTMLElement>(null);
   useReveal(activePanel, current);
   useEffect(() => {
     mounted.current = true;
@@ -129,6 +131,7 @@ export function GuidedSteps<T extends { id: string }>({
       }}
     >
       <nav
+        ref={stepTrack}
         className="questionnaire-steps"
         aria-label={zh ? "任务步骤" : "Task steps"}
       >
@@ -148,6 +151,10 @@ export function GuidedSteps<T extends { id: string }>({
             <span>{title}</span>
           </button>
         ))}
+        <ActiveIndicator
+          container={stepTrack}
+          selection={current + ":" + titles.join("|")}
+        />
       </nav>
       <header className="questionnaire-page-heading">
         <h2

@@ -2,14 +2,21 @@ name: Scientific figure and interaction checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &figure_paths
       - "frontend/src/publication/**"
       - "frontend/src/presentation/useReveal*"
       - "frontend/src/presentation/ResearchTabs.tsx"
+      - "frontend/src/presentation/ResearchTabs.test.tsx"
+      - "frontend/src/presentation/research-tabs.css"
+      - "frontend/src/presentation/ActiveIndicator*"
+      - "frontend/src/presentation/active-indicator.css"
       - "frontend/src/presentation/MetricBars.tsx"
       - "frontend/src/presentation/InteractionDiagram*"
       - "frontend/src/presentation/MoleculeImage.tsx"
       - "frontend/src/guided/Questionnaire.tsx"
+      - "frontend/src/guided/questionnaire.css"
+      - "frontend/src/studio/MethodSwitch.tsx"
+      - "frontend/src/studio/method-switch.css"
       - "frontend/src/viewer/capture*"
       - "frontend/src/viewer/useViewerSnapshot*"
       - "frontend/src/viewer/StructureViewer.tsx"
@@ -24,6 +31,7 @@ on:
       - "frontend/src/simulations/molstar-figure.ts"
       - "frontend/src/simulations/molstar-figure.test.ts"
       - "server_tests/*publication*"
+      - ".github/workflows/publication-checks.yml"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/publication/embedded-raster.test.ts"
@@ -35,6 +43,8 @@ on:
       # Selected-pocket controls/camera have native exports in pocket-result-checks.yml.
       - "!frontend/src/viewer/StructureViewer.tsx"
       - "!frontend/src/viewer/frame.ts"
+  pull_request:
+    paths: *figure_paths
 permissions:
   contents: read
 jobs:
@@ -56,7 +66,10 @@ jobs:
         run: >-
           npx vitest run src/publication/settings-svg.test.ts src/publication/png-resolution.test.ts
           src/publication/render-deadline.test.ts
+          src/publication/figure-render-queue.test.ts
           src/publication/FigureExport.test.tsx src/presentation/useReveal.test.tsx
+          src/presentation/ActiveIndicator.test.tsx src/presentation/ResearchTabs.test.tsx
+          src/studio/MethodSwitch.test.tsx
           src/presentation/MetricScatter.test.tsx src/presentation/InteractionDiagram.test.tsx
           src/presentation/depiction-renderer.test.ts src/guided/Questionnaire.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts src/viewer/StructureViewer.test.tsx
@@ -67,15 +80,14 @@ jobs:
           uv run --locked pytest -q
           tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
           tests/test_api_security.py::test_csrf_origin_and_host_boundaries
-      - name: Restore retained real MD, FEP plan and BRD4 case; no scientific execution
+      - name: Restore retained native MD, FEP plan and archival public results; no scientific execution
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
           gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
-          gh run download 37818969527 --repo "$GITHUB_REPOSITORY" --name pose-cluster-acceptance --dir outputs/retained-cluster
-          gh run download 37818969518 --repo "$GITHUB_REPOSITORY" --name caver-native-evidence --dir outputs/retained-channels
+          .venv/bin/python server_tests/download_publication_cases.py
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Restore case data and managed editor in isolated CI state
         run: |
@@ -86,7 +98,7 @@ jobs:
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_simulation_views.py
-          server_tests/test_publication_browser.py server_tests/test_simulation_browser.py -k 'not calculation'
+          server_tests/test_publication_browser.py server_tests/test_publication_controls_browser.py -k 'not calculation'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -95,4 +107,3 @@ jobs:
             outputs/native-simulations/openmm.dynamics/browser/**
             outputs/native-simulations/openfe.rbfe/browser/**
             outputs/publication-browser/**
-            outputs/simulation-browser/**

@@ -28,12 +28,28 @@ export function FigureExport({
     [inflight, setInflight] = useState(false);
   const locked = useRef(false),
     mounted = useRef(true);
+  const trigger = useRef<HTMLButtonElement>(null),
+    restoreFocus = useRef(false);
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
     };
   }, []);
+  useEffect(() => {
+    if (!open && restoreFocus.current && !inflight) {
+      restoreFocus.current = false;
+      if (
+        document.activeElement === document.body ||
+        document.activeElement == null
+      )
+        trigger.current?.focus({ preventScroll: true });
+    }
+  }, [open, inflight]);
+  function close() {
+    restoreFocus.current = true;
+    setOpen(false);
+  }
   async function nativeRender(settings: FigureSettings) {
     if (locked.current)
       throw new Error("A native figure is already being rendered.");
@@ -49,6 +65,7 @@ export function FigureExport({
   return (
     <>
       <button
+        ref={trigger}
         type="button"
         className="text-button figure-export-trigger"
         disabled={disabled || inflight}
@@ -65,7 +82,7 @@ export function FigureExport({
           render={nativeRender}
           onStart={onStart}
           typography={typography}
-          onClose={() => setOpen(false)}
+          onClose={close}
         />
       )}
     </>

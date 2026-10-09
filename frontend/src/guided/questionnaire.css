@@ -3,6 +3,7 @@
 }
 /* One compact progress track, shared by every guided task. */
 .questionnaire-steps {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
@@ -34,6 +35,18 @@
   background: var(--surface-muted);
   color: var(--muted);
   font-weight: 600;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .questionnaire-steps button > span:first-child,
+  .questionnaire-choices label {
+    transition:
+      color 160ms,
+      background-color 160ms,
+      border-color 160ms;
+  }
+  .questionnaire-actions button:active:not(:disabled) {
+    transform: translateY(1px);
+  }
 }
 .questionnaire-steps button[aria-current="step"] {
   color: var(--accent);

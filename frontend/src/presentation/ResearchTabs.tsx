@@ -1,6 +1,7 @@
 import "./research-tabs.css";
 import { useId, useRef, useState, type ReactNode } from "react";
 import { useReveal } from "./useReveal";
+import { ActiveIndicator } from "./ActiveIndicator";
 export function ResearchTabs({
   tabs,
   label,
@@ -19,10 +20,16 @@ export function ResearchTabs({
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const current = tabs.some((t) => t.id === active) ? active : tabs[0]?.id;
   const panel = useRef<HTMLElement>(null);
+  const track = useRef<HTMLDivElement>(null);
   useReveal(panel, current ?? "");
   return (
     <div className="research-tabs">
-      <div className="research-tab-list" role="tablist" aria-label={label}>
+      <div
+        ref={track}
+        className="research-tab-list"
+        role="tablist"
+        aria-label={label}
+      >
         {tabs.map((tab, index) => (
           <button
             key={tab.id}
@@ -62,6 +69,10 @@ export function ResearchTabs({
             {tab.count != null && <span>{tab.count}</span>}
           </button>
         ))}
+        <ActiveIndicator
+          container={track}
+          selection={current + ":" + tabs.map((tab) => tab.label).join("|")}
+        />
       </div>
       {tabs.map((tab) => (
         <section

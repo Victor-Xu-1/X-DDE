@@ -36,7 +36,7 @@ def test_native_classic_figure_camera_and_source_integrity(language):
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        info = page.request.get(base + "/api/examples/diffsbdd.interactions").json()
+        info = page.request.get(base + "/api/examples/diffsbdd.interactions?profile=archive").json()
         job_id = info["pin"]["job_id"]
         job = page.request.get(base + "/api/jobs/" + job_id).json()
         references = [job["request"]["payload"][key] for key in ("protein", "molecule")]
@@ -117,7 +117,7 @@ def test_retained_matrix_and_channel_vectors(capability, language):
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        info = page.request.get(base + "/api/examples/" + capability).json()
+        info = page.request.get(base + "/api/examples/" + capability + "?profile=archive").json()
         assert info["pin"], "The retained native case must be present"
         page.goto(base + "/#task=" + info["pin"]["job_id"])
         if capability == "pose.cluster":

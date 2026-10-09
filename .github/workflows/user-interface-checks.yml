@@ -150,6 +150,12 @@ on:
       # Shared row interaction has one focused native selection gate.
       - '!frontend/src/datasets/ResearchTable.tsx'
       - '!frontend/src/space/ChannelResults.tsx'
+      # These controls are covered with native consumers by publication-checks.yml.
+      - '!frontend/src/guided/questionnaire.css'
+      - '!frontend/src/presentation/ResearchTabs.test.tsx'
+      - '!frontend/src/presentation/research-tabs.css'
+      - '!frontend/src/presentation/ActiveIndicator*'
+      - '!frontend/src/presentation/active-indicator.css'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -272,6 +278,11 @@ on:
       # Shared row interaction has one focused native selection gate.
       - '!frontend/src/datasets/ResearchTable.tsx'
       - '!frontend/src/space/ChannelResults.tsx'
+      - '!frontend/src/guided/questionnaire.css'
+      - '!frontend/src/presentation/ResearchTabs.test.tsx'
+      - '!frontend/src/presentation/research-tabs.css'
+      - '!frontend/src/presentation/ActiveIndicator*'
+      - '!frontend/src/presentation/active-indicator.css'
   workflow_dispatch:
 jobs:
   presentation:

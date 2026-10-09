@@ -3,6 +3,7 @@
   max-width: 100%;
 }
 .research-tab-list {
+  position: relative;
   min-width: 0;
   max-width: 100%;
   display: flex;
@@ -28,7 +29,6 @@
 }
 .research-tab-list button[aria-selected="true"] {
   color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 .research-tab-list button span {
   padding: 1px 6px;

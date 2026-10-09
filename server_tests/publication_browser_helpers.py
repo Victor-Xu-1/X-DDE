@@ -1,5 +1,6 @@
 """Inspect physical output metadata and vectors without changing scientific source data."""
 
+import hashlib
 import json
 import struct
 import xml.etree.ElementTree as ET
@@ -12,7 +13,6 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG"):
     dialog = page.get_by_role("dialog")
     expect(dialog).to_be_visible()
     evidence.mkdir(parents=True, exist_ok=True)
-    page.screenshot(path=str(evidence / (filename + "-choices.png")), full_page=False)
     messages = []
     page.on(
         "console",
@@ -21,10 +21,25 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG"):
         ),
     )
     try:
+        image = dialog.locator(".figure-preview-sheet img")
+        expect(image).to_be_visible(timeout=45000)
+        export = dialog.get_by_role(
+            "button", name=("导出 " if language == "zh" else "Export ") + format, exact=True
+        )
+        expect(export).to_be_enabled(timeout=45000)
+        preview = image.evaluate("""async image => {
+          if (!image.complete || !(image.naturalWidth > 0)) throw Error('Preview not decoded');
+          const response = await fetch(image.src);
+          const bytes = await response.arrayBuffer();
+          const hash = await crypto.subtle.digest('SHA-256', bytes);
+          const sha256 = Array.from(new Uint8Array(hash))
+            .map(n => n.toString(16).padStart(2,'0')).join('');
+          return {sha256,
+            width: image.naturalWidth, height: image.naturalHeight, bytes: bytes.byteLength};
+        }""")
+        page.screenshot(path=str(evidence / (filename + "-choices.png")), full_page=False)
         with page.expect_download(timeout=45000) as download:
-            dialog.get_by_role(
-                "button", name=("导出 " if language == "zh" else "Export ") + format, exact=True
-            ).click()
+            export.click()
     except Exception:
         page.screenshot(path=str(evidence / (filename + "-failure.png")), full_page=False)
         (evidence / (filename + "-failure.json")).write_text(
@@ -34,6 +49,12 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG"):
         raise
     path = evidence / (filename + "." + format.lower())
     download.value.save_as(path)
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == preview["sha256"], (
+        "The downloaded native figure differs from the decoded preview"
+    )
+    (evidence / (filename + "-preview.json")).write_text(
+        json.dumps(preview, indent=2), encoding="utf-8"
+    )
     expect(dialog).to_have_count(0)
     return path
 
