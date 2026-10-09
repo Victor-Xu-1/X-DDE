@@ -109,6 +109,10 @@ on:
       - "!frontend/src/presentation/plots/types.test.ts"
       - "!frontend/src/presentation/plots/types.ts"
       - "!frontend/src/simulations/SimulationResults.test.tsx"
+      - "!frontend/src/datasets/CountEvidencePlot.tsx"
+      - "!frontend/src/datasets/count-summary.ts"
+      - "!frontend/src/datasets/count-summary.test.ts"
+      - "!frontend/src/datasets/DatasetResults.tsx"
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -203,6 +207,10 @@ on:
       - "!frontend/src/presentation/plots/types.test.ts"
       - "!frontend/src/presentation/plots/types.ts"
       - "!frontend/src/simulations/SimulationResults.test.tsx"
+      - "!frontend/src/datasets/CountEvidencePlot.tsx"
+      - "!frontend/src/datasets/count-summary.ts"
+      - "!frontend/src/datasets/count-summary.test.ts"
+      - "!frontend/src/datasets/DatasetResults.tsx"
   workflow_dispatch:
 jobs:
   presentation:

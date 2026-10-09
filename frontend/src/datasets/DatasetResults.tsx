@@ -8,6 +8,7 @@ import { DefinitionView } from "./DefinitionView";
 import { resultCountLabels as names } from "./result-labels";
 import { ResearchDownloads } from "./ResearchDownloads";
 import { chartArtifacts } from "./chart-documents";
+import { countSummary } from "./count-summary";
 import { IndexedLibraryResults } from "./IndexedLibraryResults";
 
 export function DatasetResults({
@@ -44,7 +45,9 @@ export function DatasetResults({
             : result.data_kind === "index"
               ? "index"
               : null;
-  const hasCharts = chartArtifacts(result.artifacts).length > 0;
+  const hasCharts =
+    chartArtifacts(result.artifacts).length > 0 ||
+    countSummary(result) !== null;
   const hasPrimary = Boolean(
     tableView || result.candidates.length || result.data_kind === "definition",
   );

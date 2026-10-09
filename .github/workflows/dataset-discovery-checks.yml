@@ -21,6 +21,10 @@ on:
       - "!frontend/src/datasets/series-map.test.ts"
       - "!frontend/src/datasets/series-map.ts"
       - "!frontend/src/datasets/statistical-plots.test.tsx"
+      - "!frontend/src/datasets/CountEvidencePlot.tsx"
+      - "!frontend/src/datasets/count-summary.ts"
+      - "!frontend/src/datasets/count-summary.test.ts"
+      - "!frontend/src/datasets/DatasetResults.tsx"
   workflow_dispatch:
     inputs:
       engine:

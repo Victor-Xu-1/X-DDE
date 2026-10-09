@@ -162,6 +162,10 @@ on:
       - "!frontend/src/presentation/plots/types.test.ts"
       - "!frontend/src/presentation/plots/types.ts"
       - "!frontend/src/viewer/appearance.ts"
+      - "!frontend/src/datasets/CountEvidencePlot.tsx"
+      - "!frontend/src/datasets/count-summary.ts"
+      - "!frontend/src/datasets/count-summary.test.ts"
+      - "!frontend/src/datasets/DatasetResults.tsx"
   workflow_dispatch:
 permissions:
   contents: read

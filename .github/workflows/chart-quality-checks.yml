@@ -5,6 +5,9 @@ on:
     paths:
       - "frontend/src/presentation/plots/**"
       - "frontend/src/datasets/CountBars*"
+      - "frontend/src/datasets/CountEvidencePlot*"
+      - "frontend/src/datasets/count-summary*"
+      - "frontend/src/datasets/DatasetResults.tsx"
       - "frontend/src/datasets/DatasetCharts*"
       - "frontend/src/datasets/DatasetHeatmaps*"
       - "frontend/src/datasets/SampleCorrelationPlot*"
@@ -45,6 +48,7 @@ jobs:
         run: >-
           npx vitest run src/datasets/DatasetCharts.test.tsx src/datasets/chart-documents.test.ts
           src/datasets/series-map.test.ts src/datasets/statistical-plots.test.tsx
+          src/datasets/count-summary.test.ts
           src/presentation/plots/types.test.ts src/publication/settings-svg.test.ts
           src/publication/embedded-raster.test.ts src/viewer/style.test.ts
           src/simulations/SimulationResults.test.tsx

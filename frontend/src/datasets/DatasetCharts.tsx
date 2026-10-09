@@ -4,6 +4,8 @@ import { ModelValidationPlot } from "./ModelValidationPlot";
 import { SampleCorrelationPlot } from "./SampleCorrelationPlot";
 import { SeriesEnrichmentPlot } from "./SeriesEnrichmentPlot";
 import { useChartDocuments } from "./useChartDocuments";
+import { countSummary } from "./count-summary";
+import { CountEvidencePlot } from "./CountEvidencePlot";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 
@@ -21,7 +23,11 @@ export function DatasetCharts({
       job.id,
       result.artifacts,
     );
-  if (!available) return null;
+  const nativeCounts = countSummary(result);
+  if (!available)
+    return nativeCounts ? (
+      <CountEvidencePlot rows={nativeCounts} language={language} />
+    ) : null;
   if (status === "loading")
     return (
       <div className="dataset-calculation-state" role="status" aria-busy="true">
