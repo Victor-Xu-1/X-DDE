@@ -1,0 +1,40 @@
+name: Prediction entry and material guidance
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/guided/entities.ts"
+      - "frontend/src/guided/MolecularInputs.tsx"
+      - "frontend/src/studio/HomeWorkspace*"
+      - "frontend/src/TaskForm*"
+      - "server_tests/test_prediction_entry_browser.py"
+      - ".github/workflows/prediction-entry-checks.yml"
+permissions:
+  contents: read
+jobs:
+  prediction-entry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Entry, existing-result access, molecular bytes and direct questionnaire consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/HomeWorkspace.test.tsx src/TaskForm.test.tsx
+          src/guided/workflows.test.tsx src/guided/Hint.test.tsx
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Fresh bilingual entry and responsive input pages; no inference
+        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_entry_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prediction-entry-evidence
+          path: outputs/prediction-entry/**

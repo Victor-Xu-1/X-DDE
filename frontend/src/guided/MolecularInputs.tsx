@@ -157,7 +157,7 @@ export function MolecularInputs({
                     rows={item.kind === "ligand" ? 2 : 4}
                     value={item.value}
                     spellCheck={false}
-                    placeholder={info.placeholder}
+                    placeholder={info.placeholder[i]}
                     onChange={(e) => update(index, { value: e.target.value })}
                   />
                 )}

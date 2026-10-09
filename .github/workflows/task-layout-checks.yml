@@ -4,6 +4,9 @@ on:
     branches: ["**"]
     paths:
       - "frontend/src/guided/**"
+      # Native prediction materials have an exact entry gate without unrelated tasks.
+      - "!frontend/src/guided/entities.ts"
+      - "!frontend/src/guided/MolecularInputs.tsx"
       - "!frontend/src/guided/ChoiceCards.tsx"
       - "frontend/src/integrations/**"
       - "frontend/src/datasets/SourcePicker*"

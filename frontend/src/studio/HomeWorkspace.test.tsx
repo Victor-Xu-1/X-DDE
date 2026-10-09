@@ -53,6 +53,14 @@ vi.mock("../examples/ExampleJobResult", () => ({
   ExampleJobResult: () => <p>Retained native preview</p>,
 }));
 
+it("keeps unavailable personal-result tabs out of an empty prediction entry", () => {
+  render(<HomeWorkspace {...props} job={null} jobs={[]} />);
+  expect(screen.queryByRole("group", { name: "工作区" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "结构与结果" })).toBeNull();
+  expect(screen.getByRole("button", { name: "下一步" })).toBeVisible();
+  expect(props.onSubmit).not.toHaveBeenCalled();
+});
+
 it("keeps public previews outside personal prediction tabs and preserves the input when returning", async () => {
   const { request } = await import("../api");
   const transport = vi.spyOn(await import("../api"), "request");

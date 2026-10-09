@@ -38,6 +38,42 @@ vi.mock("./api", async (original) => {
   };
 });
 afterEach(cleanup);
+it("localizes material guidance without replacing the user's sequence or stereochemistry", async () => {
+  const submit = vi.fn(),
+    user = userEvent.setup();
+  const { rerender } = render(
+    <TaskForm language="en" ready={false} onSubmit={submit} />,
+  );
+  await user.click(screen.getByRole("button", { name: /^Next$/ }));
+  const sequence = screen.getByLabelText("One-letter amino-acid sequence"),
+    ligand = screen.getByLabelText("SMILES or CCD_ identifier");
+  expect(sequence).toHaveAttribute(
+    "placeholder",
+    "Paste the target protein sequence or one FASTA record",
+  );
+  expect(ligand).toHaveAttribute(
+    "placeholder",
+    "Paste SMILES or a CCD_ component identifier",
+  );
+  await user.type(sequence, "MSSATQQK");
+  await user.type(ligand, "N[C@@H](C)C(=O)O");
+  rerender(<TaskForm language="zh" ready={false} onSubmit={submit} />);
+  expect(screen.getByLabelText("单字母氨基酸序列")).toHaveValue("MSSATQQK");
+  expect(screen.getByLabelText("SMILES 或 CCD_ 编号")).toHaveValue(
+    "N[C@@H](C)C(=O)O",
+  );
+  expect(screen.getByLabelText("SMILES 或 CCD_ 编号")).toHaveAttribute(
+    "placeholder",
+    "粘贴 SMILES 或 CCD_组分编号",
+  );
+  await user.click(
+    screen.getByRole("button", { name: "小分子 / 配体输入说明" }),
+  );
+  expect(screen.getByRole("tooltip")).not.toHaveTextContent(
+    /CCO|乙醇|ethanol/i,
+  );
+  expect(submit).not.toHaveBeenCalled();
+});
 it("offers recommended choices, retains prepared input and blocks unavailable prediction at review", async () => {
   const user = userEvent.setup();
   const { rerender } = render(

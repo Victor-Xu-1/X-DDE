@@ -21,8 +21,8 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
   }, [p.inputVersion]);
   const zh = p.language === "zh",
     t = translator(p.language),
-    showResults =
-      p.active && !showInput && Boolean(p.job && isPrediction(p.job.request));
+    hasPrediction = Boolean(p.job && isPrediction(p.job.request)),
+    showResults = p.active && !showInput && hasPrediction;
   return (
     <div
       className={`prediction-workspace task-workspace ${showResults || (showInput && showingExample) ? "is-result" : "is-input"}`}
@@ -39,7 +39,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
           className="workspace-mode segmented"
           role="group"
           aria-label={zh ? "工作区" : "Workspace"}
-          hidden={showInput && showingExample}
+          hidden={!hasPrediction || (showInput && showingExample)}
         >
           <button
             aria-pressed={showInput}
@@ -51,7 +51,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
           <button
             aria-pressed={!showInput}
             className={!showInput ? "selected" : ""}
-            disabled={!p.job}
+            disabled={!hasPrediction}
             onClick={() => setShowInput(false)}
           >
             {zh ? "结构与结果" : "Structure and results"}
