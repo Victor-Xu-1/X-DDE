@@ -56,7 +56,8 @@ it("localizes material guidance without replacing the user's sequence or stereoc
     "Paste SMILES or a CCD_ component identifier",
   );
   await user.type(sequence, "MSSATQQK");
-  await user.type(ligand, "N[C@@H](C)C(=O)O");
+  await user.click(ligand);
+  await user.paste("N[C@@H](C)C(=O)O");
   rerender(<TaskForm language="zh" ready={false} onSubmit={submit} />);
   expect(screen.getByLabelText("单字母氨基酸序列")).toHaveValue("MSSATQQK");
   expect(screen.getByLabelText("SMILES 或 CCD_ 编号")).toHaveValue(
