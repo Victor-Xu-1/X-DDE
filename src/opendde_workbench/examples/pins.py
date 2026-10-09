@@ -8,8 +8,9 @@ from .pin_validation import validate_case_job
 
 
 class ExamplePins:
-    def __init__(self, store, state):
+    def __init__(self, store, state, *, modules=MODULES):
         self.store, self.state = store, state
+        self.modules = modules
         with store.connect() as db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS example_pins ("
@@ -19,13 +20,16 @@ class ExamplePins:
             )
 
     def get(self, capability_id, *, verify=False):
-        revision = MODULES[capability_id].revision
+        module = self.modules[capability_id]
+        revision = module.revision
         with self.store.connect() as db:
             row = db.execute(
                 "SELECT body FROM example_pins WHERE capability_id=? AND revision=?",
                 (capability_id, revision),
             ).fetchone()
         record = ExamplePin.model_validate_json(row["body"]) if row else None
+        if record and (record.case_id, record.capability_id) != (module.case_id, capability_id):
+            raise ValueError("The pinned result belongs to a different study or capability.")
         if record and verify:
             verify_job(
                 self.store,
@@ -40,7 +44,9 @@ class ExamplePins:
         return record
 
     def pin(self, capability_id, job_id, prepared):
-        module = MODULES[capability_id]
+        module = self.modules[capability_id]
+        if prepared.module != module:
+            raise ValueError("The prepared inputs belong to a different reviewed study revision.")
         job = self.store.get(str(job_id))
         if job is None or job.status != "succeeded":
             raise ValueError("Only successful native tasks can become fixed computed examples.")

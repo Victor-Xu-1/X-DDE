@@ -20,7 +20,12 @@ import { RegionResult } from "./RegionResult";
 
 export function RegionWorkspace({ language }: { language: Language }) {
   const example = useExample();
-  const reference = useExampleReference("mz1_molecule", "jq1");
+  const reference = useExampleReference(
+    "bifunctional_molecule",
+    "ligand",
+    "mz1_molecule",
+    "jq1",
+  );
   const [subject, setSubject] = useState<MoleculeRef | null>(reference),
     zh = language === "zh";
   const record =

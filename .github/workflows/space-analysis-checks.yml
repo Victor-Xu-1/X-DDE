@@ -10,6 +10,7 @@ on:
       - 'server_tests/channel*.py'
       - 'server_tests/test_channel_browser.py'
       - 'frontend/src/space/**'
+      - '!frontend/src/space/ChannelForm.tsx'
       - 'frontend/src/viewer/channel-geometry*'
       - 'tests/test_space_frame.py'
       - 'tests/test_caver_profiles.py'

@@ -27,7 +27,9 @@ export function ReferenceImportForm({
   initial ??= example
     ? {
         source: "pdb",
-        identifier: example.case.id === "trastuzumab-her2" ? "1N8Z" : "3MXF",
+        identifier:
+          example.case.evidence_entities?.structure?.id ??
+          (example.case.id === "trastuzumab-her2" ? "1N8Z" : "3MXF"),
       }
     : undefined;
   const zh = language === "zh",

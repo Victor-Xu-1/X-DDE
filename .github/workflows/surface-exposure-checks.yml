@@ -4,12 +4,12 @@ on:
     paths:
       - 'src/opendde_workbench/receptors/*surface*'
       - 'frontend/src/receptors/*Surface*'
+      - '!frontend/src/receptors/SurfaceForm.tsx'
       - 'frontend/src/receptors/surface*'
       - 'tests/test_surface_exposure.py'
       - 'server_tests/test_surface_science.py'
       - 'server_tests/test_native_surface.py'
       - 'server_tests/test_surface_browser.py'
-      - '.github/workflows/surface-exposure-checks.yml'
   workflow_dispatch:
 permissions:
   contents: read

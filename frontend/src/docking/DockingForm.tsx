@@ -32,7 +32,8 @@ export function DockingForm({
   initialBox?: SearchBox | null;
 }) {
   const exampleReceptor = useExampleReference("receptor", "brd4");
-  const exampleLigand = useExampleReference("jq1");
+  const exampleLigand = useExampleReference("ligand", "jq1");
+  const examplePocket = useExampleReference("pocket_reference", "jq1");
   const preset = useExampleTask("docking");
   initialReceptor ??= exampleReceptor;
   initialLigand ??= exampleLigand;
@@ -40,7 +41,7 @@ export function DockingForm({
     run = useTaskSubmit(onCreated);
   const [receptor, setReceptor] = useState(initialReceptor),
     [ligand, setLigand] = useState(initialLigand),
-    [reference, setReference] = useState<MoleculeRef | null>(exampleLigand);
+    [reference, setReference] = useState<MoleculeRef | null>(examplePocket);
   const [kind, setKind] = useState<"reference" | "box">(
     initialBox ? "box" : "reference",
   );

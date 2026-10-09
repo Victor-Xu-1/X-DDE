@@ -5,7 +5,10 @@ on:
     paths:
       - 'frontend/src/examples/ExampleActions*'
       - 'frontend/src/examples/ExampleToolbar*'
+      # Study-specific labels are checked without replaying archived result fixtures.
+      - '!frontend/src/examples/ExampleToolbar.tsx'
       - 'frontend/src/examples/ExampleGuide*'
+      - '!frontend/src/examples/ExampleGuide.tsx'
       - 'frontend/src/examples/ExampleFeedback*'
       - 'frontend/src/examples/useExampleTemplate*'
       - 'frontend/src/examples/examples.css'
@@ -16,7 +19,6 @@ on:
       - 'frontend/index.html'
       - 'frontend/src/presentation/result-layout.css'
       - 'server_tests/test_template_controls_browser.py'
-      - '.github/workflows/template-controls-checks.yml'
 permissions:
   contents: read
 jobs:

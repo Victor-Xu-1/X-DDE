@@ -41,7 +41,10 @@ export function ReceptorForm({
         : [newRow(0), newRow(1)].map((row, index) => ({
             ...row,
             structure:
-              example?.objects[index ? "brd4_apo" : "brd4"]?.reference ?? null,
+              example?.objects[index ? "receptor_b" : "receptor_a"]
+                ?.reference ??
+              example?.objects[index ? "brd4_apo" : "brd4"]?.reference ??
+              null,
           })),
     ),
     [reference, setReference] = useState(preset?.options.reference_index ?? 0),

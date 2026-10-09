@@ -17,8 +17,8 @@ class SourceFile(ExampleModel):
     url: str
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     bytes: int = Field(ge=1, le=8 * 1024**2)
-    kind: Literal["structure", "ligand", "config", "library", "counts", "reads"]
-    license: Literal["CC0-1.0", "CC-BY-SA-3.0", "MIT", "CC-BY-4.0"]
+    kind: Literal["structure", "ligand", "sequences", "config", "library", "counts", "reads"]
+    license: Literal["CC0-1.0", "CC-BY-SA-3.0", "MIT", "CC-BY-4.0", "LicenseRef-User-Provided"]
 
 
 class CaseStudy(ExampleModel):
@@ -52,6 +52,7 @@ class PreparedExample(ExampleModel):
     record: dict | None = None
     source_record: dict | None = None
     campaign_draft: dict | None = None
+    study: dict | None = None
 
 
 class PinRequest(ExampleModel):

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useExampleTask } from "../examples/context";
+import { useExample, useExampleTask } from "../examples/context";
 import { defaults } from "./generated";
 import { partnerRoles, type TernaryPayload } from "./types";
 import type { Language } from "../types";
@@ -7,8 +7,18 @@ import type { MoleculeRef } from "../research/types";
 
 export function useProximityDraft(language: Language) {
   const example = useExampleTask("ternary_model");
+  const study = useExample();
+  const studyKeys: Record<string, string> = {
+    ligand: "study_protac",
+    partner_a: "partner_a",
+    partner_b: "partner_b",
+  };
   const initial = (role: string) =>
-    example?.inputs.find((i) => i.role === role)?.source ?? null;
+    example?.inputs.find((i) => i.role === role)?.source ??
+    (study?.study?.id === "stat6"
+      ? study.objects[studyKeys[role]]?.reference
+      : null) ??
+    null;
   const [ligand, setLigand] = useState<MoleculeRef | null>(initial("ligand"));
   const [first, setFirst] = useState<MoleculeRef | null>(initial("partner_a"));
   const [second, setSecond] = useState<MoleculeRef | null>(
@@ -21,8 +31,14 @@ export function useProximityDraft(language: Language) {
       ? (example.payload as TernaryPayload)
       : ({
           ...defaults,
-          partner_a_name: partnerRoles("protac", language === "zh")[0],
-          partner_b_name: partnerRoles("protac", language === "zh")[1],
+          partner_a_name:
+            study?.study?.id === "stat6"
+              ? "CRBN"
+              : partnerRoles("protac", language === "zh")[0],
+          partner_b_name:
+            study?.study?.id === "stat6"
+              ? "STAT6"
+              : partnerRoles("protac", language === "zh")[1],
           partner_a_chain: "",
           partner_b_chain: "",
           arm_a_map: [],

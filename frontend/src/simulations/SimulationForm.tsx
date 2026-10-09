@@ -36,7 +36,7 @@ export function SimulationForm({
     [program, operation] = simulationForms[form];
   const exampleTask = useExampleTask(operation),
     exampleProtein = useExampleReference("protein_only"),
-    exampleLigand = useExampleReference(fep ? "tyk2_ligands" : "jq1");
+    exampleLigand = useExampleReference("ligand", fep ? "tyk2_ligands" : "jq1");
   const preset = initialTask ?? exampleTask;
   const [structure, setStructure] = useState<MoleculeRef | null>(
     preset?.inputs.find((i) => i.role === "structure")?.source ??

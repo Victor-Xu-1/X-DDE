@@ -12,7 +12,8 @@ on:
       - 'server_tests/test_proximity_browser.py'
       - 'tests/test_proximity*'
       - 'frontend/src/proximity/**'
-      - '.github/workflows/proximity-checks.yml'
+      # Study-only prefills use the STAT6 template gate, without native model execution.
+      - '!frontend/src/proximity/useProximityDraft.ts'
 permissions:
   contents: read
   actions: read

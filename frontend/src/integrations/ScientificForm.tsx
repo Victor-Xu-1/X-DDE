@@ -45,6 +45,7 @@ export function ScientificForm({
   const example = useExample(),
     preset = useExampleTask(operation);
   const initialStructure = useExampleReference(
+    ["plip", "ligandmpnn"].includes(program) ? "structure" : "receptor",
     ["apbs", "openmm"].includes(program)
       ? "protein_only"
       : ["plip", "ligandmpnn"].includes(program)
@@ -56,6 +57,7 @@ export function ScientificForm({
     "her2",
   );
   const initialLigand = useExampleReference(
+    "ligand",
     program === "chemprop" ? "egfr_library" : "jq1",
     "imatinib",
   );

@@ -185,6 +185,13 @@ on:
       - "!frontend/src/deployment/ComponentLibrary*"
       - "!frontend/src/deployment/ComponentCard.tsx"
       - "!frontend/src/deployment/components.css"
+      # Fixed study input changes use stat6-template-checks.yml, without a full-page suite.
+      - "!frontend/src/integrations/ScientificForm.tsx"
+      - "!frontend/src/operations/ImportForm.tsx"
+      - "!frontend/src/receptors/SurfaceForm.tsx"
+      - "!frontend/src/receptors/ReceptorForm.tsx"
+      - "!frontend/src/discovery/ReferenceImportForm.tsx"
+      - "!frontend/src/discovery/TargetResearchForm.tsx"
   workflow_dispatch:
 permissions:
   contents: read

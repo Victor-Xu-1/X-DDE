@@ -23,7 +23,13 @@ export function StructurePrepareForm({
   onCreated(job: Job): void;
   initialStructure?: MoleculeRef;
 }) {
-  const example = useExampleReference("brd4", "her2", "mz1", "rna");
+  const example = useExampleReference(
+    "structure",
+    "brd4",
+    "her2",
+    "mz1",
+    "rna",
+  );
   const preset = useExampleTask("structure_prepare")?.options;
   initialStructure ??= example ?? undefined;
   const zh = language === "zh",

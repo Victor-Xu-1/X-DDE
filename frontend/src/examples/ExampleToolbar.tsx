@@ -65,16 +65,20 @@ export function ExampleToolbar({
               {name}
             </h2>
             <span className="example-result-kind">
-              {setup
+              {info.study && !info.computed_result_available && !info.record_pin
                 ? zh
-                  ? "配置示例"
-                  : "Setup example"
-                : zh
-                  ? "公开示例"
-                  : "Public example"}
+                  ? "研究材料预览"
+                  : "Reference input preview"
+                : setup
+                  ? zh
+                    ? "配置示例"
+                    : "Setup example"
+                  : zh
+                    ? "公开示例"
+                    : "Public example"}
             </span>
             <Hint label={zh ? "结果解读说明" : "Result interpretation help"}>
-              {templateGuide(capability, language).interpretation}
+              {templateGuide(capability, language, info.study).interpretation}
             </Hint>
           </div>
         ) : (
@@ -83,7 +87,13 @@ export function ExampleToolbar({
             title={info.case.description[zh ? 0 : 1]}
           >
             <span className="example-case-caption">
-              {zh ? "真实案例" : "Real case"}
+              {info.study
+                ? zh
+                  ? "研究模板"
+                  : "Research template"
+                : zh
+                  ? "真实案例"
+                  : "Real case"}
             </span>
             {name}
           </span>
@@ -114,7 +124,7 @@ export function ExampleToolbar({
             {zh ? "返回任务填写" : "Return to task form"}
           </button>
         ) : (
-          (info.pin || info.record_pin) && (
+          (info.pin || info.record_pin || info.study) && (
             <button
               ref={resultRef}
               type="button"
@@ -126,13 +136,17 @@ export function ExampleToolbar({
                 ? zh
                   ? "正在打开示例…"
                   : "Opening example…"
-                : setup
+                : info.study && !info.pin && !info.record_pin
                   ? zh
-                    ? "配置示例"
-                    : "Setup example"
-                  : zh
-                    ? "示例结果"
-                    : "Example results"}
+                    ? "查看研究材料"
+                    : "Preview study inputs"
+                  : setup
+                    ? zh
+                      ? "配置示例"
+                      : "Setup example"
+                    : zh
+                      ? "示例结果"
+                      : "Example results"}
             </button>
           )
         )}

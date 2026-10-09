@@ -132,6 +132,9 @@ on:
       - "!frontend/src/viewer/style.ts"
       # MD/FEP result interactions use simulation-view-checks.yml.
       - "!frontend/src/simulations/FreeEnergyResults.tsx"
+      # Study-only prefills use the dedicated template gate.
+      - '!frontend/src/integrations/ScientificForm.tsx'
+      - '!frontend/src/receptors/SurfaceForm.tsx'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -245,6 +248,9 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      # Study prefills have a focused template/preview gate, without full interface replay.
+      - '!frontend/src/integrations/ScientificForm.tsx'
+      - '!frontend/src/receptors/SurfaceForm.tsx'
   workflow_dispatch:
 jobs:
   presentation:

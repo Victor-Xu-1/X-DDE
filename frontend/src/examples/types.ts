@@ -48,6 +48,17 @@ export interface ExampleInfo {
   computed_result_available: boolean;
   pin: null | { job_id: string; artifact_sha256: Record<string, string> };
   record_pin?: RecordPin | null;
+  study?: StudyContext;
+}
+
+export interface StudyContext {
+  id: "stat6";
+  target: string;
+  organism: string;
+  uniprot: string;
+  template_kind: "research_study";
+  required_materials: [string, string][];
+  guide: { steps: [string, string][]; interpretation: [string, string] };
 }
 
 export interface PreparedExample {
@@ -64,4 +75,5 @@ export interface PreparedExample {
   source_record?: ExampleRecord | null;
   template_active?: boolean;
   campaign_draft?: DesignDraft | null;
+  study?: StudyContext | null;
 }

@@ -35,7 +35,8 @@ export function DiffForm({
   const preset =
     exampleTask?.payload.mode === mode ? exampleTask.payload : null;
   const exampleProtein = useExampleReference("receptor", "brd4");
-  const exampleMolecule = useExampleReference("jq1");
+  const exampleMolecule = useExampleReference("ligand", "jq1");
+  const examplePocket = useExampleReference("pocket_reference", "jq1");
   initialProtein ??=
     (preset?.protein as MoleculeRef | undefined) ?? exampleProtein;
   initialMolecule ??=
@@ -43,7 +44,7 @@ export function DiffForm({
     exampleMolecule;
   initialPocket ??=
     (preset?.pocket as Pocket | undefined) ??
-    (exampleMolecule ? { kind: "ligand", ligand: exampleMolecule } : null);
+    (examplePocket ? { kind: "ligand", ligand: examplePocket } : null);
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
   const [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),

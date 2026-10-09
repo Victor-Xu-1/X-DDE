@@ -75,7 +75,11 @@ def record_source(capability, identifier, run_id, store, assets, settings):
     return result, jobs
 
 
-def validate_record_source(capability, source, prepared, store):
+def validate_record_source(capability, source, prepared, store, *, job_ids=None):
+    if prepared.study:
+        from .stat6.record_validation import validate_study_record
+
+        return validate_study_record(capability, source, prepared, store, job_ids=job_ids)
     value = source["value"]
     if capability == "experimental.evidence":
         expected = prepared.data_assets["experimental_observations"]

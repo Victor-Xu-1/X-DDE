@@ -9,6 +9,7 @@ import { CampaignCasePreview } from "./CampaignCasePreview";
 import { PoseResults } from "../poses/PoseResults";
 import type { IdentityResult } from "../diffsbdd/types";
 import { ExampleJobResult } from "./ExampleJobResult";
+import { StudyInputPreview } from "./StudyInputPreview";
 
 export function ExampleRecordResult({
   example,
@@ -49,7 +50,10 @@ export function ExampleRecordResult({
     });
     return () => controller.abort();
   }, [record?.pin.record_id, attempt?.job_id]);
-  if (!record) return null;
+  if (!record)
+    return example.study ? (
+      <StudyInputPreview example={example} language={language} />
+    ) : null;
   const zh = language === "zh";
   return (
     <ExampleContext.Provider value={example}>

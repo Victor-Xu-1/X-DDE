@@ -3,6 +3,7 @@
 from ..chemistry.minimization_contract import MoleculeMinimizeTask
 from ..chemistry.minimization_options import MinimizationOptions
 from ..chemistry.sdf_io import split_records
+from ..examples.input_geometry import verified_computed_input
 from ..models import Status
 from .pose_sources import PoseSources
 
@@ -41,6 +42,10 @@ class InitialPosePreparation:
         is_3d = asset.suffix != ".mol2" and b"3D" in lines[1]
         version = self.sources.scientific.get(reference.version_id)
         parent = self.store.get(str(version.source_job)) if version.source_job else None
+        if is_3d and verified_computed_input(asset, raw):
+            # Exact packaged preparation evidence qualifies a precomputed input
+            # without creating a duplicate optimization job or claiming a bound pose.
+            return None, version
         if (
             is_3d
             and parent

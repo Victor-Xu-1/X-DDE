@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "case": {
+    "id": "stat6-defined-molecules",
+    "revision": 1,
+    "label": [
+      "STAT6 · 指定分子研究",
+      "STAT6 · Defined-molecule study"
+    ],
+    "description": [
+      "使用人 STAT6 的真实序列与结构，以及指定的小分子和 PROTAC。结构参考、未结合态计算构象和真实任务结果分别保留来源。",
+      "Use the real human STAT6 sequence and structures with the specified small molecule and PROTAC. Reference structures, computed unbound conformers and actual task results retain their distinct provenance."
+    ],
+    "files": [
+      "stat6_sequence",
+      "stat6_structure",
+      "stat6_receptor",
+      "stat6_alternative",
+      "crbn_receptor",
+      "study_ligand",
+      "study_protac",
+      "bound_reference",
+      "stat6_alternative_receptor"
+    ],
+    "sources": [
+      "https://www.uniprot.org/uniprotkb/P42226",
+      "https://www.rcsb.org/structure/9BIG",
+      "https://www.rcsb.org/structure/4Y5U",
+      "https://www.rcsb.org/structure/8RQA",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-v1",
+      "https://models.rcsb.org/v1/9big/ligand?auth_asym_id=A&auth_seq_id=701&encoding=sdf"
+    ],
+    "evidence_entities": {
+      "structure": {
+        "id": "9BIG",
+        "description": "STAT6 bound to AK-1690; this reference ligand differs from the study PROTAC.",
+        "name": "STAT6 experimental reference"
+      },
+      "target": {
+        "id": "ENSG00000166888",
+        "description": "Human signal transducer and activator of transcription 6.",
+        "name": "STAT6"
+      },
+      "protein": {
+        "id": "P42226",
+        "description": "Canonical human STAT6, 847 amino acids.",
+        "name": "STAT6"
+      }
+    }
+  },
+  "files": {
+    "stat6_sequence": {
+      "key": "stat6_sequence",
+      "name": "STAT6-human-P42226.fasta",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-human-P42226.fasta",
+      "sha256": "4aeaacebfcdea8bc90ce51325a98634dff75bfe185894450833e63fd916f377e",
+      "bytes": 878,
+      "kind": "sequences",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_structure": {
+      "key": "stat6_structure",
+      "name": "9BIG.cif",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/9BIG.cif",
+      "sha256": "6a116614692defb2b092e18e61d20c7256de59943c26188b702b167bf4e2c544",
+      "bytes": 448259,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "stat6_receptor": {
+      "key": "stat6_receptor",
+      "name": "STAT6-9BIG-observed-receptor.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-9BIG-observed-receptor.pdb",
+      "sha256": "96f6d5f4ce3c90f80957e9c0c1d3cd25d213497c836eac6a3b55500fa9c67105",
+      "bytes": 262124,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "stat6_alternative": {
+      "key": "stat6_alternative",
+      "name": "4Y5U.cif",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/4Y5U.cif",
+      "sha256": "e4a6ffaa490671b76ff5e7aa475a6011fdc0bb8889314a9c4ed92a8c49c03fdb",
+      "bytes": 793905,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "crbn_receptor": {
+      "key": "crbn_receptor",
+      "name": "CRBN-8RQA-observed-receptor.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/CRBN-8RQA-observed-receptor.pdb",
+      "sha256": "36397dab833888f554ec141b80f65ecc4af14b89aa12876d2c7cf03b17ba553b",
+      "bytes": 183716,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "study_ligand": {
+      "key": "study_ligand",
+      "name": "STAT6-user-warhead.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-user-warhead.sdf",
+      "sha256": "d1d34633711dec2c0da53add660dd47d766f25c807df5ad73465908686713e32",
+      "bytes": 4992,
+      "kind": "ligand",
+      "license": "LicenseRef-User-Provided"
+    },
+    "study_protac": {
+      "key": "study_protac",
+      "name": "STAT6-user-PROTAC.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-user-PROTAC.sdf",
+      "sha256": "60b2c7e1831c1f14009e01760b2c6427108e58d94459ac7278fa50e36f6ada30",
+      "bytes": 9586,
+      "kind": "ligand",
+      "license": "LicenseRef-User-Provided"
+    },
+    "bound_reference": {
+      "key": "bound_reference",
+      "name": "9BIG-AK1690-A701.sdf",
+      "kind": "ligand",
+      "license": "CC0-1.0",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/9BIG-AK1690-A701.sdf",
+      "bytes": 12558,
+      "sha256": "edae02152fd2b053d5bdfce9a2ca573c463bdc813c0a433e9659a816948fc868"
+    },
+    "stat6_alternative_receptor": {
+      "key": "stat6_alternative_receptor",
+      "name": "STAT6-4Y5U-observed-receptor.pdb",
+      "kind": "structure",
+      "license": "CC0-1.0",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-4Y5U-observed-receptor.pdb",
+      "bytes": 287639,
+      "sha256": "c30b50d8b796c2603f795d15266ccd767827e1c4659a64c65a8cc36dda583021"
+    }
+  },
+  "molecules": [
+    {
+      "name": "STAT6-user-warhead",
+      "original_smiles": "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+      "canonical_isomeric_smiles": "CN(C)C(=O)c1cc2ccc(C3=CCCN(C(=O)CCn4ccnn4)C3)c(F)c2[nH]1",
+      "heavy_atoms": 30,
+      "molecular_weight": 410.4530000000001,
+      "undefined_stereocenters": [],
+      "geometry": "computed_unbound_conformer",
+      "binding_pose": false,
+      "force_field": "MMFF94s",
+      "minimization_converged": true,
+      "energy_kcal_mol": -17.554914894726352,
+      "candidate_conformers": 8,
+      "seed": 20261009,
+      "nonplanarity_singular_value": 7.403270704970226,
+      "rdkit": "2026.03.6",
+      "file": "STAT6-user-warhead.sdf",
+      "sha256": "d1d34633711dec2c0da53add660dd47d766f25c807df5ad73465908686713e32",
+      "bytes": 4992
+    },
+    {
+      "name": "STAT6-user-PROTAC",
+      "original_smiles": "COC1=CC(N2CCN(CC2)C3=CC=C(C(F)=C3F)C4=CC(C5=CCCN(C5)C(CCN6C=CC=N6)=O)=C(C7=C4C=C(N7)C(N(C)C)=O)F)=C(C=C1NC8CCC(NC8=O)=O)F",
+      "canonical_isomeric_smiles": "COc1cc(N2CCN(c3ccc(-c4cc(C5=CCCN(C(=O)CCn6cccn6)C5)c(F)c5[nH]c(C(=O)N(C)C)cc45)c(F)c3F)CC2)c(F)cc1NC1CCC(=O)NC1=O",
+      "heavy_atoms": 62,
+      "molecular_weight": 855.894,
+      "undefined_stereocenters": [
+        53
+      ],
+      "geometry": "computed_unbound_conformer",
+      "binding_pose": false,
+      "force_field": "MMFF94s",
+      "minimization_converged": true,
+      "energy_kcal_mol": 180.94905650800018,
+      "candidate_conformers": 8,
+      "seed": 20261009,
+      "nonplanarity_singular_value": 10.418278256448845,
+      "rdkit": "2026.03.6",
+      "file": "STAT6-user-PROTAC.sdf",
+      "sha256": "60b2c7e1831c1f14009e01760b2c6427108e58d94459ac7278fa50e36f6ada30",
+      "bytes": 9586
+    }
+  ],
+  "reference_roles": {
+    "pocket_reference": "Deposited AK-1690 coordinates in the exact 9BIG receptor frame; a site reference, not the supplied study molecule.",
+    "study_ligand": "User-confirmed small molecule; minimized unbound conformer.",
+    "study_protac": "User-supplied PROTAC; minimized unbound conformer with unspecified stereochemistry retained.",
+    "crbn_receptor": "Experimental CRBN-midi reference construct; not a supplied-PROTAC complex."
+  }
+}

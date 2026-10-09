@@ -1,0 +1,24 @@
+.study-input-preview {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.study-input-preview > .segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.study-preview-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.study-input-preview .molecule-image {
+  width: 100%;
+  min-height: 320px;
+}
+.study-geometry-note {
+  margin: 0;
+}

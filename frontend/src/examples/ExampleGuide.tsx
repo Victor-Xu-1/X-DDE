@@ -50,7 +50,7 @@ export function ExampleGuide({
         <strong>{info.case.label[zh ? 0 : 1]}</strong>
         <p>{info.case.description[zh ? 0 : 1]}</p>
         <ol>
-          {templateGuide(capability, language)
+          {templateGuide(capability, language, info.study)
             .steps.slice(0, 3)
             .map((text) => (
               <li key={text}>{text}</li>

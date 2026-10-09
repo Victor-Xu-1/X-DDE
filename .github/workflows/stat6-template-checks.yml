@@ -1,0 +1,84 @@
+name: STAT6 study template checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/examples/stat6/**'
+      - 'src/opendde_workbench/examples/routes.py'
+      - 'src/opendde_workbench/examples/input_geometry.py'
+      - 'tests/test_stat6_geometry.py'
+      - 'tests/test_stat6_templates*'
+      - 'frontend/src/examples/stat6*'
+      - 'frontend/src/examples/StudyInputPreview*'
+      - 'frontend/src/examples/study-input-preview.css'
+      - 'server_tests/test_stat6_templates_browser.py'
+      - 'server_tests/stat6_input_acceptance.py'
+      - 'frontend/src/examples/ExampleToolbar.tsx'
+      - 'frontend/src/examples/ExampleGuide.tsx'
+      - 'frontend/src/examples/ExampleRecordResult.tsx'
+      - 'frontend/src/examples/guide.ts'
+      - 'frontend/src/examples/harness.ts'
+      - 'frontend/src/examples/prediction*'
+      - 'frontend/src/integrations/ScientificForm.tsx'
+      - 'frontend/src/operations/ImportForm.tsx'
+      - 'frontend/src/discovery/ReferenceImportForm.tsx'
+      - 'frontend/src/discovery/TargetResearchForm.tsx'
+      - 'frontend/src/receptors/SurfaceForm.tsx'
+      - 'frontend/src/receptors/ReceptorForm.tsx'
+      - 'frontend/src/receptors/StructurePrepareForm.tsx'
+      - 'frontend/src/proximity/useProximityDraft.ts'
+      - 'frontend/src/chemistry/StateForm.tsx'
+      - 'frontend/src/diffsbdd/DiffForm.tsx'
+      - 'frontend/src/docking/DockingForm.tsx'
+      - 'frontend/src/quality/QualityForm.tsx'
+      - 'frontend/src/regions/RegionWorkspace.tsx'
+      - 'frontend/src/space/ChannelForm.tsx'
+      - '.github/workflows/stat6-template-checks.yml'
+permissions:
+  contents: read
+jobs:
+  templates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build and verify only affected template contracts
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+          uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_templates_api.py tests/test_stat6_geometry.py tests/test_examples.py tests/test_example_records.py tests/test_example_pins.py
+          cd frontend
+          npx vitest run src/examples/stat6-harness.test.ts src/examples/guide.test.ts src/examples/harness.test.ts src/examples/prediction.test.ts src/examples/ExampleActions.test.tsx src/discovery/ReferenceImportForm.test.tsx src/discovery/TargetResearchForm.test.tsx src/integrations/validation.test.ts src/receptors/ReceptorForm.test.tsx src/space/ChannelForm.test.tsx
+      - name: Verify actual chemistry and deposited coordinate frames
+        run: uv run --locked --with rdkit==2026.3.6 --with biopython==1.88 python server_tests/stat6_input_acceptance.py
+      - name: Prepare only graphical components in isolated state
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-stat6"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+      - name: Inspect the changed templates and real 2D and 3D inputs without submissions
+        env:
+          WB_BROWSER_URL: http://127.0.0.1:4330
+        run: |
+          mkdir -p server_tests/evidence/stat6
+          .venv/bin/python -m opendde_workbench --port 4330 --no-auto-deploy > server_tests/evidence/stat6/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          uv run --locked --group browser pytest -q server_tests/test_stat6_templates_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stat6-template-evidence
+          path: server_tests/evidence/stat6

@@ -28,7 +28,15 @@ export function TargetResearchForm({
     id = useId();
   const [query, setQuery] = useState(
       initialSelection?.name ??
-        (example ? (entity === "target" ? "BRD4" : "NUT carcinoma") : ""),
+        (example?.study
+          ? entity === "target"
+            ? example.study.target
+            : ""
+          : example
+            ? entity === "target"
+              ? "BRD4"
+              : "NUT carcinoma"
+            : ""),
     ),
     [hits, setHits] = useState<EvidenceHit[]>(
       initialSelection ? [initialSelection] : [],

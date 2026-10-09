@@ -1,0 +1,44 @@
+[
+  {
+    "name": "STAT6-user-warhead",
+    "original_smiles": "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+    "canonical_isomeric_smiles": "CN(C)C(=O)c1cc2ccc(C3=CCCN(C(=O)CCn4ccnn4)C3)c(F)c2[nH]1",
+    "heavy_atoms": 30,
+    "molecular_weight": 410.4530000000001,
+    "undefined_stereocenters": [],
+    "geometry": "computed_unbound_conformer",
+    "binding_pose": false,
+    "force_field": "MMFF94s",
+    "minimization_converged": true,
+    "energy_kcal_mol": -17.554914894726352,
+    "candidate_conformers": 8,
+    "seed": 20261009,
+    "nonplanarity_singular_value": 7.403270704970226,
+    "rdkit": "2026.03.6",
+    "file": "STAT6-user-warhead.sdf",
+    "sha256": "d1d34633711dec2c0da53add660dd47d766f25c807df5ad73465908686713e32",
+    "bytes": 4992
+  },
+  {
+    "name": "STAT6-user-PROTAC",
+    "original_smiles": "COC1=CC(N2CCN(CC2)C3=CC=C(C(F)=C3F)C4=CC(C5=CCCN(C5)C(CCN6C=CC=N6)=O)=C(C7=C4C=C(N7)C(N(C)C)=O)F)=C(C=C1NC8CCC(NC8=O)=O)F",
+    "canonical_isomeric_smiles": "COc1cc(N2CCN(c3ccc(-c4cc(C5=CCCN(C(=O)CCn6cccn6)C5)c(F)c5[nH]c(C(=O)N(C)C)cc45)c(F)c3F)CC2)c(F)cc1NC1CCC(=O)NC1=O",
+    "heavy_atoms": 62,
+    "molecular_weight": 855.894,
+    "undefined_stereocenters": [
+      53
+    ],
+    "geometry": "computed_unbound_conformer",
+    "binding_pose": false,
+    "force_field": "MMFF94s",
+    "minimization_converged": true,
+    "energy_kcal_mol": 180.94905650800018,
+    "candidate_conformers": 8,
+    "seed": 20261009,
+    "nonplanarity_singular_value": 10.418278256448845,
+    "rdkit": "2026.03.6",
+    "file": "STAT6-user-PROTAC.sdf",
+    "sha256": "60b2c7e1831c1f14009e01760b2c6427108e58d94459ac7278fa50e36f6ada30",
+    "bytes": 9586
+  }
+]

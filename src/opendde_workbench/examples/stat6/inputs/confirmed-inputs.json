@@ -1,0 +1,8 @@
+{
+  "target": "STAT6",
+  "organism": "Homo sapiens",
+  "small_molecule": "POIO=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+  "protac": "COC1=CC(N2CCN(CC2)C3=CC=C(C(F)=C3F)C4=CC(C5=CCCN(C5)C(CCN6C=CC=N6)=O)=C(C7=C4C=C(N7)C(N(C)C)=O)F)=C(C=C1NC8CCC(NC8=O)=O)F",
+  "confirmed_small_molecule": "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+  "confirmation": "User confirmed POI is a label and should be removed; remaining SMILES unchanged."
+}

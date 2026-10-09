@@ -26,7 +26,7 @@ export function SurfaceForm({
   initialStructure?: MoleculeRef;
 }) {
   const example = useExampleTask("surface_exposure");
-  const templateStructure = useExampleReference("brd4_alt_a");
+  const templateStructure = useExampleReference("receptor", "brd4_alt_a");
   initialStructure ??= example?.structure ?? templateStructure ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),

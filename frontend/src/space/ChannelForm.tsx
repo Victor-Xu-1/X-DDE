@@ -30,6 +30,7 @@ export function ChannelForm({
   const caseActive = example?.case.id === "ache-donepezil";
   const [structure, setStructure] = useState<MoleculeRef | null>(
     task?.structure ??
+      example?.objects.receptor?.reference ??
       (caseActive ? example.objects.ache?.reference : null) ??
       null,
   );

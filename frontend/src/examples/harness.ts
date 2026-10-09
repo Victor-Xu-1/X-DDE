@@ -1,4 +1,5 @@
 import type { PreparedExample } from "./types";
+import { stat6HarnessPayload } from "./stat6-harness";
 
 export function exampleHarnessPayload(
   tool: string,
@@ -7,6 +8,8 @@ export function exampleHarnessPayload(
 ): Record<string, unknown> {
   const payload = structuredClone(defaults);
   if (!example) return payload;
+  if (example.study?.id === "stat6")
+    return stat6HarnessPayload(tool, payload, example);
   if (example.request?.operation === "harness" && example.request.tool === tool)
     return structuredClone(example.request.payload);
   const heavy = example.sequences.heavy;
@@ -165,5 +168,11 @@ export function exampleHarnessInputs(
       )
         references.push(reference);
   }
-  return references;
+  const seen = new Set<string>();
+  return references.filter((reference) => {
+    const key = JSON.stringify(reference);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

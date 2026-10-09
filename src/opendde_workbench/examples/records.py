@@ -21,8 +21,9 @@ def digest(value):
 
 
 class ExampleRecords:
-    def __init__(self, store, assets, settings):
+    def __init__(self, store, assets, settings, *, modules=MODULES):
         self.store, self.assets, self.settings = store, assets, settings
+        self.modules = modules
         with store.connect() as db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS example_record_pins ("
@@ -46,9 +47,11 @@ class ExampleRecords:
         with self.store.connect() as db:
             row = db.execute(
                 "SELECT body FROM example_record_pins WHERE capability_id=? AND revision=?",
-                (capability, MODULES[capability].revision),
+                (capability, self.modules[capability].revision),
             ).fetchone()
         record = ExampleRecordPin.model_validate_json(row["body"]) if row else None
+        if record and record.case_id != self.modules[capability].case_id:
+            raise ValueError("The pinned scientific record belongs to a different study.")
         if record and verify:
             source, jobs = self.source(record)
             if digest(source) != record.record_sha256 or set(map(str, jobs)) != {
@@ -69,11 +72,13 @@ class ExampleRecords:
     def pin(self, capability, record_id, run_id, prepared):
         if capability not in RECORD_MODULES:
             raise ValueError("This module uses a native task result.")
-        module = MODULES[capability]
+        module = self.modules[capability]
+        if prepared.module != module:
+            raise ValueError("The prepared record belongs to a different reviewed study revision.")
         source, jobs = record_source(
             capability, record_id, run_id, self.store, self.assets, self.settings
         )
-        validate_record_source(capability, source, prepared, self.store)
+        validate_record_source(capability, source, prepared, self.store, job_ids=jobs)
         record = ExampleRecordPin(
             capability_id=capability,
             case_id=module.case_id,

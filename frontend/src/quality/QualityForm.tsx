@@ -22,7 +22,7 @@ export function QualityForm({
   initialMolecule?: MoleculeRef | null;
   initialProtein?: MoleculeRef | null;
 }) {
-  const exampleMolecule = useExampleReference("jq1");
+  const exampleMolecule = useExampleReference("ligand", "jq1");
   const exampleProtein = useExampleReference("receptor", "brd4");
   initialMolecule ??= exampleMolecule;
   initialProtein ??= exampleProtein;

@@ -27,7 +27,8 @@ def validate_case_job(capability_id, job, prepared, store):
 
         return validate_analysis(job, prepared, store)
     if job.request.operation == "reference_import":
-        if job.request.source != "pdb" or job.request.identifier != "3MXF":
+        entry = prepared.case.evidence_entities.get("structure", {}).get("id", "3MXF")
+        if job.request.source != "pdb" or job.request.identifier != entry:
             raise ValueError("The archive import does not belong to the reviewed case.")
         return
     if job.request.operation == "target_research":
@@ -43,6 +44,11 @@ def validate_case_job(capability_id, job, prepared, store):
         from .dataset_pins import validate_dataset_case
 
         return validate_dataset_case(job, prepared, store)
+    validate_input_lineage(job, prepared, store)
+
+
+def validate_input_lineage(job, prepared, store):
+    """Shared source-lineage policy for individual jobs and completed study workflows."""
     allowed = {str(obj.reference.asset_id) for obj in prepared.objects.values()}
     families = {str(obj.family_id) for obj in prepared.objects.values()}
     with store.connect() as db:

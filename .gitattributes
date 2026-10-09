@@ -1,3 +1,2 @@
-* text=auto eol=lf
-*.png binary
-*.jpg binary
+# Reviewed scientific inputs preserve exact source bytes and checksums.
+src/opendde_workbench/examples/stat6/inputs/* binary
