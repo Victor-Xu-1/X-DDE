@@ -185,9 +185,9 @@ it("preserves format restrictions and the empty result without inventing a selec
       language="en"
     />,
   );
-  expect(screen.getByRole("status", { name: "" })).toHaveTextContent(
-    "No candidate pockets were returned",
-  );
+  expect(
+    screen.getByText(/^No candidate pockets were returned\./),
+  ).toHaveAttribute("role", "status");
   expect(screen.queryByRole("region", { name: "Selected pocket" })).toBeNull();
   expect(screen.getByLabelText("Viewer region")).toHaveTextContent("[]");
 });
