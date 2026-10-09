@@ -109,8 +109,10 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
           for (const source of cases) {
             await editor.setMolecule(source);
             const before=await editor.getInChIKey();
+            const layout=await editor.structService.layout({
+              struct:source,output_format:'chemical/x-indigo-ket'});
             const copy=await editor.structService.toggleExplicitHydrogens({
-              struct:source,mode:'fold',output_format:'chemical/x-indigo-ket'});
+              struct:layout.struct,mode:'fold',output_format:'chemical/x-indigo-ket'});
             await editor.setMolecule(copy.struct);
             await editor.layout(); await editor.dearomatize();
             rows.push({source,before,after:await editor.getInChIKey(),

@@ -8,6 +8,10 @@ function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
     structService: {
+      layout: vi.fn(async (data: { struct: string }) => {
+        calls.push("layout");
+        return { struct: data.struct };
+      }),
       toggleExplicitHydrogens: vi.fn(async (data: { struct: string }) => {
         calls.push("fold-hydrogens");
         return { struct: `folded:${data.struct}` };
@@ -59,9 +63,9 @@ describe("Native aromatic depiction", () => {
       await renderer.render(source, new AbortController().signal, 2.2);
       expect(calls).toEqual([
         "style",
+        "layout",
         "fold-hydrogens",
         "load",
-        "layout",
         "kekule",
         "read",
         "draw",

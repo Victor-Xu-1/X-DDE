@@ -4,6 +4,10 @@ import type { ScientificObject } from "../research/types";
 
 export interface Ketcher {
   structService?: {
+    layout?(data: {
+      struct: string;
+      output_format: "chemical/x-indigo-ket";
+    }): Promise<{ struct: string }>;
     toggleExplicitHydrogens(data: {
       struct: string;
       mode: "fold";

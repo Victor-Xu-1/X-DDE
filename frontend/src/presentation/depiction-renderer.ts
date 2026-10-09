@@ -141,8 +141,6 @@ export class DepictionRenderer {
           const drawing = (async () => {
             // This canvas belongs only to the invisible drawing service. Native
             // layout changes a display copy; scientific files and the user's editor stay intact.
-            if (!editor.layout)
-              throw new Error("Update Ketcher to use native 2D layout.");
             if (!editor.dearomatize)
               throw new Error(
                 "Update Ketcher to draw alternating aromatic bonds.",
@@ -150,7 +148,6 @@ export class DepictionRenderer {
             await editor.setMolecule(
               await foldDisplayHydrogens(editor, structure),
             );
-            await editor.layout();
             // Ketcher assigns a valid Kekulé form to this display copy. Removing
             // circles from an SVG would lose the aromatic bond information.
             await editor.dearomatize();

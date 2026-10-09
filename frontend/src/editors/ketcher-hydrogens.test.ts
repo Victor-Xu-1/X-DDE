@@ -9,15 +9,20 @@ import type { Ketcher } from "./scientificEditor";
 it("uses the native fold API for a separate display copy without rewriting a source", async () => {
   const source = "original explicit-H molecular record";
   const toggle = vi.fn(async () => ({ struct: "native display copy" }));
+  const layout = vi.fn(async () => ({ struct: "native layout copy" }));
   const editor = {
-    structService: { toggleExplicitHydrogens: toggle },
+    structService: { toggleExplicitHydrogens: toggle, layout },
   } as unknown as Ketcher;
   expect(await foldDisplayHydrogens(editor, source)).toBe(
     "native display copy",
   );
   expect(toggle).toHaveBeenCalledWith({
-    struct: source,
+    struct: "native layout copy",
     mode: "fold",
+    output_format: "chemical/x-indigo-ket",
+  });
+  expect(layout).toHaveBeenCalledWith({
+    struct: source,
     output_format: "chemical/x-indigo-ket",
   });
   expect(source).toBe("original explicit-H molecular record");

@@ -1,13 +1,32 @@
 import type { Ketcher } from "./scientificEditor";
 
 /** Native Indigo folding acts on a display copy; originals remain immutable assets. */
-export async function foldDisplayHydrogens(editor: Ketcher, structure: string) {
-  if (!editor.structService?.toggleExplicitHydrogens)
+export async function foldDisplayHydrogens(
+  editor: Ketcher,
+  structure: string,
+  preserveCanvasLayout = false,
+) {
+  const service = editor.structService;
+  if (
+    !service?.toggleExplicitHydrogens ||
+    (!preserveCanvasLayout && !service.layout)
+  )
     throw new Error(
       "Update Ketcher to apply the shared hydrogen display rule.",
     );
-  const value = await editor.structService.toggleExplicitHydrogens({
-    struct: structure,
+  // Raw SMILES have no wedge coordinates. Native layout must establish them
+  // before folding/export, otherwise absolute stereocenters can be lost.
+  // In-canvas edits already carry coordinates and retain the user's layout.
+  const arranged = preserveCanvasLayout
+    ? structure
+    : (
+        await service.layout!({
+          struct: structure,
+          output_format: "chemical/x-indigo-ket",
+        })
+      ).struct;
+  const value = await service.toggleExplicitHydrogens({
+    struct: arranged,
     mode: "fold",
     output_format: "chemical/x-indigo-ket",
   });
@@ -70,7 +89,7 @@ export function observeHydrogenDisplay(
     void (async () => {
       const original = await editor.getKet!();
       if (!hasNonDonorHydrogens(original)) return;
-      const display = await foldDisplayHydrogens(editor, original);
+      const display = await foldDisplayHydrogens(editor, original, true);
       signal.throwIfAborted();
       if (original !== (await editor.getKet!())) return;
       ownChange = true;
