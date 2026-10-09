@@ -25,6 +25,9 @@ export async function foldDisplayHydrogens(
           output_format: "chemical/x-indigo-ket",
         })
       ).struct;
+  // Standalone builds can toggle an already-folded graph back to explicit H.
+  // Inspect actual connectivity first; a skeletal molecule needs no folding.
+  if (!hasNonDonorHydrogens(arranged)) return arranged;
   const value = await service.toggleExplicitHydrogens({
     struct: arranged,
     mode: "fold",
@@ -33,6 +36,10 @@ export async function foldDisplayHydrogens(
   if (!value.struct?.trim() || value.struct.length > 5 * 1024 ** 2)
     throw new Error(
       "The native hydrogen display copy is unavailable or too large.",
+    );
+  if (hasNonDonorHydrogens(value.struct))
+    throw new Error(
+      "The native drawing component could not hide non-donor hydrogens.",
     );
   return value.struct;
 }

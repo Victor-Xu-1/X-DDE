@@ -63,7 +63,11 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         preview = page.locator(".study-input-preview")
         expect(preview.locator(".viewer-message")).to_have_count(0, timeout=45000)
         page.screenshot(path=EVIDENCE / "stat6-warhead-donor-hydrogens-3d.png")
+        preview.get_by_role("button", name="2D", exact=True).click()
+        inspect_study_smiles(page, preview, "warhead", 30)
         preview.get_by_role("button", name="Study PROTAC", exact=True).click()
+        inspect_study_smiles(page, preview, "protac", 62)
+        preview.get_by_role("button", name="3D", exact=True).click()
         expect(preview.locator(".viewer-message")).to_have_count(0, timeout=45000)
         page.screenshot(path=EVIDENCE / "stat6-protac-donor-hydrogens-3d.png")
         open_navigation(page, "en").get_by_role(
@@ -95,11 +99,14 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
             smiles:await editor.getSmiles()};
         }""")
         assert edited["smiles"]
-        assert sum(
-            len(node.get("atoms", []))
-            for node in edited["ket"].values()
-            if isinstance(node, dict) and node.get("type") == "molecule"
-        ) == 30
+        assert (
+            sum(
+                len(node.get("atoms", []))
+                for node in edited["ket"].values()
+                if isinstance(node, dict) and node.get("type") == "molecule"
+            )
+            == 30
+        )
         assert not non_donor_hydrogens(edited["ket"])
         (EVIDENCE / "native-folded-editor.mol").write_text(edited["mol"])
         page.screenshot(path=EVIDENCE / "explicit-hydrogen-editor.png")
@@ -143,6 +150,26 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
             )
         )
         browser.close()
+
+
+def inspect_study_smiles(page, preview, name, heavy_atoms):
+    picture = preview.locator(".molecule-image")
+    expect(picture).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+    drawing = page.evaluate("""async () => {
+      const editor=document.querySelector('.drawing-service-frame').contentWindow.ketcher;
+      return {mol:await editor.getMolfile(),ket:JSON.parse(await editor.getKet())};
+    }""")
+    assert not non_donor_hydrogens(drawing["ket"])
+    assert (
+        sum(
+            len(node.get("atoms", []))
+            for node in drawing["ket"].values()
+            if isinstance(node, dict) and node.get("type") == "molecule"
+        )
+        == heavy_atoms
+    )
+    (EVIDENCE / f"native-study-{name}.mol").write_text(drawing["mol"])
+    page.screenshot(path=EVIDENCE / f"stat6-{name}-skeletal-2d.png")
 
 
 def non_donor_hydrogens(value):

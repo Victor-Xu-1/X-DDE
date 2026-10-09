@@ -4,17 +4,28 @@ import type { Ketcher } from "../editors/scientificEditor";
 
 afterEach(() => vi.unstubAllGlobals());
 
+function nativeRecord(source: string, explicitH = false) {
+  return JSON.stringify({
+    source,
+    mol0: {
+      type: "molecule",
+      atoms: explicitH ? [{ label: "C" }, { label: "H" }] : [{ label: "C" }],
+      bonds: explicitH ? [{ atoms: [0, 1] }] : [],
+    },
+  });
+}
+
 function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
     structService: {
       layout: vi.fn(async (data: { struct: string }) => {
         calls.push("layout");
-        return { struct: data.struct };
+        return { struct: nativeRecord(data.struct, true) };
       }),
       toggleExplicitHydrogens: vi.fn(async (data: { struct: string }) => {
         calls.push("fold-hydrogens");
-        return { struct: `folded:${data.struct}` };
+        return { struct: nativeRecord(JSON.parse(data.struct).source) };
       }),
     },
     editor: {
@@ -77,12 +88,14 @@ describe("Native aromatic depiction", () => {
       });
       expect(editor.structService.toggleExplicitHydrogens).toHaveBeenCalledWith(
         {
-          struct: source.smiles,
+          struct: nativeRecord(source.smiles, true),
           mode: "fold",
           output_format: "chemical/x-indigo-ket",
         },
       );
-      expect(editor.setMolecule).toHaveBeenCalledWith("folded:c1ccccc1");
+      expect(editor.setMolecule).toHaveBeenCalledWith(
+        nativeRecord(source.smiles),
+      );
       expect(editor.generateImage).toHaveBeenCalledWith("native-kekule-mol", {
         outputFormat: "svg",
         backgroundColor: "1,1,1",
@@ -166,10 +179,9 @@ describe("Source-aware drawing queue", () => {
       await first;
       expect(await old).toBe("AbortError");
       await current;
-      expect(editor.setMolecule.mock.calls.map((args) => args[0])).toEqual([
-        "folded:c1ccccc1",
-        "folded:CN",
-      ]);
+      expect(
+        editor.setMolecule.mock.calls.map((args) => JSON.parse(args[0]).source),
+      ).toEqual(["c1ccccc1", "CN"]);
     } finally {
       renderer.close();
     }

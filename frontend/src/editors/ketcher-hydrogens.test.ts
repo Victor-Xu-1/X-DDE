@@ -6,18 +6,27 @@ import {
 } from "./ketcher-hydrogens";
 import type { Ketcher } from "./scientificEditor";
 
+const explicitKet = JSON.stringify({
+  mol0: {
+    type: "molecule",
+    atoms: [{ label: "C" }, { label: "H" }],
+    bonds: [{ atoms: [0, 1] }],
+  },
+});
+const foldedKet = JSON.stringify({
+  mol0: { type: "molecule", atoms: [{ label: "C" }], bonds: [] },
+});
+
 it("uses the native fold API for a separate display copy without rewriting a source", async () => {
   const source = "original explicit-H molecular record";
-  const toggle = vi.fn(async () => ({ struct: "native display copy" }));
-  const layout = vi.fn(async () => ({ struct: "native layout copy" }));
+  const toggle = vi.fn(async () => ({ struct: foldedKet }));
+  const layout = vi.fn(async () => ({ struct: explicitKet }));
   const editor = {
     structService: { toggleExplicitHydrogens: toggle, layout },
   } as unknown as Ketcher;
-  expect(await foldDisplayHydrogens(editor, source)).toBe(
-    "native display copy",
-  );
+  expect(await foldDisplayHydrogens(editor, source)).toBe(foldedKet);
   expect(toggle).toHaveBeenCalledWith({
-    struct: "native layout copy",
+    struct: explicitKet,
     mode: "fold",
     output_format: "chemical/x-indigo-ket",
   });
@@ -26,6 +35,30 @@ it("uses the native fold API for a separate display copy without rewriting a sou
     output_format: "chemical/x-indigo-ket",
   });
   expect(source).toBe("original explicit-H molecular record");
+});
+it("never invokes a native toggle on an already-folded skeleton, preserving donor labels", async () => {
+  const toggle = vi.fn(async () => ({ struct: explicitKet }));
+  const editor = {
+    structService: {
+      layout: async () => ({ struct: foldedKet }),
+      toggleExplicitHydrogens: toggle,
+    },
+  } as unknown as Ketcher;
+  expect(await foldDisplayHydrogens(editor, "a molecular SMILES")).toBe(
+    foldedKet,
+  );
+  expect(toggle).not.toHaveBeenCalled();
+});
+it("rejects a noncompliant native result instead of drawing or caching added carbon hydrogens", async () => {
+  const editor = {
+    structService: {
+      layout: async () => ({ struct: explicitKet }),
+      toggleExplicitHydrogens: async () => ({ struct: explicitKet }),
+    },
+  } as unknown as Ketcher;
+  await expect(foldDisplayHydrogens(editor, "source")).rejects.toThrow(
+    "could not hide non-donor",
+  );
 });
 it("does not mistake polar H or D for carbon-bound hydrogen", () => {
   const molecular = (label: string) =>
@@ -69,13 +102,13 @@ it("coalesces edits made during folding without overwriting a newer molecule", a
           finishFirst = resolve;
         }),
     )
-    .mockResolvedValue({ struct: "latest folded display" });
+    .mockResolvedValue({ struct: foldedKet });
   const remove = vi.fn(),
     error = vi.fn(),
     controller = new AbortController();
   const editor = {
     getKet: async () =>
-      current === "latest folded display"
+      current === foldedKet
         ? "{}"
         : JSON.stringify({ ...JSON.parse(carbonH), metadata: current }),
     getMolfile: async () => current,
@@ -93,11 +126,13 @@ it("coalesces edits made during folding without overwriting a newer molecule", a
   await vi.waitFor(() => expect(toggle).toHaveBeenCalledOnce());
   current = "newer pasted molecule";
   changed();
-  finishFirst({ struct: "stale display" });
-  await vi.waitFor(() =>
-    expect(setMolecule).toHaveBeenCalledWith("latest folded display"),
-  );
-  expect(setMolecule).not.toHaveBeenCalledWith("stale display");
+  const staleDisplay = JSON.stringify({
+    ...JSON.parse(foldedKet),
+    metadata: "stale",
+  });
+  finishFirst({ struct: staleDisplay });
+  await vi.waitFor(() => expect(setMolecule).toHaveBeenCalledWith(foldedKet));
+  expect(setMolecule).not.toHaveBeenCalledWith(staleDisplay);
   expect(error).not.toHaveBeenCalled();
   controller.abort();
   expect(remove).toHaveBeenCalledWith(changed);
