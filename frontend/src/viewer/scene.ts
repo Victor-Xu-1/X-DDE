@@ -251,7 +251,7 @@ export class MolecularScene {
       v.render();
       return;
     }
-    paintBase(v, this.info, this.options, [...this.hidden], "ribbon");
+    paintBase(v, this.info, this.options, [...this.hidden]);
     if (this.siteRegion.length) {
       v.addStyle({ model: 0, index: this.siteRegion }, regionStyle());
     }

@@ -25,6 +25,9 @@ on:
       - "!frontend/src/datasets/count-summary.ts"
       - "!frontend/src/datasets/count-summary.test.ts"
       - "!frontend/src/datasets/DatasetResults.tsx"
+      - "!frontend/src/datasets/PlotFrame.tsx"
+      - "!frontend/src/datasets/DatasetHeatmaps.tsx"
+      - "!frontend/src/viewer/style.ts"
   workflow_dispatch:
     inputs:
       engine:

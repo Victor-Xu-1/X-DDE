@@ -20,6 +20,7 @@ on:
       - "frontend/src/datasets/PlotFrame.tsx"
       - "frontend/src/viewer/appearance.ts"
       - "frontend/src/viewer/scene.ts"
+      - "frontend/src/viewer/style.ts"
       - "frontend/src/simulations/SimulationPlot.tsx"
       - "frontend/src/simulations/OverlapHeatmap.tsx"
       - "frontend/src/simulations/FreeEnergyForest.tsx"

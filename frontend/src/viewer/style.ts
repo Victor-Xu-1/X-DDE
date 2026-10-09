@@ -17,7 +17,6 @@ export function paintBase(
   info: SceneInfo,
   options: ViewerOptions,
   hidden: number[],
-  backbone: "ribbon" | "trace" = "ribbon",
 ) {
   const concise = info.hasInteractionContext && options.contactLimit !== "all";
   v.setStyle({}, thinSticks(info.hasPolymer ? "Jmol" : "greenCarbon"));
@@ -25,7 +24,7 @@ export function paintBase(
     v.setStyle(
       { chain, hetflag: false },
       {
-        ...proteinBackbone(palette[i % palette.length], backbone),
+        ...proteinBackbone(palette[i % palette.length]),
         ...(concise
           ? {}
           : {
