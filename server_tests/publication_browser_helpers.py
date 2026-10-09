@@ -29,8 +29,9 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG"):
         expect(export).to_be_enabled(timeout=45000)
         preview = image.evaluate("""async image => {
           if (!image.complete || !(image.naturalWidth > 0)) throw Error('Preview not decoded');
-          const response = await fetch(image.src);
-          const bytes = await response.arrayBuffer();
+          const source = /^data:(image\/(?:png|svg\+xml));base64,(.+)$/.exec(image.src);
+          if (!source) throw Error('Expected the existing CSP-compatible image transport');
+          const bytes = Uint8Array.from(atob(source[2]), char => char.charCodeAt(0));
           const hash = await crypto.subtle.digest('SHA-256', bytes);
           const sha256 = Array.from(new Uint8Array(hash))
             .map(n => n.toString(16).padStart(2,'0')).join('');
