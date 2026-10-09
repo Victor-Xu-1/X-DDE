@@ -4,7 +4,12 @@ on:
     paths:
       - 'src/opendde_workbench/deployment/**'
       - 'frontend/src/deployment/**'
-      - '!frontend/src/deployment/component-groups.ts'
+      # UI composition does not change native installation; use the component presentation gate.
+      - '!frontend/src/deployment/ComponentLibrary*'
+      - '!frontend/src/deployment/ComponentCard.tsx'
+      - '!frontend/src/deployment/component-groups*'
+      - '!frontend/src/deployment/component-content.ts'
+      - '!frontend/src/deployment/components.css'
       - 'tests/test_deployment.py'
       - 'tests/test_install_network.py'
       - 'tests/test_native_resources.py'
@@ -14,7 +19,12 @@ on:
     paths:
       - 'src/opendde_workbench/deployment/**'
       - 'frontend/src/deployment/**'
-      - '!frontend/src/deployment/component-groups.ts'
+      # UI composition does not change native installation; use the component presentation gate.
+      - '!frontend/src/deployment/ComponentLibrary*'
+      - '!frontend/src/deployment/ComponentCard.tsx'
+      - '!frontend/src/deployment/component-groups*'
+      - '!frontend/src/deployment/component-content.ts'
+      - '!frontend/src/deployment/components.css'
       - 'tests/test_deployment.py'
       - 'tests/test_install_network.py'
       - 'tests/test_native_resources.py'

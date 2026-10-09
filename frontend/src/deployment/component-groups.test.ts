@@ -2,6 +2,22 @@ import { expect, it } from "vitest";
 import { componentGroups } from "./component-groups";
 import { packageOf } from "./fixtures";
 
+it("presents all interchangeable simulation engines without expanding the recommended installation", () => {
+  const [group] = componentGroups([
+    packageOf("openmm"),
+    packageOf("gromacs"),
+    packageOf("openfe"),
+  ]);
+  expect(group.id).toBe("simulations");
+  expect(group.primary).toEqual(["openmm", "gromacs", "openfe"]);
+  expect(group.recommended).toEqual(["openmm", "openfe"]);
+  expect(group.packages.map((item) => item.id)).toEqual([
+    "openmm",
+    "gromacs",
+    "openfe",
+  ]);
+});
+
 it("keeps every supplied package exactly once including future catalogue additions", () => {
   const packages = [
     packageOf("ketcher"),

@@ -31,6 +31,10 @@ Before submission, the review shows the selected source filenames, study system,
 
 提交前，确认页显示所选原始文件名、研究对象、实际后端和计算设备。动力学及 FEP 计算显示已选择的平衡时长、温度和生产采样条件；FEP 网络规划显示原子映射与连接方案，不把未来模拟或自由能结果显示成已完成工作。文件名通过现有材料元数据接口读取，并校验所选文件身份；读取失败或身份不一致时可明确重试。查看确认页不会创建计算任务。
 
+The installation page presents OpenMM, GROMACS and OpenFE together in the dynamics/free-energy group. Primary visibility is independent of the recommended installation: the default bundle remains OpenMM plus OpenFE, while GROMACS is selected explicitly. Optional model resources remain separate, and Installed never requests a reinstall.
+
+安装页面在动力学与自由能分组中并排展示 OpenMM、GROMACS 和 OpenFE。主要展示项与推荐安装方案分别管理：推荐组合仍为 OpenMM 与 OpenFE，GROMACS 需明确选择。可选模型资源保留独立选择，“已安装”不会触发重新安装。
+
 ## Backend responsibilities / 后端工具职责
 
 | Responsibility / 职责                               | Integrated tool / 工具                          | Boundary / 边界                                                                                                                                                               |

@@ -1,0 +1,39 @@
+name: Component presentation and controls
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/src/deployment/ComponentLibrary*"
+      - "frontend/src/deployment/ComponentCard.tsx"
+      - "frontend/src/deployment/component-groups*"
+      - "frontend/src/deployment/component-content.ts"
+      - "frontend/src/deployment/components.css"
+      - "server_tests/test_component_presentation_browser.py"
+      - ".github/workflows/component-presentation-checks.yml"
+permissions:
+  contents: read
+jobs:
+  components:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed component layout, installation intent and direct deployment controls
+        working-directory: frontend
+        run: npx vitest run src/deployment/ComponentLibrary.test.tsx src/deployment/component-groups.test.ts src/deployment/deployment.test.tsx src/deployment/installation.test.ts
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Bilingual desktop, tablet and compact engine composition without installation or calculation
+        run: uv run --locked python -m pytest -x -q server_tests/test_component_presentation_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: component-presentation-evidence
+          path: outputs/component-presentation/**

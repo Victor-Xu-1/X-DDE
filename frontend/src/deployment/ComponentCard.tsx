@@ -9,6 +9,7 @@ import {
 import type { Deployment } from "./client";
 import { pendingOperation, type ComponentPackage } from "./component-groups";
 import { componentName, componentSize, states } from "./labels";
+import { componentDescription } from "./component-content";
 
 export interface ComponentActions {
   execute(action: () => Promise<unknown>): Promise<void>;
@@ -49,17 +50,21 @@ export function ComponentCard({
   const title = componentName(p, zh);
   const kind = p.id === "opendde-search" ? "data" : p.kind;
   const Icon = kindIcons[kind];
-  const description = p.description.split(" / ")[zh ? 0 : 1] ?? p.description;
+  const description = componentDescription(p, zh);
   return (
     <article className="component-card" aria-label={title}>
       <div className="component-top">
         <span className={`component-icon is-${kind}`} aria-hidden="true">
           <Icon />
         </span>
-        <span className="component-category">{groupLabel}</span>
+        <span className="component-category">
+          {groupLabel || kinds[kind][zh ? 0 : 1]}
+        </span>
       </div>
       <div className="component-title">
-        <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
+        {groupLabel && (
+          <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
+        )}
         <h3 title={p.name}>{title}</h3>
       </div>
       <p title={description}>{description}</p>

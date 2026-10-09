@@ -173,6 +173,10 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      # Component composition uses the focused installation-page browser gate.
+      - "!frontend/src/deployment/ComponentLibrary*"
+      - "!frontend/src/deployment/ComponentCard.tsx"
+      - "!frontend/src/deployment/components.css"
   workflow_dispatch:
 permissions:
   contents: read

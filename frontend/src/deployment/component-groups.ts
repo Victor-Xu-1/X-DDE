@@ -14,6 +14,7 @@ interface GroupDefinition {
   title: [string, string];
   recommendation: [string, string];
   recommended: string[];
+  primary?: string[];
   matches(p: ComponentPackage): boolean;
 }
 
@@ -89,6 +90,7 @@ const definitions: GroupDefinition[] = [
       "OpenMM / GROMACS dynamics; OpenFE relative binding free energy",
     ],
     recommended: ["openmm", "openfe"],
+    primary: ["openmm", "gromacs", "openfe"],
     matches: (p) => ["openmm", "gromacs", "openfe"].includes(p.id),
   },
   {
@@ -174,7 +176,12 @@ export function componentGroups(packages: ComponentPackage[]) {
       const items = [...remaining.values()].filter(definition.matches);
       items.forEach((p) => remaining.delete(p.id));
       items.sort(
-        (a, b) => Number(a.kind === "model") - Number(b.kind === "model"),
+        (a, b) =>
+          Number(a.kind === "model") - Number(b.kind === "model") ||
+          (definition.primary
+            ? definition.primary.indexOf(a.id) -
+              definition.primary.indexOf(b.id)
+            : 0),
       );
       return { ...definition, packages: items };
     })

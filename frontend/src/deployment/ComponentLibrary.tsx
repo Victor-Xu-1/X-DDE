@@ -29,11 +29,12 @@ export function ComponentLibrary({
   );
   const selectedGroup = visibleGroups.length === 1 ? visibleGroups[0] : null;
   const entries = visibleGroups.flatMap((group) => {
-    const main = group.packages.filter((p) => group.recommended.includes(p.id));
+    const primary = group.primary ?? group.recommended;
+    const main = group.packages.filter((p) => primary.includes(p.id));
     return group.packages.map((p) => ({
       p,
-      groupLabel: group.title[zh ? 0 : 1].split(" · ")[0],
-      optional: main.length > 0 && !group.recommended.includes(p.id),
+      groupLabel: selectedGroup ? "" : group.title[zh ? 0 : 1].split(" · ")[0],
+      optional: main.length > 0 && !primary.includes(p.id),
     }));
   });
   const mainEntries = entries.filter((entry) => !entry.optional);
@@ -110,7 +111,15 @@ export function ComponentLibrary({
           />
         </header>
       )}
-      <div className="component-grid">{cards(mainEntries)}</div>
+      <div
+        className={
+          selectedGroup?.primary
+            ? "component-grid is-engine-comparison"
+            : "component-grid"
+        }
+      >
+        {cards(mainEntries)}
+      </div>
       {optionalEntries.length > 0 && (
         <details
           className="component-additions"
