@@ -65,18 +65,18 @@ jobs:
       - run: uv sync --locked --group dev --group browser
       - name: Simulation contracts and the directly affected shared registries
         run: |
-          uv run --locked python scripts/generate-capability-catalog.py --check
-          uv run --locked --with numpy==1.26.4 --python 3.12 pytest -q tests/test_gromacs_integration.py tests/test_simulations.py tests/test_method_choices.py tests/test_engine_registry.py
-          uv run --locked pytest -q tests/test_examples.py tests/test_example_pins.py -k 'source_backed_complex_case or future_default_fields'
+          .venv/bin/python scripts/generate-capability-catalog.py --check
+          .venv/bin/python -m pytest -q tests/test_gromacs_integration.py tests/test_simulations.py tests/test_method_choices.py tests/test_engine_registry.py
+          .venv/bin/python -m pytest -q tests/test_examples.py tests/test_example_pins.py -k 'source_backed_complex_case or future_default_fields'
       - name: Backend switch, questionnaire, original results and download links
         working-directory: frontend
         run: >-
           npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationResults.test.tsx
           src/simulations/SimulationFiles.test.tsx src/studio/MethodSwitch.test.tsx
           src/studio/research-modules.test.ts src/deployment/component-groups.test.ts
-      - run: uv run --locked playwright install chromium --with-deps
+      - run: .venv/bin/python -m playwright install chromium --with-deps
       - name: Actual bilingual GROMACS choice through review; never submits a calculation
-        run: uv run --locked pytest -q server_tests/test_gromacs_switch_browser.py
+        run: .venv/bin/python -m pytest -q server_tests/test_gromacs_switch_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

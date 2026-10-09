@@ -20,26 +20,40 @@ def exercise_plot_view(page, panel, language, bounds=None):
     page.mouse.down()
     page.mouse.move(x + drag["width"] * 0.2, y, steps=10)
     page.mouse.up()
-    page.wait_for_function(
-        """before => {
-      const charts=document.querySelectorAll('.metric-scatter .research-plot-canvas');
-      const chart=Array.from(charts).find(el=>el.offsetWidth && el.offsetHeight);
+    try:
+        page.wait_for_function(
+            """({chart,before}) => {
       return chart?._fullLayout.xaxis.range.some(
         (value,index)=>Math.abs(value-before[index])>1e-10);
     }""",
-        arg=before,
-    )
+            arg={"chart": chart.element_handle(), "before": before},
+        )
+    except Exception:
+        print(
+            {
+                "before": before,
+                "drag": drag,
+                "point": [x, y],
+                "native": chart.evaluate(
+                    "el => ({x:el._fullLayout.xaxis.range,y:el._fullLayout.yaxis.range,"
+                    "mode:el._fullLayout.dragmode,fixed:el._fullLayout.xaxis.fixedrange,"
+                    "rect:el.getBoundingClientRect().toJSON()})"
+                ),
+                "target": page.evaluate(
+                    "([x,y])=>document.elementFromPoint(x,y)?.outerHTML", [x, y]
+                ),
+            }
+        )
+        raise
     assert chart.evaluate("el => ({x:el.data[0].x,y:el.data[0].y})") == original
     panel.get_by_role("button", name="Reset" if language == "en" else "重置", exact=True).click()
     expected = bounds if bounds is not None else before
     page.wait_for_function(
-        """expected => {
-      const charts=document.querySelectorAll('.metric-scatter .research-plot-canvas');
-      const chart=Array.from(charts).find(el=>el.offsetWidth && el.offsetHeight);
+        """({chart,expected}) => {
       return chart?._fullLayout.xaxis.range.every(
         (value,index)=>Math.abs(value-expected[index])<1e-7);
     }""",
-        arg=expected,
+        arg={"chart": chart.element_handle(), "expected": expected},
     )
 
 

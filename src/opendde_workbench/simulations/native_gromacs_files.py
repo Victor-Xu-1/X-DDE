@@ -1,12 +1,12 @@
 """Parameter-preserving topology export and exact TRR/EDR observations for shared analysis."""
 
 import warnings
+from math import isfinite
 from pathlib import Path
-
-import numpy as np
 
 
 def export_system(modeller, system):
+    import numpy as np
     import parmed
     from openmm import app, unit
     from parmed.exceptions import OpenMMWarning
@@ -39,7 +39,7 @@ def energy_rows(path):
         if len(values) != 2:
             raise ValueError("Native GROMACS potential-energy columns are incomplete.")
         values = [float(value) for value in values]
-        if not np.isfinite(values).all() or (rows and values[0] <= rows[-1][0]):
+        if not all(isfinite(value) for value in values) or (rows and values[0] <= rows[-1][0]):
             raise ValueError("Native GROMACS energy coordinates are invalid or unordered.")
         rows.append(values)
     if not rows:
@@ -56,6 +56,7 @@ def energy_at(rows, time_ps):
 
 def sampled_frames(path, topology, payload):
     import mdtraj
+    import numpy as np
 
     native_topology = mdtraj.Topology.from_openmm(topology)
     expected = payload["frames"]

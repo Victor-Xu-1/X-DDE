@@ -34,11 +34,15 @@ process = subprocess.run(
         "/tmp/xdde-" + program + "-resolve",
         *spec["conda"],
     ],
-    check=True,
+    check=False,
     capture_output=True,
     text=True,
     timeout=1200,
 )
+if process.returncode:
+    print(process.stdout[-12000:])
+    print(process.stderr[-12000:])
+    raise SystemExit("The scientific environment solver failed; no lock was accepted.")
 plan = json.loads(process.stdout)
 packages = plan["actions"]["LINK"]
 lines = ["@EXPLICIT"]
