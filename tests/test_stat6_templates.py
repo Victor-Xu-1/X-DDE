@@ -39,6 +39,7 @@ def test_actual_bundled_inputs_keep_confirmed_smiles_and_computed_geometry():
         data = catalogue.verified_input(key)
         assert hashlib.sha256(data).hexdigest() == spec.sha256
     assert "AK-1690" in catalogue.CASE.evidence_entities["structure"]["description"]
+    assert catalogue.FILES["bound_reference"].sha256 not in {row["sha256"] for row in values}
 
 
 def test_repeat_preparation_reuses_exact_study_versions_without_changing_originals(tmp_path):

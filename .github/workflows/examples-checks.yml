@@ -1,6 +1,7 @@
 name: Public research example checks
 on:
   workflow_dispatch:
+  workflow_dispatch:
   push:
     paths:
       - 'src/opendde_workbench/examples/**'
