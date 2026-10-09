@@ -85,8 +85,8 @@ const definitions: GroupDefinition[] = [
     id: "simulations",
     title: ["动力学与结合自由能", "Dynamics and binding free energy"],
     recommendation: [
-      "OpenMM 动力学与结构优化；OpenFE 相对结合自由能",
-      "OpenMM dynamics and refinement; OpenFE relative binding free energy",
+      "OpenMM / GROMACS 动力学；OpenFE 相对结合自由能",
+      "OpenMM / GROMACS dynamics; OpenFE relative binding free energy",
     ],
     recommended: ["openmm", "openfe"],
     matches: (p) => ["openmm", "gromacs", "openfe"].includes(p.id),

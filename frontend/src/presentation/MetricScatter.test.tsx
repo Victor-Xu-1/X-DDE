@@ -99,7 +99,7 @@ it("keeps identity axes equal and never selects a reference line as a source rec
   );
   const plot = chart.mock.lastCall![0];
   expect(plot.layout.xaxis.range).toEqual(plot.layout.yaxis.range);
-  expect(plot.layout.yaxis.scaleanchor).toBe("x");
+  expect(plot.layout.yaxis.matches).toBe("x");
   expect(plot.data[1].x).toEqual(plot.data[1].y);
   await userEvent.click(screen.getByRole("button", { name: "Reference line" }));
   expect(onSelect).not.toHaveBeenCalled();

@@ -151,7 +151,7 @@ export function MetricScatter<T>({
             xaxis: {
               title: { text: plotText(x.label) },
               automargin: true,
-              ...(range ? { range, constrain: "domain" } : {}),
+              ...(range ? { range } : {}),
             },
             yaxis: {
               title: { text: plotText(y.label) },
@@ -159,9 +159,7 @@ export function MetricScatter<T>({
               ...(range
                 ? {
                     range,
-                    constrain: "domain",
-                    scaleanchor: "x",
-                    scaleratio: 1,
+                    matches: "x",
                   }
                 : {}),
             },

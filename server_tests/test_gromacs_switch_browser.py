@@ -72,7 +72,9 @@ def test_switch_gromacs_keep_questionnaire_and_review_native_engine(tmp_path, la
                 "radio", name="Upload a new file" if language == "en" else "上传新文件", exact=True
             ).first
         ).to_be_checked()
-        page.locator('input[type="file"]').first.set_input_files(protein)
+        page.get_by_label(
+            "Upload Protein structure" if language == "en" else "上传 蛋白结构", exact=True
+        ).set_input_files(protein)
         expect(next_button).to_be_enabled()
         for step in range(1, 5):
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")

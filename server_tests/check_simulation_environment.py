@@ -1,12 +1,10 @@
 """CI/server-only installation smoke: imports and real CLI negotiation, no MD task execution."""
 
-import hashlib
 import json
 import subprocess
-import urllib.request
 from pathlib import Path
 
-from opendde_workbench.deployment.transfers import extract
+from opendde_workbench.deployment.transfers import download, extract
 from opendde_workbench.integrations.image import lock_digest, prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
@@ -17,11 +15,7 @@ def main():
     spec = PROGRAMS["gromacs"]
     source = spec["source"]
     archive = evidence / "openmmforcefields.zip"
-    with urllib.request.urlopen(source["url"], timeout=60) as stream:
-        content = stream.read(16 * 1024**2 + 1)
-    if len(content) > 16 * 1024**2 or hashlib.sha256(content).hexdigest() != source["sha256"]:
-        raise ValueError("The reviewed parameterization source changed.")
-    archive.write_bytes(content)
+    download(source["url"], archive, source["sha256"], print, lambda: None)
     extract(archive, evidence / "source", lambda: None)
     context = evidence / "image-context"
     prepare_context("gromacs", context, evidence / "source" / source["prefix"])
