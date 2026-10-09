@@ -70,8 +70,10 @@ export function InteractivePlot({
         if (!active || !target || !p) return;
         await p.react(
           target,
-          nativeTraces(data),
-          {
+          // Plotly normalizes input objects in place. Keep native scene state
+          // separate from immutable React/scientific inputs and render signatures.
+          structuredClone(nativeTraces(data)),
+          structuredClone({
             autosize: true,
             height,
             margin: { l: 58, r: 18, t: 16, b: 56 },
@@ -83,7 +85,7 @@ export function InteractivePlot({
             uirevision: title,
             legend: { orientation: "h", y: -0.26, x: 0 },
             ...layout,
-          },
+          }),
           {
             responsive: true,
             displaylogo: false,

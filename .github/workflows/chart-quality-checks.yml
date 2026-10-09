@@ -48,6 +48,7 @@ jobs:
           src/datasets/series-map.test.ts src/datasets/statistical-plots.test.tsx
           src/datasets/count-summary.test.ts
           src/presentation/plots/types.test.ts src/publication/settings-svg.test.ts
+          src/presentation/plots/InteractivePlot.test.tsx
           src/publication/embedded-raster.test.ts src/viewer/style.test.ts
           src/simulations/SimulationResults.test.tsx
       - name: Restore public research cases and graphical tools; never re-run science for layout
