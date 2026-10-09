@@ -193,6 +193,9 @@ on:
       - "!frontend/src/discovery/ReferenceImportForm.tsx"
       - "!frontend/src/discovery/TargetResearchForm.tsx"
       - "!frontend/src/studio/ProjectCreateDialog.tsx"
+      # Shared hydrogen display has focused native Ketcher/3D checks.
+      - "!frontend/src/editors/scientificEditor.ts"
+      - "!frontend/src/presentation/depiction-renderer*"
   workflow_dispatch:
 permissions:
   contents: read

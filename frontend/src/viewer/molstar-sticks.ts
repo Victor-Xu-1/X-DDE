@@ -10,6 +10,8 @@ export function molstarSticks(radius = ligandBondRadius) {
   return {
     type: "ball-and-stick" as const,
     typeParams: {
+      ignoreHydrogens: true,
+      ignoreHydrogensVariant: "non-polar" as const,
       sizeFactor: radius,
       sizeAspectRatio: 1,
       adjustCylinderLength: false,

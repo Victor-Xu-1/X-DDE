@@ -1,6 +1,6 @@
 import { thinSticks, proteinBackbone } from "./appearance";
 import * as mol from "3dmol";
-import { hideNonDonorLigandHydrogens } from "./donor-hydrogens";
+import { hideNonExchangeableHydrogens } from "./donor-hydrogens";
 import { residueRef as ref, residueSelection as sel } from "./geometry";
 import { residueLabel, type SceneInfo, type ViewerOptions } from "./protocol";
 const palette = ["#9772d6", "#45bdb3", "#e7af68", "#6fa2da"];
@@ -105,5 +105,5 @@ export function paintOverlayModel(
       { index: polymers },
       proteinBackbone(["#478dff", "#ffb266", "#aa84ef"][index]),
     );
-  hideNonDonorLigandHydrogens(model, molecular);
+  hideNonExchangeableHydrogens(model);
 }

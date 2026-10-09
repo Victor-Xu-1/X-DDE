@@ -47,6 +47,11 @@ on:
       # Native stick geometry and its editor consumer use simulation-view-checks.yml.
       - "!frontend/src/viewer/molstar-sticks.ts"
       - "!frontend/src/editors/molstar-appearance*"
+      # Shared hydrogen display has focused native Ketcher/3D checks.
+      - "!frontend/src/viewer/donor-hydrogens*"
+      - "!frontend/src/editors/ketcher-hydrogens*"
+      - "!frontend/src/editors/Editors.tsx"
+      - "!frontend/src/editors/scientificEditor.ts"
 permissions:
   contents: read
 jobs:

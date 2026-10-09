@@ -1,4 +1,8 @@
 import { configureKetcherPreview } from "./ketcher-appearance";
+import {
+  foldDisplayHydrogens,
+  observeHydrogenDisplay,
+} from "./ketcher-hydrogens";
 import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
@@ -50,7 +54,12 @@ export function Editors({
     const controller = new AbortController();
     void editorReady(frame.current, controller.signal)
       .then((editor) => {
-        if (!controller.signal.aborted) configureKetcherPreview(editor);
+        if (!controller.signal.aborted) {
+          configureKetcherPreview(editor);
+          observeHydrogenDisplay(editor, controller.signal, (failure) =>
+            setError(String(failure)),
+          );
+        }
       })
       .catch((failure) => {
         if (!controller.signal.aborted) setError(String(failure));
@@ -71,7 +80,7 @@ export function Editors({
         const record = await molecularRecord(initialObject, controller.signal);
         const editor = await editorReady(frame.current, controller.signal);
         controller.signal.throwIfAborted();
-        await editor.setMolecule(record);
+        await editor.setMolecule(await foldDisplayHydrogens(editor, record));
         if (controller.signal.aborted) return;
         setOrigin(initialObject);
         setMessage(
@@ -218,7 +227,9 @@ export function Editors({
                       void action(async (editor) => {
                         if (file.size > 5 * 1024 ** 2)
                           throw new Error("5 MiB maximum");
-                        await editor.setMolecule(await file.text());
+                        await editor.setMolecule(
+                          await foldDisplayHydrogens(editor, await file.text()),
+                        );
                         setOrigin(null);
                       });
                     e.target.value = "";

@@ -25,6 +25,9 @@ on:
       - "server_tests/test_statistical_previews_browser.py"
       - "scripts/generate-plotly-css.py"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
+      # Shared hydrogen display has focused native Ketcher/3D checks.
+      - "!frontend/src/viewer/scene.ts"
+      - "!frontend/src/viewer/style.ts"
 permissions:
   contents: read
 jobs:

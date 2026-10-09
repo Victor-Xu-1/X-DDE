@@ -1,5 +1,6 @@
 import { editorReady, type Ketcher } from "../editors/scientificEditor";
 import { configureKetcherPreview } from "../editors/ketcher-appearance";
+import { foldDisplayHydrogens } from "../editors/ketcher-hydrogens";
 import { molecularRecordText } from "./molecular-record";
 export type DepictionSource =
   { smiles: string } | { url: string; record?: number };
@@ -146,7 +147,9 @@ export class DepictionRenderer {
               throw new Error(
                 "Update Ketcher to draw alternating aromatic bonds.",
               );
-            await editor.setMolecule(structure);
+            await editor.setMolecule(
+              await foldDisplayHydrogens(editor, structure),
+            );
             await editor.layout();
             // Ketcher assigns a valid Kekulé form to this display copy. Removing
             // circles from an SVG would lose the aromatic bond information.

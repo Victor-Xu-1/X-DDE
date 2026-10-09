@@ -7,6 +7,12 @@ afterEach(() => vi.unstubAllGlobals());
 function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
+    structService: {
+      toggleExplicitHydrogens: vi.fn(async () => {
+        calls.push("fold-hydrogens");
+        return { struct: "native-hydrogen-display-copy" };
+      }),
+    },
     editor: {
       setOptions: vi.fn((_options: string) => {
         calls.push("style");
@@ -53,6 +59,7 @@ describe("Native aromatic depiction", () => {
       await renderer.render(source, new AbortController().signal, 2.2);
       expect(calls).toEqual([
         "style",
+        "fold-hydrogens",
         "load",
         "layout",
         "kekule",
@@ -64,7 +71,16 @@ describe("Native aromatic depiction", () => {
       ).toMatchObject({
         showHydrogenLabels: "Hetero",
       });
-      expect(editor.setMolecule).toHaveBeenCalledWith(source.smiles);
+      expect(editor.structService.toggleExplicitHydrogens).toHaveBeenCalledWith(
+        {
+          struct: source.smiles,
+          mode: "fold",
+          output_format: "chemical/x-mdl-molfile",
+        },
+      );
+      expect(editor.setMolecule).toHaveBeenCalledWith(
+        "native-hydrogen-display-copy",
+      );
       expect(editor.generateImage).toHaveBeenCalledWith("native-kekule-mol", {
         outputFormat: "svg",
         backgroundColor: "1,1,1",

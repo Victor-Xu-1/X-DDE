@@ -3,6 +3,18 @@ import { molecularRecordText } from "../presentation/molecular-record";
 import type { ScientificObject } from "../research/types";
 
 export interface Ketcher {
+  structService?: {
+    toggleExplicitHydrogens(data: {
+      struct: string;
+      mode: "fold";
+      output_format: "chemical/x-mdl-molfile";
+    }): Promise<{ struct: string }>;
+  };
+  changeEvent?: {
+    add(listener: () => void): void;
+    remove(listener: () => void): void;
+  };
+  getKet?(): Promise<string>;
   editor?: { setOptions(options: string): unknown };
   generateImage?(
     data: string,

@@ -135,6 +135,9 @@ on:
       # Study-only prefills use the dedicated template gate.
       - '!frontend/src/integrations/ScientificForm.tsx'
       - '!frontend/src/receptors/SurfaceForm.tsx'
+      # Shared hydrogen display has focused native Ketcher/3D checks.
+      - "!frontend/src/editors/Editors.tsx"
+      - "!frontend/src/presentation/depiction-renderer*"
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
@@ -251,6 +254,9 @@ on:
       # Study prefills have a focused template/preview gate, without full interface replay.
       - '!frontend/src/integrations/ScientificForm.tsx'
       - '!frontend/src/receptors/SurfaceForm.tsx'
+      # Shared hydrogen display has focused native Ketcher/3D checks.
+      - "!frontend/src/editors/Editors.tsx"
+      - "!frontend/src/presentation/depiction-renderer*"
   workflow_dispatch:
 jobs:
   presentation:

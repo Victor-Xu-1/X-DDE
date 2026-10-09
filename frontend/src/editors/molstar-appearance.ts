@@ -31,13 +31,37 @@ export async function applyThinLigands(plugin: AppearancePlugin) {
   let changed = false;
   for (const cell of plugin.state.data.cells.values()) {
     const original = cell.transform.params;
-    if (original?.type?.name !== "ball-and-stick") continue;
+    if (!original?.type) continue;
+    if (original.type.name !== "ball-and-stick") {
+      const params = original.type.params;
+      if (
+        !("ignoreHydrogens" in params) ||
+        (params.ignoreHydrogens === true &&
+          params.ignoreHydrogensVariant === "non-polar")
+      )
+        continue;
+      update.to(cell).update({
+        ...original,
+        type: {
+          ...original.type,
+          params: {
+            ...params,
+            ignoreHydrogens: true,
+            ignoreHydrogensVariant: "non-polar",
+          },
+        },
+      });
+      changed = true;
+      continue;
+    }
     const params = original.type.params,
       visuals = params.visuals;
     if (
       params.sizeFactor === ligandBondRadius &&
       params.sizeAspectRatio === 1 &&
       params.adjustCylinderLength === false &&
+      params.ignoreHydrogens === true &&
+      params.ignoreHydrogensVariant === "non-polar" &&
       Array.isArray(visuals) &&
       visuals.length === 3 &&
       visuals.includes("element-sphere") &&

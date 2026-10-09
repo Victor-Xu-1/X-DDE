@@ -42,6 +42,8 @@ it("restyles native ball-and-stick cells, including focused ligands, without tou
   expect(value.type.params.sizeAspectRatio).toBe(1);
   expect(value.sizeTheme).toEqual({ name: "uniform", params: { value: 1 } });
   expect(value.type.params.adjustCylinderLength).toBe(false);
+  expect(value.type.params.ignoreHydrogens).toBe(true);
+  expect(value.type.params.ignoreHydrogensVariant).toBe("non-polar");
   expect(value.marker).toBe("source-identity");
   expect(protein.transform.params).toEqual(cartoon);
   expect(commit).toHaveBeenCalledOnce();

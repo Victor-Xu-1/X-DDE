@@ -75,6 +75,13 @@
 
 ## Molecular display
 
+- Platform-wide hydrogen display rule: in every 2D/3D preview, thumbnail, editor,
+  comparison, trajectory and export, show exchangeable/donor hydrogens (N-H, O-H,
+  S-H) only. Hide carbon-bound and other non-donor hydrogens, including in protein
+  detail views and expert representations. Native scientific files retain all
+  atoms, charges, bond orders, isotope data and coordinates; view simplification
+  must never overwrite those files or run a new scientific calculation.
+
 - Default ligand previews use thin sticks with elemental colors and no large atom spheres, both standalone and with protein. Apply the shared appearance policy to overlays, native results, regions, selections and the integrated Mol* editor. Ketcher's native 3D editor uses Lines mode; its fixed-radius Licorice is too thick for the default.
 - Selection or region highlights change color without inflating atoms. Explicit expert space-fill remains an intentional representation; isolated ions stay visible. Display styling must preserve source coordinates, atom identities and bond orders.
 

@@ -5,7 +5,10 @@ import {
   focusedViewScale,
 } from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
-import { nonDonorLigandHydrogens } from "./donor-hydrogens";
+import {
+  nonExchangeableHydrogens,
+  hideNonExchangeableHydrogens,
+} from "./donor-hydrogens";
 import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
@@ -248,6 +251,9 @@ export class MolecularScene {
         );
       this.drawContacts();
       await this.paintSurface();
+      // Residue contact highlights can restyle whole residues after base styling.
+      for (const index of this.formats.keys())
+        hideNonExchangeableHydrogens(v.getModel(index));
       v.render();
       return;
     }
@@ -282,9 +288,8 @@ export class MolecularScene {
       });
     }
     await this.paintSurface();
-    const hydrogenIndices = nonDonorLigandHydrogens(
+    const hydrogenIndices = nonExchangeableHydrogens(
       v.selectedAtoms({ model: 0 }),
-      !this.info.hasPolymer,
     );
     if (hydrogenIndices.length)
       v.setStyle({ model: 0, index: hydrogenIndices }, {});
