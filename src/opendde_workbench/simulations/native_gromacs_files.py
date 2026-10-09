@@ -54,27 +54,45 @@ def energy_at(rows, time_ps):
     return row[1]
 
 
+def sample_time(step, header_time, index, payload):
+    steps = round(payload["production_ns"] * 1_000_000 / payload["timestep_fs"])
+    if step != index * (steps // payload["frames"]):
+        raise ValueError("GROMACS trajectory differs from its requested integration steps.")
+    time_ps = int(step) * payload["timestep_fs"] / 1000
+    if not isfinite(float(header_time)) or abs(float(header_time) - time_ps) > max(
+        1e-4, abs(time_ps) * 2e-7
+    ):
+        raise ValueError("GROMACS trajectory time disagrees with its native integration step.")
+    return time_ps
+
+
 def sampled_frames(path, topology, payload):
     import mdtraj
     import numpy as np
 
     native_topology = mdtraj.Topology.from_openmm(topology)
     expected = payload["frames"]
-    step_ps = payload["production_ns"] * 1000 / expected
     observed = 0
-    for chunk in mdtraj.iterload(str(path), top=native_topology, chunk=10):
-        chunk.make_molecules_whole(inplace=True)
-        for index, time in enumerate(chunk.time):
-            if time == 0:
-                continue  # GROMACS includes its initial state; no production was sampled there.
-            observed += 1
-            if observed > expected or abs(float(time) - observed * step_ps) > max(
-                1e-4, float(time) * 2e-7
-            ):
-                raise ValueError("GROMACS trajectory differs from its requested sampling schedule.")
-            box = chunk.unitcell_vectors[index]
-            if not np.isfinite(box).all() or np.linalg.det(box) <= 0:
-                raise ValueError("GROMACS trajectory lacks a valid periodic box.")
-            yield float(time), chunk.xyz[index] * 10, box * 10
+    # Keep the native integer MD step. A float32 reader timestamp alone loses
+    # enough precision in long runs to mismatch otherwise valid EDR observations.
+    with mdtraj.formats.TRRTrajectoryFile(str(path), mode="r") as stream:
+        while True:
+            xyz, times, steps, boxes, _ = stream.read(n_frames=10)
+            if not len(xyz):
+                break
+            chunk = mdtraj.Trajectory(xyz, native_topology, time=times)
+            chunk.unitcell_vectors = boxes
+            chunk.make_molecules_whole(inplace=True)
+            for index, step in enumerate(steps):
+                if step == 0:
+                    continue  # Native initial state, not a production observation.
+                observed += 1
+                if observed > expected:
+                    raise ValueError("GROMACS reported more frames than the requested sampling.")
+                time_ps = sample_time(step, times[index], observed, payload)
+                box = chunk.unitcell_vectors[index]
+                if not np.isfinite(box).all() or np.linalg.det(box) <= 0:
+                    raise ValueError("GROMACS trajectory lacks a valid periodic box.")
+                yield time_ps, chunk.xyz[index] * 10, box * 10
     if observed != expected:
         raise ValueError("GROMACS did not produce every declared production frame.")

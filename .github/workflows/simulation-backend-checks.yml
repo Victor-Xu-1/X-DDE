@@ -56,7 +56,11 @@ jobs:
         if: always()
         with:
           name: gromacs-environment-evidence
-          path: outputs/simulation-environment/**
+          path: |
+            outputs/simulation-environment/build.log
+            outputs/simulation-environment/interface-*.txt
+            outputs/simulation-environment/scope.json
+            outputs/simulation-environment/image-context/Dockerfile
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts'
     runs-on: ubuntu-22.04

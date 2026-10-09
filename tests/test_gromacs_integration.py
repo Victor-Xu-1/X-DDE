@@ -124,3 +124,13 @@ def test_native_energy_preserves_sign_and_rejects_missing_observations(native, t
     path.write_text("0 nan\n")
     with pytest.raises(ValueError, match="invalid"):
         files.energy_rows(path)
+
+
+def test_native_steps_preserve_long_run_time_precision_without_interpolation(native):
+    files = importlib.import_module("native_gromacs_files")
+    payload = GromacsDynamicsPayload(production_ns=499.9802).model_dump()
+    assert files.sample_time(249990100, 499980.1875, 100, payload) == 499980.2
+    with pytest.raises(ValueError, match="integration steps"):
+        files.sample_time(249990099, 499980.1875, 100, payload)
+    with pytest.raises(ValueError, match="time disagrees"):
+        files.sample_time(249990100, 498980.0, 100, payload)
