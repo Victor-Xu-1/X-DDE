@@ -485,11 +485,10 @@
         "openff-toolkit-base=0.19.0",
         "openff-forcefields=2026.09.0",
         "ambertools=26.0=cuda_None_nompi_py312hd652fd9_100",
-        "rdkit=2025.09.6",
+        "rdkit=2025.09.6=py312h3ecb6ed_1",
         "openff-interchange-base=0.5.5",
         "numpy=1.26.4",
         "biopython=1.85",
-        "gromacs=2026.3=nompi_cuda_h39c90b0_0",
         "parmed=4.3.1",
         "mdtraj=1.11.0"
       ],
@@ -513,7 +512,8 @@
         "sha256": "2422fe26bd7891ec575369089f0c8ec063621f76be344fd30d77c2d9ba52b19c",
         "prefix": "openmmforcefields-0.16.0",
         "package": "openmmforcefields"
-      }
+      },
+      "execution_conda": ["gromacs=2026.3=nompi_cuda_h39c90b0_0"]
     }
   }
 }

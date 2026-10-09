@@ -35,9 +35,9 @@ def main():
             timeout=2400,
         )
     commands = [
-        ["gmx", "--version"],
-        ["gmx", "grompp", "-h"],
-        ["gmx", "mdrun", "-h"],
+        ["/opt/gromacs/bin/gmx", "--version"],
+        ["/opt/gromacs/bin/gmx", "grompp", "-h"],
+        ["/opt/gromacs/bin/gmx", "mdrun", "-h"],
         [
             "python",
             "-c",
@@ -65,6 +65,7 @@ def main():
                 "USER=xdde",
                 "--env",
                 "LOGNAME=xdde",
+                *(["--env", "LD_LIBRARY_PATH=/opt/gromacs/lib"] if index < 3 else []),
                 "--entrypoint",
                 arguments[0],
                 tag,

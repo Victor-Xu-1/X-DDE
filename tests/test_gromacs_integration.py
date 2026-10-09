@@ -55,7 +55,7 @@ def test_two_md_methods_share_intent_but_not_runtime_or_default():
     assert group["default"] == "openmm.dynamics"
     assert [o["id"] for o in group["options"]] == ["openmm.dynamics", "gromacs.dynamics"]
     assert PROGRAMS["gromacs"]["version"].startswith("2026.3")
-    assert "gromacs=2026.3=nompi_cuda_h39c90b0_0" in PROGRAMS["gromacs"]["conda"]
+    assert "gromacs=2026.3=nompi_cuda_h39c90b0_0" in PROGRAMS["gromacs"]["execution_conda"]
     assert not PROGRAMS["gromacs"]["models"]
 
 
@@ -108,7 +108,7 @@ def test_failed_native_command_is_explicit_and_never_retried(native, monkeypatch
     monkeypatch.setattr(native.subprocess, "run", failed)
     with pytest.raises(RuntimeError, match="No alternate engine"):
         native.command(["mdrun", "-nb", "gpu"])
-    assert len(calls) == 1 and calls[0][0][0] == "gmx"
+    assert len(calls) == 1 and calls[0][0][0] == "/opt/gromacs/bin/gmx"
     assert calls[0][1]["cwd"] == "/output"
     assert not calls[0][1].get("shell", False)
 

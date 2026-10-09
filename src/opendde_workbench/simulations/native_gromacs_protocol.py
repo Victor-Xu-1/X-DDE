@@ -13,13 +13,13 @@ def command(arguments, *, input_text="", timeout=120):
     logfile = Path("/output", "gromacs-" + label + ".log")
     with logfile.open("a", encoding="utf-8") as stream:
         process = subprocess.run(
-            ["gmx", *arguments],
+            ["/opt/gromacs/bin/gmx", *arguments],
             input=input_text,
             text=True,
             stdout=stream,
             stderr=subprocess.STDOUT,
             cwd="/output",
-            env={**os.environ, "GMX_MAXBACKUP": "-1"},
+            env={**os.environ, "GMX_MAXBACKUP": "-1", "LD_LIBRARY_PATH": "/opt/gromacs/lib"},
             timeout=timeout,
             check=False,
         )

@@ -9,7 +9,7 @@ from .specs import PROGRAMS, recipe_digest
 
 def lock_digest(identifier):
     root = Path(__file__).parent / "recipes"
-    files = [root / (identifier + suffix) for suffix in (".txt", ".conda.txt")]
+    files = [root / (identifier + suffix) for suffix in (".txt", ".conda.txt", "-engine.conda.txt")]
     hasher = hashlib.sha256()
     for file in files:
         if file.is_file():
@@ -43,6 +43,21 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None)
             "RUN micromamba install -y -n base --file /tmp/conda-explicit.txt "
             "&& micromamba clean --index-cache --yes && rm -rf /opt/conda/pkgs",
             "ENV PATH=/opt/conda/bin:$PATH",
+        ]
+    if spec.get("execution_conda"):
+        if identifier != "gromacs":
+            raise ValueError("Only the reviewed GROMACS ABI isolation is supported.")
+        locked = recipes / "gromacs-engine.conda.txt"
+        if not locked.is_file():
+            raise ValueError("The reviewed native GROMACS execution lock is missing.")
+        shutil.copyfile(locked, destination / "engine-conda-explicit.txt")
+        # CUDA profiling libraries and Python/RDKit have incompatible Kerberos ABIs.
+        # Keep them in distinct prefixes, invoked by separate native processes.
+        lines += [
+            "COPY engine-conda-explicit.txt /tmp/engine-conda-explicit.txt",
+            "RUN CONDA_OVERRIDE_CUDA=12.9 micromamba create -y -p /opt/gromacs "
+            "--file /tmp/engine-conda-explicit.txt && micromamba clean --index-cache --yes "
+            "&& rm -rf /opt/conda/pkgs",
         ]
     if spec["pip"]:
         locked = recipes / (identifier + ".txt")
