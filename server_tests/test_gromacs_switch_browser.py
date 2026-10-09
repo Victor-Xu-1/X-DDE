@@ -107,6 +107,19 @@ def test_switch_gromacs_keep_questionnaire_and_review_native_engine(tmp_path, la
                     name="Selected research inputs" if language == "en" else "所选研究材料",
                 )
                 expect(selected_inputs.get_by_text("BRD4-protein.pdb", exact=True)).to_be_visible()
+                assert (
+                    page.locator(".questionnaire-actions").evaluate(
+                        "node => getComputedStyle(node).position"
+                    )
+                    == "static"
+                )
+                page.wait_for_function(
+                    """() => {
+                        const panel = document.querySelector('.questionnaire fieldset:not([hidden])');
+                        return panel && panel.getAnimations({subtree:true})
+                            .every(animation => animation.playState !== 'running');
+                    }"""
+                )
             page.screenshot(
                 path=str(evidence / f"{language}-{width}-step-{step}.png"), full_page=True
             )

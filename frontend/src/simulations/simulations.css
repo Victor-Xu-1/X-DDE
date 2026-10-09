@@ -54,12 +54,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
+  height: 32px;
+  min-height: 32px;
 }
 .simulation-review {
   display: grid;
   gap: 24px;
   min-width: 0;
+  color: var(--ink);
 }
 .simulation-review-name {
   display: grid;
@@ -88,7 +90,7 @@
 }
 .simulation-review-details dt,
 .simulation-review-inputs li > span {
-  color: var(--text-muted, #6b7588);
+  color: var(--muted);
 }
 .simulation-review-details dd {
   margin: 0;
@@ -116,6 +118,10 @@
 .simulation-input-error p {
   margin: 0 0 8px;
 }
+.questionnaire:has(> fieldset:not([hidden]) .simulation-review)
+  .questionnaire-actions {
+  position: static;
+}
 @media (max-width: 760px) {
   .simulation-review-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -123,6 +129,9 @@
   }
   .simulation-review-details > div {
     grid-template-columns: minmax(92px, 0.7fr) minmax(0, 1.3fr);
+  }
+  .simulation-review-inputs {
+    order: -1;
   }
 }
 .simulation-ligand-grid {
