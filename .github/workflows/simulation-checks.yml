@@ -7,6 +7,11 @@ on:
         default: contracts
   workflow_dispatch:
     inputs:
+      lock_program:
+        type: choice
+        default: openfe
+        options: [openfe, gromacs]
+        description: Scientific environment to resolve without running calculations
       check:
         type: choice
         default: contracts
@@ -74,11 +79,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Resolve reviewed conda inputs on Linux only
         run: |
-          python scripts/resolve-openfe-lock.py
+          python scripts/resolve-openfe-lock.py --program '${{ inputs.lock_program || 'openfe' }}'
       - uses: actions/upload-artifact@v4
         with:
-          name: openfe-reviewed-lock
-          path: src/opendde_workbench/integrations/recipes/openfe.conda.txt
+          name: ${{ inputs.lock_program || 'openfe' }}-reviewed-lock
+          path: src/opendde_workbench/integrations/recipes/${{ inputs.lock_program || 'openfe' }}.conda.txt
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts'
     runs-on: ubuntu-24.04

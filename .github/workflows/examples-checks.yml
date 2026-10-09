@@ -5,6 +5,9 @@ on:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
+      # Simulation template additions and old task bytes have a focused integration gate.
+      - '!src/opendde_workbench/examples/catalogue.json'
+      - '!src/opendde_workbench/examples/preparation.py'
       - 'frontend/src/examples/**'
       - '!frontend/src/examples/ExampleActions*'
       - '!frontend/src/examples/ExampleToolbar*'
@@ -21,6 +24,8 @@ on:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
+      - '!src/opendde_workbench/examples/catalogue.json'
+      - '!src/opendde_workbench/examples/preparation.py'
       - 'frontend/src/examples/**'
       - '!frontend/src/examples/ExampleActions*'
       - '!frontend/src/examples/ExampleToolbar*'

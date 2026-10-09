@@ -13,6 +13,8 @@ on:
       - 'tests/test_case_bundle_sources.py'
       - 'tests/test_compute_service.py'
       - 'frontend/src/deployment/**'
+      # Group membership changes use the focused component-group integration tests.
+      - '!frontend/src/deployment/component-groups.ts'
       - '.github/workflows/case-bundle-checks.yml'
   pull_request:
     paths:
@@ -23,6 +25,7 @@ on:
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
       - 'frontend/src/deployment/**'
+      - '!frontend/src/deployment/component-groups.ts'
 permissions:
   contents: read
   actions: read

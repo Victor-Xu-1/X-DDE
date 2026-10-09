@@ -38,7 +38,11 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Build the exact locked environment and negotiate real native interfaces only
         run: uv run --locked python server_tests/check_simulation_environment.py
@@ -57,12 +61,13 @@ jobs:
         with:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked --group dev --group browser
       - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
       - name: Simulation contracts and the directly affected shared registries
         run: |
           uv run --locked python scripts/generate-capability-catalog.py --check
-          uv run --locked pytest -q tests/test_gromacs_integration.py tests/test_simulations.py tests/test_method_choices.py tests/test_engine_registry.py
+          uv run --locked --with numpy==1.26.4 --python 3.12 pytest -q tests/test_gromacs_integration.py tests/test_simulations.py tests/test_method_choices.py tests/test_engine_registry.py
+          uv run --locked pytest -q tests/test_examples.py tests/test_example_pins.py -k 'source_backed_complex_case or future_default_fields'
       - name: Backend switch, questionnaire, original results and download links
         working-directory: frontend
         run: >-

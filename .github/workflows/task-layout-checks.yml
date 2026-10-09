@@ -129,6 +129,8 @@ on:
       - "!frontend/src/operations/ToolCenter.tsx"
       - "!frontend/src/operations/catalog.ts"
       - "!frontend/src/studio/method-choices.ts"
+      # Exact backend-switch behavior is covered in simulation-backend-checks.yml.
+      - "!frontend/src/studio/MethodSwitch.test.tsx"
       - "!frontend/src/studio/research-modules.ts"
       - "!frontend/src/studio/research-icons.ts"
       - "!frontend/src/design/module-theme.ts"
