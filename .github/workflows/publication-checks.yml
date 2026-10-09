@@ -32,6 +32,9 @@ on:
       - "!frontend/src/publication/plotly*"
       # Selected-ligand camera changes affect only native MD/FEP result views.
       - "!frontend/src/simulations/molstar-controller.ts"
+      # Selected-pocket controls/camera have native exports in pocket-result-checks.yml.
+      - "!frontend/src/viewer/StructureViewer.tsx"
+      - "!frontend/src/viewer/frame.ts"
 permissions:
   contents: read
 jobs:

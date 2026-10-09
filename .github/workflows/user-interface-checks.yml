@@ -18,6 +18,8 @@ on:
       - '!frontend/src/poses/PoseResults*'
       - '!frontend/src/receptors/ReceptorResults*'
       - '!frontend/src/diffsbdd/InteractionResults*'
+      # Native pocket results have a focused result/geometry gate.
+      - '!frontend/src/pockets/PocketResults*'
       - '!frontend/src/presentation/ensemble-results.css'
       - 'frontend/src/research/ResearchWorkspace*'
       - 'frontend/src/operations/ToolCenter*'

@@ -13,6 +13,7 @@ import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
+import { retainSourceDepth } from "./source-depth";
 import { focusDisplayContext } from "./context-focus";
 import { contactLabelLayer } from "./contact-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
@@ -207,15 +208,21 @@ export class MolecularScene {
     );
     this.siteRegion = region.indices;
     await this.paint();
-    if (region.indices.length) {
-      this.viewer.zoomTo({ model: 0, index: region.indices });
-      this.viewer.zoom(0.85);
-      this.viewer.render();
-    }
+    // Selection highlights native residues without changing the researcher's camera.
     this.emit("site-region", {
       requested: region.requested,
       matched: region.matched,
     });
+  }
+  focusSite() {
+    if (this.overlay || !this.siteRegion.length) return;
+    const focused = focusDisplayContext(
+      this.viewer,
+      this.viewer.selectedAtoms({ model: 0, index: this.siteRegion }),
+      null,
+      this.viewport?.(),
+    );
+    if (focused && retainSourceDepth(this.viewer)) this.viewer.render();
   }
   paint(): Promise<void> {
     const revision = this.revision;

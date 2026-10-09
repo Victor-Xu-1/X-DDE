@@ -35,6 +35,9 @@ function fixture(data = sdf, format = "sdf") {
     render: vi.fn(),
     zoomTo: vi.fn(),
     zoom: vi.fn(),
+    getView: vi.fn(() => [0, 0, 0, -80, 0, 0, 0, 1]),
+    getSlab: vi.fn(() => ({ near: -50, far: 50 })),
+    setSlab: vi.fn(),
   } as unknown as GLViewer;
   const emit = vi.fn(),
     scene = new MolecularScene(viewer, emit);
@@ -157,8 +160,8 @@ it("receptor overlays keep a visible colored backbone without sidechain clutter"
   expect(source(model.selectedAtoms({}))).toEqual(before);
 });
 
-it("pocket highlights retain the continuous backbone and original coordinates", async () => {
-  const { model, scene } = fixture(
+it("pocket selection retains the complete view and original coordinates until explicit focus", async () => {
+  const { model, scene, viewer } = fixture(
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CA  GLY A   2       3.800   0.000   0.000  1.00 20.00           C  \nEND\n",
     "pdb",
   );
@@ -178,6 +181,12 @@ it("pocket highlights retain the continuous backbone and original coordinates", 
     "#dc8e25",
   );
   expect(model.selectedAtoms({ resi: 2 })[0].style?.stick).toBeUndefined();
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+  expect(viewer.zoomTo).not.toHaveBeenCalled();
+  scene.focusSite();
+  expect(viewer.zoomTo).toHaveBeenCalledWith(
+    expect.objectContaining({ model: 0, predicate: expect.any(Function) }),
+  );
   expect(source(model.selectedAtoms({}))).toEqual(before);
 });
 

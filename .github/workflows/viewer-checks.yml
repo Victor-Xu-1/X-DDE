@@ -31,6 +31,7 @@ on:
       - "frontend/src/regions/RegionResult.tsx"
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/viewer/StructureViewer.tsx"
+      - "!frontend/src/viewer/StructureViewer.test.tsx"
       - "!frontend/src/viewer/capture.test.ts"
       - "!frontend/src/viewer/capture.ts"
       - "!frontend/src/viewer/contact-labels.ts"
@@ -44,6 +45,7 @@ on:
       - "!frontend/src/datasets/PlotFrame.tsx"
       - "!frontend/src/datasets/DatasetHeatmaps.tsx"
       - "!frontend/src/viewer/style.ts"
+      - "!frontend/src/viewer/style.test.ts"
       # Native stick geometry and its editor consumer use simulation-view-checks.yml.
       - "!frontend/src/viewer/molstar-sticks.ts"
       - "!frontend/src/editors/molstar-appearance*"
@@ -52,6 +54,8 @@ on:
       - "!frontend/src/editors/ketcher-hydrogens*"
       - "!frontend/src/editors/Editors.tsx"
       - "!frontend/src/editors/scientificEditor.ts"
+      # Native pocket selection and depth use pocket-result-checks.yml.
+      - "!frontend/src/viewer/source-depth*"
 permissions:
   contents: read
 jobs:

@@ -39,6 +39,7 @@ on:
       # Camera and paired-result changes are verified by viewer-checks.yml.
       - "!frontend/src/viewer/frame.ts"
       - "!frontend/src/viewer/scene.ts"
+      - "!frontend/src/viewer/source-depth*"
       - "!frontend/src/viewer/context-focus*"
       - "!frontend/src/viewer/style.test.ts"
       - "!frontend/src/viewer/contact-label*"
@@ -121,6 +122,10 @@ on:
       - "!frontend/src/presentation/result-layout.css"
       # Initial 3D qualification is covered by native pose and viewer gates.
       - "!frontend/src/viewer/StructureViewer*"
+      # Native pocket results have their own exact result/geometry gate.
+      - "!frontend/src/pockets/PocketResults*"
+      - "!frontend/src/pockets/PocketSelection*"
+      - "!frontend/src/pockets/pocket-results.css"
       - "!frontend/src/viewer/InitialPoseStatus*"
       - "!frontend/src/viewer/initial-geometry*"
       - "!frontend/src/viewer/usePoseOptimization*"

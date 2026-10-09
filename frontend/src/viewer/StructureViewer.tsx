@@ -620,6 +620,15 @@ export function StructureViewer({
             <button type="button" onClick={() => send("reset")}>
               {zh ? "回到全局" : "Full structure"}
             </button>
+            {siteStatus && siteStatus.matched > 0 && (
+              <button
+                type="button"
+                disabled={!loaded}
+                onClick={() => send("focus-site")}
+              >
+                {zh ? "定位口袋" : "Focus pocket"}
+              </button>
+            )}
             {focusModels?.length ? (
               <button
                 type="button"

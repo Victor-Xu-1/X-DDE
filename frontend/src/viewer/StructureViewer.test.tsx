@@ -4,6 +4,53 @@ import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 import { defaultOptions } from "./protocol";
 
+it("focuses a native pocket only after an explicit request and a matched loaded region", () => {
+  render(
+    <StructureViewer urls={["/api/assets/native-pocket"]} language="en" />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      );
+    });
+  message("ready");
+  expect(
+    screen.queryByRole("button", { name: "Focus pocket" }),
+  ).not.toBeInTheDocument();
+  message("loaded", {
+    atoms: 100,
+    chains: ["A"],
+    hasPolymer: true,
+    hasInteractionContext: false,
+    ligands: [],
+    residues: [],
+    options: defaultOptions,
+  });
+  message("site-region", { requested: 8, matched: 8 });
+  const control = screen.getByRole("button", { name: "Focus pocket" });
+  expect(control).toBeEnabled();
+  expect(
+    post.mock.calls.filter(([data]) => data.type === "focus-site"),
+  ).toHaveLength(0);
+  fireEvent.click(control);
+  expect(
+    post.mock.calls.filter(([data]) => data.type === "focus-site"),
+  ).toHaveLength(1);
+  message("site-region", { requested: 8, matched: 0 });
+  expect(
+    screen.queryByRole("button", { name: "Focus pocket" }),
+  ).not.toBeInTheDocument();
+});
+
 it("keeps protein interface selection and downloads without showing incidental glycan pocket contacts", () => {
   render(
     <StructureViewer
