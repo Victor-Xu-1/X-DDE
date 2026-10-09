@@ -9,7 +9,7 @@ export async function foldDisplayHydrogens(editor: Ketcher, structure: string) {
   const value = await editor.structService.toggleExplicitHydrogens({
     struct: structure,
     mode: "fold",
-    output_format: "chemical/x-mdl-molfile",
+    output_format: "chemical/x-indigo-ket",
   });
   if (!value.struct?.trim() || value.struct.length > 5 * 1024 ** 2)
     throw new Error(
@@ -68,11 +68,11 @@ export function observeHydrogenDisplay(
     working = true;
     pending = false;
     void (async () => {
-      if (!hasNonDonorHydrogens(await editor.getKet!())) return;
-      const original = await editor.getMolfile();
+      const original = await editor.getKet!();
+      if (!hasNonDonorHydrogens(original)) return;
       const display = await foldDisplayHydrogens(editor, original);
       signal.throwIfAborted();
-      if (original !== (await editor.getMolfile())) return;
+      if (original !== (await editor.getKet!())) return;
       ownChange = true;
       try {
         await editor.setMolecule(display);

@@ -110,7 +110,7 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
             await editor.setMolecule(source);
             const before=await editor.getInChIKey();
             const copy=await editor.structService.toggleExplicitHydrogens({
-              struct:source,mode:'fold',output_format:'chemical/x-mdl-molfile'});
+              struct:source,mode:'fold',output_format:'chemical/x-indigo-ket'});
             await editor.setMolecule(copy.struct);
             await editor.layout(); await editor.dearomatize();
             rows.push({source,before,after:await editor.getInChIKey(),
@@ -118,13 +118,13 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
           }
           return rows;
         }""")
+        (EVIDENCE / "native-stereo-charge-isotope-identity.json").write_text(
+            json.dumps(identities, indent=2)
+        )
         for row in identities:
             assert row["before"] and row["before"] == row["after"]
             assert not non_donor_hydrogens(row["ket"])
         assert identities[0]["after"] != identities[1]["after"]
-        (EVIDENCE / "native-stereo-charge-isotope-identity.json").write_text(
-            json.dumps(identities, indent=2)
-        )
         assert hashlib.sha256(file.read_bytes()).hexdigest() == original
         assert not errors and not submissions, (errors, submissions)
         assert page.request.get(base + "/api/jobs").json() == []

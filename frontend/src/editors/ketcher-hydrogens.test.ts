@@ -18,7 +18,7 @@ it("uses the native fold API for a separate display copy without rewriting a sou
   expect(toggle).toHaveBeenCalledWith({
     struct: source,
     mode: "fold",
-    output_format: "chemical/x-mdl-molfile",
+    output_format: "chemical/x-indigo-ket",
   });
   expect(source).toBe("original explicit-H molecular record");
 });
@@ -69,7 +69,10 @@ it("coalesces edits made during folding without overwriting a newer molecule", a
     error = vi.fn(),
     controller = new AbortController();
   const editor = {
-    getKet: async () => (current === "latest folded display" ? "{}" : carbonH),
+    getKet: async () =>
+      current === "latest folded display"
+        ? "{}"
+        : JSON.stringify({ ...JSON.parse(carbonH), metadata: current }),
     getMolfile: async () => current,
     getSmiles: async () => "CN",
     setMolecule,

@@ -75,7 +75,7 @@ describe("Native aromatic depiction", () => {
         {
           struct: source.smiles,
           mode: "fold",
-          output_format: "chemical/x-mdl-molfile",
+          output_format: "chemical/x-indigo-ket",
         },
       );
       expect(editor.setMolecule).toHaveBeenCalledWith("folded:c1ccccc1");

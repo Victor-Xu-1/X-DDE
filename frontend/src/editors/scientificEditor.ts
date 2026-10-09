@@ -7,7 +7,7 @@ export interface Ketcher {
     toggleExplicitHydrogens(data: {
       struct: string;
       mode: "fold";
-      output_format: "chemical/x-mdl-molfile";
+      output_format: "chemical/x-indigo-ket";
     }): Promise<{ struct: string }>;
   };
   changeEvent?: {
