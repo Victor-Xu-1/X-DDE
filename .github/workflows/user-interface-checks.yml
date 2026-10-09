@@ -147,6 +147,9 @@ on:
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/Editors.tsx"
       - "!frontend/src/presentation/depiction-renderer*"
+      # Shared row interaction has one focused native selection gate.
+      - '!frontend/src/datasets/ResearchTable.tsx'
+      - '!frontend/src/space/ChannelResults.tsx'
   pull_request:
     paths:
       - 'frontend/src/presentation/**'
