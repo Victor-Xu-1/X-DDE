@@ -93,7 +93,11 @@ def test_switch_gromacs_keep_questionnaire_and_review_native_engine(tmp_path, la
                         max(box["y"] for box in controls) - min(box["y"] for box in controls) <= 1
                     )
             if step == 4:
-                expect(page.get_by_text("BRD4-protein.pdb", exact=True)).to_be_visible()
+                selected_inputs = page.get_by_role(
+                    "region",
+                    name="Selected research inputs" if language == "en" else "所选研究材料",
+                )
+                expect(selected_inputs.get_by_text("BRD4-protein.pdb", exact=True)).to_be_visible()
             page.screenshot(
                 path=str(evidence / f"{language}-{width}-step-{step}.png"), full_page=True
             )
