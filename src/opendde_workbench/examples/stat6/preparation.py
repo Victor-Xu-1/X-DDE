@@ -80,6 +80,9 @@ def prepare_stat6(capability, scientific, *, records=None):
         objects.pop("ligand")
     if capability == "diffsbdd.pocket":
         objects["ligand"] = originals["bound_reference"]
+    if capability == "chemprop.train":
+        # A single unlabelled study molecule is not an experimental training dataset.
+        objects.pop("ligand")
     sequence = "".join(verified_input("stat6_sequence").decode().splitlines()[1:])
     if len(sequence) != 847:
         raise ValueError("The fixed canonical STAT6 sequence differs from its reviewed length.")

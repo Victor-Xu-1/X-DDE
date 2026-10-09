@@ -69,6 +69,13 @@ def test_unbound_conformer_does_not_prefill_a_binding_pose_field(tmp_path, key):
     assert store.list_jobs() == []
 
 
+def test_property_training_requires_real_measurements_not_the_study_conformer(tmp_path):
+    _, scientific = scientific_store(tmp_path)
+    prepared = prepare_stat6("chemprop.train", scientific)
+    assert "study_ligand" in prepared.objects and "ligand" not in prepared.objects
+    assert prepared.request is None and prepared.study["required_materials"]
+
+
 @pytest.mark.parametrize(
     "key", ["del.analyze", "antibody.humanize", "openfe.rbfe", "deepternary.model"]
 )
