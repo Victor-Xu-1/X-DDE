@@ -221,6 +221,11 @@ export function FreeEnergyResults({
           onSelect={(row) => setSelected(row.id)}
           rowId={(row) => row.id}
           exportName="free-energy-edges.csv"
+          initialVisibleColumns={
+            result.stage === "calculate"
+              ? ["change", "delta", "error", "quality"]
+              : ["change", "mapping"]
+          }
           columns={[
             {
               key: "change",

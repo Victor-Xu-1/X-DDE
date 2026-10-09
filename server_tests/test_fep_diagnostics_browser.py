@@ -110,14 +110,16 @@ def test_completed_fep_diagnostics_display_values_and_downloads(language):
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             page.wait_for_function("() => document.documentElement.scrollWidth <= innerWidth + 1")
-            root.scroll_into_view_if_needed()
+            # Full-page captures start at the document top, keeping sticky chrome
+            # in its actual top position rather than a scrolled capture offset.
+            page.evaluate("window.scrollTo({top: 0, behavior: 'instant'})")
             page.screenshot(path=str(evidence / f"controlled-cycle-{width}.png"), full_page=True)
         page.set_viewport_size({"width": 1440, "height": 1000})
         root.get_by_role(
             "combobox", name="Thermodynamic leg" if language == "en" else "环境"
         ).select_option("solvent")
         root.get_by_role(
-            "tab", name="Overlap heatmap" if language == "en" else "重叠热图", exact=True
+            "tab", name="Overlap" if language == "en" else "重叠热图", exact=True
         ).click()
         overlap = root.get_by_role(
             "application", name="Sampling overlap" if language == "en" else "采样重叠", exact=True
@@ -138,7 +140,7 @@ def test_completed_fep_diagnostics_display_values_and_downloads(language):
         assert convergence.evaluate("el => el.data[0].error_y.array") == [0.4, 0.3, 0.25, 0.2]
         page.screenshot(path=str(evidence / "controlled-convergence.png"), full_page=True)
         root.get_by_role(
-            "tab", name="Independent estimates" if language == "en" else "重复结果", exact=True
+            "tab", name="Repeats" if language == "en" else "重复结果", exact=True
         ).click()
         table = root.get_by_role(
             "table",
@@ -150,7 +152,7 @@ def test_completed_fep_diagnostics_display_values_and_downloads(language):
         expect(table).to_contain_text("0.2")
         with page.expect_download() as downloaded:
             root.get_by_role(
-                "tabpanel", name="Independent estimates" if language == "en" else "重复结果"
+                "tabpanel", name="Repeats" if language == "en" else "重复结果"
             ).get_by_role(
                 "button", name="Export filtered rows" if language == "en" else "导出筛选结果"
             ).click()

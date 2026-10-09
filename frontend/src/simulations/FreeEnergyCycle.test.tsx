@@ -83,9 +83,7 @@ it("never creates a missing final result or an empirical spread for a single rep
   expect(
     screen.getByRole("combobox", { name: "Thermodynamic leg" }),
   ).toHaveValue("solvent");
-  await userEvent.click(
-    screen.getByRole("tab", { name: "Independent estimates" }),
-  );
+  await userEvent.click(screen.getByRole("tab", { name: "Repeats" }));
   const table = screen.getByRole("table", {
     name: "Independent estimates for selected leg",
   });

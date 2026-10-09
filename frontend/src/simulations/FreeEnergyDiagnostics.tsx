@@ -91,7 +91,7 @@ export function FreeEnergyDiagnostics({
         tabs={[
           {
             id: "cycle",
-            label: zh ? "双环境比较" : "Thermodynamic cycle",
+            label: zh ? "双环境比较" : "Bound vs solvent",
             content: (
               <FreeEnergyCycle
                 edge={edge}
@@ -105,7 +105,7 @@ export function FreeEnergyDiagnostics({
           },
           {
             id: "overlap",
-            label: zh ? "重叠热图" : "Overlap heatmap",
+            label: zh ? "重叠热图" : "Overlap",
             content: (
               <OverlapHeatmap
                 matrix={result.overlap[repeat]}
@@ -153,7 +153,7 @@ export function FreeEnergyDiagnostics({
           },
           {
             id: "repeats",
-            label: zh ? "重复结果" : "Independent estimates",
+            label: zh ? "重复结果" : "Repeats",
             content: (
               <ResearchTable
                 rows={result.individual.map((value, index) => ({
