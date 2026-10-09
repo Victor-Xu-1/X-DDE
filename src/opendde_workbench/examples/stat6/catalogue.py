@@ -132,7 +132,13 @@ def study_context(capability):
         "organism": "Homo sapiens",
         "uniprot": "P42226",
         "template_kind": "research_study",
-        "molecules": MANIFEST["molecules"],
+        "molecules": [
+            {
+                **row,
+                "input_key": next(key for key, file in FILES.items() if file.name == row["file"]),
+            }
+            for row in MANIFEST["molecules"]
+        ],
         "required_materials": requirements,
         "guide": {
             "steps": steps(capability),

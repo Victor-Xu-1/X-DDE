@@ -57,6 +57,7 @@ export interface StudyContext {
   organism: string;
   uniprot: string;
   template_kind: "research_study";
+  molecules?: { input_key: string; original_smiles: string; file: string }[];
   required_materials: [string, string][];
   guide: { steps: [string, string][]; interpretation: [string, string] };
 }

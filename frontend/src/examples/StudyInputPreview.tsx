@@ -25,6 +25,9 @@ export function StudyInputPreview({
   const reference = example.objects[key].reference;
   const url = `/api/assets/${reference.asset_id}`;
   const molecule = key === "study_ligand" || key === "study_protac";
+  const definition = example.study?.molecules?.find(
+    (item) => item.input_key === key,
+  );
   const label = choices.find((item) => item[0] === key)![zh ? 1 : 2];
   return (
     <section
@@ -88,7 +91,7 @@ export function StudyInputPreview({
       {molecule && mode === "2d" ? (
         <MoleculeImage
           key={key}
-          source={{ url, record: reference.record }}
+          source={definition ? { smiles: definition.original_smiles } : null}
           language={language}
           label={label}
         />
@@ -98,7 +101,7 @@ export function StudyInputPreview({
           urls={[url]}
           language={language}
           records={[reference.record]}
-          initialMode={molecule ? "pocket" : "cartoon"}
+          initialMode="cartoon"
         />
       )}
       <table className="compact-table">
