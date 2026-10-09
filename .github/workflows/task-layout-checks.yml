@@ -41,6 +41,7 @@ on:
       - "!frontend/src/viewer/scene.ts"
       - "!frontend/src/viewer/context-focus*"
       - "!frontend/src/viewer/style.test.ts"
+      - "!frontend/src/viewer/source-depth*"
       - "!frontend/src/viewer/contact-label*"
       - "!frontend/src/viewer/contacts*"
       - "!frontend/src/viewer/scientific-overlay*"
