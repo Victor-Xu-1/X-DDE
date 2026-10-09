@@ -15,7 +15,8 @@ for name in ("native-folded-preview.mol", "native-folded-editor.mol"):
         str(root / "server_tests/evidence/hydrogen-policy" / name), removeHs=False
     )
     assert copy is not None
-    assert Chem.MolToSmiles(Chem.RemoveHs(copy), isomericSmiles=True) == identity
+    found = Chem.MolToSmiles(Chem.RemoveHs(copy), isomericSmiles=True)
+    assert found == identity, {"file": name, "source": identity, "display": found}
     assert copy.GetNumHeavyAtoms() == source.GetNumHeavyAtoms()
     assert (
         sum(atom.GetTotalNumHs() for atom in copy.GetAtoms() if atom.GetSymbol() in {"N", "O", "S"})

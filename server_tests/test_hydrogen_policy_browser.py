@@ -86,18 +86,20 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         upload.set_input_files(str(file))
         frame = page.locator(".editor-workspace iframe").first
         expect(frame).to_be_visible()
-        page.wait_for_function(
-            """async () => {
-          const editor=document.querySelector('.editor-workspace iframe').contentWindow.ketcher;
-          const value=JSON.parse(await editor.getKet());
-          return Object.values(value).some(node=>node?.type==='molecule' && node.atoms?.length>20);
-        }""",
-            timeout=45000,
-        )
+        # Follow the actual import lifecycle, rather than treating an async
+        # molecular getter as a synchronous polling predicate.
+        expect(upload).to_be_enabled(timeout=45000)
         edited = page.evaluate("""async () => {
           const editor=document.querySelector('.editor-workspace iframe').contentWindow.ketcher;
-          return {mol:await editor.getMolfile(),ket:JSON.parse(await editor.getKet())};
+          return {mol:await editor.getMolfile(),ket:JSON.parse(await editor.getKet()),
+            smiles:await editor.getSmiles()};
         }""")
+        assert edited["smiles"]
+        assert sum(
+            len(node.get("atoms", []))
+            for node in edited["ket"].values()
+            if isinstance(node, dict) and node.get("type") == "molecule"
+        ) == 30
         assert not non_donor_hydrogens(edited["ket"])
         (EVIDENCE / "native-folded-editor.mol").write_text(edited["mol"])
         page.screenshot(path=EVIDENCE / "explicit-hydrogen-editor.png")
