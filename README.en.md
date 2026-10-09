@@ -101,6 +101,10 @@ DEL results retain member structures, target/control counts, enrichment interval
 
 ![Actual English UNCDEL006–BRD4 enrichment and member-structure results](docs/images/del-enrichment.jpg)
 
+![Actual English native DEL read and UMI comparison, with interactive inspection and figure export](docs/images/del-counts-interactive.png)
+
+Sequencing quality, count evidence, sample correlations, building-block series and model evaluation use the same interactive chart system as MD and FEP. Missing values remain unreported, and count evidence is kept distinct from binding affinity.
+
 ![Actual English trastuzumab–HER2 design input template with variable-domain sequence and CDRs](docs/images/antibody-template.jpg)
 
 The antibody image shows a validated **input template**, without a new design run. Experimental reference structures, supplied materials and newly generated model outputs retain distinct identities.

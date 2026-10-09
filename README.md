@@ -101,6 +101,10 @@ DEL 页面保留成员结构、靶点与对照计数、富集区间和重复信�
 
 ![UNCDEL006–BRD4 公开研究：实际 DEL 富集与成员结构](docs/images/del-enrichment.jpg)
 
+![真实英文 DEL 原生读数与 UMI 比较：支持交互检查及图件导出](docs/images/del-counts-interactive.png)
+
+测序质量、计数证据、样本相关、砌块系列和模型评估与动力学、FEP 共用交互图表。缺失数据保留为未报告；计数证据与结合亲和力保持区分。
+
 ![曲妥珠单抗–HER2 设计输入模板：实际可变域序列与 CDR](docs/images/antibody-template.jpg)
 
 抗体图展示经验证的**设计输入模板**，尚未运行新的设计任务；实验参考结构、输入材料与新生成的模型结果保持区分。
