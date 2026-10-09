@@ -52,6 +52,14 @@ def test_switch_gromacs_keep_questionnaire_and_review_native_engine(tmp_path, la
             "aria-pressed", "true"
         )
         methods.get_by_role("button", name="GROMACS", exact=False).click()
+        page.screenshot(path=str(evidence / f"{language}-{width}-backend.png"), full_page=True)
+        print(
+            {
+                "language": language,
+                "errors": errors,
+                "page": page.locator("body").inner_text()[:5000],
+            }
+        )
         expect(methods.get_by_role("button", name="GROMACS", exact=False)).to_have_attribute(
             "aria-pressed", "true"
         )

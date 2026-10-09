@@ -15,7 +15,7 @@ on:
       check:
         type: choice
         default: contracts
-        options: [locks, contracts, native, md-views]
+        options: [locks, contracts, native, md-views, gromacs-runtime]
   push:
     paths:
       - "src/opendde_workbench/simulations/**"
@@ -83,7 +83,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.lock_program || 'openfe' }}-reviewed-lock
-          path: src/opendde_workbench/integrations/recipes/${{ inputs.lock_program || 'openfe' }}.conda.txt
+          path: src/opendde_workbench/integrations/recipes/${{ inputs.lock_program || 'openfe' }}*.conda.txt
+  gromacs-runtime:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'gromacs-runtime'
+    uses: ./.github/workflows/simulation-backend-checks.yml
+    with:
+      check: runtime
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts'
     runs-on: ubuntu-24.04

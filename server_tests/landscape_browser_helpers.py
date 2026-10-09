@@ -19,6 +19,7 @@ def exercise_plot_view(page, panel, language, bounds=None):
     page.mouse.move(x, y)
     page.mouse.down()
     page.mouse.move(x + drag["width"] * 0.2, y, steps=10)
+    during = chart.evaluate("el=>el._fullLayout.xaxis.range")
     page.mouse.up()
     try:
         page.wait_for_function(
@@ -32,6 +33,7 @@ def exercise_plot_view(page, panel, language, bounds=None):
         print(
             {
                 "before": before,
+                "during": during,
                 "drag": drag,
                 "point": [x, y],
                 "native": chart.evaluate(

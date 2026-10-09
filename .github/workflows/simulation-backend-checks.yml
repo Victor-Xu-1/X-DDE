@@ -1,5 +1,10 @@
 name: Simulation backend integration
 on:
+  workflow_call:
+    inputs:
+      check:
+        type: string
+        default: contracts
   workflow_dispatch:
     inputs:
       check:
@@ -31,7 +36,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: gromacs-reviewed-lock
-          path: src/opendde_workbench/integrations/recipes/gromacs.conda.txt
+          path: src/opendde_workbench/integrations/recipes/gromacs*.conda.txt
   runtime:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'runtime'
     runs-on: ubuntu-22.04
