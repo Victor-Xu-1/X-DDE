@@ -55,7 +55,7 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         open_navigation(page, language).get_by_role(
             "button", name="研究空间" if zh else "Research workspace", exact=True
         ).click()
-        page.get_by_text("研究文件" if zh else "Research files", exact=True).click()
+        page.get_by_role("button", name="研究文件" if zh else "Research files", exact=True).click()
         files = page.get_by_role(
             "list", name="资产与任务" if zh else "Assets and tasks", exact=True
         )
