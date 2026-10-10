@@ -44,6 +44,7 @@ on:
       - ".github/workflows/publication-checks.yml"
       - ".github/workflows/stat6-template-checks.yml"
       - ".github/workflows/examples-checks.yml"
+      - "src/opendde_workbench/examples/catalogue-profiles.json"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/publication/embedded-raster.test.ts"

@@ -7,6 +7,8 @@ on:
       - '!src/opendde_workbench/examples/bundle*.py'
       # Simulation template additions and old task bytes have a focused integration gate.
       - '!src/opendde_workbench/examples/catalogue.json'
+      # Immutable historical profiles are verified by actual retained-case imports.
+      - '!src/opendde_workbench/examples/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/preparation.py'
       - 'frontend/src/examples/**'
       # This read-only material view is covered by the native figure browser gate.
@@ -28,6 +30,7 @@ on:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
       - '!src/opendde_workbench/examples/catalogue.json'
+      - '!src/opendde_workbench/examples/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/preparation.py'
       - 'frontend/src/examples/**'
       - '!frontend/src/examples/StudyInputPreview.tsx'

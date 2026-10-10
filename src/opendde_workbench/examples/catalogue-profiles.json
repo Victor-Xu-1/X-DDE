@@ -1,4 +1,18 @@
 {
+  "88ef8f29e46514f1ac08a5a09a9f8275884ae3dc69f15f27d55a02fcd2fe9c75": {
+    "source_revision": "ec049d905f602fe7aa67d824ac0a8e462cfb0a5f",
+    "content_sha256": "35972de3926e1419a26c64857cb93126080f49556c317dbcb746f2ba7517ee63",
+    "modules": {
+      "deepternary.model": {
+        "case_id": "mz1-native-assembly",
+        "capability_id": "deepternary.model",
+        "revision": 1,
+        "pinned_run_required": true
+      }
+    },
+    "file_keys": ["ternary_brd4", "ternary_vhl", "ternary_mz1"],
+    "case_ids": ["mz1-native-assembly"]
+  },
   "7983ecd5b426183e4b09dfcf0010872e0f6453e78ef97e95c8e09519b81a29f8": {
     "source_revision": "c8e8a5b2836d6e0117b999c66985a06f122f96d6",
     "content_sha256": "f48cec549ba69dc6e0883d0a5de042ec77377afb807edd628750bad4d6df7cbb",
