@@ -15,8 +15,7 @@ import {
 import type { Language } from "../types";
 import "./molecule-image.css";
 import { FigureExport } from "../publication/FigureExport";
-import { dataUrlBlob } from "../publication/png-resolution";
-import { printSvg } from "../publication/svg";
+import { molecularVector } from "../publication/molecular-vector";
 const DrawingContext = createContext<DepictionRenderer | null | undefined>(
   undefined,
 );
@@ -174,12 +173,19 @@ export function MoleculeImage({
           filename={label + "-structure"}
           format="svg"
           render={async (settings) => {
-            const blob = await dataUrlBlob(url);
-            const svg = new DOMParser().parseFromString(
-              await blob.text(),
-              "image/svg+xml",
-            ).documentElement;
-            return printSvg(svg as unknown as SVGSVGElement, settings);
+            if (!renderer || !source)
+              throw new Error("Select a molecular structure first.");
+            const blob = await renderer.render(
+              source,
+              new AbortController().signal,
+              bondThickness,
+              {
+                widthMm: settings.widthMm,
+                fontPt: settings.fontPt,
+                transparent: settings.transparent,
+              },
+            );
+            return molecularVector(blob, settings);
           }}
         />
       )}

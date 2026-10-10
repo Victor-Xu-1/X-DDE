@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DepictionRenderer, depictionDataUrl } from "./depiction-renderer";
 import type { Ketcher } from "../editors/scientificEditor";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 function nativeRecord(source: string, explicitH = false) {
   return JSON.stringify({
@@ -99,7 +102,8 @@ describe("Native aromatic depiction", () => {
       expect(editor.generateImage).toHaveBeenCalledWith("native-kekule-mol", {
         outputFormat: "svg",
         backgroundColor: "1,1,1",
-        bondThickness: 2.2,
+        "render-bond-thickness": 2.2,
+        "render-bond-thickness-unit": "px",
       });
       expect(source.smiles).toBe("c1ccccc1");
     } finally {
@@ -150,6 +154,44 @@ describe("Native SVG image transport under the platform CSP", () => {
 });
 
 describe("Source-aware drawing queue", () => {
+  it("does not mutate the native editor again while a timed-out drawing is still running", async () => {
+    const { renderer, editor } = nativeRenderer();
+    const deadline = new AbortController();
+    const timeout = AbortSignal.timeout.bind(AbortSignal);
+    vi.spyOn(AbortSignal, "timeout").mockImplementation((ms) =>
+      ms === 25000 ? deadline.signal : timeout(ms),
+    );
+    let finish!: (blob: Blob) => void;
+    editor.generateImage.mockReturnValueOnce(
+      new Promise<Blob>((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const first = renderer
+      .render({ smiles: "c1ccccc1" }, new AbortController().signal)
+      .catch((reason) => reason.name);
+    await vi.waitFor(() =>
+      expect(editor.generateImage).toHaveBeenCalledTimes(1),
+    );
+    const next = renderer.render(
+      { smiles: "CN" },
+      new AbortController().signal,
+    );
+    deadline.abort(new DOMException("Native drawing deadline", "TimeoutError"));
+    expect(await first).toBe("TimeoutError");
+    await Promise.resolve();
+    expect(editor.setMolecule).toHaveBeenCalledTimes(1);
+    // The next request gets a fresh deadline, but remains queued behind the editor.
+    vi.mocked(AbortSignal.timeout).mockImplementation(timeout);
+    finish(new Blob(["<svg/>"], { type: "image/svg+xml" }));
+    try {
+      await next;
+      expect(editor.setMolecule).toHaveBeenCalledTimes(2);
+      expect(editor.generateImage).toHaveBeenCalledTimes(2);
+    } finally {
+      renderer.close();
+    }
+  });
   it("skips abandoned queued drawings before they touch the native editor", async () => {
     const { renderer, editor } = nativeRenderer();
     let release!: (value: Blob) => void;

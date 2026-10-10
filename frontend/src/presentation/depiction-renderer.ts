@@ -2,6 +2,10 @@ import { editorReady, type Ketcher } from "../editors/scientificEditor";
 import { configureKetcherPreview } from "../editors/ketcher-appearance";
 import { foldDisplayHydrogens } from "../editors/ketcher-hydrogens";
 import { molecularRecordText } from "./molecular-record";
+import {
+  molecularImageOptions,
+  type MolecularPrint,
+} from "../publication/molecular-vector";
 export type DepictionSource =
   { smiles: string } | { url: string; record?: number };
 
@@ -104,11 +108,12 @@ export class DepictionRenderer {
     source: DepictionSource,
     signal: AbortSignal,
     bondThickness = 1.6,
+    print?: MolecularPrint,
   ) {
     if (![1.2, 1.6, 2.2].includes(bondThickness))
       throw new Error("Choose a supported drawing style.");
     signal.throwIfAborted();
-    const key = JSON.stringify([source, bondThickness]);
+    const key = JSON.stringify([source, bondThickness, print]);
     const cached = this.cache.get(key);
     if (cached) return cached;
     let request = this.requests.get(key);
@@ -124,67 +129,78 @@ export class DepictionRenderer {
             "AbortError",
           );
       };
-      const promise = this.tail
-        .then(async () => {
-          this.controller.signal.throwIfAborted();
-          ensureVisible();
-          const editor = await this.initialize();
-          ensureVisible();
-          const timeout = AbortSignal.timeout(25000);
-          const active = AbortSignal.any([timeout, this.controller.signal]);
-          const structure = await readStructure(source, active);
-          ensureVisible();
-          if (!editor.generateImage)
+      let drawing: Promise<Blob> | undefined;
+      const promise = this.tail.then(async () => {
+        this.controller.signal.throwIfAborted();
+        ensureVisible();
+        const editor = await this.initialize();
+        ensureVisible();
+        const timeout = AbortSignal.timeout(25000);
+        const active = AbortSignal.any([timeout, this.controller.signal]);
+        const structure = await readStructure(source, active);
+        ensureVisible();
+        if (!editor.generateImage)
+          throw new Error(
+            "Update the Ketcher component to draw 2D structures.",
+          );
+        drawing = (async () => {
+          // This canvas belongs only to the invisible drawing service. Native
+          // layout changes a display copy; scientific files and the user's editor stay intact.
+          if (!editor.dearomatize)
             throw new Error(
-              "Update the Ketcher component to draw 2D structures.",
+              "Update Ketcher to draw alternating aromatic bonds.",
             );
-          const drawing = (async () => {
-            // This canvas belongs only to the invisible drawing service. Native
-            // layout changes a display copy; scientific files and the user's editor stay intact.
-            if (!editor.dearomatize)
-              throw new Error(
-                "Update Ketcher to draw alternating aromatic bonds.",
-              );
-            await editor.setMolecule(
-              await foldDisplayHydrogens(editor, structure),
-            );
-            // Ketcher assigns a valid Kekulé form to this display copy. Removing
-            // circles from an SVG would lose the aromatic bond information.
-            await editor.dearomatize();
-            const arranged = await editor.getMolfile();
-            active.throwIfAborted();
-            return editor.generateImage!(arranged, {
-              outputFormat: "svg",
-              backgroundColor: "1,1,1",
-              bondThickness,
-            });
-          })();
-          const blob = await Promise.race([
-            drawing,
-            new Promise<never>((_, reject) =>
-              active.addEventListener("abort", () => reject(active.reason), {
-                once: true,
-              }),
-            ),
-          ]);
+          await editor.setMolecule(
+            await foldDisplayHydrogens(editor, structure),
+          );
+          // Ketcher assigns a valid Kekulé form to this display copy. Removing
+          // circles from an SVG would lose the aromatic bond information.
+          await editor.dearomatize();
+          const arranged = await editor.getMolfile();
           active.throwIfAborted();
-          if (!blob || !blob.size || blob.size > 2 * 1024 ** 2)
-            throw new Error("The native drawing is empty or too large.");
-          const image = new Blob([blob], { type: "image/svg+xml" });
-          if (this.cache.size >= 64) {
-            const oldest = this.cache.keys().next().value!;
-            this.cache.delete(oldest);
-          }
-          this.cache.set(key, image);
-          return image;
-        })
-        .finally(() => {
-          this.pending--;
-          this.requests.delete(key);
+          return editor.generateImage!(
+            arranged,
+            molecularImageOptions(bondThickness, print),
+          );
+        })();
+        let abort!: () => void;
+        const interrupted = new Promise<never>((_, reject) => {
+          abort = () => reject(active.reason);
+          active.addEventListener("abort", abort, { once: true });
+          if (active.aborted) abort();
         });
+        let blob: Blob;
+        try {
+          blob = await Promise.race([drawing, interrupted]);
+        } finally {
+          active.removeEventListener("abort", abort);
+        }
+        active.throwIfAborted();
+        if (!blob || !blob.size || blob.size > 2 * 1024 ** 2)
+          throw new Error("The native drawing is empty or too large.");
+        const image = new Blob([blob], { type: "image/svg+xml" });
+        if (this.cache.size >= 64) {
+          const oldest = this.cache.keys().next().value!;
+          this.cache.delete(oldest);
+        }
+        this.cache.set(key, image);
+        return image;
+      });
       request = { promise, consumers };
       this.requests.set(key, request);
-      this.tail = promise.catch(() => undefined);
+      // A caller can time out while the non-cancellable native editor is still
+      // drawing. Keep that editor lane occupied until the native work settles.
+      this.tail = promise
+        .catch(() => {
+          if (this.requests.get(key)?.promise === promise)
+            this.requests.delete(key);
+        })
+        .then(() => drawing?.catch(() => undefined))
+        .finally(() => {
+          this.pending--;
+          if (this.requests.get(key)?.promise === promise)
+            this.requests.delete(key);
+        });
     }
     const consumers = request.consumers;
     consumers.add(signal);

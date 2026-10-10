@@ -25,7 +25,15 @@ export interface Ketcher {
     options: {
       outputFormat: "svg";
       backgroundColor?: string;
-      bondThickness?: number;
+      "render-font-size"?: number;
+      "render-font-size-unit"?: "px" | "pt";
+      "render-font-size-sub"?: number;
+      "render-font-size-sub-unit"?: "px" | "pt";
+      "render-bond-thickness"?: number;
+      "render-bond-thickness-unit"?: "px" | "pt";
+      "bond-length"?: number;
+      "bond-length-unit"?: "px" | "pt";
+      "image-resolution"?: number;
     },
   ): Promise<Blob>;
   getSmiles(): Promise<string>;

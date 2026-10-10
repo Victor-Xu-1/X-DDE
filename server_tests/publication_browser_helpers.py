@@ -8,10 +8,12 @@ import xml.etree.ElementTree as ET
 from playwright.sync_api import expect
 
 
-def export_figure(page, trigger, evidence, filename, language, format="PNG"):
+def export_figure(page, trigger, evidence, filename, language, format="PNG", configure=None):
     trigger.click()
     dialog = page.get_by_role("dialog")
     expect(dialog).to_be_visible()
+    if configure:
+        configure(dialog)
     evidence.mkdir(parents=True, exist_ok=True)
     messages = []
     page.on(

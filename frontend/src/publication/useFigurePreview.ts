@@ -28,6 +28,7 @@ export function useFigurePreview({
   const [preview, setPreview] = useState<Preview | null>(null);
   const [error, setError] = useState(false),
     [attempt, setAttempt] = useState(0);
+  const [layoutError, setLayoutError] = useState(false);
   const session = useRef<FigureRenderQueue | null>(null);
   const serial = useRef(0),
     activeId = useRef<number | null>(null);
@@ -47,6 +48,7 @@ export function useFigurePreview({
     const controller = new AbortController();
     setPreview(null);
     setError(false);
+    setLayoutError(false);
     activeId.current = null;
     if (!valid) return () => controller.abort();
     const requested = { ...settings };
@@ -64,6 +66,9 @@ export function useFigurePreview({
         .catch((cause: unknown) => {
           if (!controller.signal.aborted) {
             console.warn("Native figure preview unavailable.", cause);
+            setLayoutError(
+              cause instanceof Error && cause.name === "MolecularLayoutError",
+            );
             setError(true);
           }
         });
@@ -78,6 +83,7 @@ export function useFigurePreview({
   return {
     preview: current,
     error,
+    layoutError,
     ready: !!current?.decoded && !error,
     decoded: (readyId: number) =>
       setPreview((value) =>

@@ -65,6 +65,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/publication/settings-svg.test.ts src/publication/png-resolution.test.ts
+          src/publication/molecular-vector.test.ts
           src/publication/render-deadline.test.ts
           src/publication/figure-render-queue.test.ts
           src/publication/FigureExport.test.tsx src/presentation/useReveal.test.tsx
@@ -98,7 +99,8 @@ jobs:
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_simulation_views.py
-          server_tests/test_publication_browser.py server_tests/test_publication_controls_browser.py -k 'not calculation'
+          server_tests/test_publication_browser.py server_tests/test_publication_controls_browser.py
+          server_tests/test_molecular_publication_browser.py -k 'not calculation'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
