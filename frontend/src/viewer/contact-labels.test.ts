@@ -81,14 +81,15 @@ it("keeps fractional print em sizes and restores native style, scale and visibil
     oldStyle = { ...label.getStyle() };
   label.sprite.visible = false;
   label.sprite.scale.set(1.2, 1.3, 1);
-  const size = (7 * 300) / 72 / 2;
-  const restore = layer.printFont(size);
+  const size = (7 * 300) / 72;
+  const restore = layer.printFont(size, 2);
   expect(viewer.setLabelStyle).toHaveBeenLastCalledWith(label, {
     ...oldStyle,
     font: "Arial",
-    fontSize: 15,
+    fontSize: 30,
   });
-  expect((15 * label.sprite.scale.y * 2 * 72) / 300).toBeCloseTo(7, 10);
+  expect((30 * label.sprite.scale.y * 2 * 72) / 300).toBeCloseTo(7, 10);
+  expect(label.sprite.scale.y * 2).toBeLessThanOrEqual(1);
   restore();
   expect(viewer.setLabelStyle).toHaveBeenLastCalledWith(label, oldStyle);
   expect([

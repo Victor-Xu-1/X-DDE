@@ -43,10 +43,11 @@ export function captureFigure(
     previousHeight = element.style.height,
     view = viewer.getView();
   const labels = contactLabelLayer(viewer);
-  // Native label textures are sized in CSS pixels; the renderer multiplies them
-  // by its actual raster ratio (including its own antialiasing upscale).
+  // Glyph textures use output pixels; compensate for native antialiasing/DPR
+  // in the label sprite so print size and texture detail are both preserved.
   const restore = labels.printFont(
-    (settings.fontPt * settings.dpi) / (72 * ratio),
+    (settings.fontPt * settings.dpi) / 72,
+    ratio,
   );
   try {
     element.style.width = size.width / ratio + "px";

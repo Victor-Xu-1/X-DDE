@@ -27,13 +27,19 @@ export class ContactLabelLayer {
   private ligand: XYZ[] = [];
   private updating = false;
   constructor(private viewer: GLViewer) {}
-  printFont(size: number) {
-    if (!Number.isFinite(size) || size <= 0)
+  printFont(outputPixels: number, pixelRatio: number) {
+    if (
+      !Number.isFinite(outputPixels) ||
+      outputPixels <= 0 ||
+      !Number.isFinite(pixelRatio) ||
+      pixelRatio <= 0
+    )
       throw new Error("Invalid printed label size.");
-    // The pinned native SDK truncates fontSize. Build a sufficiently detailed
-    // texture and scale the sprite to preserve the requested physical em size.
-    const textureSize = Math.ceil(size),
-      calibration = size / textureSize;
+    // Rasterize the glyph at full export resolution, then compensate for the
+    // native sprite pixel ratio. Fractional print sizes stay exact without
+    // enlarging a low-resolution text texture in the exported figure.
+    const textureSize = Math.ceil(outputPixels),
+      calibration = outputPixels / (textureSize * pixelRatio);
     const previous = this.entries.map(({ label }) => ({
       label,
       style: { ...label.getStyle() },

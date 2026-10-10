@@ -133,6 +133,10 @@ def inspect_native_label_pixels(panel, evidence, filename, dpi=600, width=2102, 
     for row in selected:
         row["printedPt"] = row["renderedEm"] * 72 / dpi
         assert abs(row["printedPt"] - pt) < 0.02, row
+        # Export detail must come from full-resolution native glyphs, rather
+        # than magnifying a smaller text texture to obtain the right em size.
+        row["textureMagnification"] = row["renderedEm"] / row["font"]
+        assert row["textureMagnification"] <= 1 + 1e-6, row
     (evidence / (filename + "-native-type.json")).write_text(
         json.dumps(selected, indent=2), encoding="utf-8"
     )
