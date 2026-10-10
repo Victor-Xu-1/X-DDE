@@ -9,6 +9,7 @@ import { useTaskSubmit } from "./useTaskSubmit";
 import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { MolecularReview } from "../guided/MolecularReview";
 export function PropertyForm({
   language,
   onCreated,
@@ -93,8 +94,8 @@ export function PropertyForm({
       {bound && (
         <p className="field-help">
           {zh
-            ? `已复用第${scientificInput!.record + 1}个分子记录，仅计算此记录。`
-            : `Reusing molecule record ${scientificInput!.record + 1}; only this record is calculated.`}
+            ? `已选择第${scientificInput!.record + 1}个分子记录，仅计算此记录。`
+            : `Molecule record ${scientificInput!.record + 1} is selected; only this record is calculated.`}
         </p>
       )}
     </>
@@ -107,8 +108,8 @@ export function PropertyForm({
       ready={ready}
       unavailable={
         zh
-          ? "性质计算环境尚未就绪。请到“安装与组件”配置 OpenDDE 的分子性质工具；当前输入可以保留。"
-          : "The molecular-property runtime is not ready. Configure OpenDDE's molecular-property tools in Installation & components; keep your prepared inputs."
+          ? "RDKit 性质计算环境尚未就绪。请到“安装与组件”配置分子性质工具；当前输入可以保留。"
+          : "The RDKit molecular-property runtime is not ready. Configure molecular-property tools in Installation & components; keep your prepared inputs."
       }
       submitLabel={zh ? "计算性质" : "Calculate properties"}
       onSubmit={() =>
@@ -196,56 +197,82 @@ export function PropertyForm({
           title: zh ? "确认启动" : "Review & start",
           valid: true,
           content: (
-            <dl className="questionnaire-review">
-              <dt>{zh ? "输入方式" : "Input source"}</dt>
-              <dd>
-                {mode === "file"
+            <MolecularReview
+              language={language}
+              source={
+                selectedFile &&
+                selectedAsset &&
+                [".sdf", ".mol"].includes(selectedAsset.suffix)
+                  ? {
+                      url: `/api/assets/${encodeURIComponent(selectedFile)}`,
+                      record: bound ? scientificInput!.record : 0,
+                    }
+                  : !selectedFile && lines.length
+                    ? { smiles: lines[0] }
+                    : null
+              }
+              caption={
+                bound
                   ? zh
-                    ? "分子文件"
-                    : "Molecular file"
-                  : mode === "smiles"
-                    ? "SMILES"
-                    : zh
-                      ? "分子文件＋SMILES"
-                      : "File and SMILES"}
-              </dd>
-              {selectedFile && (
-                <>
-                  <dt>{zh ? "分子文件" : "Molecular file"}</dt>
+                    ? `待计算分子 · 第 ${scientificInput!.record + 1} 条记录`
+                    : `Molecule to calculate · Record ${scientificInput!.record + 1}`
+                  : zh
+                    ? "首个分子预览；计算范围以左侧摘要为准"
+                    : "First molecule preview; calculation scope is listed in the summary"
+              }
+              summary={
+                <dl className="questionnaire-review">
+                  <dt>{zh ? "输入方式" : "Input source"}</dt>
                   <dd>
-                    {selectedAsset?.id === selectedFile
-                      ? selectedAsset.name
-                      : zh
-                        ? "已选分子文件"
-                        : "Selected molecular file"}
-                  </dd>
-                  <dt>{zh ? "文件记录范围" : "File records"}</dt>
-                  <dd>
-                    {bound
+                    {mode === "file"
                       ? zh
-                        ? `第 ${scientificInput!.record + 1} 条记录`
-                        : `Record ${scientificInput!.record + 1}`
-                      : zh
-                        ? "文件中的全部分子记录"
-                        : "All molecular records in the file"}
+                        ? "分子文件"
+                        : "Molecular file"
+                      : mode === "smiles"
+                        ? "SMILES"
+                        : zh
+                          ? "分子文件＋SMILES"
+                          : "File and SMILES"}
                   </dd>
-                </>
-              )}
-              {lines.length > 0 && (
-                <>
-                  <dt>{zh ? "文字输入的分子" : "Molecules from text"}</dt>
+                  {selectedFile && (
+                    <>
+                      <dt>{zh ? "分子文件" : "Molecular file"}</dt>
+                      <dd>
+                        {selectedAsset?.id === selectedFile
+                          ? selectedAsset.name
+                          : zh
+                            ? "已选分子文件"
+                            : "Selected molecular file"}
+                      </dd>
+                      <dt>{zh ? "文件记录范围" : "File records"}</dt>
+                      <dd>
+                        {bound
+                          ? zh
+                            ? `第 ${scientificInput!.record + 1} 条记录`
+                            : `Record ${scientificInput!.record + 1}`
+                          : zh
+                            ? "文件中的全部分子记录"
+                            : "All molecular records in the file"}
+                      </dd>
+                    </>
+                  )}
+                  {lines.length > 0 && (
+                    <>
+                      <dt>{zh ? "文字输入的分子" : "Molecules from text"}</dt>
+                      <dd>
+                        {zh
+                          ? `${lines.length} 个分子`
+                          : `${lines.length} molecules`}
+                      </dd>
+                    </>
+                  )}
+                  <dt>{zh ? "计算内容" : "Calculation"}</dt>
                   <dd>
-                    {zh
-                      ? `${lines.length} 个分子`
-                      : `${lines.length} molecules`}
+                    {zh ? "基础分子性质组合" : "Basic molecular property panel"}
                   </dd>
-                </>
-              )}
-              <dt>{zh ? "计算内容" : "Calculation"}</dt>
-              <dd>
-                {zh ? "基础分子性质组合" : "Basic molecular property panel"}
-              </dd>
-            </dl>
+                </dl>
+              }
+            />
           ),
         },
       ]}

@@ -4,6 +4,11 @@ import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import * as client from "../api";
 import { AdmetForm } from "./AdmetForm";
+vi.mock("../presentation/MoleculeImage", () => ({
+  MoleculeImage: ({ source }: { source: unknown }) => (
+    <output data-testid="review-structure">{JSON.stringify(source)}</output>
+  ),
+}));
 
 const ref = {
   asset_id: "single",
@@ -72,6 +77,9 @@ it("retains exact source and settings through Back and only dispatches after rev
   await user.selectOptions(screen.getByRole("combobox", { name: "CPU" }), "2");
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByText("single.sdf · #4")).toBeVisible();
+  expect(screen.getByTestId("review-structure")).toHaveTextContent(
+    JSON.stringify({ url: "/api/assets/single", record: 3 }),
+  );
   expect(submit).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Back" }));
   expect(screen.getByRole("radio", { name: "Early safety" })).toBeChecked();
@@ -106,6 +114,10 @@ it("omits the unused single source when switching to a whole candidate file", as
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByTestId("review-structure")).toHaveTextContent(
+    JSON.stringify({ url: "/api/assets/library", record: 0 }),
+  );
+  expect(screen.getByText(/First molecule preview/)).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Predict properties" }));
   expect(submit).toHaveBeenCalledWith(
     expect.objectContaining({

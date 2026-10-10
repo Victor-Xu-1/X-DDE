@@ -23,6 +23,9 @@ on:
       - "frontend/src/operations/PropertyForm*"
       - "frontend/src/operations/AssetPicker*"
       - "frontend/src/guided/Questionnaire.tsx"
+      - "frontend/src/guided/MolecularReview.tsx"
+      - "frontend/src/guided/molecular-review.css"
+      - "frontend/src/admet/AdmetForm*"
       - "frontend/src/guided/questionnaire.css"
       - "frontend/src/studio/MethodSwitch.tsx"
       - "frontend/src/studio/method-switch.css"
@@ -104,6 +107,7 @@ jobs:
           src/viewer/channel-geometry.test.ts src/viewer/attachment-geometry.test.ts
           src/viewer/source-layout.test.ts
           src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx
+          src/admet/AdmetForm.test.tsx
           src/examples/guide.test.ts src/examples/TemplateStepHelp.test.tsx
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
           src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts

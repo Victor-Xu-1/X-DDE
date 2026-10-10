@@ -1,5 +1,6 @@
 """Walk changed molecular-input questionnaires without launching scientific work."""
 
+import base64
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,8 @@ from server_tests.browser_platform import platform
 
 @pytest.mark.parametrize("language", ["en", "zh"])
 @pytest.mark.parametrize("capability", ["properties", "admet.predict"])
-def test_molecular_templates_have_relevant_steps_and_exact_file_review(capability, language):
+@pytest.mark.parametrize("width", [1440, 390])
+def test_molecular_templates_have_relevant_steps_and_exact_file_review(capability, language, width):
     zh = language == "zh"
     evidence = Path("outputs/publication-browser/task-clarity") / capability
     evidence.mkdir(parents=True, exist_ok=True)
@@ -20,7 +22,7 @@ def test_molecular_templates_have_relevant_steps_and_exact_file_review(capabilit
         sync_playwright() as p,
     ):
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page = browser.new_page(viewport={"width": width, "height": 1000})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -52,7 +54,20 @@ def test_molecular_templates_have_relevant_steps_and_exact_file_review(capabilit
             if step == 1:
                 guidance = page.get_by_role("note").inner_text()
                 assert "选择研究区域" not in guidance and "select a research region" not in guidance
-            page.screenshot(path=str(evidence / f"{language}-step{step + 1}.png"))
+            if step == 3:
+                drawing = page.locator(".molecular-input-review .molecule-image")
+                expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+                expect(drawing.get_by_role("img")).to_be_visible()
+                expect(page.locator(".molecular-input-review figcaption")).to_contain_text(
+                    "首个分子" if zh else "First molecule"
+                )
+                assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+                svg = drawing.get_by_role("img").get_attribute("src")
+                assert svg.startswith("data:image/svg+xml;base64,")
+                (evidence / f"{language}-{width}-input.svg").write_bytes(
+                    base64.b64decode(svg.split(",", 1)[1])
+                )
+            page.screenshot(path=str(evidence / f"{language}-{width}-step{step + 1}.png"))
             if step < 3:
                 expect(next_step).to_be_enabled(timeout=30000)
                 next_step.click()

@@ -6,6 +6,11 @@ import { api } from "../api";
 import * as client from "../api";
 import type { MoleculeRef } from "../research/types";
 import type { Asset } from "./types";
+vi.mock("../presentation/MoleculeImage", () => ({
+  MoleculeImage: ({ source }: { source: unknown }) => (
+    <output data-testid="review-structure">{JSON.stringify(source)}</output>
+  ),
+}));
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -54,6 +59,9 @@ it("keeps the exact source version and sends no hidden SMILES after selecting fi
   expect(submit).not.toHaveBeenCalled();
   expect(await screen.findByText(asset.name, { selector: "dd" })).toBeVisible();
   expect(screen.getByText("Record 5", { selector: "dd" })).toBeVisible();
+  expect(screen.getByTestId("review-structure")).toHaveTextContent(
+    JSON.stringify({ url: "/api/assets/file", record: 4 }),
+  );
   expect(screen.queryByText(/0 text structures/)).toBeNull();
   await user.click(
     screen.getByRole("button", { name: "Calculate properties" }),
@@ -89,5 +97,10 @@ it("limits text entries and preserves input across back navigation without launc
   await user.click(screen.getByRole("button", { name: "Back" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByRole("textbox", { name: "SMILES" })).toHaveValue("CCO");
+  for (let i = 0; i < 2; i++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByTestId("review-structure")).toHaveTextContent(
+    JSON.stringify({ smiles: "CCO" }),
+  );
   expect(submit).not.toHaveBeenCalled();
 });

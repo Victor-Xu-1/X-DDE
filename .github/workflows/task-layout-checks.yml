@@ -170,6 +170,9 @@ on:
       - "!frontend/src/operations/PropertyForm*"
       - "!frontend/src/operations/AssetPicker.tsx"
       - "!frontend/src/guided/Questionnaire.tsx"
+      # Exact molecular input review uses the bilingual native publication gate.
+      - "!frontend/src/guided/MolecularReview.tsx"
+      - "!frontend/src/guided/molecular-review.css"
       - "!frontend/src/presentation/InteractionDiagram.test.tsx"
       - "!frontend/src/presentation/InteractionDiagram.tsx"
       - "!frontend/src/presentation/MetricBars.tsx"

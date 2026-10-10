@@ -39,9 +39,30 @@ def alive(record: dict) -> bool:
         return False
 
 
-def session(port: int):
-    with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/session", timeout=2) as response:
+class _NoServiceRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _local_request(port: int, path: str, *, timeout: float, token: str | None = None):
+    """Talk directly to the owned loopback service, never a system HTTP proxy."""
+    if type(port) is not int or not 1 <= port <= 65535:
+        raise ValueError("Choose a valid local service port.")
+    request = urllib.request.Request(f"http://127.0.0.1:{port}{path}")
+    if token is not None:
+        request = urllib.request.Request(
+            request.full_url,
+            data=b"{}",
+            headers={"Content-Type": "application/json", "X-Workbench-CSRF": token},
+            method="POST",
+        )
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoServiceRedirect())
+    with opener.open(request, timeout=timeout) as response:
         return json.load(response)
+
+
+def session(port: int, *, timeout: float = 8):
+    return _local_request(port, "/api/session", timeout=timeout)
 
 
 def status() -> dict:
@@ -98,7 +119,12 @@ def start(port: int, auto_deploy: bool) -> str:
             if process.poll() is not None:
                 raise RuntimeError("UI startup failed. Run xdde logs for details.")
             try:
-                if session(port).get("instance") == instance:
+                if (
+                    session(port, timeout=min(8, max(0.01, deadline - time.monotonic()))).get(
+                        "instance"
+                    )
+                    == instance
+                ):
                     return f"http://127.0.0.1:{port}/"
             except (OSError, ValueError, urllib.error.URLError):
                 time.sleep(0.2)
@@ -113,14 +139,7 @@ def stop() -> None:
         if not record or not alive(record):
             return
         token = session(record["port"])["csrf_token"]
-        request = urllib.request.Request(
-            f"http://127.0.0.1:{record['port']}/api/lifecycle/stop",
-            data=b"{}",
-            headers={"Content-Type": "application/json", "X-Workbench-CSRF": token},
-            method="POST",
-        )
-        with urllib.request.urlopen(request, timeout=20) as r:
-            state = json.load(r)
+        state = _local_request(record["port"], "/api/lifecycle/stop", timeout=20, token=token)
         if state["busy"]:
             raise RuntimeError(
                 "Tasks or deployments are active. Pause/stop them in the panel first."

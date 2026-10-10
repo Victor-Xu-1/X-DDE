@@ -6,6 +6,7 @@ import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { MolecularReview } from "../guided/MolecularReview";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { useSdfAsset } from "../research/useSdfAsset";
 import type { MoleculeRef } from "../research/types";
@@ -190,30 +191,57 @@ export function AdmetForm({
           valid,
           content: (
             <>
-              <dl className="questionnaire-review">
-                <dt>{zh ? "输入" : "Input"}</dt>
-                <dd>
-                  {selected.asset?.name}
-                  {sourceKind === "molecule"
-                    ? ` · #${(molecule?.record ?? 0) + 1}`
+              <MolecularReview
+                language={language}
+                source={
+                  selected.asset
+                    ? {
+                        url: `/api/assets/${encodeURIComponent(selected.asset.id)}`,
+                        record:
+                          sourceKind === "molecule"
+                            ? (molecule?.record ?? 0)
+                            : 0,
+                      }
+                    : null
+                }
+                caption={
+                  sourceKind === "molecule"
+                    ? zh
+                      ? `待预测分子 · 第 ${(molecule?.record ?? 0) + 1} 条记录`
+                      : `Molecule to predict · Record ${(molecule?.record ?? 0) + 1}`
                     : zh
-                      ? " · 全部记录"
-                      : " · All records"}
-                </dd>
-                <dt>{zh ? "模型" : "Model"}</dt>
-                <dd>
-                  ADMET-AI {admetVersions["admet-ai"]} · Chemprop{" "}
-                  {admetVersions.chemprop}
-                </dd>
-                <dt>{zh ? "输出" : "Output"}</dt>
-                <dd>
-                  {zh ? "41 个原始预测终点" : "41 native prediction endpoints"}
-                </dd>
-                <dt>{zh ? "原始分子" : "Original molecules"}</dt>
-                <dd>
-                  {zh ? "保持原样，可继续复用" : "Unchanged and reusable"}
-                </dd>
-              </dl>
+                      ? "首个分子预览；将预测文件中的全部记录"
+                      : "First molecule preview; all records in the file will be predicted"
+                }
+                summary={
+                  <dl className="questionnaire-review">
+                    <dt>{zh ? "输入" : "Input"}</dt>
+                    <dd>
+                      {selected.asset?.name}
+                      {sourceKind === "molecule"
+                        ? ` · #${(molecule?.record ?? 0) + 1}`
+                        : zh
+                          ? " · 全部记录"
+                          : " · All records"}
+                    </dd>
+                    <dt>{zh ? "模型" : "Model"}</dt>
+                    <dd>
+                      ADMET-AI {admetVersions["admet-ai"]} · Chemprop{" "}
+                      {admetVersions.chemprop}
+                    </dd>
+                    <dt>{zh ? "输出" : "Output"}</dt>
+                    <dd>
+                      {zh
+                        ? "41 个原始预测终点"
+                        : "41 native prediction endpoints"}
+                    </dd>
+                    <dt>{zh ? "原始分子" : "Original molecules"}</dt>
+                    <dd>
+                      {zh ? "保持原样，可继续复用" : "Unchanged and reusable"}
+                    </dd>
+                  </dl>
+                }
+              />
               <Hint
                 label={
                   zh ? "结果如何用于下一步？" : "How can results be reused?"
