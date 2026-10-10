@@ -20,7 +20,7 @@ def observe_native_label_pixels(page):
         if (!Type) continue;
         const proto=Type.prototype;
         const bind=proto.bindTexture, upload=proto.texImage2D;
-        const locate=proto.getUniformLocation, uniform=proto.uniform2f, draw=proto.drawElements;
+        const locate=proto.getUniformLocation, uniform=proto.uniform2fv, draw=proto.drawElements;
         proto.bindTexture=function(...args) {
           if(args[0]===this.TEXTURE_2D) bindings.set(this,args[1]);
           return bind.apply(this,args);
@@ -36,8 +36,8 @@ def observe_native_label_pixels(page):
           if(result && args[1]==='scale') locations.set(result,true);
           return result;
         };
-        proto.uniform2f=function(...args) {
-          if(locations.has(args[0])) scales.set(this,[args[1],args[2]]);
+        proto.uniform2fv=function(...args) {
+          if(locations.has(args[0])) scales.set(this,Array.from(args[1]));
           return uniform.apply(this,args);
         };
         proto.drawElements=function(...args) {
@@ -61,7 +61,7 @@ def inspect_native_label_pixels(panel, evidence, filename, dpi=600, width=2102, 
     )
     # Only actual capture-sized draws, not the original on-screen viewport.
     selected = [row for row in rows if row["viewport"][2] == width]
-    assert selected, "No native contact text was drawn at the requested print resolution"
+    assert selected, {"message": "No native contact text at print resolution", "rows": rows[-5:]}
     for row in selected:
         row["printedPt"] = row["renderedEm"] * 72 / dpi
         assert abs(row["printedPt"] - pt) < 0.02, row

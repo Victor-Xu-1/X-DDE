@@ -104,9 +104,9 @@ jobs:
           uv run --locked playwright install chromium --with-deps
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
-          uv run --locked python -m pytest -x -q server_tests/test_molecular_publication_browser.py
-          server_tests/test_publication_controls_browser.py server_tests/test_native_simulation_views.py
-          server_tests/test_publication_browser.py -k 'not calculation'
+          uv run --locked python -m pytest -x -q server_tests/test_publication_browser.py
+          server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
+          server_tests/test_native_simulation_views.py -k 'not calculation'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
