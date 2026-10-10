@@ -1,24 +1,32 @@
 import { useEffect, useState } from "react";
-import { request } from "../api";
+import { taskAvailability } from "./task-availability";
 export function useTaskReadiness(capabilityId: string) {
-  const [ready, setReady] = useState(false),
-    [error, setError] = useState("");
+  // Undefined means checking, false means a confirmed unavailable runtime.
+  const [state, setState] = useState<{
+    capability: string;
+    ready: boolean | undefined;
+    error: string;
+  }>({ capability: capabilityId, ready: undefined, error: "" });
   useEffect(() => {
     const controller = new AbortController();
-    setReady(false);
-    setError("");
-    void request<{ availability: { configuration_present: boolean } }>(
-      "/capabilities/" + encodeURIComponent(capabilityId),
-      { signal: controller.signal },
-    )
-      .then((value) => {
+    setState({ capability: capabilityId, ready: undefined, error: "" });
+    void taskAvailability(capabilityId, controller.signal)
+      .then((ready) => {
         if (!controller.signal.aborted)
-          setReady(value.availability.configuration_present);
+          setState({ capability: capabilityId, ready, error: "" });
       })
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(String(e));
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setState({
+            capability: capabilityId,
+            ready: false,
+            error: "The calculation environment could not be checked.",
+          });
       });
     return () => controller.abort();
   }, [capabilityId]);
-  return { ready, error };
+  return {
+    ready: state.capability === capabilityId ? state.ready : undefined,
+    error: state.capability === capabilityId ? state.error : "",
+  };
 }

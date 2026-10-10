@@ -1,0 +1,58 @@
+name: Task availability and molecular review checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &readiness_paths
+      - "frontend/src/guided/useTaskReadiness*"
+      - "frontend/src/guided/task-availability.ts"
+      - "frontend/src/guided/Questionnaire*"
+      - "frontend/src/guided/MolecularReview.tsx"
+      - "frontend/src/guided/molecular-review.css"
+      - "frontend/src/operations/PropertyForm*"
+      - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/admet/AdmetForm*"
+      - "frontend/src/studio/MethodSwitch*"
+      - "server_tests/test_task_clarity_browser.py"
+      - ".github/workflows/task-readiness-checks.yml"
+  pull_request:
+    paths: *readiness_paths
+permissions:
+  contents: read
+jobs:
+  task-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Availability states and the directly affected task controls
+        working-directory: frontend
+        run: >-
+          npx vitest run src/guided/useTaskReadiness.test.ts src/guided/Questionnaire.test.tsx
+          src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx
+          src/admet/AdmetForm.test.tsx src/studio/MethodSwitch.test.tsx
+      - name: Restore original input references and native Ketcher in isolated state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-task-inputs" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-task-inputs/state" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Bilingual native input review at desktop and mobile widths; no scientific work
+        run: uv run --locked pytest -x -q server_tests/test_task_clarity_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task-input-review-evidence
+          path: outputs/publication-browser/task-clarity/**

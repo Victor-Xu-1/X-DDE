@@ -14,6 +14,7 @@ import { firstInvalidQuestion } from "./questionnaire-validity";
 import { researchError } from "../presentation/research-content";
 import { useReveal } from "../presentation/useReveal";
 import { ActiveIndicator } from "../presentation/ActiveIndicator";
+import { availabilityError } from "./task-availability";
 export interface QuestionStep {
   title: string;
   actions?: ReactNode;
@@ -37,7 +38,7 @@ export function GuidedSteps<T extends { id: string }>({
   steps: readonly [QuestionStep, QuestionStep, QuestionStep, QuestionStep];
   busy: boolean;
   error: string;
-  ready: boolean;
+  ready: boolean | undefined;
   unavailable?: ReactNode;
   submitLabel: string;
   onSubmit(): Promise<T | undefined>;
@@ -192,12 +193,16 @@ export function GuidedSteps<T extends { id: string }>({
       {current === 4 && job && renderResult(job)}
       {(notice || error) && (
         <p role="alert" className="error-box">
-          {researchError(error || notice, zh)}
+          {researchError(availabilityError(error || notice, zh), zh)}
         </p>
       )}
-      {current === 3 && !ready && (
+      {current === 3 && !ready && !error && (
         <div role="status" className="notice">
-          {unavailable}
+          {ready === undefined
+            ? zh
+              ? "正在确认计算环境…"
+              : "Checking the calculation environment…"
+            : unavailable}
         </div>
       )}
       {current < 4 && (

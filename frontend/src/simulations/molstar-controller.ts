@@ -198,6 +198,8 @@ export class MolecularController {
               polymer,
               {
                 type: "cartoon",
+                // Keep the whole backbone opaque while making room for bound ligands.
+                typeParams: { sizeFactor: 0.14, aspectRatio: 4, alpha: 1 },
                 color: "secondary-structure",
                 colorParams: {
                   saturation: 0,

@@ -299,6 +299,96 @@ it("rechecks native range constraints at final submission when retained settings
 });
 
 import { TemplatePreviewContext } from "../examples/context";
+it.each(["en", "zh"] as const)(
+  "does not call a checking runtime missing in %s",
+  async (language) => {
+    const submit = vi.fn(),
+      user = userEvent.setup();
+    const props = {
+      language,
+      busy: false,
+      error: "",
+      unavailable: "Runtime missing",
+      submitLabel: "Launch",
+      onSubmit: submit,
+      steps: [
+        {
+          title: "Input",
+          valid: true,
+          content: <input aria-label="Input" defaultValue="Preserved input" />,
+        },
+        { title: "Context", valid: true, content: <p>Context</p> },
+        { title: "Settings", valid: true, content: <p>Settings</p> },
+        { title: "Review", valid: true, content: <p>Reviewed input</p> },
+      ] as const,
+    };
+    const { rerender } = render(<Questionnaire {...props} ready={undefined} />);
+    for (let step = 0; step < 3; step++)
+      await user.click(
+        screen.getByRole("button", {
+          name: language === "zh" ? "下一步" : "Next",
+        }),
+      );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      language === "zh"
+        ? "正在确认计算环境"
+        : "Checking the calculation environment",
+    );
+    expect(screen.queryByText("Runtime missing")).toBeNull();
+    expect(screen.getByRole("button", { name: "Launch" })).toBeDisabled();
+    rerender(<Questionnaire {...props} ready={false} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Runtime missing");
+    expect(screen.getByRole("button", { name: "Launch" })).toBeDisabled();
+    rerender(<Questionnaire {...props} ready />);
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("button", { name: "Launch" })).toBeEnabled();
+    expect(screen.getByDisplayValue("Preserved input")).toHaveValue(
+      "Preserved input",
+    );
+    rerender(
+      <Questionnaire
+        {...props}
+        ready={false}
+        error="The calculation environment could not be checked."
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      language === "zh"
+        ? "暂时无法确认计算环境"
+        : "The calculation environment could not be checked",
+    );
+    expect(screen.queryByText("Runtime missing")).toBeNull();
+    expect(screen.getByRole("button", { name: "Launch" })).toBeDisabled();
+    expect(submit).not.toHaveBeenCalled();
+  },
+);
+it("reports a failed runtime check without claiming that software is missing", async () => {
+  const user = userEvent.setup();
+  render(
+    <Questionnaire
+      language="en"
+      ready={false}
+      busy={false}
+      error="Availability request failed"
+      unavailable="Runtime missing"
+      submitLabel="Launch"
+      onSubmit={vi.fn()}
+      steps={[
+        { title: "Inputs", valid: true, content: <p>Inputs</p> },
+        { title: "Context", valid: true, content: <p>Context</p> },
+        { title: "Settings", valid: true, content: <p>Settings</p> },
+        { title: "Review", valid: true, content: <p>Review</p> },
+      ]}
+    />,
+  );
+  for (let step = 0; step < 3; step++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Availability request failed",
+  );
+  expect(screen.queryByText("Runtime missing")).toBeNull();
+  expect(screen.getByRole("button", { name: "Launch" })).toBeDisabled();
+});
 it("an embedded result preview cannot submit an additional scientific task", async () => {
   const submit = vi.fn(),
     user = userEvent.setup();

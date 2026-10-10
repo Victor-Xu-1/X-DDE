@@ -169,7 +169,9 @@ on:
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/operations/PropertyForm*"
       - "!frontend/src/operations/AssetPicker.tsx"
-      - "!frontend/src/guided/Questionnaire.tsx"
+      - "!frontend/src/guided/Questionnaire*"
+      - "!frontend/src/guided/useTaskReadiness*"
+      - "!frontend/src/guided/task-availability.ts"
       # Exact molecular input review uses the bilingual native publication gate.
       - "!frontend/src/guided/MolecularReview.tsx"
       - "!frontend/src/guided/molecular-review.css"

@@ -447,7 +447,7 @@ wheels = [
 
 [[package]]
 name = "x-dde"
-version = "0.4.81"
+version = "0.4.82"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

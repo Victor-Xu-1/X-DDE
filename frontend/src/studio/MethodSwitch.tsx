@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { request } from "../api";
+import { taskAvailability } from "../guided/task-availability";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import type { ToolId } from "../operations/catalog";
@@ -28,10 +28,8 @@ export function MethodSwitch({
     void Promise.all(
       group.options.map(async (option) => {
         try {
-          const info = await request<{
-            availability: { configuration_present: boolean };
-          }>("/capabilities/" + option.id, { signal: controller.signal });
-          return [option.id, info.availability.configuration_present] as const;
+          const ready = await taskAvailability(option.id, controller.signal);
+          return [option.id, ready] as const;
         } catch {
           return [option.id, null] as const;
         }

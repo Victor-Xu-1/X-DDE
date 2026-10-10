@@ -20,14 +20,8 @@ on:
       - "frontend/src/examples/guide.test.ts"
       - "src/opendde_workbench/examples/stat6/guidance.py"
       - "tests/test_stat6_guidance.py"
-      - "frontend/src/operations/PropertyForm*"
-      - "frontend/src/operations/AssetPicker*"
-      - "frontend/src/guided/Questionnaire.tsx"
-      - "frontend/src/guided/MolecularReview.tsx"
-      - "frontend/src/guided/molecular-review.css"
-      - "frontend/src/admet/AdmetForm*"
+      # Task availability and source review use task-readiness-checks.yml.
       - "frontend/src/guided/questionnaire.css"
-      - "frontend/src/studio/MethodSwitch.tsx"
       - "frontend/src/studio/method-switch.css"
       - "frontend/src/viewer/capture*"
       - "frontend/src/viewer/useViewerSnapshot*"
@@ -55,7 +49,6 @@ on:
       - "frontend/src/simulations/molstar-figure.test.ts"
       - "server_tests/*publication*"
       - "server_tests/*native_annotation*"
-      - "server_tests/test_task_clarity_browser.py"
       - ".github/workflows/publication-checks.yml"
       - ".github/workflows/stat6-template-checks.yml"
       - ".github/workflows/examples-checks.yml"
@@ -97,17 +90,14 @@ jobs:
           src/publication/figure-render-queue.test.ts
           src/publication/FigureExport.test.tsx src/presentation/useReveal.test.tsx
           src/presentation/ActiveIndicator.test.tsx src/presentation/ResearchTabs.test.tsx
-          src/studio/MethodSwitch.test.tsx
           src/presentation/MetricScatter.test.tsx src/presentation/InteractionDiagram.test.tsx
-          src/presentation/depiction-renderer.test.ts src/guided/Questionnaire.test.tsx
+          src/presentation/depiction-renderer.test.ts
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts src/viewer/StructureViewer.test.tsx
           src/viewer/contact-labels.test.ts src/viewer/native-contact-labels.test.ts
           src/viewer/native-labels.test.ts src/viewer/style.test.ts
           src/viewer/native-label-layout.test.ts
           src/viewer/channel-geometry.test.ts src/viewer/attachment-geometry.test.ts
           src/viewer/source-layout.test.ts
-          src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx
-          src/admet/AdmetForm.test.tsx
           src/examples/guide.test.ts src/examples/TemplateStepHelp.test.tsx
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
           src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts
@@ -135,7 +125,6 @@ jobs:
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
-          server_tests/test_task_clarity_browser.py
           server_tests/test_publication_browser.py
           server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
           server_tests/test_native_simulation_views.py -k 'not calculation'
