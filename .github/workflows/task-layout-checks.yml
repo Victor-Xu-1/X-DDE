@@ -39,6 +39,10 @@ on:
       - "!frontend/src/research/RelationshipGraph*"
       - "!frontend/src/research/asset-context*"
       - "!frontend/src/research/research.css"
+      - "!frontend/src/research/SequenceFilePreview*"
+      - "!frontend/src/research/useSequenceFile*"
+      - "!frontend/src/research/fasta-file*"
+      - "!frontend/src/research/sequence-file-preview.css"
       - "frontend/src/studio/**"
       - "frontend/src/design/**"
       - "frontend/src/humanization/**"
@@ -103,6 +107,7 @@ on:
       - "server_tests/layout_coverage.py"
       # Sequence and QC inspections use their own focused native-result gate.
       - "!frontend/src/presentation/SequenceTrack*"
+      - "!frontend/src/presentation/SequencePositions*"
       - "!frontend/src/presentation/sequence-track.css"
       - "!frontend/src/presentation/result-inspection.css"
       - "!frontend/src/operations/SequenceScoreResults*"

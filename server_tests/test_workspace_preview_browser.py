@@ -186,3 +186,112 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
             )
         )
         browser.close()
+
+
+@pytest.mark.parametrize("language", ["en", "zh"])
+def test_retained_stat6_sequence_inspection_positions_and_downloads(language):
+    cases = json.loads((EVIDENCE / "cases.json").read_text())
+    evidence = EVIDENCE / language / "sequences"
+    evidence.mkdir(parents=True, exist_ok=True)
+    zh = language == "zh"
+    case = cases["sequence_records"]
+    with (
+        platform(Settings.from_env().state_dir, evidence / "browser.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(base)
+        jobs = page.request.get(base + "/api/jobs").json()
+        source_url = base + "/api/assets/" + case["reference"]["asset_id"]
+        original = page.request.get(source_url).body()
+        header = original.decode().splitlines()[0][1:]
+        first_sequence = "".join(original.decode().split(">", 2)[1].splitlines()[1:])
+        assert len(first_sequence) == 847
+        open_navigation(page, language).get_by_role(
+            "button", name="研究空间" if zh else "Research workspace", exact=True
+        ).click()
+        page.get_by_role("button", name="研究文件" if zh else "Research files", exact=True).click()
+        files = page.get_by_role(
+            "list", name="资产与任务" if zh else "Assets and tasks", exact=True
+        )
+        files.get_by_role(
+            "button", name=("序列: " if zh else "Sequence: ") + case["label"], exact=True
+        ).click()
+        preview = page.get_by_role(
+            "region", name="所选文件预览" if zh else "Selected file preview", exact=True
+        )
+        expect(preview.get_by_role("heading", name=header, exact=True)).to_be_visible()
+        expect(
+            preview.get_by_text("847 个位置" if zh else "847 positions", exact=True)
+        ).to_be_visible()
+        assert preview.locator(".sequence-residue-grid button").count() == 600
+        jump = preview.get_by_role(
+            "spinbutton", name="跳转位置" if zh else "Go to position", exact=True
+        )
+        jump.fill("847")
+        jump.press("Enter")
+        end = preview.get_by_role(
+            "button", name=header + " · 847 " + first_sequence[-1], exact=True
+        )
+        expect(end).to_have_attribute("aria-pressed", "true")
+        end.focus()
+        end.press("Home")
+        first = preview.get_by_role("button", name=header + " · 1 " + first_sequence[0], exact=True)
+        expect(first).to_be_focused()
+        first.press("ArrowRight")
+        expect(
+            preview.get_by_role("button", name=header + " · 2 " + first_sequence[1], exact=True)
+        ).to_be_focused()
+        for width in (1440, 768, 390):
+            page.set_viewport_size({"width": width, "height": 1000})
+            preview.scroll_into_view_if_needed()
+            page.wait_for_function(
+                "() => document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
+            )
+            page.screenshot(path=evidence / f"stat6-sequence-{width}.png", full_page=False)
+        record = preview.get_by_role(
+            "combobox", name="序列记录" if zh else "Sequence record", exact=True
+        )
+        record.select_option("1")
+        expect(
+            preview.get_by_role(
+                "heading", name="STAT6 P42226 positions 601-847; display slice", exact=True
+            )
+        ).to_be_visible()
+        expect(
+            preview.get_by_text("247 个位置" if zh else "247 positions", exact=True)
+        ).to_be_visible()
+        expect(preview.locator(".sequence-residue-grid button[aria-pressed=true]")).to_have_count(0)
+        with page.expect_download() as download:
+            preview.get_by_role(
+                "button",
+                name="下载此序列 FASTA" if zh else "Download this sequence FASTA",
+                exact=True,
+            ).click()
+        path = evidence / "stat6-selected-record.fasta"
+        download.value.save_as(path)
+        downloaded = path.read_text().splitlines()
+        assert downloaded[0] == ">STAT6 P42226 positions 601-847; display slice"
+        assert "".join(downloaded[1:]) == first_sequence[600:]
+        assert page.request.get(source_url).body() == original
+        assert page.request.get(base + "/api/jobs").json() == jobs
+        assert not errors, errors
+        (evidence / "acceptance.json").write_text(
+            json.dumps(
+                {
+                    "language": language,
+                    "positions": 847,
+                    "maximum_rendered_positions": 600,
+                    "original_sha256": hashlib.sha256(original).hexdigest(),
+                    "selected_record_length": 247,
+                    "new_scientific_jobs": 0,
+                    "errors": errors,
+                },
+                indent=2,
+            )
+        )
+        browser.close()

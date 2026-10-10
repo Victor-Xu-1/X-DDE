@@ -20,8 +20,23 @@ assets = AssetStore(store, settings.state_dir / "assets")
 scientific = ScientificStore(store, assets)
 objects = {
     key: register_input(scientific, key)
-    for key in ("study_ligand", "study_protac", "stat6_receptor")
+    for key in ("study_ligand", "study_protac", "stat6_receptor", "stat6_sequence")
 }
+canonical = verified_input("stat6_sequence")
+sequence = "".join(canonical.decode().splitlines()[1:])
+assert len(sequence) == 847
+record_file = assets.save(
+    "STAT6-sequence-selection.fasta",
+    "sequences",
+    canonical
+    + b">STAT6 P42226 positions 601-847; display slice\n"
+    + sequence[600:].encode()
+    + b"\n",
+)
+objects["sequence_records"] = scientific.create(
+    VersionInput(asset_id=record_file.id, kind="sequence", label="STAT6 sequence records"),
+    uuid4(),
+)
 # A multi-record input joins two real source molecules without computing or
 # altering coordinates. It is input-selection evidence, not a simulation result.
 series = assets.save(

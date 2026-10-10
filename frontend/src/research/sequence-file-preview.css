@@ -1,0 +1,37 @@
+.sequence-file-preview {
+  min-width: 0;
+}
+.sequence-file-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+.sequence-file-controls label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+}
+.sequence-file-controls select {
+  max-width: min(420px, 100%);
+}
+.sequence-file-controls input {
+  width: 130px;
+}
+.sequence-file-preview .sequence-track header h3 {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.sequence-file-preview .sequence-track-scroll {
+  max-height: 360px;
+}
+.sequence-file-preview [role="alert"] button,
+.sequence-file-controls > button {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 6px;
+}

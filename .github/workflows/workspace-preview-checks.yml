@@ -8,6 +8,13 @@ on:
       - "frontend/src/research/ObjectInspector*"
       - "frontend/src/research/RelationshipGraph*"
       - "frontend/src/research/asset-context*"
+      - "frontend/src/research/SequenceFilePreview*"
+      - "frontend/src/research/useSequenceFile*"
+      - "frontend/src/research/fasta-file*"
+      - "frontend/src/research/sequence-file-preview.css"
+      - "frontend/src/presentation/SequenceTrack*"
+      - "frontend/src/presentation/SequencePositions*"
+      - "frontend/src/presentation/sequence-track.css"
       - "frontend/src/research/research.css"
       - "server_tests/*workspace_preview*"
       - ".github/workflows/workspace-preview-checks.yml"
@@ -40,6 +47,8 @@ jobs:
           npx vitest run src/research/SelectedAssetPreview.test.tsx
           src/research/asset-context.test.ts src/research/RelationshipGraph.test.tsx
           src/research/ResearchWorkspace.test.tsx
+          src/research/SequenceFilePreview.test.tsx src/research/fasta-file.test.ts
+          src/presentation/SequenceTrack.test.tsx
       - name: Retained real inputs and native Ketcher; no calculations
         run: |
           .venv/bin/python server_tests/prepare_workspace_preview_cases.py

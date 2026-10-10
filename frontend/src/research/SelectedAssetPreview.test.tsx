@@ -13,6 +13,11 @@ vi.mock("../viewer/StructureViewer", () => ({
     <div data-testid="protein" data-input={JSON.stringify(props)} />
   ),
 }));
+vi.mock("./SequenceFilePreview", () => ({
+  SequenceFilePreview: (props: unknown) => (
+    <div data-testid="sequence" data-input={JSON.stringify(props)} />
+  ),
+}));
 const molecule = {
   id: "record-two",
   kind: "molecule",
@@ -89,4 +94,7 @@ it("places protein and pocket previews in the same selected-file inspector", () 
   );
   expect(screen.queryByTestId("protein")).toBeNull();
   expect(screen.queryByTestId("molecule")).toBeNull();
+  expect(
+    JSON.parse(screen.getByTestId("sequence").getAttribute("data-input")!),
+  ).toMatchObject({ reference: molecule.reference });
 });

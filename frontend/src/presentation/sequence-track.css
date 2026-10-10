@@ -79,3 +79,26 @@
 .sequence-track footer {
   margin-top: 12px;
 }
+.sequence-segment-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.sequence-segment-controls button {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 5px 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sequence-residue-grid button {
+    transition:
+      background-color 150ms,
+      border-color 150ms;
+  }
+}

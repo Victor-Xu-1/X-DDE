@@ -3,27 +3,28 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'frontend/src/presentation/SequenceTrack*'
-      - 'frontend/src/presentation/sequence-track.css'
-      - 'frontend/src/presentation/result-inspection.css'
-      - 'frontend/src/operations/SequenceScoreResults*'
-      - 'frontend/src/operations/sequence-scores.css'
-      - 'frontend/src/antibodies/AntibodyNumberResults*'
-      - 'frontend/src/antibodies/AntibodyDomainDetail*'
-      - 'frontend/src/antibodies/AntibodyNumberingTable*'
-      - 'frontend/src/antibodies/antibodies.css'
-      - 'frontend/src/humanization/HumanizationResults*'
-      - 'frontend/src/humanization/SequenceAlignment*'
-      - 'frontend/src/humanization/SequenceComparison*'
-      - 'frontend/src/humanization/ReferenceMetrics*'
-      - 'frontend/src/humanization/humanization.css'
-      - 'frontend/src/humanization/sequence-alignment.css'
-      - 'frontend/src/quality/QualityResults*'
-      - 'frontend/src/quality/QualityCheckList*'
-      - 'frontend/src/quality/quality-results.css'
-      - 'frontend/src/quality/tests/QualityResults.test.tsx'
-      - 'server_tests/test_sequence_results_browser.py'
-      - '.github/workflows/sequence-result-checks.yml'
+      - "frontend/src/presentation/SequenceTrack*"
+      - "frontend/src/presentation/SequencePositions*"
+      - "frontend/src/presentation/sequence-track.css"
+      - "frontend/src/presentation/result-inspection.css"
+      - "frontend/src/operations/SequenceScoreResults*"
+      - "frontend/src/operations/sequence-scores.css"
+      - "frontend/src/antibodies/AntibodyNumberResults*"
+      - "frontend/src/antibodies/AntibodyDomainDetail*"
+      - "frontend/src/antibodies/AntibodyNumberingTable*"
+      - "frontend/src/antibodies/antibodies.css"
+      - "frontend/src/humanization/HumanizationResults*"
+      - "frontend/src/humanization/SequenceAlignment*"
+      - "frontend/src/humanization/SequenceComparison*"
+      - "frontend/src/humanization/ReferenceMetrics*"
+      - "frontend/src/humanization/humanization.css"
+      - "frontend/src/humanization/sequence-alignment.css"
+      - "frontend/src/quality/QualityResults*"
+      - "frontend/src/quality/QualityCheckList*"
+      - "frontend/src/quality/quality-results.css"
+      - "frontend/src/quality/tests/QualityResults.test.tsx"
+      - "server_tests/test_sequence_results_browser.py"
+      - ".github/workflows/sequence-result-checks.yml"
 permissions:
   contents: read
 jobs:
@@ -31,13 +32,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      WB_AUTO_DEPLOY: '0'
+      WB_AUTO_DEPLOY: "0"
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Verify result interactions and direct sequence-view consumers

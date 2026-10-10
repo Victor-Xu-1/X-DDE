@@ -47,3 +47,32 @@ it("region navigation reports the exact one-based source position and permits co
     screen.getByRole("button", { name: "Input · 3 D · CDR1" }),
   ).toHaveAttribute("aria-pressed", "false");
 });
+
+it("supports one keyboard entry point and crosses bounded segments without changing numbering", async () => {
+  const user = userEvent.setup();
+  render(
+    <SequenceTrack
+      sequence={"a".repeat(847)}
+      label="STAT6"
+      language="en"
+      unit="positions"
+    />,
+  );
+  const first = screen.getByRole("button", { name: "STAT6 · 1 a" });
+  expect(first.tabIndex).toBe(0);
+  expect(screen.getByRole("button", { name: "STAT6 · 2 a" }).tabIndex).toBe(-1);
+  first.focus();
+  await user.keyboard("{End}");
+  expect(screen.getByRole("button", { name: "STAT6 · 847 a" })).toHaveFocus();
+  expect(screen.getByText("Sequence position 847 · a")).toBeVisible();
+  expect(
+    document.querySelectorAll(".sequence-residue-grid button"),
+  ).toHaveLength(247);
+  await user.keyboard("{ArrowLeft}");
+  expect(screen.getByRole("button", { name: "STAT6 · 846 a" })).toHaveFocus();
+  await user.keyboard("{Home}");
+  expect(screen.getByRole("button", { name: "STAT6 · 1 a" })).toHaveFocus();
+  expect(
+    document.querySelectorAll(".sequence-residue-grid button"),
+  ).toHaveLength(600);
+});

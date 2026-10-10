@@ -3,6 +3,7 @@ import type { Language } from "../types";
 import "./sequence-track.css";
 import { DownloadOutlined } from "@ant-design/icons";
 import { downloadBlob } from "./visual-export";
+import { SequencePositions } from "./SequencePositions";
 export interface SequenceRegion {
   start: number;
   end: number;
@@ -24,7 +25,7 @@ export function SequenceTrack({
   regions?: readonly SequenceRegion[];
   onSelect?(position: number): void;
   selectedPosition?: number | null;
-  unit?: "aa" | "nt";
+  unit?: "aa" | "nt" | "positions";
 }) {
   const zh = language === "zh";
   const [selection, setSelection] = useState({
@@ -65,7 +66,8 @@ export function SequenceTrack({
       <header>
         <h3>{label}</h3>
         <span>
-          {sequence.length} {unit}
+          {sequence.length}{" "}
+          {unit === "positions" ? (zh ? "个位置" : "positions") : unit}
         </span>
         <button
           type="button"
@@ -114,39 +116,14 @@ export function SequenceTrack({
         </div>
       )}
       <div className="sequence-track-scroll" ref={scroll}>
-        <div className="sequence-residue-grid">
-          {Array.from(sequence).map((aa, index) => {
-            const region = regions.find(
-              (r) => index + 1 >= r.start && index + 1 <= r.end,
-            );
-            return (
-              <button
-                key={index}
-                type="button"
-                className={
-                  (region ? "has-region " : "") +
-                  (position === index + 1 ? "is-selected" : "")
-                }
-                aria-label={
-                  label +
-                  " · " +
-                  (index + 1) +
-                  " " +
-                  aa +
-                  (region ? " · " + region.label : "")
-                }
-                title={
-                  index + 1 + " · " + aa + (region ? " · " + region.label : "")
-                }
-                aria-pressed={position === index + 1}
-                onClick={() => select(index + 1)}
-              >
-                <small>{index % 10 === 0 ? index + 1 : ""}</small>
-                {aa}
-              </button>
-            );
-          })}
-        </div>
+        <SequencePositions
+          sequence={sequence}
+          label={label}
+          language={language}
+          regions={regions}
+          position={position}
+          select={select}
+        />
       </div>
       <details className="sequence-original">
         <summary>{zh ? "查看完整序列" : "View full sequence"}</summary>
@@ -161,7 +138,7 @@ export function SequenceTrack({
             (selectedRegion ? " · " + selectedRegion.label : "")
           : zh
             ? "点击残基查看位置；编号以这条输入序列为准。"
-            : "Select a residue to inspect its position in this input sequence."}
+            : "Select a position in this input. Use arrow keys to move, Home for the start and End for the end."}
       </footer>
     </section>
   );
