@@ -1,5 +1,6 @@
 .research-workspace {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   min-width: 0;
 }
@@ -125,6 +126,8 @@
   font-size: 11px;
 }
 .research-graph-scroll {
+  min-width: 0;
+  max-width: 100%;
   max-height: 380px;
   overflow: auto;
   border: 0;
@@ -186,6 +189,9 @@
   cursor: pointer;
   color: var(--accent);
   font-size: 13px;
+}
+.research-relationships {
+  min-width: 0;
 }
 .research-relationships .research-graph-scroll {
   margin-top: 12px;

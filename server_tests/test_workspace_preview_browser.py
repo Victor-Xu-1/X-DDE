@@ -141,6 +141,24 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         for width in (2560, 1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             page.locator(".research-selected-preview").scroll_into_view_if_needed()
+            page.evaluate("""() => new Promise(resolve =>
+                requestAnimationFrame(() => requestAnimationFrame(resolve)))""")
+            if page.evaluate("document.documentElement.scrollWidth > innerWidth + 1"):
+                page.screenshot(path=evidence / f"overflow-{width}.png", full_page=True)
+                (evidence / f"overflow-{width}.json").write_text(
+                    json.dumps(
+                        page.evaluate(
+                            """() => ({width:innerWidth,
+                    scrollWidth:document.documentElement.scrollWidth,
+                    nodes:[...document.querySelectorAll('main *')].map(node=>{
+                      const b=node.getBoundingClientRect(),s=getComputedStyle(node);
+                      return {tag:node.tagName,class:node.className,
+                        left:b.left,right:b.right,width:b.width,overflow:s.overflow};
+                    }).filter(node=>node.width>0 && node.right>innerWidth+1).slice(0,30)})"""
+                        ),
+                        indent=2,
+                    )
+                )
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             page.screenshot(path=evidence / f"selected-protac-{width}.png", full_page=True)
         assert not errors, errors
