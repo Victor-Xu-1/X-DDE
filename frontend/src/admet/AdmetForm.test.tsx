@@ -6,7 +6,7 @@ import * as client from "../api";
 import { AdmetForm } from "./AdmetForm";
 vi.mock("../presentation/MoleculeImage", () => ({
   MoleculeImage: ({ source }: { source: unknown }) => (
-    <output data-testid="review-structure">{JSON.stringify(source)}</output>
+    <div data-testid="review-structure">{JSON.stringify(source)}</div>
   ),
 }));
 
