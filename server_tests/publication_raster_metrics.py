@@ -7,6 +7,7 @@ def observe_native_label_pixels(page):
     page.add_init_script(r"""(() => {
       const glyphs=new WeakMap(), textures=new WeakMap(), bindings=new WeakMap();
       const scales=new WeakMap(), locations=new WeakMap(), frames=new WeakMap();
+      const bitmaps=new WeakMap();
       const programs=new WeakSet();
       const stats={fills:0,uploads:0,locations:0,passes:0,scales:0,draws:0,glyphDraws:0};
       const events=[];
@@ -23,6 +24,27 @@ def observe_native_label_pixels(page):
           stats:{...stats},events:[...events]});
         return encode.apply(this,args);
       };
+      // The pinned renderer uses a shared OffscreenCanvas, then transfers its
+      // real pixels to the HTML canvas encoded by pngURI. Follow that native
+      // copy so the assertion inspects the encoded image, not a stale GL frame.
+      const Offscreen=window.OffscreenCanvas, Bitmap=window.ImageBitmapRenderingContext;
+      if(Offscreen && Bitmap) {
+        const capture=Offscreen.prototype.transferToImageBitmap;
+        const present=Bitmap.prototype.transferFromImageBitmap;
+        Offscreen.prototype.transferToImageBitmap=function(...args) {
+          const rows=frames.get(this), bitmap=capture.apply(this,args);
+          if(rows) bitmaps.set(bitmap,[...rows]);
+          frames.delete(this);
+          return bitmap;
+        };
+        Bitmap.prototype.transferFromImageBitmap=function(bitmap) {
+          const rows=bitmap && bitmaps.get(bitmap);
+          const result=present.call(this,bitmap);
+          frames.set(this.canvas,rows || []);
+          record('bitmap-present',this.canvas,{rows:rows?.length || 0});
+          return result;
+        };
+      }
       const fill=CanvasRenderingContext2D.prototype.fillText;
       CanvasRenderingContext2D.prototype.fillText=function(...args) {
         const result=fill.apply(this,args), text=String(args[0]);
