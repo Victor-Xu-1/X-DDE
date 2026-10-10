@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 import type { GraphNode } from "./types";
+import { datasetTools } from "../datasets/catalog";
 
 /** Human context supplements filenames without renaming scientific records. */
 export function assetContext(
@@ -15,7 +16,27 @@ export function assetContext(
         (value) => value.kind === "task" && value.job_id === object.source_job,
       )
     : undefined;
-  if (task) parts.push(task.label);
+  if (task) {
+    const generated = /^Public native ([a-z0-9_]+)$/.exec(task.label);
+    if (generated && generated[1] === task.operation) {
+      const method = datasetTools.find(
+        (value) => value.operation === task.operation,
+      );
+      parts.push(
+        method?.label[language === "zh" ? 0 : 1] ??
+          (language === "zh" ? "研究计算" : "Computed study"),
+      );
+    } else if (
+      task.operation === "molecule_minimize" &&
+      task.label === "Initial optimized 3D preview"
+    ) {
+      parts.push(
+        language === "zh" ? "已计算三维构象" : "Calculated 3D conformer",
+      );
+    } else {
+      parts.push(task.label);
+    }
+  }
   if (object.kind === "molecule")
     parts.push(
       language === "zh"
