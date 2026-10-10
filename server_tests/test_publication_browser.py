@@ -7,6 +7,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_png
+from server_tests.publication_viewing_helpers import inspect_zoom
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
@@ -66,6 +67,9 @@ def test_native_classic_figure_camera_and_source_integrity(language):
             evidence,
             language + "-brd4-figure",
             language,
+            inspect=lambda dialog: inspect_zoom(
+                page, dialog, evidence, language + "-native-3d-png", language
+            ),
         )
         inspect_png(png)
         expect(
