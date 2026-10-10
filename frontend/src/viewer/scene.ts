@@ -14,7 +14,6 @@ import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
 import { focusDisplayContext } from "./context-focus";
-import { contactLabelLayer } from "./contact-labels";
 import { nativeLabelLayer } from "./native-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
 import {
@@ -95,7 +94,6 @@ export class MolecularScene {
   ) {}
   resetState() {
     nativeLabelLayer(this.viewer).clear();
-    contactLabelLayer(this.viewer).clear();
     this.nativeInteractions = undefined;
     this.channelGeometry = undefined;
     this.attachmentGeometry = undefined;
@@ -238,7 +236,6 @@ export class MolecularScene {
   private async draw() {
     const v = this.viewer;
     nativeLabelLayer(v).clear();
-    contactLabelLayer(v).clear();
     v.removeAllSurfaces();
     v.removeAllShapes();
     paintChannel(v, this.channelGeometry);
@@ -357,10 +354,6 @@ export class MolecularScene {
     if (revision === this.revision) this.emit("surface", summary);
   }
   private drawContacts() {
-    if (!this.options.interactions || !this.info.hasInteractionContext) {
-      this.emit("contacts", null);
-      return;
-    }
     const ligand = this.info.ligands.find((r) => r.key === this.options.ligand);
     const ligandAtoms =
       this.complexModel === null
@@ -368,9 +361,13 @@ export class MolecularScene {
           ? this.viewer.selectedAtoms({ model: 0, ...sel(ligand) })
           : []
         : this.viewer.selectedAtoms({ model: this.complexModel });
-    contactLabelLayer(this.viewer).protectLigand(
+    nativeLabelLayer(this.viewer).protectLigand(
       ligandAtoms.filter((atom) => finiteCoordinates(atom)).map(position),
     );
+    if (!this.options.interactions || !this.info.hasInteractionContext) {
+      this.emit("contacts", null);
+      return;
+    }
     if (this.nativeInteractions !== undefined) {
       paintNativeContacts(
         this.viewer,

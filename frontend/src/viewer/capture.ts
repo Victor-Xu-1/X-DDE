@@ -1,6 +1,5 @@
 import type { GLViewer } from "3dmol";
 import { figureDimensions, type FigureSettings } from "../publication/settings";
-import { contactLabelLayer } from "./contact-labels";
 import { nativeLabelLayer } from "./native-labels";
 export function captureDimensions(
   width: number,
@@ -43,10 +42,10 @@ export function captureFigure(
   const previousWidth = element.style.width,
     previousHeight = element.style.height,
     view = viewer.getView();
-  const labels = contactLabelLayer(viewer);
+  const labels = nativeLabelLayer(viewer);
   // Glyph textures use output pixels; compensate for native antialiasing/DPR
   // in the label sprite so print size and texture detail are both preserved.
-  const restore = nativeLabelLayer(viewer).printFont(
+  const restore = labels.printFont(
     (settings.fontPt * settings.dpi) / 72,
     ratio,
   );

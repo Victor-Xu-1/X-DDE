@@ -1,7 +1,7 @@
 import { interactionColors, validatePotentialGrid } from "./scientific-data";
 import * as mol from "3dmol";
 import type { NativeInteraction } from "../integrations/types";
-import { contactLabelLayer } from "./contact-labels";
+import { addContactLabels } from "./contact-labels";
 
 export function paintNativeContacts(
   viewer: mol.GLViewer,
@@ -70,7 +70,7 @@ export function paintNativeContacts(
       });
     const labelKey = `${row.chain}:${row.residue}${row.number}`;
     if (labels && !labeled.has(labelKey)) {
-      contactLabelLayer(viewer).add([
+      addContactLabels(viewer, [
         { text: `${labelKey} · ${row.distance.toFixed(2)} Å`, position: start },
       ]);
       labeled.add(labelKey);

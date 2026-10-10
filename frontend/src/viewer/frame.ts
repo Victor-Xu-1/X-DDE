@@ -1,6 +1,6 @@
 import * as mol from "3dmol";
 import { focusedViewScale } from "./appearance";
-import { contactLabelLayer } from "./contact-labels";
+import { nativeLabelLayer } from "./native-labels";
 import { molecularRecordText } from "../presentation/molecular-record";
 import {
   complexLigandModel,
@@ -30,7 +30,7 @@ const viewer = mol.createViewer(document.getElementById("molecule")!, {
   backgroundColor: background(),
   antialias: true,
 });
-viewer.setViewChangeCallback(() => contactLabelLayer(viewer).layout());
+viewer.setViewChangeCallback(() => nativeLabelLayer(viewer).layout());
 new MutationObserver(() => {
   viewer.setBackgroundColor(background(), 1);
   viewer.render();

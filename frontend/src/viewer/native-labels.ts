@@ -1,17 +1,39 @@
-import type { GLViewer, Label } from "3dmol";
+import type { GLViewer, Label, XYZ } from "3dmol";
+import {
+  layoutNativeLabels,
+  type NativeAnnotation,
+} from "./native-label-layout";
 
 /** One owner for all native annotations and their temporary print typography. */
 export class NativeLabelLayer {
-  private entries = new Set<Label>();
+  private entries = new Map<Label, NativeAnnotation>();
+  private ligand: XYZ[] = [];
+  private updating = false;
   constructor(private viewer: GLViewer) {}
   add(...specification: Parameters<GLViewer["addLabel"]>) {
     const label = this.viewer.addLabel(...specification);
-    this.entries.add(label);
+    this.entries.set(label, { label, layoutHidden: false });
     return label;
   }
   clear() {
     this.entries.clear();
+    this.ligand = [];
     this.viewer.removeAllLabels();
+  }
+  protectLigand(points: XYZ[]) {
+    this.ligand = points;
+  }
+  layout() {
+    if (this.updating || !this.entries.size) return;
+    this.updating = true;
+    try {
+      if (
+        layoutNativeLabels(this.viewer, [...this.entries.values()], this.ligand)
+      )
+        this.viewer.render();
+    } finally {
+      this.updating = false;
+    }
   }
   printFont(outputPixels: number, pixelRatio: number) {
     if (
@@ -25,15 +47,24 @@ export class NativeLabelLayer {
     // in sprite scale rather than enlarging smaller text textures.
     const textureSize = Math.ceil(outputPixels),
       calibration = outputPixels / (textureSize * pixelRatio);
-    const previous = [...this.entries].map((label) => ({
-      label,
-      style: { ...label.getStyle() },
-      scale: label.sprite.scale.clone(),
-      visible: label.sprite.visible,
+    const previous = [...this.entries.values()].map((entry) => ({
+      entry,
+      layoutHidden: entry.layoutHidden,
+      label: entry.label,
+      style: { ...entry.label.getStyle() },
+      scale: entry.label.sprite.scale.clone(),
+      visible: entry.label.sprite.visible,
     }));
     const restore = () => {
       const failures: unknown[] = [];
-      for (const { label, style, scale, visible } of previous) {
+      for (const {
+        label,
+        style,
+        scale,
+        visible,
+        entry,
+        layoutHidden,
+      } of previous) {
         try {
           this.viewer.setLabelStyle(label, style);
         } catch (error) {
@@ -41,6 +72,7 @@ export class NativeLabelLayer {
         } finally {
           label.sprite.scale.copy(scale);
           label.sprite.visible = visible;
+          entry.layoutHidden = layoutHidden;
         }
       }
       if (failures.length)

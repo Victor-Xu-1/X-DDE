@@ -1,5 +1,5 @@
 import type { AtomSpec, GLViewer } from "3dmol";
-import { contactLabelLayer } from "./contact-labels";
+import { addContactLabels } from "./contact-labels";
 import {
   atomPosition,
   finiteCoordinates,
@@ -100,7 +100,7 @@ export function paintContacts(
       }
     }
     if (labels)
-      contactLabelLayer(viewer).add([
+      addContactLabels(viewer, [
         {
           text: `${residueLabel(residueRef(contact.protein))} · ${contact.distance.toFixed(2)} Å`,
           position: end,

@@ -28,6 +28,9 @@ on:
       - "frontend/src/viewer/contact-labels.ts"
       - "frontend/src/viewer/contact-labels.test.ts"
       - "frontend/src/viewer/native-labels*"
+      - "frontend/src/viewer/native-label-layout*"
+      - "frontend/src/viewer/contacts.ts"
+      - "frontend/src/viewer/scientific-overlay.ts"
       - "frontend/src/viewer/scene.ts"
       - "frontend/src/viewer/style.ts"
       - "frontend/src/viewer/channel-geometry*"
@@ -89,6 +92,7 @@ jobs:
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts src/viewer/StructureViewer.test.tsx
           src/viewer/contact-labels.test.ts src/viewer/native-contact-labels.test.ts
           src/viewer/native-labels.test.ts src/viewer/style.test.ts
+          src/viewer/native-label-layout.test.ts
           src/viewer/channel-geometry.test.ts src/viewer/attachment-geometry.test.ts
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
           src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts

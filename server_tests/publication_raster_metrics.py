@@ -117,8 +117,28 @@ def observe_native_label_pixels(page):
             const viewport=Array.from(this.getParameter(this.VIEWPORT));
             // Native sprite quad is -1..1; its normalized scale gives this pixel height.
             const renderedEm=glyph.font*Math.abs(scale[1])*viewport[3]/glyph.height;
+            const program=this.getParameter(this.CURRENT_PROGRAM);
+            const value=name=>this.getUniform(program,locate.call(this,program,name));
+            let origin;
+            if(value('useScreenCoordinates')) origin=value('screenPosition');
+            else {
+              const model=value('modelViewMatrix'),projection=value('projectionMatrix');
+              const clip=[0,1,2,3].map(row=>[0,1,2,3].reduce(
+                (sum,col)=>sum+projection[col*4+row]*model[12+col],0));
+              origin=clip.map(component=>component/clip[3]);
+            }
+            const alignment=value('alignment'),rotation=value('rotation');
+            const corners=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([x,y])=>{
+              x+=alignment[0]; y+=alignment[1];
+              const dx=(Math.cos(rotation)*x-Math.sin(rotation)*y)*scale[0];
+              const dy=(Math.sin(rotation)*x+Math.cos(rotation)*y)*scale[1];
+              return {x:(origin[0]+dx+1)*viewport[2]/2,y:(1-origin[1]-dy)*viewport[3]/2};
+            });
+            const left=Math.min(...corners.map(p=>p.x)),top=Math.min(...corners.map(p=>p.y));
+            const box={x:left,y:top,width:Math.max(...corners.map(p=>p.x))-left,
+              height:Math.max(...corners.map(p=>p.y))-top};
             const rows=frames.get(this.canvas);
-            if(rows) rows.push({...glyph,scale,viewport,renderedEm});
+            if(rows) rows.push({...glyph,scale,viewport,renderedEm,box});
             record('glyph-draw',this.canvas,{font:glyph.font,rows:rows?.length || 0});
           }
           return result;
@@ -153,6 +173,16 @@ def inspect_native_label_pixels(
         # than magnifying a smaller text texture to obtain the right em size.
         row["textureMagnification"] = row["renderedEm"] / row["font"]
         assert row["textureMagnification"] <= 1 + 1e-6, row
+    for index, row in enumerate(selected):
+        a = row["box"]
+        for other in selected[index + 1 :]:
+            b = other["box"]
+            assert (
+                a["x"] + a["width"] <= b["x"] + 1
+                or b["x"] + b["width"] <= a["x"] + 1
+                or a["y"] + a["height"] <= b["y"] + 1
+                or b["y"] + b["height"] <= a["y"] + 1
+            ), {"overlapping_labels": [row["text"], other["text"]], "boxes": [a, b]}
     (evidence / (filename + "-native-type.json")).write_text(
         json.dumps(selected, indent=2), encoding="utf-8"
     )

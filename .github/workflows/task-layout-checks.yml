@@ -49,6 +49,7 @@ on:
       - "!frontend/src/viewer/native-contact-labels*"
       # Native labels and their geometry consumers use publication-checks.yml.
       - "!frontend/src/viewer/native-labels*"
+      - "!frontend/src/viewer/native-label-layout*"
       - "!frontend/src/viewer/channel-geometry*"
       - "!frontend/src/viewer/attachment-geometry*"
       - "!frontend/src/viewer/InteractionControls*"
