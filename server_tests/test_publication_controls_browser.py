@@ -59,7 +59,17 @@ def test_ketcher_preview_matches_download_and_mobile_settings(language):
         inspector = page.locator(".properties-results .result-inspector")
         drawing = inspector.locator(".molecule-image:not(.is-thumbnail)").first
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
-        expect(search).to_be_focused()
+        try:
+            expect(search).to_be_focused()
+        except AssertionError as error:
+            active = page.evaluate("""() => {
+              const node=document.activeElement;
+              const frame=node?.tagName === 'IFRAME' ? node : null;
+              return {active:node?.outerHTML, inert:frame?.inert,
+                child:frame?.contentDocument?.activeElement?.outerHTML};
+            }""")
+            page.screenshot(path=EVIDENCE / (language + "-input-focus-failure.png"))
+            raise AssertionError(active) from error
         expect(search).to_have_value("STAT6")
         search.fill("")
         trigger = drawing.get_by_role(
