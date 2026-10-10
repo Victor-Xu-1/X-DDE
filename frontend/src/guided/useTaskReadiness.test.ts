@@ -82,16 +82,22 @@ it("aborts an in-flight check when its form unmounts", async () => {
 });
 
 it("rejects a response that arrives after the bounded readiness deadline", async () => {
-  vi.useFakeTimers();
+  const deadline = new AbortController();
+  const timeout = vi
+    .spyOn(AbortSignal, "timeout")
+    .mockReturnValue(deadline.signal);
   const response = pending();
   vi.spyOn(client, "request").mockReturnValue(response.promise);
   const { result } = renderHook(() => useTaskReadiness("properties"));
   await act(async () => {
-    vi.advanceTimersByTime(15000);
+    deadline.abort(
+      new DOMException("Readiness deadline elapsed", "TimeoutError"),
+    );
     response.resolve({ availability: { configuration_present: true } });
   });
   expect(result.current.ready).toBe(false);
   expect(result.current.error).toBe(
     "The calculation environment could not be checked.",
   );
+  expect(timeout).toHaveBeenCalledWith(15000);
 });

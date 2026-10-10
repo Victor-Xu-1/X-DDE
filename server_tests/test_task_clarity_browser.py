@@ -1,6 +1,7 @@
 """Walk changed molecular-input questionnaires without launching scientific work."""
 
 import base64
+import json
 from pathlib import Path
 
 import pytest
@@ -82,4 +83,84 @@ def test_molecular_templates_have_relevant_steps_and_exact_file_review(capabilit
         expect(review).to_contain_text("STAT6-user-warhead.sdf")
         assert jobs == page.request.get(base + "/api/jobs").json()
         assert not errors and not submissions
+        browser.close()
+
+
+@pytest.mark.parametrize("language", ["en", "zh"])
+def test_real_browser_readiness_deadline_preserves_input_without_claiming_missing_software(
+    language,
+):
+    """Hold only the availability transport; never mock any scientific result."""
+    zh = language == "zh"
+    evidence = Path("outputs/publication-browser/task-clarity/readiness")
+    evidence.mkdir(parents=True, exist_ok=True)
+    with (
+        platform(Settings.from_env().state_dir, evidence / (language + ".log")) as base,
+        sync_playwright() as p,
+    ):
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
+        held, errors, submissions = [], [], []
+        page.route("**/api/capabilities/properties", lambda route: held.append(route))
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "request",
+            lambda request: (
+                submissions.append(request.url)
+                if request.method == "POST"
+                and request.url.split("?")[0].endswith(("/api/jobs", "/api/batches"))
+                else None
+            ),
+        )
+        page.goto(base)
+        jobs = page.request.get(base + "/api/jobs").json()
+        card = page.locator('button[data-capability="properties"]').first
+        expect(card).to_be_visible(timeout=30000)
+        card.click()
+        page.get_by_role(
+            "radio",
+            name="粘贴分子结构文字（SMILES）" if zh else "Paste molecular structure text (SMILES)",
+            exact=True,
+        ).check()
+        next_step = page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
+        next_step.click()
+        smiles = "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3"
+        page.get_by_role("textbox", name="SMILES", exact=True).fill(smiles)
+        next_step.click()
+        next_step.click()
+        expect(page.get_by_role("status")).to_contain_text(
+            "正在确认计算环境" if zh else "Checking the calculation environment"
+        )
+        submit = page.get_by_role(
+            "button", name="计算性质" if zh else "Calculate properties", exact=True
+        )
+        expect(submit).to_be_disabled()
+        expect(page.locator(".molecular-input-review .molecule-image")).to_have_attribute(
+            "data-drawing-state", "ready", timeout=45000
+        )
+        expect(page.get_by_role("alert")).to_contain_text(
+            "暂时无法确认计算环境" if zh else "The calculation environment could not be checked",
+            timeout=20000,
+        )
+        expect(submit).to_be_disabled()
+        expect(page.locator(".questionnaire textarea")).to_have_value(smiles)
+        assert (
+            "Configure molecular-property tools" not in page.locator(".questionnaire").inner_text()
+        )
+        page.screenshot(path=str(evidence / (language + "-bounded-failure.png")))
+        assert held and not errors and not submissions
+        assert jobs == page.request.get(base + "/api/jobs").json()
+        (evidence / (language + "-receipt.json")).write_text(
+            json.dumps(
+                {
+                    "transport_held": True,
+                    "input_preserved": True,
+                    "scientific_submissions": 0,
+                    "browser_errors": errors,
+                    "source": "STAT6 user-provided warhead",
+                },
+                indent=2,
+            )
+        )
         browser.close()
