@@ -6,6 +6,7 @@ import {
   type XYZ,
 } from "3dmol";
 import { contactLabelLayout, type LabelBox } from "./contact-label-layout";
+import { nativeLabelLayer } from "./native-labels";
 
 export interface ContactLabel {
   text: string;
@@ -27,47 +28,6 @@ export class ContactLabelLayer {
   private ligand: XYZ[] = [];
   private updating = false;
   constructor(private viewer: GLViewer) {}
-  printFont(outputPixels: number, pixelRatio: number) {
-    if (
-      !Number.isFinite(outputPixels) ||
-      outputPixels <= 0 ||
-      !Number.isFinite(pixelRatio) ||
-      pixelRatio <= 0
-    )
-      throw new Error("Invalid printed label size.");
-    // Rasterize the glyph at full export resolution, then compensate for the
-    // native sprite pixel ratio. Fractional print sizes stay exact without
-    // enlarging a low-resolution text texture in the exported figure.
-    const textureSize = Math.ceil(outputPixels),
-      calibration = outputPixels / (textureSize * pixelRatio);
-    const previous = this.entries.map(({ label }) => ({
-      label,
-      style: { ...label.getStyle() },
-      scale: label.sprite.scale.clone(),
-      visible: label.sprite.visible,
-    }));
-    const restore = () => {
-      for (const { label, style, scale, visible } of previous) {
-        this.viewer.setLabelStyle(label, style);
-        label.sprite.scale.copy(scale);
-        label.sprite.visible = visible;
-      }
-    };
-    try {
-      for (const { label, style } of previous)
-        this.viewer.setLabelStyle(label, {
-          ...style,
-          font: "Arial",
-          fontSize: textureSize,
-        });
-      for (const { label } of previous)
-        label.sprite.scale.set(calibration, calibration, 1);
-    } catch (error) {
-      restore();
-      throw error;
-    }
-    return restore;
-  }
   clear() {
     this.entries = [];
     this.ligand = [];
@@ -77,7 +37,7 @@ export class ContactLabelLayer {
   }
   add(rows: ContactLabel[]) {
     for (const row of rows) {
-      const label = this.viewer.addLabel(
+      const label = nativeLabelLayer(this.viewer).add(
         row.text,
         { ...style, position: row.position },
         undefined,

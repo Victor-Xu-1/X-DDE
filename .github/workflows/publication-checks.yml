@@ -27,6 +27,11 @@ on:
       - "frontend/src/viewer/viewer.css"
       - "frontend/src/viewer/contact-labels.ts"
       - "frontend/src/viewer/contact-labels.test.ts"
+      - "frontend/src/viewer/native-labels*"
+      - "frontend/src/viewer/scene.ts"
+      - "frontend/src/viewer/style.ts"
+      - "frontend/src/viewer/channel-geometry*"
+      - "frontend/src/viewer/attachment-geometry*"
       - "frontend/src/poses/ClusterMatrix.tsx"
       - "frontend/src/space/ChannelProfile.tsx"
       - "frontend/src/simulations/InteractivePlot.tsx"
@@ -35,6 +40,7 @@ on:
       - "frontend/src/simulations/molstar-figure.ts"
       - "frontend/src/simulations/molstar-figure.test.ts"
       - "server_tests/*publication*"
+      - "server_tests/*native_annotation*"
       - ".github/workflows/publication-checks.yml"
       - ".github/workflows/stat6-template-checks.yml"
       - ".github/workflows/examples-checks.yml"
@@ -81,6 +87,9 @@ jobs:
           src/presentation/depiction-renderer.test.ts src/guided/Questionnaire.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts src/viewer/StructureViewer.test.tsx
           src/viewer/contact-labels.test.ts src/viewer/native-contact-labels.test.ts
+          src/viewer/native-labels.test.ts src/viewer/style.test.ts
+          src/viewer/channel-geometry.test.ts src/viewer/attachment-geometry.test.ts
+          src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
           src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts
       - name: Existing bootstrap and request-origin security contracts
         run: >-
@@ -94,17 +103,18 @@ jobs:
           echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
           gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
-          .venv/bin/python server_tests/download_publication_cases.py
+          .venv/bin/python server_tests/download_publication_cases.py --annotations
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Restore case data and managed editor in isolated CI state
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-pose-examples
-          .venv/bin/python server_tests/restore_publication_cases.py
+          .venv/bin/python server_tests/restore_publication_cases.py --annotations
           uv run --locked playwright install chromium --with-deps
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
-          uv run --locked python -m pytest -x -q server_tests/test_publication_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
+          server_tests/test_publication_browser.py
           server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
           server_tests/test_native_simulation_views.py -k 'not calculation'
       - uses: actions/upload-artifact@v4

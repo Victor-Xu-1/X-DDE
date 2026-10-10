@@ -47,6 +47,10 @@ on:
       - "!frontend/src/viewer/contacts*"
       - "!frontend/src/viewer/scientific-overlay*"
       - "!frontend/src/viewer/native-contact-labels*"
+      # Native labels and their geometry consumers use publication-checks.yml.
+      - "!frontend/src/viewer/native-labels*"
+      - "!frontend/src/viewer/channel-geometry*"
+      - "!frontend/src/viewer/attachment-geometry*"
       - "!frontend/src/viewer/InteractionControls*"
       - "frontend/src/presentation/**"
       - "!frontend/src/presentation/ensemble-results.css"

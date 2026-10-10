@@ -1,5 +1,6 @@
 import type * as mol from "3dmol";
 import { finiteCoordinates } from "./geometry";
+import { nativeLabelLayer } from "./native-labels";
 export interface ChannelGeometry {
   points: { position: [number, number, number]; radius_angstrom: number }[];
   envelope: boolean;
@@ -73,15 +74,18 @@ export function paintChannel(viewer: mol.GLViewer, channel?: ChannelGeometry) {
     color: "#eea545",
     opacity: 0.34,
   });
-  viewer.addLabel(points[narrow].radius_angstrom.toFixed(2) + " Å", {
-    position: xyz(points[narrow].position),
-    fontSize: 12,
-    fontColor: "#915509",
-    backgroundColor: "#ffffff",
-    backgroundOpacity: 0.85,
-    borderThickness: 0,
-    inFront: true,
-  });
+  nativeLabelLayer(viewer).add(
+    points[narrow].radius_angstrom.toFixed(2) + " Å",
+    {
+      position: xyz(points[narrow].position),
+      fontSize: 12,
+      fontColor: "#915509",
+      backgroundColor: "#ffffff",
+      backgroundOpacity: 0.85,
+      borderThickness: 0,
+      inFront: true,
+    },
+  );
 }
 
 /** Focus real source atoms around the measured path; never create pseudo-atoms. */

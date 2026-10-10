@@ -25,7 +25,9 @@ on:
       - 'frontend/src/viewer/source-depth*'
       - 'server_tests/test_pocket_results_browser.py'
       - 'server_tests/test_result_selection_browser.py'
-      - '.github/workflows/pocket-result-checks.yml'
+      # Routing-only edits are checked by the affected feature gate.
+      # Native scene annotations have their own retained-source figure checks.
+      - '!frontend/src/viewer/scene.ts'
 permissions:
   contents: read
 jobs:

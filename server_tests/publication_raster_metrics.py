@@ -49,7 +49,7 @@ def observe_native_label_pixels(page):
       CanvasRenderingContext2D.prototype.fillText=function(...args) {
         const result=fill.apply(this,args), text=String(args[0]);
         const font=/([\d.]+)px/.exec(this.font);
-        if (/^[^:]+:[A-Z]{3}-?\d+.*Å$/.test(text) && font) {
+        if (text.trim() && text.length<=128 && font) {
           stats.fills++;
           glyphs.set(this.canvas,{text,font:Number(font[1]),height:this.canvas.height});
         }
@@ -60,14 +60,23 @@ def observe_native_label_pixels(page):
         const proto=Type.prototype;
         const bind=proto.bindTexture, upload=proto.texImage2D;
         const locate=proto.getUniformLocation, uniform=proto.uniform2fv, draw=proto.drawElements;
-        const use=proto.useProgram;
+        const use=proto.useProgram, clear=proto.clear;
+        proto.clear=function(...args) {
+          // Embedded labels are rendered before framebuffer composition;
+          // floating labels follow it. Reset only the native scene clear,
+          // retaining both passes through the default-framebuffer composite.
+          if((args[0] & this.COLOR_BUFFER_BIT) &&
+            (this.getParameter(this.FRAMEBUFFER_BINDING)!==null ||
+              typeof this.drawBuffers!=='function')) frames.set(this.canvas,[]);
+          return clear.apply(this,args);
+        };
         proto.useProgram=function(program) {
           // WebGL2 composites an off-screen buffer by clearing the final canvas.
           // Retain the latest sprite pass through that unchanged composite.
           if(programs.has(program)) {
             stats.passes++;
             record('sprite-pass',this.canvas,{previousRows:frames.get(this.canvas)?.length || 0});
-            frames.set(this.canvas,[]);
+            if(!frames.has(this.canvas)) frames.set(this.canvas,[]);
           }
           return use.call(this,program);
         };
@@ -118,7 +127,9 @@ def observe_native_label_pixels(page):
     })();""")
 
 
-def inspect_native_label_pixels(panel, evidence, filename, dpi=600, width=2102, pt=7):
+def inspect_native_label_pixels(
+    panel, evidence, filename, dpi=600, width=2102, pt=7, required_text=None
+):
     captures = panel.locator("iframe").first.evaluate(
         "frame => frame.contentWindow.__nativeLabelCaptures || []"
     )
@@ -129,7 +140,12 @@ def inspect_native_label_pixels(panel, evidence, filename, dpi=600, width=2102, 
     )
     assert matching, {"message": "Native PNG capture was not observed", "captures": captures[-2:]}
     selected = matching[-1]["rows"]
-    assert selected, "The encoded PNG had no native contact text"
+    assert selected, "The encoded PNG had no native annotation text"
+    if required_text:
+        assert any(required_text in row["text"] for row in selected), {
+            "required": required_text,
+            "text": [row["text"] for row in selected],
+        }
     for row in selected:
         row["printedPt"] = row["renderedEm"] * 72 / dpi
         assert abs(row["printedPt"] - pt) < 0.02, row
@@ -140,3 +156,4 @@ def inspect_native_label_pixels(panel, evidence, filename, dpi=600, width=2102, 
     (evidence / (filename + "-native-type.json")).write_text(
         json.dumps(selected, indent=2), encoding="utf-8"
     )
+    return selected

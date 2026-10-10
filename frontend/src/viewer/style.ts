@@ -1,4 +1,5 @@
 import { thinSticks, proteinBackbone } from "./appearance";
+import { nativeLabelLayer } from "./native-labels";
 import * as mol from "3dmol";
 import { hideNonExchangeableHydrogens } from "./donor-hydrogens";
 import { residueRef as ref, residueSelection as sel } from "./geometry";
@@ -64,7 +65,7 @@ export function paintBase(
         v.selectedAtoms(near).map((atom) => [ref(atom).key, ref(atom)]),
       );
       for (const r of [...unique.values()].slice(0, 60))
-        v.addLabel(
+        nativeLabelLayer(v).add(
           residueLabel(r),
           {
             fontSize: 12,

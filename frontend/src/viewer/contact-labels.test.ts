@@ -64,7 +64,7 @@ it("moves native screen offsets without moving molecular anchors or recreating t
   layer.layout();
   expect(viewer.render).toHaveBeenCalledTimes(1);
 });
-it("drops label ownership on source reset so a later camera callback cannot reuse old labels", () => {
+it("drops cached contact layout on source reset so a later camera callback cannot reuse it", () => {
   const { viewer, layer } = fixture();
   layer.add([
     { text: "A:ASN140 · 3.20 Å", position: { x: 150, y: 250, z: 0 } },
@@ -72,31 +72,4 @@ it("drops label ownership on source reset so a later camera callback cannot reus
   layer.clear();
   layer.layout();
   expect(viewer.render).not.toHaveBeenCalled();
-});
-it("keeps fractional print em sizes and restores native style, scale and visibility", () => {
-  const { viewer, layer, labels } = fixture();
-  const row = { text: "A:ASN140 · 3.20 Å", position: { x: 150, y: 250, z: 0 } };
-  layer.add([row]);
-  const label = labels[0],
-    oldStyle = { ...label.getStyle() };
-  label.sprite.visible = false;
-  label.sprite.scale.set(1.2, 1.3, 1);
-  const size = (7 * 300) / 72;
-  const restore = layer.printFont(size, 2);
-  expect(viewer.setLabelStyle).toHaveBeenLastCalledWith(label, {
-    ...oldStyle,
-    font: "Arial",
-    fontSize: 30,
-  });
-  expect((30 * label.sprite.scale.y * 2 * 72) / 300).toBeCloseTo(7, 10);
-  expect(label.sprite.scale.y * 2).toBeLessThanOrEqual(1);
-  restore();
-  expect(viewer.setLabelStyle).toHaveBeenLastCalledWith(label, oldStyle);
-  expect([
-    label.sprite.scale.x,
-    label.sprite.scale.y,
-    label.sprite.scale.z,
-  ]).toEqual([1.2, 1.3, 1]);
-  expect(label.sprite.visible).toBe(false);
-  expect(row.position).toEqual({ x: 150, y: 250, z: 0 });
 });

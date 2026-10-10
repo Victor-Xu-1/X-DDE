@@ -10,11 +10,11 @@ on:
       - 'frontend/src/editors/molstar-appearance*'
       - 'frontend/src/presentation/depiction-renderer*'
       - 'frontend/src/viewer/donor-hydrogens*'
-      - 'frontend/src/viewer/style.ts'
-      - 'frontend/src/viewer/scene.ts'
+      # Native scene consumers have source/hydrogen and figure checks in publication-checks.yml.
       - 'frontend/src/viewer/molstar-sticks.ts'
       - 'server_tests/*hydrogen*'
-      - '.github/workflows/ketcher-depiction-checks.yml'
+      # Routing-only edits are checked by the affected feature gate; chemistry
+      # changes above still run the full focused hydrogen/depiction contract.
 permissions:
   contents: read
 jobs:

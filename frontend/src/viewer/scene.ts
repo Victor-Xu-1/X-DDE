@@ -15,6 +15,7 @@ import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
 import { focusDisplayContext } from "./context-focus";
 import { contactLabelLayer } from "./contact-labels";
+import { nativeLabelLayer } from "./native-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
 import {
   residueRef as ref,
@@ -93,6 +94,7 @@ export class MolecularScene {
     private viewport?: () => ViewportSize,
   ) {}
   resetState() {
+    nativeLabelLayer(this.viewer).clear();
     contactLabelLayer(this.viewer).clear();
     this.nativeInteractions = undefined;
     this.channelGeometry = undefined;
@@ -235,9 +237,9 @@ export class MolecularScene {
   }
   private async draw() {
     const v = this.viewer;
+    nativeLabelLayer(v).clear();
     contactLabelLayer(v).clear();
     v.removeAllSurfaces();
-    v.removeAllLabels();
     v.removeAllShapes();
     paintChannel(v, this.channelGeometry);
     const previousAttachments = this.attachmentCount;
@@ -281,7 +283,7 @@ export class MolecularScene {
       const [a, b] = this.measurement.map(position),
         distance = Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
       v.addLine({ start: a, end: b, color: "#b7891e", dashed: true });
-      v.addLabel(`${distance.toFixed(2)} Å`, {
+      nativeLabelLayer(v).add(`${distance.toFixed(2)} Å`, {
         position: {
           x: (a.x + b.x) / 2,
           y: (a.y + b.y) / 2,

@@ -19,6 +19,7 @@ on:
       # Shared print sizing has a readonly retained-case gate; no channel recomputation for styles.
       - '!frontend/src/space/ChannelProfile.tsx'
       - '!frontend/src/space/ChannelResults.tsx'
+      - '!frontend/src/viewer/channel-geometry*'
 permissions:
   contents: read
 jobs:
