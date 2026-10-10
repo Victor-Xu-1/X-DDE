@@ -29,6 +29,25 @@ function fixture() {
   return { viewer, layer: new NativeLabelLayer(viewer) };
 }
 
+it("does not relayout intermediate SDK font updates and releases the guard after restoration", () => {
+  const { viewer, layer } = fixture();
+  const canvas = vi.fn(() => {
+    throw new Error("Intermediate label layout");
+  });
+  viewer.getCanvas = canvas as GLViewer["getCanvas"];
+  const setStyle = vi.mocked(viewer.setLabelStyle).getMockImplementation()!;
+  vi.mocked(viewer.setLabelStyle).mockImplementation((...args) => {
+    const result = setStyle(...args);
+    layer.layout();
+    return result;
+  });
+  layer.add("A:GLN590", { fontSize: 12 });
+  const restore = layer.printFont((7 * 600) / 72, 2);
+  restore();
+  expect(canvas).not.toHaveBeenCalled();
+  expect(() => layer.layout()).toThrow("Intermediate label layout");
+});
+
 it("calibrates every annotation kind without changing scientific text, anchors or hidden choices", () => {
   const { layer } = fixture();
   const text = [

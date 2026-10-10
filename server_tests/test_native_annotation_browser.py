@@ -21,6 +21,12 @@ from server_tests.publication_raster_metrics import (
 )
 
 
+def native_view(panel):
+    return panel.locator("iframe").first.evaluate(
+        "frame => frame.contentWindow.document.querySelector('canvas')._3dmol_viewer.getView()"
+    )
+
+
 @pytest.mark.parametrize("language", ["en", "zh"])
 @pytest.mark.parametrize("kind", ["residue", "measurement", "channel", "attachment"])
 def test_native_annotation_typography_and_source_integrity(kind, language):
@@ -90,6 +96,7 @@ def test_native_annotation_typography_and_source_integrity(kind, language):
                 "checkbox", name="显示相互作用" if zh else "Show interactions", exact=True
             ).uncheck()
         compact = kind in {"measurement", "attachment"}
+        original_view = native_view(panel)
 
         def configure(dialog):
             if compact:
@@ -112,6 +119,7 @@ def test_native_annotation_typography_and_source_integrity(kind, language):
         )
         dpi, width, pt = (300, 1051, 9) if compact else (600, 2102, 7)
         inspect_png(image, dpi=dpi, width=width)
+        assert native_view(panel) == pytest.approx(original_view, abs=1e-7)
         assert struct.unpack(">II", image.read_bytes()[16:24]) == (width, width)
         inspect_native_label_pixels(
             panel, evidence, language, dpi=dpi, width=width, pt=pt, required_text=required
@@ -141,6 +149,7 @@ def test_native_annotation_typography_and_source_integrity(kind, language):
                     configure=layout_choice,
                 )
                 inspect_png(image, dpi=300, width=1051)
+                assert native_view(panel) == pytest.approx(original_view, abs=1e-7)
                 assert struct.unpack(">II", image.read_bytes()[16:24]) == (1051, expected_height)
                 inspect_native_label_pixels(
                     panel,

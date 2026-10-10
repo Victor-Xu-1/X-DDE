@@ -67,27 +67,35 @@ export class NativeLabelLayer {
     }));
     const restore = () => {
       const failures: unknown[] = [];
-      for (const {
-        label,
-        style,
-        scale,
-        visible,
-        entry,
-        layoutHidden,
-      } of previous) {
-        try {
-          this.viewer.setLabelStyle(label, style);
-        } catch (error) {
-          failures.push(error);
-        } finally {
-          label.sprite.scale.copy(scale);
-          label.sprite.visible = visible;
-          entry.layoutHidden = layoutHidden;
+      const wasUpdating = this.updating;
+      this.updating = true;
+      try {
+        for (const {
+          label,
+          style,
+          scale,
+          visible,
+          entry,
+          layoutHidden,
+        } of previous) {
+          try {
+            this.viewer.setLabelStyle(label, style);
+          } catch (error) {
+            failures.push(error);
+          } finally {
+            label.sprite.scale.copy(scale);
+            label.sprite.visible = visible;
+            entry.layoutHidden = layoutHidden;
+          }
         }
+      } finally {
+        this.updating = wasUpdating;
       }
       if (failures.length)
         throw new AggregateError(failures, "Native label restoration failed.");
     };
+    const wasUpdating = this.updating;
+    this.updating = true;
     try {
       for (const { label, style } of previous)
         this.viewer.setLabelStyle(label, {
@@ -102,6 +110,8 @@ export class NativeLabelLayer {
     } catch (error) {
       restore();
       throw error;
+    } finally {
+      this.updating = wasUpdating;
     }
     return restore;
   }

@@ -36,6 +36,7 @@ def test_molecular_templates_have_relevant_steps_and_exact_file_review(capabilit
         page.goto(base)
         jobs = page.request.get(base + "/api/jobs").json()
         card = page.locator(f'button[data-capability="{capability}"]').first
+        expect(card).to_have_count(1, timeout=30000)
         if not card.is_visible():
             card.locator("xpath=ancestor::details").locator("summary").click()
         card.click()

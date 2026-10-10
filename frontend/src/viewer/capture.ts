@@ -75,8 +75,8 @@ export function captureFigure(
     return viewer.pngURI();
   } finally {
     try {
-      restore();
-    } finally {
+      // Restore the small live viewport before native style updates; each SDK
+      // setLabelStyle otherwise redraws the entire high-resolution figure.
       element.style.width = previousWidth;
       element.style.height = previousHeight;
       const background =
@@ -86,8 +86,13 @@ export function captureFigure(
       viewer.setBackgroundColor(background, 1);
       viewer.resize();
       viewer.setView(view);
-      labels.layout();
-      viewer.render();
+    } finally {
+      try {
+        restore();
+      } finally {
+        labels.layout();
+        viewer.render();
+      }
     }
   }
 }
