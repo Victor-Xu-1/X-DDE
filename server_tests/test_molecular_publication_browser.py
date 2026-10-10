@@ -39,7 +39,8 @@ def vector_metrics(page, source):
             const ctx=canvas.getContext('2d'); ctx.drawImage(image,0,0,600,400);
             return {viewBox:svg.getAttribute('viewBox'),width:svg.getAttribute('width'),
               medianBond:weight[Math.floor(weight.length/2)],glyphPt:Math.max(...glyphs),
-              cornerAlpha:ctx.getImageData(0,0,1,1).data[3],glyphCount:glyphs.length};
+              // Sample inside the paper margin; the outer SVG edge is antialiased.
+              marginAlpha:ctx.getImageData(8,8,1,1).data[3],glyphCount:glyphs.length};
           } finally {svg.remove();}
         }""",
         source,
@@ -132,7 +133,7 @@ def test_stat6_native_print_controls_change_real_paths_and_pixels(language):
             assert a["glyphCount"] > 5 and b["glyphCount"] == a["glyphCount"]
             assert 1.22 < b["glyphPt"] / a["glyphPt"] < 1.36, (a, b)
             assert 1.7 < b["medianBond"] / a["medianBond"] < 2.0, (a, b)
-            assert (a["cornerAlpha"], b["cornerAlpha"]) == (255, 0), (a, b)
+            assert (a["marginAlpha"], b["marginAlpha"]) == (255, 0), (a, b)
             native = page.evaluate(
                 """async () => {
                   const frame=document.querySelector('.drawing-service-frame');
