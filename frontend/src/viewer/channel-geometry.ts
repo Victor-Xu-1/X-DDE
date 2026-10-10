@@ -1,6 +1,6 @@
 import type * as mol from "3dmol";
 import { finiteCoordinates } from "./geometry";
-import { nativeLabelLayer } from "./native-labels";
+import { nativeAnnotationStyle, nativeLabelLayer } from "./native-labels";
 import type { ChannelGeometry } from "./channel-input";
 export { channelGeometry, type ChannelGeometry } from "./channel-input";
 const xyz = (p: number[]) => ({ x: p[0], y: p[1], z: p[2] });
@@ -40,13 +40,10 @@ export function paintChannel(viewer: mol.GLViewer, channel?: ChannelGeometry) {
   nativeLabelLayer(viewer).add(
     points[narrow].radius_angstrom.toFixed(2) + " Å",
     {
+      ...nativeAnnotationStyle,
       position: xyz(points[narrow].position),
       fontSize: 12,
       fontColor: "#915509",
-      backgroundColor: "#ffffff",
-      backgroundOpacity: 0.85,
-      borderThickness: 0,
-      inFront: true,
     },
   );
 }

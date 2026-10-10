@@ -14,7 +14,7 @@ import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
 import { residueRegion } from "./residue-region";
 import { focusDisplayContext } from "./context-focus";
-import { nativeLabelLayer } from "./native-labels";
+import { nativeAnnotationStyle, nativeLabelLayer } from "./native-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
 import {
   residueRef as ref,
@@ -281,6 +281,7 @@ export class MolecularScene {
         distance = Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
       v.addLine({ start: a, end: b, color: "#b7891e", dashed: true });
       nativeLabelLayer(v).add(`${distance.toFixed(2)} Å`, {
+        ...nativeAnnotationStyle,
         position: {
           x: (a.x + b.x) / 2,
           y: (a.y + b.y) / 2,
@@ -288,7 +289,6 @@ export class MolecularScene {
         },
         fontSize: 13,
         fontColor: "#805511",
-        showBackground: false,
       });
     }
     await this.paintSurface();

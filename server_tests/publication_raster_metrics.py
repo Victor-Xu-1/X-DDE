@@ -138,7 +138,8 @@ def observe_native_label_pixels(page):
             const box={x:left,y:top,width:Math.max(...corners.map(p=>p.x))-left,
               height:Math.max(...corners.map(p=>p.y))-top};
             const rows=frames.get(this.canvas);
-            if(rows) rows.push({...glyph,scale,viewport,renderedEm,box});
+            if(rows) rows.push({...glyph,scale,viewport,renderedEm,box,
+              depthTest:this.isEnabled(this.DEPTH_TEST)});
             record('glyph-draw',this.canvas,{font:glyph.font,rows:rows?.length || 0});
           }
           return result;
@@ -167,6 +168,7 @@ def inspect_native_label_pixels(
             "text": [row["text"] for row in selected],
         }
     for row in selected:
+        assert row["depthTest"] is False, {"occluded_annotation": row}
         row["printedPt"] = row["renderedEm"] * 72 / dpi
         assert abs(row["printedPt"] - pt) < 0.02, row
         # Export detail must come from full-resolution native glyphs, rather

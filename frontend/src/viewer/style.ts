@@ -1,5 +1,5 @@
 import { thinSticks, proteinBackbone } from "./appearance";
-import { nativeLabelLayer } from "./native-labels";
+import { nativeAnnotationStyle, nativeLabelLayer } from "./native-labels";
 import * as mol from "3dmol";
 import { hideNonExchangeableHydrogens } from "./donor-hydrogens";
 import { residueRef as ref, residueSelection as sel } from "./geometry";
@@ -68,10 +68,9 @@ export function paintBase(
         nativeLabelLayer(v).add(
           residueLabel(r),
           {
+            ...nativeAnnotationStyle,
             fontSize: 12,
-            fontColor: "#686b73",
-            showBackground: false,
-            inFront: false,
+            fontColor: "#324c62",
           },
           sel(r),
         );

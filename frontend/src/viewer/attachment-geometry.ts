@@ -1,5 +1,5 @@
 import type * as mol from "3dmol";
-import { nativeLabelLayer } from "./native-labels";
+import { nativeAnnotationStyle, nativeLabelLayer } from "./native-labels";
 export interface AttachmentGeometry {
   points: {
     origin: [number, number, number];
@@ -101,12 +101,10 @@ export function paintAttachments(
       color,
     });
     nativeLabelLayer(viewer).add(point.label, {
+      ...nativeAnnotationStyle,
       position: xyz(tip),
       fontSize: 12,
       fontColor: color,
-      backgroundColor: "#ffffff",
-      backgroundOpacity: 0.8,
-      showBackground: true,
     });
     count++;
   }

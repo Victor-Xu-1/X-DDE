@@ -1,8 +1,18 @@
-import type { GLViewer, Label, XYZ } from "3dmol";
+import type { GLViewer, Label, LabelSpec, XYZ } from "3dmol";
 import {
   layoutNativeLabels,
   type NativeAnnotation,
 } from "./native-label-layout";
+
+/** A readable annotation plane, independent of the depth of its source atom. */
+export const nativeAnnotationStyle: LabelSpec = {
+  backgroundColor: "white",
+  backgroundOpacity: 0.92,
+  showBackground: true,
+  borderThickness: 0,
+  inFront: true,
+  alignment: "topLeft",
+};
 
 /** One owner for all native annotations and their temporary print typography. */
 export class NativeLabelLayer {
