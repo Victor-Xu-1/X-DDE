@@ -29,7 +29,7 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG", con
             "button", name=("导出 " if language == "zh" else "Export ") + format, exact=True
         )
         expect(export).to_be_enabled(timeout=45000)
-        preview = image.evaluate("""async image => {
+        preview = image.evaluate(r"""async image => {
           if (!image.complete || !(image.naturalWidth > 0)) throw Error('Preview not decoded');
           const source = /^data:(image\/(?:png|svg\+xml));base64,(.+)$/.exec(image.src);
           if (!source) throw Error('Expected the existing CSP-compatible image transport');

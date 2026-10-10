@@ -78,6 +78,18 @@ def test_ketcher_preview_matches_download_and_mobile_settings(language):
         dialog.get_by_role(
             "checkbox", name="透明背景" if language == "zh" else "Transparent background"
         ).check()
+        # The larger native lettering must never be silently shrunk to fit.
+        # This retained complex structure needs the wider paper layout at 9 pt.
+        expect(dialog.get_by_role("alert")).to_contain_text(
+            "请选择双栏" if language == "zh" else "Choose double column", timeout=45000
+        )
+        expect(
+            dialog.get_by_role(
+                "button", name="导出 SVG" if language == "zh" else "Export SVG", exact=True
+            )
+        ).to_be_disabled()
+        page.screenshot(path=EVIDENCE / (language + "-mobile-layout-choice.png"))
+        width.select_option("183")
         expect(dialog.locator(".figure-preview-sheet img")).to_be_visible(timeout=45000)
         expect(
             dialog.get_by_role(
