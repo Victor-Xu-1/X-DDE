@@ -118,6 +118,9 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
         card = page.locator('button[data-capability="properties"]').first
         expect(card).to_be_visible(timeout=30000)
         card.click()
+        form = page.get_by_role(
+            "region", name="计算小分子性质" if zh else "Calculate molecular properties", exact=True
+        ).locator(".questionnaire")
         page.get_by_role(
             "radio",
             name="粘贴分子结构文字（SMILES）" if zh else "Paste molecular structure text (SMILES)",
@@ -146,8 +149,8 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
         expect(submit).to_be_disabled()
         expect(page.get_by_label("SMILES", exact=True)).to_have_value(smiles)
         assert (
-            "Configure molecular-property tools" not in page.locator(".questionnaire").inner_text()
-        )
+            "RDKit 性质计算环境尚未就绪" if zh else "Configure molecular-property tools"
+        ) not in form.inner_text()
         page.screenshot(path=str(evidence / (language + "-bounded-failure.png")))
         assert held and not errors and not submissions
         assert jobs == page.request.get(base + "/api/jobs").json()
