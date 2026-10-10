@@ -41,6 +41,8 @@ on:
       - "!frontend/src/viewer/contacts.ts"
       - "!frontend/src/viewer/scientific-overlay.ts"
       - "!frontend/src/viewer/channel-geometry*"
+      - "!frontend/src/viewer/channel-input*"
+      - "!frontend/src/viewer/source-layout.ts"
       - "!frontend/src/viewer/attachment-geometry*"
       - "!frontend/src/viewer/viewer.css"
       - "!frontend/src/viewer/frame.ts"

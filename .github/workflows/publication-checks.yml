@@ -34,6 +34,8 @@ on:
       - "frontend/src/viewer/scene.ts"
       - "frontend/src/viewer/style.ts"
       - "frontend/src/viewer/channel-geometry*"
+      - "frontend/src/viewer/channel-input*"
+      - "frontend/src/viewer/source-layout.ts"
       - "frontend/src/viewer/attachment-geometry*"
       - "frontend/src/poses/ClusterMatrix.tsx"
       - "frontend/src/space/ChannelProfile.tsx"
@@ -94,6 +96,7 @@ jobs:
           src/viewer/native-labels.test.ts src/viewer/style.test.ts
           src/viewer/native-label-layout.test.ts
           src/viewer/channel-geometry.test.ts src/viewer/attachment-geometry.test.ts
+          src/viewer/source-layout.test.ts
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
           src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts
       - name: Existing bootstrap and request-origin security contracts

@@ -51,6 +51,8 @@ on:
       - "!frontend/src/viewer/native-labels*"
       - "!frontend/src/viewer/native-label-layout*"
       - "!frontend/src/viewer/channel-geometry*"
+      - "!frontend/src/viewer/channel-input*"
+      - "!frontend/src/viewer/source-layout.ts"
       - "!frontend/src/viewer/attachment-geometry*"
       - "!frontend/src/viewer/InteractionControls*"
       - "frontend/src/presentation/**"

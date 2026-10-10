@@ -1,6 +1,6 @@
 import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
-import { channelGeometry, type ChannelGeometry } from "./channel-geometry";
+import { channelGeometry, type ChannelGeometry } from "./channel-input";
 import type { ViewMode } from "./protocol";
 export interface ViewerLoad {
   trajectoryKey?: string;

@@ -1,4 +1,8 @@
-import { expect, it, vi } from "vitest";
+import { afterAll, expect, it, vi } from "vitest";
+const worker = vi.hoisted(() =>
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:channel-worker"),
+);
+afterAll(() => worker.mockRestore());
 import type * as mol from "3dmol";
 import {
   channelGeometry,
