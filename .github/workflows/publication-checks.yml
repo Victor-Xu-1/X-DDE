@@ -16,6 +16,12 @@ on:
       - "frontend/src/presentation/hidden-frame-focus*"
       - "frontend/src/presentation/molecule-image.css"
       - "frontend/src/examples/StudyInputPreview.tsx"
+      - "frontend/src/examples/guide.ts"
+      - "frontend/src/examples/guide.test.ts"
+      - "src/opendde_workbench/examples/stat6/guidance.py"
+      - "tests/test_stat6_guidance.py"
+      - "frontend/src/operations/PropertyForm*"
+      - "frontend/src/operations/AssetPicker*"
       - "frontend/src/guided/Questionnaire.tsx"
       - "frontend/src/guided/questionnaire.css"
       - "frontend/src/studio/MethodSwitch.tsx"
@@ -46,6 +52,7 @@ on:
       - "frontend/src/simulations/molstar-figure.test.ts"
       - "server_tests/*publication*"
       - "server_tests/*native_annotation*"
+      - "server_tests/test_task_clarity_browser.py"
       - ".github/workflows/publication-checks.yml"
       - ".github/workflows/stat6-template-checks.yml"
       - ".github/workflows/examples-checks.yml"
@@ -59,7 +66,6 @@ on:
       # Selected-ligand camera changes affect only native MD/FEP result views.
       - "!frontend/src/simulations/molstar-controller.ts"
       # Selected-pocket controls/camera have native exports in pocket-result-checks.yml.
-      - "!frontend/src/viewer/StructureViewer.tsx"
       - "!frontend/src/viewer/frame.ts"
   pull_request:
     paths: *figure_paths
@@ -97,6 +103,8 @@ jobs:
           src/viewer/native-label-layout.test.ts
           src/viewer/channel-geometry.test.ts src/viewer/attachment-geometry.test.ts
           src/viewer/source-layout.test.ts
+          src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx
+          src/examples/guide.test.ts src/examples/TemplateStepHelp.test.tsx
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
           src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts
       - name: Existing bootstrap and request-origin security contracts
@@ -104,6 +112,7 @@ jobs:
           uv run --locked pytest -q
           tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
           tests/test_api_security.py::test_csrf_origin_and_host_boundaries
+          tests/test_stat6_guidance.py
       - name: Restore retained native MD, FEP plan and archival public results; no scientific execution
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,6 +131,7 @@ jobs:
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
+          server_tests/test_task_clarity_browser.py
           server_tests/test_publication_browser.py
           server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
           server_tests/test_native_simulation_views.py -k 'not calculation'

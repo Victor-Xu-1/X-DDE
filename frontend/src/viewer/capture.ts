@@ -1,5 +1,9 @@
 import type { GLViewer } from "3dmol";
-import { figureDimensions, type FigureSettings } from "../publication/settings";
+import {
+  figureAspect,
+  figureDimensions,
+  type FigureSettings,
+} from "../publication/settings";
 import { nativeLabelLayer } from "./native-labels";
 export function captureDimensions(
   width: number,
@@ -38,7 +42,10 @@ export function captureFigure(
     ratio = viewer.getRenderer().devicePixelRatio;
   if (!Number.isFinite(ratio) || ratio <= 0)
     throw new Error("The native canvas is not ready.");
-  const size = figureDimensions(settings, bounds.width / bounds.height);
+  const size = figureDimensions(
+    settings,
+    figureAspect(settings, bounds.width / bounds.height),
+  );
   const previousWidth = element.style.width,
     previousHeight = element.style.height,
     view = viewer.getView();

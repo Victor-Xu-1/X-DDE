@@ -22,6 +22,7 @@ export function AssetPicker({
   kind,
   value,
   onChange,
+  onSelectedAsset,
   language,
   label,
   allowedSuffixes,
@@ -31,6 +32,7 @@ export function AssetPicker({
   kind: AssetKind;
   value: string;
   onChange(id: string): void;
+  onSelectedAsset?(asset: Asset | null): void;
   language: Language;
   label: string;
   allowedSuffixes?: readonly string[];
@@ -43,6 +45,10 @@ export function AssetPicker({
     [busy, setBusy] = useState(false),
     [opened, setOpened] = useState(false);
   const accepted = allowedSuffixes?.join(",") ?? accept[kind];
+  const selectedAsset = assets.find((asset) => asset.id === value) ?? null;
+  useEffect(() => {
+    onSelectedAsset?.(selectedAsset);
+  }, [selectedAsset, onSelectedAsset]);
   const [showResults, setShowResults] = useState(false);
   const mounted = useRef(true);
   const uploadIntent = useRef(0);

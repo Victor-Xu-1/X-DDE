@@ -45,6 +45,8 @@ on:
       - 'frontend/src/guided/Questionnaire*'
       - 'frontend/src/TaskForm*'
       - 'frontend/src/operations/AssetPicker*'
+      # Source metadata callbacks use the exact molecular questionnaire gate.
+      - '!frontend/src/operations/AssetPicker*'
       - 'frontend/src/operations/HarnessForm*'
       - 'frontend/src/operations/CampaignForm*'
       # Exact dataset material controls use research-material-checks.yml.
@@ -193,6 +195,8 @@ on:
       - 'frontend/src/guided/Questionnaire*'
       - 'frontend/src/TaskForm*'
       - 'frontend/src/operations/AssetPicker*'
+      # Source metadata callbacks use the exact molecular questionnaire gate.
+      - '!frontend/src/operations/AssetPicker*'
       - 'frontend/src/operations/HarnessForm*'
       - 'frontend/src/operations/CampaignForm*'
       # Exact dataset material controls use research-material-checks.yml.

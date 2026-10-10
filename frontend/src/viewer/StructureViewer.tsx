@@ -409,6 +409,7 @@ export function StructureViewer({
             filename="X-DDE-structure"
             format="png"
             typography
+            molecular
             aspect={() => {
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;

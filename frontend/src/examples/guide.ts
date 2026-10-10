@@ -10,10 +10,7 @@ export function templateGuide(
   const index = language === "zh" ? 0 : 1;
   if (study)
     return {
-      steps: [
-        ...study.guide.steps.map((value) => value[index]),
-        ...study.required_materials.map((value) => value[index]),
-      ],
+      steps: study.guide.steps.map((value) => value[index]),
       interpretation: study.guide.interpretation[index],
     };
   const guide = guides[capability as keyof typeof guides];

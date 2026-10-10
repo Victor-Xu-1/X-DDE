@@ -1,5 +1,9 @@
 import type { PluginContext } from "molstar/lib/mol-plugin/context";
-import { figureDimensions, type FigureSettings } from "../publication/settings";
+import {
+  figureAspect,
+  figureDimensions,
+  type FigureSettings,
+} from "../publication/settings";
 import { dataUrlBlob } from "../publication/png-resolution";
 
 /** Native offscreen rendering preserves the live scene, camera and screenshot settings. */
@@ -12,7 +16,10 @@ export async function molecularFigure(
   const canvas = plugin.canvas3d;
   if (!helper || !canvas) throw new Error("The molecular view is not ready.");
   const bounds = viewport.getBoundingClientRect();
-  const size = figureDimensions(settings, bounds.width / bounds.height);
+  const size = figureDimensions(
+    settings,
+    figureAspect(settings, bounds.width / bounds.height),
+  );
   const values = helper.values,
     crop = helper.behaviors.relativeCrop.value,
     cropParams = helper.behaviors.cropParams.value;

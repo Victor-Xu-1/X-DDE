@@ -74,6 +74,53 @@ def objective(capability):
 
 
 def steps(capability):
+    if capability in {"properties", "admet.predict"}:
+        molecular_steps = {
+            "properties": [
+                (
+                    "选择分子文件或 SMILES；模板提供指定的 STAT6 研究小分子。",
+                    "Choose a molecule file or SMILES; "
+                    "the template supplies the STAT6 study molecule.",
+                ),
+                (
+                    "确认文件与分子记录；这项计算不需要蛋白结构或口袋。",
+                    "Confirm the file and molecular records; "
+                    "protein structures and pockets are not required.",
+                ),
+                (
+                    "查看基础性质计算范围，可为这次计算填写任务名称。",
+                    "Review the molecular property panel and optionally name this calculation.",
+                ),
+                (
+                    "核对文件、记录范围及文字输入后递交，原始分子保持原样。",
+                    "Confirm the file, record range and text inputs before submission; "
+                    "original molecules remain unchanged.",
+                ),
+            ],
+            "admet.predict": [
+                (
+                    "选择一个研究分子或一组候选；模板提供指定的 STAT6 研究小分子。",
+                    "Choose one study molecule or a candidate collection; "
+                    "the template supplies the STAT6 study molecule.",
+                ),
+                (
+                    "确认 SDF 文件与分子记录；性质预测不需要受体或口袋。",
+                    "Confirm the SDF file and molecular records; "
+                    "property prediction does not require a receptor or pocket.",
+                ),
+                (
+                    "选择先看全部性质、体内过程或早期安全性，按需展开专家微调。",
+                    "Choose the initial property, ADME or early-safety view; "
+                    "open expert adjustments when needed.",
+                ),
+                (
+                    "核对分子与模型后递交；原始预测终点与分子分别保存供后续研究。",
+                    "Confirm the molecules and model before submission; "
+                    "retain native predictions and original molecules for subsequent research.",
+                ),
+            ],
+        }
+        return molecular_steps[capability]
     selection = (
         "核对来源后选择研究区域；小分子未结合构象不能用于定位蛋白口袋。",
         "Review sources and select a research region; "

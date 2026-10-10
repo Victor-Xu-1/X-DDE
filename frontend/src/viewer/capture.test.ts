@@ -53,9 +53,12 @@ describe("Native export resolution and restoration", () => {
 it.each([
   { dpi: 600 as const, width: 2102, height: 1577 },
   { dpi: 300 as const, width: 1051, height: 788 },
+  { dpi: 600 as const, shape: "square" as const, width: 2102, height: 2102 },
+  { dpi: 300 as const, shape: "landscape" as const, width: 1051, height: 701 },
+  { dpi: 300 as const, shape: "portrait" as const, width: 1051, height: 1401 },
 ])(
   "renders $dpi dpi at exact print pixels and restores the native camera on failure",
-  ({ dpi, width: expectedWidth, height: expectedHeight }) => {
+  ({ dpi, shape, width: expectedWidth, height: expectedHeight }) => {
     const element = document.createElement("div");
     element.style.width = "100%";
     vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
@@ -94,7 +97,7 @@ it.each([
       },
     } as unknown as GLViewer;
     expect(() =>
-      captureFigure(viewer, element, { ...defaultFigure, dpi }),
+      captureFigure(viewer, element, { ...defaultFigure, dpi, shape }),
     ).toThrow("native capture failed");
     expect(element.style.width).toBe("100%");
     expect(element.style.height).toBe("");

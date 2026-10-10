@@ -1,9 +1,33 @@
 import { Blob as NodeBlob } from "node:buffer";
 import { beforeEach, expect, it, vi } from "vitest";
-import { defaultFigure, figureDimensions, validFigure } from "./settings";
+import {
+  defaultFigure,
+  figureAspect,
+  figureDimensions,
+  validFigure,
+} from "./settings";
 import { printSvg } from "./svg";
 
 beforeEach(() => vi.stubGlobal("Blob", NodeBlob));
+it("uses independent molecular print proportions and rejects invalid shapes or unloaded viewports", () => {
+  for (const [shape, aspect] of [
+    ["square", 1],
+    ["landscape", 1.5],
+    ["portrait", 0.75],
+  ] as const)
+    expect(figureAspect({ ...defaultFigure, shape }, 4.4)).toBe(aspect);
+  expect(figureAspect({ ...defaultFigure, shape: "viewport" }, 4.4)).toBe(4.4);
+  expect(validFigure({ ...defaultFigure, shape: "unknown" })).toBe(false);
+  expect(validFigure({ ...defaultFigure, shape: new String("square") })).toBe(
+    false,
+  );
+  expect(() =>
+    figureAspect({ ...defaultFigure, shape: "square" }, 0),
+  ).toThrow();
+  expect(() =>
+    figureDimensions({ ...defaultFigure, widthMm: 183 }, 0.2),
+  ).toThrow(/budget/);
+});
 function svg(
   text = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240"><path d="M10 20 L80 60" stroke="#15988c"/><text x="20" y="100">RMSD (Å) 2.91</text></svg>',
 ) {

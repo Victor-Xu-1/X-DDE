@@ -197,6 +197,7 @@ export function MolecularViewport({
           language={language}
           filename="X-DDE-structure"
           format="png"
+          molecular
           disabled={!loaded}
           label={zh ? "下载视图" : "Download view"}
           onStart={onExport}

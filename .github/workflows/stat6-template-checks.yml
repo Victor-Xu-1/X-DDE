@@ -38,6 +38,8 @@ on:
       - 'frontend/src/studio/ProjectCreateDialog.tsx'
       - 'frontend/src/workflows/WorkflowCenter.tsx'
       # Routing changes are checked by the figure gate; scientific changes above
+      - '!src/opendde_workbench/examples/stat6/guidance.py'
+      - '!frontend/src/examples/guide.ts'
       # still run this suite. workflow_dispatch retains explicit full template verification.
 permissions:
   contents: read

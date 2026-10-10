@@ -35,6 +35,36 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
+it("offers molecular layouts with a square default and regenerates on a new print proportion", async () => {
+  const native = vi.fn(async () => vector());
+  render(
+    <FigureExport
+      language="en"
+      filename="native-structure"
+      format="svg"
+      molecular
+      aspect={4.4}
+      render={native}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  expect(screen.getByRole("combobox", { name: "Panel layout" })).toHaveValue(
+    "square",
+  );
+  await waitFor(() =>
+    expect(native).toHaveBeenCalledWith({ ...defaultFigure, shape: "square" }),
+  );
+  fireEvent.change(screen.getByRole("combobox", { name: "Panel layout" }), {
+    target: { value: "portrait" },
+  });
+  await waitFor(() =>
+    expect(native).toHaveBeenLastCalledWith({
+      ...defaultFigure,
+      shape: "portrait",
+    }),
+  );
+  expect(download).not.toHaveBeenCalled();
+});
 it("previews and downloads identical native bytes without rendering again", async () => {
   const native = vi.fn(async () => vector()),
     onStart = vi.fn();

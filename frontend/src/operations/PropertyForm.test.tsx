@@ -5,15 +5,25 @@ import { PropertyForm } from "./PropertyForm";
 import { api } from "../api";
 import * as client from "../api";
 import type { MoleculeRef } from "../research/types";
+import type { Asset } from "./types";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 it("keeps the exact source version and sends no hidden SMILES after selecting file-only input", async () => {
+  const asset: Asset = {
+    id: "file",
+    name: "STAT6-study-series.sdf",
+    kind: "ligand",
+    suffix: ".sdf",
+    size: 1000,
+    sha256: "a".repeat(64),
+    created_at: "2026-10-10T00:00:00Z",
+  };
   vi.spyOn(client, "request").mockResolvedValue({
     availability: { configuration_present: true },
   });
-  vi.spyOn(api, "assets").mockResolvedValue([]);
+  vi.spyOn(api, "assets").mockResolvedValue([asset]);
   const submit = vi
     .spyOn(api, "submit")
     .mockRejectedValue(new Error("verified request only"));
@@ -42,6 +52,9 @@ it("keeps the exact source version and sends no hidden SMILES after selecting fi
   for (let i = 0; i < 3; i++)
     await user.click(screen.getByRole("button", { name: "Next" }));
   expect(submit).not.toHaveBeenCalled();
+  expect(await screen.findByText(asset.name, { selector: "dd" })).toBeVisible();
+  expect(screen.getByText("Record 5", { selector: "dd" })).toBeVisible();
+  expect(screen.queryByText(/0 text structures/)).toBeNull();
   await user.click(
     screen.getByRole("button", { name: "Calculate properties" }),
   );

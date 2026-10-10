@@ -13,6 +13,7 @@ export function FigureExport({
   label,
   onStart,
   typography = format === "svg",
+  molecular = false,
 }: {
   language: Language;
   filename: string;
@@ -23,6 +24,7 @@ export function FigureExport({
   label?: string;
   onStart?(): void;
   typography?: boolean;
+  molecular?: boolean;
 }) {
   const [open, setOpen] = useState(false),
     [inflight, setInflight] = useState(false);
@@ -82,6 +84,7 @@ export function FigureExport({
           render={nativeRender}
           onStart={onStart}
           typography={typography}
+          molecular={molecular}
           onClose={close}
         />
       )}

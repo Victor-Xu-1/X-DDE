@@ -3,6 +3,7 @@ export interface FigureSettings {
   dpi: 300 | 600;
   fontPt: 7 | 8 | 9;
   transparent: boolean;
+  shape?: "viewport" | "square" | "landscape" | "portrait";
 }
 export const defaultFigure: FigureSettings = {
   widthMm: 89,
@@ -20,8 +21,30 @@ export function validFigure(value: unknown): value is FigureSettings {
     typeof p.transparent === "boolean" &&
     typeof p.widthMm === "number" &&
     typeof p.dpi === "number" &&
-    typeof p.fontPt === "number"
+    typeof p.fontPt === "number" &&
+    (p.shape === undefined ||
+      (typeof p.shape === "string" &&
+        ["viewport", "square", "landscape", "portrait"].includes(p.shape)))
   );
+}
+/** Native molecular panels can use a print layout independent of screen width. */
+export function figureAspect(settings: FigureSettings, viewportAspect: number) {
+  if (
+    !validFigure(settings) ||
+    !Number.isFinite(viewportAspect) ||
+    viewportAspect <= 0
+  )
+    throw new Error("The native viewport is not ready.");
+  switch (settings.shape) {
+    case "square":
+      return 1;
+    case "landscape":
+      return 3 / 2;
+    case "portrait":
+      return 3 / 4;
+    default:
+      return viewportAspect;
+  }
 }
 export function figureDimensions(settings: FigureSettings, aspect: number) {
   if (

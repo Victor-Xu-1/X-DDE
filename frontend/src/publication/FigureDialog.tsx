@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import {
   defaultFigure,
   figureDimensions,
+  figureAspect,
   type FigureSettings,
 } from "./settings";
 import { useFigurePreview } from "./useFigurePreview";
@@ -17,6 +18,7 @@ export function FigureDialog({
   onClose,
   onStart,
   typography,
+  molecular,
 }: {
   language: Language;
   filename: string;
@@ -26,14 +28,17 @@ export function FigureDialog({
   onClose(): void;
   onStart?(): void;
   typography: boolean;
+  molecular: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     title = useId();
-  const [settings, setSettings] = useState(defaultFigure);
+  const [settings, setSettings] = useState<FigureSettings>(
+    molecular ? { ...defaultFigure, shape: "square" } : defaultFigure,
+  );
   const zh = language === "zh";
   let size: ReturnType<typeof figureDimensions> | null = null;
   try {
-    size = figureDimensions(settings, aspect);
+    size = figureDimensions(settings, figureAspect(settings, aspect));
   } catch {
     /* Show an actionable size choice below. */
   }
@@ -78,6 +83,30 @@ export function FigureDialog({
       <div className="figure-export-layout">
         <div className="figure-export-options">
           <fieldset>
+            {molecular && (
+              <label>
+                {zh ? "图件比例" : "Panel layout"}
+                <select
+                  value={settings.shape ?? "viewport"}
+                  onChange={(e) =>
+                    update({ shape: e.target.value as FigureSettings["shape"] })
+                  }
+                >
+                  <option value="square">
+                    {zh ? "正方形 · 推荐" : "Square · Recommended"}
+                  </option>
+                  <option value="landscape">
+                    {zh ? "横向 · 3:2" : "Landscape · 3:2"}
+                  </option>
+                  <option value="portrait">
+                    {zh ? "纵向 · 3:4" : "Portrait · 3:4"}
+                  </option>
+                  <option value="viewport">
+                    {zh ? "当前窗口比例" : "Current viewport"}
+                  </option>
+                </select>
+              </label>
+            )}
             <label>
               {zh ? "版面宽度" : "Figure width"}
               <select

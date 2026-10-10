@@ -10,6 +10,7 @@ on:
       # Immutable historical profiles are verified by actual retained-case imports.
       - '!src/opendde_workbench/examples/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/preparation.py'
+      - '!src/opendde_workbench/examples/stat6/guidance.py'
       - 'frontend/src/examples/**'
       # This read-only material view is covered by the native figure browser gate.
       - '!frontend/src/examples/StudyInputPreview.tsx'
@@ -20,6 +21,8 @@ on:
       - '!frontend/src/examples/useExampleTemplate*'
       - '!frontend/src/examples/examples.css'
       - '!frontend/src/examples/guide-data.json'
+      - '!frontend/src/examples/guide.ts'
+      - '!frontend/src/examples/guide.test.ts'
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
       - 'tests/test_examples.py'
@@ -32,6 +35,7 @@ on:
       - '!src/opendde_workbench/examples/catalogue.json'
       - '!src/opendde_workbench/examples/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/preparation.py'
+      - '!src/opendde_workbench/examples/stat6/guidance.py'
       - 'frontend/src/examples/**'
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
@@ -41,6 +45,8 @@ on:
       - '!frontend/src/examples/useExampleTemplate*'
       - '!frontend/src/examples/examples.css'
       - '!frontend/src/examples/guide-data.json'
+      - '!frontend/src/examples/guide.ts'
+      - '!frontend/src/examples/guide.test.ts'
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'

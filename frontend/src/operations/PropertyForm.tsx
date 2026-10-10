@@ -3,6 +3,7 @@ import { useExampleReference } from "../examples/context";
 import { useId, useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
+import type { Asset } from "./types";
 import { AssetPicker } from "./AssetPicker";
 import { useTaskSubmit } from "./useTaskSubmit";
 import { Hint } from "../guided/Hint";
@@ -27,6 +28,7 @@ export function PropertyForm({
     zh = language === "zh",
     [smiles, setSmiles] = useState(initialSmiles),
     [file, setFile] = useState(initialFile),
+    [selectedAsset, setSelectedAsset] = useState<Asset | null>(null),
     [name, setName] = useState(""),
     [mode, setMode] = useState<"file" | "smiles" | "both">(
       initialFile && initialSmiles ? "both" : initialSmiles ? "smiles" : "file",
@@ -79,6 +81,7 @@ export function PropertyForm({
           kind="ligand"
           value={file}
           onChange={setFile}
+          onSelectedAsset={setSelectedAsset}
           language={language}
           label={
             zh
@@ -206,16 +209,38 @@ export function PropertyForm({
                       ? "分子文件＋SMILES"
                       : "File and SMILES"}
               </dd>
-              <dt>{zh ? "分子范围" : "Molecule selection"}</dt>
-              <dd>
-                {bound
-                  ? zh
-                    ? `已选文件第${scientificInput!.record + 1}条记录`
-                    : `Selected file record ${scientificInput!.record + 1}`
-                  : zh
-                    ? `${lines.length}条文字结构${selectedFile ? "，另含已选文件" : ""}`
-                    : `${lines.length} text structures${selectedFile ? " plus the selected file" : ""}`}
-              </dd>
+              {selectedFile && (
+                <>
+                  <dt>{zh ? "分子文件" : "Molecular file"}</dt>
+                  <dd>
+                    {selectedAsset?.id === selectedFile
+                      ? selectedAsset.name
+                      : zh
+                        ? "已选分子文件"
+                        : "Selected molecular file"}
+                  </dd>
+                  <dt>{zh ? "文件记录范围" : "File records"}</dt>
+                  <dd>
+                    {bound
+                      ? zh
+                        ? `第 ${scientificInput!.record + 1} 条记录`
+                        : `Record ${scientificInput!.record + 1}`
+                      : zh
+                        ? "文件中的全部分子记录"
+                        : "All molecular records in the file"}
+                  </dd>
+                </>
+              )}
+              {lines.length > 0 && (
+                <>
+                  <dt>{zh ? "文字输入的分子" : "Molecules from text"}</dt>
+                  <dd>
+                    {zh
+                      ? `${lines.length} 个分子`
+                      : `${lines.length} molecules`}
+                  </dd>
+                </>
+              )}
               <dt>{zh ? "计算内容" : "Calculation"}</dt>
               <dd>
                 {zh ? "基础分子性质组合" : "Basic molecular property panel"}

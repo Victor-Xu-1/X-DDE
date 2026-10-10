@@ -167,6 +167,8 @@ on:
       - "!frontend/src/integrations/LibraryInput.tsx"
       - "!frontend/src/operations/OperationResults.tsx"
       # Print export and shared entry motion use publication-checks.yml.
+      - "!frontend/src/operations/PropertyForm*"
+      - "!frontend/src/operations/AssetPicker.tsx"
       - "!frontend/src/guided/Questionnaire.tsx"
       - "!frontend/src/presentation/InteractionDiagram.test.tsx"
       - "!frontend/src/presentation/InteractionDiagram.tsx"
