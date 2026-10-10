@@ -50,39 +50,56 @@ describe("Native export resolution and restoration", () => {
     expect(resize).toHaveBeenCalledTimes(2);
   });
 });
-it("renders at real print pixels and restores the original native camera on failure", () => {
-  const element = document.createElement("div");
-  element.style.width = "100%";
-  vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-    width: 400,
-    height: 300,
-  } as DOMRect);
-  let width = 800;
-  const camera = [0, 1, 2, 3],
-    setView = vi.fn(),
-    background = vi.fn();
-  const viewer = {
-    getView: () => camera,
-    getCanvas: () => ({ width }),
-    setView,
-    setBackgroundColor: background,
-    resize: () => {
-      width = element.style.width.endsWith("px")
-        ? Math.round(parseFloat(element.style.width) * 2)
-        : 800;
-    },
-    render: vi.fn(),
-    pngURI: () => {
-      expect(width).toBe(2102);
-      throw new Error("native capture failed");
-    },
-  } as unknown as GLViewer;
-  expect(() => captureFigure(viewer, element, defaultFigure)).toThrow(
-    "native capture failed",
-  );
-  expect(element.style.width).toBe("100%");
-  expect(element.style.height).toBe("");
-  expect(width).toBe(800);
-  expect(setView).toHaveBeenLastCalledWith(camera);
-  expect(background).toHaveBeenLastCalledWith("white", 1);
-});
+it.each([
+  { dpi: 600 as const, width: 2102, height: 1577 },
+  { dpi: 300 as const, width: 1051, height: 788 },
+])(
+  "renders $dpi dpi at exact print pixels and restores the native camera on failure",
+  ({ dpi, width: expectedWidth, height: expectedHeight }) => {
+    const element = document.createElement("div");
+    element.style.width = "100%";
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
+      width: 400,
+      height: 300,
+    } as DOMRect);
+    let width = 800,
+      height = 600;
+    const camera = [0, 1, 2, 3],
+      setView = vi.fn(),
+      background = vi.fn();
+    const viewer = {
+      getView: () => camera,
+      getCanvas: () => ({ width, height }),
+      getRenderer: () => ({ devicePixelRatio: 2 }),
+      setWidth: (value: number) => {
+        width = Math.trunc(value * 2);
+      },
+      setHeight: (value: number) => {
+        height = Math.trunc(value * 2);
+      },
+      setView,
+      setBackgroundColor: background,
+      resize: () => {
+        width = element.style.width.endsWith("px")
+          ? Math.round(parseFloat(element.style.width) * 2)
+          : 800;
+        height = element.style.height.endsWith("px")
+          ? Math.round(parseFloat(element.style.height) * 2)
+          : 600;
+      },
+      render: vi.fn(),
+      pngURI: () => {
+        expect([width, height]).toEqual([expectedWidth, expectedHeight]);
+        throw new Error("native capture failed");
+      },
+    } as unknown as GLViewer;
+    expect(() =>
+      captureFigure(viewer, element, { ...defaultFigure, dpi }),
+    ).toThrow("native capture failed");
+    expect(element.style.width).toBe("100%");
+    expect(element.style.height).toBe("");
+    expect([width, height]).toEqual([800, 600]);
+    expect(setView).toHaveBeenLastCalledWith(camera);
+    expect(background).toHaveBeenLastCalledWith("white", 1);
+  },
+);

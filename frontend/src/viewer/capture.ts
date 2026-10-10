@@ -35,7 +35,7 @@ export function captureFigure(
   settings: FigureSettings,
 ) {
   const bounds = element.getBoundingClientRect(),
-    ratio = viewer.getCanvas().width / bounds.width;
+    ratio = viewer.getRenderer().devicePixelRatio;
   if (!Number.isFinite(ratio) || ratio <= 0)
     throw new Error("The native canvas is not ready.");
   const size = figureDimensions(settings, bounds.width / bounds.height);
@@ -52,15 +52,15 @@ export function captureFigure(
     element.style.width = size.width / ratio + "px";
     element.style.height = size.height / ratio + "px";
     viewer.setBackgroundColor("white", settings.transparent ? 0 : 1);
-    viewer.resize();
+    // Container offsetWidth/offsetHeight round fractional CSS dimensions. Use
+    // the public native size controls so odd print-pixel dimensions stay exact.
+    viewer.setWidth(size.width / ratio);
+    viewer.setHeight(size.height / ratio);
     viewer.setView(view);
     labels.layout();
     viewer.render();
     const canvas = viewer.getCanvas();
-    if (
-      Math.abs(canvas.width - size.width) > 2 ||
-      Math.abs(canvas.height - size.height) > 2
-    )
+    if (canvas.width !== size.width || canvas.height !== size.height)
       throw new Error(
         "Native canvas did not reach the requested figure resolution.",
       );
