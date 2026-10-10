@@ -7,12 +7,13 @@ def observe_native_label_pixels(page):
     page.add_init_script(r"""(() => {
       const glyphs=new WeakMap(), textures=new WeakMap(), bindings=new WeakMap();
       const scales=new WeakMap(), locations=new WeakMap(), frames=new WeakMap();
+      const programs=new WeakSet();
       window.__nativeLabelCaptures=[];
       const encode=HTMLCanvasElement.prototype.toDataURL;
       HTMLCanvasElement.prototype.toDataURL=function(...args) {
         const rows=frames.get(this);
-        if(rows) window.__nativeLabelCaptures.push({
-          width:this.width,height:this.height,rows:[...rows]});
+        window.__nativeLabelCaptures.push({
+          width:this.width,height:this.height,rows:rows ? [...rows] : []});
         return encode.apply(this,args);
       };
       const fill=CanvasRenderingContext2D.prototype.fillText;
@@ -28,10 +29,12 @@ def observe_native_label_pixels(page):
         const proto=Type.prototype;
         const bind=proto.bindTexture, upload=proto.texImage2D;
         const locate=proto.getUniformLocation, uniform=proto.uniform2fv, draw=proto.drawElements;
-        const clear=proto.clear;
-        proto.clear=function(mask) {
-          if(mask & this.COLOR_BUFFER_BIT) frames.set(this.canvas,[]);
-          return clear.call(this,mask);
+        const use=proto.useProgram;
+        proto.useProgram=function(program) {
+          // WebGL2 composites an off-screen buffer by clearing the final canvas.
+          // Retain the latest sprite pass through that unchanged composite.
+          if(programs.has(program)) frames.set(this.canvas,[]);
+          return use.call(this,program);
         };
         proto.bindTexture=function(...args) {
           if(args[0]===this.TEXTURE_2D) bindings.set(this,args[1]);
@@ -45,7 +48,9 @@ def observe_native_label_pixels(page):
         };
         proto.getUniformLocation=function(...args) {
           const result=locate.apply(this,args);
-          if(result && args[1]==='scale') locations.set(result,true);
+          if(result && args[1]==='scale') {
+            locations.set(result,true); programs.add(args[0]);
+          }
           return result;
         };
         proto.uniform2fv=function(...args) {
