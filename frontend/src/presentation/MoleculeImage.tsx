@@ -15,21 +15,30 @@ import {
 import type { Language } from "../types";
 import "./molecule-image.css";
 import { FigureExport } from "../publication/FigureExport";
+import { hiddenFrameFocus } from "./hidden-frame-focus";
 import { molecularVector } from "../publication/molecular-vector";
 const DrawingContext = createContext<DepictionRenderer | null | undefined>(
   undefined,
 );
 export function MoleculeDrawingProvider({ children }: { children: ReactNode }) {
   const frame = useRef<HTMLIFrameElement>(null);
+  const protect = useRef<() => void>(() => undefined);
   const [renderer, setRenderer] = useState<DepictionRenderer | null>(null),
     [active, setActive] = useState(false);
   useEffect(() => {
+    const focus = hiddenFrameFocus(() => frame.current);
+    protect.current = () => focus.protect();
     const next = new DepictionRenderer(() => {
       setActive(true);
+      focus.protect();
       return frame.current;
     });
     setRenderer(next);
-    return () => next.close();
+    return () => {
+      next.close();
+      focus.close();
+      protect.current = () => undefined;
+    };
   }, []);
   return (
     <DrawingContext.Provider value={renderer}>
@@ -41,6 +50,7 @@ export function MoleculeDrawingProvider({ children }: { children: ReactNode }) {
           title="Local 2D molecule drawing service"
           aria-hidden="true"
           inert
+          onLoad={() => protect.current()}
           tabIndex={-1}
           src="/tools/ketcher/index.html"
         />

@@ -13,6 +13,7 @@ on:
       - "frontend/src/presentation/MetricBars.tsx"
       - "frontend/src/presentation/InteractionDiagram*"
       - "frontend/src/presentation/MoleculeImage.tsx"
+      - "frontend/src/presentation/hidden-frame-focus*"
       - "frontend/src/presentation/molecule-image.css"
       - "frontend/src/examples/StudyInputPreview.tsx"
       - "frontend/src/guided/Questionnaire.tsx"
