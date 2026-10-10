@@ -8,6 +8,7 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure
+from server_tests.publication_viewing_helpers import inspect_zoom
 from server_tests.test_navigation_shell_browser import open_navigation
 
 EVIDENCE = Path("outputs/publication-browser/controls")
@@ -51,12 +52,30 @@ def test_ketcher_preview_matches_download_and_mobile_settings(language):
         result_url = base + "/api/jobs/" + identifier + "/result"
         result = page.request.get(result_url).json()
         page.goto(base + "/#task=" + identifier)
+        search = page.get_by_role(
+            "searchbox", name="搜索任务" if language == "zh" else "Search tasks", exact=True
+        )
+        search.fill("STAT6")
         inspector = page.locator(".properties-results .result-inspector")
         drawing = inspector.locator(".molecule-image:not(.is-thumbnail)").first
+        expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+        expect(search).to_be_focused()
+        expect(search).to_have_value("STAT6")
+        search.fill("")
         trigger = drawing.get_by_role(
             "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓", exact=True
         )
-        figure = export_figure(page, trigger, EVIDENCE, language + "-ketcher", language, "SVG")
+        figure = export_figure(
+            page,
+            trigger,
+            EVIDENCE,
+            language + "-ketcher",
+            language,
+            "SVG",
+            inspect=lambda dialog: inspect_zoom(
+                page, dialog, EVIDENCE, language + "-ketcher", language
+            ),
+        )
         import xml.etree.ElementTree as ET
 
         root = ET.fromstring(figure.read_bytes())
@@ -110,6 +129,7 @@ def test_ketcher_preview_matches_download_and_mobile_settings(language):
             == "none"
         )
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        inspect_zoom(page, dialog, EVIDENCE, language + "-mobile-figure", language)
         page.screenshot(path=EVIDENCE / (language + "-mobile-native-preview.png"))
         page.keyboard.press("Escape")
         expect(dialog).to_have_count(0)

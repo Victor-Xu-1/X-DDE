@@ -73,6 +73,7 @@ def test_stat6_native_print_controls_change_real_paths_and_pixels(language):
             "button", name="查看研究材料" if zh else "Preview study inputs", exact=True
         ).click()
         preview = page.locator(".study-input-preview")
+        expect(preview).not_to_contain_text("BRD4")
         preview.get_by_role("button", name="2D", exact=True).click()
         rows = []
         for name, choice in [

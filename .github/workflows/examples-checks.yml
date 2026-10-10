@@ -9,6 +9,8 @@ on:
       - '!src/opendde_workbench/examples/catalogue.json'
       - '!src/opendde_workbench/examples/preparation.py'
       - 'frontend/src/examples/**'
+      # This read-only material view is covered by the native figure browser gate.
+      - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
       - '!frontend/src/examples/ExampleToolbar*'
       - '!frontend/src/examples/ExampleGuide*'
@@ -28,6 +30,7 @@ on:
       - '!src/opendde_workbench/examples/catalogue.json'
       - '!src/opendde_workbench/examples/preparation.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
       - '!frontend/src/examples/ExampleToolbar*'
       - '!frontend/src/examples/ExampleGuide*'

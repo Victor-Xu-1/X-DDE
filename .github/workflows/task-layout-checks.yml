@@ -167,6 +167,7 @@ on:
       - "!frontend/src/presentation/MetricScatter*"
       - "!frontend/src/presentation/metric-scatter*"
       - "!frontend/src/presentation/MoleculeImage.tsx"
+      - "!frontend/src/presentation/molecule-image.css"
       - "!frontend/src/presentation/ResearchTabs.tsx"
       - "!frontend/src/viewer/capture.test.ts"
       - "!frontend/src/viewer/capture.ts"

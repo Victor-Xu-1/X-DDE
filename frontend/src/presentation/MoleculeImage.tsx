@@ -40,6 +40,7 @@ export function MoleculeDrawingProvider({ children }: { children: ReactNode }) {
           className="drawing-service-frame"
           title="Local 2D molecule drawing service"
           aria-hidden="true"
+          inert
           tabIndex={-1}
           src="/tools/ketcher/index.html"
         />

@@ -93,6 +93,50 @@ it("refuses an incorrect native format and supports an explicit preview retry", 
   fireEvent.click(screen.getByRole("button", { name: "导出 SVG" }));
   expect(download).toHaveBeenCalledOnce();
 });
+it("magnifies and resets viewing without changing the native render, paper settings or download", async () => {
+  const native = vi.fn(async () => vector());
+  render(
+    <FigureExport
+      language="en"
+      filename="native-figure"
+      format="svg"
+      render={native}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  const image = await screen.findByRole("img");
+  expect(
+    screen.getByRole("button", { name: "Zoom in preview" }),
+  ).toBeDisabled();
+  fireEvent.load(image);
+  const source = image.getAttribute("src");
+  for (let n = 0; n < 3; n++)
+    fireEvent.click(screen.getByRole("button", { name: "Zoom in preview" }));
+  expect(screen.getByRole("region", { name: "Figure canvas" })).toHaveAttribute(
+    "data-zoom",
+    "4",
+  );
+  expect(
+    screen.getByRole("button", { name: "Zoom in preview" }),
+  ).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Zoom out preview" }));
+  expect(screen.getByRole("region", { name: "Figure canvas" })).toHaveAttribute(
+    "data-zoom",
+    "3",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Fit preview" }));
+  expect(screen.getByRole("region", { name: "Figure canvas" })).toHaveAttribute(
+    "data-zoom",
+    "1",
+  );
+  expect(image.getAttribute("src")).toBe(source);
+  expect(native).toHaveBeenCalledExactlyOnceWith(defaultFigure);
+  fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
+  expect(download).toHaveBeenCalledExactlyOnceWith(
+    await native.mock.results[0].value,
+    "native-figure.svg",
+  );
+});
 it("never publishes late preview bytes after the dialog closes", async () => {
   let finish!: (blob: Blob) => void;
   const native = vi.fn(

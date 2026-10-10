@@ -8,7 +8,9 @@ import xml.etree.ElementTree as ET
 from playwright.sync_api import expect
 
 
-def export_figure(page, trigger, evidence, filename, language, format="PNG", configure=None):
+def export_figure(
+    page, trigger, evidence, filename, language, format="PNG", configure=None, inspect=None
+):
     trigger.click()
     dialog = page.get_by_role("dialog")
     expect(dialog).to_be_visible()
@@ -40,6 +42,8 @@ def export_figure(page, trigger, evidence, filename, language, format="PNG", con
           return {sha256,
             width: image.naturalWidth, height: image.naturalHeight, bytes: bytes.byteLength};
         }""")
+        if inspect:
+            inspect(dialog)
         page.screenshot(path=str(evidence / (filename + "-choices.png")), full_page=False)
         with page.expect_download(timeout=45000) as download:
             export.click()

@@ -13,6 +13,8 @@ on:
       - "frontend/src/presentation/MetricBars.tsx"
       - "frontend/src/presentation/InteractionDiagram*"
       - "frontend/src/presentation/MoleculeImage.tsx"
+      - "frontend/src/presentation/molecule-image.css"
+      - "frontend/src/examples/StudyInputPreview.tsx"
       - "frontend/src/guided/Questionnaire.tsx"
       - "frontend/src/guided/questionnaire.css"
       - "frontend/src/studio/MethodSwitch.tsx"
@@ -32,6 +34,8 @@ on:
       - "frontend/src/simulations/molstar-figure.test.ts"
       - "server_tests/*publication*"
       - ".github/workflows/publication-checks.yml"
+      - ".github/workflows/stat6-template-checks.yml"
+      - ".github/workflows/examples-checks.yml"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/publication/embedded-raster.test.ts"

@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 import type { useFigurePreview } from "./useFigurePreview";
+import { FigureViewport } from "./FigureViewport";
 
 export function FigurePreview({
   state,
@@ -42,13 +43,17 @@ export function FigurePreview({
                   : "Preparing…"}
         </span>
       </header>
-      <div
-        className={`figure-preview-sheet ${transparent ? "is-transparent" : ""}`}
+      <FigureViewport
+        language={language}
+        transparent={transparent}
+        widthMm={widthMm}
+        ready={state.ready}
       >
         {state.preview && (
           <img
             key={state.preview.id}
             src={state.preview.url}
+            draggable={false}
             alt={
               zh
                 ? "当前参数生成的原生图件"
@@ -67,12 +72,11 @@ export function FigurePreview({
             <span>{state.error ? "×" : null}</span>
           </div>
         )}
-      </div>
-      <p className="figure-preview-width">{widthMm} mm</p>
+      </FigureViewport>
       <p className="figure-preview-scale-note">
         {zh
-          ? "预览适应窗口；下载保留所选版面参数。"
-          : "Preview fits this window; the download retains your print settings."}
+          ? "放大仅影响预览；下载保留版面尺寸。"
+          : "Viewing zoom does not change the downloaded print dimensions."}
       </p>
       {state.error && (
         <div role="alert">

@@ -128,14 +128,6 @@ export function StudyInputPreview({
                 : "The deposited bound pose locates a reference pocket; it is not a pose of the supplied molecule."}
             </td>
           </tr>
-          <tr>
-            <td>{zh ? "任务结果" : "Task outputs"}</td>
-            <td>
-              {zh
-                ? "计算后独立保存，不复用旧 BRD4 结果。"
-                : "Saved separately after computation; archived BRD4 results are not substituted."}
-            </td>
-          </tr>
         </tbody>
       </table>
     </section>

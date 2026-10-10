@@ -9,7 +9,7 @@ on:
       - 'tests/test_stat6_geometry.py'
       - 'tests/test_stat6_templates*'
       - 'frontend/src/examples/stat6*'
-      - 'frontend/src/examples/StudyInputPreview*'
+      # The read-only material preview has real STAT6 inputs in publication-checks.yml.
       - 'frontend/src/examples/study-input-preview.css'
       - 'server_tests/test_stat6_templates_browser.py'
       - 'server_tests/stat6_input_acceptance.py'
@@ -37,7 +37,8 @@ on:
       - 'frontend/src/datasets/ScreeningReview.tsx'
       - 'frontend/src/studio/ProjectCreateDialog.tsx'
       - 'frontend/src/workflows/WorkflowCenter.tsx'
-      - '.github/workflows/stat6-template-checks.yml'
+      # Routing changes are checked by the figure gate; scientific changes above
+      # still run this suite. workflow_dispatch retains explicit full template verification.
 permissions:
   contents: read
 jobs:
