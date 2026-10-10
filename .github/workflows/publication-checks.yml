@@ -43,10 +43,6 @@ on:
       - "frontend/src/poses/ClusterMatrix.tsx"
       - "frontend/src/space/ChannelProfile.tsx"
       - "frontend/src/simulations/InteractivePlot.tsx"
-      - "frontend/src/simulations/MolecularViewport.tsx"
-      - "frontend/src/simulations/molstar-controller.ts"
-      - "frontend/src/simulations/molstar-figure.ts"
-      - "frontend/src/simulations/molstar-figure.test.ts"
       - "server_tests/*publication*"
       - "server_tests/*native_annotation*"
       - ".github/workflows/publication-checks.yml"
@@ -100,20 +96,18 @@ jobs:
           src/viewer/source-layout.test.ts
           src/examples/guide.test.ts src/examples/TemplateStepHelp.test.tsx
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
-          src/simulations/SimulationResults.test.tsx src/simulations/molstar-figure.test.ts
       - name: Existing bootstrap and request-origin security contracts
         run: >-
           uv run --locked pytest -q
           tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
           tests/test_api_security.py::test_csrf_origin_and_host_boundaries
           tests/test_stat6_guidance.py
-      - name: Restore retained native MD, FEP plan and archival public results; no scientific execution
+      - name: Restore archival native annotation results; no scientific execution
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
-          gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
           .venv/bin/python server_tests/download_publication_cases.py --annotations
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Restore case data and managed editor in isolated CI state
@@ -127,12 +121,9 @@ jobs:
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
           server_tests/test_publication_browser.py
           server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
-          server_tests/test_native_simulation_views.py -k 'not calculation'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: scientific-figure-evidence
           path: |
-            outputs/native-simulations/openmm.dynamics/browser/**
-            outputs/native-simulations/openfe.rbfe/browser/**
             outputs/publication-browser/**

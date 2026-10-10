@@ -16,13 +16,21 @@ vi.mock("./MolecularViewport", () => ({
     frames,
     frame,
     ligandContext,
+    sources,
+    fixedLigand,
   }: {
-    frames: string[];
+    frames?: string[];
     frame: number;
     ligandContext: boolean;
+    sources?: unknown[];
+    fixedLigand?: "a" | "b";
   }) => (
-    <div data-testid="coordinate-view" data-ligand-context={ligandContext}>
-      {frames[frame]}
+    <div
+      data-testid="coordinate-view"
+      data-ligand-context={ligandContext}
+      data-fixed-ligand={fixedLigand}
+    >
+      {frames?.[frame] ?? JSON.stringify(sources)}
     </div>
   ),
 }));

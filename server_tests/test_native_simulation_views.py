@@ -52,11 +52,7 @@ def test_native_result_views_and_downloads(case, language):
 
         def loaded(viewer):
             scene = viewer.locator(".simulation-webgl")
-            page.wait_for_function(
-                "() => { const scene = document.querySelector('.simulation-webgl');"
-                " return scene?.dataset.loaded === 'true' || !!scene?.dataset.error; }",
-                timeout=45000,
-            )
+            expect(scene).to_have_attribute("data-loaded", "true", timeout=45000)
             if scene.get_attribute("data-error"):
                 page.screenshot(
                     path=str(evidence / (language + "-load-failure.png")), full_page=True
@@ -193,6 +189,30 @@ def test_native_result_views_and_downloads(case, language):
             root.get_by_role(
                 "tab", name="Binding poses" if language == "en" else "结合姿势", exact=True
             ).click()
+            panels = root.locator(".pose-comparison-panels > section")
+            expect(panels).to_have_count(2)
+            for index, slot in enumerate(("a", "b")):
+                viewer = panels.nth(index).get_by_test_id("molstar-viewport")
+                loaded(viewer)
+                expect(viewer).to_have_attribute("data-ligand", slot)
+                expect(viewer.get_by_role("combobox")).to_have_count(0)
+            root.get_by_role(
+                "button", name="Match views" if language == "en" else "匹配视角", exact=True
+            ).click()
+            pair_png = export_figure(
+                page,
+                root.get_by_role(
+                    "button", name="Export comparison" if language == "en" else "导出比较图"
+                ),
+                evidence,
+                language + "-fep-pair",
+                language,
+            )
+            inspect_png(pair_png)
+            page.screenshot(path=str(evidence / (language + "-fep-pair-ui.png")), full_page=True)
+            root.get_by_role(
+                "button", name="Overlay" if language == "en" else "叠加查看", exact=True
+            ).click()
             pose = root.get_by_test_id("molstar-viewport")
             loaded(pose)
             root.get_by_role(
@@ -238,6 +258,21 @@ def test_native_result_views_and_downloads(case, language):
                 language,
             )
             inspect_png(png)
+            root.get_by_role(
+                "button",
+                name="A / B side by side" if language == "en" else "A / B 并列",
+                exact=True,
+            ).click()
+            restored = root.locator(".pose-comparison-panels > section")
+            expect(restored).to_have_count(2)
+            for index in range(2):
+                loaded(restored.nth(index).get_by_test_id("molstar-viewport"))
+            for width in (1440, 768, 390):
+                page.set_viewport_size({"width": width, "height": 1000})
+                assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+                page.screenshot(
+                    path=str(evidence / f"{language}-{width}-paired-poses.png"), full_page=True
+                )
             if case == "openfe.calculation":
                 root.get_by_role(
                     "tab", name="Sampling and convergence" if language == "en" else "采样与收敛"

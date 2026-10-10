@@ -48,6 +48,12 @@ on:
       - "!frontend/src/simulations/SimulationInputs.tsx"
       - "!frontend/src/simulations/simulations.css"
       - "!frontend/src/simulations/molecular-focus*"
+      # Native molecular comparison and its camera/export lifecycle use the view gate.
+      - "!frontend/src/simulations/BoundPoseComparison*"
+      - "!frontend/src/simulations/MoleculeMapPanel.tsx"
+      - "!frontend/src/simulations/comparison-figure*"
+      - "!frontend/src/simulations/molecular-view-state*"
+      - "!frontend/src/simulations/pose-comparison.css"
 permissions:
   contents: read
 jobs:

@@ -19,7 +19,8 @@ import { MolecularSurfaceRepresentationProvider } from "molstar/lib/mol-repr/str
 import type { SurfaceSummary } from "../viewer/protocol";
 import type { Residue } from "./types";
 import type { FigureSettings } from "../publication/settings";
-import { molecularFigure } from "./molstar-figure";
+import { molecularFigure, type FigurePixels } from "./molstar-figure";
+import type { Camera } from "molstar/lib/mol-canvas3d/camera";
 import { boundPair, ligandLoci, NativeBoundPair } from "./bound-pairs";
 import {
   bindingDepth,
@@ -145,7 +146,9 @@ export class MolecularController {
     frames: string[] | undefined,
     signal: AbortSignal,
     ligandContext = true,
+    initialView?: MolecularView,
   ) {
+    this.activeLigand = initialView?.ligand ?? "a";
     const entries = frames
       ? [
           {
@@ -286,6 +289,7 @@ export class MolecularController {
         this.boundContacts.push(ligandLoci(pair, ligand.obj.data.models));
       }
     }
+    if (initialView) this.setView(initialView);
     if (this.ligandStructures.length) this.focusLigand();
     else this.reset();
   }
@@ -396,10 +400,16 @@ export class MolecularController {
     if (selected.length)
       this.plugin.managers.camera.focusLoci(selected, bindingFocusOptions);
   }
-  figure(settings: FigureSettings): Promise<Blob> {
+  cameraSnapshot(): Camera.Snapshot | undefined {
+    return this.plugin.canvas3d?.camera.getSnapshot();
+  }
+  restoreCamera(snapshot: Camera.Snapshot) {
+    this.plugin.canvas3d?.camera.setState(structuredClone(snapshot), 0);
+  }
+  figure(settings: FigureSettings, panel?: FigurePixels): Promise<Blob> {
     const render = () => {
       if (!this.viewport) throw new Error("The molecular view is not ready.");
-      return molecularFigure(this.plugin, this.viewport, settings);
+      return molecularFigure(this.plugin, this.viewport, settings, panel);
     };
     const result = this.queue.then(render);
     // The caller receives the actual failure. Settling the queue keeps later frame selection usable.

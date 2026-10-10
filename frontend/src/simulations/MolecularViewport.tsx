@@ -9,6 +9,11 @@ import type {
   MolecularView,
   StructureSource,
 } from "./molstar-controller";
+import {
+  visibleViewport,
+  type SavedMolecularView,
+  type MolecularViewHandle,
+} from "./molecular-view-state";
 
 export function MolecularViewport({
   sources = [],
@@ -19,6 +24,10 @@ export function MolecularViewport({
   focusResidue,
   onReady,
   onExport,
+  fixedLigand,
+  savedView,
+  onViewHandle,
+  onRememberView,
 }: {
   sources?: StructureSource[];
   frames?: string[];
@@ -28,6 +37,10 @@ export function MolecularViewport({
   focusResidue?: Residue | null;
   onReady?(): void;
   onExport?(): void;
+  fixedLigand?: "a" | "b";
+  savedView?: SavedMolecularView;
+  onViewHandle?(handle: MolecularViewHandle | null): void;
+  onRememberView?(state: SavedMolecularView): void;
 }) {
   const container = useRef<HTMLDivElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
@@ -41,15 +54,25 @@ export function MolecularViewport({
   const [surfaceSummary, setSurfaceSummary] = useState<SurfaceSummary | null>(
     null,
   );
-  const [view, setView] = useState<MolecularView>({
-    protein: true,
-    surface: false,
-    contacts: true,
-    ligand:
-      sources.filter((source) => source.role === "ligand").length > 1
-        ? "a"
-        : "all",
-  });
+  const initial = useRef(savedView);
+  const [view, setView] = useState<MolecularView>(
+    savedView?.view ?? {
+      protein: true,
+      surface: false,
+      contacts: true,
+      ligand:
+        fixedLigand ??
+        (sources.filter((source) => source.role === "ligand").length > 1
+          ? "a"
+          : "all"),
+    },
+  );
+  const liveView = useRef(view);
+  liveView.current = view;
+  const handleChange = useRef(onViewHandle),
+    remember = useRef(onRememberView);
+  handleChange.current = onViewHandle;
+  remember.current = onRememberView;
   const zh = language === "zh";
   const comparing =
     !frames &&
@@ -61,7 +84,8 @@ export function MolecularViewport({
     let instance: MolecularController | undefined;
     setLoaded(false);
     setFailure("");
-    void import("./molstar-controller")
+    void visibleViewport(container.current!, signal.signal)
+      .then(() => import("./molstar-controller"))
       .then(async ({ MolecularController }) => {
         if (signal.signal.aborted) return;
         instance = new MolecularController();
@@ -78,10 +102,24 @@ export function MolecularViewport({
           input.frames,
           signal.signal,
           input.ligandContext,
+          {
+            ...liveView.current,
+            ligand: fixedLigand ?? liveView.current.ligand,
+          },
         );
+        if (initial.current?.camera)
+          instance.restoreCamera(initial.current.camera);
         if (!signal.signal.aborted) {
           setSurfaceSummary(instance.surfaceSummary);
           setLoaded(true);
+          handleChange.current?.({
+            capture: (settings, pixels) => instance!.figure(settings, pixels),
+            snapshot: () => ({
+              view: { ...liveView.current },
+              camera: instance!.cameraSnapshot(),
+            }),
+            restoreCamera: (snapshot) => instance!.restoreCamera(snapshot),
+          });
           ready.current?.();
         }
       })
@@ -90,6 +128,12 @@ export function MolecularViewport({
       });
     return () => {
       signal.abort();
+      if (instance)
+        remember.current?.({
+          view: { ...liveView.current },
+          camera: instance.cameraSnapshot(),
+        });
+      handleChange.current?.(null);
       instance?.dispose();
       controller.current = null;
     };
@@ -124,6 +168,7 @@ export function MolecularViewport({
       className="simulation-molecular-viewport"
       data-testid="molstar-viewport"
       data-frame={presentedFrame}
+      data-ligand={view.ligand}
     >
       <div className="simulation-view-controls">
         <button
@@ -177,22 +222,23 @@ export function MolecularViewport({
               {zh ? "作用位点" : "Binding contacts"}
             </button>
           )}
-        {sources.filter((s) => s.role === "ligand").length > 1 && (
-          <select
-            aria-label={zh ? "结合姿势显示" : "Binding pose display"}
-            value={view.ligand}
-            onChange={(e) =>
-              setView((v) => ({
-                ...v,
-                ligand: e.target.value as MolecularView["ligand"],
-              }))
-            }
-          >
-            <option value="all">{zh ? "A + B 叠合" : "A + B overlay"}</option>
-            <option value="a">A</option>
-            <option value="b">B</option>
-          </select>
-        )}
+        {!fixedLigand &&
+          sources.filter((s) => s.role === "ligand").length > 1 && (
+            <select
+              aria-label={zh ? "结合姿势显示" : "Binding pose display"}
+              value={view.ligand}
+              onChange={(e) =>
+                setView((v) => ({
+                  ...v,
+                  ligand: e.target.value as MolecularView["ligand"],
+                }))
+              }
+            >
+              <option value="all">{zh ? "A + B 叠合" : "A + B overlay"}</option>
+              <option value="a">A</option>
+              <option value="b">B</option>
+            </select>
+          )}
         <FigureExport
           language={language}
           filename="X-DDE-structure"
@@ -267,18 +313,19 @@ export function MolecularViewport({
           </span>
         </div>
       )}
-      {sources.filter((source) => source.role === "ligand").length > 1 && (
-        <div className="simulation-pose-legend">
-          {sources
-            .filter((source) => source.role === "ligand")
-            .map((source, i) => (
-              <span key={source.url}>
-                <i style={{ background: i ? "#23b8d0" : "#36bf65" }} />
-                {i ? "B" : "A"} · {source.label}
-              </span>
-            ))}
-        </div>
-      )}
+      {!fixedLigand &&
+        sources.filter((source) => source.role === "ligand").length > 1 && (
+          <div className="simulation-pose-legend">
+            {sources
+              .filter((source) => source.role === "ligand")
+              .map((source, i) => (
+                <span key={source.url}>
+                  <i style={{ background: i ? "#23b8d0" : "#36bf65" }} />
+                  {i ? "B" : "A"} · {source.label}
+                </span>
+              ))}
+          </div>
+        )}
       <p className="field-help simulation-atom-label">
         {atom ||
           (zh

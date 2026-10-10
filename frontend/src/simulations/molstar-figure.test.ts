@@ -8,9 +8,15 @@ it.each([
   { shape: "square" as const, height: 2102 },
   { shape: "landscape" as const, height: 1401 },
   { shape: "portrait" as const, height: 2803 },
+  {
+    shape: "square" as const,
+    width: 1003,
+    height: 927,
+    panel: { width: 1003, height: 927 },
+  },
 ])(
   "restores native lighting, crop and screenshot values for $shape even when rendering fails",
-  async ({ shape, height }) => {
+  async ({ shape, height, width = 2102, panel }) => {
     const initial = {
       resolution: { name: "viewport", params: {} },
       transparent: false,
@@ -62,7 +68,7 @@ it.each([
       getImageDataUri: vi.fn(async () => {
         expect(values.value.resolution).toMatchObject({
           name: "custom",
-          params: { width: 2102, height },
+          params: { width, height },
         });
         expect(canvas.props.postprocessing.occlusion.name).toBe("off");
         expect(pass.props.multiSample).toEqual({ ...sampling, sampleLevel: 2 });
@@ -79,7 +85,7 @@ it.each([
       helpers: { viewportScreenshot: helper },
     } as unknown as PluginContext;
     await expect(
-      molecularFigure(plugin, viewport, { ...defaultFigure, shape }),
+      molecularFigure(plugin, viewport, { ...defaultFigure, shape }, panel),
     ).rejects.toThrow("Native capture failed");
     expect(canvas.props.postprocessing).toEqual(processing);
     expect(helper.values).toEqual(initial);

@@ -6,20 +6,40 @@ import {
 } from "../publication/settings";
 import { dataUrlBlob } from "../publication/png-resolution";
 
+export interface FigurePixels {
+  width: number;
+  height: number;
+}
+export function nativeFigurePixels(size: FigurePixels): FigurePixels {
+  if (
+    !Number.isInteger(size.width) ||
+    !Number.isInteger(size.height) ||
+    size.width < 128 ||
+    size.height < 128 ||
+    size.width > 8192 ||
+    size.height > 8192 ||
+    size.width * size.height > 24 * 1024 ** 2
+  )
+    throw new Error("Unsupported native panel dimensions.");
+  return size;
+}
+
 /** Native offscreen rendering preserves the live scene, camera and screenshot settings. */
 export async function molecularFigure(
   plugin: PluginContext,
   viewport: HTMLElement,
   settings: FigureSettings,
+  panel?: FigurePixels,
 ): Promise<Blob> {
   const helper = plugin.helpers.viewportScreenshot;
   const canvas = plugin.canvas3d;
   if (!helper || !canvas) throw new Error("The molecular view is not ready.");
   const bounds = viewport.getBoundingClientRect();
-  const size = figureDimensions(
+  const whole = figureDimensions(
     settings,
     figureAspect(settings, bounds.width / bounds.height),
   );
+  const size = panel ? nativeFigurePixels(panel) : whole;
   const values = helper.values,
     crop = helper.behaviors.relativeCrop.value,
     cropParams = helper.behaviors.cropParams.value;

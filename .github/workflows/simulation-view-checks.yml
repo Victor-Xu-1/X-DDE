@@ -11,12 +11,26 @@ on:
       - "frontend/src/simulations/FreeEnergyDiagnostics.tsx"
       - "frontend/src/simulations/FreeEnergyForest.tsx"
       - "frontend/src/simulations/FreeEnergyResults.tsx"
+      - "frontend/src/simulations/BoundPoseComparison*"
+      - "frontend/src/simulations/MoleculeMapPanel.tsx"
+      - "frontend/src/simulations/pose-comparison.css"
+      - "frontend/src/simulations/comparison-figure*"
+      - "frontend/src/simulations/molecular-view-state*"
+      - "frontend/src/simulations/MolecularViewport.tsx"
+      - "frontend/src/simulations/molstar-figure*"
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "frontend/src/simulations/molstar-controller.ts"
       - "frontend/src/simulations/molecular-focus*"
       - "frontend/src/viewer/molstar-sticks.ts"
       - "frontend/src/editors/molstar-appearance*"
       - "frontend/src/publication/plotly*"
+      # Shared figure controls and physical sizes also have native Mol* consumers.
+      - "frontend/src/publication/settings*"
+      - "frontend/src/publication/png-resolution*"
+      - "frontend/src/publication/FigureExport*"
+      - "frontend/src/publication/FigureDialog.tsx"
+      - "frontend/src/publication/FigurePreview*"
+      - "frontend/src/publication/useFigurePreview*"
       - "frontend/src/presentation/plots/InteractivePlot*"
       - "server_tests/test_fep_diagnostics_browser.py"
       - "server_tests/test_native_simulation_views.py"
@@ -45,6 +59,8 @@ jobs:
           src/presentation/plots/InteractivePlot.test.tsx
           src/simulations/molecular-focus.test.ts src/simulations/bound-pairs.test.ts
           src/simulations/molstar-figure.test.ts
+          src/simulations/BoundPoseComparison.test.tsx
+          src/simulations/comparison-figure.test.ts src/simulations/molecular-view-state.test.ts
           src/editors/molstar-appearance.test.ts
       - name: Restore retained MD and TYK2 plan; no new scientific execution
         env:
