@@ -122,6 +122,40 @@ it("never publishes late preview bytes after the dialog closes", async () => {
   expect(download).not.toHaveBeenCalled();
   expect(URL.createObjectURL).not.toHaveBeenCalled();
 });
+it("offers a wider layout without exporting or silently shrinking a molecular figure", async () => {
+  const native = vi.fn(async (settings: typeof defaultFigure) => {
+    if (settings.widthMm === 89) {
+      const error = new Error("Needs wider paper");
+      error.name = "MolecularLayoutError";
+      throw error;
+    }
+    return vector();
+  });
+  render(
+    <FigureExport
+      language="en"
+      filename="molecule"
+      format="svg"
+      render={native}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Choose double column",
+  );
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  expect(download).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText("Figure width"), {
+    target: { value: "183" },
+  });
+  fireEvent.load(await screen.findByRole("img"));
+  fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
+  expect(native.mock.calls.at(-1)?.[0]).toEqual({
+    ...defaultFigure,
+    widthMm: 183,
+  });
+  expect(download).toHaveBeenCalledOnce();
+});
 it("keeps a decode failure unavailable until a newly rendered preview loads", async () => {
   const native = vi.fn(async () => vector());
   render(

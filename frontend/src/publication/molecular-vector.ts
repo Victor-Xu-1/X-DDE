@@ -15,7 +15,9 @@ export function molecularImageOptions(
     throw new Error("Choose a supported drawing style.");
   return {
     outputFormat: "svg",
-    backgroundColor: print?.transparent ? "" : "1,1,1",
+    // Indigo skips background painting for negative RGB components. An empty
+    // string is rejected by its color parser, even though the UI permits transparency.
+    backgroundColor: print?.transparent ? "-1,-1,-1" : "1,1,1",
     "render-bond-thickness": print ? weight * 0.375 : weight,
     "render-bond-thickness-unit": print ? "pt" : "px",
     ...(print

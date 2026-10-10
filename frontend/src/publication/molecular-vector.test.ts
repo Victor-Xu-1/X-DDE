@@ -26,7 +26,7 @@ it("uses native physical typography, bond widths and background controls", () =>
     transparent: true,
   });
   expect(print).toMatchObject({
-    backgroundColor: "",
+    backgroundColor: "-1,-1,-1",
     "render-font-size": 9,
     "render-font-size-unit": "pt",
     "render-font-size-sub": 6,
