@@ -202,6 +202,7 @@ export function PropertyForm({
               source={
                 selectedFile &&
                 selectedAsset &&
+                selectedAsset.id === selectedFile &&
                 [".sdf", ".mol"].includes(selectedAsset.suffix)
                   ? {
                       url: `/api/assets/${encodeURIComponent(selectedFile)}`,

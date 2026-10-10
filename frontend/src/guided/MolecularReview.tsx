@@ -25,6 +25,7 @@ export function MolecularReview({
       <div>{summary}</div>
       <figure>
         <MoleculeImage
+          key={JSON.stringify(source)}
           source={source}
           language={language}
           label={caption}
