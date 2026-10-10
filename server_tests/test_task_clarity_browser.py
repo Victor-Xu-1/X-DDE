@@ -144,7 +144,7 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
             timeout=20000,
         )
         expect(submit).to_be_disabled()
-        expect(page.locator(".questionnaire textarea")).to_have_value(smiles)
+        expect(page.get_by_label("SMILES", exact=True)).to_have_value(smiles)
         assert (
             "Configure molecular-property tools" not in page.locator(".questionnaire").inner_text()
         )
