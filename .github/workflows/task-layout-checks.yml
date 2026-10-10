@@ -32,6 +32,13 @@ on:
       - "frontend/src/pockets/**"
       - "frontend/src/operations/**"
       - "frontend/src/research/**"
+      # File inspection and its direct handoff have workspace-preview-checks.yml.
+      - "!frontend/src/research/ResearchWorkspace*"
+      - "!frontend/src/research/ObjectInspector*"
+      - "!frontend/src/research/SelectedAssetPreview*"
+      - "!frontend/src/research/RelationshipGraph*"
+      - "!frontend/src/research/asset-context*"
+      - "!frontend/src/research/research.css"
       - "frontend/src/studio/**"
       - "frontend/src/design/**"
       - "frontend/src/humanization/**"

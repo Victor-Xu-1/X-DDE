@@ -1,0 +1,54 @@
+name: Research file preview checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &workspace_paths
+      - "frontend/src/research/SelectedAssetPreview*"
+      - "frontend/src/research/ResearchWorkspace*"
+      - "frontend/src/research/ObjectInspector*"
+      - "frontend/src/research/RelationshipGraph*"
+      - "frontend/src/research/asset-context*"
+      - "frontend/src/research/research.css"
+      - "server_tests/*workspace_preview*"
+      - ".github/workflows/workspace-preview-checks.yml"
+  pull_request:
+    paths: *workspace_paths
+permissions:
+  contents: read
+jobs:
+  workspace:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Isolated state and locked frontend
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-workspace" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-workspace/state" >> "$GITHUB_ENV"
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+      - name: Selected previews, file context, relationships and direct property handoff
+        working-directory: frontend
+        run: >-
+          npx vitest run src/research/SelectedAssetPreview.test.tsx
+          src/research/asset-context.test.ts src/research/RelationshipGraph.test.tsx
+          src/research/ResearchWorkspace.test.tsx
+      - name: Retained real inputs and native Ketcher; no calculations
+        run: |
+          .venv/bin/python server_tests/prepare_workspace_preview_cases.py
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Bilingual native 2D, calculated input 3D, exports and responsive file switching
+        run: uv run --locked python -m pytest -x -q server_tests/test_workspace_preview_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-workspace-evidence
+          path: outputs/workspace-preview/**

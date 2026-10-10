@@ -59,8 +59,8 @@
 }
 .research-columns {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(360px, 2fr);
-  gap: 20px;
+  grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+  gap: 28px;
   align-items: start;
 }
 .research-columns > * {
@@ -103,6 +103,21 @@
 }
 .research-node-list .selected {
   background: var(--accent-soft);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.research-node-list .asset-context {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.research-selected-preview {
+  margin-top: 20px;
+  min-width: 0;
+}
+.research-selected-preview .molecule-image > img {
+  height: clamp(260px, 30vw, 400px);
+}
+.research-selected-preview > .field-help {
+  margin: 0;
 }
 .research-node-list small,
 .graph-kind {
@@ -110,7 +125,7 @@
   font-size: 11px;
 }
 .research-graph-scroll {
-  max-height: 560px;
+  max-height: 380px;
   overflow: auto;
   border: 0;
   border-radius: 0;
@@ -120,8 +135,7 @@
 }
 .research-graph {
   display: block;
-  min-width: 760px;
-  width: 100%;
+  max-width: none;
 }
 .relationship-node {
   cursor: pointer;

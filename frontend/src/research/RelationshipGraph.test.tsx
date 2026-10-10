@@ -37,6 +37,26 @@ it("shows real immediate dependencies and supports keyboard asset selection", ()
   });
   expect(onSelect).toHaveBeenCalledWith("task:c");
   expect(screen.queryByRole("button", { name: "任务: unrelated" })).toBeNull();
+  expect(screen.getByRole("group")).toHaveAttribute("width", "930");
+});
+
+it("does not expand sparse relationships to fill an ultrawide screen", () => {
+  const sparse = {
+    ...graph,
+    nodes: graph.nodes.slice(0, 2),
+    edges: graph.edges.slice(0, 1),
+  };
+  render(
+    <RelationshipGraph
+      graph={sparse}
+      selected="object:b"
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.getByRole("group")).toHaveAttribute("width", "620");
+  expect(screen.getByRole("group")).toHaveAttribute("height", "114");
+  expect(screen.getByRole("group")).toHaveAttribute("viewBox", "0 0 620 114");
 });
 
 it("names scientific collections and their source relationships in both languages", () => {

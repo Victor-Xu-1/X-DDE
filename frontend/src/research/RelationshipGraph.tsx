@@ -34,8 +34,9 @@ export function RelationshipGraph({
     nodes.filter((n) => n.kind === "file"),
     nodes.filter((n) => !["task", "file"].includes(n.kind)),
     nodes.filter((n) => n.kind === "task"),
-  ];
-  const height = Math.max(260, ...columns.map((c) => c.length * 74 + 40));
+  ].filter((column) => column.length);
+  const width = Math.max(310, columns.length * 310);
+  const height = Math.max(114, ...columns.map((c) => c.length * 74 + 40));
   const positions = new Map(
     columns.flatMap((column, col) =>
       column.map(
@@ -48,7 +49,9 @@ export function RelationshipGraph({
     <div className="research-graph-scroll">
       <svg
         className="research-graph"
-        viewBox={`0 0 930 ${height}`}
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        height={height}
         role="group"
         aria-label={zh ? "科学资产关系图" : "Scientific asset relationships"}
       >

@@ -1,5 +1,6 @@
 import { PoseWorkspace } from "../poses/PoseWorkspace";
 import type { Language } from "../types";
+import { SelectedAssetPreview } from "./SelectedAssetPreview";
 import {
   edgeLabels,
   type GraphNode,
@@ -86,6 +87,7 @@ export function ObjectInspector({
                   {zh ? "下载此版本" : "Download version"}
                 </a>
               </div>
+              <SelectedAssetPreview object={object} language={language} />
               <details className="asset-annotations" key={object.id}>
                 <summary>
                   {zh ? "名称、备注与人工评价" : "Name, notes & human rating"}

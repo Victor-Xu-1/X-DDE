@@ -3,7 +3,6 @@ import { api } from "../api";
 import type { Job, Language } from "../types";
 import type { AssetKind } from "../operations/types";
 import { PropertyForm } from "../operations/PropertyForm";
-import { StructureViewer } from "../viewer/StructureViewer";
 import { RelationshipGraph } from "./RelationshipGraph";
 import { objectLabels, type ObjectKind, type ScientificObject } from "./types";
 import "./research.css";
@@ -13,6 +12,7 @@ import { researchGraphForDisplay } from "../presentation/research-graph";
 import { isResearchFile } from "../presentation/research-files";
 import { visibleAssetNodes, type AssetFilter } from "./asset-list";
 import { FileSelect } from "../presentation/FileSelect";
+import { assetContext } from "./asset-context";
 
 export function ResearchWorkspace({
   language,
@@ -329,6 +329,9 @@ export function ResearchWorkspace({
                     >
                       <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
                       <strong>{n.label}</strong>
+                      <small className="asset-context">
+                        {assetContext(n, graph.nodes, language)}
+                      </small>
                     </button>
                   </li>
                 ))}
@@ -405,12 +408,6 @@ export function ResearchWorkspace({
               onSelect={(id) => void select(id)}
             />
           </details>
-          {object && ["structure", "pocket"].includes(object.kind) && (
-            <StructureViewer
-              urls={[`/api/assets/${object.reference.asset_id}`]}
-              language={language}
-            />
-          )}
         </>
       )}
     </section>

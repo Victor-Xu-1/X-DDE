@@ -71,6 +71,10 @@ on:
       - "frontend/src/workflow.css"
       - "frontend/src/research/ObjectInspector*"
       - "frontend/src/research/research.css"
+      # Native file inspection uses workspace-preview-checks.yml.
+      - "!frontend/src/research/ResearchWorkspace*"
+      - "!frontend/src/research/ObjectInspector*"
+      - "!frontend/src/research/research.css"
       # Sequence and QC inspections use their own focused native-result gate.
       - "!frontend/src/presentation/SequenceTrack*"
       - "!frontend/src/presentation/sequence-track.css"
@@ -211,6 +215,10 @@ on:
       - "frontend/src/workflow.css"
       - "frontend/src/research/ObjectInspector*"
       - "frontend/src/research/research.css"
+      # Native file inspection uses workspace-preview-checks.yml.
+      - "!frontend/src/research/ResearchWorkspace*"
+      - "!frontend/src/research/ObjectInspector*"
+      - "!frontend/src/research/research.css"
       # Sequence and QC inspections use their own focused native-result gate.
       - "!frontend/src/presentation/SequenceTrack*"
       - "!frontend/src/presentation/sequence-track.css"

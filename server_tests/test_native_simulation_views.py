@@ -269,6 +269,30 @@ def test_native_result_views_and_downloads(case, language):
                 loaded(restored.nth(index).get_by_test_id("molstar-viewport"))
             for width in (1440, 768, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
+                # CDP viewport changes return before native ResizeObserver and
+                # the browser's next paint. Verify the resulting rendered layout,
+                # without retrying selection, reloading or relaxing overflow.
+                page.evaluate("""() => new Promise(resolve =>
+                    requestAnimationFrame(() => requestAnimationFrame(resolve)))""")
+                if page.evaluate("document.documentElement.scrollWidth > innerWidth + 1"):
+                    page.screenshot(
+                        path=str(evidence / f"{language}-{width}-overflow.png"), full_page=True
+                    )
+                    (evidence / f"{language}-{width}-overflow.json").write_text(
+                        json.dumps(
+                            page.evaluate("""() => ({width:innerWidth,
+                          scrollWidth:document.documentElement.scrollWidth,
+                          nodes:[...document.querySelectorAll('main *')].map(node => {
+                            const b=node.getBoundingClientRect(),s=getComputedStyle(node);
+                            return {tag:node.tagName,class:node.className,
+                              left:b.left,right:b.right,width:b.width,
+                              scrollWidth:node.scrollWidth,overflow:s.overflow,
+                              position:s.position};
+                          }).filter(node=>node.width>0 && node.right>innerWidth+1)
+                            .slice(0,50)})"""),
+                            indent=2,
+                        )
+                    )
                 assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
                 page.screenshot(
                     path=str(evidence / f"{language}-{width}-paired-poses.png"), full_page=True
