@@ -28,21 +28,34 @@ export class ContactLabelLayer {
   private updating = false;
   constructor(private viewer: GLViewer) {}
   printFont(size: number) {
+    if (!Number.isFinite(size) || size <= 0)
+      throw new Error("Invalid printed label size.");
+    // The pinned native SDK truncates fontSize. Build a sufficiently detailed
+    // texture and scale the sprite to preserve the requested physical em size.
+    const textureSize = Math.ceil(size),
+      calibration = size / textureSize;
     const previous = this.entries.map(({ label }) => ({
       label,
       style: { ...label.getStyle() },
+      scale: label.sprite.scale.clone(),
+      visible: label.sprite.visible,
     }));
     const restore = () => {
-      for (const { label, style } of previous)
+      for (const { label, style, scale, visible } of previous) {
         this.viewer.setLabelStyle(label, style);
+        label.sprite.scale.copy(scale);
+        label.sprite.visible = visible;
+      }
     };
     try {
       for (const { label, style } of previous)
         this.viewer.setLabelStyle(label, {
           ...style,
           font: "Arial",
-          fontSize: size,
+          fontSize: textureSize,
         });
+      for (const { label } of previous)
+        label.sprite.scale.set(calibration, calibration, 1);
     } catch (error) {
       restore();
       throw error;
@@ -91,8 +104,8 @@ export class ContactLabelLayer {
     }
     const anchors = this.entries.map(({ label, position }) => ({
       ...project(position),
-      width: label.canvas.width,
-      height: label.canvas.height,
+      width: label.canvas.width * label.sprite.scale.x,
+      height: label.canvas.height * label.sprite.scale.y,
     }));
     const boxes = contactLabelLayout(anchors, bounds, protectedBox);
     this.updating = true;
@@ -109,8 +122,8 @@ export class ContactLabelLayer {
         // The public native sprite material consumes these screen offsets at render time.
         // Updating the offset keeps the original source anchor and avoids recreating textures.
         const offset = new Vector2(
-          box.x - anchors[index].x,
-          anchors[index].y - box.y,
+          (box.x - anchors[index].x) / label.sprite.scale.x,
+          (anchors[index].y - box.y) / label.sprite.scale.y,
         );
         const material = label.sprite.material;
         if (!material) return;

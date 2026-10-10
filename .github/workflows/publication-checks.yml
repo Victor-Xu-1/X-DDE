@@ -26,6 +26,7 @@ on:
       - "frontend/src/viewer/frame.ts"
       - "frontend/src/viewer/viewer.css"
       - "frontend/src/viewer/contact-labels.ts"
+      - "frontend/src/viewer/contact-labels.test.ts"
       - "frontend/src/poses/ClusterMatrix.tsx"
       - "frontend/src/space/ChannelProfile.tsx"
       - "frontend/src/simulations/InteractivePlot.tsx"

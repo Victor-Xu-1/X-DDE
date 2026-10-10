@@ -43,7 +43,11 @@ export function captureFigure(
     previousHeight = element.style.height,
     view = viewer.getView();
   const labels = contactLabelLayer(viewer);
-  const restore = labels.printFont((settings.fontPt * settings.dpi) / 72);
+  // Native label textures are sized in CSS pixels; the renderer multiplies them
+  // by its actual raster ratio (including its own antialiasing upscale).
+  const restore = labels.printFont(
+    (settings.fontPt * settings.dpi) / (72 * ratio),
+  );
   try {
     element.style.width = size.width / ratio + "px";
     element.style.height = size.height / ratio + "px";

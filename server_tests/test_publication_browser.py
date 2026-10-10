@@ -7,6 +7,10 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_png
+from server_tests.publication_raster_metrics import (
+    inspect_native_label_pixels,
+    observe_native_label_pixels,
+)
 from server_tests.publication_viewing_helpers import inspect_zoom
 
 
@@ -24,6 +28,7 @@ def test_native_classic_figure_camera_and_source_integrity(language):
             device_scale_factor=2 if language == "en" else 1,
         )
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
+        observe_native_label_pixels(page)
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -72,6 +77,30 @@ def test_native_classic_figure_camera_and_source_integrity(language):
             ),
         )
         inspect_png(png)
+        inspect_native_label_pixels(panel, evidence, language + "-7pt-600dpi")
+
+        def compact_type(dialog):
+            dialog.get_by_role(
+                "combobox", name="清晰度" if language == "zh" else "Resolution", exact=True
+            ).select_option("300")
+            dialog.get_by_role(
+                "combobox", name="印刷字号" if language == "zh" else "Printed type size", exact=True
+            ).select_option("9")
+
+        second = export_figure(
+            page,
+            panel.get_by_role(
+                "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓"
+            ),
+            evidence,
+            language + "-9pt-300dpi",
+            language,
+            configure=compact_type,
+        )
+        inspect_png(second, dpi=300, width=1051)
+        inspect_native_label_pixels(
+            panel, evidence, language + "-9pt-300dpi", dpi=300, width=1051, pt=9
+        )
         expect(
             panel.get_by_role(
                 "button",
