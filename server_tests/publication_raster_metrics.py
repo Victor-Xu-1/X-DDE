@@ -6,8 +6,15 @@ import json
 def observe_native_label_pixels(page):
     page.add_init_script(r"""(() => {
       const glyphs=new WeakMap(), textures=new WeakMap(), bindings=new WeakMap();
-      const scales=new WeakMap(), locations=new WeakMap();
-      window.__nativeLabelPixels=[];
+      const scales=new WeakMap(), locations=new WeakMap(), frames=new WeakMap();
+      window.__nativeLabelCaptures=[];
+      const encode=HTMLCanvasElement.prototype.toDataURL;
+      HTMLCanvasElement.prototype.toDataURL=function(...args) {
+        const rows=frames.get(this);
+        if(rows) window.__nativeLabelCaptures.push({
+          width:this.width,height:this.height,rows:[...rows]});
+        return encode.apply(this,args);
+      };
       const fill=CanvasRenderingContext2D.prototype.fillText;
       CanvasRenderingContext2D.prototype.fillText=function(...args) {
         const result=fill.apply(this,args), text=String(args[0]);
@@ -21,6 +28,11 @@ def observe_native_label_pixels(page):
         const proto=Type.prototype;
         const bind=proto.bindTexture, upload=proto.texImage2D;
         const locate=proto.getUniformLocation, uniform=proto.uniform2fv, draw=proto.drawElements;
+        const clear=proto.clear;
+        proto.clear=function(mask) {
+          if(mask & this.COLOR_BUFFER_BIT) frames.set(this.canvas,[]);
+          return clear.call(this,mask);
+        };
         proto.bindTexture=function(...args) {
           if(args[0]===this.TEXTURE_2D) bindings.set(this,args[1]);
           return bind.apply(this,args);
@@ -47,7 +59,8 @@ def observe_native_label_pixels(page):
             const viewport=Array.from(this.getParameter(this.VIEWPORT));
             // Native sprite quad is -1..1; its normalized scale gives this pixel height.
             const renderedEm=glyph.font*Math.abs(scale[1])*viewport[3]/glyph.height;
-            window.__nativeLabelPixels.push({...glyph,scale,viewport,renderedEm});
+            const rows=frames.get(this.canvas);
+            if(rows) rows.push({...glyph,scale,viewport,renderedEm});
           }
           return result;
         };
@@ -56,12 +69,14 @@ def observe_native_label_pixels(page):
 
 
 def inspect_native_label_pixels(panel, evidence, filename, dpi=600, width=2102, pt=7):
-    rows = panel.locator("iframe").first.evaluate(
-        "frame => frame.contentWindow.__nativeLabelPixels || []"
+    captures = panel.locator("iframe").first.evaluate(
+        "frame => frame.contentWindow.__nativeLabelCaptures || []"
     )
-    # Only actual capture-sized draws, not the original on-screen viewport.
-    selected = [row for row in rows if row["viewport"][2] == width]
-    assert selected, {"message": "No native contact text at print resolution", "rows": rows[-5:]}
+    # Inspect the exact frame that pngURI encoded, not resize/restoration draws.
+    matching = [capture for capture in captures if capture["width"] == width]
+    assert matching, {"message": "Native PNG capture was not observed", "captures": captures[-2:]}
+    selected = matching[-1]["rows"]
+    assert selected, "The encoded PNG had no native contact text"
     for row in selected:
         row["printedPt"] = row["renderedEm"] * 72 / dpi
         assert abs(row["printedPt"] - pt) < 0.02, row
