@@ -83,7 +83,7 @@ def main():
         store.get(key).request.model_dump_json() == request for key, request in before_jobs.items()
     )
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
-        example = client.get("/api/examples/pose.cluster").json()
+        example = client.get("/api/examples/pose.cluster?profile=archive").json()
         assert example["computed_result_available"]
         job = example["pin"]["job_id"]
         result = client.get("/api/jobs/" + job + "/result")

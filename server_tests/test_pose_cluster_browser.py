@@ -47,6 +47,7 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
         with sync_playwright() as driver:
             browser = driver.chromium.launch()
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
             errors = []
             page.on("pageerror", lambda error: errors.append(str(error)))
             try:
@@ -147,15 +148,14 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 page.screenshot(path=output / "fresh-clustering-result.png", full_page=True)
                 assert created["request"]["operation"] == "pose_cluster"
                 personal = page.request.get(url + "/api/jobs").json()
-                page.get_by_role("navigation", name="主导航").get_by_role(
-                    "button", name="口袋与对接", exact=True
-                ).click()
-                page.get_by_role("combobox", name="研究任务", exact=True).select_option(
-                    "pose_exploration"
-                )
-                page.get_by_role("button", name="示例结果", exact=True).click()
-                page.get_by_text("查看结合模式分群示例", exact=True).click()
-                fixed = page.get_by_role("region", name="BRD4–JQ1 固定分群案例", exact=True)
+                # The active module template is STAT6. Inspect the exact archived
+                # baseline by its retained task ID instead of relabeling its case.
+                archived = page.request.get(
+                    url + "/api/examples/pose.cluster?profile=archive"
+                ).json()
+                assert archived["pin"]["job_id"] == accepted["job_id"]
+                page.goto(url + "/#task=" + accepted["job_id"])
+                fixed = page.get_by_role("region", name="任务详情", exact=True)
                 expect(
                     fixed.get_by_role("region", name="结合模式分群结果", exact=True)
                 ).to_be_visible()

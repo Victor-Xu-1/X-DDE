@@ -18,6 +18,7 @@ def test_ternary_fixed_result_and_stepwise_submission():
         with sync_playwright() as driver:
             browser = driver.chromium.launch()
             page = browser.new_page(viewport={"width": 1600, "height": 1050})
+            page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.on(
                 "request",
@@ -43,7 +44,11 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 )
             ).to_be_disabled()
             page.screenshot(path=str(root / "proximity-fresh.png"), full_page=True)
-            page.get_by_role("button", name="示例结果", exact=True).click()
+            archived = page.request.get(
+                base + "/api/examples/deepternary.model?profile=archive"
+            ).json()
+            assert archived["pin"]["job_id"] == accepted["job_id"]
+            page.goto(base + "/#task=" + accepted["job_id"])
             expect(
                 page.get_by_role("heading", name="PROTAC 降解剂 · 三元装配", exact=True)
             ).to_be_visible()
@@ -113,26 +118,31 @@ def test_ternary_fixed_result_and_stepwise_submission():
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             page.screenshot(path=str(root / "proximity-compact.png"), full_page=True)
             page.set_viewport_size({"width": 1600, "height": 1050})
+            page.set_viewport_size({"width": 1600, "height": 1050})
+            page.goto(base)
+            page.get_by_role("navigation", name="主导航").get_by_role(
+                "button", name="诱导邻近设计", exact=True
+            ).click()
             page.get_by_role("button", name="使用此模板", exact=True).click()
-            expect(page.get_by_role("radio", name="有完整复合物", exact=True)).to_be_checked()
-            for number, heading in enumerate(("招募端 · E3 连接酶", "目标蛋白", "确认探索方案"), 2):
+            expect(page.get_by_text("STAT6 端与 CRBN 端的结合姿势", exact=False)).to_be_visible()
+            page.locator(".questionnaire-actions").get_by_role(
+                "button", name="下一步", exact=True
+            ).click()
+            expect(
+                page.get_by_role("heading", name="2. 招募端 · E3 连接酶", exact=True)
+            ).to_be_visible()
+            expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
+            expect(
                 page.locator(".questionnaire-actions").get_by_role(
                     "button", name="下一步", exact=True
-                ).click()
-                expect(
-                    page.get_by_role("heading", name=f"{number}. {heading}", exact=True)
-                ).to_be_visible()
-                expect(page.locator(".questionnaire > fieldset:visible")).to_have_count(1)
-                assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-            expect(page.get_by_role("button", name="开始三元建模", exact=True)).to_be_enabled()
-            page.screenshot(path=str(root / "proximity-review.png"), full_page=True)
+                )
+            ).to_be_disabled()
+            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            page.screenshot(path=str(root / "stat6-additional-pose-required.png"), full_page=True)
             page.get_by_role("button", name="设置与帮助", exact=True).click()
             page.get_by_role("menuitem", name="界面设置", exact=True).click()
             page.locator("#settings-language").select_option("en")
-            page.get_by_role("navigation", name="Main navigation").get_by_role(
-                "button", name="Induced proximity", exact=True
-            ).click()
-            page.get_by_role("button", name="Example results", exact=True).click()
+            page.goto(base + "/#task=" + accepted["job_id"])
             english = page.get_by_role("table", name="Compare assemblies", exact=True)
             expect(english).to_be_visible()
             for width in (1280, 1366):
@@ -156,6 +166,8 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 "fixed_results_not_personal_jobs": True,
                 "real_sdf_download": True,
                 "fresh_input_default": True,
+                "active_stat6_template_requires_real_bound_poses": True,
+                "archived_native_case_keeps_its_exact_task_id": True,
                 "one_visible_step": True,
                 "readable_compact_layout": True,
                 "readable_english_desktop_layout": True,
