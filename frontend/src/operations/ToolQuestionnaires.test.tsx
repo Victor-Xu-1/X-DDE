@@ -7,6 +7,8 @@ import { ImportForm } from "./ImportForm";
 import * as client from "../api";
 import { defaults } from "../form-model";
 import type { Job } from "../types";
+import type { Asset } from "./types";
+import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -94,7 +96,7 @@ it("limits guided MSA inputs to supported sequence kinds and requires service co
 });
 it("changing an imported source clears stale predictions and a reviewed batch returns actual jobs", async () => {
   boundary();
-  vi.mocked(client.api.assets).mockResolvedValue([
+  const files: Asset[] = [
     {
       id: "config1",
       name: "first.json",
@@ -102,6 +104,7 @@ it("changing an imported source clears stale predictions and a reviewed batch re
       kind: "config",
       size: 10,
       sha256: "a".repeat(64),
+      created_at: "2026-10-11",
     },
     {
       id: "config2",
@@ -110,8 +113,17 @@ it("changing an imported source clears stale predictions and a reviewed batch re
       kind: "config",
       size: 10,
       sha256: "b".repeat(64),
+      created_at: "2026-10-11",
     },
-  ] as never);
+  ];
+  vi.mocked(client.request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/research/input-catalog?")
+        ? catalogFixture([], files)
+        : path.endsWith("/metadata")
+          ? files.find((file) => path.includes(file.id))
+          : { availability: { configuration_present: true } }) as never,
+  );
   const imported = {
     name: "Imported task",
     components: [{ kind: "ligand", value: "CCO", count: 1 }],
@@ -140,6 +152,9 @@ it("changing an imported source clears stale predictions and a reviewed batch re
     "config",
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(
+    screen.getByText("Historical files", { selector: "summary" }),
+  );
   const input = screen.getByRole("combobox", {
     name: "Existing native OpenDDE JSON",
   });

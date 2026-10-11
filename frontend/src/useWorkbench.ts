@@ -21,12 +21,12 @@ export function useWorkbench() {
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
-  const select = useCallback((id: string) => {
+  const select = useCallback((id: string, preserveHistory = true) => {
     setSelected(id);
     setDetail(null);
     setDetailError(false);
     const params = new URLSearchParams(window.location.hash.slice(1));
-    if (params.get("view") === "tasks") {
+    if (preserveHistory && params.get("view") === "tasks") {
       if (id) params.set("task", id);
       else params.delete("task");
       window.history.replaceState(null, "", "#" + params);

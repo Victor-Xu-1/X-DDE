@@ -132,8 +132,8 @@ export function App() {
       content.current?.focus({ preventScroll: true });
   }, [view]);
 
-  function chooseJob(id: string) {
-    select(id);
+  function chooseJob(id: string, preserveHistory = true) {
+    select(id, preserveHistory);
     setCandidateId(null);
     setCompared([]);
     setFocusResidue(null);
@@ -175,14 +175,14 @@ export function App() {
     return created;
   }
   function prepareDraft(value: Prediction) {
-    chooseJob("");
+    chooseJob("", false);
     setDraft(value);
     setProjectId(value.project_id ?? null);
     setInputVersion((n) => n + 1);
     setView("home");
   }
   function openTool(tool: ToolId | null) {
-    chooseJob("");
+    chooseJob("", false);
     setDraft(null);
     setEntryRevision((n) => n + 1);
     if (tool === "predict") setInputVersion((n) => n + 1);

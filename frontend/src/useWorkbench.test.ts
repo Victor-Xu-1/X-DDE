@@ -33,6 +33,25 @@ function boundary() {
       }) as Response,
   );
 }
+it("preserves a result module while choosing history but clears its route for a new task", async () => {
+  window.history.replaceState(
+    null,
+    "",
+    "/#view=tasks&module=binding&q=STAT6&page=2",
+  );
+  boundary();
+  vi.spyOn(api, "jobs").mockResolvedValue([]);
+  vi.spyOn(api, "artifacts").mockResolvedValue([]);
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  act(() => result.current.select("11111111-1111-4111-8111-111111111111"));
+  expect(window.location.hash).toContain("module=binding");
+  expect(window.location.hash).toContain("page=2");
+  act(() => result.current.select("", false));
+  expect(window.location.hash).toBe("#task=");
+  expect(result.current.selected).toBe("");
+  unmount();
+});
 it("preserves a new-task selection across refresh instead of selecting an old job", async () => {
   window.history.replaceState(null, "", "/#task=");
   const fetch = boundary();

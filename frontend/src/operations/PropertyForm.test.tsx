@@ -7,6 +7,7 @@ import { api } from "../api";
 import * as client from "../api";
 import type { MoleculeRef } from "../research/types";
 import type { Asset } from "./types";
+import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
 vi.mock("../presentation/MoleculeImage", () => ({
   MoleculeImage: ({ source }: { source: unknown }) => (
     <div data-testid="review-structure">{JSON.stringify(source)}</div>
@@ -82,9 +83,14 @@ it("keeps the exact source version and sends no hidden SMILES after selecting fi
     sha256: "a".repeat(64),
     created_at: "2026-10-10T00:00:00Z",
   };
-  vi.spyOn(client, "request").mockResolvedValue({
-    availability: { configuration_present: true },
-  });
+  vi.spyOn(client, "request").mockImplementation(
+    async (path) =>
+      (path.endsWith("/metadata")
+        ? asset
+        : path.startsWith("/research/input-catalog?")
+          ? catalogFixture([], [asset], "file:" + asset.id)
+          : { availability: { configuration_present: true } }) as never,
+  );
   vi.spyOn(api, "assets").mockResolvedValue([asset]);
   const submit = vi
     .spyOn(api, "submit")
