@@ -12,6 +12,8 @@ from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.publication_browser_helpers import export_figure
+
 
 def test_real_pose_clustering_questionnaire_preview_and_download():
     output = Path(os.environ["WB_POSE_CLUSTER"])
@@ -97,10 +99,17 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                     result.get_by_role("link", name="下载两两比较", exact=True).click()
                 downloaded.value.save_as(output / "downloaded-pairs.csv")
                 assert "rmsd_angstrom" in (output / "downloaded-pairs.csv").read_text()
-                with page.expect_download() as downloaded:
-                    result.get_by_role("button", name="下载比较图", exact=True).click()
-                downloaded.value.save_as(output / "comparison-map.svg")
-                assert "<svg" in (output / "comparison-map.svg").read_text()
+                comparison = export_figure(
+                    page,
+                    result.locator(".cluster-matrix").get_by_role(
+                        "button", name="文献图导出 ↓", exact=True
+                    ),
+                    output,
+                    "comparison-map",
+                    "zh",
+                    format="SVG",
+                )
+                assert "<svg" in comparison.read_text()
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
                 heading = result.locator(".viewer-panel > .studio-heading > h3")
