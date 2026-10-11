@@ -86,6 +86,13 @@ inspection has no physical print-size label. Magnification changes only the view
 the native SVG, scientific source and explicitly selected export dimensions remain
 unchanged. Changing the displayed molecule resets its viewing magnification.
 
+Editor saves retain one upload and one version request across uncertain HTTP
+outcomes. A native MOL export timestamp does not define a new chemical edit;
+the exact original upload bytes are still retained. Repeated Save actions and
+the immediate properties handoff reuse the confirmed version until molecular
+content changes. The parent version, annotations and rating remain bound to the
+save intent; an upload failure can be retried without permanently locking it.
+
 ## Product hierarchy
 
 新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录已实现的 14 个专用模块及验收；v0.4.31 又完成 9 家供应商、16 份公开结构文件的实际安装。该专项完成不代表下面的 76 项平台路线图全部完成；供应商受限数据、目标服务器 GPU/规模性能和实验验证仍分别确认。

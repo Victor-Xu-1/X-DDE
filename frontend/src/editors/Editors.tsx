@@ -118,7 +118,7 @@ export function Editors({
         );
       await fn(editor);
     } catch (e) {
-      setError(String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       actionRunning.current = false;
       setBusy(false);
@@ -127,10 +127,23 @@ export function Editors({
   async function saveMolecule(editor: Ketcher) {
     if (!(await editor.getSmiles()).trim())
       throw new Error(zh ? "请先画一个分子。" : "Draw a molecule first.");
-    const version = await saveIntent.current.save(
-      await editor.getMolfile(),
-      origin,
-    );
+    const mol = await editor.getMolfile();
+    let version: ScientificObject;
+    try {
+      version = await saveIntent.current.save(mol, origin);
+    } catch (error) {
+      if (
+        error instanceof TypeError ||
+        (error instanceof DOMException &&
+          ["TimeoutError", "AbortError"].includes(error.name))
+      )
+        throw new Error(
+          zh
+            ? "未能确认保存结果。请再次点击保存，系统会继续同一次保存。"
+            : "The save result could not be confirmed. Save again to continue the same save.",
+        );
+      throw error;
+    }
     setOrigin(version);
     return version;
   }
@@ -250,8 +263,8 @@ export function Editors({
                     await saveMolecule(editor);
                     setMessage(
                       zh
-                        ? "已保存新版本，可在研究资产中查看来源和继续复用。二维编辑不代表已预测三维姿势。"
-                        : "New version saved. Inspect its lineage and reuse it in Research assets. A 2D edit is not a predicted 3D pose.",
+                        ? "已保存，可在研究文件中继续使用。二维编辑不代表已预测三维姿势。"
+                        : "Saved. Continue using this molecule in Research files. A 2D edit is not a predicted 3D pose.",
                     );
                   })
                 }

@@ -1,6 +1,6 @@
-import { api } from "../api";
 import { molecularRecordText } from "../presentation/molecular-record";
 import type { ScientificObject } from "../research/types";
+export { MoleculeSaveIntent } from "./molecule-save-intent";
 
 export interface Ketcher {
   structService?: {
@@ -92,38 +92,4 @@ export async function molecularRecord(
   const text = await response.text();
   if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum");
   return molecularRecordText(text, object.reference.record, format);
-}
-
-/** Retain the intent across uncertain HTTP outcomes; a retry cannot create another version. */
-export class MoleculeSaveIntent {
-  private pending: { fingerprint: string; key: string } | null = null;
-
-  async save(
-    mol: string,
-    parent: ScientificObject | null,
-  ): Promise<ScientificObject> {
-    const fingerprint = JSON.stringify([mol, parent?.id ?? null]);
-    if (this.pending?.fingerprint !== fingerprint)
-      this.pending = { fingerprint, key: crypto.randomUUID() };
-    const intent = this.pending;
-    const asset = await api.upload(
-      new File([mol + "\n$$$$\n"], "sketched-molecule.sdf", {
-        type: "chemical/x-mdl-sdfile",
-      }),
-      "ligand",
-    );
-    return api.post<ScientificObject>(
-      "/research/objects",
-      {
-        asset_id: asset.id,
-        kind: "molecule",
-        label: parent ? parent.label.slice(0, 113) + " · edit" : asset.name,
-        parent_id: parent?.id ?? null,
-        relation: "edited_from",
-        notes: parent?.notes ?? "",
-        rating: parent?.rating ?? 0,
-      },
-      intent.key,
-    );
-  }
 }
