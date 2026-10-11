@@ -180,8 +180,6 @@ it("keeps the actual saved pose through view switches, handoff, back, undo and r
   expect(screen.getByTestId("confirmed-input")).toHaveTextContent(
     original.reference.version_id!,
   );
-  await user.click(screen.getByRole("button", { name: "Back" }));
-  expect(screen.getByRole("radio", { name: "Original result" })).toBeChecked();
   expect(screen.getByTestId("confirmed-input")).toHaveTextContent('"record":1');
   await user.click(screen.getByRole("button", { name: "Back" }));
   await user.click(screen.getByRole("button", { name: "Redo" }));
@@ -190,6 +188,8 @@ it("keeps the actual saved pose through view switches, handoff, back, undo and r
   expect(screen.getByTestId("confirmed-input")).toHaveTextContent(
     original.reference.version_id!,
   );
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  expect(screen.getByRole("radio", { name: "Original result" })).toBeChecked();
 });
 
 it("blocks current-pose continuation while saving but allows an explicit original and freezes its input", async () => {
