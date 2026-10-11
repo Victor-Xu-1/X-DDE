@@ -7,6 +7,9 @@ on:
       - "frontend/src/integrations/**"
       - "frontend/src/App.tsx"
       - "frontend/src/App.test.tsx"
+      # Task-history navigation and App's direct consumers have exact scoped checks.
+      - "!frontend/src/App.tsx"
+      - "!frontend/src/App.test.tsx"
       - "frontend/src/TaskDetail*"
       - "frontend/src/useWorkbench*"
       - "frontend/src/studio/RuntimeStatus*"

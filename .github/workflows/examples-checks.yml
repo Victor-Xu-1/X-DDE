@@ -26,6 +26,9 @@ on:
       - '!frontend/src/examples/guide.test.ts'
       - 'frontend/src/App.tsx'
       - 'frontend/src/App.test.tsx'
+      # The direct application consumer now runs in task-history-checks.yml.
+      - '!frontend/src/App.tsx'
+      - '!frontend/src/App.test.tsx'
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'

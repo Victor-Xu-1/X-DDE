@@ -6,6 +6,7 @@ import { api } from "./api";
 import * as apiClient from "./api";
 import * as deployment from "./deployment/client";
 import { defaults } from "./form-model";
+import { historyFixture } from "./studio/task-history.test-fixtures";
 import * as i18n from "./i18n";
 import type { Health, Job } from "./types";
 
@@ -53,6 +54,9 @@ beforeEach(() => {
   });
   vi.spyOn(api, "initialize").mockResolvedValue();
   vi.spyOn(api, "jobs").mockResolvedValue(jobs);
+  vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
+    historyFixture(await api.jobs(), path),
+  );
   vi.spyOn(api, "health").mockResolvedValue(health);
   vi.spyOn(api, "artifacts").mockResolvedValue([]);
   vi.spyOn(api, "projects").mockResolvedValue([
@@ -71,6 +75,34 @@ beforeEach(() => {
   ]);
 });
 afterEach(() => vi.restoreAllMocks());
+
+it("starts the chosen task module's questionnaire without reusing or submitting an old task", async () => {
+  vi.spyOn(apiClient, "request").mockResolvedValue({
+    availability: { configuration_present: false },
+  } as never);
+  const submit = vi.spyOn(api, "submit"),
+    user = userEvent.setup();
+  render(<App />);
+  const nav = await screen.findByRole("navigation", {
+    name: "Main navigation",
+  });
+  await user.click(
+    within(nav).getByRole("button", { name: "Tasks and results" }),
+  );
+  const modules = await screen.findByRole("group", { name: "Task modules" });
+  await user.click(
+    within(modules).getByRole("button", { name: /Pockets and docking/ }),
+  );
+  await user.click(screen.getByRole("button", { name: "New task" }));
+  expect(
+    await screen.findByRole("heading", { name: "1. Choose materials" }),
+  ).toBeVisible();
+  expect(screen.getByRole("combobox", { name: "Research task" })).toHaveValue(
+    "p2rank.detect",
+  );
+  expect(window.location.hash).toBe("#task=");
+  expect(submit).not.toHaveBeenCalled();
+});
 
 it("opens the shared asset workspace through the integrated navigation", async () => {
   vi.spyOn(apiClient, "request").mockImplementation(

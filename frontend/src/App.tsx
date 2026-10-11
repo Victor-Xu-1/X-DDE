@@ -410,7 +410,7 @@ export function App() {
                 loading={loading}
                 connectionError={work.connectionError}
                 onRefresh={refresh}
-                onStart={() => navigate("tools")}
+                onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
                 onJob={chooseJob}
                 projectId={projectId}
                 onProject={chooseProject}

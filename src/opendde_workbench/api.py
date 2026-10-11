@@ -51,6 +51,7 @@ from .science_routes import register_science
 from .settings import Settings
 from .sites.routes import register_sites
 from .store import CapacityError, ConflictError, Store
+from .task_history.routes import register_task_history
 from .worker import Worker
 from .workflows import register_workflows
 
@@ -557,6 +558,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         }
 
     register_capabilities(app, settings, health)
+    register_task_history(app, example_library)
     register_deployments(app, deployments, mutation, scientific_busy)
 
     @app.post("/api/lifecycle/stop", dependencies=[Depends(mutation)])

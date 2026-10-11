@@ -77,6 +77,10 @@ export const api = {
     csrf = session.csrf_token;
   },
   jobs: (signal?: AbortSignal) => request<Job[]>("/jobs", { signal }),
+  taskHistory: (path: string, signal?: AbortSignal) =>
+    request<import("./studio/task-history-model").TaskHistoryPage>(path, {
+      signal,
+    }),
   health: (signal?: AbortSignal) => request<Health>("/health", { signal }),
   artifacts: (id: string, signal?: AbortSignal) =>
     request<Artifact[]>(`/jobs/${id}/artifacts`, { signal }),

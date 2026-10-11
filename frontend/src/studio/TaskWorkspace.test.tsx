@@ -1,30 +1,56 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import type { ComponentProps } from "react";
-import { expect, it, vi } from "vitest";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { useState, type ComponentProps } from "react";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { api } from "../api";
 import { defaults } from "../form-model";
 import type { Job } from "../types";
 import { TaskWorkspace } from "./TaskWorkspace";
+import { historyFixture } from "./task-history.test-fixtures";
 const job: Job = {
   id: "00000000-0000-0000-0000-000000000001",
   request: {
-    name: "Protein structure",
+    name: "STAT6 structure",
     components: [{ kind: "protein", value: "ACDE", count: 1 }],
     parameters: defaults,
   },
   status: "succeeded",
-  created_at: "2026-09-30",
+  created_at: "2026-10-01",
   started_at: null,
   finished_at: null,
   error: null,
   parent_id: null,
 };
-
+const descriptors = {
+  ...job,
+  id: "00000000-0000-0000-0000-000000000002",
+  request: {
+    operation: "properties",
+    name: "STAT6 descriptors",
+    smiles: [],
+    ligand_files: [],
+  },
+  status: "cancelled",
+} as Job;
+let historyJobs: Job[];
+beforeEach(() => {
+  historyJobs = [job, descriptors];
+  vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
+    historyFixture(historyJobs, path),
+  );
+});
+afterEach(() => vi.restoreAllMocks());
 function props(
   overrides: Partial<ComponentProps<typeof TaskWorkspace>> = {},
 ): ComponentProps<typeof TaskWorkspace> {
   return {
-    language: "zh",
-    jobs: [],
+    language: "en",
+    jobs: historyJobs,
     job: null,
     detail: null,
     detailError: false,
@@ -37,128 +63,181 @@ function props(
     projects: [],
     projectId: null,
     onProject: vi.fn(),
-    prediction: (
-      <div>
-        <h2>{overrides.job?.request.name}</h2>Prediction result
-      </div>
-    ),
+    prediction: <div>Actual prediction result</div>,
     ...overrides,
   };
 }
-it("offers one research entry rather than separate empty analysis and export pages", () => {
+async function modulePage(label = "Properties and safety") {
+  await waitFor(() =>
+    expect(
+      screen.getByRole("group", { name: "Task modules" }),
+    ).toHaveTextContent("1 tasks"),
+  );
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
+  await screen.findByRole("button", { name: "STAT6 descriptors" });
+}
+function openList() {
+  const picker = document.querySelector<HTMLDetailsElement>(".task-picker")!;
+  picker.open = true;
+  fireEvent(picker, new Event("toggle"));
+}
+it("opens a module overview instead of one mixed task list", async () => {
   const p = props();
   render(<TaskWorkspace {...p} />);
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker");
-  if (picker && !picker.open) fireEvent.click(picker.querySelector("summary")!);
-  fireEvent.click(screen.getByRole("button", { name: "开始研究" }));
-  expect(p.onStart).toHaveBeenCalledOnce();
-  expect(screen.queryByText("结果解读")).toBeNull();
-  expect(screen.queryByText("导出结果")).toBeNull();
+  await modulePage();
+  expect(screen.queryByRole("button", { name: "STAT6 structure" })).toBeNull();
+  expect(p.onJob).toHaveBeenCalledWith("");
+  fireEvent.click(screen.getByRole("button", { name: "New task" }));
+  expect(p.onStart).toHaveBeenCalledWith("admet.predict");
 });
-it("distinguishes loading, disconnected and empty task lists", () => {
-  const p = props({ language: "en", loading: true });
-  const { rerender } = render(<TaskWorkspace {...p} />);
-  expect(screen.getByRole("status")).toHaveTextContent("Loading tasks");
-  expect(screen.queryByRole("button", { name: "Start research" })).toBeNull();
-  rerender(<TaskWorkspace {...p} loading={false} connectionError />);
-  expect(screen.getByRole("alert")).toHaveTextContent("Unable to load tasks");
-  expect(screen.queryByText("No research tasks yet")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Reconnect" }));
-  expect(p.onRefresh).toHaveBeenCalledOnce();
-  rerender(<TaskWorkspace {...p} loading={false} />);
-  expect(screen.getByRole("button", { name: "Start research" })).toBeVisible();
-});
-
-it("keeps available tasks visible during a connection failure and marks the selection", () => {
-  const other = {
-    ...job,
-    id: "other",
-    request: { ...job.request, name: "Other task" },
-  };
-  const p = props({
-    language: "en",
-    jobs: [job, other],
-    job,
-    connectionError: true,
-  });
-  render(<TaskWorkspace {...p} />);
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker");
-  if (picker && !picker.open) fireEvent.click(picker.querySelector("summary")!);
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "Task status may be out of date",
-  );
+it("opens a linked task in its exact module and uses the existing prediction preview", async () => {
+  render(<TaskWorkspace {...props({ job })} />);
   expect(
-    screen.getByRole("button", { name: /Protein structure/ }),
-  ).toHaveAttribute("aria-pressed", "true");
-  fireEvent.click(screen.getByRole("button", { name: /Other task/ }));
-  expect(p.onJob).toHaveBeenCalledWith("other");
+    screen.getByRole("heading", { name: "Structure prediction" }),
+  ).toBeVisible();
+  expect(screen.getByText("Actual prediction result")).toBeVisible();
+  expect(
+    screen.getByRole("combobox", { name: "Switch task module" }),
+  ).toHaveValue("structures");
 });
-
-it("filters task rows by project and does not show another project's selected detail", () => {
-  const projectJob = {
-    ...job,
-    id: "project-job",
-    request: { ...job.request, name: "Project task", project_id: "project-a" },
-  };
+it("clears the prior detail when switching modules", async () => {
+  const p = props({ job });
+  render(<TaskWorkspace {...p} />);
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "Switch task module" }),
+    { target: { value: "evaluation" } },
+  );
+  await screen.findByRole("button", { name: "STAT6 descriptors" });
+  expect(screen.queryByText("Actual prediction result")).toBeNull();
+  expect(p.onJob).toHaveBeenCalledWith("");
+});
+it("filters within the chosen module and offers a clear empty state", async () => {
+  render(<TaskWorkspace {...props()} />);
+  await modulePage();
+  fireEvent.change(screen.getByRole("combobox", { name: "Status" }), {
+    target: { value: "failed" },
+  });
+  await screen.findByRole("heading", { name: "No matching tasks" });
+  expect(
+    screen.queryByRole("button", { name: "STAT6 descriptors" }),
+  ).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+  await screen.findByRole("button", { name: "STAT6 descriptors" });
+});
+it("preserves page and query when selecting a row and returning to its list", async () => {
+  historyJobs = Array.from({ length: 25 }, (_, i) => ({
+    ...descriptors,
+    id: `id-${i}`,
+    request: { ...descriptors.request, name: `STAT6 series ${i}` },
+  }));
+  function Harness() {
+    const [selected, setSelected] = useState<Job | null>(null);
+    return (
+      <TaskWorkspace
+        {...props({
+          job: selected,
+          onJob: (id) =>
+            setSelected(historyJobs.find((job) => job.id === id) ?? null),
+        })}
+      />
+    );
+  }
+  render(<Harness />);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("group", { name: "Task modules" }),
+    ).toHaveTextContent("25 tasks"),
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: /Properties and safety/ }),
+  );
+  await screen.findByRole("button", { name: "STAT6 series 0" });
+  fireEvent.change(
+    screen.getByRole("searchbox", { name: "Search this module" }),
+    { target: { value: "STAT6 series" } },
+  );
+  await waitFor(() =>
+    expect(vi.mocked(api.taskHistory).mock.calls.at(-1)?.[0]).toContain(
+      "q=STAT6+series",
+    ),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  await screen.findByRole("button", { name: "STAT6 series 20" });
+  fireEvent.click(screen.getByRole("button", { name: "STAT6 series 20" }));
+  openList();
+  expect(
+    screen.getByRole("searchbox", { name: "Search this module" }),
+  ).toHaveValue("STAT6 series");
+  expect(
+    within(screen.getByRole("navigation", { name: "Task pages" })).getByText(
+      "2 / 2",
+    ),
+  ).toBeVisible();
+});
+it("keeps projects isolated and hides a selected task belonging to another project", async () => {
+  historyJobs = [
+    job,
+    {
+      ...descriptors,
+      request: { ...descriptors.request, project_id: "study" },
+    },
+  ];
   const p = props({
-    language: "en",
-    projectId: "project-a",
+    job,
+    projectId: "study",
     projects: [
       {
-        id: "project-a",
+        id: "study",
         name: "Target study",
         description: "",
-        created_at: "2026-09-30",
+        created_at: "2026-10-01",
       },
     ],
-    jobs: [job, projectJob],
-    job,
   });
   render(<TaskWorkspace {...p} />);
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker");
-  if (picker && !picker.open) fireEvent.click(picker.querySelector("summary")!);
+  await modulePage();
   expect(
     screen.getByRole("group", { name: "Project filter" }),
   ).toHaveTextContent("Target study");
-  expect(screen.getByRole("button", { name: /Project task/ })).toBeVisible();
-  expect(screen.queryByText("Protein structure")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: /Project task/ }));
-  expect(p.onJob).toHaveBeenCalledWith("project-job");
+  expect(screen.queryByText("Actual prediction result")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Clear filter" }));
   expect(p.onProject).toHaveBeenCalledWith(null);
 });
-
-it("distinguishes an empty project from an empty workspace", () => {
-  const p = props({ projectId: "empty-project", jobs: [job], job });
+it("keeps a just-submitted task visible before history refresh and reports disconnection", () => {
+  const p = props({ job: { ...job, status: "queued" }, connectionError: true });
   render(<TaskWorkspace {...p} />);
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker");
-  if (picker && !picker.open) fireEvent.click(picker.querySelector("summary")!);
   expect(
-    screen.getByRole("heading", { name: "这个项目还没有任务" }),
+    screen.getByRole("heading", { name: "STAT6 structure" }),
   ).toBeVisible();
-  expect(screen.queryByText("Protein structure")).toBeNull();
-  expect(screen.getByRole("button", { name: "清除筛选" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Reconnect" }));
+  expect(p.onRefresh).toHaveBeenCalledOnce();
 });
-
-it("shows a newly submitted task before it appears in the next task list refresh", () => {
-  const p = props({ job: { ...job, status: "queued" } });
-  render(<TaskWorkspace {...p} />);
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker");
-  if (picker && !picker.open) fireEvent.click(picker.querySelector("summary")!);
+it("opens other tasks without discarding unclassified history", async () => {
+  historyJobs = [
+    {
+      ...job,
+      request: { operation: "doctor", name: "Environment check" },
+    } as Job,
+  ];
+  render(<TaskWorkspace {...props()} />);
+  await screen.findByRole("button", { name: /Additional tasks/ });
+  fireEvent.click(screen.getByRole("button", { name: /Additional tasks/ }));
+  await screen.findByRole("button", { name: "Environment check" });
   expect(
-    screen.getByRole("button", { name: /Protein structure/ }),
-  ).toHaveAttribute("aria-pressed", "true");
-  expect(
-    screen.getByRole("heading", { name: "Protein structure" }),
-  ).toBeVisible();
-  expect(screen.queryByText("还没有研究任务")).toBeNull();
+    screen.getByRole("combobox", { name: "Switch task module" }),
+  ).toHaveValue("other");
 });
-
-it("uses the shared actual prediction result instead of a second file-only result page", () => {
-  const p = props({ job, jobs: [job] });
-  render(<TaskWorkspace {...p} />);
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker");
-  if (picker && !picker.open) fireEvent.click(picker.querySelector("summary")!);
-  expect(screen.getByText("Prediction result")).toBeVisible();
-  expect(screen.queryByRole("region", { name: "任务详情" })).toBeNull();
+it("returns to the module overview without showing a mixed task list", async () => {
+  render(<TaskWorkspace {...props({ job })} />);
+  fireEvent.click(screen.getByRole("button", { name: "Task modules" }));
+  expect(screen.getByRole("group", { name: "Task modules" })).toBeVisible();
+  expect(document.querySelector(".task-picker")).toBeNull();
+  expect(screen.queryByText("Actual prediction result")).toBeNull();
+});
+it("preserves saved Chinese and shows a concise empty workspace", async () => {
+  historyJobs = [];
+  render(<TaskWorkspace {...props({ language: "zh" })} />);
+  expect(screen.getByRole("group", { name: "任务模块" })).toBeVisible();
+  await screen.findByText("还没有研究任务");
+  expect(screen.getByRole("button", { name: "新建任务" })).toBeVisible();
 });
