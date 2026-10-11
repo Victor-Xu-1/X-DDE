@@ -136,7 +136,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
             )
         ).to_be_visible()
         page.get_by_role("button", name="新建任务" if zh else "New task", exact=True).click()
-        expect(page.locator(".questionnaire")).to_be_visible(timeout=15000)
+        expect(page.locator(".questionnaire:visible")).to_be_visible(timeout=15000)
         expect(
             page.get_by_role(
                 "heading", name="1. 选择材料" if zh else "1. Choose materials", exact=True
