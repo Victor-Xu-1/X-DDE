@@ -24,6 +24,7 @@ on:
       - "frontend/src/quality/quality-results.css"
       - "frontend/src/quality/tests/QualityResults.test.tsx"
       - "server_tests/test_sequence_results_browser.py"
+      - "server_tests/test_campaign_sequence_browser.py"
       - ".github/workflows/sequence-result-checks.yml"
 permissions:
   contents: read
@@ -75,12 +76,11 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          .venv/bin/python -m pytest -q server_tests/test_sequence_results_browser.py server_tests/test_protein_results_browser.py::test_campaign_template_previews_exact_inputs_without_generating_a_design
+          .venv/bin/python -m pytest -q server_tests/test_sequence_results_browser.py server_tests/test_campaign_sequence_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-sequence-result-evidence
           path: |
             server_tests/evidence/sequence-results
-            server_tests/evidence/task-layout/campaign*
           if-no-files-found: error

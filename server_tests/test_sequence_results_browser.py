@@ -8,8 +8,9 @@ import os
 from pathlib import Path
 
 import pytest
-from layout_browser_helpers import catalog
 from playwright.sync_api import expect, sync_playwright
+
+from server_tests.test_navigation_shell_browser import settings
 
 EVIDENCE = Path("server_tests/evidence/sequence-results")
 
@@ -20,6 +21,7 @@ def result_page():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -42,9 +44,11 @@ def result_page():
         browser.close()
 
 
-def native_case(page, capability, label):
+def native_case(page, capability):
     base = os.environ["WB_BROWSER_URL"]
-    example = page.request.get(base + "/api/examples/" + capability).json()
+    example = page.request.get(
+        base + "/api/examples/" + capability, params={"profile": "archive"}
+    ).json()
     assert example["computed_result_available"] and example["pin"]
     job_id = example["pin"]["job_id"]
     hashes = {}
@@ -52,12 +56,10 @@ def native_case(page, capability, label):
         data = page.request.get(base + f"/api/jobs/{job_id}/download", params={"name": name}).body()
         assert hashlib.sha256(data).hexdigest() == expected
         hashes[name] = expected
-    catalog(page)
-    page.get_by_role("button", name=label, exact=True).and_(page.locator(".tool-card")).click()
-    page.locator(".module-template:visible").get_by_role(
-        "button", name="示例结果", exact=True
-    ).click()
-    expect(page.get_by_role("region", name="模块内示例结果", exact=True)).to_be_visible()
+    # Retained native results keep their original identities and open through
+    # the current task view; they are not substituted for the STAT6 template.
+    page.goto(base + "/#task=" + job_id)
+    expect(page.locator(".detail-panel")).to_be_visible()
     report = page.request.get(base + f"/api/jobs/{job_id}/result").json()
     job = page.request.get(base + "/api/jobs/" + job_id).json()
     (EVIDENCE / (capability + "-native-identity.json")).write_text(
@@ -70,6 +72,7 @@ def capture_views(page, panel, name):
     measurements = []
     for width in (1440, 1331, 390):
         page.set_viewport_size({"width": width, "height": 1000})
+        page.wait_for_function("() => document.documentElement.scrollWidth <= innerWidth + 1")
         panel.locator(".result-inspection").scroll_into_view_if_needed()
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         left = panel.locator(".result-inspection-list").bounding_box()
@@ -90,13 +93,10 @@ def capture_views(page, panel, name):
     page.set_viewport_size({"width": 1440, "height": 1000})
 
 
-def english(page):
-    page.get_by_role("button", name="设置与帮助", exact=True).click()
-    page.get_by_role("menuitem", name="界面设置", exact=True).click()
+def english(page, job):
+    settings(page, "zh")
     page.locator("#settings-language").select_option("en")
-    page.get_by_role("navigation", name="Main navigation").get_by_role(
-        "button", name="Biologics research", exact=True
-    ).click()
+    page.goto(os.environ["WB_BROWSER_URL"] + "/#task=" + job["id"])
 
 
 def download(page, control, name):
@@ -109,7 +109,7 @@ def download(page, control, name):
 
 def test_native_sequence_scores_select_and_export_exact_inputs(result_page):
     page = result_page
-    report, job = native_case(page, "esm", "蛋白序列评分")
+    report, job = native_case(page, "esm")
     panel = page.locator(".sequence-score-results")
     table = panel.get_by_role("table", name="输入序列评分", exact=True)
     expect(table.get_by_role("button", name="序列 2", exact=True)).to_be_visible()
@@ -128,18 +128,14 @@ def test_native_sequence_scores_select_and_export_exact_inputs(result_page):
     rows = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
     assert [float(row["模型分数"]) for row in rows] == report["result"]["scores"]
     capture_views(page, panel, "sequence-scores-zh")
-    english(page)
-    page.get_by_role("combobox", name="Research task", exact=True).select_option(
-        label="Score protein sequences"
-    )
-    page.get_by_role("button", name="Example results", exact=True).click()
+    english(page, job)
     expect(page.locator(".sequence-score-results")).to_be_visible()
     capture_views(page, page.locator(".sequence-score-results"), "sequence-scores-en")
 
 
 def test_native_antibody_cdrs_use_full_source_positions_and_exact_domain_files(result_page):
     page = result_page
-    report, job = native_case(page, "antibody.number", "抗体编号与 CDR 标注")
+    report, job = native_case(page, "antibody.number")
     panel = page.locator(".antibody-number-results")
     first = report["domains"][0]
     cdr = next(row for row in first["numbering"] if row["region"] == "CDR3")
@@ -176,17 +172,13 @@ def test_native_antibody_cdrs_use_full_source_positions_and_exact_domain_files(r
     capture_views(page, panel, "antibody-numbering-zh")
     panel.get_by_role("combobox", name="查看哪个输入/结构域？", exact=True).select_option("1")
     expect(panel.locator(".sequence-track footer")).not_to_contain_text("序列位置")
-    english(page)
-    page.get_by_role("combobox", name="Research task", exact=True).select_option(
-        label="Antibody numbering and CDR annotation"
-    )
-    page.get_by_role("button", name="Example results", exact=True).click()
+    english(page, job)
     capture_views(page, page.locator(".antibody-number-results"), "antibody-numbering-en")
 
 
 def test_native_reference_metrics_and_source_alignment_remain_scientifically_distinct(result_page):
     page = result_page
-    report, job = native_case(page, "antibody.humanize", "抗体人源参考与框架优化")
+    report, job = native_case(page, "antibody.humanize")
     panel = page.locator(".humanization-results")
     row = report["rows"][0]
     assert row["status"] == "evaluated" and row["proposal"] is None
@@ -206,14 +198,13 @@ def test_native_reference_metrics_and_source_alignment_remain_scientifically_dis
         f"IMGT {residue['number']}{residue['insertion']}"
     )
     capture_views(page, panel, "human-reference-zh")
-    english(page)
-    page.get_by_role("button", name="Example results", exact=True).click()
+    english(page, job)
     capture_views(page, page.locator(".humanization-results"), "human-reference-en")
 
 
 def test_native_quality_checks_stay_visible_beside_unmodified_3d_files(result_page):
     page = result_page
-    report, job = native_case(page, "posebusters.check", "构象与姿势质控")
+    report, job = native_case(page, "posebusters.check")
     panel = page.get_by_role("region", name="构象与姿势质控结果", exact=True)
     expect(panel.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
         timeout=30000
@@ -227,14 +218,7 @@ def test_native_quality_checks_stay_visible_beside_unmodified_3d_files(result_pa
         ).body()
         assert hashlib.sha256(raw).hexdigest() == report["previews_sha256"][name]
     capture_views(page, panel, "pose-quality-zh")
-    english(page)
-    page.get_by_role("navigation", name="Main navigation").get_by_role(
-        "button", name="Pockets and docking", exact=True
-    ).click()
-    page.get_by_role("combobox", name="Research task", exact=True).select_option(
-        label="Conformation and pose quality"
-    )
-    page.get_by_role("button", name="Example results", exact=True).click()
+    english(page, job)
     panel = page.get_by_role("region", name="Pose quality results", exact=True)
     expect(panel.get_by_role("button", name="Capture 3D view", exact=True)).to_be_enabled(
         timeout=30000
