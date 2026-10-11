@@ -42,6 +42,10 @@
   max-width: 100%;
   width: 100%;
 }
+.artifact-picker > button {
+  justify-self: end;
+  min-height: 40px;
+}
 @container (min-width: 640px) {
   .artifact-picker {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -67,7 +71,6 @@
   }
   .artifact-picker > button {
     grid-column: 1 / -1;
-    justify-self: end;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -84,9 +87,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-.artifact-picker > button {
-  justify-self: start;
 }
 .result-source-pages {
   display: flex;

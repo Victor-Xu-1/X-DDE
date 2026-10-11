@@ -135,6 +135,17 @@ def test_old_native_result_becomes_exact_input_once_and_no_other_job_is_created(
         assert first["height"] <= 52 and second["height"] <= 52
         task_box, file_box = task.bounding_box(), files.bounding_box()
         assert task_box and file_box
+        confirmation_box, region_box = use.bounding_box(), result.bounding_box()
+        assert confirmation_box and region_box
+        assert (
+            abs(
+                confirmation_box["x"]
+                + confirmation_box["width"]
+                - region_box["x"]
+                - region_box["width"]
+            )
+            < 2
+        )
         if width >= 640:
             assert abs(task_box["y"] - file_box["y"]) < 2 and file_box["x"] > task_box["x"]
         else:
