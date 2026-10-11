@@ -42,6 +42,7 @@ on:
       - "!frontend/src/research/SequenceFilePreview*"
       - "!frontend/src/research/useSequenceFile*"
       - "!frontend/src/research/fasta-file*"
+      - "!frontend/src/research/asset-file*"
       - "!frontend/src/research/sequence-file-preview.css"
       - "frontend/src/studio/**"
       - "frontend/src/design/**"

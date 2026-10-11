@@ -4,11 +4,17 @@ on:
   push:
     paths:
       - "frontend/src/simulations/SimulationForm*"
+      - "frontend/src/simulations/SimulationFepForm*"
+      - "frontend/src/simulations/FepLigandSelection*"
+      - "frontend/src/simulations/fep-series*"
+      - "frontend/src/simulations/useFepSeries*"
+      - "frontend/src/research/asset-file*"
       - "frontend/src/simulations/SimulationConditions.tsx"
       - "frontend/src/simulations/SimulationReview*"
       - "frontend/src/simulations/SimulationInputs.tsx"
       - "frontend/src/simulations/simulations.css"
       - "server_tests/test_gromacs_switch_browser.py"
+      - "server_tests/test_fep_questionnaire_browser.py"
       - ".github/workflows/simulation-questionnaire-checks.yml"
 permissions:
   contents: read
@@ -18,6 +24,8 @@ jobs:
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: "0"
+      WB_HOME: ${{ runner.temp }}/x-dde-simulation-inputs
+      WB_STATE_DIR: ${{ runner.temp }}/x-dde-simulation-inputs/state
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,12 +36,22 @@ jobs:
       - run: uv sync --locked --group dev --group browser
       - name: Changed questionnaires, truthful review and original-file identity
         working-directory: frontend
-        run: npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationReview.test.tsx
+        run: >-
+          npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationReview.test.tsx
+          src/simulations/SimulationFepForm.test.tsx src/simulations/FepLigandSelection.test.tsx
+          src/simulations/fep-series.test.ts src/simulations/useFepSeries.test.tsx
+          src/research/fasta-file.test.ts
+      - name: Native chemistry renderer for molecular selection
+        run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps
       - name: Actual bilingual backend choice, aligned controls and source-named review
-        run: uv run --locked python -m pytest -x -q server_tests/test_gromacs_switch_browser.py
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_gromacs_switch_browser.py
+          server_tests/test_fep_questionnaire_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: simulation-questionnaire-evidence
-          path: outputs/gromacs-switch/**
+          path: |
+            outputs/gromacs-switch/**
+            outputs/fep-questionnaire/**

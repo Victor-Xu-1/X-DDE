@@ -141,6 +141,30 @@
   max-height: 560px;
   overflow: auto;
 }
+.simulation-series-toolbar,
+.simulation-series-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 18px;
+}
+.simulation-series-toolbar input {
+  flex: 1;
+  min-width: 0;
+  width: min(100%, 440px);
+}
+.simulation-series-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 14px;
+}
+.simulation-series-selection button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
 .simulation-ligand-grid > label {
   padding: 12px;
   border: 1px solid var(--border-color, #e5e9f0);

@@ -72,11 +72,14 @@ export function SimulationConditions({
               update({ temperature_kelvin: Number(e.target.value) })
             }
           >
-            {[298.15, 300, 310].map((t) => (
-              <option key={t} value={t}>
-                {t} K
-              </option>
-            ))}
+            {Array.from(new Set([298.15, 300, 310, payload.temperature_kelvin]))
+              .filter(Number.isFinite)
+              .sort((a, b) => a - b)
+              .map((t) => (
+                <option key={t} value={t}>
+                  {t} K
+                </option>
+              ))}
           </select>
         </label>
         <label>
@@ -93,7 +96,7 @@ export function SimulationConditions({
             value={payload.repeats}
             onChange={(e) => update({ repeats: Number(e.target.value) })}
           >
-            {[1, 3].map((n) => (
+            {Array.from({ length: fep ? 6 : 3 }, (_, i) => i + 1).map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>

@@ -49,6 +49,10 @@ Binding focus retains its native position, target and zoom while using the compl
 
 ## Backend responsibilities / 后端工具职责
 
+FEP molecular selection verifies the retained SDF metadata and SHA-256 bytes before enabling the next step. Reads have a 15-second deadline with an explicit retry; at most 25 MiB and 500 original records are inspected. Search and twelve-item pages preserve original record indices and selections across pages. Restored selections are blocked if records are missing, duplicated or out of range. Drawings use the existing native Ketcher service; this input inspection does not validate force-field support, bound-pose chemistry or scientific convergence.
+
+FEP 分子选择在启用下一步前核对原始 SDF 的元数据与 SHA-256 文件身份；读取限时 15 秒，失败可明确重试，最多检查 25 MiB、500 条原始记录。搜索与每页 12 个分子的分页保留原始序号和跨页选择；已有任务中缺失、重复或超出范围的记录不可进入确认页。二维显示沿用原生 Ketcher 服务；材料核对不代表力场支持、结合姿势化学或科学收敛已经通过。模拟条件会显示已有任务实际保存的温度与独立重复次数。
+
 | Responsibility / 职责                               | Integrated tool / 工具                          | Boundary / 边界                                                                                                                                                               |
 | --------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Physical dynamics / 动力学计算                      | OpenMM or GROMACS                               | Two real executors, one task lifecycle; no silent engine or device fallback / 两种真实执行引擎，共用生命周期，不自动降级引擎或设备                                            |

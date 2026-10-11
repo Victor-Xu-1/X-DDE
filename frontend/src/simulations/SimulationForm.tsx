@@ -12,6 +12,8 @@ import type { MoleculeRef } from "../research/types";
 import type { ScientificTask } from "../integrations/types";
 import type { Job, Language } from "../types";
 import { FepLigandSelection } from "./FepLigandSelection";
+import { useFepSeries } from "./useFepSeries";
+import { validFepSelection } from "./fep-series";
 import { simulationDefaults } from "./generated";
 import {
   simulationForms,
@@ -82,13 +84,9 @@ export function SimulationForm({
       : []),
   ];
   const inputValid = Boolean(structure && (!(fep || bound) || ligand));
+  const series = useFepSeries(fep ? ligand : null);
   const selectionValid =
-    !fep ||
-    Boolean(
-      payload.records &&
-      payload.records.length >= 2 &&
-      payload.records.length <= 12,
-    );
+    !fep || validFepSelection(series.records, payload.records ?? []);
   const settingsValid =
     [
       payload.production_ns,
@@ -226,7 +224,11 @@ export function SimulationForm({
           valid: selectionValid,
           content: fep ? (
             <FepLigandSelection
+              key={ligand ? JSON.stringify(ligand) : ""}
               source={ligand}
+              records={series.records}
+              error={series.error}
+              onRetry={series.retry}
               selected={payload.records ?? []}
               onChange={(records) => update({ records })}
               language={language}

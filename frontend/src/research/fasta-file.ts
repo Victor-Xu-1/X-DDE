@@ -1,5 +1,4 @@
-import { request } from "../api";
-import type { Asset } from "../operations/types";
+import { AssetFileError, readAssetFile } from "./asset-file";
 import type { MoleculeRef } from "./types";
 
 export interface FastaRecord {
@@ -50,53 +49,16 @@ export async function readSequenceFile(
   reference: MoleculeRef,
   signal: AbortSignal,
 ) {
-  const id = encodeURIComponent(reference.asset_id);
-  const asset = await request<Asset>(`/assets/${id}/metadata`, { signal });
-  signal.throwIfAborted();
-  if (asset.id !== reference.asset_id || asset.sha256 !== reference.sha256)
-    throw new SequencePreviewError("identity");
-  if (asset.kind !== "sequences" || ![".fa", ".fasta"].includes(asset.suffix))
-    throw new SequencePreviewError("format");
-  if (
-    !Number.isInteger(asset.size) ||
-    asset.size < 1 ||
-    asset.size > sequenceFileLimit
-  )
-    throw new SequencePreviewError("limit");
-  const response = await fetch(`/api/assets/${id}`, { signal });
-  if (!response.ok) throw new Error("Sequence file unavailable");
-  if (!response.body) throw new Error("Sequence response is empty");
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let length = 0;
   try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      length += value.byteLength;
-      if (length > asset.size) {
-        await reader.cancel();
-        throw new SequencePreviewError("identity");
-      }
-      chunks.push(value);
-    }
-  } finally {
-    reader.releaseLock();
+    const bytes = await readAssetFile(reference, signal, {
+      kind: "sequences",
+      suffixes: [".fa", ".fasta"],
+      maxBytes: sequenceFileLimit,
+    });
+    return parseFasta(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch (error) {
+    if (error instanceof AssetFileError)
+      throw new SequencePreviewError(error.code);
+    throw error;
   }
-  const bytes = new Uint8Array(length);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  signal.throwIfAborted();
-  if (bytes.byteLength !== asset.size)
-    throw new SequencePreviewError("identity");
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  signal.throwIfAborted();
-  const sha256 = Array.from(new Uint8Array(hash), (value) =>
-    value.toString(16).padStart(2, "0"),
-  ).join("");
-  if (sha256 !== reference.sha256) throw new SequencePreviewError("identity");
-  return parseFasta(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
 }
