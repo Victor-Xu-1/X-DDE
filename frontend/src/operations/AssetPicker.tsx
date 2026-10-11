@@ -41,12 +41,13 @@ export function AssetPicker({
     [search, setSearch] = useState(""),
     [page, setPage] = useState(0);
   useEffect(() => {
+    if (query === search) return;
     const timer = setTimeout(() => {
       setSearch(query);
       setPage(0);
     }, 250);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, search]);
   const history = useReferenceHistory(
     kind,
     formats,
