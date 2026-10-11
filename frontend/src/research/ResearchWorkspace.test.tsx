@@ -128,12 +128,13 @@ it("recovers from a loading failure and saves annotations as a separate version"
     if (fail) throw new Error("relationship service unavailable");
     return current as never;
   });
-  const updated = {
+  const updated: ScientificObject = {
     ...original,
     id: "22222222-2222-4222-8222-222222222222",
     label: "reviewed",
     parent_id: original.id,
     notes: "promising",
+    relation: "edited_from",
     rating: 4,
     reference: {
       ...original.reference,

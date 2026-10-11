@@ -33,12 +33,40 @@ export function useResearchGraph() {
     if (mounted.current && selectionRevision.current === intent)
       setSelected(id);
   }
+  function retainSaved(value: ScientificObject) {
+    if (!mounted.current) return;
+    setGraph(
+      (current) =>
+        current &&
+        mergeResearchGraph(current, {
+          ...current,
+          nodes: [
+            {
+              id: "object:" + value.id,
+              kind: value.kind,
+              label: value.label,
+              object: value,
+            },
+          ],
+          edges: value.parent_id
+            ? [
+                {
+                  source: "object:" + value.parent_id,
+                  target: "object:" + value.id,
+                  relation: value.relation,
+                },
+              ]
+            : [],
+        }),
+    );
+  }
   const [error, setError] = useState("");
   const [indexing, setIndexing] = useState<OutputIndex[]>([]);
   const [olderOffset, setOlderOffset] = useState(0),
     [hasOlder, setHasOlder] = useState(true);
   const revision = useRef(0);
   const load = useCallback(async (signal?: AbortSignal) => {
+    if (!mounted.current) return;
     const ticket = ++revision.current;
     Object.values(controllers.current).forEach((controller) =>
       controller.abort(),
@@ -210,6 +238,7 @@ export function useResearchGraph() {
     setSelected,
     selectionIntent,
     selectSaved,
+    retainSaved,
     error,
     setError,
     indexing,

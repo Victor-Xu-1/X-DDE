@@ -8,12 +8,14 @@ export function useResearchRegistration({
   selectionIntent,
   load,
   selectSaved,
+  retainSaved,
 }: {
   notes: string;
   rating: number;
   selectionIntent(): number;
   load(): Promise<void>;
   selectSaved(id: string, intent: number): void;
+  retainSaved(value: ScientificObject): void;
 }) {
   const pending = useRef<{ fingerprint: string; key: string } | null>(null);
   return async function register(
@@ -54,13 +56,16 @@ export function useResearchRegistration({
       value.reference.conformer !== body.conformer ||
       value.notes !== body.notes ||
       value.rating !== body.rating ||
+      value.relation !== body.relation ||
+      (parent && value.family_id !== parent.family_id) ||
       (parent && value.reference.sha256 !== parent.reference.sha256)
     )
       throw new Error(
         "The saved version does not match the confirmed material. Choose the original material again.",
       );
-    await load();
+    retainSaved(value);
     selectSaved("object:" + value.id, intent);
+    await load();
     return value;
   };
 }

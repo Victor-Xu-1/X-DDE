@@ -40,6 +40,7 @@ export function ResearchWorkspace({
     select,
     selectionIntent,
     selectSaved,
+    retainSaved,
   } = useResearchGraph();
   const graph = sourceGraph ? researchGraphForDisplay(sourceGraph) : null;
   const [query, setQuery] = useState(""),
@@ -76,6 +77,7 @@ export function ResearchWorkspace({
     selectionIntent,
     load,
     selectSaved,
+    retainSaved,
   });
   async function mutate(fn: () => Promise<unknown>, successMessage?: string) {
     if (mutationRunning.current) return;

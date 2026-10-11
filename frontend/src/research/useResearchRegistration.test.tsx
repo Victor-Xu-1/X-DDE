@@ -33,6 +33,39 @@ const saved: ScientificObject = {
 };
 afterEach(() => vi.restoreAllMocks());
 
+it("retains a confirmed saved version before a slow relationship refresh completes", async () => {
+  vi.spyOn(api, "post").mockResolvedValue(saved);
+  let finish!: () => void;
+  const load = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const retain = vi.fn(),
+    select = vi.fn();
+  const { result } = renderHook(() =>
+    useResearchRegistration({
+      notes: "",
+      rating: 0,
+      selectionIntent: () => 3,
+      load,
+      retainSaved: retain,
+      selectSaved: select,
+    }),
+  );
+  let work!: Promise<ScientificObject>;
+  await act(async () => {
+    work = result.current("file", "molecule", parent.label, parent);
+  });
+  expect(retain).toHaveBeenCalledExactlyOnceWith(saved);
+  expect(select).toHaveBeenCalledExactlyOnceWith("object:saved", 3);
+  await act(async () => {
+    finish();
+    await work;
+  });
+});
+
 it("keeps the same immutable registration request after an uncertain response", async () => {
   const post = vi
     .spyOn(api, "post")
@@ -47,6 +80,7 @@ it("keeps the same immutable registration request after an uncertain response", 
       selectionIntent: () => 3,
       load,
       selectSaved: select,
+      retainSaved: vi.fn(),
     }),
   );
   await act(async () => {
@@ -73,6 +107,7 @@ it("does not select or refresh a reply for a different file or version", async (
       selectionIntent: () => 3,
       load,
       selectSaved: select,
+      retainSaved: vi.fn(),
     }),
   );
   await act(async () => {
