@@ -4,6 +4,8 @@ on:
     branches: ["**"]
     paths:
       - "frontend/src/presentation/**"
+      # Research-file classification has exact result/input handoff checks.
+      - "!frontend/src/presentation/research-files*"
       - "frontend/src/integrations/**"
       - "frontend/src/App.tsx"
       - "frontend/src/App.test.tsx"

@@ -35,7 +35,7 @@ export function AssetPicker({
     formats = allowedSuffixes ?? assetFormats[kind],
     accepted = formats.join(",");
   const [recent, setRecent] = useState<Asset | null>(null),
-    [opened, setOpened] = useState(false),
+    [opened, setOpened] = useState(Boolean(value)),
     [showResults, setShowResults] = useState(false);
   const [query, setQuery] = useState(""),
     [search, setSearch] = useState(""),
@@ -50,7 +50,7 @@ export function AssetPicker({
   const history = useReferenceHistory(
     kind,
     formats,
-    showHistory && (opened || Boolean(value)),
+    showHistory && opened && !showResults,
     {
       query: search,
       page,
@@ -112,12 +112,20 @@ export function AssetPicker({
           onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = "";
-            if (file) void upload.upload(file);
+            if (file) {
+              setOpened(false);
+              setShowResults(false);
+              void upload.upload(file);
+            }
           }}
         />
       </label>
-      {!showHistory && value && (
-        <p className="selected-file" role="status">
+      {value && (
+        <p
+          className="selected-file"
+          role={!showHistory ? "status" : undefined}
+          aria-live="polite"
+        >
           {selected.asset?.name ?? (zh ? "正在核对文件…" : "Checking file…")}
         </p>
       )}
@@ -140,33 +148,39 @@ export function AssetPicker({
       {showHistory && (
         <details
           className="historical-files"
-          open={Boolean(value) || opened}
-          onToggle={(event) => setOpened(event.currentTarget.open)}
+          open={opened}
+          onToggle={(event) => {
+            setOpened(event.currentTarget.open);
+            if (!event.currentTarget.open) setShowResults(false);
+          }}
         >
           <summary>{zh ? "历史文件" : "Historical files"}</summary>
-          <AssetHistorySelect
-            language={language}
-            label={label}
-            value={value}
-            data={history.data}
-            selected={selected.asset}
-            loading={upload.busy || history.loading}
-            query={query}
-            page={page}
-            onQuery={setQuery}
-            onPage={setPage}
-            onSelect={(asset) => {
-              setRecent(asset);
-              upload.clearError();
-              onChange(asset?.id ?? "");
-            }}
-          />
-          {history.loading && (
+          {!showResults && (
+            <AssetHistorySelect
+              language={language}
+              label={label}
+              value={value}
+              data={history.data}
+              selected={selected.asset}
+              loading={upload.busy || history.loading}
+              query={query}
+              page={page}
+              onQuery={setQuery}
+              onPage={setPage}
+              onSelect={(asset) => {
+                setShowResults(false);
+                setRecent(asset);
+                upload.clearError();
+                onChange(asset?.id ?? "");
+              }}
+            />
+          )}
+          {!showResults && history.loading && (
             <p role="status">
               {zh ? "正在读取历史文件…" : "Loading historical files…"}
             </p>
           )}
-          {history.error && (
+          {!showResults && history.error && (
             <div className="error-box">
               <p role="alert">
                 {zh
@@ -186,17 +200,27 @@ export function AssetPicker({
             type="button"
             onClick={() => setShowResults((state) => !state)}
           >
-            {zh ? "从已有任务结果中选择" : "Choose from task results"}
+            {showResults
+              ? zh
+                ? "返回历史文件"
+                : "Back to historical files"
+              : zh
+                ? "从已有任务结果中选择"
+                : "Choose from task results"}
           </button>
-          {showResults && (
+          {opened && showResults && (
             <ArtifactPicker
               kind={kind}
               accept={accepted}
               language={language}
+              maxBytes={maxBytes}
+              currentInput={value}
+              onPending={() => onChange("")}
               onSelected={(asset) => {
                 setRecent(asset);
                 onChange(asset.id);
                 setShowResults(false);
+                setOpened(false);
               }}
             />
           )}

@@ -202,6 +202,13 @@ on:
       - "!frontend/src/operations/PropertyForm*"
       # Shared material widgets have exact pagination, identity and native-input checks.
       - "!frontend/src/operations/AssetPicker*"
+      # Result handoff uses the same focused native-input gate.
+      - "!frontend/src/operations/ArtifactPicker*"
+      - "!frontend/src/operations/ResultTaskSelect*"
+      - "!frontend/src/operations/useResultFiles*"
+      - "!frontend/src/operations/useResultReuse*"
+      - "!frontend/src/operations/result-source.css"
+      - "!frontend/src/presentation/research-files*"
       - "!frontend/src/operations/AssetHistorySelect*"
       - "!frontend/src/operations/asset-acceptance*"
       - "!frontend/src/operations/useAssetUpload*"

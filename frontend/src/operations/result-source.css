@@ -1,0 +1,32 @@
+.artifact-picker {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px 0;
+}
+.artifact-picker .questionnaire-choices {
+  margin: 0;
+}
+.artifact-picker .field {
+  margin: 0;
+  min-width: 0;
+}
+.artifact-picker select,
+.artifact-picker input {
+  max-width: 100%;
+  width: 100%;
+}
+.artifact-picker > button {
+  justify-self: start;
+}
+.result-source-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+.result-source-pages span {
+  margin-right: auto;
+}

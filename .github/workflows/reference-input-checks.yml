@@ -8,6 +8,19 @@ on:
       - "frontend/src/diffsbdd/useReferenceSelection*"
       - "frontend/src/diffsbdd/useReferenceHistory*"
       - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/operations/ArtifactPicker*"
+      - "frontend/src/operations/ResultTaskSelect*"
+      - "frontend/src/operations/useResultFiles*"
+      - "frontend/src/operations/useResultReuse*"
+      - "frontend/src/operations/result-source.css"
+      - "frontend/src/api-errors.test.ts"
+      - "frontend/src/api.ts"
+      - "frontend/src/presentation/research-files*"
+      - "src/opendde_workbench/artifacts.py"
+      - "src/opendde_workbench/operation_routes.py"
+      - "src/opendde_workbench/research/outputs.py"
+      - "tests/test_research_assets.py"
+      - "tests/test_result_metadata.py"
       - "frontend/src/operations/AssetHistorySelect*"
       - "frontend/src/operations/asset-acceptance*"
       - "frontend/src/operations/useAssetUpload*"
@@ -30,6 +43,7 @@ on:
       - "tests/test_input_catalog.py"
       - "server_tests/test_material_catalog_browser.py"
       - "server_tests/test_generic_input_browser.py"
+      - "server_tests/test_result_reuse_browser.py"
       - "server_tests/test_reference_input_browser.py"
       - ".github/workflows/reference-input-checks.yml"
 permissions:
@@ -67,12 +81,26 @@ jobs:
           src/research/useSequenceSave.test.tsx src/operations/PropertyForm.test.tsx
           src/operations/CampaignForm.test.tsx src/antibodies/AntibodyNumberForm.test.tsx
           src/humanization/HumanizationForm.test.tsx
+          src/operations/ArtifactPicker.test.tsx src/operations/useResultFiles.test.tsx
+          src/operations/useResultReuse.test.tsx src/api-errors.test.ts
+          src/presentation/research-files.test.tsx
       - name: Actual filtered input catalog, immutable versions and existing research API
         run: >-
-          uv run --locked pytest -q tests/test_input_catalog.py tests/test_research_assets.py
+          uv run --locked pytest -q tests/test_input_catalog.py tests/test_research_assets.py tests/test_result_metadata.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual real STAT6 metadata deadline, file pagination, identity and exact review; no simulation
         run: uv run --locked python -m pytest -x -q server_tests/test_reference_input_browser.py server_tests/test_material_catalog_browser.py server_tests/test_generic_input_browser.py
+      - name: Restore an archived native result for input handoff; never calculate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-result-reuse" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-result-reuse/state" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - name: Bilingual actual result selection, immutable digest and uncertain-response handoff
+        run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python -m pytest -x -q server_tests/test_result_reuse_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -77,6 +77,8 @@ def test_pages_include_history_older_than_one_hundred_and_exclude_only_fixed_exa
     ]
     assert len(identifiers) == len(set(identifiers)) == 125
     assert fixed.id not in identifiers
+    examples = history_page(library, scope="examples")
+    assert examples["total"] == 1 and examples["items"][0]["job"].id == fixed.id
     assert before == [(job.id, job.request, job.status) for job in library.store.list_jobs(200)]
 
 
@@ -121,6 +123,7 @@ def test_actual_read_route_validates_boundaries_and_returns_original_request(lib
             "limit=101",
             "offset=-1",
             "status=unknown",
+            "scope=unknown",
             "project_id=bad",
             "capability=unregistered",
             "q=" + "x" * 181,

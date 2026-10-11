@@ -84,6 +84,12 @@ it("encodes module, exact type, status, project, literal search and pagination",
   expect(params.get("q")).toBe("STAT6 %_ +");
   expect(params.get("offset")).toBe("40");
   expect(params.get("project_id")).toBe("study");
+  expect(params.has("scope")).toBe(false);
+  expect(
+    new URLSearchParams(
+      historyUrl({ ...filter, scope: "examples" }).split("?")[1],
+    ).get("scope"),
+  ).toBe("examples");
   expect(
     new URLSearchParams(
       historyUrl({ ...filter, type: "gnina.score", status: "failed" }).split(

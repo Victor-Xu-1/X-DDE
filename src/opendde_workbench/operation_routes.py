@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, Query
 
-from .artifacts import contained
+from .artifacts import ArtifactMetadata, SourceFileChanged, artifact_metadata, contained
 from .assets import AssetKind
 from .models import Status
 from .native_import import import_document
@@ -31,8 +31,8 @@ def register_operations(app, store, assets, settings, mutation):
             raise HTTPException(409, "Wait for the task to succeed.")
         return settings.state_dir / "jobs" / str(job_id)
 
-    def preserve_file(job_id, file, kind):
-        return output_catalog.preserve(job_id, file, kind)[0]
+    def preserve_file(job_id, file, kind, expected_sha256=None):
+        return output_catalog.preserve(job_id, file, kind, expected_sha256=expected_sha256)[0]
 
     @app.get("/api/research/indexing")
     def indexing():
@@ -221,16 +221,35 @@ def register_operations(app, store, assets, settings, mutation):
 
     @app.post("/api/jobs/{job_id}/assets", dependencies=[Depends(mutation)], status_code=201)
     def preserve_artifact(
-        job_id: UUID, kind: AssetKind, name: str = Query(min_length=1, max_length=500)
+        job_id: UUID,
+        kind: AssetKind,
+        name: str = Query(min_length=1, max_length=500),
+        expected_sha256: str | None = Query(None, pattern=r"^[a-f0-9]{64}$"),
     ):
         root = completed(job_id)
         try:
             file = contained(root / "output", name)
             if file.stat().st_size > 25 * 1024**2:
                 raise ValueError("Artifact exceeds the25MiB reusable-input limit.")
-            return preserve_file(job_id, file, kind)
+            return preserve_file(job_id, file, kind, expected_sha256)
+        except SourceFileChanged as exc:
+            raise HTTPException(409, str(exc)) from exc
         except (ValueError, FileNotFoundError) as exc:
             raise HTTPException(422, str(exc)) from exc
+
+    @app.get("/api/jobs/{job_id}/artifact-metadata", response_model=ArtifactMetadata)
+    def result_file_metadata(job_id: UUID, name: str = Query(min_length=1, max_length=500)):
+        root = completed(job_id)
+        try:
+            return artifact_metadata(root / "output", name, job_id)
+        except SourceFileChanged as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(404, "The result file is unavailable.") from exc
+        except ValueError as exc:
+            raise HTTPException(
+                422, "Choose a supported original result file up to 25 MiB."
+            ) from exc
 
     @app.post("/api/assets/{asset_id}/import", dependencies=[Depends(mutation)])
     def import_input(asset_id: UUID):

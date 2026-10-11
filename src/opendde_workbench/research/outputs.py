@@ -3,7 +3,7 @@
 import hashlib
 import json
 
-from ..artifacts import contained, list_artifacts
+from ..artifacts import SourceFileChanged, contained, list_artifacts
 from ..store import ConflictError, now
 from .contracts import VersionInput
 from .storage import ScientificStore
@@ -221,6 +221,7 @@ class OutputCatalog:
         receptor_result=None,
         antibody_result=None,
         humanization_result=None,
+        expected_sha256=None,
     ):
         job = self.store.get(str(job_id))
         from ..datasets.contract import DatasetTask
@@ -318,7 +319,12 @@ class OutputCatalog:
         humanization = humanization_result or self.humanization_output(job_id, file)
         if file.stat().st_size > 25 * 1024**2:
             raise ValueError("Artifact exceeds the 25 MiB reusable-input limit.")
-        content = file.read_bytes()
+        with file.open("rb") as stream:
+            content = stream.read(25 * 1024**2 + 1)
+        if len(content) > 25 * 1024**2:
+            raise SourceFileChanged("The source result grew beyond the reusable-input limit.")
+        if expected_sha256 is not None and hashlib.sha256(content).hexdigest() != expected_sha256:
+            raise SourceFileChanged("The source result changed. Choose the original file again.")
         if (
             minimized
             and file.suffix.lower() == ".sdf"

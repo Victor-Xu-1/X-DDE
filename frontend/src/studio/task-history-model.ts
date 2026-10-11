@@ -25,6 +25,7 @@ export interface TaskHistoryPage {
   limit: number;
 }
 export interface HistoryFilter {
+  scope?: "research" | "examples";
   module: HistoryModule | null;
   type: string;
   status: Status | "all";
@@ -107,6 +108,7 @@ export function historyUrl(filter: HistoryFilter) {
     offset: String(filter.page * historyPageSize),
   });
   if (filter.project) params.set("project_id", filter.project);
+  if (filter.scope === "examples") params.set("scope", "examples");
   if (filter.status !== "all") params.set("status", filter.status);
   if (filter.query.trim()) params.set("q", filter.query.trim());
   if (filter.type !== "all") params.append("capability", filter.type);

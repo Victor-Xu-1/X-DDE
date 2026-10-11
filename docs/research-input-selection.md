@@ -4,6 +4,14 @@ The shared structure/molecule picker keeps new upload as its blank-task default.
 
 共用结构/分子选择器在空白任务中默认上传新文件。历史文件包含原始上传材料和明确保存的分子/结构记录；读取列表不会创建任务或修改文件。
 
+Task-result inputs use the same file and scientific-version authority. **Research tasks** is the default source; **Example results** is a separate explicit choice. Completed tasks are searched on the server and paginated in groups of 20, so sources older than the first hundred remain accessible. Only the active source selector is shown. A successful handoff closes the selector and retains the confirmed filename.
+
+任务结果沿用同一文件与科学版本权威。“研究任务”为默认来源，“示例结果”需要明确选择。已完成任务按名称或编号在服务器查询，每页 20 项，前一百项以外的来源仍可找到。一次只显示一种来源选择器；成功交接后收起选择区并保留确认的文件名。
+
+Before saving a result as input, the client verifies its source task, relative filename, size and SHA-256. The server checks the expected digest again before writing, rejects changed bytes, and retains its existing per-engine scientific eligibility checks. Replacement clears the previous input immediately. Lost replies retry the same verified source and request key; switching source, replacing input or leaving the picker cancels outstanding work. Late or timed-out replies cannot restore an abandoned selection. Unsupported, empty, oversized and internal engineering files do not become input choices. Existing originals and source-task lineage remain unchanged.
+
+结果保存为输入前，前端核对来源任务、相对文件名、大小及 SHA-256；服务器在写入前再次核对期望校验值，拒绝变化的字节，并保留各引擎原有的科学资格校验。开始替换时立即清除旧输入。回复丢失后重试仍使用同一核实来源与请求标识；切换来源、替换材料或离开选择器会取消进行中的请求，迟到或超时回复不能恢复放弃的选择。不支持、空白、过大及内部工程文件不进入材料选项；原始文件及来源任务关系保持不变。
+
 Ordinary file and FASTA inputs use the same server-filtered catalogue, including configuration, MSA, templates and measurements. Sequence history retains exact saved references, rejects files exceeding 2 MiB, and cancels superseded metadata checks. Pasted sequences are saved only through **Confirm sequences**; an uncertain response can be retried with the same confirmed upload and idempotent version request. Leaving or editing the input cannot apply a late save reply. Large screening/DEL datasets continue to use their existing resumable uploader.
 
 普通文件与 FASTA 共用按名称、类型和格式分页的目录，覆盖配置、MSA、模板和实验测量文件。序列历史保留准确的保存记录，拒绝超过 2 MiB 的文件，并取消被替换的详情读取。粘贴内容只在点击“确认序列”后保存；回复不确定时重试仍沿用同一上传文件和幂等保存请求。离开或编辑输入后，迟到的保存回复不会写回当前选择。筛选/DEL 大数据仍使用已有的断点续传入口。
@@ -23,3 +31,7 @@ Whole SDF collections and individual molecular records have different input cont
 The focused `reference-input-checks.yml` gate covers the shared picker and directly connected questionnaires. Native Chromium checks use unchanged STAT6 9BIG and 4Y5U structures, hold a metadata reply to exercise the real deadline, test a mismatched saved-reference hash, and verify the actual review filename and original download bytes. No simulation or new owner scientific task is performed. Metadata acceptance does not establish force-field compatibility, pose correctness or scientific accuracy.
 
 专项检查覆盖共用选择器及直接相关问卷。Chromium 使用原样保留的 STAT6 9BIG、4Y5U 结构，暂缓文件回复验证真实超时，检查保存记录的校验值不一致，并核对实际确认页文件名和原始下载字节。不运行模拟或新增本机科学任务；材料身份核对不代表力场兼容、姿势正确性或科学准确性已经通过。
+
+The additional result-handoff browser check uses a checksum-verified, retained native docking output in isolated CI state. It adds 125 controlled metadata-only history rows to exercise older-source paging, deliberately loses an actual registration reply, and verifies that retry creates no additional asset/version, preserves original bytes and submits no scientific job. These metadata rows are transport fixtures, not research examples.
+
+结果交接的额外浏览器检查在独立 CI 中使用校验通过的历史原生对接输出。增加 125 条仅含元数据的受控历史记录来验证旧任务分页，故意丢失真实保存请求的回复，再核对重试不增加文件/版本、原始字节不变及没有递交科学任务。这些元数据记录仅用于交互测试，不是科研案例。

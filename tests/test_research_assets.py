@@ -1,5 +1,6 @@
 """Real SQLite, immutable files, CSRF and persisted task lineage; no chemical inference."""
 
+import hashlib
 from uuid import uuid4
 
 from conftest import ProcessEngine, wait_status
@@ -116,6 +117,61 @@ def test_preserving_result_registers_source_task_in_same_asset_authority(client_
         assert len(client.get("/api/research/objects").json()) == 1
         assert client.post(f"/api/jobs/{job['id']}/index-assets").json()["state"] == "complete"
         assert len(client.get("/api/research/objects").json()) == 1
+
+
+def test_result_metadata_and_expected_digest_keep_registration_exact(client_factory):
+    with client_factory() as client:
+        job = submit(client).json()
+        wait_status(client, job["id"], {"succeeded"})
+        prefix = f"/api/jobs/{job['id']}"
+        metadata = client.get(prefix + "/artifact-metadata", params={"name": "result.cif"})
+        assert metadata.status_code == 200
+        value = metadata.json()
+        content = client.get(prefix + "/download", params={"name": "result.cif"}).content
+        assert value == {
+            "job_id": job["id"],
+            "name": "result.cif",
+            "size": len(content),
+            "sha256": hashlib.sha256(content).hexdigest(),
+        }
+        before = client.get("/api/assets").json()
+        rejected = client.post(
+            prefix + "/assets",
+            params={"kind": "structure", "name": "result.cif", "expected_sha256": "0" * 64},
+        )
+        assert rejected.status_code == 409
+        assert client.get("/api/assets").json() == before
+        accepted = client.post(
+            prefix + "/assets",
+            params={"kind": "structure", "name": "result.cif", "expected_sha256": value["sha256"]},
+        )
+        assert accepted.status_code == 201 and accepted.json()["sha256"] == value["sha256"]
+        assert (
+            client.post(
+                prefix + "/assets",
+                params={
+                    "kind": "structure",
+                    "name": "result.cif",
+                    "expected_sha256": value["sha256"],
+                },
+            ).json()
+            == accepted.json()
+        )
+        assert (
+            client.get(prefix + "/artifact-metadata", params={"name": "../private"}).status_code
+            == 422
+        )
+        assert (
+            client.get(prefix + "/artifact-metadata", params={"name": "missing.cif"}).status_code
+            == 404
+        )
+        assert (
+            client.post(
+                prefix + "/assets",
+                params={"kind": "structure", "name": "result.cif", "expected_sha256": "invalid"},
+            ).status_code
+            == 422
+        )
 
 
 def test_output_indexing_keeps_partial_failure_visible_and_can_retry(client_factory):

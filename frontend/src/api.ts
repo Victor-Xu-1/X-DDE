@@ -7,6 +7,14 @@ import type {
 } from "./operations/types";
 
 let csrf = "";
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
 export async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -20,7 +28,8 @@ export async function request<T>(
   });
   if (!response.ok) {
     const detail = payload.detail;
-    throw new Error(
+    throw new ApiError(
+      response.status,
       Array.isArray(detail)
         ? detail.map((item: { msg: string }) => item.msg).join("\n")
         : String(detail ?? response.status),

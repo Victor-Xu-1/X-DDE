@@ -1,6 +1,6 @@
 """A paginated presentation of task history; no submission or lifecycle changes."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import HTTPException, Query
@@ -38,6 +38,7 @@ def register_task_history(app, library):
         q: str = Query("", max_length=180),
         offset: int = Query(0, ge=0, le=1000000),
         limit: int = Query(20, ge=1, le=100),
+        scope: Literal["research", "examples"] = "research",
     ):
         identifiers = tuple(dict.fromkeys(capability or ()))
         registered = {rule["id"] for rule in task_kind_rules()} | {"other"}
@@ -51,4 +52,5 @@ def register_task_history(app, library):
             query=q,
             offset=offset,
             limit=limit,
+            scope=scope,
         )

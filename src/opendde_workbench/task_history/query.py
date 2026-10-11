@@ -4,13 +4,22 @@ from .kinds import classification_sql
 
 
 def history_page(
-    library, *, capabilities=(), project_id=None, status=None, query="", offset=0, limit=20
+    library,
+    *,
+    capabilities=(),
+    project_id=None,
+    status=None,
+    query="",
+    offset=0,
+    limit=20,
+    scope="research",
 ):
     library.synchronize()
     classification, parameters = classification_sql()
     sql = (
         f"WITH history AS (SELECT j.*, {classification} AS capability_id FROM jobs j "
-        "WHERE NOT EXISTS (SELECT 1 FROM example_library_tasks e WHERE e.job_id=j.id)"
+        f"WHERE {'EXISTS' if scope == 'examples' else 'NOT EXISTS'} "
+        "(SELECT 1 FROM example_library_tasks e WHERE e.job_id=j.id)"
     )
     if project_id:
         sql += " AND json_extract(j.request, '$.project_id') = ?"

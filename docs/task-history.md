@@ -16,4 +16,8 @@ The read-only `/api/task-history` endpoint queries the existing SQLite authority
 
 只读接口沿用现有 SQLite 数据权威，默认每页 20 项，返回所选项目的分类计数及筛选后的总数。搜索按文字匹配，使用绑定参数；按创建时间和唯一标识稳定分页，计数及结果采用同一读取快照。不增加平行任务库、队列、结果格式或数据迁移。前端取消过期请求，每次读取限时 30 秒，提供明确的重连入口及空状态；前 100 项之外的历史任务也可直接查询。
 
+The optional `scope=examples` query is used only when a researcher explicitly chooses an example result as input. The default `research` scope continues to exclude fixed example tasks. Both scopes use the same stable filtering and paging; changing result sources never adds examples to personal task history.
+
+仅在用户明确选择示例结果作为材料时使用可选的 `scope=examples` 查询。默认 `research` 范围仍排除固定案例任务。两种范围共用稳定的筛选与分页；切换材料来源不会把案例加入个人任务历史。
+
 `task-history-checks.yml` checks the request classification, personal/example boundary, immutable requests, older history, literal search, deterministic pagination, project filters and stale response rejection. Native Chromium checks cover English desktop and Chinese mobile, module navigation, failures/reconnection, task links, and unchanged archived pocket outputs. Cancelled transport fixtures exercise large histories; they are not scientific examples or calculated results. No owner scientific calculation is performed.

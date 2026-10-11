@@ -29,7 +29,10 @@ const internalName =
 export function isResearchFile(name: string) {
   const base = name.replaceAll("\\", "/").split("/").at(-1) ?? "";
   const extension = base.split(".").at(-1)?.toLowerCase() ?? "";
-  return researchExtensions.has(extension) && !internalName.test(base);
+  return researchExtensions.has(extension) && !isInternalResearchFile(name);
+}
+export function isInternalResearchFile(name: string) {
+  return internalName.test(name.replaceAll("\\", "/").split("/").at(-1) ?? "");
 }
 export function researchFileLabel(name: string, zh: boolean) {
   const base = name.replaceAll("\\", "/").split("/").at(-1) ?? name,
