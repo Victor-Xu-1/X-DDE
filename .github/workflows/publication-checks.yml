@@ -65,6 +65,7 @@ on:
       - "!tests/test_stat6_guidance.py"
       - "!.github/workflows/publication-checks.yml"
       - "!.github/workflows/stat6-template-checks.yml"
+      - "!.github/workflows/examples-checks.yml"
   pull_request:
     paths: *figure_paths
 permissions:
