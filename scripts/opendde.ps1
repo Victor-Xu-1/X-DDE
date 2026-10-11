@@ -28,10 +28,12 @@ try {
             throw 'At least 2 GiB free disk space is required before starting X-DDE. Free space on the storage drive and retry.'
         }
     }
-    $windowsTemp = Join-Path $windowsRoot 'tmp'
-    New-Item -ItemType Directory -Path $windowsTemp -Force | Out-Null
-    $env:TEMP = $windowsTemp
-    $env:TMP = $windowsTemp
+    if (-not $readControl) {
+        $windowsTemp = Join-Path $windowsRoot 'tmp'
+        New-Item -ItemType Directory -Path $windowsTemp -Force | Out-Null
+        $env:TEMP = $windowsTemp
+        $env:TMP = $windowsTemp
+    }
     $open = $launch -and '--no-browser' -notin $arguments
     if ($launch -and '--no-browser' -notin $arguments) { $arguments += '--no-browser' }
     $output = & wsl.exe -d $config.distribution -u $config.user -- env "WB_HOME=$($config.home)" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin" "$($config.prefix)/bin/xdde" @arguments
