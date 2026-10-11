@@ -44,6 +44,7 @@ it.each([
   [{ operation: "del_analyze" }, "del.analyze", "del"],
   [{ operation: "ternary_model" }, "deepternary.model", "proximity"],
   [{ operation: "unrecognized" }, "other", "other"],
+  [{ operation: "molecule_minimize" }, "pose.minimize", "molecules"],
 ])(
   "classifies the actual request without inferring from its name: %s",
   (request, kind, module) => {

@@ -17,6 +17,11 @@ def task_kind_rules() -> list[dict]:
             field = DISCRIMINATORS.get(operation)
             value = spec.native_tool if operation == "harness" else spec.native_mode
             rules.append({"id": spec.id, "operation": operation, "field": field, "value": value})
+    # Saved-pose optimization is a typed task created inside the molecular viewer,
+    # without a separate capability card. Its history still needs a meaningful type.
+    rules.append(
+        {"id": "pose.minimize", "operation": "molecule_minimize", "field": None, "value": None}
+    )
     return rules
 
 

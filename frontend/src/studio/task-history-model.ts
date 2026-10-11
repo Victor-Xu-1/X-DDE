@@ -28,6 +28,7 @@ const internalModules: Record<string, ModuleId> = {
   "diffsbdd.identity": "molecules",
   "diffsbdd.edit": "molecules",
   "pose.cluster": "binding",
+  "pose.minimize": "molecules",
 };
 export function moduleForKind(kind: string): HistoryModule {
   return moduleForTool(kind as ToolId)?.id ?? internalModules[kind] ?? "other";
@@ -67,6 +68,7 @@ const hiddenLabels: Record<string, readonly [string, string]> = {
   "diffsbdd.identity": ["分子身份检查", "Molecule identity inspection"],
   "diffsbdd.edit": ["分子编辑校验", "Molecule edit validation"],
   "pose.cluster": ["结合姿势聚类", "Binding-pose clustering"],
+  "pose.minimize": ["分子能量最小化", "Molecule energy minimization"],
   other: ["其他任务", "Additional tasks"],
 };
 export function historyKindLabel(kind: string, language: Language) {

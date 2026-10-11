@@ -45,6 +45,7 @@ def library(tmp_path):
         ({"operation": "ternary_model"}, "deepternary.model"),
         ({"operation": "del_analyze"}, "del.analyze"),
         ({"operation": "screening_dock"}, "screening.dock"),
+        ({"operation": "molecule_minimize"}, "pose.minimize"),
         ({"operation": "future_method"}, "other"),
     ],
 )

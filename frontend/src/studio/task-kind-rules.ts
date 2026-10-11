@@ -462,4 +462,10 @@ export const taskKindRules = [
     field: null,
     value: null,
   },
+  {
+    id: "pose.minimize",
+    operation: "molecule_minimize",
+    field: null,
+    value: null,
+  },
 ] as const;

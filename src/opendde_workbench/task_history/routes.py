@@ -6,8 +6,8 @@ from uuid import UUID
 from fastapi import HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..capabilities.definitions import CAPABILITIES
 from ..models import Job, Status
+from .kinds import task_kind_rules
 from .query import history_page
 
 
@@ -40,7 +40,8 @@ def register_task_history(app, library):
         limit: int = Query(20, ge=1, le=100),
     ):
         identifiers = tuple(dict.fromkeys(capability or ()))
-        if any(value not in CAPABILITIES and value != "other" for value in identifiers):
+        registered = {rule["id"] for rule in task_kind_rules()} | {"other"}
+        if any(value not in registered for value in identifiers):
             raise HTTPException(422, "Unknown task type. Refresh the workbench and try again.")
         return history_page(
             library,
