@@ -119,6 +119,9 @@ def test_old_native_result_becomes_exact_input_once_and_no_other_job_is_created(
             pages.get_by_role("button", name="下一页" if zh else "Next page", exact=True).click()
             expect(pages).to_contain_text(str((i + 1) * 20 + 1))
         task.select_option(source.id)
+        expect(
+            form.get_by_role("button", name="下一步" if zh else "Next", exact=True)
+        ).to_be_disabled()
         files = result.get_by_role("combobox", name="结果文件" if zh else "Result file", exact=True)
         files.select_option(selected_name)
         page.screenshot(path=evidence / "older-native-source.png")

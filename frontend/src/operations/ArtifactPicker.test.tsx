@@ -132,12 +132,14 @@ it("invalidates the previous input immediately and registers only the exact conf
   const input = screen.getByRole("combobox", { name: "Source task" });
   await waitFor(() => expect(input).toContainHTML('value="source-0"'));
   await user.selectOptions(input, "source-0");
+  expect(pending).toHaveBeenCalledOnce();
+  expect(registered).not.toHaveBeenCalled();
   const files = await screen.findByRole("combobox", { name: "Result file" });
   await waitFor(() => expect(files).toContainHTML("STAT6.sdf"));
   await user.selectOptions(files, asset.name);
   await user.click(screen.getByRole("button", { name: "Use this result" }));
   await waitFor(() => expect(selected).toHaveBeenCalledExactlyOnceWith(asset));
-  expect(pending).toHaveBeenCalledOnce();
+  expect(pending).toHaveBeenCalled();
   expect(registered.mock.calls[0][0]).toContain(
     "expected_sha256=" + asset.sha256,
   );

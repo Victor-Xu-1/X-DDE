@@ -75,6 +75,7 @@ export function ArtifactPicker({
   }, [kind, accept, maxBytes]);
   function choose(job: Job | null) {
     save.cancel();
+    onPending?.();
     setName("");
     setSelected(job);
   }
@@ -154,6 +155,7 @@ export function ArtifactPicker({
               disabled={outputs.loading}
               onChange={(event) => {
                 save.cancel();
+                onPending?.();
                 setName(event.target.value);
               }}
             >

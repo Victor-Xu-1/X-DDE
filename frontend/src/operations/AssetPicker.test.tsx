@@ -207,6 +207,9 @@ it("shows one history source and clears the old input until a result is confirme
   const tasks = screen.getByRole("combobox", { name: "Source task" });
   await waitFor(() => expect(tasks).toBeEnabled());
   await user.selectOptions(tasks, source.id);
+  expect(
+    screen.getByRole("button", { name: "Continue with selected material" }),
+  ).toBeDisabled();
   const files = screen.getByRole("combobox", { name: "Result file" });
   await waitFor(() => expect(files).toBeEnabled());
   await user.selectOptions(files, next.name);
