@@ -55,7 +55,7 @@ jobs:
       - name: Real channel geometry, downloads, module case and fresh questionnaire submission
         env:
           WB_CHANNEL_CASE: ${{ runner.temp }}/caver-native/platform
-        run: uv run --locked pytest -q server_tests/test_channel_browser.py
+        run: uv run --locked python -m pytest -q server_tests/test_channel_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

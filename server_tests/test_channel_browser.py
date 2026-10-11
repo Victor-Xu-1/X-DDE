@@ -11,6 +11,8 @@ from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.publication_browser_helpers import export_figure
+
 
 def screenshot(page, *, path, full_page):
     page.evaluate("window.scrollTo(0,0)")
@@ -53,6 +55,7 @@ def test_native_channels_and_fresh_submission():
             with sync_playwright() as driver:
                 browser = driver.chromium.launch()
                 page = browser.new_page(viewport={"width": 1440, "height": 1000})
+                page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
                 errors, submitted = [], []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.on(
@@ -95,10 +98,17 @@ def test_native_channels_and_fresh_submission():
                     "sample_polyline_distance_angstrom"
                     in (output / "downloaded-channel-points.csv").read_text()
                 )
-                with page.expect_download() as download:
-                    view.get_by_role("button", name="下载图表", exact=True).click()
-                download.value.save_as(output / "downloaded-channel-profile.svg")
-                assert "<svg" in (output / "downloaded-channel-profile.svg").read_text()
+                profile = export_figure(
+                    page,
+                    view.locator(".channel-profile").get_by_role(
+                        "button", name="文献图导出 ↓", exact=True
+                    ),
+                    output,
+                    "downloaded-channel-profile",
+                    "zh",
+                    format="SVG",
+                )
+                assert "<svg" in profile.read_text()
                 capture.click()
                 image = page.get_by_role("img", name="当前三维视图图片", exact=True)
                 expect(image).to_be_visible(timeout=10000)
@@ -125,17 +135,27 @@ def test_native_channels_and_fresh_submission():
                 )
                 expect(page.get_by_role("radio", name="上传新文件", exact=True)).to_be_checked()
                 expect(page.get_by_role("button", name="下一步", exact=True)).to_be_disabled()
-                page.get_by_role("button", name="示例结果", exact=True).click()
-                expect(page.locator(".module-template .channel-results")).to_be_visible(
-                    timeout=30000
+                # Upload the unchanged experimental source as a new task input.
+                # The active STAT6 template must never stand in for this AChE case.
+                native_request = page.request.get(url + "/api/jobs/" + accepted["job_id"]).json()[
+                    "request"
+                ]
+                source_id = native_request["structure"]["asset_id"]
+                original_source = page.request.get(url + "/api/assets/" + source_id).body()
+                source_file = output / "AChE-native-channel-source.pdb"
+                source_file.write_bytes(original_source)
+                page.get_by_label("上传 蛋白与结合部位结构", exact=True).set_input_files(
+                    source_file
                 )
-                expect(page.locator(".questionnaire:visible")).to_have_count(0)
-                screenshot(page, path=output / "fixed-channel-module.png", full_page=True)
-                page.get_by_role("button", name="使用此模板", exact=True).click()
                 expect(page.get_by_role("button", name="下一步", exact=True)).to_be_enabled()
                 for step in range(3):
                     expect(page.locator(".questionnaire>fieldset:visible")).to_have_count(1)
                     if step == 1:
+                        choice = page.get_by_role("combobox", name="选择配体或残基", exact=True)
+                        expect(
+                            choice.get_by_role("option", name="A:E20 604", exact=True)
+                        ).to_have_count(1, timeout=30000)
+                        choice.select_option(label="A:E20 604")
                         expect(
                             page.get_by_role("button", name="移除 A:E20 604", exact=True)
                         ).to_be_visible()
