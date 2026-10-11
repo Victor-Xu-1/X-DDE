@@ -135,6 +135,10 @@ it("recovers from a loading failure and saves annotations as a separate version"
     parent_id: original.id,
     notes: "promising",
     rating: 4,
+    reference: {
+      ...original.reference,
+      version_id: "22222222-2222-4222-8222-222222222222",
+    },
   };
   const post = vi.spyOn(client.api, "post").mockImplementation(async () => {
     current = graph([updated, original]);
@@ -179,10 +183,6 @@ it("recovers from a loading failure and saves annotations as a separate version"
     label: "reviewed",
     notes: "promising",
     rating: 4,
-    reference: {
-      ...original.reference,
-      version_id: "22222222-2222-4222-8222-222222222222",
-    },
   });
   expect(
     await screen.findByRole("heading", { name: "reviewed" }),
@@ -196,12 +196,45 @@ it("recovers from a loading failure and saves annotations as a separate version"
 });
 
 it("passes the selected record and version to a property task", async () => {
+  const asset = {
+    id: "file",
+    kind: "ligand",
+    name: "library.sdf",
+    suffix: ".sdf",
+    size: 100,
+    sha256: original.reference.sha256,
+    created_at: "2026-10-11",
+  };
+  const choice = {
+    key: "file:file",
+    origin: "upload",
+    label: asset.name,
+    created_at: asset.created_at,
+    asset,
+    reference: {
+      asset_id: "file",
+      sha256: asset.sha256,
+      record: 0,
+      conformer: 0,
+    },
+    version: null,
+  };
   vi.spyOn(client, "request").mockImplementation(async (path) =>
     path.startsWith("/capabilities/")
       ? ({ availability: { configuration_present: true } } as never)
       : path === "/research/indexing"
         ? ([] as never)
-        : (graph() as never),
+        : path.startsWith("/research/input-catalog?")
+          ? ({
+              items: [choice],
+              selected: choice,
+              total: 1,
+              offset: 0,
+              limit: 25,
+            } as never)
+          : path === "/assets/file/metadata"
+            ? (asset as never)
+            : (graph() as never),
   );
   vi.spyOn(client.api, "assets").mockResolvedValue([
     { id: "file", kind: "ligand", name: "library.sdf" },
