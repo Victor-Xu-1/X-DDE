@@ -74,7 +74,7 @@ def test_paged_mol_input_and_verified_whole_library(tmp_path, language, width):
         pages = ligand.get_by_role(
             "navigation", name="历史材料分页" if zh else "Historical input pages", exact=True
         )
-        pages.get_by_role("button", name="下一页" if zh else "Next", exact=True).click()
+        pages.get_by_role("button", name="下一页" if zh else "Next page", exact=True).click()
         picker.select_option("file:" + mol.id)
         expect(ligand.get_by_role("spinbutton")).to_have_count(0)
         search = ligand.get_by_role(

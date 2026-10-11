@@ -43,7 +43,7 @@ export function HistoryFileControls({
             disabled={loading || page === 0}
             onClick={() => onPage(page - 1)}
           >
-            {zh ? "上一页" : "Previous"}
+            {zh ? "上一页" : "Previous page"}
           </button>
           <button
             type="button"
@@ -51,7 +51,7 @@ export function HistoryFileControls({
             disabled={loading || data.offset + data.limit >= data.total}
             onClick={() => onPage(page + 1)}
           >
-            {zh ? "下一页" : "Next"}
+            {zh ? "下一页" : "Next page"}
           </button>
         </nav>
       )}
