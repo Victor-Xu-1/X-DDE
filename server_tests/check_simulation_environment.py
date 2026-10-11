@@ -20,10 +20,13 @@ def interfaces(program):
                 "-c",
                 "import json,pathlib,openfe,openmm,pdbfixer; "
                 "from openfe.protocols.openmm_rfe import RelativeHybridTopologyProtocol; "
-                "assert openfe.__version__=='1.12.0'; assert openmm.__version__=='8.4.0'; "
+                "print('Native versions:',openfe.__version__,openmm.__version__,flush=True); "
+                "assert openfe.__version__=='1.12.0',repr(openfe.__version__); "
+                "assert openmm.__version__=='8.4.0',repr(openmm.__version__); "
                 "metadata=[json.loads(p.read_text()) for p in "
                 "pathlib.Path('/opt/conda/conda-meta').glob('cuda-version-*.json')]; "
-                "assert len(metadata)==1 and metadata[0]['version'].startswith('12.9'); "
+                "print('CUDA metadata:',metadata,flush=True); "
+                "assert len(metadata)==1 and metadata[0]['version'].startswith('12.9'),metadata; "
                 "protocol=RelativeHybridTopologyProtocol.default_settings(); "
                 "RelativeHybridTopologyProtocol(protocol); "
                 "print(openfe.__version__,openmm.__version__,metadata[0]['version'])",
