@@ -33,14 +33,15 @@ const reference = {
   record: 0,
   conformer: 0,
 };
+const protein = { ...reference, asset_id: "protein" };
 const task: ScientificTask = {
   operation: "binding_free_energy",
   name: "STAT6 series",
   inputs: [
-    { role: "structure", source: reference },
+    { role: "structure", source: protein },
     { role: "library", source: reference },
   ],
-  scientific_inputs: [reference],
+  scientific_inputs: [protein, reference],
   payload: {
     ...simulationDefaults.freeEnergy,
     records: [0, 1],
@@ -54,9 +55,13 @@ it("restored FEP is blocked until its actual records load; retry preserves the e
   vi.mocked(request).mockImplementation(async (path) =>
     path.endsWith("metadata")
       ? {
-          id: reference.asset_id,
+          id: path.includes("/protein/")
+            ? protein.asset_id
+            : reference.asset_id,
           sha256: reference.sha256,
-          name: "STAT6-series.sdf",
+          name: path.includes("/protein/")
+            ? "STAT6-receptor.pdb"
+            : "STAT6-series.sdf",
         }
       : { availability: { configuration_present: true } },
   );
