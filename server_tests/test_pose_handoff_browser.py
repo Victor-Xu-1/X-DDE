@@ -148,8 +148,11 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
             captured = []
 
             def capture_submission(route):
-                captured.append(route.request.post_data_json)
-                route.abort("failed")
+                if route.request.method == "POST":
+                    captured.append(route.request.post_data_json)
+                    route.abort("failed")
+                else:
+                    route.continue_()
 
             page.route("**/api/jobs", capture_submission)
             questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
