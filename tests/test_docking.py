@@ -210,6 +210,7 @@ def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
         "docking/bounds.py",
         "docking/options.py",
         "docking/manifest.py",
+        "docking/receptor_input.py",
         "scientific_objects.py",
     }
     (source / "bounds.py").write_text("Changed verifier after capture")
