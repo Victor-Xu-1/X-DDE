@@ -113,13 +113,15 @@ def main():
                 tag,
                 *arguments[1:],
             ],
-            check=True,
+            check=False,
             capture_output=True,
             text=True,
             timeout=120,
         )
         text = result.stdout + result.stderr
         (evidence / f"interface-{index}.txt").write_text(text, encoding="utf-8")
+        if result.returncode:
+            raise RuntimeError("Native interface qualification failed: " + text[-8000:])
         if program == "gromacs" and index == 0 and ("2026.3" not in text or "CUDA" not in text):
             raise ValueError("The native GROMACS build differs from its reviewed CUDA interface.")
     image = subprocess.check_output(
