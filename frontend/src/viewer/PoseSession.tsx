@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { posePlan, type PoseFrame } from "./pose-plan";
 import { usePoseOptimization } from "./usePoseOptimization";
 
@@ -6,6 +6,8 @@ export type PoseController = ReturnType<typeof usePoseOptimization>;
 interface Workspace {
   plan: ReturnType<typeof posePlan>;
   controller: PoseController;
+  inputMode: "displayed" | "original";
+  chooseInput(mode: "displayed" | "original"): void;
 }
 const PoseContext = createContext<Workspace | null>(null);
 export const usePoseSession = () => useContext(PoseContext);
@@ -31,8 +33,20 @@ function OwnedPoseSession({
   children: ReactNode;
 }) {
   const controller = usePoseOptimization(plan.base, plan.index);
+  const [choice, setChoice] = useState({
+    key: plan.key,
+    mode: "displayed" as "displayed" | "original",
+  });
+  const inputMode = choice.key === plan.key ? choice.mode : "displayed";
   return (
-    <PoseContext.Provider value={{ plan, controller }}>
+    <PoseContext.Provider
+      value={{
+        plan,
+        controller,
+        inputMode,
+        chooseInput: (mode) => setChoice({ key: plan.key, mode }),
+      }}
+    >
       {children}
     </PoseContext.Provider>
   );

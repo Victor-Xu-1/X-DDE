@@ -40,7 +40,8 @@ export function PoseStudyInput({
     key,
     mode: "displayed" as "displayed" | "original",
   });
-  const mode = choice.key === key ? choice.mode : "displayed";
+  const mode =
+    workspace?.inputMode ?? (choice.key === key ? choice.mode : "displayed");
   const waiting =
     !!workspace &&
     (workspace.controller.busy ||
@@ -74,7 +75,10 @@ export function PoseStudyInput({
                 name={"pose-input-" + key}
                 value={value}
                 checked={mode === value}
-                onChange={() => setChoice({ key, mode: value })}
+                onChange={() => {
+                  if (workspace) workspace.chooseInput(value);
+                  else setChoice({ key, mode: value });
+                }}
               />
               <span>
                 {value === "displayed"

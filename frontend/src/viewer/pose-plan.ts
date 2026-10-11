@@ -26,7 +26,10 @@ export function posePlan(frame: PoseFrame): {
     records[index] = frame.molecularSource.record;
   const base: PreviewPose = {
     urls: frame.urls,
-    records,
+    records:
+      frame.records || frame.molecularSource?.record !== undefined
+        ? records
+        : undefined,
     score: frame.nativeScore,
     source:
       !frame.comparison && index >= 0
