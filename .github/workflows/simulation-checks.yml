@@ -45,6 +45,8 @@ on:
       - "!frontend/src/simulations/SimulationForm*"
       - "!frontend/src/simulations/SimulationFepForm*"
       - "!frontend/src/simulations/FepLigandSelection*"
+      - "!frontend/src/simulations/FepRecordIdentity*"
+      - "!frontend/src/simulations/FepMoleculeReview*"
       - "!frontend/src/simulations/fep-series*"
       - "!frontend/src/simulations/useFepSeries*"
       - "!frontend/src/simulations/SimulationConditions.tsx"

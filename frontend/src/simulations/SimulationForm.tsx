@@ -294,6 +294,7 @@ export function SimulationForm({
               fep={fep}
               payload={payload}
               inputs={inputs}
+              molecules={series.records}
               options={options}
               name={name}
               setName={setName}

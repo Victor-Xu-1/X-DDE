@@ -40,6 +40,9 @@ it.each(["en", "zh"] as const)(
     const user = userEvent.setup();
     render(<Selection language={language} />);
     expect(screen.getAllByRole("img")).toHaveLength(12);
+    expect(
+      screen.getByText(language === "en" ? "Record 1" : "原始序号 1"),
+    ).toBeVisible();
     await user.click(
       screen.getByRole("checkbox", { name: "STAT6 member 1 · 1" }),
     );

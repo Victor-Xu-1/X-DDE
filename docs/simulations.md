@@ -49,6 +49,10 @@ Binding focus retains its native position, target and zoom while using the compl
 
 ## Backend responsibilities / 后端工具职责
 
+The selection page and final review display each molecule's unchanged source title, original one-based record number and native Ketcher drawing. Confirmation follows the submitted record order and includes only the selected molecules; it does not construct a new file or change coordinates. Selection-page navigation appears after the molecular cards and pagination, without covering the last row. The STAT6 MD/FEP step tips follow the actual input, plan/selection, conditions and confirmation pages.
+
+选择页与确认页显示每个分子的原始名称、从 1 开始的原始文件序号及 Ketcher 二维结构。确认顺序与递交记录一致，只展示本次所选分子，不创建新文件或改动坐标。翻页与下一步按钮排在分子列表之后，不遮挡最后一行。STAT6 的动力学/FEP 提示分别对应真实的材料、方案/分子选择、模拟条件与确认步骤。
+
 FEP molecular selection verifies the retained SDF metadata and SHA-256 bytes before enabling the next step. Reads have a 15-second deadline with an explicit retry; at most 25 MiB and 500 original records are inspected. Search and twelve-item pages preserve original record indices and selections across pages. Restored selections are blocked if records are missing, duplicated or out of range. Drawings use the existing native Ketcher service; this input inspection does not validate force-field support, bound-pose chemistry or scientific convergence.
 
 FEP 分子选择在启用下一步前核对原始 SDF 的元数据与 SHA-256 文件身份；读取限时 15 秒，失败可明确重试，最多检查 25 MiB、500 条原始记录。搜索与每页 12 个分子的分页保留原始序号和跨页选择；已有任务中缺失、重复或超出范围的记录不可进入确认页。二维显示沿用原生 Ketcher 服务；材料核对不代表力场支持、结合姿势化学或科学收敛已经通过。模拟条件会显示已有任务实际保存的温度与独立重复次数。

@@ -55,9 +55,19 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         page.get_by_role("combobox", name="研究任务" if zh else "Research task").select_option(
             "openfe.rbfe"
         )
+        module = page.get_by_role(
+            "region", name="FEP 结合自由能" if zh else "FEP binding free energy", exact=True
+        )
         expect(
             page.get_by_role("radio", name="上传新文件" if zh else "Upload a new file").first
         ).to_be_checked()
+        page.get_by_role(
+            "button", name="使用此模板" if zh else "Use this template", exact=True
+        ).click()
+        expect(
+            page.get_by_role("button", name="新建空白任务" if zh else "New blank task", exact=True)
+        ).to_be_visible()
+        page.get_by_role("radio", name="上传新文件" if zh else "Upload a new file").first.check()
         page.get_by_label(
             "上传 蛋白结构" if zh else "Upload Protein structure", exact=True
         ).set_input_files(receptor)
@@ -101,6 +111,9 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         selection = page.get_by_role(
             "region", name="选择 FEP 分子" if zh else "Select FEP molecules"
         )
+        expect(module.locator(".template-step-help")).to_contain_text(
+            "原始序号" if zh else "original record numbers"
+        )
 
         def inspect_drawings():
             # Compact molecular drawings intentionally load as they enter the
@@ -113,9 +126,20 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
 
         expect(selection.get_by_role("checkbox")).to_have_count(12)
         inspect_drawings()
+        first_card = (
+            selection.get_by_role("checkbox", name=f"{title} · 1", exact=True)
+            .locator("..")
+            .locator("..")
+        )
+        expect(
+            first_card.get_by_text("原始序号 1" if zh else "Record 1", exact=True)
+        ).to_be_visible()
         selection.get_by_role("checkbox", name=f"{title} · 1", exact=True).check()
         selection.get_by_role("button", name="下一页" if zh else "Next page", exact=True).click()
         expect(selection.get_by_role("checkbox")).to_have_count(1)
+        expect(
+            selection.get_by_text("原始序号 13" if zh else "Record 13", exact=True)
+        ).to_be_visible()
         selection.get_by_role("checkbox", name=f"{title} · 13", exact=True).check()
         search = selection.get_by_role("searchbox")
         search.fill("13")
@@ -125,11 +149,17 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         expect(selection.get_by_role("checkbox", name=f"{title} · 1", exact=True)).to_be_checked()
         expect(next_button).to_be_enabled()
         inspect_drawings()
-        module = page.get_by_role(
-            "region", name="FEP 结合自由能" if zh else "FEP binding free energy", exact=True
-        )
         active = module.locator(".questionnaire > fieldset:not([hidden])")
         expect(active).to_have_css("transform", "none")
+        actions = module.locator(".questionnaire-actions")
+        expect(actions).to_have_css("position", "static")
+        geometry = module.evaluate("""node => {
+            const content = node.querySelector('.simulation-molecular-selection')
+                .getBoundingClientRect();
+            const actions = node.querySelector('.questionnaire-actions').getBoundingClientRect();
+            return {contentBottom:content.bottom, actionsTop:actions.top};
+        }""")
+        assert geometry["actionsTop"] >= geometry["contentBottom"] - 1
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=evidence / "selected-records.png", full_page=True)
         next_button.click()
@@ -138,6 +168,24 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
             "region", name="所选研究材料" if zh else "Selected research inputs"
         )
         expect(review_inputs.get_by_text(series.name, exact=True)).to_be_visible()
+        molecules = module.get_by_role("region", name="递交的分子" if zh else "Molecules to submit")
+        rows = molecules.get_by_role("listitem")
+        expect(rows).to_have_count(2)
+        assert rows.evaluate_all("nodes => nodes.map(n => Number(n.dataset.originalRecord))") == [
+            0,
+            12,
+        ]
+        for row, record in zip(rows.all(), (1, 13), strict=True):
+            row.scroll_into_view_if_needed()
+            expect(
+                row.get_by_text(f"原始序号 {record}" if zh else f"Record {record}", exact=True)
+            ).to_be_visible()
+            expect(row.locator(".molecule-image")).to_have_attribute(
+                "data-drawing-state", "ready", timeout=60000
+            )
+        expect(module.locator(".template-step-help")).to_contain_text(
+            "二维结构" if zh else "2D structure"
+        )
         expect(
             page.get_by_text(
                 "变化网络规划 · 不进行模拟" if zh else "Network planning · No simulation",
@@ -163,6 +211,10 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
                     "max_rendered_molecules": 12,
                     "read_deadline_and_retry": True,
                     "native_ketcher": True,
+                    "nonoverlapping_actions": True,
+                    "reviewed_original_records": [0, 12],
+                    "native_review_drawings": True,
+                    "simulation_specific_step_hints": True,
                     "source_sha256": hashlib.sha256(downloaded).hexdigest(),
                     "scientific_jobs": 0,
                     "scientific_acceptance": False,

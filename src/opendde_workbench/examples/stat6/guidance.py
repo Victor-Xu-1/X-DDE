@@ -1,6 +1,7 @@
 """Task-specific instructions refer to actual inputs or explicitly missing upstream data."""
 
 from ...capabilities.definitions import CAPABILITIES
+from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
     "predict": (
@@ -74,6 +75,9 @@ def objective(capability):
 
 
 def steps(capability):
+    simulation = simulation_steps(capability)
+    if simulation is not None:
+        return simulation
     if capability in {"properties", "admet.predict"}:
         molecular_steps = {
             "properties": [

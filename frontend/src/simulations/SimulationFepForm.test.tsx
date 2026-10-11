@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api, request } from "../api";
@@ -103,6 +109,10 @@ it("restored FEP is blocked until its actual records load; retry preserves the e
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(await screen.findByText("STAT6-series.sdf")).toBeVisible();
+  const molecules = screen.getByRole("region", { name: "Molecules to submit" });
+  expect(within(molecules).getAllByRole("listitem")).toHaveLength(2);
+  expect(within(molecules).getByText("Record 1")).toBeVisible();
+  expect(within(molecules).getByText("Record 2")).toBeVisible();
   expect(api.submit).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Submit simulation" }));
   expect(api.submit).toHaveBeenCalledWith(

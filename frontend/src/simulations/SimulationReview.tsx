@@ -2,6 +2,8 @@ import type { Language } from "../types";
 import type { ScientificTask } from "../integrations/types";
 import type { SimulationPayload } from "./types";
 import { SimulationInputs } from "./SimulationInputs";
+import type { FepRecord } from "./fep-series";
+import { FepMoleculeReview } from "./FepMoleculeReview";
 export function SimulationReview({
   fep,
   program,
@@ -11,6 +13,7 @@ export function SimulationReview({
   name,
   setName,
   language,
+  molecules,
 }: {
   fep: boolean;
   program: string;
@@ -20,6 +23,7 @@ export function SimulationReview({
   name: string;
   setName(value: string): void;
   language: Language;
+  molecules?: FepRecord[];
 }) {
   const zh = language === "zh";
   const planning = fep && payload.stage !== "calculate";
@@ -122,6 +126,14 @@ export function SimulationReview({
         </dl>
         <SimulationInputs inputs={inputs} language={language} />
       </div>
+      {fep && (
+        <FepMoleculeReview
+          source={inputs.find((input) => input.role === "library")?.source}
+          records={molecules}
+          selected={payload.records ?? []}
+          language={language}
+        />
+      )}
     </div>
   );
 }

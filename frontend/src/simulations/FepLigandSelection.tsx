@@ -4,6 +4,7 @@ import { AssetFileError } from "../research/asset-file";
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
 import type { FepRecord } from "./fep-series";
+import { FepRecordIdentity, fepRecordName } from "./FepRecordIdentity";
 
 const pageSize = 12;
 export function FepLigandSelection({
@@ -26,8 +27,7 @@ export function FepLigandSelection({
   const zh = language === "zh";
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
-  const nameOf = (item: FepRecord) =>
-    item.name || `${zh ? "分子" : "Molecule"} ${item.record + 1}`;
+  const nameOf = (item: FepRecord) => fepRecordName(item, language);
   const filtered = (records ?? []).filter((item) =>
     `${nameOf(item)} ${item.record + 1}`
       .toLocaleLowerCase()
@@ -62,7 +62,10 @@ export function FepLigandSelection({
         ? "暂时无法读取分子，请重试。"
         : "The molecular series could not be read. Try again.";
   return (
-    <section aria-label={zh ? "选择 FEP 分子" : "Select FEP molecules"}>
+    <section
+      className="simulation-molecular-selection"
+      aria-label={zh ? "选择 FEP 分子" : "Select FEP molecules"}
+    >
       <p className="field-help">
         {zh
           ? "选择 2–12 个同系列分子。使用已在同一个蛋白坐标系中对齐的结合姿势。"
@@ -135,7 +138,8 @@ export function FepLigandSelection({
                     )
                   }
                 >
-                  {nameOf(item)} <span aria-hidden="true">×</span>
+                  <FepRecordIdentity record={item} language={language} />
+                  <span aria-hidden="true">×</span>
                 </button>
               ))}
             </div>
@@ -173,7 +177,7 @@ export function FepLigandSelection({
                         )
                       }
                     />
-                    {nameOf(item)}
+                    <FepRecordIdentity record={item} language={language} />
                   </span>
                   <MoleculeImage
                     compact

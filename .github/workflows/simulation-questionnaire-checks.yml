@@ -6,6 +6,8 @@ on:
       - "frontend/src/simulations/SimulationForm*"
       - "frontend/src/simulations/SimulationFepForm*"
       - "frontend/src/simulations/FepLigandSelection*"
+      - "frontend/src/simulations/FepRecordIdentity*"
+      - "frontend/src/simulations/FepMoleculeReview*"
       - "frontend/src/simulations/fep-series*"
       - "frontend/src/simulations/useFepSeries*"
       - "frontend/src/research/asset-file*"
@@ -13,6 +15,9 @@ on:
       - "frontend/src/simulations/SimulationReview*"
       - "frontend/src/simulations/SimulationInputs.tsx"
       - "frontend/src/simulations/simulations.css"
+      - "src/opendde_workbench/examples/stat6/guidance.py"
+      - "src/opendde_workbench/examples/stat6/simulation_guidance.py"
+      - "tests/test_stat6_guidance.py"
       - "server_tests/test_gromacs_switch_browser.py"
       - "server_tests/test_fep_questionnaire_browser.py"
       - ".github/workflows/simulation-questionnaire-checks.yml"
@@ -41,8 +46,11 @@ jobs:
         run: >-
           npx vitest run src/simulations/SimulationForm.test.tsx src/simulations/SimulationReview.test.tsx
           src/simulations/SimulationFepForm.test.tsx src/simulations/FepLigandSelection.test.tsx
+          src/simulations/FepMoleculeReview.test.tsx
           src/simulations/fep-series.test.ts src/simulations/useFepSeries.test.tsx
           src/research/fasta-file.test.ts
+      - name: Changed simulation instructions and unchanged molecular-only guidance
+        run: uv run --locked python -m pytest -q tests/test_stat6_guidance.py
       - name: Native chemistry renderer for molecular selection
         run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps

@@ -59,6 +59,12 @@ on:
       - "!frontend/src/simulations/molstar-controller.ts"
       # Selected-pocket controls/camera have native exports in pocket-result-checks.yml.
       - "!frontend/src/viewer/frame.ts"
+      # Simulation instructions are inspected with their questionnaires; no figure
+      # geometry or shared interaction changed. Routing-only edits do not execute figures.
+      - "!src/opendde_workbench/examples/stat6/guidance.py"
+      - "!tests/test_stat6_guidance.py"
+      - "!.github/workflows/publication-checks.yml"
+      - "!.github/workflows/stat6-template-checks.yml"
   pull_request:
     paths: *figure_paths
 permissions:
