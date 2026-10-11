@@ -37,6 +37,9 @@ def test_original_material_cannot_be_submitted_while_replacement_is_pending(
     alternate = assets.save(
         "STAT6-4Y5U-alternate.pdb", "structure", verified_input("stat6_alternative_receptor")
     )
+    assert original.id not in {asset.id for asset in assets.list(100)}, (
+        "The pagination fixture must place the original outside the first asset page."
+    )
     saved = ScientificStore(store, assets).create(
         VersionInput(asset_id=alternate.id, kind="structure", label="STAT6 alternative construct"),
         uuid4(),
