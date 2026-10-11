@@ -126,6 +126,22 @@ def test_native_save_recovery_and_property_handoff_do_not_duplicate_versions(lan
                 exact=True,
             )
         ).to_be_visible()
+        form = editor.locator(".setup-card .questionnaire")
+        expect(
+            form.get_by_role(
+                "radio", name="使用已选分子文件" if zh else "Use the selected molecular file"
+            )
+        ).to_be_checked()
+        form.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
+        expect(
+            form.get_by_role(
+                "combobox",
+                name="分子文件（可含多个记录）"
+                if zh
+                else "Molecule file (multiple records allowed)",
+                exact=True,
+            )
+        ).to_have_value(versions[0]["reference"]["asset_id"])
         assert len(uploads) == 1 and len(versions) == 2
         after = page.request.get(base + "/api/research/objects?limit=200").json()
         assert len(after) == len(before) + 1

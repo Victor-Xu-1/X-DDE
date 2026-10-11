@@ -135,12 +135,20 @@ export function PropertyForm({
               options={[
                 {
                   value: "file",
-                  title: zh
-                    ? "上传新分子文件（推荐）"
-                    : "Upload a new molecular file (recommended)",
-                  note: zh
-                    ? "保留文件和研究版本的来源。"
-                    : "Retain file and research-version provenance.",
+                  title: file
+                    ? zh
+                      ? "使用已选分子文件"
+                      : "Use the selected molecular file"
+                    : zh
+                      ? "上传新分子文件（推荐）"
+                      : "Upload a new molecular file (recommended)",
+                  note: file
+                    ? zh
+                      ? "下一步确认这份分子文件。"
+                      : "Review the selected file in the next step."
+                    : zh
+                      ? "保留文件和研究版本的来源。"
+                      : "Retain file and research-version provenance.",
                 },
                 {
                   value: "smiles",
