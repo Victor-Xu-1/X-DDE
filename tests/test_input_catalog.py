@@ -114,7 +114,12 @@ def test_actual_catalogue_route_filters_kind_format_and_validates_requests(scien
     ],
 )
 def test_generic_file_kinds_use_the_same_filtered_catalogue(scientific, kind, name):
-    source = scientific.assets.save(name, kind, b"catalogue transport fixture")
+    content = (
+        b">STAT6 transport fixture\nMPAGAV\n"
+        if kind in {"msa", "sequences"}
+        else b"catalogue transport fixture"
+    )
+    source = scientific.assets.save(name, kind, content)
     scientific.assets.save("Unrelated.sdf", "ligand", b"metadata transport fixture")
     page = input_page(scientific, kind, [source.suffix], scope="files")
     assert page.total == 1 and page.items[0].asset == source
