@@ -19,6 +19,7 @@ from chemistry import (
 )
 from manifest import BINARY_SHA256, VERSION
 from options import DockingOptions, SearchBox, arguments
+from receptor_input import require_explicit_alternates
 
 
 def main():
@@ -45,6 +46,7 @@ def main():
     if digest(binary) != BINARY_SHA256:
         raise ValueError("Native executable failed its pinned digest check.")
     protein = bound(receptor, bindings, ".pdb")
+    require_explicit_alternates(protein.read_bytes())
     protein_text = protein.read_text()
     if protein_text.count("MODEL ") > 1 or not any(
         line.startswith("ATOM  ") for line in protein_text.splitlines()

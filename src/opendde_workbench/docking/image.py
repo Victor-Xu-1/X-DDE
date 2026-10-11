@@ -35,6 +35,7 @@ def prepare_context(destination, binary, licenses):
         "ENV LD_LIBRARY_PATH=/usr/local/lib/python3.10/site-packages/nvidia/cudnn/lib:"
         "/usr/local/lib/python3.10/site-packages/nvidia/cublas/lib:"
         "/usr/local/lib/python3.10/site-packages/nvidia/cuda_runtime/lib:"
+        "/usr/local/lib/python3.10/site-packages/nvidia/cuda_nvrtc/lib:"
         "/usr/local/lib/python3.10/site-packages/nvidia/cusparse/lib:"
         "/usr/local/lib/python3.10/site-packages/nvidia/cufft/lib:"
         "/usr/local/lib/python3.10/site-packages/nvidia/cusolver/lib:"
@@ -42,5 +43,14 @@ def prepare_context(destination, binary, licenses):
         "/usr/local/nvidia/lib:/usr/local/nvidia/lib64\n"
         "RUN ldd /opt/gnina/gnina | tee /opt/gnina/linker-report.txt "
         "&& ! grep -q 'not found' /opt/gnina/linker-report.txt\n"
+        # Torch loads NVRTC lazily during GPU scoring after the docking search;
+        # ldd on the static executable cannot verify that runtime dependency.
+        'RUN python -c "import ctypes; from pathlib import Path; '
+        "library=ctypes.CDLL('libnvrtc.so.12'); "
+        "major=ctypes.c_int(); minor=ctypes.c_int(); "
+        "assert library.nvrtcVersion(ctypes.byref(major),ctypes.byref(minor)) == 0; "
+        "assert (major.value,minor.value) == (12,8); "
+        "assert list(Path('/usr/local/lib/python3.10/site-packages/nvidia/cuda_nvrtc/lib')"
+        ".glob('libnvrtc-builtins.so*'))\"\n"
         "WORKDIR /output\n"
     )

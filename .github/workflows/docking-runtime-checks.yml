@@ -1,0 +1,52 @@
+name: Docking input and CUDA runtime qualification
+on:
+  workflow_dispatch:
+  push:
+    paths: &docking_runtime_paths
+      - "src/opendde_workbench/docking/image.py"
+      - "src/opendde_workbench/docking/native-requirements.*"
+      - "src/opendde_workbench/docking/receptor_input.py"
+      - "src/opendde_workbench/docking/native.py"
+      - "src/opendde_workbench/docking/snapshot.py"
+      - "src/opendde_workbench/assets.py"
+      - "tests/test_docking_runtime_qualification.py"
+      - "tests/test_docking.py"
+      - ".github/workflows/docking-runtime-checks.yml"
+  pull_request:
+    paths: *docking_runtime_paths
+permissions:
+  contents: read
+jobs:
+  docking-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Locked platform and direct docking result consumers
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+      - name: Exact binding, source snapshot and runtime contracts
+        run: |
+          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/assets.py tests/test_docking_runtime_qualification.py
+          uv run --locked pytest -q tests/test_docking.py tests/test_docking_runtime_qualification.py
+          cd frontend
+          npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx
+      - name: Actual isolated GNINA install, lazy CUDA-library qualification and native CPU modes
+        env:
+          WB_TEST_NATIVE_DOCKING: "1"
+        run: |
+          uv run --locked playwright install chromium --with-deps
+          uv run --locked pytest -x -q server_tests/test_native_docking.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualified-docking-native-evidence
+          path: server_tests/evidence/**

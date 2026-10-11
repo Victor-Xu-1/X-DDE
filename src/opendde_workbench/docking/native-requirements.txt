@@ -52,6 +52,11 @@ nvidia-cublas-cu12==12.8.4.1 \
     #   -r src/opendde_workbench/docking/native-requirements.in
     #   nvidia-cudnn-cu12
     #   nvidia-cusolver-cu12
+nvidia-cuda-nvrtc-cu12==12.8.93 \
+    --hash=sha256:7a4b6b2904850fe78e0bd179c4b655c404d4bb799ef03ddc60804247099ae909 \
+    --hash=sha256:a7756528852ef889772a84c6cd89d41dfa74667e24cca16bb31f8f061e3e9994 \
+    --hash=sha256:fc1fec1e1637854b4c0a65fb9a8346b51dd9ee69e61ebaccc82058441f15bce8
+    # via -r src/opendde_workbench/docking/native-requirements.in
 nvidia-cuda-runtime-cu12==12.8.90 \
     --hash=sha256:52bf7bbee900262ffefe5e9d5a2a69a30d97e2bc5bb6cc866688caa976966e3d \
     --hash=sha256:adade8dcbd0edf427b7204d480d6066d33902cab2a4707dcfc48a2d0fd44ab90 \

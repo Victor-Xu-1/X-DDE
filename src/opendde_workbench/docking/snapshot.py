@@ -3,7 +3,14 @@
 import hashlib
 from pathlib import Path
 
-NATIVE_FILES = ("native.py", "chemistry.py", "bounds.py", "options.py", "manifest.py")
+NATIVE_FILES = (
+    "native.py",
+    "chemistry.py",
+    "bounds.py",
+    "options.py",
+    "manifest.py",
+    "receptor_input.py",
+)
 
 
 def capture(directory: Path, source: Path):

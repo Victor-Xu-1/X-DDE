@@ -271,7 +271,11 @@ class AssetStore:
             if (
                 asset.kind != "ligand"
                 or asset.suffix
-                not in ({".sdf", ".mol", ".mol2"} if request.operation == "molecule_minimize" else {".sdf"})
+                not in (
+                    {".sdf", ".mol", ".mol2"}
+                    if request.operation == "molecule_minimize"
+                    else {".sdf"}
+                )
                 or asset.sha256 != ref.sha256
                 or ref.conformer != 0
             ):
@@ -301,6 +305,7 @@ class AssetStore:
             return {asset.id: asset}
         if getattr(request, "operation", None) == "docking":
             from .docking.contract import references
+            from .docking.receptor_input import require_explicit_alternates
 
             for role, ref in references(request):
                 asset = self.get(ref.asset_id)
@@ -315,7 +320,9 @@ class AssetStore:
                     from .research.storage import ScientificStore
 
                     ScientificStore(self.store, self).validate_reference(ref)
-                self.path(asset)
+                path = self.path(asset)
+                if role == "receptor":
+                    require_explicit_alternates(path.read_bytes())
                 bindings[asset.id] = asset
             return bindings
         if getattr(request, "operation", None) == "diffsbdd":
