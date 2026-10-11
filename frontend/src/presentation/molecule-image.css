@@ -39,6 +39,23 @@
   height: 220px;
   object-fit: contain;
 }
+.molecule-inspection-view {
+  width: 100%;
+  min-width: 0;
+}
+.molecule-inspection-view .figure-preview-sheet {
+  border: 0;
+  width: 100%;
+  min-height: 220px;
+  height: clamp(240px, 35svh, 380px);
+}
+.molecule-inspection-view .figure-preview-image-space {
+  padding: 12px;
+}
+.molecule-inspection-view .figure-view-toolbar {
+  justify-content: center;
+  margin: 4px 0 0;
+}
 .molecule-image a {
   font-size: 12px;
   justify-self: end;

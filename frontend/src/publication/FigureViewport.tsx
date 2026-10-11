@@ -8,12 +8,14 @@ export function FigureViewport({
   transparent,
   widthMm,
   ready,
+  label,
 }: {
   children: ReactNode;
   language: Language;
   transparent: boolean;
-  widthMm: number;
+  widthMm?: number;
   ready: boolean;
+  label?: string;
 }) {
   const zh = language === "zh";
   const [zoom, setZoom] = useState(1),
@@ -51,7 +53,7 @@ export function FigureViewport({
         data-zoom={zoom}
         data-dragging={dragging}
         role="region"
-        aria-label={zh ? "图件画布" : "Figure canvas"}
+        aria-label={label ?? (zh ? "图件画布" : "Figure canvas")}
         tabIndex={ready && zoom > 1 ? 0 : -1}
         title={
           zh
@@ -109,7 +111,9 @@ export function FigureViewport({
         </div>
       </div>
       <div className="figure-view-toolbar">
-        <span className="figure-preview-width">{widthMm} mm</span>
+        {widthMm !== undefined && (
+          <span className="figure-preview-width">{widthMm} mm</span>
+        )}
         <div role="group" aria-label={zh ? "预览查看" : "Preview viewing"}>
           <button
             type="button"

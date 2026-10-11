@@ -15,6 +15,7 @@ import {
 import type { Language } from "../types";
 import "./molecule-image.css";
 import { FigureExport } from "../publication/FigureExport";
+import { FigureViewport } from "../publication/FigureViewport";
 import { hiddenFrameFocus } from "./hidden-frame-focus";
 import { molecularVector } from "../publication/molecular-vector";
 const DrawingContext = createContext<DepictionRenderer | null | undefined>(
@@ -159,10 +160,30 @@ export function MoleculeImage({
         </label>
       )}
       {url ? (
-        <img
-          src={url}
-          alt={(zh ? "二维分子结构 · " : "2D molecular structure · ") + label}
-        />
+        compact ? (
+          <img
+            src={url}
+            alt={(zh ? "二维分子结构 · " : "2D molecular structure · ") + label}
+          />
+        ) : (
+          <div className="molecule-inspection-view">
+            <FigureViewport
+              key={url}
+              language={language}
+              transparent={false}
+              ready
+              label={zh ? "二维结构画布" : "2D structure canvas"}
+            >
+              <img
+                src={url}
+                draggable={false}
+                alt={
+                  (zh ? "二维分子结构 · " : "2D molecular structure · ") + label
+                }
+              />
+            </FigureViewport>
+          </div>
+        )
       ) : error ? (
         <span
           title={

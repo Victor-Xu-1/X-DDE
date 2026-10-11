@@ -12,6 +12,7 @@ from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_png
 from server_tests.test_navigation_shell_browser import open_navigation
+from server_tests.workspace_preview_viewing import inspect_molecular_viewing
 
 EVIDENCE = Path("outputs/workspace-preview")
 
@@ -161,6 +162,10 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
                 )
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             page.screenshot(path=evidence / f"selected-protac-{width}.png", full_page=True)
+            if width == 390:
+                inspect_molecular_viewing(
+                    page, page.locator(".research-selected-preview"), evidence, language
+                )
         assert not errors, errors
         assert not submissions, submissions
         assert page.request.get(base + "/api/jobs").json() == jobs

@@ -15,6 +15,9 @@ on:
       - "frontend/src/presentation/SequenceTrack*"
       - "frontend/src/presentation/SequencePositions*"
       - "frontend/src/presentation/sequence-track.css"
+      - "frontend/src/presentation/MoleculeImage.tsx"
+      - "frontend/src/presentation/molecule-image.css"
+      - "frontend/src/publication/FigureViewport.tsx"
       - "frontend/src/research/research.css"
       - "server_tests/*workspace_preview*"
       - ".github/workflows/workspace-preview-checks.yml"
@@ -49,6 +52,7 @@ jobs:
           src/research/ResearchWorkspace.test.tsx
           src/research/SequenceFilePreview.test.tsx src/research/fasta-file.test.ts
           src/presentation/SequenceTrack.test.tsx
+          src/publication/FigureExport.test.tsx
       - name: Retained real inputs and native Ketcher; no calculations
         run: |
           .venv/bin/python server_tests/prepare_workspace_preview_cases.py
