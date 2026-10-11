@@ -14,6 +14,8 @@ import { visibleAssetNodes, type AssetFilter } from "./asset-list";
 import { FileSelect } from "../presentation/FileSelect";
 import { assetContext } from "./asset-context";
 import { useResearchRegistration } from "./useResearchRegistration";
+import { PoseSession } from "../viewer/PoseSession";
+import type { ReactNode } from "react";
 
 export function ResearchWorkspace({
   language,
@@ -52,6 +54,7 @@ export function ResearchWorkspace({
     pageSize = 30;
   const [uploadKind, setUploadKind] = useState<ObjectKind>("molecule"),
     [properties, setProperties] = useState<ScientificObject | null>(null);
+  const [propertyOrigin, setPropertyOrigin] = useState<string | null>(null);
   const [label, setLabel] = useState(""),
     [notes, setNotes] = useState(""),
     [rating, setRating] = useState(0);
@@ -108,8 +111,22 @@ export function ResearchWorkspace({
     }
   }
 
-  if (properties)
-    return (
+  const poseUrl =
+    object?.kind === "molecule" && object.reference.conformer === 0
+      ? `/api/assets/${encodeURIComponent(object.reference.asset_id)}`
+      : null;
+  const poseFrame = {
+    urls: poseUrl ? [poseUrl] : [],
+    records: poseUrl ? [object!.reference.record] : undefined,
+    molecularSource: poseUrl
+      ? { url: poseUrl, record: object!.reference.record }
+      : undefined,
+  };
+  const wrap = (content: ReactNode) => (
+    <PoseSession frame={poseFrame}>{content}</PoseSession>
+  );
+  if (properties && propertyOrigin === node?.id)
+    return wrap(
       <section className="task-workspace is-input">
         <button
           className="tool-back-button"
@@ -124,9 +141,9 @@ export function ResearchWorkspace({
           initialFile={properties.reference.asset_id}
           scientificInput={properties.reference}
         />
-      </section>
+      </section>,
     );
-  return (
+  return wrap(
     <section className="research-workspace">
       <h1 className="sr-only">{zh ? "研究文件" : "Research files"}</h1>
       <div className="editor-toolbar">
@@ -404,7 +421,10 @@ export function ResearchWorkspace({
               setNotes={setNotes}
               setRating={setRating}
               onEdit={onEdit}
-              onProperties={setProperties}
+              onProperties={(value) => {
+                setPropertyOrigin(node?.id ?? null);
+                setProperties(value);
+              }}
               onSelect={(id) => void select(id)}
               onJob={onJob}
               mutate={mutate}
@@ -424,6 +444,6 @@ export function ResearchWorkspace({
           </details>
         </>
       )}
-    </section>
+    </section>,
   );
 }

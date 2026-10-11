@@ -16,6 +16,12 @@ import { Editors } from "../editors/Editors";
 import { useDeployment } from "../deployment/client";
 import { ScientificForm } from "../integrations/ScientificForm";
 import { DeploymentPanel } from "../deployment/DeploymentPanel";
+import { usePoseSession } from "../viewer/PoseSession";
+import { usePoseHandoff } from "../viewer/usePoseHandoff";
+import {
+  PoseStudyInput,
+  type PoseStudySelection,
+} from "../viewer/PoseStudyInput";
 
 type Action =
   | "interactions"
@@ -78,8 +84,14 @@ export function CandidateHandoff({
   receptorArtifact?: string;
 }) {
   const zh = language === "zh",
-    [action, setAction] = useState<Action | null>(null),
     [notice, setNotice] = useState("");
+  const session = usePoseSession();
+  const handoff = usePoseHandoff<Action>(
+    session?.plan.key ??
+      JSON.stringify([job.id, candidate?.artifact, candidate?.record]),
+  );
+  const action = handoff.value?.action;
+  const input = handoff.value?.selection;
   const molecular: PoseAssetTarget | null = candidate?.artifact
     ? { name: candidate.artifact, kind: "molecule", record: candidate.record }
     : null;
@@ -101,9 +113,17 @@ export function CandidateHandoff({
     onCreated?.(value);
     setNotice(zh ? "新研究任务已提交。" : "The new study has been submitted.");
   }
-  if (action && molecule)
+  const inputProtein =
+    input?.displayed && input.receptor !== undefined
+      ? input.receptor
+      : protein?.reference;
+  function continueStudy(value: Action, selection: PoseStudySelection) {
+    if (!selection.ready) return;
+    handoff.open(value, selection);
+  }
+  if (action && input)
     return (
-      <ResearchHandoff language={language} onBack={() => setAction(null)}>
+      <ResearchHandoff language={language} onBack={handoff.clear}>
         {action === "interactions" ? (
           complex ? (
             <ScientificForm
@@ -116,37 +136,45 @@ export function CandidateHandoff({
         ) : action === "admet" ? (
           <AdmetForm
             language={language}
-            initialMolecule={molecule.reference}
+            initialMolecule={input.reference}
             onCreated={created}
           />
         ) : action === "quality" ? (
           <QualityForm
             language={language}
-            initialMolecule={molecule.reference}
+            initialMolecule={input.reference}
             initialProtein={
-              candidate?.geometry === "binding_pose" ? protein?.reference : null
+              candidate?.geometry === "binding_pose" ? inputProtein : null
             }
             onCreated={created}
           />
         ) : action === "edit" ? (
-          <EditCandidate
-            job={job}
-            object={molecule}
-            language={language}
-            onCreated={created}
-          />
+          input.object ? (
+            <EditCandidate
+              job={job}
+              object={input.object}
+              language={language}
+              onCreated={created}
+            />
+          ) : (
+            <p role="alert">
+              {zh
+                ? "当前版本暂时无法编辑，请返回结果重新选择。"
+                : "This version cannot be edited. Return to results and select it again."}
+            </p>
+          )
         ) : action === "curate" ? (
           <LibraryScreenForm
             language={language}
-            initialLibrary={molecule.reference}
+            initialLibrary={input.reference}
             onCreated={created}
           />
         ) : (
           <DockingForm
             mode={action}
             language={language}
-            initialLigand={molecule.reference}
-            initialReceptor={protein?.reference ?? null}
+            initialLigand={input.reference}
+            initialReceptor={inputProtein ?? null}
             onCreated={created}
           />
         )}
@@ -157,60 +185,94 @@ export function CandidateHandoff({
       {children}
       <div className="dataset-continuation">
         <span>{zh ? "继续研究" : "Continue research"}</span>
-        {molecule ? (
-          <>
-            {(["admet", "quality", "dock", "edit", "curate"] as const).map(
-              (value, index) => (
-                <button
-                  type="button"
-                  key={value}
-                  onClick={() => setAction(value)}
-                >
-                  {
-                    (zh
-                      ? [
-                          "性质与早期安全性",
-                          "构象与姿势质控",
-                          "继续对接",
-                          "编辑当前分子",
-                          "整理候选集合",
-                        ]
-                      : [
-                          "ADMET predictions",
-                          "Pose quality",
-                          "Dock molecule",
-                          "Edit molecule",
-                          "Curate candidate set",
-                        ])[index]
-                  }
-                </button>
-              ),
-            )}
-            {candidate?.geometry === "binding_pose" && protein && (
+        <PoseStudyInput original={molecule} language={language}>
+          {(selection, waiting) =>
+            selection ? (
               <>
-                <button type="button" onClick={() => setAction("score")}>
-                  {zh ? "重新评分" : "Rescore"}
-                </button>
-                <button type="button" onClick={() => setAction("minimize")}>
-                  {zh ? "优化结合姿势" : "Refine pose"}
-                </button>
+                {(["admet", "quality", "dock", "edit", "curate"] as const).map(
+                  (value, index) => (
+                    <button
+                      type="button"
+                      key={value}
+                      disabled={
+                        !selection.ready ||
+                        (value === "edit" && !selection.object)
+                      }
+                      onClick={() => continueStudy(value, selection)}
+                    >
+                      {
+                        (zh
+                          ? [
+                              "性质与早期安全性",
+                              "构象与姿势质控",
+                              "继续对接",
+                              "编辑当前分子",
+                              "整理候选集合",
+                            ]
+                          : [
+                              "ADMET predictions",
+                              "Pose quality",
+                              "Dock molecule",
+                              "Edit molecule",
+                              "Curate candidate set",
+                            ])[index]
+                      }
+                    </button>
+                  ),
+                )}
+                {candidate?.geometry === "binding_pose" &&
+                  protein &&
+                  !(selection.displayed && selection.receptor === null) && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={!selection.ready}
+                        onClick={() => continueStudy("score", selection)}
+                      >
+                        {zh ? "重新评分" : "Rescore"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!selection.ready}
+                        onClick={() => continueStudy("minimize", selection)}
+                      >
+                        {zh ? "优化结合姿势" : "Refine pose"}
+                      </button>
+                    </>
+                  )}
+                {complex && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (molecule)
+                        continueStudy("interactions", {
+                          ...selection,
+                          reference: molecule.reference,
+                          object: molecule,
+                          displayed: false,
+                          ready: true,
+                        });
+                    }}
+                  >
+                    {zh
+                      ? "原始复合物相互作用"
+                      : "Original complex interactions"}
+                  </button>
+                )}
               </>
-            )}
-            {complex && (
-              <button type="button" onClick={() => setAction("interactions")}>
-                {zh ? "化学相互作用分析" : "Chemical interactions"}
+            ) : (
+              <button
+                type="button"
+                disabled={assets.busy || waiting || !candidate?.artifact}
+                onClick={() => void assets.refresh()}
+              >
+                {zh
+                  ? "准备当前候选供后续研究"
+                  : "Register candidate for follow-up"}
               </button>
-            )}
-          </>
-        ) : (
-          <button
-            type="button"
-            disabled={assets.busy || !candidate?.artifact}
-            onClick={() => void assets.refresh()}
-          >
-            {zh ? "准备当前候选供后续研究" : "Register candidate for follow-up"}
-          </button>
-        )}
+            )
+          }
+        </PoseStudyInput>
       </div>
       {assets.busy && (
         <button type="button" className="text-button" onClick={assets.cancel}>

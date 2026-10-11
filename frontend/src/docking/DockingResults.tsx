@@ -4,7 +4,7 @@ import { PoseTable } from "./PoseTable";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -13,6 +13,10 @@ import { DockingForm } from "./DockingForm";
 import { usePoseAssets } from "./usePoseAssets";
 import { poseAssetMessage, type PoseAssetTarget } from "./pose-asset-lookup";
 import type { DockingResult } from "./types";
+import { posePlan } from "../viewer/pose-plan";
+import { usePoseHandoff } from "../viewer/usePoseHandoff";
+import { PoseSession } from "../viewer/PoseSession";
+import { PoseStudyInput } from "../viewer/PoseStudyInput";
 export function DockingResults({
   job,
   result,
@@ -27,7 +31,6 @@ export function DockingResults({
   const [record, setRecord] = useState<number | null>(
       () => result.poses.find((p) => p.valid && p.artifact)?.record ?? null,
     ),
-    [next, setNext] = useState<"properties" | "score" | null>(null),
     [message, setMessage] = useState("");
   const selected = result.poses.find(
     (v) => v.record === record && v.valid && v.artifact,
@@ -37,14 +40,34 @@ export function DockingResults({
     : null;
   const assets = usePoseAssets(job.id, target ? [target] : []);
   const version = target ? assets.object(target) : undefined;
-  if (version && next)
-    return (
-      <ResearchHandoff language={language} onBack={() => setNext(null)}>
+  const frame = {
+    urls: selected?.artifact
+      ? [
+          artifactUrl(job.id, result.receptor_artifact),
+          artifactUrl(job.id, selected.artifact),
+        ]
+      : [],
+    molecularSource: selected?.artifact
+      ? { url: artifactUrl(job.id, selected.artifact) }
+      : undefined,
+    nativeScore: selected ? poseScore(result, selected) : undefined,
+  };
+  const wrap = (content: ReactNode) => (
+    <PoseSession frame={frame}>{content}</PoseSession>
+  );
+  const handoff = usePoseHandoff<"properties" | "score">(
+    JSON.stringify([job.id, record, posePlan(frame).key]),
+  );
+  const next = handoff.value?.action;
+  const nextInput = handoff.value?.selection.reference;
+  if (nextInput && next)
+    return wrap(
+      <ResearchHandoff language={language} onBack={handoff.clear}>
         {next === "properties" ? (
           <PropertyForm
             language={language}
-            initialFile={version.reference.asset_id}
-            scientificInput={version.reference}
+            initialFile={nextInput.asset_id}
+            scientificInput={nextInput}
             onCreated={() =>
               setMessage(zh ? "新任务已创建。" : "New task created.")
             }
@@ -53,8 +76,10 @@ export function DockingResults({
           <DockingForm
             mode={next}
             language={language}
-            initialReceptor={result.receptor}
-            initialLigand={version.reference}
+            initialReceptor={
+              handoff.value?.selection.receptor ?? result.receptor
+            }
+            initialLigand={nextInput}
             initialBox={
               result.search?.kind === "box" ? result.search.box : null
             }
@@ -63,9 +88,9 @@ export function DockingResults({
             }
           />
         )}
-      </ResearchHandoff>
+      </ResearchHandoff>,
     );
-  return (
+  return wrap(
     <section
       className="docking-results"
       aria-label={zh ? "结合模式与下一步" : "Binding poses and next steps"}
@@ -85,11 +110,11 @@ export function DockingResults({
             onSelect={(pose) => {
               setDiagnostic(null);
               setRecord(pose.record);
-              setNext(null);
+              handoff.clear();
             }}
             onDiagnostic={(artifact) => {
               setRecord(null);
-              setNext(null);
+              handoff.clear();
               setDiagnostic(artifact);
             }}
           />
@@ -135,33 +160,47 @@ export function DockingResults({
               <a href={artifactUrl(job.id, selected.artifact)} download>
                 {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
               </a>
-              {version ? (
-                <div className="editor-toolbar">
-                  {(["properties", "score"] as const).map((v, n) => (
+              <PoseStudyInput original={version} language={language}>
+                {(selection, waiting) =>
+                  selection ? (
+                    <div className="editor-toolbar">
+                      {(["properties", "score"] as const).map((v, n) => (
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          key={v}
+                          disabled={
+                            !selection.ready ||
+                            (v === "score" &&
+                              selection.displayed &&
+                              selection.receptor === null)
+                          }
+                          onClick={() => {
+                            handoff.open(v, selection);
+                          }}
+                        >
+                          {
+                            (zh
+                              ? ["计算性质", "重新评分"]
+                              : ["Calculate properties", "Rescore"])[n]
+                          }
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
                     <button
                       className="secondary-button"
                       type="button"
-                      key={v}
-                      onClick={() => setNext(v)}
+                      disabled={assets.busy || waiting}
+                      onClick={() => void assets.refresh()}
                     >
-                      {
-                        (zh
-                          ? ["计算性质", "重新评分"]
-                          : ["Calculate properties", "Rescore"])[n]
-                      }
+                      {zh
+                        ? "登记并读取这个姿势"
+                        : "Register and load this pose"}
                     </button>
-                  ))}
-                </div>
-              ) : (
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={assets.busy}
-                  onClick={() => void assets.refresh()}
-                >
-                  {zh ? "登记并读取这个姿势" : "Register and load this pose"}
-                </button>
-              )}
+                  )
+                }
+              </PoseStudyInput>
             </>
           )}
         </div>
@@ -195,6 +234,6 @@ export function DockingResults({
           {zh ? "完整姿势集" : "Complete pose set"}
         </a>
       </details>
-    </section>
+    </section>,
   );
 }

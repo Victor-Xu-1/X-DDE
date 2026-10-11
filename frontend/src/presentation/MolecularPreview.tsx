@@ -3,6 +3,7 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { MoleculeImage } from "./MoleculeImage";
 import { ResearchTabs } from "./ResearchTabs";
 import type { DepictionSource } from "./depiction-renderer";
+import { PoseSession } from "../viewer/PoseSession";
 export function MolecularPreview({
   language,
   label,
@@ -23,6 +24,21 @@ export function MolecularPreview({
   nativeScore?: Parameters<typeof StructureViewer>[0]["nativeScore"];
 }) {
   const zh = language === "zh";
+  const frame = {
+    urls: urls ?? [],
+    records,
+    nativeScore,
+    comparison: false,
+    molecularSource:
+      source && "url" in source
+        ? source
+        : urls?.length === 1 || focusModel !== undefined
+          ? {
+              url: urls?.[focusModel ?? 0] ?? "",
+              record: records?.[focusModel ?? 0] ?? 0,
+            }
+          : undefined,
+  };
   const drawing = {
     id: "2d",
     label: zh ? "二维结构" : "2D structure",
@@ -34,42 +50,27 @@ export function MolecularPreview({
     id: "3d",
     label: zh ? "三维结构" : "3D structure",
     content: (
-      <StructureViewer
-        urls={urls ?? []}
-        language={language}
-        records={records}
-        focusModel={focusModel}
-        comparison={false}
-        nativeScore={nativeScore}
-        molecularSource={
-          source && "url" in source
-            ? source
-            : urls?.length === 1 || focusModel !== undefined
-              ? {
-                  url: urls?.[focusModel ?? 0] ?? "",
-                  record: records?.[focusModel ?? 0] ?? 0,
-                }
-              : undefined
-        }
-      />
+      <StructureViewer {...frame} language={language} focusModel={focusModel} />
     ),
   };
   return (
-    <section
-      className="molecular-preview"
-      aria-label={zh ? "分子结构预览" : "Molecular structure preview"}
-    >
-      <ResearchTabs
-        key={label + JSON.stringify(source)}
-        label={zh ? "结构视图" : "Structure views"}
-        tabs={
-          urls?.length
-            ? defaultView === "3d"
-              ? [structure, drawing]
-              : [drawing, structure]
-            : [drawing]
-        }
-      />
-    </section>
+    <PoseSession frame={frame}>
+      <section
+        className="molecular-preview"
+        aria-label={zh ? "分子结构预览" : "Molecular structure preview"}
+      >
+        <ResearchTabs
+          key={label + JSON.stringify(source)}
+          label={zh ? "结构视图" : "Structure views"}
+          tabs={
+            urls?.length
+              ? defaultView === "3d"
+                ? [structure, drawing]
+                : [drawing, structure]
+              : [drawing]
+          }
+        />
+      </section>
+    </PoseSession>
   );
 }

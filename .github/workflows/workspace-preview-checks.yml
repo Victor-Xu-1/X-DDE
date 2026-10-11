@@ -26,6 +26,10 @@ on:
       - "server_tests/*workspace_preview*"
       - "server_tests/test_workspace_versions_browser.py"
       - ".github/workflows/workspace-preview-checks.yml"
+      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      - "!frontend/src/research/ObjectInspector.tsx"
+      - "!frontend/src/research/ResearchWorkspace.tsx"
+      - "!.github/workflows/workspace-preview-checks.yml"
   pull_request:
     paths: *workspace_paths
 permissions:

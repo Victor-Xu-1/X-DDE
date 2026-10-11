@@ -6,6 +6,7 @@ import { MoleculeImage } from "../presentation/MoleculeImage";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { EndpointTable } from "./EndpointTable";
 import { failureReason } from "./labels";
+import { PoseStudyInput } from "../viewer/PoseStudyInput";
 import type { AdmetResult, AdmetRow } from "./types";
 
 export function AdmetSelectedMolecule({
@@ -68,13 +69,20 @@ export function AdmetSelectedMolecule({
             </a>
           )}
           {row.status === "predicted" && row.reference && onPrepare && (
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={() => onPrepare(row.reference!)}
-            >
-              {zh ? "用于分子准备" : "Prepare this molecule"}
-            </button>
+            <PoseStudyInput original={row.reference} language={language}>
+              {(selection) => (
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={!selection?.ready}
+                  onClick={() => {
+                    if (selection?.ready) onPrepare(selection.reference);
+                  }}
+                >
+                  {zh ? "用于分子准备" : "Prepare this molecule"}
+                </button>
+              )}
+            </PoseStudyInput>
           )}
         </div>
       </header>

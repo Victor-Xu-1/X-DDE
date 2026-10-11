@@ -301,6 +301,16 @@ on:
       - "!frontend/src/pockets/PocketForm.tsx"
       - "!frontend/src/guided/EnvironmentRecheck.tsx"
       - "!.github/workflows/task-layout-checks.yml"
+      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      - "!frontend/src/diffsbdd/DiffResults.tsx"
+      - "!frontend/src/presentation/MolecularPreview.tsx"
+      - "!frontend/src/viewer/PoseSession.test.tsx"
+      - "!frontend/src/viewer/PoseSession.tsx"
+      - "!frontend/src/viewer/PoseStudyInput.tsx"
+      - "!frontend/src/viewer/StructureViewport.tsx"
+      - "!frontend/src/viewer/pose-plan.ts"
+      - "!frontend/src/viewer/pose-study-input.css"
+      - "!frontend/src/viewer/usePoseHandoff.ts"
   workflow_dispatch:
 permissions:
   contents: read

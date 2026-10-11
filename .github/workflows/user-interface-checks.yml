@@ -185,6 +185,10 @@ on:
       - "!.github/workflows/user-interface-checks.yml"
       # Saved-material handoff uses result-handoff-checks.yml.
       - "!frontend/src/docking/DockingResults*"
+      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      - "!frontend/src/chemistry/StateResults.tsx"
+      - "!frontend/src/diffsbdd/DiffResults.tsx"
+      - "!frontend/src/presentation/MolecularPreview.tsx"
   pull_request:
     paths:
       - "frontend/src/presentation/**"
@@ -331,6 +335,10 @@ on:
       - "!.github/workflows/user-interface-checks.yml"
       # Saved-material handoff uses result-handoff-checks.yml.
       - "!frontend/src/docking/DockingResults*"
+      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      - "!frontend/src/chemistry/StateResults.tsx"
+      - "!frontend/src/diffsbdd/DiffResults.tsx"
+      - "!frontend/src/presentation/MolecularPreview.tsx"
   workflow_dispatch:
 jobs:
   presentation:

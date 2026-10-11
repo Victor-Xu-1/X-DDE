@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import type { StateResult, StateSet } from "./types";
@@ -7,6 +6,7 @@ import { ResearchTable } from "../presentation/ResearchTable";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { MetricScatter } from "../presentation/MetricScatter";
+import { PoseStudyInput } from "../viewer/PoseStudyInput";
 
 export function StateCollectionPreview({
   job,
@@ -14,17 +14,22 @@ export function StateCollectionPreview({
   sets,
   language,
   onUse,
+  stateIndex,
+  record,
+  onSelection,
 }: {
   job: Job;
   data: StateResult;
   sets: StateSet[];
   language: Language;
   onUse(reference: MoleculeRef, kind: "properties" | "docking"): void;
+  stateIndex: number | undefined;
+  record: number | null;
+  onSelection(state: number | undefined, record: number | null): void;
 }) {
   const zh = language === "zh";
-  const [stateIndex, setState] = useState(data.states[0]?.index);
-  const [record, setRecord] = useState<number | null>(null);
-  const state = data.states.find((value) => value.index === stateIndex);
+  const state =
+    data.states.find((value) => value.index === stateIndex) ?? data.states[0];
   const conformers = data.conformers.filter(
     (value) => value.state_index === stateIndex,
   );
@@ -47,8 +52,7 @@ export function StateCollectionPreview({
         selected={String(stateIndex)}
         compare={false}
         onSelect={(value) => {
-          setState(value.index);
-          setRecord(null);
+          onSelection(value.index, null);
         }}
         columns={[
           {
@@ -69,8 +73,7 @@ export function StateCollectionPreview({
                   (zh ? "选择状态 " : "Select state ") + (value.index + 1)
                 }
                 onClick={() => {
-                  setState(value.index);
-                  setRecord(null);
+                  onSelection(value.index, null);
                 }}
               >
                 <MoleculeImage
@@ -112,7 +115,7 @@ export function StateCollectionPreview({
             rowId={(value) => String(value.record)}
             selected={current ? String(current.record) : null}
             compare={false}
-            onSelect={(value) => setRecord(value.record)}
+            onSelect={(value) => onSelection(state.index, value.record)}
             columns={[
               {
                 key: "conformer",
@@ -155,7 +158,7 @@ export function StateCollectionPreview({
               (zh ? "构象 " : "Conformer ") + (value.native_conformer + 1)
             }
             selected={current ? String(current.record) : null}
-            onSelect={(value) => setRecord(value.record)}
+            onSelect={(value) => onSelection(state.index, value.record)}
             metrics={[
               {
                 key: "conformer",
@@ -197,26 +200,41 @@ export function StateCollectionPreview({
               {zh ? "下载当前构象 SDF" : "Download current conformer SDF"}
             </a>
           )}
-          <div className="editor-toolbar">
-            {member?.reference && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onUse(member.reference, "properties")}
-              >
-                {zh ? "计算此状态性质" : "Calculate this state's properties"}
-              </button>
+          <PoseStudyInput
+            original={reference ?? member?.reference}
+            language={language}
+          >
+            {(selection) => (
+              <div className="editor-toolbar">
+                {member?.reference && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={!selection?.ready}
+                    onClick={() => {
+                      if (selection) onUse(selection.reference, "properties");
+                    }}
+                  >
+                    {zh
+                      ? "计算此状态性质"
+                      : "Calculate this state's properties"}
+                  </button>
+                )}
+                {reference && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={!selection?.ready}
+                    onClick={() => {
+                      if (selection) onUse(selection.reference, "docking");
+                    }}
+                  >
+                    {zh ? "用于寻找结合姿势" : "Use for binding-pose search"}
+                  </button>
+                )}
+              </div>
             )}
-            {reference && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onUse(reference, "docking")}
-              >
-                {zh ? "用于寻找结合姿势" : "Use for binding-pose search"}
-              </button>
-            )}
-          </div>
+          </PoseStudyInput>
         </div>
       </div>
     </section>

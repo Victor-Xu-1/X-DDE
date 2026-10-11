@@ -1,5 +1,8 @@
 import "../presentation/ensemble-results.css";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { PoseSession } from "../viewer/PoseSession";
+import { posePlan } from "../viewer/pose-plan";
+import { usePoseHandoff } from "../viewer/usePoseHandoff";
 import { ClusterForm } from "./ClusterForm";
 import { ClusterExample } from "./ClusterExample";
 import { PoseScoreComparison } from "./PoseScoreComparison";
@@ -53,7 +56,6 @@ function PoseResultWorkspace({
       value.outcomes[initialIndex]?.poses.find((pose) => pose.reference)
         ?.evidence.record ?? null,
     ),
-    [next, setNext] = useState<"properties" | "score" | null>(null),
     [message, setMessage] = useState(""),
     [clustering, setClustering] = useState(false),
     [exampleOpen, setExampleOpen] = useState(false);
@@ -61,16 +63,45 @@ function PoseResultWorkspace({
   const selected = outcome?.poses.find(
     (p) => p.evidence.record === pose && p.reference,
   );
+  const ligandUrl = selected?.reference
+    ? "/api/assets/" + selected.reference.asset_id
+    : null;
+  const frame = {
+    urls:
+      ligandUrl && outcome
+        ? ["/api/assets/" + outcome.combination.receptor.asset_id, ligandUrl]
+        : [],
+    records:
+      ligandUrl && outcome
+        ? [outcome.combination.receptor.record, selected!.reference!.record]
+        : undefined,
+    molecularSource: ligandUrl
+      ? { url: ligandUrl, record: selected!.reference!.record }
+      : undefined,
+  };
+  const wrap = (content: ReactNode) => (
+    <PoseSession frame={frame}>{content}</PoseSession>
+  );
+  const handoff = usePoseHandoff<"properties" | "score">(
+    JSON.stringify([
+      value.id,
+      outcome?.combination.step_id,
+      pose,
+      posePlan(frame).key,
+    ]),
+  );
+  const next = handoff.value?.action;
+  const input = handoff.value?.selection;
   function chooseOutcome(target: number) {
     setIndex(target);
     setPose(
       value.outcomes[target]?.poses.find((row) => row.reference)?.evidence
         .record ?? null,
     );
-    setNext(null);
+    handoff.clear();
   }
   if (clustering || exampleOpen)
-    return (
+    return wrap(
       <section className="pose-results">
         <button
           type="button"
@@ -87,16 +118,16 @@ function PoseResultWorkspace({
         ) : (
           <ClusterExample language={language} />
         )}
-      </section>
+      </section>,
     );
-  if (next && selected?.reference && outcome)
-    return (
-      <ResearchHandoff language={language} onBack={() => setNext(null)}>
+  if (next && input && outcome)
+    return wrap(
+      <ResearchHandoff language={language} onBack={handoff.clear}>
         {next === "properties" ? (
           <PropertyForm
             language={language}
-            initialFile={selected.reference.asset_id}
-            scientificInput={selected.reference}
+            initialFile={input.reference.asset_id}
+            scientificInput={input.reference}
             onCreated={() =>
               setMessage(zh ? "新任务已创建。" : "New task created.")
             }
@@ -105,17 +136,17 @@ function PoseResultWorkspace({
           <DockingForm
             language={language}
             mode="score"
-            initialReceptor={outcome.combination.receptor}
-            initialLigand={selected.reference}
+            initialReceptor={input.receptor ?? outcome.combination.receptor}
+            initialLigand={input.reference}
             onCreated={() =>
               setMessage(zh ? "新任务已创建。" : "New task created.")
             }
           />
         )}
         {message && <p role="status">{message}</p>}
-      </ResearchHandoff>
+      </ResearchHandoff>,
     );
-  return (
+  return wrap(
     <section
       className="pose-results"
       aria-label={zh ? "多假设姿势集合" : "Multi-hypothesis pose ensemble"}
@@ -157,14 +188,14 @@ function PoseResultWorkspace({
               onOutcome={chooseOutcome}
               onPose={(record) => {
                 setPose(record);
-                setNext(null);
+                handoff.clear();
               }}
             />
             <PoseDetail
               outcome={outcome}
               record={pose}
               language={language}
-              onNext={setNext}
+              onNext={handoff.open}
             />
           </div>
           <div className="editor-toolbar">
@@ -199,12 +230,12 @@ function PoseResultWorkspace({
               if (target >= 0) {
                 setIndex(target);
                 setPose(record);
-                setNext(null);
+                handoff.clear();
               }
             }}
           />
         </>
       )}
-    </section>
+    </section>,
   );
 }

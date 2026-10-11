@@ -1,6 +1,8 @@
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import "./states.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { PoseSession } from "../viewer/PoseSession";
+import { posePlan } from "../viewer/pose-plan";
 import type { Job, Language } from "../types";
 import { artifactUrl, request } from "../api";
 import { PropertyForm } from "../operations/PropertyForm";
@@ -25,6 +27,33 @@ export function StateResults({
     [selected, setSelected] = useState<MoleculeRef | null>(null),
     [next, setNext] = useState<"properties" | "docking" | null>(null),
     [message, setMessage] = useState("");
+  const [stateIndex, setState] = useState<number | undefined>(
+    data.states[0]?.index,
+  );
+  const [nextOrigin, setNextOrigin] = useState("");
+  const [record, setRecord] = useState<number | null>(null);
+  const chemicalState =
+    data.states.find((value) => value.index === stateIndex) ?? data.states[0];
+  const conformers = data.conformers.filter(
+    (value) => value.state_index === chemicalState?.index,
+  );
+  const conformer =
+    conformers.find((value) => value.record === record) ?? conformers[0];
+  const url = conformer ? artifactUrl(job.id, conformer.artifact) : null;
+  const frame = {
+    urls: url ? [url] : [],
+    records: url ? [0] : undefined,
+    molecularSource: url ? { url, record: 0 } : undefined,
+  };
+  const wrap = (content: ReactNode) => (
+    <PoseSession frame={frame}>{content}</PoseSession>
+  );
+  const origin = JSON.stringify([
+    job.id,
+    chemicalState?.index,
+    conformer?.record,
+    posePlan(frame).key,
+  ]);
   useEffect(() => {
     const c = new AbortController();
     setLoading(true);
@@ -47,8 +76,8 @@ export function StateResults({
       });
     return () => c.abort();
   }, [job.id]);
-  if (selected && next)
-    return (
+  if (selected && next && nextOrigin === origin)
+    return wrap(
       <ResearchHandoff language={language} onBack={() => setNext(null)}>
         {next === "properties" ? (
           <PropertyForm
@@ -69,9 +98,9 @@ export function StateResults({
             }
           />
         )}
-      </ResearchHandoff>
+      </ResearchHandoff>,
     );
-  return (
+  return wrap(
     <section
       className="molecular-state-results"
       aria-busy={loading}
@@ -142,7 +171,14 @@ export function StateResults({
         data={data}
         sets={sets}
         language={language}
+        stateIndex={chemicalState?.index}
+        record={record}
+        onSelection={(index, conformer) => {
+          setState(index);
+          setRecord(conformer);
+        }}
         onUse={(reference, kind) => {
+          setNextOrigin(origin);
           setSelected(reference);
           setNext(kind);
         }}
@@ -158,6 +194,6 @@ export function StateResults({
           {message}
         </p>
       )}
-    </section>
+    </section>,
   );
 }

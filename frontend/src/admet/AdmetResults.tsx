@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { PoseSession } from "../viewer/PoseSession";
+import { posePlan } from "../viewer/pose-plan";
 import { artifactUrl } from "../api";
 import { StateForm } from "../chemistry/StateForm";
 import type { MoleculeRef } from "../research/types";
@@ -26,10 +28,21 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
       result.rows[0]?.record,
   );
   const [next, setNext] = useState<MoleculeRef | null>(null);
+  const [nextOrigin, setNextOrigin] = useState("");
   const current =
     result.rows.find((row) => row.record === selected) ?? result.rows[0];
-  if (next && onCreated)
-    return (
+  const url = current?.preview ? artifactUrl(job.id, current.preview) : null;
+  const frame = {
+    urls: url ? [url] : [],
+    molecularSource: url ? { url, record: 0 } : undefined,
+    comparison: false,
+  };
+  const wrap = (content: ReactNode) => (
+    <PoseSession frame={frame}>{content}</PoseSession>
+  );
+  const origin = JSON.stringify([job.id, current?.record, posePlan(frame).key]);
+  if (next && onCreated && nextOrigin === origin)
+    return wrap(
       <section>
         <button
           className="secondary-button"
@@ -43,9 +56,9 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
           onCreated={onCreated}
           initialMolecule={next}
         />
-      </section>
+      </section>,
     );
-  return (
+  return wrap(
     <section
       className="admet-results"
       aria-label={zh ? "性质与早期安全性预测结果" : "ADMET prediction results"}
@@ -77,7 +90,14 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
             result={result}
             row={current}
             language={language}
-            onPrepare={onCreated ? setNext : undefined}
+            onPrepare={
+              onCreated
+                ? (reference) => {
+                    setNextOrigin(origin);
+                    setNext(reference);
+                  }
+                : undefined
+            }
           />
         </div>
       ) : (
@@ -90,6 +110,6 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
           </p>
         </div>
       )}
-    </section>
+    </section>,
   );
 }

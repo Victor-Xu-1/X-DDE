@@ -1,0 +1,77 @@
+name: Selected pose continuity checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &pose_handoff_paths
+      - "frontend/src/viewer/PoseSession*"
+      - "frontend/src/viewer/PoseStudyInput*"
+      - "frontend/src/viewer/usePoseHandoff*"
+      - "frontend/src/viewer/pose-plan*"
+      - "frontend/src/viewer/pose-study-input.css"
+      - "frontend/src/viewer/StructureViewer*"
+      - "frontend/src/viewer/StructureViewport*"
+      - "frontend/src/viewer/pose-source*"
+      - "frontend/src/viewer/pose-types.ts"
+      - "frontend/src/viewer/usePoseOptimization*"
+      - "frontend/src/presentation/MolecularPreview.tsx"
+      - "frontend/src/docking/DockingResults*"
+      - "frontend/src/datasets/CandidateHandoff*"
+      - "frontend/src/datasets/CandidateView*"
+      - "frontend/src/poses/PoseDetail*"
+      - "frontend/src/poses/PoseResults*"
+      - "frontend/src/admet/AdmetResults*"
+      - "frontend/src/admet/AdmetSelectedMolecule*"
+      - "frontend/src/chemistry/StateCollectionPreview*"
+      - "frontend/src/chemistry/StateResults*"
+      - "frontend/src/diffsbdd/DiffResults*"
+      - "frontend/src/research/ObjectInspector*"
+      - "frontend/src/research/ResearchWorkspace*"
+      - "server_tests/prepare_pose_handoff.py"
+      - "server_tests/test_pose_handoff_browser.py"
+      - ".github/workflows/pose-handoff-checks.yml"
+  pull_request:
+    paths: *pose_handoff_paths
+permissions:
+  contents: read
+jobs:
+  pose-continuity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Build locked frontend and isolated runtime
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+      - name: Pose controller, explicit choices, record identity and direct research consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/viewer/PoseSession.test.tsx src/viewer/pose-source.test.ts
+          src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx
+          src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts
+          src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
+          src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx
+          src/chemistry/StateResults.test.tsx src/diffsbdd/DiffResults.test.tsx
+          src/research/SelectedAssetPreview.test.tsx src/research/ResearchWorkspace.test.tsx
+      - name: Isolated native Chemistry and existing managed Ketcher
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-pose-handoff" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-pose-handoff/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-pose-handoff" WB_STATE_DIR="$RUNNER_TEMP/x-dde-pose-handoff/state" .venv/bin/python server_tests/prepare_pose_handoff.py
+      - name: Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads
+        run: |
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+          uv run --locked python -m pytest -x -q server_tests/test_pose_handoff_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-selected-pose-evidence
+          path: outputs/pose-handoff/**

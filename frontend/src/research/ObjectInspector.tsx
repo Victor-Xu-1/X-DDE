@@ -1,6 +1,7 @@
 import { PoseWorkspace } from "../poses/PoseWorkspace";
 import type { Language } from "../types";
 import { SelectedAssetPreview } from "./SelectedAssetPreview";
+import { PoseStudyInput } from "../viewer/PoseStudyInput";
 import {
   edgeLabels,
   type GraphNode,
@@ -67,21 +68,34 @@ export function ObjectInspector({
             <>
               <div className="editor-toolbar">
                 {object.kind === "molecule" && (
-                  <>
-                    <button
-                      onClick={() => onEdit(object)}
-                      title={
-                        zh
-                          ? "在 Ketcher 中打开；保存会创建新版本并保留原始分子。"
-                          : "Open in Ketcher. Saving creates a new version and preserves the original."
-                      }
-                    >
-                      {zh ? "编辑分子" : "Edit molecule"}
-                    </button>
-                    <button onClick={() => onProperties(object)}>
-                      {zh ? "用作性质计算输入" : "Use for properties"}
-                    </button>
-                  </>
+                  <PoseStudyInput original={object} language={language}>
+                    {(selection) => (
+                      <>
+                        <button
+                          disabled={!selection?.ready || !selection.object}
+                          onClick={() => {
+                            if (selection?.object) onEdit(selection.object);
+                          }}
+                          title={
+                            zh
+                              ? "在 Ketcher 中打开；保存会创建新版本并保留原始分子。"
+                              : "Open in Ketcher. Saving creates a new version and preserves the original."
+                          }
+                        >
+                          {zh ? "编辑分子" : "Edit molecule"}
+                        </button>
+                        <button
+                          disabled={!selection?.ready || !selection.object}
+                          onClick={() => {
+                            if (selection?.object)
+                              onProperties(selection.object);
+                          }}
+                        >
+                          {zh ? "用作性质计算输入" : "Use for properties"}
+                        </button>
+                      </>
+                    )}
+                  </PoseStudyInput>
                 )}
                 <a href={`/api/assets/${object.reference.asset_id}`} download>
                   {zh ? "下载此版本" : "Download version"}

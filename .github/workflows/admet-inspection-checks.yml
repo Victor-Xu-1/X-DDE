@@ -9,6 +9,9 @@ on:
       # Input review is covered with native drawings and readiness in publication-checks.yml.
       - "!frontend/src/admet/AdmetForm*"
       - "server_tests/test_admet_inspection_browser.py"
+      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      - "!frontend/src/admet/AdmetResults.tsx"
+      - "!frontend/src/admet/AdmetSelectedMolecule.tsx"
 permissions:
   contents: read
 jobs:

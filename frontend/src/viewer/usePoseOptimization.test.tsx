@@ -21,7 +21,13 @@ const saved = {
   pose: {
     id: next,
     kind: "molecule",
-    reference: { asset_id: next, version_id: next, record: 0, conformer: 0 },
+    reference: {
+      asset_id: next,
+      version_id: next,
+      sha256: "a".repeat(64),
+      record: 0,
+      conformer: 0,
+    },
     source_job: next,
     relation: "edited_from",
   },

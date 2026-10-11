@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   GeneratedCandidates,
   type GeneratedRecord,
@@ -7,6 +7,10 @@ import { artifactUrl, request } from "../api";
 import { artifactInfo } from "../presentation/artifact-digest";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
+import { PoseSession } from "../viewer/PoseSession";
+import { PoseStudyInput } from "../viewer/PoseStudyInput";
+import { usePoseHandoff } from "../viewer/usePoseHandoff";
+import { posePlan } from "../viewer/pose-plan";
 import type { OperationResult } from "../operations/types";
 import { DiffForm } from "./DiffForm";
 import { CoreVerification } from "./CoreVerification";
@@ -35,10 +39,6 @@ export function DiffResults({
       null,
     );
   const selected = selectedRecord?.object ?? null;
-  const [action, setAction] = useState<"properties" | "export" | null>(null);
-  const [designMode, setDesignMode] = useState<
-    "inpaint" | "diversify" | "optimize" | null
-  >(null);
   const [message, setMessage] = useState("");
   const targetArtifact =
     typeof data.molecule_artifact === "string"
@@ -54,7 +54,6 @@ export function DiffResults({
     setError("");
     setSelectedRecord(null);
     setRecords([]);
-    setAction(null);
     async function load() {
       if (!targetArtifact || data.valid === 0) return;
       const info = await artifactInfo(
@@ -136,27 +135,43 @@ export function DiffResults({
   };
   const protein =
     typeof data.protein_artifact === "string" ? data.protein_artifact : null;
-  if (
-    selected &&
-    (action ||
-      (designMode &&
-        job.request.operation === "diffsbdd" &&
-        "protein" in job.request.payload))
-  )
-    return (
-      <ResearchHandoff
-        language={language}
-        onBack={() => {
-          setAction(null);
-          setDesignMode(null);
-        }}
-      >
+  const currentUrl =
+    targetArtifact &&
+    selectedRecord &&
+    (selectedRecord.object?.reference.conformer ?? 0) === 0
+      ? artifactUrl(job.id, targetArtifact)
+      : null;
+  const frame = {
+    urls: currentUrl ? [currentUrl] : [],
+    records: currentUrl ? [selectedRecord!.record] : undefined,
+    molecularSource: currentUrl
+      ? { url: currentUrl, record: selectedRecord!.record }
+      : undefined,
+  };
+  const wrap = (content: ReactNode) => (
+    <PoseSession frame={frame}>{content}</PoseSession>
+  );
+  const handoff = usePoseHandoff<
+    "properties" | "export" | "inpaint" | "diversify" | "optimize"
+  >(
+    JSON.stringify([
+      job.id,
+      targetArtifact,
+      selectedRecord?.record,
+      posePlan(frame).key,
+    ]),
+  );
+  const action = handoff.value?.action;
+  const nextInput = handoff.value?.selection.reference;
+  if (nextInput && action)
+    return wrap(
+      <ResearchHandoff language={language} onBack={handoff.clear}>
         {action === "properties" ? (
           <PropertyForm
-            key={selected.id + action}
+            key={(nextInput.version_id ?? nextInput.asset_id) + action}
             language={language}
-            initialFile={selected.reference.asset_id}
-            scientificInput={selected.reference}
+            initialFile={nextInput.asset_id}
+            scientificInput={nextInput}
             onCreated={() =>
               setMessage(
                 zh
@@ -167,10 +182,10 @@ export function DiffResults({
           />
         ) : (
           <DiffForm
-            key={selected.id + (action ?? designMode)}
-            mode={action === "export" ? "export" : designMode!}
+            key={(nextInput.version_id ?? nextInput.asset_id) + action}
+            mode={action}
             language={language}
-            initialMolecule={selected.reference}
+            initialMolecule={nextInput}
             initialProtein={
               job.request.operation === "diffsbdd"
                 ? (job.request.payload
@@ -186,9 +201,9 @@ export function DiffResults({
             }
           />
         )}
-      </ResearchHandoff>
+      </ResearchHandoff>,
     );
-  return (
+  return wrap(
     <section
       aria-label={
         zh ? "DiffSBDD 结果与下一步" : "DiffSBDD results and next steps"
@@ -301,49 +316,69 @@ export function DiffResults({
             verification={data.core_verification}
             onSelect={(value) => {
               setSelectedRecord(value);
-              setAction(null);
+              handoff.clear();
             }}
           />
-          {selected &&
-            job.request.operation === "diffsbdd" &&
-            "protein" in job.request.payload && (
-              <label className="field">
-                {zh
-                  ? "下一轮想怎样设计？"
-                  : "What should the next design round do?"}
-                <select
-                  value={designMode ?? ""}
-                  onChange={(e) =>
-                    setDesignMode((e.target.value || null) as typeof designMode)
-                  }
-                >
-                  <option value="">—</option>
-                  <option value="inpaint">
-                    {zh
-                      ? "保留核心，局部重设计"
-                      : "Keep a core and redesign locally"}
-                  </option>
-                  <option value="diversify">
-                    {zh ? "围绕当前分子多样化" : "Diversify this molecule"}
-                  </option>
-                  <option value="optimize">
-                    {zh ? "按 QED/SA 优化" : "Optimize QED/SA"}
-                  </option>
-                </select>
-              </label>
+          <PoseStudyInput original={selected} language={language}>
+            {(selection) => (
+              <>
+                {selection &&
+                  job.request.operation === "diffsbdd" &&
+                  "protein" in job.request.payload && (
+                    <label className="field">
+                      {zh
+                        ? "下一轮想怎样设计？"
+                        : "What should the next design round do?"}
+                      <select
+                        value=""
+                        disabled={!selection.ready}
+                        onChange={(e) => {
+                          const value = (
+                            ["inpaint", "diversify", "optimize"] as const
+                          ).find((v) => v === e.target.value);
+                          if (value) handoff.open(value, selection);
+                        }}
+                      >
+                        <option value="">—</option>
+                        <option value="inpaint">
+                          {zh
+                            ? "保留核心，局部重设计"
+                            : "Keep a core and redesign locally"}
+                        </option>
+                        <option value="diversify">
+                          {zh
+                            ? "围绕当前分子多样化"
+                            : "Diversify this molecule"}
+                        </option>
+                        <option value="optimize">
+                          {zh ? "按 QED/SA 优化" : "Optimize QED/SA"}
+                        </option>
+                      </select>
+                    </label>
+                  )}
+                {selection && (
+                  <div className="editor-toolbar">
+                    <button
+                      type="button"
+                      disabled={!selection.ready}
+                      onClick={() => handoff.open("properties", selection)}
+                    >
+                      {zh
+                        ? "计算这个候选的性质"
+                        : "Calculate this candidate's properties"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!selection.ready}
+                      onClick={() => handoff.open("export", selection)}
+                    >
+                      {zh ? "导出这个候选" : "Export this candidate"}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
-          {selected && (
-            <div className="editor-toolbar">
-              <button type="button" onClick={() => setAction("properties")}>
-                {zh
-                  ? "计算这个候选的性质"
-                  : "Calculate this candidate's properties"}
-              </button>
-              <button type="button" onClick={() => setAction("export")}>
-                {zh ? "导出这个候选" : "Export this candidate"}
-              </button>
-            </div>
-          )}
+          </PoseStudyInput>
         </>
       )}
       {message && <p role="status">{message}</p>}
@@ -352,6 +387,6 @@ export function DiffResults({
           {error}
         </p>
       )}
-    </section>
+    </section>,
   );
 }

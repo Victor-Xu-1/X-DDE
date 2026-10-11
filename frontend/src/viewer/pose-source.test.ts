@@ -54,7 +54,13 @@ it("replaces only the ligand with the saved version and clears stale docking sco
     pose: {
       id,
       kind: "molecule",
-      reference: { asset_id: id, version_id: id, record: 0, conformer: 0 },
+      reference: {
+        asset_id: id,
+        version_id: id,
+        sha256: "a".repeat(64),
+        record: 0,
+        conformer: 0,
+      },
       source_job: id,
       relation: "edited_from",
     },

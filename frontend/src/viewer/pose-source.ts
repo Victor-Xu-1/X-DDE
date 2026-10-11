@@ -64,6 +64,13 @@ export function optimizedPose(
 ): PreviewPose {
   const object = saved.pose;
   if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= previous.urls.length ||
+    !object ||
+    !object.reference ||
+    !new RegExp(`^${uuid}$`, "i").test(object.id) ||
+    !/^[a-f0-9]{64}$/.test(object.reference.sha256) ||
     object.kind !== "molecule" ||
     object.reference.record !== 0 ||
     object.reference.conformer !== 0 ||
@@ -100,6 +107,8 @@ export function optimizedPose(
     score: saved.native_score,
     energy: saved.energy,
     versionId: object.id,
+    object,
+    receptorReference: saved.receptor,
   };
 }
 
@@ -111,6 +120,11 @@ export function computedPose(
 ): PreviewPose {
   const ref = object.reference;
   if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= previous.urls.length ||
+    !new RegExp(`^${uuid}$`, "i").test(object.id) ||
+    !/^[a-f0-9]{64}$/.test(ref.sha256) ||
     object.kind !== "molecule" ||
     ref.version_id !== object.id ||
     !new RegExp(`^${uuid}$`, "i").test(ref.asset_id) ||
@@ -131,5 +145,6 @@ export function computedPose(
     records,
     source: { kind: "version", version_id: object.id },
     versionId: object.id,
+    object,
   };
 }

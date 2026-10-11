@@ -1,6 +1,10 @@
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import type { Language } from "../types";
 import type { PoseSet } from "./types";
+import {
+  PoseStudyInput,
+  type PoseStudySelection,
+} from "../viewer/PoseStudyInput";
 
 export function PoseDetail({
   outcome,
@@ -11,7 +15,7 @@ export function PoseDetail({
   outcome: PoseSet["outcomes"][number];
   record: number | null;
   language: Language;
-  onNext(choice: "properties" | "score"): void;
+  onNext(choice: "properties" | "score", input: PoseStudySelection): void;
 }) {
   const zh = language === "zh";
   const selected = outcome.poses.find(
@@ -61,22 +65,35 @@ export function PoseDetail({
         focusModel={1}
         language={language}
       />
-      <div className="editor-toolbar">
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => onNext("properties")}
-        >
-          {zh ? "计算此姿势分子性质" : "Calculate molecular properties"}
-        </button>
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => onNext("score")}
-        >
-          {zh ? "在配套受体上重新评分" : "Rescore with paired receptor"}
-        </button>
-      </div>
+      <PoseStudyInput original={ligand} language={language}>
+        {(selection) => (
+          <div className="editor-toolbar">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!selection?.ready}
+              onClick={() => {
+                if (selection) onNext("properties", selection);
+              }}
+            >
+              {zh ? "计算此姿势分子性质" : "Calculate molecular properties"}
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={
+                !selection?.ready ||
+                (selection.displayed && selection.receptor === null)
+              }
+              onClick={() => {
+                if (selection) onNext("score", selection);
+              }}
+            >
+              {zh ? "在配套受体上重新评分" : "Rescore with paired receptor"}
+            </button>
+          </div>
+        )}
+      </PoseStudyInput>
     </section>
   );
 }

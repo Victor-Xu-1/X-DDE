@@ -39,4 +39,6 @@ export interface PreviewPose {
   score?: NativePoseScore | null;
   energy?: PoseEnergy | null;
   versionId?: string;
+  object?: ScientificObject;
+  receptorReference?: MoleculeRef | null;
 }

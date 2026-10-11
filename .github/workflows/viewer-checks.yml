@@ -69,6 +69,20 @@ on:
       - "!frontend/src/poses/PoseList.tsx"
       # Pocket prototype removal belongs to the focused selection gate.
       - "!frontend/src/viewer/source-depth*"
+      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      - "!frontend/src/poses/PoseDetail.tsx"
+      - "!frontend/src/poses/PoseResults.tsx"
+      - "!frontend/src/viewer/PoseSession.test.tsx"
+      - "!frontend/src/viewer/PoseSession.tsx"
+      - "!frontend/src/viewer/PoseStudyInput.tsx"
+      - "!frontend/src/viewer/StructureViewport.tsx"
+      - "!frontend/src/viewer/pose-plan.ts"
+      - "!frontend/src/viewer/pose-source.test.ts"
+      - "!frontend/src/viewer/pose-source.ts"
+      - "!frontend/src/viewer/pose-study-input.css"
+      - "!frontend/src/viewer/pose-types.ts"
+      - "!frontend/src/viewer/usePoseHandoff.ts"
+      - "!frontend/src/viewer/usePoseOptimization.test.tsx"
 permissions:
   contents: read
 jobs:
