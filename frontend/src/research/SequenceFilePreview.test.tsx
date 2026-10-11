@@ -28,6 +28,12 @@ it("jumps to exact positions in a long retained sequence and resets when changin
   expect(
     document.querySelectorAll(".sequence-residue-grid button").length,
   ).toBeLessThanOrEqual(600);
+  await user.click(
+    screen.getByRole("button", { name: "STAT6 P42226 · 847 A" }),
+  );
+  await user.keyboard("{Home}{ArrowRight}");
+  expect(input).toHaveValue(2);
+  expect(screen.getByText("Sequence position 2 · A")).toBeVisible();
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Sequence record" }),
     "1",
@@ -36,6 +42,7 @@ it("jumps to exact positions in a long retained sequence and resets when changin
     screen.getByRole("heading", { name: "STAT6 construct" }),
   ).toBeVisible();
   expect(screen.queryByText("Sequence position 847 · A")).toBeNull();
+  expect(input).toHaveValue(null);
   expect(
     screen.getByRole("button", { name: "STAT6 construct · 1 m" }),
   ).toBeVisible();

@@ -110,7 +110,10 @@ export function SequenceFilePreview({
         language={language}
         unit="positions"
         selectedPosition={position}
-        onSelect={setPosition}
+        onSelect={(value) => {
+          setPosition(value);
+          setJump(String(value));
+        }}
       />
     </div>
   );

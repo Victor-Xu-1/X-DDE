@@ -246,6 +246,7 @@ def test_retained_stat6_sequence_inspection_positions_and_downloads(language):
         expect(
             preview.get_by_role("button", name=header + " · 2 " + first_sequence[1], exact=True)
         ).to_be_focused()
+        expect(jump).to_have_value("2")
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             preview.scroll_into_view_if_needed()
