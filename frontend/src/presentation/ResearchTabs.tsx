@@ -5,6 +5,8 @@ import { ActiveIndicator } from "./ActiveIndicator";
 export function ResearchTabs({
   tabs,
   label,
+  active: controlled,
+  onChange,
 }: {
   tabs: readonly {
     id: string;
@@ -13,12 +15,20 @@ export function ResearchTabs({
     count?: number;
   }[];
   label: string;
+  active?: string;
+  onChange?(id: string): void;
 }) {
   const id = useId(),
     [active, setActive] = useState(tabs[0]?.id);
   const [visited, setVisited] = useState(new Set([tabs[0]?.id]));
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
-  const current = tabs.some((t) => t.id === active) ? active : tabs[0]?.id;
+  const selected = controlled ?? active;
+  const current = tabs.some((t) => t.id === selected) ? selected : tabs[0]?.id;
+  function choose(id: string) {
+    setActive(id);
+    onChange?.(id);
+    setVisited((previous) => new Set([...previous, id]));
+  }
   const panel = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
   useReveal(panel, current ?? "");
@@ -43,8 +53,7 @@ export function ResearchTabs({
             aria-controls={id + "-panel-" + tab.id}
             tabIndex={current === tab.id ? 0 : -1}
             onClick={() => {
-              setActive(tab.id);
-              setVisited((previous) => new Set([...previous, tab.id]));
+              choose(tab.id);
             }}
             onKeyDown={(e) => {
               const next =
@@ -59,8 +68,7 @@ export function ResearchTabs({
                         : null;
               if (next !== null) {
                 e.preventDefault();
-                setActive(tabs[next].id);
-                setVisited((previous) => new Set([...previous, tabs[next].id]));
+                choose(tabs[next].id);
                 buttons.current[next]?.focus();
               }
             }}

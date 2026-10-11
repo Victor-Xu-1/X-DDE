@@ -3,7 +3,7 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { MoleculeImage } from "./MoleculeImage";
 import { ResearchTabs } from "./ResearchTabs";
 import type { DepictionSource } from "./depiction-renderer";
-import { PoseSession } from "../viewer/PoseSession";
+import { PoseSession, usePoseSession } from "../viewer/PoseSession";
 export function MolecularPreview({
   language,
   label,
@@ -59,7 +59,7 @@ export function MolecularPreview({
         className="molecular-preview"
         aria-label={zh ? "分子结构预览" : "Molecular structure preview"}
       >
-        <ResearchTabs
+        <PoseViewTabs
           key={label + JSON.stringify(source)}
           label={zh ? "结构视图" : "Structure views"}
           tabs={
@@ -72,5 +72,16 @@ export function MolecularPreview({
         />
       </section>
     </PoseSession>
+  );
+}
+
+function PoseViewTabs(props: Parameters<typeof ResearchTabs>[0]) {
+  const session = usePoseSession();
+  return (
+    <ResearchTabs
+      {...props}
+      active={session?.view}
+      onChange={session?.chooseView}
+    />
   );
 }

@@ -14,6 +14,7 @@ on:
       - "frontend/src/viewer/pose-types.ts"
       - "frontend/src/viewer/usePoseOptimization*"
       - "frontend/src/presentation/MolecularPreview.tsx"
+      - "frontend/src/presentation/ResearchTabs*"
       - "frontend/src/docking/DockingResults*"
       - "frontend/src/datasets/CandidateHandoff*"
       - "frontend/src/datasets/CandidateView*"
@@ -55,6 +56,7 @@ jobs:
         run: >-
           npx vitest run src/viewer/PoseSession.test.tsx src/viewer/pose-source.test.ts
           src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx
+          src/presentation/ResearchTabs.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx

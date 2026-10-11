@@ -8,6 +8,8 @@ interface Workspace {
   controller: PoseController;
   inputMode: "displayed" | "original";
   chooseInput(mode: "displayed" | "original"): void;
+  view: string | undefined;
+  chooseView(id: string): void;
 }
 const PoseContext = createContext<Workspace | null>(null);
 export const usePoseSession = () => useContext(PoseContext);
@@ -38,6 +40,7 @@ function OwnedPoseSession({
     mode: "displayed" as "displayed" | "original",
   });
   const inputMode = choice.key === plan.key ? choice.mode : "displayed";
+  const [view, setView] = useState<{ key: string; id: string } | null>(null);
   return (
     <PoseContext.Provider
       value={{
@@ -45,6 +48,8 @@ function OwnedPoseSession({
         controller,
         inputMode,
         chooseInput: (mode) => setChoice({ key: plan.key, mode }),
+        view: view?.key === plan.key ? view.id : undefined,
+        chooseView: (id) => setView({ key: plan.key, id }),
       }}
     >
       {children}

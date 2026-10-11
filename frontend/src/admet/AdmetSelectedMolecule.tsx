@@ -7,6 +7,7 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { EndpointTable } from "./EndpointTable";
 import { failureReason } from "./labels";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
+import { usePoseSession } from "../viewer/PoseSession";
 import type { AdmetResult, AdmetRow } from "./types";
 
 export function AdmetSelectedMolecule({
@@ -23,6 +24,7 @@ export function AdmetSelectedMolecule({
   onPrepare?(reference: MoleculeRef): void;
 }) {
   const zh = language === "zh";
+  const poseSession = usePoseSession();
   const url = row.preview ? artifactUrl(job.id, row.preview) : null;
   const source = row.smiles
     ? { smiles: row.smiles }
@@ -88,6 +90,8 @@ export function AdmetSelectedMolecule({
       </header>
       {row.status === "predicted" ? (
         <ResearchTabs
+          active={poseSession?.view}
+          onChange={poseSession?.chooseView}
           label={zh ? "分子详情" : "Molecule details"}
           tabs={url ? [predictions, structure] : [predictions]}
         />

@@ -1,7 +1,6 @@
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
-import { useState } from "react";
 import { PoseSession, usePoseSession } from "./PoseSession";
 import { PoseStudyInput } from "./PoseStudyInput";
 import { usePoseHandoff } from "./usePoseHandoff";
@@ -102,7 +101,8 @@ function ResearchFlow({
   input?: ScientificObject;
 }) {
   const handoff = usePoseHandoff<"properties">(scope);
-  const [view, setView] = useState("3d");
+  const session = usePoseSession()!;
+  const view = session.view ?? "3d";
   if (handoff.value)
     return (
       <>
@@ -114,7 +114,7 @@ function ResearchFlow({
     );
   return (
     <>
-      <button onClick={() => setView(view === "3d" ? "2d" : "3d")}>
+      <button onClick={() => session.chooseView(view === "3d" ? "2d" : "3d")}>
         Toggle view
       </button>
       {view === "3d" && (
