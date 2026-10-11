@@ -64,6 +64,8 @@ def test_pages_include_history_older_than_one_hundred_and_exclude_only_fixed_exa
     jobs = [create(library, f"Controlled metadata history {i:03d}") for i in range(125)]
     fixed = create(library, "Fixed template transport record")
     library.classify([fixed.id])
+    setup = create(library, "Internal installation validation")
+    library.classify([setup.id], origin="setup_validation")
     before = [(job.id, job.request, job.status) for job in library.store.list_jobs(200)]
     result = history_page(library, capabilities=("properties",), offset=120, limit=20)
     assert result["total"] == 125
@@ -77,6 +79,7 @@ def test_pages_include_history_older_than_one_hundred_and_exclude_only_fixed_exa
     ]
     assert len(identifiers) == len(set(identifiers)) == 125
     assert fixed.id not in identifiers
+    assert setup.id not in identifiers
     examples = history_page(library, scope="examples")
     assert examples["total"] == 1 and examples["items"][0]["job"].id == fixed.id
     assert before == [(job.id, job.request, job.status) for job in library.store.list_jobs(200)]

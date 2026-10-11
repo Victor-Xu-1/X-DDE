@@ -16,10 +16,14 @@ def history_page(
 ):
     library.synchronize()
     classification, parameters = classification_sql()
+    source = (
+        "EXISTS (SELECT 1 FROM example_library_tasks e "
+        "WHERE e.job_id=j.id AND e.origin='fixed_example')"
+        if scope == "examples"
+        else "NOT EXISTS (SELECT 1 FROM example_library_tasks e WHERE e.job_id=j.id)"
+    )
     sql = (
-        f"WITH history AS (SELECT j.*, {classification} AS capability_id FROM jobs j "
-        f"WHERE {'EXISTS' if scope == 'examples' else 'NOT EXISTS'} "
-        "(SELECT 1 FROM example_library_tasks e WHERE e.job_id=j.id)"
+        f"WITH history AS (SELECT j.*, {classification} AS capability_id FROM jobs j WHERE {source}"
     )
     if project_id:
         sql += " AND json_extract(j.request, '$.project_id') = ?"
