@@ -24,7 +24,8 @@ The existing deployment checkpoint enforces a four-GiB reserve during installati
 and stops its own process through the existing lifecycle if space is insufficient.
 Uninstall remains available to release space. The existing research worker checks
 the configured reserve before starting and during execution, stopping only its
-owned task while retaining partial files and diagnostics. Upload interruption
+owned task while retaining partial files and diagnostics. Pending studies remain
+queued while space is unavailable, with an explicit waiting reason. Upload interruption
 retains confirmed chunks. These checks do not reserve disk capacity against other
 applications, and do not provide automatic scientific-checkpoint continuation.
 

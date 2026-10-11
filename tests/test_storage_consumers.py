@@ -1,17 +1,22 @@
 """Actual API, upload, install and owned-process boundaries under physical disk exhaustion."""
 
+import asyncio
 import hashlib
+import time
+from dataclasses import replace
 from uuid import uuid4
 
 import pytest
-from conftest import ProcessEngine, wait_status
+from conftest import ProcessEngine, payload, wait_status
 from test_jobs import submit
 
 from opendde_workbench import disk_space
 from opendde_workbench.asset_uploads import UploadInput, UploadStore
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.deployment.manager import DeploymentManager
+from opendde_workbench.models import Prediction, Status
 from opendde_workbench.store import Store
+from opendde_workbench.worker import Worker
 from opendde_workbench.wsl_storage import StorageUnavailable
 
 
@@ -84,8 +89,36 @@ def test_live_process_is_stopped_through_its_existing_owner_when_space_is_low(
         assert created.status_code == 201
         identifier = created.json()["id"]
         wait_status(client, identifier, {"running"})
+        deadline = time.monotonic() + 8
+        while identifier not in engine.processes and time.monotonic() < deadline:
+            time.sleep(0.02)
+        assert identifier in engine.processes
+        assert engine.processes[identifier].returncode is None
         monkeypatch.setattr(disk_space, "available_bytes", lambda _: 0)
         ended = wait_status(client, identifier, {"failed"})
         assert "free disk space" in ended["error"]
         assert engine.started == [identifier]
         assert set(engine.stopped) == {identifier}
+
+
+def test_pending_research_stays_queued_until_capacity_is_restored(settings, monkeypatch):
+    configured = replace(settings, minimum_free_bytes=1)
+    store = Store(configured.state_dir / "jobs.sqlite3")
+    job = store.create(Prediction.model_validate(payload()), str(uuid4()), 20, 500)
+    engine = ProcessEngine()
+    worker = Worker(store, engine, configured)
+    monkeypatch.setattr(disk_space, "available_bytes", lambda _: 0)
+
+    async def scenario():
+        await worker.start()
+        try:
+            deadline = time.monotonic() + 8
+            while not worker.waiting_reason and time.monotonic() < deadline:
+                await asyncio.sleep(0.02)
+            assert "disk space" in worker.waiting_reason
+            assert store.get(job.id).status == Status.QUEUED
+            assert engine.started == []
+        finally:
+            await worker.close()
+
+    asyncio.run(scenario())

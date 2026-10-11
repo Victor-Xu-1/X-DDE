@@ -77,6 +77,23 @@ class Worker:
                     break
             queued = self.store.next_queued()
             self.waiting_reason = None
+            if queued:
+                from .disk_space import require_space
+
+                try:
+                    for location in {
+                        self.settings.state_dir,
+                        self.settings.capacity_dir or self.settings.state_dir,
+                    }:
+                        await asyncio.to_thread(
+                            require_space, location, self.settings.minimum_free_bytes
+                        )
+                except (OSError, ValueError, RuntimeError) as exc:
+                    # Keep unstarted research queued; capacity loss is not a
+                    # scientific failure and must not discard pending studies.
+                    self.waiting_reason = str(exc)
+                    await asyncio.sleep(1)
+                    continue
             if queued and self.gate:
                 try:
                     self.waiting_reason = await self.gate(queued)
