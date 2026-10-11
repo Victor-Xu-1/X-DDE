@@ -1,5 +1,5 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { LibraryInput } from "./LibraryInput";
 import * as client from "../api";
@@ -16,12 +16,13 @@ const metadata = (ref: MoleculeRef) => ({
   size: 100,
 });
 afterEach(() => vi.restoreAllMocks());
+beforeEach(() => vi.spyOn(client.api, "assets").mockResolvedValue([]));
 it("replaces the old filename and eligibility when the externally controlled reference changes", async () => {
-  let reply!: (value: unknown) => void;
+  const replies: ((value: unknown) => void)[] = [];
   vi.spyOn(client, "request").mockImplementation(async (path) =>
     path.includes("/A/")
       ? metadata(a)
-      : new Promise((resolve) => (reply = resolve)),
+      : new Promise((resolve) => replies.push(resolve)),
   );
   function Harness({ value }: { value: MoleculeRef | null }) {
     const [verified, setVerified] = useState<MoleculeRef | null>(null);
@@ -52,7 +53,7 @@ it("replaces the old filename and eligibility when the externally controlled ref
     screen.getByRole("button", { name: "Next with library" }),
   ).toBeDisabled();
   expect(screen.queryByText(/A.sdf ·/)).toBeNull();
-  await act(async () => reply(metadata(b)));
+  await act(async () => replies.forEach((reply) => reply(metadata(b))));
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Next with library" }),

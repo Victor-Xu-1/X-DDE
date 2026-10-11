@@ -12,6 +12,7 @@ import { SimulationForm } from "./SimulationForm";
 import { readFepSeries } from "./fep-series";
 import { simulationDefaults } from "./generated";
 import type { ScientificTask } from "../integrations/types";
+import { useEffect } from "react";
 vi.mock("./fep-series", async () => ({
   ...(await vi.importActual("./fep-series")),
   readFepSeries: vi.fn(),
@@ -24,7 +25,16 @@ vi.mock("../diffsbdd/ReferencePicker", () => ({
   ReferencePicker: () => <span>Selected protein</span>,
 }));
 vi.mock("../integrations/LibraryInput", () => ({
-  LibraryInput: () => <span>Selected series</span>,
+  LibraryInput: ({
+    value,
+    onVerified,
+  }: {
+    value: ScientificTask["inputs"][number]["source"];
+    onVerified(value: ScientificTask["inputs"][number]["source"]): void;
+  }) => {
+    useEffect(() => onVerified(value), [value, onVerified]);
+    return <span>Selected series</span>;
+  },
 }));
 vi.mock("../presentation/MoleculeImage", () => ({
   MoleculeImage: () => <span>Molecular input</span>,

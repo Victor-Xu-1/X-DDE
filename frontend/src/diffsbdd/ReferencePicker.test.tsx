@@ -161,7 +161,10 @@ it("selects an unregistered historical upload with its exact record and clears i
   };
   vi.spyOn(client.api, "assets").mockResolvedValue([asset] as never);
   vi.spyOn(client, "request").mockImplementation(
-    async (path) => (path.endsWith("/metadata") ? asset : []) as never,
+    async (path) =>
+      (path.endsWith("/metadata")
+        ? asset
+        : catalogFixture([], [asset] as never)) as never,
   );
   function Task() {
     const [value, setValue] = useState<MoleculeRef | null>(null);

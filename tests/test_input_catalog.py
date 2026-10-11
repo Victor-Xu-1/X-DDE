@@ -26,6 +26,7 @@ def test_search_paging_passes_the_old_window_without_loading_every_asset(scienti
         "Original STAT6 %_ receptor.pdb", "structure", b"catalogue transport fixture"
     )
     with scientific.store.connect() as db:
+        db.execute("UPDATE assets SET created_at='2020-01-01T00:00:00Z' WHERE id=?", (original.id,))
         db.executemany(
             "INSERT INTO assets VALUES(?,?,?,?,?,?,?)",
             [
@@ -43,6 +44,10 @@ def test_search_paging_passes_the_old_window_without_loading_every_asset(scienti
         )
     first = input_page(scientific, "structure", [".pdb"], limit=25)
     assert first.total == 10051 and len(first.items) == 25
+    assert original.id not in {item.asset.id for item in first.items}
+    assert (
+        input_page(scientific, "structure", [".pdb"], offset=10050).items[0].asset.id == original.id
+    )
     result = input_page(scientific, "structure", [".pdb"], query="%_")
     assert [item.asset.id for item in result.items] == [original.id]
     assert not input_page(scientific, "structure", [".pdb"], query="' OR 1=1 --").items

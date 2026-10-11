@@ -23,11 +23,13 @@ it.each(["chemprop.train", "chemprop.predict"] as const)(
     };
     vi.spyOn(client, "request").mockImplementation(
       async (path) =>
-        (path.startsWith("/research/input-catalog")
-          ? catalogFixture([], [asset])
-          : path.endsWith("/metadata")
-            ? new Promise((resolve) => (reply = resolve))
-            : { availability: { configuration_present: true } }) as never,
+        (path === "/scientific/property-models"
+          ? { models: [] }
+          : path.startsWith("/research/input-catalog")
+            ? catalogFixture([], [asset])
+            : path.endsWith("/metadata")
+              ? new Promise((resolve) => (reply = resolve))
+              : { availability: { configuration_present: true } }) as never,
     );
     render(<ScientificForm form={form} language="en" onCreated={vi.fn()} />);
     const next = screen.getByRole("button", { name: "Next" });

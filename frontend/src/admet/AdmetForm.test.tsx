@@ -155,7 +155,7 @@ it("reports input metadata failure and prevents advancing to settings", async ()
     screen.getByRole("button", { name: "Choose saved molecule" }),
   );
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Source metadata unavailable",
+    "could not be verified",
   );
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 });

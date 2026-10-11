@@ -138,7 +138,7 @@ it("rejects a saved-version hash mismatch and does not reveal internal service d
   vi.mocked(api.assets).mockResolvedValue([]);
   vi.mocked(request).mockImplementation(async (path) =>
     path.startsWith("/research")
-      ? [version(alpha), version(beta)]
+      ? catalogFixture([version(alpha), version(beta)] as never)
       : {
           id: "B",
           sha256: "c".repeat(64),
