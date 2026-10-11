@@ -25,6 +25,7 @@ on:
       # Shared MD input geometry uses simulation-input-checks.yml, not the UI suite.
       - "!src/opendde_workbench/simulations/native_md_input.py"
       - "!src/opendde_workbench/simulations/native_md_system.py"
+      - "!src/opendde_workbench/simulations/native_dynamics.py"
       # Routing-only workflow edits do not re-run scientific contracts.
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/simulations/DynamicsResults.tsx"
