@@ -94,8 +94,8 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         assert len(held) == 1
         page.screenshot(path=evidence / "bounded-read.png", full_page=True)
         page.unroute(route_pattern)
-        for route in held:
-            route.abort()
+        # The product deadline has already cancelled the held request. Do not
+        # handle that completed route a second time; the retry is a new read.
         page.get_by_role("button", name="重新读取" if zh else "Try again", exact=True).click()
         selection = page.get_by_role(
             "region", name="选择 FEP 分子" if zh else "Select FEP molecules"
