@@ -12,6 +12,7 @@ from ..docking.manifest import (
     LICENSES,
     VERSION,
 )
+from .locked_packages import wheel_archives
 from .paths import environment_root
 from .transfers import download
 
@@ -31,11 +32,21 @@ def install_docking(root, work, execute, report, checkpoint):
         licenses[name] = file
     destination = environment_root(root, "gnina") / (VERSION + "-" + str(uuid4()))
     context = destination / "image-context"
-    prepare_context(context, binary, licenses)
+    from pathlib import Path
+
+    import opendde_workbench.docking.image as image_recipe
+
+    archives = wheel_archives(
+        Path(image_recipe.__file__).with_name("native-requirements.txt"),
+        root / "downloads" / "dependency-archives",
+        report,
+        checkpoint,
+    )
+    prepare_context(context, binary, licenses, archives=archives)
     checkpoint()
     report("Building isolated GNINA runtime with hash-locked dependencies")
     tag = "xdde-gnina:" + VERSION + "-" + lock_digest()[:12]
-    execute(["docker", "build", "--pull", "--tag", tag, context], timeout=14400)
+    execute(["docker", "build", "--network=none", "--pull", "--tag", tag, context], timeout=14400)
     image = execute(["docker", "image", "inspect", "--format", "{{.Id}}", tag]).strip()
     if not image.startswith("sha256:") or len(image) != 71:
         raise ValueError("Native image build did not return an immutable image ID.")

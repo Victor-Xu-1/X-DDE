@@ -466,7 +466,7 @@
       "conda": [
         "python=3.12",
         "openfe=1.12.0",
-        "openmm=8.4.0",
+        "openmm=8.4.0=py312h5a97af1_2",
         "cuda-version=12.9",
         "pdbfixer=1.12.0"
       ],

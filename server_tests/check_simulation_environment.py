@@ -5,6 +5,7 @@ import json
 import subprocess
 from pathlib import Path
 
+from opendde_workbench.deployment.locked_packages import conda_archives
 from opendde_workbench.deployment.transfers import download, extract
 from opendde_workbench.integrations.image import lock_digest, prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
@@ -58,11 +59,28 @@ def main():
         extract(archive, evidence / "source", lambda: None)
         source_root = evidence / "source" / source["prefix"]
     context = evidence / "image-context"
-    prepare_context(program, context, source_root)
+    archives = None
+    if program == "openfe":
+        import opendde_workbench.integrations.image as image_recipe
+
+        archives = conda_archives(
+            Path(image_recipe.__file__).with_name("recipes") / "openfe.conda.txt",
+            evidence / "dependency-archives",
+            print,
+            lambda: None,
+        )
+    prepare_context(program, context, source_root, archives=archives)
     tag = "xdde-" + program + "-check:" + recipe_digest(program)[:16]
     with (evidence / "build.log").open("w") as logfile:
         subprocess.run(
-            ["docker", "build", "--tag", tag, str(context)],
+            [
+                "docker",
+                "build",
+                *(["--network=none"] if program == "openfe" else []),
+                "--tag",
+                tag,
+                str(context),
+            ],
             check=True,
             stdout=logfile,
             stderr=subprocess.STDOUT,

@@ -10,6 +10,7 @@ from uuid import uuid4
 from ..integrations.image import lock_digest, prepare_context
 from ..integrations.specs import PROGRAMS, recipe_digest
 from ..locations import atomic_json
+from .locked_packages import conda_archives
 from .paths import environment_root
 from .transfers import download, extract
 
@@ -53,11 +54,24 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         if not folder.is_dir() or folder.is_symlink():
             raise ValueError("Native dependency source differs from the fixed archive layout.")
         extra_sources[entry["id"]] = folder
-    prepare_context(identifier, context, source, extra_sources=extra_sources)
+    archives = None
+    if identifier == "openfe":
+        from pathlib import Path
+
+        import opendde_workbench.integrations.image as image_recipe
+
+        archives = conda_archives(
+            Path(image_recipe.__file__).with_name("recipes") / "openfe.conda.txt",
+            root / "downloads" / "dependency-archives",
+            report,
+            checkpoint,
+        )
+    prepare_context(identifier, context, source, extra_sources=extra_sources, archives=archives)
     checkpoint()
     report("Building the reviewed independent scientific environment")
     tag = "xdde-" + identifier + ":" + recipe_digest(identifier)[:16]
-    execute(["docker", "build", "--tag", tag, context], timeout=7200)
+    network = ["--network=none"] if identifier == "openfe" else []
+    execute(["docker", "build", *network, "--tag", tag, context], timeout=7200)
     image = execute(["docker", "image", "inspect", "--format", "{{.Id}}", tag]).strip()
     if not image.startswith("sha256:") or len(image) != 71:
         raise ValueError("Native image build returned no immutable image identity.")

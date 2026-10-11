@@ -78,6 +78,17 @@ OpenFE 保留其协议支持的 OpenMM 8.4，独立于较新的动力学环境�
 均限定 CUDA 12.9，避免浮动求解引入 CUDA 13。生产 FEP 前仍需在计算主机验证真实
 CUDA 上下文。环境构建与接口检查不具备 GPU，不能代表 GPU 执行、采样收敛或亲和力验证。
 
+OpenFE and GNINA installation downloads checksum-locked dependencies through the
+existing resumable host downloader, rechecks them before staging, and installs
+them in an image build with `--network=none`. This does not enable Docker's
+default bridge, change host networking or discard dependency hashes. Cache files
+are content-addressed within the selected component directory; native result
+containers retain their existing network isolation.
+
+OpenFE 与对接环境安装通过原有可续传下载器获取固定依赖，构建前再次校验，在
+`--network=none` 的镜像构建中安装。无需启用 Docker 默认网络、修改主机网络或
+取消依赖校验。缓存按内容摘要保存于选定组件目录；计算任务保持原有网络隔离。
+
 GROMACS uses native steepest-descent minimization, V-rescale NVT equilibration and C-rescale NPT production. Its integrator and thermostat differ from OpenMM's Langevin protocol; matched systems do not imply identical trajectories. Prepared force fields are transferred through ParmEd, with explicit rejection of unsupported force expressions or changed atom/coordinate ordering. Trajectory molecules are made whole before the existing coordinate analysis; reported energies are matched to native saved-frame timestamps without interpolation. Production samples must fit the regular output stride. Native warnings remain errors; no `-maxwarn` bypass is used.
 GROMACS 执行原生最小化、V-rescale NVT 平衡和 C-rescale NPT 生产采样，与 OpenMM 的 Langevin 协议具有方法差异，不能据此承诺轨迹相同。ParmEd 转换时检查力场表达、原子顺序及初始坐标。轨迹先恢复周期盒中的完整分子，再进入现有坐标分析；势能与原生帧时间对应，不插值。生产采样须符合固定保存间隔；原生警告保持失败处理，不使用 `-maxwarn` 绕过。
 
