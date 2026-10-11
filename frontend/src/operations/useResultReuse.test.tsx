@@ -15,7 +15,9 @@ const asset: Asset = {
   sha256: metadata.sha256,
   created_at: "2026-10-11",
 };
-beforeEach(() => vi.spyOn(client, "request").mockResolvedValue(metadata));
+beforeEach(() => {
+  vi.spyOn(client, "request").mockResolvedValue(metadata);
+});
 afterEach(() => vi.restoreAllMocks());
 it("retains exact metadata and the same save key after a lost reply and coalesces repeated clicks", async () => {
   const save = vi

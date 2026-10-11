@@ -37,12 +37,13 @@ export function ArtifactPicker({
     [page, setPage] = useState(0),
     [name, setName] = useState("");
   useEffect(() => {
+    if (query === search) return;
     const timer = setTimeout(() => {
       setSearch(query);
       setPage(0);
     }, 250);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, search]);
   const history = useTaskHistory({
     module: null,
     type: "all",
