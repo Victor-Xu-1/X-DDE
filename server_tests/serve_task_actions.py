@@ -49,6 +49,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, required=True)
     args = parser.parse_args()
-    settings = replace(Settings.from_env(), minimum_free_bytes=0)
+    settings = replace(
+        Settings.from_env(),
+        minimum_free_bytes=0,
+        allowed_origins=(f"http://127.0.0.1:{args.port}",),
+    )
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     uvicorn.run(create_app(settings, LifecycleEngine()), host="127.0.0.1", port=args.port)

@@ -76,7 +76,7 @@ def test_confirmed_task_survives_response_or_navigation_failure(language, fault)
                 return
             keys.append(route.request.headers["idempotency-key"])
             response = route.fetch()
-            assert response.ok
+            assert response.ok, response.text()
             created.append(response.json())
             if fault == "response" and len(created) == 1:
                 route.abort("failed")
@@ -120,7 +120,7 @@ def test_confirmed_task_survives_response_or_navigation_failure(language, fault)
         def retry(route):
             retry_keys.append(route.request.headers["idempotency-key"])
             response = route.fetch()
-            assert response.ok
+            assert response.ok, response.text()
             retried.append(response.json())
             if len(retried) == 1:
                 route.abort("failed")
