@@ -51,7 +51,7 @@ it("keeps the exact source version and sends no hidden SMILES after selecting fi
   );
   await user.click(
     screen.getByRole("radio", {
-      name: "Upload a new molecular file (recommended)",
+      name: "Use the selected molecular file",
     }),
   );
   for (let i = 0; i < 3; i++)
@@ -87,6 +87,11 @@ it("limits text entries and preserves input across back navigation without launc
   const submit = vi.spyOn(api, "submit"),
     user = userEvent.setup();
   render(<PropertyForm language="en" onCreated={vi.fn()} />);
+  expect(
+    screen.getByRole("radio", {
+      name: "Upload a new molecular file (recommended)",
+    }),
+  ).toBeChecked();
   await user.click(
     screen.getByRole("radio", {
       name: "Paste molecular structure text (SMILES)",
