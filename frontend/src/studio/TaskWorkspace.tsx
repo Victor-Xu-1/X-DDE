@@ -27,11 +27,9 @@ import "./task-history.css";
 
 interface Props {
   language: Language;
-  jobs: Job[];
   job: Job | null;
   detail: Detail | null;
   detailError: boolean;
-  loading: boolean;
   connectionError: boolean;
   projects: Project[];
   projectId: string | null;

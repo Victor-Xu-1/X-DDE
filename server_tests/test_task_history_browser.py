@@ -105,7 +105,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         page.get_by_role("button", name=fixture["native_name"], exact=True).click()
         expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
         expect(switch).to_have_value("binding")
-        expect(page.locator(".detail-panel h2")).to_have_text(fixture["native_name"])
+        expect(page.get_by_role("heading", name=fixture["native_name"], exact=True)).to_be_visible()
         page.screenshot(path=root / "native-result.png")
         page.reload()
         expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)

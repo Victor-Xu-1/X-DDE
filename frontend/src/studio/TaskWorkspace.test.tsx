@@ -50,11 +50,9 @@ function props(
 ): ComponentProps<typeof TaskWorkspace> {
   return {
     language: "en",
-    jobs: historyJobs,
     job: null,
     detail: null,
     detailError: false,
-    loading: false,
     connectionError: false,
     onRefresh: vi.fn(),
     onJob: vi.fn(),
