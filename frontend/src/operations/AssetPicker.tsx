@@ -1,23 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { api, request } from "../api";
 import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
 import { FileSelect } from "../presentation/FileSelect";
 import { researchError } from "../presentation/research-content";
+import { useReferenceHistory } from "../diffsbdd/useReferenceHistory";
+import { AssetHistorySelect } from "./AssetHistorySelect";
+import { useSelectedAsset } from "./useSelectedAsset";
+import { useAssetUpload } from "./useAssetUpload";
+import { assetFormats } from "./asset-acceptance";
 
-const accept: Record<AssetKind, string> = {
-  measurements: ".csv",
-  structure: ".pdb,.cif",
-  ligand: ".sdf,.mol,.mol2,.pdb",
-  msa: ".a3m",
-  template: ".a3m,.hhr",
-  config: ".json,.yaml,.yml",
-  sequences: ".fasta,.fa",
-  library: ".sdf,.csv,.tsv,.smi,.smiles,.sdf.gz,.csv.gz,.tsv.gz",
-  counts: ".csv,.tsv,.csv.gz,.tsv.gz",
-  reads: ".fastq,.fq,.fastq.gz,.fq.gz",
-};
 export function AssetPicker({
   kind,
   value,
@@ -40,50 +32,72 @@ export function AssetPicker({
   maxBytes?: number;
 }) {
   const zh = language === "zh",
-    [assets, setAssets] = useState<Asset[]>([]),
-    [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
-    [opened, setOpened] = useState(false);
-  const accepted = allowedSuffixes?.join(",") ?? accept[kind];
-  const selectedAsset = assets.find((asset) => asset.id === value) ?? null;
+    formats = allowedSuffixes ?? assetFormats[kind],
+    accepted = formats.join(",");
+  const [recent, setRecent] = useState<Asset | null>(null),
+    [opened, setOpened] = useState(false),
+    [showResults, setShowResults] = useState(false);
+  const [query, setQuery] = useState(""),
+    [search, setSearch] = useState(""),
+    [page, setPage] = useState(0);
   useEffect(() => {
-    onSelectedAsset?.(selectedAsset);
-  }, [selectedAsset, onSelectedAsset]);
-  const [showResults, setShowResults] = useState(false);
-  const mounted = useRef(true);
-  const uploadIntent = useRef(0);
+    const timer = setTimeout(() => {
+      setSearch(query);
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [query]);
+  const history = useReferenceHistory(
+    kind,
+    formats,
+    showHistory && (opened || Boolean(value)),
+    {
+      query: search,
+      page,
+      selected: value ? "file:" + value : "",
+      wholeFile: true,
+    },
+  );
   useEffect(() => {
-    mounted.current = true;
-    setBusy(false);
-    return () => {
-      mounted.current = false;
-      uploadIntent.current++;
-    };
-  }, [kind, accepted, maxBytes]);
+    if (history.data && page > 0 && page * 25 >= history.data.total)
+      setPage(Math.max(0, Math.ceil(history.data.total / 25) - 1));
+  }, [history.data, page]);
+  const known =
+    (recent?.id === value ? recent : null) ??
+    (history.selected?.asset.id === value ? history.selected.asset : null) ??
+    history.files.find((file) => file.id === value) ??
+    null;
+  const selected = useSelectedAsset(value, kind, formats, maxBytes, known);
+  const callback = useRef(onSelectedAsset);
+  callback.current = onSelectedAsset;
   useEffect(() => {
-    if (!value && !opened) return;
-    const c = new AbortController();
-    void api
-      .assets(c.signal)
-      .then(async (values) => {
-        if (value && !values.some((asset) => asset.id === value)) {
-          const selected = await request<Asset>(`/assets/${value}/metadata`, {
-            signal: c.signal,
-          });
-          values = [selected, ...values];
-        }
-        if (!c.signal.aborted) setAssets(values);
-      })
-      .catch((e) => {
-        if (!c.signal.aborted) setError(String(e));
-      });
-    return () => c.abort();
-  }, [value, opened]);
+    callback.current?.(selected.asset);
+  }, [selected.asset]);
+  const upload = useAssetUpload(
+    kind,
+    formats,
+    maxBytes,
+    value,
+    onChange,
+    setRecent,
+  );
+  const error =
+    upload.error === "size"
+      ? zh
+        ? `文件必须非空且不能超过 ${maxBytes / 1024 ** 2} MiB。`
+        : `Use a nonempty file up to ${maxBytes / 1024 ** 2} MiB.`
+      : upload.error === "format"
+        ? zh
+          ? "请选择本任务支持的文件格式。"
+          : "Choose a supported format for this task."
+        : researchError(upload.error, zh);
   return (
     <div className="asset-picker">
       {showHistory && <h3 className="input-purpose">{label}</h3>}
       <label className="file-upload">
-        {busy && <span role="status">{zh ? "上传中…" : "Uploading…"}</span>}
+        {upload.busy && (
+          <span role="status">{zh ? "上传中…" : "Uploading…"}</span>
+        )}
         <FileSelect
           language={language}
           description={
@@ -94,45 +108,34 @@ export function AssetPicker({
           }
           aria-label={(zh ? "上传 " : "Upload ") + label}
           accept={accepted}
-          disabled={busy}
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const intent = ++uploadIntent.current;
-            // A new file is a new input intent, even when upload fails. Do not
-            // leave a previous file eligible for submission or block same-file retry.
-            e.target.value = "";
-            onChange("");
-            if (file.size > maxBytes) {
-              setError(
-                zh
-                  ? `文件不能超过 ${maxBytes / 1024 ** 2} MiB。`
-                  : `Use a file up to ${maxBytes / 1024 ** 2} MiB.`,
-              );
-              return;
-            }
-            setBusy(true);
-            setError("");
-            try {
-              const asset = await api.upload(file, kind);
-              if (!mounted.current || intent !== uploadIntent.current) return;
-              setAssets((prev) => [asset, ...prev]);
-              onChange(asset.id);
-            } catch (e) {
-              if (mounted.current && intent === uploadIntent.current)
-                setError(String(e));
-            } finally {
-              if (mounted.current && intent === uploadIntent.current)
-                setBusy(false);
-            }
+          disabled={upload.busy}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            if (file) void upload.upload(file);
           }}
         />
       </label>
       {!showHistory && value && (
         <p className="selected-file" role="status">
-          {assets.find((a) => a.id === value)?.name ??
-            (zh ? "已选择文件" : "File selected")}
+          {selected.asset?.name ?? (zh ? "正在核对文件…" : "Checking file…")}
         </p>
+      )}
+      {selected.error && (
+        <div className="error-box">
+          <p role="alert">
+            {zh
+              ? "所选文件暂时无法核对，请重试或选择原始文件。"
+              : "The selected file could not be verified. Retry or choose the original file."}
+          </p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={selected.retry}
+          >
+            {zh ? "重新读取文件" : "Retry selected file"}
+          </button>
+        </div>
       )}
       {showHistory && (
         <details
@@ -141,41 +144,48 @@ export function AssetPicker({
           onToggle={(event) => setOpened(event.currentTarget.open)}
         >
           <summary>{zh ? "历史文件" : "Historical files"}</summary>
-          <label className="field">
-            {label}
-            <select
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              disabled={busy}
-              onFocus={() => setOpened(true)}
-            >
-              <option value="">
-                {zh ? "选择历史文件" : "Choose a historical file"}
-              </option>
-              {assets
-                .filter(
-                  (a) =>
-                    a.kind === kind &&
-                    (!allowedSuffixes || allowedSuffixes.includes(a.suffix)),
-                )
-                .map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                    {assets.filter(
-                      (other) => other.kind === kind && other.name === a.name,
-                    ).length > 1
-                      ? ` · ${new Date(a.created_at).toLocaleString(zh ? "zh-CN" : "en-US")}`
-                      : ""}
-                  </option>
-                ))}
-              {value && !assets.some((a) => a.id === value) && (
-                <option value={value}>
-                  {zh ? "已选择的文件" : "Selected file"}
-                </option>
-              )}
-            </select>
-          </label>
-          <button type="button" onClick={() => setShowResults((v) => !v)}>
+          <AssetHistorySelect
+            language={language}
+            label={label}
+            value={value}
+            data={history.data}
+            selected={selected.asset}
+            loading={upload.busy || history.loading}
+            query={query}
+            page={page}
+            onQuery={setQuery}
+            onPage={setPage}
+            onSelect={(asset) => {
+              setRecent(asset);
+              upload.clearError();
+              onChange(asset?.id ?? "");
+            }}
+          />
+          {history.loading && (
+            <p role="status">
+              {zh ? "正在读取历史文件…" : "Loading historical files…"}
+            </p>
+          )}
+          {history.error && (
+            <div className="error-box">
+              <p role="alert">
+                {zh
+                  ? "暂时无法读取历史文件，请重试。"
+                  : "Historical files could not be loaded. Try again."}
+              </p>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={history.retry}
+              >
+                {zh ? "重试历史文件" : "Retry historical files"}
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowResults((state) => !state)}
+          >
             {zh ? "从已有任务结果中选择" : "Choose from task results"}
           </button>
           {showResults && (
@@ -184,7 +194,7 @@ export function AssetPicker({
               accept={accepted}
               language={language}
               onSelected={(asset) => {
-                setAssets((prev) => [asset, ...prev]);
+                setRecent(asset);
                 onChange(asset.id);
                 setShowResults(false);
               }}
@@ -192,9 +202,9 @@ export function AssetPicker({
           )}
         </details>
       )}
-      {error && (
+      {upload.error && (
         <p role="alert" className="error-box">
-          {researchError(error, zh)}
+          {error}
         </p>
       )}
     </div>

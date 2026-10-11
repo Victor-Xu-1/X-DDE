@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { request } from "../api";
 import type { InputCatalog } from "../research/input-catalog";
+import type { AssetKind } from "../operations/types";
 
 export function useReferenceHistory(
-  kind: "structure" | "ligand",
+  kind: AssetKind,
   formats: readonly string[],
   active: boolean,
   options: {

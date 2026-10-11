@@ -8,6 +8,15 @@ import {
 import { taskKindRules } from "./task-kind-rules";
 
 export type HistoryModule = ModuleId | "other";
+export const historyStatuses: readonly Status[] = [
+  "queued",
+  "running",
+  "cancelling",
+  "succeeded",
+  "failed",
+  "cancelled",
+  "interrupted",
+];
 export interface TaskHistoryPage {
   items: { job: Job; capability_id: string }[];
   counts: Record<string, { total: number; active: number }>;

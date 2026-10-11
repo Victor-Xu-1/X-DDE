@@ -25,7 +25,13 @@ export function useWorkbench() {
     setSelected(id);
     setDetail(null);
     setDetailError(false);
-    window.history.replaceState(null, "", `#task=${encodeURIComponent(id)}`);
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (params.get("view") === "tasks") {
+      if (id) params.set("task", id);
+      else params.delete("task");
+      window.history.replaceState(null, "", "#" + params);
+    } else
+      window.history.replaceState(null, "", `#task=${encodeURIComponent(id)}`);
   }, []);
   useEffect(() => {
     function navigate() {

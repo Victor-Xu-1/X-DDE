@@ -16,6 +16,7 @@ import {
 import { ModuleTaskPicker } from "./studio/ModuleTaskPicker";
 import { PredictionResults } from "./studio/PredictionResults";
 import { TaskWorkspace } from "./studio/TaskWorkspace";
+import { taskHistoryRoute } from "./studio/task-history-route";
 import { WorkspaceTabs } from "./studio/WorkspaceTabs";
 import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
 import { HelpWorkspace } from "./studio/HelpWorkspace";
@@ -46,14 +47,19 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>(() =>
-      taskIdFromHash(location.hash) ? "tasks" : "tools",
+      taskIdFromHash(location.hash) || taskHistoryRoute(location.hash)
+        ? "tasks"
+        : "tools",
     ),
-    [projectId, setProjectId] = useState<string | null>(null);
+    [projectId, setProjectId] = useState<string | null>(
+      () => taskHistoryRoute(location.hash)?.project ?? null,
+    );
   useEffect(() => {
     function navigate() {
-      if (taskIdFromHash(window.location.hash)) {
+      const route = taskHistoryRoute(window.location.hash);
+      if (taskIdFromHash(window.location.hash) || route) {
         setView("tasks");
-        setProjectId(null);
+        setProjectId(route?.project ?? null);
       }
     }
     window.addEventListener("hashchange", navigate);

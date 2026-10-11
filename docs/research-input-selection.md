@@ -4,6 +4,10 @@ The shared structure/molecule picker keeps new upload as its blank-task default.
 
 共用结构/分子选择器在空白任务中默认上传新文件。历史文件包含原始上传材料和明确保存的分子/结构记录；读取列表不会创建任务或修改文件。
 
+Ordinary file and FASTA inputs use the same server-filtered catalogue, including configuration, MSA, templates and measurements. Sequence history retains exact saved references, rejects files exceeding 2 MiB, and cancels superseded metadata checks. Pasted sequences are saved only through **Confirm sequences**; an uncertain response can be retried with the same confirmed upload and idempotent version request. Leaving or editing the input cannot apply a late save reply. Large screening/DEL datasets continue to use their existing resumable uploader.
+
+普通文件与 FASTA 共用按名称、类型和格式分页的目录，覆盖配置、MSA、模板和实验测量文件。序列历史保留准确的保存记录，拒绝超过 2 MiB 的文件，并取消被替换的详情读取。粘贴内容只在点击“确认序列”后保存；回复不确定时重试仍沿用同一上传文件和幂等保存请求。离开或编辑输入后，迟到的保存回复不会写回当前选择。筛选/DEL 大数据仍使用已有的断点续传入口。
+
 Selecting a replacement immediately removes the previous material from the task draft. The replacement becomes eligible only after its metadata matches the requested file, supported format and molecular kind; a saved reference must retain the same SHA-256, record, conformer and version. Closing the picker or changing input route cancels an outstanding read. A late response cannot restore a cancelled input.
 
 切换材料会立即从任务草稿中清除旧选择。所选文件的身份、支持格式与类型核对成功后，才允许继续；保存记录还须保持相同校验值、分子记录、构象及版本。关闭选择器或切换输入方式会取消未完成读取，迟到的回复不能恢复已取消的选择。

@@ -36,8 +36,15 @@ export function catalogFixture(
         kind:
           version.kind === "molecule"
             ? ("ligand" as const)
-            : ("structure" as const),
-        suffix: version.kind === "molecule" ? ".sdf" : ".pdb",
+            : version.kind === "sequence"
+              ? ("sequences" as const)
+              : ("structure" as const),
+        suffix:
+          version.kind === "molecule"
+            ? ".sdf"
+            : version.kind === "sequence"
+              ? ".fasta"
+              : ".pdb",
         created_at: version.created_at,
       },
     })),

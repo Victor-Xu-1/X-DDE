@@ -7,6 +7,13 @@ on:
       - "frontend/src/diffsbdd/reference-metadata*"
       - "frontend/src/diffsbdd/useReferenceSelection*"
       - "frontend/src/diffsbdd/useReferenceHistory*"
+      - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/operations/AssetHistorySelect*"
+      - "frontend/src/operations/asset-acceptance*"
+      - "frontend/src/operations/useAssetUpload*"
+      - "frontend/src/operations/useSelectedAsset*"
+      - "frontend/src/research/SequencePicker*"
+      - "frontend/src/research/useSequenceSave*"
       - "frontend/src/research/HistoricalFileSelect*"
       - "frontend/src/research/HistoryFileControls*"
       - "frontend/src/research/history-file-controls.css"
@@ -22,6 +29,7 @@ on:
       - "src/opendde_workbench/research/input_catalog.py"
       - "tests/test_input_catalog.py"
       - "server_tests/test_material_catalog_browser.py"
+      - "server_tests/test_generic_input_browser.py"
       - "server_tests/test_reference_input_browser.py"
       - ".github/workflows/reference-input-checks.yml"
 permissions:
@@ -54,12 +62,17 @@ jobs:
           src/integrations/LibraryInput.test.tsx src/research/useSdfAsset.test.tsx
           src/integrations/ScientificForm.test.tsx src/admet/AdmetForm.test.tsx
           src/chemistry/LibraryScreenForm.test.tsx
+          src/operations/AssetPicker.test.tsx src/operations/AssetHistorySelect.test.tsx
+          src/operations/useSelectedAsset.test.tsx src/research/SequencePicker.test.tsx
+          src/research/useSequenceSave.test.tsx src/operations/PropertyForm.test.tsx
+          src/operations/CampaignForm.test.tsx src/antibodies/AntibodyNumberForm.test.tsx
+          src/humanization/HumanizationForm.test.tsx
       - name: Actual filtered input catalog, immutable versions and existing research API
         run: >-
           uv run --locked pytest -q tests/test_input_catalog.py tests/test_research_assets.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual real STAT6 metadata deadline, file pagination, identity and exact review; no simulation
-        run: uv run --locked python -m pytest -x -q server_tests/test_reference_input_browser.py server_tests/test_material_catalog_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_reference_input_browser.py server_tests/test_material_catalog_browser.py server_tests/test_generic_input_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

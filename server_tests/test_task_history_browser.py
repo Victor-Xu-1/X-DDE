@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -73,7 +74,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         oldest = fixture["controlled_metadata_records"][0]
         page.get_by_role("button", name=oldest["name"], exact=True).click()
         expect(page.locator(".detail-panel h2")).to_have_text(oldest["name"], timeout=15000)
-        assert page.url.endswith("#task=" + oldest["id"])
+        assert parse_qs(urlsplit(page.url).fragment)["task"] == [oldest["id"]]
         assert (
             page.request.get(base + "/api/jobs/" + oldest["id"]).json()["request"]["name"]
             == oldest["name"]
@@ -97,6 +98,15 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         search.fill(oldest["name"])
         expect(rows).to_have_count(1)
         expect(rows).to_contain_text(oldest["name"])
+        page.reload()
+        expect(
+            page.get_by_role(
+                "combobox", name="切换任务模块" if zh else "Switch task module", exact=True
+            )
+        ).to_have_value("evaluation")
+        expect(search).to_have_value(oldest["name"])
+        expect(rows).to_have_count(1)
+        expect(page.locator(".pocket-explorer")).to_have_count(0)
         page.screenshot(path=root / "filtered-history.png")
         switch = page.get_by_role(
             "combobox", name="切换任务模块" if zh else "Switch task module", exact=True
@@ -161,6 +171,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
                     "native_result": fixture["native_job"],
                     "native_artifacts_unchanged": True,
                     "module_switch_and_failure_recovery": True,
+                    "module_only_refresh_restored": True,
                     "scientific_inference": False,
                     "submitted_jobs": 0,
                 },

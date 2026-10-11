@@ -10,7 +10,7 @@ export class ReferenceMetadataError extends Error {
 
 export async function resolveReference(
   id: string,
-  kind: "structure" | "ligand",
+  kind: "structure" | "ligand" | "sequences",
   formats: readonly string[],
   reference: MoleculeRef | undefined,
   signal: AbortSignal,
@@ -28,7 +28,11 @@ export async function resolveReference(
     asset.size < 1
   )
     throw new ReferenceMetadataError("identity");
-  if (asset.kind !== kind || !formats.includes(asset.suffix))
+  if (
+    asset.kind !== kind ||
+    !formats.includes(asset.suffix) ||
+    (kind === "sequences" && asset.size > 2 * 1024 ** 2)
+  )
     throw new ReferenceMetadataError("format");
   if (reference) {
     if (
@@ -40,7 +44,7 @@ export async function resolveReference(
       !Number.isInteger(reference.conformer) ||
       reference.conformer < 0 ||
       reference.conformer > 999 ||
-      (kind === "structure" &&
+      (kind !== "ligand" &&
         (reference.record !== 0 || reference.conformer !== 0)) ||
       (asset.suffix !== ".sdf" && reference.record !== 0)
     )

@@ -1,17 +1,7 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { translator } from "../i18n";
 import type { Language, Status } from "../types";
-import { historyKindLabel } from "./task-history-model";
-
-const statuses: Status[] = [
-  "queued",
-  "running",
-  "cancelling",
-  "succeeded",
-  "failed",
-  "cancelled",
-  "interrupted",
-];
+import { historyKindLabel, historyStatuses } from "./task-history-model";
 export function TaskHistoryFilters({
   language,
   type,
@@ -53,7 +43,7 @@ export function TaskHistoryFilters({
           onChange={(event) => onStatus(event.target.value as Status | "all")}
         >
           <option value="all">{zh ? "全部状态" : "All statuses"}</option>
-          {statuses.map((value) => (
+          {historyStatuses.map((value) => (
             <option key={value} value={value}>
               {t(value)}
             </option>

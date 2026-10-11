@@ -4,13 +4,15 @@ import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import * as client from "../api";
 import { SequencePicker } from "./SequencePicker";
+import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
+import type { Asset } from "../operations/types";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 it("saves an immutable sequence version only on explicit action and detaches it after editing", async () => {
   vi.spyOn(client, "request").mockResolvedValue([]);
-  const asset = {
+  const asset: Asset = {
     id: "file",
     name: "sequence-input.fasta",
     kind: "sequences",
@@ -49,6 +51,7 @@ it("saves an immutable sequence version only on explicit action and detaches it 
   expect(save).toHaveBeenCalledWith(
     "/research/objects",
     expect.objectContaining({ asset_id: "file", kind: "sequence" }),
+    expect.any(String),
   );
   expect(changed).toHaveBeenLastCalledWith(reference);
   await user.type(
@@ -59,7 +62,7 @@ it("saves an immutable sequence version only on explicit action and detaches it 
 });
 
 it("starts with pasted new input and uses the single history selector for a raw FASTA", async () => {
-  const asset = {
+  const asset: Asset = {
     id: "fasta",
     kind: "sequences",
     name: "Trastuzumab-VH-VL.fasta",
@@ -70,7 +73,10 @@ it("starts with pasted new input and uses the single history selector for a raw 
   };
   const files = vi.spyOn(api, "assets").mockResolvedValue([asset] as never);
   vi.spyOn(client, "request").mockImplementation(
-    async (path) => (path.endsWith("/metadata") ? asset : []) as never,
+    async (path) =>
+      (path.endsWith("/metadata")
+        ? asset
+        : catalogFixture([], [asset])) as never,
   );
   const change = vi.fn(),
     user = userEvent.setup();

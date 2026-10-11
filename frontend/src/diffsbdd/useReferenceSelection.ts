@@ -4,7 +4,7 @@ import type { Asset } from "../operations/types";
 import { ReferenceMetadataError, resolveReference } from "./reference-metadata";
 
 export function useReferenceSelection(
-  kind: "structure" | "ligand",
+  kind: "structure" | "ligand" | "sequences",
   formats: readonly string[],
   onChange: (reference: MoleculeRef | null) => void,
   onAsset?: (asset: Asset, reference: MoleculeRef) => void,

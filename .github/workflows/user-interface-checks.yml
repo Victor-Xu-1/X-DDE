@@ -12,6 +12,8 @@ on:
       - "!frontend/src/App.test.tsx"
       - "frontend/src/TaskDetail*"
       - "frontend/src/useWorkbench*"
+      # Workbench task URLs have task-history-checks.yml and its direct App consumer.
+      - "!frontend/src/useWorkbench*"
       - "frontend/src/studio/RuntimeStatus*"
       - "frontend/src/studio/EnvironmentStatusTable*"
       - "frontend/src/studio/runtime-status.css"

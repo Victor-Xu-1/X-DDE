@@ -39,12 +39,16 @@ const descriptors = {
 } as Job;
 let historyJobs: Job[];
 beforeEach(() => {
+  window.history.replaceState(null, "", "/");
   historyJobs = [job, descriptors];
   vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
     historyFixture(historyJobs, path),
   );
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  window.history.replaceState(null, "", "/");
+});
 function props(
   overrides: Partial<ComponentProps<typeof TaskWorkspace>> = {},
 ): ComponentProps<typeof TaskWorkspace> {
@@ -238,4 +242,25 @@ it("preserves saved Chinese and shows a concise empty workspace", async () => {
   expect(screen.getByRole("group", { name: "任务模块" })).toBeVisible();
   await screen.findByText("还没有研究任务");
   expect(screen.getByRole("button", { name: "新建任务" })).toBeVisible();
+});
+it("restores an unselected module and its search after remount instead of opening mixed history", async () => {
+  const p = props();
+  const first = render(<TaskWorkspace {...p} />);
+  await modulePage();
+  fireEvent.change(
+    screen.getByRole("searchbox", { name: "Search this module" }),
+    { target: { value: "STAT6" } },
+  );
+  await waitFor(() => expect(window.location.hash).toContain("q=STAT6"));
+  expect(window.location.hash).toContain("module=evaluation");
+  first.unmount();
+  render(<TaskWorkspace {...p} />);
+  expect(
+    screen.getByRole("combobox", { name: "Switch task module" }),
+  ).toHaveValue("evaluation");
+  expect(
+    screen.getByRole("searchbox", { name: "Search this module" }),
+  ).toHaveValue("STAT6");
+  await screen.findByRole("button", { name: "STAT6 descriptors" });
+  expect(screen.queryByRole("button", { name: "STAT6 structure" })).toBeNull();
 });

@@ -17,6 +17,8 @@ import { TaskHistoryFilters } from "./TaskHistoryFilters";
 import { TaskHistoryModules } from "./TaskHistoryModules";
 import { TaskHistoryList } from "./TaskHistoryList";
 import { useTaskHistory } from "./useTaskHistory";
+import { taskIdFromHash } from "../useWorkbench";
+import { taskHistoryHash, taskHistoryRoute } from "./task-history-route";
 import {
   kindForJob,
   kindsForModule,
@@ -43,30 +45,70 @@ interface Props {
 }
 export function TaskWorkspace(p: Props) {
   const zh = p.language === "zh";
+  const initialRoute = useRef(taskHistoryRoute(window.location.hash));
   const taskJob =
     p.job && (!p.projectId || p.job.request.project_id === p.projectId)
       ? p.job
       : null;
   const [module, setModule] = useState<HistoryModule | null>(() =>
-    taskJob ? moduleForKind(kindForJob(taskJob)) : null,
+    taskJob
+      ? moduleForKind(kindForJob(taskJob))
+      : (initialRoute.current?.module ?? null),
   );
-  const [type, setType] = useState("all");
-  const [status, setStatus] = useState<Status | "all">("all");
-  const [query, setQuery] = useState(""),
-    [search, setSearch] = useState("");
-  const [page, setPage] = useState(0),
+  const [type, setType] = useState(initialRoute.current?.type ?? "all");
+  const [status, setStatus] = useState<Status | "all">(
+    initialRoute.current?.status ?? "all",
+  );
+  const [query, setQuery] = useState(initialRoute.current?.query ?? ""),
+    [search, setSearch] = useState(initialRoute.current?.query ?? "");
+  const [page, setPage] = useState(initialRoute.current?.page ?? 0),
     [choosing, setChoosing] = useState(!taskJob);
-  const chosenHere = useRef<string | null>(null);
+  const chosenHere = useRef<string | null>(
+    initialRoute.current ? taskIdFromHash(window.location.hash) : null,
+  );
+  useEffect(() => {
+    function restore() {
+      const route = taskHistoryRoute(window.location.hash);
+      if (!route) return;
+      setModule(route.module);
+      setType(route.type);
+      setStatus(route.status);
+      setQuery(route.query);
+      setSearch(route.query);
+      setPage(route.page);
+      chosenHere.current = taskIdFromHash(window.location.hash);
+      setChoosing(!chosenHere.current);
+    }
+    window.addEventListener("popstate", restore);
+    window.addEventListener("hashchange", restore);
+    return () => {
+      window.removeEventListener("popstate", restore);
+      window.removeEventListener("hashchange", restore);
+    };
+  }, []);
+  useEffect(() => {
+    window.history.replaceState(
+      null,
+      "",
+      taskHistoryHash(
+        { module, type, status, query: search, page, project: p.projectId },
+        taskIdFromHash(window.location.hash),
+      ),
+    );
+  }, [module, type, status, search, page, p.projectId]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(query);
-      setPage(0);
+      if (query !== search) setPage(0);
     }, 250);
     return () => clearTimeout(timer);
   }, [query]);
   useEffect(() => {
     if (!taskJob) return;
-    if (chosenHere.current === taskJob.id) {
+    if (
+      chosenHere.current === taskJob.id &&
+      module === moduleForKind(kindForJob(taskJob))
+    ) {
       chosenHere.current = null;
       setChoosing(false);
       return;
@@ -79,8 +121,10 @@ export function TaskWorkspace(p: Props) {
     setPage(0);
     setChoosing(false);
   }, [taskJob?.id]);
+  const lastProject = useRef(p.projectId);
   useEffect(() => {
-    setPage(0);
+    if (lastProject.current !== p.projectId) setPage(0);
+    lastProject.current = p.projectId;
   }, [p.projectId]);
   const history = useTaskHistory({
     module,
@@ -108,6 +152,7 @@ export function TaskWorkspace(p: Props) {
   const currentDetail =
     currentJob && p.detail?.id === currentJob.id ? p.detail : null;
   function selectModule(value: HistoryModule | null) {
+    chosenHere.current = null;
     setModule(value);
     setType("all");
     setStatus("all");

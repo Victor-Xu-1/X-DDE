@@ -2,6 +2,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
+import * as client from "../api";
 import { AssetPicker } from "./AssetPicker";
 import type { Asset } from "./types";
 
@@ -22,6 +23,7 @@ const next: Asset = {
 };
 beforeEach(() => {
   vi.spyOn(api, "assets").mockResolvedValue([previous]);
+  vi.spyOn(client, "request").mockResolvedValue(previous);
 });
 afterEach(() => {
   cleanup();
@@ -138,7 +140,11 @@ it("rejects an oversized replacement without retaining the previous task input",
     />,
   );
   await userEvent.setup().upload(screen.getByLabelText("上传 受体"), file());
-  expect(screen.getByRole("alert")).toHaveTextContent("文件不能超过");
+  expect(
+    screen
+      .getAllByRole("alert")
+      .some((item) => item.textContent?.includes("文件必须非空且不能超过")),
+  ).toBe(true);
   expect(changed).toHaveBeenCalledExactlyOnceWith("");
   expect(upload).not.toHaveBeenCalled();
 });

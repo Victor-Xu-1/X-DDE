@@ -6,7 +6,8 @@ from uuid import UUID
 from fastapi import HTTPException, Query
 from pydantic import BaseModel
 
-from ..assets import EXTENSIONS, Asset
+from ..assets import EXTENSIONS, Asset, AssetKind
+from ..dataset_inputs import DATA_EXTENSIONS
 from ..scientific_objects import MoleculeRef
 from .contracts import ScientificObject
 
@@ -33,7 +34,8 @@ def input_page(
     scientific, kind, formats, query="", scope="records", selected=None, offset=0, limit=25
 ):
     formats = tuple(dict.fromkeys(formats))
-    if not formats or any(suffix not in EXTENSIONS[kind] for suffix in formats):
+    supported = {**EXTENSIONS, **DATA_EXTENSIONS}.get(kind, set())
+    if not formats or any(suffix not in supported for suffix in formats):
         raise ValueError("Choose supported input formats.")
     suffix_sql = ",".join("?" for _ in formats)
     sql = (
@@ -42,7 +44,10 @@ def input_page(
         f"WHERE a.kind=? AND a.suffix IN ({suffix_sql})"
     )
     parameters = [kind, *formats]
-    if scope == "records":
+    object_kind = {"structure": "structure", "ligand": "molecule", "sequences": "sequence"}.get(
+        kind
+    )
+    if scope == "records" and object_kind:
         sql += (
             " UNION ALL SELECT 'version:'||s.id, 'saved', "
             "json_extract(s.body,'$.label'), s.created_at, a.*, s.body "
@@ -50,7 +55,7 @@ def input_page(
             f"WHERE a.kind=? AND a.suffix IN ({suffix_sql}) "
             "AND json_extract(s.body,'$.kind')=?"
         )
-        parameters += [kind, *formats, "structure" if kind == "structure" else "molecule"]
+        parameters += [kind, *formats, object_kind]
     sql += ") "
     where, values = "", []
     if query.strip():
@@ -106,8 +111,8 @@ def input_page(
 def register_input_catalog(app, scientific):
     @app.get("/api/research/input-catalog", response_model=InputCatalog)
     def listing(
-        kind: Literal["structure", "ligand"],
-        formats: Annotated[list[str], Query(min_length=1, max_length=4)],
+        kind: AssetKind,
+        formats: Annotated[list[str], Query(min_length=1, max_length=8)],
         q: str = Query("", max_length=180),
         scope: Literal["records", "files"] = "records",
         selected: str | None = Query(None, max_length=44),

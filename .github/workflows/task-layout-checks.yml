@@ -200,7 +200,14 @@ on:
       - "!frontend/src/operations/OperationResults.tsx"
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/operations/PropertyForm*"
-      - "!frontend/src/operations/AssetPicker.tsx"
+      # Shared material widgets have exact pagination, identity and native-input checks.
+      - "!frontend/src/operations/AssetPicker*"
+      - "!frontend/src/operations/AssetHistorySelect*"
+      - "!frontend/src/operations/asset-acceptance*"
+      - "!frontend/src/operations/useAssetUpload*"
+      - "!frontend/src/operations/useSelectedAsset*"
+      - "!frontend/src/research/SequencePicker*"
+      - "!frontend/src/research/useSequenceSave*"
       - "!frontend/src/guided/Questionnaire*"
       - "!frontend/src/guided/useTaskReadiness*"
       - "!frontend/src/guided/task-readiness-state.ts"

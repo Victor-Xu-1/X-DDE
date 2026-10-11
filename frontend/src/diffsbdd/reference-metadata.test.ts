@@ -74,3 +74,39 @@ it.each([
     ),
   ).rejects.toThrow("identity");
 });
+it.each([{ record: 1 }, { conformer: 1 }, { sha256: "b".repeat(64) }])(
+  "rejects an inconsistent saved sequence reference %j",
+  async (change) => {
+    vi.mocked(request).mockResolvedValue({
+      ...metadata,
+      kind: "sequences",
+      suffix: ".fasta",
+    });
+    await expect(
+      resolveReference(
+        "file",
+        "sequences",
+        [".fasta"],
+        { ...reference, record: 0, conformer: 0, ...change },
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow("identity");
+  },
+);
+it("rejects an oversized historical sequence before authorizing the task input", async () => {
+  vi.mocked(request).mockResolvedValue({
+    ...metadata,
+    kind: "sequences",
+    suffix: ".fasta",
+    size: 2 * 1024 ** 2 + 1,
+  });
+  await expect(
+    resolveReference(
+      "file",
+      "sequences",
+      [".fasta"],
+      undefined,
+      new AbortController().signal,
+    ),
+  ).rejects.toThrow("format");
+});

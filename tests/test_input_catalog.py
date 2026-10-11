@@ -101,3 +101,44 @@ def test_actual_catalogue_route_filters_kind_format_and_validates_requests(scien
                 == 422
             )
         assert not scientific.store.list_jobs()
+
+
+@pytest.mark.parametrize(
+    "kind,name",
+    [
+        ("config", "STAT6-protocol.yaml"),
+        ("measurements", "STAT6-activity.csv"),
+        ("msa", "STAT6.a3m"),
+        ("template", "STAT6.hhr"),
+        ("sequences", "STAT6.fasta"),
+    ],
+)
+def test_generic_file_kinds_use_the_same_filtered_catalogue(scientific, kind, name):
+    source = scientific.assets.save(name, kind, b"catalogue transport fixture")
+    scientific.assets.save("Unrelated.sdf", "ligand", b"metadata transport fixture")
+    page = input_page(scientific, kind, [source.suffix], scope="files")
+    assert page.total == 1 and page.items[0].asset == source
+    assert page.items[0].reference.record == 0 and page.items[0].version is None
+
+
+def test_sequence_versions_keep_exact_identity_beyond_the_current_page(scientific):
+    source = scientific.assets.save("STAT6.fasta", "sequences", b">STAT6\nMPAGAV\n")
+    version = scientific.create(
+        VersionInput(asset_id=source.id, kind="sequence", label="STAT6 saved sequence"), uuid4()
+    )
+    with scientific.store.connect() as db:
+        db.execute(
+            "UPDATE scientific_objects SET created_at='2020-01-01' WHERE id=?", (str(version.id),)
+        )
+    for i in range(30):
+        scientific.assets.save(f"Sequence-file-{i}.fasta", "sequences", b">transport\nMPAGAV\n")
+    page = input_page(
+        scientific,
+        "sequences",
+        [".fasta"],
+        query="Sequence-file",
+        selected="version:" + str(version.id),
+    )
+    assert page.total == 30 and len(page.items) == 25
+    assert page.selected.reference == version.reference and page.selected.version == version
+    assert scientific.store.list_jobs() == []
