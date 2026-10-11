@@ -28,4 +28,10 @@ def prepared_protein(source):
     ):
         raise ValueError("FEP protein coordinates are invalid; prepare a finite structure.")
     validate_peptide_links(protein.topology, coordinates)
-    return coordinates
+    # Solvent coordinates cannot establish a ligand's bound protein frame.
+    protein_indices = [
+        atom.index
+        for atom in protein.topology.atoms()
+        if atom.residue.name in STANDARD_RESIDUES
+    ]
+    return coordinates[protein_indices]

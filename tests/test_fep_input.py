@@ -115,6 +115,25 @@ def test_solvent_only_is_not_accepted_as_an_fep_receptor(tmp_path, reader):
     assert digest(source) == before
 
 
+def test_water_near_an_unbound_ligand_cannot_establish_protein_frame(tmp_path, reader):
+    source = write_backbone(tmp_path / "hydrated.pdb")
+    protein = app.PDBFile(str(source))
+    topology = protein.topology
+    residue = topology.addResidue("HOH", topology.addChain("W"))
+    topology.addAtom("O", app.element.oxygen, residue)
+    positions = list(protein.positions.value_in_unit(unit.angstrom))
+    positions.append((100.0, 0.0, 0.0))
+    with source.open("w") as handle:
+        app.PDBFile.writeFile(topology, positions * unit.angstrom, handle, keepIds=True)
+    before = digest(source)
+    frame = reader(source)
+    assert frame.shape == (6, 3)
+    ligand_position = np.asarray((100.0, 0.0, 0.0))
+    assert np.linalg.norm(frame - ligand_position, axis=1).min() > 6
+    assert app.PDBFile(str(source)).topology.getNumAtoms() == 7
+    assert digest(source) == before
+
+
 def test_native_fep_mounts_the_same_validation_authority_without_duplicate_files(tmp_path):
     settings = Settings(
         state_dir=tmp_path,
