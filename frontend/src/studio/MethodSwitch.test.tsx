@@ -46,7 +46,11 @@ it.each([
     const user = userEvent.setup();
     render(<MethodSwitch value={value} language="en" onChange={change} />);
     expect(screen.getByRole("group", { name: "Backend method" })).toBeVisible();
-    await user.click(screen.getByRole("button", { name: label }));
+    const choice = screen.getByRole("button", {
+      name: new RegExp("^" + label),
+    });
+    expect(choice).toBeEnabled();
+    await user.click(choice);
     expect(change).toHaveBeenCalledExactlyOnceWith(next);
     expect(submit).not.toHaveBeenCalled();
   },
