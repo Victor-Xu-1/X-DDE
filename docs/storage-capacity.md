@@ -1,5 +1,11 @@
 # Storage capacity / 存储容量
 
+Windows installation and command entrypoints verify at least two GiB on the
+installation and registered WSL backing drives before starting the distribution.
+Offline status, stop and close return without booting a stopped distribution.
+Windows 安装与命令入口在启动发行版前检查安装盘和 WSL 所在磁盘至少保留两 GiB；
+已停止发行版的状态查询和关闭命令不会重新启动发行版。
+
 All installation preflights, upload reservations and task write guards use one
 available-space authority. On native Linux and Windows it reads the target
 filesystem. On WSL it also reads the physical Windows volume containing the
@@ -31,8 +37,9 @@ applications, and do not provide automatic scientific-checkpoint continuation.
 
 原部署检查点在安装中保留四 GiB 余量，不足时通过原生命周期停止自身安装进程；
 卸载功能仍可用于释放空间。研究执行器在启动前和运行中检查配置的余量，仅停止
-自身任务并保留部分文件及诊断。上传中断保留已确认的数据块。这些检查不为其他应用
-预留或锁定磁盘容量，也不表示已经提供科学检查点自动续跑。
+自身任务并保留部分文件及诊断。上传中断保留已确认的数据块；空间不足时尚未开始的
+研究任务保留在队列中。这些检查不为其他应用预留或锁定磁盘容量，也不表示已经提供
+科学检查点自动续跑。
 
 Primary references: [Microsoft WSL disk space](https://learn.microsoft.com/en-us/windows/wsl/disk-space)
 and [Windows Get-Volume](https://learn.microsoft.com/en-us/powershell/module/storage/get-volume).
