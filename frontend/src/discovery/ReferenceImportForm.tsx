@@ -34,7 +34,7 @@ export function ReferenceImportForm({
     : undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
-    { ready, error } = useTaskReadiness("discovery.import");
+    { ready, error, recheck } = useTaskReadiness("discovery.import");
   const [source, setSource] = useState<"pdb" | "chembl">(
       initial?.source ?? "pdb",
     ),
@@ -59,6 +59,7 @@ export function ReferenceImportForm({
     <Questionnaire
       language={language}
       ready={ready && consent}
+      onCheckEnvironment={recheck}
       busy={run.busy}
       error={error || run.error}
       unavailable={

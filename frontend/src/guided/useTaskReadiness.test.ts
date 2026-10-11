@@ -81,6 +81,44 @@ it("aborts an in-flight check when its form unmounts", async () => {
   );
 });
 
+it("recovers an unavailable environment on demand without remounting its form", async () => {
+  const request = vi
+    .spyOn(client, "request")
+    .mockResolvedValueOnce({ availability: { configuration_present: false } })
+    .mockResolvedValueOnce({ availability: { configuration_present: true } });
+  const { result } = renderHook(() => useTaskReadiness("properties"));
+  await waitFor(() => expect(result.current.ready).toBe(false));
+  act(() => result.current.recheck());
+  await waitFor(() => expect(result.current.ready).toBe(true));
+  expect(request).toHaveBeenCalledTimes(2);
+});
+
+it("clears a failed check and ignores a superseded response when checking again", async () => {
+  const obsolete = pending(),
+    next = pending();
+  const request = vi
+    .spyOn(client, "request")
+    .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+    .mockReturnValueOnce(obsolete.promise)
+    .mockReturnValueOnce(next.promise);
+  const { result } = renderHook(() => useTaskReadiness("properties"));
+  await waitFor(() => expect(result.current.error).not.toBe(""));
+  act(() => result.current.recheck());
+  expect(result.current.ready).toBeUndefined();
+  expect(result.current.error).toBe("");
+  const signal = request.mock.calls[1][1]!.signal as AbortSignal;
+  act(() => result.current.recheck());
+  expect(signal.aborted).toBe(true);
+  await act(async () =>
+    obsolete.resolve({ availability: { configuration_present: true } }),
+  );
+  expect(result.current.ready).toBeUndefined();
+  await act(async () =>
+    next.resolve({ availability: { configuration_present: false } }),
+  );
+  expect(result.current.ready).toBe(false);
+});
+
 it("rejects a response that arrives after the bounded readiness deadline", async () => {
   const deadline = new AbortController();
   const timeout = vi

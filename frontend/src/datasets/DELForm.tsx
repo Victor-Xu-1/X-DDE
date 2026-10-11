@@ -30,6 +30,7 @@ export function DELForm({
         busy={run.busy}
         error={run.error || model.templateError || error}
         ready={readiness.ready}
+        onCheckEnvironment={readiness.recheck}
         unavailable={
           zh
             ? "请在安装与组件中准备 DELi 环境。"

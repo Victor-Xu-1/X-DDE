@@ -152,6 +152,28 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
             "RDKit 性质计算环境尚未就绪" if zh else "Configure molecular-property tools"
         ) not in form.inner_text()
         page.screenshot(path=str(evidence / (language + "-bounded-failure.png")))
+        recheck = page.get_by_role(
+            "button", name="重新检查计算环境" if zh else "Check environment again", exact=True
+        )
+        expect(recheck).to_be_enabled()
+        page.unroute("**/api/capabilities/properties")
+        available = page.request.get(base + "/api/capabilities/properties").json()["availability"][
+            "configuration_present"
+        ]
+        assert isinstance(available, bool)
+        recheck.click()
+        expect(page.get_by_role("alert")).to_have_count(0)
+        if available:
+            expect(submit).to_be_enabled()
+            expect(recheck).to_have_count(0)
+        else:
+            expect(recheck).to_be_enabled()
+            expect(submit).to_be_disabled()
+        expect(page.get_by_label("SMILES", exact=True)).to_have_value(smiles)
+        expect(form.get_by_role("heading", level=2)).to_contain_text(
+            "确认启动" if zh else "Review & start"
+        )
+        page.screenshot(path=str(evidence / (language + "-rechecked.png")))
         assert held and not errors and not submissions
         assert jobs == page.request.get(base + "/api/jobs").json()
         (evidence / (language + "-receipt.json")).write_text(
@@ -159,6 +181,8 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
                 {
                     "transport_held": True,
                     "input_preserved": True,
+                    "availability_rechecked": True,
+                    "resolved_configuration_present": available,
                     "scientific_submissions": 0,
                     "browser_errors": errors,
                     "source": "STAT6 user-provided warhead",

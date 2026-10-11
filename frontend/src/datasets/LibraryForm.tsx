@@ -139,6 +139,7 @@ export function LibraryForm({
         busy={run.busy}
         error={run.error || templateError || error}
         ready={ready.ready}
+        onCheckEnvironment={ready.recheck}
         unavailable={
           zh
             ? "请先在安装与组件中准备对应计算环境。"

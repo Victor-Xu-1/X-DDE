@@ -36,7 +36,11 @@ export function StateForm({
     [raw, setRaw] = useState(""),
     [name, setName] = useState(""),
     [error, setError] = useState("");
-  const { ready, error: readinessError } = useTaskReadiness("chemistry.states");
+  const {
+    ready,
+    error: readinessError,
+    recheck,
+  } = useTaskReadiness("chemistry.states");
   async function submit() {
     setError("");
     try {
@@ -208,6 +212,7 @@ export function StateForm({
       busy={run.busy}
       error={error || run.error || readinessError}
       ready={ready}
+      onCheckEnvironment={recheck}
       unavailable={
         zh
           ? "请在安装与组件中部署化学准备环境。当前选择已保留，可稍后启动。"

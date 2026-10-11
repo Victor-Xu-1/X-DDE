@@ -52,7 +52,7 @@ export function TargetResearchForm({
   const epoch = useRef(0),
     mounted = useRef(true),
     run = useTaskSubmit(onCreated);
-  const { ready, error } = useTaskReadiness("discovery." + entity);
+  const { ready, error, recheck } = useTaskReadiness("discovery." + entity);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -92,6 +92,7 @@ export function TargetResearchForm({
       busy={run.busy || busy}
       error={error || lookupError || run.error}
       ready={ready && consent}
+      onCheckEnvironment={recheck}
       unavailable={
         zh
           ? "请确认允许查询公共数据库。查询失败时可保留输入并重试。"

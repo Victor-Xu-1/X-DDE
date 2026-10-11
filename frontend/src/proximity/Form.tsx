@@ -41,6 +41,7 @@ export function ProximityForm({
       language={language}
       busy={run.busy}
       ready={readiness.ready}
+      onCheckEnvironment={readiness.recheck}
       error={run.error || readiness.error}
       unavailable={
         zh

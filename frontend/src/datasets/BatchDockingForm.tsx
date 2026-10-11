@@ -125,6 +125,7 @@ export function BatchDockingForm({
         busy={run.busy}
         error={run.error || error}
         ready={readiness.ready}
+        onCheckEnvironment={readiness.recheck}
         unavailable={
           zh ? "请在安装与组件中准备 GNINA。" : "Prepare GNINA in Components."
         }

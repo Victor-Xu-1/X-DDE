@@ -167,6 +167,7 @@ export function ScientificForm({
       busy={run.busy}
       error={readiness.error || run.error}
       ready={readiness.ready}
+      onCheckEnvironment={readiness.recheck}
       unavailable={
         zh
           ? "计算环境尚未就绪，可先填写材料，再到组件页完成部署。"

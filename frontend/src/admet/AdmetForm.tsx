@@ -72,6 +72,7 @@ export function AdmetForm({
     <Questionnaire
       language={language}
       ready={availability.ready}
+      onCheckEnvironment={availability.recheck}
       busy={run.busy || selected.loading}
       error={run.error || selected.error || availability.error}
       unavailable={

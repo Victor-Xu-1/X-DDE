@@ -12,6 +12,15 @@ duplicate work or silently change the selected material. Verify supported behavi
 and actionable unavailable/error states in focused module checks. Installation,
 software integration and scientific method acceptance remain distinct evidence.
 
+Task review offers an explicit environment recheck after an unavailable or failed
+check. It retains the current materials, method, questionnaire step and scientific
+options; it never submits a task. Each check uses the existing capability API,
+has a bounded deadline and cancels superseded responses. Harness questionnaires
+use the same capability availability authority rather than a second readiness
+request. Screening checks and rechecks only the environments required by the
+currently selected plan; a failed availability query is not called a missing
+installation. Automatic unbounded polling is not used.
+
 ## Whole-platform visual acceptance
 
 The owner sets Awwwards, Webby Awards and FWA as quality references, not a claim

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useExample } from "../examples/context";
 import {
   exampleHarnessPayload,
@@ -11,6 +11,7 @@ import { HarnessField } from "./HarnessField";
 import { FoldInputs } from "./FoldInputs";
 import { JsonEditor } from "./ScientificInputs";
 import { useTaskSubmit } from "./useTaskSubmit";
+import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { canGuide } from "./guided-contract";
 import { tools } from "./catalog";
 import { Questionnaire } from "../guided/Questionnaire";
@@ -35,31 +36,16 @@ export function HarnessForm({
     ),
     [expert, setExpert] = useState(false),
     [external, setExternal] = useState(false),
-    [readiness, setReadiness] = useState<{
-      configured: boolean;
-      compute_configured: boolean;
-      required_settings: string[];
-    } | null>(null),
     [setupError, setSetupError] = useState(""),
     [name, setName] = useState(""),
     run = useTaskSubmit(onCreated);
+  const readiness = useTaskReadiness(tool);
   const needsExternal = [
     "target-msa",
     "protrek-sequence",
     "protrek-structure",
     "fold",
   ].includes(tool);
-  useEffect(() => {
-    const c = new AbortController();
-    void request<typeof readiness>("/harness/readiness", { signal: c.signal })
-      .then((value) => {
-        if (!c.signal.aborted) setReadiness(value);
-      })
-      .catch((e) => {
-        if (!c.signal.aborted) setSetupError(String(e));
-      });
-    return () => c.abort();
-  }, []);
   function normalize() {
     const result = structuredClone(payload);
     if (tool === "esm")
@@ -280,16 +266,13 @@ export function HarnessForm({
       setSetupError(String(error));
     }
   }
-  const ready = Boolean(
-    readiness?.configured &&
-    (tool === "compare" || readiness.compute_configured),
-  );
   return (
     <Questionnaire
       language={language}
-      ready={ready}
+      ready={readiness.ready}
+      onCheckEnvironment={readiness.recheck}
       busy={run.busy}
-      error={run.error || setupError}
+      error={run.error || readiness.error || setupError}
       unavailable={
         zh
           ? "请在安装与组件中完成蛋白与抗体工具的配置。当前输入已保留。"

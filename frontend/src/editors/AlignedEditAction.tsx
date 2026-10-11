@@ -20,7 +20,11 @@ export function AlignedEditAction({
 }) {
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
-  const { ready, error: readinessError } = useTaskReadiness("diffsbdd.edit");
+  const {
+    ready,
+    error: readinessError,
+    recheck,
+  } = useTaskReadiness("diffsbdd.edit");
   const [open, setOpen] = useState(false),
     [original, setOriginal] = useState<ScientificObject | null>(null),
     [molblock, setMolblock] = useState(""),
@@ -85,6 +89,7 @@ export function AlignedEditAction({
         busy={busy || reading || run.busy}
         error={run.error || error || readinessError}
         ready={ready}
+        onCheckEnvironment={recheck}
         unavailable={
           zh
             ? "请先在安装与组件中配置 DiffSBDD 化学环境；当前编辑内容已保留。"

@@ -117,6 +117,7 @@ export function SimulationForm({
       busy={run.busy}
       error={availability.error || run.error}
       ready={availability.ready}
+      onCheckEnvironment={availability.recheck}
       unavailable={
         zh
           ? "请在安装与运行中部署所选计算环境。"

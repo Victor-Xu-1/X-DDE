@@ -1,4 +1,6 @@
 import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
+import { availabilityError } from "../guided/task-availability";
 import { useEffect, useRef, useState } from "react";
 import { api, artifactUrl, request } from "../api";
 import type { Component, Job, Language, Parameters } from "../types";
@@ -28,8 +30,11 @@ export function CovalentEditor({
   onChange(b: CovalentBond[]): void;
   language: Language;
 }) {
-  const { ready: inspectionReady, error: inspectionReadinessError } =
-    useTaskReadiness("native.inspect");
+  const {
+    ready: inspectionReady,
+    error: inspectionReadinessError,
+    recheck,
+  } = useTaskReadiness("native.inspect");
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
     [atoms, setAtoms] = useState<Atom[]>([]),
@@ -167,8 +172,14 @@ export function CovalentEditor({
             ? "检查输入并打开选择器"
             : "Inspect inputs and open selector"}
       </button>
+      <EnvironmentRecheck
+        ready={inspectionReady}
+        onRecheck={recheck}
+        language={language}
+        busy={busy}
+      />
       {inspectionReadinessError && (
-        <p role="alert">{inspectionReadinessError}</p>
+        <p role="alert">{availabilityError(inspectionReadinessError, zh)}</p>
       )}
       {error && (
         <p role="alert" className="error-box">

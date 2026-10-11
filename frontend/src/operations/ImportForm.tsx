@@ -45,9 +45,11 @@ export function ImportForm({
       "structure",
     ),
     [reviewed, setReviewed] = useState(false);
-  const { ready, error: readinessError } = useTaskReadiness(
-    mode === "structure" ? "import" : "predict",
-  );
+  const {
+    ready,
+    error: readinessError,
+    recheck,
+  } = useTaskReadiness(mode === "structure" ? "import" : "predict");
   useEffect(() => {
     const c = new AbortController();
     setArtifacts([]);
@@ -336,6 +338,7 @@ export function ImportForm({
     <Questionnaire
       language={language}
       ready={ready}
+      onCheckEnvironment={recheck}
       busy={busy || run.busy}
       error={error || run.error || readinessError}
       unavailable={

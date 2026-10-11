@@ -28,7 +28,7 @@ export function PocketForm({
       preset?.profile ?? "",
     );
   const [expert, setExpert] = useState(false);
-  const { ready, error } = useTaskReadiness("p2rank.detect");
+  const { ready, error, recheck } = useTaskReadiness("p2rank.detect");
   const [threads, setThreads] = useState(preset?.threads ?? 4),
     [memory, setMemory] = useState(preset?.memory_mib ?? 2048),
     [threshold, setThreshold] = useState(preset?.point_threshold ?? 0.4),
@@ -55,6 +55,7 @@ export function PocketForm({
       busy={run.busy}
       error={error || run.error}
       ready={ready}
+      onCheckEnvironment={recheck}
       unavailable={
         zh
           ? "尚未部署口袋计算环境。请到“安装与组件”部署 P2Rank；已填信息可以保留。"

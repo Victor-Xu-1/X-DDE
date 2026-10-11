@@ -14,11 +14,9 @@ afterEach(() => {
 function boundary() {
   vi.spyOn(client, "request").mockImplementation(
     async (path) =>
-      (path === "/harness/readiness"
-        ? { configured: true, compute_configured: true, required_settings: [] }
-        : path.startsWith("/capabilities/")
-          ? { availability: { configuration_present: true } }
-          : []) as never,
+      (path.startsWith("/capabilities/")
+        ? { availability: { configuration_present: true } }
+        : []) as never,
   );
   vi.spyOn(client.api, "assets").mockResolvedValue([]);
 }

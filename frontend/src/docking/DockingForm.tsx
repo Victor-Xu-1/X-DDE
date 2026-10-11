@@ -59,7 +59,11 @@ export function DockingForm({
     [expert, setExpert] = useState(false),
     [name, setName] = useState("");
   const [error, setError] = useState("");
-  const { ready, error: readinessError } = useTaskReadiness(`gnina.${mode}`);
+  const {
+    ready,
+    error: readinessError,
+    recheck,
+  } = useTaskReadiness(`gnina.${mode}`);
   const [outputSettings, setOutputSettings] = useState<OutputSettings>({
     ...outputBoundsDefaults,
   });
@@ -292,6 +296,7 @@ export function DockingForm({
       busy={run.busy}
       error={error || run.error || readinessError}
       ready={ready}
+      onCheckEnvironment={recheck}
       unavailable={
         zh
           ? "请在安装与组件中配置 GNINA。当前选择已保留，可稍后启动。"

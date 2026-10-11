@@ -1,4 +1,6 @@
 import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
+import { availabilityError } from "../guided/task-availability";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -19,8 +21,11 @@ export function FixedAtomPicker({
   language: Language;
   onSaved(id: string | null): void;
 }) {
-  const { ready: inspectionReady, error: inspectionReadinessError } =
-    useTaskReadiness("diffsbdd.identity");
+  const {
+    ready: inspectionReady,
+    error: inspectionReadinessError,
+    recheck,
+  } = useTaskReadiness("diffsbdd.identity");
   const zh = language === "zh";
   const { job, result, error, running, inspect, refresh } = useNativeIdentity(
     initial,
@@ -128,11 +133,21 @@ export function FixedAtomPicker({
       )}
       {(error || inspectionReadinessError) && (
         <p role="alert" className="error-box">
-          {error || inspectionReadinessError}
-          <button type="button" onClick={refresh}>
-            {zh ? "重新读取任务状态" : "Refresh task status"}
-          </button>
+          {error || availabilityError(inspectionReadinessError, zh)}
+          {error && (
+            <button type="button" onClick={refresh}>
+              {zh ? "重新读取任务状态" : "Refresh task status"}
+            </button>
+          )}
         </p>
+      )}
+      {!result && (
+        <EnvironmentRecheck
+          ready={inspectionReady}
+          onRecheck={recheck}
+          language={language}
+          busy={running}
+        />
       )}
     </section>
   );

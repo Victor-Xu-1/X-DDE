@@ -3,6 +3,7 @@ import { GuidedSteps } from "../guided/Questionnaire";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { screeningReadiness } from "./screening-readiness";
 import type { Asset } from "../operations/types";
 import type { Job, Language } from "../types";
 import { DatasetPicker } from "./DatasetPicker";
@@ -110,10 +111,10 @@ export function ScreeningForm({
     focused: { topK: 300, retain: 40, dock: true },
     broad: { topK: 1000, retain: 100, dock: true },
   }[profile];
-  const ready =
-    retrieval.ready &&
-    (!preset.dock || docking.ready) &&
-    (source !== "new" || chemistry.ready);
+  const readiness = screeningReadiness(retrieval, docking, chemistry, {
+    dock: preset.dock,
+    importLibrary: source === "new",
+  });
   async function submit() {
     if (!pocket.pocket) return;
     return run.submit(
@@ -156,8 +157,9 @@ export function ScreeningForm({
       <GuidedSteps<DatasetExecution>
         language={language}
         busy={run.busy}
-        error={run.error || templateError || error}
-        ready={ready}
+        error={run.error || templateError || readiness.error || error}
+        ready={readiness.ready}
+        onCheckEnvironment={readiness.recheck}
         unavailable={
           zh
             ? "请在安装与组件中准备高通量筛选、分子处理，以及所选方案所需的对接环境。"

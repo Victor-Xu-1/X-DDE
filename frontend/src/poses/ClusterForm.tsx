@@ -80,6 +80,7 @@ export function ClusterForm({
     <Questionnaire
       language={language}
       ready={availability.ready}
+      onCheckEnvironment={availability.recheck}
       busy={run.busy || preparing}
       error={error || run.error || availability.error}
       unavailable={

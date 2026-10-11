@@ -60,6 +60,7 @@ export function ChannelForm({
       language={language}
       busy={run.busy}
       ready={availability.ready}
+      onCheckEnvironment={availability.recheck}
       error={run.error || availability.error}
       unavailable={
         zh

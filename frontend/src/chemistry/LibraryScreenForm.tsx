@@ -68,6 +68,7 @@ export function LibraryScreenForm({
     <Questionnaire
       language={language}
       ready={availability.ready}
+      onCheckEnvironment={availability.recheck}
       busy={run.busy || loading}
       error={run.error || error || availability.error}
       unavailable={

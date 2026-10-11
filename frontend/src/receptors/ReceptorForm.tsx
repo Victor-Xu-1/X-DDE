@@ -55,8 +55,11 @@ export function ReceptorForm({
     [raw, setRaw] = useState(
       JSON.stringify(preset?.options ?? defaults, null, 2),
     );
-  const { ready, error: readinessError } =
-    useTaskReadiness("biopython.ensemble");
+  const {
+    ready,
+    error: readinessError,
+    recheck,
+  } = useTaskReadiness("biopython.ensemble");
   function options(value = choice) {
     return {
       ...(preset?.options ?? defaults),
@@ -253,6 +256,7 @@ export function ReceptorForm({
       busy={run.busy}
       error={error || run.error || readinessError}
       ready={ready}
+      onCheckEnvironment={recheck}
       unavailable={
         zh
           ? "请在安装与组件中部署受体构象环境。当前选择已保留，可稍后启动。"

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { PropertyForm } from "./PropertyForm";
@@ -15,6 +15,48 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+it.each(["en", "zh"] as const)(
+  "rechecks the environment while preserving the complete molecular draft in %s",
+  async (language) => {
+    const request = vi
+      .spyOn(client, "request")
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce({ availability: { configuration_present: true } });
+    vi.spyOn(api, "assets").mockResolvedValue([]);
+    const submit = vi.spyOn(api, "submit"),
+      user = userEvent.setup(),
+      zh = language === "zh";
+    const smiles =
+      "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3";
+    render(
+      <PropertyForm
+        language={language}
+        onCreated={vi.fn()}
+        initialSmiles={smiles}
+      />,
+    );
+    for (let step = 0; step < 3; step++)
+      await user.click(
+        screen.getByRole("button", {
+          name: zh ? "下一步" : "Next",
+        }),
+      );
+    const launch = screen.getByRole("button", {
+      name: zh ? "计算性质" : "Calculate properties",
+    });
+    expect(launch).toBeDisabled();
+    await user.click(
+      screen.getByRole("button", {
+        name: zh ? "重新检查计算环境" : "Check environment again",
+      }),
+    );
+    await waitFor(() => expect(launch).toBeEnabled());
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByLabelText("SMILES")).toHaveValue(smiles);
+    expect(submit).not.toHaveBeenCalled();
+    expect(request).toHaveBeenCalledTimes(2);
+  },
+);
 it("keeps the exact source version and sends no hidden SMILES after selecting file-only input", async () => {
   const asset: Asset = {
     id: "file",

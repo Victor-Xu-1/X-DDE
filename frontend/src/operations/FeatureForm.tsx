@@ -30,7 +30,7 @@ export function FeatureForm({
     [cpus, setCpus] = useState(4),
     run = useTaskSubmit(onCreated);
   const [expert, setExpert] = useState(false);
-  const { ready, error } = useTaskReadiness("features");
+  const { ready, error, recheck } = useTaskReadiness("features");
   const parameters: Parameters = {
     ...defaults,
     feature_mode: "search",
@@ -155,6 +155,7 @@ export function FeatureForm({
     <Questionnaire
       language={language}
       ready={ready}
+      onCheckEnvironment={recheck}
       busy={run.busy}
       error={run.error || error}
       unavailable={

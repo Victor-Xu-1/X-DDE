@@ -250,6 +250,16 @@ on:
       - "!frontend/src/presentation/active-indicator.css"
       - "!frontend/src/studio/MethodSwitch.tsx"
       - "!frontend/src/studio/method-switch.css"
+      # Questionnaire availability controls use task-readiness-checks.yml.
+      - "!frontend/src/datasets/DELForm.tsx"
+      - "!frontend/src/humanization/HumanizationForm.tsx"
+      - "!frontend/src/operations/CovalentEditor.tsx"
+      - "!frontend/src/operations/FeatureForm.tsx"
+      - "!frontend/src/operations/HarnessForm.tsx"
+      - "!frontend/src/operations/ToolQuestionnaires.test.tsx"
+      - "!frontend/src/pockets/PocketForm.tsx"
+      - "!frontend/src/guided/EnvironmentRecheck.tsx"
+      - "!.github/workflows/task-layout-checks.yml"
   workflow_dispatch:
 permissions:
   contents: read

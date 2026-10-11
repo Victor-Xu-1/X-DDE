@@ -35,7 +35,7 @@ export function PropertyForm({
       initialFile && initialSmiles ? "both" : initialSmiles ? "smiles" : "file",
     );
   const run = useTaskSubmit(onCreated);
-  const { ready, error } = useTaskReadiness("properties");
+  const { ready, error, recheck } = useTaskReadiness("properties");
   const lines =
       mode === "file"
         ? []
@@ -106,6 +106,7 @@ export function PropertyForm({
       busy={run.busy}
       error={error || run.error}
       ready={ready}
+      onCheckEnvironment={recheck}
       unavailable={
         zh
           ? "RDKit 性质计算环境尚未就绪。请到“安装与组件”配置分子性质工具；当前输入可以保留。"

@@ -72,7 +72,11 @@ export function DiffForm({
     ),
     [name, setName] = useState("");
   const [error, setError] = useState("");
-  const { ready, error: readinessError } = useTaskReadiness(`diffsbdd.${mode}`);
+  const {
+    ready,
+    error: readinessError,
+    recheck,
+  } = useTaskReadiness(`diffsbdd.${mode}`);
   const [chains, setChains] = useState(
       (preset?.chains as string[] | undefined)?.join(", ") ?? "",
     ),
@@ -385,6 +389,7 @@ export function DiffForm({
     <Questionnaire
       language={language}
       ready={ready}
+      onCheckEnvironment={recheck}
       busy={run.busy}
       error={error || run.error || readinessError}
       unavailable={

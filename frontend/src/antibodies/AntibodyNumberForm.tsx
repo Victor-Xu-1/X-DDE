@@ -42,6 +42,7 @@ export function AntibodyNumberForm({
     <Questionnaire
       language={language}
       ready={availability.ready}
+      onCheckEnvironment={availability.recheck}
       busy={run.busy}
       error={run.error || availability.error}
       unavailable={

@@ -15,6 +15,7 @@ import { researchError } from "../presentation/research-content";
 import { useReveal } from "../presentation/useReveal";
 import { ActiveIndicator } from "../presentation/ActiveIndicator";
 import { availabilityError } from "./task-availability";
+import { EnvironmentRecheck } from "./EnvironmentRecheck";
 export interface QuestionStep {
   title: string;
   actions?: ReactNode;
@@ -28,6 +29,7 @@ export function GuidedSteps<T extends { id: string }>({
   error,
   ready,
   unavailable,
+  onCheckEnvironment,
   submitLabel,
   onSubmit,
   renderResult,
@@ -40,6 +42,7 @@ export function GuidedSteps<T extends { id: string }>({
   error: string;
   ready: boolean | undefined;
   unavailable?: ReactNode;
+  onCheckEnvironment?(): void;
   submitLabel: string;
   onSubmit(): Promise<T | undefined>;
   renderResult(result: T): ReactNode;
@@ -204,6 +207,14 @@ export function GuidedSteps<T extends { id: string }>({
               : "Checking the calculation environment…"
             : unavailable}
         </div>
+      )}
+      {current === 3 && !preview && (
+        <EnvironmentRecheck
+          ready={ready}
+          onRecheck={onCheckEnvironment}
+          language={language}
+          busy={busy}
+        />
       )}
       {current < 4 && (
         <div className="questionnaire-actions">
