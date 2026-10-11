@@ -35,6 +35,11 @@ class ScientificStore:
                 "CREATE INDEX IF NOT EXISTS scientific_object_family "
                 "ON scientific_objects(family_id)"
             )
+            db.execute(
+                "CREATE INDEX IF NOT EXISTS scientific_object_source_record "
+                "ON scientific_objects(json_extract(body,'$.source_job'),"
+                "json_extract(body,'$.kind'),json_extract(body,'$.reference.record'))"
+            )
 
     @staticmethod
     def decode(row):
@@ -158,15 +163,40 @@ class ScientificStore:
         )
         return obj
 
-    def list(self, limit=100, offset=0, source_job=None):
+    def list(
+        self,
+        limit=100,
+        offset=0,
+        source_job=None,
+        *,
+        asset_name=None,
+        sha256=None,
+        kind=None,
+        record=None,
+    ):
+        """Filter before paging; scientific identities never depend on display labels."""
+        clauses, parameters = [], []
+        for column, value in (
+            ("json_extract(s.body,'$.source_job')", str(source_job) if source_job else None),
+            ("a.name", asset_name),
+            ("a.sha256", sha256),
+            ("json_extract(s.body,'$.kind')", kind),
+            ("json_extract(s.body,'$.reference.record')", record),
+        ):
+            if value is not None:
+                clauses.append(column + "=?")
+                parameters.append(value)
+        if record is not None:
+            clauses.append("json_extract(s.body,'$.reference.conformer')=0")
+        where = " WHERE " + " AND ".join(clauses) if clauses else ""
         with self.store.connect() as db:
             return [
                 self.decode(row)
                 for row in db.execute(
-                    "SELECT * FROM scientific_objects "
-                    + ("WHERE json_extract(body, '$.source_job')=? " if source_job else "")
-                    + "ORDER BY created_at DESC,id LIMIT ? OFFSET ?",
-                    (str(source_job), limit, offset) if source_job else (limit, offset),
+                    "SELECT s.* FROM scientific_objects s LEFT JOIN assets a ON a.id=s.asset_id"
+                    + where
+                    + " ORDER BY s.created_at DESC,s.id LIMIT ? OFFSET ?",
+                    [*parameters, limit, offset],
                 )
             ]
 

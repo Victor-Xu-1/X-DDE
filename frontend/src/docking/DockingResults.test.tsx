@@ -4,10 +4,10 @@ import { afterEach, expect, it, vi } from "vitest";
 import { DockingResults } from "./DockingResults";
 import type { DockingResult } from "./types";
 import type { Job } from "../types";
-const mocks = vi.hoisted(() => ({ request: vi.fn(), post: vi.fn() }));
+const mocks = vi.hoisted(() => ({ request: vi.fn(), authorized: vi.fn() }));
 vi.mock("../api", () => ({
   request: mocks.request,
-  api: { post: mocks.post },
+  api: { authorized: mocks.authorized },
   artifactUrl: (job: string, file: string) => `/artifact/${job}/${file}`,
 }));
 vi.mock("../viewer/StructureViewer", () => ({
@@ -75,7 +75,7 @@ const data: DockingResult = {
   ],
 };
 it("previews only the chosen valid pose and reuses its exact saved record", async () => {
-  mocks.request.mockResolvedValue([
+  const versions = [
     {
       id: "v",
       kind: "molecule",
@@ -83,7 +83,17 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
       source_job: "j",
       reference: { ...receptor, asset_id: "selected", version_id: "v" },
     },
-  ]);
+  ];
+  mocks.request.mockImplementation((path: string) =>
+    path.includes("artifact-metadata")
+      ? {
+          job_id: "j",
+          name: "pose-002.sdf",
+          size: 123,
+          sha256: receptor.sha256,
+        }
+      : versions,
+  );
   render(
     <DockingResults language="zh" job={{ id: "j" } as Job} result={data} />,
   );
@@ -114,8 +124,19 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   );
 });
 it("offers explicit reindexing rather than pretending a missing asset is reusable", async () => {
-  mocks.request.mockResolvedValue([]);
-  mocks.post.mockRejectedValue(new Error("indexing unavailable"));
+  mocks.request.mockImplementation((path: string) =>
+    path.includes("artifact-metadata")
+      ? {
+          job_id: "j",
+          name: "pose-002.sdf",
+          size: 123,
+          sha256: receptor.sha256,
+        }
+      : [],
+  );
+  mocks.authorized.mockRejectedValue(
+    new Error("indexing unavailable /srv/private/trace"),
+  );
   render(
     <DockingResults language="en" job={{ id: "j" } as Job} result={data} />,
   );
@@ -124,13 +145,15 @@ it("offers explicit reindexing rather than pretending a missing asset is reusabl
   await user.click(
     screen.getByRole("button", { name: "Register and load this pose" }),
   );
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "indexing unavailable",
-  );
+  expect(await screen.findByRole("alert")).toHaveTextContent("Please retry");
+  expect(screen.getByRole("alert")).not.toHaveTextContent("/srv/private");
   expect(
     screen.queryByRole("button", { name: "Calculate properties" }),
   ).toBeNull();
   await waitFor(() =>
-    expect(mocks.post).toHaveBeenCalledWith("/jobs/j/index-assets", {}),
+    expect(mocks.authorized).toHaveBeenCalledWith(
+      "/jobs/j/index-assets",
+      expect.objectContaining({ method: "POST", body: "{}" }),
+    ),
   );
 });

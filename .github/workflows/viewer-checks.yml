@@ -22,6 +22,8 @@ on:
       - "server_tests/prepare_visual_components.py"
       - "frontend/src/docking/poseScore*"
       - "frontend/src/docking/DockingResults*"
+      # Saved-material handoff is verified by exact-result-handoff-checks.
+      - "!frontend/src/docking/DockingResults*"
       - "frontend/src/docking/types.ts"
       - "frontend/src/editors/molstar*"
       - "frontend/src/editors/ketcher*"

@@ -54,6 +54,7 @@ export function CandidateView({
       candidate={candidate}
       language={language}
       onCreated={onCreated}
+      receptorArtifact={hasReceptor ? "receptor.pdb" : undefined}
     >
       <div className="dataset-candidate-layout">
         <section className="dataset-candidate-table">

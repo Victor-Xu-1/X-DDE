@@ -2,6 +2,11 @@ import { useState, type ReactNode } from "react";
 import type { Job, Language } from "../types";
 import type { DatasetCandidate } from "./types";
 import { usePoseAssets } from "../docking/usePoseAssets";
+import {
+  poseAssetMessage,
+  type PoseAssetTarget,
+} from "../docking/pose-asset-lookup";
+import type { ScientificObject } from "../research/types";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { AdmetForm } from "../admet/AdmetForm";
 import { QualityForm } from "../quality/QualityForm";
@@ -24,7 +29,7 @@ type Action =
 function EditCandidate(props: {
   job: Job;
   language: Language;
-  object: NonNullable<ReturnType<typeof usePoseAssets>["versions"][number]>;
+  object: ScientificObject;
   onCreated(job: Job): void;
 }) {
   const deployment = useDeployment();
@@ -63,30 +68,35 @@ export function CandidateHandoff({
   language,
   onCreated,
   children,
+  receptorArtifact,
 }: {
   job: Job;
   candidate: DatasetCandidate | undefined;
   language: Language;
   onCreated?(job: Job): void;
   children: ReactNode;
+  receptorArtifact?: string;
 }) {
   const zh = language === "zh",
-    assets = usePoseAssets(job.id),
     [action, setAction] = useState<Action | null>(null),
     [notice, setNotice] = useState("");
-  const molecule = assets.versions.find(
-      (v) =>
-        v.kind === "molecule" &&
-        v.reference.record === candidate?.record &&
-        (v.label === candidate?.artifact ||
-          v.label.startsWith(candidate?.artifact + " · #")),
-    ),
-    protein = assets.versions.find(
-      (v) => v.kind === "structure" && v.label === "receptor.pdb",
-    );
-  const complex = assets.versions.find(
-    (v) => v.kind === "structure" && v.label === candidate?.complex_artifact,
+  const molecular: PoseAssetTarget | null = candidate?.artifact
+    ? { name: candidate.artifact, kind: "molecule", record: candidate.record }
+    : null;
+  const receptor: PoseAssetTarget | null =
+    receptorArtifact && candidate?.geometry === "binding_pose"
+      ? { name: receptorArtifact, kind: "structure", record: 0 }
+      : null;
+  const paired: PoseAssetTarget | null = candidate?.complex_artifact
+    ? { name: candidate.complex_artifact, kind: "structure", record: 0 }
+    : null;
+  const assets = usePoseAssets(
+    job.id,
+    [molecular, receptor, paired].filter((item) => item !== null),
   );
+  const molecule = molecular ? assets.object(molecular) : undefined;
+  const protein = receptor ? assets.object(receptor) : undefined;
+  const complex = paired ? assets.object(paired) : undefined;
   function created(value: Job) {
     onCreated?.(value);
     setNotice(zh ? "新研究任务已提交。" : "The new study has been submitted.");
@@ -202,7 +212,19 @@ export function CandidateHandoff({
           </button>
         )}
       </div>
-      {assets.error && <p role="alert">{assets.error}</p>}
+      {assets.busy && (
+        <button type="button" className="text-button" onClick={assets.cancel}>
+          {zh ? "取消读取" : "Cancel loading"}
+        </button>
+      )}
+      {assets.error && (
+        <div role="alert">
+          <p>{poseAssetMessage(assets.error, zh)}</p>
+          <button type="button" onClick={() => void assets.retry()}>
+            {zh ? "重新读取保存的材料" : "Retry saved materials"}
+          </button>
+        </div>
+      )}
       {notice && <p role="status">{notice}</p>}
     </>
   );

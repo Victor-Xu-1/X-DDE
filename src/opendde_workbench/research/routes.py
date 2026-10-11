@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import Depends, Header, HTTPException, Query
 
 from ..store import ConflictError
-from .contracts import ScientificObject, VersionInput
+from .contracts import ObjectKind, ScientificObject, VersionInput
 from .graph import graph
 from .input_catalog import register_input_catalog
 from .storage import ScientificStore
@@ -67,8 +67,20 @@ def register_research(app, store, assets, mutation):
         limit: int = Query(default=100, ge=1, le=200),
         offset: int = Query(default=0, ge=0),
         source_job: UUID | None = None,
+        asset_name: str | None = Query(None, min_length=1, max_length=180),
+        sha256: str | None = Query(None, pattern=r"^[a-f0-9]{64}$"),
+        kind: ObjectKind | None = None,
+        record: int | None = Query(None, ge=0, le=499),
     ):
-        return scientific.list(limit, offset, source_job)
+        return scientific.list(
+            limit,
+            offset,
+            source_job,
+            asset_name=asset_name,
+            sha256=sha256,
+            kind=kind,
+            record=record,
+        )
 
     @app.get("/api/research/objects/{object_id}", response_model=ScientificObject)
     def object_version(object_id: UUID):

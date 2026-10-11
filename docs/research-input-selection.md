@@ -1,5 +1,13 @@
 # Research input selection / 研究材料选择
 
+Docking and screening follow-up resolves the selected original file, digest and molecular record directly through the existing scientific version store. Filtering occurs before paging; the former 1,000-version scan is removed. Display labels are not scientific identity, so renamed materials and old candidates remain usable. Switching task/candidate immediately removes old eligibility; superseded reads and indexing replies cannot restore it. Metadata and lookup share one 30-second deadline. Duplicate registration clicks coalesce through the existing deterministic output catalogue. If a committed reply is lost, **Retry saved materials** reads the saved version without registering it again. Cancelling stops waiting and retains already saved files/versions. Researcher messages never expose server diagnostics.
+
+对接和筛选结果的后续研究按原始文件、校验值和分子记录直接查询已有科学版本库，先筛选再分页，移除原先扫描 1,000 个版本的限制。显示名称不作为科学身份，改过名称的材料及较早候选仍可使用。切换任务或候选后立即取消旧材料资格，被替换的读取及登记回复不能恢复旧选择。文件核对和版本查询共用 30 秒时限；重复登记点击由已有确定性结果目录合并。成功保存但回复丢失时，“重新读取保存的材料”直接找回版本，不重复登记。取消只停止等待，保留已经保存的文件和版本；页面提示不展示服务器诊断内容。
+
+The exact result-handoff gate tests real SQLite histories above 1,000 versions, source/hash/record mismatches, deadlines, cancellation and direct downstream forms. Native browser checks reuse the unchanged archived docking case and verify original pose downloads, delayed replies and same-version recovery in English/Chinese. Metadata-only scaling fixtures are not computed scientific results. No new owner scientific task is required.
+
+结果交接专项检查覆盖超过 1,000 个版本的真实 SQLite 历史、来源/校验值/记录不匹配、超时、取消和直接下游表单。原生浏览器检查使用未修改的历史对接案例，在中英文界面核对原始姿势下载、迟到回复和同一版本恢复；扩大历史规模的测试元数据不冒充科学计算结果，不需要在本机新增科学任务。
+
 The shared structure/molecule picker keeps new upload as its blank-task default. Historical files include both original uploads and explicitly saved molecular/structural records. Reading the catalogue does not create a task or change an input file.
 
 共用结构/分子选择器在空白任务中默认上传新文件。历史文件包含原始上传材料和明确保存的分子/结构记录；读取列表不会创建任务或修改文件。

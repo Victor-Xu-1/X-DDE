@@ -73,6 +73,8 @@ on:
       - "frontend/src/presentation/**"
       - "!frontend/src/presentation/ensemble-results.css"
       - "frontend/src/docking/DockingResults*"
+      # Saved-material handoff uses result-handoff-checks.yml.
+      - "!frontend/src/docking/DockingResults*"
       - "frontend/src/editors/scientificEditor*"
       - "frontend/src/antibodies/AntibodyNumberResults*"
       - "frontend/src/quality/QualityResults*"

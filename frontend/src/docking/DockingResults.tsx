@@ -11,6 +11,7 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { PropertyForm } from "../operations/PropertyForm";
 import { DockingForm } from "./DockingForm";
 import { usePoseAssets } from "./usePoseAssets";
+import { poseAssetMessage, type PoseAssetTarget } from "./pose-asset-lookup";
 import type { DockingResult } from "./types";
 export function DockingResults({
   job,
@@ -21,8 +22,7 @@ export function DockingResults({
   result: DockingResult;
   language: Language;
 }) {
-  const zh = language === "zh",
-    assets = usePoseAssets(job.id);
+  const zh = language === "zh";
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
   const [record, setRecord] = useState<number | null>(
       () => result.poses.find((p) => p.valid && p.artifact)?.record ?? null,
@@ -32,9 +32,11 @@ export function DockingResults({
   const selected = result.poses.find(
     (v) => v.record === record && v.valid && v.artifact,
   );
-  const version = assets.versions.find(
-    (v) => v.kind === "molecule" && v.label === selected?.artifact,
-  );
+  const target: PoseAssetTarget | null = selected?.artifact
+    ? { name: selected.artifact, kind: "molecule", record: 0 }
+    : null;
+  const assets = usePoseAssets(job.id, target ? [target] : []);
+  const version = target ? assets.object(target) : undefined;
   if (version && next)
     return (
       <ResearchHandoff language={language} onBack={() => setNext(null)}>
@@ -164,7 +166,23 @@ export function DockingResults({
           )}
         </div>
       </div>
-      {assets.error && <p role="alert">{assets.error}</p>}
+      {assets.busy && (
+        <button type="button" className="text-button" onClick={assets.cancel}>
+          {zh ? "取消读取" : "Cancel loading"}
+        </button>
+      )}
+      {assets.error && (
+        <div role="alert">
+          <p>{poseAssetMessage(assets.error, zh)}</p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => void assets.retry()}
+          >
+            {zh ? "重新读取保存的材料" : "Retry saved materials"}
+          </button>
+        </div>
+      )}
       {message && <p role="status">{message}</p>}
       <details>
         <summary>{zh ? "完整姿势集" : "Complete pose set"}</summary>

@@ -1,0 +1,62 @@
+name: Exact result material handoff checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &handoff_paths
+      - "frontend/src/docking/usePoseAssets*"
+      - "frontend/src/docking/pose-asset-lookup*"
+      - "frontend/src/docking/DockingResults*"
+      - "frontend/src/datasets/CandidateHandoff*"
+      - "frontend/src/datasets/CandidateView*"
+      - "src/opendde_workbench/research/routes.py"
+      - "src/opendde_workbench/research/storage.py"
+      - "tests/test_result_version_lookup.py"
+      - "server_tests/test_result_handoff_browser.py"
+      - ".github/workflows/result-handoff-checks.yml"
+  pull_request:
+    paths: *handoff_paths
+permissions:
+  contents: read
+jobs:
+  handoff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Locked frontend and isolated dependencies
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev --group browser
+      - name: Exact saved record, cancellation, reply loss and direct consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/docking/usePoseAssets.test.tsx
+          src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
+          src/datasets/DatasetResults.test.tsx
+      - name: Real SQLite filtering, route validation and preserved asset contracts
+        run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py
+      - name: Restore the actual archived native source; no new scientific calculations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-handoff" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-handoff/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-handoff" WB_STATE_DIR="$RUNNER_TEMP/x-dde-handoff/state" gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          WB_HOME="$RUNNER_TEMP/x-dde-handoff" WB_STATE_DIR="$RUNNER_TEMP/x-dde-handoff/state" .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+      - name: Bilingual desktop and narrow native handoff and original downloads
+        run: |
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+          uv run --locked python -m pytest -x -q server_tests/test_result_handoff_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exact-result-handoff-evidence
+          path: outputs/result-handoff/**

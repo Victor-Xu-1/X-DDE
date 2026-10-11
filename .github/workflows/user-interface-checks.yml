@@ -183,6 +183,8 @@ on:
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
       - "!.github/workflows/user-interface-checks.yml"
+      # Saved-material handoff uses result-handoff-checks.yml.
+      - "!frontend/src/docking/DockingResults*"
   pull_request:
     paths:
       - "frontend/src/presentation/**"
@@ -327,6 +329,8 @@ on:
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
       - "!.github/workflows/user-interface-checks.yml"
+      # Saved-material handoff uses result-handoff-checks.yml.
+      - "!frontend/src/docking/DockingResults*"
   workflow_dispatch:
 jobs:
   presentation:

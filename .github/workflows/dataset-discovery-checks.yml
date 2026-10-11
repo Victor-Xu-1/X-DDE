@@ -6,6 +6,9 @@ on:
       - 'src/opendde_workbench/dataset_inputs.py'
       - 'src/opendde_workbench/datasets/**'
       - 'frontend/src/datasets/**'
+      # Exact candidate material lookup/recovery has its own focused gate.
+      - '!frontend/src/datasets/CandidateHandoff*'
+      - '!frontend/src/datasets/CandidateView*'
       - 'tests/test_dataset*'
       - 'tests/test_supplier*'
       - 'server_tests/*dataset*'
