@@ -8,11 +8,13 @@ from fastapi import Depends, Header, HTTPException, Query
 from ..store import ConflictError
 from .contracts import ScientificObject, VersionInput
 from .graph import graph
+from .input_catalog import register_input_catalog
 from .storage import ScientificStore
 
 
 def register_research(app, store, assets, mutation):
     scientific = ScientificStore(store, assets)
+    register_input_catalog(app, scientific)
     from .state_sets import MolecularStateSet, StateSets
 
     state_sets = StateSets(store, assets)

@@ -1,44 +1,42 @@
-import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { api, request } from "../api";
-import {
-  readReferenceHistory,
-  useReferenceHistory,
-} from "./useReferenceHistory";
-vi.mock("../api", () => ({ request: vi.fn(), api: { assets: vi.fn() } }));
-afterEach(() => {
-  cleanup();
-  vi.resetAllMocks();
-});
-const file = (id: string) => ({
-  id,
-  name: id + ".pdb",
+import { request } from "../api";
+import { useReferenceHistory } from "./useReferenceHistory";
+import { catalogFixture } from "./input-catalog.test-fixtures";
+vi.mock("../api", () => ({ request: vi.fn() }));
+afterEach(() => vi.resetAllMocks());
+const file = {
+  id: "older",
+  name: "STAT6-receptor.pdb",
   kind: "structure" as const,
   suffix: ".pdb",
   sha256: "a".repeat(64),
   size: 100,
   created_at: "",
-});
-it("includes older uploads beyond the first asset page without mutating the API response", async () => {
-  const first = Array.from({ length: 100 }, (_, i) => file(String(i)));
-  vi.mocked(api.assets).mockResolvedValue(first);
-  vi.mocked(request).mockImplementation(async (path) =>
-    path.startsWith("/research") ? [] : [file("older")],
+};
+it("reads one server-filtered page with literal search and no whole-history fanout", async () => {
+  vi.mocked(request).mockResolvedValue(catalogFixture([], [file]));
+  const { result } = renderHook(() =>
+    useReferenceHistory("structure", [".pdb"], true, {
+      query: "STAT6 %_",
+      page: 402,
+      selected: "file:older",
+      wholeFile: false,
+    }),
   );
-  const result = await readReferenceHistory(new AbortController().signal);
-  expect(result.files).toHaveLength(101);
-  expect(result.files[100].id).toBe("older");
-  expect(first).toHaveLength(100);
-  expect(request).toHaveBeenCalledWith(
-    "/assets?limit=100&offset=100",
-    expect.anything(),
+  await waitFor(() => expect(result.current.files[0].id).toBe("older"));
+  expect(request).toHaveBeenCalledOnce();
+  const params = new URLSearchParams(
+    vi.mocked(request).mock.calls[0][0].split("?")[1],
   );
+  expect(params.get("offset")).toBe("10050");
+  expect(params.get("q")).toBe("STAT6 %_");
+  expect(params.getAll("formats")).toEqual([".pdb"]);
 });
-it("does not fetch from the fresh-file route and can explicitly retry the failed history load", async () => {
+it("does not read the fresh route and offers explicit retry after a failed catalog request", async () => {
   vi.mocked(request)
-    .mockRejectedValueOnce(new Error("private server path"))
-    .mockResolvedValue([]);
-  vi.mocked(api.assets).mockResolvedValue([file("recovered")]);
+    .mockRejectedValueOnce(new Error("/private/state"))
+    .mockResolvedValue(catalogFixture([], [file]));
   const view = renderHook(
     ({ active }) => useReferenceHistory("structure", [".pdb"], active),
     { initialProps: { active: false } },
@@ -46,10 +44,28 @@ it("does not fetch from the fresh-file route and can explicitly retry the failed
   expect(request).not.toHaveBeenCalled();
   view.rerender({ active: true });
   await waitFor(() => expect(view.result.current.error).toBe(true));
-  expect(view.result.current.files).toEqual([]);
   act(() => view.result.current.retry());
-  await waitFor(() =>
-    expect(view.result.current.files[0]?.id).toBe("recovered"),
+  await waitFor(() => expect(view.result.current.files[0].id).toBe("older"));
+});
+it("aborts a previous query and never restores its late options", async () => {
+  let reply!: (value: unknown) => void;
+  vi.mocked(request)
+    .mockImplementationOnce(() => new Promise((resolve) => (reply = resolve)))
+    .mockResolvedValue(catalogFixture());
+  const view = renderHook(
+    ({ query }) =>
+      useReferenceHistory("structure", [".pdb"], true, {
+        query,
+        page: 0,
+        selected: "",
+        wholeFile: false,
+      }),
+    { initialProps: { query: "first" } },
   );
-  expect(view.result.current.error).toBe(false);
+  const signal = vi.mocked(request).mock.calls[0][1]!.signal!;
+  view.rerender({ query: "second" });
+  expect(signal.aborted).toBe(true);
+  await waitFor(() => expect(view.result.current.loading).toBe(false));
+  await act(async () => reply(catalogFixture([], [file])));
+  expect(view.result.current.files).toEqual([]);
 });

@@ -188,7 +188,15 @@ on:
       - "!frontend/src/examples/guide-data.json"
       - "!frontend/src/studio/research-modules.test.ts"
       - "!frontend/src/viewer/donor-hydrogens*"
-      - "!frontend/src/integrations/LibraryInput.tsx"
+      - "!frontend/src/integrations/LibraryInput*"
+      # Input catalogs and exact collection/record controls have a dedicated native gate.
+      - "!frontend/src/integrations/ScientificInputs.tsx"
+      - "!frontend/src/integrations/ScientificForm.test.tsx"
+      - "!frontend/src/research/useSdfAsset*"
+      - "!frontend/src/research/HistoryFileControls*"
+      - "!frontend/src/research/history-file-controls.css"
+      - "!frontend/src/research/input-catalog*"
+      - "!frontend/src/research/SdfRecordPicker*"
       - "!frontend/src/operations/OperationResults.tsx"
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/operations/PropertyForm*"

@@ -155,6 +155,9 @@ on:
       - "!frontend/src/simulations/FreeEnergyResults.tsx"
       # Study-only prefills use the dedicated template gate.
       - "!frontend/src/integrations/ScientificForm.tsx"
+      - "!frontend/src/integrations/ScientificInputs.tsx"
+      - "!frontend/src/integrations/ScientificForm.test.tsx"
+      - "!frontend/src/integrations/LibraryInput*"
       - "!frontend/src/receptors/SurfaceForm.tsx"
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/Editors.tsx"

@@ -5,6 +5,7 @@ import { ReferencePicker } from "./ReferencePicker";
 import { useState } from "react";
 import type { MoleculeRef } from "../research/types";
 import * as client from "../api";
+import { catalogFixture } from "./input-catalog.test-fixtures";
 afterEach(() => vi.restoreAllMocks());
 it("clears the hidden route selection and restores the exact saved version on returning", async () => {
   const ref = {
@@ -14,9 +15,11 @@ it("clears the hidden route selection and restores the exact saved version on re
     conformer: 0,
     version_id: "version",
   };
-  vi.spyOn(client, "request").mockResolvedValue([
-    { id: "version", kind: "molecule", label: "Lead", reference: ref },
-  ]);
+  vi.spyOn(client, "request").mockResolvedValue(
+    catalogFixture([
+      { id: "version", kind: "molecule", label: "Lead", reference: ref },
+    ] as never),
+  );
   vi.spyOn(client.api, "assets").mockResolvedValue([]);
   const onChange = vi.fn(),
     user = userEvent.setup();
@@ -66,9 +69,11 @@ it("a controlled task cannot submit a saved source while the empty file route is
     conformer: 0,
     version_id: "version",
   };
-  vi.spyOn(client, "request").mockResolvedValue([
-    { id: "version", kind: "molecule", label: "Lead", reference: ref },
-  ]);
+  vi.spyOn(client, "request").mockResolvedValue(
+    catalogFixture([
+      { id: "version", kind: "molecule", label: "Lead", reference: ref },
+    ] as never),
+  );
   vi.spyOn(client.api, "assets").mockResolvedValue([]);
   function Task() {
     const [value, setValue] = useState<MoleculeRef | null>(ref);
@@ -105,14 +110,16 @@ it("a controlled task cannot submit a saved source while the empty file route is
 });
 
 it("prefers fresh upload even when historical versions exist", async () => {
-  vi.spyOn(client, "request").mockResolvedValue([
-    {
-      id: "past",
-      kind: "molecule",
-      label: "Previous compound",
-      reference: { version_id: "past", asset_id: "past-file" },
-    },
-  ]);
+  vi.spyOn(client, "request").mockResolvedValue(
+    catalogFixture([
+      {
+        id: "past",
+        kind: "molecule",
+        label: "Previous compound",
+        reference: { version_id: "past", asset_id: "past-file" },
+      },
+    ] as never),
+  );
   const assets = vi.spyOn(client.api, "assets").mockResolvedValue([]),
     onChange = vi.fn();
   render(

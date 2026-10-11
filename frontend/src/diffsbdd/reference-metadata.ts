@@ -14,6 +14,7 @@ export async function resolveReference(
   formats: readonly string[],
   reference: MoleculeRef | undefined,
   signal: AbortSignal,
+  onAsset?: (asset: Asset) => void,
 ): Promise<MoleculeRef> {
   const asset = await request<Asset>(
     `/assets/${encodeURIComponent(id)}/metadata`,
@@ -44,8 +45,10 @@ export async function resolveReference(
       (asset.suffix !== ".sdf" && reference.record !== 0)
     )
       throw new ReferenceMetadataError("identity");
+    onAsset?.(asset);
     return reference;
   }
+  onAsset?.(asset);
   return {
     asset_id: asset.id,
     sha256: asset.sha256,

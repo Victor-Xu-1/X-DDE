@@ -29,6 +29,8 @@ on:
       - "frontend/src/editors/AlignedEditAction.tsx"
       - "frontend/src/humanization/HumanizationForm.tsx"
       - "frontend/src/integrations/ScientificForm.tsx"
+      # Its collection-validation change is exercised in reference-input-checks.yml.
+      - "!frontend/src/integrations/ScientificForm.tsx"
       - "frontend/src/operations/CovalentEditor.tsx"
       - "frontend/src/operations/FeatureForm.tsx"
       - "frontend/src/operations/HarnessForm.tsx"
@@ -41,6 +43,7 @@ on:
       - "frontend/src/receptors/StructurePrepareForm.tsx"
       - "frontend/src/receptors/SurfaceForm.tsx"
       - "frontend/src/simulations/SimulationForm.tsx"
+      - "!frontend/src/simulations/SimulationForm.tsx"
       - "frontend/src/space/ChannelForm.tsx"
       - "frontend/src/guided/EnvironmentRecheck.tsx"
       - "frontend/src/datasets/screening-readiness*"

@@ -74,7 +74,8 @@ it("shows metadata service errors and recovers on a new selection", async () => 
   await act(async () => {
     await result.current.choose("missing");
   });
-  expect(result.current.error).toBe("Metadata unavailable");
+  expect(result.current.error).toContain("could not be verified");
+  expect(result.current.error).not.toContain("Metadata unavailable");
   await act(async () => {
     await result.current.choose("recovered");
   });

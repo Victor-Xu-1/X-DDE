@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { MoleculeRef } from "../research/types";
+import type { Asset } from "../operations/types";
 import { ReferenceMetadataError, resolveReference } from "./reference-metadata";
 
 export function useReferenceSelection(
   kind: "structure" | "ligand",
   formats: readonly string[],
   onChange: (reference: MoleculeRef | null) => void,
+  onAsset?: (asset: Asset, reference: MoleculeRef) => void,
 ) {
   const key = kind + ":" + formats.join(",");
   const currentKey = useRef(key);
@@ -14,6 +16,9 @@ export function useReferenceSelection(
   const last = useRef<{ id: string; reference?: MoleculeRef } | null>(null);
   const callback = useRef(onChange);
   callback.current = onChange;
+  const assetCallback = useRef(onAsset);
+  assetCallback.current = onAsset;
+  const [asset, setAsset] = useState<Asset | null>(null);
   const [state, setState] = useState<{
     key: string;
     loading: boolean;
@@ -21,6 +26,7 @@ export function useReferenceSelection(
     requestedChoice: string;
   }>({ key, loading: false, error: "", requestedChoice: "" });
   function cancel() {
+    setAsset(null);
     controller.current?.abort();
     controller.current = null;
     last.current = null;
@@ -45,12 +51,16 @@ export function useReferenceSelection(
       : "file:" + id;
     setState({ key, loading: true, error: "", requestedChoice });
     try {
+      let metadata: Asset | null = null;
       const value = await resolveReference(
         id,
         kind,
         formats,
         reference,
         AbortSignal.any([current.signal, AbortSignal.timeout(30000)]),
+        (item) => {
+          metadata = item;
+        },
       );
       if (
         currentKey.current !== key ||
@@ -58,6 +68,10 @@ export function useReferenceSelection(
         current.signal.aborted
       )
         return;
+      if (metadata) {
+        setAsset(metadata);
+        assetCallback.current?.(metadata, value);
+      }
       callback.current(value);
       setState({ key, loading: false, error: "", requestedChoice: "" });
     } catch (error) {
@@ -82,6 +96,7 @@ export function useReferenceSelection(
       : { key, loading: false, error: "" as const, requestedChoice: "" };
   return {
     ...visible,
+    asset: state.key === key ? asset : null,
     choose,
     cancel,
     retry() {

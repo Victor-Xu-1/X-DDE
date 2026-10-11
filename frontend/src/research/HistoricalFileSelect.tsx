@@ -13,6 +13,8 @@ export function HistoricalFileSelect({
   busy,
   onSelect,
   requestedChoice = "",
+  selectedFile,
+  selectedVersion,
 }: {
   language: Language;
   label: string;
@@ -22,6 +24,8 @@ export function HistoricalFileSelect({
   busy: boolean;
   onSelect(assetId: string, reference?: MoleculeRef): void;
   requestedChoice?: string;
+  selectedFile?: Asset;
+  selectedVersion?: ScientificObject;
 }) {
   const zh = language === "zh";
   const versionNames = nameCounts(versions.map((v) => v.label));
@@ -43,9 +47,21 @@ export function HistoricalFileSelect({
         disabled={busy}
         onChange={(e) => {
           const key = e.target.value;
-          const version = versions.find((v) => "version:" + v.id === key);
+          const version =
+            versions.find((v) => "version:" + v.id === key) ??
+            (selectedVersion && "version:" + selectedVersion.id === key
+              ? selectedVersion
+              : undefined);
           if (version) onSelect(version.reference.asset_id, version.reference);
-          else onSelect(uploads.find((f) => "file:" + f.id === key)?.id ?? "");
+          else
+            onSelect(
+              (
+                uploads.find((f) => "file:" + f.id === key) ??
+                (selectedFile && "file:" + selectedFile.id === key
+                  ? selectedFile
+                  : undefined)
+              )?.id ?? "",
+            );
         }}
       >
         <option value="">
@@ -76,7 +92,13 @@ export function HistoricalFileSelect({
           !versions.some((v) => "version:" + v.id === selected) &&
           !uploads.some((f) => "file:" + f.id === selected) && (
             <option value={selected}>
-              {zh ? "已选择的文件" : "Selected file"}
+              {zh ? "当前选择：" : "Current selection: "}
+              {selectedVersion?.label ??
+                selectedFile?.name ??
+                (zh ? "已选择的文件" : "Selected file")}
+              {selectedVersion?.kind === "molecule"
+                ? ` · ${zh ? "记录" : "record"} ${selectedVersion.reference.record + 1}`
+                : ""}
             </option>
           )}
       </select>

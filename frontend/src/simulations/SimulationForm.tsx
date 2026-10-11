@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { LibraryInput } from "../integrations/LibraryInput";
+import { referenceKey } from "../research/input-catalog";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { SimulationConditions } from "./SimulationConditions";
 import { SimulationReview } from "./SimulationReview";
@@ -49,6 +50,9 @@ export function SimulationForm({
       ?.source ?? (fep ? exampleLigand : null),
   );
   const [bound, setBound] = useState(Boolean(!fep && ligand));
+  const [verifiedLibrary, setVerifiedLibrary] = useState<MoleculeRef | null>(
+    null,
+  );
   const [payload, setPayload] = useState<SimulationPayload>(
     () =>
       ({
@@ -83,7 +87,13 @@ export function SimulationForm({
         ]
       : []),
   ];
-  const inputValid = Boolean(structure && (!(fep || bound) || ligand));
+  const inputValid = Boolean(
+    structure &&
+    (!(fep || bound) || ligand) &&
+    (!fep ||
+      (verifiedLibrary &&
+        referenceKey(verifiedLibrary) === referenceKey(ligand))),
+  );
   const series = useFepSeries(fep ? ligand : null);
   const selectionValid =
     !fep || validFepSelection(series.records, payload.records ?? []);
@@ -190,6 +200,7 @@ export function SimulationForm({
               )}
               {fep ? (
                 <LibraryInput
+                  onVerified={setVerifiedLibrary}
                   selectRecords
                   value={ligand}
                   onChange={(v) => {

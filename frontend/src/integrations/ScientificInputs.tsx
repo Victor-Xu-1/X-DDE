@@ -15,6 +15,7 @@ export function ScientificInputs({
   onStructure,
   ligand,
   onLigand,
+  onLibraryVerified,
   scaffold,
   onScaffold,
 }: {
@@ -26,6 +27,7 @@ export function ScientificInputs({
   onStructure(value: MoleculeRef | null): void;
   ligand: MoleculeRef | null;
   onLigand(value: MoleculeRef | null): void;
+  onLibraryVerified(value: MoleculeRef | null): void;
   scaffold: MoleculeRef | null;
   onScaffold(value: MoleculeRef | null): void;
 }) {
@@ -249,7 +251,12 @@ export function ScientificInputs({
     );
   if (program === "chemprop")
     return (
-      <LibraryInput language={language} value={ligand} onChange={onLigand} />
+      <LibraryInput
+        language={language}
+        value={ligand}
+        onChange={onLigand}
+        onVerified={onLibraryVerified}
+      />
     );
   return (
     <>

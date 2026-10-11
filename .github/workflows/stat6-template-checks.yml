@@ -21,6 +21,8 @@ on:
       - 'frontend/src/examples/harness.ts'
       - 'frontend/src/examples/prediction*'
       - 'frontend/src/integrations/ScientificForm.tsx'
+      # Shared collection controls have their own exact input/consumer gate.
+      - '!frontend/src/integrations/ScientificForm.tsx'
       - 'frontend/src/operations/ImportForm.tsx'
       - 'frontend/src/discovery/ReferenceImportForm.tsx'
       - 'frontend/src/discovery/TargetResearchForm.tsx'

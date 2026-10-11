@@ -5,6 +5,7 @@ import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
+import { referenceKey } from "../research/input-catalog";
 import { nativeDefaults } from "./generated";
 import { ScientificInputs } from "./ScientificInputs";
 import { ScientificChoices } from "./ScientificChoices";
@@ -73,6 +74,9 @@ export function ScientificForm({
       ?.source ??
       (["reinvent", "chemprop"].includes(program) ? initialLigand : null),
   );
+  const [verifiedLibrary, setVerifiedLibrary] = useState<MoleculeRef | null>(
+    null,
+  );
   const [scaffold, setScaffold] = useState<MoleculeRef | null>(null);
   const [payload, setPayload] = useState<ScientificPayload>(() => ({
     ...structuredClone(nativeDefaults[program]),
@@ -135,7 +139,11 @@ export function ScientificForm({
           ? Boolean(ligand)
           : validDesignFragments(payload)
         : program === "chemprop"
-          ? Boolean(ligand)
+          ? Boolean(
+              ligand &&
+              verifiedLibrary &&
+              referenceKey(ligand) === referenceKey(verifiedLibrary),
+            )
           : Boolean(structure) &&
             (program !== "boltzgen" ||
               !["antibody", "nanobody"].includes(String(payload.modality)) ||
@@ -190,6 +198,7 @@ export function ScientificForm({
           valid: inputValid,
           content: (
             <ScientificInputs
+              onLibraryVerified={setVerifiedLibrary}
               program={program}
               language={language}
               payload={payload}

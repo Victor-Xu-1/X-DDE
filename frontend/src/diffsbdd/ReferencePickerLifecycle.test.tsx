@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { api, request } from "../api";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "./ReferencePicker";
+import { catalogFixture } from "./input-catalog.test-fixtures";
 
 vi.mock("../api", async () => {
   const real = await vi.importActual<typeof import("../api")>("../api");
@@ -56,7 +57,9 @@ it("an existing input cannot remain eligible while a newly selected file is pend
   vi.mocked(api.assets).mockResolvedValue([]);
   vi.mocked(request).mockImplementation((path) =>
     path.startsWith("/research")
-      ? Promise.resolve([version(alpha), version(beta)])
+      ? Promise.resolve(
+          catalogFixture([version(alpha), version(beta)] as never),
+        )
       : new Promise((resolve) => {
           reply = resolve;
         }),
@@ -99,7 +102,9 @@ it("a late read cannot restore either the previous input or pending input after 
   vi.mocked(api.assets).mockResolvedValue([]);
   vi.mocked(request).mockImplementation((path) =>
     path.startsWith("/research")
-      ? Promise.resolve([version(alpha), version(beta)])
+      ? Promise.resolve(
+          catalogFixture([version(alpha), version(beta)] as never),
+        )
       : new Promise((resolve) => {
           reply = resolve;
         }),
