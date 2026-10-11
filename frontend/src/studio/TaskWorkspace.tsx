@@ -130,7 +130,9 @@ export function TaskWorkspace(p: Props) {
     p.onRefresh();
   }
   const availableKinds = module
-    ? kindsForModule(module).filter((kind) => history.counts[kind]?.total)
+    ? kindsForModule(module).filter(
+        (kind) => history.counts[kind]?.total || type === kind,
+      )
     : [];
   const blank = !currentJob && !history.loading && history.data?.total === 0;
   const noTasks = !Object.values(history.counts).some(

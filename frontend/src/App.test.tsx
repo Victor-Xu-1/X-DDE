@@ -95,7 +95,7 @@ it("starts the chosen task module's questionnaire without reusing or submitting 
   );
   await user.click(screen.getByRole("button", { name: "New task" }));
   expect(
-    await screen.findByRole("heading", { name: "1. Choose materials" }),
+    await screen.findByRole("heading", { name: "1. Choose structure" }),
   ).toBeVisible();
   expect(screen.getByRole("combobox", { name: "Research task" })).toHaveValue(
     "p2rank.detect",
