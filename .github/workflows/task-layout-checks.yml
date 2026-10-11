@@ -237,6 +237,10 @@ on:
       - "!frontend/src/studio/ProjectCreateDialog.tsx"
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/scientificEditor.ts"
+      # Shared task actions have a dedicated real-worker recovery gate.
+      - "!frontend/src/TaskDetail*"
+      - "!frontend/src/operations/useTaskSubmit*"
+      - "!frontend/src/presentation/research-content*"
       - "!frontend/src/presentation/depiction-renderer*"
       # These shared controls and their native consumers use publication-checks.yml.
       - "!frontend/src/guided/questionnaire.css"

@@ -1,0 +1,68 @@
+name: Task submission and recovery checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &action_paths
+      - "frontend/src/operations/useTaskSubmit*"
+      - "frontend/src/TaskDetail*"
+      - "frontend/src/presentation/research-content*"
+      - "src/opendde_workbench/api.py"
+      - "src/opendde_workbench/store.py"
+      - "tests/test_task_submission_recovery.py"
+      - "server_tests/*task_actions*"
+      - ".github/workflows/task-action-checks.yml"
+  pull_request:
+    paths: *action_paths
+permissions:
+  contents: read
+jobs:
+  actions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Submission, task actions and direct questionnaire consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/useTaskSubmit.test.ts
+          src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
+          src/guided/Questionnaire.test.tsx src/operations/PropertyForm.test.tsx
+          src/presentation/research-content.test.ts
+      - name: Exact persisted requests, parent relationships, offline recovery and cancellation
+        run: >-
+          uv run --locked pytest -q tests/test_task_submission_recovery.py
+          tests/test_jobs.py::test_parallel_idempotency_is_atomic_and_conflicts_are_rejected
+          tests/test_jobs.py::test_running_cancel_stops_process_and_retry_creates_new_task
+          tests/test_jobs.py::test_queued_cancel_does_not_execute
+          tests/test_jobs.py::test_restart_marks_active_tasks_interrupted
+          tests/test_jobs.py::test_cancellation_cleanup_failure_remains_visible_as_failure
+          tests/test_api_security.py::test_csrf_origin_and_host_boundaries
+      - name: Isolated graphical input and controlled process fixture; no science models
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-task-actions" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-task-actions/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-task-actions" WB_STATE_DIR="$RUNNER_TEMP/x-dde-task-actions/state" .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Bilingual real API/worker recovery, task links, cancellation and retry
+        run: |
+          mkdir -p server_tests/evidence/task-actions
+          .venv/bin/python server_tests/serve_task_actions.py --port 4330 > server_tests/evidence/task-actions/service.log 2>&1 &
+          service_pid=$!
+          trap 'kill "$service_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null
+          .venv/bin/python -m pytest -x -q server_tests/test_task_actions_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task-action-evidence
+          path: server_tests/evidence/task-actions

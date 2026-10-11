@@ -322,6 +322,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     raise HTTPException(422, "Selected project does not exist.")
 
     async def enqueue(value: TaskRequest, key: UUID, parent: str | None = None):
+        try:
+            existing = store.existing_submission(value, str(key), parent)
+        except ConflictError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        if existing is not None:
+            return existing
         await preflight(value)
         try:
             return store.create(value, str(key), settings.max_pending, settings.max_jobs, parent)
@@ -334,6 +340,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         "/api/batches", response_model=list[Job], status_code=201, dependencies=[Depends(mutation)]
     )
     async def batch(value: BatchRequest, idempotency_key: Annotated[UUID, Header()]):
+        try:
+            existing = store.existing_batch(value.tasks, idempotency_key)
+        except ConflictError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        if existing is not None:
+            return existing
         for task in value.tasks:
             await preflight(task)
         try:

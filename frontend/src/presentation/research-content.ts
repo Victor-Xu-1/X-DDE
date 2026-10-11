@@ -31,6 +31,15 @@ export function unwrapResult(value: unknown): unknown {
   return value;
 }
 const messages: Record<string, [string, string]> = {
+  "Task submission could not be confirmed. Submit again to continue the same request.":
+    [
+      "未能确认任务是否提交。请再次点击提交，系统会继续同一次请求。",
+      "Task submission could not be confirmed. Submit again to continue the same request.",
+    ],
+  "Task created, but its page could not be opened. Use the task link below.": [
+    "任务已创建，但未能自动打开。请使用下方的任务链接。",
+    "Task created, but its page could not be opened. Use the task link below.",
+  ],
   "Pocket–molecule joint retrieval": [
     "口袋–分子联合检索",
     "Pocket–molecule joint retrieval",

@@ -104,6 +104,21 @@ class Store:
                 )
             ]
 
+    def existing_submission(
+        self, request: TaskRequest, key: str, parent_id: str | None = None
+    ) -> Job | None:
+        with self.connect() as db:
+            row = db.execute("SELECT * FROM jobs WHERE idempotency_key=?", (key,)).fetchone()
+            return self._matching_submission(row, request, parent_id)
+
+    def _matching_submission(self, row, request: TaskRequest, parent_id: str | None):
+        if row is None:
+            return None
+        previous = TASK_ADAPTER.validate_json(row["request"]).model_dump_json()
+        if previous != request.model_dump_json() or row["parent_id"] != parent_id:
+            raise ConflictError("Idempotency key was used for a different request.")
+        return self.decode(row)
+
     def _create_in_transaction(
         self,
         db,
@@ -114,12 +129,13 @@ class Store:
         parent_id: str | None = None,
     ) -> Job:
         body = request.model_dump_json()
-        old = db.execute("SELECT * FROM jobs WHERE idempotency_key=?", (key,)).fetchone()
+        old = self._matching_submission(
+            db.execute("SELECT * FROM jobs WHERE idempotency_key=?", (key,)).fetchone(),
+            request,
+            parent_id,
+        )
         if old:
-            previous = TASK_ADAPTER.validate_json(old["request"]).model_dump_json()
-            if previous != body or old["parent_id"] != parent_id:
-                raise ConflictError("Idempotency key was used for a different request.")
-            return self.decode(old)
+            return old
         pending = db.execute(
             "SELECT count(*) FROM jobs WHERE status IN ('queued','running','cancelling')"
         ).fetchone()[0]
@@ -154,33 +170,43 @@ class Store:
             db.execute("BEGIN IMMEDIATE")
             return self._create_in_transaction(db, request, key, max_pending, max_jobs, parent_id)
 
+    def existing_batch(self, requests: list[TaskRequest], key: UUID) -> list[Job] | None:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT * FROM batches WHERE idempotency_key=?", (str(key),)
+            ).fetchone()
+            return self._matching_batch(db, row, requests)
+
+    def _matching_batch(self, db, row, requests: list[TaskRequest]):
+        if row is None:
+            return None
+        normalized = [
+            TASK_ADAPTER.validate_python(value).model_dump(mode="json")
+            for value in json.loads(row["requests"])
+        ]
+        if normalized != [request.model_dump(mode="json") for request in requests]:
+            raise ConflictError("Batch key was used for a different set of tasks.")
+        jobs = [
+            self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (identifier,)).fetchone())
+            for identifier in json.loads(row["job_ids"])
+        ]
+        if any(job is None for job in jobs):
+            raise ConflictError("Batch state is incomplete. Restore the missing jobs from backup.")
+        return jobs
+
     def create_batch(
         self, requests: list[TaskRequest], key: UUID, max_pending: int, max_jobs: int
     ) -> list[Job]:
         bodies = [request.model_dump(mode="json") for request in requests]
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            previous = db.execute(
-                "SELECT * FROM batches WHERE idempotency_key=?", (str(key),)
-            ).fetchone()
-            if previous:
-                normalized = [
-                    TASK_ADAPTER.validate_python(value).model_dump(mode="json")
-                    for value in json.loads(previous["requests"])
-                ]
-                if normalized != bodies:
-                    raise ConflictError("Batch key was used for a different set of tasks.")
-                existing_jobs = [
-                    self.decode(
-                        db.execute("SELECT * FROM jobs WHERE id=?", (identifier,)).fetchone()
-                    )
-                    for identifier in json.loads(previous["job_ids"])
-                ]
-                if any(job is None for job in existing_jobs):
-                    raise ConflictError(
-                        "Batch state is incomplete. Restore the missing jobs from backup."
-                    )
-                return existing_jobs
+            previous = self._matching_batch(
+                db,
+                db.execute("SELECT * FROM batches WHERE idempotency_key=?", (str(key),)).fetchone(),
+                requests,
+            )
+            if previous is not None:
+                return previous
             jobs = [
                 self._create_in_transaction(
                     db, request, str(uuid5(key, f"batch:{index}")), max_pending, max_jobs

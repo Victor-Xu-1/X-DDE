@@ -155,6 +155,9 @@ on:
       - "!frontend/src/receptors/SurfaceForm.tsx"
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/Editors.tsx"
+      # Shared task actions have a dedicated real-worker recovery gate.
+      - "!frontend/src/TaskDetail*"
+      - "!frontend/src/presentation/research-content*"
       - "!frontend/src/presentation/depiction-renderer*"
       # Shared row interaction has one focused native selection gate.
       - "!frontend/src/datasets/ResearchTable.tsx"
@@ -292,6 +295,9 @@ on:
       - "!frontend/src/receptors/SurfaceForm.tsx"
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/Editors.tsx"
+      # Shared task actions have a dedicated real-worker recovery gate.
+      - "!frontend/src/TaskDetail*"
+      - "!frontend/src/presentation/research-content*"
       - "!frontend/src/presentation/depiction-renderer*"
       # Shared row interaction has one focused native selection gate.
       - "!frontend/src/datasets/ResearchTable.tsx"

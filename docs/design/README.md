@@ -103,6 +103,15 @@ the immediate properties handoff reuse the confirmed version until molecular
 content changes. The parent version, annotations and rating remain bound to the
 save intent; an upload failure can be retried without permanently locking it.
 
+Task creation and result navigation have separate outcomes. A confirmed task is
+retained when opening its page fails; retries preserve the same input snapshot and
+request identifier. The existing Store resolves matching single/batch submissions
+before current-environment preflight, so an offline runtime cannot hide an already
+accepted task. Changed requests still conflict and new requests retain preflight.
+Cancel/retry controls keep failures and late responses attached to the task that
+started them. These contracts use focused real queue/process checks, not scientific
+model inference, and do not define an additional task or execution authority.
+
 ## Product hierarchy
 
 新增研究架构见[高通量筛选与 DEL](screening-and-del.md)。该文档记录已实现的 14 个专用模块及验收；v0.4.31 又完成 9 家供应商、16 份公开结构文件的实际安装。该专项完成不代表下面的 76 项平台路线图全部完成；供应商受限数据、目标服务器 GPU/规模性能和实验验证仍分别确认。

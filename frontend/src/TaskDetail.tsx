@@ -36,25 +36,42 @@ export function TaskDetail({
   const t = translator(language);
   const taskLabel = useTaskLabel(job, language);
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [actionError, setActionError] = useState<{
+      jobId: string;
+      message: string;
+    } | null>(null);
+  const error =
+    actionError && actionError.jobId === job?.id ? actionError.message : "";
   const retryKeys = useRef(new Map<string, string>());
+  const actionPending = useRef(false);
+  const selectedId = useRef(job?.id);
+  selectedId.current = job?.id;
   async function action(kind: "cancel" | "retry") {
-    if (!job) return;
+    if (!job || actionPending.current) return;
     if (kind === "cancel" && !window.confirm(t("cancelConfirm"))) return;
+    actionPending.current = true;
     setBusy(true);
-    setError("");
+    setActionError(null);
     try {
-      const key = retryKeys.current.get(job.id) ?? crypto.randomUUID();
-      retryKeys.current.set(job.id, key);
-      const result =
-        kind === "cancel"
-          ? await api.cancel(job.id)
-          : await api.retry(job.id, key);
-      if (kind === "retry") retryKeys.current.delete(job.id);
-      onChange(result);
+      let result: Job;
+      if (kind === "cancel") result = await api.cancel(job.id);
+      else {
+        const key = retryKeys.current.get(job.id) ?? crypto.randomUUID();
+        retryKeys.current.set(job.id, key);
+        result = await api.retry(job.id, key);
+      }
+      if (selectedId.current === job.id) {
+        onChange(result);
+        if (kind === "retry") retryKeys.current.delete(job.id);
+      }
     } catch (error) {
-      setError(error instanceof Error ? error.message : t("error"));
+      if (selectedId.current === job.id)
+        setActionError({
+          jobId: job.id,
+          message: error instanceof Error ? error.message : t("error"),
+        });
     } finally {
+      actionPending.current = false;
       setBusy(false);
     }
   }
