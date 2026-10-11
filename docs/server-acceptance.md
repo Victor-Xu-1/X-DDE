@@ -7,22 +7,19 @@ This is the acceptance plan for the X-DDE frontend, platform server and scientif
 1. Check out the exact candidate commit and record `git rev-parse HEAD`. Verify the API title and `health.platform.name` are X-DDE. Record each selected engine’s revision, runtime/image digest, model/resource identifiers and its own acceptance evidence; OpenDDE is not a prerequisite for unrelated engines. Confirm the platform and asset APIs remain available when scientific environments are missing.
 2. Use a separate `WB_STATE_DIR` for acceptance. Keep production state and native campaigns intact. Configure `.env.example`; build/install using README commands.
 3. Install the audited scientific runtime, CPU/GPU support and required resources. Configure Harness and provider credentials on the server only. For file-based tools, map `WB_HARNESS_SHARED_DIR` to the native compute output root, with `WB_HARNESS_REMOTE_DIR` identifying the same directory inside compute.
-4. Run the existing mandatory frontend/backend/packaging gates. Do not skip or weaken them because inference is deferred.
+4. Map the exact changed behavior and its consumers to the existing focused frontend/backend/packaging gates. Do not skip or weaken applicable checks because inference is deferred. A full repository suite requires explicit owner authorization; it is not the default server-acceptance command.
 
 ```bash
 cd frontend
 npm ci
 npm run check
-npm test
 npm run build
 cd ..
 uv sync --locked --group dev
-uv run --locked ruff check src tests server_tests
-uv run --locked pytest -q
 uv build --wheel
 ```
 
-The unit/API suite verifies actual SQLite transactions, filesystem boundaries and real controlled processes. Native IPC is isolated where a real model is unavailable. Those tests do not establish RDKit, GPU, service or LLM correctness.
+Select explicit Vitest and pytest files, and lint only affected files, as recorded in the relevant feature workflows. The selected unit/API checks verify actual SQLite transactions, filesystem boundaries and real controlled processes. Native IPC is isolated where a real model is unavailable. Those checks do not establish RDKit, GPU, service or LLM correctness.
 
 ## Real protocol and scientific implementation
 
