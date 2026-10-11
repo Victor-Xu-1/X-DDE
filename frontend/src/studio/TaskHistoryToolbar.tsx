@@ -44,7 +44,8 @@ export function TaskHistoryToolbar({
               className="task-history-back"
               onClick={() => onSelect(null)}
             >
-              <LeftOutlined /> {zh ? "任务模块" : "Task modules"}
+              <LeftOutlined aria-hidden="true" />{" "}
+              {zh ? "任务模块" : "Task modules"}
             </button>
           )}
           <h2>
@@ -94,7 +95,7 @@ export function TaskHistoryToolbar({
             className="primary-button"
             onClick={() => onStart(defaultTool)}
           >
-            <PlusOutlined /> {zh ? "新建任务" : "New task"}
+            <PlusOutlined aria-hidden="true" /> {zh ? "新建任务" : "New task"}
           </button>
         </div>
       </header>

@@ -129,10 +129,14 @@ it("opens the shared asset workspace through the integrated navigation", async (
   expect(document.title).toBe("Research workspace · X-DDE");
 });
 
-it("keeps all projects visible when selecting a task from the unfiltered task center", async () => {
+it("keeps all projects visible when selecting a task from a module's unfiltered history", async () => {
   const user = userEvent.setup();
   render(<App />);
   await user.click(screen.getByRole("button", { name: "Tasks and results" }));
+  const modules = await screen.findByRole("group", { name: "Task modules" });
+  await user.click(
+    within(modules).getByRole("button", { name: /Structure prediction/ }),
+  );
   await user.click(
     await screen.findByRole("button", { name: /Project A task/ }),
   );
