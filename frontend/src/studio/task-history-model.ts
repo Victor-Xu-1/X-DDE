@@ -21,6 +21,13 @@ export interface TaskHistoryItem {
   job: Job;
   capability_id: string;
   example_cases?: { id: string; label: [string, string] }[];
+  origin?: TaskHistoryIdentity["origin"];
+}
+export interface TaskHistoryIdentity {
+  job_id: string;
+  capability_id: string;
+  origin: "research" | "fixed_example" | "setup_validation";
+  example_cases: { id: string; label: [string, string] }[];
 }
 export interface TaskHistoryPage {
   items: TaskHistoryItem[];

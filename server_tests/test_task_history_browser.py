@@ -159,6 +159,25 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
             )
             assert response.ok and hashlib.sha256(response.body()).hexdigest() == digest
         assert page.request.get(base + "/api/task-history").json()["total"] == before
+        # An archived native example uses its verified case, including record-pin
+        # evidence. A personal clone above retains the exact researcher title.
+        page.goto(base + "/#task=" + fixture["native_source_job"])
+        case_title = fixture["native_case_label"][0 if zh else 1]
+        expect(page.get_by_role("heading", name=case_title, exact=True)).to_be_visible(
+            timeout=15000
+        )
+        identity = page.request.get(
+            base + "/api/task-history/" + fixture["native_source_job"] + "/identity"
+        ).json()
+        assert identity["job_id"] == fixture["native_source_job"]
+        assert identity["origin"] == "fixed_example"
+        original = page.request.get(base + "/api/jobs/" + fixture["native_source_job"]).json()
+        assert original["request"]["name"] == fixture["native_original_name"]
+        if fixture["native_original_name"] != case_title:
+            expect(
+                page.get_by_role("heading", name=fixture["native_original_name"], exact=True)
+            ).not_to_be_visible()
+        page.screenshot(path=root / "verified-case-title.png")
         assert not errors, errors
         assert not mutations, mutations
         (root / "receipt.json").write_text(
@@ -174,6 +193,8 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
                     "module_only_refresh_restored": True,
                     "scientific_inference": False,
                     "submitted_jobs": 0,
+                    "verified_archived_case_title": case_title,
+                    "original_task_name_preserved": True,
                 },
                 indent=2,
             ),

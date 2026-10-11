@@ -26,6 +26,10 @@ Task-result inputs use the same file and scientific-version authority. **Researc
 
 Fixed-example source names are projected from the existing immutable case pins and their declared task evidence. They show the actual research case and task type in the selected language, retain distinct archived/STAT6 identities, and support literal search by either language. A generated engine title never supplies a case identity. Unlinked historical references remain reachable with an explicit generic label. Personal task names and all saved requests remain verbatim. Source identity remains visible when the current choice falls outside the search/page.
 
+Task details and history rows use the same projection. A read-only identity endpoint checks the existing task-origin record and both job pins and record-pin evidence. While an origin is unverified, details display a neutral research-result title; an unavailable or mismatched reply cannot expose an engineering example name. Confirmed personal names remain verbatim. Changing selection cancels the older lookup, and changing language uses the same confirmed bilingual identity without a second request. This endpoint does not submit calculations or change task requests, pins or files.
+
+任务详情和历史列表使用同一套案例名称。只读身份接口核对已有的任务来源记录，同时识别任务案例记录及材料案例中的任务证据。来源尚未确认时，详情显示中性的研究结果标题；不可用或身份不匹配的回复不会带出工程案例名称。已确认的个人任务名称保持原样。切换任务会取消旧查询，切换语言使用已经确认的双语身份，不重复请求。这个接口不递交计算，也不修改任务请求、案例记录或文件。
+
 固定案例来源的名称从已有的不可变案例记录及其明确关联任务生成，显示实际研究案例和任务类型，随界面语言切换，并支持按任一语言的名称进行文字搜索。历史案例与 STAT6 案例保持各自身份，工程化任务标题不能用来推断案例。没有关联案例的历史材料仍可找到，并明确标为历史参考结果。个人任务名称和全部保存请求保持原样；当前选择不在搜索结果或本页中时，仍显示其案例身份。
 
 The source picker uses compact, accessible radio choices. Task and result-file fields share a row only when the actual input region is wide enough; narrow regions stack the fields. Reduced-motion preferences suppress the short entrance transition. Display changes never modify file bytes or submission eligibility.

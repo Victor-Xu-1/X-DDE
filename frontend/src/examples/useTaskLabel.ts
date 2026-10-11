@@ -1,31 +1,61 @@
 import { useEffect, useState } from "react";
 import { request } from "../api";
 import type { Job, Language } from "../types";
-import type { ExampleInfo } from "./types";
-/** Only registered public examples use a curated case title; user-authored task names remain untouched. */
+import type { TaskHistoryIdentity } from "../studio/task-history-model";
+import { resultSourceTitle } from "../operations/result-source-labels";
+
+function verifiedIdentity(data: TaskHistoryIdentity, id: string) {
+  return (
+    data?.job_id === id &&
+    ["research", "fixed_example", "setup_validation"].includes(data.origin) &&
+    Array.isArray(data.example_cases) &&
+    data.example_cases.every(
+      (entry) =>
+        entry &&
+        typeof entry.id === "string" &&
+        Array.isArray(entry.label) &&
+        entry.label.length === 2 &&
+        entry.label.every(
+          (text) => typeof text === "string" && text.length > 0,
+        ),
+    )
+  );
+}
+/** History and details share one persisted origin/case projection; names are never guessed. */
 export function useTaskLabel(job: Job | null, language: Language) {
   const [label, setLabel] = useState<{
-    id: string;
-    value: [string, string];
+    identity: TaskHistoryIdentity;
   } | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     setLabel(null);
     if (job)
-      void request<{ examples: ExampleInfo[] }>("/examples", {
-        signal: controller.signal,
-      })
+      void request<TaskHistoryIdentity>(
+        `/task-history/${encodeURIComponent(job.id)}/identity`,
+        {
+          signal: AbortSignal.any([
+            controller.signal,
+            AbortSignal.timeout(10000),
+          ]),
+        },
+      )
         .then((data) => {
-          const info = data.examples?.find((e) => e.pin?.job_id === job.id);
-          if (info && !controller.signal.aborted)
-            setLabel({ id: job.id, value: info.case.label });
+          if (verifiedIdentity(data, job.id) && !controller.signal.aborted)
+            setLabel({ identity: data });
         })
         .catch(() => {
-          /* Optional public catalogue enrichment does not replace the authoritative task name. */
+          /* An unverified origin cannot expose an internal example title. */
         });
     return () => controller.abort();
   }, [job?.id]);
-  return label && job && label.id === job.id
-    ? label!.value[language === "zh" ? 0 : 1]
-    : (job?.request.name ?? "");
+  if (!job) return "";
+  return label?.identity.job_id === job.id
+    ? resultSourceTitle(
+        { job, ...label.identity },
+        label.identity.origin === "research" ? "research" : "examples",
+        language,
+      )
+    : language === "zh"
+      ? "研究结果"
+      : "Research result";
 }

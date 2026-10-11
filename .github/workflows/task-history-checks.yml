@@ -3,19 +3,21 @@ on:
   workflow_dispatch:
   push:
     paths: &history_paths
-      - 'src/opendde_workbench/task_history/**'
-      - 'frontend/src/studio/TaskWorkspace*'
-      - 'frontend/src/studio/TaskHistory*'
-      - 'frontend/src/studio/useTaskHistory*'
-      - 'frontend/src/studio/task-history*'
-      - 'frontend/src/studio/task-kind-rules.ts'
-      - 'frontend/src/App.tsx'
-      - 'frontend/src/App.test.tsx'
-      - 'frontend/src/useWorkbench*'
-      - 'tests/test_task_history.py'
-      - 'tests/test_example_source_titles.py'
-      - 'server_tests/*task_history*'
-      - '.github/workflows/task-history-checks.yml'
+      - "src/opendde_workbench/task_history/**"
+      - "frontend/src/studio/TaskWorkspace*"
+      - "frontend/src/studio/TaskHistory*"
+      - "frontend/src/studio/useTaskHistory*"
+      - "frontend/src/studio/task-history*"
+      - "frontend/src/studio/task-kind-rules.ts"
+      - "frontend/src/examples/useTaskLabel*"
+      - "frontend/src/App.tsx"
+      - "frontend/src/App.test.tsx"
+      - "frontend/src/useWorkbench*"
+      - "tests/test_task_history.py"
+      - "tests/test_example_source_titles.py"
+      - "tests/test_task_identity.py"
+      - "server_tests/*task_history*"
+      - ".github/workflows/task-history-checks.yml"
   pull_request:
     paths: *history_paths
 permissions:
@@ -25,13 +27,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
-      WB_AUTO_DEPLOY: '0'
+      WB_AUTO_DEPLOY: "0"
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
@@ -42,11 +44,15 @@ jobs:
           src/studio/task-history-model.test.ts src/studio/useTaskHistory.test.tsx
           src/studio/research-modules.test.ts src/App.test.tsx
           src/studio/task-history-route.test.ts src/useWorkbench.test.ts
+          src/examples/useTaskLabel.test.tsx src/studio/TaskHistoryList.test.tsx
+          src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
+          src/studio/PredictionResults.test.tsx
+          src/operations/result-source-labels.test.ts src/operations/ResultTaskSelect.test.tsx
       - name: Query, request identity, stable pagination and personal/example boundaries
         run: |
-          uv run --locked ruff check src/opendde_workbench/task_history tests/test_task_history.py tests/test_example_source_titles.py server_tests/prepare_task_history.py server_tests/test_task_history_browser.py
+          uv run --locked ruff check src/opendde_workbench/task_history tests/test_task_history.py tests/test_example_source_titles.py tests/test_task_identity.py server_tests/prepare_task_history.py server_tests/test_task_history_browser.py
           uv run --locked python scripts/generate-capability-catalog.py --check
-          uv run --locked pytest -q tests/test_task_history.py tests/test_example_library.py tests/test_example_source_titles.py
+          uv run --locked pytest -q tests/test_task_history.py tests/test_example_library.py tests/test_example_source_titles.py tests/test_task_identity.py
       - name: Restore existing native outputs into isolated CI history; no scientific runs
         env:
           GH_TOKEN: ${{ github.token }}

@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
+from opendde_workbench.examples.catalogue import CASES
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.models import Status
 from opendde_workbench.requests import Properties
@@ -61,6 +62,8 @@ def main():
                 "native_job": clone.id,
                 "native_name": clone.request.name,
                 "native_source_job": original.id,
+                "native_original_name": original.request.name,
+                "native_case_label": CASES[pin.case_id].label,
                 "artifact_sha256": pin.artifact_sha256,
                 "controlled_metadata_records": records,
                 "scientific_inference": False,

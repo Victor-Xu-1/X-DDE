@@ -13,6 +13,9 @@ on:
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - 'frontend/src/examples/**'
+      # Task identity and its direct consumers have task-history-checks.yml.
+      - '!frontend/src/examples/useTaskLabel.ts'
+      - '!frontend/src/examples/useTaskLabel.test.tsx'
       # This read-only material view is covered by the native figure browser gate.
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
@@ -42,6 +45,9 @@ on:
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - 'frontend/src/examples/**'
+      # Task identity and its direct consumers have task-history-checks.yml.
+      - '!frontend/src/examples/useTaskLabel.ts'
+      - '!frontend/src/examples/useTaskLabel.test.tsx'
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
       - '!frontend/src/examples/ExampleToolbar*'

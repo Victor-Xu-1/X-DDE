@@ -1,4 +1,5 @@
 import { translator } from "../i18n";
+import { resultSourceTitle } from "../operations/result-source-labels";
 import type { Language } from "../types";
 import {
   historyKindLabel,
@@ -39,7 +40,8 @@ export function TaskHistoryList({
             </tr>
           </thead>
           <tbody>
-            {data.items.map(({ job, capability_id }) => {
+            {data.items.map((item) => {
+              const { job, capability_id } = item;
               const date = new Date(job.created_at);
               const when = Number.isFinite(date.getTime())
                 ? date.toLocaleString(zh ? "zh-CN" : "en-GB", {
@@ -58,7 +60,13 @@ export function TaskHistoryList({
                       aria-pressed={job.id === selected}
                       onClick={() => onJob(job.id)}
                     >
-                      {job.request.name}
+                      {resultSourceTitle(
+                        item,
+                        (item.origin ?? "research") === "research"
+                          ? "research"
+                          : "examples",
+                        language,
+                      )}
                     </button>
                   </td>
                   <td>{historyKindLabel(capability_id, language)}</td>

@@ -78,6 +78,7 @@ def history_page(
                 ),
                 "capability_id": row["capability_id"],
                 "example_cases": cases.get(row["id"], []),
+                "origin": "fixed_example" if scope == "examples" else "research",
             }
             for row in rows
         ]
