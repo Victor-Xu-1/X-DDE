@@ -54,6 +54,9 @@ def test_shared_history_sequence_retry_and_preserved_originals(tmp_path, languag
         page.get_by_role(
             "combobox", name="研究任务" if zh else "Research task", exact=True
         ).select_option("properties")
+        page.locator(".questionnaire:visible").get_by_role(
+            "button", name="下一步" if zh else "Next", exact=True
+        ).click()
         picker = page.locator(".questionnaire:visible .asset-picker")
         picker.locator("summary").click()
         expect(
