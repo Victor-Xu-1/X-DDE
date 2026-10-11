@@ -47,6 +47,17 @@ it.each([".mol", ".sdf"])(
     await waitFor(() => expect(picker).toBeEnabled());
     await user.selectOptions(picker, "file:STAT6");
     if (suffix === ".mol") expect(screen.queryByRole("spinbutton")).toBeNull();
-    else expect(await screen.findByRole("spinbutton")).toHaveValue(1);
+    else {
+      expect(await screen.findByRole("spinbutton")).toHaveValue(1);
+      await user.click(
+        screen.getByRole("radio", { name: "Upload a new file" }),
+      );
+      await user.click(screen.getByRole("radio", { name: "Historical files" }));
+      expect(await screen.findByRole("spinbutton")).toHaveValue(1);
+      await user.clear(screen.getByRole("spinbutton"));
+      expect(picker).toHaveValue("file:STAT6");
+      await user.type(screen.getByRole("spinbutton"), "2");
+      expect(screen.getByRole("spinbutton")).toHaveValue(2);
+    }
   },
 );

@@ -50,6 +50,7 @@ export function ReferencePicker({
     [search, setSearch] = useState(""),
     [page, setPage] = useState(0);
   const [invalidRecord, setInvalidRecord] = useState(false);
+  const knownFormats = useRef(new Map<string, string>());
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(query);
@@ -65,12 +66,18 @@ export function ReferencePicker({
       selections.current[source] = reference;
       onChange(reference);
     },
-    onAssetVerified,
+    (asset, reference) => {
+      knownFormats.current.set(asset.id + ":" + asset.sha256, asset.suffix);
+      onAssetVerified?.(asset, reference);
+    },
   );
+  const recordBase =
+    value ?? (invalidRecord ? selections.current[source] : null);
   const history = useReferenceHistory(kind, formats, source === "saved", {
     query: search,
     page,
-    selected: selection.requestedChoice || inputChoiceKey(value, wholeFile),
+    selected:
+      selection.requestedChoice || inputChoiceKey(recordBase, wholeFile),
     wholeFile,
   });
   useEffect(() => {
@@ -112,17 +119,16 @@ export function ReferencePicker({
         : zh
           ? "暂时无法读取所选文件，请重试或选择其他文件。"
           : "The selected file could not be read. Try again or choose another file.";
-  const recordBase =
-    value ?? (invalidRecord ? selections.current[source] : null);
   const recordFormat =
     recordBase &&
-    (selection.asset?.id === recordBase.asset_id
-      ? selection.asset.suffix
-      : history.selected?.asset.id === recordBase.asset_id
-        ? history.selected.asset.suffix
-        : formats.length === 1
-          ? formats[0]
-          : null);
+    (knownFormats.current.get(recordBase.asset_id + ":" + recordBase.sha256) ??
+      (selection.asset?.id === recordBase.asset_id
+        ? selection.asset.suffix
+        : history.selected?.asset.id === recordBase.asset_id
+          ? history.selected.asset.suffix
+          : formats.length === 1
+            ? formats[0]
+            : null));
   return (
     <section className="diff-reference">
       <h3 className="input-purpose">{label}</h3>
@@ -149,7 +155,7 @@ export function ReferencePicker({
           compact
           language={language}
           label={label}
-          value={value}
+          value={invalidRecord ? recordBase : value}
           versions={history.versions}
           files={history.files}
           busy={history.loading || selection.loading}
