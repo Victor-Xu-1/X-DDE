@@ -13,6 +13,8 @@ on:
       - "tests/test_native_container_cleanup.py"
       - "tests/test_docking_runtime_qualification.py"
       - "tests/test_docking.py"
+      - "server_tests/docking_browser.py"
+      - "server_tests/test_native_docking.py"
       - ".github/workflows/docking-runtime-checks.yml"
   pull_request:
     paths: *docking_runtime_paths

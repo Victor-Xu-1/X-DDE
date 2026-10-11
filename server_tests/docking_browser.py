@@ -64,16 +64,22 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                         exact=False,
                     )
                 ).to_have_count(0)
-                panel = page.get_by_role("region", name="结合模式与下一步", exact=True)
-                panel.get_by_role("button", name=f"姿势 {pose['record'] + 1}", exact=True).click()
-                expect(panel.get_by_text("拖动旋转 · 滚轮缩放", exact=True)).to_be_visible(
-                    timeout=30000
-                )
+                panel = page.get_by_role("region", name="Binding poses and next steps", exact=True)
+                panel.get_by_role("button", name=f"Pose {pose['record'] + 1}", exact=True).click()
                 expect(
-                    panel.frame_locator('iframe[title="可交互分子结构"]').locator("canvas").first
+                    panel.get_by_text("Drag to rotate · Scroll to zoom", exact=True)
+                ).to_be_visible(timeout=30000)
+                expect(
+                    panel.frame_locator('iframe[title="Interactive molecular structure"]')
+                    .locator("canvas")
+                    .first
                 ).to_be_visible()
-                expect(panel.get_by_role("button", name="定位所选配体", exact=True)).to_be_visible()
-                expect(panel.get_by_role("button", name="分子表面", exact=True)).to_have_count(0)
+                expect(
+                    panel.get_by_role("button", name="Focus selected ligand", exact=True)
+                ).to_be_visible()
+                panel.get_by_role("button", name="Surface", exact=True).click()
+                expect(panel.get_by_text("Gray: no data", exact=True)).to_be_visible()
+                panel.get_by_role("button", name="Backbone", exact=True).click()
                 requested = [
                     parse_qs(urlparse(url).query).get("name", [None])[0] for url in downloads
                 ]
@@ -96,7 +102,7 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     page.screenshot(
                         path=str(evidence / f"native-binding-results-{width}.png"), full_page=True
                     )
-                panel.get_by_role("button", name="计算性质", exact=True).click()
+                panel.get_by_role("button", name="Calculate properties", exact=True).click()
                 expect(panel.locator(".tool-form select").last).to_have_value(reference["asset_id"])
                 assert {
                     j["id"] for j in page.request.get(base + "/api/jobs").json()
@@ -104,26 +110,38 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                 if rejected_id:
                     page.set_viewport_size({"width": 1440, "height": 1000})
                     page.goto(base + "/#task=" + rejected_id)
-                    rejected_panel = page.get_by_role("region", name="结合模式与下一步", exact=True)
+                    rejected_panel = page.get_by_role(
+                        "region", name="Binding poses and next steps", exact=True
+                    )
                     expect(
-                        rejected_panel.get_by_role("button", name="姿势 1", exact=True)
+                        rejected_panel.get_by_role("button", name="Pose 1", exact=True)
                     ).to_be_disabled()
                     expect(
-                        rejected_panel.get_by_text("已排除：未满足硬空间条件", exact=True)
+                        rejected_panel.get_by_text(
+                            "Excluded: hard spatial condition failed", exact=True
+                        )
                     ).to_be_visible()
-                    rejected_panel.get_by_role("button", name="检查不合格姿势", exact=True).click()
+                    rejected_panel.get_by_role(
+                        "button", name="Inspect rejected pose", exact=True
+                    ).click()
                     expect(
-                        rejected_panel.get_by_text("拖动旋转 · 滚轮缩放", exact=True)
+                        rejected_panel.get_by_text("Drag to rotate · Scroll to zoom", exact=True)
                     ).to_be_visible(timeout=30000)
                     expect(
-                        rejected_panel.frame_locator('iframe[title="可交互分子结构"]')
+                        rejected_panel.frame_locator(
+                            'iframe[title="Interactive molecular structure"]'
+                        )
                         .locator("canvas")
                         .first
                     ).to_be_visible()
-                    rejected_panel.get_by_text("查看违反位置", exact=True).click()
-                    expect(rejected_panel.get_by_text("输出原子 1 ·", exact=False)).to_be_visible()
+                    rejected_panel.get_by_text("Inspect violation positions", exact=True).click()
                     expect(
-                        rejected_panel.get_by_role("button", name="计算性质", exact=True)
+                        rejected_panel.get_by_text("Output atom 1 ·", exact=False)
+                    ).to_be_visible()
+                    expect(
+                        rejected_panel.get_by_role(
+                            "button", name="Calculate properties", exact=True
+                        )
                     ).to_have_count(0)
                     for width in (1440, 390):
                         page.set_viewport_size({"width": width, "height": 1000})
