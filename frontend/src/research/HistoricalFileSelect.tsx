@@ -15,6 +15,7 @@ export function HistoricalFileSelect({
   requestedChoice = "",
   selectedFile,
   selectedVersion,
+  compact = false,
 }: {
   language: Language;
   label: string;
@@ -26,6 +27,7 @@ export function HistoricalFileSelect({
   requestedChoice?: string;
   selectedFile?: Asset;
   selectedVersion?: ScientificObject;
+  compact?: boolean;
 }) {
   const zh = language === "zh";
   const versionNames = nameCounts(versions.map((v) => v.label));
@@ -41,7 +43,9 @@ export function HistoricalFileSelect({
         : "");
   return (
     <label className="field">
-      {label} · {zh ? "历史文件" : "Historical files"}
+      <span className={compact ? "sr-only" : undefined}>
+        {label} · {zh ? "历史文件" : "Historical files"}
+      </span>
       <select
         value={selected}
         disabled={busy}

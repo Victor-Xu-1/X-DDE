@@ -146,6 +146,7 @@ export function ReferencePicker({
           onPage={setPage}
         />
         <HistoricalFileSelect
+          compact
           language={language}
           label={label}
           value={value}

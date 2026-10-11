@@ -22,7 +22,9 @@ export function HistoryFileControls({
   return (
     <div className="historical-file-controls">
       <label className="field">
-        {zh ? "查找历史材料" : "Find historical inputs"}
+        <span className="sr-only">
+          {zh ? "查找历史材料" : "Find historical inputs"}
+        </span>
         <input
           type="search"
           value={query}
@@ -31,7 +33,7 @@ export function HistoryFileControls({
           onChange={(event) => onQuery(event.target.value)}
         />
       </label>
-      {data && (
+      {data && (data.total > data.limit || page > 0) && (
         <nav aria-label={zh ? "历史材料分页" : "Historical input pages"}>
           <span>
             {data.total ? data.offset + 1 : 0}–
