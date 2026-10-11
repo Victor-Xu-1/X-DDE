@@ -85,6 +85,11 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
         assert len(held) == 1
         held[0][0].fulfill(response=held[0][1])
         page.unroute(url, hold)
+        (evidence / "delayed-save-response.json").write_text(
+            json.dumps(held[0][1].json(), indent=2)
+        )
+        page.screenshot(path=evidence / "delayed-reply-state.png")
+        (evidence / "delayed-reply-state.txt").write_text(page.get_by_role("main").inner_text())
         expect(
             files.get_by_role("button", name=("分子: " if zh else "Molecule: ") + name, exact=True)
         ).to_be_visible()
