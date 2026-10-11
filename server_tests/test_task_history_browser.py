@@ -139,7 +139,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         expect(page.locator(".questionnaire:visible")).to_be_visible(timeout=15000)
         expect(
             page.get_by_role(
-                "heading", name="1. 选择材料" if zh else "1. Choose materials", exact=True
+                "heading", name="1. 选择研究材料" if zh else "1. Choose research inputs", exact=True
             )
         ).to_be_visible()
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth+1")
