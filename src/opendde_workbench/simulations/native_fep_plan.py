@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from native_fep_input import prepared_protein
 from native_io import copy_artifact, input_file
 from native_structure import input_pdb
 
@@ -52,47 +53,8 @@ def build(request):
             "Select distinct chemical states; duplicate compounds do not define FEP edges."
         )
     source, _ = input_pdb(request)
+    coordinates = prepared_protein(source)
     copy_artifact(source, "protein.pdb")
-    from openmm import app
-
-    protein_topology = app.PDBFile(str(source)).topology
-    standard = {
-        "ALA",
-        "ARG",
-        "ASN",
-        "ASP",
-        "CYS",
-        "CYX",
-        "GLN",
-        "GLU",
-        "GLY",
-        "HIS",
-        "HID",
-        "HIE",
-        "HIP",
-        "ILE",
-        "LEU",
-        "LYS",
-        "MET",
-        "PHE",
-        "PRO",
-        "SER",
-        "THR",
-        "TRP",
-        "TYR",
-        "VAL",
-        "HOH",
-        "WAT",
-        "ACE",
-        "NME",
-    }
-    if any(residue.name not in standard for residue in protein_topology.residues()):
-        raise ValueError(
-            "Use a prepared protein-only structure; cofactors/metals need a specialized protocol."
-        )
-    coordinates = np.asarray(
-        app.PDBFile(str(source)).positions.value_in_unit(__import__("openmm").unit.angstrom)
-    )
     for component in selected:
         positions = component.to_rdkit().GetConformer().GetPositions()
         # Bound poses must share the submitted protein frame, not isolated centered conformers.
