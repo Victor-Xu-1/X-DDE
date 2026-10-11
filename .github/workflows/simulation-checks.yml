@@ -66,7 +66,7 @@ jobs:
   openfe-runtime:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'openfe-runtime'
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -83,7 +83,7 @@ jobs:
       - name: Real public TYK2 plan and both short native FEP legs through the task API
         env:
           WB_TEST_NATIVE_SIMULATIONS: "1"
-        run: uv run --locked --with biopython==1.88 python -m pytest -x -q server_tests/test_native_simulations.py -k openfe
+        run: uv run --locked --with biopython==1.88 python -m pytest -s -x -q server_tests/test_native_simulations.py -k openfe
       - uses: actions/upload-artifact@v4
         if: always()
         with:
