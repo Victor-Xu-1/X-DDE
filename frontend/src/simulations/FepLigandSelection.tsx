@@ -38,6 +38,13 @@ export function FepLigandSelection({
   const chosen = (records ?? []).filter((item) =>
     selected.includes(item.record),
   );
+  const invalidSelection =
+    records &&
+    (new Set(selected).size !== selected.length ||
+      selected.some(
+        (record) =>
+          !Number.isInteger(record) || record < 0 || record >= records.length,
+      ));
   const errorText =
     error instanceof AssetFileError
       ? error.code === "identity"
@@ -76,6 +83,22 @@ export function FepLigandSelection({
       )}
       {records && (
         <>
+          {invalidSelection && (
+            <div className="simulation-input-error">
+              <p role="alert">
+                {zh
+                  ? "部分已保存的分子选择已缺失或重复，请重新核对。"
+                  : "Some saved molecular selections are missing or repeated. Check the selection again."}
+              </p>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => onChange(chosen.map((item) => item.record))}
+              >
+                {zh ? "保留可用选择" : "Keep available selections"}
+              </button>
+            </div>
+          )}
           <div className="simulation-series-toolbar">
             <input
               type="search"

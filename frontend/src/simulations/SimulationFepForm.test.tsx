@@ -143,5 +143,13 @@ it.each([
     await screen.findByRole("checkbox", { name: "B · 2" });
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     expect(api.submit).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("missing or repeated");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Keep available selections" }),
+    );
+    expect(screen.getByRole("checkbox", { name: "A · 1" })).toBeChecked();
+    await userEvent.click(screen.getByRole("checkbox", { name: "B · 2" }));
+    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+    expect(api.submit).not.toHaveBeenCalled();
   },
 );
