@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench import __version__
 from opendde_workbench.examples.stat6.catalogue import verified_input
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
@@ -127,7 +128,10 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         page.screenshot(path=evidence / "selected-records.png", full_page=True)
         next_button.click()
         next_button.click()
-        expect(page.get_by_text(series.name, exact=True)).to_be_visible()
+        review_inputs = module.get_by_role(
+            "region", name="所选研究材料" if zh else "Selected research inputs"
+        )
+        expect(review_inputs.get_by_text(series.name, exact=True)).to_be_visible()
         expect(
             page.get_by_text(
                 "变化网络规划 · 不进行模拟" if zh else "Network planning · No simulation",
@@ -139,13 +143,14 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
                 "button", name="创建分子变化网络" if zh else "Plan molecular network", exact=True
             )
         ).to_be_disabled()
+        page.screenshot(path=evidence / "review.png", full_page=True)
         downloaded = page.request.get(url).body()
         assert downloaded == series.read_bytes()
         assert not errors and not submissions and not store.list_jobs()
         (evidence / "receipt.json").write_text(
             json.dumps(
                 {
-                    "version": "0.4.92",
+                    "version": __version__,
                     "language": language,
                     "width": width,
                     "selected_original_records": [0, 12],
