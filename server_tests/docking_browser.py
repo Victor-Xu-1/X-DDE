@@ -132,8 +132,8 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                         rejected_panel.get_by_role("button", name="Pose 1", exact=True)
                     ).to_be_disabled()
                     expect(
-                        rejected_panel.get_by_text(
-                            "Excluded: hard spatial condition failed", exact=True
+                        rejected_panel.get_by_role("cell").filter(
+                            has_text="Excluded: hard spatial condition failed"
                         )
                     ).to_be_visible()
                     rejected_panel.get_by_role(
