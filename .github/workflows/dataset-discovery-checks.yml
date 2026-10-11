@@ -39,6 +39,7 @@ on:
       - "!frontend/src/datasets/DELForm.tsx"
       - "!frontend/src/datasets/LibraryForm.tsx"
       - "!frontend/src/datasets/ScreeningForm.tsx"
+      - "!frontend/src/datasets/screening-readiness*"
       - "!.github/workflows/dataset-discovery-checks.yml"
   workflow_dispatch:
     inputs:

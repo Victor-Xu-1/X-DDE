@@ -56,10 +56,16 @@ it("preserves actual structure roles and clears absent measured comparison input
     ),
   ).toMatchObject({ legacy_path: "", current_path: "" });
 });
-it("shows the study's bilingual requirements instead of unrelated legacy case guidance", () => {
-  expect(templateGuide("fold", "en", study).steps).toContain(
-    "STAT6 antibody sequences",
-  );
+it("keeps bilingual study steps separate from required materials without legacy case guidance", () => {
+  expect(templateGuide("fold", "en", study).steps).toEqual([
+    "Use real STAT6 inputs",
+  ]);
+  expect(templateGuide("fold", "zh", study).steps).toEqual([
+    "使用 STAT6 真实材料",
+  ]);
+  expect(study.required_materials).toEqual([
+    ["STAT6 抗体序列", "STAT6 antibody sequences"],
+  ]);
   expect(templateGuide("fold", "zh", study).interpretation).toBe(
     "计算构象不是结合姿势",
   );

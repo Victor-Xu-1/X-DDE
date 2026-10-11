@@ -75,7 +75,7 @@ it("keeps unavailable computation disabled and reports configuration failure", a
     />,
   );
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "connection unavailable",
+    "The calculation environment could not be checked.",
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("checkbox", { name: /I confirm/ }));
@@ -84,6 +84,21 @@ it("keeps unavailable computation disabled and reports configuration failure", a
   expect(
     screen.getByRole("button", { name: "Score existing pose" }),
   ).toBeDisabled();
+  expect(mocks.submit).not.toHaveBeenCalled();
+  mocks.request.mockImplementation(async (path: string) =>
+    path.startsWith("/research/constraints")
+      ? []
+      : { availability: { configuration_present: true } },
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Check environment again" }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Score existing pose" }),
+    ).toBeEnabled(),
+  );
+  expect(screen.queryByRole("alert")).toBeNull();
   expect(mocks.submit).not.toHaveBeenCalled();
 });
 it("does not offer CNN search/refinement for scoring an existing pose", async () => {
