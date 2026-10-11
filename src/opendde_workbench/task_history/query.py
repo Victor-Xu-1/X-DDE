@@ -1,5 +1,8 @@
 """Bounded, stable queries over the existing personal history and immutable jobs."""
 
+import json
+
+from .example_sources import case_index, matching_case_jobs
 from .kinds import classification_sql
 
 
@@ -36,16 +39,19 @@ def history_page(
     if status:
         filters.append("status = ?")
         values.append(status)
-    if query.strip():
-        filters.append(
-            "(instr(lower(json_extract(request, '$.name')), lower(?)) > 0 OR "
-            "instr(lower(id), lower(?)) > 0)"
-        )
-        values.extend([query.strip(), query.strip()])
-    where = " WHERE " + " AND ".join(filters) if filters else ""
     with library.store.connect() as db:
         # Counts and rows share a read snapshot even when the worker updates another job.
         db.execute("BEGIN")
+        cases = case_index(db) if scope == "examples" else {}
+        if query.strip():
+            filters.append(
+                "(instr(lower(json_extract(request, '$.name')), lower(?)) > 0 OR "
+                "instr(lower(id), lower(?)) > 0 OR id IN (SELECT value FROM json_each(?)))"
+            )
+            values.extend(
+                [query.strip(), query.strip(), json.dumps(matching_case_jobs(cases, query))]
+            )
+        where = " WHERE " + " AND ".join(filters) if filters else ""
         counts = {
             row["capability_id"]: {"total": row["total"], "active": row["active"]}
             for row in db.execute(
@@ -71,6 +77,7 @@ def history_page(
                     {k: row[k] for k in row.keys() if k != "capability_id"}
                 ),
                 "capability_id": row["capability_id"],
+                "example_cases": cases.get(row["id"], []),
             }
             for row in rows
         ]

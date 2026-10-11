@@ -11,9 +11,15 @@ from .kinds import task_kind_rules
 from .query import history_page
 
 
+class SourceCase(BaseModel):
+    id: str
+    label: tuple[str, str]
+
+
 class TaskHistoryItem(BaseModel):
     job: Job
     capability_id: str
+    example_cases: list[SourceCase] = Field(default_factory=list)
 
 
 class TaskKindCount(BaseModel):
@@ -44,13 +50,20 @@ def register_task_history(app, library):
         registered = {rule["id"] for rule in task_kind_rules()} | {"other"}
         if any(value not in registered for value in identifiers):
             raise HTTPException(422, "Unknown task type. Refresh the workbench and try again.")
-        return history_page(
-            library,
-            capabilities=identifiers,
-            project_id=project_id,
-            status=status,
-            query=q,
-            offset=offset,
-            limit=limit,
-            scope=scope,
-        )
+        try:
+            return history_page(
+                library,
+                capabilities=identifiers,
+                project_id=project_id,
+                status=status,
+                query=q,
+                offset=offset,
+                limit=limit,
+                scope=scope,
+            )
+        except (ValueError, KeyError, TypeError) as exc:
+            raise HTTPException(
+                409,
+                "The retained case records could not be verified. "
+                "Restore the original case records.",
+            ) from exc

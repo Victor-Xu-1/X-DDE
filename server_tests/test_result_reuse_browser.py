@@ -11,6 +11,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.docking.result import DockingResult
+from opendde_workbench.examples.catalogue import CASES
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.examples.stat6.catalogue import FILES, verified_input
 from opendde_workbench.models import Status
@@ -124,7 +125,49 @@ def test_old_native_result_becomes_exact_input_once_and_no_other_job_is_created(
         ).to_be_disabled()
         files = result.get_by_role("combobox", name="结果文件" if zh else "Result file", exact=True)
         files.select_option(selected_name)
+        use = result.get_by_role(
+            "button", name="使用这个结果" if zh else "Use this result", exact=True
+        )
+        use.scroll_into_view_if_needed()
+        labels = result.locator(".questionnaire-choices > label")
+        first, second = labels.nth(0).bounding_box(), labels.nth(1).bounding_box()
+        assert first and second and abs(first["y"] - second["y"]) < 2
+        assert first["height"] <= 52 and second["height"] <= 52
+        task_box, file_box = task.bounding_box(), files.bounding_box()
+        assert task_box and file_box
+        if width >= 640:
+            assert abs(task_box["y"] - file_box["y"]) < 2 and file_box["x"] > task_box["x"]
+        else:
+            assert file_box["y"] > task_box["y"]
         page.screenshot(path=evidence / "older-native-source.png")
+        # Case labels are actual pin identities, never inferred from generated job names.
+        result.get_by_role(
+            "radio", name="示例结果" if zh else "Example results", exact=True
+        ).check()
+        expect(files).to_have_count(0)
+        search = result.get_by_role(
+            "searchbox", name="查找已完成任务" if zh else "Find completed tasks", exact=True
+        )
+        search.fill(original.id)
+        option = task.locator(f"option[value='{original.id}']")
+        case_title = CASES[pin.case_id].label[0 if zh else 1]
+        expect(option).to_contain_text(case_title)
+        expect(option).not_to_contain_text(original.request.name)
+        task.select_option(original.id)
+        search.fill("unmatched-example-source")
+        current = task.get_by_role(
+            "option", name=("当前选择：" if zh else "Current selection: ") + case_title, exact=True
+        )
+        expect(current).to_be_attached()
+        expect(task).to_have_value(original.id)
+        assert "Public native" not in task.inner_text()
+        page.screenshot(path=evidence / "confirmed-case-source.png")
+        result.get_by_role("radio", name="研究任务" if zh else "Research tasks", exact=True).check()
+        expect(files).to_have_count(0)
+        search.fill(source.id)
+        expect(task.locator(f"option[value='{source.id}']")).to_be_attached()
+        task.select_option(source.id)
+        files.select_option(selected_name)
         url = base + f"/api/jobs/{source.id}/assets"
         keys = []
 
@@ -190,6 +233,8 @@ def test_old_native_result_becomes_exact_input_once_and_no_other_job_is_created(
                     "artifact": selected_name,
                     "sha256": selected_sha,
                     "older_than_hundred": True,
+                    "confirmed_example_case": pin.case_id,
+                    "source_layout": "parallel" if width >= 640 else "stacked",
                     "reply_loss_one_registration": True,
                     "originals_unchanged": True,
                     "scientific_inference": False,

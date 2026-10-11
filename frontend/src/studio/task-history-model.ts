@@ -17,8 +17,13 @@ export const historyStatuses: readonly Status[] = [
   "cancelled",
   "interrupted",
 ];
+export interface TaskHistoryItem {
+  job: Job;
+  capability_id: string;
+  example_cases?: { id: string; label: [string, string] }[];
+}
 export interface TaskHistoryPage {
-  items: { job: Job; capability_id: string }[];
+  items: TaskHistoryItem[];
   counts: Record<string, { total: number; active: number }>;
   total: number;
   offset: number;

@@ -13,6 +13,7 @@ on:
       - 'frontend/src/App.test.tsx'
       - 'frontend/src/useWorkbench*'
       - 'tests/test_task_history.py'
+      - 'tests/test_example_source_titles.py'
       - 'server_tests/*task_history*'
       - '.github/workflows/task-history-checks.yml'
   pull_request:
@@ -43,9 +44,9 @@ jobs:
           src/studio/task-history-route.test.ts src/useWorkbench.test.ts
       - name: Query, request identity, stable pagination and personal/example boundaries
         run: |
-          uv run --locked ruff check src/opendde_workbench/task_history tests/test_task_history.py server_tests/prepare_task_history.py server_tests/test_task_history_browser.py
+          uv run --locked ruff check src/opendde_workbench/task_history tests/test_task_history.py tests/test_example_source_titles.py server_tests/prepare_task_history.py server_tests/test_task_history_browser.py
           uv run --locked python scripts/generate-capability-catalog.py --check
-          uv run --locked pytest -q tests/test_task_history.py tests/test_example_library.py
+          uv run --locked pytest -q tests/test_task_history.py tests/test_example_library.py tests/test_example_source_titles.py
       - name: Restore existing native outputs into isolated CI history; no scientific runs
         env:
           GH_TOKEN: ${{ github.token }}

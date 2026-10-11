@@ -20,4 +20,8 @@ The optional `scope=examples` query is used only when a researcher explicitly ch
 
 仅在用户明确选择固定示例结果作为材料时使用可选的 `scope=examples` 查询。两种材料来源均排除内部安装验证记录。默认 `research` 范围仍排除固定案例任务。两种范围共用稳定的筛选与分页；切换材料来源不会把案例加入个人任务历史。
 
+Example rows may include `example_cases`, a read-only projection of reviewed case labels from existing job/record pins. Associations require the stored capability, case and revision to match the relevant catalogue profile. Task-name similarity is never evidence of a case relationship. Multiple explicit case associations remain distinct; unsupported revisions are not relabelled as current studies. Example search considers confirmed case labels before paging, in the same read snapshot as rows/counts. The original task request is returned unchanged. Corrupt retained case metadata produces an explicit error, without exposing its raw body.
+
+案例行可包含只读的 `example_cases` 信息，依据已有任务/记录的固定案例关联返回经过审阅的研究名称。关联要求保存的能力、案例和版本匹配对应目录；标题相似不能证明案例关系。多个明确关联分别保留，未支持版本不冒充当前研究。案例名称参与分页前搜索，且与结果及计数使用同一读取快照；原始任务请求保持不变。案例元数据损坏时明确报错，不返回原始内部内容。
+
 `task-history-checks.yml` checks the request classification, personal/example boundary, immutable requests, older history, literal search, deterministic pagination, project filters and stale response rejection. Native Chromium checks cover English desktop and Chinese mobile, module navigation, failures/reconnection, task links, and unchanged archived pocket outputs. Cancelled transport fixtures exercise large histories; they are not scientific examples or calculated results. No owner scientific calculation is performed.

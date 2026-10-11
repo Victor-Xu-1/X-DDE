@@ -8,6 +8,14 @@ Task-result inputs use the same file and scientific-version authority. **Researc
 
 任务结果沿用同一文件与科学版本权威。“研究任务”为默认来源，“示例结果”需要明确选择。已完成任务按名称或编号在服务器查询，每页 20 项，前一百项以外的来源仍可找到。一次只显示一种来源选择器；成功交接后收起选择区并保留确认的文件名。
 
+Fixed-example source names are projected from the existing immutable case pins and their declared task evidence. They show the actual research case and task type in the selected language, retain distinct archived/STAT6 identities, and support literal search by either language. A generated engine title never supplies a case identity. Unlinked historical references remain reachable with an explicit generic label. Personal task names and all saved requests remain verbatim. Source identity remains visible when the current choice falls outside the search/page.
+
+固定案例来源的名称从已有的不可变案例记录及其明确关联任务生成，显示实际研究案例和任务类型，随界面语言切换，并支持按任一语言的名称进行文字搜索。历史案例与 STAT6 案例保持各自身份，工程化任务标题不能用来推断案例。没有关联案例的历史材料仍可找到，并明确标为历史参考结果。个人任务名称和全部保存请求保持原样；当前选择不在搜索结果或本页中时，仍显示其案例身份。
+
+The source picker uses compact, accessible radio choices. Task and result-file fields share a row only when the actual input region is wide enough; narrow regions stack the fields. Reduced-motion preferences suppress the short entrance transition. Display changes never modify file bytes or submission eligibility.
+
+来源切换使用紧凑、支持键盘操作的单选项。仅在材料区实际宽度足够时并排显示任务和结果文件，窄区域逐项排列；减少动态效果的设置会关闭短暂入场过渡。展示调整不会修改文件字节或提交资格。
+
 Before saving a result as input, the client verifies its source task, relative filename, size and SHA-256. The server checks the expected digest again before writing, rejects changed bytes, and retains its existing per-engine scientific eligibility checks. Replacement clears the previous input immediately. Lost replies retry the same verified source and request key; switching source, replacing input or leaving the picker cancels outstanding work. Late or timed-out replies cannot restore an abandoned selection. Unsupported, empty, oversized and internal engineering files do not become input choices. Existing originals and source-task lineage remain unchanged.
 
 结果保存为输入前，前端核对来源任务、相对文件名、大小及 SHA-256；服务器在写入前再次核对期望校验值，拒绝变化的字节，并保留各引擎原有的科学资格校验。开始替换时立即清除旧输入。回复丢失后重试仍使用同一核实来源与请求标识；切换来源、替换材料或离开选择器会取消进行中的请求，迟到或超时回复不能恢复放弃的选择。不支持、空白、过大及内部工程文件不进入材料选项；原始文件及来源任务关系保持不变。

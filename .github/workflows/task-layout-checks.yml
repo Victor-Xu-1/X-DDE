@@ -208,6 +208,7 @@ on:
       - "!frontend/src/operations/useResultFiles*"
       - "!frontend/src/operations/useResultReuse*"
       - "!frontend/src/operations/result-source.css"
+      - "!frontend/src/operations/result-source-labels*"
       - "!frontend/src/presentation/research-files*"
       - "!frontend/src/operations/AssetHistorySelect*"
       - "!frontend/src/operations/asset-acceptance*"

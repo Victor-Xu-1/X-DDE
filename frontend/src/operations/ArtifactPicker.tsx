@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Job, Language } from "../types";
+import type { Language } from "../types";
+import type { TaskHistoryItem } from "../studio/task-history-model";
 import type { Asset, AssetKind } from "./types";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { useTaskHistory } from "../studio/useTaskHistory";
@@ -31,7 +32,7 @@ export function ArtifactPicker({
       .map((value) => value.trim().toLowerCase())
       .filter(Boolean);
   const [scope, setScope] = useState<"research" | "examples">("research"),
-    [selected, setSelected] = useState<Job | null>(null);
+    [selected, setSelected] = useState<TaskHistoryItem | null>(null);
   const [query, setQuery] = useState(""),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(0),
@@ -57,10 +58,10 @@ export function ArtifactPicker({
     if (history.data && page > 0 && page * 20 >= history.data.total)
       setPage(Math.max(0, Math.ceil(history.data.total / 20) - 1));
   }, [history.data, page]);
-  const outputs = useResultFiles(selected?.id ?? "", formats, maxBytes);
+  const outputs = useResultFiles(selected?.job.id ?? "", formats, maxBytes);
   const file = outputs.files.find((file) => file.name === name) ?? null;
   const save = useResultReuse(
-    selected?.id ?? "",
+    selected?.job.id ?? "",
     file,
     kind,
     formats,
@@ -73,7 +74,7 @@ export function ArtifactPicker({
     setSelected(null);
     setName("");
   }, [kind, accept, maxBytes]);
-  function choose(job: Job | null) {
+  function choose(job: TaskHistoryItem | null) {
     save.cancel();
     onPending?.();
     setName("");
@@ -99,7 +100,7 @@ export function ArtifactPicker({
           { value: "examples", title: zh ? "示例结果" : "Example results" },
         ]}
       />
-      <label className="field">
+      <label className="field result-source-search">
         <span className="sr-only">
           {zh ? "查找已完成任务" : "Find completed tasks"}
         </span>
@@ -115,6 +116,7 @@ export function ArtifactPicker({
         language={language}
         data={history.data}
         selected={selected}
+        scope={scope}
         loading={history.loading}
         page={page}
         onPage={setPage}
@@ -148,7 +150,7 @@ export function ArtifactPicker({
       )}
       {selected && (
         <>
-          <label className="field">
+          <label className="field result-source-file">
             {zh ? "结果文件" : "Result file"}
             <select
               value={file?.name ?? ""}

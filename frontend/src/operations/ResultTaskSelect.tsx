@@ -1,12 +1,16 @@
-import type { Job, Language } from "../types";
-import type { TaskHistoryPage } from "../studio/task-history-model";
-import { historyKindLabel } from "../studio/task-history-model";
-import { historyChoiceLabel, nameCounts } from "../presentation/history-choice";
+import type { Language } from "../types";
+import type {
+  TaskHistoryItem,
+  TaskHistoryPage,
+} from "../studio/task-history-model";
+import { nameCounts } from "../presentation/history-choice";
+import { resultSourceLabel, resultSourceTitle } from "./result-source-labels";
 
 export function ResultTaskSelect({
   language,
   data,
   selected,
+  scope,
   loading,
   page,
   onPage,
@@ -14,53 +18,53 @@ export function ResultTaskSelect({
 }: {
   language: Language;
   data: TaskHistoryPage | null;
-  selected: Job | null;
+  selected: TaskHistoryItem | null;
+  scope: "research" | "examples";
   loading: boolean;
   page: number;
   onPage(page: number): void;
-  onSelect(job: Job | null): void;
+  onSelect(item: TaskHistoryItem | null): void;
 }) {
   const zh = language === "zh",
     items = data?.items ?? [],
-    counts = nameCounts(items.map((item) => item.job.request.name));
+    counts = nameCounts(
+      items.map((item) => resultSourceTitle(item, scope, language)),
+    );
   return (
     <>
-      <label className="field">
+      <label className="field result-source-task">
         {zh ? "来源任务" : "Source task"}
         <select
-          value={selected?.id ?? ""}
+          value={selected?.job.id ?? ""}
           disabled={loading}
           onChange={(event) =>
             onSelect(
-              items.find((item) => item.job.id === event.target.value)?.job ??
-                (selected?.id === event.target.value ? selected : null),
+              items.find((item) => item.job.id === event.target.value) ??
+                (selected?.job.id === event.target.value ? selected : null),
             )
           }
         >
           <option value="">
             {zh ? "选择已完成任务" : "Choose a completed task"}
           </option>
-          {items.map(({ job, capability_id }, index) => (
-            <option key={job.id} value={job.id}>
-              {[
-                (counts.get(job.request.name) ?? 0) > 1
-                  ? historyChoiceLabel(
-                      job.request.name,
-                      page * 20 + index,
-                      zh,
-                      job.created_at,
-                    )
-                  : job.request.name,
-                historyKindLabel(capability_id, language),
-              ].join(" · ")}
+          {items.map((item, index) => (
+            <option key={item.job.id} value={item.job.id}>
+              {resultSourceLabel(
+                item,
+                scope,
+                language,
+                page * 20 + index,
+                (counts.get(resultSourceTitle(item, scope, language)) ?? 0) > 1,
+              )}
             </option>
           ))}
-          {selected && !items.some((item) => item.job.id === selected.id) && (
-            <option value={selected.id}>
-              {zh ? "当前选择：" : "Current selection: "}
-              {selected.request.name}
-            </option>
-          )}
+          {selected &&
+            !items.some((item) => item.job.id === selected.job.id) && (
+              <option value={selected.job.id}>
+                {zh ? "当前选择：" : "Current selection: "}
+                {resultSourceTitle(selected, scope, language)}
+              </option>
+            )}
         </select>
       </label>
       {data && (data.total > data.limit || page > 0) && (

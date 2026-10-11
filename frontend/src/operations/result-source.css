@@ -1,10 +1,36 @@
+.asset-picker > .historical-files {
+  flex: 1 0 100%;
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+}
 .artifact-picker {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
-  padding: 16px 0;
+  width: 100%;
+  padding: 12px 0;
 }
-.artifact-picker .questionnaire-choices {
+.studio-app .artifact-picker .questionnaire-choices {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.studio-app .artifact-picker .questionnaire-choices label {
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  gap: 8px;
+}
+.studio-app .artifact-picker .questionnaire-choices label:not(.selected):hover {
+  background: var(--surface-hover);
+  border-color: var(--line);
+}
+.artifact-picker .questionnaire-choices strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.artifact-picker .questionnaire-choices input {
   margin: 0;
 }
 .artifact-picker .field {
@@ -12,9 +38,52 @@
   min-width: 0;
 }
 .artifact-picker select,
-.artifact-picker input {
+.artifact-picker input[type="search"] {
   max-width: 100%;
   width: 100%;
+}
+@container (min-width: 640px) {
+  .artifact-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+  }
+  .artifact-picker > .questionnaire-choices,
+  .artifact-picker > .result-source-search,
+  .artifact-picker > p,
+  .artifact-picker > .error-box {
+    grid-column: 1 / -1;
+  }
+  .artifact-picker > .result-source-task {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .artifact-picker > .result-source-file {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .artifact-picker > .result-source-pages {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+  .artifact-picker > button {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .artifact-picker {
+    animation: result-source-reveal 160ms ease-out;
+  }
+}
+@keyframes result-source-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .artifact-picker > button {
   justify-self: start;
