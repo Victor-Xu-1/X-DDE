@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { taskAvailability } from "../guided/task-availability";
+import { useRef } from "react";
+import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import type { ToolId } from "../operations/catalog";
@@ -7,6 +7,44 @@ import { methodChoices } from "./method-choices";
 import "./method-switch.css";
 import { researchText } from "../presentation/research-content";
 import { ActiveIndicator } from "../presentation/ActiveIndicator";
+
+type MethodOption = (typeof methodChoices)[number]["options"][number];
+function MethodButton({
+  option,
+  selected,
+  preferred,
+  language,
+  onChange,
+}: {
+  option: MethodOption;
+  selected: boolean;
+  preferred: boolean;
+  language: Language;
+  onChange(tool: ToolId): void;
+}) {
+  const availability = useTaskReadiness(option.id),
+    zh = language === "zh";
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      title={option.note[zh ? 0 : 1]}
+      onClick={() => {
+        if (!selected) onChange(option.id);
+      }}
+    >
+      {researchText(option.label, zh)}
+      {preferred && <small>{zh ? "默认" : "Default"}</small>}
+      {availability.error ? (
+        <small>{zh ? "暂无法确认" : "Status unavailable"}</small>
+      ) : availability.ready === undefined ? (
+        <small>{zh ? "正在检查…" : "Checking…"}</small>
+      ) : availability.ready === false ? (
+        <small>{zh ? "未配置" : "Not configured"}</small>
+      ) : null}
+    </button>
+  );
+}
 export function MethodSwitch({
   value,
   language,
@@ -20,25 +58,7 @@ export function MethodSwitch({
       group.options.some((option) => option.id === value),
     ),
     zh = language === "zh";
-  const [ready, setReady] = useState<Record<string, boolean | null>>({});
   const track = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!group) return;
-    const controller = new AbortController();
-    void Promise.all(
-      group.options.map(async (option) => {
-        try {
-          const ready = await taskAvailability(option.id, controller.signal);
-          return [option.id, ready] as const;
-        } catch {
-          return [option.id, null] as const;
-        }
-      }),
-    ).then((rows) => {
-      if (!controller.signal.aborted) setReady(Object.fromEntries(rows));
-    });
-    return () => controller.abort();
-  }, [group]);
   if (!group) return null;
   return (
     <div
@@ -49,23 +69,14 @@ export function MethodSwitch({
     >
       <span>{zh ? "后端模型" : "Backend"}</span>
       {group.options.map((option) => (
-        <button
-          type="button"
+        <MethodButton
           key={option.id}
-          aria-pressed={value === option.id}
-          title={option.note[zh ? 0 : 1]}
-          onClick={() => {
-            if (value !== option.id) onChange(option.id);
-          }}
-        >
-          {researchText(option.label, zh)}
-          {group.default === option.id && (
-            <small>{zh ? "默认" : "Default"}</small>
-          )}
-          {ready[option.id] === false && (
-            <small>{zh ? "未配置" : "Not configured"}</small>
-          )}
-        </button>
+          option={option}
+          selected={value === option.id}
+          preferred={group.default === option.id}
+          language={language}
+          onChange={onChange}
+        />
       ))}
       <ActiveIndicator container={track} selection={value + ":" + language} />
       <Hint label={zh ? "如何选择模型？" : "How to choose a model?"}>

@@ -183,6 +183,7 @@ on:
       - "!frontend/src/operations/AssetPicker.tsx"
       - "!frontend/src/guided/Questionnaire*"
       - "!frontend/src/guided/useTaskReadiness*"
+      - "!frontend/src/guided/task-readiness-state.ts"
       - "!frontend/src/guided/task-availability.ts"
       # Exact molecular input review uses the bilingual native publication gate.
       - "!frontend/src/guided/MolecularReview.tsx"

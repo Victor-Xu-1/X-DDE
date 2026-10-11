@@ -4,6 +4,7 @@ on:
   push:
     paths: &readiness_paths
       - "frontend/src/guided/useTaskReadiness*"
+      - "frontend/src/guided/task-readiness-state.ts"
       - "frontend/src/guided/task-availability.ts"
       - "frontend/src/guided/Questionnaire*"
       - "frontend/src/guided/MolecularReview.tsx"

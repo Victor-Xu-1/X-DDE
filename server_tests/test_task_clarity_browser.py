@@ -2,6 +2,7 @@
 
 import base64
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -138,6 +139,11 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
         submit = page.get_by_role(
             "button", name="计算性质" if zh else "Calculate properties", exact=True
         )
+        method = page.get_by_role(
+            "group", name="后端模型" if zh else "Backend method", exact=True
+        ).get_by_role("button", name=re.compile("^RDKit"))
+        expect(method).to_have_attribute("aria-pressed", "true")
+        expect(method).to_contain_text("正在检查" if zh else "Checking")
         expect(submit).to_be_disabled()
         expect(page.locator(".molecular-input-review .molecule-image")).to_have_attribute(
             "data-drawing-state", "ready", timeout=45000
@@ -148,6 +154,7 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
         )
         expect(submit).to_be_disabled()
         expect(page.get_by_label("SMILES", exact=True)).to_have_value(smiles)
+        expect(method).to_contain_text("暂无法确认" if zh else "Status unavailable")
         assert (
             "RDKit 性质计算环境尚未就绪" if zh else "Configure molecular-property tools"
         ) not in form.inner_text()
@@ -166,15 +173,18 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
         if available:
             expect(submit).to_be_enabled()
             expect(recheck).to_have_count(0)
+            expect(method).not_to_contain_text("未配置" if zh else "Not configured")
         else:
             expect(recheck).to_be_enabled()
             expect(submit).to_be_disabled()
+            expect(method).to_contain_text("未配置" if zh else "Not configured")
+        expect(method).not_to_contain_text("暂无法确认" if zh else "Status unavailable")
         expect(page.get_by_label("SMILES", exact=True)).to_have_value(smiles)
         expect(form.get_by_role("heading", level=2)).to_contain_text(
             "确认启动" if zh else "Review & start"
         )
         page.screenshot(path=str(evidence / (language + "-rechecked.png")))
-        assert held and not errors and not submissions
+        assert len(held) == 1 and not errors and not submissions
         assert jobs == page.request.get(base + "/api/jobs").json()
         (evidence / (language + "-receipt.json")).write_text(
             json.dumps(
@@ -182,6 +192,7 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
                     "transport_held": True,
                     "input_preserved": True,
                     "availability_rechecked": True,
+                    "backend_and_form_share_one_observation": True,
                     "resolved_configuration_present": available,
                     "scientific_submissions": 0,
                     "browser_errors": errors,

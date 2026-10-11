@@ -139,3 +139,46 @@ it("rejects a response that arrives after the bounded readiness deadline", async
   );
   expect(timeout).toHaveBeenCalledWith(15000);
 });
+
+it("shares a single check and recovery between mounted controls for the same capability", async () => {
+  const next = pending();
+  const request = vi
+    .spyOn(client, "request")
+    .mockResolvedValueOnce({ availability: { configuration_present: false } })
+    .mockReturnValueOnce(next.promise);
+  const first = renderHook(() => useTaskReadiness("properties"));
+  const second = renderHook(() => useTaskReadiness("properties"));
+  await waitFor(() => expect(first.result.current.ready).toBe(false));
+  expect(second.result.current.ready).toBe(false);
+  expect(request).toHaveBeenCalledOnce();
+  act(() => first.result.current.recheck());
+  expect(first.result.current.ready).toBeUndefined();
+  expect(second.result.current.ready).toBeUndefined();
+  await act(async () =>
+    next.resolve({ availability: { configuration_present: true } }),
+  );
+  expect(first.result.current.ready).toBe(true);
+  expect(second.result.current.ready).toBe(true);
+  expect(request).toHaveBeenCalledTimes(2);
+});
+
+it("keeps a shared check alive until its last consumer leaves and starts fresh when revisited", async () => {
+  const response = pending();
+  const request = vi.spyOn(client, "request").mockReturnValue(response.promise);
+  const first = renderHook(() => useTaskReadiness("properties"));
+  const second = renderHook(() => useTaskReadiness("properties"));
+  const signal = request.mock.calls[0][1]!.signal as AbortSignal;
+  first.unmount();
+  expect(signal.aborted).toBe(false);
+  second.unmount();
+  expect(signal.aborted).toBe(true);
+  request.mockResolvedValue({ availability: { configuration_present: false } });
+  const revisited = renderHook(() => useTaskReadiness("properties"));
+  expect(revisited.result.current.ready).toBeUndefined();
+  await waitFor(() => expect(revisited.result.current.ready).toBe(false));
+  await act(async () =>
+    response.resolve({ availability: { configuration_present: true } }),
+  );
+  expect(revisited.result.current.ready).toBe(false);
+  expect(request).toHaveBeenCalledTimes(2);
+});

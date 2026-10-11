@@ -21,6 +21,14 @@ request. Screening checks and rechecks only the environments required by the
 currently selected plan; a failed availability query is not called a missing
 installation. Automatic unbounded polling is not used.
 
+Backend buttons and task controls share one current capability observation. A
+manual environment recheck updates both, without changing the selected model,
+materials or task intent. A mounted consumer cannot cancel another consumer's
+check; the last consumer leaving cancels it and clears its observation. Revisiting
+the task requires a fresh bounded check. Checking, confirmed unavailable and failed
+status queries remain distinct, and no scientific readiness or model accuracy is
+inferred from these configuration observations.
+
 ## Whole-platform visual acceptance
 
 The owner sets Awwwards, Webby Awards and FWA as quality references, not a claim

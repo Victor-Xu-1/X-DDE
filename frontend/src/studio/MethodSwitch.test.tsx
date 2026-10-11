@@ -63,6 +63,17 @@ it("labels an unconfigured implementation without inventing installed status", a
     screen.queryByRole("button", { name: /RFdiffusion|CODesign|Rosetta/ }),
   ).toBeNull();
 });
+
+it("distinguishes a failed status query from a missing installation", async () => {
+  vi.spyOn(client, "request").mockRejectedValue(
+    new TypeError("Failed to fetch"),
+  );
+  render(<MethodSwitch value="properties" language="en" onChange={vi.fn()} />);
+  expect(
+    await screen.findByRole("button", { name: /RDKit.*Status unavailable/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(screen.queryByText("Not configured")).toBeNull();
+});
 it("selects the sole backend for a task and does not dispatch when clicked", async () => {
   const change = vi.fn(),
     user = userEvent.setup();

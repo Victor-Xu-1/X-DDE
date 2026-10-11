@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { PropertyForm } from "./PropertyForm";
+import { MethodSwitch } from "../studio/MethodSwitch";
 import { api } from "../api";
 import * as client from "../api";
 import type { MoleculeRef } from "../research/types";
@@ -29,11 +30,18 @@ it.each(["en", "zh"] as const)(
     const smiles =
       "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3";
     render(
-      <PropertyForm
-        language={language}
-        onCreated={vi.fn()}
-        initialSmiles={smiles}
-      />,
+      <>
+        <MethodSwitch
+          value="properties"
+          language={language}
+          onChange={vi.fn()}
+        />
+        <PropertyForm
+          language={language}
+          onCreated={vi.fn()}
+          initialSmiles={smiles}
+        />
+      </>,
     );
     for (let step = 0; step < 3; step++)
       await user.click(
@@ -45,6 +53,10 @@ it.each(["en", "zh"] as const)(
       name: zh ? "计算性质" : "Calculate properties",
     });
     expect(launch).toBeDisabled();
+    const method = screen.getByRole("button", {
+      name: /RDKit.*(?:Status unavailable|暂无法确认)/,
+    });
+    expect(method).toHaveAttribute("aria-pressed", "true");
     await user.click(
       screen.getByRole("button", {
         name: zh ? "重新检查计算环境" : "Check environment again",
@@ -52,6 +64,9 @@ it.each(["en", "zh"] as const)(
     );
     await waitFor(() => expect(launch).toBeEnabled());
     expect(screen.queryByRole("alert")).toBeNull();
+    expect(method).not.toHaveTextContent(
+      /Status unavailable|暂无法确认|Not configured|未配置/,
+    );
     expect(screen.getByLabelText("SMILES")).toHaveValue(smiles);
     expect(submit).not.toHaveBeenCalled();
     expect(request).toHaveBeenCalledTimes(2);
