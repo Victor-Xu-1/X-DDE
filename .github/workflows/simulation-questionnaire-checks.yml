@@ -24,14 +24,16 @@ jobs:
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-simulation-inputs
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-simulation-inputs/state
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
+      - name: Isolated runtime for native input inspection
+        run: >-
+          python -c 'import os,pathlib; root=pathlib.Path(os.environ["RUNNER_TEMP"])/"x-dde-simulation-inputs";
+          pathlib.Path(os.environ["GITHUB_ENV"]).open("a").write(f"WB_HOME={root}\nWB_STATE_DIR={root}/state\n")'
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Changed questionnaires, truthful review and original-file identity
