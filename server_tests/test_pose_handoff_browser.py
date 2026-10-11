@@ -139,7 +139,32 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
             questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
             picker = questionnaire.locator(".asset-picker")
             selector = picker.locator("select")
-            expect(selector).to_have_value("version:" + str(expected.id))
+            expect(selector).to_have_value(str(expected.reference.asset_id))
+            expect(questionnaire).to_contain_text(
+                f"第{expected.reference.record + 1}个分子记录"
+                if zh
+                else f"Molecule record {expected.reference.record + 1} is selected"
+            )
+            captured = []
+
+            def capture_submission(route):
+                captured.append(route.request.post_data_json)
+                route.abort("failed")
+
+            page.route("**/api/jobs", capture_submission)
+            questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
+            questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
+            questionnaire.get_by_role(
+                "button", name="计算性质" if zh else "Calculate properties", exact=True
+            ).click()
+            for _ in range(50):
+                if captured:
+                    break
+                page.wait_for_timeout(100)
+            assert len(captured) == 1
+            assert captured[0]["scientific_inputs"] == [expected.reference.model_dump(mode="json")]
+            assert captured[0]["ligand_files"] == [str(expected.reference.asset_id)]
+            page.unroute("**/api/jobs", capture_submission)
             page.screenshot(
                 path=str(evidence / ("input-" + str(expected.reference.record) + ".png"))
             )
