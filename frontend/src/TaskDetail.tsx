@@ -35,22 +35,23 @@ export function TaskDetail({
 }: Props) {
   const t = translator(language);
   const taskLabel = useTaskLabel(job, language);
-  const [busy, setBusy] = useState(false),
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set()),
     [actionError, setActionError] = useState<{
       jobId: string;
       message: string;
     } | null>(null);
   const error =
     actionError && actionError.jobId === job?.id ? actionError.message : "";
+  const busy = Boolean(job && pendingIds.has(job.id));
   const retryKeys = useRef(new Map<string, string>());
-  const actionPending = useRef(false);
+  const actionPending = useRef(new Set<string>());
   const selectedId = useRef(job?.id);
   selectedId.current = job?.id;
   async function action(kind: "cancel" | "retry") {
-    if (!job || actionPending.current) return;
+    if (!job || actionPending.current.has(job.id)) return;
     if (kind === "cancel" && !window.confirm(t("cancelConfirm"))) return;
-    actionPending.current = true;
-    setBusy(true);
+    actionPending.current.add(job.id);
+    setPendingIds(new Set(actionPending.current));
     setActionError(null);
     try {
       let result: Job;
@@ -71,8 +72,8 @@ export function TaskDetail({
           message: error instanceof Error ? error.message : t("error"),
         });
     } finally {
-      actionPending.current = false;
-      setBusy(false);
+      actionPending.current.delete(job.id);
+      setPendingIds(new Set(actionPending.current));
     }
   }
   if (!job)

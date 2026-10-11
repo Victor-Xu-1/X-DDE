@@ -144,3 +144,46 @@ it("keeps an action failure attached to its source task when selection changes",
   );
   expect(screen.queryByRole("alert")).toBeNull();
 });
+
+it("allows another task's action while an earlier selected task is still pending", async () => {
+  let resolve!: (job: Job) => void;
+  const childB = {
+    ...source("child-b"),
+    status: "queued" as const,
+    parent_id: "parent-b",
+  };
+  vi.spyOn(api, "retry").mockImplementation((id) =>
+    id === "parent-a"
+      ? new Promise((done) => {
+          resolve = done;
+        })
+      : Promise.resolve(childB),
+  );
+  const changed = vi.fn();
+  const view = render(
+    <TaskDetail
+      job={source()}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={changed}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+  view.rerender(
+    <TaskDetail
+      job={source("parent-b")}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={changed}
+    />,
+  );
+  expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+  await waitFor(() => expect(changed).toHaveBeenCalledWith(childB));
+  await act(async () => {
+    resolve(child());
+  });
+  expect(changed).toHaveBeenCalledTimes(1);
+});
