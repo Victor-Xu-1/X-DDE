@@ -88,7 +88,8 @@ def run_platform(protocol):
         wait_deployment(client, editor.json()["operations"])
         availability = client.get("/api/capabilities/deepternary.model").json()["availability"]
         assert availability["configuration_present"], availability
-        prepared = client.post("/api/examples/deepternary.model/prepare")
+        # This native baseline is MZ1–BRD4–VHL; the platform default remains STAT6.
+        prepared = client.post("/api/examples/deepternary.model/prepare?profile=archive")
         assert prepared.status_code == 200, prepared.text
         objects = prepared.json()["objects"]
         inputs = [
@@ -163,7 +164,9 @@ def run_platform(protocol):
         from proximity_result_negatives import check_forgery
 
         check_forgery(client, settings.state_dir, identifier, result, task)
-        pin = client.post("/api/examples/deepternary.model/pin", json={"job_id": identifier})
+        pin = client.post(
+            "/api/examples/deepternary.model/pin?profile=archive", json={"job_id": identifier}
+        )
         assert pin.status_code == 200, pin.text
     bundle = output / "x-dde-proximity-cases-v1.zip"
     revision = os.environ["GITHUB_SHA"]

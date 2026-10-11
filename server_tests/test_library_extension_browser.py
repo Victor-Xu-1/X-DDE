@@ -83,6 +83,7 @@ def test_therapeutic_library_results_and_new_guided_choices(tmp_path):
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch()
                 page = browser.new_page(viewport={"width": 1440, "height": 1000})
+                page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
                 errors, submissions = [], []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.on(

@@ -17,18 +17,21 @@ CAPABILITIES = ("pose_exploration", "pose.cluster")
 def freeze_case(settings, output, identifier, result):
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
-        prepared = client.post("/api/examples/pose.cluster/prepare")
+        prepared = client.post("/api/examples/pose.cluster/prepare?profile=archive")
         assert prepared.status_code == 200, prepared.text
         assert prepared.json()["source_record"]["poses"][0]["id"] == result["pose_set_id"]
         body = {"job_id": identifier}
-        first = client.post("/api/examples/pose.cluster/pin", json=body)
+        first = client.post("/api/examples/pose.cluster/pin?profile=archive", json=body)
         assert first.status_code == 200, first.text
-        assert client.post("/api/examples/pose.cluster/pin", json=body).json() == first.json()
-        detail = client.get("/api/examples/pose.cluster").json()
+        assert (
+            client.post("/api/examples/pose.cluster/pin?profile=archive", json=body).json()
+            == first.json()
+        )
+        detail = client.get("/api/examples/pose.cluster?profile=archive").json()
         assert detail["computed_result_available"] and detail["pin"]["job_id"] == identifier
         assert identifier not in {row["id"] for row in client.get("/api/jobs").json()}
         assert (
-            client.post("/api/examples/pose.cluster/prepare").json()["request"]
+            client.post("/api/examples/pose.cluster/prepare?profile=archive").json()["request"]
             == (client.get("/api/jobs/" + identifier).json()["request"])
         )
     target = output / "x-dde-pose-cases-v1.zip"
@@ -60,7 +63,9 @@ def freeze_case(settings, output, identifier, result):
         raise AssertionError("An analysis cannot lose its parent-case evidence")
     with TestClient(create_app(cold), base_url="http://127.0.0.1:4320") as client:
         assert client.get("/api/jobs/" + identifier + "/result").json() == result
-        assert client.get("/api/examples/pose.cluster").json()["computed_result_available"]
+        assert client.get("/api/examples/pose.cluster?profile=archive").json()[
+            "computed_result_available"
+        ]
         assert client.get("/api/jobs").json() == []
         for name, expected in result["artifacts"].items():
             response = client.get("/api/jobs/" + identifier + "/download", params={"name": name})
