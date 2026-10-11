@@ -461,6 +461,10 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         rejected_id,
     )
 
-    from pose_native_acceptance import inspect_pose_campaign
+    # The wider, same-run pose campaign belongs to CI that explicitly supplies
+    # its preparation/site/state fixture. Runtime qualification must not inherit
+    # that separate business scenario or start a global fixture-producing suite.
+    if os.environ.get("WB_CORE_FIXTURE"):
+        from pose_native_acceptance import inspect_pose_campaign
 
-    inspect_pose_campaign(settings, installed["image"])
+        inspect_pose_campaign(settings, installed["image"])
