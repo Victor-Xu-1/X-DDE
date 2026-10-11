@@ -1,11 +1,11 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { useEffect, useRef, useState } from "react";
-import { api, request } from "../api";
 import { HistoricalFileSelect } from "../research/HistoricalFileSelect";
 import { AssetPicker } from "../operations/AssetPicker";
-import type { Asset } from "../operations/types";
-import type { MoleculeRef, ScientificObject } from "../research/types";
+import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
+import { useReferenceHistory } from "./useReferenceHistory";
+import { useReferenceSelection } from "./useReferenceSelection";
 
 export function ReferencePicker({
   kind,
@@ -22,14 +22,9 @@ export function ReferencePicker({
   label: string;
   allowedSuffixes?: readonly string[];
 }) {
-  const zh = language === "zh",
-    selectionIntent = useRef(0);
-  const [files, setFiles] = useState<Asset[]>([]);
-  const [versions, setVersions] = useState<ScientificObject[]>([]),
-    [error, setError] = useState("");
+  const zh = language === "zh";
   const formats =
     allowedSuffixes ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
-  const [loading, setLoading] = useState(false);
   const [source, setSource] = useState<"saved" | "file">(() =>
     value?.version_id ? "saved" : "file",
   );
@@ -43,87 +38,43 @@ export function ReferencePicker({
   useEffect(() => {
     if (value) selections.current[source] = value;
   }, [value]);
+  const history = useReferenceHistory(kind, formats, source === "saved");
+  const selection = useReferenceSelection(kind, formats, (reference) => {
+    selections.current[source] = reference;
+    onChange(reference);
+  });
   function changeSource(next: "saved" | "file") {
-    selectionIntent.current++;
+    selection.cancel();
     setSource(next);
-    setLoading(false);
-    setError("");
     onChange(selections.current[next]);
   }
-  useEffect(() => {
-    if (source !== "saved") return;
-    const c = new AbortController();
-    setLoading(true);
-    async function load() {
-      const all: ScientificObject[] = [];
-      for (let offset = 0; offset < 10000; offset += 200) {
-        const page = await request<ScientificObject[]>(
-          `/research/objects?limit=200&offset=${offset}`,
-          { signal: c.signal },
-        );
-        all.push(...page);
-        if (page.length < 200) break;
-      }
-      const uploaded = await api.assets(c.signal);
-      if (!c.signal.aborted) {
-        setFiles(
-          uploaded.filter((v) => v.kind === kind && formats.includes(v.suffix)),
-        );
-        setVersions(
-          all.filter(
-            (v) => v.kind === (kind === "structure" ? "structure" : "molecule"),
-          ),
-        );
-      }
-    }
-    void load()
-      .catch((e) => {
-        if (!c.signal.aborted) setError(String(e));
-      })
-      .finally(() => {
-        if (!c.signal.aborted) setLoading(false);
-      });
-    return () => {
-      selectionIntent.current++;
-      c.abort();
-    };
-  }, [kind, source]);
-  async function choose(id: string, reference?: MoleculeRef) {
-    const intent = ++selectionIntent.current;
-    setError("");
-    if (!id) {
-      setLoading(false);
-      onChange(null);
-      return;
-    }
-    setLoading(true);
-    try {
-      const asset = await request<Asset>(`/assets/${id}/metadata`);
-      if (!formats.includes(asset.suffix))
-        throw new Error(
-          zh
-            ? "请选择本任务支持的结构格式。受体使用 PDB，分子使用 SDF。"
-            : "This adapter requires PDB receptors or SDF molecules. Convert the format explicitly first.",
-        );
-      if (intent !== selectionIntent.current) return;
-      onChange(
-        reference ?? {
-          asset_id: asset.id,
-          sha256: asset.sha256,
-          record: 0,
-          conformer: 0,
-          version_id: null,
-        },
-      );
-    } catch (e) {
-      if (intent === selectionIntent.current) {
-        onChange(null);
-        setError(String(e));
-      }
-    } finally {
-      if (intent === selectionIntent.current) setLoading(false);
-    }
+  function chooseHistorical(id: string, reference?: MoleculeRef) {
+    const file = history.files.find((asset) => asset.id === id);
+    const declared =
+      reference ??
+      (file
+        ? {
+            asset_id: file.id,
+            sha256: file.sha256,
+            record: 0,
+            conformer: 0,
+            version_id: null,
+          }
+        : undefined);
+    void selection.choose(id, declared);
   }
+  const error =
+    selection.error === "identity"
+      ? zh
+        ? "文件详情与所选记录不一致，请重新选择原始文件。"
+        : "File details do not match the selected record. Choose the original file again."
+      : selection.error === "format"
+        ? zh
+          ? `请选择本任务支持的文件格式：${formats.join("、")}。`
+          : `Choose a supported file format for this task: ${formats.join(", ")}.`
+        : zh
+          ? "暂时无法读取所选文件，请重试或选择其他文件。"
+          : "The selected file could not be read. Try again or choose another file.";
   return (
     <section className="diff-reference">
       <h3 className="input-purpose">{label}</h3>
@@ -141,11 +92,32 @@ export function ReferencePicker({
           language={language}
           label={label}
           value={value}
-          versions={versions}
-          files={files}
-          busy={loading}
-          onSelect={(id, ref) => void choose(id, ref)}
+          versions={history.versions}
+          files={history.files}
+          busy={history.loading || selection.loading}
+          onSelect={chooseHistorical}
         />
+        {history.loading && (
+          <p role="status">
+            {zh ? "正在读取历史文件…" : "Loading historical files…"}
+          </p>
+        )}
+        {history.error && (
+          <div className="error-box">
+            <p role="alert">
+              {zh
+                ? "暂时无法读取历史文件列表，请重试。"
+                : "Historical files could not be loaded. Try again."}
+            </p>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={history.retry}
+            >
+              {zh ? "重试历史文件" : "Retry historical files"}
+            </button>
+          </div>
+        )}
       </div>
       <div hidden={source !== "file"}>
         <AssetPicker
@@ -153,7 +125,7 @@ export function ReferencePicker({
           kind={kind}
           allowedSuffixes={formats}
           value={value?.asset_id ?? ""}
-          onChange={(id) => void choose(id)}
+          onChange={(id) => void selection.choose(id)}
           language={language}
           label={label}
         />
@@ -174,11 +146,24 @@ export function ReferencePicker({
           />
         </label>
       )}
-      {loading && <p role="status">{zh ? "读取资产…" : "Loading assets…"}</p>}
-      {error && (
-        <p role="alert" className="error-box">
-          {error}
+      {selection.loading && (
+        <p role="status">
+          {zh ? "正在核对所选文件…" : "Checking the selected file…"}
         </p>
+      )}
+      {selection.error && (
+        <div className="error-box">
+          <p role="alert">{error}</p>
+          {selection.error === "unavailable" && (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={selection.retry}
+            >
+              {zh ? "重新读取文件" : "Retry selected file"}
+            </button>
+          )}
+        </div>
       )}
     </section>
   );

@@ -85,6 +85,9 @@ on:
       - "frontend/src/deployment/ComponentBundle*"
       - "frontend/src/deployment/ComputeServicePanel*"
       - "frontend/src/diffsbdd/ReferencePicker*"
+      # Exact material selection has a scoped lifecycle/native-input gate.
+      - "!frontend/src/diffsbdd/ReferencePicker*"
+      - "!frontend/src/research/HistoricalFileSelect*"
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/DesignInputContext*"
       - "frontend/src/diffsbdd/CoreVerification*"
