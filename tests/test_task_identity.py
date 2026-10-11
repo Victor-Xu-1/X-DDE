@@ -64,6 +64,22 @@ def test_stat6_identity_is_derived_from_the_pin_and_never_from_its_title(library
     assert library.store.get(job.id).request == job.request
 
 
+def test_direct_open_uses_a_new_pin_before_history_origin_has_been_refreshed(library):
+    job = create(library, "Public native transport-engine")
+    persist_pin(library, job, "properties", study=True)
+    # Pin producers commit the pin before the independent history-role refresh.
+    with library.store.connect() as db:
+        db.execute("DELETE FROM example_library_tasks WHERE job_id=?", (job.id,))
+    before = snapshot(library)
+    app = FastAPI()
+    register_task_history(app, library)
+    with TestClient(app) as client:
+        value = client.get(f"/api/task-history/{job.id}/identity").json()
+        assert value["origin"] == "fixed_example"
+        assert value["example_cases"] == [{"id": CASE.id, "label": list(CASE.label)}]
+    assert snapshot(library) == before
+
+
 def test_personal_unlinked_example_and_setup_origins_remain_explicit(library):
     personal, public, setup = [
         create(library, name)

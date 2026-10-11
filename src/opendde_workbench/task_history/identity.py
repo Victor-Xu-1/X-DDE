@@ -15,7 +15,12 @@ def task_identity(library, identifier):
         origin = row["origin"] if row else "research"
         if origin not in {"research", "fixed_example", "setup_validation"}:
             raise ValueError("The retained task origin could not be verified.")
-        cases = case_index(db).get(job.id, []) if origin == "fixed_example" else []
+        # Pin creation and the history-role refresh are separate existing steps.
+        # A directly opened, newly pinned task must use its verified case even
+        # before the role index has been refreshed; this read never writes it.
+        cases = case_index(db).get(job.id, [])
+        if cases:
+            origin = "fixed_example"
     return {
         "job_id": job.id,
         "origin": origin,
