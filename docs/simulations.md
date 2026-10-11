@@ -1,5 +1,9 @@
 # Molecular dynamics and FEP / 分子动力学与结合自由能
 
+Long calculations use the shared [physical storage capacity guard](storage-capacity.md)
+before execution and while running, including the Windows backing drive for WSL.
+长计算在启动前和运行中共用[物理存储容量保护](storage-capacity.md)，WSL 同时检查其所在的 Windows 磁盘。
+
 Both dynamics engines check adjacent protein C–N distances in each explicit chain before atom repair and again afterwards, before solvation. Nonfinite distances and links outside 0.9–1.8 Å are rejected with the affected chain and residues. Explicit chain fragments remain separate; author numbering gaps alone do not imply missing sequence. Missing backbone atoms must be resolved by the reviewed preparation before simulation, and original files are never modified.
 
 两个动力学引擎在修复缺失原子前后、加水前检查每条明确链内相邻蛋白残基的 C–N 距离。非有限值或不在 0.9–1.8 Å 范围内的连接会被拒绝，并提示具体链和残基。明确的链片段保持分离，作者编号跳号本身不被视为序列缺失；修复后仍不完整的骨架不可进入模拟，原始文件保持不变。

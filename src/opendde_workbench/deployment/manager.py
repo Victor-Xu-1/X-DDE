@@ -7,6 +7,7 @@ import shutil
 import threading
 from pathlib import Path
 
+from ..disk_space import require_space
 from ..engine_registry import ENGINES
 from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
@@ -179,11 +180,14 @@ class DeploymentManager:
         def checkpoint():
             if self.closing.is_set() or self.store.get(identifier)["state"] == "pausing":
                 raise Paused()
+            if row["action"] != "uninstall":
+                require_space(root, 4 * 1024**3)
 
         def report(value):
             self.store.update(identifier, stage=value)
 
         try:
+            checkpoint()
             if row["action"] == "uninstall":
                 entry = installed.get(key, {})
                 # Only versioned package files are removed. Models and Docker layers may be shared.

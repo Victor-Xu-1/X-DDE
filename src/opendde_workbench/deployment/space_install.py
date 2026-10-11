@@ -4,6 +4,7 @@ import re
 import shutil
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..space.image import lock_digest, prepare_context
 from ..space.manifest import SHA256, URL, VERSION
 from .paths import environment_root
@@ -13,7 +14,7 @@ from .transfers import download, extract
 def install_space(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install the server Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 3 * 1024**3:
+    if available_bytes(root) < 3 * 1024**3:
         raise ValueError("Channel installation needs at least 3 GiB free staging/image space.")
     destination = environment_root(root, "caver") / (VERSION + "-" + str(uuid4()))
     destination.mkdir(parents=True, exist_ok=False)

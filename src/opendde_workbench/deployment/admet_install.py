@@ -4,13 +4,14 @@ import shutil
 from uuid import uuid4
 
 from ..admet.image import VERSION, lock_digest, prepare_context
+from ..disk_space import available_bytes
 from .paths import environment_root
 
 
 def install_admet(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 6 * 1024**3:
+    if available_bytes(root) < 6 * 1024**3:
         raise ValueError("Independent ADMET CPU installation requires 6 GiB free space.")
     destination = environment_root(root, "admet") / (VERSION + "-" + str(uuid4()))
     context = destination / "image-context"

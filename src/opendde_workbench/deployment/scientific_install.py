@@ -7,6 +7,7 @@ import zipfile
 from pathlib import PurePosixPath
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..integrations.image import lock_digest, prepare_context
 from ..integrations.specs import PROGRAMS, recipe_digest
 from ..locations import atomic_json
@@ -26,7 +27,7 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         raise RuntimeError(
             "Prepare the server Docker prerequisites before installing this environment."
         )
-    if shutil.disk_usage(root).free < 16 * 1024**3:
+    if available_bytes(root) < 16 * 1024**3:
         raise ValueError("The isolated scientific environment needs at least 16 GiB staging space.")
     destination = environment_root(root, identifier) / (spec["version"] + "-" + str(uuid4()))
     source = None
@@ -148,7 +149,7 @@ def install_models(identifier, root, report, checkpoint):
         )
         + 4 * 1024**3
     )
-    if shutil.disk_usage(root).free < required:
+    if available_bytes(root) < required:
         raise ValueError("Insufficient free space for verified model downloads and extraction.")
     destination = (
         root / "models" / identifier / (recipe_digest(identifier)[:16] + "-" + str(uuid4()))

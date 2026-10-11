@@ -3,6 +3,7 @@
 import shutil
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..docking.image import lock_digest, prepare_context
 from ..docking.manifest import (
     BINARY_BYTES,
@@ -20,7 +21,7 @@ from .transfers import download
 def install_docking(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install the server Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 12 * 1024**3:
+    if available_bytes(root) < 12 * 1024**3:
         raise ValueError("GNINA installation needs at least 12 GiB free staging/image space.")
     binary = root / "downloads" / "gnina-1.3.3.static"
     report("Downloading the checksum-verified GNINA executable")
