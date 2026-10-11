@@ -9,6 +9,8 @@ on:
       - "src/opendde_workbench/docking/native.py"
       - "src/opendde_workbench/docking/snapshot.py"
       - "src/opendde_workbench/assets.py"
+      - "src/opendde_workbench/container_supervision.py"
+      - "tests/test_native_container_cleanup.py"
       - "tests/test_docking_runtime_qualification.py"
       - "tests/test_docking.py"
       - ".github/workflows/docking-runtime-checks.yml"
@@ -35,8 +37,8 @@ jobs:
           uv sync --locked --group dev --group browser
       - name: Exact binding, source snapshot and runtime contracts
         run: |
-          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/assets.py tests/test_docking_runtime_qualification.py
-          uv run --locked pytest -q tests/test_docking.py tests/test_docking_runtime_qualification.py
+          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py
+          uv run --locked pytest -q tests/test_docking.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py
           cd frontend
           npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx
       - name: Actual isolated GNINA install, lazy CUDA-library qualification and native CPU modes
