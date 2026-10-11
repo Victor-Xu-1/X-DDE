@@ -59,6 +59,7 @@ jobs:
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx
           src/chemistry/StateResults.test.tsx src/diffsbdd/DiffResults.test.tsx
+          src/operations/PropertyForm.test.tsx
           src/research/SelectedAssetPreview.test.tsx src/research/ResearchWorkspace.test.tsx
       - name: Isolated native Chemistry and existing managed Ketcher
         run: |

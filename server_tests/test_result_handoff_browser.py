@@ -166,8 +166,13 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
             record=0,
         )[0]
         assert expected not in scientific.list(200, source_job=source.id)
-        with page.expect_download() as event:
-            download.click()
+        try:
+            with page.expect_download() as event:
+                download.click()
+        except Exception:
+            page.screenshot(path=str(evidence / "download-failure.png"))
+            (evidence / "download-failure.txt").write_text(page.locator("main").inner_text())
+            raise
         saved = Path(event.value.path())
         assert saved.read_bytes() == before_bytes[second.artifact]
         page.screenshot(path=str(evidence / "large-history-selected-pose.png"))
