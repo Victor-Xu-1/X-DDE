@@ -8,10 +8,11 @@ import {
 import { useState, type ComponentProps } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
+import * as client from "../api";
 import { defaults } from "../form-model";
 import type { Job } from "../types";
 import { TaskWorkspace } from "./TaskWorkspace";
-import { historyFixture } from "./task-history.test-fixtures";
+import { historyFixture, identityFixture } from "./task-history.test-fixtures";
 const job: Job = {
   id: "00000000-0000-0000-0000-000000000001",
   request: {
@@ -41,6 +42,16 @@ let historyJobs: Job[];
 beforeEach(() => {
   window.history.replaceState(null, "", "/");
   historyJobs = [job, descriptors];
+  vi.spyOn(client, "request").mockImplementation(async (path) => {
+    const identity = path.match(/^\/task-history\/([^/]+)\/identity$/);
+    const selected = identity
+      ? [job, descriptors, ...historyJobs].find(
+          (value) => value.id === identity[1],
+        )
+      : undefined;
+    if (!selected) throw new Error("Unhandled test request: " + path);
+    return identityFixture(selected) as never;
+  });
   vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
     historyFixture(historyJobs, path),
   );
@@ -205,11 +216,11 @@ it("keeps projects isolated and hides a selected task belonging to another proje
   fireEvent.click(screen.getByRole("button", { name: "Clear filter" }));
   expect(p.onProject).toHaveBeenCalledWith(null);
 });
-it("keeps a just-submitted task visible before history refresh and reports disconnection", () => {
+it("keeps a just-submitted task visible before history refresh and reports disconnection", async () => {
   const p = props({ job: { ...job, status: "queued" }, connectionError: true });
   render(<TaskWorkspace {...p} />);
   expect(
-    screen.getByRole("heading", { name: "STAT6 structure" }),
+    await screen.findByRole("heading", { name: "STAT6 structure" }),
   ).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Reconnect" }));
   expect(p.onRefresh).toHaveBeenCalledOnce();

@@ -6,7 +6,10 @@ import { api } from "./api";
 import * as apiClient from "./api";
 import * as deployment from "./deployment/client";
 import { defaults } from "./form-model";
-import { historyFixture } from "./studio/task-history.test-fixtures";
+import {
+  historyFixture,
+  identityFixture,
+} from "./studio/task-history.test-fixtures";
 import * as i18n from "./i18n";
 import type { Health, Job } from "./types";
 
@@ -54,6 +57,14 @@ beforeEach(() => {
   });
   vi.spyOn(api, "initialize").mockResolvedValue();
   vi.spyOn(api, "jobs").mockResolvedValue(jobs);
+  vi.spyOn(apiClient, "request").mockImplementation(async (path) => {
+    const identity = path.match(/^\/task-history\/([^/]+)\/identity$/);
+    const selected = identity
+      ? (await api.jobs()).find((job) => job.id === identity[1])
+      : undefined;
+    if (!selected) throw new Error("Unhandled test request: " + path);
+    return identityFixture(selected) as never;
+  });
   vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
     historyFixture(await api.jobs(), path),
   );
@@ -108,7 +119,7 @@ it("opens the shared asset workspace through the integrated navigation", async (
   vi.spyOn(apiClient, "request").mockImplementation(
     async (path) =>
       (path.startsWith("/research/graph")
-        ? { nodes: [], edges: [], truncated: false }
+        ? { schema: 1, limit: 200, nodes: [], edges: [], truncated: false }
         : []) as never,
   );
   const user = userEvent.setup();
@@ -141,13 +152,17 @@ it("keeps all projects visible when selecting a task from a module's unfiltered 
     await screen.findByRole("button", { name: /Project A task/ }),
   );
 
-  expect(screen.getByRole("heading", { name: "Project A task" })).toBeVisible();
+  expect(
+    await screen.findByRole("heading", { name: "Project A task" }),
+  ).toBeVisible();
   await user.click(screen.getByText("Task list", { exact: true }));
   expect(screen.queryByRole("group", { name: "Project filter" })).toBeNull();
   expect(screen.getByRole("button", { name: /Project B task/ })).toBeVisible();
   expect(screen.getByRole("button", { name: /Ungrouped task/ })).toBeVisible();
   await user.click(screen.getByRole("button", { name: /Project B task/ }));
-  expect(screen.getByRole("heading", { name: "Project B task" })).toBeVisible();
+  expect(
+    await screen.findByRole("heading", { name: "Project B task" }),
+  ).toBeVisible();
   await user.click(screen.getByText("Task list", { exact: true }));
   expect(screen.getByRole("button", { name: /Project A task/ })).toBeVisible();
 });
@@ -163,7 +178,9 @@ it("applies an explicitly chosen project until the user clears its filter", asyn
   expect(filter).toHaveTextContent("Study A");
   expect(screen.queryByRole("button", { name: /Project B task/ })).toBeNull();
   await user.click(screen.getByRole("button", { name: /Another A task/ }));
-  expect(screen.getByRole("heading", { name: "Another A task" })).toBeVisible();
+  expect(
+    await screen.findByRole("heading", { name: "Another A task" }),
+  ).toBeVisible();
   await user.click(screen.getByText("Task list", { exact: true }));
   expect(screen.getByRole("button", { name: /Project A task/ })).toBeVisible();
 

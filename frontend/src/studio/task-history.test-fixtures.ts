@@ -1,5 +1,19 @@
 import type { Job } from "../types";
-import { kindForJob, type TaskHistoryPage } from "./task-history-model";
+import {
+  kindForJob,
+  type TaskHistoryPage,
+  type TaskHistoryIdentity,
+} from "./task-history-model";
+
+/** Existing personal-job identity transport; no name heuristics or scientific data. */
+export function identityFixture(job: Job): TaskHistoryIdentity {
+  return {
+    job_id: job.id,
+    capability_id: kindForJob(job),
+    origin: "research",
+    example_cases: [],
+  };
+}
 
 /** Component transport fixture; not scientific data or computed outputs. */
 export function historyFixture(jobs: Job[], path: string): TaskHistoryPage {
