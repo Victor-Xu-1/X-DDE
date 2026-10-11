@@ -22,7 +22,12 @@ def interfaces(program):
                 "from openfe.protocols.openmm_rfe import RelativeHybridTopologyProtocol; "
                 "print('Native versions:',openfe.__version__,openmm.__version__,flush=True); "
                 "assert openfe.__version__=='1.12.0',repr(openfe.__version__); "
-                "assert openmm.__version__=='8.4.0',repr(openmm.__version__); "
+                # Upstream Platform::getOpenMMVersion omits a zero patch component.
+                "assert openmm.__version__=='8.4',repr(openmm.__version__); "
+                "native=[json.loads(p.read_text()) for p in "
+                "pathlib.Path('/opt/conda/conda-meta').glob('openmm-*.json')]; "
+                "assert len(native)==1 and native[0]['version']=='8.4.0' "
+                "and native[0]['build']=='py312h5a97af1_2',native; "
                 "metadata=[json.loads(p.read_text()) for p in "
                 "pathlib.Path('/opt/conda/conda-meta').glob('cuda-version-*.json')]; "
                 "print('CUDA metadata:',metadata,flush=True); "

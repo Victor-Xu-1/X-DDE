@@ -30,9 +30,13 @@ def fetch(url, digest, cache, host, report, checkpoint):
     if not re.fullmatch(r"[a-f0-9]{64}", digest):
         raise ValueError("Dependency archive requires an exact SHA256 identity.")
     file = cache / digest / name
-    report("Preparing verified dependency " + name)
+    report("Preparing scientific dependencies")
     download(url, file, digest, report, checkpoint, limit=1024**3)
     return {"file": file, "sha256": digest, "url": url}
+
+
+def dependency_progress(report, index, count):
+    return lambda message: report(f"Dependencies {index}/{count}: " + message)
 
 
 def conda_archives(lock, cache, report, checkpoint):
@@ -40,11 +44,12 @@ def conda_archives(lock, cache, report, checkpoint):
     if not lines or lines[0] != "@EXPLICIT" or len(lines) > 1501:
         raise ValueError("Native conda packages require a bounded explicit lock.")
     entries = []
-    for line in lines[1:]:
+    for index, line in enumerate(lines[1:], 1):
         url, separator, digest = line.rpartition("#")
         if not separator or not url.startswith("https://conda.anaconda.org/conda-forge/"):
             raise ValueError("Native conda package lacks a reviewed channel or checksum.")
-        entries.append(fetch(url, digest, cache, "conda.anaconda.org", report, checkpoint))
+        progress = dependency_progress(report, index, len(lines) - 1)
+        entries.append(fetch(url, digest, cache, "conda.anaconda.org", progress, checkpoint))
     return entries
 
 
@@ -109,7 +114,8 @@ def release_files(name, version):
 
 def wheel_archives(lock, cache, report, checkpoint):
     entries = []
-    for name, version, hashes in requirements(lock):
+    locked = requirements(lock)
+    for index, (name, version, hashes) in enumerate(locked, 1):
         checkpoint()
         candidates = [
             entry
@@ -123,13 +129,14 @@ def wheel_archives(lock, cache, report, checkpoint):
         entry = sorted(candidates, key=lambda value: value["filename"])[0]
         if archive_name(entry["url"], "files.pythonhosted.org") != entry["filename"]:
             raise ValueError("Dependency registry filename differs from its archive URL.")
+        progress = dependency_progress(report, index, len(locked))
         entries.append(
             fetch(
                 entry["url"],
                 entry["digests"]["sha256"],
                 cache,
                 "files.pythonhosted.org",
-                report,
+                progress,
                 checkpoint,
             )
         )
