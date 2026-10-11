@@ -80,6 +80,10 @@ jobs:
         run: uv run --locked python -m pytest -q tests/test_openfe_runtime.py tests/test_simulations.py tests/test_locked_packages.py tests/test_native_image_network.py
       - name: Actual locked OpenFE image, CLI and hybrid-topology protocol negotiation
         run: uv run --locked python server_tests/check_simulation_environment.py --program openfe
+      - name: Real public TYK2 plan and both short native FEP legs through the task API
+        env:
+          WB_TEST_NATIVE_SIMULATIONS: "1"
+        run: uv run --locked --with biopython==1.88 python -m pytest -x -q server_tests/test_native_simulations.py -k openfe
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -89,6 +93,7 @@ jobs:
             outputs/simulation-environment/interface-*.txt
             outputs/simulation-environment/scope.json
             outputs/simulation-environment/image-context/Dockerfile
+            outputs/native-simulations/openfe*/**
   md-views:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'md-views'
     runs-on: ubuntu-24.04
