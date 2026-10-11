@@ -101,10 +101,18 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         selection = page.get_by_role(
             "region", name="选择 FEP 分子" if zh else "Select FEP molecules"
         )
+
+        def inspect_drawings():
+            # Compact molecular drawings intentionally load as they enter the
+            # viewport. Inspect every card without disabling that product behavior.
+            for card in selection.locator(".simulation-ligand-grid > label").all():
+                card.scroll_into_view_if_needed()
+                expect(card.locator(".molecule-image")).to_have_attribute(
+                    "data-drawing-state", "ready", timeout=60000
+                )
+
         expect(selection.get_by_role("checkbox")).to_have_count(12)
-        expect(selection.locator('.molecule-image[data-drawing-state="ready"]')).to_have_count(
-            12, timeout=60000
-        )
+        inspect_drawings()
         selection.get_by_role("checkbox", name=f"{title} · 1", exact=True).check()
         selection.get_by_role("button", name="下一页" if zh else "Next page", exact=True).click()
         expect(selection.get_by_role("checkbox")).to_have_count(1)
@@ -116,9 +124,7 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         search.fill("")
         expect(selection.get_by_role("checkbox", name=f"{title} · 1", exact=True)).to_be_checked()
         expect(next_button).to_be_enabled()
-        expect(selection.locator('.molecule-image[data-drawing-state="ready"]')).to_have_count(
-            12, timeout=60000
-        )
+        inspect_drawings()
         module = page.get_by_role(
             "region", name="FEP 结合自由能" if zh else "FEP binding free energy", exact=True
         )
