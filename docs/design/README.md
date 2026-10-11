@@ -2,6 +2,16 @@
 
 The owner-provided `reference.png` remains unchanged as style inspiration only: readable scientific controls. The current owner direction uses Boltz Lab as interaction and visual inspiration: compact stepwise scientific workflows. The current visual direction is bright AI + biopharma: cool white, blue-purple and teal, flat workspaces and restrained boundaries. It supersedes the earlier green palette. Private reference projects and screenshots are not distributed with X-DDE. Its labels, project cards and plots are not feature specifications. Image SHA-256: `0d65a4b5acde90c80469a4bcc013b623d43021bbf90a2b90e29452b59f10b842` (1448 × 1086).
 
+## Research workflow acceptance
+
+Functional reliability has priority over visual polish. Review each task from a
+researcher's inputs through engine selection, validation, submission, cancellation,
+recovery, result selection, editing, downstream reuse and download. Preserve exact
+scientific records and source relationships; uncertain responses must not create
+duplicate work or silently change the selected material. Verify supported behavior
+and actionable unavailable/error states in focused module checks. Installation,
+software integration and scientific method acceptance remain distinct evidence.
+
 ## Whole-platform visual acceptance
 
 The owner sets Awwwards, Webby Awards and FWA as quality references, not a claim
