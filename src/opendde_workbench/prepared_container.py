@@ -38,6 +38,10 @@ class PreparedContainerBackend:
         """Reviewed native adapters may add bounded model mounts or GPU access."""
         return []
 
+    def process_limit(self, job):
+        """Default isolation budget; reviewed multi-context protocols may specialize it."""
+        return 64
+
     def image_for(self, job, directory):
         return self.configuration(self.settings)
 
@@ -73,7 +77,7 @@ class PreparedContainerBackend:
             "--security-opt",
             "no-new-privileges",
             "--pids-limit",
-            "64",
+            str(self.process_limit(job)),
             "--memory",
             str(options.memory_mib) + "m",
             "--cpus",

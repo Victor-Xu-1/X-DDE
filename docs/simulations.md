@@ -89,6 +89,17 @@ OpenFE 与对接环境安装通过原有可续传下载器获取固定依赖，�
 `--network=none` 的镜像构建中安装。无需启用 Docker 默认网络、修改主机网络或
 取消依赖校验。缓存按内容摘要保存于选定组件目录；计算任务保持原有网络隔离。
 
+FEP calculation containers use a bounded multi-context process allowance derived
+from their λ windows and allocated CPU threads (64–832), with BLAS/NumExpr thread
+pools limited separately. Other preparation tasks retain their 64-process limit.
+Read-only filesystems, no network, dropped capabilities and the requested CPU,
+memory and wall-time limits remain enforced. This supports native HREX context
+creation without treating process exhaustion as a successful calculation.
+
+FEP 计算按 λ 窗口及所分配 CPU 设置有限的多上下文进程预算（64–832），并分别
+限制 BLAS/NumExpr 线程。其他准备任务仍使用 64 个进程上限。只读文件系统、断网、
+权限限制以及请求的 CPU、内存和时间限制继续执行；不会将进程耗尽当作计算成功。
+
 GROMACS uses native steepest-descent minimization, V-rescale NVT equilibration and C-rescale NPT production. Its integrator and thermostat differ from OpenMM's Langevin protocol; matched systems do not imply identical trajectories. Prepared force fields are transferred through ParmEd, with explicit rejection of unsupported force expressions or changed atom/coordinate ordering. Trajectory molecules are made whole before the existing coordinate analysis; reported energies are matched to native saved-frame timestamps without interpolation. Production samples must fit the regular output stride. Native warnings remain errors; no `-maxwarn` bypass is used.
 GROMACS 执行原生最小化、V-rescale NVT 平衡和 C-rescale NPT 生产采样，与 OpenMM 的 Langevin 协议具有方法差异，不能据此承诺轨迹相同。ParmEd 转换时检查力场表达、原子顺序及初始坐标。轨迹先恢复周期盒中的完整分子，再进入现有坐标分析；势能与原生帧时间对应，不插值。生产采样须符合固定保存间隔；原生警告保持失败处理，不使用 `-maxwarn` 绕过。
 

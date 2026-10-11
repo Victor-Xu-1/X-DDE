@@ -6,9 +6,12 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from test_simulations import task
 
+from opendde_workbench.integrations.backend import ScientificBackend
 from opendde_workbench.integrations.image import lock_digest, prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS
+from opendde_workbench.requests import TASK_ADAPTER
 
 
 @pytest.fixture
@@ -102,3 +105,27 @@ def test_openfe_image_uses_cuda12_lock_without_upgrading_the_independent_md_engi
     assert f'org.xdde.science.lock="{before}"' in (tmp_path / "Dockerfile").read_text()
     assert "openmm=8.6.1=py312h5a97af1_0" in PROGRAMS["gromacs"]["conda"]
     assert lock_digest("openfe") == before
+
+
+def test_only_native_fep_calculation_gets_a_bounded_multi_context_process_budget(
+    settings, tmp_path
+):
+    backend = ScientificBackend(settings, "openfe")
+    value = task(True).model_dump(mode="json")
+    value["payload"]["stage"] = "calculate"
+    value["options"]["cpu"] = 4
+    job = SimpleNamespace(request=TASK_ADAPTER.validate_python(value))
+    assert backend.process_limit(job) == 152
+    arguments = backend.execution_arguments(job, tmp_path)
+    assert "OPENMM_CPU_THREADS=4" in arguments and "NUMBA_NUM_THREADS=4" in arguments
+    for name in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+        assert name + "=1" in arguments
+    value["options"]["cpu"] = 16
+    value["payload"]["lambda_windows"] = 24
+    assert (
+        backend.process_limit(SimpleNamespace(request=TASK_ADAPTER.validate_python(value))) == 832
+    )
+    assert backend.process_limit(SimpleNamespace(request=task(True))) == 64
+    assert (
+        ScientificBackend(settings, "openmm").process_limit(SimpleNamespace(request=task())) == 64
+    )
