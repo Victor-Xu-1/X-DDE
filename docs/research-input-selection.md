@@ -16,6 +16,10 @@ The source picker uses compact, accessible radio choices. Task and result-file f
 
 来源切换使用紧凑、支持键盘操作的单选项。仅在材料区实际宽度足够时并排显示任务和结果文件，窄区域逐项排列；减少动态效果的设置会关闭短暂入场过渡。展示调整不会修改文件字节或提交资格。
 
+Research-file annotations are saved as new versions through the existing object authority. A confirmed reply must match the original file, record, conformer and requested annotations; an uncertain response retains the same registration key. Saving temporarily locks annotation fields. Selecting another material or clearing selection changes the viewing intent, so a late successful save cannot take the view back. Relationship reads cancel superseded focus requests, retain an explicitly selected older material on refresh and reject delayed replies after leaving the workspace. Researchers receive concise recovery messages; internal registration diagnostics stay on the server.
+
+研究文件备注通过原有对象权威保存为新版本。确认回复须匹配原始文件、记录、构象和请求的备注；回复不确定时保留同一登记标识。保存期间暂时锁定备注字段。选择其他材料或取消选择会改变当前查看意图，迟到的成功保存不能抢回视图。关系读取会取消被替换的聚焦请求，刷新时保留明确选中的旧材料，离开工作空间后不应用迟到回复。页面提供简洁的恢复提示，内部登记诊断保留在服务器中。
+
 Before saving a result as input, the client verifies its source task, relative filename, size and SHA-256. The server checks the expected digest again before writing, rejects changed bytes, and retains its existing per-engine scientific eligibility checks. Replacement clears the previous input immediately. Lost replies retry the same verified source and request key; switching source, replacing input or leaving the picker cancels outstanding work. Late or timed-out replies cannot restore an abandoned selection. Unsupported, empty, oversized and internal engineering files do not become input choices. Existing originals and source-task lineage remain unchanged.
 
 结果保存为输入前，前端核对来源任务、相对文件名、大小及 SHA-256；服务器在写入前再次核对期望校验值，拒绝变化的字节，并保留各引擎原有的科学资格校验。开始替换时立即清除旧输入。回复丢失后重试仍使用同一核实来源与请求标识；切换来源、替换材料或离开选择器会取消进行中的请求，迟到或超时回复不能恢复放弃的选择。不支持、空白、过大及内部工程文件不进入材料选项；原始文件及来源任务关系保持不变。

@@ -1,5 +1,6 @@
 import {
   fireEvent,
+  act,
   render,
   screen,
   waitFor,
@@ -42,6 +43,81 @@ const graph = (objects = [original]): ResearchGraph => ({
     object,
   })),
 });
+
+it("does not replace the researcher’s newer material selection with a late saved version", async () => {
+  const other: ScientificObject = {
+    ...original,
+    id: "33333333-3333-4333-8333-333333333333",
+    label: "STAT6 follow-up material · controlled metadata",
+    reference: {
+      ...original.reference,
+      version_id: "33333333-3333-4333-8333-333333333333",
+    },
+  };
+  const saved: ScientificObject = {
+    ...original,
+    id: "44444444-4444-4444-8444-444444444444",
+    label: "STAT6 annotation · controlled metadata",
+    parent_id: original.id,
+    relation: "edited_from",
+    reference: {
+      ...original.reference,
+      version_id: "44444444-4444-4444-8444-444444444444",
+    },
+  };
+  let current = graph([original, other]);
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path === "/research/indexing" ? ([] as never) : (current as never),
+  );
+  let finish!: (value: ScientificObject) => void;
+  const post = vi.spyOn(client.api, "post").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }) as never,
+  );
+  render(
+    <ResearchWorkspace
+      language="en"
+      onEdit={vi.fn()}
+      onJob={vi.fn()}
+      onCreated={vi.fn()}
+    />,
+  );
+  const list = await screen.findByRole("list", { name: "Assets and tasks" });
+  fireEvent.click(
+    within(list).getByRole("button", {
+      name: "Molecule: ethanol",
+    }),
+  );
+  fireEvent.click(
+    screen.getByText("Name, notes & human rating", { selector: "summary" }),
+  );
+  fireEvent.change(screen.getByRole("textbox", { name: "Name" }), {
+    target: { value: saved.label },
+  });
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Save notes as new version",
+    }),
+  );
+  await waitFor(() => expect(post).toHaveBeenCalledOnce());
+  fireEvent.click(
+    within(list).getByRole("button", {
+      name: "Molecule: " + other.label,
+    }),
+  );
+  current = graph([saved, original, other]);
+  await act(async () => finish(saved));
+  await waitFor(() =>
+    expect(screen.getByRole("heading", { name: other.label })).toBeVisible(),
+  );
+  expect(screen.queryByRole("heading", { name: saved.label })).toBeNull();
+  expect(post.mock.calls[0][1]).toMatchObject({
+    parent_id: original.id,
+    asset_id: original.reference.asset_id,
+  });
+});
 afterEach(() => vi.restoreAllMocks());
 
 it("recovers from a loading failure and saves annotations as a separate version", async () => {
@@ -72,7 +148,9 @@ it("recovers from a loading failure and saves annotations as a separate version"
       onCreated={vi.fn()}
     />,
   );
-  expect(await screen.findByRole("alert")).toHaveTextContent("unavailable");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "暂时无法刷新研究文件",
+  );
   fail = false;
   fireEvent.click(screen.getByRole("button", { name: "重试" }));
   fireEvent.click(
@@ -101,6 +179,10 @@ it("recovers from a loading failure and saves annotations as a separate version"
     label: "reviewed",
     notes: "promising",
     rating: 4,
+    reference: {
+      ...original.reference,
+      version_id: "22222222-2222-4222-8222-222222222222",
+    },
   });
   expect(
     await screen.findByRole("heading", { name: "reviewed" }),

@@ -35,6 +35,9 @@ on:
       # File inspection and its direct handoff have workspace-preview-checks.yml.
       - "!frontend/src/research/ResearchWorkspace*"
       - "!frontend/src/research/ObjectInspector*"
+      - "!frontend/src/research/useResearchGraph*"
+      - "!frontend/src/research/useResearchRegistration*"
+      - "!frontend/src/research/graph-merge*"
       - "!frontend/src/research/SelectedAssetPreview*"
       - "!frontend/src/research/RelationshipGraph*"
       - "!frontend/src/research/asset-context*"

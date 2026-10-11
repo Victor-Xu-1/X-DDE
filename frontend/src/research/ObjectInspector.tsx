@@ -95,6 +95,7 @@ export function ObjectInspector({
                 <label className="field">
                   {zh ? "名称" : "Name"}
                   <input
+                    disabled={busy}
                     value={label}
                     maxLength={120}
                     onChange={(e) => setLabel(e.target.value)}
@@ -103,6 +104,7 @@ export function ObjectInspector({
                 <label className="field">
                   {zh ? "研究备注" : "Research notes"}
                   <textarea
+                    disabled={busy}
                     value={notes}
                     maxLength={3000}
                     onChange={(e) => setNotes(e.target.value)}
@@ -113,6 +115,7 @@ export function ObjectInspector({
                     ? "人工评价（不代表模型分数）"
                     : "Human rating (not a model score)"}
                   <select
+                    disabled={busy}
                     value={rating}
                     onChange={(e) => setRating(Number(e.target.value))}
                   >

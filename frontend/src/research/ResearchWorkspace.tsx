@@ -13,6 +13,7 @@ import { isResearchFile } from "../presentation/research-files";
 import { visibleAssetNodes, type AssetFilter } from "./asset-list";
 import { FileSelect } from "../presentation/FileSelect";
 import { assetContext } from "./asset-context";
+import { useResearchRegistration } from "./useResearchRegistration";
 
 export function ResearchWorkspace({
   language,
@@ -37,6 +38,8 @@ export function ResearchWorkspace({
     load,
     older,
     select,
+    selectionIntent,
+    selectSaved,
   } = useResearchGraph();
   const graph = sourceGraph ? researchGraphForDisplay(sourceGraph) : null;
   const [query, setQuery] = useState(""),
@@ -51,10 +54,14 @@ export function ResearchWorkspace({
   const [label, setLabel] = useState(""),
     [notes, setNotes] = useState(""),
     [rating, setRating] = useState(0);
-  const versionIntent = useRef<{ fingerprint: string; key: string } | null>(
-    null,
-  );
   const mutationRunning = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const node = graph?.nodes.find((n) => n.id === selected),
     object = node?.object;
   useEffect(() => {
@@ -63,35 +70,13 @@ export function ResearchWorkspace({
     setRating(object?.rating ?? 0);
     setProperties(null);
   }, [object?.id]);
-  async function register(
-    assetId: string,
-    kind: ObjectKind,
-    name: string,
-    parent?: ScientificObject,
-  ) {
-    const body = {
-      asset_id: assetId,
-      kind,
-      label: name,
-      record: parent?.reference.record ?? 0,
-      conformer: parent?.reference.conformer ?? 0,
-      parent_id: parent?.id ?? null,
-      relation: parent ? "edited_from" : "derived_from",
-      notes: parent ? notes : "",
-      rating: parent ? rating : 0,
-    };
-    const fingerprint = JSON.stringify(body);
-    if (versionIntent.current?.fingerprint !== fingerprint)
-      versionIntent.current = { fingerprint, key: crypto.randomUUID() };
-    const value = await api.post<ScientificObject>(
-      "/research/objects",
-      body,
-      versionIntent.current.key,
-    );
-    await load();
-    setSelected("object:" + value.id);
-    return value;
-  }
+  const register = useResearchRegistration({
+    notes,
+    rating,
+    selectionIntent,
+    load,
+    selectSaved,
+  });
   async function mutate(fn: () => Promise<unknown>, successMessage?: string) {
     if (mutationRunning.current) return;
     mutationRunning.current = true;
@@ -100,6 +85,7 @@ export function ResearchWorkspace({
     setMessage("");
     try {
       await fn();
+      if (!mounted.current) return;
       setMessage(
         successMessage ??
           (zh
@@ -107,10 +93,16 @@ export function ResearchWorkspace({
             : "Saved. The original version is preserved."),
       );
     } catch (e) {
-      setError(String(e));
+      if (mounted.current)
+        setError(
+          e instanceof Error &&
+            e.message.startsWith("The saved version does not match")
+            ? e.message
+            : "The research action could not be confirmed. Retry the same action or choose another material.",
+        );
     } finally {
       mutationRunning.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
 
@@ -148,6 +140,7 @@ export function ResearchWorkspace({
           {zh ? "材料类型" : "Upload type"}{" "}
           <select
             value={uploadKind}
+            disabled={busy}
             onChange={(e) => setUploadKind(e.target.value as ObjectKind)}
           >
             {(["molecule", "structure", "sequence"] as const).map((kind) => (
@@ -191,7 +184,23 @@ export function ResearchWorkspace({
       </div>
       {error && (
         <p role="alert" className="error-box">
-          {error}{" "}
+          {error ===
+          "Research files could not be refreshed. Retry to reconnect."
+            ? zh
+              ? "暂时无法刷新研究文件，请重试连接。"
+              : error
+            : error ===
+                "The selected material could not be refreshed. Retry to reconnect."
+              ? zh
+                ? "暂时无法刷新所选材料，请重试连接。"
+                : error
+              : error.startsWith("The saved version does not match")
+                ? zh
+                  ? "保存回复与确认的材料不一致，请重新选择原始材料。"
+                  : error
+                : zh
+                  ? "未能确认研究操作，可重试同一次操作或选择其他材料。"
+                  : error}{" "}
           <button onClick={() => void load()}>{zh ? "重试" : "Retry"}</button>
         </p>
       )}
@@ -218,7 +227,10 @@ export function ResearchWorkspace({
                 .filter((e) => isResearchFile(e.artifact))
                 .map((e, i) => (
                   <li key={i}>
-                    {e.artifact}: {e.reason}
+                    {e.artifact}:{" "}
+                    {zh
+                      ? "暂时无法登记为材料，请核对原始文件后重试。"
+                      : "Could not register this material. Check the original file and retry."}
                   </li>
                 ))}
             </ul>

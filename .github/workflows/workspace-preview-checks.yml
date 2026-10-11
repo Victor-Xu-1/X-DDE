@@ -6,6 +6,9 @@ on:
       - "frontend/src/research/SelectedAssetPreview*"
       - "frontend/src/research/ResearchWorkspace*"
       - "frontend/src/research/ObjectInspector*"
+      - "frontend/src/research/useResearchGraph*"
+      - "frontend/src/research/useResearchRegistration*"
+      - "frontend/src/research/graph-merge*"
       - "frontend/src/research/RelationshipGraph*"
       - "frontend/src/research/asset-context*"
       - "frontend/src/research/SequenceFilePreview*"
@@ -21,6 +24,7 @@ on:
       - "frontend/src/publication/FigureViewport.tsx"
       - "frontend/src/research/research.css"
       - "server_tests/*workspace_preview*"
+      - "server_tests/test_workspace_versions_browser.py"
       - ".github/workflows/workspace-preview-checks.yml"
   pull_request:
     paths: *workspace_paths
@@ -51,6 +55,7 @@ jobs:
           npx vitest run src/research/SelectedAssetPreview.test.tsx
           src/research/asset-context.test.ts src/research/RelationshipGraph.test.tsx
           src/research/ResearchWorkspace.test.tsx
+          src/research/useResearchGraph.test.tsx src/research/useResearchRegistration.test.tsx
           src/research/SequenceFilePreview.test.tsx src/research/fasta-file.test.ts
           src/presentation/SequenceTrack.test.tsx
           src/publication/FigureExport.test.tsx
@@ -60,7 +65,7 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked playwright install chromium --with-deps
       - name: Bilingual native 2D, calculated input 3D, exports and responsive file switching
-        run: uv run --locked python -m pytest -x -q server_tests/test_workspace_preview_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_workspace_preview_browser.py server_tests/test_workspace_versions_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
