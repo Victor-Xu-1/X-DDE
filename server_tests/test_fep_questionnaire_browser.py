@@ -118,7 +118,10 @@ def test_native_fep_file_deadline_retry_paging_and_exact_review(tmp_path, langua
         expect(selection.locator('.molecule-image[data-drawing-state="ready"]')).to_have_count(
             12, timeout=60000
         )
-        active = page.locator(".questionnaire > fieldset:not([hidden])")
+        module = page.get_by_role(
+            "region", name="FEP 结合自由能" if zh else "FEP binding free energy", exact=True
+        )
+        active = module.locator(".questionnaire > fieldset:not([hidden])")
         expect(active).to_have_css("transform", "none")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=evidence / "selected-records.png", full_page=True)
