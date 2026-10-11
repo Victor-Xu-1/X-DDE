@@ -5,6 +5,7 @@ import { LibraryInput } from "./LibraryInput";
 import * as client from "../api";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../research/input-catalog";
+import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
 const a = { asset_id: "A", sha256: "a".repeat(64), record: 0, conformer: 0 };
 const b = { ...a, asset_id: "B", sha256: "b".repeat(64) };
 const metadata = (ref: MoleculeRef) => ({
@@ -66,7 +67,7 @@ it("replaces the old filename and eligibility when the externally controlled ref
   ).toBeDisabled();
   expect(screen.queryByText(/B.sdf ·/)).toBeNull();
 });
-it("rejects changed file identity and individual-record substitution without exposing a private error", async () => {
+it("rejects changed file identity without exposing a private error", async () => {
   vi.spyOn(client, "request").mockResolvedValue({
     ...metadata(a),
     sha256: b.sha256,
@@ -82,5 +83,29 @@ it("rejects changed file identity and individual-record substitution without exp
   );
   await screen.findByRole("alert");
   expect(verified).not.toHaveBeenCalledWith(a);
+  expect(screen.queryByText(/A.sdf ·/)).toBeNull();
+});
+it("an individual saved record cannot become an eligible whole molecular library", async () => {
+  const record = { ...a, record: 1, version_id: "saved-record" };
+  vi.spyOn(client, "request").mockImplementation(
+    async (path) =>
+      (path.startsWith("/research/input-catalog")
+        ? catalogFixture()
+        : metadata(a)) as never,
+  );
+  const verified = vi.fn();
+  render(
+    <LibraryInput
+      value={record}
+      onChange={vi.fn()}
+      onVerified={verified}
+      language="en"
+    />,
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent("individual record");
+  await waitFor(() =>
+    expect(screen.queryByText("Checking the molecular library…")).toBeNull(),
+  );
+  expect(verified).not.toHaveBeenCalledWith(record);
   expect(screen.queryByText(/A.sdf ·/)).toBeNull();
 });
