@@ -31,6 +31,16 @@ export function unwrapResult(value: unknown): unknown {
   return value;
 }
 const messages: Record<string, [string, string]> = {
+  "The task action could not be confirmed. Try again to continue the same action.":
+    [
+      "未能确认任务操作的结果。请重试，系统会继续同一次操作。",
+      "The task action could not be confirmed. Try again to continue the same action.",
+    ],
+  "The task was updated, but its page could not be opened. Open it from Tasks and results.":
+    [
+      "任务已更新，但未能自动打开。请在任务与结果中查看。",
+      "The task was updated, but its page could not be opened. Open it from Tasks and results.",
+    ],
   "Task submission could not be confirmed. Submit again to continue the same request.":
     [
       "未能确认任务是否提交。请再次点击提交，系统会继续同一次请求。",

@@ -41,6 +41,7 @@ it("retains a retry key until the confirmed child is delivered to the task view"
   const changed = vi.fn().mockImplementationOnce(() => {
     throw new Error("Result view unavailable");
   });
+  vi.spyOn(console, "warn").mockImplementation(() => undefined);
   render(
     <TaskDetail
       job={source()}
@@ -52,7 +53,7 @@ it("retains a retry key until the confirmed child is delivered to the task view"
   );
   fireEvent.click(screen.getByRole("button", { name: "Run again" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Result view unavailable",
+    "The task was updated",
   );
   fireEvent.click(screen.getByRole("button", { name: "Run again" }));
   await waitFor(() => expect(changed).toHaveBeenCalledTimes(2));

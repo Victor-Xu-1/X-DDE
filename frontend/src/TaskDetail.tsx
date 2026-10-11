@@ -36,12 +36,8 @@ export function TaskDetail({
   const t = translator(language);
   const taskLabel = useTaskLabel(job, language);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set()),
-    [actionError, setActionError] = useState<{
-      jobId: string;
-      message: string;
-    } | null>(null);
-  const error =
-    actionError && actionError.jobId === job?.id ? actionError.message : "";
+    [actionErrors, setActionErrors] = useState<Record<string, string>>({});
+  const error = job ? (actionErrors[job.id] ?? "") : "";
   const busy = Boolean(job && pendingIds.has(job.id));
   const retryKeys = useRef(new Map<string, string>());
   const actionPending = useRef(new Set<string>());
@@ -52,7 +48,7 @@ export function TaskDetail({
     if (kind === "cancel" && !window.confirm(t("cancelConfirm"))) return;
     actionPending.current.add(job.id);
     setPendingIds(new Set(actionPending.current));
-    setActionError(null);
+    setActionErrors((previous) => ({ ...previous, [job.id]: "" }));
     try {
       let result: Job;
       if (kind === "cancel") result = await api.cancel(job.id);
@@ -62,15 +58,33 @@ export function TaskDetail({
         result = await api.retry(job.id, key);
       }
       if (selectedId.current === job.id) {
-        onChange(result);
-        if (kind === "retry") retryKeys.current.delete(job.id);
+        try {
+          onChange(result);
+          if (kind === "retry") retryKeys.current.delete(job.id);
+        } catch (error) {
+          console.warn(
+            "Confirmed task action view could not be opened.",
+            error,
+          );
+          setActionErrors((previous) => ({
+            ...previous,
+            [job.id]:
+              "The task was updated, but its page could not be opened. Open it from Tasks and results.",
+          }));
+        }
       }
     } catch (error) {
-      if (selectedId.current === job.id)
-        setActionError({
-          jobId: job.id,
-          message: error instanceof Error ? error.message : t("error"),
-        });
+      setActionErrors((previous) => ({
+        ...previous,
+        [job.id]:
+          error instanceof TypeError ||
+          (error instanceof DOMException &&
+            ["TimeoutError", "AbortError"].includes(error.name))
+            ? "The task action could not be confirmed. Try again to continue the same action."
+            : error instanceof Error
+              ? error.message
+              : t("error"),
+      }));
     } finally {
       actionPending.current.delete(job.id);
       setPendingIds(new Set(actionPending.current));
