@@ -12,6 +12,7 @@ export function HistoricalFileSelect({
   files,
   busy,
   onSelect,
+  requestedChoice = "",
 }: {
   language: Language;
   label: string;
@@ -20,17 +21,20 @@ export function HistoricalFileSelect({
   files: Asset[];
   busy: boolean;
   onSelect(assetId: string, reference?: MoleculeRef): void;
+  requestedChoice?: string;
 }) {
   const zh = language === "zh";
   const versionNames = nameCounts(versions.map((v) => v.label));
   const fileNames = nameCounts(files.map((v) => v.name));
   // A file collection and an immutable record are distinct usable inputs.
   const uploads = files;
-  const selected = value?.version_id
-    ? "version:" + value.version_id
-    : value
-      ? "file:" + value.asset_id
-      : "";
+  const selected =
+    requestedChoice ||
+    (value?.version_id
+      ? "version:" + value.version_id
+      : value
+        ? "file:" + value.asset_id
+        : "");
   return (
     <label className="field">
       {label} · {zh ? "历史文件" : "Historical files"}

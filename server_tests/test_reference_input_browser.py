@@ -85,6 +85,7 @@ def test_original_material_cannot_be_submitted_while_replacement_is_pending(
         target = base + "/api/assets/" + alternate.id + "/metadata"
         page.route(target, lambda route: held.append(route))
         picker.select_option("file:" + alternate.id)
+        expect(picker).to_have_value("file:" + alternate.id)
         expect(next_button).to_be_disabled()
         expect(
             module.get_by_role("status").filter(

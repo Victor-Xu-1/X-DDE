@@ -71,6 +71,7 @@ it("an existing input cannot remain eligible while a newly selected file is pend
     screen.getByRole("button", { name: "Next with material" }),
   ).toBeEnabled();
   await user.selectOptions(picker, "version:beta");
+  expect(picker).toHaveValue("version:beta");
   expect(
     screen.getByRole("button", { name: "Next with material" }),
   ).toBeDisabled();

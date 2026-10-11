@@ -95,6 +95,7 @@ export function ReferencePicker({
           versions={history.versions}
           files={history.files}
           busy={history.loading || selection.loading}
+          requestedChoice={selection.requestedChoice}
           onSelect={chooseHistorical}
         />
         {history.loading && (

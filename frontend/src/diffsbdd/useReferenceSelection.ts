@@ -18,12 +18,13 @@ export function useReferenceSelection(
     key: string;
     loading: boolean;
     error: "" | "identity" | "format" | "unavailable";
-  }>({ key, loading: false, error: "" });
+    requestedChoice: string;
+  }>({ key, loading: false, error: "", requestedChoice: "" });
   function cancel() {
     controller.current?.abort();
     controller.current = null;
     last.current = null;
-    setState({ key, loading: false, error: "" });
+    setState({ key, loading: false, error: "", requestedChoice: "" });
   }
   useEffect(() => {
     return () => {
@@ -39,7 +40,10 @@ export function useReferenceSelection(
     const current = new AbortController();
     controller.current = current;
     last.current = { id, reference };
-    setState({ key, loading: true, error: "" });
+    const requestedChoice = reference?.version_id
+      ? "version:" + reference.version_id
+      : "file:" + id;
+    setState({ key, loading: true, error: "", requestedChoice });
     try {
       const value = await resolveReference(
         id,
@@ -55,7 +59,7 @@ export function useReferenceSelection(
       )
         return;
       callback.current(value);
-      setState({ key, loading: false, error: "" });
+      setState({ key, loading: false, error: "", requestedChoice: "" });
     } catch (error) {
       if (
         currentKey.current !== key ||
@@ -66,13 +70,16 @@ export function useReferenceSelection(
       setState({
         key,
         loading: false,
+        requestedChoice,
         error:
           error instanceof ReferenceMetadataError ? error.code : "unavailable",
       });
     }
   }
   const visible =
-    state.key === key ? state : { key, loading: false, error: "" as const };
+    state.key === key
+      ? state
+      : { key, loading: false, error: "" as const, requestedChoice: "" };
   return {
     ...visible,
     choose,
