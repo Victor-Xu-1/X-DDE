@@ -47,7 +47,7 @@ export function TaskHistoryModules({
             <strong>{historyModuleLabel(module, language)}</strong>
             <span className="task-history-module-count">
               {loading && !count.total ? "—" : count.total}{" "}
-              {zh ? "个任务" : "tasks"}
+              {zh ? "个任务" : count.total === 1 ? "task" : "tasks"}
             </span>
             {count.active > 0 && (
               <small>

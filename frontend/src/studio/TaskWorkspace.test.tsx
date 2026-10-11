@@ -69,7 +69,7 @@ async function modulePage(label = "Properties and safety") {
   await waitFor(() =>
     expect(
       screen.getByRole("group", { name: "Task modules" }),
-    ).toHaveTextContent("1 tasks"),
+    ).toHaveTextContent("1 task"),
   );
   fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
   await screen.findByRole("button", { name: "STAT6 descriptors" });
