@@ -1,5 +1,6 @@
 """CI/server-only installation smoke: imports and real CLI negotiation, no MD task execution."""
 
+import argparse
 import json
 import subprocess
 from pathlib import Path
@@ -9,26 +10,25 @@ from opendde_workbench.integrations.image import lock_digest, prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
 
-def main():
-    evidence = Path("outputs/simulation-environment").resolve()
-    evidence.mkdir(parents=True, exist_ok=True)
-    spec = PROGRAMS["gromacs"]
-    source = spec["source"]
-    archive = evidence / "openmmforcefields.zip"
-    download(source["url"], archive, source["sha256"], print, lambda: None)
-    extract(archive, evidence / "source", lambda: None)
-    context = evidence / "image-context"
-    prepare_context("gromacs", context, evidence / "source" / source["prefix"])
-    tag = "xdde-gromacs-check:" + recipe_digest("gromacs")[:16]
-    with (evidence / "build.log").open("w") as logfile:
-        subprocess.run(
-            ["docker", "build", "--tag", tag, str(context)],
-            check=True,
-            stdout=logfile,
-            stderr=subprocess.STDOUT,
-            timeout=2400,
-        )
-    commands = [
+def interfaces(program):
+    if program == "openfe":
+        return [
+            ["openfe", "--version"],
+            [
+                "python",
+                "-c",
+                "import json,pathlib,openfe,openmm,pdbfixer; "
+                "from openfe.protocols.openmm_rfe import RelativeHybridTopologyProtocol; "
+                "assert openfe.__version__=='1.12.0'; assert openmm.__version__=='8.4.0'; "
+                "metadata=[json.loads(p.read_text()) for p in "
+                "pathlib.Path('/opt/conda/conda-meta').glob('cuda-version-*.json')]; "
+                "assert len(metadata)==1 and metadata[0]['version'].startswith('12.9'); "
+                "protocol=RelativeHybridTopologyProtocol.default_settings(); "
+                "RelativeHybridTopologyProtocol(protocol); "
+                "print(openfe.__version__,openmm.__version__,metadata[0]['version'])",
+            ],
+        ]
+    return [
         ["/opt/gromacs/bin/gmx", "--version"],
         ["/opt/gromacs/bin/gmx", "grompp", "-h"],
         ["/opt/gromacs/bin/gmx", "mdrun", "-h"],
@@ -42,7 +42,33 @@ def main():
             "assert mdtraj.__version__=='1.11.0'",
         ],
     ]
-    for index, arguments in enumerate(commands):
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--program", choices=("gromacs", "openfe"), default="gromacs")
+    program = parser.parse_args().program
+    evidence = Path("outputs/simulation-environment").resolve()
+    evidence.mkdir(parents=True, exist_ok=True)
+    spec = PROGRAMS[program]
+    source_root = None
+    if source := spec.get("source"):
+        archive = evidence / "openmmforcefields.zip"
+        download(source["url"], archive, source["sha256"], print, lambda: None)
+        extract(archive, evidence / "source", lambda: None)
+        source_root = evidence / "source" / source["prefix"]
+    context = evidence / "image-context"
+    prepare_context(program, context, source_root)
+    tag = "xdde-" + program + "-check:" + recipe_digest(program)[:16]
+    with (evidence / "build.log").open("w") as logfile:
+        subprocess.run(
+            ["docker", "build", "--tag", tag, str(context)],
+            check=True,
+            stdout=logfile,
+            stderr=subprocess.STDOUT,
+            timeout=2400,
+        )
+    for index, arguments in enumerate(interfaces(program)):
         result = subprocess.run(
             [
                 "docker",
@@ -59,7 +85,11 @@ def main():
                 "USER=xdde",
                 "--env",
                 "LOGNAME=xdde",
-                *(["--env", "LD_LIBRARY_PATH=/opt/gromacs/lib"] if index < 3 else []),
+                *(
+                    ["--env", "LD_LIBRARY_PATH=/opt/gromacs/lib"]
+                    if program == "gromacs" and index < 3
+                    else []
+                ),
                 "--entrypoint",
                 arguments[0],
                 tag,
@@ -72,7 +102,7 @@ def main():
         )
         text = result.stdout + result.stderr
         (evidence / f"interface-{index}.txt").write_text(text, encoding="utf-8")
-        if index == 0 and ("2026.3" not in text or "CUDA" not in text):
+        if program == "gromacs" and index == 0 and ("2026.3" not in text or "CUDA" not in text):
             raise ValueError("The native GROMACS build differs from its reviewed CUDA interface.")
     image = subprocess.check_output(
         ["docker", "image", "inspect", "--format", "{{.Id}}", tag], text=True
@@ -80,10 +110,10 @@ def main():
     (evidence / "scope.json").write_text(
         json.dumps(
             {
-                "program": "gromacs",
+                "program": program,
                 "image": image,
-                "recipe_sha256": recipe_digest("gromacs"),
-                "lock_sha256": lock_digest("gromacs"),
+                "recipe_sha256": recipe_digest(program),
+                "lock_sha256": lock_digest(program),
                 "scientific_calculations": False,
                 "gpu_execution": False,
                 "scientific_acceptance": "pending_target_server",

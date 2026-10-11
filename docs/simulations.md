@@ -63,9 +63,20 @@ FEP 分子选择在启用下一步前核对原始 SDF 的元数据与 SHA-256 �
 | Preparation and parameterization / 体系准备与参数化 | PDBFixer, AMBER14/TIP3P, OpenFF/AmberTools      | Resolve supported atoms, water, ions and ligand parameters; unsupported chemistry fails explicitly / 准备支持的原子、水、离子和配体参数；不支持化学明确报错                   |
 | GROMACS topology transfer / GROMACS 拓扑转换        | ParmEd                                          | Retain parameterized bonds/charges, reject unknown force forms and changed atom order / 保留参数化键和电荷，拒绝未知力场形式及原子顺序变化                                    |
 | Trajectory observations / 轨迹观测                  | Native OpenMM observations or MDTraj TRR reader | Original timestamps and coordinates; shared alignment, RMSD/RMSF/Rg and contact definitions / 原生时间与坐标，统一对齐和稳定性指标定义                                        |
-| Relative free-energy workflow / 相对自由能流程      | OpenFE, GUFE, compatible OpenMM/OpenMMTools     | Both thermodynamic legs, independent repeats, native HREX; OpenFE's compatible OpenMM 8.4.0 stays isolated / 双环境、独立重复和原生 HREX；OpenFE 兼容的 OpenMM 8.4.0 独立保留 |
+| Relative free-energy workflow / 相对自由能流程      | OpenFE, GUFE, compatible OpenMM/OpenMMTools     | Both thermodynamic legs, independent repeats, native HREX; isolated OpenMM 8.4.0 and CUDA 12.9 / 双环境、独立重复和原生 HREX；独立 OpenMM 8.4.0 与 CUDA 12.9 |
 | Atom correspondence / 原子对应                      | LoMap or Kartograf                              | Explicit choice, original atom maps and bounded congeneric networks / 明确选择、原子映射和有界同系列变化网络                                                                  |
 | Charges and uncertainty / 电荷与误差                | OpenFF/AmberTools AM1-BCC; native MBAR          | Charge assignment shared between legs; signed estimates, uncertainty, overlap and convergence retained / 双环境一致电荷；保留正负号、误差、重叠和收敛诊断                     |
+
+The OpenFE environment keeps its supported OpenMM 8.4 protocol dependency,
+separate from the newer dynamics engine. Both its reviewed solver and immutable
+package lock bind CUDA 12.9; CUDA 13 packages are not substituted by a floating
+resolution. Qualify the actual CUDA context on the compute host before production
+FEP. The environment build/CLI gate has no GPU and does not claim GPU execution,
+sampling convergence or affinity validation.
+
+OpenFE 保留其协议支持的 OpenMM 8.4，独立于较新的动力学环境。环境求解与不可变包锁
+均限定 CUDA 12.9，避免浮动求解引入 CUDA 13。生产 FEP 前仍需在计算主机验证真实
+CUDA 上下文。环境构建与接口检查不具备 GPU，不能代表 GPU 执行、采样收敛或亲和力验证。
 
 GROMACS uses native steepest-descent minimization, V-rescale NVT equilibration and C-rescale NPT production. Its integrator and thermostat differ from OpenMM's Langevin protocol; matched systems do not imply identical trajectories. Prepared force fields are transferred through ParmEd, with explicit rejection of unsupported force expressions or changed atom/coordinate ordering. Trajectory molecules are made whole before the existing coordinate analysis; reported energies are matched to native saved-frame timestamps without interpolation. Production samples must fit the regular output stride. Native warnings remain errors; no `-maxwarn` bypass is used.
 GROMACS 执行原生最小化、V-rescale NVT 平衡和 C-rescale NPT 生产采样，与 OpenMM 的 Langevin 协议具有方法差异，不能据此承诺轨迹相同。ParmEd 转换时检查力场表达、原子顺序及初始坐标。轨迹先恢复周期盒中的完整分子，再进入现有坐标分析；势能与原生帧时间对应，不插值。生产采样须符合固定保存间隔；原生警告保持失败处理，不使用 `-maxwarn` 绕过。
