@@ -59,7 +59,7 @@ jobs:
       - name: Actual clustering questionnaire, previews, heatmap and downloads
         env:
           WB_POSE_CLUSTER: ${{ runner.temp }}/pose-cluster
-        run: uv run --locked pytest -q server_tests/test_pose_cluster_browser.py
+        run: uv run --locked python -m pytest -q server_tests/test_pose_cluster_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

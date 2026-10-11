@@ -32,7 +32,7 @@ def freeze_channels(settings, output, identifier, result):
     with TestClient(create_app(cold), base_url="http://127.0.0.1:4320") as client:
         assert client.get("/api/jobs/" + identifier + "/result").json() == result
         assert client.get("/api/jobs").json() == []
-        detail = client.get("/api/examples/caver.paths").json()
+        detail = client.get("/api/examples/caver.paths?profile=archive").json()
         assert detail["computed_result_available"] and detail["pin"]["job_id"] == identifier
     receipt = {
         "file": target.name,

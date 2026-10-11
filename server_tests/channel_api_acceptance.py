@@ -73,7 +73,7 @@ def main():
         assert client.get("/api/capabilities/caver.paths").json()["availability"][
             "configuration_present"
         ]
-        prepared = client.post("/api/examples/caver.paths/prepare")
+        prepared = client.post("/api/examples/caver.paths/prepare?profile=archive")
         assert prepared.status_code == 200, prepared.text
         example = prepared.json()
         ref = example["objects"]["ache"]["reference"]
@@ -163,17 +163,23 @@ def main():
             finally:
                 report.write_bytes(authored)
                 file.write_bytes(original)
-        pin = client.post("/api/examples/caver.paths/pin", json={"job_id": identifier})
+        pin = client.post(
+            "/api/examples/caver.paths/pin?profile=archive", json={"job_id": identifier}
+        )
         assert pin.status_code == 200, pin.text
         assert (
-            client.post("/api/examples/caver.paths/pin", json={"job_id": identifier}).json()
+            client.post(
+                "/api/examples/caver.paths/pin?profile=archive", json={"job_id": identifier}
+            ).json()
             == pin.json()
         )
         assert client.get("/api/jobs").json() == []
     archive = freeze_channels(settings, output, identifier, result)
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         assert client.get("/api/jobs/" + identifier + "/result").json() == result
-        assert client.get("/api/examples/caver.paths").json()["computed_result_available"]
+        assert client.get("/api/examples/caver.paths?profile=archive").json()[
+            "computed_result_available"
+        ]
         assert client.get("/api/jobs").json() == []
     (output / "result.json").write_text(json.dumps(result))
     receipt = {
