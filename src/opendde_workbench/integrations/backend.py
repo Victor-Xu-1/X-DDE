@@ -36,9 +36,10 @@ class ScientificBackend(PreparedContainerBackend):
         shared = {}
         if identifier in {"openmm", "openfe", "gromacs"}:
             names = {
-                "openmm": ("md_system", "md_analysis", "dynamics", "md_outputs"),
+                "openmm": ("md_input", "md_system", "md_analysis", "dynamics", "md_outputs"),
                 "openfe": ("openfe", "fep_plan", "fep_result"),
                 "gromacs": (
+                    "md_input",
                     "md_system",
                     "md_analysis",
                     "md_outputs",

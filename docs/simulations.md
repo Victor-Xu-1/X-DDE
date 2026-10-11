@@ -1,5 +1,9 @@
 # Molecular dynamics and FEP / 分子动力学与结合自由能
 
+Both dynamics engines check adjacent protein C–N distances in each explicit chain before atom repair and again afterwards, before solvation. Nonfinite distances and links outside 0.9–1.8 Å are rejected with the affected chain and residues. Explicit chain fragments remain separate; author numbering gaps alone do not imply missing sequence. Missing backbone atoms must be resolved by the reviewed preparation before simulation, and original files are never modified.
+
+两个动力学引擎在修复缺失原子前后、加水前检查每条明确链内相邻蛋白残基的 C–N 距离。非有限值或不在 0.9–1.8 Å 范围内的连接会被拒绝，并提示具体链和残基。明确的链片段保持分离，作者编号跳号本身不被视为序列缺失；修复后仍不完整的骨架不可进入模拟，原始文件保持不变。
+
 X-DDE owns the questionnaire, task lifecycle, immutable inputs and linked results. OpenMM, GROMACS and OpenFE are independent scientific environments managed by the same platform. Choose OpenMM or GROMACS in the same dynamics module; the selection changes the actual executor, not a cosmetic label.
 X-DDE 负责问卷式提交、任务生命周期、不可覆盖输入和结果关联。OpenMM、GROMACS 与 OpenFE 是同一平台管理的独立科学环境。动力学模块可切换 OpenMM 或 GROMACS，切换后调用所选引擎的真实执行程序。
 
