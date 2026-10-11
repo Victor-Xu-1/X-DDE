@@ -103,10 +103,25 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                         path=str(evidence / f"native-binding-results-{width}.png"), full_page=True
                     )
                 panel.get_by_role("button", name="Calculate properties", exact=True).click()
-                expect(panel.locator(".tool-form select").last).to_have_value(reference["asset_id"])
+                expect(
+                    page.get_by_role("radio", name="Use the selected molecular file", exact=False)
+                ).to_be_checked()
+                page.get_by_role("button", name="Next", exact=True).click()
+                expect(
+                    page.locator('select:has(option[value="' + reference["asset_id"] + '"])')
+                ).to_have_value(reference["asset_id"])
+                expect(
+                    page.get_by_text(
+                        "Molecule record 1 is selected; only this record is calculated.", exact=True
+                    )
+                ).to_be_visible()
                 assert {
                     j["id"] for j in page.request.get(base + "/api/jobs").json()
                 } == expected_job_ids
+                page.get_by_role("button", name="← Back to results", exact=True).click()
+                expect(
+                    panel.get_by_role("button", name=f"Pose {pose['record'] + 1}", exact=True)
+                ).to_have_attribute("aria-pressed", "true")
                 if rejected_id:
                     page.set_viewport_size({"width": 1440, "height": 1000})
                     page.goto(base + "/#task=" + rejected_id)
