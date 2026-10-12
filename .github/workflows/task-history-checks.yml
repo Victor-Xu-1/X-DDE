@@ -4,6 +4,8 @@ on:
   push:
     paths: &history_paths
       - "src/opendde_workbench/task_history/**"
+      - "src/opendde_workbench/examples/library.py"
+      - "tests/test_example_library.py"
       - "frontend/src/studio/TaskWorkspace*"
       - "frontend/src/studio/TaskHistory*"
       - "frontend/src/studio/ModuleWorkspaceNavigation*"
