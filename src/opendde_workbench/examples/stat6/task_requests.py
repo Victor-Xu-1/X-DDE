@@ -78,7 +78,8 @@ def study_task(capability, objects, sequences):
         value.update(
             structure=ref("structure"),
             scientific_inputs=[ref("structure")],
-            options={"chains": ["A"]},
+            # The frozen 9BIG construct has A at all eight alternate atom sites.
+            options={"chains": ["A"], "alternate": "A", "format": "cif"},
         )
     elif capability == "biopython.ensemble":
         value.update(

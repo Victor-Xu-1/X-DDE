@@ -75,6 +75,18 @@ def read_model(file, selection):
 def write_model(model, file):
     from Bio.PDB import MMCIFIO, PDBIO
 
+    if file.suffix == ".pdb":
+        # PDBIO does not reject long component/atom names and shifts fixed columns.
+        # Preserve scientific identifiers by requiring the caller to choose mmCIF.
+        if any(not 1 <= len(residue.resname) <= 3 for residue in model.get_residues()) or any(
+            not 1 <= len(atom.id) <= 4 for atom in model.get_atoms()
+        ):
+            raise ValueError("PDB cannot preserve these residue or atom identifiers; choose mmCIF.")
+        if any(
+            len(f"{float(value):8.3f}") != 8
+            for atom in model.get_atoms() for value in atom.coord
+        ):
+            raise ValueError("Coordinates exceed PDB fixed columns; choose mmCIF.")
     exporter = PDBIO() if file.suffix == ".pdb" else MMCIFIO()
     # The new artifact contains exactly one selected model; the original stays immutable.
     model.id = 0

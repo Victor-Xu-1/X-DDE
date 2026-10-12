@@ -21,6 +21,14 @@ def test_state_task_is_registered_with_exact_input_and_bounded_combinations():
     assert engine_for(request.operation).id == "chemistry"
     assert input_identifiers(request) == {ref["asset_id"]}
     assert TASK_ADAPTER.validate_json(request.model_dump_json()) == request
+    assert request.options.optimization_iterations == 1000
+    retained = request.model_copy(
+        update={"options": request.options.model_copy(update={"optimization_iterations": 200})}
+    )
+    assert (
+        TASK_ADAPTER.validate_json(retained.model_dump_json()).model_dump_json()
+        == retained.model_dump_json()
+    )
     for fields in [
         {"ph_min": 9, "ph_max": 4},
         {"max_states": 64, "conformers_per_state": 16},
