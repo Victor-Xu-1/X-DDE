@@ -88,6 +88,7 @@ it("shows fresh Failed metadata and task error despite stale Running cache and f
     "Failed",
   );
   expect(screen.getByText("Controlled task failure")).toBeVisible();
+  await advance(6500); // Health has its own ten-second cadence.
   expect(
     document.querySelector('[data-read-error="health"]'),
   ).toHaveTextContent("Availability is unconfirmed");

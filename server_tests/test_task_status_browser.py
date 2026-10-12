@@ -213,6 +213,7 @@ def test_health_outage_does_not_hide_terminal_status(fixture_page, language, wid
         "失败" if language == "zh" else "Failed"
     )
     expect(page.get_by_text("Controlled task failure", exact=True)).to_be_visible()
+    page.clock.run_for(6500)  # The health stream has its own ten-second cadence.
     expect(page.locator('[data-read-error="health"]')).to_be_visible()
     capture("health-outage", "Confirmed task failure with an independent service-health warning.")
     assert counts[f"/jobs/{A}"] >= 2 and counts["/jobs"] >= 2
