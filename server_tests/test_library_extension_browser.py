@@ -98,7 +98,19 @@ def test_therapeutic_library_results_and_new_guided_choices(tmp_path):
                     for mode, identifier in identifiers.items():
                         page.goto(base + "/#task=" + identifier)
                         results = page.locator(".discovery-results")
-                        expect(results).to_be_visible()
+                        try:
+                            expect(results).to_be_visible()
+                        except AssertionError:
+                            page.screenshot(path=str(evidence / f"library-{mode}-failure.png"))
+                            (evidence / f"library-{mode}-failure.json").write_text(json.dumps({
+                                "requested_job": identifier, "url": page.url,
+                                "page": page.locator("main").inner_text(),
+                                "job": page.request.get(base + f"/api/jobs/{identifier}").json(),
+                                "result": page.request.get(
+                                    base + f"/api/jobs/{identifier}/result"
+                                ).json(),
+                            }, ensure_ascii=False, indent=2), encoding="utf-8")
+                            raise
                         expect(
                             results.get_by_role("link", name="下载筛选表格", exact=True)
                         ).to_be_visible()
