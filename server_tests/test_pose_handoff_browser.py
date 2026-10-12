@@ -149,13 +149,13 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
             assert payload["reference"] == expected.reference.model_dump(mode="json")
             questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
             questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
-            # Properties belongs to the separate OpenDDE environment; this gate
-            # installs Chemistry only and must preserve the actual readiness block.
+            # The independent Chemistry environment now owns RDKit properties.
+            # Verify its real readiness without creating a task in this read-only journey.
             expect(
                 questionnaire.get_by_role(
                     "button", name="计算性质" if zh else "Calculate properties", exact=True
                 )
-            ).to_be_disabled()
+            ).to_be_enabled()
             page.screenshot(
                 path=str(evidence / ("input-" + str(expected.reference.record) + ".png"))
             )
