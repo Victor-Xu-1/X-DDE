@@ -9,7 +9,6 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
-from server_tests.retained_native_case import retained_native_case
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
@@ -39,12 +38,16 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        identifier = retained_native_case(Settings.from_env().state_dir, capability)
+        case = page.request.get(base + "/api/examples/" + capability + "?profile=archive").json()
+        assert case["pin"], "This gate needs a verified archived native result"
+        identifier = case["pin"]["job_id"]
         (evidence / (language + "-source.json")).write_text(
             json.dumps(
                 {
                     "capability": capability,
                     "job_id": identifier,
+                    "case_id": case["case"]["id"],
+                    "artifact_sha256": case["pin"]["artifact_sha256"],
                     "source": "Verified archived native case; separate from the STAT6 template",
                 }
             ),
