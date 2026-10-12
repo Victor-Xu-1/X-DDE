@@ -157,7 +157,7 @@ export function App() {
   }, [view]);
 
   function chooseJob(id: string, preserveHistory = true) {
-    requestedTask.current = id || null;
+    requestedTask.current = id;
     select(id, preserveHistory);
     setCandidateId(null);
     setCompared([]);
