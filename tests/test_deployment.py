@@ -68,6 +68,73 @@ def test_pause_resume_cancel_persists_without_background_work(tmp_path):
         restored.control(operation, "resume")
 
 
+def deployment_record(store, package, state):
+    identifier = store.enqueue(package, "install", {})[0]
+    store.update(identifier, state=state, stage="Controlled deployment record")
+    return identifier
+
+
+def recent_deployment_history(store, count=100):
+    return [deployment_record(store, "molstar", "succeeded") for _ in range(count)]
+
+
+def test_deployment_rows_retain_latest_unresolved_failures_after_history_and_reopen(tmp_path):
+    store = DeployStore(tmp_path)
+    failures = {deployment_record(store, package, "failed") for package in ("ketcher", "chemistry")}
+    recent = recent_deployment_history(store)
+    for current in (store, DeployStore(tmp_path)):
+        rows = current.rows()
+        assert {row["id"] for row in rows} == failures | set(recent)
+        assert len(rows) == 102
+        assert rows[:100] == [current.get(identifier) for identifier in reversed(recent)]
+        assert all(current.get(identifier)["state"] == "failed" for identifier in failures)
+
+
+@pytest.mark.parametrize(
+    "new_state", ["succeeded", "cancelled", "queued", "running", "pausing", "paused", "failed"]
+)
+def test_deployment_rows_do_not_resurrect_superseded_failures(tmp_path, new_state):
+    store = DeployStore(tmp_path)
+    older = deployment_record(store, "ketcher", "failed")
+    newer = deployment_record(store, "ketcher", new_state)
+    recent = recent_deployment_history(store)
+    identifiers = {row["id"] for row in store.rows()}
+    expected = set(recent)
+    if new_state not in {"succeeded", "cancelled"}:
+        expected.add(newer)
+    assert identifiers == expected
+    assert older not in identifiers
+    assert store.get(older)["state"] == "failed"
+
+
+@pytest.mark.parametrize("state", ["queued", "running", "pausing", "paused"])
+def test_deployment_rows_keep_old_active_operations(tmp_path, state):
+    store = DeployStore(tmp_path)
+    active = deployment_record(store, "ketcher", state)
+    recent = recent_deployment_history(store)
+    assert {row["id"] for row in store.rows()} == {active, *recent}
+
+
+def test_deployment_rows_bound_repeated_failed_history(tmp_path):
+    store = DeployStore(tmp_path)
+    identifiers = [deployment_record(store, "ketcher", "failed") for _ in range(125)]
+    assert [row["id"] for row in store.rows()] == list(reversed(identifiers[-100:]))
+    assert store.get(identifiers[0])["state"] == "failed"
+
+
+@pytest.mark.parametrize("new_state", ["succeeded", "failed"])
+def test_deployment_rows_order_equal_timestamps_by_insertion(tmp_path, monkeypatch, new_state):
+    monkeypatch.setattr("opendde_workbench.deployment.storage.now", lambda: "2026-10-12T00:00:00Z")
+    store = DeployStore(tmp_path)
+    older = deployment_record(store, "ketcher", "failed")
+    newer = deployment_record(store, "ketcher", new_state)
+    recent = recent_deployment_history(store)
+    rows = store.rows()
+    expected = list(reversed(recent)) + ([newer] if new_state == "failed" else [])
+    assert [row["id"] for row in rows] == expected
+    assert older not in {row["id"] for row in rows}
+
+
 def test_uninstall_removes_only_owned_package_and_retains_models(tmp_path):
     manager = DeploymentManager(tmp_path / "state")
     manager.configure(str(tmp_path / "components"), False)
