@@ -314,6 +314,14 @@ export function StructurePrepareForm({
                       : "All chains"
                     : chains.join(", ")}
                 </dd>
+                <dt>{zh ? "替代坐标" : "Alternate coordinates"}</dt>
+                <dd>
+                  {alternate === "reject"
+                    ? zh
+                      ? "遇到歧义停止"
+                      : "Stop on ambiguity"
+                    : alternate}
+                </dd>
                 <dt>{zh ? "水/其他成分" : "Water / other components"}</dt>
                 <dd>
                   {water

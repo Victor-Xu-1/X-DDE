@@ -44,6 +44,10 @@ it("preserves exact structural reference, requires review and keeps cofactors by
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(submit).not.toHaveBeenCalled();
+  expect(
+    screen.getByText("Alternate coordinates", { exact: true }),
+  ).toBeVisible();
+  expect(screen.getByText("Stop on ambiguity", { exact: true })).toBeVisible();
   await user.click(
     screen.getByRole("button", { name: "Save prepared structure" }),
   );

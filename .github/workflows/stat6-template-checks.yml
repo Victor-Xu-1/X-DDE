@@ -31,6 +31,7 @@ on:
       - 'frontend/src/receptors/SurfaceForm.tsx'
       - 'frontend/src/receptors/ReceptorForm.tsx'
       - 'frontend/src/receptors/StructurePrepareForm.tsx'
+      - '!frontend/src/receptors/StructurePrepareForm.tsx'
       - 'frontend/src/proximity/useProximityDraft.ts'
       - 'frontend/src/chemistry/StateForm.tsx'
       - 'frontend/src/diffsbdd/DiffForm.tsx'
