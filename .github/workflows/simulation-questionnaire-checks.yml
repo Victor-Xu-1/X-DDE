@@ -2,7 +2,7 @@ name: Simulation questionnaires and review
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &simulation_questionnaire_paths
       - "frontend/src/simulations/SimulationForm*"
       - "frontend/src/simulations/SimulationFepForm*"
       - "frontend/src/simulations/FepLigandSelection*"
@@ -21,6 +21,8 @@ on:
       - "server_tests/test_gromacs_switch_browser.py"
       - "server_tests/test_fep_questionnaire_browser.py"
       - ".github/workflows/simulation-questionnaire-checks.yml"
+  pull_request:
+    paths: *simulation_questionnaire_paths
 permissions:
   contents: read
 jobs:

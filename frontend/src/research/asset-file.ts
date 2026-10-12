@@ -8,12 +8,27 @@ export class AssetFileError extends Error {
   }
 }
 
-/** Read one retained input by immutable identity, bounded before and during transfer. */
+interface AssetFilePolicy {
+  kind: AssetKind;
+  suffixes: readonly string[];
+  maxBytes: number;
+}
+
+/** Preserve the byte-only contract for sequence and FEP consumers. */
 export async function readAssetFile(
   reference: MoleculeRef,
   signal: AbortSignal,
-  policy: { kind: AssetKind; suffixes: readonly string[]; maxBytes: number },
+  policy: AssetFilePolicy,
 ): Promise<Uint8Array<ArrayBuffer>> {
+  return (await readAssetFileWithMetadata(reference, signal, policy)).bytes;
+}
+
+/** Read one immutable input and its validated format, bounded during transfer. */
+export async function readAssetFileWithMetadata(
+  reference: MoleculeRef,
+  signal: AbortSignal,
+  policy: AssetFilePolicy,
+): Promise<{ bytes: Uint8Array<ArrayBuffer>; suffix: string }> {
   const id = encodeURIComponent(reference.asset_id);
   const asset = await request<Asset>(`/assets/${id}/metadata`, { signal });
   signal.throwIfAborted();
@@ -62,5 +77,5 @@ export async function readAssetFile(
     value.toString(16).padStart(2, "0"),
   ).join("");
   if (sha256 !== reference.sha256) throw new AssetFileError("identity");
-  return bytes;
+  return { bytes, suffix: asset.suffix };
 }

@@ -3,6 +3,7 @@
 import hashlib
 import json
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -64,11 +65,13 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
 
         url = base + "/api/research/objects"
         held = []
+        held_marker = f"xdde:test:annotation-reply-held:{uuid4()}"
 
         def hold(route):
             response = route.fetch()
             assert response.ok
             held.append((route, response))
+            page.evaluate("marker => console.debug(marker)", held_marker)
 
         name = f"STAT6 annotation · delayed reply · {language}"
         edit(name)
@@ -76,11 +79,14 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
         save = page.get_by_role(
             "button", name="保存备注为新版本" if zh else "Save notes as new version", exact=True
         )
-        save.click()
-        expect(save).to_be_disabled()
-        expect(
-            page.get_by_role("textbox", name="名称" if zh else "Name", exact=True)
-        ).to_be_disabled()
+        with page.expect_console_message(
+            predicate=lambda message: message.type == "debug" and message.text == held_marker
+        ):
+            save.click()
+            expect(save).to_be_disabled()
+            expect(
+                page.get_by_role("textbox", name="名称" if zh else "Name", exact=True)
+            ).to_be_disabled()
         choose(other)
         assert len(held) == 1
         held[0][0].fulfill(response=held[0][1])
