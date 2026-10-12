@@ -13,15 +13,16 @@ EVIDENCE = Path("server_tests/evidence/task-history")
 
 
 def navigation(page, language):
-    if page.viewport_size["width"] <= 960:
+    nav = page.get_by_role(
+        "navigation", name="主导航" if language == "zh" else "Main navigation", exact=True
+    )
+    if page.viewport_size["width"] <= 960 and not nav.is_visible():
         page.get_by_role(
             "button",
             name="打开研究导航" if language == "zh" else "Open research navigation",
             exact=True,
         ).click()
-    return page.get_by_role(
-        "navigation", name="主导航" if language == "zh" else "Main navigation", exact=True
-    )
+    return nav
 
 
 def open_list(page):
