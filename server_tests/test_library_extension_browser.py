@@ -84,9 +84,7 @@ def test_therapeutic_library_results_and_new_guided_choices(tmp_path):
                 browser = playwright.chromium.launch()
                 page = browser.new_page(viewport={"width": 1440, "height": 1000})
                 page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
-                errors, submissions, ownership = [], [], []
-                page.on("console", lambda message: ownership.append(message.text)
-                        if "task-ownership-diagnostic" in message.text else None)
+                errors, submissions = [], []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.on(
                     "request",
@@ -106,7 +104,6 @@ def test_therapeutic_library_results_and_new_guided_choices(tmp_path):
                             page.screenshot(path=str(evidence / f"library-{mode}-failure.png"))
                             (evidence / f"library-{mode}-failure.json").write_text(json.dumps({
                                 "requested_job": identifier, "url": page.url,
-                                "ownership": ownership[-30:],
                                 "page_errors": errors,
                                 "page": page.locator("main").inner_text(),
                                 "job": page.request.get(base + f"/api/jobs/{identifier}").json(),

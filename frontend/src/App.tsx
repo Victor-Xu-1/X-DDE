@@ -53,7 +53,7 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const requestedTask = useRef(taskIdFromHash(location.hash));
-  const [view, setView] = useState<View>(() =>
+  const [requestedView, setView] = useState<View>(() =>
       taskHistoryRoute(location.hash)?.module
         ? viewForResults(taskHistoryRoute(location.hash)!.module!)
         : taskIdFromHash(location.hash)
@@ -82,10 +82,10 @@ export function App() {
   const [resultsVersion, setResultsVersion] = useState(0);
   const [catalogueRevision, setCatalogueRevision] = useState(0);
   useEffect(() => {
-    if (view === "research") setResearchOpened(true);
-    if (view === "research" && researchTab === "editors")
+    if (requestedView === "research") setResearchOpened(true);
+    if (requestedView === "research" && researchTab === "editors")
       setEditorsOpened(true);
-  }, [view, researchTab]);
+  }, [requestedView, researchTab]);
   const [inputVersion, setInputVersion] = useState(0);
   const [candidateId, setCandidateId] = useState<string | null>(null),
     [compared, setCompared] = useState<string[]>([]),
@@ -107,26 +107,14 @@ export function App() {
   const ready = Boolean(
     health?.engine.ready && health.worker_ready && !work.connectionError,
   );
+  // Legacy links wait for their exact task. Ownership is a pure projection of
+  // that selection, so switching within one module cannot stall in a pending view.
+  const view: View =
+    requestedView === "tasks" && job && selected === requestedTask.current
+      ? viewForResults(moduleForKind(kindForJob(job)))
+      : requestedView;
   const scopedResults = resultModule(view);
   const showingResults = Boolean(scopedResults) || view === "tasks";
-  useEffect(() => {
-    // The app and metadata reader observe hash changes independently. Resolve
-    // ownership only for the ID currently in the address, never the prior task.
-    if (view === "tasks")
-      console.debug("task-ownership-diagnostic", {
-        selected,
-        requested: requestedTask.current,
-        job: job?.id,
-        hash: window.location.hash,
-      });
-    if (view === "tasks" && job && selected === requestedTask.current) {
-      const owner = viewForResults(moduleForKind(kindForJob(job)));
-      setView((current) => {
-        console.debug("task-ownership-diagnostic", { current, owner });
-        return current === "tasks" ? owner : current;
-      });
-    }
-  }, [view, job?.id, selected]);
   const analysis = science.analysis;
   const candidate =
     analysis?.candidates.find((x) => x.id === candidateId) ??
