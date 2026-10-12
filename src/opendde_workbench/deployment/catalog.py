@@ -26,6 +26,8 @@ from ..examples.pose_bundle_release import VERSION as POSE_CASE_VERSION
 from ..examples.proximity_bundle_release import SHA256 as PROXIMITY_CASE_SHA
 from ..examples.proximity_bundle_release import URL as PROXIMITY_CASE_URL
 from ..examples.proximity_bundle_release import VERSION as PROXIMITY_CASE_VERSION
+from ..examples.stat6_bundle_release import BYTES as STAT6_CASE_BYTES
+from ..examples.stat6_bundle_release import CAPABILITIES as STAT6_CASE_CAPABILITIES
 from ..examples.stat6_bundle_release import SHA256 as STAT6_CASE_SHA
 from ..examples.stat6_bundle_release import URL as STAT6_CASE_URL
 from ..examples.stat6_bundle_release import VERSION as STAT6_CASE_VERSION
@@ -330,8 +332,9 @@ PACKAGES["public-stat6-examples"] = Package(
     "public-stat6-examples",
     STAT6_CASE_VERSION,
     "STAT6 research examples",
-    "8 个模块的已审查原生结果 / Reviewed native results for 8 modules",
-    "1.9 MB",
+    f"{len(STAT6_CASE_CAPABILITIES)} 个模块的已审查原生结果 / "
+    f"Reviewed native results for {len(STAT6_CASE_CAPABILITIES)} modules",
+    f"{STAT6_CASE_BYTES / 1_000_000:.1f} MB",
     automatic=True,
     url=STAT6_CASE_URL,
     checksum=STAT6_CASE_SHA,
