@@ -13,7 +13,10 @@ export function ScientificDetails({
   language: Language;
 }) {
   const zh = language === "zh",
-    mode = String(data.mode ?? "");
+    mode =
+      job.request.operation === "diffsbdd"
+        ? job.request.payload.mode
+        : String(data.mode ?? "");
   if (mode === "interactions" && Array.isArray(data.interactions))
     return (
       <InteractionResults
