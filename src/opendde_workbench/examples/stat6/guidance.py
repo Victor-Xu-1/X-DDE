@@ -18,8 +18,9 @@ OBJECTIVES = {
         "Import the experimental STAT6 reference structure 9BIG.",
     ),
     "biopython.ensemble": (
-        "比较 9BIG 与 4Y5U 的 STAT6 受体构象。",
-        "Compare STAT6 receptor conformations from 9BIG and 4Y5U.",
+        "使用明确替代原子位置的 9BIG 准备结构，再与 4Y5U 比较 STAT6 构象。",
+        "Use the reviewed 9BIG preparation with resolved alternate positions, "
+        "then compare it with the 4Y5U STAT6 conformation.",
     ),
     "p2rank.detect": (
         "在 STAT6 实验受体上寻找候选口袋。",
