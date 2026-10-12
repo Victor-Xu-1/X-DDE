@@ -336,7 +336,7 @@ export function App() {
               <WorkbenchReadStatus
                 work={work}
                 hasJob={Boolean(job) && (view === "tasks" || view === "home")}
-                showJobsError={view !== "tasks" && view !== "home"}
+                showJobsError={view !== "home"}
                 language={language}
               />
             )}

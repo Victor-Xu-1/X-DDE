@@ -25,10 +25,12 @@ Artifact or health failures cannot delay publication of successful task metadata
   the deployment view retains its existing reconnect UI. Unavailable health is
   cleared from readiness data. Task-status and task-file errors have distinct,
   bilingual, actionable warnings while a selected task is visible.
-- A list-only outage also shows a stale-data warning and Retry on catalogue,
+- A list-only outage shows a stale-data warning and Retry on Tasks, catalogue,
   research, settings and help views, whose shared task search/notifications still
-  use the cached list. Task/home/deployment views keep their existing reconnect
-  notice instead of showing a duplicate list warning.
+  use the cached list. Classified task history has its own independent read and
+  shows Reconnect only when that read fails; the generic Refresh tasks action also
+  refreshes the list. Home/deployment keep their existing reconnect notice instead
+  of showing a duplicate list warning.
 - The hook also exposes identity-scoped selected loading/error state, retaining
   HTTP error information for the separate missing-task/deep-link handling work.
   This change does not implement that missing-task UI.
@@ -57,11 +59,13 @@ with every visited task. No scientific output or task identity is fabricated.
 
 The automatic `Live task status fault checks` workflow runs focused hook,
 request-deadline, application, task-detail, task-history, home and prediction
-consumer tests, and eight Chromium cases:
+consumer tests, and ten Chromium cases:
 
 - Health outage and stale list/detail responses after a confirmed failure
 - Stalled artifacts reaching the actual application deadline while status updates
 - Disconnection showing last-confirmed state, followed by successful explicit Retry
+- Jobs-only failure on Tasks warns about stale summaries while selected status and
+  classified history stay live; Retry refreshes the shared task notifications
 - Selecting another task cancels old metadata and artifact requests
 
 Each browser case runs in English desktop and Chinese mobile layouts over
@@ -71,7 +75,7 @@ model, scientific job or release archive is required by this new gate.
 Screenshots, Playwright traces, request counts, cancellation events and page-error
 records are retained as `task-status-fault-evidence`, including on failure.
 The screenshot set includes the health outage, pending files, timed-out files,
-disconnected last-confirmed status, pending selection, and each final observed
+disconnected last-confirmed status, stale task summaries, pending selection, and each final observed
 state in both viewports. Each case's `acceptance.json` labels its screenshots with
 language, viewport, actual visible task title/status, read warnings and controlled
 fixture response status. These labels distinguish test fixtures from scientific
