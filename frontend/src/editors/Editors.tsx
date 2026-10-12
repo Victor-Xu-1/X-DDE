@@ -37,6 +37,10 @@ export function Editors({
   const zh = language === "zh";
   const [origin, setOrigin] = useState<ScientificObject | null>(initialObject);
   const [loaded, setLoaded] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadFailure, setLoadFailure] = useState<{ sourceId: string } | null>(
+    null,
+  );
   const [ketcherReady, setKetcherReady] = useState(false);
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
@@ -75,6 +79,8 @@ export function Editors({
     setMode("ketcher");
     setBusy(true);
     setError("");
+    setMessage("");
+    setLoadFailure(null);
     setOrigin(null);
     const loading = loadQueue.current
       .then(async () => {
@@ -92,17 +98,21 @@ export function Editors({
         );
       })
       .catch((e) => {
-        if (!controller.signal.aborted) setError(String(e));
+        if (!controller.signal.aborted) {
+          setError(String(e));
+          setLoadFailure({ sourceId: initialObject.id });
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setBusy(false);
       });
     loadQueue.current = loading;
     return () => controller.abort();
-  }, [initialObject?.id, loaded]);
+  }, [initialObject?.id, loaded, loadAttempt]);
   async function action(fn: (editor: Ketcher) => Promise<void>) {
     if (actionRunning.current || busy) return;
     actionRunning.current = true;
+    const failedLoad = loadFailure;
     setError("");
     setMessage("");
     setBusy(true);
@@ -117,6 +127,7 @@ export function Editors({
             : "Editor is loading; try again shortly.",
         );
       await fn(editor);
+      setLoadFailure((current) => (current === failedLoad ? null : current));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -294,6 +305,14 @@ export function Editors({
             <p className="error" role="alert">
               {error}
             </p>
+          )}
+          {loadFailure?.sourceId === initialObject?.id && loadFailure && (
+            <button
+              disabled={busy}
+              onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+            >
+              {zh ? "重试打开" : "Retry opening"}
+            </button>
           )}
           {message && (
             <p role="status" className="notice">

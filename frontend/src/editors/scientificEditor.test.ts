@@ -1,3 +1,4 @@
+import { createHash, webcrypto } from "node:crypto";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import type { ScientificObject } from "../research/types";
@@ -51,22 +52,34 @@ it("resolves an editor frame that mounts after readiness was requested", async (
 });
 
 it("opens exactly the selected SDF record and refuses unsupported conversion", async () => {
+  const text = "first\n$$$$\nsecond\n$$$$\n";
+  const metadata = {
+    id: original.reference.asset_id,
+    sha256: createHash("sha256").update(text).digest("hex"),
+    kind: "ligand",
+    suffix: ".sdf",
+    size: text.length,
+  };
+  const selected = {
+    ...original,
+    reference: { ...original.reference, sha256: metadata.sha256 },
+  };
+  vi.stubGlobal("crypto", webcrypto);
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue(
-      new Response("first\n$$$$\nsecond\n$$$$\n", {
-        headers: { "X-Structure-Format": "sdf" },
-      }),
+    vi.fn(async (url: string) =>
+      url.endsWith("/metadata")
+        ? new Response(JSON.stringify(metadata))
+        : new Response(text),
     ),
   );
-  const record = await molecularRecord(original, new AbortController().signal);
+
+  const record = await molecularRecord(selected, new AbortController().signal);
   expect(record).toContain("second");
   expect(record).not.toContain("first");
-  vi.mocked(fetch).mockResolvedValue(
-    new Response("MOL2 file", { headers: { "X-Structure-Format": "mol2" } }),
-  );
+  metadata.suffix = ".mol2";
   await expect(
-    molecularRecord(original, new AbortController().signal),
+    molecularRecord(selected, new AbortController().signal),
   ).rejects.toThrow(/Convert/);
 });
 

@@ -5,6 +5,7 @@ import json
 import os
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -76,13 +77,21 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
         page = browser.new_page(viewport={"width": width, "height": 1000})
         if zh:
             page.add_init_script("localStorage.setItem('opendde-workbench.language','zh')")
-        errors, requests = [], []
+        errors, requests, submitted_jobs, properties_readiness = [], [], [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
             lambda request: (
                 requests.append(request.post_data_json)
                 if request.method == "POST" and request.url.endswith("/api/research/poses/minimize")
+                else None
+            ),
+        )
+        page.on(
+            "request",
+            lambda request: (
+                submitted_jobs.append(request.url)
+                if request.method == "POST" and urlsplit(request.url).path == "/api/jobs"
                 else None
             ),
         )
@@ -149,19 +158,31 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
             assert payload["reference"] == expected.reference.model_dump(mode="json")
             questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
             questionnaire.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
-            # The independent Chemistry environment now owns RDKit properties.
-            # Verify its real readiness without creating a task in this read-only journey.
+            # Properties uses the installed Chemistry runtime. Observe its real
+            # readiness, but never submit a calculation from this handoff check.
+            capability = json.loads(read(base, "/api/capabilities/properties"))
+            assert capability["environment"] == "chemistry"
+            assert capability["availability"]["configuration_present"] is True
+            assert capability["availability"]["checks"]["runtime"] is True
             expect(
                 questionnaire.get_by_role(
                     "button", name="计算性质" if zh else "Calculate properties", exact=True
                 )
             ).to_be_enabled()
+            properties_readiness.append(
+                {
+                    "version": str(expected.id),
+                    "environment": capability["environment"],
+                    "availability": capability["availability"],
+                }
+            )
             page.screenshot(
                 path=str(evidence / ("input-" + str(expected.reference.record) + ".png"))
             )
             page.get_by_role(
                 "button", name="← 返回研究资产" if zh else "← Back to assets", exact=True
             ).click()
+            assert not submitted_jobs, "Input handoff must not submit a scientific task."
 
         confirm_input(current)
         expect(pose_link).to_have_attribute("href", current_url)
@@ -175,6 +196,7 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
         page.get_by_role("radio", name="原始结果" if zh else "Original result", exact=True).check()
         confirm_input(original)
         assert len(requests) == 1 and not errors
+        assert not submitted_jobs
         assert read(base, "/api/assets/" + source.id) == raw
         page.screenshot(path=str(evidence / "original-choice.png"))
         browser.close()
@@ -190,6 +212,8 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
                 "current_sha256": current.reference.sha256,
                 "original_sha256": original.reference.sha256,
                 "explicit_minimizations": len(requests),
+                "job_submissions": len(submitted_jobs),
+                "property_handoffs": properties_readiness,
                 "original_bytes_unchanged": True,
                 "scope": "Native Chemistry and pose handoff only; "
                 "no docking, ADMET, MD or FEP execution",
