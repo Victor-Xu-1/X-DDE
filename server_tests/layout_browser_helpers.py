@@ -14,8 +14,16 @@ VISIBLE_TASKS = sum(
 )
 
 
+def layout_navigation(page):
+    nav = page.get_by_role("navigation", name="主导航")
+    if page.viewport_size["width"] <= 960 and not nav.is_visible():
+        nav = open_navigation(page, "zh")
+    expect(nav).to_be_visible()
+    return nav
+
+
 def catalog(page):
-    open_navigation(page, "zh").get_by_role(
+    layout_navigation(page).get_by_role(
         "button", name="全部能力", exact=True
     ).click()
     expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
@@ -139,8 +147,8 @@ def capture_utilities(page, evidence, width):
     """Inspect workspace utilities at the same actual viewport as their task group."""
     page.set_viewport_size({"width": width, "height": 1000})
     rows = []
-    nav = page.get_by_role("navigation", name="主导航")
-    expect(nav.get_by_role("button")).to_have_count(12)
+    nav = layout_navigation(page)
+    expect(nav.get_by_role("button")).to_have_count(13)
     nav.get_by_role("button", name="研究空间", exact=True).click()
     for tab in ("项目", "研究文件", "结构编辑"):
         page.get_by_role("group", name="研究空间", exact=True).get_by_role(
@@ -157,9 +165,10 @@ def capture_utilities(page, evidence, width):
             assert confirm["width"] < bounds["width"] * 0.6
             rows.append(capture(page, evidence, "研究项目", "create-dialog"))
             page.get_by_role("button", name="取消", exact=True).click()
-    nav.get_by_role("button", name="任务与结果", exact=True).click()
+    layout_navigation(page).get_by_role("button", name="任务与结果", exact=True).click()
     rows.append(capture(page, evidence, "任务与结果", "utility"))
     for label in ("安装与运行", "界面设置", "使用帮助"):
+        layout_navigation(page)
         page.get_by_role("button", name="设置与帮助", exact=True).click()
         expect(page.get_by_role("menuitem")).to_have_count(3)
         page.get_by_role("menuitem", name=label, exact=True).click()

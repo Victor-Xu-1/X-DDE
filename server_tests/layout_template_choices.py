@@ -25,7 +25,8 @@ def choose_template_objective(page, name, stage):
         chain.check()
     elif name == "区域暴露与埋藏":
         choice = page.get_by_role("combobox", name="选择配体或残基", exact=True)
-        expect(choice.get_by_role("option", name="A:A1AQQ 701", exact=True)).to_have_count(
+        # The STAT6 exposure template uses the observed protein construct.
+        expect(choice.get_by_role("option", name="A:ASN 614", exact=True)).to_have_count(
             1, timeout=30000
         )
-        choice.select_option(label="A:A1AQQ 701")
+        choice.select_option(label="A:ASN 614")
