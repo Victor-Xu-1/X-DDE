@@ -6,6 +6,14 @@ on:
       - "tests/test_stat6_preparation_presets.py"
       - "frontend/src/receptors/StructurePrepareForm*"
       - "src/opendde_workbench/receptors/native_io.py"
+      - "src/opendde_workbench/chemistry/states.py"
+      - "src/opendde_workbench/chemistry/options.py"
+      - "src/opendde_workbench/chemistry/conformers.py"
+      - "frontend/src/chemistry/generated.ts"
+      - "frontend/src/chemistry/model*"
+      - "frontend/src/chemistry/StateForm*"
+      - "server_tests/test_molecular_states.py"
+      - "tests/test_chemistry_contract.py"
       - ".github/workflows/stat6-preparation-checks.yml"
   pull_request:
     paths: *preparation_paths
@@ -24,8 +32,15 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Only affected presets, shared template contracts and real deposited alternates
-        run: uv run --locked --with biopython==1.88 pytest -q tests/test_stat6_preparation_presets.py tests/test_stat6_templates.py
+        run: >-
+          uv run --locked --with biopython==1.88 --with rdkit==2026.3.6
+          --with dimorphite-dl==2.1.0 pytest -q tests/test_stat6_preparation_presets.py
+          tests/test_stat6_templates.py server_tests/test_molecular_states.py
+          tests/test_chemistry_contract.py
       - name: Only the preset-consuming questionnaires
         working-directory: frontend
-        run: npx vitest run src/chemistry/StateForm.test.tsx src/receptors/StructurePrepareForm.test.tsx
-      - run: uv run --locked ruff check tests/test_stat6_preparation_presets.py src/opendde_workbench/examples/stat6/task_requests.py
+        run: npx vitest run src/chemistry/model.test.ts src/chemistry/StateForm.test.tsx src/receptors/StructurePrepareForm.test.tsx
+      - run: >-
+          uv run --locked ruff check tests/test_stat6_preparation_presets.py
+          src/opendde_workbench/examples/stat6/task_requests.py
+          src/opendde_workbench/chemistry/states.py server_tests/test_molecular_states.py
