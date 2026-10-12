@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screeningPlan, taskFor } from "./dataset-model";
+import { screeningPlan, screeningSourceIds, taskFor } from "./dataset-model";
 import { validReadLanes, type ReadLane } from "./DELReadFiles";
 
 const receptor = {
@@ -25,6 +25,59 @@ const pocket = {
 };
 
 describe("screening plans", () => {
+  it.each([false, true])(
+    "reuses only explicitly bound placeholders for a stable form (dock=%s)",
+    (dock) => {
+      const sourceIds = screeningSourceIds();
+      const source = {
+        job_id: receptor.asset_id,
+        report_sha256: "d".repeat(64),
+        role: "index" as const,
+      };
+      const options = {
+        sourceIds,
+        name: "BRD4",
+        library: null,
+        supplier: "custom",
+        existingIndexes: [source],
+        receptorInputs: inputs,
+        pocket,
+        topK: 100,
+        retain: 25,
+        dock,
+        device: "cpu" as const,
+      };
+      const plan = screeningPlan(options);
+      expect(screeningPlan(structuredClone(options))).toEqual(plan);
+      expect(plan.steps[0].request).toMatchObject({
+        sources: [source],
+        inputs,
+      });
+      if (dock) {
+        expect(plan.steps[1].request).toMatchObject({
+          sources: [
+            {
+              job_id: sourceIds.screening,
+              report_sha256: "0".repeat(64),
+              role: "screening",
+            },
+          ],
+        });
+        expect(plan.steps[1].data_bindings).toEqual([
+          {
+            from_step: "screen",
+            slot: 0,
+            role: "screening",
+            select_candidates: true,
+          },
+        ]);
+      }
+      const another = screeningSourceIds();
+      expect(
+        new Set([...Object.values(sourceIds), ...Object.values(another)]).size,
+      ).toBe(6);
+    },
+  );
   it("sends strict native source references while retaining UI metadata only in the picker", () => {
     const source = {
       job_id: receptor.asset_id,

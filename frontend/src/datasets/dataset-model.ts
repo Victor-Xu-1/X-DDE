@@ -52,8 +52,16 @@ export const materialFor = (
   label,
   source: { asset_id: asset.id, sha256: asset.sha256, record: 0, conformer: 0 },
 });
-const unresolved = (role: DatasetSource["role"]): DatasetSource => ({
-  job_id: crypto.randomUUID(),
+export const screeningSourceIds = () => ({
+  library: crypto.randomUUID(),
+  index: crypto.randomUUID(),
+  screening: crypto.randomUUID(),
+});
+const unresolved = (
+  role: DatasetSource["role"],
+  job_id: string,
+): DatasetSource => ({
+  job_id,
   report_sha256: "0".repeat(64),
   role,
 });
@@ -73,6 +81,7 @@ const step = (
     : {}),
 });
 export function screeningPlan({
+  sourceIds = screeningSourceIds(),
   name,
   library,
   supplier,
@@ -86,6 +95,7 @@ export function screeningPlan({
   libraryFields = {},
   expert = {},
 }: {
+  sourceIds?: ReturnType<typeof screeningSourceIds>;
   name: string;
   library: Asset | null;
   supplier: string;
@@ -146,7 +156,7 @@ export function screeningPlan({
             ...(expert.batch_size ? { batch_size: expert.batch_size } : {}),
           },
           [],
-          [unresolved("library")],
+          [unresolved("library", sourceIds.library)],
           name + " · index",
           execution,
         ),
@@ -154,7 +164,7 @@ export function screeningPlan({
         "library",
       ),
     );
-    indexes = [unresolved("index")];
+    indexes = [unresolved("index", sourceIds.index)];
   }
   if (!indexes.length || !receptorInputs.length)
     throw new Error("Choose a target, pocket and molecular library.");
@@ -206,7 +216,7 @@ export function screeningPlan({
           },
         },
         receptorInputs,
-        [unresolved("screening")],
+        [unresolved("screening", sourceIds.screening)],
         name + " · docking",
         execution,
       ),

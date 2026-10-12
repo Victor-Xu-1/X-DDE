@@ -14,13 +14,15 @@ on:
       - "frontend/src/admet/AdmetForm*"
       - "frontend/src/studio/MethodSwitch*"
       - "server_tests/test_task_clarity_browser.py"
+      - "server_tests/test_screening_retry_browser.py"
       - "frontend/src/antibodies/AntibodyNumberForm.tsx"
       - "frontend/src/chemistry/LibraryScreenForm.tsx"
       - "frontend/src/chemistry/StateForm.tsx"
       - "frontend/src/datasets/BatchDockingForm.tsx"
       - "frontend/src/datasets/DELForm.tsx"
       - "frontend/src/datasets/LibraryForm.tsx"
-      - "frontend/src/datasets/ScreeningForm.tsx"
+      - "frontend/src/datasets/ScreeningForm*"
+      - "frontend/src/datasets/dataset-model*"
       - "frontend/src/diffsbdd/DiffForm.tsx"
       - "frontend/src/diffsbdd/FixedAtomPicker.tsx"
       - "frontend/src/discovery/ReferenceImportForm.tsx"
@@ -76,6 +78,7 @@ jobs:
           src/operations/ToolQuestionnaires.test.tsx
           src/operations/CovalentEditor.test.tsx
           src/datasets/screening-readiness.test.ts
+          src/datasets/ScreeningForm.test.tsx src/datasets/dataset-model.test.ts
           src/antibodies/AntibodyNumberForm.test.tsx
           src/humanization/HumanizationForm.test.tsx
           src/chemistry/StateForm.test.tsx
@@ -99,12 +102,14 @@ jobs:
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
-          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-dataset-examples
           uv run --locked playwright install chromium --with-deps
       - name: Bilingual native input review at desktop and mobile widths; no scientific work
-        run: uv run --locked python -m pytest -x -q server_tests/test_task_clarity_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_task_clarity_browser.py server_tests/test_screening_retry_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: task-input-review-evidence
-          path: outputs/publication-browser/task-clarity/**
+          path: |
+            outputs/publication-browser/task-clarity/**
+            outputs/publication-browser/screening-retry/**
