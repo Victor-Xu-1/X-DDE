@@ -112,6 +112,13 @@ export function App() {
   useEffect(() => {
     // The app and metadata reader observe hash changes independently. Resolve
     // ownership only for the ID currently in the address, never the prior task.
+    if (view === "tasks")
+      console.debug("task-ownership-diagnostic", {
+        selected,
+        requested: requestedTask.current,
+        job: job?.id,
+        hash: window.location.hash,
+      });
     if (view === "tasks" && job && selected === requestedTask.current) {
       const owner = viewForResults(moduleForKind(kindForJob(job)));
       setView((current) => (current === "tasks" ? owner : current));
