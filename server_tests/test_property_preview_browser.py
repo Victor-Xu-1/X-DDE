@@ -32,9 +32,9 @@ def test_native_property_files_drive_the_exact_selected_2d_and_3d(language):
             row.locator(".molecule-record").click()
             expect(row).to_have_attribute("aria-selected", "true")
             inspector = page.locator(".properties-results .result-inspector")
-            expect(inspector.get_by_role("heading", level=3)).to_have_text(
-                case["result"]["molecules"][index]["name"]
-            )
+            expect(inspector.get_by_role(
+                "heading", name=case["result"]["molecules"][index]["name"], exact=True
+            )).to_be_visible()
             tab = inspector.get_by_role(
                 "tab", name="三维结构" if zh else "3D structure", exact=True
             )
