@@ -4,6 +4,8 @@
 def study_request(capability, objects, sequences):
     if capability == "biopython.exposure" and "receptor" not in objects:
         return None
+    if capability == "biopython.ensemble" and "receptor_a" not in objects:
+        return None
 
     def reference(key):
         return objects[key].reference.model_dump(mode="json")

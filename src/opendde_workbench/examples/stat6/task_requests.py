@@ -84,7 +84,7 @@ def study_task(capability, objects, sequences):
     elif capability == "biopython.ensemble":
         value.update(
             inputs=[
-                {"structure": ref(key), "selection": {"chains": ["A"]}}
+                {"structure": ref(key), "selection": {"chains": ["A"], "profile": "experimental"}}
                 for key in ("receptor_a", "receptor_b")
             ]
         )

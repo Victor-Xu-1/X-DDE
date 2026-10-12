@@ -149,9 +149,8 @@ def steps(capability):
         }
         return molecular_steps[capability]
     selection = (
-        "核对来源后选择研究区域；小分子未结合构象不能用于定位蛋白口袋。",
-        "Review sources and select a research region; "
-        "an unbound study conformer cannot locate a protein pocket.",
+        "核对所选材料，确定本次比较或分析目标。",
+        "Review the chosen inputs and choose the comparison or analysis goal.",
     )
     if capability.startswith("del."):
         selection = (

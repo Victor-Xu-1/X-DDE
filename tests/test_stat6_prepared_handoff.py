@@ -101,6 +101,23 @@ def test_raw_alternate_locations_are_not_prefilled_as_a_ready_exposure_task(sett
     assert "stat6_structure" in prepared.objects and not store.list_jobs()
 
 
+def test_ensemble_requires_the_exact_reviewed_reference_preparation(settings):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    pending = prepare_stat6("biopython.ensemble", scientific)
+    assert pending.request is None and "receptor_a" not in pending.objects
+    assert "receptor_b" in pending.objects and not store.list_jobs()
+
+    store, scientific, records, native = preparation_fixture(settings)
+    before = len(store.list_jobs())
+    ready = prepare_stat6("biopython.ensemble", scientific, records=records)
+    assert ready.objects["receptor_a"] == native
+    assert ready.request["inputs"][0]["structure"] == native.reference.model_dump(mode="json")
+    assert all(item["selection"]["profile"] == "experimental" for item in ready.request["inputs"])
+    assert len(store.list_jobs()) == before
+
+
 def test_reviewed_preparation_is_reused_by_exact_source_and_result_identity(settings):
     store, scientific, records, native = preparation_fixture(settings)
     before = len(store.list_jobs())
