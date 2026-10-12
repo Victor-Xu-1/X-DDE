@@ -4,6 +4,7 @@ import IconContext from "@ant-design/icons/es/components/Context";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import { useWorkbench, taskIdFromHash } from "./useWorkbench";
+import { WorkbenchReadStatus } from "./WorkbenchReadStatus";
 import { useScience } from "./studio/useScience";
 import { Navigation } from "./studio/Navigation";
 import { Header } from "./studio/Header";
@@ -86,10 +87,10 @@ export function App() {
   const [draft, setDraft] = useState<Prediction | null>(null),
     [submitted, setSubmitted] = useState<Job | null>(null);
   const work = useWorkbench(),
-    { health, jobs, selected, select, detail, loading, refresh } = work;
+    { health, jobs, selected, select, detail, refresh } = work;
   const job =
-      jobs.find((x) => x.id === selected) ??
       (work.selectedJob?.id === selected ? work.selectedJob : null) ??
+      jobs.find((x) => x.id === selected) ??
       (submitted?.id === selected ? submitted : null),
     science = useScience(job),
     t = translator(language),
@@ -164,6 +165,7 @@ export function App() {
     setFocusResidue(null);
   }
   function changed(next: Job) {
+    work.confirmJob(next);
     setSubmitted(next);
     showJob(next.id);
     setProjectId(next.request.project_id ?? null);
@@ -208,7 +210,8 @@ export function App() {
     health,
     job,
     detail,
-    detailError: work.detailError,
+    // Source-specific read failures and Retry appear once above the workspace.
+    detailError: false,
     onChanged: changed,
     projects: science.projects,
     projectId,
@@ -329,13 +332,23 @@ export function App() {
                 onStart={() => navigate("tools")}
               />
             )}
-            {health?.queue_wait_reason && view === "tasks" && (
-              <p className="notice" role="status">
-                {zh
-                  ? "计算资源暂不可用，已提交的任务会继续等待。"
-                  : "Compute resources are unavailable; submitted tasks remain queued."}
-              </p>
+            {view !== "deployment" && (
+              <WorkbenchReadStatus
+                work={work}
+                hasJob={Boolean(job) && (view === "tasks" || view === "home")}
+                showJobsError={view !== "tasks" && view !== "home"}
+                language={language}
+              />
             )}
+            {!work.healthError &&
+              health?.queue_wait_reason &&
+              view === "tasks" && (
+                <p className="notice" role="status">
+                  {zh
+                    ? "计算资源暂不可用，已提交的任务会继续等待。"
+                    : "Compute resources are unavailable; submitted tasks remain queued."}
+                </p>
+              )}
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"
@@ -353,7 +366,7 @@ export function App() {
                     (!projectId || x.request.project_id === projectId),
                 )}
                 onJob={chooseJob}
-                connectionError={work.connectionError}
+                connectionError={Boolean(work.jobsError)}
                 onRefresh={refresh}
                 compared={compared}
                 onCompare={(ids) => {
@@ -412,7 +425,7 @@ export function App() {
             {view === "tasks" && (
               <TaskWorkspace
                 {...common}
-                connectionError={work.connectionError}
+                connectionError={Boolean(work.jobsError)}
                 onRefresh={refresh}
                 onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
                 onJob={chooseJob}

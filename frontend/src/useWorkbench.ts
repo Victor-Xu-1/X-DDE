@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, request } from "./api";
 import type { Detail, Health, Job } from "./types";
+import {
+  freshestJob,
+  pollWorkbench,
+  type JobObservation,
+} from "./workbench-polling";
 
 export function taskIdFromHash(hash: string) {
   const value = new URLSearchParams(hash.slice(1)).get("task") ?? "";
@@ -8,6 +13,13 @@ export function taskIdFromHash(hash: string) {
     ? value.toLowerCase()
     : "";
 }
+
+interface SelectedRead {
+  id: string;
+  loading: boolean;
+  error: Error | null;
+}
+
 export function useWorkbench() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [health, setHealth] = useState<Health | null>(null);
@@ -16,15 +28,51 @@ export function useWorkbench() {
   );
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [connectionError, setConnectionError] = useState(false);
-  const [detailError, setDetailError] = useState(false);
+  const [jobsError, setJobsError] = useState<Error | null>(null);
+  const [healthError, setHealthError] = useState<Error | null>(null);
+  const [statusRead, setStatusRead] = useState<SelectedRead>({
+    id: "",
+    loading: false,
+    error: null,
+  });
+  const [artifactRead, setArtifactRead] = useState<SelectedRead>({
+    id: "",
+    loading: false,
+    error: null,
+  });
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
+  const sequence = useRef(0);
+  const observations = useRef(new Map<string, JobObservation>());
+  const listIds = useRef(new Set<string>());
+  const selectedId = useRef(selected);
+  selectedId.current = selected;
+  const record = useCallback((job: Job, order: number) => {
+    const latest = freshestJob(observations.current.get(job.id), {
+      job,
+      sequence: order,
+    });
+    observations.current.set(job.id, latest);
+    return latest.job;
+  }, []);
+  const prune = useCallback(() => {
+    for (const id of observations.current.keys())
+      if (!listIds.current.has(id) && id !== selectedId.current)
+        observations.current.delete(id);
+  }, []);
+  const confirmJob = useCallback(
+    (job: Job) => {
+      const latest = record(job, ++sequence.current);
+      if (job.id === selectedId.current) setSelectedJob(latest);
+      setJobs((items) =>
+        items.map((item) => (item.id === job.id ? latest : item)),
+      );
+    },
+    [record],
+  );
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
   const select = useCallback((id: string, preserveHistory = true) => {
     setSelected(id);
-    setDetail(null);
-    setDetailError(false);
     const params = new URLSearchParams(window.location.hash.slice(1));
     if (preserveHistory && params.get("view") === "tasks") {
       if (id) params.set("task", id);
@@ -36,8 +84,6 @@ export function useWorkbench() {
   useEffect(() => {
     function navigate() {
       setSelected(taskIdFromHash(window.location.hash));
-      setDetail(null);
-      setDetailError(false);
     }
     window.addEventListener("hashchange", navigate);
     window.addEventListener("popstate", navigate);
@@ -48,72 +94,121 @@ export function useWorkbench() {
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout>;
-    async function poll() {
-      try {
-        const [items, info] = await Promise.all([
-          api.jobs(controller.signal),
-          api.health(controller.signal),
-        ]);
-        if (controller.signal.aborted) return;
-        setJobs(items);
-        setHealth(info);
-        setConnectionError(false);
+    const stopJobs = pollWorkbench(
+      controller.signal,
+      3000,
+      async (signal) => {
+        const order = ++sequence.current;
+        return { items: await api.jobs(signal), order };
+      },
+      ({ items, order }) => {
+        const latest = items.map((job) => record(job, order));
+        setJobs(latest);
+        listIds.current = new Set(latest.map((job) => job.id));
+        const current = latest.find((job) => job.id === selectedId.current);
+        if (current) setSelectedJob(current);
+        prune();
+        setJobsError(null);
         setLoading(false);
-      } catch {
-        if (!controller.signal.aborted) {
-          setConnectionError(true);
-          setLoading(false);
-        }
-      }
-      if (!controller.signal.aborted) timer = setTimeout(poll, 3000);
-    }
-    void api.initialize().catch(() => {
-      if (!controller.signal.aborted) setConnectionError(true);
-    });
-    void poll();
+      },
+      (error) => {
+        setJobsError(error);
+        setLoading(false);
+      },
+    );
+    const stopHealth = pollWorkbench(
+      controller.signal,
+      3000,
+      api.health,
+      (info) => {
+        setHealth(info);
+        setHealthError(null);
+      },
+      (error) => {
+        setHealth(null);
+        setHealthError(error);
+      },
+    );
     return () => {
       controller.abort();
-      clearTimeout(timer);
+      stopJobs();
+      stopHealth();
     };
-  }, [revision]);
+  }, [revision, record, prune]);
   useEffect(() => {
-    setDetail(null);
-    setSelectedJob(null);
-    setDetailError(false);
+    setDetail((old) => (old?.id === selected ? old : null));
+    setSelectedJob(observations.current.get(selected)?.job ?? null);
+    prune();
+    setStatusRead((old) => ({
+      id: selected,
+      loading: Boolean(selected),
+      error: old.id === selected ? old.error : null,
+    }));
+    setArtifactRead((old) => ({
+      id: selected,
+      loading: Boolean(selected),
+      error: old.id === selected ? old.error : null,
+    }));
     if (!selected) return;
     const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout>;
-    async function poll() {
-      try {
-        const [artifacts, job] = await Promise.all([
-          api.artifacts(selected, controller.signal),
-          request<Job>(`/jobs/${selected}`, { signal: controller.signal }),
-        ]);
-        if (controller.signal.aborted) return;
+    const stopStatus = pollWorkbench(
+      controller.signal,
+      2000,
+      async (signal) => {
+        const order = ++sequence.current;
+        const job = await request<Job>(`/jobs/${selected}`, { signal });
+        if (job.id !== selected)
+          throw new Error("Task response does not match selection");
+        return { job, order };
+      },
+      ({ job, order }) => {
+        const latest = record(job, order);
+        setSelectedJob(latest);
+        setJobs((items) =>
+          items.map((item) => (item.id === selected ? latest : item)),
+        );
+        setStatusRead({ id: selected, loading: false, error: null });
+      },
+      (error) => setStatusRead({ id: selected, loading: false, error }),
+    );
+    const stopArtifacts = pollWorkbench(
+      controller.signal,
+      2000,
+      (signal) => api.artifacts(selected, signal),
+      (artifacts) => {
         setDetail({ id: selected, artifacts });
-        setSelectedJob(job);
-        setDetailError(false);
-      } catch {
-        if (!controller.signal.aborted) setDetailError(true);
-      }
-      if (!controller.signal.aborted) timer = setTimeout(poll, 2000);
-    }
-    void poll();
+        setArtifactRead({ id: selected, loading: false, error: null });
+      },
+      (error) => setArtifactRead({ id: selected, loading: false, error }),
+    );
     return () => {
       controller.abort();
-      clearTimeout(timer);
+      stopStatus();
+      stopArtifacts();
     };
-  }, [selected, revision]);
+  }, [selected, revision, record, prune]);
+  const selectedJobError = statusRead.id === selected ? statusRead.error : null;
+  const artifactError =
+    artifactRead.id === selected ? artifactRead.error : null;
   return {
     jobs,
-    selectedJob,
+    selectedJob: selectedJob?.id === selected ? selectedJob : null,
     health,
     selected,
     select,
-    detail,
-    connectionError,
-    detailError,
+    confirmJob,
+    detail: detail?.id === selected ? detail : null,
+    jobsError,
+    healthError,
+    selectedJobError,
+    selectedJobLoading:
+      Boolean(selected) && (statusRead.id !== selected || statusRead.loading),
+    artifactError,
+    artifactsLoading:
+      Boolean(selected) &&
+      (artifactRead.id !== selected || artifactRead.loading),
+    connectionError: Boolean(jobsError || healthError),
+    detailError: Boolean(selectedJobError || artifactError),
     loading,
     refresh,
   };
