@@ -276,26 +276,6 @@ export function DiffResults({
           ))}
         </ul>
       )}
-      {mode === "pocket" && protein && (
-        <StructureViewer
-          urls={[
-            artifactUrl(job.id, protein),
-            ...(typeof data.reference_artifact === "string" &&
-            (data.ligand_status as { state?: string } | undefined)?.state ===
-              "verified"
-              ? [artifactUrl(job.id, data.reference_artifact)]
-              : []),
-          ]}
-          language={language}
-          focusModel={
-            typeof data.reference_artifact === "string" &&
-            (data.ligand_status as { state?: string } | undefined)?.state ===
-              "verified"
-              ? 1
-              : undefined
-          }
-        />
-      )}
       {protein && mode !== "pocket" && (
         <details>
           <summary>{zh ? "查看受体结构" : "View receptor structure"}</summary>

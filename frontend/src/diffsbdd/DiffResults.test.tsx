@@ -9,14 +9,84 @@ vi.mock("../presentation/artifact-digest", () => ({
   artifactInfo: vi.fn(async () => ({ sha256: "a".repeat(64), records: 1 })),
 }));
 vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: ({ urls }: { urls: string[] }) => (
-    <output data-testid="native-preview">{urls.join("|")}</output>
+  StructureViewer: ({
+    urls,
+    residueRegion,
+  }: {
+    urls: string[];
+    residueRegion?: unknown;
+  }) => (
+    <output
+      data-testid="native-preview"
+      data-region={JSON.stringify(residueRegion)}
+    >
+      {urls.join("|")}
+    </output>
   ),
 }));
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+
+it.each(["en", "zh"] as const)(
+  "shows one receptor/reference preview with the exact pocket region in %s",
+  (language) => {
+    const job = {
+      id: "reference-case",
+      request: {
+        operation: "diffsbdd",
+        payload: { mode: "pocket", pocket: { kind: "ligand" } },
+      },
+    } as unknown as Job;
+    render(
+      <DiffResults
+        job={job}
+        language={language}
+        data={{
+          operation: "diffsbdd",
+          mode: "pocket",
+          complete: true,
+          protein_artifact: "protein.pdb",
+          pocket_artifact: "pocket.pdb",
+          reference_artifact: "reference.sdf",
+          ligand_status: { state: "verified" },
+          residues: ["A:476", "A:611"],
+          residue_count: 2,
+        }}
+      />,
+    );
+    const preview = screen.getAllByTestId("native-preview");
+    expect(preview).toHaveLength(1);
+    expect(preview[0]).toHaveTextContent(
+      artifactUrl(job.id, "protein.pdb") +
+        "|" +
+        artifactUrl(job.id, "reference.sdf"),
+    );
+    expect(JSON.parse(preview[0].getAttribute("data-region")!)).toEqual([
+      {
+        model: 0,
+        chain: "A",
+        number: 476,
+        insertion_code: "",
+        alternate_location: "",
+      },
+      {
+        model: 0,
+        chain: "A",
+        number: 611,
+        insertion_code: "",
+        alternate_location: "",
+      },
+    ]);
+    expect(screen.getByText(/8 Å/)).toBeVisible();
+    expect(
+      screen.getByRole("link", {
+        name: language === "zh" ? "口袋结构 · PDB" : "Pocket structure · PDB",
+      }),
+    ).toHaveAttribute("href", artifactUrl(job.id, "pocket.pdb"));
+  },
+);
 it("previews the retained native molecule file even before scientific objects are registered", async () => {
   vi.spyOn(client, "request").mockResolvedValue([]);
   vi.spyOn(api, "assets").mockResolvedValue([]);

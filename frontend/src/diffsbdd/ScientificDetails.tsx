@@ -1,9 +1,8 @@
 import type { Job, Language } from "../types";
 import type { OperationResult } from "../operations/types";
-import { StructureViewer } from "../viewer/StructureViewer";
 import { artifactUrl } from "../api";
-import { ResultTree } from "../operations/StructuredResults";
 import { InteractionResults } from "./InteractionResults";
+import { ReferencePocketResults } from "./ReferencePocketResults";
 export function ScientificDetails({
   job,
   data,
@@ -25,24 +24,7 @@ export function ScientificDetails({
       />
     );
   if (mode === "pocket")
-    return (
-      <section>
-        <h3>
-          {zh ? "口袋包含的残基" : "Residues in the pocket"}:{" "}
-          {String(data.residue_count ?? "—")}
-        </h3>
-        {typeof data.pocket_artifact === "string" && (
-          <StructureViewer
-            urls={[artifactUrl(job.id, data.pocket_artifact)]}
-            language={language}
-          />
-        )}
-        <details>
-          <summary>{zh ? "查看口袋残基" : "Inspect pocket residues"}</summary>
-          <ResultTree value={data.residues} zh={zh} />
-        </details>
-      </section>
-    );
+    return <ReferencePocketResults job={job} data={data} language={language} />;
   if (mode === "prepare")
     return (
       <section>
