@@ -28,6 +28,7 @@ from .deployment.manager import DeploymentManager
 from .deployment.provisioners import states as provisioner_states
 from .deployment.routes import register_deployments
 from .diffsbdd.runtime import validate as validate_diffsbdd
+from .disk_space import available_bytes
 from .docking.runtime import validate as validate_docking
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
@@ -54,6 +55,7 @@ from .store import CapacityError, ConflictError, Store
 from .task_history.routes import register_task_history
 from .worker import Worker
 from .workflows import register_workflows
+from .wsl_storage import StorageUnavailable
 
 
 def create_app(settings: Settings | None = None, engine: Engine | None = None) -> FastAPI:
@@ -310,11 +312,15 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         except (RuntimeError, OSError, TimeoutError) as exc:
             raise HTTPException(503, str(exc)) from exc
         capacity = settings.capacity_dir or settings.state_dir
-        if (
-            min(shutil.disk_usage(settings.state_dir).free, shutil.disk_usage(capacity).free)
-            < settings.minimum_free_bytes
-        ):
-            raise HTTPException(507, "At least2GiB free disk space is required.")
+        try:
+            free = min(
+                await asyncio.to_thread(available_bytes, settings.state_dir),
+                await asyncio.to_thread(available_bytes, capacity),
+            )
+        except StorageUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        if free < settings.minimum_free_bytes:
+            raise HTTPException(507, "Not enough free disk space. Free space on the storage drive.")
         if value.project_id is not None:
             with store.connect() as db:
                 if not db.execute(
@@ -391,6 +397,16 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             health_cache["dynamic"] = dynamic
         alive = worker.task is not None and not worker.task.done()
         environments = engine_statuses(health_cache["value"])
+        storage_error = None
+        try:
+            free = min(
+                await asyncio.to_thread(available_bytes, settings.state_dir),
+                await asyncio.to_thread(
+                    available_bytes, settings.capacity_dir or settings.state_dir
+                ),
+            )
+        except StorageUnavailable as exc:
+            free, storage_error = None, str(exc)
         return {
             "version": __version__,
             "platform": {"name": PRODUCT_NAME, "ready": alive and not worker.error},
@@ -404,14 +420,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             "disk_total_gib": round(
                 shutil.disk_usage(settings.capacity_dir or settings.state_dir).total / 1024**3, 1
             ),
-            "free_disk_gib": round(
-                min(
-                    shutil.disk_usage(settings.state_dir).free,
-                    shutil.disk_usage(settings.capacity_dir or settings.state_dir).free,
-                )
-                / 1024**3,
-                1,
-            ),
+            "free_disk_gib": round(free / 1024**3, 1) if free is not None else None,
+            "storage_error": storage_error,
             "capabilities": {
                 "prediction": True,
                 "msa": True,
@@ -526,7 +536,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
         )
 
-    register_assets(app, assets, mutation)
+    register_assets(app, assets, mutation, settings.minimum_free_bytes)
     register_uploads(app, assets, settings, mutation)
     harness_service = register_harness(app, store, assets, settings, mutation)
 

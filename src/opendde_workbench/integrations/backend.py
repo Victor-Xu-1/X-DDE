@@ -36,9 +36,10 @@ class ScientificBackend(PreparedContainerBackend):
         shared = {}
         if identifier in {"openmm", "openfe", "gromacs"}:
             names = {
-                "openmm": ("md_system", "md_analysis", "dynamics", "md_outputs"),
-                "openfe": ("openfe", "fep_plan", "fep_result"),
+                "openmm": ("md_input", "md_system", "md_analysis", "dynamics", "md_outputs"),
+                "openfe": ("md_input", "fep_input", "openfe", "fep_plan", "fep_result", "fep_leg"),
                 "gromacs": (
+                    "md_input",
                     "md_system",
                     "md_analysis",
                     "md_outputs",
@@ -84,6 +85,14 @@ class ScientificBackend(PreparedContainerBackend):
             shared_sources=shared,
         )
 
+    def process_limit(self, job):
+        if self.program == "openfe" and job.request.payload.stage == "calculate":
+            # Native HREX minimization holds multiple CPU contexts. Budget both
+            # context/PME thread pools per window plus fixed library/runner overhead.
+            # Typed inputs cap this at 832, while CPU/memory/time limits still apply.
+            return 64 + 2 * job.request.payload.lambda_windows * job.request.options.cpu
+        return super().process_limit(job)
+
     def execution_arguments(self, job, directory):
         args = [
             "--env",
@@ -111,6 +120,19 @@ class ScientificBackend(PreparedContainerBackend):
                 "TORCHINDUCTOR_CACHE_DIR=/tmp/torch-inductor",
                 "--env",
                 "OPENMM_CPU_THREADS=" + str(job.request.options.cpu),
+            ]
+        if self.program == "openfe":
+            # Replica contexts own the allocated CPU budget; BLAS/NumExpr must
+            # not independently size their thread pools from the host core count.
+            args += [
+                "--env",
+                "OPENBLAS_NUM_THREADS=1",
+                "--env",
+                "MKL_NUM_THREADS=1",
+                "--env",
+                "NUMEXPR_NUM_THREADS=1",
+                "--env",
+                "NUMBA_NUM_THREADS=" + str(job.request.options.cpu),
             ]
         if job.request.options.device == "cuda":
             args += ["--gpus", "device=0"]

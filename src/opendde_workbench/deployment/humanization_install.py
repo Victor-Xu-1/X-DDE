@@ -3,6 +3,7 @@
 import shutil
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..humanization.image import VERSION, lock_digest, prepare_context
 from .paths import environment_root
 
@@ -10,7 +11,7 @@ from .paths import environment_root
 def install_humanization(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 6 * 1024**3:
+    if available_bytes(root) < 6 * 1024**3:
         raise ValueError("The independent Sapiens CPU environment requires 6 GiB staging space.")
     destination = environment_root(root, "sapiens") / (VERSION + "-" + str(uuid4()))
     context = destination / "image-context"

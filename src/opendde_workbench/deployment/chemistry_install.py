@@ -4,13 +4,14 @@ import shutil
 from uuid import uuid4
 
 from ..chemistry.image import VERSION, lock_digest, prepare_context
+from ..disk_space import available_bytes
 from .paths import environment_root
 
 
 def install_chemistry(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install the server Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 2 * 1024**3:
+    if available_bytes(root) < 2 * 1024**3:
         raise ValueError("Chemistry installation needs at least 2 GiB free staging/image space.")
     destination = environment_root(root, "chemistry") / (VERSION + "-" + str(uuid4()))
     context = destination / "image-context"
