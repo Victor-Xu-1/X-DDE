@@ -10,6 +10,10 @@ on:
       - ".github/workflows/property-preview-checks.yml"
       - "src/opendde_workbench/chemistry/native_properties.py"
       - "src/opendde_workbench/chemistry/property_options.py"
+      - "src/opendde_workbench/chemistry/property_result.py"
+      - "src/opendde_workbench/chemistry/backend.py"
+      - "src/opendde_workbench/chemistry/runner.py"
+      - "src/opendde_workbench/chemistry/supervise.py"
       - "src/opendde_workbench/native_runtime/property_calculation.py"
 permissions:
   contents: read
