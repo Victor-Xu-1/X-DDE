@@ -13,8 +13,6 @@ def study_task(capability, objects, sequences):
     title = "STAT6 · " + CAPABILITIES[capability].label[1]
     if not operation:
         return None
-    if capability == "biopython.exposure" and "receptor" not in objects:
-        return None
     value = {"operation": operation[0], "name": title[:80]}
     receptor, ligand = ref("receptor"), ref("ligand") if "ligand" in objects else None
     if capability in {"gnina.dock", "gnina.score", "gnina.minimize"}:
