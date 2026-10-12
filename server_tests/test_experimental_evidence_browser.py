@@ -10,6 +10,8 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+from server_tests.archived_case_browser import archived_case_context
+
 
 def test_reported_evidence_example_and_fresh_questionnaire():
     output = Path(os.environ["WB_EXPERIMENTAL_EVIDENCE"])
@@ -55,6 +57,8 @@ def test_reported_evidence_example_and_fresh_questionnaire():
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            page.add_init_script("localStorage.setItem('opendde-workbench.language','zh')")
+            archived_case_context(page)
             diagnostics = []
             page.on(
                 "console", lambda message: diagnostics.append(message.type + ": " + message.text)

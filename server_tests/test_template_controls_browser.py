@@ -213,7 +213,7 @@ def test_archived_results_keep_original_identity_outside_the_active_study(case_p
         assert response.ok, response.text()
         archived = response.json()
         assert archived["case"]["id"] != current["case"]["id"]
-        assert archived["module"]["revision"] + 1 == current["module"]["revision"]
+        assert archived["module"]["revision"] + 2 == current["module"]["revision"]
         if capability == "campaign":
             pin = archived["record_pin"]
             assert pin and not pin["computed_result_available"]

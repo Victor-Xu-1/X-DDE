@@ -92,7 +92,7 @@ it.each(["en", "zh"] as Language[])(
       screen.getByRole("link", {
         name: language === "zh" ? "返回任务历史" : "Back to task history",
       }),
-    ).toHaveAttribute("href", "#view=tasks");
+    ).toHaveAttribute("href", "#view=results&module=other");
     expect(screen.queryByRole("group", { name: "Task modules" })).toBeNull();
     expect(window.location.hash).toContain(A);
     expect(document.querySelectorAll("[data-read-error]")).toHaveLength(0);
@@ -161,7 +161,7 @@ it.each([
 
 it("keeps history filters in the recovery link and after selection is cleared", async () => {
   const route =
-    "#view=tasks&module=evaluation&type=properties&status=running&q=Selected";
+    "#view=results&module=evaluation&type=properties&status=running&q=Selected";
   window.history.replaceState(null, "", route + "&task=" + A);
   render(<App />);
   await advance();
@@ -252,7 +252,7 @@ it("discards a delayed A success after leaving its loading view for B", async ()
 it("keeps project and a valid history page in the missing-task recovery route", async () => {
   const project = "33333333-3333-4333-8333-333333333333";
   const route =
-    "#view=tasks&module=evaluation&type=properties&status=running&q=Selected&page=1&project=" +
+    "#view=results&module=evaluation&type=properties&status=running&q=Selected&page=1&project=" +
     project;
   window.history.replaceState(null, "", route + "&task=" + A);
   vi.mocked(api.taskHistory).mockImplementation(async (path) => ({

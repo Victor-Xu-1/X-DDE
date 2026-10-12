@@ -17,7 +17,6 @@ def register_input(scientific, key):
         "structure": "structure",
         "ligand": "molecule",
         "sequences": "sequence",
-        "measurements": "analysis",
     }[file.kind]
     identity = uuid5(NAMESPACE, f"{CASE.id}:{CASE.revision}:{key}:{file.sha256}")
     label = "STAT6 study · " + file.name
@@ -51,7 +50,7 @@ def prepare_stat6(capability, scientific, *, records=None):
     originals = {
         key: register_input(scientific, key)
         for key, spec in FILES.items()
-        if spec.kind in {"structure", "ligand", "sequences", "measurements"}
+        if spec.kind in {"structure", "ligand", "sequences"}
     }
     objects = {
         **originals,
@@ -115,7 +114,12 @@ def prepare_stat6(capability, scientific, *, records=None):
     from .experimental_inputs import evidence_draft
     from .requests import study_request
 
-    measurements = scientific.assets.get(originals["stat6_measurements"].reference.asset_id)
+    measured_file = FILES["stat6_measurements"]
+    # EvidenceRecords owns measurement semantics. Preserve its existing immutable
+    # asset authority rather than registering a CSV as a configuration object.
+    measurements = scientific.assets.save(
+        measured_file.name, measured_file.kind, verified_input("stat6_measurements")
+    )
 
     sequence_sources = {
         key: (sequence,) for key in ("protein_sequence", "target_sequence", "stat6_sequence")

@@ -17,8 +17,8 @@ afterEach(cleanup);
 
 it("shows native compound identities in the table, selector and selected structure without rewriting data", async () => {
   const molecules = [
-    { input: "asset:0", name: "CHEMBL123", available: true, smiles: "CC(=O)N", mw: 59.07 },
-    { input: "asset:1", name: "CHEMBL456", available: true, smiles: "CC(=O)O", mw: 60.05 },
+    { input: "asset:0", name: "CHEMBL123", available: true, smiles: "CC(=O)N", mw: 59.07, logp: -1.2 },
+    { input: "asset:1", name: "CHEMBL456", available: true, smiles: "CC(=O)O", mw: 60.05, logp: 0.1 },
   ];
   const original = JSON.stringify(molecules);
   render(<PropertyResults job={{ id: "native", request: { name: "Measured STAT6 series" } } as Job}

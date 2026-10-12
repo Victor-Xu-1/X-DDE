@@ -445,10 +445,10 @@ export function App() {
                 />
               </>
             )}
-            {scopedResults && (
+            {showingResults && (
               <TaskWorkspace
-                key={scopedResults}
-                scopedModule={scopedResults}
+                key={scopedResults ?? "unresolved"}
+                scopedModule={scopedResults ?? "other"}
                 {...common}
                 selected={selected}
                 selectedError={work.selectedJobError}
