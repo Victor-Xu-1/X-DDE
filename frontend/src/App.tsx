@@ -121,7 +121,10 @@ export function App() {
       });
     if (view === "tasks" && job && selected === requestedTask.current) {
       const owner = viewForResults(moduleForKind(kindForJob(job)));
-      setView((current) => (current === "tasks" ? owner : current));
+      setView((current) => {
+        console.debug("task-ownership-diagnostic", { current, owner });
+        return current === "tasks" ? owner : current;
+      });
     }
   }, [view, job?.id, selected]);
   const analysis = science.analysis;

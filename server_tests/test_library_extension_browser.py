@@ -107,6 +107,7 @@ def test_therapeutic_library_results_and_new_guided_choices(tmp_path):
                             (evidence / f"library-{mode}-failure.json").write_text(json.dumps({
                                 "requested_job": identifier, "url": page.url,
                                 "ownership": ownership[-30:],
+                                "page_errors": errors,
                                 "page": page.locator("main").inner_text(),
                                 "job": page.request.get(base + f"/api/jobs/{identifier}").json(),
                                 "result": page.request.get(
