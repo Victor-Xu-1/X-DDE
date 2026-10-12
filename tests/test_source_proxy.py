@@ -1,5 +1,6 @@
 """The configured public transport must work without inheriting proxy secrets."""
 
+import asyncio
 from io import BytesIO
 from types import SimpleNamespace
 
@@ -55,10 +56,7 @@ def test_transport_ignores_ambient_proxies_and_uses_only_sanitized_task_setting(
     assert network.configured_proxy() == {"https": "http://127.0.0.1:7890"}
 
 
-@pytest.mark.asyncio
-async def test_discovery_process_uses_proxy_without_forwarding_parent_secrets(
-    tmp_path, monkeypatch
-):
+def test_discovery_process_uses_proxy_without_forwarding_parent_secrets(tmp_path, monkeypatch):
     monkeypatch.setenv(network.PUBLIC_PROXY, "http://127.0.0.1:7890")
     monkeypatch.setenv("OTHER_TOKEN", "never-forward")
     calls = []
@@ -68,7 +66,7 @@ async def test_discovery_process_uses_proxy_without_forwarding_parent_secrets(
         return "controlled-process-boundary"
 
     monkeypatch.setattr(backend.local_process, "start", start)
-    result = await backend.DiscoveryBackend(None).start(None, tmp_path)
+    result = asyncio.run(backend.DiscoveryBackend(None).start(None, tmp_path))
     assert result == "controlled-process-boundary"
     assert calls[0][network.PUBLIC_PROXY] == "http://127.0.0.1:7890"
     assert "OTHER_TOKEN" not in calls[0] and "HTTPS_PROXY" not in calls[0]
