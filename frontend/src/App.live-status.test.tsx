@@ -199,3 +199,130 @@ it.each(["en", "zh"] as Language[])(
     expect(api.jobs).toHaveBeenCalledTimes(3);
   },
 );
+
+it.each(["en", "zh"] as Language[])(
+  "shows a jobs-only Tasks warning until successful Retry while history and selected status stay live in %s",
+  async (language) => {
+    const other: Job = {
+      ...job(),
+      id: "22222222-2222-4222-8222-222222222222",
+      request: { ...job().request, name: "Cached task B" },
+    };
+    vi.mocked(i18n.restoreLanguage).mockReturnValue(language);
+    vi.mocked(api.jobs).mockResolvedValue([job(), other]);
+    vi.mocked(api.taskHistory).mockImplementation(async (path) =>
+      historyFixture([selected, other], path),
+    );
+    render(<App />);
+    await advance();
+    const historyReads = vi.mocked(api.taskHistory).mock.calls.length;
+    selected = job("failed");
+    vi.mocked(api.jobs).mockRejectedValue(new Error("List-only outage"));
+    await advance(13000);
+    const warning = document.querySelector<HTMLElement>(
+      '[data-read-error="jobs"]',
+    )!;
+    expect(warning).toBeVisible();
+    expect(warning).toHaveTextContent(
+      language === "zh"
+        ? "最后确认的任务信息"
+        : "last confirmed task information",
+    );
+    expect(document.querySelectorAll("[data-read-error]")).toHaveLength(1);
+    expect(
+      screen.queryByRole("button", {
+        name: language === "zh" ? "重新连接" : "Reconnect",
+      }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", {
+        name: language === "zh" ? "刷新任务" : "Refresh tasks",
+      }),
+    ).toBeVisible();
+    expect(document.querySelector(".detail-panel .status")).toHaveTextContent(
+      language === "zh" ? "失败" : "Failed",
+    );
+    expect(api.jobs).toHaveBeenCalledTimes(2);
+    expect(api.health).toHaveBeenCalledTimes(2);
+    expect(api.artifacts).toHaveBeenCalledTimes(7);
+    expect(api.taskHistory).toHaveBeenCalledTimes(historyReads + 4);
+    expect(
+      screen.queryByRole("button", { name: /Recovered task B/ }),
+    ).toBeNull();
+
+    let resolve!: (jobs: Job[]) => void;
+    vi.mocked(api.jobs).mockImplementation(
+      () =>
+        new Promise<Job[]>((done) => {
+          resolve = done;
+        }),
+    );
+    fireEvent.click(
+      within(warning).getByRole("button", {
+        name: language === "zh" ? "重试" : "Retry",
+      }),
+    );
+    await advance();
+    expect(warning).toBeVisible(); // Clicking Retry alone is not recovery.
+    expect(api.jobs).toHaveBeenCalledTimes(3);
+    await act(async () => {
+      resolve([
+        selected,
+        {
+          ...other,
+          status: "failed",
+          request: { ...other.request, name: "Recovered task B" },
+        },
+      ]);
+    });
+    expect(document.querySelector('[data-read-error="jobs"]')).toBeNull();
+    expect(
+      within(document.querySelector(".top-popover")!).getByRole("button", {
+        name: /Recovered task B/,
+        hidden: true,
+      }),
+    ).toBeInTheDocument();
+    fireEvent.change(
+      screen.getByLabelText(language === "zh" ? "搜索任务" : "Search tasks", {
+        selector: "input",
+      }),
+      {
+        target: { value: "Recovered task B" },
+      },
+    );
+    expect(
+      within(document.querySelector(".search-results")!).getByRole("button", {
+        name: /Recovered task B/,
+      }),
+    ).toBeInTheDocument();
+    expect(document.querySelector(".detail-panel h2")).toHaveTextContent(
+      "Live task",
+    );
+    expect(document.querySelector(".detail-panel .status")).toHaveTextContent(
+      language === "zh" ? "失败" : "Failed",
+    );
+    expect(window.location.hash).toContain(A);
+  },
+);
+
+it.each(["en", "zh"] as Language[])(
+  "keeps the classified-history Reconnect specific to a real history failure in %s",
+  async (language) => {
+    vi.mocked(i18n.restoreLanguage).mockReturnValue(language);
+    render(<App />);
+    await advance();
+    vi.mocked(api.taskHistory).mockRejectedValue(
+      new Error("History-only outage"),
+    );
+    await advance(3000);
+    expect(document.querySelectorAll("[data-read-error]")).toHaveLength(0);
+    expect(
+      screen.getByRole("button", {
+        name: language === "zh" ? "重新连接" : "Reconnect",
+      }),
+    ).toBeVisible();
+    expect(document.querySelector(".detail-panel .status")).toHaveTextContent(
+      language === "zh" ? "运行中" : "Running",
+    );
+  },
+);
