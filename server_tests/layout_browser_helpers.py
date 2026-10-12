@@ -13,6 +13,13 @@ VISIBLE_TASKS = sum(
 )
 
 
+def initialize_layout_language(page):
+    """Start Chinese layout fixtures without overriding a saved language choice."""
+    page.add_init_script("""if (localStorage.getItem('opendde-workbench.language') === null) {
+        localStorage.setItem('opendde-workbench.language', 'zh');
+    }""")
+
+
 def catalog(page):
     page.get_by_role("navigation", name="主导航").get_by_role(
         "button", name="全部能力", exact=True

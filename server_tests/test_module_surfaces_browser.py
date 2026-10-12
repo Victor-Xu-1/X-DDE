@@ -4,7 +4,12 @@ import json
 import os
 from pathlib import Path
 
-from layout_browser_helpers import VISIBLE_TASKS, catalog, flat_surface_styles
+from layout_browser_helpers import (
+    VISIBLE_TASKS,
+    catalog,
+    flat_surface_styles,
+    initialize_layout_language,
+)
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -15,6 +20,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1100})
+        initialize_layout_language(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(os.environ["WB_BROWSER_URL"])
         groups = page.locator(".capability-group")

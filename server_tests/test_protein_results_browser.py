@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 import pytest
-from layout_browser_helpers import catalog
+from layout_browser_helpers import catalog, initialize_layout_language
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -18,6 +18,7 @@ def protein_page():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        initialize_layout_language(page)
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(

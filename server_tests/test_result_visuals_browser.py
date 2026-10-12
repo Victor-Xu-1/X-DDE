@@ -7,7 +7,7 @@ import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from layout_browser_helpers import catalog, settle_visible_drawings
+from layout_browser_helpers import catalog, initialize_layout_language, settle_visible_drawings
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.publication_browser_helpers import export_figure
@@ -22,6 +22,7 @@ def test_real_structures_tables_and_sequences():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        initialize_layout_language(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",

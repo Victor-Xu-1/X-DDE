@@ -9,6 +9,7 @@ from layout_browser_helpers import (
     capture,
     capture_utilities,
     catalog,
+    initialize_layout_language,
     load_template,
     review_steps,
     save_report,
@@ -38,6 +39,7 @@ def test_every_task_page_and_native_case_layout():
     with sync_playwright() as engine:
         browser = engine.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        initialize_layout_language(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
