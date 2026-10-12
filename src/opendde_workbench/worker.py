@@ -145,7 +145,6 @@ class Worker:
 
     async def execute(self, job: Job) -> None:
         directory = self.settings.state_dir / "jobs" / job.id
-        directory.mkdir(parents=True, exist_ok=True)
         process = None
         reader = None
         started = time.monotonic()
@@ -153,6 +152,7 @@ class Worker:
         try:
             from .disk_space import StorageCapacityError, StorageUnavailable, require_space
 
+            directory.mkdir(parents=True, exist_ok=True)
             for location in {
                 self.settings.state_dir,
                 self.settings.capacity_dir or self.settings.state_dir,
@@ -274,8 +274,13 @@ class Worker:
                     if isinstance(exc, (StorageCapacityError, StorageUnavailable))
                     else f"Task execution failed: {type(exc).__name__}. Inspect the task log."
                 )
-            with (directory / "run.log").open("a") as file:
-                file.write(f"\n{type(exc).__name__}: {exc}\n")
+            try:
+                with (directory / "run.log").open("a") as file:
+                    file.write(f"\n{type(exc).__name__}: {exc}\n")
+            except OSError:
+                # Storage failures can also make the diagnostic file unavailable.
+                # Keep the original task error and always complete lifecycle cleanup.
+                log.warning("task_error_log_unavailable job_id=%s", job.id, exc_info=True)
             if not cancelled:
                 log.exception("task_execution_failed job_id=%s", job.id)
         finally:
