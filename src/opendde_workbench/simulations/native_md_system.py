@@ -1,5 +1,6 @@
 """Explicit-water AMBER14/OpenFF systems; unsupported chemistry fails visibly."""
 
+from native_md_input import validate_peptide_links
 from native_openmm import add_bound_ligand
 from native_structure import input_pdb
 
@@ -23,7 +24,11 @@ def prepare(request):
     if fixer.nonstandardResidues:
         raise ValueError("Parameterize modified residues explicitly before dynamics.")
     fixer.findMissingAtoms()
+    validate_peptide_links(
+        fixer.topology, fixer.positions.value_in_unit(unit.angstrom), require_complete=False
+    )
     fixer.addMissingAtoms(seed=request["options"]["seed"])
+    validate_peptide_links(fixer.topology, fixer.positions.value_in_unit(unit.angstrom))
     modeller = app.Modeller(fixer.topology, fixer.positions)
     forcefield = app.ForceField("amber14-all.xml", "amber14/tip3p.xml")
     ligand = None

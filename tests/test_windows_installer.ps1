@@ -16,12 +16,24 @@ $manifest = @('install.sh', 'opendde.ps1', $wheel) | ForEach-Object {
     (Get-FileHash -LiteralPath (Join-Path $fixtures $_) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_
 }
 $manifest | Set-Content -LiteralPath (Join-Path $fixtures 'SHA256SUMS') -Encoding ascii
-$boundary = @{ corrupt = $false; installations = 0; distributions = @('OpenDDE', 'WSL'); lastDistribution = '' }
+$boundary = @{ corrupt = $false; installations = 0; distributions = @('OpenDDE', 'WSL'); lastDistribution = ''; free = 32GB; backingFree = 32GB; boots = 0; downloads = 0 }
+$backingStore = Join-Path $fixtures 'registered backing storage'
+New-Item -ItemType Directory -Path $backingStore -Force | Out-Null
 # Isolate the external WSL/download boundaries; run the real installer and file writes.
+function global:Get-Volume {
+    param([string]$FilePath)
+    $remaining = if ($FilePath -eq $backingStore) { $boundary.backingFree } else { $boundary.free }
+    return [pscustomobject]@{DriveLetter='D';SizeRemaining=$remaining}
+}
+function global:Get-ItemProperty {
+    param([string]$Path, $ErrorAction)
+    if ($Path -notlike '*Lxss*') { throw 'Unexpected registry lookup in the isolated installer.' }
+    return @('OpenDDE','WSL') | ForEach-Object { [pscustomobject]@{DistributionName=$_;BasePath=$backingStore} }
+}
 function global:wsl.exe {
     $global:LASTEXITCODE = 0
     if ($args[0] -eq '--list') { return $boundary.distributions }
-    if ($args[0] -eq '-d') { $boundary.lastDistribution = $args[1] }
+    if ($args[0] -eq '-d') { $boundary.lastDistribution = $args[1]; $boundary.boots++ }
     if ('whoami' -in $args) { return 'researcher' }
     if ('printenv' -in $args) { return '/home/researcher' }
     if ('test' -in $args) { return }
@@ -45,11 +57,23 @@ function global:wsl.exe {
 }
 function global:Invoke-WebRequest {
     param([string]$Uri, [string]$OutFile, [switch]$UseBasicParsing, [int]$TimeoutSec)
+    $boundary.downloads++
     $name = $Uri.Split('/')[-1]
     Copy-Item -LiteralPath (Join-Path $fixtures $name) -Destination $OutFile
     if ($boundary.corrupt -and $name.EndsWith('.whl')) { Add-Content -LiteralPath $OutFile -Value 'corrupted' }
 }
 try {
+    foreach ($limited in @('installation','backing')) {
+        $boundary.free = if ($limited -eq 'installation') { 0 } else { 32GB }
+        $boundary.backingFree = if ($limited -eq 'backing') { 0 } else { 32GB }
+        $limitedTarget = $target + " low $limited"
+        $denied = $false
+        try { & (Join-Path $repository 'install.ps1') -Distribution WSL -LinuxUser researcher -InstallRoot $limitedTarget }
+        catch { if ($_.Exception.Message -notlike 'At least 2 GiB free space is required*') { throw }; $denied=$true }
+        if (!$denied -or $boundary.boots -or $boundary.downloads) { throw 'Low physical capacity reached WSL startup or downloads.' }
+    }
+    $boundary.free = 32GB
+    $boundary.backingFree = 32GB
     New-Item -ItemType Directory -Path (Join-Path $target 'bin') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $repository 'scripts/opendde.ps1') -Destination (Join-Path $target 'bin/opendde.ps1')
     & (Join-Path $repository 'install.ps1') -Distribution OpenDDE -LinuxUser researcher -InstallRoot $target
@@ -105,5 +129,5 @@ try {
     [Environment]::SetEnvironmentVariable('Path', $previousPath, 'User')
     $env:TEMP = $previousTemp
     $env:TMP = $previousTmp
-    Remove-Item Function:\wsl.exe, Function:\Invoke-WebRequest
+    Remove-Item Function:\wsl.exe, Function:\Invoke-WebRequest, Function:\Get-Volume, Function:\Get-ItemProperty
 }

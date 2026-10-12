@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .assets import Asset
 from .dataset_inputs import UPLOAD_CHUNK_BYTES, data_suffix, inspect_data
+from .disk_space import available_bytes
 from .store import ConflictError, now
 
 
@@ -97,7 +98,7 @@ class UploadStore:
                     "SELECT coalesce(sum(size-offset),0) FROM asset_uploads WHERE state='uploading'"
                 ).fetchone()[0]
                 if (
-                    shutil.disk_usage(self.assets.root).free
+                    available_bytes(self.assets.root)
                     < value.size + remaining + self.minimum_free
                 ):
                     raise ValueError("There is insufficient free space for this research upload.")
@@ -148,7 +149,7 @@ class UploadStore:
                 return current
             if offset != current["offset"] or offset + len(content) > current["size"]:
                 raise ConflictError("Resume from the server's confirmed upload offset.")
-            if shutil.disk_usage(self.assets.root).free < len(content) + self.minimum_free:
+            if available_bytes(self.assets.root) < len(content) + self.minimum_free:
                 raise ValueError("Free space fell below the research storage reserve.")
             with path.open("r+b") as stream:
                 stream.seek(offset)

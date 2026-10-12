@@ -3,6 +3,7 @@
 import shutil
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..receptors.image import VERSION, lock_digest, prepare_context
 from .paths import environment_root
 
@@ -10,7 +11,7 @@ from .paths import environment_root
 def install_biopython(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install the server Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 2 * 1024**3:
+    if available_bytes(root) < 2 * 1024**3:
         raise ValueError("Biopython installation needs at least 2 GiB free staging/image space.")
     destination = environment_root(root, "biopython") / (VERSION + "-" + str(uuid4()))
     context = destination / "image-context"
