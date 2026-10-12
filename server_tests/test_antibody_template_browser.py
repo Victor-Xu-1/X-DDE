@@ -29,25 +29,33 @@ def test_numbering_template_source_and_blank_reset(language, width):
             "button", name="生物药研究" if zh else "Biologics research", exact=True
         ).click()
         page.get_by_role("combobox", name="研究任务" if zh else "Research task").select_option(
-            label="抗体编号与CDR标注" if zh else "Antibody numbering and CDR annotation"
+            label="抗体编号与 CDR 标注" if zh else "Antibody numbering and CDR annotation"
         )
         with page.expect_response(
-            lambda response: "/api/examples/antibody.number/prepare" in response.url
-            and response.request.method == "POST"
+            lambda response: (
+                "/api/examples/antibody.number/prepare" in response.url
+                and response.request.method == "POST"
+            )
         ) as preparing:
-            page.get_by_role("button", name="使用这个模板" if zh else "Use this template").click()
+            page.get_by_role("button", name="使用此模板" if zh else "Use this template").click()
         prepared = preparing.value.json()
         source = prepared["request"]["sequences"]
         assert source == prepared["objects"]["variable_domains"]["reference"]
-        expect(page.get_by_role("button", name="新建空白任务" if zh else "New blank task")).to_be_visible()
+        expect(
+            page.get_by_role("button", name="新建空白任务" if zh else "New blank task")
+        ).to_be_visible()
         for _ in range(3):
             page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
         expect(page.get_by_text(source["version_id"], exact=True)).to_be_visible()
         expect(page.get_by_text("IMGT · ANARCII 2.0.8 · accuracy", exact=True)).to_be_visible()
         page.screenshot(path=evidence / f"review-{language}.png", full_page=True)
         page.get_by_role("button", name="新建空白任务" if zh else "New blank task").click()
-        expect(page.get_by_role("radio", name="粘贴序列" if zh else "Paste sequences")).to_be_checked()
-        expect(page.get_by_role("button", name="下一步" if zh else "Next", exact=True)).to_be_disabled()
+        expect(
+            page.get_by_role("radio", name="粘贴序列" if zh else "Paste sequences")
+        ).to_be_checked()
+        expect(
+            page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
+        ).to_be_disabled()
         assert before == page.request.get(base + "/api/jobs").json()
         assert not errors
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
