@@ -17,6 +17,7 @@ on:
       - "frontend/src/humanization/SequenceAlignment*"
       - "frontend/src/humanization/SequenceComparison*"
       - "frontend/src/humanization/ReferenceMetrics*"
+      - "frontend/src/humanization/NativeReferenceDetails*"
       - "frontend/src/humanization/humanization.css"
       - "frontend/src/humanization/sequence-alignment.css"
       - "frontend/src/quality/QualityResults*"
@@ -25,6 +26,7 @@ on:
       - "frontend/src/quality/tests/QualityResults.test.tsx"
       - "server_tests/test_sequence_results_browser.py"
       - "server_tests/test_campaign_sequence_browser.py"
+      - "server_tests/test_humanization_details_browser.py"
       - ".github/workflows/sequence-result-checks.yml"
 permissions:
   contents: read
@@ -37,12 +39,31 @@ jobs:
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select only the changed result family
+        id: scope
+        env:
+          BASE_REVISION: ${{ github.event.before }}
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          base = os.environ.get("BASE_REVISION", "")
+          changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
+          mirrors = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1"}
+          own_checks = {"server_tests/test_humanization_details_browser.py", ".github/workflows/sequence-result-checks.yml"}
+          only = bool(changed) and any(p.startswith("frontend/src/humanization/") for p in changed) and all(p.startswith("frontend/src/humanization/") or p in mirrors | own_checks for p in changed)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("only_humanization=" + str(only).lower() + "\n")
+          print("Human reference results only" if only else "Shared sequence-view consumers")
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Verify result interactions and direct sequence-view consumers
+        if: steps.scope.outputs.only_humanization != 'true'
         working-directory: frontend
         run: >-
           npx vitest run
@@ -58,6 +79,14 @@ jobs:
           src/operations/OperationResults.test.tsx
           src/presentation/ResearchTable.test.tsx
           src/presentation/MetricScatter.test.tsx
+          src/humanization/NativeReferenceDetails.test.tsx
+      - name: Native probabilities, linked residue positions and full-precision exports
+        if: steps.scope.outputs.only_humanization == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/humanization/NativeReferenceDetails.test.tsx
+          src/humanization/HumanizationResults.test.tsx
+          src/presentation/ResearchTable.test.tsx src/presentation/plots/InteractivePlot.test.tsx
       - name: Restore reviewed native public cases without inference
         env:
           GH_TOKEN: ${{ github.token }}
@@ -76,7 +105,11 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          .venv/bin/python -m pytest -q server_tests/test_sequence_results_browser.py server_tests/test_campaign_sequence_browser.py
+          if [ '${{ steps.scope.outputs.only_humanization }}' = 'true' ]; then
+            .venv/bin/python -m pytest -x -q server_tests/test_humanization_details_browser.py
+          else
+            .venv/bin/python -m pytest -q server_tests/test_sequence_results_browser.py server_tests/test_campaign_sequence_browser.py server_tests/test_humanization_details_browser.py
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
