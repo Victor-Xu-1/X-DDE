@@ -213,6 +213,26 @@ Leaving a view cancels further work; in-flight native setup, loading, frame
 updates and captures settle before their resources are released. This preserves
 requested viewing angles and avoids acting on a disposed molecular context.
 
+Protein cartoons and ligand views load without building an unused molecular
+surface. Selecting Surface generates the same native charge-colored geometry;
+turning it off removes that representation, including its trajectory-update
+work. The view shows an updating state and disables image capture until the
+requested representation is ready. Native failures remain visible and an older
+view cannot be exported as the newly requested one.
+
+Trajectory frames, display changes and figure captures share one native update
+queue. A failed operation returns its original error without preventing later
+explicit requests. The preview confirms both the exact requested frame and its
+display before enabling export or advancing playback. Pending or failed frame
+changes retain the last confirmed frame; a failed update offers Retry. Superseded
+responses cannot mark an older frame as current. These are viewing operations,
+not new scientific calculations or changes to stored coordinates.
+
+轨迹切帧、显示切换与视图导出共用一条原生更新队列。某次操作失败会返回真实错误，
+后续明确请求仍可执行。请求的帧和显示方式均确认完成后，才允许导出或继续播放。
+更新期间或失败时保留最后确认的帧，失败后提供“重试”；过期响应不会覆盖当前帧。
+这些操作只调整预览，不启动科学计算，也不修改保存的坐标。
+
 采样重叠预览将方形矩阵与相邻状态的双向数值表并排展示。保留原始 MBAR 数值，
 不强行对称化；缺少矩阵时明确提示，CSV 保留完整数值精度。重置后保持状态编号方向。
 自由能误差图同时显示零参考线和完整误差条；展示本身不代表科学验收或实验置信区间。

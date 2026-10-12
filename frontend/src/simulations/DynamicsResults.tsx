@@ -89,8 +89,8 @@ export function DynamicsResults({
           <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
           <MolecularViewport
             onExport={() => setPlaying(false)}
-            onReady={() => {
-              frameReady.current = true;
+            onReady={(ready) => {
+              frameReady.current = ready;
             }}
             frames={current.frames.map((f) => artifactUrl(job.id, f.artifact))}
             frame={frame}

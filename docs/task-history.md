@@ -16,6 +16,10 @@ The read-only `/api/task-history` endpoint queries the existing SQLite authority
 
 只读接口沿用现有 SQLite 数据权威，默认每页 20 项，返回所选项目的分类计数及筛选后的总数。搜索按文字匹配，使用绑定参数；按创建时间和唯一标识稳定分页，计数及结果采用同一读取快照。不增加平行任务库、队列、结果格式或数据迁移。前端取消过期请求，每次读取限时 30 秒，提供明确的重连入口及空状态；前 100 项之外的历史任务也可直接查询。
 
+Task-history browsing is independent of environment-health reads and global task summaries. Only a failed history request displays its reconnection notice. Task summaries refresh every three seconds after the previous read settles; health refreshes every ten seconds. Each read has a thirty-second deadline and navigation/refresh cancels superseded reads. A failed stream waits for explicit Retry/Reconnect while other successful streams continue. A failed health read invalidates earlier readiness, so retained results remain readable without presenting an unavailable environment as ready to submit a task.
+
+任务历史浏览独立于环境健康检查及全局任务摘要；仅历史接口读取失败时显示任务重连提示。全局任务摘要在上次读取结束后三秒更新，健康检查十秒更新；每次读取限时三十秒，导航或刷新会取消过期读取。失败的读取等待用户明确重试或重连，其他成功的读取继续更新。健康检查失败后，先前的可运行状态失效，已有结果仍可浏览，不会把不可用环境显示为可递交任务。
+
 The optional `scope=examples` query is used only when a researcher explicitly chooses a fixed example result as input. Internal installation-validation records are excluded from both input-source lists. The default `research` scope continues to exclude fixed example tasks. Both scopes use the same stable filtering and paging; changing result sources never adds examples to personal task history.
 
 仅在用户明确选择固定示例结果作为材料时使用可选的 `scope=examples` 查询。两种材料来源均排除内部安装验证记录。默认 `research` 范围仍排除固定案例任务。两种范围共用稳定的筛选与分页；切换材料来源不会把案例加入个人任务历史。

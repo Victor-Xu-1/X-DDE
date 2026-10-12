@@ -30,6 +30,14 @@ def test_native_binding_switches_during_loading_and_after_transition():
         expect(root.get_by_role("button", name=re.compile(r"^Download view")).first).to_be_enabled(
             timeout=30000
         )
+        first_view = root.get_by_test_id("molstar-viewport").first
+        first_view.get_by_role("button", name="Surface", exact=True).click()
+        expect(first_view.get_by_role("application")).to_have_attribute(
+            "aria-busy", "false", timeout=30000
+        )
+        expect(first_view.get_by_role("button", name=re.compile(r"^Download view"))).to_be_enabled()
+        first_view.get_by_role("button", name="Surface", exact=True).click()
+        expect(first_view.get_by_role("application")).to_have_attribute("aria-busy", "false")
         root.get_by_role("button", name="Ligand and pocket", exact=True).first.click()
         page.get_by_role("button", name="Task modules", exact=True).click()
         expect(page.get_by_role("group", name="Task modules", exact=True)).to_be_visible()
@@ -82,6 +90,7 @@ def test_native_result_views_and_downloads(case, language):
         def loaded(viewer):
             scene = viewer.locator(".simulation-webgl")
             expect(scene).to_have_attribute("data-loaded", "true", timeout=45000)
+            expect(scene).to_have_attribute("aria-busy", "false", timeout=45000)
             if scene.get_attribute("data-error"):
                 page.screenshot(
                     path=str(evidence / (language + "-load-failure.png")), full_page=True
@@ -108,6 +117,12 @@ def test_native_result_views_and_downloads(case, language):
                 "href", f"/api/jobs/{identifier}/download?name=repeat-1-frame-0004.pdb"
             )
             expect(viewer).to_have_attribute("data-frame", "3", timeout=30000)
+            expect(viewer.locator(".simulation-webgl")).to_have_attribute("aria-busy", "false")
+            expect(
+                viewer.get_by_role(
+                    "button", name="Download view" if language == "en" else "下载视图"
+                )
+            ).to_be_enabled()
             expect(
                 root.get_by_role(
                     "application",

@@ -68,7 +68,6 @@ function props(
     job: null,
     detail: null,
     detailError: false,
-    connectionError: false,
     onRefresh: vi.fn(),
     onJob: vi.fn(),
     onChanged: vi.fn(),
@@ -216,13 +215,14 @@ it("keeps projects isolated and hides a selected task belonging to another proje
   fireEvent.click(screen.getByRole("button", { name: "Clear filter" }));
   expect(p.onProject).toHaveBeenCalledWith(null);
 });
-it("keeps a just-submitted task visible before history refresh and reports disconnection", async () => {
-  const p = props({ job: { ...job, status: "queued" }, connectionError: true });
+it("keeps a just-submitted task visible when its history request fails", async () => {
+  vi.mocked(api.taskHistory).mockRejectedValue(new Error("Unavailable"));
+  const p = props({ job: { ...job, status: "queued" } });
   render(<TaskWorkspace {...p} />);
   expect(
     await screen.findByRole("heading", { name: "STAT6 structure" }),
   ).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Reconnect" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Reconnect" }));
   expect(p.onRefresh).toHaveBeenCalledOnce();
 });
 it("opens other tasks without discarding unclassified history", async () => {
