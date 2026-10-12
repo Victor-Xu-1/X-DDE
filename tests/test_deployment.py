@@ -4,17 +4,23 @@ import hashlib
 import io
 import json
 import os
+import signal
 import socket
 import subprocess
 import sys
 import tarfile
 import threading
+import time
 import zipfile
+from contextlib import suppress
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
+from opendde_workbench import local_process
+from opendde_workbench.deployment import process as installer_process
 from opendde_workbench.deployment.catalog import dependencies
 from opendde_workbench.deployment.manager import DeploymentManager
 from opendde_workbench.deployment.process import Paused, run
@@ -154,6 +160,199 @@ def test_real_installer_process_can_be_paused(tmp_path):
             checkpoint,
             lambda _: None,
         )
+    assert not (tmp_path / "process.json").exists()
+
+
+@pytest.fixture
+def controlled_installer(tmp_path, monkeypatch):
+    """Bound startup regressions, including their failure path, to harmless children."""
+    ready = tmp_path / "child.pid"
+    command = [
+        sys.executable,
+        "-c",
+        "import signal, subprocess, sys, time; from pathlib import Path; "
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+        "child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)']); "
+        "Path(sys.argv[1]).write_text(str(child.pid)); "
+        "time.sleep(0 if sys.argv[2] == 'exit' else 30)",
+        str(ready),
+    ]
+    popen = subprocess.Popen
+    processes = []
+    descendants = []
+    threads = []
+
+    def spawn(*args, **kwargs):
+        process = popen(*args, **kwargs)
+        processes.append(process)
+        deadline = time.monotonic() + 5
+        while not ready.exists() or not ready.read_text():
+            assert time.monotonic() < deadline, "Controlled installer did not start"
+            time.sleep(0.01)
+        child = int(ready.read_text())
+        child_identity = local_process.kernel_identity(child)
+        assert child_identity["group"] == process.pid
+        descendants.append((child, child_identity))
+        if args[0][-1] == "exit":
+            while local_process.kernel_identity(process.pid)["state"] != "Z":
+                assert time.monotonic() < deadline, "Controlled installer did not exit"
+                time.sleep(0.01)
+        return process
+
+    monkeypatch.setattr(installer_process.subprocess, "Popen", spawn)
+
+    def exercise(*, leader_exited=False):
+        errors = []
+
+        def invoke():
+            try:
+                run(
+                    [*command, "exit" if leader_exited else "wait"],
+                    tmp_path,
+                    lambda: None,
+                    lambda _: None,
+                    timeout=0.1,
+                )
+            except BaseException as error:
+                errors.append(error)
+
+        thread = threading.Thread(target=invoke, daemon=True)
+        threads.append(thread)
+        thread.start()
+        thread.join(3)
+        assert not thread.is_alive(), "Installer startup failure blocked on a live child"
+        assert len(errors) == 1
+        assert processes[0].returncode is not None
+        deadline = time.monotonic() + 2
+        while local_process.group_members(processes[0].pid):
+            assert time.monotonic() < deadline, "Installer startup left a live descendant"
+            time.sleep(0.01)
+        return errors[0]
+
+    try:
+        yield exercise
+    finally:
+        for process in processes:
+            # Do not reuse a PID after wait/poll has released the owned child.
+            if process.returncode is None:
+                with suppress(ProcessLookupError):
+                    os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=5)
+        for child, expected in descendants:
+            with suppress(ProcessLookupError, FileNotFoundError):
+                current = local_process.kernel_identity(child)
+                if (
+                    current["start_time"] == expected["start_time"]
+                    and current["group"] == expected["group"]
+                ):
+                    os.kill(child, signal.SIGKILL)
+        for thread in threads:
+            thread.join(5)
+
+
+@pytest.mark.parametrize("error_type", [OSError, PermissionError, FileNotFoundError])
+def test_installer_identity_write_failure_cleans_owned_group(
+    controlled_installer, tmp_path, monkeypatch, error_type
+):
+    error = error_type("controlled identity write failure")
+    open_path = Path.open
+
+    def fail_identity_open(path, *args, **kwargs):
+        if path.name.startswith(".process.json-"):
+            raise error
+        return open_path(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", fail_identity_open)
+    assert controlled_installer() is error
+    assert not (tmp_path / "process.json").exists()
+    assert not list(tmp_path.glob(".process.json-*.tmp"))
+
+
+@pytest.mark.parametrize("error_type", [PermissionError, FileNotFoundError, KeyboardInterrupt])
+def test_installer_identity_capture_failure_cleans_owned_group(
+    controlled_installer, monkeypatch, error_type
+):
+    error = error_type("controlled identity capture failure")
+    monkeypatch.setattr(installer_process, "identity", Mock(side_effect=error))
+    assert controlled_installer() is error
+
+
+def test_installer_startup_failure_cleans_group_after_leader_exit(
+    controlled_installer, monkeypatch
+):
+    error = OSError("controlled identity write failure after leader exit")
+    monkeypatch.setattr(installer_process, "atomic_json", Mock(side_effect=error))
+    assert controlled_installer(leader_exited=True) is error
+
+
+def test_installer_startup_failure_ignores_previous_pidfile(
+    controlled_installer, tmp_path, monkeypatch
+):
+    record = tmp_path / "process.json"
+    original = json.dumps({"pid": os.getpid(), "start": installer_process.identity(os.getpid())})
+    record.write_text(original)
+    error = OSError("controlled identity flush failure")
+    monkeypatch.setattr(os, "fsync", Mock(side_effect=error))
+    recover = Mock(side_effect=AssertionError("Do not reap a previous process record"))
+    monkeypatch.setattr(installer_process, "reap", recover)
+
+    assert controlled_installer() is error
+    recover.assert_not_called()
+    assert record.read_text() == original
+    assert not list(tmp_path.glob(".process.json-*.tmp"))
+
+
+@pytest.mark.parametrize("cleanup_error", [ProcessLookupError(), PermissionError("denied")])
+def test_installer_startup_cleanup_preserves_error_on_signal_race(
+    tmp_path, monkeypatch, cleanup_error
+):
+    process = Mock(pid=12345)
+    error = OSError("controlled identity write failure")
+    monkeypatch.setattr(installer_process.subprocess, "Popen", Mock(return_value=process))
+    monkeypatch.setattr(installer_process, "identity", Mock(return_value="123"))
+    monkeypatch.setattr(installer_process, "atomic_json", Mock(side_effect=error))
+    kill_group = Mock(side_effect=cleanup_error)
+    monkeypatch.setattr(os, "killpg", kill_group)
+
+    with pytest.raises(OSError) as raised:
+        run([sys.executable, "-c", "pass"], tmp_path, lambda: None, lambda _: None)
+
+    assert raised.value is error
+    kill_group.assert_called_once_with(process.pid, signal.SIGKILL)
+    process.poll.assert_not_called()
+    if isinstance(cleanup_error, ProcessLookupError):
+        process.wait.assert_called_once_with(timeout=5)
+    else:
+        process.wait.assert_not_called()
+        assert "Installer startup cleanup failed: denied" in error.__notes__
+
+
+def test_installer_startup_cleanup_wait_is_bounded(tmp_path, monkeypatch):
+    process = Mock(pid=12345)
+    process.wait.side_effect = subprocess.TimeoutExpired("controlled installer", 5)
+    error = OSError("controlled identity write failure")
+    monkeypatch.setattr(installer_process.subprocess, "Popen", Mock(return_value=process))
+    monkeypatch.setattr(installer_process, "identity", Mock(return_value="123"))
+    monkeypatch.setattr(installer_process, "atomic_json", Mock(side_effect=error))
+    monkeypatch.setattr(os, "killpg", Mock())
+
+    with pytest.raises(OSError) as raised:
+        run([sys.executable, "-c", "pass"], tmp_path, lambda: None, lambda _: None)
+
+    assert raised.value is error
+    process.wait.assert_called_once_with(timeout=5)
+    assert "Installer startup cleanup failed:" in error.__notes__[0]
+
+
+@pytest.mark.parametrize("exit_code", [0, 7])
+def test_real_installer_completion_preserves_output_and_status(tmp_path, exit_code):
+    command = [sys.executable, "-c", f"print('installer output'); raise SystemExit({exit_code})"]
+    if exit_code:
+        with pytest.raises(RuntimeError, match=f"exited with code {exit_code}"):
+            run(command, tmp_path, lambda: None, lambda _: None)
+    else:
+        assert run(command, tmp_path, lambda: None, lambda _: None) == "installer output\n"
+    assert (tmp_path / "install.log").read_text() == "installer output\n"
     assert not (tmp_path / "process.json").exists()
 
 
