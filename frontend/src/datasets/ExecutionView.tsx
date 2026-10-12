@@ -63,6 +63,14 @@ export function ExecutionView({
       {execution.kind === "workflow" && run && (
         <RunMonitor initial={run} language={language} onChange={setRun} />
       )}
+      {execution.kind === "job" && (
+        <a
+          className="primary-button"
+          href={"/#task=" + encodeURIComponent(execution.id)}
+        >
+          {zh ? "查看任务进度与结果" : "Open task progress and results"}
+        </a>
+      )}
       {job && result && (
         <DatasetResults
           job={job}
