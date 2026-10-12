@@ -35,6 +35,7 @@ on:
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
+      - 'tests/test_example_library.py'
   pull_request:
     paths:
       - 'src/opendde_workbench/examples/**'
@@ -61,6 +62,7 @@ on:
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
+      - 'tests/test_example_library.py'
 permissions:
   contents: read
 jobs:
@@ -78,6 +80,7 @@ jobs:
         run: >-
           uv run --locked pytest -q
           tests/test_examples.py tests/test_example_observed_inputs.py tests/test_example_pins.py tests/test_example_records.py tests/test_example_library.py
+          tests/test_task_history.py tests/test_example_source_titles.py tests/test_task_identity.py
           tests/test_analysis_cache.py tests/test_projects_science.py
           tests/test_research_assets.py tests/test_api_security.py tests/test_workflows.py
           tests/test_regions.py tests/test_pose_exploration_api.py

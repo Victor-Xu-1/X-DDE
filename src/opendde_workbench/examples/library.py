@@ -31,11 +31,22 @@ class ExampleLibrary:
                 if row is None:
                     raise ValueError("Cannot classify an unknown example record.")
                 request = TASK_ADAPTER.validate_json(row["request"])
-                db.execute(
-                    "INSERT OR IGNORE INTO example_library_tasks VALUES(?,?,?)",
-                    (str(identifier), origin, now()),
-                )
-                if request.project_id:
+                # Even an ignored INSERT requires SQLite's writer lock. Keep unchanged
+                # classification read-only, but retain conflict handling for concurrent inserts.
+                if not db.execute(
+                    "SELECT 1 FROM example_library_tasks WHERE job_id=?", (str(identifier),)
+                ).fetchone():
+                    db.execute(
+                        "INSERT OR IGNORE INTO example_library_tasks VALUES(?,?,?)",
+                        (str(identifier), origin, now()),
+                    )
+                if (
+                    request.project_id
+                    and not db.execute(
+                        "SELECT 1 FROM example_library_projects WHERE project_id=?",
+                        (str(request.project_id),),
+                    ).fetchone()
+                ):
                     db.execute(
                         "INSERT OR IGNORE INTO example_library_projects VALUES(?)",
                         (str(request.project_id),),
