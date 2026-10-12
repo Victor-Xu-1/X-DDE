@@ -58,7 +58,7 @@ it("selects a true residue including insertion code and preserves the paired ori
   expect(props().focusResidue).toEqual({ residue: "A:ASN140B", nonce: 1 });
   expect(screen.getByTitle("3.49123456")).toHaveTextContent("3.49");
   expect(
-    screen.getByRole("cell", { name: "Hydrogen bond", exact: true }),
+    screen.getByRole("cell", { name: /^Hydrogen bond$/ }),
   ).toBeVisible();
 });
 it("uses exact native endpoints in 3D and provides table and original-record exports", () => {
