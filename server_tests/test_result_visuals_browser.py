@@ -11,6 +11,8 @@ from pathlib import Path
 from layout_browser_helpers import (
     catalog,
     initialize_layout_page,
+    settle_responsive_layout,
+    settle_responsive_plot,
     settle_visible_drawings,
     viewport_overflow_evidence,
 )
@@ -50,6 +52,7 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_text("正在读取结果…", exact=True)).not_to_be_visible(timeout=30000)
 
         def record(name):
+            settle_responsive_layout(page)
             assert not viewport_overflow_evidence(page, evidence, "visual-" + name)
             settle_visible_drawings(page)
             page.screenshot(path=str(evidence / ("visual-" + name + ".png")))
@@ -122,7 +125,9 @@ def test_real_structures_tables_and_sequences():
             # Native resizing changes canvas width without inflating type/markers.
             for chart_width in (2560, 390):
                 page.set_viewport_size({"width": chart_width, "height": 1000})
+                settle_responsive_layout(page)
                 expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
+                settle_responsive_plot(page, chart)
                 geometry = chart.evaluate("""node => ({height:node.getBoundingClientRect().height,
                     markers:node.data[0].marker.size, font:node.layout.font.size})""")
                 assert abs(geometry["height"] - 290) <= 1, geometry

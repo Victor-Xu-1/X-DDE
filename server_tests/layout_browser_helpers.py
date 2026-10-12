@@ -37,6 +37,66 @@ def expect_layout_identities(elements, labels):
         expect(elements.nth(index)).to_have_attribute("aria-label", label)
 
 
+def settle_responsive_layout(page):
+    """Wait for the app's compact navigation and selected markers, not page fit."""
+    ready = page.wait_for_function(
+        """() => {
+        // NavigationFrame commits this control after its media-query change event.
+        const compact=matchMedia('(max-width: 960px)').matches;
+        if (!!document.querySelector('.mobile-navigation-trigger')!==compact) return false;
+        return [...document.querySelectorAll(
+            '.questionnaire-steps,.research-tab-list,.task-model-switch'
+        )].every(parent => {
+            const outer=parent.getBoundingClientRect();
+            if (!(outer.width>0 && outer.height>0) ||
+                getComputedStyle(parent).visibility==='hidden') return true;
+            const active=parent.querySelector(
+                ':scope > button[aria-selected="true"],'+
+                ':scope > button[aria-current="step"],'+
+                ':scope > button[aria-pressed="true"]'
+            );
+            const marker=parent.querySelector(':scope > .active-control-indicator');
+            if (!active) return !marker;
+            const inner=active.getBoundingClientRect();
+            if (!(inner.width>0)) return !marker;
+            if (!marker || !marker.style.transform || !marker.style.width) return false;
+            const target=new DOMMatrixReadOnly(marker.style.transform);
+            // ActiveIndicator.tsx deliberately retains changes smaller than 0.25px.
+            const close=(actual,expected) => Math.abs(actual-expected)<0.25;
+            return close(target.m41,inner.left-outer.left+parent.scrollLeft) &&
+                close(target.m42,inner.bottom-outer.top+parent.scrollTop-2) &&
+                close(parseFloat(marker.style.width),inner.width) &&
+                !marker.getAnimations().some(a => a.pending || a.playState==='running');
+        });
+        }""",
+        polling="raf",
+        timeout=5000,
+    )
+    ready.dispose()
+
+
+def settle_responsive_plot(page, chart):
+    """Observe Plotly's real autosize completion without invoking a redraw."""
+    node = chart.element_handle()
+    assert node is not None
+    try:
+        ready = page.wait_for_function(
+            """node => {
+                const width=parseFloat(getComputedStyle(node).width);
+                // Plotly autosize retains <=1px deltas; its pending resize promise
+                // is cleared only after relayout completes. aria-busy is data-only.
+                return node.isConnected && width>0 && node._fullLayout &&
+                    Math.abs(node._fullLayout.width-width)<=1 && !node._resolveResize;
+            }""",
+            arg=node,
+            polling="raf",
+            timeout=5000,
+        )
+        ready.dispose()
+    finally:
+        node.dispose()
+
+
 def viewport_overflow_evidence(page, evidence, label):
     """Return the immediate predicate; failure-only observations cannot turn it into a pass."""
     probe = page.evaluate_handle("""() => {
