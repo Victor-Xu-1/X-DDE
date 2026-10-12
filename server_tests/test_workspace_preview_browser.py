@@ -76,6 +76,10 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
 
         def drawing(key):
             preview = select(key)
+            # Returning to a source keeps its last view; explicitly request its 2D drawing.
+            preview.get_by_role(
+                "tab", name="二维结构" if zh else "2D structure", exact=True
+            ).click()
             image = preview.locator(".molecule-image")
             expect(image).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             data = image.locator("img").get_attribute("src")

@@ -8,11 +8,35 @@ from ensemble_browser_helpers import (
     EVIDENCE,
     capture,
     download,
-    open_result,
     paired_layout,
     preserve_assets,
 )
+from layout_browser_helpers import catalog
 from playwright.sync_api import expect, sync_playwright
+from test_navigation_shell_browser import open_navigation
+
+
+def brd4_archive(page, capability):
+    """Read retained native evidence without inheriting it into the active study."""
+    url = os.environ["WB_BROWSER_URL"] + "/api/examples/" + capability
+    response = page.request.get(url)
+    assert response.ok, response.text()
+    current = response.json()
+    assert current["case"]["id"] == "stat6-defined-molecules"
+    assert current["study"]["target"] == "STAT6"
+    assert current["pin"] is None and current["record_pin"] is None
+    assert not current["computed_result_available"]
+    response = page.request.get(url + "?profile=archive")
+    assert response.ok, response.text()
+    archived = response.json()
+    assert archived["case"]["id"] == "brd4-jq1"
+    assert archived["module"]["revision"] + 1 == current["module"]["revision"]
+    assert archived["computed_result_available"]
+    pin = archived["pin"] or archived["record_pin"]
+    assert pin and pin["capability_id"] == capability
+    assert pin["case_id"] == archived["case"]["id"]
+    assert pin["revision"] == archived["module"]["revision"]
+    return archived
 
 
 def test_native_pose_result_selection_downloads_and_handoff():
@@ -20,6 +44,7 @@ def test_native_pose_result_selection_downloads_and_handoff():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         errors, submissions, geometries = [], [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -34,17 +59,31 @@ def test_native_pose_result_selection_downloads_and_handoff():
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
         try:
-            open_result(page, "多受体与状态姿势探索")
-            result = page.get_by_role("region", name="多假设姿势集合", exact=True)
-            expect(result).to_be_visible()
-            # Read the same pinned native set the real example page displays.
-            example = page.request.get(base + "/api/examples/pose_exploration").json()
+            example = brd4_archive(page, "pose_exploration")
             record_id = example["record_pin"]["record_id"]
             sets = page.request.get(
                 base + "/api/research/pose-ensembles?exploration_id=" + record_id
             ).json()
             assert len(sets) == 1
             saved = sets[0]
+            assert saved["exploration_id"] == record_id
+            assert saved["run_id"] == example["record_pin"]["run_id"]
+            # Open the exact retained plan/set through real history controls.
+            open_navigation(page, "zh")
+            catalog(page)
+            page.get_by_role("button", name="多受体与状态姿势探索", exact=True).and_(
+                page.locator(".tool-card")
+            ).click()
+            toolbar = page.locator(".module-template:visible")
+            expect(toolbar.locator(".example-case-name")).to_contain_text("STAT6")
+            expect(toolbar.get_by_role("button", name="示例结果", exact=True)).to_have_count(0)
+            page.locator(".pose-history > summary").click()
+            page.get_by_role("combobox", name="选择历史计划", exact=True).select_option(record_id)
+            page.get_by_role("combobox", name="已保存姿势集合", exact=True).select_option(
+                saved["id"]
+            )
+            result = page.get_by_role("region", name="多假设姿势集合", exact=True)
+            expect(result).to_be_visible()
             index = next(
                 i
                 for i, outcome in enumerate(saved["outcomes"])
@@ -115,6 +154,11 @@ def test_native_pose_result_selection_downloads_and_handoff():
                 and not errors
                 and not submissions
             )
+            assert brd4_archive(page, "pose_exploration") == example
+            assert (
+                page.request.get(base + "/api/research/pose-ensembles/" + saved["id"]).json()
+                == saved
+            )
             (EVIDENCE / "pose-selection.json").write_text(
                 json.dumps(
                     {
@@ -136,16 +180,20 @@ def test_native_receptor_members_overlay_downloads_and_pocket_handoff():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         errors, geometries = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
         try:
-            open_result(page, "对齐多个受体构象")
+            example = brd4_archive(page, "biopython.ensemble")
+            job_id = example["pin"]["job_id"]
+            page.goto(base + "/#task=" + job_id)
             result = page.get_by_role("region", name="受体构象集合结果", exact=True)
             expect(result).to_be_visible()
-            example = page.request.get(base + "/api/examples/biopython.ensemble").json()
-            job_id = example["pin"]["job_id"]
+            expect(page.locator(".detail-panel .panel-heading h2")).to_contain_text(
+                example["case"]["label"][0]
+            )
             native = page.request.get(base + "/api/jobs/" + job_id + "/result").json()
             for _ in range(8):
                 if "members" in native:
@@ -198,6 +246,7 @@ def test_native_receptor_members_overlay_downloads_and_pocket_handoff():
             capture(page, "native-receptor-pocket-handoff")
             assert preserve_assets(page, originals) == preserved
             assert page.request.get(base + "/api/jobs").json() == before and not errors
+            assert brd4_archive(page, "biopython.ensemble") == example
             (EVIDENCE / "receptor-selection.json").write_text(
                 json.dumps(
                     {

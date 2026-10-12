@@ -10,6 +10,9 @@ on:
       - "frontend/src/simulations/FreeEnergyCycle*"
       - "frontend/src/simulations/FreeEnergyDiagnostics.tsx"
       - "frontend/src/simulations/FreeEnergyForest.tsx"
+      - "frontend/src/simulations/OverlapHeatmap*"
+      - "frontend/src/simulations/AdjacentOverlapTable.tsx"
+      - "frontend/src/simulations/overlap*"
       - "frontend/src/simulations/FreeEnergyResults.tsx"
       - "frontend/src/simulations/BoundPoseComparison*"
       - "frontend/src/simulations/MoleculeMapPanel.tsx"
@@ -56,6 +59,7 @@ jobs:
         run: >-
           npx vitest run src/simulations/SimulationResults.test.tsx
           src/simulations/FreeEnergyCycle.test.tsx src/publication/plotly.test.ts
+          src/simulations/OverlapHeatmap.test.tsx src/simulations/overlap-data.test.ts
           src/presentation/plots/InteractivePlot.test.tsx
           src/simulations/molecular-focus.test.ts src/simulations/bound-pairs.test.ts
           src/simulations/molstar-figure.test.ts
