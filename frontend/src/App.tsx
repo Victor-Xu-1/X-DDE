@@ -105,8 +105,10 @@ export function App() {
   const scopedResults = resultModule(view);
   const showingResults = Boolean(scopedResults) || view === "tasks";
   useEffect(() => {
-    if (view === "tasks" && job) setView(viewForResults(moduleForKind(kindForJob(job))));
-    else if (view === "tasks" && !selected) setView(viewForResults("structures"));
+    if (view === "tasks" && job) {
+      const owner = viewForResults(moduleForKind(kindForJob(job)));
+      setView((current) => current === "tasks" ? owner : current);
+    }
   }, [view, job?.id, selected]);
   const analysis = science.analysis;
   const candidate =

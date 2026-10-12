@@ -74,7 +74,7 @@ export function useWorkbench() {
   const select = useCallback((id: string, preserveHistory = true) => {
     setSelected(id);
     const params = new URLSearchParams(window.location.hash.slice(1));
-    if (preserveHistory && params.get("view") === "tasks") {
+    if (preserveHistory && ["tasks", "results"].includes(params.get("view") ?? "")) {
       if (id) params.set("task", id);
       else params.delete("task");
       window.history.replaceState(null, "", "#" + params);

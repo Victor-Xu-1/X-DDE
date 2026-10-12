@@ -70,7 +70,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     deployments = DeploymentManager(settings.state_dir)
     csrf = secrets.token_urlsafe(32)
     mutations = asyncio.Lock()
-    health_cache = ReadinessCache(engine.readiness)
+    # The managed router performs expensive native observations. Injected engines
+    # keep their own readiness semantics; coalesce their concurrent reads only.
+    health_cache = ReadinessCache(
+        engine.readiness, ttl=10 if isinstance(engine, BackendRouter) else 0
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
