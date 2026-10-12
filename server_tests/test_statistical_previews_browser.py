@@ -9,6 +9,7 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
+from server_tests.retained_native_case import retained_native_case
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
@@ -38,9 +39,18 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        case = page.request.get(base + "/api/examples/" + capability).json()
-        assert case["pin"], "This gate needs the genuine retained native case"
-        page.goto(base + "/#task=" + case["pin"]["job_id"])
+        identifier = retained_native_case(Settings.from_env().state_dir, capability)
+        (evidence / (language + "-source.json")).write_text(
+            json.dumps(
+                {
+                    "capability": capability,
+                    "job_id": identifier,
+                    "source": "checksum-verified archived native case; not the active STAT6 template",
+                }
+            ),
+            encoding="utf-8",
+        )
+        page.goto(base + "/#task=" + identifier)
         root = page.locator(".dataset-results")
         expect(root).to_be_visible(timeout=30000)
         charts_tab = root.get_by_role(
@@ -57,11 +67,8 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             (evidence / (language + "-load-failure.txt")).write_text(
                 page.content(), encoding="utf-8"
             )
-            (evidence / (language + "-case.json")).write_text(
-                json.dumps(case, ensure_ascii=False), encoding="utf-8"
-            )
             (evidence / (language + "-job.json")).write_text(
-                page.request.get(base + "/api/jobs/" + case["pin"]["job_id"]).text(),
+                page.request.get(base + "/api/jobs/" + identifier).text(),
                 encoding="utf-8",
             )
             raise

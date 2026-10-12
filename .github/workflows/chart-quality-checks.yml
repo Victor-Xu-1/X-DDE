@@ -23,6 +23,8 @@ on:
       - "frontend/src/viewer/style.ts"
       - "frontend/src/simulations/OverlapHeatmap.tsx"
       - "server_tests/test_statistical_previews_browser.py"
+      - "server_tests/retained_native_case.py"
+      - "tests/test_retained_native_case.py"
       - "scripts/generate-plotly-css.py"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
       # Shared hydrogen display has focused native Ketcher/3D checks.
@@ -44,6 +46,10 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
+      - name: Archived-native identity without repinning current templates
+        run: |
+          uv run --locked ruff check server_tests/retained_native_case.py server_tests/test_statistical_previews_browser.py tests/test_retained_native_case.py
+          uv run --locked pytest -q tests/test_retained_native_case.py
       - name: Changed chart, document, structure appearance and direct simulation consumers
         working-directory: frontend
         run: >-
