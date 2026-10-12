@@ -56,12 +56,18 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
             ).click()
             expect(page.get_by_role("heading", name=value["label"], exact=True)).to_be_visible()
 
+        normalized_notes = "Reviewed source identity.\nOriginal material retained."
+        raw_notes = " \n" + normalized_notes + "\n\u0085\u00a0"
+
         def edit(name):
             choose(original)
             page.get_by_text(
                 "名称、备注与人工评价" if zh else "Name, notes & human rating", exact=True
             ).click()
             page.get_by_role("textbox", name="名称" if zh else "Name", exact=True).fill(name)
+            page.get_by_role(
+                "textbox", name="研究备注" if zh else "Research notes", exact=True
+            ).fill(raw_notes)
 
         url = base + "/api/research/objects"
         held = []
@@ -89,6 +95,7 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
             ).to_be_disabled()
         choose(other)
         assert len(held) == 1
+        assert held[0][1].json()["notes"] == normalized_notes
         held[0][0].fulfill(response=held[0][1])
         page.unroute(url, hold)
         (evidence / "delayed-save-response.json").write_text(
@@ -100,6 +107,7 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
             files.get_by_role("button", name=("分子: " if zh else "Molecule: ") + name, exact=True)
         ).to_be_visible()
         expect(page.get_by_role("heading", name=other["label"], exact=True)).to_be_visible()
+        expect(page.get_by_role("alert")).to_have_count(0)
         page.screenshot(path=evidence / "newer-selection-retained.png")
 
         retry_name = f"STAT6 annotation · uncertain reply · {language}"
@@ -119,6 +127,9 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
         )
         expect(page.get_by_role("alert")).not_to_contain_text("/private")
         after_lost = page.request.get(url).json()
+        saved_versions = [item for item in after_lost if item["label"] == retry_name]
+        assert len(saved_versions) == 1
+        assert saved_versions[0]["notes"] == normalized_notes
         page.unroute(url, lose)
         page.route(
             url,
@@ -129,6 +140,13 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
         )
         save.click()
         expect(page.get_by_role("heading", name=retry_name, exact=True)).to_be_visible()
+        expect(page.get_by_role("alert")).to_have_count(0)
+        page.get_by_text(
+            "名称、备注与人工评价" if zh else "Name, notes & human rating", exact=True
+        ).click()
+        expect(
+            page.get_by_role("textbox", name="研究备注" if zh else "Research notes", exact=True)
+        ).to_have_value(normalized_notes)
         assert page.request.get(url).json() == after_lost
         assert len(keys) == 2 and keys[0] and keys[0] == keys[1]
         assert (
@@ -147,6 +165,8 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
                     "source_sha256": hashlib.sha256(before_file).hexdigest(),
                     "new_selection_retained": True,
                     "lost_reply_same_version": True,
+                    "surrounding_whitespace_saved": True,
+                    "internal_newline_preserved": True,
                     "scientific_jobs_submitted": 0,
                 },
                 indent=2,
