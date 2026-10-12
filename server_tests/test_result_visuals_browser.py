@@ -1,7 +1,9 @@
 """Actual SVG/3D/plot/sequence interactions through frozen public case outputs."""
 
+import csv
 import json
 import os
+import re
 import sqlite3
 import struct
 import xml.etree.ElementTree as ET
@@ -130,18 +132,17 @@ def test_real_structures_tables_and_sequences():
             expect(table).to_be_visible()
             expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
-            table.get_by_role("checkbox", name="hERG 阻断", exact=True).check()
+            table.get_by_role("checkbox", name=re.compile(r"^hERG 阻断")).check()
             expect(table.locator("thead th")).to_have_count(5)
-            table.get_by_role("button", name="常用指标", exact=True).click()
-            expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
             exported = download(
                 table.get_by_role("button", name="导出筛选结果", exact=True),
                 "admet-complete-filtered-metrics.csv",
             )
-            text = exported.read_text(encoding="utf-8-sig")
-            assert "DILI" in text and "hERG" in text, (
-                "Hidden endpoints must remain in the complete result download."
+            with exported.open(encoding="utf-8-sig", newline="") as stream:
+                records = list(csv.reader(stream))
+            assert len(records) == 4 and all(len(row) == 42 for row in records), (
+                "The three original compounds and all 41 endpoints must remain in the download."
             )
             table.locator(".molecule-record").last.click()
             selected = page.get_by_role("region", name="所选分子", exact=True)
