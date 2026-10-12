@@ -88,6 +88,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     time.monotonic() + 10,
                     {"configured": True, "running": False, "ready": False, "reason": str(exc)},
                 )
+            loop = asyncio.get_running_loop()
+
+            def admit_deployment(claim):
+                # Called only by the deployment worker thread. Its file lock
+                # remains held, but no manager mutex spans this async probe.
+                return asyncio.run_coroutine_threadsafe(deployment_claim(claim), loop).result()
+
+            deployments.admission = admit_deployment
             await worker.start()
             await deployments.start()
             try:
@@ -560,10 +568,16 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     register_uploads(app, assets, settings, mutation)
     harness_service = register_harness(app, store, assets, settings, mutation)
 
-    async def scientific_busy():
+    async def scientific_busy(*, include_paused=False):
+        statuses = ("queued", "running", "cancelling")
+        if include_paused:
+            statuses += ("paused",)
         with store.connect() as db:
             active = db.execute(
-                "SELECT 1 FROM jobs WHERE status IN ('queued','running','cancelling') LIMIT 1"
+                "SELECT 1 FROM jobs WHERE status IN ("
+                + ",".join("?" for _ in statuses)
+                + ") LIMIT 1",
+                statuses,
             ).fetchone()
         if active or workflows_service.records.runs({"running", "cancelling"}, limit=1):
             return True
@@ -575,6 +589,21 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     503, "Cannot verify native task state; retry after checking Harness."
                 ) from None
         return False
+
+    async def deployment_claim(claim):
+        # The same lock guards HTTP task and Harness admissions. Release it
+        # after queued -> running, before any long-running installer work.
+        async with mutations:
+            if app.state.quiescing:
+                return None
+            try:
+                if await scientific_busy(include_paused=True):
+                    return None
+            except HTTPException:
+                # Unknown native state must leave deployment queued, never
+                # terminate the worker or authorize component changes.
+                return None
+            return claim()
 
     @app.get("/api/lifecycle")
     async def lifecycle():
@@ -589,7 +618,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     register_capabilities(app, settings, health)
     register_task_history(app, example_library)
-    register_deployments(app, deployments, mutation, scientific_busy)
+    # A retained native pause still owns its component files. Unlike lifecycle
+    # shutdown, deployment must wait for confirmed cancellation of that lifetime.
+    register_deployments(app, deployments, mutation, lambda: scientific_busy(include_paused=True))
 
     @app.post("/api/lifecycle/stop", dependencies=[Depends(mutation)])
     async def prepare_shutdown():
