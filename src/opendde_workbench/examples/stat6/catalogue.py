@@ -42,6 +42,14 @@ def study_context(capability):
     if capability not in MODULES:
         raise KeyError(capability)
     requirements = []
+    if capability == "gnina.dock":
+        requirements.append(
+            (
+                "9BIG 链 A：明确选择替代位置 A，移除水与非聚合物，另存为蛋白 PDB。",
+                "Prepare 9BIG chain A: select alternate A, remove waters and nonpolymers, "
+                "and save a protein-only PDB in the original coordinate frame.",
+            )
+        )
     if capability == "biopython.exposure":
         requirements.append(
             (

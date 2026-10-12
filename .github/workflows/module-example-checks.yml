@@ -5,6 +5,8 @@ on:
       - 'src/opendde_workbench/examples/stat6/prepared_inputs.py'
       - 'src/opendde_workbench/examples/stat6/preparation.py'
       - 'src/opendde_workbench/examples/stat6/requests.py'
+      - 'src/opendde_workbench/examples/stat6/catalogue.py'
+      - 'src/opendde_workbench/examples/stat6/guidance.py'
       - 'src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/receptors/SurfaceResults*'
       - 'frontend/src/receptors/SurfaceForm*'
@@ -31,7 +33,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
-      - run: uv run --locked pytest -q tests/test_stat6_prepared_handoff.py
+      - run: uv run --locked pytest -q tests/test_stat6_prepared_handoff.py tests/test_stat6_templates.py tests/test_stat6_guidance.py
       - working-directory: frontend
         run: npx vitest run src/receptors/SurfaceResults.test.tsx src/receptors/SurfaceForm.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/residue-region.test.ts
       - name: Restore exact reviewed result packages; no scientific workers

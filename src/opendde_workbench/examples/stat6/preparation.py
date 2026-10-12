@@ -83,6 +83,14 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop(role)
         else:
             objects[role] = receptor
+    if capability == "gnina.dock":
+        from .prepared_inputs import reviewed_docking_receptor
+
+        receptor = reviewed_docking_receptor(scientific, records)
+        if receptor is None:
+            objects.pop("receptor")
+        else:
+            objects["receptor"] = receptor
     if capability in {
         "openmm.dynamics",
         "gromacs.dynamics",

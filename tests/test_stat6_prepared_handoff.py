@@ -21,13 +21,15 @@ from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.store import Store
 
 
-def preparation_fixture(settings, *, source_matches=True):
+def preparation_fixture(settings, *, source_matches=True, protein_only=False):
     create_app(settings)
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     scientific = ScientificStore(store, assets)
     records = ExampleRecords(store, assets, settings, modules=MODULES)
     prepared = prepare_stat6("biopython.prepare", scientific, records=records)
+    if protein_only:
+        prepared.request["options"].update(format="pdb", heterogens="remove")
     request = TASK_ADAPTER.validate_python(prepared.request)
     job = store.create(request, str(uuid4()), 20, 500)
     store.claim(job.id)
@@ -36,14 +38,15 @@ def preparation_fixture(settings, *, source_matches=True):
     # Only a transport fixture, never a distributed native chemical result.
     raw = b"data_controlled_archive_handoff_fixture\n"
     digest = hashlib.sha256(raw).hexdigest()
-    (output / "prepared.cif").write_bytes(raw)
+    artifact = "prepared." + request.options.format
+    (output / artifact).write_bytes(raw)
     report = {
         "operation": "structure_prepare",
         "complete": True,
         "schema_version": 1,
         "source": request.structure.model_dump(mode="json"),
         "options": request.options.model_dump(mode="json"),
-        "artifact": "prepared.cif",
+        "artifact": artifact,
         "sha256": digest,
         "atom_count": 3,
         "inspection": {
@@ -66,9 +69,15 @@ def preparation_fixture(settings, *, source_matches=True):
     (output / "result.json").write_text(json.dumps(report))
     store.bind_environment(job.id, capture(settings, "biopython"))
     store.finish(job.id, Status.SUCCEEDED)
-    asset = assets.save("prepared.cif", "structure", raw)
+    asset = assets.save(artifact, "structure", raw)
     version = scientific.create(
-        VersionInput(asset_id=asset.id, kind="structure", label="Protocol handoff fixture"),
+        VersionInput(
+            asset_id=asset.id,
+            kind="structure",
+            label="Protocol handoff fixture",
+            parent_id=request.structure.version_id,
+            relation="prepared_from",
+        ),
         uuid4(),
         source_job=job.id,
     )
@@ -89,6 +98,100 @@ def preparation_fixture(settings, *, source_matches=True):
         ),
     )
     return store, scientific, records, version
+
+
+def docking_fixture(settings):
+    store, scientific, records, version = preparation_fixture(settings, protein_only=True)
+    prepared = prepare_stat6("gnina.dock", scientific, records=records)
+    receptor = version.reference.model_dump(mode="json")
+    ligand = prepared.objects["ligand"].reference.model_dump(mode="json")
+    reference = prepared.objects["pocket_reference"].reference.model_dump(mode="json")
+    request = TASK_ADAPTER.validate_python(
+        {
+            "operation": "docking",
+            "mode": "dock",
+            "receptor": receptor,
+            "ligand": ligand,
+            "search": {
+                "kind": "reference_ligand",
+                "frame": receptor,
+                "reference": reference,
+                "coordinate_basis": "user_confirmed",
+            },
+            "options": {"cpu": 1, "cnn_scoring": "none", "use_gpu": False},
+        }
+    )
+    job = store.create(request, str(uuid4()), 20, 500)
+    store.claim(job.id)
+    output = settings.state_dir / "jobs" / job.id / "output"
+    output.mkdir(parents=True)
+    (output / "result.json").write_text('{"controlled_transport_fixture":true}')
+    store.bind_environment(job.id, capture(settings, "gnina"))
+    store.finish(job.id, Status.SUCCEEDED)
+    ExamplePins(store, settings.state_dir, modules=MODULES).pin(
+        "gnina.dock",
+        job.id,
+        prepared,
+        review=ExampleReview(
+            interpretation="Transport-only fixture of reviewed docking input lineage.",
+            limitations="No scientific pose or binding validation was performed by this fixture.",
+            checked=(
+                "input_identity",
+                "method_scope",
+                "native_outputs",
+                "visual_preview",
+                "downloads",
+            ),
+        ),
+    )
+    return store, scientific, records, version
+
+
+def test_cold_docking_template_requires_explicit_preparation_without_starting_jobs(settings):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    prepared = prepare_stat6("gnina.dock", scientific)
+    assert prepared.request is None and "receptor" not in prepared.objects
+    assert "stat6_structure" in prepared.objects and "pocket_reference" in prepared.objects
+    assert prepared.study["required_materials"] and not store.list_jobs()
+
+
+def test_docking_template_uses_its_exact_reviewed_prepared_version(settings):
+    store, scientific, records, version = docking_fixture(settings)
+    before = len(store.list_jobs())
+    # A newer same-named output is not the reviewed docking source.
+    scientific.create(
+        VersionInput(asset_id=version.reference.asset_id, kind="structure", label="Later copy"),
+        uuid4(),
+        source_job=version.source_job,
+    )
+    prepared = prepare_stat6("gnina.dock", scientific, records=records)
+    assert prepared.objects["receptor"] == version
+    ref = version.reference.model_dump(mode="json")
+    assert prepared.request["receptor"] == prepared.request["search"]["frame"] == ref
+    assert prepared.request["search"]["reference"] == prepared.objects[
+        "pocket_reference"
+    ].reference.model_dump(mode="json")
+    assert len(store.list_jobs()) == before
+
+
+@pytest.mark.parametrize("failure", ["artifact", "options", "source"])
+def test_docking_template_rejects_changed_preparation_instead_of_raw_fallback(settings, failure):
+    _, scientific, records, version = docking_fixture(settings)
+    output = settings.state_dir / "jobs" / str(version.source_job) / "output"
+    if failure == "artifact":
+        (output / "prepared.pdb").write_text("Changed after native preparation\n")
+    else:
+        path = output / "result.json"
+        report = json.loads(path.read_text())
+        if failure == "options":
+            report["options"]["alternate"] = "B"
+        else:
+            report["source"]["sha256"] = "0" * 64
+        path.write_text(json.dumps(report))
+    with pytest.raises(ValueError):
+        prepare_stat6("gnina.dock", scientific, records=records)
 
 
 def test_raw_alternate_locations_are_not_prefilled_as_a_ready_exposure_task(settings):

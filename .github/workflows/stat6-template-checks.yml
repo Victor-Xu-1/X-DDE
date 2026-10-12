@@ -6,6 +6,11 @@ on:
       - 'src/opendde_workbench/examples/stat6/**'
       # Two preparation presets have exact native-coordinate and questionnaire checks.
       - '!src/opendde_workbench/examples/stat6/task_requests.py'
+      # Prepared-reference handoffs and their direct contracts have a focused gate.
+      - '!src/opendde_workbench/examples/stat6/prepared_inputs.py'
+      - '!src/opendde_workbench/examples/stat6/preparation.py'
+      - '!src/opendde_workbench/examples/stat6/requests.py'
+      - '!src/opendde_workbench/examples/stat6/catalogue.py'
       - 'src/opendde_workbench/examples/routes.py'
       - 'src/opendde_workbench/examples/input_geometry.py'
       - 'tests/test_stat6_geometry.py'

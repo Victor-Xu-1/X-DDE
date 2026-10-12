@@ -4,6 +4,11 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "gnina.dock": (
+        "使用已明确替代原子位置的 9BIG 蛋白 PDB，在 AK-1690 参考口袋搜索指定分子的姿势。",
+        "Use the prepared 9BIG protein-only PDB with resolved alternate positions "
+        "to search study-molecule poses around the AK-1690 reference pocket.",
+    ),
     "predict": (
         "预测指定小分子与 STAT6 的复合物。",
         "Predict a complex of STAT6 and the study small molecule.",

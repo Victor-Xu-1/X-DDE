@@ -15,6 +15,15 @@ optional pin review retains the interpretation and limitations; it is computatio
 review, not experimental validation. MD/FEP examples are excluded from the current
 owner case campaign while those calculations remain paused.
 
+The STAT6 docking preset reuses the exact protein-only preparation consumed by
+the reviewed docking example, through that example's receptor version and native
+preparation provenance. It validates the original 9BIG source, chain A, alternate
+A, removed waters/nonpolymers, PDB artifact and unchanged registered bytes. A cold
+installation without that reviewed result retains the raw reference materials
+and preparation instructions but does not prefill an unresolved receptor as a
+ready docking request. Exposure and alignment keep their separate reviewed CIF
+preparation; no existing pin or original input is overwritten.
+
 Supporting inputs retain their distinct scientific scope: CHEMBL982109 contains
 38 reported cellular STAT6-activation IC50 observations, not direct binding KD;
 6WGL contains dupilumab variable domains and IL-4R alpha, a STAT6-pathway target,
