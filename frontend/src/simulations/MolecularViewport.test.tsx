@@ -39,6 +39,12 @@ it("surface requests disable capture until their exact display is ready", async 
   display.mockResolvedValue(undefined);
   const handles = vi.fn();
   render(<MolecularViewport language="en" onViewHandle={handles} />);
+  // Loading can enable export before the initial setView effect has run.
+  await waitFor(() =>
+    expect(display).toHaveBeenCalledWith(
+      expect.objectContaining({ surface: false }),
+    ),
+  );
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Download view" })).toBeEnabled(),
   );
@@ -50,6 +56,9 @@ it("surface requests disable capture until their exact display is ready", async 
       }),
   );
   await userEvent.click(screen.getByRole("button", { name: "Surface" }));
+  expect(display).toHaveBeenLastCalledWith(
+    expect.objectContaining({ surface: true }),
+  );
   expect(screen.getByRole("status")).toHaveTextContent("Updating the 3D view");
   expect(screen.getByRole("button", { name: "Download view" })).toBeDisabled();
   expect(handles.mock.lastCall![0]).toBeNull();
@@ -63,11 +72,20 @@ it("surface requests disable capture until their exact display is ready", async 
 it("a failed native display request is visible and cannot enable an inaccurate figure export", async () => {
   display.mockResolvedValue(undefined);
   render(<MolecularViewport language="en" />);
+  // Loading can enable export before the initial setView effect has run.
+  await waitFor(() =>
+    expect(display).toHaveBeenCalledWith(
+      expect.objectContaining({ surface: false }),
+    ),
+  );
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Download view" })).toBeEnabled(),
   );
   display.mockRejectedValueOnce(new Error("native failure"));
   await userEvent.click(screen.getByRole("button", { name: "Surface" }));
+  expect(display).toHaveBeenLastCalledWith(
+    expect.objectContaining({ surface: true }),
+  );
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "view update failed",
   );
