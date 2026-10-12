@@ -288,7 +288,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("biopython", {}))
+            elif value.operation == "properties" and not isinstance(engine, BackendRouter):
+                # Preserve the existing trusted single-engine injection contract.
+                # Production always uses the registered independent RDKit backend.
+                check(value, readiness["engine"], assets)
             elif value.operation in {
+                "properties",
                 "molecular_states",
                 "library_screen",
                 "molecule_minimize",

@@ -101,7 +101,11 @@ def main():
     directory, output = Path("/input"), Path("/output")
     request = json.loads((directory / "request.json").read_text())
     bindings = json.loads((directory / "bindings.json").read_text())
-    if request["operation"] == "library_screen":
+    if request["operation"] == "properties":
+        from native_properties import run_properties
+
+        result = run_properties(request, bindings, directory, output)
+    elif request["operation"] == "library_screen":
         from native_screen import run_screen
 
         result = run_screen(request, bindings, directory, output)

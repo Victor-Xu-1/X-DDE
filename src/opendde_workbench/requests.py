@@ -102,6 +102,12 @@ class Properties(UtilityRequest):
     smiles: list[str] = Field(default_factory=list, max_length=500)
     ligand_files: list[UUID] = Field(default_factory=list, max_length=20)
 
+    @property
+    def options(self):
+        from .chemistry.property_options import PropertyBudget
+
+        return PropertyBudget()
+
     @model_validator(mode="after")
     def has_molecules(self) -> Self:
         if not self.smiles and not self.ligand_files:

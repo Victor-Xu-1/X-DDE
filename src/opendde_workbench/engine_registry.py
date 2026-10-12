@@ -82,6 +82,7 @@ _DEFINITIONS = (
         "化学状态、构象与早期分子库筛选 / Molecular states, conformers and early library selection",
         "docker",
         (
+            "properties",
             "molecular_states",
             "library_screen",
             "molecule_minimize",
@@ -109,7 +110,7 @@ _DEFINITIONS = (
         "OpenDDE",
         "结构与复合物预测、特征准备和原生化学工具 / Structures, features and native chemical tools",
         "docker",
-        ("predict", "msa", "mt", "prep", "inspect", "json", "doctor", "properties", "resources"),
+        ("predict", "msa", "mt", "prep", "inspect", "json", "doctor", "resources"),
     ),
     ScientificEngine(
         "diffsbdd",

@@ -125,6 +125,13 @@ def availability(spec: CapabilitySpec, settings, readiness: dict) -> CapabilityA
                 "explicit_structural_alert_policy",
                 "scaffold_family_budget",
             ]
+        elif spec.id == "properties":
+            specific = [
+                "exact_native_molecular_records",
+                "original_record_numbering",
+                "descriptors_not_measured_potency",
+                "safe_complete_spreadsheet_export",
+            ]
     elif spec.environment == "gnina":
         checks = {"runtime": bool(backends.get("gnina", {}).get("ready"))}
         specific.extend(

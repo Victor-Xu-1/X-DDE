@@ -25,6 +25,7 @@ def test_every_public_task_operation_has_one_registered_engine():
     assert engine_for("predict").id == "opendde"
     assert engine_for("diffsbdd").id == "diffsbdd"
     assert engine_for("harness").id == "harness"
+    assert engine_for("properties").id == "chemistry"
     with pytest.raises(ValueError, match="Unregistered scientific operation"):
         engine_for("unknown-future-engine")
 

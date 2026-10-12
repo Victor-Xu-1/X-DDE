@@ -8,6 +8,9 @@ on:
       - "server_tests/prepare_property_preview_case.py"
       - "server_tests/test_property_preview_browser.py"
       - ".github/workflows/property-preview-checks.yml"
+      - "src/opendde_workbench/chemistry/native_properties.py"
+      - "src/opendde_workbench/chemistry/property_options.py"
+      - "src/opendde_workbench/native_runtime/property_calculation.py"
 permissions:
   contents: read
 jobs:
@@ -25,6 +28,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
+      - name: Descriptor routing and native record semantics
+        run: uv run --locked --with rdkit==2026.3.6 pytest -q tests/test_native_properties.py tests/test_engine_registry.py
       - name: Only the changed file identity, selection and pose consumers
         working-directory: frontend
         run: npx vitest run src/operations/PropertyResults.test.tsx src/operations/property-source.test.ts src/viewer/PoseSession.test.tsx src/viewer/donor-hydrogens.test.ts
