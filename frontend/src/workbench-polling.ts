@@ -66,6 +66,7 @@ export interface JobObservation {
 const phase: Record<Status, number> = {
   queued: 0,
   running: 1,
+  paused: 2,
   cancelling: 2,
   succeeded: 3,
   failed: 3,

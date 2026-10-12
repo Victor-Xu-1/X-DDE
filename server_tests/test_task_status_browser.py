@@ -454,7 +454,7 @@ def test_jobs_only_tasks_warning_recovers_without_false_history_error(
 def test_missing_deep_link_reload_and_history_back_forward(fixture_page, language, width):
     page, state, counts, _, capture = fixture_page
     state["hide_a"] = state["missing_a"] = True
-    route = "#view=tasks&module=evaluation&type=properties&status=running&q=Browser"
+    route = "#view=results&module=evaluation&type=properties&status=running&q=Browser"
     page.goto(os.environ["WB_BROWSER_URL"] + "/" + route + "&task=" + A)
     missing = page.get_by_role(
         "heading", name="任务不可用" if language == "zh" else "Task unavailable", exact=True
@@ -557,9 +557,26 @@ def test_leave_unlisted_pending_task_and_select_another(fixture_page, language, 
     ).click()
     expect(pending).to_have_count(0)
     expect_cancelled(page, cancelled, f"/api/jobs/{A}", f"/api/jobs/{A}/artifacts")
+    if width <= 960:
+        page.get_by_role(
+            "button",
+            name="打开研究导航" if language == "zh" else "Open research navigation",
+            exact=True,
+        ).click()
     page.get_by_role(
-        "group", name="任务模块" if language == "zh" else "Task modules", exact=True
-    ).get_by_role("button", name=re.compile("性质与安全性|Properties and safety")).click()
+        "navigation", name="主导航" if language == "zh" else "Main navigation", exact=True
+    ).get_by_role(
+        "button",
+        name="性质与安全性" if language == "zh" else "Properties and safety",
+        exact=True,
+    ).click()
+    page.get_by_role(
+        "navigation", name="模块工作区" if language == "zh" else "Module workspace", exact=True
+    ).get_by_role(
+        "button",
+        name="任务结果" if language == "zh" else "Task results",
+        exact=True,
+    ).click()
     page.get_by_role("button", name="Browser control task B", exact=True).click()
     expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
     expect(page).to_have_url(re.compile("task=" + B))

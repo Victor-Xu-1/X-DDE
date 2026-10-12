@@ -197,7 +197,7 @@ def test_dataset_receipt_survives_interruption(tmp_path, language, width, fault)
             if fault in {"navigation", "uncertain"}:
                 expect(
                     page.get_by_role(
-                        "heading", name="任务与结果" if zh else "Tasks and results", exact=True
+                        "heading", name="任务结果" if zh else "Task results", exact=True
                     )
                 ).to_be_visible()
                 expect(

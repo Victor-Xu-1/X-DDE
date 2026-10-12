@@ -1,7 +1,29 @@
 # Public research examples
 
-Each current task module has one explicit entry in the source manifest at
-`src/opendde_workbench/examples/catalogue.json`. The collection uses public
+The current study profile is STAT6, defined in
+`src/opendde_workbench/examples/stat6/manifest.json`. Every research module owns
+its **New task / Task results** navigation; there is no global task-results menu.
+The shared jobs database remains the sole task authority. Older direct job URLs
+and `view=tasks&module=...` links resolve to their owning module without moving or
+rewriting task records. Module filters, pagination and selected results remain
+isolated when switching between modules.
+
+A completed example requires submission through the deployed published frontend,
+native outputs, an input/method/visual/download review, and an immutable result
+pin. Loading an input preset alone does not meet that acceptance criterion. The
+optional pin review retains the interpretation and limitations; it is computational
+review, not experimental validation. MD/FEP examples are excluded from the current
+owner case campaign while those calculations remain paused.
+
+Supporting inputs retain their distinct scientific scope: CHEMBL982109 contains
+38 reported cellular STAT6-activation IC50 observations, not direct binding KD;
+6WGL contains dupilumab variable domains and IL-4R alpha, a STAT6-pathway target,
+not a directly STAT6-binding antibody. Native calculated poses retain their paired
+receptor coordinate frame, while minimized unbound study conformers remain separate.
+Observed construct sequence indices are distinct from canonical UniProt indices.
+
+Historical examples have an explicit archive profile in
+`src/opendde_workbench/examples/catalogue.json`. That collection uses public
 BRD4–JQ1, trastuzumab–HER2, ABL inhibitor, MZ1 ternary, RNA–TPP and
 HER2 domain IV–Rb-H2 references. The campaign input example combines unchanged
 native trastuzumab variable domains with the complete deposited 97-aa HER2

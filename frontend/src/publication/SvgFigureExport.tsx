@@ -5,15 +5,18 @@ import { printSvg } from "./svg";
 
 export function SvgFigureExport({
   source,
+  sourceKey,
   filename,
   language,
 }: {
   source(): SVGSVGElement | null;
+  sourceKey: string;
   filename: string;
   language: Language;
 }) {
   return (
     <FigureExport
+      sourceKey={sourceKey}
       language={language}
       filename={filename}
       format="svg"

@@ -198,13 +198,23 @@ def archive_example_url(url):
     return urlunsplit(parts._replace(query=urlencode(query)))
 
 
-def initialize_layout_page(page):
-    """Use Chinese-initial UI and genuine archived cases for this acceptance gate."""
+def initialize_layout_page(page, case_profile=None):
+    """Choose real study or archive endpoints; never synthesize example responses."""
     initialize_layout_language(page)
     base = os.environ["WB_BROWSER_URL"].rstrip("/")
+    selection = case_profile if case_profile is not None else {"profile": "archive"}
+
+    def route_case(route):
+        if selection["profile"] == "archive":
+            route.continue_(url=archive_example_url(route.request.url))
+        elif selection["profile"] == "stat6":
+            route.continue_()
+        else:
+            raise ValueError("Choose a real STAT6 or archive case profile.")
+
     page.route(
         re.compile(r"^" + re.escape(base) + r"/api/examples(?:[/?]|$)"),
-        lambda route: route.continue_(url=archive_example_url(route.request.url)),
+        route_case,
     )
 
 
@@ -434,10 +444,10 @@ def capture_utilities(page, evidence, width):
     page.set_viewport_size({"width": width, "height": 1000})
     rows = []
     nav = layout_navigation(page)
-    # navigation-model.ts appends these three utilities to the research modules.
+    # navigation-model.ts appends these two utilities to the research modules.
     expect_layout_identities(
         nav.get_by_role("button"),
-        (*RESEARCH_MODULE_LABELS, "研究空间", "任务与结果", "全部能力"),
+        (*RESEARCH_MODULE_LABELS, "研究空间", "全部能力"),
     )
     nav.get_by_role("button", name="研究空间", exact=True).click()
     for tab in ("项目", "研究文件", "结构编辑"):
@@ -455,8 +465,11 @@ def capture_utilities(page, evidence, width):
             assert confirm["width"] < bounds["width"] * 0.6
             rows.append(capture(page, evidence, "研究项目", "create-dialog"))
             page.get_by_role("button", name="取消", exact=True).click()
-    layout_navigation(page).get_by_role("button", name="任务与结果", exact=True).click()
-    rows.append(capture(page, evidence, "任务与结果", "utility"))
+    layout_navigation(page).get_by_role("button", name="口袋与对接", exact=True).click()
+    page.get_by_role("navigation", name="模块工作区", exact=True).get_by_role(
+        "button", name="任务结果", exact=True
+    ).click()
+    rows.append(capture(page, evidence, "口袋与对接-任务结果", "utility"))
     for label in ("安装与运行", "界面设置", "使用帮助"):
         layout_navigation(page)
         page.get_by_role("button", name="设置与帮助", exact=True).click()

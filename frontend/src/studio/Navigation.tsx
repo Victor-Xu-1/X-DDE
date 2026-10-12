@@ -45,7 +45,6 @@ function SidebarNavigation({
   view,
   onView,
   language,
-  jobs,
 }: {
   view: View;
   onView(value: View): void;
@@ -53,8 +52,7 @@ function SidebarNavigation({
   jobs: Job[];
 }) {
   const zh = language === "zh",
-    index = zh ? 0 : 1,
-    running = jobs.filter((job) => job.status === "running").length;
+    index = zh ? 0 : 1;
   const [open, setOpen] = useState(false),
     container = useRef<HTMLDivElement>(null),
     trigger = useRef<HTMLButtonElement>(null),
@@ -122,7 +120,6 @@ function SidebarNavigation({
               <small className="nav-short" aria-hidden="true">
                 {item.short[index]}
               </small>
-              {item.id === "tasks" && running > 0 && <b>{running}</b>}
             </button>
           );
         })}

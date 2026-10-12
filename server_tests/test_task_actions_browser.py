@@ -132,7 +132,7 @@ def test_confirmed_task_survives_response_or_navigation_failure(language, fault)
         expect(page.locator(".detail-panel").get_by_role("alert")).to_be_visible()
         rerun.click()
         # Task history now retains its research module while selecting the retry child.
-        expect(page).to_have_url(base + "/#view=tasks&module=evaluation&task=" + retried[0]["id"])
+        expect(page).to_have_url(base + "/#view=results&module=evaluation&task=" + retried[0]["id"])
         assert len(retried) == 2 and retry_keys[0] == retry_keys[1]
         assert retried[0]["id"] == retried[1]["id"]
         assert retried[0]["parent_id"] == job_id

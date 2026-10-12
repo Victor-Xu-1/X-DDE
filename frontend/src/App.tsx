@@ -12,12 +12,17 @@ import {
   viewTitle,
   toolForView,
   viewForTool,
+  viewForResults,
+  resultModule,
   type View,
 } from "./studio/navigation-model";
 import { ModuleTaskPicker } from "./studio/ModuleTaskPicker";
+import { ModuleWorkspaceNavigation } from "./studio/ModuleWorkspaceNavigation";
+import { kindForJob, moduleForKind } from "./studio/task-history-model";
 import { PredictionResults } from "./studio/PredictionResults";
 import { TaskWorkspace } from "./studio/TaskWorkspace";
-import { taskHistoryRoute } from "./studio/task-history-route";
+import { TaskWorkspaceSelectionState } from "./studio/TaskWorkspaceSelectionState";
+import { taskHistoryHash, taskHistoryRoute } from "./studio/task-history-route";
 import { WorkspaceTabs } from "./studio/WorkspaceTabs";
 import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
 import { HelpWorkspace } from "./studio/HelpWorkspace";
@@ -48,9 +53,11 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const [view, setView] = useState<View>(() =>
-      taskIdFromHash(location.hash) || taskHistoryRoute(location.hash)
-        ? "tasks"
-        : "tools",
+      taskHistoryRoute(location.hash)?.module
+        ? viewForResults(taskHistoryRoute(location.hash)!.module!)
+        : taskIdFromHash(location.hash)
+          ? "tasks"
+          : "tools",
     ),
     [projectId, setProjectId] = useState<string | null>(
       () => taskHistoryRoute(location.hash)?.project ?? null,
@@ -59,7 +66,7 @@ export function App() {
     function navigate() {
       const route = taskHistoryRoute(window.location.hash);
       if (taskIdFromHash(window.location.hash) || route) {
-        setView("tasks");
+        setView(route?.module ? viewForResults(route.module) : "tasks");
         setProjectId(route?.project ?? null);
       }
     }
@@ -98,6 +105,20 @@ export function App() {
   const ready = Boolean(
     health?.engine.ready && health.worker_ready && !work.connectionError,
   );
+  const scopedResults = resultModule(view);
+  const showingResults = Boolean(scopedResults) || view === "tasks";
+  useEffect(() => {
+    // The app and metadata reader observe hash changes independently. Resolve
+    // ownership only for the ID currently in the address, never the prior task.
+    if (
+      view === "tasks" &&
+      job &&
+      selected === taskIdFromHash(window.location.hash)
+    ) {
+      const owner = viewForResults(moduleForKind(kindForJob(job)));
+      setView((current) => (current === "tasks" ? owner : current));
+    }
+  }, [view, job?.id, selected]);
   const analysis = science.analysis;
   const candidate =
     analysis?.candidates.find((x) => x.id === candidateId) ??
@@ -129,7 +150,13 @@ export function App() {
   }, [language, view]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    if (!content.current?.contains(document.activeElement))
+    const active = document.activeElement;
+    // Header search survives view changes, including asynchronous task ownership
+    // resolution. Preserve typing, while explicit navigation still focuses main.
+    if (
+      !content.current?.contains(active) &&
+      !active?.matches('.studio-topbar input[type="search"]')
+    )
       content.current?.focus({ preventScroll: true });
   }, [view]);
 
@@ -142,7 +169,10 @@ export function App() {
   function showJob(id: string) {
     inspectJob(id);
     setResultsVersion((n) => n + 1);
-    setView("tasks");
+    const next =
+      jobs.find((job) => job.id === id) ??
+      (submitted?.id === id ? submitted : null);
+    setView(next ? viewForResults(moduleForKind(kindForJob(next))) : "tasks");
   }
   function inspectJob(id: string) {
     const next = jobs.find((x) => x.id === id);
@@ -167,7 +197,9 @@ export function App() {
   function changed(next: Job) {
     work.confirmJob(next);
     setSubmitted(next);
-    showJob(next.id);
+    chooseJob(next.id);
+    setResultsVersion((n) => n + 1);
+    setView(viewForResults(moduleForKind(kindForJob(next))));
     setProjectId(next.request.project_id ?? null);
     refresh();
   }
@@ -191,6 +223,24 @@ export function App() {
     setView(tool ? viewForTool(tool) : "tools");
   }
   function navigate(next: View) {
+    const module = resultModule(next);
+    if (module) {
+      chooseJob("", false);
+      window.history.pushState(
+        null,
+        "",
+        taskHistoryHash({
+          module,
+          type: "all",
+          status: "all",
+          query: "",
+          page: 0,
+          project: projectId,
+        }),
+      );
+      setView(next);
+      return;
+    }
     const tool = toolForView(next);
     if (tool) {
       openTool(tool);
@@ -283,7 +333,7 @@ export function App() {
                       active={projectId}
                       onChoose={(id) => {
                         chooseProject(id);
-                        setView("tasks");
+                        setView(viewForResults("structures"));
                       }}
                       onCreated={science.reloadProjects}
                     />
@@ -335,20 +385,25 @@ export function App() {
             {view !== "deployment" && (
               <WorkbenchReadStatus
                 work={work}
-                hasJob={Boolean(job) && (view === "tasks" || view === "home")}
+                hasJob={Boolean(job) && (showingResults || view === "home")}
                 showJobsError={view !== "home"}
                 language={language}
               />
             )}
             {!work.healthError &&
               health?.queue_wait_reason &&
-              view === "tasks" && (
+              showingResults && (
                 <p className="notice" role="status">
                   {zh
                     ? "计算资源暂不可用，已提交的任务会继续等待。"
                     : "Compute resources are unavailable; submitted tasks remain queued."}
                 </p>
               )}
+            <ModuleWorkspaceNavigation
+              view={view}
+              language={language}
+              onView={navigate}
+            />
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"
@@ -422,8 +477,28 @@ export function App() {
                 />
               </>
             )}
-            {view === "tasks" && (
+            {view === "tasks" && !job && (
+              <section className="utility-page task-history-workspace">
+                <TaskWorkspaceSelectionState
+                  language={language}
+                  error={work.selectedJobError}
+                  loading={work.selectedJobLoading}
+                  onRetry={refresh}
+                  historyHref={taskHistoryHash({
+                    module: "other",
+                    type: "all",
+                    status: "all",
+                    query: "",
+                    page: 0,
+                    project: projectId,
+                  })}
+                />
+              </section>
+            )}
+            {scopedResults && (
               <TaskWorkspace
+                key={scopedResults}
+                scopedModule={scopedResults}
                 {...common}
                 selected={selected}
                 selectedError={work.selectedJobError}

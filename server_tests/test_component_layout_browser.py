@@ -38,31 +38,6 @@ def check_cards(cards, viewport):
             assert second["x"] >= first["right"] + 10, (first, second)
 
 
-def check_engine_comparison(cards, geometry):
-    """The documented OpenMM/GROMACS/OpenFE comparison owns responsive 3/2/1 tracks."""
-    assert [card["name"] for card in cards] == [
-        "动力学与结构优化 · OpenMM",
-        "分子动力学 · GROMACS",
-        "相对结合自由能 · OpenFE",
-    ]
-    columns = (
-        1 if geometry["containerWidth"] <= 520 else 2 if geometry["containerWidth"] <= 820 else 3
-    )
-    assert len(geometry["tracks"]) == columns, geometry
-    assert abs(geometry["gap"] - 16) <= 1, geometry
-    width = (geometry["width"] - geometry["gap"] * (columns - 1)) / columns
-    assert all(abs(track - width) <= 1 for track in geometry["tracks"]), geometry
-    for index, card in enumerate(cards):
-        assert abs(card["width"] - width) <= 1, (card, geometry)
-        assert abs(card["x"] - geometry["x"] - (index % columns) * (width + geometry["gap"])) <= 1
-        if index % columns:
-            assert abs(card["y"] - cards[index - 1]["y"]) <= 1, cards
-        elif index:
-            previous = cards[index - columns : index]
-            expected_y = max(c["y"] + c["height"] for c in previous) + geometry["gap"]
-            assert abs(card["y"] - expected_y) <= 1, cards
-
-
 def test_component_cards_groups_and_runtime_desktop_mobile():
     evidence = Path("server_tests/evidence/task-layout")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -109,16 +84,16 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                         width:e.getBoundingClientRect().width,
                         containerWidth:e.closest('.deployment-workspace').clientWidth,
                         tracks:getComputedStyle(e).gridTemplateColumns.split(' ').map(parseFloat),
-                        gap:parseFloat(getComputedStyle(e).columnGap),
-                        comparison:e.classList.contains('is-engine-comparison')})""")
+                        gap:parseFloat(getComputedStyle(e).columnGap)})""")
                     if group == "动力学与结合自由能":
-                        assert geometry["comparison"], geometry
-                        check_engine_comparison(cards, geometry)
-                    else:
-                        assert not geometry["comparison"], geometry
-                        assert abs(cards[0]["width"] - all_cards[0]["width"]) <= 1, (
-                            "An ordinary short group must retain the grid column width"
-                        )
+                        assert [card["name"] for card in cards] == [
+                            "动力学与结构优化 · OpenMM",
+                            "分子动力学 · GROMACS",
+                            "相对结合自由能 · OpenFE",
+                        ]
+                    assert abs(cards[0]["width"] - all_cards[0]["width"]) <= 1, (
+                        "Every group must retain the same adaptive card width"
+                    )
                     page.screenshot(
                         path=str(evidence / f"components-{width}-{groups.index(group)}.png")
                     )

@@ -11,6 +11,7 @@ export type HistoryModule = ModuleId | "other";
 export const historyStatuses: readonly Status[] = [
   "queued",
   "running",
+  "paused",
   "cancelling",
   "succeeded",
   "failed",

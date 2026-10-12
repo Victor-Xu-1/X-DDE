@@ -1,5 +1,6 @@
 """Actual SVG/3D/plot/sequence interactions through frozen public case outputs."""
 
+import csv
 import json
 import os
 import re
@@ -136,24 +137,25 @@ def test_real_structures_tables_and_sequences():
                 record(f"responsive-properties-{chart_width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
             result("性质与早期安全性预测")
-            expect(page.locator(".admet-results .research-table")).to_be_visible()
-            table = page.locator(".admet-results .research-table")
+            table = page.get_by_role("region", name="候选分子", exact=True).and_(
+                page.locator(".research-table")
+            )
+            expect(table).to_be_visible()
             expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
             table.get_by_role(
                 "checkbox", name=re.compile(r"^hERG 阻断\s*分数 0–1$")
             ).check()
             expect(table.locator("thead th")).to_have_count(5)
-            table.get_by_role("button", name="常用指标", exact=True).click()
-            expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
             exported = download(
                 table.get_by_role("button", name="导出筛选结果", exact=True),
                 "admet-complete-filtered-metrics.csv",
             )
-            text = exported.read_text(encoding="utf-8-sig")
-            assert "药物性肝损伤" in text and "hERG 阻断" in text, (
-                "Hidden endpoints must remain in the complete result download."
+            with exported.open(encoding="utf-8-sig", newline="") as stream:
+                records = list(csv.reader(stream))
+            assert len(records) == 4 and all(len(row) == 42 for row in records), (
+                "The three original compounds and all 41 endpoints must remain in the download."
             )
             selected_record = page.locator(".admet-results .molecule-record").last
             selected_name = selected_record.get_attribute("aria-label")
@@ -162,6 +164,11 @@ def test_real_structures_tables_and_sequences():
             expect(selected_record).to_have_attribute("aria-pressed", "true")
             selected = page.get_by_role("region", name="所选分子", exact=True)
             expect(selected.get_by_role("heading", name=selected_name, exact=True)).to_be_visible()
+            expect(selected.locator(".molecule-image")).to_have_attribute(
+                "data-drawing-state", "ready", timeout=45000
+            )
+            selected.get_by_role("combobox", name="结果分组", exact=True).select_option("all")
+            expect(selected.locator(".admet-endpoints tr[data-endpoint-id]")).to_have_count(41)
             structure_tab = selected.get_by_role("tab", name="三维结构", exact=True)
             structure_tab.click()
             expect(structure_tab).to_have_attribute("aria-selected", "true")

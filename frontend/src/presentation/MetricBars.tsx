@@ -36,6 +36,13 @@ export function MetricBars<T>({
       <header className="evidence-material-toolbar">
         <h3>{title}</h3>
         <SvgFigureExport
+          sourceKey={JSON.stringify([
+            title,
+            metric.key,
+            metric.label,
+            values.map((item) => [rowLabel(item.row), item.value]),
+            language,
+          ])}
           language={language}
           source={() => svg.current}
           filename={title}

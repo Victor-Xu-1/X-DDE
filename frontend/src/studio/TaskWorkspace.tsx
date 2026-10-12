@@ -15,7 +15,6 @@ import { TaskWorkspaceSelectionState } from "./TaskWorkspaceSelectionState";
 import { EmptyState } from "./EmptyState";
 import { TaskHistoryToolbar } from "./TaskHistoryToolbar";
 import { TaskHistoryFilters } from "./TaskHistoryFilters";
-import { TaskHistoryModules } from "./TaskHistoryModules";
 import { TaskHistoryList } from "./TaskHistoryList";
 import { useTaskHistory } from "./useTaskHistory";
 import { taskIdFromHash } from "../useWorkbench";
@@ -24,11 +23,13 @@ import {
   kindForJob,
   kindsForModule,
   moduleForKind,
+  historyModuleLabel,
   type HistoryModule,
 } from "./task-history-model";
 import "./task-history.css";
 
 interface Props {
+  scopedModule: HistoryModule;
   language: Language;
   job: Job | null;
   detail: Detail | null;
@@ -48,16 +49,14 @@ interface Props {
 }
 export function TaskWorkspace(p: Props) {
   const zh = p.language === "zh";
-  const initialRoute = useRef(taskHistoryRoute(window.location.hash));
+  const restored = taskHistoryRoute(window.location.hash);
+  const initialRoute = useRef(restored?.module === p.scopedModule ? restored : null);
   const taskJob =
-    p.job && (!p.projectId || p.job.request.project_id === p.projectId)
+    p.job && moduleForKind(kindForJob(p.job)) === p.scopedModule
+      && (!p.projectId || p.job.request.project_id === p.projectId)
       ? p.job
       : null;
-  const [module, setModule] = useState<HistoryModule | null>(() =>
-    taskJob
-      ? moduleForKind(kindForJob(taskJob))
-      : (initialRoute.current?.module ?? null),
-  );
+  const module = p.scopedModule;
   const [type, setType] = useState(initialRoute.current?.type ?? "all");
   const [status, setStatus] = useState<Status | "all">(
     initialRoute.current?.status ?? "all",
@@ -72,8 +71,7 @@ export function TaskWorkspace(p: Props) {
   useEffect(() => {
     function restore() {
       const route = taskHistoryRoute(window.location.hash);
-      if (!route) return;
-      setModule(route.module);
+      if (!route || route.module !== module) return;
       setType(route.type);
       setStatus(route.status);
       setQuery(route.query);
@@ -88,7 +86,7 @@ export function TaskWorkspace(p: Props) {
       window.removeEventListener("popstate", restore);
       window.removeEventListener("hashchange", restore);
     };
-  }, []);
+  }, [p.scopedModule]);
   useEffect(() => {
     window.history.replaceState(
       null,
@@ -116,14 +114,13 @@ export function TaskWorkspace(p: Props) {
       setChoosing(false);
       return;
     }
-    setModule(moduleForKind(kindForJob(taskJob)));
     setType("all");
     setStatus("all");
     setQuery("");
     setSearch("");
     setPage(0);
     setChoosing(false);
-  }, [taskJob?.id]);
+  }, [taskJob?.id, p.scopedModule]);
   const lastProject = useRef(p.projectId);
   useEffect(() => {
     if (lastProject.current !== p.projectId) setPage(0);
@@ -154,17 +151,6 @@ export function TaskWorkspace(p: Props) {
     taskJob && module === moduleForKind(kindForJob(taskJob)) ? taskJob : null;
   const currentDetail =
     currentJob && p.detail?.id === currentJob.id ? p.detail : null;
-  function selectModule(value: HistoryModule | null) {
-    chosenHere.current = null;
-    setModule(value);
-    setType("all");
-    setStatus("all");
-    setQuery("");
-    setSearch("");
-    setPage(0);
-    setChoosing(true);
-    p.onJob("");
-  }
   function changeFilter(action: () => void) {
     action();
     setPage(0);
@@ -181,20 +167,15 @@ export function TaskWorkspace(p: Props) {
       )
     : [];
   const blank = !currentJob && !history.loading && history.data?.total === 0;
-  const noTasks = !Object.values(history.counts).some(
-    (count) => count.total > 0,
-  );
   const filtered = type !== "all" || status !== "all" || Boolean(query.trim());
   return (
     <section className="utility-page task-history-workspace">
-      <h1 className="sr-only">{zh ? "任务与结果" : "Tasks and results"}</h1>
+      <h1 className="sr-only">{historyModuleLabel(module, p.language)} · {zh ? "任务结果" : "Task results"}</h1>
       <TaskHistoryToolbar
         language={p.language}
         module={module}
-        counts={history.counts}
         projectName={projectName}
         hasProject={Boolean(p.projectId)}
-        onSelect={selectModule}
         onRefresh={refresh}
         onStart={p.onStart}
         onClearProject={() => p.onProject(null)}
@@ -224,31 +205,6 @@ export function TaskWorkspace(p: Props) {
             project: p.projectId,
           })}
         />
-      ) : module === null ? (
-        <>
-          <TaskHistoryModules
-            language={p.language}
-            counts={history.counts}
-            loading={history.loading}
-            onSelect={selectModule}
-          />
-          {history.loading && (
-            <p className="notice" role="status">
-              {zh ? "正在读取任务…" : "Loading tasks…"}
-            </p>
-          )}
-          {!history.loading && !history.error && noTasks && (
-            <p className="task-history-empty-note" role="status">
-              {p.projectId
-                ? zh
-                  ? "这个项目还没有任务"
-                  : "No tasks in this project yet"
-                : zh
-                  ? "还没有研究任务"
-                  : "No research tasks yet"}
-            </p>
-          )}
-        </>
       ) : (
         <div className="task-page-content">
           <details

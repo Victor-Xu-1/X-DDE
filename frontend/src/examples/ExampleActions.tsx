@@ -79,6 +79,13 @@ export function ExampleActions(
               />
             )}
           </TemplatePreviewContext.Provider>
+          {state.info?.pin?.review && (
+            <details className="example-result-review">
+              <summary>{zh ? "示例结果的解读与适用范围" : "Example interpretation and scope"}</summary>
+              <p>{state.info.pin.review.interpretation}</p>
+              <p>{state.info.pin.review.limitations}</p>
+            </details>
+          )}
         </section>
       )}
     </section>

@@ -20,6 +20,7 @@ def create(store, name="BRD4 personal analysis", project_id=None):
 
 def pin(store, job, table="example_pins", revision=None):
     body = {"job_id": job.id} if table == "example_pins" else {"evidence": [{"job_id": job.id}]}
+    body["case_id"] = MODULES["properties"].case_id
     with store.connect() as db:
         db.execute(
             f"CREATE TABLE IF NOT EXISTS {table}(capability_id TEXT,revision INTEGER,body TEXT)"
@@ -51,7 +52,16 @@ def test_current_pins_are_classified_without_changing_job_lifecycle(tmp_path):
         db.execute("CREATE TABLE example_pins(capability_id TEXT,revision INTEGER,body TEXT)")
         db.execute(
             "INSERT INTO example_pins VALUES(?,?,?)",
-            ("properties", MODULES["properties"].revision, json.dumps({"job_id": fixed.id})),
+            (
+                "properties",
+                MODULES["properties"].revision,
+                json.dumps(
+                    {
+                        "job_id": fixed.id,
+                        "case_id": MODULES["properties"].case_id,
+                    }
+                ),
+            ),
         )
     library = ExampleLibrary(store)
     assert [job.id for job in library.personal_jobs(20, 0)] == [user.id]
@@ -68,6 +78,37 @@ def test_new_tasks_using_template_inputs_are_not_automatically_examples(tmp_path
         fixed.request.model_copy(update={"project_id": None}), str(uuid4()), 50, 100
     )
     assert [job.id for job in library.personal_jobs(20, 0)] == [fresh.id]
+
+
+def test_reviewed_stat6_pins_join_the_library_without_hiding_new_template_submissions(tmp_path):
+    from opendde_workbench.examples.stat6.catalogue import MODULES as STUDY_MODULES
+
+    store = Store(tmp_path / "jobs.sqlite3")
+    archive, fixed, personal = [create(store, "STAT6 template input") for _ in range(3)]
+    pin(store, archive)
+    module = STUDY_MODULES["properties"]
+    with store.connect() as db:
+        db.execute(
+            "INSERT INTO example_pins VALUES(?,?,?)",
+            (
+                "properties",
+                module.revision,
+                json.dumps({"job_id": fixed.id, "case_id": module.case_id}),
+            ),
+        )
+    library = ExampleLibrary(store)
+    assert [job.id for job in library.personal_jobs(20, 0)] == [personal.id]
+    assert store.get(fixed.id).request == fixed.request
+    with store.connect() as db:
+        db.execute(
+            "UPDATE example_pins SET body=? WHERE revision=?",
+            (
+                json.dumps({"job_id": personal.id, "case_id": "different-study"}),
+                module.revision,
+            ),
+        )
+    with pytest.raises(ValueError, match="different reviewed study"):
+        library.synchronize()
 
 
 def test_invalid_classification_rolls_back_without_losing_history(tmp_path):

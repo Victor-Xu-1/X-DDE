@@ -594,7 +594,11 @@ def deployment_admission_app(settings, monkeypatch):
     )
 
     class InertEngine:
+        readiness_probe = None
+
         async def readiness(self):
+            if self.readiness_probe is not None:
+                return await self.readiness_probe()
             return {"ready": True, "gpu": "controlled readiness", "reason": None}
 
         async def start(self, *args):
@@ -607,7 +611,7 @@ def deployment_admission_app(settings, monkeypatch):
         yield client, manager, Store(settings.state_dir / "jobs.sqlite3"), engine
 
 
-@pytest.mark.parametrize("status", ["queued", "running", "cancelling"])
+@pytest.mark.parametrize("status", ["queued", "running", "cancelling", "paused"])
 def test_application_worker_blocks_preexisting_queue_while_science_active(
     deployment_admission_app, monkeypatch, status
 ):
@@ -752,7 +756,7 @@ def test_resume_and_scientific_submission_share_atomic_admission(
         return client.post(f"/api/deployment/operations/{identifier}/resume")
 
     if first == "submission":
-        monkeypatch.setattr(engine, "readiness", held_readiness)
+        monkeypatch.setattr(engine, "readiness_probe", held_readiness)
         actions = submit, resume
     else:
         monkeypatch.setattr(HarnessService, "invoke", held_native_probe)
@@ -801,3 +805,60 @@ def test_restarted_operation_still_requires_worker_admission_after_resume(tmp_pa
     restored.tick()
     assert calls == ["blocked"]
     assert restored.store.get(identifier)["state"] == "queued"
+
+
+def test_retained_native_pause_blocks_deployment_until_cancellation_is_confirmed(
+    deployment_admission_app, monkeypatch
+):
+    from uuid import uuid4
+
+    from opendde_workbench.prediction import Prediction
+
+    client, manager, store, engine = deployment_admission_app
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    manager.control(identifier, "pause")
+    job = store.create(
+        Prediction(name="retained pause fixture", components=[{"kind": "ligand", "value": "CCO"}]),
+        str(uuid4()),
+        10,
+        20,
+    )
+    store.claim(job.id)
+    store.retain_paused(job.id)
+    executed = []
+    monkeypatch.setattr(manager, "_execute", lambda row, *_: executed.append(row["id"]))
+    # The external upgrade contract may close the UI while retaining a native pause.
+    assert client.get("/api/lifecycle").json()["busy"] is False
+    response = client.post(f"/api/deployment/operations/{identifier}/resume")
+    assert response.status_code == 409
+    assert manager.store.get(identifier)["state"] == "paused"
+
+    # Also protect a preexisting/recovered queued operation at execution admission.
+    manager.control(identifier, "resume")
+    manager.tick()
+    assert manager.store.get(identifier)["state"] == "queued"
+    assert not executed
+
+    async def unconfirmed_stop(_):
+        raise RuntimeError("Controlled native stop remains unconfirmed")
+
+    monkeypatch.setattr(engine, "stop", unconfirmed_stop, raising=False)
+    response = client.post(f"/api/jobs/{job.id}/cancel")
+    assert response.status_code == 503
+    assert store.get(job.id).status == "paused"
+    manager.tick()
+    assert manager.store.get(identifier)["state"] == "queued"
+    assert not executed
+
+    stopped = []
+
+    async def confirmed_stop(value):
+        stopped.append(value)
+
+    monkeypatch.setattr(engine, "stop", confirmed_stop)
+    response = client.post(f"/api/jobs/{job.id}/cancel")
+    assert response.status_code == 200
+    assert stopped == [job.id] and store.get(job.id).status == "cancelled"
+    manager.tick()
+    assert executed == [identifier]
+    assert manager.store.get(identifier)["state"] == "running"

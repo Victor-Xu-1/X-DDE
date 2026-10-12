@@ -40,7 +40,8 @@ def test_every_task_page_and_native_case_layout():
     with sync_playwright() as engine:
         browser = engine.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
-        initialize_layout_page(page)
+        case_profile = {"profile": "stat6"}
+        initialize_layout_page(page, case_profile)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -63,6 +64,10 @@ def test_every_task_page_and_native_case_layout():
                 for item in examples
                 if not item["computed_result_available"]
             }
+            archived = {
+                CAPABILITIES[item["module"]["capability_id"]].label[0]: item
+                for item in examples
+            }
             expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
             names = page.locator(".tool-card h2").all_text_contents()
             expected = {
@@ -76,6 +81,7 @@ def test_every_task_page_and_native_case_layout():
             for width in widths:
                 page.set_viewport_size({"width": width, "height": 1000})
                 for name in names:
+                    case_profile["profile"] = "stat6"
                     catalog(page)
                     page.get_by_role("button", name=name, exact=True).and_(
                         page.locator(".tool-card")
@@ -92,13 +98,22 @@ def test_every_task_page_and_native_case_layout():
                             guided.click()
                     load_template(page, evidence, name)
                     rows.extend(review_steps(page, evidence, name))
+                    # Current study questionnaires and retained native outcomes
+                    # have separate identities. Reopen the archive explicitly.
+                    case_profile["profile"] = "archive"
+                    catalog(page)
+                    page.get_by_role("button", name=name, exact=True).and_(
+                        page.locator(".tool-card")
+                    ).click()
+                    expect(page.locator(".module-template:visible")).to_be_visible()
+                    expect(page.locator(".example-case-name:visible")).to_contain_text(
+                        archived[name]["case"]["label"][0], timeout=30000
+                    )
                     results = page.get_by_role("button", name="示例结果", exact=True)
                     if results.count() == 0:
                         results = page.get_by_role("button", name="配置示例", exact=True)
                     if results.count() == 0 and name in input_only:
-                        expect(
-                            page.get_by_role("button", name="新建空白任务", exact=True)
-                        ).to_be_visible()
+                        load_template(page, evidence, name)
                         rows.append(capture(page, evidence, name, "reviewed-input-template"))
                         continue
                     expect(results).to_be_visible()

@@ -24,8 +24,11 @@ export function AdmetForm({
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
 }) {
-  const exampleLibrary = useExampleReference("library");
+  const recordedLibrary = useExampleReference("library");
+  const recordedMolecule = useExampleReference("ligand");
   const preset = useExampleTask("admet_predict");
+  initialMolecule ??= preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
+  const exampleLibrary = initialMolecule ? null : recordedLibrary;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("admet.predict");

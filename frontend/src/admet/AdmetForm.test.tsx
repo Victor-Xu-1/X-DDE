@@ -4,6 +4,8 @@ import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import * as client from "../api";
 import { AdmetForm } from "./AdmetForm";
+import { ExampleContext } from "../examples/context";
+import type { PreparedExample } from "../examples/types";
 vi.mock("../presentation/MoleculeImage", () => ({
   MoleculeImage: ({ source }: { source: unknown }) => (
     <div data-testid="review-structure">{JSON.stringify(source)}</div>
@@ -53,6 +55,28 @@ function boundary(ready = true, failure = false) {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+it("loads the specified molecule as a single input even when its example also has a library alias", async () => {
+  const submit = boundary(), user = userEvent.setup();
+  const example = {
+    objects: {
+      ligand: { reference: ref },
+      library: { reference: { ...ref, asset_id: "library", sha256: "b".repeat(64) } },
+    },
+    request: { operation: "admet_predict", molecule: ref, library: null, options: { view: "all" } },
+  } as unknown as PreparedExample;
+  render(<ExampleContext.Provider value={example}>
+    <AdmetForm language="en" onCreated={vi.fn()} />
+  </ExampleContext.Provider>);
+  expect(screen.getByRole("radio", { name: /^One research molecule/ })).toBeChecked();
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByText("single.sdf · #4")).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Predict properties" }));
+  expect(submit).toHaveBeenCalledWith(expect.objectContaining({
+    molecule: ref, library: null, scientific_inputs: [ref], options: expect.objectContaining({ view: "all" }),
+  }), expect.any(String));
 });
 it("retains exact source and settings through Back and only dispatches after review", async () => {
   const submit = boundary(),

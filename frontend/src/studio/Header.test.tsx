@@ -80,14 +80,14 @@ it("uses readable Chinese task statuses and closes notifications with Escape", a
     onJob = vi.fn();
   render(
     <Header
-      view="tasks"
+      view="results:binding"
       language="zh"
       jobs={jobs}
       onJob={onJob}
       storageWarning
     />,
   );
-  expect(screen.getByText("任务与结果")).toBeVisible();
+  expect(screen.getByText("口袋与对接")).toBeVisible();
   expect(screen.getByRole("status")).toHaveTextContent(
     "浏览器无法记住语言选择",
   );

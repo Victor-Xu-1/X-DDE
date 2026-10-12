@@ -36,6 +36,7 @@ export function ClusterMatrix({
           </select>
         </label>
         <SvgFigureExport
+          sourceKey={JSON.stringify([value, metric, language])}
           language={language}
           source={() => svg.current}
           filename={"binding-modes"}

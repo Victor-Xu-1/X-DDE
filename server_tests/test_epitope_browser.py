@@ -12,9 +12,10 @@ from layout_browser_helpers import (
     archive_example_url,
     catalog,
     initialize_layout_page,
-    layout_navigation,
 )
 from playwright.sync_api import expect, sync_playwright
+
+from server_tests.test_navigation_shell_browser import settings
 
 
 def test_native_epitope_contacts_structure_selection_and_downloads():
@@ -184,9 +185,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
                 "native-epitope-compact.png",
             )
             page.get_by_role("button", name="关闭图片", exact=True).click()
-            layout_navigation(page)
-            page.get_by_role("button", name="设置与帮助", exact=True).click()
-            page.get_by_role("menuitem", name="界面设置", exact=True).click()
+            settings(page, "zh")
             page.locator("#settings-language").select_option("en")
             page.set_viewport_size({"width": 1440, "height": 1000})
             open_result(english=True)

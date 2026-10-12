@@ -23,6 +23,7 @@ export function PropertyResults({
 }) {
   const zh = language === "zh",
     rows = molecules.map((m, index) => ({ ...m, index }));
+  const moleculeName = (row: Row) => row.name?.trim() || (zh ? "分子 " : "Molecule ") + (row.index + 1);
   const [selection, setSelection] = useState(
     rows.find((row) => row.available)?.index ?? 0,
   );
@@ -41,12 +42,12 @@ export function PropertyResults({
     {
       key: "molecule",
       label: zh ? "分子" : "Molecule",
-      value: (row) => (zh ? "分子 " : "Molecule ") + (row.index + 1),
+      value: moleculeName,
       render: (row) => (
         <button
           type="button"
           className="molecule-record"
-          aria-label={(zh ? "分子 " : "Molecule ") + (row.index + 1)}
+          aria-label={moleculeName(row)}
           aria-pressed={selection === row.index}
           onClick={() => setSelection(row.index)}
         >
@@ -54,11 +55,11 @@ export function PropertyResults({
             compact
             source={row.smiles ? { smiles: row.smiles } : null}
             language={language}
-            label={String(row.index + 1)}
+            label={moleculeName(row)}
           />
           <span>
             <strong>
-              {zh ? "分子" : "Molecule"} {row.index + 1}
+              {moleculeName(row)}
             </strong>
             {!row.available && <small>{row.reason}</small>}
           </span>
@@ -105,7 +106,7 @@ export function PropertyResults({
             <>
               <header>
                 <h3>
-                  {zh ? "分子" : "Molecule"} {current.index + 1}
+                  {moleculeName(current)}
                 </h3>
                 {current.available && current.smiles && onDraft && (
                   <button
@@ -133,7 +134,7 @@ export function PropertyResults({
               {current.available && current.smiles ? (
                 <MolecularPreview
                   language={language}
-                  label={String(current.index + 1)}
+                  label={moleculeName(current)}
                   source={{ smiles: current.smiles }}
                 />
               ) : (
@@ -146,7 +147,7 @@ export function PropertyResults({
             language={language}
             label={zh ? "性质分布" : "Property landscape"}
             rowId={(row) => String(row.index)}
-            rowLabel={(row) => (zh ? "分子 " : "Molecule ") + (row.index + 1)}
+            rowLabel={moleculeName}
             selected={String(selection)}
             onSelect={(row) => setSelection(row.index)}
             metrics={numeric.map((m) => ({

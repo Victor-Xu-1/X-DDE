@@ -92,4 +92,4 @@ def test_explicit_archive_metadata_retains_original_case(client_factory):
         assert archive.status_code == current.status_code == 200
         assert archive.json()["case"]["id"] == "brd4-jq1"
         assert current.json()["case"]["id"] == catalogue.CASE.id
-        assert current.json()["module"]["revision"] == archive.json()["module"]["revision"] + 1
+        assert current.json()["module"]["revision"] == archive.json()["module"]["revision"] + 2

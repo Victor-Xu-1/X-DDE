@@ -33,6 +33,13 @@ def properties(request: dict, bindings: dict) -> dict:
                     "A property task supports at most500 molecules; split the input file."
                 )
             row = describe(molecule, f"{identifier}:{index + 1}")
+            if molecule is not None:
+                names = [
+                    molecule.GetProp(key).strip()
+                    for key in ("Compound_ID", "_Name")
+                    if molecule.HasProp(key)
+                ]
+                row["name"] = next((name for name in names if name), "")
             if selected:
                 row["scientific_reference"] = selected[index]
                 found.add(index)
@@ -43,6 +50,7 @@ def properties(request: dict, bindings: dict) -> dict:
         raise ValueError("No molecule records were found.")
     fields = [
         "input",
+        "name",
         "available",
         "reason",
         "smiles",

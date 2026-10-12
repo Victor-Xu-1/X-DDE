@@ -12,6 +12,8 @@ import { api, ApiError } from "./api";
 import * as client from "./api";
 import * as deployment from "./deployment/client";
 import * as i18n from "./i18n";
+import * as workbench from "./useWorkbench";
+import { defaults } from "./form-model";
 import {
   historyFixture,
   identityFixture,
@@ -92,7 +94,7 @@ it.each(["en", "zh"] as Language[])(
       screen.getByRole("link", {
         name: language === "zh" ? "返回任务历史" : "Back to task history",
       }),
-    ).toHaveAttribute("href", "#view=tasks");
+    ).toHaveAttribute("href", "#view=results&module=other");
     expect(screen.queryByRole("group", { name: "Task modules" })).toBeNull();
     expect(window.location.hash).toContain(A);
     expect(document.querySelectorAll("[data-read-error]")).toHaveLength(0);
@@ -112,6 +114,92 @@ it("shows a pending task before metadata arrives and retains the requested URL",
   ).toBeVisible();
   expect(screen.getByRole("button", { name: "Retry" })).toBeVisible();
   expect(window.location.hash).toContain(A);
+  expect(window.location.hash).toBe("#task=" + A);
+});
+
+it("waits for a task's owner before canonicalizing a same-page legacy link", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  let resolve!: (value: Job) => void;
+  vi.mocked(client.request).mockImplementation(async (path) => {
+    if (path === `/jobs/${B}`)
+      return new Promise<Job>((done) => {
+        resolve = done;
+      }) as never;
+    if (path.startsWith("/task-history/"))
+      return identityFixture(job(B)) as never;
+    throw new Error("Unrelated request " + path);
+  });
+  render(<App />);
+  await advance();
+  act(() => navigate("#task=" + B));
+  await advance();
+  expect(
+    screen.getByRole("heading", { name: "Loading selected task…" }),
+  ).toBeVisible();
+  expect(window.location.hash).toBe("#task=" + B);
+  await act(async () => {
+    resolve(job(B));
+  });
+  expect(document.querySelector(".page-context-title")).toHaveTextContent(
+    "Properties and safety",
+  );
+  expect(document.querySelector(".detail-panel h2")).toHaveTextContent(
+    "Selected task B",
+  );
+  expect(window.location.hash).toBe(
+    "#view=results&module=evaluation&task=" + B,
+  );
+});
+
+it("does not resolve a new legacy address from the preceding task's metadata", async () => {
+  const first = job(A);
+  const second: Job = {
+    ...job(B),
+    request: {
+      name: "Protein task B",
+      components: [
+        { kind: "protein", value: "ACDEFGHIKLMNPQRSTVWY", count: 1 },
+      ],
+      parameters: defaults,
+    },
+  };
+  const read = (current: Job): ReturnType<typeof workbench.useWorkbench> => ({
+    jobs: [first, second],
+    selected: current.id,
+    selectedJob: current,
+    health: null,
+    detail: { id: current.id, artifacts: [] },
+    select: vi.fn(),
+    confirmJob: vi.fn(),
+    refresh: vi.fn(),
+    jobsError: null,
+    healthError: null,
+    selectedJobError: null,
+    selectedJobLoading: false,
+    artifactError: null,
+    artifactsLoading: false,
+    connectionError: false,
+    detailError: false,
+    loading: false,
+  });
+  const reader = vi
+    .spyOn(workbench, "useWorkbench")
+    .mockReturnValue(read(first));
+  const view = render(<App />);
+  await advance();
+  expect(window.location.hash).toContain("module=evaluation");
+  act(() => navigate("#task=" + B));
+  await advance();
+  expect(window.location.hash).toBe("#task=" + B);
+  reader.mockReturnValue(read(second));
+  view.rerender(<App />);
+  await advance();
+  expect(document.querySelector(".page-context-title")).toHaveTextContent(
+    "Structure prediction",
+  );
+  expect(window.location.hash).toBe(
+    "#view=results&module=structures&task=" + B,
+  );
 });
 
 it.each([
@@ -161,7 +249,7 @@ it.each([
 
 it("keeps history filters in the recovery link and after selection is cleared", async () => {
   const route =
-    "#view=tasks&module=evaluation&type=properties&status=running&q=Selected";
+    "#view=results&module=evaluation&type=properties&status=running&q=Selected";
   window.history.replaceState(null, "", route + "&task=" + A);
   render(<App />);
   await advance();
@@ -252,7 +340,7 @@ it("discards a delayed A success after leaving its loading view for B", async ()
 it("keeps project and a valid history page in the missing-task recovery route", async () => {
   const project = "33333333-3333-4333-8333-333333333333";
   const route =
-    "#view=tasks&module=evaluation&type=properties&status=running&q=Selected&page=1&project=" +
+    "#view=results&module=evaluation&type=properties&status=running&q=Selected&page=1&project=" +
     project;
   window.history.replaceState(null, "", route + "&task=" + A);
   vi.mocked(api.taskHistory).mockImplementation(async (path) => ({

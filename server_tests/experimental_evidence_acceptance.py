@@ -63,11 +63,11 @@ def main():
             raise TimeoutError("The bounded public experimental case installation did not finish.")
         component = deployed["installed"]["public-experimental-examples"]
         assert component["observations"] == 177 and not component["scientific_inference"]
-        example = client.get("/api/examples/experimental.evidence").json()
+        example = client.get("/api/examples/experimental.evidence?profile=archive").json()
         assert example["computed_result_available"] and example["record_pin"]
         job_count = len(client.get("/api/jobs").json())
         prepared = client.post(
-            "/api/examples/experimental.evidence/prepare", json={}, headers=headers
+            "/api/examples/experimental.evidence/prepare?profile=archive", json={}, headers=headers
         )
         assert prepared.status_code == 200, prepared.text
         result = prepared.json()["record"]["value"]
@@ -79,7 +79,7 @@ def main():
         assert result["summaries"][0]["endpoint"] == "IC50"
         identifier = result["id"]
         repeated = client.post(
-            "/api/examples/experimental.evidence/prepare", json={}, headers=headers
+            "/api/examples/experimental.evidence/prepare?profile=archive", json={}, headers=headers
         ).json()
         assert repeated["record"]["value"]["id"] == identifier
         assert len(client.get("/api/jobs").json()) == job_count

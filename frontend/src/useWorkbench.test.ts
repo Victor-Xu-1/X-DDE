@@ -36,11 +36,11 @@ function boundary() {
       }) as Response,
   );
 }
-it("preserves a result module while choosing history but clears its route for a new task", async () => {
+it.each(["tasks", "results"])("preserves a %s result module while choosing history but clears its route for a new task", async (view) => {
   window.history.replaceState(
     null,
     "",
-    "/#view=tasks&module=binding&q=STAT6&page=2",
+    `/#view=${view}&module=binding&q=STAT6&page=2`,
   );
   boundary();
   vi.spyOn(api, "jobs").mockResolvedValue([]);

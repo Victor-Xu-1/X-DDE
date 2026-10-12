@@ -18,7 +18,6 @@ it("keeps all research modules directly accessible", async () => {
     "生物药研究",
     "性质与安全性",
     "研究空间",
-    "任务与结果",
     "全部能力",
   ])
     expect(within(nav).getByRole("button", { name })).toBeVisible();

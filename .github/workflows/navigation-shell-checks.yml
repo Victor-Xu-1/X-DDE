@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'frontend/src/studio/Navigation*'
+      - 'frontend/src/studio/ModuleWorkspaceNavigation*'
       - 'frontend/src/studio/navigation-frame.css'
       - 'frontend/src/studio/Header*'
       - 'frontend/src/studio/header.css'
@@ -35,6 +36,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/studio/Navigation.test.tsx
+          src/studio/ModuleWorkspaceNavigation.test.tsx
           src/studio/NavigationFrame.test.tsx src/studio/Header.test.tsx
           src/studio/MethodSwitch.test.tsx src/studio/BindingEntryDialog.test.tsx
           src/studio/research-modules.test.ts src/studio/InterfaceSettings.test.tsx

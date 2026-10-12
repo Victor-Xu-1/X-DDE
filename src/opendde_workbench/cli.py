@@ -37,7 +37,7 @@ def parser():
         type=str.lower,
         choices=["start", "stop", "close", "restart", "status", "system"],
     )
-    p.add_argument("--port", type=int, default=4320)
+    p.add_argument("--port", type=int, help="UI port; defaults to this workspace's saved address")
     p.add_argument("--no-browser", action="store_true")
     p.add_argument("--no-auto-deploy", action="store_true")
     p.add_argument("--version", action="version", version=__version__)
@@ -48,7 +48,7 @@ def main():
     p = parser()
     # Normalize commands and option names, never paths or option values.
     args = p.parse_args([v.lower() if v.startswith("--") else v for v in sys.argv[1:]])
-    if not 1024 <= args.port <= 65535:
+    if args.port is not None and not 1024 <= args.port <= 65535:
         p.error("Port must be between 1024 and 65535.")
     command = args.action if args.command in {"ui", "dashboard"} and args.action else args.command
     if args.action and args.command not in {"ui", "dashboard", "setup"}:

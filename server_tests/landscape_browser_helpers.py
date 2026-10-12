@@ -9,13 +9,20 @@ def exercise_plot_view(page, panel, language, bounds=None):
         "combobox", name="Chart interaction" if language == "en" else "图表操作"
     ).select_option("pan")
     expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
-    chart.scroll_into_view_if_needed()
     page.wait_for_function("el => el._fullLayout?.dragmode === 'pan'", arg=chart.element_handle())
+    chart.evaluate("el => el.scrollIntoView({block:'center',inline:'nearest'})")
+    page.wait_for_function(
+        "el => {const box=el.getBoundingClientRect(); return box.top>=68 && box.bottom<=innerHeight;}",
+        arg=chart.element_handle(),
+    )
     original = chart.evaluate("el => ({x:el.data[0].x,y:el.data[0].y})")
     before = chart.evaluate("el => el._fullLayout.xaxis.range")
     drag = chart.locator(".nsewdrag").bounding_box()
     assert drag
     x, y = drag["x"] + drag["width"] * 0.4, drag["y"] + drag["height"] * 0.5
+    assert chart.evaluate(
+        "(el,point) => el.contains(document.elementFromPoint(point[0],point[1]))", [x, y]
+    ), "The native chart pan target must be visible and unobscured."
     page.mouse.move(x, y)
     page.mouse.down()
     page.mouse.move(x + drag["width"] * 0.2, y, steps=10)

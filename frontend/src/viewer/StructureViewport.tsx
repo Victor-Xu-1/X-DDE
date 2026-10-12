@@ -375,6 +375,15 @@ export function StructureViewport({
             <option value="3">{zh ? "精细 3×" : "Fine 3×"}</option>
           </select>
           <FigureExport
+            sourceKey={JSON.stringify([
+              key,
+              options,
+              focusKey,
+              focusModel,
+              siteKey,
+              attachmentKey,
+            ])}
+            sourceReady={loaded}
             language={language}
             filename="X-DDE-structure"
             format="png"

@@ -30,6 +30,7 @@ export function ChannelProfile({
       <div className="channel-profile-heading">
         <h4>{zh ? "沿路径的可用半径" : "Available radius along path"}</h4>
         <SvgFigureExport
+          sourceKey={JSON.stringify([channel, language])}
           language={language}
           source={() => ref.current}
           filename={"channel-radius-profile"}

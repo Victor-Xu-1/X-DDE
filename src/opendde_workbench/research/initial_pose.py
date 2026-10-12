@@ -44,7 +44,7 @@ class InitialPosePreparation:
         parent = self.store.get(str(version.source_job)) if version.source_job else None
         if is_3d and verified_computed_input(asset, raw):
             # Exact packaged preparation evidence qualifies a precomputed input
-            # without creating a duplicate optimization job or claiming a bound pose.
+            # without a duplicate optimization job or an experimental-binding claim.
             return None, version
         if (
             is_3d

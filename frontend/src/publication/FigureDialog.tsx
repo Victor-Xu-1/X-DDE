@@ -9,8 +9,11 @@ import {
 } from "./settings";
 import { useFigurePreview } from "./useFigurePreview";
 import { FigurePreview } from "./FigurePreview";
+import { figureIdentity } from "./figure-render-queue";
 export function FigureDialog({
   language,
+  sourceKey,
+  sourceReady,
   filename,
   format,
   aspect,
@@ -21,6 +24,8 @@ export function FigureDialog({
   molecular,
 }: {
   language: Language;
+  sourceKey: string;
+  sourceReady: boolean;
   filename: string;
   format: "png" | "svg";
   aspect: number;
@@ -44,8 +49,9 @@ export function FigureDialog({
   }
   const state = useFigurePreview({
     settings,
+    sourceKey: figureIdentity(sourceKey, aspect),
     format,
-    valid: !!size,
+    valid: !!size && sourceReady,
     render,
     onStart,
   });
