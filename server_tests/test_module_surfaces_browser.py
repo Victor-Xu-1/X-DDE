@@ -15,10 +15,11 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1100})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(os.environ["WB_BROWSER_URL"])
         groups = page.locator(".capability-group")
-        expect(groups).to_have_count(9)
+        expect(groups).to_have_count(10)
         dimensions = groups.evaluate_all(
             """elements => elements.map(e => ({theme:e.dataset.moduleTheme,
                 width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))"""

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from layout_browser_helpers import catalog
 from playwright.sync_api import expect, sync_playwright
+from server_tests.archived_case_browser import archived_case_context
 
 
 def test_native_epitope_contacts_structure_selection_and_downloads():
@@ -21,6 +22,8 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
+        archived_case_context(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -28,7 +31,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        examples = page.request.get(base + "/api/examples").json()["examples"]
+        examples = page.request.get(base + "/api/examples", params={"profile": "archive"}).json()["examples"]
         example = next(item for item in examples if item["module"]["capability_id"] == "epitope")
         job_id = example["pin"]["job_id"]
         job = page.request.get(base + f"/api/jobs/{job_id}").json()

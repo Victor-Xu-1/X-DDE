@@ -13,6 +13,7 @@ def test_binding_material_routes_and_structural_prerequisites():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         errors, submitted = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(

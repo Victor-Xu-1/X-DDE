@@ -44,6 +44,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
     with sync_playwright() as engine:
         browser = engine.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
