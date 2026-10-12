@@ -17,7 +17,7 @@ CONSTRAINTS = "https://github.com/aurekaresearch/OpenDDE-Harness/releases/downlo
 CONSTRAINTS_SHA = "2659c7b3fc403f165799f3ed9b66b2cd7d9bd2b18b6982c38a86e8f8e74b509b"
 
 
-def install(key, root, installed, operation, report, checkpoint, *, state=None):
+def install(key, root, installed, operation, report, checkpoint, *, state=None, pending=None):
     spec = PACKAGES[key]
     work = root / "operations" / operation
     work.mkdir(parents=True, exist_ok=True)
@@ -35,7 +35,11 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None):
     if key in PROGRAMS:
         metadata.update(scientific_runtime(key, root, work, execute, report, checkpoint))
     elif key.endswith("-models") and key.removesuffix("-models") in PROGRAMS:
-        metadata.update(scientific_models(key.removesuffix("-models"), root, report, checkpoint))
+        metadata.update(
+            scientific_models(
+                key.removesuffix("-models"), root, report, checkpoint, pending=pending
+            )
+        )
     elif key == "supplier-libraries":
         from .supplier_files import install as supplier_files
 
