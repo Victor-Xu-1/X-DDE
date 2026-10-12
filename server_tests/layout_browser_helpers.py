@@ -198,13 +198,23 @@ def archive_example_url(url):
     return urlunsplit(parts._replace(query=urlencode(query)))
 
 
-def initialize_layout_page(page):
-    """Use Chinese-initial UI and genuine archived cases for this acceptance gate."""
+def initialize_layout_page(page, case_profile=None):
+    """Choose real study or archive endpoints; never synthesize example responses."""
     initialize_layout_language(page)
     base = os.environ["WB_BROWSER_URL"].rstrip("/")
+    selection = case_profile if case_profile is not None else {"profile": "archive"}
+
+    def route_case(route):
+        if selection["profile"] == "archive":
+            route.continue_(url=archive_example_url(route.request.url))
+        elif selection["profile"] == "stat6":
+            route.continue_()
+        else:
+            raise ValueError("Choose a real STAT6 or archive case profile.")
+
     page.route(
         re.compile(r"^" + re.escape(base) + r"/api/examples(?:[/?]|$)"),
-        lambda route: route.continue_(url=archive_example_url(route.request.url)),
+        route_case,
     )
 
 
