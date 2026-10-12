@@ -7,6 +7,7 @@ from layout_template_choices import choose_template_objective
 from playwright.sync_api import expect
 
 from opendde_workbench.capabilities.definitions import CAPABILITIES
+from server_tests.test_navigation_shell_browser import open_navigation
 
 VISIBLE_TASKS = sum(
     bool(spec.frontend_form) and key != "resources" for key, spec in CAPABILITIES.items()
@@ -14,7 +15,7 @@ VISIBLE_TASKS = sum(
 
 
 def catalog(page):
-    page.get_by_role("navigation", name="主导航").get_by_role(
+    open_navigation(page, "zh").get_by_role(
         "button", name="全部能力", exact=True
     ).click()
     expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
