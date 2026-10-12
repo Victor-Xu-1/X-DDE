@@ -4,9 +4,8 @@ import os
 import re
 from pathlib import Path
 
+from layout_browser_helpers import initialize_layout_page, layout_navigation
 from playwright.sync_api import expect, sync_playwright
-
-from server_tests.test_navigation_shell_browser import open_navigation
 
 
 def test_binding_material_routes_and_structural_prerequisites():
@@ -15,7 +14,7 @@ def test_binding_material_routes_and_structural_prerequisites():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
-        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
+        initialize_layout_page(page)
         errors, submitted = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -31,7 +30,8 @@ def test_binding_material_routes_and_structural_prerequisites():
         before = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/jobs").json()
 
         def open_guide():
-            open_navigation(page, "zh").get_by_role("button", name="口袋与对接", exact=True).click()
+            layout_navigation(page)
+            page.get_by_role("button", name="口袋与对接", exact=True).click()
             page.get_by_role("button", name="按已有材料开始", exact=True).click()
             dialog = page.get_by_role("dialog", name="您现在有哪些材料？", exact=True)
             expect(dialog).to_be_visible()

@@ -2,7 +2,7 @@ name: Task layout and browser checks
 on:
   push:
     branches: ["**"]
-    paths:
+    paths: &task_layout_paths
       - "frontend/src/guided/**"
       # Native prediction materials have an exact entry gate without unrelated tasks.
       - "!frontend/src/guided/entities.ts"
@@ -121,6 +121,7 @@ on:
       - "server_tests/test_result_visuals_browser.py"
       - "server_tests/depiction_browser_helpers.py"
       - "server_tests/layout_browser_helpers.py"
+      - "server_tests/prepare_indexed_preview_poses.py"
       - "server_tests/layout_coverage.py"
       # Sequence and QC inspections use their own focused native-result gate.
       - "!frontend/src/presentation/SequenceTrack*"
@@ -312,6 +313,8 @@ on:
       - "!frontend/src/viewer/pose-study-input.css"
       - "!frontend/src/viewer/usePoseHandoff.ts"
   workflow_dispatch:
+  pull_request:
+    paths: *task_layout_paths
 permissions:
   contents: read
 jobs:
@@ -435,6 +438,9 @@ jobs:
           uv run --locked --group browser python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           uv run --locked --group browser python server_tests/prepare_visual_components.py
           uv run --locked --group browser python server_tests/proximity_layout_inputs.py --state "$WB_STATE_DIR"
+      - name: Prepare two exact indexed preview poses before read-only inspection
+        if: matrix.viewport == 1440 && matrix.shard == 0
+        run: uv run --locked --group browser python server_tests/prepare_indexed_preview_poses.py
       - name: Check every task and archived example in real Chromium
         run: |
           .venv/bin/python -m playwright install --with-deps chromium

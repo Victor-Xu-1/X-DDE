@@ -4,7 +4,14 @@ import json
 import os
 from pathlib import Path
 
-from layout_browser_helpers import VISIBLE_TASKS, catalog, flat_surface_styles
+from layout_browser_helpers import (
+    RESEARCH_MODULE_LABELS,
+    VISIBLE_TASKS,
+    catalog,
+    expect_layout_identities,
+    flat_surface_styles,
+    initialize_layout_page,
+)
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -15,11 +22,11 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1100})
-        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
+        initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(os.environ["WB_BROWSER_URL"])
         groups = page.locator(".capability-group")
-        expect(groups).to_have_count(10)
+        expect_layout_identities(groups, RESEARCH_MODULE_LABELS)
         dimensions = groups.evaluate_all(
             """elements => elements.map(e => ({theme:e.dataset.moduleTheme,
                 width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))"""

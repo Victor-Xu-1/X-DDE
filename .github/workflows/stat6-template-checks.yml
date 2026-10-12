@@ -2,7 +2,7 @@ name: STAT6 study template checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &stat6_template_paths
       - 'src/opendde_workbench/examples/stat6/**'
       - 'src/opendde_workbench/examples/routes.py'
       - 'src/opendde_workbench/examples/input_geometry.py'
@@ -44,6 +44,8 @@ on:
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - '!frontend/src/examples/guide.ts'
       # still run this suite. workflow_dispatch retains explicit full template verification.
+  pull_request:
+    paths: *stat6_template_paths
 permissions:
   contents: read
 jobs:

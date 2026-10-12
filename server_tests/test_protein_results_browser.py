@@ -7,9 +7,13 @@ import os
 from pathlib import Path
 
 import pytest
-from layout_browser_helpers import catalog
+from layout_browser_helpers import (
+    catalog,
+    initialize_layout_page,
+    settle_responsive_layout,
+    viewport_overflow_evidence,
+)
 from playwright.sync_api import expect, sync_playwright
-from server_tests.archived_case_browser import archived_case_context
 
 
 @pytest.fixture
@@ -19,8 +23,7 @@ def protein_page():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
-        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
-        archived_case_context(page)
+        initialize_layout_page(page)
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -50,7 +53,8 @@ def open_result(page, name, configuration=False):
 
 
 def capture(page, root, name):
-    assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
+    settle_responsive_layout(page)
+    assert not viewport_overflow_evidence(page, root, name)
     page.screenshot(path=str(root / (name + ".png")))
 
 

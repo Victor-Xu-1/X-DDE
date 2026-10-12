@@ -9,10 +9,16 @@ import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from layout_browser_helpers import catalog, settle_visible_drawings
+from layout_browser_helpers import (
+    catalog,
+    initialize_layout_page,
+    settle_responsive_layout,
+    settle_responsive_plot,
+    settle_visible_drawings,
+    viewport_overflow_evidence,
+)
 from playwright.sync_api import expect, sync_playwright
 
-from server_tests.archived_case_browser import archived_case_context
 from server_tests.publication_browser_helpers import export_figure
 
 
@@ -25,8 +31,7 @@ def test_real_structures_tables_and_sequences():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
-        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
-        archived_case_context(page)
+        initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -48,20 +53,8 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_text("正在读取结果…", exact=True)).not_to_be_visible(timeout=30000)
 
         def record(name):
-            overflow = page.evaluate("""() => ({
-                width: innerWidth, scroll: document.documentElement.scrollWidth,
-                elements: [...document.querySelectorAll('main *')].map(node => {
-                    const box = node.getBoundingClientRect();
-                    return {tag: node.tagName, className: node.className,
-                        left: box.left, right: box.right, width: box.width};
-                }).filter(box => box.width > 0 && box.right > innerWidth + 1).slice(0, 30)
-            })""")
-            if overflow["scroll"] > overflow["width"] + 1:
-                page.screenshot(path=str(evidence / ("overflow-" + name + ".png")))
-                (evidence / ("overflow-" + name + ".json")).write_text(
-                    json.dumps(overflow, ensure_ascii=False, indent=2)
-                )
-            assert overflow["scroll"] <= overflow["width"] + 1, overflow
+            settle_responsive_layout(page)
+            assert not viewport_overflow_evidence(page, evidence, "visual-" + name)
             settle_visible_drawings(page)
             page.screenshot(path=str(evidence / ("visual-" + name + ".png")))
             steps.append(name)
@@ -104,16 +97,19 @@ def test_real_structures_tables_and_sequences():
             )
             record("molecule-2d-table")
             page.get_by_label("二维图线条粗细", exact=True).select_option("2.2")
+            drawing_export = page.locator(".molecule-image:not(.is-thumbnail)").get_by_role(
+                "button", name="文献图导出 ↓", exact=True
+            )
+            expect(drawing_export).to_be_visible(timeout=90000)
             structure = export_figure(
                 page,
-                page.locator(".result-inspector .molecule-image").get_by_role(
-                    "button", name="文献图导出 ↓", exact=True
-                ),
+                drawing_export,
                 evidence,
                 "native-molecule",
                 "zh",
                 "SVG",
             )
+            assert structure.stat().st_size > 100
             assert ET.fromstring(structure.read_bytes()).tag.endswith("svg")
             landscape = page.locator(".metric-scatter:visible").first
             chart = landscape.get_by_role("application")
@@ -130,7 +126,9 @@ def test_real_structures_tables_and_sequences():
             # Native resizing changes canvas width without inflating type/markers.
             for chart_width in (2560, 390):
                 page.set_viewport_size({"width": chart_width, "height": 1000})
+                settle_responsive_layout(page)
                 expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
+                settle_responsive_plot(page, chart)
                 geometry = chart.evaluate("""node => ({height:node.getBoundingClientRect().height,
                     markers:node.data[0].marker.size, font:node.layout.font.size})""")
                 assert abs(geometry["height"] - 290) <= 1, geometry
@@ -145,7 +143,9 @@ def test_real_structures_tables_and_sequences():
             expect(table).to_be_visible()
             expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
-            table.get_by_role("checkbox", name=re.compile(r"^hERG 阻断")).check()
+            table.get_by_role(
+                "checkbox", name=re.compile(r"^hERG 阻断\s*分数 0–1$")
+            ).check()
             expect(table.locator("thead th")).to_have_count(5)
             table.locator(".table-columns > summary").click()
             exported = download(
@@ -157,13 +157,22 @@ def test_real_structures_tables_and_sequences():
             assert len(records) == 4 and all(len(row) == 42 for row in records), (
                 "The three original compounds and all 41 endpoints must remain in the download."
             )
-            table.locator(".molecule-record").last.click()
+            selected_record = page.locator(".admet-results .molecule-record").last
+            selected_name = selected_record.get_attribute("aria-label")
+            assert selected_name
+            selected_record.click()
+            expect(selected_record).to_have_attribute("aria-pressed", "true")
             selected = page.get_by_role("region", name="所选分子", exact=True)
+            expect(selected.get_by_role("heading", name=selected_name, exact=True)).to_be_visible()
             expect(selected.locator(".molecule-image")).to_have_attribute(
                 "data-drawing-state", "ready", timeout=45000
             )
             selected.get_by_role("combobox", name="结果分组", exact=True).select_option("all")
             expect(selected.locator(".admet-endpoints tbody tr")).to_have_count(41)
+            structure_tab = selected.get_by_role("tab", name="三维结构", exact=True)
+            structure_tab.click()
+            expect(structure_tab).to_have_attribute("aria-selected", "true")
+            expect(selected.locator(".viewer-panel iframe")).to_be_visible(timeout=30000)
             record("admet-linked-preview")
             result("发现多个候选口袋")
             expect(page.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
@@ -243,7 +252,7 @@ def test_real_structures_tables_and_sequences():
             record("designed-sequence-preview")
             result("抗体人源参考与框架优化")
             expect(page.locator(".sequence-alignment")).to_be_visible()
-            page.locator(".alignment-residues button").first.click()
+            page.locator(".alignment-pairs > .alignment-pair > button").first.click()
             expect(page.locator(".sequence-alignment footer")).to_contain_text("IMGT")
             record("antibody-source-alignment")
             result("建立快速筛选库")
@@ -276,6 +285,7 @@ def test_real_structures_tables_and_sequences():
             record("indexed-native-member-selection")
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
+                settle_responsive_layout(page)
                 table = page.locator(".dataset-indexed-workspace > section").first.bounding_box()
                 panel = inspector.bounding_box()
                 if width == 1440:
@@ -290,6 +300,10 @@ def test_real_structures_tables_and_sequences():
             page.set_viewport_size({"width": 1440, "height": 1000})
             page.get_by_role("button", name="下一页", exact=True).click()
             expect(members.first.locator("td").first).not_to_have_text(initial_member)
+            expect(inspector.get_by_role("heading", name=second_member, exact=True)).to_be_visible()
+            expect(
+                inspector.get_by_role("button", name="生成三维视图图片", exact=True)
+            ).to_be_enabled()
             record("indexed-native-members-page-2")
             result("DEL 研究模型")
             assessment = page.get_by_role("region", name="独立验证指标", exact=True)
@@ -298,7 +312,11 @@ def test_real_structures_tables_and_sequences():
             validation = page.locator(".dataset-model-validation")
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
-                chart = validation.locator(".dataset-chart").bounding_box()
+                settle_responsive_layout(page)
+                settle_responsive_plot(page, validation.locator(".research-plot-canvas"))
+                chart = validation.locator(
+                    ".dataset-model-plot-column > .research-plot"
+                ).bounding_box()
                 summary = assessment.bounding_box()
                 if width == 1440:
                     assert chart["x"] + chart["width"] <= summary["x"]
@@ -308,10 +326,15 @@ def test_real_structures_tables_and_sequences():
                 assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
                 record(f"del-model-validation-{width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
-            validation_file = download(
-                validation.get_by_role("button", name="下载图表", exact=True),
-                "native-del-validation.svg",
+            validation_file = export_figure(
+                page,
+                validation.get_by_role("button", name="文献图导出 ↓", exact=True),
+                evidence,
+                "native-del-validation",
+                "zh",
+                "SVG",
             )
+            assert validation_file.stat().st_size > 100
             assert ET.fromstring(validation_file.read_bytes()).tag.endswith("svg")
             assert not errors, errors
             assert not submitted, submitted
