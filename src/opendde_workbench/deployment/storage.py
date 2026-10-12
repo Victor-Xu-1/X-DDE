@@ -88,13 +88,21 @@ class DeployStore:
 
     def rows(self):
         with self.connect() as db:
+            # The recent history window must not hide an unresolved component failure.
+            # Rank every state so a later success/cancellation supersedes older failures.
             return [
                 dict(r)
                 for r in db.execute(
                     "SELECT * FROM operations WHERE "
                     "state IN ('queued','running','pausing','paused') "
-                    "OR id IN (SELECT id FROM operations ORDER BY created DESC LIMIT 100) "
-                    "ORDER BY created DESC"
+                    "OR id IN (SELECT id FROM operations "
+                    "ORDER BY created DESC, rowid DESC LIMIT 100) "
+                    "OR id IN (SELECT id FROM ("
+                    "SELECT id, state, ROW_NUMBER() OVER ("
+                    "PARTITION BY package ORDER BY created DESC, rowid DESC"
+                    ") AS position FROM operations"
+                    ") WHERE position=1 AND state='failed') "
+                    "ORDER BY created DESC, rowid DESC"
                 )
             ]
 
