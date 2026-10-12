@@ -6,6 +6,7 @@ import shutil
 import threading
 import time
 
+from .wsl_mount import host_mount
 from .wsl_storage import StorageUnavailable, probe
 
 _lock = threading.Lock()
@@ -29,6 +30,19 @@ def available_bytes(path):
         raise StorageUnavailable("Cannot identify the WSL storage location.")
     global _cached, _expires, _distribution
     with _lock:
+        if _cached is not None and _distribution == distribution:
+            mount = host_mount(_cached.location)
+            if mount is not None:
+                try:
+                    physical = shutil.disk_usage(mount).free
+                    if type(physical) is not int or not 0 <= physical <= 2**63 - 1:
+                        raise ValueError("Invalid physical filesystem capacity.")
+                except (OSError, ValueError) as exc:
+                    _cached = None
+                    raise StorageUnavailable("Cannot verify free space on the host disk.") from exc
+                # Only the registered volume identity is reused. Capacity is read
+                # anew on every call, even after the old interop value expires.
+                return min(native, physical)
         if _cached is None or _distribution != distribution or time.monotonic() >= _expires:
             # Never retain a successful value after a failed refresh.
             _cached = None

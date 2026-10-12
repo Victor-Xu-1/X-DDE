@@ -17,13 +17,19 @@ proof that the physical drive has room to grow.
 直接读取目标文件系统；WSL 同时通过只读查询检查已注册发行版所在的 Windows
 物理磁盘，以更小的余量为准，不把虚拟磁盘内部容量视为宿主盘可以继续增长的证明。
 
-The host lookup has an eight-second deadline and a one-second cache. Unknown or
-failed host queries block new writes instead of falling back to an older or
-virtual-only value. Health reporting returns `null` for unavailable capacity.
+The registration query has an eight-second deadline. After the real backing
+volume is identified, a matching root DrvFS/Plan9 mount supplies fresh physical
+capacity on every call. Mount metadata is inspected rather than assuming `/mnt/e`
+or another fixed path. This avoids launching Windows Storage processes during
+each scientific progress check. Unrepresentable mounts keep the bounded Windows
+query with its one-second cache. Unknown or failed reads block new writes instead
+of falling back to an older or virtual-only value. Health reporting returns `null`.
 The probe never starts, stops, restarts, compacts or modifies a distribution.
 
-宿主查询限时八秒，缓存有效期一秒；无法确认容量时阻止新写入，不沿用过期结果或
-仅依赖虚拟磁盘余量。状态接口将未知余量返回为 `null`。查询不启动、停止、重启、
+注册位置查询限时八秒；确认真实物理盘后，通过实际匹配的 DrvFS/Plan9 根挂载逐次读取
+最新容量，不假定挂载在 `/mnt/e`，也不在每次科学进度检查中启动 Windows Storage 进程。
+无法表示为根挂载时仍使用限时查询与一秒缓存。无法确认容量时阻止新写入，不沿用过期
+结果或仅依赖虚拟磁盘余量。状态接口将未知余量返回为 `null`。查询不启动、停止、重启、
 压缩或修改任何发行版。
 
 The existing deployment checkpoint enforces a four-GiB reserve during installation
@@ -42,4 +48,5 @@ applications, and do not provide automatic scientific-checkpoint continuation.
 科学检查点自动续跑。
 
 Primary references: [Microsoft WSL disk space](https://learn.microsoft.com/en-us/windows/wsl/disk-space)
-and [Windows Get-Volume](https://learn.microsoft.com/en-us/powershell/module/storage/get-volume).
+and [Windows Get-Volume](https://learn.microsoft.com/en-us/powershell/module/storage/get-volume),
+plus [WSL DrvFS and Plan9](https://wsl.dev/technical-documentation/drvfs/).
