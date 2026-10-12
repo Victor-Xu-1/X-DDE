@@ -1,28 +1,34 @@
 """Reviewed native study results; input presets alone are not computed examples."""
 
-VERSION = "3"
+VERSION = "4"
 URL = (
     "https://github.com/Victor-Xu-1/X-DDE/releases/download/"
-    "examples-stat6-results-v3/stat6-reviewed-results-v3.zip"
+    "examples-stat6-results-v4/stat6-reviewed-results-v4.zip"
 )
-SHA256 = "9308312c7014da69224b17e82d9941a5b4bec28675de83ef589aa69605e11d89"
-BYTES = 2523171
-SOURCE_REVISION = "8976adb048d7701c937b4bfbe49a1281f6ee593a"
+SHA256 = "bdf1d3884e0089f8c88fc56d941d7bbd816e98e541f5c68be46ed48ab663943f"
+BYTES = 3304776
+SOURCE_REVISION = "da7bbdea9b5a66a28e026ff5e2a1979b4fbb224f"
 CAPABILITIES = (
-    "properties",
-    "admet.predict",
-    "chemistry.states",
-    "biopython.prepare",
-    "p2rank.detect",
-    "diffsbdd.pocket",
-    "posebusters.check",
-    "gnina.score",
-    "biopython.exposure",
-    "diffsbdd.interactions",
-    "antibody.number",
+    "caver.paths",
     "antibody.humanize",
+    "admet.predict",
+    "posebusters.check",
+    "antibody.number",
     "chemistry.screen",
-    "biopython.ensemble",
-    "gnina.minimize",
+    "biopython.prepare",
+    "biopython.exposure",
+    "discovery.import",
+    "discovery.target",
+    "properties",
+    "diffsbdd.pocket",
+    "diffsbdd.prepare",
+    "diffsbdd.interactions",
+    "diffsbdd.properties",
+    "diffsbdd.export",
+    "p2rank.detect",
     "gnina.dock",
+    "gnina.score",
+    "gnina.minimize",
+    "chemistry.states",
+    "biopython.ensemble",
 )

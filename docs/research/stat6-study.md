@@ -44,6 +44,13 @@ retained with the inputs. These inputs are **not predicted binding poses**.
 depictions and source downloads. A reference preview is labelled separately
 from **Example results**, which requires verified computational evidence.
 
+The [reviewed result package v4](https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-results-v4)
+contains 22 frontend-submitted, independently checked module examples. It retains
+244 scientific files, 27 successful source tasks and one terminal failed retry
+ancestor for provenance. Restoring the package does not enqueue calculations.
+These 22 examples are a subset of the 71 requested non-MD/FEP examples; each
+module retains its own method limits and interpretation.
+
 Archived public cases and previous research remain intact. The API defaults to
 the STAT6 profile; `?profile=archive` explicitly accesses the original catalogue
 and its original immutable result revisions. No BRD4, HER2, TYK2 or synthetic DEL
@@ -77,6 +84,11 @@ X-DDE 各模块默认使用 **人 STAT6（P42226）及用户指定的两份分�
 
 “查看研究材料”提供真实 2D、3D 和文件下载。“示例结果”只在有可验证的真实结果时
 显示。旧 BRD4 等案例保留在历史资料中，不会改名为 STAT6 结果。
+
+[已核对结果包 v4](https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-results-v4)
+包含 22 个前端实际递交并独立核对的模块示例，保留 244 个科学文件、27 个成功来源任务，
+以及 1 个只用于保留重试来源关系的已结束失败祖先。恢复不会排队计算。这是所需
+71 个非动力学/FEP 示例的一部分；各模块保留各自的方法限制和结果解释。
 
 公开结构数据、UniProt 序列、用户提供的分子定义分别保留来源和许可；
 软件 Apache-2.0 许可不替代研究数据本身的许可。
