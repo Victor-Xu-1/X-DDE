@@ -29,11 +29,12 @@ obstacles and uses chain A. It does not substitute an arbitrary amino-acid start
 or a protein-only export lacking the reference. A short geometric exit is not
 presented as an enclosed tunnel, whole-ligand passage, kinetics or binding energy.
 
-Public-data tasks use the same fixed HTTPS authorities, certificate validation,
+Public-data tasks and synchronous name searches use the same fixed HTTPS authorities, certificate validation,
 redirect refusal and bounded retries with an optional credential-free proxy.
 The managed process forwards only a validated `WB_PUBLIC_DATA_PROXY`, or a
 validated credential-free `HTTPS_PROXY` supplied by the application launcher;
-other parent environment values are not forwarded. An explicit empty
+the synchronous API uses the same validated application proxy. Other parent
+environment values are not forwarded. An explicit empty
 `WB_PUBLIC_DATA_PROXY` selects direct access. Proxies with credentials, paths,
 queries or fragments fail closed without echoing their supplied value. Archive
 files and source receipts remain the original downloaded bytes.

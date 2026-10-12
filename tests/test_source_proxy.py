@@ -1,6 +1,8 @@
 """The configured public transport must work without inheriting proxy secrets."""
 
 import asyncio
+import json
+from contextlib import contextmanager
 from io import BytesIO
 from types import SimpleNamespace
 
@@ -48,12 +50,65 @@ def test_invalid_proxy_fails_closed_without_echoing_credentials(value):
     assert "private-secret" not in str(caught.value) and "token" not in str(caught.value)
 
 
-def test_transport_ignores_ambient_proxies_and_uses_only_sanitized_task_setting(monkeypatch):
+def test_api_and_task_transport_share_the_credential_free_application_proxy(monkeypatch):
     monkeypatch.delenv(network.PUBLIC_PROXY, raising=False)
-    monkeypatch.setenv("HTTPS_PROXY", "http://user:secret@proxy.test")
+    monkeypatch.delenv("HTTPS_PROXY", raising=False)
+    monkeypatch.delenv("https_proxy", raising=False)
+    monkeypatch.setenv("HTTP_PROXY", "http://user:secret@proxy.test")
+    monkeypatch.setenv("ALL_PROXY", "http://user:secret@proxy.test")
     assert network.configured_proxy() == {}
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:7890")
+    assert network.configured_proxy() == {"https": "http://127.0.0.1:7890"}
+    monkeypatch.setenv("HTTPS_PROXY", "http://user:secret@proxy.test")
+    with pytest.raises(ValueError, match="without credentials"):
+        network.configured_proxy()
     monkeypatch.setenv(network.PUBLIC_PROXY, "http://127.0.0.1:7890")
     assert network.configured_proxy() == {"https": "http://127.0.0.1:7890"}
+
+
+def test_invalid_server_proxy_is_a_source_unavailable_error_without_secret_values(monkeypatch):
+    monkeypatch.setenv(network.PUBLIC_PROXY, "http://user:secret@proxy.test")
+    with pytest.raises(transport.SourceUnavailable) as caught:
+        transport.request_bytes("https://files.rcsb.org/download/9BIG.cif")
+    assert "secret@" not in str(caught.value)
+    assert "proxy configuration" in str(caught.value)
+
+
+def test_synchronous_name_lookup_uses_the_application_proxy_and_source_identity(monkeypatch):
+    from opendde_workbench.discovery.sources import lookup
+
+    monkeypatch.delenv(network.PUBLIC_PROXY, raising=False)
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:7890")
+    raw = json.dumps(
+        {
+            "data": {
+                "search": {
+                    "total": 1,
+                    "hits": [{"id": "ENSG00000166888", "name": "STAT6", "entity": "target"}],
+                }
+            }
+        }
+    ).encode()
+    handlers = []
+
+    @contextmanager
+    def response(request, timeout):
+        assert request.full_url == "https://api.platform.opentargets.org/api/v4/graphql"
+        assert 0 < timeout <= 20
+        with BytesIO(raw) as stream:
+            yield SimpleNamespace(
+                status=200, headers={"Content-Type": "application/json"}, read1=stream.read
+            )
+
+    def build(*values):
+        handlers.extend(values)
+        return SimpleNamespace(open=response)
+
+    monkeypatch.setattr(transport, "build_opener", build)
+    result = lookup("target", "STAT6")
+    assert result["hits"][0]["id"] == "ENSG00000166888" and result["total"] == 1
+    assert handlers[0].proxies == {"https": "http://127.0.0.1:7890"}
+    assert isinstance(handlers[1], transport.NoRedirect)
 
 
 def test_discovery_process_uses_proxy_without_forwarding_parent_secrets(tmp_path, monkeypatch):

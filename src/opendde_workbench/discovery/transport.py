@@ -50,7 +50,13 @@ def request_bytes(url: str, body: dict | None = None, *, require_json=True):
             "User-Agent": "X-DDE/0.4 research-evidence",
         },
     )
-    opener = build_opener(ProxyHandler(configured_proxy()), NoRedirect())
+    try:
+        proxy = configured_proxy()
+    except ValueError as exc:
+        raise SourceUnavailable(
+            "Review the credential-free public-data proxy configuration."
+        ) from exc
+    opener = build_opener(ProxyHandler(proxy), NoRedirect())
     deadline = time.monotonic() + RESPONSE_BUDGET
     last_error = None
     reason = "response deadline"

@@ -40,7 +40,8 @@ def public_proxy_environment(environment: Mapping[str, str] | None = None) -> di
 
 
 def configured_proxy() -> dict[str, str]:
-    # The task receives one explicit sanitized value. Never inherit ALL_PROXY,
-    # HTTP_PROXY, authenticated proxies or arbitrary parent environment values.
-    value = os.environ.get(PUBLIC_PROXY)
-    return {"https": validate_proxy(value)} if value else {}
+    # Synchronous API lookups and isolated task processes share one validator.
+    # Only the dedicated setting or credential-free application HTTPS proxy is
+    # admitted; ALL_PROXY, HTTP_PROXY and arbitrary environment values are not.
+    value = public_proxy_environment().get(PUBLIC_PROXY)
+    return {"https": value} if value else {}
