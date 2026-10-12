@@ -74,4 +74,3 @@ def properties(request: dict, bindings: dict, output: Path) -> dict:
         "notes": "Computed descriptors; QED is drug-likeness, SA is a heuristic, not a route. "
         "No ADMET or measured potency.",
     }
-
