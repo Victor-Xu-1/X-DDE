@@ -88,6 +88,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             try:
                 yield
             finally:
+                await close_uploads()
                 await deployments.close()
                 await worker.close()
 
@@ -536,7 +537,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
         )
 
-    register_assets(app, assets, mutation, settings.minimum_free_bytes)
+    close_uploads = register_assets(app, assets, mutation, settings.minimum_free_bytes)
     register_uploads(app, assets, settings, mutation)
     harness_service = register_harness(app, store, assets, settings, mutation)
 

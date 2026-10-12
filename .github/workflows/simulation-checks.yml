@@ -17,7 +17,7 @@ on:
         default: contracts
         options: [locks, contracts, native, md-views, gromacs-runtime, openfe-runtime]
   push:
-    paths:
+    paths: &simulation_paths
       - "src/opendde_workbench/simulations/**"
       - "frontend/src/simulations/**"
       - "tests/test_simulations.py"
@@ -69,6 +69,8 @@ on:
       - "!frontend/src/simulations/comparison-figure*"
       - "!frontend/src/simulations/molecular-view-state*"
       - "!frontend/src/simulations/pose-comparison.css"
+  pull_request:
+    paths: *simulation_paths
 permissions:
   contents: read
 jobs:
