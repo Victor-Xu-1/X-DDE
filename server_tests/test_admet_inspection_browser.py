@@ -64,7 +64,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     expect(
         selected.get_by_role("tab", name="预测性质" if zh else "Predictions", exact=True)
     ).to_have_attribute("aria-selected", "true")
-    selected.scroll_into_view_if_needed()
+    selected.locator(".molecule-image").scroll_into_view_if_needed()
     expect(selected.locator(".molecule-image")).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
@@ -72,6 +72,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     bounds = drawing.bounding_box()
     parent = selected.locator(".admet-molecule-drawing").bounding_box()
     assert bounds and parent and bounds["width"] <= parent["width"] + 1
+    result.locator(".molecule-image.is-thumbnail").first.scroll_into_view_if_needed()
     expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
@@ -115,7 +116,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     expect(
         selected.get_by_role("heading", name=f"#{last['record'] + 1} · {last['name']}", exact=True)
     ).to_be_visible()
-    selected.scroll_into_view_if_needed()
+    selected.locator(".molecule-image").scroll_into_view_if_needed()
     expect(selected.locator(".molecule-image")).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
@@ -208,7 +209,7 @@ def test_questionnaire_preserves_preference_and_public_preview_context(case_page
         settings(page, language)
         page.get_by_role("radio", name="深色" if zh else "Dark", exact=True).check()
         result, _, _ = native_result(page, language)
-        result.locator(".admet-selected-molecule").scroll_into_view_if_needed()
+        result.locator(".admet-molecule-drawing .molecule-image").scroll_into_view_if_needed()
         expect(result.locator(".admet-molecule-drawing .molecule-image")).to_have_attribute(
             "data-drawing-state", "ready", timeout=45000
         )

@@ -150,7 +150,13 @@ export function App() {
   }, [language, view]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    if (!content.current?.contains(document.activeElement))
+    const active = document.activeElement;
+    // Header search survives view changes, including asynchronous task ownership
+    // resolution. Preserve typing, while explicit navigation still focuses main.
+    if (
+      !content.current?.contains(active) &&
+      !active?.matches('.studio-topbar input[type="search"]')
+    )
       content.current?.focus({ preventScroll: true });
   }, [view]);
 
