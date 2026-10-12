@@ -125,6 +125,7 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                         identifiers.update(row_references(row))
                         seen.add((name, index))
                         changed = True
-    if any(row["status"] != "succeeded" for row in selected["jobs"]):
-        raise ValueError("A public result bundle cannot contain unfinished or failed tasks.")
+    from .bundle_jobs import validate_job_history
+
+    validate_job_history(selected)
     return selected

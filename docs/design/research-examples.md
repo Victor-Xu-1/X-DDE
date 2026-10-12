@@ -15,6 +15,13 @@ optional pin review retains the interpretation and limitations; it is computatio
 review, not experimental validation. MD/FEP examples are excluded from the current
 owner case campaign while those calculations remain paused.
 
+Portable result packages may retain terminal history for an exact-request retry
+of a successful native case. Those ancestor rows preserve their original status,
+request, identity and parent links, carry no scientific output files and never
+count as computed examples. Active/paused tasks, failed pins, changed-request
+ancestors and failed scientific input dependencies remain inadmissible. Restore
+does not enqueue historical attempts or rewrite the owner's original records.
+
 The STAT6 docking preset reuses the exact protein-only preparation consumed by
 the reviewed docking example, through that example's receptor version and native
 preparation provenance. It validates the original 9BIG source, chain A, alternate

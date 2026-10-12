@@ -20,7 +20,7 @@ from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.store import Store
 
 
-def reviewed_fixture(settings, *, review=True):
+def reviewed_fixture(settings, *, review=True, retry_status=None):
     create_app(settings)
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
@@ -31,7 +31,15 @@ def reviewed_fixture(settings, *, review=True):
         settings.state_dir / "public-example-cache",
         None,
     )
-    job = store.create(TASK_ADAPTER.validate_python(prepared.request), str(uuid4()), 20, 500)
+    request = TASK_ADAPTER.validate_python(prepared.request)
+    parent = None
+    if retry_status:
+        previous = store.create(request, str(uuid4()), 20, 500)
+        store.claim(previous.id)
+        store.bind_environment(previous.id, capture(settings, "chemistry"))
+        store.finish(previous.id, retry_status, "Controlled terminal retry history")
+        parent = previous.id
+    job = store.create(request, str(uuid4()), 20, 500, parent_id=parent)
     store.claim(job.id)
     output = settings.state_dir / "jobs" / job.id / "output"
     output.mkdir(parents=True)
@@ -60,6 +68,35 @@ def reviewed_fixture(settings, *, review=True):
         else None,
     )
     return store, assets, job, pin
+
+
+@pytest.mark.parametrize("status", [Status.FAILED, Status.CANCELLED, Status.INTERRUPTED])
+def test_exact_terminal_retry_history_roundtrips_without_outputs_or_workers(
+    settings, tmp_path, status
+):
+    store, _, job, _ = reviewed_fixture(settings, retry_status=status)
+    before = store.get(job.parent_id)
+    target = tmp_path / "retry-history.zip"
+    export_bundle(settings, target, "a" * 40, capabilities=["properties"], profile="stat6")
+    isolated = read_archive(target, tmp_path / "retry-read", sha256(target))
+    # read_archive's manifest may be paired with staged paths; inspect the ZIP directly.
+    import zipfile
+
+    with zipfile.ZipFile(target) as archive:
+        manifest = json.loads(archive.read("manifest.json"))
+    assert len(manifest["records"]["jobs"]) == 2
+    assert not any(name.startswith(f"jobs/{job.parent_id}/") for name in manifest["files"])
+    destination = replace(settings, state_dir=tmp_path / "restored-retry")
+    first = restore_bundle(target, destination, sha256(target))
+    assert restore_bundle(target, destination, sha256(target)) == first
+    restored = Store(destination.state_dir / "jobs.sqlite3")
+    assert restored.get(job.id).parent_id == job.parent_id
+    assert restored.get(job.parent_id).model_dump() == before.model_dump()
+    assert all(
+        row.status not in {"queued", "running", "cancelling"} for row in restored.list_jobs()
+    )
+    assert verify_examples(destination, ["properties"], profile="stat6")["computed"] == 1
+    assert isolated is not None
 
 
 def test_current_study_roundtrip_preserves_reviews_and_excludes_history(settings, tmp_path):

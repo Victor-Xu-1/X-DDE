@@ -75,8 +75,13 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             )
         permitted = allowed_files(rows, files=catalogue.files if profile == "archive" else {})
         jobs = {row["id"] for row in rows["jobs"]}
+        from .bundle_jobs import validate_job_history
+
+        retry_history = validate_job_history(rows)
         for name in manifest["files"]:
             parts = name.split("/")
+            if len(parts) >= 2 and parts[0] == "jobs" and parts[1] in retry_history:
+                raise ValueError("Terminal retry history cannot carry scientific output files.")
             if name not in permitted and not (
                 len(parts) >= 4
                 and parts[0] == "jobs"
@@ -90,13 +95,9 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                 )
             ):
                 raise ValueError("Bundle contains a file outside its scientific case inventory.")
-        if (
-            any(row["status"] != "succeeded" for row in rows["jobs"])
-            or any(row["state"] != "succeeded" for row in rows["workflow_runs"])
-            or any(
-                row["state"] != "validated" or row["task_id"] is not None
-                for row in rows["design_plans"]
-            )
+        if any(row["state"] != "succeeded" for row in rows["workflow_runs"]) or any(
+            row["state"] != "validated" or row["task_id"] is not None
+            for row in rows["design_plans"]
         ):
             raise ValueError("Historical cases cannot enqueue tasks, agents or workflows.")
         # Validate all records and evidence in isolated state before touching user data.
@@ -126,6 +127,8 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                     )
         recovered_sources = {}
         for row in rows["jobs"]:
+            if row["status"] != "succeeded":
+                continue
             job = stage_store.get(row["id"])
             output = staging / "jobs" / job.id / "output"
             for path in archive_sources(job, output, recover=True).values():

@@ -14,6 +14,7 @@ on:
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_case_bundle.py'
       - 'tests/test_stat6_case_bundle.py'
+      - 'tests/test_case_retry_history.py'
       - 'tests/test_case_bundle_sources.py'
       - 'tests/test_compute_service.py'
       - 'frontend/src/deployment/**'
@@ -30,6 +31,7 @@ on:
       - 'tests/ci/test_case_bundle_scope.py'
       - 'tests/test_case_bundle.py'
       - 'tests/test_stat6_case_bundle.py'
+      - 'tests/test_case_retry_history.py'
       - 'tests/portable/test_bundle_archive.py'
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
@@ -76,7 +78,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_stat6_case_bundle.py tests/test_case_bundle_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_stat6_case_bundle.py tests/test_case_retry_history.py tests/test_case_bundle_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
       - name: Changed deployment consumers
         if: steps.scope.outputs.deployment == 'true'
         run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py

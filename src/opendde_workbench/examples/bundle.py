@@ -91,6 +91,8 @@ def export_bundle(settings, target, source_revision, *, capabilities=None, profi
             raise ValueError("A case asset changed before export.")
         paths[f"assets/{asset.id}/content{asset.suffix}"] = path
     for row in rows["jobs"]:
+        if row["status"] != "succeeded":
+            continue  # Exact terminal retry history has no computed output claim.
         evidence = capture_job(store, settings.state_dir, row["id"])
         for name in evidence.artifact_sha256:
             relative = f"jobs/{row['id']}/output/{name}"
@@ -99,6 +101,8 @@ def export_bundle(settings, target, source_revision, *, capabilities=None, profi
         for name, path in archive_sources(store.get(row["id"]), output).items():
             paths[f"jobs/{row['id']}/output/{name}"] = path
     for row in rows["jobs"]:
+        if row["status"] != "succeeded":
+            continue
         analysis = settings.state_dir / "jobs" / row["id"] / "analysis" / "workbench-analysis.json"
         if analysis.is_file() and json.loads(analysis.read_text()).get("schema_version") == 4:
             paths[f"jobs/{row['id']}/analysis/workbench-analysis.json"] = analysis
