@@ -4,6 +4,7 @@ on:
     paths: &module_example_paths
       - 'src/opendde_workbench/examples/stat6/prepared_inputs.py'
       - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'src/opendde_workbench/examples/stat6/requests.py'
       - 'src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/receptors/SurfaceResults*'
       - 'frontend/src/receptors/SurfaceForm*'
