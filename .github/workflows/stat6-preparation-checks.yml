@@ -1,0 +1,29 @@
+name: Reviewed STAT6 preparation preset checks
+on:
+  push:
+    paths: &preparation_paths
+      - "src/opendde_workbench/examples/stat6/task_requests.py"
+      - "tests/test_stat6_preparation_presets.py"
+      - ".github/workflows/stat6-preparation-checks.yml"
+  pull_request:
+    paths: *preparation_paths
+permissions:
+  contents: read
+jobs:
+  presets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Only affected presets, shared template contracts and real deposited alternates
+        run: uv run --locked --with biopython==1.88 pytest -q tests/test_stat6_preparation_presets.py tests/test_stat6_templates.py
+      - name: Only the preset-consuming questionnaires
+        working-directory: frontend
+        run: npx vitest run src/chemistry/StateForm.test.tsx src/receptors/StructurePrepareForm.test.tsx
+      - run: uv run --locked ruff check tests/test_stat6_preparation_presets.py src/opendde_workbench/examples/stat6/task_requests.py

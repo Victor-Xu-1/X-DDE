@@ -4,6 +4,8 @@ on:
   push:
     paths: &stat6_template_paths
       - 'src/opendde_workbench/examples/stat6/**'
+      # Two preparation presets have exact native-coordinate and questionnaire checks.
+      - '!src/opendde_workbench/examples/stat6/task_requests.py'
       - 'src/opendde_workbench/examples/routes.py'
       - 'src/opendde_workbench/examples/input_geometry.py'
       - 'tests/test_stat6_geometry.py'

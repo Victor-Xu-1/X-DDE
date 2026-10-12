@@ -78,7 +78,8 @@ def study_task(capability, objects, sequences):
         value.update(
             structure=ref("structure"),
             scientific_inputs=[ref("structure")],
-            options={"chains": ["A"]},
+            # The frozen 9BIG construct has A at all eight alternate atom sites.
+            options={"chains": ["A"], "alternate": "A"},
         )
     elif capability == "biopython.ensemble":
         value.update(
@@ -95,7 +96,11 @@ def study_task(capability, objects, sequences):
             **{field: [{"chain": "A", "number": 614, "insertion_code": "", "resname": "ASN"}]},
         )
     elif capability == "chemistry.states":
-        value.update(molecule=ligand, scientific_inputs=[ligand])
+        value.update(
+            molecule=ligand, scientific_inputs=[ligand],
+            # The actual STAT6 case converged all 46 conformers within this budget.
+            options={"optimization_iterations": 1000},
+        )
     elif capability == "admet.predict":
         value.update(molecule=ligand, scientific_inputs=[ligand])
     elif capability == "chemistry.screen":
