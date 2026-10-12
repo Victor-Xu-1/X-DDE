@@ -79,9 +79,10 @@ def network_enabled(request: TaskRequest) -> bool:
 
 
 def needs_gpu(request: TaskRequest) -> bool:
+    from .datasets.contract import DatasetTask
     from .integrations.contract import IntegratedTask
 
-    if isinstance(request, IntegratedTask):
+    if isinstance(request, (DatasetTask, IntegratedTask)):
         return request.options.device == "cuda"
     return (
         (request.operation == "predict" and request.parameters.device == "cuda")
