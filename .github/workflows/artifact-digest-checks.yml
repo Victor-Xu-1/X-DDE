@@ -1,0 +1,31 @@
+name: Bounded artifact digest checks
+on:
+  push:
+    paths: &artifact_digest_paths
+      - "frontend/src/presentation/artifact-digest*"
+      - "frontend/src/diffsbdd/DiffResults*"
+      - ".github/workflows/artifact-digest-checks.yml"
+  pull_request:
+    paths: *artifact_digest_paths
+permissions:
+  contents: read
+jobs:
+  artifact-digest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install locked frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Check frontend types and changed-file formatting
+        working-directory: frontend
+        run: |
+          npx tsc --noEmit
+          npx prettier --check src/presentation/artifact-digest.ts src/presentation/artifact-digest.test.ts
+      - name: Verify bounded downloads, hashes, cancellation, and direct result consumer
+        working-directory: frontend
+        run: npx vitest run src/presentation/artifact-digest.test.ts src/diffsbdd/DiffResults.test.tsx
