@@ -92,6 +92,7 @@ def test_exact_terminal_retry_history_roundtrips_without_outputs_or_workers(
     restored = Store(destination.state_dir / "jobs.sqlite3")
     assert restored.get(job.id).parent_id == job.parent_id
     assert restored.get(job.parent_id).model_dump() == before.model_dump()
+    assert not (destination.state_dir / "jobs" / job.parent_id).exists()
     assert all(
         row.status not in {"queued", "running", "cancelling"} for row in restored.list_jobs()
     )

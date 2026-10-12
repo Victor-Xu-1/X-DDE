@@ -144,6 +144,8 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
         )
         stage_assets = AssetStore(stage_store, staging / "assets")
         for row in rows["jobs"]:
+            if row["id"] in retry_history:
+                continue
             job = stage_store.get(row["id"])
             job_root = staging / "jobs" / job.id
             bindings = stage_assets.snapshot(job.request, job_root)
