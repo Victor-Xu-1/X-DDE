@@ -14,9 +14,23 @@ export function FreeEnergyForest({
   language: Language;
 }) {
   const rows = edges.filter(
-    (e) => e.delta_delta_g_kcal_mol != null && e.uncertainty_kcal_mol != null,
+    (e) =>
+      e.delta_delta_g_kcal_mol != null &&
+      e.uncertainty_kcal_mol != null &&
+      Number.isFinite(e.delta_delta_g_kcal_mol) &&
+      Number.isFinite(e.uncertainty_kcal_mol) &&
+      e.uncertainty_kcal_mol >= 0,
   );
   if (!rows.length) return null;
+  const lower = Math.min(
+    0,
+    ...rows.map((e) => e.delta_delta_g_kcal_mol! - e.uncertainty_kcal_mol!),
+  );
+  const upper = Math.max(
+    0,
+    ...rows.map((e) => e.delta_delta_g_kcal_mol! + e.uncertainty_kcal_mol!),
+  );
+  const padding = Math.max((upper - lower) * 0.1, 0.1);
   return (
     <div className="fep-forest">
       <InteractivePlot
@@ -56,6 +70,8 @@ export function FreeEnergyForest({
           xaxis: {
             title: { text: "ΔΔG (kcal/mol)" },
             zerolinecolor: "#aab2c9",
+            zeroline: true,
+            range: [lower - padding, upper + padding],
           },
           yaxis: { autorange: "reversed" },
         }}

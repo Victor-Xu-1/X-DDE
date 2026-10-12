@@ -199,6 +199,18 @@ This short control establishes the native calculation, diagnostics, download and
 input-preservation path. It is not a STAT6 study, a convergence benchmark or an
 experimental affinity result. The result retains `not_scientifically_accepted`.
 
+Sampling-overlap previews keep a bounded square matrix beside a directional
+adjacent-state table. Values remain native MBAR observations: the two directions
+are not symmetrized, a missing matrix is explicit, and CSV preserves full numeric
+precision. Reset retains the state-index orientation. Free-energy uncertainty
+plots include zero and the full reported error bars for positive and negative
+estimates; this display does not create scientific acceptance or experimental
+confidence intervals.
+
+采样重叠预览将方形矩阵与相邻状态的双向数值表并排展示。保留原始 MBAR 数值，
+不强行对称化；缺少矩阵时明确提示，CSV 保留完整数值精度。重置后保持状态编号方向。
+自由能误差图同时显示零参考线和完整误差条；展示本身不代表科学验收或实验置信区间。
+
 2026-10-12 的真实 CUDA 链路验收使用官方固定 TYK2 输入、原始第 1 和第 2 条分子、
 11 个 λ 窗口、一次独立重复，双腿各 0.02 ns 平衡及生产采样。通过实际 X-DDE API
 和队列完成执行，原生退出码为 0，未发生 OOM；12 个下载文件的 SHA-256 与结果一致，
