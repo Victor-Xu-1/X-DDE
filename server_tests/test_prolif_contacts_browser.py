@@ -54,7 +54,7 @@ def test_original_prolif_contacts_and_downloads(language, width):
             "接触明细" if language == "zh" else "Contact details", exact=True
         ).count()
         with page.expect_download() as pending:
-            table.locator("..").locator("..").get_by_role(
+            results.get_by_role(
                 "button", name="导出筛选结果" if language == "zh" else "Export filtered rows"
             ).click()
         target = evidence / (language + "-contacts.csv")
@@ -76,6 +76,10 @@ def test_original_prolif_contacts_and_downloads(language, width):
         raw = evidence / (language + "-interactions.json")
         pending.value.save_as(raw)
         assert json.loads(raw.read_text())["interactions"]
+        original = (
+            Path(os.environ["WB_STATE_DIR"]) / "jobs" / identifier / "output" / "interactions.json"
+        )
+        assert raw.read_bytes() == original.read_bytes()
         assert len(page.request.get(base + "/api/jobs").json()) == count and not errors
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         page.screenshot(path=evidence / f"native-{language}-{width}.png", full_page=True)
