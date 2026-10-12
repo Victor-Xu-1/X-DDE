@@ -2,8 +2,10 @@
 
 import json
 import os
+import re
 from pathlib import Path
 
+from layout_browser_helpers import archive_example_url, initialize_layout_language
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -15,6 +17,11 @@ def test_surface_native_3d_table_download_and_guided_entry():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1050})
+        initialize_layout_language(page)
+        page.route(
+            re.compile(r"^" + re.escape(base.rstrip("/")) + r"/api/examples(?:[/?]|$)"),
+            lambda route: route.continue_(url=archive_example_url(route.request.url)),
+        )
         errors = []
         submitted = []
         page.on("pageerror", lambda e: errors.append(str(e)))

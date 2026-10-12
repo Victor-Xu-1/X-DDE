@@ -6,9 +6,11 @@ from pathlib import Path
 
 from layout_browser_helpers import (
     VISIBLE_TASKS,
+    archive_example_url,
     capture,
     capture_utilities,
     catalog,
+    initialize_layout_page,
     load_template,
     review_steps,
     save_report,
@@ -38,6 +40,7 @@ def test_every_task_page_and_native_case_layout():
     with sync_playwright() as engine:
         browser = engine.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -50,7 +53,9 @@ def test_every_task_page_and_native_case_layout():
         )
         try:
             page.goto(os.environ["WB_BROWSER_URL"])
-            examples = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples").json()[
+            examples = page.request.get(
+                archive_example_url(os.environ["WB_BROWSER_URL"] + "/api/examples")
+            ).json()[
                 "examples"
             ]
             input_only = {
