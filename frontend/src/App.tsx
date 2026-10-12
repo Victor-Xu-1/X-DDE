@@ -412,7 +412,6 @@ export function App() {
             {view === "tasks" && (
               <TaskWorkspace
                 {...common}
-                connectionError={work.connectionError}
                 onRefresh={refresh}
                 onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
                 onJob={chooseJob}

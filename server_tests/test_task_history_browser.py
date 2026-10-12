@@ -129,6 +129,24 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
                 body=json.dumps({"detail": "Controlled internal /private/state failure"}),
             )
 
+        # A managed environment probe must not block available research history.
+        page.route("**/api/health", unavailable)
+        with page.expect_response("**/api/health") as failed_health:
+            page.reload()
+        assert failed_health.value.status == 503
+        expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
+        workspace = page.locator(".task-history-workspace")
+        expect(workspace.get_by_role("alert")).to_have_count(0)
+        switch.select_option("evaluation")
+        expect(rows).to_have_count(20)
+        expect(workspace.get_by_role("alert")).to_have_count(0)
+        expect(workspace).not_to_contain_text("/private/state")
+        page.screenshot(path=root / "history-during-health-failure.png")
+        page.unroute("**/api/health", unavailable)
+        switch.select_option("binding")
+        page.get_by_role("button", name=fixture["native_name"], exact=True).click()
+        expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
+
         page.route("**/api/task-history?*", unavailable)
         switch.select_option("evaluation")
         expect(page.get_by_role("alert")).to_contain_text("重新连接" if zh else "reconnect")
@@ -190,6 +208,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
                     "native_result": fixture["native_job"],
                     "native_artifacts_unchanged": True,
                     "module_switch_and_failure_recovery": True,
+                    "history_available_during_health_failure": True,
                     "module_only_refresh_restored": True,
                     "scientific_inference": False,
                     "submitted_jobs": 0,

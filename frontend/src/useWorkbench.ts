@@ -8,6 +8,9 @@ export function taskIdFromHash(hash: string) {
     ? value.toLowerCase()
     : "";
 }
+const readSignal = (signal: AbortSignal) =>
+  AbortSignal.any([signal, AbortSignal.timeout(30000)]);
+
 export function useWorkbench() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [health, setHealth] = useState<Health | null>(null);
@@ -16,7 +19,8 @@ export function useWorkbench() {
   );
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [connectionError, setConnectionError] = useState(false);
+  const [jobsError, setJobsError] = useState(false);
+  const [healthError, setHealthError] = useState(false);
   const [detailError, setDetailError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
@@ -48,33 +52,44 @@ export function useWorkbench() {
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout>;
-    async function poll() {
+    let jobsTimer: ReturnType<typeof setTimeout>;
+    let healthTimer: ReturnType<typeof setTimeout>;
+    async function pollJobs() {
       try {
-        const [items, info] = await Promise.all([
-          api.jobs(controller.signal),
-          api.health(controller.signal),
-        ]);
+        const items = await api.jobs(readSignal(controller.signal));
         if (controller.signal.aborted) return;
         setJobs(items);
-        setHealth(info);
-        setConnectionError(false);
+        setJobsError(false);
         setLoading(false);
       } catch {
         if (!controller.signal.aborted) {
-          setConnectionError(true);
+          setJobsError(true);
           setLoading(false);
         }
       }
-      if (!controller.signal.aborted) timer = setTimeout(poll, 3000);
+      if (!controller.signal.aborted) jobsTimer = setTimeout(pollJobs, 3000);
     }
-    void api.initialize().catch(() => {
-      if (!controller.signal.aborted) setConnectionError(true);
-    });
-    void poll();
+    async function pollHealth() {
+      try {
+        const info = await api.health(readSignal(controller.signal));
+        if (controller.signal.aborted) return;
+        setHealth(info);
+        setHealthError(false);
+      } catch {
+        if (!controller.signal.aborted) {
+          setHealth(null);
+          setHealthError(true);
+        }
+      }
+      if (!controller.signal.aborted)
+        healthTimer = setTimeout(pollHealth, 10000);
+    }
+    void pollJobs();
+    void pollHealth();
     return () => {
       controller.abort();
-      clearTimeout(timer);
+      clearTimeout(jobsTimer);
+      clearTimeout(healthTimer);
     };
   }, [revision]);
   useEffect(() => {
@@ -85,10 +100,14 @@ export function useWorkbench() {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
+      const read = new AbortController();
+      const signal = readSignal(
+        AbortSignal.any([controller.signal, read.signal]),
+      );
       try {
         const [artifacts, job] = await Promise.all([
-          api.artifacts(selected, controller.signal),
-          request<Job>(`/jobs/${selected}`, { signal: controller.signal }),
+          api.artifacts(selected, signal),
+          request<Job>(`/jobs/${selected}`, { signal }),
         ]);
         if (controller.signal.aborted) return;
         setDetail({ id: selected, artifacts });
@@ -96,6 +115,8 @@ export function useWorkbench() {
         setDetailError(false);
       } catch {
         if (!controller.signal.aborted) setDetailError(true);
+      } finally {
+        read.abort();
       }
       if (!controller.signal.aborted) timer = setTimeout(poll, 2000);
     }
@@ -112,7 +133,7 @@ export function useWorkbench() {
     selected,
     select,
     detail,
-    connectionError,
+    connectionError: jobsError || healthError,
     detailError,
     loading,
     refresh,

@@ -4,7 +4,10 @@ import { api } from "./api";
 import { useWorkbench } from "./useWorkbench";
 import { defaults } from "./form-model";
 import type { Job } from "./types";
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 const job = (id: string): Job => ({
   id,
   status: "succeeded",
@@ -97,4 +100,119 @@ it("cancels the old details on navigation and never downloads internal logs", as
   expect(result.current.selected).toBe("");
   expect(result.current.detail).toBeNull();
   unmount();
+});
+
+it("loads and refreshes task summaries while a health read is still pending", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  boundary();
+  vi.mocked(api.health).mockImplementation(() => new Promise(() => {}));
+  const jobs = vi.spyOn(api, "jobs").mockResolvedValue([job("first")]);
+  vi.useFakeTimers();
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await act(async () => {});
+  expect(result.current.loading).toBe(false);
+  expect(result.current.jobs[0].id).toBe("first");
+  expect(result.current.health).toBeNull();
+  expect(result.current.connectionError).toBe(false);
+  jobs.mockResolvedValue([job("second")]);
+  await act(() => vi.advanceTimersByTimeAsync(3000));
+  expect(result.current.jobs[0].id).toBe("second");
+  expect(api.health).toHaveBeenCalledOnce();
+  unmount();
+});
+
+it("invalidates previously ready health on failure and restores only a fresh response", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  boundary();
+  vi.spyOn(api, "jobs").mockResolvedValue([job("retained")]);
+  vi.useFakeTimers();
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await act(async () => {});
+  expect(result.current.health?.worker_ready).toBe(true);
+  vi.mocked(api.health).mockRejectedValueOnce(new Error("Unavailable"));
+  await act(() => vi.advanceTimersByTimeAsync(10000));
+  expect(result.current.health).toBeNull();
+  expect(result.current.connectionError).toBe(true);
+  expect(result.current.jobs[0].id).toBe("retained");
+  await act(() => vi.advanceTimersByTimeAsync(10000));
+  expect(result.current.health?.worker_ready).toBe(true);
+  expect(result.current.connectionError).toBe(false);
+  unmount();
+});
+
+it("does not clear a task-list failure when only the health read recovers", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  boundary();
+  const jobs = vi
+    .spyOn(api, "jobs")
+    .mockRejectedValue(new Error("Unavailable"));
+  vi.useFakeTimers();
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await act(async () => {});
+  expect(result.current.loading).toBe(false);
+  expect(result.current.connectionError).toBe(true);
+  expect(result.current.health?.worker_ready).toBe(true);
+  await act(() => vi.advanceTimersByTimeAsync(10000));
+  expect(result.current.connectionError).toBe(true);
+  jobs.mockResolvedValue([job("recovered")]);
+  await act(() => vi.advanceTimersByTimeAsync(2000));
+  expect(result.current.jobs[0].id).toBe("recovered");
+  expect(result.current.connectionError).toBe(false);
+  unmount();
+});
+
+it("reports a health deadline without blocking available task summaries", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  boundary();
+  vi.spyOn(api, "jobs").mockResolvedValue([job("available")]);
+  const deadlines: AbortController[] = [];
+  vi.spyOn(AbortSignal, "timeout").mockImplementation((duration) => {
+    expect(duration).toBe(30000);
+    const controller = new AbortController();
+    deadlines.push(controller);
+    return controller.signal;
+  });
+  vi.mocked(api.health).mockImplementation(
+    (signal) =>
+      new Promise((_, reject) =>
+        signal!.addEventListener("abort", () => reject(signal!.reason), {
+          once: true,
+        }),
+      ),
+  );
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  await act(async () => deadlines[1].abort());
+  expect(result.current.health).toBeNull();
+  expect(result.current.connectionError).toBe(true);
+  expect(result.current.jobs[0].id).toBe("available");
+  unmount();
+});
+
+it("bounds a stalled health read and cancels it on refresh without accepting a late reply", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  boundary();
+  vi.spyOn(api, "jobs").mockResolvedValue([job("retained")]);
+  const deadlines: AbortController[] = [];
+  vi.spyOn(AbortSignal, "timeout").mockImplementation((duration) => {
+    expect(duration).toBe(30000);
+    const controller = new AbortController();
+    deadlines.push(controller);
+    return controller.signal;
+  });
+  let lateReply!: (value: never) => void;
+  vi.mocked(api.health).mockImplementationOnce(
+    () => new Promise((resolve) => (lateReply = resolve)),
+  );
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  const oldSignal = vi.mocked(api.health).mock.calls[0][0]!;
+  act(() => deadlines[1].abort());
+  expect(oldSignal.aborted).toBe(true);
+  act(() => result.current.refresh());
+  await waitFor(() => expect(result.current.health?.worker_ready).toBe(true));
+  await act(async () => lateReply({ worker_ready: false } as never));
+  expect(result.current.health?.worker_ready).toBe(true);
+  unmount();
+  expect(vi.mocked(api.health).mock.calls[1][0]?.aborted).toBe(true);
 });
