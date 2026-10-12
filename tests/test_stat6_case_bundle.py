@@ -12,6 +12,7 @@ from opendde_workbench.examples.bundle import export_bundle, restore_bundle, ver
 from opendde_workbench.examples.bundle_archive import read_archive, sha256, write_archive
 from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
 from opendde_workbench.examples.contracts import ExampleReview
+from opendde_workbench.examples.library import ExampleLibrary
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.execution_environment import capture
 from opendde_workbench.models import Status
@@ -93,6 +94,7 @@ def test_exact_terminal_retry_history_roundtrips_without_outputs_or_workers(
     assert restored.get(job.id).parent_id == job.parent_id
     assert restored.get(job.parent_id).model_dump() == before.model_dump()
     assert not (destination.state_dir / "jobs" / job.parent_id).exists()
+    assert not ExampleLibrary(restored).personal_jobs(20, 0)
     assert all(
         row.status not in {"queued", "running", "cancelling"} for row in restored.list_jobs()
     )

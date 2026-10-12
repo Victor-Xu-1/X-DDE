@@ -26,6 +26,7 @@ def allowed_files(rows, *, files=FILES):
 def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
     from ..api import create_app
     from .bundle import verify_examples
+    from .library import ExampleLibrary
 
     state = settings.state_dir
     state.mkdir(parents=True, exist_ok=True)
@@ -233,4 +234,7 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             for path in reversed(created):
                 path.unlink(missing_ok=True)
             raise
+    # The validated typed closure is public example provenance, including preparation
+    # and terminal retry records. Do not classify personal jobs outside that closure.
+    ExampleLibrary(store).classify(row["id"] for row in rows["jobs"])
     return summary
