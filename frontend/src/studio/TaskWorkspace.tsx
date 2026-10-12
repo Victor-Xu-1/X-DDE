@@ -32,7 +32,6 @@ interface Props {
   job: Job | null;
   detail: Detail | null;
   detailError: boolean;
-  connectionError: boolean;
   projects: Project[];
   projectId: string | null;
   onRefresh(): void;
@@ -196,7 +195,7 @@ export function TaskWorkspace(p: Props) {
         onStart={p.onStart}
         onClearProject={() => p.onProject(null)}
       />
-      {(history.error || p.connectionError) && (
+      {history.error && (
         <div className="error-box" role="alert">
           {zh
             ? "暂时无法读取最新任务，请重新连接。"

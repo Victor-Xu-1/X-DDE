@@ -291,9 +291,14 @@ it("one Retry restarts all failed streams and repeated Retry never leaves duplic
   vi.mocked(api.artifacts).mockClear();
   await advance(6000);
   expect(api.jobs).toHaveBeenCalledTimes(2);
-  expect(api.health).toHaveBeenCalledTimes(2);
+  expect(api.health).not.toHaveBeenCalled();
   expect(client.request).toHaveBeenCalledTimes(3);
   expect(api.artifacts).toHaveBeenCalledTimes(3);
+  await advance(4000);
+  expect(api.jobs).toHaveBeenCalledTimes(3);
+  expect(api.health).toHaveBeenCalledOnce();
+  expect(client.request).toHaveBeenCalledTimes(5);
+  expect(api.artifacts).toHaveBeenCalledTimes(5);
 });
 
 it("rejects selected metadata for a different task ID instead of attaching it to the current selection", async () => {

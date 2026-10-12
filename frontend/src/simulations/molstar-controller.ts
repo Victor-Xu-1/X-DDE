@@ -26,6 +26,7 @@ import { molstarSticks } from "../viewer/molstar-sticks";
 import { maintainBindingDepth } from "./molecular-depth";
 import { ViewportLifetime } from "./viewport-lifetime";
 import { MolecularSurfaces } from "./molecular-surfaces";
+import { MolecularUpdateQueue } from "./molecular-update-queue";
 
 export interface StructureSource {
   url: string;
@@ -60,7 +61,7 @@ export class MolecularController {
   private activeLigand: MolecularView["ligand"] = "a";
   private surfaces = new MolecularSurfaces(this.plugin);
   private requestedView?: MolecularView;
-  private queue = Promise.resolve();
+  private queue = new MolecularUpdateQueue();
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
   private depthSubscription?: { unsubscribe(): void };
@@ -298,16 +299,15 @@ export class MolecularController {
   }
 
   setFrame(index: number, ready: () => void) {
-    if (
-      !this.trajectory ||
-      !this.model ||
-      index < 0 ||
-      index >= this.frameCount
-    )
-      return Promise.resolve();
+    if (!this.trajectory || !this.model)
+      return Promise.reject(new Error("No trajectory is loaded."));
+    if (!Number.isInteger(index) || index < 0 || index >= this.frameCount)
+      return Promise.reject(
+        new RangeError("Frame is outside the loaded trajectory."),
+      );
     const model = this.model;
     this.requestedFrame = index;
-    this.queue = this.queue.then(() =>
+    return this.queue.run(() =>
       this.lifetime.during(async (checkOpen) => {
         if (this.requestedFrame !== index) return;
         await this.plugin
@@ -321,13 +321,12 @@ export class MolecularController {
         ready();
       }),
     );
-    return this.queue;
   }
 
   setView(view: MolecularView) {
     const requested = { ...view };
     this.requestedView = requested;
-    const update = this.queue.then(() =>
+    return this.queue.run(() =>
       this.lifetime.during(async (checkOpen) => {
         if (this.requestedView !== requested) return;
         if (requested.surface) {
@@ -346,11 +345,6 @@ export class MolecularController {
         if (this.requestedView === requested) this.applyView(requested);
       }),
     );
-    this.queue = update.then(
-      () => {},
-      () => {},
-    );
-    return update;
   }
 
   private applyView(view: MolecularView) {
@@ -446,13 +440,7 @@ export class MolecularController {
       if (!this.viewport) throw new Error("The molecular view is not ready.");
       return molecularFigure(this.plugin, this.viewport, settings, panel);
     };
-    const result = this.queue.then(() => this.lifetime.during(render));
-    // The caller receives the actual failure. Settling the queue keeps later frame selection usable.
-    this.queue = result.then(
-      () => {},
-      () => {},
-    );
-    return result;
+    return this.queue.run(() => this.lifetime.during(render));
   }
   dispose() {
     this.lifetime.close();

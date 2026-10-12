@@ -1,8 +1,9 @@
 # Task status refresh and failure recovery
 
 The workbench reads task-list metadata, service health, selected-task metadata,
-and selected-task artifacts independently. The global reads keep their existing
-3-second cadence; selected-task reads keep their existing 2-second cadence.
+and selected-task artifacts independently. Task-list reads keep their existing
+3-second cadence; health reads use a 10-second cadence consistent with the server
+readiness cache; selected-task reads keep their existing 2-second cadence.
 Each stream schedules its next read only after its current read succeeds.
 Artifact or health failures cannot delay publication of successful task metadata.
 

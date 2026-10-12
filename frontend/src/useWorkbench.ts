@@ -118,7 +118,7 @@ export function useWorkbench() {
     );
     const stopHealth = pollWorkbench(
       controller.signal,
-      3000,
+      10000,
       api.health,
       (info) => {
         setHealth(info);

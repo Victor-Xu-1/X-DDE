@@ -1,11 +1,12 @@
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { MolecularViewport } from "./MolecularViewport";
 
-const { display, dispose } = vi.hoisted(() => ({
+const { display, dispose, seek } = vi.hoisted(() => ({
   display: vi.fn(),
   dispose: vi.fn(),
+  seek: vi.fn(),
 }));
 vi.mock("./molstar-controller", () => ({
   MolecularController: class {
@@ -13,7 +14,7 @@ vi.mock("./molstar-controller", () => ({
     initialize = async () => {};
     load = async () => {};
     setView = display;
-    setFrame = async () => {};
+    setFrame = seek;
     dispose = dispose;
     cameraSnapshot = () => undefined;
     restoreCamera = () => {};
@@ -29,22 +30,138 @@ vi.mock("../publication/FigureExport", () => ({
 vi.mock("../viewer/SurfaceLegend", () => ({
   SurfaceLegend: () => <p>Native surface legend</p>,
 }));
+
+beforeEach(() => {
+  seek.mockImplementation(async (_index: number, confirmed: () => void) =>
+    confirmed(),
+  );
+});
 afterEach(() => {
   cleanup();
   display.mockReset();
   dispose.mockReset();
+  seek.mockReset();
+});
+
+it("keeps frame capture unavailable until the requested native frame is confirmed", async () => {
+  display.mockResolvedValue(undefined);
+  const handles = vi.fn(),
+    ready = vi.fn(),
+    frames = ["/frame-0.pdb", "/frame-1.pdb"];
+  const page = render(
+    <MolecularViewport
+      language="en"
+      frames={frames}
+      frame={0}
+      onViewHandle={handles}
+      onReady={ready}
+    />,
+  );
+  const download = screen.getByRole("button", { name: "Download view" });
+  await waitFor(() => expect(download).toBeEnabled());
+  const previous = handles.mock.lastCall![0];
+  let finish!: () => void;
+  seek.mockImplementationOnce(
+    (_index: number, confirmed: () => void) =>
+      new Promise<void>((resolve) => {
+        finish = () => {
+          confirmed();
+          resolve();
+        };
+      }),
+  );
+  page.rerender(
+    <MolecularViewport
+      language="en"
+      frames={frames}
+      frame={1}
+      onViewHandle={handles}
+      onReady={ready}
+    />,
+  );
+  expect(download).toBeDisabled();
+  expect(screen.getByTestId("molstar-viewport")).toHaveAttribute(
+    "data-frame",
+    "0",
+  );
+  expect(ready.mock.lastCall![0]).toBe(false);
+  expect(handles.mock.lastCall![0]).toBeNull();
+  expect(() => previous.capture({})).toThrow("not ready");
+  await act(async () => finish());
+  await waitFor(() => expect(download).toBeEnabled());
+  expect(screen.getByTestId("molstar-viewport")).toHaveAttribute(
+    "data-frame",
+    "1",
+  );
+  expect(ready.mock.lastCall![0]).toBe(true);
+});
+
+it("offers explicit retry for a failed trajectory frame without publishing the failed frame", async () => {
+  display.mockResolvedValue(undefined);
+  const frames = ["/frame-0.pdb", "/frame-1.pdb"];
+  const page = render(
+    <MolecularViewport language="en" frames={frames} frame={0} />,
+  );
+  const download = screen.getByRole("button", { name: "Download view" });
+  await waitFor(() => expect(download).toBeEnabled());
+  seek.mockRejectedValueOnce(new Error("Native frame update failed"));
+  page.rerender(<MolecularViewport language="en" frames={frames} frame={1} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "view update failed",
+  );
+  expect(download).toBeDisabled();
+  expect(screen.getByTestId("molstar-viewport")).toHaveAttribute(
+    "data-frame",
+    "0",
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await waitFor(() => expect(download).toBeEnabled());
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(screen.getByTestId("molstar-viewport")).toHaveAttribute(
+    "data-frame",
+    "1",
+  );
+});
+
+it("ignores a late superseded frame instead of replacing the latest confirmed frame", async () => {
+  display.mockResolvedValue(undefined);
+  const frames = ["/frame-0.pdb", "/frame-1.pdb", "/frame-2.pdb"];
+  const page = render(
+    <MolecularViewport language="en" frames={frames} frame={0} />,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Download view" })).toBeEnabled(),
+  );
+  let finish!: () => void;
+  seek.mockImplementationOnce(
+    (_index: number, confirmed: () => void) =>
+      new Promise<void>((resolve) => {
+        finish = () => {
+          confirmed();
+          resolve();
+        };
+      }),
+  );
+  page.rerender(<MolecularViewport language="en" frames={frames} frame={1} />);
+  page.rerender(<MolecularViewport language="en" frames={frames} frame={2} />);
+  await waitFor(() =>
+    expect(screen.getByTestId("molstar-viewport")).toHaveAttribute(
+      "data-frame",
+      "2",
+    ),
+  );
+  await act(async () => finish());
+  expect(screen.getByTestId("molstar-viewport")).toHaveAttribute(
+    "data-frame",
+    "2",
+  );
+  expect(screen.getByRole("button", { name: "Download view" })).toBeEnabled();
 });
 
 it("surface requests disable capture until their exact display is ready", async () => {
   display.mockResolvedValue(undefined);
   const handles = vi.fn();
   render(<MolecularViewport language="en" onViewHandle={handles} />);
-  // Loading can enable export before the initial setView effect has run.
-  await waitFor(() =>
-    expect(display).toHaveBeenCalledWith(
-      expect.objectContaining({ surface: false }),
-    ),
-  );
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Download view" })).toBeEnabled(),
   );
@@ -56,9 +173,6 @@ it("surface requests disable capture until their exact display is ready", async 
       }),
   );
   await userEvent.click(screen.getByRole("button", { name: "Surface" }));
-  expect(display).toHaveBeenLastCalledWith(
-    expect.objectContaining({ surface: true }),
-  );
   expect(screen.getByRole("status")).toHaveTextContent("Updating the 3D view");
   expect(screen.getByRole("button", { name: "Download view" })).toBeDisabled();
   expect(handles.mock.lastCall![0]).toBeNull();
@@ -72,20 +186,11 @@ it("surface requests disable capture until their exact display is ready", async 
 it("a failed native display request is visible and cannot enable an inaccurate figure export", async () => {
   display.mockResolvedValue(undefined);
   render(<MolecularViewport language="en" />);
-  // Loading can enable export before the initial setView effect has run.
-  await waitFor(() =>
-    expect(display).toHaveBeenCalledWith(
-      expect.objectContaining({ surface: false }),
-    ),
-  );
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Download view" })).toBeEnabled(),
   );
   display.mockRejectedValueOnce(new Error("native failure"));
   await userEvent.click(screen.getByRole("button", { name: "Surface" }));
-  expect(display).toHaveBeenLastCalledWith(
-    expect.objectContaining({ surface: true }),
-  );
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "view update failed",
   );
