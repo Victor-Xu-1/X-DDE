@@ -3,12 +3,14 @@
 import shutil
 from pathlib import Path
 
+from ..disk_space import available_bytes
+
 
 def install_search(root, work, installed, execute, report, checkpoint):
     from ..resources import resource_inventory
 
     model_root = root / "models" / "opendde"
-    if shutil.disk_usage(root).free < 110 * 1024**3:
+    if available_bytes(root) < 110 * 1024**3:
         raise ValueError("Search databases require at least 110 GiB free installation space.")
     model_root.mkdir(parents=True, exist_ok=True)
     code = Path(installed["runtime"]["code"])

@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
+from .offline_context import stage_archives
 from .specs import PROGRAMS, recipe_digest
 
 # Network stalls must not discard a large verified dependency download after
@@ -23,7 +24,7 @@ def lock_digest(identifier):
     return hasher.hexdigest()
 
 
-def prepare_context(identifier, destination, source=None, *, extra_sources=None):
+def prepare_context(identifier, destination, source=None, *, extra_sources=None, archives=None):
     spec = PROGRAMS[identifier]
     destination.mkdir(parents=True, exist_ok=True)
     recipes = Path(__file__).parent / "recipes"
@@ -39,16 +40,37 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None)
         if not locked.is_file():
             raise ValueError("The reviewed native conda lock is missing.")
         shutil.copyfile(locked, destination / "conda-explicit.txt")
-        lines += [
-            "COPY conda-explicit.txt /tmp/conda-explicit.txt",
-            # The AmberTools archive legitimately includes an amber.conda link.
-            # micromamba 2.9's recursive tarball cleaner mistakes it for an
-            # archive. Delete only this fresh image's package cache after a
-            # successful transaction; installed environment files are retained.
-            "RUN micromamba install -y -n base --file /tmp/conda-explicit.txt "
-            "&& micromamba clean --index-cache --yes && rm -rf /opt/conda/pkgs",
-            "ENV PATH=/opt/conda/bin:$PATH",
-        ]
+        if identifier == "openfe":
+            stage_archives(archives, destination / "native-packages")
+            expected = [
+                line.strip() for line in locked.read_text().splitlines()[1:] if line.strip()
+            ]
+            if [entry["url"] + "#" + entry["sha256"] for entry in archives] != expected:
+                raise ValueError("Offline dependency archives differ from the reviewed conda lock.")
+            (destination / "conda-offline.txt").write_text(
+                "@EXPLICIT\n"
+                + "\n".join(
+                    "file:///tmp/native-packages/" + entry["file"].name + "#" + entry["sha256"]
+                    for entry in archives
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            lines += [
+                "COPY conda-offline.txt /tmp/conda-offline.txt",
+                "RUN --mount=type=bind,source=native-packages,target=/tmp/native-packages,readonly "
+                "micromamba install --offline -y -n base --file /tmp/conda-offline.txt "
+                "&& micromamba clean --index-cache --yes && rm -rf /opt/conda/pkgs",
+                "ENV PATH=/opt/conda/bin:$PATH",
+            ]
+        else:
+            lines += [
+                "COPY conda-explicit.txt /tmp/conda-explicit.txt",
+                # Retain the reviewed AmberTools link-safe cleanup boundary.
+                "RUN micromamba install -y -n base --file /tmp/conda-explicit.txt "
+                "&& micromamba clean --index-cache --yes && rm -rf /opt/conda/pkgs",
+                "ENV PATH=/opt/conda/bin:$PATH",
+            ]
     if spec.get("execution_conda"):
         if identifier != "gromacs":
             raise ValueError("Only the reviewed GROMACS ABI isolation is supported.")

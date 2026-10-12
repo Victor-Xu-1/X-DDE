@@ -3,6 +3,7 @@
 import shutil
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..quality.image import VERSION, lock_digest, prepare_context
 from .paths import environment_root
 
@@ -10,7 +11,7 @@ from .paths import environment_root
 def install_quality(root, work, execute, report, checkpoint):
     if not shutil.which("docker"):
         raise RuntimeError("Install Docker prerequisites first.")
-    if shutil.disk_usage(root).free < 2 * 1024**3:
+    if available_bytes(root) < 2 * 1024**3:
         raise ValueError("Quality CPU installation requires2 GiB free space.")
     destination = environment_root(root, "posebusters") / (VERSION + "-" + str(uuid4()))
     context = destination / "image-context"

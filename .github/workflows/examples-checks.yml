@@ -13,6 +13,7 @@ on:
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - 'frontend/src/examples/**'
+      - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
       - '!frontend/src/examples/useTaskLabel.ts'
       - '!frontend/src/examples/useTaskLabel.test.tsx'
@@ -46,6 +47,7 @@ on:
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - 'frontend/src/examples/**'
+      - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
       - '!frontend/src/examples/useTaskLabel.ts'
       - '!frontend/src/examples/useTaskLabel.test.tsx'

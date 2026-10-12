@@ -2,13 +2,15 @@ name: Prediction entry and material guidance
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &prediction_entry_paths
       - "frontend/src/guided/entities.ts"
       - "frontend/src/guided/MolecularInputs.tsx"
       - "frontend/src/studio/HomeWorkspace*"
       - "frontend/src/TaskForm*"
       - "server_tests/test_prediction_entry_browser.py"
       - ".github/workflows/prediction-entry-checks.yml"
+  pull_request:
+    paths: *prediction_entry_paths
 permissions:
   contents: read
 jobs:

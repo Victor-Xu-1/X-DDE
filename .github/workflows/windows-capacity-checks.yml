@@ -1,0 +1,26 @@
+name: Windows physical capacity and launch controls
+on:
+  workflow_dispatch:
+  push:
+    paths: &windows_capacity_paths
+      - "install.ps1"
+      - "scripts/opendde.ps1"
+      - "tests/test_windows_installer.ps1"
+      - "tests/test_windows_launch_capacity.ps1"
+      - ".github/workflows/windows-capacity-checks.yml"
+  pull_request:
+    paths: *windows_capacity_paths
+permissions:
+  contents: read
+jobs:
+  windows-entry:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installation drive and registered backing drive before any WSL boot or download
+        shell: pwsh
+        run: ./tests/test_windows_installer.ps1
+      - name: Case-insensitive start commands and offline close/status without booting WSL
+        shell: pwsh
+        run: ./tests/test_windows_launch_capacity.ps1

@@ -7,9 +7,10 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 
 from .assets import AssetKind, AssetStore
+from .disk_space import StorageCapacityError, StorageUnavailable, require_space
 
 
-def register_assets(app: FastAPI, assets: AssetStore, mutation):
+def register_assets(app: FastAPI, assets: AssetStore, mutation, minimum_free_bytes=0):
     uploads = asyncio.Semaphore(2)
 
     @app.get("/api/assets")
@@ -22,12 +23,20 @@ def register_assets(app: FastAPI, assets: AssetStore, mutation):
     ):
         try:
             async with asyncio.timeout(90), uploads:
+                await asyncio.to_thread(require_space, assets.root, minimum_free_bytes)
                 body = bytearray()
                 async for chunk in request.stream():
                     if len(body) + len(chunk) > 25 * 1024**2:
                         raise HTTPException(413, "File exceeds25MiB.")
                     body.extend(chunk)
+                await asyncio.to_thread(
+                    require_space, assets.root, minimum_free_bytes + len(body)
+                )
                 return assets.save(name, kind, bytes(body))
+        except StorageUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        except StorageCapacityError as exc:
+            raise HTTPException(507, str(exc)) from exc
         except TimeoutError as exc:
             raise HTTPException(408, "Upload timed out. Select the file again.") from exc
         except (ValueError, UnicodeError) as exc:

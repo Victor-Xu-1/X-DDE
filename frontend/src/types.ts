@@ -151,7 +151,7 @@ export interface Health {
   worker_ready: boolean;
   worker_error: string | null;
   queue_wait_reason?: string | null;
-  free_disk_gib: number;
+  free_disk_gib: number | null;
   disk_total_gib: number;
   capabilities: {
     prediction: boolean;

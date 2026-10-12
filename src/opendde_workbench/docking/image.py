@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
+from ..integrations.offline_context import stage_archives
 from .manifest import BINARY_SHA256, PYTHON_IMAGE, VERSION
 
 
@@ -13,7 +14,7 @@ def lock_digest():
     ).hexdigest()
 
 
-def prepare_context(destination, binary, licenses):
+def prepare_context(destination, binary, licenses, *, archives):
     destination.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(binary, destination / "gnina")
     shutil.copyfile(
@@ -21,10 +22,13 @@ def prepare_context(destination, binary, licenses):
     )
     for name, file in licenses.items():
         shutil.copyfile(file, destination / name)
+    stage_archives(archives, destination / "wheels")
     (destination / "Dockerfile").write_text(
         "FROM " + PYTHON_IMAGE + "\n"
         "COPY requirements.txt /tmp/requirements.txt\n"
-        "RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt "
+        "RUN --mount=type=bind,source=wheels,target=/wheels,readonly "
+        "python -m pip install --no-index --find-links=/wheels --no-cache-dir "
+        "--require-hashes -r /tmp/requirements.txt "
         "&& python -m pip check && rm /tmp/requirements.txt\n"
         "COPY --chmod=0555 gnina /opt/gnina/gnina\n"
         "COPY LICENSE.APACHE LICENSE.GNU /opt/gnina/\n"

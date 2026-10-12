@@ -16,6 +16,11 @@ def run(request):
     payload, execution = request["payload"], request["options"]
     modeller, template, topology, solute_indices, ligand = prepare(request)
     output = Path("/output")
+    # Retain the matching complete topology and template before long sampling.
+    # Interrupted replicas must not leave a checkpoint with no system/atom-order file.
+    (output / "system.xml").write_text(openmm.XmlSerializer.serialize(template))
+    with (output / "solvated-system.pdb").open("w") as stream:
+        app.PDBFile.writeFile(modeller.topology, modeller.positions, stream, keepIds=True)
     replicas = []
     candidates = []
     for repeat in range(payload["repeats"]):
@@ -113,9 +118,6 @@ def run(request):
         replicas.append(row)
         candidates.extend(poses)
         del simulation, integrator
-    (output / "system.xml").write_text(openmm.XmlSerializer.serialize(template))
-    with (output / "solvated-system.pdb").open("w") as stream:
-        app.PDBFile.writeFile(modeller.topology, modeller.positions, stream, keepIds=True)
     metrics = [
         metric(
             "Production per repeat",
