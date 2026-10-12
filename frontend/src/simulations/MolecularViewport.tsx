@@ -49,6 +49,8 @@ export function MolecularViewport({
   ready.current = onReady;
   const [loaded, setLoaded] = useState(false),
     [failure, setFailure] = useState("");
+  const [viewBusy, setViewBusy] = useState(false),
+    [viewFailure, setViewFailure] = useState(false);
   const [presentedFrame, setPresentedFrame] = useState(0);
   const [atom, setAtom] = useState("");
   const [surfaceSummary, setSurfaceSummary] = useState<SurfaceSummary | null>(
@@ -78,12 +80,24 @@ export function MolecularViewport({
     !frames &&
     sources.filter((source) => source.role === "ligand").length > 1 &&
     view.ligand === "all";
+  function publishHandle(instance: MolecularController) {
+    handleChange.current?.({
+      capture: (settings, pixels) => instance.figure(settings, pixels),
+      snapshot: () => ({
+        view: { ...liveView.current },
+        camera: instance.cameraSnapshot(),
+      }),
+      restoreCamera: (snapshot) => instance.restoreCamera(snapshot),
+    });
+  }
   const sourceKey = JSON.stringify({ sources, frames, ligandContext });
   useEffect(() => {
     const signal = new AbortController();
     let instance: MolecularController | undefined;
     setLoaded(false);
     setFailure("");
+    setViewBusy(false);
+    setViewFailure(false);
     void visibleViewport(container.current!, signal.signal)
       .then(() => import("./molstar-controller"))
       .then(async ({ MolecularController }) => {
@@ -112,14 +126,7 @@ export function MolecularViewport({
         if (!signal.signal.aborted) {
           setSurfaceSummary(instance.surfaceSummary);
           setLoaded(true);
-          handleChange.current?.({
-            capture: (settings, pixels) => instance!.figure(settings, pixels),
-            snapshot: () => ({
-              view: { ...liveView.current },
-              camera: instance!.cameraSnapshot(),
-            }),
-            restoreCamera: (snapshot) => instance!.restoreCamera(snapshot),
-          });
+          publishHandle(instance);
           ready.current?.();
         }
       })
@@ -156,7 +163,27 @@ export function MolecularViewport({
     };
   }, [frame, loaded]);
   useEffect(() => {
-    if (loaded) controller.current?.setView(view);
+    const instance = controller.current;
+    if (!loaded || !instance) return;
+    let active = true;
+    setViewBusy(true);
+    setViewFailure(false);
+    handleChange.current?.(null);
+    void instance.setView(view).then(
+      () => {
+        if (!active || controller.current !== instance) return;
+        setViewBusy(false);
+        publishHandle(instance);
+      },
+      () => {
+        if (!active || controller.current !== instance) return;
+        setViewBusy(false);
+        setViewFailure(true);
+      },
+    );
+    return () => {
+      active = false;
+    };
   }, [view, loaded]);
   useEffect(() => {
     if (loaded && focusResidue) controller.current?.focusResidue(focusResidue);
@@ -174,6 +201,7 @@ export function MolecularViewport({
         <button
           type="button"
           className="text-button"
+          disabled={!loaded || viewBusy}
           onClick={() => controller.current?.reset()}
         >
           {zh ? "全景" : "Overview"}
@@ -182,6 +210,7 @@ export function MolecularViewport({
           <button
             type="button"
             className="text-button"
+            disabled={!loaded || viewBusy}
             onClick={() => controller.current?.focusLigand()}
           >
             {zh ? "配体与口袋" : "Ligand and pocket"}
@@ -244,7 +273,7 @@ export function MolecularViewport({
           filename="X-DDE-structure"
           format="png"
           molecular
-          disabled={!loaded}
+          disabled={!loaded || viewBusy || viewFailure}
           label={zh ? "下载视图" : "Download view"}
           onStart={onExport}
           aspect={() => {
@@ -274,11 +303,24 @@ export function MolecularViewport({
         aria-label={zh ? "交互式三维分子" : "Interactive 3D molecules"}
         data-loaded={loaded}
         data-error={failure || undefined}
+        aria-busy={!loaded || viewBusy}
       >
         <canvas ref={canvas} />
         {!loaded && !failure && (
           <p className="simulation-view-status" role="status">
             {zh ? "正在加载三维结构…" : "Loading 3D structures…"}
+          </p>
+        )}
+        {loaded && viewBusy && (
+          <p className="simulation-view-status" role="status">
+            {zh ? "正在更新三维显示…" : "Updating the 3D view…"}
+          </p>
+        )}
+        {viewFailure && (
+          <p className="simulation-view-status" role="alert">
+            {zh
+              ? "显示更新失败，请切换视图重试。"
+              : "The view update failed. Change the view to try again."}
           </p>
         )}
         {failure && (
