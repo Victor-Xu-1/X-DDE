@@ -64,6 +64,10 @@ def test_every_task_page_and_native_case_layout():
                 for item in examples
                 if not item["computed_result_available"]
             }
+            archived = {
+                CAPABILITIES[item["module"]["capability_id"]].label[0]: item
+                for item in examples
+            }
             expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
             names = page.locator(".tool-card h2").all_text_contents()
             expected = {
@@ -102,13 +106,14 @@ def test_every_task_page_and_native_case_layout():
                         page.locator(".tool-card")
                     ).click()
                     expect(page.locator(".module-template:visible")).to_be_visible()
+                    expect(page.locator(".example-case-name:visible")).to_contain_text(
+                        archived[name]["case"]["label"][0], timeout=30000
+                    )
                     results = page.get_by_role("button", name="示例结果", exact=True)
                     if results.count() == 0:
                         results = page.get_by_role("button", name="配置示例", exact=True)
                     if results.count() == 0 and name in input_only:
-                        expect(
-                            page.get_by_role("button", name="新建空白任务", exact=True)
-                        ).to_be_visible()
+                        load_template(page)
                         rows.append(capture(page, evidence, name, "reviewed-input-template"))
                         continue
                     expect(results).to_be_visible()
