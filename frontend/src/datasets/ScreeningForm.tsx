@@ -13,7 +13,7 @@ import {
   ReceptorQuestion,
   usePocketQuestions,
 } from "./PocketQuestions";
-import { screeningPlan } from "./dataset-model";
+import { screeningPlan, screeningSourceIds } from "./dataset-model";
 import { ExecutionView } from "./ExecutionView";
 import { useDatasetRun, type DatasetExecution } from "./useDatasetRun";
 import type { DatasetSource } from "./types";
@@ -33,6 +33,8 @@ export function ScreeningForm({
   language: Language;
   onCreated(job: Job): void;
 }) {
+  // Deferred binding IDs are form-local. Material changes still rotate request keys.
+  const [sourceIds] = useState(screeningSourceIds);
   const zh = language === "zh",
     pocket = usePocketQuestions(language),
     run = useDatasetRun(onCreated),
@@ -119,6 +121,7 @@ export function ScreeningForm({
     if (!pocket.pocket) return;
     return run.submit(
       screeningPlan({
+        sourceIds,
         name:
           name.trim() ||
           (zh ? "靶点口袋高通量筛选" : "Target-pocket screening"),
