@@ -50,6 +50,36 @@ def test_real_tautomers_unassigned_stereo_and_bounded_coverage(native):
     assert native["states"].enumerate_states(source, limited)[1]["budget_limited"]
 
 
+def test_bounded_stat6_states_retain_the_input_tautomer_before_rare_variants(native):
+    smiles = "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3"
+    source = native["mapping"].source_molecule(Chem.MolFromSmiles(smiles))
+    options = native["options"].StateOptions(conformers_per_state=0, max_states=4)
+    rows, coverage = native["states"].enumerate_states(source, options)
+    expected = Chem.MolToSmiles(source, isomericSmiles=True)
+    assert len(rows) == 4 and coverage["budget_limited"]
+    assert rows[0]["smiles"] == expected
+    assert all(sorted(row["source_to_state_atoms"]) == list(range(30)) for row in rows)
+    repeated, _ = native["states"].enumerate_states(source, options)
+    assert [row["smiles"] for row in repeated] == [row["smiles"] for row in rows]
+
+
+def test_tautomer_budget_keeps_the_supplied_form_then_uses_native_scores(native):
+    from rdkit.Chem.MolStandardize import rdMolStandardize
+
+    source = native["mapping"].source_molecule(Chem.MolFromSmiles("CC(=O)CC(=O)C"))
+    options = native["options"].StateOptions(
+        protonation=False, stereoisomers=False, conformers_per_state=0,
+        max_states=4, max_tautomers=4,
+    )
+    rows, _ = native["states"].enumerate_states(source, options)
+    assert rows[0]["smiles"] == Chem.MolToSmiles(source)
+    scores = [
+        rdMolStandardize.TautomerEnumerator.ScoreTautomer(row["molecule"])
+        for row in rows[1:]
+    ]
+    assert scores == sorted(scores, reverse=True)
+
+
 def test_real_seeded_conformers_have_energy_coordinates_and_original_atom_identity(native):
     source = native["mapping"].source_molecule(Chem.MolFromSmiles("CCCCO"))
     options = native["options"].StateOptions(
