@@ -8,7 +8,12 @@ import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from layout_browser_helpers import catalog, initialize_layout_page, settle_visible_drawings
+from layout_browser_helpers import (
+    catalog,
+    initialize_layout_page,
+    settle_visible_drawings,
+    viewport_overflow_evidence,
+)
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.publication_browser_helpers import export_figure
@@ -45,7 +50,7 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_text("正在读取结果…", exact=True)).not_to_be_visible(timeout=30000)
 
         def record(name):
-            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            assert not viewport_overflow_evidence(page, evidence, "visual-" + name)
             settle_visible_drawings(page)
             page.screenshot(path=str(evidence / ("visual-" + name + ".png")))
             steps.append(name)

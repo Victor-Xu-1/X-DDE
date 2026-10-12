@@ -5,7 +5,11 @@ import os
 import re
 from pathlib import Path
 
-from layout_browser_helpers import archive_example_url, initialize_layout_language
+from layout_browser_helpers import (
+    archive_example_url,
+    initialize_layout_language,
+    viewport_overflow_evidence,
+)
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -85,7 +89,7 @@ def test_surface_native_3d_table_download_and_guided_entry():
         expect(page.get_by_role("button", name="计算暴露与埋藏", exact=True)).to_be_visible()
         page.screenshot(path=str(evidence / "submission-review-desktop.png"), full_page=True)
         page.set_viewport_size({"width": 390, "height": 1050})
-        assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
+        assert not viewport_overflow_evidence(page, evidence, "surface-review-mobile")
         page.screenshot(path=str(evidence / "submission-review-mobile.png"), full_page=True)
         page.get_by_role("button", name="使用此模板", exact=True).click()
         expect(page.get_by_role("button", name="下一步", exact=True)).to_be_enabled()

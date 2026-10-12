@@ -37,6 +37,86 @@ def expect_layout_identities(elements, labels):
         expect(elements.nth(index)).to_have_attribute("aria-label", label)
 
 
+def viewport_overflow_evidence(page, evidence, label):
+    """Return the immediate predicate; failure-only observations cannot turn it into a pass."""
+    probe = page.evaluate_handle("""() => {
+        const box = e => {
+            const r=e.getBoundingClientRect(), s=getComputedStyle(e);
+            return {tag:e.tagName,cls:String(e.className),role:e.getAttribute('role'),
+                label:e.getAttribute('aria-label'),parentClass:String(e.parentElement?.className),
+                parentOverflowX:e.parentElement ?
+                    getComputedStyle(e.parentElement).overflowX : null,
+                x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,
+                clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
+                overflowX:s.overflowX,minWidth:s.minWidth,transform:s.transform};
+        };
+        const snapshot = () => {
+            const width=innerWidth, scrollWidth=document.documentElement.scrollWidth;
+            return {time:performance.now(),width,height:innerHeight,scrollWidth,
+                overflow:scrollWidth>width+1,
+                animations:document.getAnimations().slice(0,30).map(a=>({
+                    state:a.playState,time:a.currentTime,
+                    duration:a.effect?.getComputedTiming().duration,
+                    target:a.effect?.target ? box(a.effect.target) : null})),
+                relevant:[...document.querySelectorAll('.active-control-indicator,'+
+                    '.js-plotly-plot,.campaign-material-layout,.campaign-material-layout table,'+
+                    '.sequence-track')].slice(0,30).map(box),
+                offenders:scrollWidth>width+1 ? [...document.querySelectorAll('body *')]
+                    .map(box).filter(r=>r.width>0&&r.height>0&&r.right>width+1).slice(0,30) : []};
+        };
+        const original={time:performance.now(),width:innerWidth,height:innerHeight,
+            scrollWidth:document.documentElement.scrollWidth};
+        original.overflow=original.scrollWidth>original.width+1;
+        if(!original.overflow) return {original};
+        const initialSnapshot=snapshot();
+        const finished=new Promise(resolve=>{
+            const frames=[];
+            let stopped=false;
+            const finish=()=>{stopped=true;resolve(frames);};
+            // A diagnostic deadline also bounds throttled RAF; it never affects acceptance.
+            const deadline=setTimeout(finish,1500);
+            const sample=()=>{
+                if(stopped) return;
+                frames.push(snapshot());
+                // Observation budget only, never an acceptance wait or changed tolerance.
+                if(frames.length>=90) {clearTimeout(deadline);finish();}
+                else requestAnimationFrame(sample);
+            };
+            requestAnimationFrame(sample);
+        });
+        return {original,initialSnapshot,finished};
+    }""")
+    try:
+        original = probe.evaluate("value => value.original")
+        if not original["overflow"]:
+            return False
+        evidence.mkdir(parents=True, exist_ok=True)
+        name = "overflow-" + re.sub(r"[^\w.-]", "-", label)[:90]
+        report = {
+            "original": original,
+            "initial_snapshot": probe.evaluate("value => value.initialSnapshot"),
+            "screenshot_note": (
+                "Captures follow the original snapshot and may span animation frames."
+            ),
+            "diagnostic_errors": [],
+        }
+        try:
+            page.screenshot(path=str(evidence / (name + "-immediate.png")), timeout=5000)
+        except Exception as error:
+            report["diagnostic_errors"].append(str(error))
+        try:
+            report["frames"] = probe.evaluate("async value => await value.finished")
+            page.screenshot(path=str(evidence / (name + "-observed.png")), timeout=5000)
+        except Exception as error:
+            report["diagnostic_errors"].append(str(error))
+        (evidence / (name + ".json")).write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        return original["overflow"]
+    finally:
+        probe.dispose()
+
+
 def initialize_layout_language(page):
     """Start Chinese layout fixtures without overriding a saved language choice."""
     page.add_init_script("""if (localStorage.getItem('opendde-workbench.language') === null) {
