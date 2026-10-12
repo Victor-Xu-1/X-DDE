@@ -26,6 +26,9 @@ from ..examples.pose_bundle_release import VERSION as POSE_CASE_VERSION
 from ..examples.proximity_bundle_release import SHA256 as PROXIMITY_CASE_SHA
 from ..examples.proximity_bundle_release import URL as PROXIMITY_CASE_URL
 from ..examples.proximity_bundle_release import VERSION as PROXIMITY_CASE_VERSION
+from ..examples.stat6_bundle_release import SHA256 as STAT6_CASE_SHA
+from ..examples.stat6_bundle_release import URL as STAT6_CASE_URL
+from ..examples.stat6_bundle_release import VERSION as STAT6_CASE_VERSION
 from ..examples.surface_bundle_release import SHA256 as SURFACE_CASE_SHA
 from ..examples.surface_bundle_release import URL as SURFACE_CASE_URL
 from ..examples.surface_bundle_release import VERSION as SURFACE_CASE_VERSION
@@ -312,6 +315,33 @@ PACKAGES["p2rank"] = Package(
     engine="p2rank",
 )
 
+
+CASE_BUNDLE_IDS = (
+    "public-stat6-examples",
+    "public-examples",
+    "public-dataset-examples",
+    "public-surface-examples",
+    "public-pose-examples",
+    "public-channel-examples",
+    "public-proximity-examples",
+)
+
+PACKAGES["public-stat6-examples"] = Package(
+    "public-stat6-examples",
+    STAT6_CASE_VERSION,
+    "STAT6 research examples",
+    "8 个模块的已审查原生结果 / Reviewed native results for 8 modules",
+    "1.9 MB",
+    automatic=True,
+    url=STAT6_CASE_URL,
+    checksum=STAT6_CASE_SHA,
+    license=(
+        "Source and computed-output terms in the reviewed bundle manifest; "
+        "not experimental validation"
+    ),
+    engine="x-dde",
+    kind="data",
+)
 
 PACKAGES["public-examples"] = Package(
     "public-examples",

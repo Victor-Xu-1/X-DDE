@@ -13,7 +13,7 @@ from ..engine_registry import ENGINES
 from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
 from .activation import DYNAMIC_RUNTIMES, activation_snapshot
-from .catalog import PACKAGES, catalogue, prerequisites
+from .catalog import CASE_BUNDLE_IDS, PACKAGES, catalogue, prerequisites
 from .compute_service import ComputeService
 from .installers import install
 from .paths import environment_root
@@ -48,11 +48,7 @@ class DeploymentManager:
             for key in (
                 "ketcher",
                 "molstar",
-                "public-examples",
-                "public-surface-examples",
-                "public-pose-examples",
-                "public-channel-examples",
-                "public-proximity-examples",
+                *CASE_BUNDLE_IDS,
                 "public-experimental-examples",
                 "harness",
                 "runtime",
@@ -227,12 +223,7 @@ class DeploymentManager:
                     installed.pop(key, None)
                 else:
                     if key in {
-                        "public-examples",
-                        "public-dataset-examples",
-                        "public-surface-examples",
-                        "public-pose-examples",
-                        "public-channel-examples",
-                        "public-proximity-examples",
+                        *CASE_BUNDLE_IDS,
                         "public-experimental-examples",
                         "supplier-libraries",
                     }:

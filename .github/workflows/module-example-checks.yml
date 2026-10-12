@@ -1,0 +1,70 @@
+name: Reviewed module example handoff and presentation
+on:
+  push:
+    paths: &module_example_paths
+      - 'src/opendde_workbench/examples/stat6/prepared_inputs.py'
+      - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'src/opendde_workbench/examples/stat6_bundle_release.py'
+      - 'frontend/src/receptors/SurfaceResults*'
+      - 'frontend/src/receptors/SurfaceForm*'
+      - 'tests/test_stat6_prepared_handoff.py'
+      - 'server_tests/test_surface_region_replay_browser.py'
+      - '.github/workflows/module-example-checks.yml'
+  pull_request:
+    paths: *module_example_paths
+permissions:
+  contents: read
+jobs:
+  module-examples:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4336
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked pytest -q tests/test_stat6_prepared_handoff.py
+      - working-directory: frontend
+        run: npx vitest run src/receptors/SurfaceResults.test.tsx src/receptors/SurfaceForm.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/residue-region.test.ts
+      - name: Restore exact reviewed result packages; no scientific workers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-module-examples"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          gh release download examples-stat6-results-v1 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v1.zip --dir "$RUNNER_TEMP"
+          gh release download v0.4.32 --repo "$GITHUB_REPOSITORY" --pattern x-dde-surface-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python - <<'PY'
+          import os
+          from pathlib import Path
+          from opendde_workbench.examples.bundle import restore_bundle
+          from opendde_workbench.examples import stat6_bundle_release, surface_bundle_release
+          from opendde_workbench.settings import Settings
+          settings = Settings.from_env()
+          assert settings.state_dir.is_relative_to(Path(os.environ['RUNNER_TEMP']))
+          for spec in (stat6_bundle_release, surface_bundle_release):
+              file = Path(os.environ['RUNNER_TEMP']) / spec.URL.rsplit('/', 1)[-1]
+              print(restore_bundle(file, settings, spec.SHA256))
+          PY
+      - name: Real native region, table and downloads on English desktop and Chinese mobile
+        run: |
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/module-examples
+          .venv/bin/python -m opendde_workbench --port 4336 > server_tests/evidence/module-examples/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
+          .venv/bin/python -m pytest -x -q server_tests/test_surface_region_replay_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: module-example-evidence
+          path: server_tests/evidence/module-examples

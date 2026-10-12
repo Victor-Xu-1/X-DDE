@@ -89,6 +89,15 @@ export function SurfaceResults({
           urls={[artifactUrl(job.id, result.preview_artifact)]}
           language={language}
           focusResidue={focus}
+          ligandContext={false}
+          initialMode="cartoon"
+          residueRegion={result.regions.map((row) => ({
+            model: 0,
+            chain: row.chain,
+            number: row.number,
+            insertion_code: row.insertion_code,
+            alternate_location: "",
+          }))}
         />
         <div>
           <SurfaceTable

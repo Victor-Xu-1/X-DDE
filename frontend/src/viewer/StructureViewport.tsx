@@ -606,7 +606,7 @@ export function StructureViewport({
                 disabled={!loaded}
                 onClick={() => send("focus-site")}
               >
-                {zh ? "定位口袋" : "Focus pocket"}
+                {zh ? "定位选区" : "Focus region"}
               </button>
             )}
             {focusModels?.length ? (

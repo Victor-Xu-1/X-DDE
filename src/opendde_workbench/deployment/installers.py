@@ -4,7 +4,7 @@ import shutil
 import sys
 from uuid import uuid4
 
-from .catalog import PACKAGES
+from .catalog import CASE_BUNDLE_IDS, PACKAGES
 from .diffsbdd_install import install_model, install_runtime
 from .docking_install import install_docking
 from .paths import environment_root
@@ -48,14 +48,7 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None, 
         from .experimental_cases import install as experimental_cases
 
         metadata.update(experimental_cases(root, state, report, checkpoint))
-    elif key in {
-        "public-examples",
-        "public-dataset-examples",
-        "public-surface-examples",
-        "public-pose-examples",
-        "public-channel-examples",
-        "public-proximity-examples",
-    }:
+    elif key in CASE_BUNDLE_IDS:
         from ..examples.bundle import restore_bundle
         from ..settings import Settings
 

@@ -24,7 +24,7 @@ it("focuses a native pocket only after an explicit request and a matched loaded 
     });
   message("ready");
   expect(
-    screen.queryByRole("button", { name: "Focus pocket" }),
+    screen.queryByRole("button", { name: "Focus region" }),
   ).not.toBeInTheDocument();
   message("loaded", {
     atoms: 100,
@@ -36,7 +36,7 @@ it("focuses a native pocket only after an explicit request and a matched loaded 
     options: defaultOptions,
   });
   message("site-region", { requested: 8, matched: 8 });
-  const control = screen.getByRole("button", { name: "Focus pocket" });
+  const control = screen.getByRole("button", { name: "Focus region" });
   expect(control).toBeEnabled();
   expect(
     post.mock.calls.filter(([data]) => data.type === "focus-site"),
@@ -47,7 +47,7 @@ it("focuses a native pocket only after an explicit request and a matched loaded 
   ).toHaveLength(1);
   message("site-region", { requested: 8, matched: 0 });
   expect(
-    screen.queryByRole("button", { name: "Focus pocket" }),
+    screen.queryByRole("button", { name: "Focus region" }),
   ).not.toBeInTheDocument();
 });
 

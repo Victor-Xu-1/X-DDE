@@ -28,6 +28,7 @@ export function SurfaceForm({
   const example = useExampleTask("surface_exposure");
   // The observed complex retains selectable ligands; the prepared receptor may not.
   const templateStructure = useExampleReference("brd4_alt_a", "receptor");
+  const studyStructure = useExampleReference("stat6_structure");
   initialStructure ??= example?.structure ?? templateStructure ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
@@ -83,21 +84,30 @@ export function SurfaceForm({
           title: zh ? "选择结构" : "Choose structure",
           valid: Boolean(structure),
           content: (
-            <ReferencePicker
-              language={language}
-              kind="structure"
-              label={
-                zh ? "包含研究区域的结构" : "Structure containing the region"
-              }
-              allowedSuffixes={[".pdb", ".cif"]}
-              value={structure}
-              onChange={(v) => {
-                setStructure(v);
-                setRegions([]);
-                setChains([]);
-                setOptions(surfaceDefaults);
-              }}
-            />
+            <>
+              {studyStructure && !structure && (
+                <p role="note">
+                  {zh
+                    ? "先在结构预测模块完成并核对受体准备，再选择保存的准备结构。"
+                    : "Prepare and review the receptor in Structure prediction, then choose its saved prepared structure."}
+                </p>
+              )}
+              <ReferencePicker
+                language={language}
+                kind="structure"
+                label={
+                  zh ? "包含研究区域的结构" : "Structure containing the region"
+                }
+                allowedSuffixes={[".pdb", ".cif"]}
+                value={structure}
+                onChange={(v) => {
+                  setStructure(v);
+                  setRegions([]);
+                  setChains([]);
+                  setOptions(surfaceDefaults);
+                }}
+              />
+            </>
           ),
         },
         {

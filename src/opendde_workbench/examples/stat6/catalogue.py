@@ -42,6 +42,14 @@ def study_context(capability):
     if capability not in MODULES:
         raise KeyError(capability)
     requirements = []
+    if capability == "biopython.exposure":
+        requirements.append(
+            (
+                "先完成并核对受体准备，明确替代原子位置，再计算选区暴露面积。",
+                "Prepare and review the receptor's alternate positions "
+                "before calculating region exposure.",
+            )
+        )
     if capability.startswith("del."):
         requirements.append(
             (

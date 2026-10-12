@@ -77,6 +77,18 @@ artifact in isolated state, then merges through the existing stores without
 overwriting user data or launching calculations. Older archive bundles retain
 their original reviewed compatibility rules.
 
+The `public-stat6-examples` data component installs the reviewed eight-module
+subset from its immutable checksummed release through the same deployment queue
+and restore authority. It does not install scientific engines or run inference.
+The subset includes the explicit P2Rank method-limit example, not a claim that
+its default candidates reproduce the experimental binding site.
+STAT6 exposure templates use the exact registered output of a reviewed receptor
+preparation, preserving its input identity and explicit alternate-location choice.
+Without that prerequisite the template asks for a prepared receptor instead of
+prefilling an unresolved experimental structure as a ready calculation. The
+exposure result highlights its measured regions; unrelated ligand contacts are
+not its initial presentation.
+
 Compound examples point to existing immutable regions, research plans and pose
 explorations through `example_record_pins`. Their successful native source tasks
 and outputs are sealed with the same evidence checks as task examples. Viewing
