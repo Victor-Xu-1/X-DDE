@@ -41,6 +41,7 @@ def fixture_page(request, language, width):
     state = {
         "health_failed": False,
         "jobs_failed": False,
+        "fresh_jobs": False,
         "status_failed": False,
         "hold_artifacts": False,
         "hold_a": False,
@@ -93,7 +94,10 @@ def fixture_page(request, language, width):
                     status=503 if state["jobs_failed"] else 200,
                     json={"detail": "Controlled disconnection"}
                     if state["jobs_failed"]
-                    else [job(A), job(B)],  # Deliberately stale list snapshots.
+                    else [
+                        job(value, state["statuses"][value] if state["fresh_jobs"] else "running")
+                        for value in (A, B)
+                    ],  # Deliberately stale unless this case explicitly recovers the list.
                 )
             elif path == "/health":
                 route.fulfill(
@@ -339,3 +343,91 @@ def test_new_selection_cancels_old_metadata_and_files(fixture_page, language, wi
     )
     expect(page.locator('[data-read-error="status"]')).to_have_count(0)
     expect(page.locator('[data-read-error="artifacts"]')).to_have_count(0)
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_jobs_only_tasks_warning_recovers_without_false_history_error(
+    fixture_page, language, width
+):
+    page, state, counts, _, capture = fixture_page
+    open_task(page)
+    expect(page.get_by_text(re.compile("Loading task files|正在读取任务文件"))).to_have_count(0)
+    history_reads = counts["/task-history"]
+    state["jobs_failed"] = True
+    state["statuses"][A] = state["statuses"][B] = "failed"
+    with (
+        page.expect_response(
+            lambda response: urlsplit(response.url).path == "/api/jobs"
+        ) as jobs_response,
+        page.expect_response(
+            lambda response: urlsplit(response.url).path == f"/api/jobs/{A}"
+        ) as status_response,
+        page.expect_response(
+            lambda response: urlsplit(response.url).path == f"/api/jobs/{A}/artifacts"
+        ) as files_response,
+    ):
+        page.clock.run_for(3000)
+    assert jobs_response.value.status == 503
+    for response in (jobs_response, status_response, files_response):
+        response.value.finished()
+    warning = page.locator('[data-read-error="jobs"]')
+    expect(warning).to_contain_text(
+        "最后确认的任务信息" if language == "zh" else "last confirmed task information"
+    )
+    expect(page.locator(".detail-panel .status")).to_have_text(
+        "失败" if language == "zh" else "Failed"
+    )
+    # Let healthy streams settle on each normal interval, preserving their real deadlines.
+    for _ in range(5):
+        with (
+            page.expect_response(
+                lambda response: urlsplit(response.url).path == f"/api/jobs/{A}"
+            ) as status_response,
+            page.expect_response(
+                lambda response: urlsplit(response.url).path == f"/api/jobs/{A}/artifacts"
+            ) as files_response,
+        ):
+            page.clock.run_for(2000)
+        assert status_response.value.status == files_response.value.status == 200
+        status_response.value.finished()
+        files_response.value.finished()
+    assert counts["/jobs"] == 2  # Only the failed jobs stream pauses.
+    assert counts["/health"] == 2  # The independent health cadence remains ten seconds.
+    assert counts["/task-history"] > history_reads
+    expect(page.locator("[data-read-error]")).to_have_count(1)
+    expect(
+        page.get_by_role("button", name="重新连接" if language == "zh" else "Reconnect", exact=True)
+    ).to_have_count(0)
+    expect(
+        page.get_by_role(
+            "button", name="刷新任务" if language == "zh" else "Refresh tasks", exact=True
+        )
+    ).to_be_visible()
+    expect(
+        page.locator(".top-popover button").filter(has_text="Browser control task B")
+    ).to_have_count(0)
+    capture(
+        "jobs-only-outage",
+        "Jobs-only stale-summary warning; selected status and classified history stay available.",
+    )
+
+    state["jobs_failed"] = False
+    state["fresh_jobs"] = True
+    with page.expect_response(
+        lambda response: urlsplit(response.url).path == "/api/jobs"
+    ) as recovered:
+        warning.get_by_role(
+            "button", name="重试" if language == "zh" else "Retry", exact=True
+        ).click()
+    assert recovered.value.status == 200
+    recovered.value.finished()
+    expect(warning).to_have_count(0)
+    expect(
+        page.locator(".top-popover button").filter(has_text="Browser control task B")
+    ).to_have_count(1)
+    assert counts["/jobs"] == 3
+    expect(page.locator(".detail-panel h2")).to_have_text("Browser control task A")
+    expect(page.locator(".detail-panel .status")).to_have_text(
+        "失败" if language == "zh" else "Failed"
+    )
+    expect(page).to_have_url(re.compile("task=" + A))
