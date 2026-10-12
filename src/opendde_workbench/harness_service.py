@@ -7,10 +7,13 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
+from pydantic import ValidationError
+
 from .harness_contract import FILE_FIELDS, asset_references, validate_payload
 from .harness_process import environment, start_time
 from .managed_files import publish_shared
 from .native_arguments import needs_gpu
+from .requests import TASK_ADAPTER
 from .store import ConflictError, now
 
 
@@ -225,15 +228,19 @@ class HarnessService:
                 requests = db.execute(
                     "SELECT request FROM jobs WHERE status IN ('queued','running','cancelling')"
                 ).fetchall()
-                if any(
-                    json.loads(row["request"]).get("operation", "predict")
-                    in {"predict", "resources"}
-                    for row in requests
-                ):
-                    raise ConflictError(
-                        "Wait for queued OpenDDE predictions/resource tasks "
-                        "before starting a design campaign."
-                    )
+                for row in requests:
+                    try:
+                        request = TASK_ADAPTER.validate_json(row["request"])
+                    except ValidationError as exc:
+                        raise ConflictError(
+                            "Cannot confirm the resources of a pending task. "
+                            "Resolve its invalid saved request before starting a design campaign."
+                        ) from exc
+                    if request.operation in {"predict", "resources"} or needs_gpu(request):
+                        raise ConflictError(
+                            "Wait for queued or active GPU work and OpenDDE "
+                            "predictions/resource tasks before starting a design campaign."
+                        )
             if not reconcile and plan["state"] != "validated":
                 raise ConflictError(
                     "This plan was already dispatched. "
