@@ -6,6 +6,7 @@ on:
       - "frontend/src/useWorkbench*"
       - "frontend/src/workbench-polling*"
       - "frontend/src/WorkbenchReadStatus*"
+      - "frontend/src/studio/TaskWorkspace*"
       - "server_tests/test_task_status_browser.py"
       - ".github/workflows/task-status-checks.yml"
   pull_request:
@@ -31,7 +32,7 @@ jobs:
         run: >-
           npx vitest run src/workbench-polling.test.ts
           src/useWorkbench.test.ts src/useWorkbench.live.test.ts
-          src/App.test.tsx src/App.live-status.test.tsx
+          src/App.test.tsx src/App.live-status.test.tsx src/App.missing-task.test.tsx
           src/studio/TaskWorkspace.test.tsx src/studio/useTaskHistory.test.tsx
           src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
           src/studio/HomeWorkspace.test.tsx src/studio/PredictionResults.test.tsx
