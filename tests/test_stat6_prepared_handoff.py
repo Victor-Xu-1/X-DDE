@@ -109,6 +109,7 @@ def docking_fixture(settings):
     request = TASK_ADAPTER.validate_python(
         {
             "operation": "docking",
+            "name": "Controlled prepared-receptor handoff fixture",
             "mode": "dock",
             "receptor": receptor,
             "ligand": ligand,
