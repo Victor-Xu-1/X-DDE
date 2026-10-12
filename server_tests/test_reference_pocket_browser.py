@@ -1,5 +1,6 @@
 """Read retained actual native pocket output; one view, exact residues and downloads."""
 import hashlib
+import json
 import os
 from pathlib import Path
 
@@ -38,9 +39,17 @@ def test_reference_pocket_uses_one_exact_receptor_ligand_region(language, width)
         expect(page.locator('.viewer-panel')).to_have_count(1)
         count = len(set(native['residues']))
         caption = '已定位区域残基：' if language == 'zh' else 'Region residues located:'
-        expect(region.get_by_text(caption + f' {count} / {count}', exact=True)).to_be_visible(
-            timeout=30000
-        )
+        try:
+            expect(region.get_by_text(caption + f' {count} / {count}', exact=True)).to_be_visible(
+                timeout=30000
+            )
+        except AssertionError:
+            page.screenshot(path=evidence / f'{language}-{width}-failure.png', full_page=True)
+            (evidence / f'{language}-{width}-failure.json').write_text(json.dumps({
+                'url': page.url, 'visible_result': region.inner_text(), 'page_errors': errors,
+                'native_residues': native['residues'],
+            }, ensure_ascii=False, indent=2), encoding='utf-8')
+            raise
         expect(region.get_by_role(
             'button',
             name='生成三维视图图片' if language == 'zh' else 'Capture 3D view', exact=True,
