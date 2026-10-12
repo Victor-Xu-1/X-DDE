@@ -8,7 +8,10 @@ on:
       - "frontend/src/presentation/research-content*"
       - "src/opendde_workbench/api.py"
       - "src/opendde_workbench/store.py"
+      - "src/opendde_workbench/workflows/**"
       - "tests/test_task_submission_recovery.py"
+      - "tests/test_workflow_cancellation.py"
+      - "tests/test_workflows.py"
       - "server_tests/*task_actions*"
       - ".github/workflows/task-action-checks.yml"
   pull_request:
@@ -40,12 +43,18 @@ jobs:
       - name: Exact persisted requests, parent relationships, offline recovery and cancellation
         run: >-
           uv run --locked pytest -q tests/test_task_submission_recovery.py
+          tests/test_workflow_cancellation.py tests/test_workflows.py tests/test_dataset_workflows.py
           tests/test_jobs.py::test_parallel_idempotency_is_atomic_and_conflicts_are_rejected
           tests/test_jobs.py::test_running_cancel_stops_process_and_retry_creates_new_task
           tests/test_jobs.py::test_queued_cancel_does_not_execute
           tests/test_jobs.py::test_restart_marks_active_tasks_interrupted
           tests/test_jobs.py::test_cancellation_cleanup_failure_remains_visible_as_failure
           tests/test_api_security.py::test_csrf_origin_and_host_boundaries
+      - name: Cancellation transaction and recovery lint
+        run: >-
+          uv run --locked ruff check src/opendde_workbench/store.py
+          src/opendde_workbench/workflows/service.py src/opendde_workbench/workflows/storage.py
+          tests/test_workflow_cancellation.py
       - name: Isolated graphical input and controlled process fixture; no science models
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-task-actions" >> "$GITHUB_ENV"
