@@ -210,6 +210,27 @@ it("aborts old reads on selection, rejects late data, and cleans up every poll o
   expect(vi.getTimerCount()).toBe(0);
 });
 
+it("keeps the new selection healthy past the cancelled old reads' deadlines", async () => {
+  vi.mocked(client.request).mockReturnValueOnce(pending<Job>().promise);
+  vi.mocked(api.artifacts).mockReturnValueOnce(pending<Artifact[]>().promise);
+  const { result } = renderHook(useWorkbench);
+  await flush();
+  const oldStatusSignal = vi.mocked(client.request).mock.calls[0][1]?.signal;
+  const oldFileSignal = vi.mocked(api.artifacts).mock.calls[0][1];
+  vi.mocked(client.request).mockResolvedValue(job(B, "failed"));
+  act(() => result.current.select(B));
+  await flush();
+  expect(oldStatusSignal?.aborted).toBe(true);
+  expect(oldFileSignal?.aborted).toBe(true);
+  await advance(35000);
+  expect(result.current.selectedJob).toEqual(job(B, "failed"));
+  expect(result.current.detail).toEqual({ id: B, artifacts: [] });
+  expect(result.current.selectedJobError).toBeNull();
+  expect(result.current.artifactError).toBeNull();
+  expect(client.request).toHaveBeenCalledTimes(19);
+  expect(api.artifacts).toHaveBeenCalledTimes(19);
+});
+
 it("keeps the last confirmed snapshot and files visible after disconnection until a real retry succeeds", async () => {
   vi.mocked(api.artifacts).mockResolvedValue([{ name: "result.sdf", size: 1 }]);
   const { result } = renderHook(useWorkbench);

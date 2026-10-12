@@ -30,6 +30,14 @@ def test_native_binding_switches_during_loading_and_after_transition():
         expect(root.get_by_role("button", name=re.compile(r"^Download view")).first).to_be_enabled(
             timeout=30000
         )
+        first_view = root.get_by_test_id("molstar-viewport").first
+        first_view.get_by_role("button", name="Surface", exact=True).click()
+        expect(first_view.get_by_role("application")).to_have_attribute(
+            "aria-busy", "false", timeout=30000
+        )
+        expect(first_view.get_by_role("button", name=re.compile(r"^Download view"))).to_be_enabled()
+        first_view.get_by_role("button", name="Surface", exact=True).click()
+        expect(first_view.get_by_role("application")).to_have_attribute("aria-busy", "false")
         root.get_by_role("button", name="Ligand and pocket", exact=True).first.click()
         page.get_by_role("button", name="Task modules", exact=True).click()
         expect(page.get_by_role("group", name="Task modules", exact=True)).to_be_visible()

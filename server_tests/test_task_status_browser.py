@@ -289,7 +289,7 @@ def test_disconnection_keeps_honest_last_state_until_retry(fixture_page, languag
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_new_selection_cancels_old_metadata_and_files(fixture_page, language, width):
-    page, state, _, cancelled, capture = fixture_page
+    page, state, counts, cancelled, capture = fixture_page
     state["hold_a"] = True
     state["statuses"][B] = "failed"
     open_task(page, status_pending=True)
@@ -306,7 +306,35 @@ def test_new_selection_cancels_old_metadata_and_files(fixture_page, language, wi
     )
     expect(page).to_have_url(re.compile("task=" + B))
     expect_cancelled(page, cancelled, f"/api/jobs/{A}", f"/api/jobs/{A}/artifacts")
-    page.clock.run_for(35000)
+    expect(
+        page.get_by_text("正在读取任务文件…" if language == "zh" else "Loading task files…")
+    ).to_have_count(0)
+    # Keep observing beyond A's cancelled 30-second deadlines. One 35-second
+    # clock jump can time out B's new fetch before the real route/body transport
+    # settles. Advance normal poll intervals, requiring both healthy B responses
+    # to finish before advancing again; the production deadline stays unchanged.
+    for _ in range(18):
+        with (
+            page.expect_response(
+                lambda response: urlsplit(response.url).path == f"/api/jobs/{B}"
+            ) as status_response,
+            page.expect_response(
+                lambda response: urlsplit(response.url).path == f"/api/jobs/{B}/artifacts"
+            ) as files_response,
+        ):
+            page.clock.run_for(2000)
+        assert status_response.value.status == files_response.value.status == 200
+        status_response.value.finished()
+        files_response.value.finished()
+        assert status_response.value.json()["id"] == B
+        assert files_response.value.json() == []
+    assert counts[f"/jobs/{A}"] == counts[f"/jobs/{A}/artifacts"] == 1
+    assert counts[f"/jobs/{B}"] >= 19 and counts[f"/jobs/{B}/artifacts"] >= 19
+    assert f"/api/jobs/{B}" not in cancelled
+    assert f"/api/jobs/{B}/artifacts" not in cancelled
     expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
+    expect(page.locator(".detail-panel .status")).to_have_text(
+        "失败" if language == "zh" else "Failed"
+    )
     expect(page.locator('[data-read-error="status"]')).to_have_count(0)
     expect(page.locator('[data-read-error="artifacts"]')).to_have_count(0)
