@@ -8,6 +8,7 @@ on:
       - 'tests/test_campaign_handoff.py'
       - 'tests/test_harness_standalone.py'
       - 'tests/test_harness_process.py'
+      - 'tests/test_harness_stop.py'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_interpreter_paths.py'
       - 'tests/test_harness_sequences.py'
@@ -21,6 +22,7 @@ on:
       - 'tests/test_campaign_handoff.py'
       - 'tests/test_harness_standalone.py'
       - 'tests/test_harness_process.py'
+      - 'tests/test_harness_stop.py'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_interpreter_paths.py'
       - 'tests/test_harness_sequences.py'
@@ -43,8 +45,8 @@ jobs:
           uv sync --locked --group dev
       - name: Verify standalone contracts and related Harness dispatch
         run: |
-          uv run --locked ruff check src/opendde_workbench/harness_contract.py src/opendde_workbench/harness_tools.py src/opendde_workbench/harness_bridge.py src/opendde_workbench/harness_compute.py src/opendde_workbench/harness_process.py tests/test_harness_standalone.py tests/test_harness_process.py
-          uv run --locked pytest -q tests/test_harness_standalone.py tests/test_harness_process.py tests/test_operations.py tests/test_environment_roles.py tests/test_interpreter_paths.py tests/test_harness_sequences.py
+          uv run --locked ruff check src/opendde_workbench/harness_contract.py src/opendde_workbench/harness_tools.py src/opendde_workbench/harness_bridge.py src/opendde_workbench/harness_compute.py src/opendde_workbench/harness_process.py tests/test_harness_standalone.py tests/test_harness_process.py tests/test_harness_stop.py
+          uv run --locked pytest -q tests/test_harness_standalone.py tests/test_harness_process.py tests/test_harness_stop.py tests/test_operations.py tests/test_environment_roles.py tests/test_interpreter_paths.py tests/test_harness_sequences.py
       - name: Verify bounded campaign and GPU admission contracts without native computation
         run: |
           uv run --locked ruff check src/opendde_workbench/native_arguments.py src/opendde_workbench/harness_service.py tests/test_gpu_admission.py tests/test_campaign_handoff.py
