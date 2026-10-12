@@ -22,7 +22,7 @@ def test_each_native_leg_has_an_independent_process_and_unchanged_plan(tmp_path,
 
     def process(arguments, **kwargs):
         calls.append((arguments, kwargs))
-        Path(arguments[-1]).write_text(json.dumps({"native_leg": Path(arguments[3]).name}))
+        Path(arguments[-1]).write_text(json.dumps({"native_leg": Path(arguments[4]).name}))
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(leg.subprocess, "run", process)
