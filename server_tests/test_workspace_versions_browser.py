@@ -153,3 +153,123 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
             )
         )
         browser.close()
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_relationship_refresh_and_retry_preserve_earlier_versions(language, width):
+    """Real tiny file/SQLite history, controlled read failure, zero scientific tasks."""
+    from urllib.parse import quote
+
+    from opendde_workbench.assets import AssetStore
+    from opendde_workbench.research.contracts import VersionInput
+    from opendde_workbench.research.graph import graph
+    from opendde_workbench.research.storage import ScientificStore
+    from opendde_workbench.store import Store
+
+    state = Settings.from_env().state_dir
+    store = Store(state / "jobs.sqlite3")
+    assets = AssetStore(store, state / "assets")
+    versions = ScientificStore(store, assets)
+    asset = assets.save("relationship-control.fasta", "sequences", b">controlled\nAAAA\n")
+    suffix = str(uuid4())[:8]
+
+    def version_input(label, parent=None):
+        return VersionInput(asset_id=asset.id, kind="sequence", label=label, parent_id=parent)
+
+    source = versions.create(version_input(f"Relationship source {suffix}"), uuid4())
+    earlier = versions.create(version_input(f"Earlier reviewed notes {suffix}", source.id), uuid4())
+    versions.create_many(
+        [(version_input(f"Unrelated history {suffix} {i}"), uuid4()) for i in range(199)]
+    )
+    versions.create(version_input(f"Latest reviewed notes {suffix}", source.id), uuid4())
+    focus = "object:" + str(source.id)
+    earlier_id = "object:" + str(earlier.id)
+    recent, focused = graph(store), graph(store, focus=focus)
+    assert focus in {node["id"] for node in recent["nodes"]}
+    assert earlier_id not in {node["id"] for node in recent["nodes"]}
+    assert earlier_id in {node["id"] for node in focused["nodes"]}
+    evidence = Path("outputs/workspace-preview/relationship-recovery") / language
+    evidence.mkdir(parents=True, exist_ok=True)
+    zh = language == "zh"
+    with (
+        platform(state, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
+        page = browser.new_page(viewport={"width": width, "height": 1000})
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        errors, submissions = [], []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "request",
+            lambda req: (
+                submissions.append(req.url)
+                if req.method == "POST" and req.url.endswith("/api/jobs")
+                else None
+            ),
+        )
+        page.goto(base)
+        before_jobs = page.request.get(base + "/api/jobs").json()
+        open_navigation(page, language).get_by_role(
+            "button", name="研究空间" if zh else "Research workspace", exact=True
+        ).click()
+        page.get_by_role("button", name="研究文件" if zh else "Research files", exact=True).click()
+        page.get_by_role(
+            "searchbox", name="查找研究文件或任务" if zh else "Find research files or tasks"
+        ).fill(source.label)
+        source_button = page.get_by_role(
+            "list", name="资产与任务" if zh else "Assets and tasks", exact=True
+        ).get_by_role("button", name=("序列: " if zh else "Sequence: ") + source.label, exact=True)
+        source_button.click()
+        relation = page.locator(".research-inspector .research-relations").get_by_role(
+            "button", name=earlier.label, exact=True
+        )
+        expect(relation).to_be_visible()
+        focus_url = base + "/api/research/graph?focus=" + quote(focus, safe="")
+        with page.expect_response(focus_url):
+            page.get_by_role("button", name="刷新" if zh else "Refresh", exact=True).click()
+        expect(relation).to_be_visible()
+        expect(page.get_by_role("heading", name=source.label, exact=True)).to_be_visible()
+        page.screenshot(path=evidence / "refreshed-relationships.png")
+
+        failed_reads = []
+
+        def fail_focus(route):
+            failed_reads.append(route.request.url)
+            route.fulfill(status=503, json={"detail": "Controlled focus read failure"})
+
+        page.route(focus_url, fail_focus)
+        source_button.click()
+        alert = page.get_by_role("alert")
+        expect(alert).to_contain_text(
+            "无法刷新所选材料" if zh else "selected material could not be refreshed"
+        )
+        page.screenshot(path=evidence / "focus-read-failed.png")
+        page.unroute(focus_url, fail_focus)
+        with page.expect_response(focus_url):
+            alert.get_by_role("button", name="重试" if zh else "Retry", exact=True).click()
+        expect(alert).to_have_count(0)
+        expect(relation).to_be_visible()
+        expect(page.get_by_role("heading", name=source.label, exact=True)).to_be_visible()
+        assert len(failed_reads) == 1
+        assert page.request.get(base + "/api/jobs").json() == before_jobs
+        assert page.request.get(base + "/api/assets/" + asset.id).body() == b">controlled\nAAAA\n"
+        assert not errors and not submissions
+        page.screenshot(path=evidence / "retry-restored-relationships.png")
+        (evidence / "receipt.json").write_text(
+            json.dumps(
+                {
+                    "language": language,
+                    "width": width,
+                    "fixture": "Controlled 17-byte FASTA and 202 real SQLite versions",
+                    "source_version": str(source.id),
+                    "earlier_version": str(earlier.id),
+                    "source_sha256": asset.sha256,
+                    "refresh_retained_relationship": True,
+                    "retry_reread_focus": True,
+                    "scientific_jobs_submitted": 0,
+                },
+                indent=2,
+            )
+        )
+        browser.close()

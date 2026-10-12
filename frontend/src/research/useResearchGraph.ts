@@ -21,6 +21,7 @@ export function useResearchGraph() {
   }>({});
   const selectedId = useRef<string | null>(null);
   function setSelected(id: string | null) {
+    controllers.current.load?.abort();
     controllers.current.focus?.abort();
     selectedId.current = id;
     selectionRevision.current++;
@@ -90,7 +91,7 @@ export function useResearchGraph() {
         throw new Error("Invalid output registration status");
       let next = value;
       const focus = selectedId.current;
-      if (focus && !value.nodes.some((node) => node.id === focus)) {
+      if (focus) {
         next = mergeResearchGraph(
           value,
           checkedGraph(
@@ -181,7 +182,6 @@ export function useResearchGraph() {
     }
   }
   async function select(id: string) {
-    controllers.current.load?.abort();
     setSelected(id);
     const intent = selectionRevision.current;
     const controller = new AbortController();
