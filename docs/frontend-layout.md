@@ -414,6 +414,10 @@ Feature preparation previews read the actual typed task components; converted in
 
 快速修改参数只保留最后一个待处理请求，任何时刻只运行一个原生画布捕获。关闭面板后不下载迟到结果；原生捕获未结束时不启动第二份捕获。预览无法生成或解码时保留参数并明确提供重试，不用空白图冒充成功。关闭后焦点返回可用的导出入口，不抢占用户已移到其他控件的焦点。
 
+每个导出入口显式提供实际数据及显示选择的来源标识。相同版面参数不会复用不同来源的捕获；改变来源、格式或版面比例时，旧预览立即失效，保留用户的印刷参数。尚未完成加载的来源不能捕获或下载。待处理请求保存对应来源的渲染器；更换来源不会绕过单一原生捕获队列。二维分子画布同样绑定实际结构和线宽，换结构后先隐藏旧图，迟到绘制不会覆盖新结构。来源标识使用长度前缀组合，避免反复转义大型结果数据。
+
+Each export explicitly identifies its data and display selection. Equal paper settings do not reuse another source's capture. A changed source, format or panel proportion immediately invalidates the previous preview while retaining print choices. Unready sources cannot be captured or downloaded. Pending requests retain their own renderer and share one native capture queue. Molecular drawings also bind their structure and line weight, so an old drawing cannot appear under a new selection. Length-prefixed context keys avoid repeated escaping of large result data.
+
 Mol* 的印刷捕获保持所选 300/600 dpi 和完整几何，采用四次原生抖动采样；避免上游默认十六次采样使双模型场景的软件 WebGL 超时。捕获后恢复原有采样、灯光、裁剪和截图设置，不延长等待上限，也不降低用户所选输出尺寸。
 
 任务步骤、结果页签和模型选择共用随实际选中控件移动的指示线。换行、语言切换和屏幕调整后重新测量，不替换输入控件或清空草稿；系统设置减少动画时停止非必要动画。`publication-checks.yml` 仅检查共享控件、原生导出和直接消费者，使用保留的真实公开输出、双语与代表性窄屏，不启动新科学计算。保留的 FEP 规划可验证规划预览，不能证明自由能计算或科学接受；界面质量目标也不等于获奖或顶级期刊接受。

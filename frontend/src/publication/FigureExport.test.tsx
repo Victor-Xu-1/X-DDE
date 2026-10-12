@@ -39,6 +39,7 @@ it("offers molecular layouts with a square default and regenerates on a new prin
   const native = vi.fn(async () => vector());
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="en"
       filename="native-structure"
       format="svg"
@@ -70,6 +71,7 @@ it("previews and downloads identical native bytes without rendering again", asyn
     onStart = vi.fn();
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="en"
       filename="native-RMSD"
       format="svg"
@@ -106,6 +108,7 @@ it("refuses an incorrect native format and supports an explicit preview retry", 
     .mockResolvedValue(vector());
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="zh"
       filename="result"
       format="svg"
@@ -127,6 +130,7 @@ it("magnifies and resets viewing without changing the native render, paper setti
   const native = vi.fn(async () => vector());
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="en"
       filename="native-figure"
       format="svg"
@@ -177,6 +181,7 @@ it("never publishes late preview bytes after the dialog closes", async () => {
   );
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="en"
       filename="result"
       format="svg"
@@ -207,6 +212,7 @@ it("offers a wider layout without exporting or silently shrinking a molecular fi
   });
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="en"
       filename="molecule"
       format="svg"
@@ -234,6 +240,7 @@ it("keeps a decode failure unavailable until a newly rendered preview loads", as
   const native = vi.fn(async () => vector());
   render(
     <FigureExport
+      sourceKey="controlled-native-source"
       language="en"
       filename="result"
       format="svg"
@@ -252,4 +259,151 @@ it("keeps a decode failure unavailable until a newly rendered preview loads", as
   fireEvent.load(nextImage);
   fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
   expect(download).toHaveBeenCalledOnce();
+});
+
+it("invalidates a decoded preview when the scientific source changes while retaining print choices", async () => {
+  const original = vi.fn(async () => vector()),
+    nextBlob = vector();
+  const next = vi.fn(async () => nextBlob);
+  const page = render(
+    <FigureExport
+      sourceKey="source-A"
+      language="en"
+      filename="A"
+      format="svg"
+      render={original}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  fireEvent.change(screen.getByLabelText("Figure width"), {
+    target: { value: "183" },
+  });
+  const oldImage = await screen.findByRole("img");
+  fireEvent.load(oldImage);
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeEnabled();
+  page.rerender(
+    <FigureExport
+      sourceKey="source-B"
+      language="en"
+      filename="B"
+      format="svg"
+      render={next}
+    />,
+  );
+  expect(screen.queryByRole("img")).toBeNull();
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  expect(screen.getByLabelText("Figure width")).toHaveValue("183");
+  const currentImage = await screen.findByRole("img");
+  fireEvent.load(oldImage);
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  fireEvent.load(currentImage);
+  fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
+  expect(next).toHaveBeenCalledOnce();
+  expect(download).toHaveBeenCalledWith(nextBlob, "B.svg");
+});
+
+it("never publishes a late old-source capture or duplicates the native renderer for a new source", async () => {
+  let finish!: (value: Blob) => void;
+  const original = vi.fn(
+    () => new Promise<Blob>((resolve) => (finish = resolve)),
+  );
+  const nextBlob = vector(),
+    next = vi.fn(async () => nextBlob);
+  const page = render(
+    <FigureExport
+      sourceKey="source-A"
+      language="en"
+      filename="A"
+      format="svg"
+      render={original}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  await waitFor(() => expect(original).toHaveBeenCalledOnce());
+  page.rerender(
+    <FigureExport
+      sourceKey="source-B"
+      language="en"
+      filename="B"
+      format="svg"
+      render={next}
+    />,
+  );
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  expect(next).not.toHaveBeenCalled();
+  await act(async () => finish(vector()));
+  const image = await screen.findByRole("img");
+  fireEvent.load(image);
+  fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
+  expect(original).toHaveBeenCalledOnce();
+  expect(next).toHaveBeenCalledOnce();
+  expect(download).toHaveBeenCalledWith(nextBlob, "B.svg");
+});
+
+it("keeps an unavailable source uncapturable until the same source is actually ready", async () => {
+  const native = vi.fn(async () => vector());
+  const page = render(
+    <FigureExport
+      sourceKey="source-A"
+      sourceReady
+      language="en"
+      filename="A"
+      format="svg"
+      render={native}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  fireEvent.load(await screen.findByRole("img"));
+  page.rerender(
+    <FigureExport
+      sourceKey="source-A"
+      sourceReady={false}
+      language="en"
+      filename="A"
+      format="svg"
+      render={native}
+    />,
+  );
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  expect(screen.queryByRole("img")).toBeNull();
+  page.rerender(
+    <FigureExport
+      sourceKey="source-A"
+      sourceReady
+      language="en"
+      filename="A"
+      format="svg"
+      render={native}
+    />,
+  );
+  fireEvent.load(await screen.findByRole("img"));
+  fireEvent.click(screen.getByRole("button", { name: "Export SVG" }));
+  expect(native).toHaveBeenCalledTimes(2);
+  expect(download).toHaveBeenCalledOnce();
+});
+
+it("does not invalidate a stable source merely because its caller renders a new function", async () => {
+  const native = vi.fn(async () => vector());
+  const page = render(
+    <FigureExport
+      sourceKey="source-A"
+      language="en"
+      filename="A"
+      format="svg"
+      render={native}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  fireEvent.load(await screen.findByRole("img"));
+  page.rerender(
+    <FigureExport
+      sourceKey="source-A"
+      language="en"
+      filename="A"
+      format="svg"
+      render={() => native()}
+    />,
+  );
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeEnabled();
+  expect(native).toHaveBeenCalledOnce();
 });

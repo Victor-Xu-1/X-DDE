@@ -27,9 +27,12 @@ export function FreeEnergyNetwork({
     (typeof import("./network-controller"))["selectNetworkEdge"] | null
   >(null);
   const [failure, setFailure] = useState(false);
+  const [loadedSource, setLoadedSource] = useState("");
+  const graphKey = JSON.stringify(result);
   const zh = language === "zh";
   useEffect(() => {
     let active = true;
+    setFailure(false);
     const observer = new ResizeObserver(() => graph.current?.resize());
     observer.observe(container.current!);
     void import("./network-controller")
@@ -40,6 +43,7 @@ export function FreeEnergyNetwork({
         );
         selectGraph.current = selectNetworkEdge;
         selectNetworkEdge(graph.current, result, activeSelection.current);
+        setLoadedSource(graphKey);
       })
       .catch(() => {
         if (active) setFailure(true);
@@ -50,7 +54,7 @@ export function FreeEnergyNetwork({
       graph.current?.destroy();
       graph.current = null;
     };
-  }, [result]);
+  }, [graphKey]);
   useEffect(() => {
     if (graph.current) selectGraph.current?.(graph.current, result, selected);
   }, [selected, result]);
@@ -67,6 +71,8 @@ export function FreeEnergyNetwork({
             {zh ? "适应画布" : "Fit network"}
           </button>
           <FigureExport
+            sourceKey={JSON.stringify([result, selected])}
+            sourceReady={loadedSource === graphKey && !failure}
             language={language}
             filename="X-DDE-FEP-network"
             format="png"

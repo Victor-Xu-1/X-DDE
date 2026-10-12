@@ -83,6 +83,8 @@ export function BoundPoseComparison({
               {zh ? "匹配视角" : "Match views"}
             </button>
             <FigureExport
+              sourceKey={JSON.stringify([sources, labels, mode])}
+              sourceReady={both}
               language={language}
               format="png"
               filename={`X-DDE-${labels[0]}-${labels[1]}-poses`}

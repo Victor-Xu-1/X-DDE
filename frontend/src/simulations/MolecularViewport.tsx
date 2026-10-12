@@ -243,6 +243,8 @@ export function MolecularViewport({
             </select>
           )}
         <FigureExport
+          sourceKey={JSON.stringify([sourceKey, frame, view])}
+          sourceReady={presentation.ready}
           language={language}
           filename="X-DDE-structure"
           format="png"

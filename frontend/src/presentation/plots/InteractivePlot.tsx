@@ -155,6 +155,8 @@ export function InteractivePlot({
             {zh ? "重置" : "Reset"}
           </button>
           <FigureExport
+            sourceKey={signature}
+            sourceReady={loaded === signature && !error}
             language={language}
             filename={title}
             format="svg"
