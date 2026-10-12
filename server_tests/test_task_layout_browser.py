@@ -96,7 +96,7 @@ def test_every_task_page_and_native_case_layout():
                         guided = page.get_by_role("button", name="简易模式", exact=True)
                         if guided.count() == 1:
                             guided.click()
-                    load_template(page)
+                    load_template(page, evidence, name)
                     rows.extend(review_steps(page, evidence, name))
                     # Current study questionnaires and retained native outcomes
                     # have separate identities. Reopen the archive explicitly.
@@ -113,7 +113,7 @@ def test_every_task_page_and_native_case_layout():
                     if results.count() == 0:
                         results = page.get_by_role("button", name="配置示例", exact=True)
                     if results.count() == 0 and name in input_only:
-                        load_template(page)
+                        load_template(page, evidence, name)
                         rows.append(capture(page, evidence, name, "reviewed-input-template"))
                         continue
                     expect(results).to_be_visible()

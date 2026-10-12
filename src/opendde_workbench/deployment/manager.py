@@ -29,6 +29,7 @@ class DeploymentManager:
         self.closing = threading.Event()
         self.mutex = threading.RLock()
         self.task = None
+        self.admission = None
         self.activated = activation_snapshot(self.store.installed())
 
     async def start(self):
@@ -158,6 +159,18 @@ class DeploymentManager:
             self._tick()
 
     def _tick(self):
+        # The application admission callback serializes the scientific-state
+        # check and claim with task submission. Do not hold the manager mutex
+        # while that callback awaits native state on the application's loop.
+        if not any(row["state"] == "queued" for row in self.store.rows()):
+            return
+        claimed = self.admission(self._claim) if self.admission else self._claim()
+        if claimed is None:
+            return
+        row, installed, root = claimed
+        self._execute(row, installed, root)
+
+    def _claim(self):
         with self.mutex:
             installed = self.store.installed()
             row = next(
@@ -174,9 +187,13 @@ class DeploymentManager:
             )
             if not row:
                 return
-            identifier, key = row["id"], row["package"]
+            identifier = row["id"]
             self.store.update(identifier, state="running", stage="Starting")
             root = Path(self.store.config()["root"])
+            return row, installed, root
+
+    def _execute(self, row, installed, root):
+        identifier, key = row["id"], row["package"]
 
         def checkpoint():
             if self.closing.is_set() or self.store.get(identifier)["state"] == "pausing":
