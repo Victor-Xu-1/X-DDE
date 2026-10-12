@@ -151,7 +151,11 @@ class BackendRouter:
         if job is None:
             raise RuntimeError("Cannot recover a process without its persisted task request.")
         directory = self.settings.state_dir / "jobs" / job.id
-        implementation = engine_for(job.request.operation).id
+        environment = self.store.environment(job.id)
+        implementation = (
+            environment.specification.scientific_software
+            if environment else engine_for(job.request.operation).id
+        )
         if isinstance(job.request, DatasetTask):
             await self.datasets.stop(job.id, directory)
         elif implementation in self.scientific:

@@ -1,10 +1,13 @@
 """Original compound names survive native descriptor output and spreadsheet export."""
 
 import csv
+import math
 from pathlib import Path
 
+import pytest
 from rdkit import Chem
 
+from opendde_workbench.chemistry.property_result import validate_properties
 from opendde_workbench.native_runtime import property_calculation as task
 from opendde_workbench.requests import Properties
 
@@ -43,3 +46,17 @@ def test_native_compound_identity_and_selected_record_are_preserved(tmp_path, mo
     with (tmp_path / "properties.csv").open(encoding="utf-8-sig", newline="") as stream:
         assert list(csv.DictReader(stream))[0]["name"] == record["name"]
     assert source.read_bytes() == original
+
+
+def test_native_descriptor_admission_rejects_foreign_or_nonfinite_output(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(task.__file__).parent))
+    request = Properties(name="Input-bound descriptors", smiles=["O=C(N)c1ccccc1"])
+    value = task.properties(request.model_dump(mode="json"), {}, tmp_path)
+    validate_properties(value, request, tmp_path)
+    value["molecules"][0]["input"] = "33333333-3333-4333-8333-333333333333:1"
+    with pytest.raises(ValueError, match="different molecular input"):
+        validate_properties(value, request, tmp_path)
+    value["molecules"][0]["input"] = request.smiles[0]
+    value["molecules"][0]["mw"] = math.nan
+    with pytest.raises(ValueError, match="non-finite"):
+        validate_properties(value, request, tmp_path)

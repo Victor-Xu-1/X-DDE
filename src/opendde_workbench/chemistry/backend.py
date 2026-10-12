@@ -29,14 +29,15 @@ FILES = (
     "minimization_geometry.py",
     "native_properties.py",
 )
+SHARED_SOURCES = {
+    name: Path(__file__).parent.parent / "native_runtime" / name
+    for name in ("property_calculation.py", "molecule_math.py")
+}
 
 
 class ChemistryBackend(PreparedContainerBackend):
     def __init__(self, settings):
         super().__init__(
             settings, "chemistry", Path(__file__).parent, FILES, configuration, readiness,
-            shared_sources={
-                name: Path(__file__).parent.parent / "native_runtime" / name
-                for name in ("property_calculation.py", "molecule_math.py")
-            },
+            shared_sources=SHARED_SOURCES,
         )
