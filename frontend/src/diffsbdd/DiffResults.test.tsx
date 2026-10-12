@@ -87,6 +87,41 @@ it.each(["en", "zh"] as const)(
     ).toHaveAttribute("href", artifactUrl(job.id, "pocket.pdb"));
   },
 );
+
+it("does not overlay an unverified reference or invent a region for invalid residue addresses", () => {
+  render(
+    <DiffResults
+      language="en"
+      job={
+        {
+          id: "unverified",
+          request: {
+            operation: "diffsbdd",
+            payload: { mode: "pocket" },
+          },
+        } as unknown as Job
+      }
+      data={{
+        operation: "diffsbdd",
+        complete: true,
+        protein_artifact: "protein.pdb",
+        reference_artifact: "reference.sdf",
+        ligand_status: { state: "unavailable" },
+        residues: ["A:NaN"],
+      }}
+    />,
+  );
+  expect(screen.getAllByTestId("native-preview")).toHaveLength(1);
+  expect(screen.getByTestId("native-preview")).toHaveTextContent(
+    artifactUrl("unverified", "protein.pdb"),
+  );
+  expect(screen.getByTestId("native-preview")).not.toHaveTextContent(
+    "reference.sdf",
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Pocket residue identities are unavailable",
+  );
+});
 it("previews the retained native molecule file even before scientific objects are registered", async () => {
   vi.spyOn(client, "request").mockResolvedValue([]);
   vi.spyOn(api, "assets").mockResolvedValue([]);

@@ -34,8 +34,12 @@ export function ReferencePocketResults({
     <section
       aria-label={zh ? "参考口袋检查结果" : "Reference pocket inspection"}
     >
-      <p role="status">
-        {zh ? "选区残基" : "Region residues"}: {residues.length}
+      <p role={residues.length ? "status" : "alert"}>
+        {residues.length
+          ? `${zh ? "选区残基" : "Region residues"}: ${residues.length}`
+          : zh
+            ? "无法核对口袋残基，请检查原始结果文件。"
+            : "Pocket residue identities are unavailable; inspect the original result files."}
       </p>
       {ligandDefined && (
         <p className="field-help">
