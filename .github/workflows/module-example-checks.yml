@@ -42,11 +42,8 @@ jobs:
           export WB_STATE_DIR="$WB_HOME/state"
           echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
-          gh release download examples-stat6-results-v1 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v1.zip --dir "$RUNNER_TEMP"
-          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
-          gh release download v0.4.32 --repo "$GITHUB_REPOSITORY" --pattern x-dde-surface-cases-v1.zip --dir "$RUNNER_TEMP"
           .venv/bin/python - <<'PY'
-          import os
+          import os, subprocess
           from pathlib import Path
           from opendde_workbench.examples.bundle import restore_bundle
           from opendde_workbench.examples import bundle_release, stat6_bundle_release, surface_bundle_release
@@ -54,7 +51,9 @@ jobs:
           settings = Settings.from_env()
           assert settings.state_dir.is_relative_to(Path(os.environ['RUNNER_TEMP']))
           for spec in (bundle_release, stat6_bundle_release, surface_bundle_release):
-              file = Path(os.environ['RUNNER_TEMP']) / spec.URL.rsplit('/', 1)[-1]
+              tag, name = spec.URL.rsplit('/', 2)[-2:]
+              subprocess.run(['gh', 'release', 'download', tag, '--repo', os.environ['GITHUB_REPOSITORY'], '--pattern', name, '--dir', os.environ['RUNNER_TEMP']], check=True)
+              file = Path(os.environ['RUNNER_TEMP']) / name
               print(restore_bundle(file, settings, spec.SHA256))
           PY
       - name: Real native region, table and downloads on English desktop and Chinese mobile
