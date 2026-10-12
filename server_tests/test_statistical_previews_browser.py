@@ -38,9 +38,22 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        case = page.request.get(base + "/api/examples/" + capability).json()
-        assert case["pin"], "This gate needs the genuine retained native case"
-        page.goto(base + "/#task=" + case["pin"]["job_id"])
+        case = page.request.get(base + "/api/examples/" + capability + "?profile=archive").json()
+        assert case["pin"], "This gate needs a verified archived native result"
+        identifier = case["pin"]["job_id"]
+        (evidence / (language + "-source.json")).write_text(
+            json.dumps(
+                {
+                    "capability": capability,
+                    "job_id": identifier,
+                    "case_id": case["case"]["id"],
+                    "artifact_sha256": case["pin"]["artifact_sha256"],
+                    "source": "Verified archived native case; separate from the STAT6 template",
+                }
+            ),
+            encoding="utf-8",
+        )
+        page.goto(base + "/#task=" + identifier)
         root = page.locator(".dataset-results")
         expect(root).to_be_visible(timeout=30000)
         charts_tab = root.get_by_role(
@@ -57,11 +70,8 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             (evidence / (language + "-load-failure.txt")).write_text(
                 page.content(), encoding="utf-8"
             )
-            (evidence / (language + "-case.json")).write_text(
-                json.dumps(case, ensure_ascii=False), encoding="utf-8"
-            )
             (evidence / (language + "-job.json")).write_text(
-                page.request.get(base + "/api/jobs/" + case["pin"]["job_id"]).text(),
+                page.request.get(base + "/api/jobs/" + identifier).text(),
                 encoding="utf-8",
             )
             raise
