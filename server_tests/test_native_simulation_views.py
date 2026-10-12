@@ -1,5 +1,6 @@
 """Native MD/FEP output rendered by the actual app; no invented chart coordinates."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,34 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_png, inspect_svg
+
+
+def test_native_binding_switches_during_loading_and_after_transition():
+    source = Path("outputs/native-simulations/openfe.rbfe")
+    identifier = (source / "job-id.txt").read_text().strip()
+    evidence = source / "browser"
+    evidence.mkdir(exist_ok=True)
+    with platform(source / "state", evidence / "lifetime.log") as base, sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(base + "/#task=" + identifier)
+        root = page.get_by_test_id("free-energy-results")
+        root.get_by_role("tab", name="Binding poses", exact=True).click()
+        for _ in range(3):
+            root.get_by_role("button", name="Overlay", exact=True).click()
+            root.get_by_role("button", name="A / B side by side", exact=True).click()
+        expect(root.get_by_role("button", name=re.compile(r"^Download view"))).to_have_count(2)
+        expect(root.get_by_role("button", name=re.compile(r"^Download view")).first).to_be_enabled(
+            timeout=30000
+        )
+        root.get_by_role("button", name="Ligand and pocket", exact=True).first.click()
+        page.get_by_role("button", name="Task modules", exact=True).click()
+        expect(page.get_by_role("group", name="Task modules", exact=True)).to_be_visible()
+        page.screenshot(path=str(evidence / "native-binding-lifetime.png"), full_page=True)
+        assert not errors
+        browser.close()
 
 
 @pytest.mark.parametrize("case", ["openmm.dynamics", "openfe.rbfe", "openfe.calculation"])

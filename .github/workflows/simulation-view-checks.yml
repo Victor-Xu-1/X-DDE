@@ -24,6 +24,8 @@ on:
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "frontend/src/simulations/molstar-controller.ts"
       - "frontend/src/simulations/molecular-focus*"
+      - "frontend/src/simulations/molecular-depth*"
+      - "frontend/src/simulations/viewport-lifetime*"
       - "frontend/src/viewer/molstar-sticks.ts"
       - "frontend/src/editors/molstar-appearance*"
       - "frontend/src/publication/plotly*"
@@ -62,6 +64,7 @@ jobs:
           src/simulations/OverlapHeatmap.test.tsx src/simulations/overlap-data.test.ts
           src/presentation/plots/InteractivePlot.test.tsx
           src/simulations/molecular-focus.test.ts src/simulations/bound-pairs.test.ts
+          src/simulations/molecular-depth.test.ts src/simulations/viewport-lifetime.test.ts
           src/simulations/molstar-figure.test.ts
           src/simulations/BoundPoseComparison.test.tsx
           src/simulations/comparison-figure.test.ts src/simulations/molecular-view-state.test.ts
