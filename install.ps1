@@ -3,7 +3,7 @@ param(
     [string]$Distribution = '',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
-    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.5.30'
+    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.5.31'
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
