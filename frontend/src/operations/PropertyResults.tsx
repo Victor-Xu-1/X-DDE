@@ -9,6 +9,7 @@ import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MetricScatter } from "../presentation/MetricScatter";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { MetricHelp, type metrics } from "../guided/MetricHelp";
+import { propertySource } from "./property-source";
 type Row = LigandProperties & { index: number };
 export function PropertyResults({
   job,
@@ -23,11 +24,13 @@ export function PropertyResults({
 }) {
   const zh = language === "zh",
     rows = molecules.map((m, index) => ({ ...m, index }));
-  const moleculeName = (row: Row) => row.name?.trim() || (zh ? "分子 " : "Molecule ") + (row.index + 1);
+  const moleculeName = (row: Row) =>
+    row.name?.trim() || (zh ? "分子 " : "Molecule ") + (row.index + 1);
   const [selection, setSelection] = useState(
     rows.find((row) => row.available)?.index ?? 0,
   );
   const current = rows.find((row) => row.index === selection);
+  const source = current ? propertySource(job, current) : null;
   const numeric = [
     { key: "mw", label: "MW (g/mol)" },
     { key: "logp", label: "LogP" },
@@ -58,9 +61,7 @@ export function PropertyResults({
             label={moleculeName(row)}
           />
           <span>
-            <strong>
-              {moleculeName(row)}
-            </strong>
+            <strong>{moleculeName(row)}</strong>
             {!row.available && <small>{row.reason}</small>}
           </span>
         </button>
@@ -105,9 +106,7 @@ export function PropertyResults({
           {current && (
             <>
               <header>
-                <h3>
-                  {moleculeName(current)}
-                </h3>
+                <h3>{moleculeName(current)}</h3>
                 {current.available && current.smiles && onDraft && (
                   <button
                     type="button"
@@ -135,7 +134,9 @@ export function PropertyResults({
                 <MolecularPreview
                   language={language}
                   label={moleculeName(current)}
-                  source={{ smiles: current.smiles }}
+                  source={source ?? { smiles: current.smiles }}
+                  urls={source ? [source.url] : undefined}
+                  records={source ? [source.record] : undefined}
                 />
               ) : (
                 <p role="status">{current.reason}</p>

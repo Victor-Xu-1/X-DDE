@@ -251,6 +251,7 @@ on:
       - "!frontend/src/integrations/ScientificResults.tsx"
       - "!frontend/src/operations/CandidateSequenceResults.test.tsx"
       - "!frontend/src/operations/PropertyResults.test.tsx"
+      - "!frontend/src/operations/property-source*"
       - "!server_tests/test_result_visuals_browser.py"
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/presentation/plots/**"
