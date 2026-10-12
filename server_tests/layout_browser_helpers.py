@@ -1,6 +1,9 @@
 """DOM geometry checks for task pages, independent of scientific runtimes."""
 
 import json
+import os
+import re
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from depiction_browser_helpers import settle_visible_drawings
 from layout_template_choices import choose_template_objective
@@ -20,8 +23,44 @@ def initialize_layout_language(page):
     }""")
 
 
+def archive_example_url(url):
+    """Select the real retained-case API without replacing an explicit profile."""
+    parts = urlsplit(url)
+    if parts.path != "/api/examples" and not parts.path.startswith("/api/examples/"):
+        raise ValueError("Only example endpoints belong to the archived layout fixture.")
+    query = parse_qsl(parts.query, keep_blank_values=True)
+    profiles = [value for key, value in query if key == "profile"]
+    if any(value != "archive" for value in profiles):
+        raise ValueError("An explicit example profile must not be silently replaced.")
+    if not profiles:
+        query.append(("profile", "archive"))
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def initialize_layout_page(page):
+    """Use Chinese-initial UI and genuine archived cases for this acceptance gate."""
+    initialize_layout_language(page)
+    base = os.environ["WB_BROWSER_URL"].rstrip("/")
+    page.route(
+        re.compile(r"^" + re.escape(base) + r"/api/examples(?:[/?]|$)"),
+        lambda route: route.continue_(url=archive_example_url(route.request.url)),
+    )
+
+
+def layout_navigation(page):
+    """Open the responsive drawer through the same control as a researcher."""
+    if page.viewport_size["width"] <= 960:
+        trigger = page.get_by_role("button", name="打开研究导航", exact=True)
+        expect(trigger).to_be_visible()
+        if trigger.get_attribute("aria-expanded") != "true":
+            trigger.click()
+    navigation = page.get_by_role("navigation", name="主导航", exact=True)
+    expect(navigation).to_be_visible()
+    return navigation
+
+
 def catalog(page):
-    page.get_by_role("navigation", name="主导航").get_by_role(
+    layout_navigation(page).get_by_role(
         "button", name="全部能力", exact=True
     ).click()
     expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
@@ -145,7 +184,7 @@ def capture_utilities(page, evidence, width):
     """Inspect workspace utilities at the same actual viewport as their task group."""
     page.set_viewport_size({"width": width, "height": 1000})
     rows = []
-    nav = page.get_by_role("navigation", name="主导航")
+    nav = layout_navigation(page)
     expect(nav.get_by_role("button")).to_have_count(12)
     nav.get_by_role("button", name="研究空间", exact=True).click()
     for tab in ("项目", "研究文件", "结构编辑"):
@@ -163,9 +202,10 @@ def capture_utilities(page, evidence, width):
             assert confirm["width"] < bounds["width"] * 0.6
             rows.append(capture(page, evidence, "研究项目", "create-dialog"))
             page.get_by_role("button", name="取消", exact=True).click()
-    nav.get_by_role("button", name="任务与结果", exact=True).click()
+    layout_navigation(page).get_by_role("button", name="任务与结果", exact=True).click()
     rows.append(capture(page, evidence, "任务与结果", "utility"))
     for label in ("安装与运行", "界面设置", "使用帮助"):
+        layout_navigation(page)
         page.get_by_role("button", name="设置与帮助", exact=True).click()
         expect(page.get_by_role("menuitem")).to_have_count(3)
         page.get_by_role("menuitem", name=label, exact=True).click()

@@ -8,7 +8,12 @@ import os
 import struct
 from pathlib import Path
 
-from layout_browser_helpers import catalog, initialize_layout_language
+from layout_browser_helpers import (
+    archive_example_url,
+    catalog,
+    initialize_layout_page,
+    layout_navigation,
+)
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -21,7 +26,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
-        initialize_layout_language(page)
+        initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -29,7 +34,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        examples = page.request.get(base + "/api/examples").json()["examples"]
+        examples = page.request.get(archive_example_url(base + "/api/examples")).json()["examples"]
         example = next(item for item in examples if item["module"]["capability_id"] == "epitope")
         job_id = example["pin"]["job_id"]
         job = page.request.get(base + f"/api/jobs/{job_id}").json()
@@ -179,6 +184,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
                 "native-epitope-compact.png",
             )
             page.get_by_role("button", name="关闭图片", exact=True).click()
+            layout_navigation(page)
             page.get_by_role("button", name="设置与帮助", exact=True).click()
             page.get_by_role("menuitem", name="界面设置", exact=True).click()
             page.locator("#settings-language").select_option("en")
