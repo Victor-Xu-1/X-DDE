@@ -3,7 +3,7 @@ param(
     [string]$Distribution = '',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
-    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.5.44'
+    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.5.45'
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -105,7 +105,16 @@ if ($uvVersion -notlike 'uv 0.12.20*') {
 }
 & wsl.exe -d $Distribution -u $LinuxUser -- bash "$linuxRoot/install.sh" $Release $prefix "$linuxRoot/downloads"
 if ($LASTEXITCODE -ne 0) { throw 'Workbench install failed. Fix the displayed error and run this installer again.' }
-@{ distribution = $Distribution; user = $LinuxUser; prefix = $prefix; home = "$linuxHome/.local/share/opendde-workbench" } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding UTF8
+$appConfig = @{ distribution = $Distribution; user = $LinuxUser; prefix = $prefix; home = "$linuxHome/.local/share/opendde-workbench" }
+if ($savedConfig) {
+    if ($savedConfig.distribution -eq $Distribution -and $savedConfig.user -eq $LinuxUser -and
+        $savedConfig.home -and ([string]$savedConfig.home).StartsWith('/')) {
+        $appConfig.home = $savedConfig.home
+    }
+    $savedProxy = $savedConfig.PSObject.Properties['network_proxy']
+    if ($savedProxy -and $savedProxy.Value) { $appConfig.network_proxy = $savedProxy.Value }
+}
+$appConfig | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding UTF8
 foreach ($launcher in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
     '@echo off', 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0xdde-launcher.ps1" %*', 'exit /b %errorlevel%' | Set-Content -LiteralPath (Join-Path $bin $launcher) -Encoding ASCII
 }

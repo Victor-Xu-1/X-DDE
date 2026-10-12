@@ -28,6 +28,12 @@ npm run build --prefix frontend
 
 ## 发布编号
 
+Windows 启动器会向指定的 X-DDE WSL 进程传递当前 HTTP(S) 代理，并保持
+`localhost` / `127.0.0.1` / `::1` 直接访问。在应用 `bin/workbench.json` 中
+可用可选的 `network_proxy` 保存不含认证信息的 HTTP(S) 代理地址；不修改共享
+WSL 或其他应用的网络设置。升级保留同一发行版和账号的既有研究主目录与
+应用代理。GitHub 文件仍通过原 HTTPS 地址下载并校验固定 SHA-256。
+
 `pyproject.toml` 是版本权威。每次向 main 推送可发布更新，版本末位递增一次；同一候选批次的修正保留该版本。
 
 ```bash

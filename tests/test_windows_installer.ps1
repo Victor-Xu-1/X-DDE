@@ -124,6 +124,15 @@ try {
         $rejected = $true
     }
     if (!$rejected -or $boundary.installations -ne 4) { throw 'Corrupt release reached the installation boundary.' }
+    $boundary.corrupt = $false
+    $config.home = '/srv/wsl/data/retained-study-home'
+    $config | Add-Member -NotePropertyName network_proxy -NotePropertyValue 'http://127.0.0.1:7890'
+    $config | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $target 'bin/workbench.json') -Encoding UTF8
+    & (Join-Path $repository 'install.ps1') -InstallRoot $target
+    $retainedConfig = Get-Content -LiteralPath (Join-Path $target 'bin/workbench.json') -Raw | ConvertFrom-Json
+    if ($retainedConfig.home -ne $config.home -or $retainedConfig.network_proxy -ne $config.network_proxy) {
+        throw 'Upgrading discarded the existing study home or application proxy.'
+    }
     Write-Output 'Windows installer paths, verified local files, corruption rejection, configuration and aliases passed.'
 } finally {
     [Environment]::SetEnvironmentVariable('Path', $previousPath, 'User')
