@@ -44,6 +44,10 @@ class Worker:
                 self.store.clear_queue_halt(halt["job_id"])
         for job in self.store.unfinished():
             try:
+                paused = getattr(self.engine, "retained_pause", None)
+                if job.status == Status.RUNNING and paused and await paused(job):
+                    self.store.retain_paused(job.id)
+                    continue
                 await self.engine.stop(job.id)
             except Exception as exc:
                 self.error = "Recovery could not confirm task cancellation; queue paused. " + (

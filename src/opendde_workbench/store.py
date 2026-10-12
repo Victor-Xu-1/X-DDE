@@ -293,6 +293,26 @@ class Store:
                 (status, status, error, now(), job_id),
             )
 
+    def retain_paused(self, job_id: str) -> Job:
+        """A verified native pause keeps the original request, start time and outputs."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute("UPDATE jobs SET status='paused' WHERE id=? AND status='running'", (job_id,))
+            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if row is None or row["status"] != "paused":
+                raise ConflictError("The task changed before its native pause could be retained.")
+            return self.decode(row)
+
+    def cancel_paused(self, job_id: str) -> Job:
+        """Called only after the native backend confirms cancellation."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute(
+                "UPDATE jobs SET status='cancelled',finished_at=? WHERE id=? AND status='paused'",
+                (now(), job_id),
+            )
+            return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
+
     def unfinished(self) -> list[Job]:
         with self.connect() as db:
             return [

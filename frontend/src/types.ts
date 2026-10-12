@@ -3,6 +3,7 @@ export type Language = "zh" | "en";
 export type Status =
   | "queued"
   | "running"
+  | "paused"
   | "cancelling"
   | "succeeded"
   | "failed"

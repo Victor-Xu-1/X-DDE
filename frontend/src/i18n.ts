@@ -53,6 +53,7 @@ export const messages = {
   selected: ["任务详情", "Task details"],
   queued: ["排队中", "Queued"],
   running: ["运行中", "Running"],
+  paused: ["已暂停", "Paused"],
   cancelling: ["正在取消", "Cancelling"],
   succeeded: ["已完成", "Completed"],
   failed: ["失败", "Failed"],

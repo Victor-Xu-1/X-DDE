@@ -185,6 +185,16 @@ class BackendRouter:
         else:
             raise ValueError("No execution adapter for registered engine: " + implementation)
 
+    async def retained_pause(self, job):
+        implementation = engine_for(job.request.operation).id
+        if implementation not in self.scientific:
+            return False
+        from .native_pause import retained_pause
+
+        return await retained_pause(
+            implementation, job.id, self.settings.state_dir / "jobs" / job.id
+        )
+
     async def readiness(self):
         # Preserve the existing OpenDDE health contract; expose other engines independently.
         (

@@ -460,8 +460,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return required(job_id)
 
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=[Depends(mutation)])
-    def cancel(job_id: UUID):
+    async def cancel(job_id: UUID):
         job = required(job_id)
+        if job.status == "paused":
+            try:
+                await engine.stop(job.id)
+            except (OSError, RuntimeError, TimeoutError) as exc:
+                raise HTTPException(503, "Native cancellation could not be confirmed.") from exc
+            return store.cancel_paused(job.id)
         if (
             job.status == "running"
             and job.request.operation == "harness"
