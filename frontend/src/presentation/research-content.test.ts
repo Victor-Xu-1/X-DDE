@@ -29,3 +29,14 @@ it("retains contacts and units while removing server paths and stack traces", ()
     "分子缺少三维坐标",
   );
 });
+
+it("keeps accepted-task recovery wording independent of link placement", () => {
+  const message =
+    "Task created, but its page could not be opened. Use the task link below.";
+  expect(researchError(message, false)).toBe(
+    "Task created, but its page could not be opened. Use the task link.",
+  );
+  expect(researchError(message, true)).toBe(
+    "任务已创建，但未能自动打开。请使用任务链接。",
+  );
+});
