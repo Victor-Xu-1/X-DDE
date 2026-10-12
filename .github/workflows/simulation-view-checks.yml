@@ -2,7 +2,7 @@ name: Interactive dynamics and FEP previews
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &simulation_paths
       - "frontend/src/simulations/DynamicsResults.tsx"
       - "frontend/src/simulations/SimulationPlot.tsx"
       - "frontend/src/simulations/SimulationResults.test.tsx"
@@ -41,6 +41,8 @@ on:
       - "server_tests/test_fep_diagnostics_browser.py"
       - "server_tests/test_native_simulation_views.py"
       - ".github/workflows/simulation-view-checks.yml"
+  pull_request:
+    paths: *simulation_paths
 permissions:
   contents: read
 jobs:
