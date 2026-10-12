@@ -54,8 +54,11 @@ def test_reference_pocket_uses_one_exact_receptor_ligand_region(language, width)
             'button',
             name='生成三维视图图片' if language == 'zh' else 'Capture 3D view', exact=True,
         )).to_be_enabled()
-        region.locator('summary').click()
-        expect(region.locator('tbody tr')).to_have_count(count)
+        residue_details = region.locator('details').filter(has=page.get_by_text(
+            '查看口袋残基' if language == 'zh' else 'Inspect pocket residues', exact=True,
+        ))
+        residue_details.locator('summary').click()
+        expect(residue_details.locator('tbody tr')).to_have_count(count)
         for field in ('protein_artifact', 'pocket_artifact', 'reference_artifact'):
             name = native[field]
             response = page.request.get(
