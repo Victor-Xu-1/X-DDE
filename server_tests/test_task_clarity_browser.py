@@ -61,7 +61,9 @@ def test_molecular_templates_have_relevant_steps_and_exact_file_review(capabilit
                 expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
                 expect(drawing.get_by_role("img")).to_be_visible()
                 expect(page.locator(".molecular-input-review figcaption")).to_contain_text(
-                    "首个分子" if zh else "First molecule"
+                    ("待预测分子 · 第 1 条记录" if zh else "Molecule to predict · Record 1")
+                    if capability == "admet.predict"
+                    else ("首个分子" if zh else "First molecule")
                 )
                 assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
                 svg = drawing.get_by_role("img").get_attribute("src")
