@@ -365,3 +365,90 @@ it("returns to the full catalogue when its navigation entry is chosen inside a t
   ).not.toBeInTheDocument();
   expect(submit).not.toHaveBeenCalled();
 });
+
+it.each(["en", "zh"] as const)(
+  "preserves ongoing header typing when delayed legacy task ownership resolves (%s)",
+  async (language) => {
+    vi.mocked(i18n.restoreLanguage).mockReturnValue(language);
+    vi.mocked(api.jobs).mockResolvedValue([]);
+    window.history.replaceState(null, "", "/#task=" + jobs[0].id);
+    let resolve!: (value: Job) => void;
+    vi.mocked(apiClient.request).mockImplementation(async (path) => {
+      if (path === `/jobs/${jobs[0].id}`)
+        return new Promise<Job>((done) => {
+          resolve = done;
+        }) as never;
+      if (path === `/task-history/${jobs[0].id}/identity`)
+        return identityFixture(jobs[0]) as never;
+      throw new Error("Unhandled test request: " + path);
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    const search = screen.getByRole("searchbox", {
+      name: language === "zh" ? "搜索任务" : "Search tasks",
+    });
+    await user.type(search, "STA");
+    expect(search).toHaveFocus();
+    expect(window.location.hash).toBe("#task=" + jobs[0].id);
+    await act(async () => {
+      resolve(jobs[0]);
+    });
+    expect(document.querySelector(".page-context-title")).toHaveTextContent(
+      language === "zh" ? "结构预测" : "Structure prediction",
+    );
+    expect(search).toHaveFocus();
+    await user.keyboard("T6");
+    expect(search).toHaveValue("STAT6");
+    expect(window.location.hash).toBe(
+      "#view=results&module=structures&task=" + jobs[0].id,
+    );
+  },
+);
+
+it("keeps initial and explicit keyboard navigation focus inside main", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const main = screen.getByRole("main");
+  expect(main).toContainElement(document.activeElement as HTMLElement);
+  const target = within(
+    screen.getByRole("navigation", { name: "Main navigation" }),
+  ).getByRole("button", { name: "Structure prediction" });
+  target.focus();
+  await user.keyboard("{Enter}");
+  expect(document.querySelector(".page-context-title")).toHaveTextContent(
+    "Structure prediction",
+  );
+  expect(main).toContainElement(document.activeElement as HTMLElement);
+});
+
+it("focuses the selected result after keyboard selection from header search", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const search = screen.getByRole("searchbox", { name: "Search tasks" });
+  await user.type(search, "Ungrouped");
+  const result = await screen.findByRole("button", { name: /Ungrouped task/ });
+  await user.keyboard("{ArrowDown}");
+  expect(result).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("main")).toHaveFocus();
+  expect(
+    await screen.findByRole("heading", { name: "Ungrouped task" }),
+  ).toBeVisible();
+  expect(search).toHaveValue("");
+});
+
+it("focuses main after keyboard selection from task notifications", async () => {
+  vi.mocked(api.jobs).mockResolvedValue([{ ...jobs[0], status: "failed" }]);
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(screen.getByLabelText("Task notifications"));
+  const result = await screen.findByRole("button", {
+    name: /Ungrouped task.*Failed/,
+  });
+  result.focus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("main")).toHaveFocus();
+  expect(
+    await screen.findByRole("heading", { name: "Ungrouped task" }),
+  ).toBeVisible();
+});
