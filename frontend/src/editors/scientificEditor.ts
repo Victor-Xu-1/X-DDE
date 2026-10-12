@@ -1,3 +1,7 @@
+import {
+  AssetFileError,
+  readAssetFileWithMetadata,
+} from "../research/asset-file";
 import { molecularRecordText } from "../presentation/molecular-record";
 import type { ScientificObject } from "../research/types";
 export { MoleculeSaveIntent } from "./molecule-save-intent";
@@ -76,20 +80,48 @@ export async function molecularRecord(
   object: ScientificObject,
   signal: AbortSignal,
 ) {
-  const response = await fetch(`/api/assets/${object.reference.asset_id}`, {
-    signal,
-  });
-  if (
-    !response.ok ||
-    Number(response.headers.get("Content-Length")) > 5 * 1024 ** 2
-  )
-    throw new Error("Molecule file is unavailable or exceeds 5 MiB.");
-  const format = response.headers.get("X-Structure-Format");
-  if (format !== "sdf" && format !== "mol")
-    throw new Error(
-      "Convert this molecule explicitly to MOL or SDF before editing in Ketcher.",
+  signal.throwIfAborted();
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal.reason);
+  signal.addEventListener("abort", abort, { once: true });
+  const timer = setTimeout(
+    () =>
+      controller.abort(
+        new DOMException(
+          "Molecule file loading timed out. Reopen the selected version and try again.",
+          "TimeoutError",
+        ),
+      ),
+    30_000,
+  );
+  try {
+    const { bytes, suffix } = await readAssetFileWithMetadata(
+      object.reference,
+      controller.signal,
+      { kind: "ligand", suffixes: [".sdf", ".mol"], maxBytes: 5 * 1024 ** 2 },
     );
-  const text = await response.text();
-  if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum");
-  return molecularRecordText(text, object.reference.record, format);
+    return molecularRecordText(
+      new TextDecoder().decode(bytes),
+      object.reference.record,
+      suffix.slice(1),
+    );
+  } catch (error) {
+    // Metadata parsing may wrap a fetch abort; preserve its original reason.
+    controller.signal.throwIfAborted();
+    if (error instanceof AssetFileError) {
+      if (error.code === "format")
+        throw new Error(
+          "Convert this molecule explicitly to MOL or SDF before editing in Ketcher.",
+        );
+      if (error.code === "limit")
+        throw new Error("Molecule file is unavailable or exceeds 5 MiB.");
+      throw new Error(
+        "The molecule file does not match the selected version. Choose an intact version and try again.",
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener("abort", abort);
+  }
 }
