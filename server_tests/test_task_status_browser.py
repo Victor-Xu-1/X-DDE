@@ -557,7 +557,9 @@ def test_leave_unlisted_pending_task_and_select_another(fixture_page, language, 
     ).click()
     expect(pending).to_have_count(0)
     expect_cancelled(page, cancelled, f"/api/jobs/{A}", f"/api/jobs/{A}/artifacts")
-    page.get_by_role("button", name=re.compile("性质与安全性|Properties and safety")).click()
+    page.get_by_role(
+        "group", name="任务模块" if language == "zh" else "Task modules", exact=True
+    ).get_by_role("button", name=re.compile("性质与安全性|Properties and safety")).click()
     page.get_by_role("button", name="Browser control task B", exact=True).click()
     expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
     expect(page).to_have_url(re.compile("task=" + B))
