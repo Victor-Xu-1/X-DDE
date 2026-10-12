@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { deploymentFixture, packageOf } from "./fixtures";
+import { componentName } from "./labels";
 
 afterEach(cleanup);
 const packages = [
@@ -40,11 +41,9 @@ it.each([true, false])(
       }),
     );
     const cards = screen.getAllByRole("article");
-    expect(cards.map((card) => card.getAttribute("aria-label"))).toEqual([
-      "OpenMM",
-      "GROMACS",
-      "OpenFE",
-    ]);
+    expect(cards.map((card) => card.getAttribute("aria-label"))).toEqual(
+      [packages[0], packages[2], packages[1]].map((p) => componentName(p, zh)),
+    );
     expect(
       screen.queryByText(/Optional models|可选模型与配套组件/),
     ).not.toBeInTheDocument();
@@ -79,10 +78,9 @@ it("keeps the recommended installation separate from visible alternate engines",
   );
   expect(install).toHaveBeenCalledWith(["openmm", "openfe"]);
   await user.click(
-    within(screen.getByRole("article", { name: "GROMACS" })).getByRole(
-      "button",
-      { name: "Install" },
-    ),
+    within(
+      screen.getByRole("article", { name: componentName(packages[2], false) }),
+    ).getByRole("button", { name: "Install" }),
   );
   expect(install).toHaveBeenLastCalledWith(["gromacs"]);
 });

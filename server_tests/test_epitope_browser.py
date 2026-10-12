@@ -10,7 +10,9 @@ from pathlib import Path
 
 from layout_browser_helpers import catalog
 from playwright.sync_api import expect, sync_playwright
+
 from server_tests.archived_case_browser import archived_case_context
+from server_tests.test_navigation_shell_browser import settings
 
 
 def test_native_epitope_contacts_structure_selection_and_downloads():
@@ -31,7 +33,9 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        examples = page.request.get(base + "/api/examples", params={"profile": "archive"}).json()["examples"]
+        examples = page.request.get(
+            base + "/api/examples", params={"profile": "archive"}
+        ).json()["examples"]
         example = next(item for item in examples if item["module"]["capability_id"] == "epitope")
         job_id = example["pin"]["job_id"]
         job = page.request.get(base + f"/api/jobs/{job_id}").json()
@@ -181,8 +185,7 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
                 "native-epitope-compact.png",
             )
             page.get_by_role("button", name="关闭图片", exact=True).click()
-            page.get_by_role("button", name="设置与帮助", exact=True).click()
-            page.get_by_role("menuitem", name="界面设置", exact=True).click()
+            settings(page, "zh")
             page.locator("#settings-language").select_option("en")
             page.set_viewport_size({"width": 1440, "height": 1000})
             open_result(english=True)

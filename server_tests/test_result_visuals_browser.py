@@ -48,7 +48,20 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_text("正在读取结果…", exact=True)).not_to_be_visible(timeout=30000)
 
         def record(name):
-            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            overflow = page.evaluate("""() => ({
+                width: innerWidth, scroll: document.documentElement.scrollWidth,
+                elements: [...document.querySelectorAll('main *')].map(node => {
+                    const box = node.getBoundingClientRect();
+                    return {tag: node.tagName, className: node.className,
+                        left: box.left, right: box.right, width: box.width};
+                }).filter(box => box.width > 0 && box.right > innerWidth + 1).slice(0, 30)
+            })""")
+            if overflow["scroll"] > overflow["width"] + 1:
+                page.screenshot(path=str(evidence / ("overflow-" + name + ".png")))
+                (evidence / ("overflow-" + name + ".json")).write_text(
+                    json.dumps(overflow, ensure_ascii=False, indent=2)
+                )
+            assert overflow["scroll"] <= overflow["width"] + 1, overflow
             settle_visible_drawings(page)
             page.screenshot(path=str(evidence / ("visual-" + name + ".png")))
             steps.append(name)

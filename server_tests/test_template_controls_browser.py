@@ -234,8 +234,14 @@ def test_archived_results_keep_original_identity_outside_the_active_study(case_p
             # Retained results open through the actual task route, never as STAT6 outputs.
             page.goto(base + "/#task=" + job_id)
             if capability == "predict":
-                page.locator(".execution-detail > summary").click()
-            detail = page.locator(".detail-panel")
+                results = page.locator(".task-result-content .prediction-workspace")
+                expect(results.locator(".result-task-name")).to_contain_text(
+                    archived["case"]["label"][index], timeout=30000
+                )
+                files = results.locator(".execution-detail")
+                if files.get_attribute("open") is None:
+                    files.locator("summary").click()
+            detail = page.locator(".task-result-content .detail-panel")
             expect(detail).to_be_visible()
             expect(detail.locator(".panel-heading h2")).to_contain_text(
                 archived["case"]["label"][index]
