@@ -98,7 +98,7 @@ export function LibraryScreenResults({
             <tr>
               {[
                 zh ? "原始编号" : "Input record",
-                "SMILES",
+                zh ? "分子结构" : "Molecule",
                 zh ? "分子量" : "MW",
                 "LogP",
                 ...(alertsRequested

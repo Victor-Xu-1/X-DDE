@@ -5,6 +5,15 @@ import pytest
 from opendde_workbench.examples.stat6.guidance import steps
 
 
+def test_library_selection_instructions_preserve_assay_and_chemical_method_scope():
+    guidance = steps("chemistry.screen")
+    assert len(guidance) == 4 and all(len(item) == 2 for item in guidance)
+    english = " ".join(item[1] for item in guidance)
+    assert "cellular assay" in english and "do not rank activity" in english
+    assert "not silently desalted" in english
+    assert "protein pocket" not in english and "research region" not in english
+
+
 @pytest.mark.parametrize("capability", ["properties", "admet.predict"])
 def test_molecular_steps_match_their_input_and_confirmation_contracts(capability):
     guidance = steps(capability)

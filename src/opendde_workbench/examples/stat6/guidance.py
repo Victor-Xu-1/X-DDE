@@ -78,6 +78,29 @@ def steps(capability):
     simulation = simulation_steps(capability)
     if simulation is not None:
         return simulation
+    if capability == "chemistry.screen":
+        return [
+            (
+                "载入分子库；模板为同一 STAT6 细胞实验的 38 个真实化合物。",
+                "Load the molecular library; the template contains 38 real compounds "
+                "from one STAT6 cellular assay.",
+            ),
+            (
+                "选择相似性、骨架代表或性质筛选；这些方法不对药效排序。",
+                "Choose similarity, scaffold representatives or descriptor selection; "
+                "these methods do not rank activity.",
+            ),
+            (
+                "设置输出数量和结构提醒；多片段记录需单独准备，不会自动去盐。",
+                "Set output limits and structural alerts; multicomponent records "
+                "need separate preparation and are not silently desalted.",
+            ),
+            (
+                "核对筛选方法后递交，再查看原始编号、选择原因及可下载的结构。",
+                "Confirm the method before submission, then review source record "
+                "identities, selection reasons and downloadable structures.",
+            ),
+        ]
     if capability in {"properties", "admet.predict"}:
         molecular_steps = {
             "properties": [

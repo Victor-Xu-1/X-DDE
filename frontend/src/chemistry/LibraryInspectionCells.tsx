@@ -69,14 +69,17 @@ export function ScaffoldCell({
             : "Murcko scaffold: ") + group.smiles
       }
     >
-      {group.kind === "acyclic"
-        ? zh
-          ? "无环组"
-          : "Acyclic family"
-        : zh
-          ? "骨架"
-          : "Scaffold"}{" "}
-      {group.index + 1}
+      <span>
+        {group.kind === "acyclic"
+          ? zh
+            ? "无环组"
+            : "Acyclic family"
+          : zh
+            ? "骨架"
+            : "Scaffold"}{" "}
+        {group.index + 1}
+      </span>
+      {" · "}
       <small>
         {zh
           ? `${group.records.length} 个原始分子`
