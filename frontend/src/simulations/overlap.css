@@ -1,0 +1,64 @@
+.fep-heatmap {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) minmax(240px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.fep-overlap-figure,
+.fep-adjacent-overlap {
+  min-width: 0;
+}
+.fep-adjacent-overlap {
+  max-width: 460px;
+}
+.fep-adjacent-overlap header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fep-adjacent-overlap h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.fep-overlap-table-scroll {
+  max-height: 420px;
+  overflow: auto;
+  margin-top: 14px;
+}
+.fep-adjacent-overlap table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.fep-adjacent-overlap th,
+.fep-adjacent-overlap td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+.fep-adjacent-overlap th:first-child {
+  text-align: left;
+}
+.fep-adjacent-overlap thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface, #fff);
+}
+.fep-adjacent-overlap tbody th {
+  font-weight: 500;
+}
+@media (max-width: 1100px) {
+  .fep-heatmap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  .fep-overlap-figure {
+    max-width: 620px;
+  }
+  .fep-adjacent-overlap {
+    max-width: none;
+  }
+}

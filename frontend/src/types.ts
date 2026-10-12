@@ -3,6 +3,7 @@ export type Language = "zh" | "en";
 export type Status =
   | "queued"
   | "running"
+  | "paused"
   | "cancelling"
   | "succeeded"
   | "failed"
@@ -64,6 +65,7 @@ export interface Project {
 }
 export interface LigandProperties {
   input: string;
+  name?: string;
   available: boolean;
   reason?: string;
   smiles?: string;
@@ -151,7 +153,7 @@ export interface Health {
   worker_ready: boolean;
   worker_error: string | null;
   queue_wait_reason?: string | null;
-  free_disk_gib: number;
+  free_disk_gib: number | null;
   disk_total_gib: number;
   capabilities: {
     prediction: boolean;

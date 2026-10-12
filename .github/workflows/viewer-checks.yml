@@ -2,7 +2,7 @@ name: Molecular preview and ensemble checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &viewer_paths
       - "frontend/src/viewer/**"
       - "frontend/src/poses/PoseResults*"
       - "frontend/src/poses/PoseList*"
@@ -83,6 +83,8 @@ on:
       - "!frontend/src/viewer/pose-types.ts"
       - "!frontend/src/viewer/usePoseHandoff.ts"
       - "!frontend/src/viewer/usePoseOptimization.test.tsx"
+  pull_request:
+    paths: *viewer_paths
 permissions:
   contents: read
 jobs:

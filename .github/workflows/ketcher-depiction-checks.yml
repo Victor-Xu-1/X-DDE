@@ -2,7 +2,7 @@ name: Shared hydrogen display policy
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &display_policy_paths
       - 'frontend/src/editors/ketcher-hydrogens*'
       - 'frontend/src/editors/ketcher-appearance*'
       - 'frontend/src/editors/Editors.tsx'
@@ -22,6 +22,8 @@ on:
       - '.github/workflows/ketcher-depiction-checks.yml'
       # Routing-only edits are checked by the affected feature gate; chemistry
       # changes above still run the full focused hydrogen/depiction contract.
+  pull_request:
+    paths: *display_policy_paths
 permissions:
   contents: read
 jobs:

@@ -71,6 +71,10 @@ def test_ketcher_preview_matches_download_and_mobile_settings(language):
             page.screenshot(path=EVIDENCE / (language + "-input-focus-failure.png"))
             raise AssertionError(active) from error
         expect(search).to_have_value("STAT6")
+        # Continue the same keyboard interaction without fill/click refocusing it.
+        page.keyboard.type(" focus")
+        expect(search).to_have_value("STAT6 focus")
+        expect(search).to_be_focused()
         search.fill("")
         trigger = drawing.get_by_role(
             "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓", exact=True

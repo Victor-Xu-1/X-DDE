@@ -14,6 +14,7 @@ import {
   type SavedMolecularView,
   type MolecularViewHandle,
 } from "./molecular-view-state";
+import { useMolecularPresentation } from "./useMolecularPresentation";
 
 export function MolecularViewport({
   sources = [],
@@ -35,7 +36,7 @@ export function MolecularViewport({
   ligandContext?: boolean;
   language: Language;
   focusResidue?: Residue | null;
-  onReady?(): void;
+  onReady?(ready: boolean): void;
   onExport?(): void;
   fixedLigand?: "a" | "b";
   savedView?: SavedMolecularView;
@@ -49,7 +50,6 @@ export function MolecularViewport({
   ready.current = onReady;
   const [loaded, setLoaded] = useState(false),
     [failure, setFailure] = useState("");
-  const [presentedFrame, setPresentedFrame] = useState(0);
   const [atom, setAtom] = useState("");
   const [surfaceSummary, setSurfaceSummary] = useState<SurfaceSummary | null>(
     null,
@@ -79,6 +79,30 @@ export function MolecularViewport({
     sources.filter((source) => source.role === "ligand").length > 1 &&
     view.ligand === "all";
   const sourceKey = JSON.stringify({ sources, frames, ligandContext });
+  const presentation = useMolecularPresentation(
+    controller.current,
+    loaded,
+    sourceKey,
+    Boolean(frames),
+    frame,
+    view,
+  );
+  const captureReady = useRef(false);
+  captureReady.current = presentation.ready;
+  function publishHandle(instance: MolecularController) {
+    handleChange.current?.({
+      capture: (settings, pixels) => {
+        if (!captureReady.current || controller.current !== instance)
+          throw new Error("The requested molecular view is not ready.");
+        return instance.figure(settings, pixels);
+      },
+      snapshot: () => ({
+        view: { ...liveView.current },
+        camera: instance.cameraSnapshot(),
+      }),
+      restoreCamera: (snapshot) => instance.restoreCamera(snapshot),
+    });
+  }
   useEffect(() => {
     const signal = new AbortController();
     let instance: MolecularController | undefined;
@@ -112,15 +136,6 @@ export function MolecularViewport({
         if (!signal.signal.aborted) {
           setSurfaceSummary(instance.surfaceSummary);
           setLoaded(true);
-          handleChange.current?.({
-            capture: (settings, pixels) => instance!.figure(settings, pixels),
-            snapshot: () => ({
-              view: { ...liveView.current },
-              camera: instance!.cameraSnapshot(),
-            }),
-            restoreCamera: (snapshot) => instance!.restoreCamera(snapshot),
-          });
-          ready.current?.();
         }
       })
       .catch((error) => {
@@ -139,25 +154,11 @@ export function MolecularViewport({
     };
   }, [sourceKey]);
   useEffect(() => {
-    let active = true;
-    if (loaded)
-      void controller.current
-        ?.setFrame(frame, () => {
-          if (active) {
-            setPresentedFrame(frame);
-            ready.current?.();
-          }
-        })
-        .catch((error) => {
-          if (active) setFailure(String(error));
-        });
-    return () => {
-      active = false;
-    };
-  }, [frame, loaded]);
-  useEffect(() => {
-    if (loaded) controller.current?.setView(view);
-  }, [view, loaded]);
+    const instance = controller.current;
+    if (presentation.ready && instance) publishHandle(instance);
+    else handleChange.current?.(null);
+    ready.current?.(presentation.ready);
+  }, [presentation.ready]);
   useEffect(() => {
     if (loaded && focusResidue) controller.current?.focusResidue(focusResidue);
   }, [focusResidue, loaded]);
@@ -167,13 +168,14 @@ export function MolecularViewport({
     <section
       className="simulation-molecular-viewport"
       data-testid="molstar-viewport"
-      data-frame={presentedFrame}
+      data-frame={presentation.presentedFrame}
       data-ligand={view.ligand}
     >
       <div className="simulation-view-controls">
         <button
           type="button"
           className="text-button"
+          disabled={!presentation.ready}
           onClick={() => controller.current?.reset()}
         >
           {zh ? "全景" : "Overview"}
@@ -182,6 +184,7 @@ export function MolecularViewport({
           <button
             type="button"
             className="text-button"
+            disabled={!presentation.ready}
             onClick={() => controller.current?.focusLigand()}
           >
             {zh ? "配体与口袋" : "Ligand and pocket"}
@@ -240,11 +243,13 @@ export function MolecularViewport({
             </select>
           )}
         <FigureExport
+          sourceKey={JSON.stringify([sourceKey, frame, view])}
+          sourceReady={presentation.ready}
           language={language}
           filename="X-DDE-structure"
           format="png"
           molecular
-          disabled={!loaded}
+          disabled={!presentation.ready}
           label={zh ? "下载视图" : "Download view"}
           onStart={onExport}
           aspect={() => {
@@ -252,7 +257,7 @@ export function MolecularViewport({
             return bounds ? bounds.width / bounds.height : 1.5;
           }}
           render={(settings) => {
-            if (!controller.current)
+            if (!controller.current || !captureReady.current)
               throw new Error("The molecular view is not ready.");
             return controller.current.figure(settings);
           }}
@@ -273,12 +278,26 @@ export function MolecularViewport({
         role="application"
         aria-label={zh ? "交互式三维分子" : "Interactive 3D molecules"}
         data-loaded={loaded}
-        data-error={failure || undefined}
+        data-error={failure || (presentation.failed ? "update" : undefined)}
+        aria-busy={!failure && (!loaded || presentation.busy)}
       >
         <canvas ref={canvas} />
         {!loaded && !failure && (
           <p className="simulation-view-status" role="status">
             {zh ? "正在加载三维结构…" : "Loading 3D structures…"}
+          </p>
+        )}
+        {presentation.busy && (
+          <p className="simulation-view-status" role="status">
+            {zh ? "正在更新三维显示…" : "Updating the 3D view…"}
+          </p>
+        )}
+        {presentation.failed && (
+          <p className="simulation-view-status" role="alert">
+            {zh ? "三维视图更新失败。" : "The 3D view update failed."}{" "}
+            <button type="button" onClick={presentation.retry}>
+              {zh ? "重试" : "Retry"}
+            </button>
           </p>
         )}
         {failure && (

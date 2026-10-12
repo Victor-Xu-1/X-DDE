@@ -8,7 +8,7 @@ import pytest
 
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.catalogue import CASES, MODULES
-from opendde_workbench.examples.contracts import PreparedExample
+from opendde_workbench.examples.contracts import ExampleReview, PreparedExample
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.execution_environment import capture
 from opendde_workbench.models import Status
@@ -75,6 +75,31 @@ def test_output_corruption_cannot_be_presented_as_a_fixed_result(settings):
     (output / "result.json").write_text('{"changed":true}')
     with pytest.raises(ValueError, match="output bytes changed"):
         pins.get("properties", verify=True)
+
+
+def test_review_keeps_scope_and_all_five_checks_immutable(settings):
+    store, _, prepared, job, _, pins = fixture(settings)
+    store.finish(job.id, Status.SUCCEEDED)
+    review = ExampleReview(
+        interpretation="Descriptors summarize the exact input molecule and native output.",
+        limitations="Computational descriptors do not establish potency or experimental safety.",
+        checked=("input_identity", "method_scope", "native_outputs", "visual_preview", "downloads"),
+    )
+    record = pins.pin("properties", job.id, prepared, review=review)
+    assert record.review == review
+    assert pins.get("properties", verify=True).review == review
+    assert pins.pin("properties", job.id, prepared, review=review) == record
+    with pytest.raises(ConflictError, match="immutable"):
+        pins.pin("properties", job.id, prepared)
+    with pytest.raises(ValueError, match="explicitly"):
+        ExampleReview.model_validate(
+            {
+                **review.model_dump(),
+                "checked": ("downloads",) * 5,
+            }
+        )
+    with pytest.raises(ValueError):
+        ExampleReview.model_validate({**review.model_dump(), "checked": review.checked[:4]})
 
 
 def test_an_unrelated_input_cannot_be_hidden_beside_a_matching_case_input(settings):

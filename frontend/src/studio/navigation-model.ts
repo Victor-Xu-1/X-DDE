@@ -1,5 +1,5 @@
 import { tools, type ToolId } from "../operations/catalog";
-import { moduleForTool, researchModules } from "./research-modules";
+import { moduleForTool, researchModules, type ModuleId } from "./research-modules";
 import type { Language } from "../types";
 export type View =
   | Exclude<ToolId, "predict" | "resources">
@@ -7,6 +7,7 @@ export type View =
   | "tools"
   | "research"
   | "tasks"
+  | `results:${ModuleId | "other"}`
   | "deployment"
   | "settings"
   | "help";
@@ -16,6 +17,12 @@ export const toolForView = (view: View): ToolId | null =>
     : (tools.find((tool) => tool.id === view)?.id ?? null);
 export const viewForTool = (tool: ToolId): View =>
   tool === "predict" ? "home" : tool === "resources" ? "deployment" : tool;
+export function resultModule(view: View): ModuleId | "other" | null {
+  return view.startsWith("results:")
+    ? (view.slice(8) as ModuleId | "other")
+    : null;
+}
+export const viewForResults = (module: ModuleId | "other"): View => `results:${module}`;
 export const navigationItems = [
   ...researchModules.map((module) => ({
     id: viewForTool(module.defaultTool),
@@ -32,16 +39,6 @@ export const navigationItems = [
     help: [
       "项目、研究文件、关系与结构编辑",
       "Projects, research files, relationships and structure editing",
-    ] as const,
-  },
-  {
-    id: "tasks" as const,
-    module: null,
-    label: ["任务与结果", "Tasks and results"] as const,
-    short: ["任务", "Tasks"] as const,
-    help: [
-      "查看任务进度、三维结果、报告与下载",
-      "Track tasks, inspect structures and download reports and results",
     ] as const,
   },
   {
@@ -65,11 +62,12 @@ export function navigationActive(
   item: (typeof navigationItems)[number],
 ) {
   return item.module
-    ? moduleForTool(toolForView(view))?.id === item.module
+    ? (resultModule(view) ?? moduleForTool(toolForView(view))?.id) === item.module
     : view === item.id;
 }
 export function viewTitle(view: View, language: Language) {
-  const module = moduleForTool(toolForView(view));
+  const module = researchModules.find((module) => module.id === resultModule(view))
+    ?? moduleForTool(toolForView(view));
   const item =
     navigationItems.find((item) => item.id === view) ??
     managementItems.find((item) => item.id === view);

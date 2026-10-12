@@ -11,7 +11,7 @@ const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 /** The URL owns the browsing location; unknown filters never become API inputs. */
 export function taskHistoryRoute(hash: string): HistoryFilter | null {
   const params = new URLSearchParams(hash.slice(1));
-  if (params.get("view") !== "tasks") return null;
+  if (!["tasks", "results"].includes(params.get("view") ?? "")) return null;
   const name = params.get("module");
   const module: HistoryModule | null =
     name === "other" || researchModules.some((item) => item.id === name)
@@ -36,7 +36,7 @@ export function taskHistoryRoute(hash: string): HistoryFilter | null {
 }
 
 export function taskHistoryHash(filter: HistoryFilter, task = "") {
-  const params = new URLSearchParams({ view: "tasks" });
+  const params = new URLSearchParams({ view: "results" });
   if (filter.module) params.set("module", filter.module);
   if (filter.type !== "all") params.set("type", filter.type);
   if (filter.status !== "all") params.set("status", filter.status);

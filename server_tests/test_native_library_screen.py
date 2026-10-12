@@ -31,7 +31,7 @@ def test_actual_abl_library_inspections_are_persistent_and_use_the_existing_envi
     from fastapi.testclient import TestClient
 
     from opendde_workbench.api import create_app
-    from opendde_workbench.chemistry.backend import FILES
+    from opendde_workbench.chemistry.backend import FILES, SHARED_SOURCES
     from opendde_workbench.deployment.installers import install
     from opendde_workbench.settings import Settings
 
@@ -83,7 +83,7 @@ def test_actual_abl_library_inspections_are_persistent_and_use_the_existing_envi
             output = settings.state_dir / "jobs" / identifier / "output"
             execution = json.loads((output.parent / "chemistry-execution.json").read_text())
             assert execution["image"] == installed["image"]
-            assert set(execution["adapter_sha256"]) == set(FILES)
+            assert set(execution["adapter_sha256"]) == set(FILES) | set(SHARED_SOURCES)
             assert json.loads((output.parent / "native-exit.json").read_text())["ExitCode"] == 0
             assert client.post(f"/api/jobs/{identifier}/index-assets").json()["state"] == "complete"
             target = Path("server_tests/evidence/library-container") / mode

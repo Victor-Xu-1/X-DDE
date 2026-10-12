@@ -65,10 +65,10 @@ function props(
 ): ComponentProps<typeof TaskWorkspace> {
   return {
     language: "en",
+    scopedModule: "evaluation",
     job: null,
     detail: null,
     detailError: false,
-    connectionError: false,
     onRefresh: vi.fn(),
     onJob: vi.fn(),
     onChanged: vi.fn(),
@@ -80,13 +80,7 @@ function props(
     ...overrides,
   };
 }
-async function modulePage(label = "Properties and safety") {
-  await waitFor(() =>
-    expect(
-      screen.getByRole("group", { name: "Task modules" }),
-    ).toHaveTextContent("1 task"),
-  );
-  fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
+async function modulePage() {
   await screen.findByRole("button", { name: "STAT6 descriptors" });
 }
 function openList() {
@@ -94,35 +88,22 @@ function openList() {
   picker.open = true;
   fireEvent(picker, new Event("toggle"));
 }
-it("opens a module overview instead of one mixed task list", async () => {
+it("opens only the owning module and never a mixed task list", async () => {
   const p = props();
   render(<TaskWorkspace {...p} />);
   await modulePage();
   expect(screen.queryByRole("button", { name: "STAT6 structure" })).toBeNull();
-  expect(p.onJob).toHaveBeenCalledWith("");
   fireEvent.click(screen.getByRole("button", { name: "New task" }));
   expect(p.onStart).toHaveBeenCalledWith("admet.predict");
 });
-it("opens a linked task in its exact module and uses the existing prediction preview", async () => {
-  render(<TaskWorkspace {...props({ job })} />);
-  expect(
-    screen.getByRole("heading", { name: "Structure prediction" }),
-  ).toBeVisible();
+it("opens an exact linked task in its owning module and masks foreign selected results", async () => {
+  const p = props({ job, scopedModule: "structures" });
+  const view = render(<TaskWorkspace key="structures" {...p} />);
   expect(screen.getByText("Actual prediction result")).toBeVisible();
-  expect(
-    screen.getByRole("combobox", { name: "Switch task module" }),
-  ).toHaveValue("structures");
-});
-it("clears the prior detail when switching modules", async () => {
-  const p = props({ job });
-  render(<TaskWorkspace {...p} />);
-  fireEvent.change(
-    screen.getByRole("combobox", { name: "Switch task module" }),
-    { target: { value: "evaluation" } },
-  );
-  await screen.findByRole("button", { name: "STAT6 descriptors" });
+  view.rerender(<TaskWorkspace key="evaluation" {...props({ job })} />);
+  await modulePage();
   expect(screen.queryByText("Actual prediction result")).toBeNull();
-  expect(p.onJob).toHaveBeenCalledWith("");
+  expect(screen.queryByRole("combobox", { name: "Switch task module" })).toBeNull();
 });
 it("filters within the chosen module and offers a clear empty state", async () => {
   render(<TaskWorkspace {...props()} />);
@@ -156,14 +137,6 @@ it("preserves page and query when selecting a row and returning to its list", as
     );
   }
   render(<Harness />);
-  await waitFor(() =>
-    expect(
-      screen.getByRole("group", { name: "Task modules" }),
-    ).toHaveTextContent("25 tasks"),
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: /Properties and safety/ }),
-  );
   await screen.findByRole("button", { name: "STAT6 series 0" });
   fireEvent.change(
     screen.getByRole("searchbox", { name: "Search this module" }),
@@ -216,13 +189,14 @@ it("keeps projects isolated and hides a selected task belonging to another proje
   fireEvent.click(screen.getByRole("button", { name: "Clear filter" }));
   expect(p.onProject).toHaveBeenCalledWith(null);
 });
-it("keeps a just-submitted task visible before history refresh and reports disconnection", async () => {
-  const p = props({ job: { ...job, status: "queued" }, connectionError: true });
+it("keeps a just-submitted task visible when its history request fails", async () => {
+  vi.mocked(api.taskHistory).mockRejectedValue(new Error("Unavailable"));
+  const p = props({ scopedModule: "structures", job: { ...job, status: "queued" } });
   render(<TaskWorkspace {...p} />);
   expect(
     await screen.findByRole("heading", { name: "STAT6 structure" }),
   ).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Reconnect" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Reconnect" }));
   expect(p.onRefresh).toHaveBeenCalledOnce();
 });
 it("opens other tasks without discarding unclassified history", async () => {
@@ -232,26 +206,21 @@ it("opens other tasks without discarding unclassified history", async () => {
       request: { operation: "doctor", name: "Environment check" },
     } as Job,
   ];
-  render(<TaskWorkspace {...props()} />);
-  await screen.findByRole("button", { name: /Additional tasks/ });
-  fireEvent.click(screen.getByRole("button", { name: /Additional tasks/ }));
+  render(<TaskWorkspace {...props({ scopedModule: "other" })} />);
   await screen.findByRole("button", { name: "Environment check" });
-  expect(
-    screen.getByRole("combobox", { name: "Switch task module" }),
-  ).toHaveValue("other");
+  expect(screen.queryByRole("combobox", { name: "Switch task module" })).toBeNull();
 });
-it("returns to the module overview without showing a mixed task list", async () => {
+it("does not expose a global module picker or foreign results", async () => {
   render(<TaskWorkspace {...props({ job })} />);
-  fireEvent.click(screen.getByRole("button", { name: "Task modules" }));
-  expect(screen.getByRole("group", { name: "Task modules" })).toBeVisible();
-  expect(document.querySelector(".task-picker")).toBeNull();
+  await modulePage();
+  expect(screen.queryByRole("button", { name: "Task modules" })).toBeNull();
+  expect(screen.queryByRole("group", { name: "Task modules" })).toBeNull();
   expect(screen.queryByText("Actual prediction result")).toBeNull();
 });
 it("preserves saved Chinese and shows a concise empty workspace", async () => {
   historyJobs = [];
   render(<TaskWorkspace {...props({ language: "zh" })} />);
-  expect(screen.getByRole("group", { name: "任务模块" })).toBeVisible();
-  await screen.findByText("还没有研究任务");
+  await screen.findByText("这个模块还没有任务");
   expect(screen.getByRole("button", { name: "新建任务" })).toBeVisible();
 });
 it("restores an unselected module and its search after remount instead of opening mixed history", async () => {
@@ -266,9 +235,7 @@ it("restores an unselected module and its search after remount instead of openin
   expect(window.location.hash).toContain("module=evaluation");
   first.unmount();
   render(<TaskWorkspace {...p} />);
-  expect(
-    screen.getByRole("combobox", { name: "Switch task module" }),
-  ).toHaveValue("evaluation");
+  expect(screen.queryByRole("combobox", { name: "Switch task module" })).toBeNull();
   expect(
     screen.getByRole("searchbox", { name: "Search this module" }),
   ).toHaveValue("STAT6");

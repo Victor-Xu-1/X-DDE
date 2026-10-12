@@ -115,7 +115,7 @@
 }
 @media (max-width: 1250px) {
   .result-master-detail {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -13,6 +13,7 @@ from .requests import TaskRequest
 class Status(StrEnum):
     QUEUED = "queued"
     RUNNING = "running"
+    PAUSED = "paused"
     CANCELLING = "cancelling"
     SUCCEEDED = "succeeded"
     FAILED = "failed"

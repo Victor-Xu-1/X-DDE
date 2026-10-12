@@ -6,6 +6,7 @@ from ..requests import TASK_ADAPTER
 from ..store import now
 from .bundle_projection import references
 from .catalogue import MODULES
+from .stat6.catalogue import MODULES as STUDY_MODULES
 
 
 class ExampleLibrary:
@@ -31,11 +32,22 @@ class ExampleLibrary:
                 if row is None:
                     raise ValueError("Cannot classify an unknown example record.")
                 request = TASK_ADAPTER.validate_json(row["request"])
-                db.execute(
-                    "INSERT OR IGNORE INTO example_library_tasks VALUES(?,?,?)",
-                    (str(identifier), origin, now()),
-                )
-                if request.project_id:
+                # Even an ignored INSERT requires SQLite's writer lock. Keep unchanged
+                # classification read-only, but retain conflict handling for concurrent inserts.
+                if not db.execute(
+                    "SELECT 1 FROM example_library_tasks WHERE job_id=?", (str(identifier),)
+                ).fetchone():
+                    db.execute(
+                        "INSERT OR IGNORE INTO example_library_tasks VALUES(?,?,?)",
+                        (str(identifier), origin, now()),
+                    )
+                if (
+                    request.project_id
+                    and not db.execute(
+                        "SELECT 1 FROM example_library_projects WHERE project_id=?",
+                        (str(request.project_id),),
+                    ).fetchone()
+                ):
                     db.execute(
                         "INSERT OR IGNORE INTO example_library_projects VALUES(?)",
                         (str(request.project_id),),
@@ -43,6 +55,11 @@ class ExampleLibrary:
 
     def synchronize(self):
         # Follow only current immutable pin evidence and its explicitly referenced input versions.
+        active = {
+            (module.capability_id, module.revision): module
+            for profile in (MODULES, STUDY_MODULES)
+            for module in profile.values()
+        }
         identifiers = set()
         with self.store.connect() as db:
             tables = {
@@ -52,10 +69,12 @@ class ExampleLibrary:
                 if table not in tables:
                     continue
                 for row in db.execute("SELECT capability_id,revision,body FROM " + table):
-                    module = MODULES.get(row["capability_id"])
-                    if module is None or module.revision != row["revision"]:
+                    module = active.get((row["capability_id"], row["revision"]))
+                    if module is None:
                         continue
                     body = json.loads(row["body"])
+                    if body.get("case_id") != module.case_id:
+                        raise ValueError("The fixed task belongs to a different reviewed study.")
                     if table == "example_pins":
                         identifiers.add(body["job_id"])
                     else:

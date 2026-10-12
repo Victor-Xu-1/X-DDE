@@ -269,16 +269,20 @@ class Store:
     def cancel(self, job_id: str) -> Job:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
-            if not row:
-                raise KeyError(job_id)
-            if row["status"] == Status.QUEUED:
-                db.execute(
-                    "UPDATE jobs SET status='cancelled',finished_at=? WHERE id=?", (now(), job_id)
-                )
-            elif row["status"] == Status.RUNNING:
-                db.execute("UPDATE jobs SET status='cancelling' WHERE id=?", (job_id,))
-            return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
+            return self._cancel_in_transaction(db, job_id)
+
+    def _cancel_in_transaction(self, db, job_id: str) -> Job:
+        """Shared lifecycle transition for a job or an atomic workflow cancellation."""
+        row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+        if not row:
+            raise KeyError(job_id)
+        if row["status"] == Status.QUEUED:
+            db.execute(
+                "UPDATE jobs SET status='cancelled',finished_at=? WHERE id=?", (now(), job_id)
+            )
+        elif row["status"] == Status.RUNNING:
+            db.execute("UPDATE jobs SET status='cancelling' WHERE id=?", (job_id,))
+        return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
 
     def finish(self, job_id: str, status: Status, error: str | None = None) -> None:
         with self.connect() as db:
@@ -288,6 +292,26 @@ class Store:
                 error=?, finished_at=? WHERE id=? AND status IN ('running','cancelling')""",
                 (status, status, error, now(), job_id),
             )
+
+    def retain_paused(self, job_id: str) -> Job:
+        """A verified native pause keeps the original request, start time and outputs."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute("UPDATE jobs SET status='paused' WHERE id=? AND status='running'", (job_id,))
+            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if row is None or row["status"] != "paused":
+                raise ConflictError("The task changed before its native pause could be retained.")
+            return self.decode(row)
+
+    def cancel_paused(self, job_id: str) -> Job:
+        """Called only after the native backend confirms cancellation."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute(
+                "UPDATE jobs SET status='cancelled',finished_at=? WHERE id=? AND status='paused'",
+                (now(), job_id),
+            )
+            return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
 
     def unfinished(self) -> list[Job]:
         with self.connect() as db:

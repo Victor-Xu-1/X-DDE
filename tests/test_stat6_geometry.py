@@ -41,3 +41,16 @@ def test_unreviewed_3d_input_with_copied_minimization_properties_still_needs_com
     assert version is None and request.operation == "molecule_minimize"
     assert str(request.molecule.asset_id) == changed.id
     assert store.list_jobs() == []
+
+
+def test_native_calculated_input_keeps_exact_pose_and_does_not_start_free_ligand_optimization(
+    tmp_path, settings
+):
+    store, scientific = scientific_store(tmp_path)
+    prepared = prepare_stat6("gnina.score", scientific)
+    source = prepared.objects["calculated_pose"].reference
+    request, version = InitialPosePreparation(store, scientific.assets, settings).resolve(
+        InitialPoseInput(source=AssetPoseSource(kind="asset", asset_id=source.asset_id, record=0))
+    )
+    assert request is None and version.reference.asset_id == source.asset_id
+    assert store.list_jobs() == []

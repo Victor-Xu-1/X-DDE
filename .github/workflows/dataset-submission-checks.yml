@@ -1,0 +1,44 @@
+name: Dataset submission receipt checks
+on:
+  push:
+    paths: &receipt_paths
+      - "frontend/src/datasets/useDatasetRun*"
+      - "frontend/src/datasets/ExecutionView*"
+      - "frontend/src/datasets/DatasetSubmission*"
+      - "server_tests/test_dataset_submission_browser.py"
+      - ".github/workflows/dataset-submission-checks.yml"
+  pull_request:
+    paths: *receipt_paths
+permissions:
+  contents: read
+jobs:
+  receipt-lifecycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Accepted receipts, immutable intents and direct form consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/DatasetSubmission.test.tsx
+          src/datasets/ExecutionView.receipt.test.tsx
+          src/operations/useTaskSubmit.test.ts src/guided/Questionnaire.test.tsx
+          src/datasets/dataset-model.test.ts
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Real library form navigation and receipt recovery with simulated transport
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_dataset_submission_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dataset-submission-receipts
+          path: server_tests/evidence/dataset-submission
+          if-no-files-found: error

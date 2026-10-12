@@ -1,6 +1,9 @@
 """DOM geometry checks for task pages, independent of scientific runtimes."""
 
 import json
+import os
+import re
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from depiction_browser_helpers import settle_visible_drawings
 from layout_template_choices import choose_template_objective
@@ -11,10 +14,224 @@ from opendde_workbench.capabilities.definitions import CAPABILITIES
 VISIBLE_TASKS = sum(
     bool(spec.frontend_form) and key != "resources" for key, spec in CAPABILITIES.items()
 )
+# Exact Chinese identities from studio/research-modules.ts, in catalogue order.
+RESEARCH_MODULE_LABELS = (
+    "靶点研究",
+    "结构预测",
+    "口袋与对接",
+    "小分子设计",
+    "诱导邻近设计",
+    "高通量筛选",
+    "DEL 研究",
+    "生物药研究",
+    "性质与安全性",
+    "动力学与 FEP",
+)
+
+
+def expect_layout_identities(elements, labels):
+    """Reject missing, duplicated, reordered or unexpected catalogue controls."""
+    assert len(labels) == len(set(labels))
+    expect(elements).to_have_count(len(labels))
+    for index, label in enumerate(labels):
+        expect(elements.nth(index)).to_have_attribute("aria-label", label)
+
+
+def settle_responsive_layout(page):
+    """Wait for the app's compact navigation and selected markers, not page fit."""
+    ready = page.wait_for_function(
+        """() => {
+        // NavigationFrame commits this control after its media-query change event.
+        const compact=matchMedia('(max-width: 960px)').matches;
+        if (!!document.querySelector('.mobile-navigation-trigger')!==compact) return false;
+        return [...document.querySelectorAll(
+            '.questionnaire-steps,.research-tab-list,.task-model-switch'
+        )].every(parent => {
+            const outer=parent.getBoundingClientRect();
+            if (!(outer.width>0 && outer.height>0) ||
+                getComputedStyle(parent).visibility==='hidden') return true;
+            const active=parent.querySelector(
+                ':scope > button[aria-selected="true"],'+
+                ':scope > button[aria-current="step"],'+
+                ':scope > button[aria-pressed="true"]'
+            );
+            const marker=parent.querySelector(':scope > .active-control-indicator');
+            if (!active) return !marker;
+            const inner=active.getBoundingClientRect();
+            if (!(inner.width>0)) return !marker;
+            if (!marker || !marker.style.transform || !marker.style.width) return false;
+            const target=new DOMMatrixReadOnly(marker.style.transform);
+            // ActiveIndicator.tsx deliberately retains changes smaller than 0.25px.
+            const close=(actual,expected) => Math.abs(actual-expected)<0.25;
+            return close(target.m41,inner.left-outer.left+parent.scrollLeft) &&
+                close(target.m42,inner.bottom-outer.top+parent.scrollTop-2) &&
+                close(parseFloat(marker.style.width),inner.width) &&
+                !marker.getAnimations().some(a => a.pending || a.playState==='running');
+        });
+        }""",
+        polling="raf",
+        timeout=5000,
+    )
+    ready.dispose()
+
+
+def settle_responsive_plot(page, chart):
+    """Observe Plotly's real autosize completion without invoking a redraw."""
+    node = chart.element_handle()
+    assert node is not None
+    try:
+        ready = page.wait_for_function(
+            """node => {
+                const width=parseFloat(getComputedStyle(node).width);
+                // Plotly autosize retains <=1px deltas; its pending resize promise
+                // is cleared only after relayout completes. aria-busy is data-only.
+                return node.isConnected && width>0 && node._fullLayout &&
+                    Math.abs(node._fullLayout.width-width)<=1 && !node._resolveResize;
+            }""",
+            arg=node,
+            polling="raf",
+            timeout=5000,
+        )
+        ready.dispose()
+    finally:
+        node.dispose()
+
+
+def viewport_overflow_evidence(page, evidence, label):
+    """Return the immediate predicate; failure-only observations cannot turn it into a pass."""
+    probe = page.evaluate_handle("""() => {
+        const box = e => {
+            const r=e.getBoundingClientRect(), s=getComputedStyle(e);
+            return {tag:e.tagName,cls:String(e.className),role:e.getAttribute('role'),
+                label:e.getAttribute('aria-label'),parentClass:String(e.parentElement?.className),
+                parentOverflowX:e.parentElement ?
+                    getComputedStyle(e.parentElement).overflowX : null,
+                x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,
+                clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
+                overflowX:s.overflowX,minWidth:s.minWidth,transform:s.transform};
+        };
+        const snapshot = () => {
+            const width=innerWidth, scrollWidth=document.documentElement.scrollWidth;
+            return {time:performance.now(),width,height:innerHeight,scrollWidth,
+                overflow:scrollWidth>width+1,
+                animations:document.getAnimations().slice(0,30).map(a=>({
+                    state:a.playState,time:a.currentTime,
+                    duration:a.effect?.getComputedTiming().duration,
+                    target:a.effect?.target ? box(a.effect.target) : null})),
+                relevant:[...document.querySelectorAll('.active-control-indicator,'+
+                    '.js-plotly-plot,.campaign-material-layout,.campaign-material-layout table,'+
+                    '.sequence-track')].slice(0,30).map(box),
+                offenders:scrollWidth>width+1 ? [...document.querySelectorAll('body *')]
+                    .map(box).filter(r=>r.width>0&&r.height>0&&r.right>width+1).slice(0,30) : []};
+        };
+        const original={time:performance.now(),width:innerWidth,height:innerHeight,
+            scrollWidth:document.documentElement.scrollWidth};
+        original.overflow=original.scrollWidth>original.width+1;
+        if(!original.overflow) return {original};
+        const initialSnapshot=snapshot();
+        const finished=new Promise(resolve=>{
+            const frames=[];
+            let stopped=false;
+            const finish=()=>{stopped=true;resolve(frames);};
+            // A diagnostic deadline also bounds throttled RAF; it never affects acceptance.
+            const deadline=setTimeout(finish,1500);
+            const sample=()=>{
+                if(stopped) return;
+                frames.push(snapshot());
+                // Observation budget only, never an acceptance wait or changed tolerance.
+                if(frames.length>=90) {clearTimeout(deadline);finish();}
+                else requestAnimationFrame(sample);
+            };
+            requestAnimationFrame(sample);
+        });
+        return {original,initialSnapshot,finished};
+    }""")
+    try:
+        original = probe.evaluate("value => value.original")
+        if not original["overflow"]:
+            return False
+        evidence.mkdir(parents=True, exist_ok=True)
+        name = "overflow-" + re.sub(r"[^\w.-]", "-", label)[:90]
+        report = {
+            "original": original,
+            "initial_snapshot": probe.evaluate("value => value.initialSnapshot"),
+            "screenshot_note": (
+                "Captures follow the original snapshot and may span animation frames."
+            ),
+            "diagnostic_errors": [],
+        }
+        try:
+            page.screenshot(path=str(evidence / (name + "-immediate.png")), timeout=5000)
+        except Exception as error:
+            report["diagnostic_errors"].append(str(error))
+        try:
+            report["frames"] = probe.evaluate("async value => await value.finished")
+            page.screenshot(path=str(evidence / (name + "-observed.png")), timeout=5000)
+        except Exception as error:
+            report["diagnostic_errors"].append(str(error))
+        (evidence / (name + ".json")).write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        return original["overflow"]
+    finally:
+        probe.dispose()
+
+
+def initialize_layout_language(page):
+    """Start Chinese layout fixtures without overriding a saved language choice."""
+    page.add_init_script("""if (localStorage.getItem('opendde-workbench.language') === null) {
+        localStorage.setItem('opendde-workbench.language', 'zh');
+    }""")
+
+
+def archive_example_url(url):
+    """Select the real retained-case API without replacing an explicit profile."""
+    parts = urlsplit(url)
+    if parts.path != "/api/examples" and not parts.path.startswith("/api/examples/"):
+        raise ValueError("Only example endpoints belong to the archived layout fixture.")
+    query = parse_qsl(parts.query, keep_blank_values=True)
+    profiles = [value for key, value in query if key == "profile"]
+    if any(value != "archive" for value in profiles):
+        raise ValueError("An explicit example profile must not be silently replaced.")
+    if not profiles:
+        query.append(("profile", "archive"))
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def initialize_layout_page(page, case_profile=None):
+    """Choose real study or archive endpoints; never synthesize example responses."""
+    initialize_layout_language(page)
+    base = os.environ["WB_BROWSER_URL"].rstrip("/")
+    selection = case_profile if case_profile is not None else {"profile": "archive"}
+
+    def route_case(route):
+        if selection["profile"] == "archive":
+            route.continue_(url=archive_example_url(route.request.url))
+        elif selection["profile"] == "stat6":
+            route.continue_()
+        else:
+            raise ValueError("Choose a real STAT6 or archive case profile.")
+
+    page.route(
+        re.compile(r"^" + re.escape(base) + r"/api/examples(?:[/?]|$)"),
+        route_case,
+    )
+
+
+def layout_navigation(page):
+    """Open the responsive drawer through the same control as a researcher."""
+    if page.viewport_size["width"] <= 960:
+        trigger = page.get_by_role("button", name="打开研究导航", exact=True)
+        expect(trigger).to_be_visible()
+        if trigger.get_attribute("aria-expanded") != "true":
+            trigger.click()
+    navigation = page.get_by_role("navigation", name="主导航", exact=True)
+    expect(navigation).to_be_visible()
+    return navigation
 
 
 def catalog(page):
-    page.get_by_role("navigation", name="主导航").get_by_role(
+    layout_navigation(page).get_by_role(
         "button", name="全部能力", exact=True
     ).click()
     expect(page.locator(".tool-card")).to_have_count(VISIBLE_TASKS)
@@ -102,11 +319,99 @@ def flat_surface_styles(page):
     }""")
 
 
-def load_template(page):
-    button = page.get_by_role("button", name="使用此模板", exact=True)
-    expect(button).to_be_visible(timeout=15000)
-    button.click()
-    expect(page.get_by_role("button", name="新建空白任务", exact=True)).to_be_visible(timeout=30000)
+def _template_failure_evidence(page, evidence, name, responses, failure):
+    """Record observed errors only; never retry preparation or wait for a response."""
+    evidence.mkdir(parents=True, exist_ok=True)
+    safe = re.sub(r"[^\w.-]", "-", name)[:70]
+    width = (page.viewport_size or {}).get("width", "unknown")
+    stem = f"template-failure-{width}-{safe}"
+    report = {
+        "revision": os.environ.get("GITHUB_SHA"),
+        "module": name,
+        "page_url": page.url,
+        "failure": str(failure)[:2048],
+        "responses": [],
+        "diagnostic_errors": [],
+    }
+    for response, finished in responses:
+        item = {"url": response.url, "status": response.status, "finished": finished}
+        report["responses"].append(item)
+        # Only a completed, size-declared JSON error can supply bounded detail.
+        # An unfinished/unknown/large body is recorded as unavailable, never awaited.
+        headers = response.headers
+        length = headers.get("content-length", "")
+        if (
+            response.status >= 400
+            and finished
+            and length.isdecimal()
+            and int(length) <= 16384
+            and headers.get("content-type", "").split(";", 1)[0] == "application/json"
+        ):
+            try:
+                body = response.body()
+                if len(body) > 16384:
+                    item["detail_unavailable"] = "Body exceeded its declared bound."
+                else:
+                    detail = json.loads(body).get("detail")
+                    item["detail"] = str(detail)[:2048]
+                    item["detail_truncated"] = len(str(detail)) > 2048
+            except Exception as error:
+                item["detail_unavailable"] = str(error)[:512]
+        elif response.status >= 400:
+            item["detail_unavailable"] = "Error body was unfinished or not bounded JSON."
+    try:
+        page.screenshot(path=str(evidence / (stem + ".png")), timeout=5000)
+        report["screenshot"] = stem + ".png"
+    except Exception as error:
+        report["diagnostic_errors"].append(str(error)[:512])
+    (evidence / (stem + ".json")).write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def load_template(page, evidence=None, name="template"):
+    responses = []
+    origin = urlsplit(page.url)
+
+    def observe(response):
+        url = urlsplit(response.url)
+        if (
+            len(responses) < 4
+            and (url.scheme, url.netloc) == (origin.scheme, origin.netloc)
+            and re.fullmatch(r"/api/examples/[^/]+/prepare", url.path)
+            and response.request.method == "POST"
+        ):
+            responses.append([response, False])
+
+    def finished(request):
+        for item in responses:
+            if item[0].request == request:
+                item[1] = True
+
+    if evidence is not None:
+        page.on("response", observe)
+        page.on("requestfinished", finished)
+    try:
+        button = page.get_by_role("button", name="使用此模板", exact=True)
+        expect(button).to_be_visible(timeout=15000)
+        button.click()
+        expect(page.get_by_role("button", name="新建空白任务", exact=True)).to_be_visible(
+            timeout=30000
+        )
+    except Exception as failure:
+        if evidence is not None:
+            try:
+                _template_failure_evidence(page, evidence, name, responses, failure)
+            except Exception as error:
+                failure.add_note("Template diagnostic capture failed: " + str(error)[:512])
+        raise
+    finally:
+        if evidence is not None:
+            for event, handler in (("response", observe), ("requestfinished", finished)):
+                try:
+                    page.remove_listener(event, handler)
+                except Exception:
+                    pass  # Cleanup must not replace the original preparation failure.
 
 
 def consent_on_current_page(page):
@@ -138,8 +443,12 @@ def capture_utilities(page, evidence, width):
     """Inspect workspace utilities at the same actual viewport as their task group."""
     page.set_viewport_size({"width": width, "height": 1000})
     rows = []
-    nav = page.get_by_role("navigation", name="主导航")
-    expect(nav.get_by_role("button")).to_have_count(12)
+    nav = layout_navigation(page)
+    # navigation-model.ts appends these two utilities to the research modules.
+    expect_layout_identities(
+        nav.get_by_role("button"),
+        (*RESEARCH_MODULE_LABELS, "研究空间", "全部能力"),
+    )
     nav.get_by_role("button", name="研究空间", exact=True).click()
     for tab in ("项目", "研究文件", "结构编辑"):
         page.get_by_role("group", name="研究空间", exact=True).get_by_role(
@@ -156,9 +465,13 @@ def capture_utilities(page, evidence, width):
             assert confirm["width"] < bounds["width"] * 0.6
             rows.append(capture(page, evidence, "研究项目", "create-dialog"))
             page.get_by_role("button", name="取消", exact=True).click()
-    nav.get_by_role("button", name="任务与结果", exact=True).click()
-    rows.append(capture(page, evidence, "任务与结果", "utility"))
+    layout_navigation(page).get_by_role("button", name="口袋与对接", exact=True).click()
+    page.get_by_role("navigation", name="模块工作区", exact=True).get_by_role(
+        "button", name="任务结果", exact=True
+    ).click()
+    rows.append(capture(page, evidence, "口袋与对接-任务结果", "utility"))
     for label in ("安装与运行", "界面设置", "使用帮助"):
+        layout_navigation(page)
         page.get_by_role("button", name="设置与帮助", exact=True).click()
         expect(page.get_by_role("menuitem")).to_have_count(3)
         page.get_by_role("menuitem", name=label, exact=True).click()

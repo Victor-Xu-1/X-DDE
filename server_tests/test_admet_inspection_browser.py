@@ -11,7 +11,7 @@ from playwright.sync_api import expect
 from server_tests.landscape_browser_helpers import choose_native_point
 from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_navigation_shell_browser import settings
-from server_tests.test_template_controls_browser import CASES, open_case
+from server_tests.test_template_controls_browser import CASES, open_case, study_detail
 from server_tests.test_template_controls_browser import case_page as case_page
 
 EVIDENCE = Path("server_tests/evidence/admet-inspection")
@@ -25,39 +25,46 @@ def capture(page, name):
 
 
 def native_result(page, language):
-    region = open_case(page, language, "admet.predict", CASES[1][1])
-    region.get_by_role(
-        "button", name="示例结果" if language == "zh" else "Example results", exact=True
-    ).click()
+    base = os.environ["WB_BROWSER_URL"]
+    response = page.request.get(base + "/api/examples/admet.predict?profile=archive")
+    assert response.ok, response.text()
+    info = response.json()
+    assert info["case"]["id"] != "stat6-defined-molecules"
+    assert info["computed_result_available"] and info["pin"]["artifact_sha256"]
+    job_id = info["pin"]["job_id"]
+    response = page.request.get(base + f"/api/task-history/{job_id}/identity")
+    assert response.ok, response.text()
+    identity = response.json()
+    assert identity["origin"] == "fixed_example"
+    assert info["case"]["id"] in {case["id"] for case in identity["example_cases"]}
+    # Archived predictions retain their original task identity outside current STAT6 inputs.
+    page.goto(base + "/#task=" + job_id)
     result = page.get_by_role(
         "region",
         name="性质与早期安全性预测结果" if language == "zh" else "ADMET prediction results",
         exact=True,
     )
     expect(result).to_be_visible()
-    base = os.environ["WB_BROWSER_URL"]
-    info = page.request.get(base + "/api/examples/admet.predict").json()
-    job_id = info["pin"]["job_id"]
     response = page.request.get(base + f"/api/jobs/{job_id}/result")
     assert response.ok
     report = response.json()
     assert report["models_executed"] is True
     assert len(report["endpoints"]) == 41 and report["predicted_count"] == 3
     assert len(report["rows"]) == 3 and all(row["status"] == "predicted" for row in report["rows"])
-    return region, result, job_id, report
+    return result, job_id, report
 
 
 def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     page, language, width = case_page
     zh = language == "zh"
-    _, result, job_id, report = native_result(page, language)
+    result, job_id, report = native_result(page, language)
     selected = result.get_by_role(
         "region", name="所选分子" if zh else "Selected molecule", exact=True
     )
     expect(
         selected.get_by_role("tab", name="预测性质" if zh else "Predictions", exact=True)
     ).to_have_attribute("aria-selected", "true")
-    selected.scroll_into_view_if_needed()
+    selected.locator(".molecule-image").scroll_into_view_if_needed()
     expect(selected.locator(".molecule-image")).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
@@ -65,6 +72,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     bounds = drawing.bounding_box()
     parent = selected.locator(".admet-molecule-drawing").bounding_box()
     assert bounds and parent and bounds["width"] <= parent["width"] + 1
+    result.locator(".molecule-image.is-thumbnail").first.scroll_into_view_if_needed()
     expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
@@ -108,7 +116,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     expect(
         selected.get_by_role("heading", name=f"#{last['record'] + 1} · {last['name']}", exact=True)
     ).to_be_visible()
-    selected.scroll_into_view_if_needed()
+    selected.locator(".molecule-image").scroll_into_view_if_needed()
     expect(selected.locator(".molecule-image")).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
     )
@@ -153,7 +161,21 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
 def test_questionnaire_preserves_preference_and_public_preview_context(case_page):
     page, language, width = case_page
     zh = language == "zh"
-    region, _, _, _ = native_result(page, language)
+    region = open_case(page, language, "admet.predict", CASES[1][1])
+    info = study_detail(page, "admet.predict")
+    expect(region.locator(".example-case-name")).to_contain_text(
+        info["case"]["label"][0 if zh else 1]
+    )
+    expect(
+        region.get_by_role("button", name="示例结果" if zh else "Example results", exact=True)
+    ).to_have_count(0)
+    region.get_by_role(
+        "button", name="查看研究材料" if zh else "Preview study inputs", exact=True
+    ).click()
+    expect(region.locator(".study-input-preview")).to_be_visible()
+    expect(region.locator(".example-result-kind")).to_have_text(
+        "研究材料预览" if zh else "Reference input preview"
+    )
     region.get_by_role(
         "button", name="使用此模板" if zh else "Use this template", exact=True
     ).click()
@@ -168,7 +190,7 @@ def test_questionnaire_preserves_preference_and_public_preview_context(case_page
     form.get_by_role("radio", name="早期安全性" if zh else "Early safety", exact=True).check()
     form.get_by_role(
         "textbox", name="任务名称（可选）" if zh else "Task name (optional)", exact=True
-    ).fill("ABL inhibitor safety comparison")
+    ).fill("STAT6 safety comparison")
     expect(form.locator("fieldset:not([hidden]) details[open]")).to_have_count(0)
     capture(page, f"{language}-{width}-settings")
     form.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
@@ -182,12 +204,12 @@ def test_questionnaire_preserves_preference_and_public_preview_context(case_page
         form.get_by_role(
             "textbox", name="任务名称（可选）" if zh else "Task name (optional)", exact=True
         )
-    ).to_have_value("ABL inhibitor safety comparison")
+    ).to_have_value("STAT6 safety comparison")
     if width == 390:
         settings(page, language)
         page.get_by_role("radio", name="深色" if zh else "Dark", exact=True).check()
-        _, result, _, _ = native_result(page, language)
-        result.locator(".admet-selected-molecule").scroll_into_view_if_needed()
+        result, _, _ = native_result(page, language)
+        result.locator(".admet-molecule-drawing .molecule-image").scroll_into_view_if_needed()
         expect(result.locator(".admet-molecule-drawing .molecule-image")).to_have_attribute(
             "data-drawing-state", "ready", timeout=45000
         )

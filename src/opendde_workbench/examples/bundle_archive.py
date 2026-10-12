@@ -2,9 +2,12 @@
 
 import hashlib
 import json
+import os
 import stat
+import tempfile
 import zipfile
-from pathlib import PurePosixPath
+from contextlib import suppress
+from pathlib import Path, PurePosixPath
 
 MAX_TOTAL = 512 * 1024**2
 MAX_FILE = 64 * 1024**2
@@ -89,8 +92,24 @@ def write_archive(target, manifest, paths):
             for name, path in sorted(paths.items())
         },
     }
-    with zipfile.ZipFile(target, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
-        archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, sort_keys=True))
-        for name, path in sorted(paths.items()):
-            archive.write(path, name)
-    return {"sha256": sha256(target), "bytes": target.stat().st_size}
+    staging = tempfile.TemporaryDirectory(prefix=".case-bundle-", dir=target.parent)
+    try:
+        staged = Path(staging.name) / target.name
+        with zipfile.ZipFile(
+            staged, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=6
+        ) as archive:
+            archive.writestr(
+                "manifest.json", json.dumps(manifest, ensure_ascii=False, sort_keys=True)
+            )
+            for name, path in sorted(paths.items()):
+                archive.write(path, name)
+        receipt = {"sha256": sha256(staged), "bytes": staged.stat().st_size}
+        # A same-filesystem hard link publishes complete bytes without replacing any target.
+        # Unsupported filesystems fail closed rather than weaken the no-overwrite contract.
+        os.link(staged, target)
+        return receipt
+    finally:
+        # Cleanup must neither hide the original error nor invalidate a published receipt.
+        # The caller's target is never ours to remove, even if publication lost a race.
+        with suppress(OSError):
+            staging.cleanup()

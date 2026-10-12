@@ -51,6 +51,7 @@ export function InteractionDiagram({
           </Hint>
         </h3>
         <SvgFigureExport
+          sourceKey={JSON.stringify([shown, label, showDistance, language])}
           language={language}
           source={() => view.current}
           filename={label + "-contacts"}

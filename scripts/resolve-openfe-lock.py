@@ -58,7 +58,7 @@ def main():
     root = Path(__file__).resolve().parents[1]
     recipes = root / "src/opendde_workbench/integrations"
     spec = json.loads((recipes / "recipes.json").read_text(encoding="utf-8"))["programs"][program]
-    plans = {program: resolve(spec["base"], spec["conda"], program)}
+    plans = {program: resolve(spec["base"], spec["conda"], program, cuda=program == "openfe")}
     if spec.get("execution_conda"):
         plans[program + "-engine"] = resolve(
             spec["base"], spec["execution_conda"], program + "-engine", cuda=True

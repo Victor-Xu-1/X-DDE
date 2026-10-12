@@ -1,0 +1,40 @@
+name: Stable address and paused native recovery checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/opendde_workbench/native_pause.py'
+      - 'src/opendde_workbench/service_port.py'
+      - 'src/opendde_workbench/service_control.py'
+      - 'src/opendde_workbench/cli.py'
+      - 'src/opendde_workbench/worker.py'
+      - 'tests/test_native_pause.py'
+      - 'tests/test_service_port.py'
+      - '.github/workflows/service-upgrade-checks.yml'
+permissions:
+  contents: read
+jobs:
+  retained-service:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Port persistence, native ownership, lifecycle and confirmed mutations only
+        run: >-
+          uv run --locked pytest -q tests/test_service_port.py tests/test_service_control.py
+          tests/test_native_pause.py tests/test_managed_containers.py
+          tests/test_task_submission_recovery.py
+      - name: Paused status and module selection consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/workbench-polling.test.ts src/useWorkbench.live.test.ts
+          src/App.missing-task.test.tsx src/TaskDetail.actions.test.tsx
+          src/studio/TaskWorkspace.test.tsx src/studio/task-history-route.test.ts

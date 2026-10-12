@@ -46,7 +46,12 @@ export interface ExampleInfo {
   };
   files: { name: string; license: string; sha256: string }[];
   computed_result_available: boolean;
-  pin: null | { job_id: string; artifact_sha256: Record<string, string> };
+  pin: null | { job_id: string; artifact_sha256: Record<string, string>; review?: {
+    scope: "reviewed_computational_example";
+    interpretation: string;
+    limitations: string;
+    checked: string[];
+  } | null };
   record_pin?: RecordPin | null;
   study?: StudyContext;
 }
@@ -77,4 +82,5 @@ export interface PreparedExample {
   template_active?: boolean;
   campaign_draft?: DesignDraft | null;
   study?: StudyContext | null;
+  evidence_draft?: import("../evidence/types").EvidenceInput | null;
 }

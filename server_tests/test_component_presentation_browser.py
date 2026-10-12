@@ -51,7 +51,7 @@ def test_visible_engine_comparison_and_installed_controls(tmp_path, language, wi
                 else "动力学与结合自由能",
                 exact=True,
             ).click()
-            grid = page.locator(".component-grid.is-engine-comparison")
+            grid = page.locator(".component-library > .component-grid")
             cards = grid.get_by_role("article")
             expect(cards).to_have_count(3)
             installed = cards.get_by_role(

@@ -5,6 +5,22 @@ from random import Random
 from mapping import correspondence, labelled_smiles, normalize, restore_labels, stereo_preserved
 
 
+def prioritized_tautomers(protomer, variants, enumerator):
+    """Preserve the supplied protomer's form, then use RDKit's structural heuristic."""
+    from rdkit import Chem
+
+    original = Chem.MolToSmiles(normalize(protomer), isomericSmiles=True)
+    unique = {
+        Chem.MolToSmiles(normalize(mol), isomericSmiles=True): mol for mol in variants
+    }
+    unique.setdefault(original, protomer)
+    keys = sorted(
+        unique,
+        key=lambda key: (key != original, -enumerator.ScoreTautomer(unique[key]), key),
+    )
+    return [unique[key] for key in keys]
+
+
 def enumerate_states(source, options):
     from rdkit import Chem
     from rdkit.Chem import rdMolDescriptors
@@ -57,7 +73,8 @@ def enumerate_states(source, options):
         truncated |= len(variants) > options.max_tautomers
         if options.tautomers:
             truncated |= str(variants.status) != "Completed"
-        for tautomer in list(variants)[: options.max_tautomers]:
+        ordered = prioritized_tautomers(protomer, variants, enumerator)
+        for tautomer in ordered[: options.max_tautomers]:
             # RDKit 2023 stereo enumeration consumes _ChiralityPossible; tautomer
             # reassignment clears this computed flag, so discover centers again.
             Chem.AssignStereochemistry(
@@ -95,7 +112,9 @@ def enumerate_states(source, options):
                 break
         if work > 512 or len(states) > options.max_states:
             break
-    output = [states[key] for key in sorted(states)[: options.max_states]]
+    # Insertion order retains the reviewed chemical priorities at the state cap.
+    # Alphabetical SMILES ordering can otherwise discard the supplied tautomer.
+    output = list(states.values())[: options.max_states]
     if not output:
         raise ValueError("No state retained the defined source stereochemistry.")
     return output, {

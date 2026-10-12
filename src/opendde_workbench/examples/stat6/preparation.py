@@ -13,7 +13,11 @@ NAMESPACE = UUID("dc83ffaf-3aef-49fc-af71-bf9732d06a78")
 def register_input(scientific, key):
     file = FILES[key]
     content = verified_input(key)
-    kind = {"structure": "structure", "ligand": "molecule", "sequences": "sequence"}[file.kind]
+    kind = {
+        "structure": "structure",
+        "ligand": "molecule",
+        "sequences": "sequence",
+    }[file.kind]
     identity = uuid5(NAMESPACE, f"{CASE.id}:{CASE.revision}:{key}:{file.sha256}")
     label = "STAT6 study · " + file.name
     notes = "Fixed study input; source: " + file.url
@@ -43,7 +47,11 @@ def register_input(scientific, key):
 
 def prepare_stat6(capability, scientific, *, records=None):
     module = MODULES[capability]
-    originals = {key: register_input(scientific, key) for key in FILES}
+    originals = {
+        key: register_input(scientific, key)
+        for key, spec in FILES.items()
+        if spec.kind in {"structure", "ligand", "sequences"}
+    }
     objects = {
         **originals,
         "structure": originals["stat6_structure"],
@@ -62,15 +70,9 @@ def prepare_stat6(capability, scientific, *, records=None):
         "partner_b": originals["stat6_receptor"],
         "receptor_a": originals["stat6_receptor"],
         "receptor_b": originals["stat6_alternative_receptor"],
+        "variable_domains": originals["dupilumab_variable_domains"],
     }
     if capability in {
-        "gnina.score",
-        "gnina.minimize",
-        "posebusters.check",
-        "diffsbdd.interactions",
-        "diffsbdd.inpaint",
-        "diffsbdd.diversify",
-        "diffsbdd.optimize",
         "openmm.dynamics",
         "gromacs.dynamics",
         "openfe.rbfe",
@@ -80,31 +82,71 @@ def prepare_stat6(capability, scientific, *, records=None):
         objects.pop("ligand")
     if capability == "diffsbdd.pocket":
         objects["ligand"] = originals["bound_reference"]
-    if capability == "chemprop.train":
-        # A single unlabelled study molecule is not an experimental training dataset.
-        objects.pop("ligand")
+    if capability in {
+        "gnina.score",
+        "gnina.minimize",
+        "posebusters.check",
+        "diffsbdd.interactions",
+        "diffsbdd.inpaint",
+        "diffsbdd.diversify",
+        "diffsbdd.optimize",
+    }:
+        objects["ligand"] = originals["calculated_pose"]
+        objects["receptor"] = originals["calculated_receptor"]
+    if capability in {"chemprop.train", "chemistry.screen"}:
+        objects["library"] = originals["stat6_assay_library"]
+        objects["ligand"] = originals["stat6_assay_library"]
     sequence = "".join(verified_input("stat6_sequence").decode().splitlines()[1:])
     if len(sequence) != 847:
         raise ValueError("The fixed canonical STAT6 sequence differs from its reviewed length.")
     sequences = {"protein": sequence, "antigen": sequence, "target": sequence}
+    sequences["observed_protein"] = "".join(
+        verified_input("stat6_observed_sequence").decode().splitlines()[1:]
+    )
+    for key in ("heavy", "light"):
+        sequences[key] = "".join(verified_input("dupilumab_" + key).decode().splitlines()[1:])
+    if capability in {"antibody.humanize", "antibody.number", "fold", "epitope", "campaign"}:
+        sequences["antigen"] = "".join(
+            verified_input("dupilumab_antigen").decode().splitlines()[1:]
+        )
+        objects["antigen_sequence"] = originals["dupilumab_antigen"]
+        objects["structure"] = originals["dupilumab_complex"]
+    from .experimental_inputs import evidence_draft
     from .requests import study_request
+
+    measured_file = FILES["stat6_measurements"]
+    # EvidenceRecords owns measurement semantics. Preserve its existing immutable
+    # asset authority rather than registering a CSV as a configuration object.
+    measurements = scientific.assets.save(
+        measured_file.name, measured_file.kind, verified_input("stat6_measurements")
+    )
+
+    sequence_sources = {
+        key: (sequence,) for key in ("protein_sequence", "target_sequence", "stat6_sequence")
+    }
+    sequence_sources.update(
+        {
+            "antigen_sequence": (sequences["antigen"],),
+            "variable_domains": (sequences["heavy"], sequences["light"]),
+            "dupilumab_variable_domains": (sequences["heavy"], sequences["light"]),
+            "stat6_observed_sequence": (sequences["observed_protein"],),
+        }
+    )
 
     return PreparedExample(
         module=module,
         case=CASE,
         objects=objects,
+        data_assets={"stat6_measurements": measurements},
         sequences=sequences,
-        sequence_sources={
-            key: (sequence,)
-            for key in ("protein_sequence", "antigen_sequence", "target_sequence", "stat6_sequence")
-        },
+        sequence_sources=sequence_sources,
         sources=CASE.sources,
         request=study_request(capability, objects, sequences),
         campaign_draft={
-            "targetName": "STAT6 · P42226",
-            "targets": {"A": sequence},
-            "format": "VHH",
-            "binders": {"B": ""},
+            "targetName": "STAT6 pathway · IL-4R alpha · 6WGL",
+            "targets": {"C": sequences["antigen"]},
+            "format": "VHVL",
+            "binders": {"A": sequences["heavy"], "B": sequences["light"]},
             "cdr": {},
             "fixed": {},
             "budget": "standard",
@@ -116,4 +158,7 @@ def prepare_stat6(capability, scientific, *, records=None):
         if records and module.parent_capability
         else None,
         study=study_context(capability),
+        evidence_draft=evidence_draft(scientific, objects, measurements)
+        if capability == "experimental.evidence"
+        else None,
     )

@@ -30,85 +30,6 @@
   color: var(--ink);
   font: inherit;
 }
-.task-history-switch select {
-  max-width: 270px;
-  padding: 8px 32px 8px 10px;
-}
-.task-history-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  padding: 0 0 8px;
-  font-size: 12px;
-}
-.task-history-back:hover {
-  color: var(--accent);
-}
-.task-history-modules {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 215px), 1fr));
-  gap: 14px;
-}
-.task-history-modules > button {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: 38px auto auto;
-  text-align: left;
-  align-content: start;
-  gap: 9px;
-  min-height: 156px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--surface);
-  color: var(--ink);
-  transition:
-    border-color 0.16s,
-    background 0.16s;
-}
-.task-history-modules > button:hover {
-  border-color: var(--accent);
-  background: var(--surface-hover);
-}
-.task-history-module-icon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 20px;
-}
-.task-history-modules strong {
-  grid-column: 1 / -1;
-  font-size: 15px;
-  font-weight: 600;
-}
-.task-history-module-count {
-  color: var(--muted);
-  font-size: 13px;
-}
-.task-history-modules small {
-  color: var(--accent);
-  font-size: 12px;
-  align-self: center;
-}
-.task-history-module-arrow {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  color: var(--muted);
-  font-size: 12px;
-}
-.task-history-empty-note {
-  color: var(--muted);
-  padding: 20px 0;
-}
 .task-history-workspace .task-project-filter {
   margin: -8px 0 16px;
 }
@@ -243,31 +164,12 @@
   .task-history-heading-actions {
     width: 100%;
   }
-  .task-history-switch {
-    flex: 1;
-    min-width: 0;
-  }
-  .task-history-switch select {
-    width: 100%;
-    max-width: none;
-  }
   .task-history-controls {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr);
     gap: 12px;
   }
   .task-history-search {
     grid-column: 1 / -1;
-  }
-  .task-history-modules {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-  .task-history-modules > button {
-    padding: 14px;
-    min-height: 150px;
-  }
-  .task-history-modules strong {
-    font-size: 13px;
   }
   .task-history-table {
     min-width: 610px;
@@ -276,8 +178,5 @@
     flex-wrap: wrap;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .task-history-modules > button {
-    transition: none;
-  }
-}
+
+.module-workspace-navigation { display: flex; gap: 4px; margin: 0 0 18px; width: fit-content; max-width: 100%; }

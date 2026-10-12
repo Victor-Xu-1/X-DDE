@@ -99,10 +99,21 @@ it("rejects corrupt retained bytes before native display or original-version sav
   expect(screen.queryByText(/Selected version opened/)).toBeNull();
   expect(upload).not.toHaveBeenCalled();
   expect(post).not.toHaveBeenCalled();
+  // An empty save must not remove the only recovery for this retained source.
+  editor.getSmiles.mockResolvedValueOnce("");
+  fireEvent.click(screen.getByRole("button", { name: "Save to Workbench" }));
+  await waitFor(() =>
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Draw a molecule first",
+    ),
+  );
+  expect(screen.getByRole("button", { name: "Retry opening" })).toBeEnabled();
+  expect(post).not.toHaveBeenCalled();
   // A subsequent normal drawing save must not inherit the rejected source.
   fireEvent.click(screen.getByRole("button", { name: "Save to Workbench" }));
   await waitFor(() => expect(post).toHaveBeenCalledOnce());
   expect(post.mock.calls[0][1]).toMatchObject({ parent_id: null });
+  expect(screen.queryByRole("button", { name: "Retry opening" })).toBeNull();
 });
 it("opens a verified source and retains its exact version as normal save parent", async () => {
   vi.stubGlobal(
@@ -246,4 +257,42 @@ it("clears an old success notice and retries the same rejected version without s
   ).toHaveLength(2);
   expect(upload).not.toHaveBeenCalled();
   expect(post).not.toHaveBeenCalled();
+});
+it("does not let an older successful action dismiss a newer source's load recovery", async () => {
+  const selected = {
+    ...original,
+    id: "version-2",
+    reference: {
+      ...original.reference,
+      asset_id: "new-asset",
+      version_id: "version-2",
+    },
+  };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      const newer = url.includes("new-asset");
+      return url.endsWith("/metadata")
+        ? new Response(
+            JSON.stringify({ ...metadata, id: newer ? "new-asset" : "asset" }),
+          )
+        : new Response(newer ? source.replace(" C   ", " N   ") : source);
+    }),
+  );
+  vi.spyOn(api, "upload").mockResolvedValue({ id: "saved-asset" } as never);
+  let finish!: (value: ScientificObject) => void;
+  const post = vi.spyOn(api, "post").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve as typeof finish;
+      }),
+  );
+  const { view, props } = mount();
+  await screen.findByText(/Selected version opened/);
+  fireEvent.click(screen.getByRole("button", { name: "Save to Workbench" }));
+  await waitFor(() => expect(post).toHaveBeenCalledOnce());
+  view.rerender(<Editors {...props} initialObject={selected} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("does not match");
+  await act(async () => finish({ ...original, id: "saved-version" }));
+  expect(screen.getByRole("button", { name: "Retry opening" })).toBeEnabled();
 });

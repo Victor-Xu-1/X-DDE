@@ -193,7 +193,10 @@ def forms() -> tuple[CapabilitySpec, ...]:
     result = []
     for identifier, group, label, note, source in _ROWS:
         campaign = identifier == "campaign"
-        environment = "opendde" if identifier in _CORE else "harness"
+        environment = (
+            "chemistry" if identifier == "properties"
+            else "opendde" if identifier in _CORE else "harness"
+        )
         result.append(
             CapabilitySpec(
                 id=identifier,

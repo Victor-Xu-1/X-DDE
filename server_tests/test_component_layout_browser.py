@@ -5,6 +5,7 @@ import os
 import re
 from pathlib import Path
 
+from layout_browser_helpers import initialize_layout_page
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -44,6 +45,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
     with sync_playwright() as engine:
         browser = engine.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -64,7 +66,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                 .get_by_role("button")
                 .all_text_contents()
             )
-            for width in (1440, 1920, 2560, 390):
+            for width in (1440, 1920, 2560, 768, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
                 page.get_by_role("button", name="全部", exact=True).click()
                 all_cards = card_geometry(page, ".component-grid > .component-card")
@@ -77,13 +79,25 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                     cards = card_geometry(page, ".component-grid > .component-card")
                     check_cards(cards, width)
                     assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
+                    grid = page.locator(".component-library > .component-grid")
+                    geometry = grid.evaluate("""e => ({x:e.getBoundingClientRect().x,
+                        width:e.getBoundingClientRect().width,
+                        containerWidth:e.closest('.deployment-workspace').clientWidth,
+                        tracks:getComputedStyle(e).gridTemplateColumns.split(' ').map(parseFloat),
+                        gap:parseFloat(getComputedStyle(e).columnGap)})""")
+                    if group == "动力学与结合自由能":
+                        assert [card["name"] for card in cards] == [
+                            "动力学与结构优化 · OpenMM",
+                            "分子动力学 · GROMACS",
+                            "相对结合自由能 · OpenFE",
+                        ]
                     assert abs(cards[0]["width"] - all_cards[0]["width"]) <= 1, (
-                        "A short group must retain the grid column width"
+                        "Every group must retain the same adaptive card width"
                     )
                     page.screenshot(
                         path=str(evidence / f"components-{width}-{groups.index(group)}.png")
                     )
-                    rows.append({"width": width, "group": group, "cards": cards})
+                    rows.append({"width": width, "group": group, "cards": cards, "grid": geometry})
                 page.get_by_role("button", name="全部", exact=True).click()
                 optional = page.locator(".component-additions > summary")
                 if optional.count():

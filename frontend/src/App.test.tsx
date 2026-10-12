@@ -87,6 +87,19 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
+it("browses classified history during an unavailable environment-health read", async () => {
+  vi.mocked(api.health).mockRejectedValue(new Error("Unavailable"));
+  const user = userEvent.setup();
+  render(<App />);
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  await user.click(within(nav).getByRole("button", { name: "Structure prediction" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
+  expect(
+    await screen.findByRole("button", { name: "Ungrouped task" }),
+  ).toBeVisible();
+  expect(screen.queryByText(/Unable to load the latest tasks/)).toBeNull();
+});
+
 it("starts the chosen task module's questionnaire without reusing or submitting an old task", async () => {
   vi.spyOn(apiClient, "request").mockResolvedValue({
     availability: { configuration_present: false },
@@ -97,14 +110,9 @@ it("starts the chosen task module's questionnaire without reusing or submitting 
   const nav = await screen.findByRole("navigation", {
     name: "Main navigation",
   });
-  await user.click(
-    within(nav).getByRole("button", { name: "Tasks and results" }),
-  );
-  const modules = await screen.findByRole("group", { name: "Task modules" });
-  await user.click(
-    within(modules).getByRole("button", { name: /Pockets and docking/ }),
-  );
-  await user.click(screen.getByRole("button", { name: "New task" }));
+  await user.click(within(nav).getByRole("button", { name: "Pockets and docking" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "New task" }));
   expect(
     await screen.findByRole("heading", { name: "1. Choose structure" }),
   ).toBeVisible();
@@ -143,11 +151,8 @@ it("opens the shared asset workspace through the integrated navigation", async (
 it("keeps all projects visible when selecting a task from a module's unfiltered history", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Tasks and results" }));
-  const modules = await screen.findByRole("group", { name: "Task modules" });
-  await user.click(
-    within(modules).getByRole("button", { name: /Structure prediction/ }),
-  );
+  await user.click(screen.getByRole("button", { name: "Structure prediction" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
   await user.click(
     await screen.findByRole("button", { name: /Project A task/ }),
   );
@@ -282,11 +287,11 @@ it("keeps a linked non-prediction task in its task view across both history even
     window.dispatchEvent(new PopStateEvent("popstate"));
   });
   expect(
-    await screen.findByRole("heading", { name: "Tasks and results" }),
+    await screen.findByRole("heading", { name: "Task results" }),
   ).toBeInTheDocument();
   act(() => window.dispatchEvent(new HashChangeEvent("hashchange")));
   expect(
-    await screen.findByRole("heading", { name: "Tasks and results" }),
+    await screen.findByRole("heading", { name: "Task results" }),
   ).toBeInTheDocument();
   expect(
     screen.queryByRole("heading", { name: "Structure prediction" }),
@@ -312,16 +317,16 @@ it("opens a fresh prediction form when the current task belongs to another engin
     name: "Main navigation",
   });
   expect(
-    await screen.findByRole("heading", { name: "Tasks and results" }),
+    await screen.findByRole("heading", { name: "Task results" }),
   ).toBeVisible();
   await user.click(
     within(nav).getByRole("button", { name: "Structure prediction" }),
   );
   expect(
-    await screen.findByRole("heading", { name: /^Structure prediction/ }),
+    await screen.findByRole("heading", { name: "Structure prediction" }),
   ).toBeVisible();
   expect(
-    screen.queryByRole("heading", { name: "Tasks and results" }),
+    screen.queryByRole("heading", { name: "Task results" }),
   ).not.toBeInTheDocument();
   expect(window.location.hash).toBe("#task=");
   expect(submit).not.toHaveBeenCalled();
@@ -359,4 +364,91 @@ it("returns to the full catalogue when its navigation entry is chosen inside a t
     screen.queryByRole("heading", { name: "1. Choose source" }),
   ).not.toBeInTheDocument();
   expect(submit).not.toHaveBeenCalled();
+});
+
+it.each(["en", "zh"] as const)(
+  "preserves ongoing header typing when delayed legacy task ownership resolves (%s)",
+  async (language) => {
+    vi.mocked(i18n.restoreLanguage).mockReturnValue(language);
+    vi.mocked(api.jobs).mockResolvedValue([]);
+    window.history.replaceState(null, "", "/#task=" + jobs[0].id);
+    let resolve!: (value: Job) => void;
+    vi.mocked(apiClient.request).mockImplementation(async (path) => {
+      if (path === `/jobs/${jobs[0].id}`)
+        return new Promise<Job>((done) => {
+          resolve = done;
+        }) as never;
+      if (path === `/task-history/${jobs[0].id}/identity`)
+        return identityFixture(jobs[0]) as never;
+      throw new Error("Unhandled test request: " + path);
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    const search = screen.getByRole("searchbox", {
+      name: language === "zh" ? "搜索任务" : "Search tasks",
+    });
+    await user.type(search, "STA");
+    expect(search).toHaveFocus();
+    expect(window.location.hash).toBe("#task=" + jobs[0].id);
+    await act(async () => {
+      resolve(jobs[0]);
+    });
+    expect(document.querySelector(".page-context-title")).toHaveTextContent(
+      language === "zh" ? "结构预测" : "Structure prediction",
+    );
+    expect(search).toHaveFocus();
+    await user.keyboard("T6");
+    expect(search).toHaveValue("STAT6");
+    expect(window.location.hash).toBe(
+      "#view=results&module=structures&task=" + jobs[0].id,
+    );
+  },
+);
+
+it("keeps initial and explicit keyboard navigation focus inside main", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const main = screen.getByRole("main");
+  expect(main).toContainElement(document.activeElement as HTMLElement);
+  const target = within(
+    screen.getByRole("navigation", { name: "Main navigation" }),
+  ).getByRole("button", { name: "Structure prediction" });
+  target.focus();
+  await user.keyboard("{Enter}");
+  expect(document.querySelector(".page-context-title")).toHaveTextContent(
+    "Structure prediction",
+  );
+  expect(main).toContainElement(document.activeElement as HTMLElement);
+});
+
+it("focuses the selected result after keyboard selection from header search", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const search = screen.getByRole("searchbox", { name: "Search tasks" });
+  await user.type(search, "Ungrouped");
+  const result = await screen.findByRole("button", { name: /Ungrouped task/ });
+  await user.keyboard("{ArrowDown}");
+  expect(result).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("main")).toHaveFocus();
+  expect(
+    await screen.findByRole("heading", { name: "Ungrouped task" }),
+  ).toBeVisible();
+  expect(search).toHaveValue("");
+});
+
+it("focuses main after keyboard selection from task notifications", async () => {
+  vi.mocked(api.jobs).mockResolvedValue([{ ...jobs[0], status: "failed" }]);
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(screen.getByLabelText("Task notifications"));
+  const result = await screen.findByRole("button", {
+    name: /Ungrouped task.*Failed/,
+  });
+  result.focus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("main")).toHaveFocus();
+  expect(
+    await screen.findByRole("heading", { name: "Ungrouped task" }),
+  ).toBeVisible();
 });

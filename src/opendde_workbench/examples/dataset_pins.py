@@ -7,7 +7,12 @@ from .catalogue import FILES
 
 def validate_dataset_case(job, prepared, store):
     assets = AssetStore(store, store.path.parent / "assets")
-    allowed = {FILES[key].sha256 for key in prepared.case.files}
+    catalogue = FILES
+    if prepared.study and prepared.study.get("id") == "stat6":
+        from .stat6.catalogue import FILES as STUDY_FILES
+
+        catalogue = STUDY_FILES
+    allowed = {catalogue[key].sha256 for key in prepared.case.files}
     if any(
         item.source.sha256 not in allowed
         or assets.get(item.source.asset_id).sha256 != item.source.sha256

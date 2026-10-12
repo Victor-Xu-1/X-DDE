@@ -1,9 +1,8 @@
-"""Container entry point for native conversion/inspection and RDKit evaluation.
+"""Container entry point for native OpenDDE conversion and inspection.
 
 This module imports scientific libraries only inside the external runtime.
 """
 
-import csv
 import json
 import shutil
 import subprocess
@@ -11,69 +10,6 @@ from pathlib import Path
 
 ROOT = Path("/job")
 OUTPUT = ROOT / "output"
-
-
-def properties(request: dict, bindings: dict) -> dict:
-    from molecule_math import describe, read_molecules
-    from rdkit import Chem
-
-    rows = [describe(Chem.MolFromSmiles(s), s) for s in request["smiles"]]
-    for identifier in request["ligand_files"]:
-        selected = {
-            ref["record"]: ref
-            for ref in request.get("scientific_inputs", [])
-            if ref["asset_id"] == identifier
-        }
-        found = set()
-        for index, molecule in enumerate(read_molecules(Path(bindings[identifier]))):
-            if selected and index not in selected:
-                continue
-            if len(rows) >= 500:
-                raise ValueError(
-                    "A property task supports at most500 molecules; split the input file."
-                )
-            row = describe(molecule, f"{identifier}:{index + 1}")
-            if selected:
-                row["scientific_reference"] = selected[index]
-                found.add(index)
-            rows.append(row)
-        if selected.keys() - found:
-            raise ValueError("Selected scientific molecular record is missing from the file.")
-    if not rows:
-        raise ValueError("No molecule records were found.")
-    fields = [
-        "input",
-        "available",
-        "reason",
-        "smiles",
-        "mw",
-        "logp",
-        "tpsa",
-        "qed",
-        "sa",
-        "hbd",
-        "hba",
-        "rotatable_bonds",
-    ]
-    with (OUTPUT / "properties.csv").open("w", newline="", encoding="utf-8-sig") as file:
-        writer = csv.DictWriter(file, fieldnames=fields)
-        writer.writeheader()
-        # CSV strings are made safe for spreadsheets without altering the JSON data.
-        writer.writerows(
-            {
-                k: "'" + v if isinstance(v, str) and v.startswith(("=", "+", "-", "@")) else v
-                for k in fields
-                for v in [row.get(k)]
-            }
-            for row in rows
-        )
-    return {
-        "molecules": rows,
-        "source": "RDKit descriptors and SA score",
-        "notes": "Computed descriptors; QED is drug-likeness, SA is a heuristic, not a route. "
-        "No ADMET or measured potency.",
-    }
-
 
 def inspect() -> dict:
     from biotite.structure.io.pdbx import CIFFile, set_structure
@@ -179,7 +115,6 @@ def main():
     bindings = json.loads((ROOT / "bindings.json").read_text())
     OUTPUT.mkdir(exist_ok=True)
     handlers = {
-        "properties": lambda: properties(request, bindings),
         "inspect": inspect,
         "json": lambda: conversion(request, bindings),
         "resources": lambda: resources(request),

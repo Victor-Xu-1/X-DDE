@@ -81,6 +81,12 @@ def study_request(capability, objects, sequences):
                 "source_permission": "user_owned_file",
             },
         }
-    # Other modules consume the shared target/material roles. In particular,
-    # no unrelated wet measurements, antibodies, bound poses or FEP partner are fabricated.
-    return None
+    from .harness_requests import harness_study
+    from .integrated_requests import integrated_study
+    from .task_requests import study_task
+
+    return (
+        integrated_study(capability, objects, sequences)
+        or harness_study(capability, objects, sequences)
+        or study_task(capability, objects, sequences)
+    )

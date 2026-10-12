@@ -9,11 +9,110 @@ vi.mock("../presentation/plots/InteractivePlot", () => ({
 }));
 vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 vi.mock("../presentation/MolecularPreview", () => ({
-  MolecularPreview: ({ source }: { source: { smiles: string } }) => (
-    <output aria-label="Original molecular identity">{source.smiles}</output>
+  MolecularPreview: ({
+    source,
+    urls,
+    records,
+  }: {
+    source: { smiles?: string; url?: string; record?: number };
+    urls?: string[];
+    records?: number[];
+  }) => (
+    <>
+      <output aria-label="Original molecular identity">{source.smiles}</output>
+      <output aria-label="Exact preview file">
+        {JSON.stringify({ source, urls, records })}
+      </output>
+    </>
   ),
 }));
 afterEach(cleanup);
+
+it("selects the source file's exact native record for 2D and 3D instead of rebuilding its SMILES", async () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  const molecules = [
+    {
+      input: id + ":2",
+      name: "Native second record",
+      available: true,
+      smiles: "CCC(=O)N",
+    },
+    {
+      input: id + ":1",
+      name: "Native first record",
+      available: true,
+      smiles: "CC(=O)N",
+    },
+  ];
+  const original = JSON.stringify(molecules);
+  render(
+    <PropertyResults
+      language="en"
+      molecules={molecules}
+      job={
+        {
+          id: "native",
+          request: {
+            operation: "properties",
+            name: "Preserved file",
+            ligand_files: [id],
+          },
+        } as Job
+      }
+    />,
+  );
+  expect(
+    JSON.parse(screen.getByLabelText("Exact preview file").textContent!),
+  ).toEqual({
+    source: { url: "/api/assets/" + id, record: 1 },
+    urls: ["/api/assets/" + id],
+    records: [1],
+  });
+  await userEvent.click(
+    screen.getByRole("button", { name: "Native first record" }),
+  );
+  expect(
+    JSON.parse(screen.getByLabelText("Exact preview file").textContent!),
+  ).toEqual({
+    source: { url: "/api/assets/" + id, record: 0 },
+    urls: ["/api/assets/" + id],
+    records: [0],
+  });
+  expect(JSON.stringify(molecules)).toBe(original);
+});
+
+it("shows native compound identities in the table, selector and selected structure without rewriting data", async () => {
+  const molecules = [
+    {
+      input: "asset:0",
+      name: "CHEMBL123",
+      available: true,
+      smiles: "CC(=O)N",
+      mw: 59.07,
+      logp: -1.2,
+    },
+    {
+      input: "asset:1",
+      name: "CHEMBL456",
+      available: true,
+      smiles: "CC(=O)O",
+      mw: 60.05,
+      logp: 0.1,
+    },
+  ];
+  const original = JSON.stringify(molecules);
+  render(
+    <PropertyResults
+      job={{ id: "native", request: { name: "Measured STAT6 series" } } as Job}
+      molecules={molecules}
+      language="en"
+    />,
+  );
+  expect(screen.getByRole("option", { name: "CHEMBL123" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "CHEMBL123" })).toBeVisible();
+  expect(screen.getByRole("table")).toHaveTextContent("CHEMBL123");
+  expect(JSON.stringify(molecules)).toBe(original);
+});
 
 it("links keyboard plot selection, original molecular identity and a reviewed new draft without modifying source records", async () => {
   const molecules: LigandProperties[] = [

@@ -4,6 +4,7 @@ import IconContext from "@ant-design/icons/es/components/Context";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import { useWorkbench, taskIdFromHash } from "./useWorkbench";
+import { WorkbenchReadStatus } from "./WorkbenchReadStatus";
 import { useScience } from "./studio/useScience";
 import { Navigation } from "./studio/Navigation";
 import { Header } from "./studio/Header";
@@ -11,12 +12,17 @@ import {
   viewTitle,
   toolForView,
   viewForTool,
+  viewForResults,
+  resultModule,
   type View,
 } from "./studio/navigation-model";
 import { ModuleTaskPicker } from "./studio/ModuleTaskPicker";
+import { ModuleWorkspaceNavigation } from "./studio/ModuleWorkspaceNavigation";
+import { kindForJob, moduleForKind } from "./studio/task-history-model";
 import { PredictionResults } from "./studio/PredictionResults";
 import { TaskWorkspace } from "./studio/TaskWorkspace";
-import { taskHistoryRoute } from "./studio/task-history-route";
+import { TaskWorkspaceSelectionState } from "./studio/TaskWorkspaceSelectionState";
+import { taskHistoryHash, taskHistoryRoute } from "./studio/task-history-route";
 import { WorkspaceTabs } from "./studio/WorkspaceTabs";
 import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
 import { HelpWorkspace } from "./studio/HelpWorkspace";
@@ -46,10 +52,13 @@ export function App() {
     [entryRevision, setEntryRevision] = useState(0);
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
-  const [view, setView] = useState<View>(() =>
-      taskIdFromHash(location.hash) || taskHistoryRoute(location.hash)
-        ? "tasks"
-        : "tools",
+  const requestedTask = useRef(taskIdFromHash(location.hash));
+  const [requestedView, setView] = useState<View>(() =>
+      taskHistoryRoute(location.hash)?.module
+        ? viewForResults(taskHistoryRoute(location.hash)!.module!)
+        : taskIdFromHash(location.hash)
+          ? "tasks"
+          : "tools",
     ),
     [projectId, setProjectId] = useState<string | null>(
       () => taskHistoryRoute(location.hash)?.project ?? null,
@@ -58,7 +67,8 @@ export function App() {
     function navigate() {
       const route = taskHistoryRoute(window.location.hash);
       if (taskIdFromHash(window.location.hash) || route) {
-        setView("tasks");
+        requestedTask.current = taskIdFromHash(window.location.hash);
+        setView(route?.module ? viewForResults(route.module) : "tasks");
         setProjectId(route?.project ?? null);
       }
     }
@@ -72,10 +82,10 @@ export function App() {
   const [resultsVersion, setResultsVersion] = useState(0);
   const [catalogueRevision, setCatalogueRevision] = useState(0);
   useEffect(() => {
-    if (view === "research") setResearchOpened(true);
-    if (view === "research" && researchTab === "editors")
+    if (requestedView === "research") setResearchOpened(true);
+    if (requestedView === "research" && researchTab === "editors")
       setEditorsOpened(true);
-  }, [view, researchTab]);
+  }, [requestedView, researchTab]);
   const [inputVersion, setInputVersion] = useState(0);
   const [candidateId, setCandidateId] = useState<string | null>(null),
     [compared, setCompared] = useState<string[]>([]),
@@ -86,10 +96,10 @@ export function App() {
   const [draft, setDraft] = useState<Prediction | null>(null),
     [submitted, setSubmitted] = useState<Job | null>(null);
   const work = useWorkbench(),
-    { health, jobs, selected, select, detail, loading, refresh } = work;
+    { health, jobs, selected, select, detail, refresh } = work;
   const job =
-      jobs.find((x) => x.id === selected) ??
       (work.selectedJob?.id === selected ? work.selectedJob : null) ??
+      jobs.find((x) => x.id === selected) ??
       (submitted?.id === selected ? submitted : null),
     science = useScience(job),
     t = translator(language),
@@ -97,6 +107,14 @@ export function App() {
   const ready = Boolean(
     health?.engine.ready && health.worker_ready && !work.connectionError,
   );
+  // Legacy links wait for their exact task. Ownership is a pure projection of
+  // that selection, so switching within one module cannot stall in a pending view.
+  const view: View =
+    requestedView === "tasks" && job && selected === requestedTask.current
+      ? viewForResults(moduleForKind(kindForJob(job)))
+      : requestedView;
+  const scopedResults = resultModule(view);
+  const showingResults = Boolean(scopedResults) || view === "tasks";
   const analysis = science.analysis;
   const candidate =
     analysis?.candidates.find((x) => x.id === candidateId) ??
@@ -128,11 +146,18 @@ export function App() {
   }, [language, view]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    if (!content.current?.contains(document.activeElement))
+    const active = document.activeElement;
+    // Header search survives view changes, including asynchronous task ownership
+    // resolution. Preserve typing, while explicit navigation still focuses main.
+    if (
+      !content.current?.contains(active) &&
+      !active?.matches('.studio-topbar input[type="search"]')
+    )
       content.current?.focus({ preventScroll: true });
   }, [view]);
 
   function chooseJob(id: string, preserveHistory = true) {
+    requestedTask.current = id;
     select(id, preserveHistory);
     setCandidateId(null);
     setCompared([]);
@@ -141,7 +166,10 @@ export function App() {
   function showJob(id: string) {
     inspectJob(id);
     setResultsVersion((n) => n + 1);
-    setView("tasks");
+    const next =
+      jobs.find((job) => job.id === id) ??
+      (submitted?.id === id ? submitted : null);
+    setView(next ? viewForResults(moduleForKind(kindForJob(next))) : "tasks");
   }
   function inspectJob(id: string) {
     const next = jobs.find((x) => x.id === id);
@@ -164,8 +192,11 @@ export function App() {
     setFocusResidue(null);
   }
   function changed(next: Job) {
+    work.confirmJob(next);
     setSubmitted(next);
-    showJob(next.id);
+    chooseJob(next.id);
+    setResultsVersion((n) => n + 1);
+    setView(viewForResults(moduleForKind(kindForJob(next))));
     setProjectId(next.request.project_id ?? null);
     refresh();
   }
@@ -189,6 +220,24 @@ export function App() {
     setView(tool ? viewForTool(tool) : "tools");
   }
   function navigate(next: View) {
+    const module = resultModule(next);
+    if (module) {
+      chooseJob("", false);
+      window.history.pushState(
+        null,
+        "",
+        taskHistoryHash({
+          module,
+          type: "all",
+          status: "all",
+          query: "",
+          page: 0,
+          project: projectId,
+        }),
+      );
+      setView(next);
+      return;
+    }
     const tool = toolForView(next);
     if (tool) {
       openTool(tool);
@@ -208,7 +257,8 @@ export function App() {
     health,
     job,
     detail,
-    detailError: work.detailError,
+    // Source-specific read failures and Retry appear once above the workspace.
+    detailError: false,
     onChanged: changed,
     projects: science.projects,
     projectId,
@@ -280,7 +330,7 @@ export function App() {
                       active={projectId}
                       onChoose={(id) => {
                         chooseProject(id);
-                        setView("tasks");
+                        setView(viewForResults("structures"));
                       }}
                       onCreated={science.reloadProjects}
                     />
@@ -329,13 +379,28 @@ export function App() {
                 onStart={() => navigate("tools")}
               />
             )}
-            {health?.queue_wait_reason && view === "tasks" && (
-              <p className="notice" role="status">
-                {zh
-                  ? "计算资源暂不可用，已提交的任务会继续等待。"
-                  : "Compute resources are unavailable; submitted tasks remain queued."}
-              </p>
+            {view !== "deployment" && (
+              <WorkbenchReadStatus
+                work={work}
+                hasJob={Boolean(job) && (showingResults || view === "home")}
+                showJobsError={view !== "home"}
+                language={language}
+              />
             )}
+            {!work.healthError &&
+              health?.queue_wait_reason &&
+              showingResults && (
+                <p className="notice" role="status">
+                  {zh
+                    ? "计算资源暂不可用，已提交的任务会继续等待。"
+                    : "Compute resources are unavailable; submitted tasks remain queued."}
+                </p>
+              )}
+            <ModuleWorkspaceNavigation
+              view={view}
+              language={language}
+              onView={navigate}
+            />
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"
@@ -353,7 +418,7 @@ export function App() {
                     (!projectId || x.request.project_id === projectId),
                 )}
                 onJob={chooseJob}
-                connectionError={work.connectionError}
+                connectionError={Boolean(work.jobsError)}
                 onRefresh={refresh}
                 compared={compared}
                 onCompare={(ids) => {
@@ -410,9 +475,31 @@ export function App() {
               </>
             )}
             {view === "tasks" && (
+              <section className="utility-page task-history-workspace">
+                <TaskWorkspaceSelectionState
+                  language={language}
+                  error={work.selectedJobError}
+                  loading={work.selectedJobLoading}
+                  onRetry={refresh}
+                  historyHref={taskHistoryHash({
+                    module: "other",
+                    type: "all",
+                    status: "all",
+                    query: "",
+                    page: 0,
+                    project: projectId,
+                  })}
+                />
+              </section>
+            )}
+            {scopedResults && (
               <TaskWorkspace
+                key={scopedResults}
+                scopedModule={scopedResults}
                 {...common}
-                connectionError={work.connectionError}
+                selected={selected}
+                selectedError={work.selectedJobError}
+                selectedLoading={work.selectedJobLoading}
                 onRefresh={refresh}
                 onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
                 onJob={chooseJob}

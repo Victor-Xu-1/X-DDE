@@ -9,6 +9,7 @@ from fastapi import Depends, Header, HTTPException, Query, Request
 from .asset_uploads import UploadInput, UploadStore
 from .dataset_inputs import UPLOAD_CHUNK_BYTES
 from .store import ConflictError
+from .wsl_storage import StorageUnavailable
 
 
 def register_uploads(app, assets, settings, mutation):
@@ -21,7 +22,9 @@ def register_uploads(app, assets, settings, mutation):
 
     def translate(exc):
         status = (
-            404
+            503
+            if isinstance(exc, StorageUnavailable)
+            else 404
             if isinstance(exc, FileNotFoundError)
             else 409
             if isinstance(exc, ConflictError)
@@ -33,7 +36,7 @@ def register_uploads(app, assets, settings, mutation):
     def create(value: UploadInput, idempotency_key: Annotated[UUID, Header()]):
         try:
             return uploads.create(value, idempotency_key)
-        except (ValueError, ConflictError, OSError) as exc:
+        except (ValueError, ConflictError, OSError, StorageUnavailable) as exc:
             raise translate(exc) from exc
 
     @app.get("/api/assets/uploads/{upload_id}/status")
@@ -64,7 +67,7 @@ def register_uploads(app, assets, settings, mutation):
             raise HTTPException(
                 408, "Research transfer paused; resume from its confirmed offset."
             ) from exc
-        except (ValueError, ConflictError, OSError) as exc:
+        except (ValueError, ConflictError, OSError, StorageUnavailable) as exc:
             raise translate(exc) from exc
 
     @app.get("/api/assets/uploads/{upload_id}/chunks")
@@ -82,7 +85,7 @@ def register_uploads(app, assets, settings, mutation):
     async def complete(upload_id: UUID):
         try:
             return await asyncio.to_thread(uploads.finalize, upload_id)
-        except (ValueError, ConflictError, OSError, EOFError) as exc:
+        except (ValueError, ConflictError, OSError, EOFError, StorageUnavailable) as exc:
             raise translate(exc) from exc
 
     @app.delete("/api/assets/uploads/{upload_id}", dependencies=[Depends(mutation)])

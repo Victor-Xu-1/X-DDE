@@ -2,6 +2,8 @@
 
 import asyncio
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
+from uuid import uuid4
 
 import pytest
 from conftest import ProcessEngine
@@ -9,6 +11,7 @@ from conftest import ProcessEngine
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.deployment.catalog import catalogue, dependencies
 from opendde_workbench.engine_registry import ENGINES, engine_for
+from opendde_workbench.execution_environment import capture
 from opendde_workbench.requests import TASK_ADAPTER
 
 
@@ -25,8 +28,25 @@ def test_every_public_task_operation_has_one_registered_engine():
     assert engine_for("predict").id == "opendde"
     assert engine_for("diffsbdd").id == "diffsbdd"
     assert engine_for("harness").id == "harness"
+    assert engine_for("properties").id == "chemistry"
     with pytest.raises(ValueError, match="Unregistered scientific operation"):
         engine_for("unknown-future-engine")
+
+
+def test_descriptor_cancellation_keeps_the_persisted_execution_environment(settings):
+    router = BackendRouter(settings)
+    job = router.store.create(
+        TASK_ADAPTER.validate_python({
+            "operation": "properties", "name": "Existing native task",
+            "smiles": ["O=C(N)c1ccccc1"],
+        }), str(uuid4()), 20, 500,
+    )
+    router.store.bind_environment(job.id, capture(settings, "opendde"))
+    router.opendde.stop = AsyncMock()
+    router.chemistry.stop = AsyncMock()
+    asyncio.run(router.stop(job.id))
+    router.opendde.stop.assert_awaited_once_with(job.id)
+    router.chemistry.stop.assert_not_awaited()
 
 
 def test_deployment_packages_belong_to_engines_or_editors():

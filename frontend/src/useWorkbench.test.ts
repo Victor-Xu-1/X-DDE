@@ -4,7 +4,10 @@ import { api } from "./api";
 import { useWorkbench } from "./useWorkbench";
 import { defaults } from "./form-model";
 import type { Job } from "./types";
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 const job = (id: string): Job => ({
   id,
   status: "succeeded",
@@ -33,11 +36,11 @@ function boundary() {
       }) as Response,
   );
 }
-it("preserves a result module while choosing history but clears its route for a new task", async () => {
+it.each(["tasks", "results"])("preserves a %s result module while choosing history but clears its route for a new task", async (view) => {
   window.history.replaceState(
     null,
     "",
-    "/#view=tasks&module=binding&q=STAT6&page=2",
+    `/#view=${view}&module=binding&q=STAT6&page=2`,
   );
   boundary();
   vi.spyOn(api, "jobs").mockResolvedValue([]);
@@ -96,5 +99,28 @@ it("cancels the old details on navigation and never downloads internal logs", as
   });
   expect(result.current.selected).toBe("");
   expect(result.current.detail).toBeNull();
+  unmount();
+});
+
+it("invalidates previous readiness and requires a fresh health response after Retry", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  boundary();
+  vi.spyOn(api, "jobs").mockResolvedValue([job("retained")]);
+  vi.useFakeTimers();
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await act(() => vi.advanceTimersByTimeAsync(0));
+  expect(result.current.health?.worker_ready).toBe(true);
+  vi.mocked(api.health).mockRejectedValueOnce(new Error("Unavailable"));
+  await act(() => vi.advanceTimersByTimeAsync(10000));
+  expect(result.current.health).toBeNull();
+  expect(result.current.connectionError).toBe(true);
+  expect(result.current.jobs[0].id).toBe("retained");
+  await act(() => vi.advanceTimersByTimeAsync(10000));
+  expect(result.current.health).toBeNull();
+  expect(api.health).toHaveBeenCalledTimes(2);
+  act(() => result.current.refresh());
+  await act(() => vi.advanceTimersByTimeAsync(0));
+  expect(result.current.health?.worker_ready).toBe(true);
+  expect(result.current.connectionError).toBe(false);
   unmount();
 });

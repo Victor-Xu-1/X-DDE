@@ -2,25 +2,30 @@ import { useEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { FigureSettings } from "./settings";
 import { FigureDialog } from "./FigureDialog";
+import { figureIdentity } from "./figure-render-queue";
 import "./publication.css";
 export function FigureExport({
   language,
+  sourceKey,
   filename,
   format,
   aspect = 1.5,
   render,
   disabled = false,
+  sourceReady = true,
   label,
   onStart,
   typography = format === "svg",
   molecular = false,
 }: {
   language: Language;
+  sourceKey: string;
   filename: string;
   format: "png" | "svg";
   aspect?: number | (() => number);
   render(settings: FigureSettings): Promise<Blob>;
   disabled?: boolean;
+  sourceReady?: boolean;
   label?: string;
   onStart?(): void;
   typography?: boolean;
@@ -70,13 +75,21 @@ export function FigureExport({
         ref={trigger}
         type="button"
         className="text-button figure-export-trigger"
-        disabled={disabled || inflight}
+        disabled={disabled || !sourceReady || inflight}
         onClick={() => setOpen(true)}
       >
         {label ?? (language === "zh" ? "文献图导出" : "Export figure")} ↓
       </button>
       {open && (
         <FigureDialog
+          sourceReady={sourceReady}
+          sourceKey={figureIdentity(
+            sourceKey,
+            filename,
+            format,
+            typography,
+            molecular,
+          )}
           language={language}
           filename={filename}
           format={format}

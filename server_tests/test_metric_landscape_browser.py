@@ -74,7 +74,8 @@ def test_native_landscape_preserves_values_links_records_and_exports(capability,
             ),
         )
         before = page.request.get(base + "/api/jobs").json()
-        example = page.request.get(base + "/api/examples/" + capability).json()
+        # Retained native outputs belong to the archive; STAT6 input templates stay uncomputed.
+        example = page.request.get(base + "/api/examples/" + capability, params={"profile": "archive"}).json()
         assert example["computed_result_available"] and example["pin"]
         identifier = example["pin"]["job_id"]
         report = page.request.get(base + f"/api/jobs/{identifier}/result").json()
@@ -116,7 +117,7 @@ def test_native_landscape_preserves_values_links_records_and_exports(capability,
         choice.select_option(indices[0])
         expect(choice).to_have_value(indices[0])
         expect(chart).to_have_attribute("aria-busy", "false", timeout=30000)
-        exercise_plot_view(page, panel, language)
+        exercise_plot_view(page, panel, language, evidence=evidence)
         svg = export_figure(
             page,
             panel.get_by_role(

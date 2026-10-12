@@ -9,6 +9,7 @@ import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MetricScatter } from "../presentation/MetricScatter";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { MetricHelp, type metrics } from "../guided/MetricHelp";
+import { propertySource } from "./property-source";
 type Row = LigandProperties & { index: number };
 export function PropertyResults({
   job,
@@ -23,10 +24,13 @@ export function PropertyResults({
 }) {
   const zh = language === "zh",
     rows = molecules.map((m, index) => ({ ...m, index }));
+  const moleculeName = (row: Row) =>
+    row.name?.trim() || (zh ? "分子 " : "Molecule ") + (row.index + 1);
   const [selection, setSelection] = useState(
     rows.find((row) => row.available)?.index ?? 0,
   );
   const current = rows.find((row) => row.index === selection);
+  const source = current ? propertySource(job, current) : null;
   const numeric = [
     { key: "mw", label: "MW (g/mol)" },
     { key: "logp", label: "LogP" },
@@ -41,12 +45,12 @@ export function PropertyResults({
     {
       key: "molecule",
       label: zh ? "分子" : "Molecule",
-      value: (row) => (zh ? "分子 " : "Molecule ") + (row.index + 1),
+      value: moleculeName,
       render: (row) => (
         <button
           type="button"
           className="molecule-record"
-          aria-label={(zh ? "分子 " : "Molecule ") + (row.index + 1)}
+          aria-label={moleculeName(row)}
           aria-pressed={selection === row.index}
           onClick={() => setSelection(row.index)}
         >
@@ -54,12 +58,10 @@ export function PropertyResults({
             compact
             source={row.smiles ? { smiles: row.smiles } : null}
             language={language}
-            label={String(row.index + 1)}
+            label={moleculeName(row)}
           />
           <span>
-            <strong>
-              {zh ? "分子" : "Molecule"} {row.index + 1}
-            </strong>
+            <strong>{moleculeName(row)}</strong>
             {!row.available && <small>{row.reason}</small>}
           </span>
         </button>
@@ -104,9 +106,7 @@ export function PropertyResults({
           {current && (
             <>
               <header>
-                <h3>
-                  {zh ? "分子" : "Molecule"} {current.index + 1}
-                </h3>
+                <h3>{moleculeName(current)}</h3>
                 {current.available && current.smiles && onDraft && (
                   <button
                     type="button"
@@ -133,8 +133,10 @@ export function PropertyResults({
               {current.available && current.smiles ? (
                 <MolecularPreview
                   language={language}
-                  label={String(current.index + 1)}
-                  source={{ smiles: current.smiles }}
+                  label={moleculeName(current)}
+                  source={source ?? { smiles: current.smiles }}
+                  urls={source ? [source.url] : undefined}
+                  records={source ? [source.record] : undefined}
                 />
               ) : (
                 <p role="status">{current.reason}</p>
@@ -146,7 +148,7 @@ export function PropertyResults({
             language={language}
             label={zh ? "性质分布" : "Property landscape"}
             rowId={(row) => String(row.index)}
-            rowLabel={(row) => (zh ? "分子 " : "Molecule ") + (row.index + 1)}
+            rowLabel={moleculeName}
             selected={String(selection)}
             onSelect={(row) => setSelection(row.index)}
             metrics={numeric.map((m) => ({

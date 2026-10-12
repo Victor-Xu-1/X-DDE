@@ -6,6 +6,8 @@ export function stat6HarnessPayload(
   payload: Record<string, unknown>,
   example: PreparedExample,
 ) {
+  if (example.request?.operation === "harness" && example.request.tool === tool)
+    return structuredClone(example.request.payload);
   const sequence = example.sequences.protein;
   const structure = `asset:${example.objects.receptor.reference.asset_id}`;
   if (tool === "esm") payload.sequences = [sequence];

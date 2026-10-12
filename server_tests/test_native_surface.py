@@ -69,7 +69,7 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
         )
         assert response.status_code == 201, response.text
         original_upload = response.json()
-        example_response = client.post("/api/examples/biopython.exposure/prepare")
+        example_response = client.post("/api/examples/biopython.exposure/prepare?profile=archive")
         assert example_response.status_code == 200, example_response.text
         example = example_response.json()
         ref = example["objects"]["brd4"]["reference"]
@@ -157,9 +157,13 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
                 }
             )
         )
-        pinned = client.post("/api/examples/biopython.exposure/pin", json={"job_id": identifier})
+        pinned = client.post(
+            "/api/examples/biopython.exposure/pin?profile=archive", json={"job_id": identifier}
+        )
         assert pinned.status_code == 200, pinned.text
-        assert client.get("/api/examples/biopython.exposure").json()["computed_result_available"]
+        assert client.get("/api/examples/biopython.exposure?profile=archive").json()[
+            "computed_result_available"
+        ]
         assert not any(j["id"] in {identifier, prepare_id} for j in client.get("/api/jobs").json())
         from opendde_workbench.examples.bundle import export_bundle
 
@@ -178,7 +182,7 @@ def test_real_brd4_case_through_existing_queue_and_immutable_evidence(tmp_path):
         with TestClient(create_app(target), base_url="http://127.0.0.1:4334") as replay:
             assert replay.get("/api/jobs").json() == []
             assert replay.get("/api/jobs/" + identifier + "/result").json() == result
-            assert replay.get("/api/examples/biopython.exposure").json()[
+            assert replay.get("/api/examples/biopython.exposure?profile=archive").json()[
                 "computed_result_available"
             ]
 

@@ -15,6 +15,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .locations import atomic_json, home, read_json
+from .service_port import choose_port, remember_port
 
 
 @contextmanager
@@ -82,11 +83,13 @@ def logs() -> str:
         return file.read().decode(errors="replace")
 
 
-def start(port: int, auto_deploy: bool) -> str:
+def start(port: int | None, auto_deploy: bool) -> str:
     with lock():
         record = read_json(home() / "service.json")
         if record and alive(record):
+            remember_port(record["port"])
             return f"http://127.0.0.1:{record['port']}/"
+        port = choose_port(port)
         with socket.socket() as probe:
             probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
@@ -125,6 +128,7 @@ def start(port: int, auto_deploy: bool) -> str:
                     )
                     == instance
                 ):
+                    remember_port(port)
                     return f"http://127.0.0.1:{port}/"
             except (OSError, ValueError, urllib.error.URLError):
                 time.sleep(0.2)
@@ -138,6 +142,7 @@ def stop() -> None:
         record = read_json(home() / "service.json")
         if not record or not alive(record):
             return
+        remember_port(record["port"])
         token = session(record["port"])["csrf_token"]
         state = _local_request(record["port"], "/api/lifecycle/stop", timeout=20, token=token)
         if state["busy"]:

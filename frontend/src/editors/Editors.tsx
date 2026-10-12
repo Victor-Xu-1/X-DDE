@@ -38,7 +38,9 @@ export function Editors({
   const [origin, setOrigin] = useState<ScientificObject | null>(initialObject);
   const [loaded, setLoaded] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadFailure, setLoadFailure] = useState<{ sourceId: string } | null>(
+    null,
+  );
   const [ketcherReady, setKetcherReady] = useState(false);
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
@@ -78,7 +80,7 @@ export function Editors({
     setBusy(true);
     setError("");
     setMessage("");
-    setLoadFailed(false);
+    setLoadFailure(null);
     setOrigin(null);
     const loading = loadQueue.current
       .then(async () => {
@@ -98,7 +100,7 @@ export function Editors({
       .catch((e) => {
         if (!controller.signal.aborted) {
           setError(String(e));
-          setLoadFailed(true);
+          setLoadFailure({ sourceId: initialObject.id });
         }
       })
       .finally(() => {
@@ -110,7 +112,7 @@ export function Editors({
   async function action(fn: (editor: Ketcher) => Promise<void>) {
     if (actionRunning.current || busy) return;
     actionRunning.current = true;
-    setLoadFailed(false);
+    const failedLoad = loadFailure;
     setError("");
     setMessage("");
     setBusy(true);
@@ -125,6 +127,7 @@ export function Editors({
             : "Editor is loading; try again shortly.",
         );
       await fn(editor);
+      setLoadFailure((current) => (current === failedLoad ? null : current));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -303,7 +306,7 @@ export function Editors({
               {error}
             </p>
           )}
-          {loadFailed && initialObject && (
+          {loadFailure?.sourceId === initialObject?.id && loadFailure && (
             <button
               disabled={busy}
               onClick={() => setLoadAttempt((attempt) => attempt + 1)}

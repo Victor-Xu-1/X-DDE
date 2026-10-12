@@ -1,12 +1,23 @@
 import { renderWithin } from "./render-deadline";
 import type { FigureSettings } from "./settings";
 
-export const figureKey = (settings: FigureSettings) => JSON.stringify(settings);
+/** Length-prefix the existing source so nested contexts do not re-escape large datasets. */
+export const figureIdentity = (source: string, ...details: unknown[]) =>
+  `${source.length}:${source}${JSON.stringify(details)}`;
+export const figureRequestKey = (source: string, settings: FigureSettings) =>
+  figureIdentity(source, settings);
+
+export interface FigureSource {
+  key: string;
+  render(settings: FigureSettings): Promise<Blob>;
+  onStart?(): void;
+}
 const cancelled = () =>
   new DOMException("Figure settings superseded.", "AbortError");
 interface Request {
   key: string;
   settings: FigureSettings;
+  source: FigureSource;
   signal: AbortSignal;
   resolve(blob: Blob): void;
   reject(error: unknown): void;
@@ -16,15 +27,15 @@ interface Request {
 export class FigureRenderQueue {
   private active: { key: string; work: Promise<Blob> } | null = null;
   private pending: Request | null = null;
-  private started = false;
-  constructor(
-    private render: (settings: FigureSettings) => Promise<Blob>,
-    private onStart?: () => void,
-  ) {}
-  async request(settings: FigureSettings, signal: AbortSignal): Promise<Blob> {
+  private startedSource: string | null = null;
+  async request(
+    settings: FigureSettings,
+    source: FigureSource,
+    signal: AbortSignal,
+  ): Promise<Blob> {
     signal.throwIfAborted();
     const copy = { ...settings },
-      key = figureKey(copy);
+      key = figureRequestKey(source.key, copy);
     if (this.active?.key === key) {
       this.pending?.reject(cancelled());
       this.pending = null;
@@ -33,7 +44,14 @@ export class FigureRenderQueue {
     this.pending?.reject(cancelled());
     let request!: Request;
     const work = new Promise<Blob>((resolve, reject) => {
-      request = { key, settings: copy, signal, resolve, reject };
+      request = {
+        key,
+        settings: copy,
+        source: { ...source },
+        signal,
+        resolve,
+        reject,
+      };
       this.pending = request;
     });
     const cancel = () => {
@@ -61,11 +79,11 @@ export class FigureRenderQueue {
       return;
     }
     const work = Promise.resolve().then(() => {
-      if (!this.started) {
-        this.started = true;
-        this.onStart?.();
+      if (this.startedSource !== request.source.key) {
+        this.startedSource = request.source.key;
+        request.source.onStart?.();
       }
-      return this.render(request.settings);
+      return request.source.render(request.settings);
     });
     this.active = { key: request.key, work };
     work.then(request.resolve, request.reject);

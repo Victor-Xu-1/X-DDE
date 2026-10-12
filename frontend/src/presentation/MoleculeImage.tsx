@@ -73,11 +73,16 @@ export function MoleculeImage({
   const renderer = useContext(DrawingContext),
     key = JSON.stringify(source),
     zh = language === "zh";
-  const [url, setUrl] = useState(""),
-    [error, setError] = useState(false),
+  const [drawing, setDrawing] = useState<{ key: string; url: string } | null>(
+      null,
+    ),
+    [failedKey, setFailedKey] = useState<string | null>(null),
     [visible, setVisible] = useState(false),
     [attempt, setAttempt] = useState(0);
   const [bondThickness, setBondThickness] = useState(1.6);
+  const drawingKey = JSON.stringify([key, bondThickness]);
+  const url = drawing?.key === drawingKey ? drawing.url : "";
+  const error = failedKey === drawingKey;
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") {
@@ -98,11 +103,11 @@ export function MoleculeImage({
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    setUrl("");
-    setError(false);
+    setDrawing(null);
+    setFailedKey(null);
     if (!visible) return () => controller.abort();
     if (!source || renderer === undefined) {
-      setError(true);
+      setFailedKey(drawingKey);
       return () => controller.abort();
     }
     // The provider's first effect is still starting. This is loading, not a
@@ -113,7 +118,7 @@ export function MoleculeImage({
       .then(depictionDataUrl)
       .then((value) => {
         if (!controller.signal.aborted) {
-          setUrl(value);
+          setDrawing({ key: drawingKey, url: value });
         }
       })
       .catch((reason) => {
@@ -122,7 +127,7 @@ export function MoleculeImage({
             "Molecular drawing unavailable",
             reason instanceof Error ? reason.message : String(reason),
           );
-          setError(true);
+          setFailedKey(drawingKey);
         }
       });
     return () => {
@@ -201,6 +206,8 @@ export function MoleculeImage({
       )}
       {!compact && url && (
         <FigureExport
+          sourceKey={JSON.stringify([source, label, bondThickness])}
+          sourceReady={Boolean(url) && !error}
           language={language}
           filename={label + "-structure"}
           format="svg"

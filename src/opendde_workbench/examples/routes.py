@@ -89,9 +89,9 @@ def register_examples(app, store, assets, settings, mutation):
         try:
             if profile == "stat6":
                 prepared = prepare_stat6(capability_id, scientific, records=study_records)
-                return study_pins.pin(capability_id, value.job_id, prepared)
+                return study_pins.pin(capability_id, value.job_id, prepared, review=value.review)
             prepared = prepare_example(capability_id, scientific, cache, records=records)
-            return pins.pin(capability_id, value.job_id, prepared)
+            return pins.pin(capability_id, value.job_id, prepared, review=value.review)
         except (ValueError, OSError, ConflictError) as exc:
             raise HTTPException(409, str(exc)) from exc
 

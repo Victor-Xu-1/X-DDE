@@ -23,6 +23,12 @@ class LifecycleEngine:
             "gpu": None,
             "reason": None,
             "fixture": "Controlled lifecycle only; no scientific inference",
+            "backends": {
+                "chemistry": {
+                    "ready": True,
+                    "fixture": "Controlled lifecycle only; no native scientific acceptance",
+                },
+            },
         }
 
     async def start(self, job, directory):

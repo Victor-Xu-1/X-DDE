@@ -145,9 +145,13 @@ def test_normal_start_persists_identity_and_preserves_stop(controlled_harness, t
             process = await asyncio.wait_for(harness_process.start(settings, tmp_path), 5)
             assert process is processes[0]
             assert process.returncode is None
-            assert json.loads((tmp_path / "process.json").read_text()) == {
+            identity = json.loads((tmp_path / "process.json").read_text())
+            assert len(identity["owner"]) == 32
+            assert identity == {
                 "pid": process.pid,
                 "start_time": harness_process.start_time(process.pid),
+                "boot_id": harness_process.boot_id(),
+                "owner": identity["owner"],
             }
             await asyncio.wait_for(harness_process.stop(settings, tmp_path), 10)
             await asyncio.wait_for(process.communicate(), 5)

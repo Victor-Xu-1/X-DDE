@@ -19,7 +19,7 @@ on:
       - 'frontend/src/admet/AdmetRecordTable.tsx'
       - 'frontend/src/docking/PoseTable.tsx'
       - 'frontend/src/diffsbdd/GeneratedCandidates.tsx'
-      - 'frontend/src/operations/PropertyResults.tsx'
+      # Exact property file/pose linkage has property-preview-checks.yml.
       - 'frontend/src/viewer/scene.ts'
       - 'frontend/src/viewer/frame.ts'
       - 'frontend/src/viewer/source-depth*'

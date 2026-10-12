@@ -28,6 +28,7 @@ from .deployment.manager import DeploymentManager
 from .deployment.provisioners import states as provisioner_states
 from .deployment.routes import register_deployments
 from .diffsbdd.runtime import validate as validate_diffsbdd
+from .disk_space import available_bytes
 from .docking.runtime import validate as validate_docking
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
@@ -42,6 +43,7 @@ from .pose_ensembles.routes import register_pose_explorations
 from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
+from .readiness_cache import ReadinessCache, ReadinessChanged
 from .requests import BatchRequest, TaskRequest
 from .research.constraint_routes import register_constraints
 from .research.evidence_routes import register_evidence
@@ -54,6 +56,7 @@ from .store import CapacityError, ConflictError, Store
 from .task_history.routes import register_task_history
 from .worker import Worker
 from .workflows import register_workflows
+from .wsl_storage import StorageUnavailable
 
 
 def create_app(settings: Settings | None = None, engine: Engine | None = None) -> FastAPI:
@@ -67,7 +70,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     deployments = DeploymentManager(settings.state_dir)
     csrf = secrets.token_urlsafe(32)
     mutations = asyncio.Lock()
-    health_cache = {"expires": 0.0, "value": None}
+    # The managed router performs expensive native observations. Injected engines
+    # keep their own readiness semantics; coalesce their concurrent reads only.
+    health_cache = ReadinessCache(
+        engine.readiness, ttl=10 if isinstance(engine, BackendRouter) else 0
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -81,11 +88,21 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     time.monotonic() + 10,
                     {"configured": True, "running": False, "ready": False, "reason": str(exc)},
                 )
+            loop = asyncio.get_running_loop()
+
+            def admit_deployment(claim):
+                # Called only by the deployment worker thread. Its file lock
+                # remains held, but no manager mutex spans this async probe.
+                return asyncio.run_coroutine_threadsafe(deployment_claim(claim), loop).result()
+
+            deployments.admission = admit_deployment
             await worker.start()
             await deployments.start()
             try:
                 yield
             finally:
+                await health_cache.close()
+                await close_uploads()
                 await deployments.close()
                 await worker.close()
 
@@ -279,7 +296,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
                 assets.validate_bindings(value)
                 validate(value, readiness["engine"].get("backends", {}).get("biopython", {}))
+            elif value.operation == "properties" and not isinstance(engine, BackendRouter):
+                # Preserve the existing trusted single-engine injection contract.
+                # Production always uses the registered independent RDKit backend.
+                check(value, readiness["engine"], assets)
             elif value.operation in {
+                "properties",
                 "molecular_states",
                 "library_screen",
                 "molecule_minimize",
@@ -310,11 +332,15 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         except (RuntimeError, OSError, TimeoutError) as exc:
             raise HTTPException(503, str(exc)) from exc
         capacity = settings.capacity_dir or settings.state_dir
-        if (
-            min(shutil.disk_usage(settings.state_dir).free, shutil.disk_usage(capacity).free)
-            < settings.minimum_free_bytes
-        ):
-            raise HTTPException(507, "At least2GiB free disk space is required.")
+        try:
+            free = min(
+                await asyncio.to_thread(available_bytes, settings.state_dir),
+                await asyncio.to_thread(available_bytes, capacity),
+            )
+        except StorageUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        if free < settings.minimum_free_bytes:
+            raise HTTPException(507, "Not enough free disk space. Free space on the storage drive.")
         if value.project_id is not None:
             with store.connect() as db:
                 if not db.execute(
@@ -385,33 +411,39 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         from .deployment.activation import dynamic_snapshot
 
         dynamic = dynamic_snapshot(deployments.store.installed())
-        if time.monotonic() > health_cache["expires"] or health_cache.get("dynamic") != dynamic:
-            health_cache["value"] = await engine.readiness()
-            health_cache["expires"] = time.monotonic() + 10
-            health_cache["dynamic"] = dynamic
+        try:
+            readiness = await health_cache.read(dynamic)
+        except ReadinessChanged as exc:
+            raise HTTPException(503, str(exc)) from exc
+        if dynamic_snapshot(deployments.store.installed()) != dynamic:
+            raise HTTPException(503, "Backend configuration changed; recheck availability.")
         alive = worker.task is not None and not worker.task.done()
-        environments = engine_statuses(health_cache["value"])
+        environments = engine_statuses(readiness)
+        storage_error = None
+        try:
+            free = min(
+                await asyncio.to_thread(available_bytes, settings.state_dir),
+                await asyncio.to_thread(
+                    available_bytes, settings.capacity_dir or settings.state_dir
+                ),
+            )
+        except StorageUnavailable as exc:
+            free, storage_error = None, str(exc)
         return {
             "version": __version__,
             "platform": {"name": PRODUCT_NAME, "ready": alive and not worker.error},
             "environments": environments,
             "engines": environments,
             "provisioners": provisioner_states(deployments.store.installed()),
-            "engine": health_cache["value"],
+            "engine": readiness,
             "worker_ready": alive and not worker.error,
             "worker_error": worker.error,
             "queue_wait_reason": worker.waiting_reason,
             "disk_total_gib": round(
                 shutil.disk_usage(settings.capacity_dir or settings.state_dir).total / 1024**3, 1
             ),
-            "free_disk_gib": round(
-                min(
-                    shutil.disk_usage(settings.state_dir).free,
-                    shutil.disk_usage(settings.capacity_dir or settings.state_dir).free,
-                )
-                / 1024**3,
-                1,
-            ),
+            "free_disk_gib": round(free / 1024**3, 1) if free is not None else None,
+            "storage_error": storage_error,
             "capabilities": {
                 "prediction": True,
                 "msa": True,
@@ -441,8 +473,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return required(job_id)
 
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=[Depends(mutation)])
-    def cancel(job_id: UUID):
+    async def cancel(job_id: UUID):
         job = required(job_id)
+        if job.status == "paused":
+            try:
+                await engine.stop(job.id)
+            except (OSError, RuntimeError, TimeoutError) as exc:
+                raise HTTPException(503, "Native cancellation could not be confirmed.") from exc
+            return store.cancel_paused(job.id)
         if (
             job.status == "running"
             and job.request.operation == "harness"
@@ -526,14 +564,20 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
         )
 
-    register_assets(app, assets, mutation)
+    close_uploads = register_assets(app, assets, mutation, settings.minimum_free_bytes)
     register_uploads(app, assets, settings, mutation)
     harness_service = register_harness(app, store, assets, settings, mutation)
 
-    async def scientific_busy():
+    async def scientific_busy(*, include_paused=False):
+        statuses = ("queued", "running", "cancelling")
+        if include_paused:
+            statuses += ("paused",)
         with store.connect() as db:
             active = db.execute(
-                "SELECT 1 FROM jobs WHERE status IN ('queued','running','cancelling') LIMIT 1"
+                "SELECT 1 FROM jobs WHERE status IN ("
+                + ",".join("?" for _ in statuses)
+                + ") LIMIT 1",
+                statuses,
             ).fetchone()
         if active or workflows_service.records.runs({"running", "cancelling"}, limit=1):
             return True
@@ -545,6 +589,21 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     503, "Cannot verify native task state; retry after checking Harness."
                 ) from None
         return False
+
+    async def deployment_claim(claim):
+        # The same lock guards HTTP task and Harness admissions. Release it
+        # after queued -> running, before any long-running installer work.
+        async with mutations:
+            if app.state.quiescing:
+                return None
+            try:
+                if await scientific_busy(include_paused=True):
+                    return None
+            except HTTPException:
+                # Unknown native state must leave deployment queued, never
+                # terminate the worker or authorize component changes.
+                return None
+            return claim()
 
     @app.get("/api/lifecycle")
     async def lifecycle():
@@ -559,7 +618,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     register_capabilities(app, settings, health)
     register_task_history(app, example_library)
-    register_deployments(app, deployments, mutation, scientific_busy)
+    # A retained native pause still owns its component files. Unlike lifecycle
+    # shutdown, deployment must wait for confirmed cancellation of that lifetime.
+    register_deployments(app, deployments, mutation, lambda: scientific_busy(include_paused=True))
 
     @app.post("/api/lifecycle/stop", dependencies=[Depends(mutation)])
     async def prepare_shutdown():

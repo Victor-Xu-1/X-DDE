@@ -4,8 +4,11 @@ on:
   push:
     paths: &history_paths
       - "src/opendde_workbench/task_history/**"
+      - "src/opendde_workbench/examples/library.py"
+      - "tests/test_example_library.py"
       - "frontend/src/studio/TaskWorkspace*"
       - "frontend/src/studio/TaskHistory*"
+      - "frontend/src/studio/ModuleWorkspaceNavigation*"
       - "frontend/src/studio/useTaskHistory*"
       - "frontend/src/studio/task-history*"
       - "frontend/src/studio/task-kind-rules.ts"
@@ -41,6 +44,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/studio/TaskWorkspace.test.tsx
+          src/studio/ModuleWorkspaceNavigation.test.tsx
           src/studio/task-history-model.test.ts src/studio/useTaskHistory.test.tsx
           src/studio/research-modules.test.ts src/App.test.tsx
           src/studio/task-history-route.test.ts src/useWorkbench.test.ts

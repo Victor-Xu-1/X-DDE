@@ -1,15 +1,20 @@
 """Install reviewed programs/resources under the existing durable deployment authority."""
 
 import hashlib
+import os
 import shutil
+import stat
 import tarfile
 import zipfile
-from pathlib import PurePosixPath
+from contextlib import ExitStack
+from pathlib import Path, PurePosixPath
 from uuid import uuid4
 
+from ..disk_space import available_bytes
 from ..integrations.image import lock_digest, prepare_context
 from ..integrations.specs import PROGRAMS, recipe_digest
-from ..locations import atomic_json
+from ..locations import atomic_json, read_json
+from .locked_packages import conda_archives
 from .paths import environment_root
 from .transfers import download, extract
 
@@ -25,7 +30,7 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         raise RuntimeError(
             "Prepare the server Docker prerequisites before installing this environment."
         )
-    if shutil.disk_usage(root).free < 16 * 1024**3:
+    if available_bytes(root) < 16 * 1024**3:
         raise ValueError("The isolated scientific environment needs at least 16 GiB staging space.")
     destination = environment_root(root, identifier) / (spec["version"] + "-" + str(uuid4()))
     source = None
@@ -53,11 +58,24 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         if not folder.is_dir() or folder.is_symlink():
             raise ValueError("Native dependency source differs from the fixed archive layout.")
         extra_sources[entry["id"]] = folder
-    prepare_context(identifier, context, source, extra_sources=extra_sources)
+    archives = None
+    if identifier == "openfe":
+        from pathlib import Path
+
+        import opendde_workbench.integrations.image as image_recipe
+
+        archives = conda_archives(
+            Path(image_recipe.__file__).with_name("recipes") / "openfe.conda.txt",
+            root / "downloads" / "dependency-archives",
+            report,
+            checkpoint,
+        )
+    prepare_context(identifier, context, source, extra_sources=extra_sources, archives=archives)
     checkpoint()
     report("Building the reviewed independent scientific environment")
     tag = "xdde-" + identifier + ":" + recipe_digest(identifier)[:16]
-    execute(["docker", "build", "--tag", tag, context], timeout=7200)
+    network = ["--network=none"] if identifier == "openfe" else []
+    execute(["docker", "build", *network, "--tag", tag, context], timeout=7200)
     image = execute(["docker", "image", "inspect", "--format", "{{.Id}}", tag]).strip()
     if not image.startswith("sha256:") or len(image) != 71:
         raise ValueError("Native image build returned no immutable image identity.")
@@ -117,7 +135,72 @@ def model_archive(archive, destination, checkpoint):
                     shutil.copyfileobj(stream, output)
 
 
-def install_models(identifier, root, report, checkpoint):
+def _directory_identity(path):
+    info = path.lstat()
+    if not stat.S_ISDIR(info.st_mode):
+        raise ValueError("Model staging must use real owned directories, not links.")
+    return info.st_dev, info.st_ino
+
+
+def _discard_model_attempt(root, destination, identities):
+    """Reclaim this invocation's directory only, never accepted models or caches."""
+    for path, identity in identities:
+        if _directory_identity(path) != identity:
+            raise ValueError("Model staging ownership changed; retaining files for review.")
+    # atomic_json may have replaced installed.json before a subsequent error. The
+    # persisted authority, rather than the exception alone, determines acceptance.
+    installed = read_json(root / "installed.json")
+    if any(
+        entry.get("models") and Path(entry["models"]).resolve() == destination
+        for entry in installed.values()
+    ):
+        return
+    # Open and verify the attempt itself, not just its parent. The pathname may
+    # change after validation; recursive deletion must remain on this exact inode.
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    parent_fd = os.open(destination.parent, flags)
+    try:
+        info = os.fstat(parent_fd)
+        if (info.st_dev, info.st_ino) != identities[-2][1]:
+            raise ValueError("Model staging parent changed; retaining files for review.")
+        attempt_fd = os.open(destination.name, flags, dir_fd=parent_fd)
+        try:
+            info = os.fstat(attempt_fd)
+            if (info.st_dev, info.st_ino) != identities[-1][1]:
+                raise ValueError("Model staging ownership changed; retaining files for review.")
+            with os.scandir(attempt_fd) as entries:
+                for entry in entries:
+                    if entry.is_dir(follow_symlinks=False):
+                        shutil.rmtree(entry.name, dir_fd=attempt_fd)
+                    else:
+                        os.unlink(entry.name, dir_fd=attempt_fd)
+            info = os.stat(destination.name, dir_fd=parent_fd, follow_symlinks=False)
+            if (info.st_dev, info.st_ino) != identities[-1][1]:
+                raise ValueError("Model staging ownership changed; retaining files for review.")
+            # Only remove the now-empty directory here, never recursively delete
+            # through the pathname again. rmdir cannot remove replacement contents.
+            os.rmdir(destination.name, dir_fd=parent_fd)
+        finally:
+            os.close(attempt_fd)
+    finally:
+        os.close(parent_fd)
+
+
+def install_models(identifier, root, report, checkpoint, *, pending=None):
+    """Keep attempt ownership until the caller publishes its installed metadata."""
+    with ExitStack() as attempt:
+        result = _install_models(identifier, root, report, checkpoint, attempt)
+        if pending is not None:
+            pending.callback(attempt.pop_all().close)
+        else:
+            # Direct callers accept the returned models; deployment callers hand
+            # cleanup to their publication scope instead.
+            attempt.pop_all()
+        return result
+
+
+def _install_models(identifier, root, report, checkpoint, attempt):
+    root = root.absolute()
     spec = PROGRAMS[identifier]
     resources = spec["models"]
     if not resources:
@@ -134,12 +217,21 @@ def install_models(identifier, root, report, checkpoint):
         )
         + 4 * 1024**3
     )
-    if shutil.disk_usage(root).free < required:
+    if available_bytes(root) < required:
         raise ValueError("Insufficient free space for verified model downloads and extraction.")
     destination = (
         root / "models" / identifier / (recipe_digest(identifier)[:16] + "-" + str(uuid4()))
     )
-    destination.mkdir(parents=True)
+    directories = [root, root / "models", destination.parent]
+    if root.absolute() != root.resolve() or Path(identifier).name != identifier:
+        raise ValueError("Model staging must stay inside the owned model root.")
+    for directory in directories:
+        if directory.is_symlink():
+            raise ValueError("Model staging must use real owned directories, not links.")
+        directory.mkdir(exist_ok=True)
+    destination.mkdir()
+    identities = [(path, _directory_identity(path)) for path in [*directories, destination]]
+    attempt.callback(_discard_model_attempt, root, destination, identities)
     for row in resources:
         name = row["name"]
         archive = root / "downloads" / (identifier + "-" + row["sha256"][:16] + "-" + name)
