@@ -35,7 +35,9 @@ def test_model_validation_identity_ranges_exports_and_literal_source_names(langu
             ),
         )
         before = page.request.get(base + "/api/jobs").json()
-        example = page.request.get(base + "/api/examples/admet.predict").json()
+        example = page.request.get(
+            base + "/api/examples/admet.predict", params={"profile": "archive"}
+        ).json()
         identifier = example["pin"]["job_id"]
         original = page.request.get(base + f"/api/jobs/{identifier}").json()
         chemical = page.request.get(base + f"/api/jobs/{identifier}/result").json()

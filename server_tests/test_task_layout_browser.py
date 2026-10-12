@@ -38,6 +38,9 @@ def test_every_task_page_and_native_case_layout():
     with sync_playwright() as engine:
         browser = engine.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        # This journey checks saved Chinese labels; fresh English is covered by
+        # the bilingual native figure and research-file checks.
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
