@@ -21,6 +21,8 @@ on:
       - "frontend/src/simulations/molecular-view-state*"
       - "frontend/src/simulations/MolecularViewport*"
       - "frontend/src/simulations/molecular-surfaces*"
+      - "frontend/src/simulations/molecular-update-queue*"
+      - "frontend/src/simulations/useMolecularPresentation*"
       - "frontend/src/simulations/molstar-figure*"
       - "frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "frontend/src/simulations/molstar-controller.ts"
@@ -67,6 +69,7 @@ jobs:
           src/simulations/molecular-focus.test.ts src/simulations/bound-pairs.test.ts
           src/simulations/molecular-depth.test.ts src/simulations/viewport-lifetime.test.ts
           src/simulations/molecular-surfaces.test.ts src/simulations/MolecularViewport.test.tsx
+          src/simulations/molecular-update-queue.test.ts
           src/simulations/molstar-figure.test.ts
           src/simulations/BoundPoseComparison.test.tsx
           src/simulations/comparison-figure.test.ts src/simulations/molecular-view-state.test.ts
