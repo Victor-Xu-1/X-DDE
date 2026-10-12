@@ -4,6 +4,7 @@ import json
 
 from ..requests import TASK_ADAPTER
 from ..store import now
+from .bundle_jobs import TERMINAL_HISTORY
 from .bundle_projection import references
 from .catalogue import MODULES
 from .stat6.catalogue import MODULES as STUDY_MODULES
@@ -80,11 +81,25 @@ class ExampleLibrary:
                     else:
                         identifiers.update(entry["job_id"] for entry in body["evidence"])
             pending = set(identifiers)
-            while pending and "scientific_objects" in tables:
+            while pending:
                 identifier = pending.pop()
-                row = db.execute("SELECT request FROM jobs WHERE id=?", (identifier,)).fetchone()
+                row = db.execute(
+                    "SELECT request,parent_id FROM jobs WHERE id=?", (identifier,)
+                ).fetchone()
                 if row is None:
                     continue
+                if row["parent_id"]:
+                    ancestor = db.execute(
+                        "SELECT id,status,request FROM jobs WHERE id=?", (row["parent_id"],)
+                    ).fetchone()
+                    if (
+                        ancestor is not None
+                        and ancestor["status"] in TERMINAL_HISTORY
+                        and json.loads(ancestor["request"]) == json.loads(row["request"])
+                        and ancestor["id"] not in identifiers
+                    ):
+                        identifiers.add(ancestor["id"])
+                        pending.add(ancestor["id"])
                 request = TASK_ADAPTER.validate_json(row["request"])
                 from ..datasets.contract import DatasetTask
 
@@ -95,6 +110,8 @@ class ExampleLibrary:
                             identifiers.add(source_job)
                             pending.add(source_job)
                 for reference in references(json.loads(row["request"])):
+                    if "scientific_objects" not in tables:
+                        break
                     source = db.execute(
                         "SELECT body FROM scientific_objects WHERE id=?", (reference,)
                     ).fetchone()

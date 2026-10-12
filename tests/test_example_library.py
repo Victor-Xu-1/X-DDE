@@ -8,6 +8,7 @@ import pytest
 
 from opendde_workbench.examples.catalogue import MODULES
 from opendde_workbench.examples.library import ExampleLibrary
+from opendde_workbench.models import Status
 from opendde_workbench.requests import Properties
 from opendde_workbench.store import Store
 
@@ -67,6 +68,44 @@ def test_current_pins_are_classified_without_changing_job_lifecycle(tmp_path):
     assert [job.id for job in library.personal_jobs(20, 0)] == [user.id]
     assert store.get(fixed.id).status == fixed.status
     assert store.claim(fixed.id) is not None
+
+
+@pytest.mark.parametrize("status", [Status.FAILED, Status.CANCELLED, Status.INTERRUPTED])
+def test_fixed_example_terminal_retry_history_stays_in_library_without_mutation(tmp_path, status):
+    store = Store(tmp_path / "jobs.sqlite3")
+    previous = create(store, "A source import")
+    store.claim(previous.id)
+    store.finish(previous.id, status, "Retained retry provenance")
+    before = store.get(previous.id).model_dump()
+    fixed = store.create(previous.request, str(uuid4()), 50, 100, parent_id=previous.id)
+    store.claim(fixed.id)
+    store.finish(fixed.id, Status.SUCCEEDED)
+    pin(store, fixed)
+    personal = store.create(previous.request, str(uuid4()), 50, 100, parent_id=fixed.id)
+    library = ExampleLibrary(store)
+    assert [job.id for job in library.personal_jobs(20, 0)] == [personal.id]
+    assert store.get(previous.id).model_dump() == before
+    assert store.get(fixed.id).parent_id == previous.id
+    assert len(store.list_jobs()) == 3
+
+
+@pytest.mark.parametrize("different_request", [False, True])
+def test_active_or_different_request_ancestor_is_not_classified_as_fixed(
+    tmp_path, different_request
+):
+    store = Store(tmp_path / "jobs.sqlite3")
+    previous = create(store, "Original personal request")
+    store.claim(previous.id)
+    if different_request:
+        store.finish(previous.id, Status.FAILED)
+    request = (
+        previous.request.model_copy(update={"name": "Different request"})
+        if different_request
+        else previous.request
+    )
+    fixed = store.create(request, str(uuid4()), 50, 100, parent_id=previous.id)
+    pin(store, fixed)
+    assert [job.id for job in ExampleLibrary(store).personal_jobs(20, 0)] == [previous.id]
 
 
 def test_new_tasks_using_template_inputs_are_not_automatically_examples(tmp_path):
