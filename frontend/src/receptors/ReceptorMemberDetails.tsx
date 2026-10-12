@@ -36,13 +36,13 @@ export function ReceptorMemberDetails({
                 <dd>{match.pair_count}</dd>
               </div>
               <div>
-                <dt>{zh ? "序列一致率" : "Sequence identity"}</dt>
+                <dt>{zh ? "匹配锚点一致率" : "Matched-anchor identity"}</dt>
                 <dd title={String(match.identity)}>
                   {(match.identity * 100).toFixed(1)}%
                 </dd>
               </div>
               <div>
-                <dt>{zh ? "覆盖率" : "Coverage"}</dt>
+                <dt>{zh ? "观测 Cα 覆盖率" : "Observed Cα coverage"}</dt>
                 <dd title={String(match.coverage)}>
                   {(match.coverage * 100).toFixed(1)}%
                 </dd>
