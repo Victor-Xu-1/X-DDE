@@ -51,3 +51,21 @@ jobs:
           uv run --locked python scripts/stage-release-examples.py --tag "v$version" --destination "$RUNNER_TEMP/staged-cases"
       - working-directory: frontend
         run: npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
+
+  archive-publication-windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      # The package build requires its web resources; no scientific engines run here.
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Verify no-clobber archive publication, interrupted exports and same-path retry
+        run: uv run --locked pytest -q tests/test_case_bundle.py -k export
