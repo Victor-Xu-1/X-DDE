@@ -49,7 +49,7 @@ jobs:
       - name: Archived-native identity without repinning current templates
         run: |
           uv run --locked ruff check server_tests/retained_native_case.py server_tests/test_statistical_previews_browser.py tests/test_retained_native_case.py
-          uv run --locked pytest -q tests/test_retained_native_case.py
+          uv run --locked python -m pytest -q tests/test_retained_native_case.py
       - name: Changed chart, document, structure appearance and direct simulation consumers
         working-directory: frontend
         run: >-
