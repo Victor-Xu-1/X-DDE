@@ -309,11 +309,99 @@ def flat_surface_styles(page):
     }""")
 
 
-def load_template(page):
-    button = page.get_by_role("button", name="使用此模板", exact=True)
-    expect(button).to_be_visible(timeout=15000)
-    button.click()
-    expect(page.get_by_role("button", name="新建空白任务", exact=True)).to_be_visible(timeout=30000)
+def _template_failure_evidence(page, evidence, name, responses, failure):
+    """Record observed errors only; never retry preparation or wait for a response."""
+    evidence.mkdir(parents=True, exist_ok=True)
+    safe = re.sub(r"[^\w.-]", "-", name)[:70]
+    width = (page.viewport_size or {}).get("width", "unknown")
+    stem = f"template-failure-{width}-{safe}"
+    report = {
+        "revision": os.environ.get("GITHUB_SHA"),
+        "module": name,
+        "page_url": page.url,
+        "failure": str(failure)[:2048],
+        "responses": [],
+        "diagnostic_errors": [],
+    }
+    for response, finished in responses:
+        item = {"url": response.url, "status": response.status, "finished": finished}
+        report["responses"].append(item)
+        # Only a completed, size-declared JSON error can supply bounded detail.
+        # An unfinished/unknown/large body is recorded as unavailable, never awaited.
+        headers = response.headers
+        length = headers.get("content-length", "")
+        if (
+            response.status >= 400
+            and finished
+            and length.isdecimal()
+            and int(length) <= 16384
+            and headers.get("content-type", "").split(";", 1)[0] == "application/json"
+        ):
+            try:
+                body = response.body()
+                if len(body) > 16384:
+                    item["detail_unavailable"] = "Body exceeded its declared bound."
+                else:
+                    detail = json.loads(body).get("detail")
+                    item["detail"] = str(detail)[:2048]
+                    item["detail_truncated"] = len(str(detail)) > 2048
+            except Exception as error:
+                item["detail_unavailable"] = str(error)[:512]
+        elif response.status >= 400:
+            item["detail_unavailable"] = "Error body was unfinished or not bounded JSON."
+    try:
+        page.screenshot(path=str(evidence / (stem + ".png")), timeout=5000)
+        report["screenshot"] = stem + ".png"
+    except Exception as error:
+        report["diagnostic_errors"].append(str(error)[:512])
+    (evidence / (stem + ".json")).write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def load_template(page, evidence=None, name="template"):
+    responses = []
+    origin = urlsplit(page.url)
+
+    def observe(response):
+        url = urlsplit(response.url)
+        if (
+            len(responses) < 4
+            and (url.scheme, url.netloc) == (origin.scheme, origin.netloc)
+            and re.fullmatch(r"/api/examples/[^/]+/prepare", url.path)
+            and response.request.method == "POST"
+        ):
+            responses.append([response, False])
+
+    def finished(request):
+        for item in responses:
+            if item[0].request == request:
+                item[1] = True
+
+    if evidence is not None:
+        page.on("response", observe)
+        page.on("requestfinished", finished)
+    try:
+        button = page.get_by_role("button", name="使用此模板", exact=True)
+        expect(button).to_be_visible(timeout=15000)
+        button.click()
+        expect(page.get_by_role("button", name="新建空白任务", exact=True)).to_be_visible(
+            timeout=30000
+        )
+    except Exception as failure:
+        if evidence is not None:
+            try:
+                _template_failure_evidence(page, evidence, name, responses, failure)
+            except Exception as error:
+                failure.add_note("Template diagnostic capture failed: " + str(error)[:512])
+        raise
+    finally:
+        if evidence is not None:
+            for event, handler in (("response", observe), ("requestfinished", finished)):
+                try:
+                    page.remove_listener(event, handler)
+                except Exception:
+                    pass  # Cleanup must not replace the original preparation failure.
 
 
 def consent_on_current_page(page):
