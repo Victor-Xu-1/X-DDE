@@ -50,6 +50,13 @@ def test_original_prolif_contacts_and_downloads(language, width):
             )
         ).to_be_enabled(timeout=30000)
         expect(results.get_by_role("alert")).to_have_count(0)
+        expect(
+            results.get_by_role(
+                "checkbox",
+                name="显示原生化学接触" if language == "zh" else "Show native chemical contacts",
+                exact=True,
+            )
+        ).to_be_checked()
         assert not results.get_by_text(
             "接触明细" if language == "zh" else "Contact details", exact=True
         ).count()

@@ -668,7 +668,7 @@ export function StructureViewport({
                     configure({ interactions: e.target.checked })
                   }
                 />
-                {zh ? "显示 PLIP 相互作用" : "Show PLIP interactions"}
+                {zh ? "显示原生化学接触" : "Show native chemical contacts"}
               </label>
               <label className="checkbox-label">
                 <input

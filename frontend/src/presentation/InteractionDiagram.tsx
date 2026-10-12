@@ -22,16 +22,25 @@ const labels: Record<string, string> = {
   pistack: "芳环堆积",
   pication: "阳离子–π",
 };
+const englishLabels: Record<string, string> = {
+  hydrophobic: "Hydrophobic contact",
+  hbond: "Hydrogen bond",
+  saltbridge: "Salt bridge",
+  pistack: "Aromatic stacking",
+  pication: "Cation–π",
+};
 export function InteractionDiagram({
   edges,
   label,
   language,
   onSelect,
+  subjectLabel,
 }: {
   edges: InteractionEdge[];
   label: string;
   language: Language;
   onSelect?(edge: InteractionEdge): void;
+  subjectLabel?: string;
 }) {
   const zh = language === "zh",
     view = useRef<SVGSVGElement>(null);
@@ -95,7 +104,7 @@ export function InteractionDiagram({
             fontSize="11"
             fill="var(--muted)"
           >
-            {zh ? "结合体残基" : "Binder residue"}
+            {subjectLabel ?? (zh ? "结合体残基" : "Binder residue")}
           </text>
           <text
             x="300"
@@ -180,7 +189,9 @@ export function InteractionDiagram({
                   fontSize="11"
                   fill={color}
                 >
-                  {zh ? (labels[edge.kind] ?? edge.kind) : edge.kind}
+                  {zh
+                    ? (labels[edge.kind] ?? edge.kind)
+                    : (englishLabels[edge.kind] ?? edge.kind)}
                 </text>
                 {showDistance && edge.distance !== null && (
                   <text

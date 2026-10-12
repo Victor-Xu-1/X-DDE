@@ -166,6 +166,7 @@ export function InteractionResults({
       <InteractionDiagram
         language={language}
         label={zh ? "研究配体" : "Study ligand"}
+        subjectLabel={zh ? "研究配体" : "Study ligand"}
         edges={rows.map((row) => ({
           left: zh ? "研究配体" : "Study ligand",
           right: residueLabel(row),
