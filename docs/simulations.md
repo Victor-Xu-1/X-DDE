@@ -90,6 +90,20 @@ OpenFE 保留其协议支持的 OpenMM 8.4，独立于较新的动力学环境�
 均限定 CUDA 12.9，避免浮动求解引入 CUDA 13。生产 FEP 前仍需在计算主机验证真实
 CUDA 上下文。环境构建与接口检查不具备 GPU，不能代表 GPU 执行、采样收敛或亲和力验证。
 
+Each thermodynamic leg executes the serialized native GUFE transformation in a
+fresh process inside the same owned task container. The leg finishes and writes
+its original protocol result and MBAR summary before the next leg begins. This
+releases process-owned GPU contexts between distinct systems. Charge assignment,
+λ windows, minimization, equilibration, production and independent repeats remain
+native and unchanged; no implicit scientific retry or CPU fallback is added.
+Each process receives the remaining overall task deadline, and failed legs never
+reuse an earlier summary or produce a combined binding estimate.
+
+每条热力学腿在同一任务容器内由独立进程执行原生 GUFE 变化计划，完成并保存原生结果
+及 MBAR 汇总后才开始下一条腿，使不同体系之间释放进程持有的 GPU 上下文。电荷分配、
+λ 窗口、最小化、平衡、生产采样和独立重复仍采用原生设置；不增加隐式科学重试或 CPU
+降级。子进程共用任务剩余时限；失败不会复用旧汇总或生成合并的结合自由能。
+
 OpenFE and GNINA installation downloads checksum-locked dependencies through the
 existing resumable host downloader, rechecks them before staging, and installs
 them in an image build with `--network=none`. This does not enable Docker's

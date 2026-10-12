@@ -1,10 +1,13 @@
 """OpenFE 1.12 RBFE: plan, run both native thermodynamic legs, then MBAR analysis."""
 
 import json
+import math
+import time
 from pathlib import Path
 
+from native_fep_leg import execute_leg
 from native_fep_plan import build
-from native_fep_result import combine, summarize
+from native_fep_result import combine
 from native_io import csv_file, finish
 
 
@@ -32,13 +35,13 @@ def protocol(request):
 
 def run(request):
     import openfe
-    from gufe.protocols.protocoldag import execute_DAG
     from openfe.protocols.openmm_utils.charge_generation import bulk_assign_partial_charges
 
     if openfe.__version__ != "1.12.0":
         raise ValueError("Install the reviewed OpenFE 1.12.0 environment.")
     network, nodes, edges, protein, solvent = build(request)
     payload = request["payload"]
+    deadline = time.monotonic() + payload["time_limit_seconds"]
     candidates = [
         {
             "id": n["id"],
@@ -98,23 +101,18 @@ def run(request):
                     name=edge["id"] + "-" + leg,
                 )
                 name = edge["id"] + "-" + leg
-                transformation.to_json(Path("/output", name + "-plan.json"))
+                plan = Path("/output", name + "-plan.json")
+                transformation.to_json(plan)
                 work = Path("/output", "native", name)
                 work.mkdir(parents=True)
-                dag = transformation.create()
-                dag_result = execute_DAG(
-                    dag,
-                    shared_basedir=work,
-                    scratch_basedir=work,
-                    keep_shared=True,
-                    raise_error=True,
-                    n_retries=0,
+                remaining = math.floor(deadline - time.monotonic())
+                if remaining <= 0:
+                    raise TimeoutError(
+                        "FEP task deadline expired; partial native files are retained."
+                    )
+                legs[leg] = execute_leg(
+                    plan, work, Path("/output", name + "-native-result.json"), remaining
                 )
-                if not dag_result.ok():
-                    raise ValueError("A native FEP leg failed; no binding free energy is reported.")
-                result = native_protocol.gather([dag_result])
-                result.to_json(Path("/output", name + "-native-result.json"))
-                legs[leg] = summarize(result)
                 # Native per-window trajectories and checkpoints are retained as a direct export.
                 import shutil
 

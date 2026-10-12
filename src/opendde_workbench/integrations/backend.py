@@ -37,7 +37,7 @@ class ScientificBackend(PreparedContainerBackend):
         if identifier in {"openmm", "openfe", "gromacs"}:
             names = {
                 "openmm": ("md_input", "md_system", "md_analysis", "dynamics", "md_outputs"),
-                "openfe": ("md_input", "fep_input", "openfe", "fep_plan", "fep_result"),
+                "openfe": ("md_input", "fep_input", "openfe", "fep_plan", "fep_result", "fep_leg"),
                 "gromacs": (
                     "md_input",
                     "md_system",
