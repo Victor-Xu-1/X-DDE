@@ -2,6 +2,12 @@ import { useRef } from "react";
 import { api } from "../api";
 import type { ObjectKind, ScientificObject } from "./types";
 
+// Match VersionInput.str_strip_whitespace (Unicode White_Space), not JS trim:
+// the server strips U+0085 but preserves U+FEFF. Keep internal text unchanged.
+function versionText(value: string) {
+  return value.replace(/^\p{White_Space}+|\p{White_Space}+$/gu, "");
+}
+
 export function useResearchRegistration({
   notes,
   rating,
@@ -28,12 +34,12 @@ export function useResearchRegistration({
     const body = {
       asset_id: assetId,
       kind,
-      label: name,
+      label: versionText(name),
       record: parent?.reference.record ?? 0,
       conformer: parent?.reference.conformer ?? 0,
       parent_id: parent?.id ?? null,
       relation: parent ? "edited_from" : "derived_from",
-      notes: parent ? notes : "",
+      notes: parent ? versionText(notes) : "",
       rating: parent ? rating : 0,
     };
     const fingerprint = JSON.stringify(body);
@@ -50,7 +56,7 @@ export function useResearchRegistration({
       value.reference?.version_id !== value.id ||
       value.reference.asset_id !== assetId ||
       value.kind !== kind ||
-      value.label !== name ||
+      value.label !== body.label ||
       value.parent_id !== body.parent_id ||
       value.reference.record !== body.record ||
       value.reference.conformer !== body.conformer ||
