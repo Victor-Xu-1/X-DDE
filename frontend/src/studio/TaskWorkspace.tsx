@@ -11,6 +11,7 @@ import type {
   Prediction,
   Status,
 } from "../types";
+import { TaskWorkspaceSelectionState } from "./TaskWorkspaceSelectionState";
 import { EmptyState } from "./EmptyState";
 import { TaskHistoryToolbar } from "./TaskHistoryToolbar";
 import { TaskHistoryFilters } from "./TaskHistoryFilters";
@@ -33,6 +34,9 @@ interface Props {
   job: Job | null;
   detail: Detail | null;
   detailError: boolean;
+  selected?: string;
+  selectedError?: Error | null;
+  selectedLoading?: boolean;
   projects: Project[];
   projectId: string | null;
   onRefresh(): void;
@@ -186,7 +190,22 @@ export function TaskWorkspace(p: Props) {
           </button>
         </div>
       )}
-      {
+      {p.selected && !p.job ? (
+        <TaskWorkspaceSelectionState
+          language={p.language}
+          error={p.selectedError ?? null}
+          loading={Boolean(p.selectedLoading)}
+          onRetry={p.onRefresh}
+          historyHref={taskHistoryHash({
+            module,
+            type,
+            status,
+            query: search,
+            page,
+            project: p.projectId,
+          })}
+        />
+      ) : (
         <div className="task-page-content">
           <details
             className="task-picker"

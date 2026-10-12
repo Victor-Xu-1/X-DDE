@@ -4,6 +4,7 @@ import hashlib
 import os
 import re
 import shutil
+import stat
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,6 +37,7 @@ class UploadStore:
             raise ValueError("Managed upload storage cannot be a symbolic link.")
         self.root.mkdir(exist_ok=True, mode=0o700)
         with assets.store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             db.execute("""CREATE TABLE IF NOT EXISTS asset_uploads (
                 id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL,
                 suffix TEXT NOT NULL, size INTEGER NOT NULL, offset INTEGER NOT NULL,
@@ -43,6 +45,19 @@ class UploadStore:
             db.execute("""CREATE TABLE IF NOT EXISTS asset_upload_chunks (
                 upload_id TEXT NOT NULL, offset INTEGER NOT NULL, size INTEGER NOT NULL,
                 sha256 TEXT NOT NULL, PRIMARY KEY(upload_id,offset))""")
+            if not db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='asset_upload_cleanup'"
+            ).fetchone():
+                db.execute("CREATE TABLE asset_upload_cleanup (upload_id TEXT PRIMARY KEY)")
+                # Older cancelled rows may still own bytes after failed cleanup. Enroll
+                # only existing paths, without deleting anything during startup.
+                for row in db.execute("SELECT id FROM asset_uploads WHERE state='cancelled'"):
+                    folder = self.root / str(UUID(row["id"]))
+                    try:
+                        folder.lstat()
+                    except FileNotFoundError:
+                        continue
+                    db.execute("INSERT INTO asset_upload_cleanup VALUES(?)", (row["id"],))
 
     def get(self, identifier):
         identifier = str(UUID(str(identifier)))
@@ -90,17 +105,15 @@ class UploadStore:
                     "WHERE kind IN ('library','counts','reads')"
                 ).fetchone()[0]
                 reserved = db.execute(
-                    "SELECT coalesce(sum(size),0) FROM asset_uploads WHERE state='uploading'"
+                    "SELECT coalesce(sum(size),0) FROM asset_uploads WHERE state='uploading' "
+                    "OR id IN (SELECT upload_id FROM asset_upload_cleanup)"
                 ).fetchone()[0]
                 if used + reserved + value.size > self.quota:
                     raise ValueError("Research dataset storage budget is full.")
                 remaining = db.execute(
                     "SELECT coalesce(sum(size-offset),0) FROM asset_uploads WHERE state='uploading'"
                 ).fetchone()[0]
-                if (
-                    available_bytes(self.assets.root)
-                    < value.size + remaining + self.minimum_free
-                ):
+                if available_bytes(self.assets.root) < value.size + remaining + self.minimum_free:
                     raise ValueError("There is insufficient free space for this research upload.")
                 folder.mkdir(mode=0o700)
                 created = True
@@ -245,23 +258,47 @@ class UploadStore:
         source.parent.rmdir()
         return asset
 
+    def _cleanup_cancelled(self, row):
+        """Remove only this transfer's staging paths, allowing interrupted deletion."""
+        folder = self.root / str(UUID(row["id"]))
+        path = folder / "content"
+        if self.root.is_symlink() or folder.is_symlink() or path.is_symlink():
+            raise ValueError("Research upload is unavailable or unsafe.")
+        if not path.resolve().is_relative_to(self.root.resolve()):
+            raise ValueError("Research upload escaped its managed directory.")
+        try:
+            mode = path.lstat().st_mode
+        except FileNotFoundError:
+            pass
+        else:
+            if not stat.S_ISREG(mode):
+                raise ValueError("Research upload is unavailable or unsafe.")
+            path.unlink()
+        try:
+            folder.rmdir()
+        except FileNotFoundError:
+            pass
+
     def cancel(self, identifier):
         row = self.get(identifier)
-        if row["state"] == "complete":
-            raise ConflictError(
-                "A registered research asset is managed through its normal file controls."
-            )
-        if row["state"] == "cancelled":
-            return row
-        path = self.path(row)
         with self.assets.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             current = db.execute(
                 "SELECT state FROM asset_uploads WHERE id=?", (row["id"],)
             ).fetchone()
-            if current["state"] != "uploading":
+            if current["state"] == "complete":
+                raise ConflictError(
+                    "A registered research asset is managed through its normal file controls."
+                )
+            if current["state"] not in {"uploading", "cancelled"}:
                 raise ConflictError("Research upload state changed.")
+            db.execute("INSERT OR IGNORE INTO asset_upload_cleanup VALUES(?)", (row["id"],))
             db.execute("UPDATE asset_uploads SET state='cancelled' WHERE id=?", (row["id"],))
-        path.unlink()
-        path.parent.rmdir()
+        # Keep the durable reservation if unlink/rmdir or this transaction fails.
+        # Append/finalize cannot publish after the committed cancellation intent;
+        # concurrent cancellation retries serialize through the same writer lock.
+        with self.assets.store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            self._cleanup_cancelled(row)
+            db.execute("DELETE FROM asset_upload_cleanup WHERE upload_id=?", (row["id"],))
         return self.get(identifier)

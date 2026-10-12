@@ -450,6 +450,9 @@ export function App() {
                 key={scopedResults}
                 scopedModule={scopedResults}
                 {...common}
+                selected={selected}
+                selectedError={work.selectedJobError}
+                selectedLoading={work.selectedJobLoading}
                 onRefresh={refresh}
                 onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
                 onJob={chooseJob}

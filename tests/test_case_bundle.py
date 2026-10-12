@@ -192,3 +192,42 @@ def test_partial_case_notices_exclude_unrelated_sources_and_output_restrictions(
         ["drugclip.screen"], {"jobs": [{"request": json.dumps({"operation": "drugclip_retrieve"})}]}
     )
     assert any("CC-BY-NC-4.0" in license for license in retrieval["licenses"])
+
+
+def test_export_bundle_returns_receipt_and_preserves_source_asset(settings, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from opendde_workbench.api import create_app
+    from opendde_workbench.assets import AssetStore
+    from opendde_workbench.examples import bundle
+    from opendde_workbench.store import Store
+
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    assets = AssetStore(store, settings.state_dir / "assets")
+    raw = b'{"protocol": "archive consumer fixture, not a scientific result"}'
+    asset = assets.save("protocol.json", "config", raw)
+    summary = {"modules": 1, "computed": 0, "validated": 1}
+    # Isolate public-case selection; archive, asset storage and row projection remain real.
+    monkeypatch.setattr(bundle, "MODULES", {"fixture": SimpleNamespace(case_id="fixture")})
+    monkeypatch.setattr(bundle, "CASES", {"fixture": SimpleNamespace(files=[])})
+    monkeypatch.setattr(bundle, "verify_examples", lambda *args: summary)
+    prepared = SimpleNamespace(model_dump=lambda **kwargs: {"asset_id": asset.id})
+    monkeypatch.setattr(bundle, "prepare_example", lambda *args, **kwargs: prepared)
+    monkeypatch.setattr(bundle, "bundle_notices", lambda *args: {})
+    target = tmp_path / "exports" / "case.zip"
+    receipt = bundle.export_bundle(settings, target, "fixture-revision", capabilities=["fixture"])
+    assert receipt == {
+        **summary,
+        "sha256": sha256(target),
+        "bytes": target.stat().st_size,
+        "jobs": 0,
+        "assets": 1,
+    }
+    restored = read_archive(target, tmp_path / "restored", receipt["sha256"])
+    assert restored["source_revision"] == "fixture-revision"
+    assert restored["records"]["assets"] == [asset.model_dump()]
+    assert (tmp_path / "restored" / "assets" / asset.id / "content.json").read_bytes() == raw
+    assert assets.path(asset).read_bytes() == raw
+    assert assets.get(asset.id) == asset
+    assert list(target.parent.iterdir()) == [target]

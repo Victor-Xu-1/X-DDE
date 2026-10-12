@@ -45,11 +45,15 @@ def fixture_page(request, language, width):
         "status_failed": False,
         "hold_artifacts": False,
         "hold_a": False,
+        "hide_a": False,
+        "missing_a": False,
+        "disconnect_a": False,
         "statuses": {A: "running", B: "running"},
     }
     counts, errors, mutations, cancelled = Counter(), [], [], []
     screenshots = []
     held_routes = []
+    state["held_routes"] = held_routes
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         context = browser.new_context(viewport={"width": width, "height": 1000})
@@ -76,6 +80,9 @@ def fixture_page(request, language, width):
                         ".detail-panel .status"
                     ).all_text_contents(),
                     "read_warnings": page.locator("[data-read-error]").all_text_contents(),
+                    "selection_state": page.locator(
+                        ".task-history-workspace .empty-state"
+                    ).all_text_contents(),
                     "controlled_response_statuses": dict(state["statuses"]),
                     "controlled_api_fixture": True,
                     "scientific_inference": False,
@@ -85,6 +92,7 @@ def fixture_page(request, language, width):
         def respond(route):
             path = urlsplit(route.request.url).path.removeprefix("/api")
             counts[path] += 1
+            listed = (B,) if state["hide_a"] else (A, B)
             if route.request.method != "GET":
                 mutations.append(path)
                 route.fulfill(status=405, json={"detail": "Read-only control fixture"})
@@ -96,7 +104,7 @@ def fixture_page(request, language, width):
                     if state["jobs_failed"]
                     else [
                         job(value, state["statuses"][value] if state["fresh_jobs"] else "running")
-                        for value in (A, B)
+                        for value in listed
                     ],  # Deliberately stale unless this case explicitly recovers the list.
                 )
             elif path == "/health":
@@ -116,6 +124,12 @@ def fixture_page(request, language, width):
                 )
             elif path in (f"/jobs/{A}", f"/jobs/{B}"):
                 task_id = path.rsplit("/", 1)[1]
+                if state["disconnect_a"] and task_id == A:
+                    route.abort("failed")
+                    return
+                if state["missing_a"] and task_id == A:
+                    route.fulfill(status=404, json={"detail": "Task not found"})
+                    return
                 if state["hold_a"] and task_id == A:
                     held_routes.append(route)
                     return
@@ -126,6 +140,9 @@ def fixture_page(request, language, width):
                     else job(task_id, state["statuses"][task_id]),
                 )
             elif path in (f"/jobs/{A}/artifacts", f"/jobs/{B}/artifacts"):
+                if state["missing_a"] and A in path:
+                    route.fulfill(status=404, json={"detail": "Task not found"})
+                    return
                 if state["hold_artifacts"] or (state["hold_a"] and A in path):
                     held_routes.append(route)
                     return
@@ -144,10 +161,10 @@ def fixture_page(request, language, width):
                 route.fulfill(
                     json={
                         "items": [
-                            {"job": job(value), "capability_id": "properties"} for value in (A, B)
+                            {"job": job(value), "capability_id": "properties"} for value in listed
                         ],
-                        "counts": {"properties": {"total": 2, "active": 2}},
-                        "total": 2,
+                        "counts": {"properties": {"total": len(listed), "active": len(listed)}},
+                        "total": len(listed),
                         "offset": 0,
                         "limit": 20,
                     }
@@ -431,3 +448,119 @@ def test_jobs_only_tasks_warning_recovers_without_false_history_error(
         "失败" if language == "zh" else "Failed"
     )
     expect(page).to_have_url(re.compile("task=" + A))
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_missing_deep_link_reload_and_history_back_forward(fixture_page, language, width):
+    page, state, counts, _, capture = fixture_page
+    state["hide_a"] = state["missing_a"] = True
+    route = "#view=tasks&module=evaluation&type=properties&status=running&q=Browser"
+    page.goto(os.environ["WB_BROWSER_URL"] + "/" + route + "&task=" + A)
+    missing = page.get_by_role(
+        "heading", name="任务不可用" if language == "zh" else "Task unavailable", exact=True
+    )
+    back = page.get_by_role(
+        "link", name="返回任务历史" if language == "zh" else "Back to task history", exact=True
+    )
+    expect(missing).to_be_visible()
+    expect(back).to_have_attribute("href", route)
+    expect(page.locator(".detail-panel")).to_have_count(0)
+    expect(page.locator("[data-read-error]")).to_have_count(0)
+    capture(
+        "missing-task",
+        "404 for an unlisted task preserves its URL and provides a history return link.",
+    )
+    with page.expect_response(
+        lambda response: urlsplit(response.url).path == f"/api/jobs/{A}"
+    ) as reloaded:
+        page.reload()
+    assert reloaded.value.status == 404
+    expect(missing).to_be_visible()
+    expect(page).to_have_url(re.compile(re.escape(route + "&task=" + A) + "$"))
+    # A normal hash link is keyboard reachable and creates real browser history.
+    back.focus()
+    expect(back).to_be_focused()
+    back.press("Enter")
+    expect(missing).to_have_count(0)
+    expect(page).to_have_url(re.compile(re.escape(route) + "$"))
+    expect(
+        page.get_by_role(
+            "searchbox", name="搜索模块内任务" if language == "zh" else "Search this module"
+        )
+    ).to_have_value("Browser")
+    expect(
+        page.get_by_role("combobox", name="状态" if language == "zh" else "Status")
+    ).to_have_value("running")
+    expect(page.get_by_role("button", name="Browser control task B", exact=True)).to_be_visible()
+    page.go_back()
+    expect(missing).to_be_visible()
+    expect(page).to_have_url(re.compile("task=" + A))
+    page.go_forward()
+    expect(missing).to_have_count(0)
+    expect(page).to_have_url(re.compile(re.escape(route) + "$"))
+    page.get_by_role("button", name="Browser control task B", exact=True).click()
+    expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
+    assert counts[f"/jobs/{A}"] >= 3
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_unlisted_task_transport_failure_and_successful_retry(fixture_page, language, width):
+    page, state, counts, _, capture = fixture_page
+    state["hide_a"] = state["disconnect_a"] = True
+    page.goto(os.environ["WB_BROWSER_URL"] + "/#task=" + A)
+    warning = page.locator(".task-history-workspace .empty-state[role=alert]")
+    expect(warning).to_contain_text("无法读取任务" if language == "zh" else "Unable to load task")
+    expect(warning).not_to_contain_text("任务不可用" if language == "zh" else "Task unavailable")
+    expect(page).to_have_url(re.compile("task=" + A))
+    capture(
+        "unlisted-transport-error",
+        "A transport failure is distinct from a missing task and offers read-only Retry.",
+    )
+    state["disconnect_a"] = False
+    state["hold_a"] = True
+    retry = warning.get_by_role("button", name="重试" if language == "zh" else "Retry", exact=True)
+    retry.click()
+    expect(retry).to_be_disabled()
+    expect(warning).to_be_visible()
+    capture(
+        "unlisted-retry-pending",
+        "Retry keeps the error visible and is busy until metadata succeeds.",
+    )
+    # Release the same pending read, rather than treating the click as recovery.
+    state["hold_a"] = False
+    for held in state["held_routes"]:
+        path = urlsplit(held.request.url).path
+        held.fulfill(json=[] if path.endswith("/artifacts") else job(A))
+    expect(warning).to_have_count(0)
+    expect(page.locator(".detail-panel h2")).to_have_text("Browser control task A")
+    expect(page).to_have_url(re.compile("task=" + A))
+    assert counts[f"/jobs/{A}"] == 2
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_leave_unlisted_pending_task_and_select_another(fixture_page, language, width):
+    page, state, _, cancelled, capture = fixture_page
+    state["hide_a"] = state["hold_a"] = True
+    page.goto(os.environ["WB_BROWSER_URL"] + "/#task=" + A)
+    pending = page.get_by_role(
+        "heading",
+        name="正在读取所选任务…" if language == "zh" else "Loading selected task…",
+        exact=True,
+    )
+    expect(pending).to_be_visible()
+    capture(
+        "unlisted-pending",
+        "An unlisted deep link stays visibly pending before any metadata arrives.",
+    )
+    page.get_by_role(
+        "link", name="返回任务历史" if language == "zh" else "Back to task history", exact=True
+    ).click()
+    expect(pending).to_have_count(0)
+    expect_cancelled(page, cancelled, f"/api/jobs/{A}", f"/api/jobs/{A}/artifacts")
+    page.get_by_role(
+        "group", name="任务模块" if language == "zh" else "Task modules", exact=True
+    ).get_by_role("button", name=re.compile("性质与安全性|Properties and safety")).click()
+    page.get_by_role("button", name="Browser control task B", exact=True).click()
+    expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
+    expect(page).to_have_url(re.compile("task=" + B))
+    expect(page.locator(".task-history-workspace .empty-state")).to_have_count(0)
