@@ -306,7 +306,7 @@ export function TaskWorkspace(p: Props) {
             </div>
           )}
         </div>
-      }
+      )}
     </section>
   );
 }
