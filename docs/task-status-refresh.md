@@ -31,9 +31,16 @@ Artifact or health failures cannot delay publication of successful task metadata
   shows Reconnect only when that read fails; the generic Refresh tasks action also
   refreshes the list. Home/deployment keep their existing reconnect notice instead
   of showing a duplicate list warning.
-- The hook also exposes identity-scoped selected loading/error state, retaining
-  HTTP error information for the separate missing-task/deep-link handling work.
-  This change does not implement that missing-task UI.
+- Before selected metadata exists, Tasks renders the identity-scoped loading/error
+  state rather than silently returning to the module overview. An HTTP 404 means
+  the task is unavailable in this workspace; network, timeout and other read
+  failures offer a read-only Retry. Retry remains busy and keeps the error visible
+  until metadata succeeds. It never calls task submission or task retry mutations.
+- The selection and URL remain intact during missing/loading/error states. A
+  normal hash link returns to task history with its module/type/status/query/page
+  and project filters. Browser Back/Forward restores the selection through the
+  existing hash/popstate authority. Cached loaded jobs retain the existing
+  last-confirmed-state warnings; unavailable metadata does not fabricate a task.
 
 The shared API request helper is unchanged. Upload deadlines, explicit POST
 budgets, mutations, task submission and backend execution are unaffected.
@@ -59,7 +66,7 @@ with every visited task. No scientific output or task identity is fabricated.
 
 The automatic `Live task status fault checks` workflow runs focused hook,
 request-deadline, application, task-detail, task-history, home and prediction
-consumer tests, and ten Chromium cases:
+consumer tests, and sixteen Chromium cases:
 
 - Health outage and stale list/detail responses after a confirmed failure
 - Stalled artifacts reaching the actual application deadline while status updates
@@ -67,6 +74,9 @@ consumer tests, and ten Chromium cases:
 - Jobs-only failure on Tasks warns about stale summaries while selected status and
   classified history stay live; Retry refreshes the shared task notifications
 - Selecting another task cancels old metadata and artifact requests
+- Missing unlisted task links, reload, contextual history return and actual Back/Forward
+- Unlisted task transport failure, busy read-only Retry and successful metadata recovery
+- Leaving an unlisted pending task and selecting a different task
 
 Each browser case runs in English desktop and Chinese mobile layouts over
 controlled read-only API fixtures. The browser clock advances the application's
