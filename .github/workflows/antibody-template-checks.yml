@@ -1,0 +1,45 @@
+name: Antibody template input and questionnaire checks
+on:
+  push:
+    paths: &antibody_template_paths
+      - 'frontend/src/antibodies/AntibodyNumberForm*'
+      - 'server_tests/test_antibody_template_browser.py'
+      - '.github/workflows/antibody-template-checks.yml'
+  pull_request:
+    paths: *antibody_template_paths
+permissions:
+  contents: read
+jobs:
+  antibody-template:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4345
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked ruff check server_tests/test_antibody_template_browser.py
+      - working-directory: frontend
+        run: npx vitest run src/antibodies/AntibodyNumberForm.test.tsx src/research/SequencePicker.test.tsx
+      - name: Exact prepared source, step navigation and blank reset in English and Chinese
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-antibody-template"
+          export WB_STATE_DIR="$WB_HOME/state"
+          mkdir -p server_tests/evidence/antibody-template
+          .venv/bin/python -m playwright install --with-deps chromium
+          .venv/bin/python -m opendde_workbench --port 4345 > server_tests/evidence/antibody-template/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
+          .venv/bin/python -m pytest -x -q server_tests/test_antibody_template_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: antibody-template-evidence
+          path: server_tests/evidence/antibody-template
