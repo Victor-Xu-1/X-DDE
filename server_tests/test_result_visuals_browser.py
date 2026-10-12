@@ -278,6 +278,7 @@ def test_real_structures_tables_and_sequences():
             record("indexed-native-member-selection")
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
+                settle_responsive_layout(page)
                 table = page.locator(".dataset-indexed-workspace > section").first.bounding_box()
                 panel = inspector.bounding_box()
                 if width == 1440:
@@ -292,6 +293,10 @@ def test_real_structures_tables_and_sequences():
             page.set_viewport_size({"width": 1440, "height": 1000})
             page.get_by_role("button", name="下一页", exact=True).click()
             expect(members.first.locator("td").first).not_to_have_text(initial_member)
+            expect(inspector.get_by_role("heading", name=second_member, exact=True)).to_be_visible()
+            expect(
+                inspector.get_by_role("button", name="生成三维视图图片", exact=True)
+            ).to_be_enabled()
             record("indexed-native-members-page-2")
             result("DEL 研究模型")
             assessment = page.get_by_role("region", name="独立验证指标", exact=True)
@@ -300,6 +305,8 @@ def test_real_structures_tables_and_sequences():
             validation = page.locator(".dataset-model-validation")
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
+                settle_responsive_layout(page)
+                settle_responsive_plot(page, validation.locator(".research-plot-canvas"))
                 chart = validation.locator(
                     ".dataset-model-plot-column > .research-plot"
                 ).bounding_box()
