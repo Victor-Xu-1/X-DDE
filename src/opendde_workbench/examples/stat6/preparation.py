@@ -72,11 +72,13 @@ def prepare_stat6(capability, scientific, *, records=None):
         "receptor_b": originals["stat6_alternative_receptor"],
         "variable_domains": originals["dupilumab_variable_domains"],
     }
-    if capability in {"biopython.exposure", "biopython.ensemble"}:
+    if capability in {"biopython.exposure", "biopython.ensemble", "caver.paths"}:
         from .prepared_inputs import reviewed_receptor
 
-        receptor = reviewed_receptor(scientific, records)
-        role = "receptor" if capability == "biopython.exposure" else "receptor_a"
+        receptor = reviewed_receptor(
+            scientific, records, retain_reference_ligand=capability == "caver.paths"
+        )
+        role = "receptor_a" if capability == "biopython.ensemble" else "receptor"
         if receptor is None:
             # 9BIG contains observed alternate positions. A raw reference is not
             # silently converted into a preparation that resolves that choice.

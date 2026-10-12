@@ -6,7 +6,7 @@ from ..pins import ExamplePins
 from .catalogue import FILES, MODULES
 
 
-def reviewed_receptor(scientific, records):
+def reviewed_receptor(scientific, records, *, retain_reference_ligand=False):
     if records is None:
         return None
     state = records.settings.state_dir
@@ -20,6 +20,16 @@ def reviewed_receptor(scientific, records):
     )
     if result.source.sha256 != FILES["stat6_structure"].sha256:
         raise ValueError("The reviewed preparation does not belong to this STAT6 construct.")
+    if retain_reference_ligand and (
+        result.options.format != "cif"
+        or result.options.heterogens != "keep"
+        or result.options.chains != ("A",)
+        or result.options.alternate != "A"
+        or result.options.waters
+    ):
+        raise ValueError(
+            "Channel analysis requires the reviewed CIF retaining the reference ligand."
+        )
     versions = scientific.list(
         source_job=pin.job_id,
         asset_name=result.artifact,

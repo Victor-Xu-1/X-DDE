@@ -64,8 +64,9 @@ OBJECTIVES = {
         "Cluster actual STAT6 pose-exploration outputs.",
     ),
     "caver.paths": (
-        "点选 STAT6 口袋起点，再分析通道与瓶颈。",
-        "Select a starting region in STAT6 before analyzing channels and bottlenecks.",
+        "从 9BIG 中 AK-1690 的实际位置分析几何出口；短出口不等于封闭隧道。",
+        "Analyze geometric exits from the deposited AK-1690 site in 9BIG; "
+        "a short exit does not establish an enclosed tunnel.",
     ),
 }
 

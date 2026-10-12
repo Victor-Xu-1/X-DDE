@@ -90,11 +90,16 @@ def study_task(capability, objects, sequences):
         )
     elif capability in {"biopython.exposure", "caver.paths"}:
         field = "regions" if capability == "biopython.exposure" else "starting_regions"
+        region = {"chain": "A", "number": 614, "insertion_code": "", "resname": "ASN"}
+        if capability == "caver.paths":
+            region = {"chain": "A", "number": 701, "insertion_code": "", "resname": "A1AQQ"}
         value.update(
             structure=receptor,
             scientific_inputs=[receptor],
-            **{field: [{"chain": "A", "number": 614, "insertion_code": "", "resname": "ASN"}]},
+            **{field: [region]},
         )
+        if capability == "caver.paths":
+            value["options"] = {"context_chains": ["A"], "alternate": "A", "cpu": 1}
     elif capability == "chemistry.states":
         value.update(molecule=ligand, scientific_inputs=[ligand])
     elif capability == "admet.predict":

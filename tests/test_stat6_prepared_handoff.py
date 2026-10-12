@@ -205,6 +205,35 @@ def test_raw_alternate_locations_are_not_prefilled_as_a_ready_exposure_task(sett
     assert "stat6_structure" in prepared.objects and not store.list_jobs()
 
 
+def test_channel_template_uses_retained_reference_site_in_the_reviewed_cif(settings):
+    store, scientific, records, native = preparation_fixture(settings)
+    before = len(store.list_jobs())
+    result = prepare_stat6("caver.paths", scientific, records=records)
+    assert result.request["structure"] == native.reference.model_dump(mode="json")
+    assert result.request["starting_regions"] == [
+        {"chain": "A", "number": 701, "insertion_code": "", "resname": "A1AQQ"}
+    ]
+    assert result.request["options"]["context_chains"] == ["A"]
+    assert result.request["options"]["remove_starting_ligands"] is True
+    assert result.request["options"]["cpu"] == 1
+    assert len(store.list_jobs()) == before
+
+
+def test_channel_template_requires_the_reference_ligand_not_a_protein_only_export(settings):
+    _, scientific, records, _ = preparation_fixture(settings, protein_only=True)
+    with pytest.raises(ValueError, match="retaining the reference ligand"):
+        prepare_stat6("caver.paths", scientific, records=records)
+
+
+def test_cold_channel_template_does_not_choose_an_unreviewed_residue_start(settings):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    result = prepare_stat6("caver.paths", scientific)
+    assert result.request is None and "receptor" not in result.objects
+    assert result.study["required_materials"] and not store.list_jobs()
+
+
 def test_ensemble_requires_the_exact_reviewed_reference_preparation(settings):
     create_app(settings)
     store = Store(settings.state_dir / "jobs.sqlite3")

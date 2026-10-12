@@ -6,7 +6,7 @@ def study_request(capability, objects, sequences):
         return None
     if capability == "biopython.ensemble" and "receptor_a" not in objects:
         return None
-    if capability == "gnina.dock" and "receptor" not in objects:
+    if capability in {"gnina.dock", "caver.paths"} and "receptor" not in objects:
         return None
 
     def reference(key):

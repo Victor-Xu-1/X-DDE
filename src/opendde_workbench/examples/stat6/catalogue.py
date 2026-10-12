@@ -42,6 +42,14 @@ def study_context(capability):
     if capability not in MODULES:
         raise KeyError(capability)
     requirements = []
+    if capability == "caver.paths":
+        requirements.append(
+            (
+                "核对保留 AK-1690（A:A1AQQ 701）的 9BIG 链 A 准备 CIF；分析时移除起始配体障碍。",
+                "Use the reviewed 9BIG chain-A CIF retaining AK-1690 (A:A1AQQ 701); "
+                "remove the starting ligand from geometric obstacles during analysis.",
+            )
+        )
     if capability == "gnina.dock":
         requirements.append(
             (
