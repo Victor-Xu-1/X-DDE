@@ -157,13 +157,13 @@ export function App() {
   }, [view]);
 
   function chooseJob(id: string, preserveHistory = true) {
+    requestedTask.current = id || null;
     select(id, preserveHistory);
     setCandidateId(null);
     setCompared([]);
     setFocusResidue(null);
   }
   function showJob(id: string) {
-    requestedTask.current = id;
     inspectJob(id);
     setResultsVersion((n) => n + 1);
     const next =
