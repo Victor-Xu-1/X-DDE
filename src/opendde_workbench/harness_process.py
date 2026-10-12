@@ -6,6 +6,8 @@ import os
 import signal
 from pathlib import Path
 
+from .locations import atomic_json
+
 
 def environment(settings):
     env = os.environ.copy()
@@ -40,11 +42,22 @@ async def start(settings, directory):
         stderr=asyncio.subprocess.STDOUT,
     )
     try:
-        identity = {"pid": process.pid, "start_time": start_time(process.pid)}
-        (directory / "process.json").write_text(json.dumps(identity))
-    except FileNotFoundError:
-        # A process that exits immediately has no descendant workflow to recover.
-        await process.wait()
+        try:
+            identity = {"pid": process.pid, "start_time": start_time(process.pid)}
+        except FileNotFoundError:
+            # A process that exits immediately has no descendant workflow to recover.
+            await process.wait()
+            return process
+        atomic_json(directory / "process.json", identity)
+    except BaseException:
+        # Startup has not handed ownership to the caller; do not leave untracked work.
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        # Drain the pipe too: wait() alone can hang when a failed startup filled stdout.
+        await process.communicate()
+        raise
     return process
 
 
