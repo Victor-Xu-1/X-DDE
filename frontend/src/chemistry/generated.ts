@@ -14,7 +14,7 @@ export const defaults = {
   seed: 2026,
   prune_rmsd: 0.5,
   force_field: "MMFF94s",
-  optimization_iterations: 200,
+  optimization_iterations: 1000,
   embedding_iterations: 500,
   cpu: 1,
   memory_mib: 2048,
@@ -114,7 +114,7 @@ export const schema = {
       type: "string",
     },
     optimization_iterations: {
-      default: 200,
+      default: 1000,
       maximum: 2000,
       minimum: 10,
       title: "Optimization Iterations",

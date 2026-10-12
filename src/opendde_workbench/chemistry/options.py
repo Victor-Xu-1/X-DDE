@@ -21,7 +21,7 @@ class StateOptions(BaseModel):
     seed: int = Field(default=2026, ge=1, le=2147483647)
     prune_rmsd: float = Field(default=0.5, ge=0, le=5, allow_inf_nan=False)
     force_field: Literal["MMFF94s", "UFF", "none"] = "MMFF94s"
-    optimization_iterations: int = Field(default=200, ge=10, le=2000)
+    optimization_iterations: int = Field(default=1000, ge=10, le=2000)
     embedding_iterations: int = Field(default=500, ge=10, le=2000)
     cpu: int = Field(default=1, ge=1, le=2)
     memory_mib: int = Field(default=2048, ge=512, le=8192)
