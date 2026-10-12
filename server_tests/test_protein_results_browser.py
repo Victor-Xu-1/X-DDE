@@ -7,7 +7,12 @@ import os
 from pathlib import Path
 
 import pytest
-from layout_browser_helpers import catalog, initialize_layout_page
+from layout_browser_helpers import (
+    catalog,
+    initialize_layout_page,
+    settle_responsive_layout,
+    viewport_overflow_evidence,
+)
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -48,7 +53,8 @@ def open_result(page, name, configuration=False):
 
 
 def capture(page, root, name):
-    assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
+    settle_responsive_layout(page)
+    assert not viewport_overflow_evidence(page, root, name)
     page.screenshot(path=str(root / (name + ".png")))
 
 

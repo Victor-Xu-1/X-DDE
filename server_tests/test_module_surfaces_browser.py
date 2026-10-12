@@ -5,8 +5,10 @@ import os
 from pathlib import Path
 
 from layout_browser_helpers import (
+    RESEARCH_MODULE_LABELS,
     VISIBLE_TASKS,
     catalog,
+    expect_layout_identities,
     flat_surface_styles,
     initialize_layout_page,
 )
@@ -24,7 +26,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(os.environ["WB_BROWSER_URL"])
         groups = page.locator(".capability-group")
-        expect(groups).to_have_count(9)
+        expect_layout_identities(groups, RESEARCH_MODULE_LABELS)
         dimensions = groups.evaluate_all(
             """elements => elements.map(e => ({theme:e.dataset.moduleTheme,
                 width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))"""

@@ -1,7 +1,7 @@
 name: Surface exposure scoped checks
 on:
   push:
-    paths:
+    paths: &surface_exposure_paths
       - 'src/opendde_workbench/receptors/*surface*'
       - 'frontend/src/receptors/*Surface*'
       - '!frontend/src/receptors/SurfaceForm.tsx'
@@ -11,6 +11,8 @@ on:
       - 'server_tests/test_native_surface.py'
       - 'server_tests/test_surface_browser.py'
   workflow_dispatch:
+  pull_request:
+    paths: *surface_exposure_paths
 permissions:
   contents: read
 jobs:

@@ -14,6 +14,167 @@ from opendde_workbench.capabilities.definitions import CAPABILITIES
 VISIBLE_TASKS = sum(
     bool(spec.frontend_form) and key != "resources" for key, spec in CAPABILITIES.items()
 )
+# Exact Chinese identities from studio/research-modules.ts, in catalogue order.
+RESEARCH_MODULE_LABELS = (
+    "靶点研究",
+    "结构预测",
+    "口袋与对接",
+    "小分子设计",
+    "诱导邻近设计",
+    "高通量筛选",
+    "DEL 研究",
+    "生物药研究",
+    "性质与安全性",
+    "动力学与 FEP",
+)
+
+
+def expect_layout_identities(elements, labels):
+    """Reject missing, duplicated, reordered or unexpected catalogue controls."""
+    assert len(labels) == len(set(labels))
+    expect(elements).to_have_count(len(labels))
+    for index, label in enumerate(labels):
+        expect(elements.nth(index)).to_have_attribute("aria-label", label)
+
+
+def settle_responsive_layout(page):
+    """Wait for the app's compact navigation and selected markers, not page fit."""
+    ready = page.wait_for_function(
+        """() => {
+        // NavigationFrame commits this control after its media-query change event.
+        const compact=matchMedia('(max-width: 960px)').matches;
+        if (!!document.querySelector('.mobile-navigation-trigger')!==compact) return false;
+        return [...document.querySelectorAll(
+            '.questionnaire-steps,.research-tab-list,.task-model-switch'
+        )].every(parent => {
+            const outer=parent.getBoundingClientRect();
+            if (!(outer.width>0 && outer.height>0) ||
+                getComputedStyle(parent).visibility==='hidden') return true;
+            const active=parent.querySelector(
+                ':scope > button[aria-selected="true"],'+
+                ':scope > button[aria-current="step"],'+
+                ':scope > button[aria-pressed="true"]'
+            );
+            const marker=parent.querySelector(':scope > .active-control-indicator');
+            if (!active) return !marker;
+            const inner=active.getBoundingClientRect();
+            if (!(inner.width>0)) return !marker;
+            if (!marker || !marker.style.transform || !marker.style.width) return false;
+            const target=new DOMMatrixReadOnly(marker.style.transform);
+            // ActiveIndicator.tsx deliberately retains changes smaller than 0.25px.
+            const close=(actual,expected) => Math.abs(actual-expected)<0.25;
+            return close(target.m41,inner.left-outer.left+parent.scrollLeft) &&
+                close(target.m42,inner.bottom-outer.top+parent.scrollTop-2) &&
+                close(parseFloat(marker.style.width),inner.width) &&
+                !marker.getAnimations().some(a => a.pending || a.playState==='running');
+        });
+        }""",
+        polling="raf",
+        timeout=5000,
+    )
+    ready.dispose()
+
+
+def settle_responsive_plot(page, chart):
+    """Observe Plotly's real autosize completion without invoking a redraw."""
+    node = chart.element_handle()
+    assert node is not None
+    try:
+        ready = page.wait_for_function(
+            """node => {
+                const width=parseFloat(getComputedStyle(node).width);
+                // Plotly autosize retains <=1px deltas; its pending resize promise
+                // is cleared only after relayout completes. aria-busy is data-only.
+                return node.isConnected && width>0 && node._fullLayout &&
+                    Math.abs(node._fullLayout.width-width)<=1 && !node._resolveResize;
+            }""",
+            arg=node,
+            polling="raf",
+            timeout=5000,
+        )
+        ready.dispose()
+    finally:
+        node.dispose()
+
+
+def viewport_overflow_evidence(page, evidence, label):
+    """Return the immediate predicate; failure-only observations cannot turn it into a pass."""
+    probe = page.evaluate_handle("""() => {
+        const box = e => {
+            const r=e.getBoundingClientRect(), s=getComputedStyle(e);
+            return {tag:e.tagName,cls:String(e.className),role:e.getAttribute('role'),
+                label:e.getAttribute('aria-label'),parentClass:String(e.parentElement?.className),
+                parentOverflowX:e.parentElement ?
+                    getComputedStyle(e.parentElement).overflowX : null,
+                x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,
+                clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,
+                overflowX:s.overflowX,minWidth:s.minWidth,transform:s.transform};
+        };
+        const snapshot = () => {
+            const width=innerWidth, scrollWidth=document.documentElement.scrollWidth;
+            return {time:performance.now(),width,height:innerHeight,scrollWidth,
+                overflow:scrollWidth>width+1,
+                animations:document.getAnimations().slice(0,30).map(a=>({
+                    state:a.playState,time:a.currentTime,
+                    duration:a.effect?.getComputedTiming().duration,
+                    target:a.effect?.target ? box(a.effect.target) : null})),
+                relevant:[...document.querySelectorAll('.active-control-indicator,'+
+                    '.js-plotly-plot,.campaign-material-layout,.campaign-material-layout table,'+
+                    '.sequence-track')].slice(0,30).map(box),
+                offenders:scrollWidth>width+1 ? [...document.querySelectorAll('body *')]
+                    .map(box).filter(r=>r.width>0&&r.height>0&&r.right>width+1).slice(0,30) : []};
+        };
+        const original={time:performance.now(),width:innerWidth,height:innerHeight,
+            scrollWidth:document.documentElement.scrollWidth};
+        original.overflow=original.scrollWidth>original.width+1;
+        if(!original.overflow) return {original};
+        const initialSnapshot=snapshot();
+        const finished=new Promise(resolve=>{
+            const frames=[];
+            let stopped=false;
+            const finish=()=>{stopped=true;resolve(frames);};
+            // A diagnostic deadline also bounds throttled RAF; it never affects acceptance.
+            const deadline=setTimeout(finish,1500);
+            const sample=()=>{
+                if(stopped) return;
+                frames.push(snapshot());
+                // Observation budget only, never an acceptance wait or changed tolerance.
+                if(frames.length>=90) {clearTimeout(deadline);finish();}
+                else requestAnimationFrame(sample);
+            };
+            requestAnimationFrame(sample);
+        });
+        return {original,initialSnapshot,finished};
+    }""")
+    try:
+        original = probe.evaluate("value => value.original")
+        if not original["overflow"]:
+            return False
+        evidence.mkdir(parents=True, exist_ok=True)
+        name = "overflow-" + re.sub(r"[^\w.-]", "-", label)[:90]
+        report = {
+            "original": original,
+            "initial_snapshot": probe.evaluate("value => value.initialSnapshot"),
+            "screenshot_note": (
+                "Captures follow the original snapshot and may span animation frames."
+            ),
+            "diagnostic_errors": [],
+        }
+        try:
+            page.screenshot(path=str(evidence / (name + "-immediate.png")), timeout=5000)
+        except Exception as error:
+            report["diagnostic_errors"].append(str(error))
+        try:
+            report["frames"] = probe.evaluate("async value => await value.finished")
+            page.screenshot(path=str(evidence / (name + "-observed.png")), timeout=5000)
+        except Exception as error:
+            report["diagnostic_errors"].append(str(error))
+        (evidence / (name + ".json")).write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        return original["overflow"]
+    finally:
+        probe.dispose()
 
 
 def initialize_layout_language(page):
@@ -185,7 +346,11 @@ def capture_utilities(page, evidence, width):
     page.set_viewport_size({"width": width, "height": 1000})
     rows = []
     nav = layout_navigation(page)
-    expect(nav.get_by_role("button")).to_have_count(12)
+    # navigation-model.ts appends these three utilities to the research modules.
+    expect_layout_identities(
+        nav.get_by_role("button"),
+        (*RESEARCH_MODULE_LABELS, "研究空间", "任务与结果", "全部能力"),
+    )
     nav.get_by_role("button", name="研究空间", exact=True).click()
     for tab in ("项目", "研究文件", "结构编辑"):
         page.get_by_role("group", name="研究空间", exact=True).get_by_role(

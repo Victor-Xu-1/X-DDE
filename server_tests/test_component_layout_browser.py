@@ -38,6 +38,31 @@ def check_cards(cards, viewport):
             assert second["x"] >= first["right"] + 10, (first, second)
 
 
+def check_engine_comparison(cards, geometry):
+    """The documented OpenMM/GROMACS/OpenFE comparison owns responsive 3/2/1 tracks."""
+    assert [card["name"] for card in cards] == [
+        "动力学与结构优化 · OpenMM",
+        "分子动力学 · GROMACS",
+        "相对结合自由能 · OpenFE",
+    ]
+    columns = (
+        1 if geometry["containerWidth"] <= 520 else 2 if geometry["containerWidth"] <= 820 else 3
+    )
+    assert len(geometry["tracks"]) == columns, geometry
+    assert abs(geometry["gap"] - 16) <= 1, geometry
+    width = (geometry["width"] - geometry["gap"] * (columns - 1)) / columns
+    assert all(abs(track - width) <= 1 for track in geometry["tracks"]), geometry
+    for index, card in enumerate(cards):
+        assert abs(card["width"] - width) <= 1, (card, geometry)
+        assert abs(card["x"] - geometry["x"] - (index % columns) * (width + geometry["gap"])) <= 1
+        if index % columns:
+            assert abs(card["y"] - cards[index - 1]["y"]) <= 1, cards
+        elif index:
+            previous = cards[index - columns : index]
+            expected_y = max(c["y"] + c["height"] for c in previous) + geometry["gap"]
+            assert abs(card["y"] - expected_y) <= 1, cards
+
+
 def test_component_cards_groups_and_runtime_desktop_mobile():
     evidence = Path("server_tests/evidence/task-layout")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -66,7 +91,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                 .get_by_role("button")
                 .all_text_contents()
             )
-            for width in (1440, 1920, 2560, 390):
+            for width in (1440, 1920, 2560, 768, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
                 page.get_by_role("button", name="全部", exact=True).click()
                 all_cards = card_geometry(page, ".component-grid > .component-card")
@@ -79,13 +104,25 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                     cards = card_geometry(page, ".component-grid > .component-card")
                     check_cards(cards, width)
                     assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
-                    assert abs(cards[0]["width"] - all_cards[0]["width"]) <= 1, (
-                        "A short group must retain the grid column width"
-                    )
+                    grid = page.locator(".component-library > .component-grid")
+                    geometry = grid.evaluate("""e => ({x:e.getBoundingClientRect().x,
+                        width:e.getBoundingClientRect().width,
+                        containerWidth:e.closest('.deployment-workspace').clientWidth,
+                        tracks:getComputedStyle(e).gridTemplateColumns.split(' ').map(parseFloat),
+                        gap:parseFloat(getComputedStyle(e).columnGap),
+                        comparison:e.classList.contains('is-engine-comparison')})""")
+                    if group == "动力学与结合自由能":
+                        assert geometry["comparison"], geometry
+                        check_engine_comparison(cards, geometry)
+                    else:
+                        assert not geometry["comparison"], geometry
+                        assert abs(cards[0]["width"] - all_cards[0]["width"]) <= 1, (
+                            "An ordinary short group must retain the grid column width"
+                        )
                     page.screenshot(
                         path=str(evidence / f"components-{width}-{groups.index(group)}.png")
                     )
-                    rows.append({"width": width, "group": group, "cards": cards})
+                    rows.append({"width": width, "group": group, "cards": cards, "grid": geometry})
                 page.get_by_role("button", name="全部", exact=True).click()
                 optional = page.locator(".component-additions > summary")
                 if optional.count():

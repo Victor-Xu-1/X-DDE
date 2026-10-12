@@ -97,7 +97,7 @@ def test_researcher_result_decisions_and_handoffs():
             assert isinstance(response.json(), (dict, list))
             record("prepared-input")
             result("分子相互作用")
-            expect(page.get_by_role("columnheader", name="距离（Å）", exact=True)).to_be_visible()
+            expect(page.get_by_role("columnheader", name="距离 (Å)", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="A:ASN140", exact=True)).to_be_visible()
             page.get_by_role("button", name="A:ASN140", exact=True).click()
             expect(page.locator(".viewer-panel iframe")).to_be_visible()
