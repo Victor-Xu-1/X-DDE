@@ -1,10 +1,13 @@
 import { render, screen, fireEvent, within } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
 import { HomeWorkspace } from "./HomeWorkspace";
 import { defaults } from "../form-model";
 import { RuntimeStatus } from "./RuntimeStatus";
 import type { Health } from "../types";
+
+afterEach(() => vi.restoreAllMocks());
+
 const props: ComponentProps<typeof HomeWorkspace> = {
   active: true,
   resultsVersion: 0,
@@ -103,7 +106,21 @@ it("keeps public previews outside personal prediction tabs and preserves the inp
     transport.mockRestore();
   }
 });
-it("separates task entry from structure review while preserving the draft", () => {
+it("separates task entry from structure review while preserving the draft", async () => {
+  const client = await import("../api");
+  const request = client.request;
+  const transport = vi
+    .spyOn(client, "request")
+    .mockImplementation((path, init) =>
+      path === "/task-history/job/identity"
+        ? Promise.resolve({
+            job_id: "job",
+            capability_id: "predict",
+            origin: "research",
+            example_cases: [],
+          })
+        : request(path, init),
+    );
   const { rerender } = render(<HomeWorkspace {...props} />);
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   const sequence = screen.getByLabelText("单字母氨基酸序列");
@@ -111,14 +128,24 @@ it("separates task entry from structure review while preserving the draft", () =
   fireEvent.click(screen.getByRole("button", { name: "结构与结果" }));
   expect(sequence).not.toBeVisible();
   expect(screen.getByTitle("可交互分子结构")).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "研究结果 已完成" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("heading", { name: "已完成的任务 已完成" }),
+  ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "新建预测" }));
   expect(sequence).toBeVisible();
   expect(sequence).toHaveValue("ACDE");
   rerender(<HomeWorkspace {...props} resultsVersion={1} />);
   expect(sequence).not.toBeVisible();
   expect(
-    screen.getByRole("heading", { name: "已完成的任务 已完成" }),
+    await screen.findByRole("heading", { name: "已完成的任务 已完成" }),
   ).toBeVisible();
+  expect(transport).toHaveBeenCalledWith(
+    "/task-history/job/identity",
+    expect.objectContaining({ signal: expect.any(AbortSignal) }),
+  );
   expect(
     screen.queryByRole("heading", { name: "小分子性质" }),
   ).not.toBeInTheDocument();
