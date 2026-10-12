@@ -29,6 +29,15 @@ obstacles and uses chain A. It does not substitute an arbitrary amino-acid start
 or a protein-only export lacking the reference. A short geometric exit is not
 presented as an enclosed tunnel, whole-ligand passage, kinetics or binding energy.
 
+Public-data tasks use the same fixed HTTPS authorities, certificate validation,
+redirect refusal and bounded retries with an optional credential-free proxy.
+The managed process forwards only a validated `WB_PUBLIC_DATA_PROXY`, or a
+validated credential-free `HTTPS_PROXY` supplied by the application launcher;
+other parent environment values are not forwarded. An explicit empty
+`WB_PUBLIC_DATA_PROXY` selects direct access. Proxies with credentials, paths,
+queries or fragments fail closed without echoing their supplied value. Archive
+files and source receipts remain the original downloaded bytes.
+
 Supporting inputs retain their distinct scientific scope: CHEMBL982109 contains
 38 reported cellular STAT6-activation IC50 observations, not direct binding KD;
 6WGL contains dupilumab variable domains and IL-4R alpha, a STAT6-pathway target,

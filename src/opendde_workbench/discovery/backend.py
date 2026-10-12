@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from .. import local_process
+from .network import public_proxy_environment
 
 FILES = (
     "contract.py",
@@ -18,6 +19,7 @@ FILES = (
     "import_provenance.py",
     "import_runner.py",
     "archive.py",
+    "network.py",
 )
 
 
@@ -46,6 +48,7 @@ class DiscoveryBackend:
             "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONPATH": str(root.parent.parent),
             "PYTHONUNBUFFERED": "1",
+            **public_proxy_environment(),
         }
         return await local_process.start(Path(sys.executable), root / "runner.py", directory, env)
 

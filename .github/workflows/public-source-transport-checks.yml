@@ -1,0 +1,26 @@
+name: Public-source proxy and archive transport checks
+on:
+  push:
+    paths: &public_source_paths
+      - 'src/opendde_workbench/discovery/backend.py'
+      - 'src/opendde_workbench/discovery/network.py'
+      - 'src/opendde_workbench/discovery/transport.py'
+      - 'tests/test_source_proxy.py'
+      - 'tests/test_source_transport.py'
+      - 'tests/test_reference_import.py'
+      - '.github/workflows/public-source-transport-checks.yml'
+  pull_request:
+    paths: *public_source_paths
+permissions:
+  contents: read
+jobs:
+  public-source-transport:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Only public request transport, original archives and direct source consumers
+        run: uv run --locked pytest -q tests/test_source_proxy.py tests/test_source_transport.py tests/test_reference_import.py tests/test_discovery.py
+      - run: uv run --locked ruff check src/opendde_workbench/discovery/backend.py src/opendde_workbench/discovery/network.py src/opendde_workbench/discovery/transport.py tests/test_source_proxy.py

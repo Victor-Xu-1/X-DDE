@@ -8,6 +8,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
+from .network import configured_proxy
+
 AUTHORITIES = frozenset(
     {"api.platform.opentargets.org", "rest.uniprot.org", "www.ebi.ac.uk", "files.rcsb.org"}
 )
@@ -48,7 +50,7 @@ def request_bytes(url: str, body: dict | None = None, *, require_json=True):
             "User-Agent": "X-DDE/0.4 research-evidence",
         },
     )
-    opener = build_opener(ProxyHandler({}), NoRedirect())
+    opener = build_opener(ProxyHandler(configured_proxy()), NoRedirect())
     deadline = time.monotonic() + RESPONSE_BUDGET
     last_error = None
     reason = "response deadline"
