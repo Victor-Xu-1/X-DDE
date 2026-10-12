@@ -16,8 +16,12 @@ VISIBLE_TASKS = sum(
 
 def layout_navigation(page):
     nav = page.get_by_role("navigation", name="主导航")
-    if page.viewport_size["width"] <= 960 and not nav.is_visible():
-        nav = open_navigation(page, "zh")
+    if page.viewport_size["width"] <= 960:
+        # Resize crosses a React media-query boundary. Wait for the real mobile
+        # control before deciding whether its navigation is already open.
+        expect(page.get_by_role("button", name="打开研究导航", exact=True)).to_be_visible()
+        if not nav.is_visible():
+            nav = open_navigation(page, "zh")
     expect(nav).to_be_visible()
     return nav
 

@@ -111,13 +111,7 @@ export function ComponentLibrary({
           />
         </header>
       )}
-      <div
-        className={
-          selectedGroup?.primary
-            ? "component-grid is-engine-comparison"
-            : "component-grid"
-        }
-      >
+      <div className="component-grid">
         {cards(mainEntries)}
       </div>
       {optionalEntries.length > 0 && (

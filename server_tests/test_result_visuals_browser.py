@@ -9,8 +9,8 @@ from pathlib import Path
 
 from layout_browser_helpers import catalog, settle_visible_drawings
 from playwright.sync_api import expect, sync_playwright
-from server_tests.archived_case_browser import archived_case_context
 
+from server_tests.archived_case_browser import archived_case_context
 from server_tests.publication_browser_helpers import export_figure
 
 
@@ -89,11 +89,15 @@ def test_real_structures_tables_and_sequences():
             )
             record("molecule-2d-table")
             page.get_by_label("二维图线条粗细", exact=True).select_option("2.2")
-            expect(page.get_by_role("link", name="下载结构图片", exact=True)).to_be_visible(
-                timeout=90000
-            )
-            structure = download(
-                page.get_by_role("link", name="下载结构图片", exact=True), "native-molecule.svg"
+            structure = export_figure(
+                page,
+                page.locator(".result-inspector .molecule-image").get_by_role(
+                    "button", name="文献图导出 ↓", exact=True
+                ),
+                evidence,
+                "native-molecule",
+                "zh",
+                "SVG",
             )
             assert ET.fromstring(structure.read_bytes()).tag.endswith("svg")
             landscape = page.locator(".metric-scatter:visible").first
@@ -120,8 +124,10 @@ def test_real_structures_tables_and_sequences():
                 record(f"responsive-properties-{chart_width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
             result("性质与早期安全性预测")
-            expect(page.locator(".admet-results .research-table")).to_be_visible()
-            table = page.locator(".admet-results .research-table")
+            table = page.get_by_role("region", name="候选分子", exact=True).locator(
+                ".research-table"
+            )
+            expect(table).to_be_visible()
             expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
             table.get_by_role("checkbox", name="hERG 阻断", exact=True).check()
@@ -134,13 +140,16 @@ def test_real_structures_tables_and_sequences():
                 "admet-complete-filtered-metrics.csv",
             )
             text = exported.read_text(encoding="utf-8-sig")
-            assert "药物性肝损伤" in text and "hERG 阻断" in text, (
+            assert "DILI" in text and "hERG" in text, (
                 "Hidden endpoints must remain in the complete result download."
             )
-            page.locator(".admet-results .molecule-record").last.click()
-            expect(page.locator(".result-inspector .viewer-panel iframe")).to_be_visible(
-                timeout=30000
+            table.locator(".molecule-record").last.click()
+            selected = page.get_by_role("region", name="所选分子", exact=True)
+            expect(selected.locator(".molecule-image")).to_have_attribute(
+                "data-drawing-state", "ready", timeout=45000
             )
+            selected.get_by_role("combobox", name="结果分组", exact=True).select_option("all")
+            expect(selected.locator(".admet-endpoints tbody tr")).to_have_count(41)
             record("admet-linked-preview")
             result("发现多个候选口袋")
             expect(page.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
