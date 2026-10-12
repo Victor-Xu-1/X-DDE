@@ -154,8 +154,8 @@
     },
     "calculated_poses": {
       "key": "calculated_poses",
-      "name": "STAT6-native-qualified-poses.sdf",
-      "url": "https://github.com/Victor-Xu-1/X-DDE/blob/main/src/opendde_workbench/examples/stat6/inputs/STAT6-native-qualified-poses.sdf",
+      "name": "STAT6-native-search-poses.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/blob/main/src/opendde_workbench/examples/stat6/inputs/STAT6-native-search-poses.sdf",
       "kind": "ligand",
       "license": "LicenseRef-User-Provided",
       "sha256": "059bec94d7d16164b0d073d15a2139dce4e02e2ed0fb885ba41e892a56283d18",
@@ -321,7 +321,9 @@
       "interpretation": "Calculated study-molecule binding hypothesis; not an experimental pose or measured affinity.",
       "receptor_key": "calculated_receptor",
       "pose_key": "calculated_pose",
-      "poses_key": "calculated_poses"
+      "poses_key": "calculated_poses",
+      "receptor_geometry": "Predicted P42226 residues 436-658, linker and SH2 domain; aligned to the 9BIG reference frame. Not an experimental receptor or a full-protein model.",
+      "geometry_review": "The top three poses passed independent PoseBusters checks. The retained 20-mode search is not an assertion that every mode passed independent quality review."
     }
   },
   "observed_construct": {
