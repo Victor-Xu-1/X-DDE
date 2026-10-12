@@ -69,7 +69,7 @@ it("selects the source file's exact native record for 2D and 3D instead of rebui
     records: [1],
   });
   await userEvent.click(
-    screen.getByRole("button", { name: "Native first record", exact: true }),
+    screen.getByRole("button", { name: "Native first record" }),
   );
   expect(
     JSON.parse(screen.getByLabelText("Exact preview file").textContent!),
