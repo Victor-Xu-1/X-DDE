@@ -4,6 +4,7 @@ import pytest
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.stat6.catalogue import ROOT
 from opendde_workbench.examples.stat6.preparation import prepare_stat6
+from opendde_workbench.receptors.native_io import write_model
 from opendde_workbench.receptors.native_selection import read_selected, select_atoms
 from opendde_workbench.receptors.preparation_options import PreparationOptions
 from opendde_workbench.research.storage import ScientificStore
@@ -18,6 +19,7 @@ def test_reviewed_settings_load_without_new_tasks_or_modified_input(tmp_path, ca
     options = prepared.request['options']
     if capability == 'biopython.prepare':
         assert options['chains'] == ['A'] and options['alternate'] == 'A'
+        assert options['format'] == 'cif'
         assert options['heterogens'] == 'keep' and not options['waters']
     else:
         assert options['optimization_iterations'] == 1000
@@ -46,3 +48,24 @@ def test_selected_9big_alternate_exists_at_every_ambiguous_site():
             if key in original:
                 assert (atom.coord == original[key]).all()
     assert all(not atom.get_altloc().strip() for atom in atoms)
+
+
+def test_9big_component_identity_requires_mmcif_instead_of_broken_pdb(tmp_path):
+    pytest.importorskip('Bio')
+    from Bio.PDB import MMCIFParser
+
+    options = PreparationOptions(chains=('A',), alternate='A', format='cif')
+    model, _ = read_selected(ROOT / 'inputs' / '9BIG.cif', options)
+    atoms, _, _ = select_atoms(model, options)
+    invalid = tmp_path / 'invalid.pdb'
+    with pytest.raises(ValueError, match='choose mmCIF'):
+        write_model(model, invalid)
+    assert not invalid.exists()
+    target = tmp_path / 'prepared.cif'
+    write_model(model, target)
+    restored = MMCIFParser(QUIET=True).get_structure('result', target)[0]['A']
+    assert len(list(restored.get_atoms())) == len(atoms) == 3354
+    assert any(residue.resname == 'A1AQQ' for residue in restored)
+    for residue in restored:
+        for atom in residue:
+            assert (atom.coord == model['A'][residue.id][atom.id].coord).all()

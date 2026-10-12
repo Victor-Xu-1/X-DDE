@@ -5,6 +5,7 @@ on:
       - "src/opendde_workbench/examples/stat6/task_requests.py"
       - "tests/test_stat6_preparation_presets.py"
       - "frontend/src/receptors/StructurePrepareForm*"
+      - "src/opendde_workbench/receptors/native_io.py"
       - ".github/workflows/stat6-preparation-checks.yml"
   pull_request:
     paths: *preparation_paths

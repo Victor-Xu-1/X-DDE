@@ -47,7 +47,7 @@ export function StructurePrepareForm({
     [heterogens, setHeterogens] = useState<"keep" | "remove">(
       preset?.heterogens ?? "keep",
     ),
-    [format, setFormat] = useState<"pdb" | "cif">("pdb"),
+    [format, setFormat] = useState<"pdb" | "cif">(preset?.format ?? "pdb"),
     [model, setModel] = useState(0),
     [alternate, setAlternate] = useState(preset?.alternate ?? "reject"),
     [name, setName] = useState("");
