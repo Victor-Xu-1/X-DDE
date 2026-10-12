@@ -269,16 +269,20 @@ class Store:
     def cancel(self, job_id: str) -> Job:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
-            if not row:
-                raise KeyError(job_id)
-            if row["status"] == Status.QUEUED:
-                db.execute(
-                    "UPDATE jobs SET status='cancelled',finished_at=? WHERE id=?", (now(), job_id)
-                )
-            elif row["status"] == Status.RUNNING:
-                db.execute("UPDATE jobs SET status='cancelling' WHERE id=?", (job_id,))
-            return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
+            return self._cancel_in_transaction(db, job_id)
+
+    def _cancel_in_transaction(self, db, job_id: str) -> Job:
+        """Shared lifecycle transition for a job or an atomic workflow cancellation."""
+        row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+        if not row:
+            raise KeyError(job_id)
+        if row["status"] == Status.QUEUED:
+            db.execute(
+                "UPDATE jobs SET status='cancelled',finished_at=? WHERE id=?", (now(), job_id)
+            )
+        elif row["status"] == Status.RUNNING:
+            db.execute("UPDATE jobs SET status='cancelling' WHERE id=?", (job_id,))
+        return self.decode(db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone())
 
     def finish(self, job_id: str, status: Status, error: str | None = None) -> None:
         with self.connect() as db:

@@ -21,25 +21,7 @@ class WorkflowService:
         return [a for a in run["attempts"] if a["status"] not in TERMINAL]
 
     def cancel(self, identifier):
-        run = self.records.run(identifier)
-        active = self.active_attempts(run)
-        for attempt in active:
-            job = self.records.store.get(attempt["job_id"])
-            if (
-                job
-                and job.status == "running"
-                and job.request.operation == "harness"
-                and job.request.tool != "fold"
-            ):
-                raise ConflictError(
-                    "A synchronous native tool is still active. Cancel after it finishes."
-                )
-        self.records.change(
-            str(identifier), "cancelling", expected={"running", "paused", "blocked", "cancelling"}
-        )
-        for attempt in active:
-            self.records.store.cancel(attempt["job_id"])
-        return self.records.run(identifier)
+        return self.records.cancel(identifier)
 
     def update(self, identifier, state, reason=None, expected=None):
         return self.records.change(identifier, state, reason, expected or {"running"}, strict=False)
@@ -64,11 +46,16 @@ class WorkflowService:
     async def tick(self):
         if self.records.store.queue_halt() or self.worker.error:
             return
-        for run in self.records.runs({"running", "cancelling"}, limit=100):
-            if run["state"] == "cancelling":
+        # Drain legacy partial cancellations before the sole Worker can claim any child.
+        # Completed runs leave this query, so only retained rows advance the offset.
+        offset = 0
+        while cancelling := self.records.runs({"cancelling"}, limit=100, offset=offset):
+            for run in cancelling:
+                run = self.records.cancel(run["id"], recover=True)
                 if not self.active_attempts(run):
-                    self.update(run["id"], "cancelled", expected={"cancelling"})
-                continue
+                    run = self.update(run["id"], "cancelled", expected={"cancelling"})
+                offset += run["state"] == "cancelling"
+        for run in self.records.runs({"running"}, limit=100):
             plan = PlanInput.model_validate(self.records.plan(run["plan_id"])["body"])
             if self.enforce_budget(run, plan):
                 continue
