@@ -11,6 +11,7 @@ on:
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_case_bundle.py'
+      - 'tests/test_stat6_case_bundle.py'
       - 'tests/test_case_bundle_sources.py'
       - 'tests/test_compute_service.py'
       - 'frontend/src/deployment/**'
@@ -23,6 +24,8 @@ on:
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
+      - 'tests/test_case_bundle.py'
+      - 'tests/test_stat6_case_bundle.py'
       - 'tests/portable/test_bundle_archive.py'
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
@@ -36,13 +39,32 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select checks for affected consumers
+        id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo 'deployment=true' >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE" "$HEAD" | rg -q '^(src/opendde_workbench/(deployment/|settings.py)|frontend/src/deployment/)'; then
+            echo 'deployment=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'deployment=false' >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_case_bundle_sources.py tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_stat6_case_bundle.py tests/test_case_bundle_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - name: Changed deployment consumers
+        if: steps.scope.outputs.deployment == 'true'
+        run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py
       - name: Verify case installation into the active state
         run: uv run --locked pytest -q tests/test_dataset_resources.py -k case_component_queue_restores_into_current_state
       - name: Stage the exact accepted release data without scientific recomputation
@@ -52,6 +74,7 @@ jobs:
           version=$(uv run --locked python -c 'from opendde_workbench import __version__; print(__version__)')
           uv run --locked python scripts/stage-release-examples.py --tag "v$version" --destination "$RUNNER_TEMP/staged-cases"
       - working-directory: frontend
+        if: steps.scope.outputs.deployment == 'true'
         run: npx vitest run src/deployment/deployment.test.tsx src/deployment/DeploymentActivity.test.tsx src/deployment/ComputeServicePanel.test.tsx
 
   archive-publication-windows:

@@ -66,7 +66,16 @@ changing inputs, settings or results requires a new reviewed revision. A service
 response that declares itself unavailable is not a calculated example. Missing
 calculations are not replaced with synthetic scores. Fresh installations can
 load inputs; viewing calculated outcomes requires retained native results or a
-reviewed result bundle.
+reviewed result bundle. Portable bundles declare their existing study profile
+(`archive` or `stat6`), exact catalogue/module revision digest and explicit set
+of reviewed capabilities. Current STAT6 task pins require a complete input,
+method, native-output, visual and download review before export. Only that
+profile's current pin revisions and their typed scientific dependencies are
+included; personal jobs, older pins and unfinished tasks are excluded.
+Restore verifies the declared profile, scope, source lineage and every native
+artifact in isolated state, then merges through the existing stores without
+overwriting user data or launching calculations. Older archive bundles retain
+their original reviewed compatibility rules.
 
 Compound examples point to existing immutable regions, research plans and pose
 explorations through `example_record_pins`. Their successful native source tasks

@@ -84,14 +84,14 @@ def row_references(row):
     return result
 
 
-def project_records(store, roots, *, capabilities=None):
+def project_records(store, roots, *, capabilities=None, modules=MODULES):
     selected = {name: [] for name in TABLES}
     identifiers, seen = set(roots), set()
     with store.connect() as db:
         rows = {name: [dict(row) for row in db.execute("SELECT * FROM " + name)] for name in TABLES}
         for name in ("example_pins", "example_record_pins"):
             for index, row in enumerate(rows[name]):
-                module = MODULES.get(row["capability_id"])
+                module = modules.get(row["capability_id"])
                 if (
                     module
                     and row["revision"] == module.revision

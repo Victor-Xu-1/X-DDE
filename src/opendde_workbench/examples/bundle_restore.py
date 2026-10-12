@@ -9,13 +9,14 @@ from uuid import UUID
 from ..assets import AssetStore
 from ..store import ConflictError, Store
 from .bundle_archive import read_archive, safe_path, sha256
+from .bundle_catalogue import bundle_catalogue
 from .bundle_projection import TABLES
 from .bundle_sources import archive_sources
 from .catalogue import FILES
 
 
-def allowed_files(rows):
-    allowed = {"public-example-cache/" + spec.sha256 for spec in FILES.values()}
+def allowed_files(rows, *, files=FILES):
+    allowed = {"public-example-cache/" + spec.sha256 for spec in files.values()}
     allowed.update(f"assets/{row['id']}/content{row['suffix']}" for row in rows["assets"])
     for row in rows["jobs"]:
         UUID(row["id"])
@@ -24,7 +25,7 @@ def allowed_files(rows):
 
 def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
     from ..api import create_app
-    from .bundle import catalogue_digest, verify_examples
+    from .bundle import verify_examples
 
     state = settings.state_dir
     state.mkdir(parents=True, exist_ok=True)
@@ -35,17 +36,19 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
     with tempfile.TemporaryDirectory(prefix="case-import-", dir=state) as directory:
         staging = Path(directory)
         manifest = read_archive(archive, staging, expected_sha)
+        profile = manifest.get("profile", "archive")
+        catalogue = bundle_catalogue(profile)
         rows = manifest.get("records", {})
         selected = None
-        if manifest.get("catalogue_sha256") != catalogue_digest():
+        if manifest.get("catalogue_sha256") != catalogue.digest:
+            if profile != "archive":
+                raise ValueError("The study catalogue or module revisions differ from this bundle.")
             from .catalogue_profiles import compatible_modules
 
             selected = compatible_modules(manifest.get("catalogue_sha256"))
         if manifest.get("capabilities") is not None:
-            from .catalogue import MODULES
-
             declared = manifest["capabilities"]
-            permitted_modules = set(MODULES if selected is None else selected)
+            permitted_modules = set(catalogue.modules if selected is None else selected)
             pinned_modules = {
                 row["capability_id"]
                 for table in ("example_pins", "example_record_pins")
@@ -62,13 +65,15 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                     "The declared public case scope differs from its reviewed native pins."
                 )
             selected = tuple(declared)
+        elif profile != "archive":
+            raise ValueError("A current study bundle must declare its reviewed module scope.")
         if selected is not None and set(rows) == set(TABLES) - {"research_evidence"}:
             rows = {**rows, "research_evidence": []}
         if set(rows) != set(TABLES) or sum(map(len, rows.values())) > 5000:
             raise ValueError(
                 "The bundle must match the reviewed current catalogue and record schema."
             )
-        permitted = allowed_files(rows)
+        permitted = allowed_files(rows, files=catalogue.files if profile == "archive" else {})
         jobs = {row["id"] for row in rows["jobs"]}
         for name in manifest["files"]:
             parts = name.split("/")
@@ -128,7 +133,9 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                 if name not in manifest["files"]:
                     recovered_sources[name] = {"sha256": sha256(path)}
         summary = (
-            verify_examples(replace(settings, state_dir=staging))
+            verify_examples(replace(settings, state_dir=staging), selected, profile=profile)
+            if profile != "archive"
+            else verify_examples(replace(settings, state_dir=staging))
             if selected is None
             else verify_examples(replace(settings, state_dir=staging), selected)
         )

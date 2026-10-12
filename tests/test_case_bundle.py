@@ -209,12 +209,18 @@ def test_export_bundle_returns_receipt_and_preserves_source_asset(settings, tmp_
     asset = assets.save("protocol.json", "config", raw)
     summary = {"modules": 1, "computed": 0, "validated": 1}
     # Isolate public-case selection; archive, asset storage and row projection remain real.
-    monkeypatch.setattr(bundle, "MODULES", {"fixture": SimpleNamespace(case_id="fixture")})
-    monkeypatch.setattr(bundle, "CASES", {"fixture": SimpleNamespace(files=[])})
-    monkeypatch.setattr(bundle, "verify_examples", lambda *args: summary)
     prepared = SimpleNamespace(model_dump=lambda **kwargs: {"asset_id": asset.id})
-    monkeypatch.setattr(bundle, "prepare_example", lambda *args, **kwargs: prepared)
-    monkeypatch.setattr(bundle, "bundle_notices", lambda *args: {})
+    catalogue = SimpleNamespace(
+        modules={"fixture": SimpleNamespace(case_id="fixture")},
+        cases={},
+        files={},
+        digest="0" * 64,
+        prepare=lambda *args: prepared,
+        required_cache=lambda *args: (),
+    )
+    monkeypatch.setattr(bundle, "bundle_catalogue", lambda *args: catalogue)
+    monkeypatch.setattr(bundle, "verify_examples", lambda *args, **kwargs: summary)
+    monkeypatch.setattr(bundle, "bundle_notices", lambda *args, **kwargs: {})
     target = tmp_path / "exports" / "case.zip"
     receipt = bundle.export_bundle(settings, target, "fixture-revision", capabilities=["fixture"])
     assert receipt == {

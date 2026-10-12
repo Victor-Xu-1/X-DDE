@@ -1,47 +1,52 @@
 """Portable fixed results restore into the existing asset/task authorities without execution."""
 
 import json
-from pathlib import Path
 
 from ..assets import AssetStore
 from ..store import Store
 from .bundle_archive import safe_path, sha256, write_archive
+from .bundle_catalogue import bundle_catalogue
 from .bundle_notices import bundle_notices
 from .bundle_projection import project_records, references
 from .bundle_restore import restore_bundle as restore_bundle
 from .bundle_sources import archive_sources
-from .catalogue import CASES, FILES, MODULES
 from .evidence import capture_job
 from .files import verified_file
 from .pins import ExamplePins
-from .preparation import prepare_example
 from .records import ExampleRecords
 
 
-def catalogue_digest():
-    return sha256(Path(__file__).with_name("catalogue.json"))
+def catalogue_digest(profile="archive"):
+    return bundle_catalogue(profile).digest
 
 
-def verify_examples(settings, capabilities=None):
+def verify_examples(settings, capabilities=None, *, profile="archive"):
+    catalogue = bundle_catalogue(profile)
+    modules = catalogue.modules
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
-    pins, records = ExamplePins(store, settings.state_dir), ExampleRecords(store, assets, settings)
+    pins = ExamplePins(store, settings.state_dir, modules=modules)
+    records = ExampleRecords(store, assets, settings, modules=modules)
     computed = validated = 0
-    selected = tuple(MODULES) if capabilities is None else tuple(capabilities)
+    selected = tuple(modules) if capabilities is None else tuple(capabilities)
     for capability in selected:
-        parent = MODULES[capability].parent_capability
+        parent = modules[capability].parent_capability
         if parent and parent not in selected:
             raise ValueError("A follow-up case must retain its fixed parent-case pin.")
         pin = pins.get(capability, verify=True)
-        if pin and parent:
+        if pin and profile == "stat6" and pin.review is None:
+            raise ValueError(
+                "Current study results require an explicit scientific and visual review."
+            )
+        if pin and (parent or profile == "stat6"):
             from ..research.storage import ScientificStore
             from .pin_validation import validate_case_job
 
-            prepared = prepare_example(
+            prepared = catalogue.prepare(
                 capability,
                 ScientificStore(store, assets),
                 settings.state_dir / "public-example-cache",
-                records=records,
+                records,
             )
             validate_case_job(capability, store.get(str(pin.job_id)), prepared, store)
         record = records.get(capability, verify=True)
@@ -54,28 +59,30 @@ def verify_examples(settings, capabilities=None):
     return {"modules": len(selected), "computed": computed, "validated": validated}
 
 
-def export_bundle(settings, target, source_revision, *, capabilities=None):
+def export_bundle(settings, target, source_revision, *, capabilities=None, profile="archive"):
     from ..research.storage import ScientificStore
 
+    catalogue = bundle_catalogue(profile)
+    modules = catalogue.modules
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     scientific = ScientificStore(store, assets)
-    records = ExampleRecords(store, assets, settings)
-    selected = tuple(MODULES) if capabilities is None else tuple(capabilities)
+    records = ExampleRecords(store, assets, settings, modules=modules)
+    selected = tuple(modules) if capabilities is None else tuple(capabilities)
     if (
         not selected
         or len(set(selected)) != len(selected)
-        or any(key not in MODULES for key in selected)
+        or any(key not in modules for key in selected)
     ):
         raise ValueError("Choose an explicit reviewed set of public example modules.")
-    summary = verify_examples(settings, selected)
+    summary = verify_examples(settings, selected, profile=profile)
     roots = set()
     for capability in selected:
-        prepared = prepare_example(
-            capability, scientific, settings.state_dir / "public-example-cache", records=records
+        prepared = catalogue.prepare(
+            capability, scientific, settings.state_dir / "public-example-cache", records
         )
         roots.update(references(prepared.model_dump(mode="json")))
-    rows = project_records(store, roots, capabilities=set(selected))
+    rows = project_records(store, roots, capabilities=set(selected), modules=modules)
     paths = {}
     for row in rows["assets"]:
         asset = assets.get(row["id"])
@@ -97,23 +104,22 @@ def export_bundle(settings, target, source_revision, *, capabilities=None):
             paths[f"jobs/{row['id']}/analysis/workbench-analysis.json"] = analysis
             for path in (analysis.parent / "workbench-aligned").glob("*.cif"):
                 paths[f"jobs/{row['id']}/analysis/workbench-aligned/{path.name}"] = path
-    required_files = {
-        key for capability in selected for key in CASES[MODULES[capability].case_id].files
-    }
-    for key in required_files:
-        spec = FILES[key]
+    for spec in catalogue.required_cache(selected):
         verified_file(settings.state_dir / "public-example-cache", spec)
         paths["public-example-cache/" + spec.sha256] = (
             settings.state_dir / "public-example-cache" / spec.sha256
         )
     manifest = {
         "schema_version": 1,
-        "catalogue_sha256": catalogue_digest(),
+        "profile": profile,
+        "catalogue_sha256": catalogue.digest,
         "source_revision": source_revision,
         "capabilities": list(selected),
         "summary": summary,
         "records": rows,
-        "notices": bundle_notices(selected, rows),
+        "notices": bundle_notices(
+            selected, rows, modules=modules, cases=catalogue.cases, files=catalogue.files
+        ),
     }
     return {
         **summary,
