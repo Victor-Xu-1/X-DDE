@@ -189,4 +189,21 @@ Resource limits remain in the existing worker. MD defaults to 24 hours and 8 GiB
 The active module templates use STAT6 and the supplied study molecules. The prepared unbound conformers are reference inputs, so dynamics still requires a defensible complete protein system and an aligned calculated bound pose; FEP additionally requires a congeneric series. Historical BRD4/JQ1 results and official TYK2 native controls remain separately identified, with immutable source checksums and licensing. Remote checks separately validate contracts, native execution, original-byte preservation, interactive previews and downloads. CPU pipeline checks do not establish production sampling convergence or GPU performance.
 当前模块模板使用 STAT6 与指定研究分子。已准备的游离构象作为参考输入；动力学仍需合理的完整蛋白体系与对齐的计算结合姿势，FEP 还需同系列分子。历史 BRD4/JQ1 结果及 TYK2 官方原生对照保持独立身份，并保留原文件校验值与来源许可。远端分别验证任务契约、原生执行、原始文件保留、交互预览与下载。CPU 链路检查不代表生产采样已收敛或 GPU 性能已经验收。
 
+The 2026-10-12 native CUDA acceptance used the immutable official TYK2 inputs,
+records 1 and 2, 11 λ windows, one independent repeat and 0.02 ns each of
+equilibration and production in both legs. The actual X-DDE API/queue execution
+finished with native exit 0 and no OOM kill; twelve downloadable artifacts matched
+their SHA-256 values, and both original input files remained unchanged. The run
+reported ΔΔG = 0.8800 ± 0.7631 kcal/mol and minimum adjacent overlap 0.0930.
+This short control establishes the native calculation, diagnostics, download and
+input-preservation path. It is not a STAT6 study, a convergence benchmark or an
+experimental affinity result. The result retains `not_scientifically_accepted`.
+
+2026-10-12 的真实 CUDA 链路验收使用官方固定 TYK2 输入、原始第 1 和第 2 条分子、
+11 个 λ 窗口、一次独立重复，双腿各 0.02 ns 平衡及生产采样。通过实际 X-DDE API
+和队列完成执行，原生退出码为 0，未发生 OOM；12 个下载文件的 SHA-256 与结果一致，
+两份原始输入保持不变。该运行报告 ΔΔG = 0.8800 ± 0.7631 kcal/mol，最低相邻重叠为
+0.0930。这一短程对照验证原生计算、诊断、下载和输入保留链路，不是 STAT6 研究、
+收敛基准或实测亲和力结果，科学验收状态仍为未验收。
+
 Primary implementation sources: [OpenMM user guide](https://docs.openmm.org/latest/userguide/application/02_running_sims.html), [GROMACS native execution](https://manual.gromacs.org/documentation/current/user-guide/mdrun-performance.html), [reviewed GROMACS packages](https://anaconda.org/conda-forge/gromacs/files), [ParmEd parameter transfer](https://parmed.github.io/ParmEd/html/openmmobj/parmed.openmm.load_topology.html), [Kartograf mapping](https://kartograf.openfree.energy/en/latest/api/kartograf.mappers.html), [OpenFE 1.12 RBFE tutorial](https://docs.openfree.energy/en/v1.12.0/tutorials/rbfe_python_tutorial.html), [OpenFE protocol and limitations](https://docs.openfree.energy/en/v1.12.0/guide/protocols/relativehybridtopology.html), [immutable TYK2 inputs](https://github.com/OpenFreeEnergy/ExampleNotebooks/tree/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial).
