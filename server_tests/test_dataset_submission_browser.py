@@ -34,7 +34,9 @@ def review_library(page, zh):
     form = page.locator(".questionnaire:visible")
     for _ in range(3):
         form.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
-    submit = form.get_by_role("button", name="提交任务" if zh else "Submit task", exact=True)
+    # Its accessible name changes while pending; keep tracking the same control.
+    submit = form.locator('button[type="submit"]')
+    expect(submit).to_have_accessible_name("提交任务" if zh else "Submit task")
     expect(submit).to_be_enabled()
     return form, submit
 
@@ -139,6 +141,7 @@ def test_dataset_receipt_survives_interruption(tmp_path, language, width, fault)
             submit.click()
             if fault in {"leave", "reopen"}:
                 expect(submit).to_be_disabled()
+                expect(submit).to_have_accessible_name("正在提交…" if zh else "Submitting…")
                 for _ in range(100):
                     if held:
                         break
