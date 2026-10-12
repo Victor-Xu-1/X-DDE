@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Hint } from "../guided/Hint";
 import { SequenceAlignment } from "./SequenceAlignment";
 import { ReferenceMetrics } from "./ReferenceMetrics";
-import { NativeReferenceDetails } from "./NativeReferenceDetails";
+import { ReferenceMetricsDetails } from "./ReferenceMetricsDetails";
 import type { Language } from "../types";
 import type { EvaluationRow } from "./types";
 import "../presentation/result-inspection.css";
@@ -59,7 +59,7 @@ export function SequenceComparison({
               ? "下划线：CDR 区域 · 本次未修改序列"
               : "Underlined: CDR regions · Source sequence unchanged"}
         </p>
-        <NativeReferenceDetails
+        <ReferenceMetricsDetails
           row={row}
           language={language}
           selectedPosition={position}

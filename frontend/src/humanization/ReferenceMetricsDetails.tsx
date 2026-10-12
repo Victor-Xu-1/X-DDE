@@ -5,7 +5,7 @@ import type { EvaluationRow } from "./types";
 
 const aminoAcids = "ACDEFGHIKLMNPQRSTVWY".split("");
 
-export function NativeReferenceDetails({
+export function ReferenceMetricsDetails({
   row,
   language,
   selectedPosition,

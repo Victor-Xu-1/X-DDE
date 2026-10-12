@@ -1,7 +1,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
-import { NativeReferenceDetails } from "./NativeReferenceDetails";
+import { ReferenceMetricsDetails } from "./ReferenceMetricsDetails";
 import type { EvaluationRow } from "./types";
 
 vi.mock("../presentation/plots/InteractivePlot", () => ({
@@ -60,7 +60,7 @@ it("plots exact native probabilities, links source positions and exports all 20 
   });
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
   render(
-    <NativeReferenceDetails
+    <ReferenceMetricsDetails
       row={row}
       language="en"
       selectedPosition={null}
@@ -105,7 +105,7 @@ it("plots exact native probabilities, links source positions and exports all 20 
 });
 it("does not invent position probabilities when native detail is absent", () => {
   render(
-    <NativeReferenceDetails
+    <ReferenceMetricsDetails
       row={{ ...row, original_scores: null }}
       language="en"
       selectedPosition={null}

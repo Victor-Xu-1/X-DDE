@@ -17,7 +17,6 @@ on:
       - "frontend/src/humanization/SequenceAlignment*"
       - "frontend/src/humanization/SequenceComparison*"
       - "frontend/src/humanization/ReferenceMetrics*"
-      - "frontend/src/humanization/NativeReferenceDetails*"
       - "frontend/src/humanization/humanization.css"
       - "frontend/src/humanization/sequence-alignment.css"
       - "frontend/src/quality/QualityResults*"
@@ -79,12 +78,12 @@ jobs:
           src/operations/OperationResults.test.tsx
           src/presentation/ResearchTable.test.tsx
           src/presentation/MetricScatter.test.tsx
-          src/humanization/NativeReferenceDetails.test.tsx
+          src/humanization/ReferenceMetricsDetails.test.tsx
       - name: Native probabilities, linked residue positions and full-precision exports
         if: steps.scope.outputs.only_humanization == 'true'
         working-directory: frontend
         run: >-
-          npx vitest run src/humanization/NativeReferenceDetails.test.tsx
+          npx vitest run src/humanization/ReferenceMetricsDetails.test.tsx
           src/humanization/HumanizationResults.test.tsx
           src/presentation/ResearchTable.test.tsx src/presentation/plots/InteractivePlot.test.tsx
       - name: Restore reviewed native public cases without inference
