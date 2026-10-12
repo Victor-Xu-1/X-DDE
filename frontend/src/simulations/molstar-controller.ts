@@ -15,7 +15,6 @@ import type { PluginStateObject as SO } from "molstar/lib/mol-plugin-state/objec
 import { readStructure } from "./trajectory-source";
 import { sampledTrajectory, NativeTrajectory } from "./native-trajectory";
 import { ChargeTheme, chargeCoverage } from "./charge-theme";
-import { MolecularSurfaceRepresentationProvider } from "molstar/lib/mol-repr/structure/representation/molecular-surface";
 import type { SurfaceSummary } from "../viewer/protocol";
 import type { Residue } from "./types";
 import type { FigureSettings } from "../publication/settings";
@@ -26,6 +25,8 @@ import { bindingFocusOptions, selectedLigandFocus } from "./molecular-focus";
 import { molstarSticks } from "../viewer/molstar-sticks";
 import { maintainBindingDepth } from "./molecular-depth";
 import { ViewportLifetime } from "./viewport-lifetime";
+import { MolecularSurfaces } from "./molecular-surfaces";
+import { MolecularUpdateQueue } from "./molecular-update-queue";
 
 export interface StructureSource {
   url: string;
@@ -58,7 +59,9 @@ export class MolecularController {
   private frameCount = 1;
   private ligandStructures: StateObjectSelector<SO.Molecule.Structure>[] = [];
   private activeLigand: MolecularView["ligand"] = "a";
-  private queue = Promise.resolve();
+  private surfaces = new MolecularSurfaces(this.plugin);
+  private requestedView?: MolecularView;
+  private queue = new MolecularUpdateQueue();
   private requestedFrame = 0;
   private resizeObserver?: ResizeObserver;
   private depthSubscription?: { unsubscribe(): void };
@@ -235,19 +238,8 @@ export class MolecularController {
                   },
                 },
               );
-            const surface =
-              await this.plugin.builders.structure.representation.addRepresentation(
-                polymer,
-                {
-                  type: MolecularSurfaceRepresentationProvider,
-                  typeParams: { alpha: 0.45, ignoreHydrogens: true },
-                  color: ChargeTheme,
-                },
-              );
-            this.visibility.push(
-              { ref: ribbon.ref, kind: "protein" },
-              { ref: surface.ref, kind: "surface" },
-            );
+            this.surfaces.register(polymer);
+            this.visibility.push({ ref: ribbon.ref, kind: "protein" });
             this.surfaceSummary = polymer.obj
               ? chargeCoverage(polymer.obj.data)
               : null;
@@ -300,23 +292,22 @@ export class MolecularController {
         }
       }
       signal.throwIfAborted();
-      if (initialView) this.setView(initialView);
+      if (initialView) await this.setView(initialView);
       if (this.ligandStructures.length) this.focusLigand();
       else this.reset();
     });
   }
 
   setFrame(index: number, ready: () => void) {
-    if (
-      !this.trajectory ||
-      !this.model ||
-      index < 0 ||
-      index >= this.frameCount
-    )
-      return Promise.resolve();
+    if (!this.trajectory || !this.model)
+      return Promise.reject(new Error("No trajectory is loaded."));
+    if (!Number.isInteger(index) || index < 0 || index >= this.frameCount)
+      return Promise.reject(
+        new RangeError("Frame is outside the loaded trajectory."),
+      );
     const model = this.model;
     this.requestedFrame = index;
-    this.queue = this.queue.then(() =>
+    return this.queue.run(() =>
       this.lifetime.during(async (checkOpen) => {
         if (this.requestedFrame !== index) return;
         await this.plugin
@@ -330,10 +321,33 @@ export class MolecularController {
         ready();
       }),
     );
-    return this.queue;
   }
 
   setView(view: MolecularView) {
+    const requested = { ...view };
+    this.requestedView = requested;
+    return this.queue.run(() =>
+      this.lifetime.during(async (checkOpen) => {
+        if (this.requestedView !== requested) return;
+        if (requested.surface) {
+          const refs = await this.surfaces.ensure(this.lifetime.signal);
+          checkOpen();
+          for (const ref of refs)
+            if (!this.visibility.some((item) => item.ref === ref))
+              this.visibility.push({ ref, kind: "surface" });
+        } else {
+          await this.surfaces.discard();
+          checkOpen();
+          this.visibility = this.visibility.filter(
+            (item) => item.kind !== "surface",
+          );
+        }
+        if (this.requestedView === requested) this.applyView(requested);
+      }),
+    );
+  }
+
+  private applyView(view: MolecularView) {
     this.activeLigand = view.ligand;
     for (const item of this.visibility) {
       const visible =
@@ -426,13 +440,7 @@ export class MolecularController {
       if (!this.viewport) throw new Error("The molecular view is not ready.");
       return molecularFigure(this.plugin, this.viewport, settings, panel);
     };
-    const result = this.queue.then(() => this.lifetime.during(render));
-    // The caller receives the actual failure. Settling the queue keeps later frame selection usable.
-    this.queue = result.then(
-      () => {},
-      () => {},
-    );
-    return result;
+    return this.queue.run(() => this.lifetime.during(render));
   }
   dispose() {
     this.lifetime.close();
