@@ -77,6 +77,23 @@ class Worker:
                     break
             queued = self.store.next_queued()
             self.waiting_reason = None
+            if queued:
+                from .disk_space import require_space
+
+                try:
+                    for location in {
+                        self.settings.state_dir,
+                        self.settings.capacity_dir or self.settings.state_dir,
+                    }:
+                        await asyncio.to_thread(
+                            require_space, location, self.settings.minimum_free_bytes
+                        )
+                except (OSError, ValueError, RuntimeError) as exc:
+                    # Keep unstarted research queued; capacity loss is not a
+                    # scientific failure and must not discard pending studies.
+                    self.waiting_reason = str(exc)
+                    await asyncio.sleep(1)
+                    continue
             if queued and self.gate:
                 try:
                     self.waiting_reason = await self.gate(queued)
@@ -130,6 +147,13 @@ class Worker:
         started = time.monotonic()
         status, error = Status.FAILED, None
         try:
+            from .disk_space import StorageCapacityError, StorageUnavailable, require_space
+
+            for location in {
+                self.settings.state_dir,
+                self.settings.capacity_dir or self.settings.state_dir,
+            }:
+                await asyncio.to_thread(require_space, location, self.settings.minimum_free_bytes)
             from .research.constraint_records import ConstraintRecords
 
             receipt = ConstraintRecords(self.store, self.assets, self.settings).check_task(
@@ -149,6 +173,13 @@ class Worker:
             process = await self.engine.start(job, directory)
             reader = asyncio.create_task(self.capture(process.stdout, directory / "run.log"))
             while process.returncode is None:
+                for location in {
+                    self.settings.state_dir,
+                    self.settings.capacity_dir or directory,
+                }:
+                    await asyncio.to_thread(
+                        require_space, location, self.settings.minimum_free_bytes
+                    )
                 if self.on_progress:
                     await self.on_progress()
                 current = self.store.get(job.id)
@@ -234,7 +265,11 @@ class Worker:
             if cancelled:
                 status, error = Status.CANCELLED, None
             else:
-                error = f"Task execution failed: {type(exc).__name__}. Inspect the task log."
+                error = (
+                    str(exc)
+                    if isinstance(exc, (StorageCapacityError, StorageUnavailable))
+                    else f"Task execution failed: {type(exc).__name__}. Inspect the task log."
+                )
             with (directory / "run.log").open("a") as file:
                 file.write(f"\n{type(exc).__name__}: {exc}\n")
             if not cancelled:

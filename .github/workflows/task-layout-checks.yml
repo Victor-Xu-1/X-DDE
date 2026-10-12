@@ -2,7 +2,7 @@ name: Task layout and browser checks
 on:
   push:
     branches: ["**"]
-    paths:
+    paths: &task_layout_paths
       - "frontend/src/guided/**"
       # Native prediction materials have an exact entry gate without unrelated tasks.
       - "!frontend/src/guided/entities.ts"
@@ -312,6 +312,8 @@ on:
       - "!frontend/src/viewer/pose-study-input.css"
       - "!frontend/src/viewer/usePoseHandoff.ts"
   workflow_dispatch:
+  pull_request:
+    paths: *task_layout_paths
 permissions:
   contents: read
 jobs:

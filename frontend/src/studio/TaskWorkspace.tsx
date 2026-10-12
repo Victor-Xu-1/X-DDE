@@ -11,6 +11,7 @@ import type {
   Prediction,
   Status,
 } from "../types";
+import { TaskWorkspaceSelectionState } from "./TaskWorkspaceSelectionState";
 import { EmptyState } from "./EmptyState";
 import { TaskHistoryToolbar } from "./TaskHistoryToolbar";
 import { TaskHistoryFilters } from "./TaskHistoryFilters";
@@ -32,7 +33,9 @@ interface Props {
   job: Job | null;
   detail: Detail | null;
   detailError: boolean;
-  connectionError: boolean;
+  selected?: string;
+  selectedError?: Error | null;
+  selectedLoading?: boolean;
   projects: Project[];
   projectId: string | null;
   onRefresh(): void;
@@ -196,7 +199,7 @@ export function TaskWorkspace(p: Props) {
         onStart={p.onStart}
         onClearProject={() => p.onProject(null)}
       />
-      {(history.error || p.connectionError) && (
+      {history.error && (
         <div className="error-box" role="alert">
           {zh
             ? "暂时无法读取最新任务，请重新连接。"
@@ -206,7 +209,22 @@ export function TaskWorkspace(p: Props) {
           </button>
         </div>
       )}
-      {module === null ? (
+      {p.selected && !p.job ? (
+        <TaskWorkspaceSelectionState
+          language={p.language}
+          error={p.selectedError ?? null}
+          loading={Boolean(p.selectedLoading)}
+          onRetry={p.onRefresh}
+          historyHref={taskHistoryHash({
+            module,
+            type,
+            status,
+            query: search,
+            page,
+            project: p.projectId,
+          })}
+        />
+      ) : module === null ? (
         <>
           <TaskHistoryModules
             language={p.language}

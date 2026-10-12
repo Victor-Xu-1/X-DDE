@@ -49,6 +49,20 @@ def run(args, directory: Path, checkpoint, report, *, timeout=3600, env=None):
         )
         try:
             atomic_json(pidfile, {"pid": process.pid, "start": identity(process.pid)})
+        except BaseException as error:
+            # The child has not been polled or reaped, so its PID still pins the
+            # session we own even if it exited while capturing the identity.
+            # The pidfile may be absent or belong to an earlier run: do not use it.
+            try:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.wait(timeout=5)
+            except Exception as cleanup_error:
+                error.add_note(f"Installer startup cleanup failed: {cleanup_error}")
+            raise
+        try:
             deadline = time.monotonic() + timeout
             while process.poll() is None:
                 checkpoint()

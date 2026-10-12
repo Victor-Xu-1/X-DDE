@@ -75,11 +75,33 @@ def test_native_public_simulation_pipeline(tmp_path, capability):
             )
             assert response.status_code == 201, response.text
             identifier = response.json()["id"]
-            deadline = time.monotonic() + 2700
+            # Native CPU HREX holds eleven explicit-water replicas. The real
+            # solvent leg completed in the earlier 45-minute gate while complex
+            # minimization was still progressing; do not reduce physical sampling.
+            deadline = time.monotonic() + (5400 if fep else 2700)
+            next_progress = time.monotonic() + 60
+            prepared_before_sampling = False
             while time.monotonic() < deadline:
                 job = client.get("/api/jobs/" + identifier).json()
+                if not fep:
+                    native_output = state / "jobs" / identifier / "output"
+                    prepared_system = native_output / "system.xml"
+                    prepared_topology = native_output / "solvated-system.pdb"
+                    if (
+                        prepared_system.is_file()
+                        and prepared_topology.is_file()
+                        and prepared_system.stat().st_size > 1000
+                        and prepared_topology.stat().st_size > 1000
+                        and not list(native_output.glob("repeat-*-frame-*.pdb"))
+                    ):
+                        prepared_before_sampling = True
                 if job["status"] in {"succeeded", "failed", "cancelled"}:
                     break
+                if time.monotonic() >= next_progress:
+                    print("Native task progress:", suffix, job["status"], flush=True)
+                    native_log = client.get(f"/api/jobs/{identifier}/logs").json()["text"]
+                    print("\n".join(native_log.splitlines()[-6:]), flush=True)
+                    next_progress = time.monotonic() + 60
                 time.sleep(0.5)
             if job["status"] != "succeeded":
                 diagnostic = client.get(f"/api/jobs/{identifier}/logs").json()["text"]
@@ -91,6 +113,10 @@ def test_native_public_simulation_pipeline(tmp_path, capability):
             assert job["status"] == "succeeded", (
                 "Native simulation failed; see captured native diagnostics."
             )
+            if not fep:
+                assert prepared_before_sampling, (
+                    "Matching prepared topology/system must be retained before production frames."
+                )
             response = client.get(f"/api/jobs/{identifier}/result")
             assert response.status_code == 200, response.text
             report = response.json()

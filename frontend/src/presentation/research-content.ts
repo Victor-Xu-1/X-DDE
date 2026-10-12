@@ -47,8 +47,8 @@ const messages: Record<string, [string, string]> = {
       "Task submission could not be confirmed. Submit again to continue the same request.",
     ],
   "Task created, but its page could not be opened. Use the task link below.": [
-    "任务已创建，但未能自动打开。请使用下方的任务链接。",
-    "Task created, but its page could not be opened. Use the task link below.",
+    "任务已创建，但未能自动打开。请使用任务链接。",
+    "Task created, but its page could not be opened. Use the task link.",
   ],
   "Pocket–molecule joint retrieval": [
     "口袋–分子联合检索",

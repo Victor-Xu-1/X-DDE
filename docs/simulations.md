@@ -1,5 +1,17 @@
 # Molecular dynamics and FEP / 分子动力学与结合自由能
 
+Long calculations use the shared [physical storage capacity guard](storage-capacity.md)
+before execution and while running, including the Windows backing drive for WSL.
+长计算在启动前和运行中共用[物理存储容量保护](storage-capacity.md)，WSL 同时检查其所在的 Windows 磁盘。
+
+Both dynamics engines check adjacent protein C–N distances in each explicit chain before atom repair and again afterwards, before solvation. Nonfinite distances and links outside 0.9–1.8 Å are rejected with the affected chain and residues. Explicit chain fragments remain separate; author numbering gaps alone do not imply missing sequence. Missing backbone atoms must be resolved by the reviewed preparation before simulation, and original files are never modified.
+
+两个动力学引擎在修复缺失原子前后、加水前检查每条明确链内相邻蛋白残基的 C–N 距离。非有限值或不在 0.9–1.8 Å 范围内的连接会被拒绝，并提示具体链和残基。明确的链片段保持分离，作者编号跳号本身不被视为序列缺失；修复后仍不完整的骨架不可进入模拟，原始文件保持不变。
+
+OpenMM retains the complete solvated topology and prepared template system before minimization and sampling, so an interrupted replica does not lose the atom-order/system files needed to interpret its native checkpoint. Production checkpoints still require the matching per-replica system and integrator. This preserves recovery evidence; it does not add an automatic checkpoint restart interface.
+
+OpenMM 在最小化和采样前保存完整含溶剂拓扑及准备好的体系，避免重复模拟中断后缺少解释原生检查点所需的原子顺序和体系文件。生产检查点仍需匹配该重复的体系与积分器。此改进保留恢复材料，不表示已提供自动检查点续跑界面。
+
 X-DDE owns the questionnaire, task lifecycle, immutable inputs and linked results. OpenMM, GROMACS and OpenFE are independent scientific environments managed by the same platform. Choose OpenMM or GROMACS in the same dynamics module; the selection changes the actual executor, not a cosmetic label.
 X-DDE 负责问卷式提交、任务生命周期、不可覆盖输入和结果关联。OpenMM、GROMACS 与 OpenFE 是同一平台管理的独立科学环境。动力学模块可切换 OpenMM 或 GROMACS，切换后调用所选引擎的真实执行程序。
 
@@ -63,9 +75,56 @@ FEP 分子选择在启用下一步前核对原始 SDF 的元数据与 SHA-256 �
 | Preparation and parameterization / 体系准备与参数化 | PDBFixer, AMBER14/TIP3P, OpenFF/AmberTools      | Resolve supported atoms, water, ions and ligand parameters; unsupported chemistry fails explicitly / 准备支持的原子、水、离子和配体参数；不支持化学明确报错                   |
 | GROMACS topology transfer / GROMACS 拓扑转换        | ParmEd                                          | Retain parameterized bonds/charges, reject unknown force forms and changed atom order / 保留参数化键和电荷，拒绝未知力场形式及原子顺序变化                                    |
 | Trajectory observations / 轨迹观测                  | Native OpenMM observations or MDTraj TRR reader | Original timestamps and coordinates; shared alignment, RMSD/RMSF/Rg and contact definitions / 原生时间与坐标，统一对齐和稳定性指标定义                                        |
-| Relative free-energy workflow / 相对自由能流程      | OpenFE, GUFE, compatible OpenMM/OpenMMTools     | Both thermodynamic legs, independent repeats, native HREX; OpenFE's compatible OpenMM 8.4.0 stays isolated / 双环境、独立重复和原生 HREX；OpenFE 兼容的 OpenMM 8.4.0 独立保留 |
+| Relative free-energy workflow / 相对自由能流程      | OpenFE, GUFE, compatible OpenMM/OpenMMTools     | Both thermodynamic legs, independent repeats, native HREX; isolated OpenMM 8.4.0 and CUDA 12.9 / 双环境、独立重复和原生 HREX；独立 OpenMM 8.4.0 与 CUDA 12.9 |
 | Atom correspondence / 原子对应                      | LoMap or Kartograf                              | Explicit choice, original atom maps and bounded congeneric networks / 明确选择、原子映射和有界同系列变化网络                                                                  |
 | Charges and uncertainty / 电荷与误差                | OpenFF/AmberTools AM1-BCC; native MBAR          | Charge assignment shared between legs; signed estimates, uncertainty, overlap and convergence retained / 双环境一致电荷；保留正负号、误差、重叠和收敛诊断                     |
+
+The OpenFE environment keeps its supported OpenMM 8.4 protocol dependency,
+separate from the newer dynamics engine. Both its reviewed solver and immutable
+package lock bind CUDA 12.9; CUDA 13 packages are not substituted by a floating
+resolution. Qualify the actual CUDA context on the compute host before production
+FEP. The environment build/CLI gate has no GPU and does not claim GPU execution,
+sampling convergence or affinity validation.
+
+OpenFE 保留其协议支持的 OpenMM 8.4，独立于较新的动力学环境。环境求解与不可变包锁
+均限定 CUDA 12.9，避免浮动求解引入 CUDA 13。生产 FEP 前仍需在计算主机验证真实
+CUDA 上下文。环境构建与接口检查不具备 GPU，不能代表 GPU 执行、采样收敛或亲和力验证。
+
+Each thermodynamic leg executes the serialized native GUFE transformation in a
+fresh process inside the same owned task container. The leg finishes and writes
+its original protocol result and MBAR summary before the next leg begins. This
+releases process-owned GPU contexts between distinct systems. Charge assignment,
+λ windows, minimization, equilibration, production and independent repeats remain
+native and unchanged; no implicit scientific retry or CPU fallback is added.
+Each process receives the remaining overall task deadline, and failed legs never
+reuse an earlier summary or produce a combined binding estimate.
+
+每条热力学腿在同一任务容器内由独立进程执行原生 GUFE 变化计划，完成并保存原生结果
+及 MBAR 汇总后才开始下一条腿，使不同体系之间释放进程持有的 GPU 上下文。电荷分配、
+λ 窗口、最小化、平衡、生产采样和独立重复仍采用原生设置；不增加隐式科学重试或 CPU
+降级。子进程共用任务剩余时限；失败不会复用旧汇总或生成合并的结合自由能。
+
+OpenFE and GNINA installation downloads checksum-locked dependencies through the
+existing resumable host downloader, rechecks them before staging, and installs
+them in an image build with `--network=none`. This does not enable Docker's
+default bridge, change host networking or discard dependency hashes. Cache files
+are content-addressed within the selected component directory; native result
+containers retain their existing network isolation.
+
+OpenFE 与对接环境安装通过原有可续传下载器获取固定依赖，构建前再次校验，在
+`--network=none` 的镜像构建中安装。无需启用 Docker 默认网络、修改主机网络或
+取消依赖校验。缓存按内容摘要保存于选定组件目录；计算任务保持原有网络隔离。
+
+FEP calculation containers use a bounded multi-context process allowance derived
+from their λ windows and allocated CPU threads (64–832), with BLAS/NumExpr thread
+pools limited separately. Other preparation tasks retain their 64-process limit.
+Read-only filesystems, no network, dropped capabilities and the requested CPU,
+memory and wall-time limits remain enforced. This supports native HREX context
+creation without treating process exhaustion as a successful calculation.
+
+FEP 计算按 λ 窗口及所分配 CPU 设置有限的多上下文进程预算（64–832），并分别
+限制 BLAS/NumExpr 线程。其他准备任务仍使用 64 个进程上限。只读文件系统、断网、
+权限限制以及请求的 CPU、内存和时间限制继续执行；不会将进程耗尽当作计算成功。
 
 GROMACS uses native steepest-descent minimization, V-rescale NVT equilibration and C-rescale NPT production. Its integrator and thermostat differ from OpenMM's Langevin protocol; matched systems do not imply identical trajectories. Prepared force fields are transferred through ParmEd, with explicit rejection of unsupported force expressions or changed atom/coordinate ordering. Trajectory molecules are made whole before the existing coordinate analysis; reported energies are matched to native saved-frame timestamps without interpolation. Production samples must fit the regular output stride. Native warnings remain errors; no `-maxwarn` bypass is used.
 GROMACS 执行原生最小化、V-rescale NVT 平衡和 C-rescale NPT 生产采样，与 OpenMM 的 Langevin 协议具有方法差异，不能据此承诺轨迹相同。ParmEd 转换时检查力场表达、原子顺序及初始坐标。轨迹先恢复周期盒中的完整分子，再进入现有坐标分析；势能与原生帧时间对应，不插值。生产采样须符合固定保存间隔；原生警告保持失败处理，不使用 `-maxwarn` 绕过。
@@ -112,8 +171,8 @@ The native Plotly base styles are generated from its locked distribution into a 
 The MD/FEP pages replace their prior 3Dmol snapshot renderer and hand-built chart/network implementations. NGL and a second trajectory service are not added. Other X-DDE structure pages retain the reviewed 3Dmol selection, editing and electrostatics contracts until equivalent behavior is migrated and verified; removing them early would discard existing research functionality. The shared Mol* version remains pinned in the frontend lock and managed component catalogue.
 动力学和 FEP 页面替换原先的 3Dmol 单帧渲染及手工图表、网络实现，不引入 NGL 或第二套轨迹服务。其他结构页面的 3Dmol 选区、编辑及电性功能在等价迁移并检查前保留，避免丢失研究功能。前端与组件管理使用同一固定 Mol* 版本。
 
-Software checks reuse retained native MD results and a genuine OpenFE TYK2 plan. New scientific calculation runs are deferred under the current software-first instruction. The last FEP calculation smoke run did not pass its periodic-box cutoff check; the adapter now retains the reviewed upstream 1.5 nm solvent padding, and target-server calculation acceptance remains pending. An interactive planned network must never be presented as a calculated binding free energy.
-软件检查复用已保存的原生动力学结果与真实 OpenFE TYK2 变化计划。依照当前“先完成软件”的要求，新科学计算暂缓。上次 FEP 短计算未通过周期盒截断距离检查，适配器现恢复上游固定版本的 1.5 nm 溶剂缓冲设置；目标服务器计算验收仍待进行。交互式变化计划不能被表述为已计算的结合自由能。
+Software checks and scientific studies are separate. Retained native MD results and the official OpenFE TYK2 controls exercise the real interfaces, while each new research calculation requires explicitly selected prepared inputs and compute resources. The OpenFE adapter retains the reviewed upstream 1.5 nm solvent padding. A planned network is never presented as calculated binding free energy, and a short native calculation verifies the execution pipeline without establishing sampling convergence or affinity accuracy.
+软件验证与科学研究分别记录。保留的原生动力学结果及 OpenFE 官方 TYK2 对照用于检验真实接口；新的研究计算须明确选择准备好的材料和计算资源。OpenFE 适配器保留上游固定版本的 1.5 nm 溶剂缓冲设置。规划网络不被表述为已计算的结合自由能，短原生计算只能验证执行链路，不能证明采样收敛或亲和力准确性。
 
 Dynamics uses native minimization, NVT equilibration and NPT production. Coordinate analysis aligns the backbone to the first production snapshot. Ligands are reimaged as connected molecules in that frame; contacts use periodic minimum-image distances. Residue RMSF uses sampled aligned heavy atoms. Contact occupancy is a geometric frequency at 4 Å, not an interaction force or energy. Original inputs and raw trajectories remain intact. Checkpoints require their matching native system, integrator and runtime; portable XML states are also exported. Automatic restart from a downloaded checkpoint is not exposed as an implemented task feature.
 动力学执行原生最小化、NVT 平衡和 NPT 生产采样。分析以首个生产采样结构的骨架为参考对齐，按周期边界处理完整配体和接触距离。残基 RMSF 来自对齐重原子；接触占有率按 4 Å 距离统计，不是作用力或能量。原始材料和原始轨迹完整保留。检查点须匹配对应的体系、积分器与运行环境，同时导出可移植 XML 状态；当前任务尚未提供从下载检查点自动续跑的入口。
@@ -127,7 +186,62 @@ Net-charge-changing transformations, missing residues, unsupported covalent/cofa
 Resource limits remain in the existing worker. MD defaults to 24 hours and 8 GiB of outputs; FEP defaults to seven days and 32 GiB. Individual direct downloads are limited to 1 GiB. Computation can be cancelled through the normal task interface; partial files remain available for diagnosis. All environments, data and caches stay under the chosen deployment root.
 资源限制使用现有任务执行器。动力学默认 24 小时与 8 GiB 输出，FEP 默认七天与 32 GiB 输出，单个直接下载文件限 1 GiB。可通过正常任务界面取消计算，并保留部分文件用于检查。环境、研究数据和缓存保存在统一选择的部署目录。
 
-Public templates use the deposited BRD4/JQ1 case and the official OpenFE TYK2 inhibitor series, with immutable source checksums and source licensing. Remote tests separately validate contracts, native execution, original-byte preservation, actual browser previews and downloads. CPU smoke calculations do not establish production sampling convergence or GPU performance; target-server scientific validation remains separate.
-公开模板使用 BRD4/JQ1 沉积结构与 OpenFE 官方 TYK2 抑制剂系列，固定源文件校验值和来源许可。远端分别检查任务契约、原生执行、原始文件保留、真实浏览器预览和下载。CPU 短计算不证明生产采样已收敛或 GPU 性能；目标服务器科学验收仍为独立步骤。
+The active module templates use STAT6 and the supplied study molecules. The prepared unbound conformers are reference inputs, so dynamics still requires a defensible complete protein system and an aligned calculated bound pose; FEP additionally requires a congeneric series. Historical BRD4/JQ1 results and official TYK2 native controls remain separately identified, with immutable source checksums and licensing. Remote checks separately validate contracts, native execution, original-byte preservation, interactive previews and downloads. CPU pipeline checks do not establish production sampling convergence or GPU performance.
+当前模块模板使用 STAT6 与指定研究分子。已准备的游离构象作为参考输入；动力学仍需合理的完整蛋白体系与对齐的计算结合姿势，FEP 还需同系列分子。历史 BRD4/JQ1 结果及 TYK2 官方原生对照保持独立身份，并保留原文件校验值与来源许可。远端分别验证任务契约、原生执行、原始文件保留、交互预览与下载。CPU 链路检查不代表生产采样已收敛或 GPU 性能已经验收。
+
+The 2026-10-12 native CUDA acceptance used the immutable official TYK2 inputs,
+records 1 and 2, 11 λ windows, one independent repeat and 0.02 ns each of
+equilibration and production in both legs. The actual X-DDE API/queue execution
+finished with native exit 0 and no OOM kill; twelve downloadable artifacts matched
+their SHA-256 values, and both original input files remained unchanged. The run
+reported ΔΔG = 0.8800 ± 0.7631 kcal/mol and minimum adjacent overlap 0.0930.
+This short control establishes the native calculation, diagnostics, download and
+input-preservation path. It is not a STAT6 study, a convergence benchmark or an
+experimental affinity result. The result retains `not_scientifically_accepted`.
+
+Sampling-overlap previews keep a bounded square matrix beside a directional
+adjacent-state table. Values remain native MBAR observations: the two directions
+are not symmetrized, a missing matrix is explicit, and CSV preserves full numeric
+precision. Reset retains the state-index orientation. Free-energy uncertainty
+plots include zero and the full reported error bars for positive and negative
+estimates; this display does not create scientific acceptance or experimental
+confidence intervals.
+
+Native binding-view camera corrections use the emitted target snapshot during
+Mol* transitions and do not recursively request updates from stale camera state.
+Leaving a view cancels further work; in-flight native setup, loading, frame
+updates and captures settle before their resources are released. This preserves
+requested viewing angles and avoids acting on a disposed molecular context.
+
+Protein cartoons and ligand views load without building an unused molecular
+surface. Selecting Surface generates the same native charge-colored geometry;
+turning it off removes that representation, including its trajectory-update
+work. The view shows an updating state and disables image capture until the
+requested representation is ready. Native failures remain visible and an older
+view cannot be exported as the newly requested one.
+
+Trajectory frames, display changes and figure captures share one native update
+queue. A failed operation returns its original error without preventing later
+explicit requests. The preview confirms both the exact requested frame and its
+display before enabling export or advancing playback. Pending or failed frame
+changes retain the last confirmed frame; a failed update offers Retry. Superseded
+responses cannot mark an older frame as current. These are viewing operations,
+not new scientific calculations or changes to stored coordinates.
+
+轨迹切帧、显示切换与视图导出共用一条原生更新队列。某次操作失败会返回真实错误，
+后续明确请求仍可执行。请求的帧和显示方式均确认完成后，才允许导出或继续播放。
+更新期间或失败时保留最后确认的帧，失败后提供“重试”；过期响应不会覆盖当前帧。
+这些操作只调整预览，不启动科学计算，也不修改保存的坐标。
+
+采样重叠预览将方形矩阵与相邻状态的双向数值表并排展示。保留原始 MBAR 数值，
+不强行对称化；缺少矩阵时明确提示，CSV 保留完整数值精度。重置后保持状态编号方向。
+自由能误差图同时显示零参考线和完整误差条；展示本身不代表科学验收或实验置信区间。
+
+2026-10-12 的真实 CUDA 链路验收使用官方固定 TYK2 输入、原始第 1 和第 2 条分子、
+11 个 λ 窗口、一次独立重复，双腿各 0.02 ns 平衡及生产采样。通过实际 X-DDE API
+和队列完成执行，原生退出码为 0，未发生 OOM；12 个下载文件的 SHA-256 与结果一致，
+两份原始输入保持不变。该运行报告 ΔΔG = 0.8800 ± 0.7631 kcal/mol，最低相邻重叠为
+0.0930。这一短程对照验证原生计算、诊断、下载和输入保留链路，不是 STAT6 研究、
+收敛基准或实测亲和力结果，科学验收状态仍为未验收。
 
 Primary implementation sources: [OpenMM user guide](https://docs.openmm.org/latest/userguide/application/02_running_sims.html), [GROMACS native execution](https://manual.gromacs.org/documentation/current/user-guide/mdrun-performance.html), [reviewed GROMACS packages](https://anaconda.org/conda-forge/gromacs/files), [ParmEd parameter transfer](https://parmed.github.io/ParmEd/html/openmmobj/parmed.openmm.load_topology.html), [Kartograf mapping](https://kartograf.openfree.energy/en/latest/api/kartograf.mappers.html), [OpenFE 1.12 RBFE tutorial](https://docs.openfree.energy/en/v1.12.0/tutorials/rbfe_python_tutorial.html), [OpenFE protocol and limitations](https://docs.openfree.energy/en/v1.12.0/guide/protocols/relativehybridtopology.html), [immutable TYK2 inputs](https://github.com/OpenFreeEnergy/ExampleNotebooks/tree/d083c283b96e976d2e90c03d94e57e3ef6bc2c8c/rbfe_tutorial).

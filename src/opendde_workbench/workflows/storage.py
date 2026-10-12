@@ -177,3 +177,49 @@ class WorkflowRecords:
                 (run_id, step_id, count, job.id, now()),
             )
         return job
+
+    def cancel(self, identifier, *, recover=False):
+        """Persist run intent and child transitions under the enqueue/claim write lock."""
+        with self.store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                "SELECT state FROM workflow_runs WHERE id=?", (str(identifier),)
+            ).fetchone()
+            if not row:
+                raise KeyError("Research run not found.")
+            expected = {"cancelling"} if recover else {"running", "paused", "blocked", "cancelling"}
+            if row[0] not in expected:
+                if recover:
+                    return self.run(identifier)
+                raise ConflictError("The research run cannot make this transition.")
+            jobs = [
+                self.store.decode(job)
+                for job in db.execute(
+                    "SELECT jobs.* FROM jobs JOIN workflow_attempts ON jobs.id=job_id "
+                    "WHERE run_id=? AND jobs.status IN ('queued','running','cancelling')",
+                    (str(identifier),),
+                )
+            ]
+            synchronous = {
+                job.id
+                for job in jobs
+                if job.status == "running"
+                and job.request.operation == "harness"
+                and job.request.tool != "fold"
+            }
+            if synchronous and not recover:
+                raise ConflictError(
+                    "A synchronous native tool is still active. Cancel after it finishes."
+                )
+            if row[0] != "cancelling":
+                db.execute(
+                    "UPDATE workflow_runs SET state='cancelling',reason=NULL,updated_at=? "
+                    "WHERE id=?",
+                    (now(), str(identifier)),
+                )
+            for job in jobs:
+                # Old partial cancellations can contain a synchronous call that must finish.
+                # Worker/BackendRouter retain sole ownership of stopping active processes.
+                if job.id not in synchronous:
+                    self.store._cancel_in_transaction(db, job.id)
+        return self.run(identifier)

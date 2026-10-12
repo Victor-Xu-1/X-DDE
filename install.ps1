@@ -3,7 +3,7 @@ param(
     [string]$Distribution = '',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
-    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.5.4'
+    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.5.26'
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -13,6 +13,10 @@ if (!$InstallRoot) {
 }
 $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
 if ($InstallRoot -notmatch '^[A-Za-z]:\\' -or $InstallRoot.Contains('"')) { throw 'Choose an absolute local drive directory.' }
+$taskInstallVolume = @(Get-Volume -FilePath ([IO.Path]::GetPathRoot($InstallRoot)))
+if ($taskInstallVolume.Count -ne 1 -or $taskInstallVolume[0].SizeRemaining -lt 2GB) {
+    throw 'At least 2 GiB free space is required on the installation drive before starting WSL.'
+}
 $savedConfigPath = Join-Path $InstallRoot 'bin/workbench.json'
 $savedConfig = $null
 if (Test-Path -LiteralPath $savedConfigPath -PathType Leaf) {
@@ -45,6 +49,14 @@ if ([IO.Path]::GetPathRoot($InstallRoot) -eq 'E:\') {
     $registered = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss\*' -ErrorAction SilentlyContinue | Where-Object DistributionName -eq $Distribution | Select-Object -First 1
     $diskBase = ([string]$registered.BasePath) -replace '^\\\\\?\\', ''
     if (!$diskBase -or [IO.Path]::GetPathRoot($diskBase) -ne 'E:\') { throw 'The selected WSL distribution is not registered on E:. Choose an E: distribution; existing distributions will not be moved automatically.' }
+}
+$taskDiskRegistration = @(Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss\*' -ErrorAction SilentlyContinue | Where-Object DistributionName -eq $Distribution)
+if ($taskDiskRegistration.Count -ne 1 -or -not $taskDiskRegistration[0].BasePath) {
+    throw 'Cannot verify the registered WSL storage drive. Review the distribution configuration before installing.'
+}
+$taskBackingVolume = @(Get-Volume -FilePath $taskDiskRegistration[0].BasePath)
+if ($taskBackingVolume.Count -ne 1 -or $taskBackingVolume[0].SizeRemaining -lt 2GB) {
+    throw 'At least 2 GiB free space is required on the WSL storage drive before installation.'
 }
 if (!$LinuxUser) {
     $LinuxUser = ((& wsl.exe -d $Distribution -- whoami) | Out-String).Trim()

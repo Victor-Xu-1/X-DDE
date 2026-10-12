@@ -126,6 +126,30 @@ def test_completed_fep_diagnostics_display_values_and_downloads(language):
         )
         expect(overlap).to_have_attribute("aria-busy", "false", timeout=30000)
         assert overlap.evaluate("el => el.data[0].z") == [[0.9, 0.1], [0.1, 0.9]]
+        adjacent = root.get_by_role(
+            "table",
+            name="Directional adjacent-state overlap"
+            if language == "en"
+            else "相邻状态的双向采样重叠",
+        )
+        expect(adjacent).to_contain_text("0.1000")
+        with page.expect_download() as adjacent_download:
+            root.get_by_role(
+                "button", name="Download values" if language == "en" else "下载数值", exact=True
+            ).click()
+        adjacent_download.value.save_as(evidence / "controlled-adjacent-overlap.csv")
+        assert "0,1,0.1,0.1" in (evidence / "controlled-adjacent-overlap.csv").read_text()
+        for width in (1440, 390):
+            page.set_viewport_size({"width": width, "height": 1000})
+            page.wait_for_function("() => document.documentElement.scrollWidth <= innerWidth + 1")
+            assert overlap.evaluate("el => el._fullLayout.xaxis._length") >= (
+                320 if width == 1440 else 140
+            )
+        page.set_viewport_size({"width": 1440, "height": 1000})
+        overlap.locator("..").get_by_role(
+            "button", name="Reset" if language == "en" else "重置", exact=True
+        ).click()
+        assert overlap.evaluate("el => el.layout.yaxis.range") == [1.5, -0.5]
         page.screenshot(path=str(evidence / "controlled-overlap.png"), full_page=True)
         root.get_by_role(
             "tab", name="Convergence" if language == "en" else "收敛曲线", exact=True

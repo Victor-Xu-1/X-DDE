@@ -5,8 +5,10 @@ import fcntl
 import os
 import shutil
 import threading
+from contextlib import ExitStack
 from pathlib import Path
 
+from ..disk_space import require_space
 from ..engine_registry import ENGINES
 from ..engine_registry import catalogue as engine_catalogue
 from ..locations import atomic_json, home
@@ -179,53 +181,69 @@ class DeploymentManager:
         def checkpoint():
             if self.closing.is_set() or self.store.get(identifier)["state"] == "pausing":
                 raise Paused()
+            if row["action"] != "uninstall":
+                require_space(root, 4 * 1024**3)
 
         def report(value):
             self.store.update(identifier, stage=value)
 
         try:
-            if row["action"] == "uninstall":
-                entry = installed.get(key, {})
-                # Only versioned package files are removed. Models and Docker layers may be shared.
-                if entry.get("directory"):
-                    directory = Path(entry["directory"])
-                    parent = (
-                        environment_root(root, key) if key in ENGINES else root / "packages" / key
-                    )
-                    if directory.is_symlink() or directory.resolve().parent != parent.resolve():
-                        raise ValueError(
-                            "Refusing to remove a path outside the owned package folder."
+            with ExitStack() as pending:
+                checkpoint()
+                if row["action"] == "uninstall":
+                    entry = installed.get(key, {})
+                    # Only versioned package files are removed. Models and Docker
+                    # layers may be shared.
+                    if entry.get("directory"):
+                        directory = Path(entry["directory"])
+                        parent = (
+                            environment_root(root, key)
+                            if key in ENGINES
+                            else root / "packages" / key
                         )
-                    if directory.exists():
-                        shutil.rmtree(directory)
-                installed.pop(key, None)
-            else:
-                if key in {
-                    "public-examples",
-                    "public-dataset-examples",
-                    "public-surface-examples",
-                    "public-pose-examples",
-                    "public-channel-examples",
-                    "public-proximity-examples",
-                    "public-experimental-examples",
-                    "supplier-libraries",
-                }:
-                    installed[key] = install(
-                        key, root, installed, identifier, report, checkpoint, state=self.store.state
-                    )
+                        if directory.is_symlink() or directory.resolve().parent != parent.resolve():
+                            raise ValueError(
+                                "Refusing to remove a path outside the owned package folder."
+                            )
+                        if directory.exists():
+                            shutil.rmtree(directory)
+                    installed.pop(key, None)
                 else:
-                    installed[key] = install(key, root, installed, identifier, report, checkpoint)
-            with self.mutex:
-                atomic_json(root / "installed.json", installed)
-                self.store.update(
-                    identifier,
-                    state="succeeded",
-                    stage="Uninstalled; models, caches and shared Docker layers retained"
-                    if row["action"] == "uninstall"
-                    else "Installed and available"
-                    if key in DYNAMIC_RUNTIMES
-                    else "Installed; restart UI to activate compute changes",
-                )
+                    if key in {
+                        "public-examples",
+                        "public-dataset-examples",
+                        "public-surface-examples",
+                        "public-pose-examples",
+                        "public-channel-examples",
+                        "public-proximity-examples",
+                        "public-experimental-examples",
+                        "supplier-libraries",
+                    }:
+                        installed[key] = install(
+                            key,
+                            root,
+                            installed,
+                            identifier,
+                            report,
+                            checkpoint,
+                            state=self.store.state,
+                        )
+                    else:
+                        installed[key] = install(
+                            key, root, installed, identifier, report, checkpoint, pending=pending
+                        )
+                with self.mutex:
+                    atomic_json(root / "installed.json", installed)
+                    pending.pop_all()  # The persisted installation now owns its model files.
+                    self.store.update(
+                        identifier,
+                        state="succeeded",
+                        stage="Uninstalled; models, caches and shared Docker layers retained"
+                        if row["action"] == "uninstall"
+                        else "Installed and available"
+                        if key in DYNAMIC_RUNTIMES
+                        else "Installed; restart UI to activate compute changes",
+                    )
         except Paused:
             self.store.update(
                 identifier, state="paused", stage="Paused; verified downloads can be reused"

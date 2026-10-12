@@ -87,6 +87,24 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
+it("browses classified history during an unavailable environment-health read", async () => {
+  vi.mocked(api.health).mockRejectedValue(new Error("Unavailable"));
+  const user = userEvent.setup();
+  render(<App />);
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  await user.click(
+    within(nav).getByRole("button", { name: "Tasks and results" }),
+  );
+  const modules = await screen.findByRole("group", { name: "Task modules" });
+  await user.click(
+    within(modules).getByRole("button", { name: /Structure prediction/ }),
+  );
+  expect(
+    await screen.findByRole("button", { name: "Ungrouped task" }),
+  ).toBeVisible();
+  expect(screen.queryByText(/Unable to load the latest tasks/)).toBeNull();
+});
+
 it("starts the chosen task module's questionnaire without reusing or submitting an old task", async () => {
   vi.spyOn(apiClient, "request").mockResolvedValue({
     availability: { configuration_present: false },

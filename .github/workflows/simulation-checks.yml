@@ -15,13 +15,22 @@ on:
       check:
         type: choice
         default: contracts
-        options: [locks, contracts, native, md-views, gromacs-runtime]
+        options: [locks, contracts, native, md-views, gromacs-runtime, openfe-runtime]
   push:
-    paths:
+    paths: &simulation_paths
       - "src/opendde_workbench/simulations/**"
       - "frontend/src/simulations/**"
       - "tests/test_simulations.py"
       - "server_tests/test_simulation_browser.py"
+      # Shared MD input geometry uses simulation-input-checks.yml, not the UI suite.
+      - "!src/opendde_workbench/simulations/native_md_input.py"
+      - "!src/opendde_workbench/simulations/native_md_system.py"
+      - "!src/opendde_workbench/simulations/native_dynamics.py"
+      # Protein input and native FEP mounting use fep-input-checks.yml.
+      - "!src/opendde_workbench/simulations/native_fep_input.py"
+      - "!src/opendde_workbench/simulations/native_fep_plan.py"
+      - "!src/opendde_workbench/simulations/native_fep_leg.py"
+      - "!src/opendde_workbench/simulations/native_openfe.py"
       # Routing-only workflow edits do not re-run scientific contracts.
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/simulations/DynamicsResults.tsx"
@@ -60,9 +69,42 @@ on:
       - "!frontend/src/simulations/comparison-figure*"
       - "!frontend/src/simulations/molecular-view-state*"
       - "!frontend/src/simulations/pose-comparison.css"
+  pull_request:
+    paths: *simulation_paths
 permissions:
   contents: read
 jobs:
+  openfe-runtime:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'openfe-runtime'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Build the frontend required by the platform package
+        run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: CUDA lock, reviewed solver and shared image identity regressions only
+        run: uv run --locked python -m pytest -q tests/test_openfe_runtime.py tests/test_simulations.py tests/test_locked_packages.py tests/test_native_image_network.py
+      - name: Actual locked OpenFE image, CLI and hybrid-topology protocol negotiation
+        run: uv run --locked python server_tests/check_simulation_environment.py --program openfe
+      - name: Real public TYK2 plan and both short native FEP legs through the task API
+        env:
+          WB_TEST_NATIVE_SIMULATIONS: "1"
+        run: uv run --locked --with biopython==1.88 python -m pytest -s -x -q server_tests/test_native_simulations.py -k openfe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openfe-runtime-evidence
+          path: |
+            outputs/simulation-environment/build.log
+            outputs/simulation-environment/interface-*.txt
+            outputs/simulation-environment/scope.json
+            outputs/simulation-environment/image-context/Dockerfile
+            outputs/native-simulations/openfe*/**
   md-views:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'md-views'
     runs-on: ubuntu-24.04

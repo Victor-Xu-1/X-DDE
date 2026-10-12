@@ -1,0 +1,36 @@
+name: Dynamics input geometry
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/opendde_workbench/simulations/native_md_input.py"
+      - "src/opendde_workbench/simulations/native_md_system.py"
+      - "src/opendde_workbench/simulations/native_dynamics.py"
+      - "server_tests/test_native_simulations.py"
+      - "tests/test_md_input.py"
+      - ".github/workflows/simulation-input-checks.yml"
+permissions:
+  contents: read
+jobs:
+  input-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Peptide breaks, immutable coordinates and both mounted MD consumers only
+        run: uv run --locked python -m pytest -q tests/test_md_input.py
+      - name: Real OpenMM input, early recovery files and native outputs through the task API
+        env:
+          WB_TEST_NATIVE_SIMULATIONS: "1"
+        run: uv run --locked --with biopython==1.88 python -m pytest -s -x -q server_tests/test_native_simulations.py -k openmm
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dynamics-input-evidence
+          path: outputs/native-simulations/openmm*/**
