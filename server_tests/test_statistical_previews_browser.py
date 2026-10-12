@@ -45,7 +45,7 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
                 {
                     "capability": capability,
                     "job_id": identifier,
-                    "source": "checksum-verified archived native case; not the active STAT6 template",
+                    "source": "Verified archived native case; separate from the STAT6 template",
                 }
             ),
             encoding="utf-8",
