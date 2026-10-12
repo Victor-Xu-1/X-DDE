@@ -59,7 +59,11 @@ def register_deployments(app, manager, mutation, busy):
             raise HTTPException(409, str(exc)) from exc
 
     @app.post("/api/deployment/operations/{identifier}/{action}", dependencies=[Depends(mutation)])
-    def control(identifier: UUID, action: str):
+    async def control(identifier: UUID, action: str):
+        if action == "resume" and await busy():
+            raise HTTPException(
+                409, "Finish or stop scientific tasks before changing compute components."
+            )
         try:
             manager.control(str(identifier), action)
             return {"ok": True}

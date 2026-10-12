@@ -83,6 +83,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     time.monotonic() + 10,
                     {"configured": True, "running": False, "ready": False, "reason": str(exc)},
                 )
+            loop = asyncio.get_running_loop()
+
+            def admit_deployment(claim):
+                # Called only by the deployment worker thread. Its file lock
+                # remains held, but no manager mutex spans this async probe.
+                return asyncio.run_coroutine_threadsafe(deployment_claim(claim), loop).result()
+
+            deployments.admission = admit_deployment
             await worker.start()
             await deployments.start()
             try:
@@ -556,6 +564,21 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                     503, "Cannot verify native task state; retry after checking Harness."
                 ) from None
         return False
+
+    async def deployment_claim(claim):
+        # The same lock guards HTTP task and Harness admissions. Release it
+        # after queued -> running, before any long-running installer work.
+        async with mutations:
+            if app.state.quiescing:
+                return None
+            try:
+                if await scientific_busy():
+                    return None
+            except HTTPException:
+                # Unknown native state must leave deployment queued, never
+                # terminate the worker or authorize component changes.
+                return None
+            return claim()
 
     @app.get("/api/lifecycle")
     async def lifecycle():

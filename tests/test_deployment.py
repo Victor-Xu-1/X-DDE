@@ -436,6 +436,7 @@ def test_new_platform_storage_does_not_adopt_a_legacy_owner_marker(tmp_path):
     with pytest.raises(ValueError, match="does not belong to X-DDE"):
         managed_root(str(tmp_path))
 
+
 @pytest.mark.parametrize("state", ["installed", "queued", "paused"])
 def test_rejected_location_change_never_creates_an_unselected_directory(tmp_path, state):
     manager = DeploymentManager(tmp_path / "state")
@@ -471,3 +472,332 @@ def test_location_preflight_is_read_only_and_first_install_persists(tmp_path):
     restored = DeploymentManager(tmp_path / "state")
     assert restored.store.config()["root"] == str(root)
     assert read_json(root / ".workbench-owner.json")["owner"] == "X-DDE"
+
+
+@pytest.mark.parametrize("state", ["paused", "failed"])
+@pytest.mark.parametrize("action", ["install", "upgrade", "uninstall"])
+def test_busy_resume_does_not_requeue_deployment(tmp_path, state, action):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from opendde_workbench.deployment.routes import register_deployments
+
+    manager = DeploymentManager(tmp_path / "state")
+    manager.configure(str(tmp_path / "components"), False)
+    identifier = manager.enqueue("ketcher", action)[-1]
+    manager.store.update(identifier, state=state)
+    before = manager.store.get(identifier)
+    calls = []
+
+    async def busy():
+        calls.append(True)
+        return True
+
+    app = FastAPI()
+    register_deployments(app, manager, lambda: None, busy)
+    with TestClient(app) as client:
+        response = client.post(f"/api/deployment/operations/{identifier}/resume")
+    assert response.status_code == 409
+    assert calls == [True]
+    assert manager.store.get(identifier) == before
+
+
+def test_worker_admission_blocks_queued_operation_without_claim_or_install(tmp_path, monkeypatch):
+    manager = DeploymentManager(tmp_path / "state")
+    manager.configure(str(tmp_path / "components"), False)
+    identifier = manager.enqueue("ketcher", "install")[-1]
+    before = manager.store.get(identifier)
+    called = []
+    manager.admission = lambda claim: called.append("checked")
+    monkeypatch.setattr(
+        "opendde_workbench.deployment.manager.install",
+        lambda *args, **kwargs: pytest.fail("Blocked deployment must not call installer"),
+    )
+    manager.tick()
+    assert called == ["checked"]
+    assert manager.store.get(identifier) == before
+
+
+@pytest.mark.parametrize("busy_result", [False, "unknown"])
+def test_resume_idle_or_unverifiable_preserves_control_contract(tmp_path, busy_result):
+    from fastapi import FastAPI, HTTPException
+    from fastapi.testclient import TestClient
+
+    from opendde_workbench.deployment.routes import register_deployments
+
+    manager = DeploymentManager(tmp_path / "state")
+    manager.configure(str(tmp_path / "components"), False)
+    identifier = manager.enqueue("ketcher", "install")[-1]
+    manager.control(identifier, "pause")
+    calls = []
+
+    async def busy():
+        calls.append(True)
+        if busy_result == "unknown":
+            raise HTTPException(503, "Native state unavailable")
+        return False
+
+    app = FastAPI()
+    register_deployments(app, manager, lambda: None, busy)
+    with TestClient(app) as client:
+        response = client.post(f"/api/deployment/operations/{identifier}/resume")
+        assert response.status_code == (503 if busy_result == "unknown" else 200)
+        assert manager.store.get(identifier)["state"] == (
+            "paused" if busy_result == "unknown" else "queued"
+        )
+        if busy_result is False:
+            assert client.post(f"/api/deployment/operations/{identifier}/pause").status_code == 200
+        assert client.post(f"/api/deployment/operations/{identifier}/cancel").status_code == 200
+    assert calls == [True]  # Pause/cancel never depend on native availability.
+
+
+@pytest.fixture
+def deployment_admission_app(settings, monkeypatch):
+    """Real application middleware/SQLite; startup and all executors are inert."""
+    import asyncio
+    from dataclasses import replace
+
+    from fastapi.testclient import TestClient
+
+    from opendde_workbench import api
+    from opendde_workbench.harness_service import HarnessService
+    from opendde_workbench.store import Store
+    from opendde_workbench.worker import Worker
+
+    manager = DeploymentManager(settings.state_dir)
+    manager.configure(str(settings.state_dir.parent / "components"), False)
+    monkeypatch.setattr(api, "DeploymentManager", lambda _: manager)
+    monkeypatch.setattr(manager.compute, "ensure", lambda: None)
+
+    async def worker_start(self):
+        self.task = asyncio.current_task()  # Readiness only; no worker loop starts.
+
+    async def idle(*args):
+        pass
+
+    async def no_campaign(self, message, **kwargs):
+        assert message == {"operation": "active"}
+        return []
+
+    monkeypatch.setattr(Worker, "start", worker_start)
+    monkeypatch.setattr(Worker, "close", idle)
+    monkeypatch.setattr(manager, "start", idle)
+    monkeypatch.setattr(manager, "close", idle)
+    monkeypatch.setattr(HarnessService, "invoke", no_campaign)
+    monkeypatch.setattr(
+        "opendde_workbench.deployment.manager.install",
+        lambda *args, **kwargs: pytest.fail("No real installer in admission fixtures"),
+    )
+    monkeypatch.setattr(
+        "opendde_workbench.deployment.manager.shutil.rmtree",
+        lambda *args, **kwargs: pytest.fail("No component deletion in admission fixtures"),
+    )
+
+    class InertEngine:
+        async def readiness(self):
+            return {"ready": True, "gpu": "controlled readiness", "reason": None}
+
+        async def start(self, *args):
+            pytest.fail("No scientific work in admission fixtures")
+
+    engine = InertEngine()
+    app = api.create_app(replace(settings, harness_python=Path(sys.executable)), engine)
+    with TestClient(app, base_url="http://127.0.0.1:4320") as client:
+        client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        yield client, manager, Store(settings.state_dir / "jobs.sqlite3"), engine
+
+
+@pytest.mark.parametrize("status", ["queued", "running", "cancelling"])
+def test_application_worker_blocks_preexisting_queue_while_science_active(
+    deployment_admission_app, monkeypatch, status
+):
+    from uuid import uuid4
+
+    from opendde_workbench.prediction import Prediction
+
+    _, manager, store, _ = deployment_admission_app
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    job = store.create(
+        Prediction(name="admission fixture", components=[{"kind": "ligand", "value": "CCO"}]),
+        str(uuid4()),
+        10,
+        20,
+    )
+    with store.connect() as db:
+        db.execute("UPDATE jobs SET status=? WHERE id=?", (status, job.id))
+    before = manager.store.get(identifier)
+    monkeypatch.setattr(
+        manager, "_execute", lambda *args: pytest.fail("Busy worker must not execute")
+    )
+    manager.tick()
+    assert manager.store.get(identifier) == before
+    assert store.get(job.id).status == status
+
+
+def test_application_worker_unknown_native_state_stays_queued_and_can_recover(
+    deployment_admission_app, monkeypatch
+):
+    from opendde_workbench.harness_service import HarnessService
+
+    _, manager, _, _ = deployment_admission_app
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    before = manager.store.get(identifier)
+    executed = []
+    monkeypatch.setattr(manager, "_execute", lambda row, *_: executed.append(row["id"]))
+
+    async def unavailable(*args, **kwargs):
+        raise TimeoutError("controlled native status timeout")
+
+    monkeypatch.setattr(HarnessService, "invoke", unavailable)
+    manager.tick()
+    assert manager.store.get(identifier) == before
+    assert not executed
+
+    async def idle(*args, **kwargs):
+        return []
+
+    monkeypatch.setattr(HarnessService, "invoke", idle)
+    manager.tick()
+    assert manager.store.get(identifier)["state"] == "running"
+    assert executed == [identifier]
+
+
+def test_application_worker_rechecks_claim_after_pause_during_native_probe(
+    deployment_admission_app, monkeypatch
+):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from opendde_workbench.harness_service import HarnessService
+
+    _, manager, _, _ = deployment_admission_app
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    entered, release = threading.Event(), threading.Event()
+
+    async def probe(*args, **kwargs):
+        import asyncio
+
+        entered.set()
+        assert await asyncio.to_thread(release.wait, 5)
+        return []
+
+    monkeypatch.setattr(HarnessService, "invoke", probe)
+    monkeypatch.setattr(manager, "_execute", lambda *args: pytest.fail("Paused claim must not run"))
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(manager.tick)
+        try:
+            assert entered.wait(5)
+            manager.control(identifier, "pause")  # No manager mutex held across async probe.
+        finally:
+            release.set()
+        future.result(timeout=5)
+    assert manager.store.get(identifier)["state"] == "paused"
+
+
+def test_application_worker_releases_submission_lock_before_execution(
+    deployment_admission_app, monkeypatch
+):
+    from uuid import uuid4
+
+    from conftest import payload
+
+    client, manager, store, _ = deployment_admission_app
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    observed = []
+
+    def execute(row, *_):
+        assert row["id"] == identifier
+        assert manager.store.get(identifier)["state"] == "running"
+        response = client.post(
+            "/api/jobs", json=payload(), headers={"Idempotency-Key": str(uuid4())}
+        )
+        observed.append(response.status_code)
+
+    monkeypatch.setattr(manager, "_execute", execute)
+    manager.tick()
+    assert observed == [409]
+    assert not store.list_jobs()
+
+
+@pytest.mark.parametrize("first", ["submission", "resume"])
+def test_resume_and_scientific_submission_share_atomic_admission(
+    deployment_admission_app, monkeypatch, first
+):
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    from uuid import uuid4
+
+    from conftest import payload
+
+    from opendde_workbench.harness_service import HarnessService
+
+    client, manager, store, engine = deployment_admission_app
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    manager.control(identifier, "pause")
+    entered, release, second_started = (threading.Event() for _ in range(3))
+
+    async def held_readiness():
+        entered.set()
+        assert await asyncio.to_thread(release.wait, 5)
+        return {"ready": True, "gpu": "controlled readiness", "reason": None}
+
+    async def held_native_probe(*args, **kwargs):
+        entered.set()
+        assert await asyncio.to_thread(release.wait, 5)
+        return []
+
+    def submit():
+        return client.post("/api/jobs", json=payload(), headers={"Idempotency-Key": str(uuid4())})
+
+    def resume():
+        return client.post(f"/api/deployment/operations/{identifier}/resume")
+
+    if first == "submission":
+        monkeypatch.setattr(engine, "readiness", held_readiness)
+        actions = submit, resume
+    else:
+        monkeypatch.setattr(HarnessService, "invoke", held_native_probe)
+        actions = resume, submit
+
+    def second():
+        second_started.set()
+        return actions[1]()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        leading = pool.submit(actions[0])
+        try:
+            assert entered.wait(5)
+            following = pool.submit(second)
+            assert second_started.wait(5)
+        finally:
+            release.set()
+        first_response, second_response = leading.result(timeout=5), following.result(timeout=5)
+    assert first_response.status_code == (201 if first == "submission" else 200)
+    assert second_response.status_code == 409
+    assert manager.store.get(identifier)["state"] == (
+        "paused" if first == "submission" else "queued"
+    )
+    assert len(store.list_jobs()) == (1 if first == "submission" else 0)
+
+
+def test_restarted_operation_still_requires_worker_admission_after_resume(tmp_path, monkeypatch):
+    import asyncio
+
+    manager = DeploymentManager(tmp_path / "state")
+    manager.configure(str(tmp_path / "components"), False)
+    identifier = manager.enqueue("compute", "uninstall")[-1]
+    manager.store.update(identifier, state="running")
+    restored = DeploymentManager(tmp_path / "state")
+
+    async def recover_only():
+        await restored.start()
+        await restored.close()  # No loop iteration or actual component work.
+
+    asyncio.run(recover_only())
+    assert restored.store.get(identifier)["state"] == "paused"
+    restored.control(identifier, "resume")
+    calls = []
+    restored.admission = lambda claim: calls.append("blocked")
+    monkeypatch.setattr(restored, "_execute", lambda *args: pytest.fail("Must remain queued"))
+    restored.tick()
+    assert calls == ["blocked"]
+    assert restored.store.get(identifier)["state"] == "queued"
