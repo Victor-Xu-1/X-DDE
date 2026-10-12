@@ -213,6 +213,13 @@ Leaving a view cancels further work; in-flight native setup, loading, frame
 updates and captures settle before their resources are released. This preserves
 requested viewing angles and avoids acting on a disposed molecular context.
 
+Protein cartoons and ligand views load without building an unused molecular
+surface. Selecting Surface generates the same native charge-colored geometry;
+turning it off removes that representation, including its trajectory-update
+work. The view shows an updating state and disables image capture until the
+requested representation is ready. Native failures remain visible and an older
+view cannot be exported as the newly requested one.
+
 采样重叠预览将方形矩阵与相邻状态的双向数值表并排展示。保留原始 MBAR 数值，
 不强行对称化；缺少矩阵时明确提示，CSV 保留完整数值精度。重置后保持状态编号方向。
 自由能误差图同时显示零参考线和完整误差条；展示本身不代表科学验收或实验置信区间。
