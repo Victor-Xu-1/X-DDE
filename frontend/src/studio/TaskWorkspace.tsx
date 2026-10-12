@@ -96,7 +96,7 @@ export function TaskWorkspace(p: Props) {
         taskIdFromHash(window.location.hash),
       ),
     );
-  }, [module, type, status, search, page, p.projectId]);
+  }, [module, type, status, search, page, p.projectId, taskJob?.id]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(query);
