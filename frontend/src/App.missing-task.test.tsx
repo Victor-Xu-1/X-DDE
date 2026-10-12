@@ -199,6 +199,9 @@ it.each(["same-module", "different-module"])(
     reader.mockReturnValue(read(second));
     view.rerender(<App />);
     await advance();
+    expect(
+      screen.queryByRole("heading", { name: "Loading selected task…" }),
+    ).toBeNull();
     expect(document.querySelector(".page-context-title")).toHaveTextContent(
       mode === "same-module" ? "Properties and safety" : "Structure prediction",
     );
