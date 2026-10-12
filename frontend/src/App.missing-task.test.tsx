@@ -151,56 +151,65 @@ it("waits for a task's owner before canonicalizing a same-page legacy link", asy
   );
 });
 
-it("does not resolve a new legacy address from the preceding task's metadata", async () => {
-  const first = job(A);
-  const second: Job = {
-    ...job(B),
-    request: {
-      name: "Protein task B",
-      components: [
-        { kind: "protein", value: "ACDEFGHIKLMNPQRSTVWY", count: 1 },
-      ],
-      parameters: defaults,
-    },
-  };
-  const read = (current: Job): ReturnType<typeof workbench.useWorkbench> => ({
-    jobs: [first, second],
-    selected: current.id,
-    selectedJob: current,
-    health: null,
-    detail: { id: current.id, artifacts: [] },
-    select: vi.fn(),
-    confirmJob: vi.fn(),
-    refresh: vi.fn(),
-    jobsError: null,
-    healthError: null,
-    selectedJobError: null,
-    selectedJobLoading: false,
-    artifactError: null,
-    artifactsLoading: false,
-    connectionError: false,
-    detailError: false,
-    loading: false,
-  });
-  const reader = vi
-    .spyOn(workbench, "useWorkbench")
-    .mockReturnValue(read(first));
-  const view = render(<App />);
-  await advance();
-  expect(window.location.hash).toContain("module=evaluation");
-  act(() => navigate("#task=" + B));
-  await advance();
-  expect(window.location.hash).toBe("#task=" + B);
-  reader.mockReturnValue(read(second));
-  view.rerender(<App />);
-  await advance();
-  expect(document.querySelector(".page-context-title")).toHaveTextContent(
-    "Structure prediction",
-  );
-  expect(window.location.hash).toBe(
-    "#view=results&module=structures&task=" + B,
-  );
-});
+it.each(["same-module", "different-module"])(
+  "does not resolve a new %s legacy address from the preceding task's metadata",
+  async (mode) => {
+    const first = job(A);
+    const second: Job =
+      mode === "same-module"
+        ? job(B)
+        : {
+            ...job(B),
+            request: {
+              name: "Protein task B",
+              components: [
+                { kind: "protein", value: "ACDEFGHIKLMNPQRSTVWY", count: 1 },
+              ],
+              parameters: defaults,
+            },
+          };
+    const read = (current: Job): ReturnType<typeof workbench.useWorkbench> => ({
+      jobs: [first, second],
+      selected: current.id,
+      selectedJob: current,
+      health: null,
+      detail: { id: current.id, artifacts: [] },
+      select: vi.fn(),
+      confirmJob: vi.fn(),
+      refresh: vi.fn(),
+      jobsError: null,
+      healthError: null,
+      selectedJobError: null,
+      selectedJobLoading: false,
+      artifactError: null,
+      artifactsLoading: false,
+      connectionError: false,
+      detailError: false,
+      loading: false,
+    });
+    const reader = vi
+      .spyOn(workbench, "useWorkbench")
+      .mockReturnValue(read(first));
+    const view = render(<App />);
+    await advance();
+    expect(window.location.hash).toContain("module=evaluation");
+    act(() => navigate("#task=" + B));
+    await advance();
+    expect(window.location.hash).toBe("#task=" + B);
+    reader.mockReturnValue(read(second));
+    view.rerender(<App />);
+    await advance();
+    expect(document.querySelector(".page-context-title")).toHaveTextContent(
+      mode === "same-module" ? "Properties and safety" : "Structure prediction",
+    );
+    expect(window.location.hash).toBe(
+      "#view=results&module=" +
+        (mode === "same-module" ? "evaluation" : "structures") +
+        "&task=" +
+        B,
+    );
+  },
+);
 
 it.each([
   new Error("Network unavailable"),

@@ -52,6 +52,7 @@ export function App() {
     [entryRevision, setEntryRevision] = useState(0);
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
+  const requestedTask = useRef(taskIdFromHash(location.hash));
   const [view, setView] = useState<View>(() =>
       taskHistoryRoute(location.hash)?.module
         ? viewForResults(taskHistoryRoute(location.hash)!.module!)
@@ -66,6 +67,7 @@ export function App() {
     function navigate() {
       const route = taskHistoryRoute(window.location.hash);
       if (taskIdFromHash(window.location.hash) || route) {
+        requestedTask.current = taskIdFromHash(window.location.hash);
         setView(route?.module ? viewForResults(route.module) : "tasks");
         setProjectId(route?.project ?? null);
       }
@@ -110,11 +112,7 @@ export function App() {
   useEffect(() => {
     // The app and metadata reader observe hash changes independently. Resolve
     // ownership only for the ID currently in the address, never the prior task.
-    if (
-      view === "tasks" &&
-      job &&
-      selected === taskIdFromHash(window.location.hash)
-    ) {
+    if (view === "tasks" && job && selected === requestedTask.current) {
       const owner = viewForResults(moduleForKind(kindForJob(job)));
       setView((current) => (current === "tasks" ? owner : current));
     }
@@ -167,6 +165,7 @@ export function App() {
     setFocusResidue(null);
   }
   function showJob(id: string) {
+    requestedTask.current = id;
     inspectJob(id);
     setResultsVersion((n) => n + 1);
     const next =
@@ -477,7 +476,7 @@ export function App() {
                 />
               </>
             )}
-            {view === "tasks" && !job && (
+            {view === "tasks" && (
               <section className="utility-page task-history-workspace">
                 <TaskWorkspaceSelectionState
                   language={language}
