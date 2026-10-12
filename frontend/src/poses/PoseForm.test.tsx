@@ -6,6 +6,7 @@ import type { SiteSet } from "../sites/types";
 import type { Exploration } from "./types";
 import { defaults } from "./generated";
 import * as client from "../api";
+import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -29,7 +30,7 @@ const ref = {
   version_id: "version-1",
 };
 it("requires sites and a saved exact ligand before exposing exploration settings", async () => {
-  vi.spyOn(client, "request").mockResolvedValue([]);
+  vi.spyOn(client, "request").mockResolvedValue(catalogFixture());
   vi.spyOn(client.api, "assets").mockResolvedValue([]);
   const post = vi.spyOn(client.api, "post"),
     user = userEvent.setup();
@@ -48,19 +49,25 @@ it("requires sites and a saved exact ligand before exposing exploration settings
   expect(post).not.toHaveBeenCalled();
 });
 it("preserves exact saved ligand and native exploration budgets through review and actual plan saving", async () => {
-  vi.spyOn(client, "request").mockImplementation(
+  const request = vi.spyOn(client, "request").mockImplementation(
     async (path) =>
-      (path.startsWith("/research/objects")
-        ? [
+      (path.startsWith("/research/input-catalog?")
+        ? catalogFixture([
             {
               id: "version-1",
               kind: "molecule",
               label: "Saved ligand",
               reference: ref,
             },
-          ]
+          ] as never)
         : path.includes("metadata")
-          ? { id: "molecule", sha256: ref.sha256, suffix: ".sdf" }
+          ? {
+              id: "molecule",
+              sha256: ref.sha256,
+              suffix: ".sdf",
+              kind: "ligand",
+              size: 100,
+            }
           : []) as never,
   );
   vi.spyOn(client.api, "assets").mockResolvedValue([]);
@@ -90,9 +97,20 @@ it("preserves exact saved ligand and native exploration budgets through review a
     name: /Historical files/,
   });
   await waitFor(() => expect(input).toBeEnabled());
+  expect(
+    await screen.findByRole("option", { name: "Saved ligand · record 3" }),
+  ).toHaveValue("version:version-1");
+  expect(request).toHaveBeenCalledWith(
+    "/research/input-catalog?kind=ligand&limit=25&offset=0&scope=records&formats=.sdf",
+    expect.objectContaining({ signal: expect.any(AbortSignal) }),
+  );
   await user.selectOptions(input, "version:version-1");
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Next" })).toBeEnabled(),
+  );
+  expect(request).toHaveBeenCalledWith(
+    "/assets/molecule/metadata",
+    expect.objectContaining({ signal: expect.any(AbortSignal) }),
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.selectOptions(

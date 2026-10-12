@@ -2,7 +2,7 @@ name: Public case controls and context checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &template_controls_paths
       - 'frontend/src/examples/ExampleActions*'
       - 'frontend/src/examples/ExampleToolbar*'
       # Study-specific labels are checked without replaying archived result fixtures.
@@ -19,6 +19,8 @@ on:
       - 'frontend/index.html'
       - 'frontend/src/presentation/result-layout.css'
       - 'server_tests/test_template_controls_browser.py'
+  pull_request:
+    paths: *template_controls_paths
 permissions:
   contents: read
 jobs:

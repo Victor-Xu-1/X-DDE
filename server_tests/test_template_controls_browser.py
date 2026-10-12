@@ -1,4 +1,4 @@
-"""Public case controls over archived native outputs; never execute science."""
+"""Current study controls and explicit archived native outputs; never execute science."""
 
 import json
 import os
@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.examples.stat6.catalogue import verified_input
 from server_tests.test_navigation_shell_browser import open_navigation, settings
 
 EVIDENCE = Path("server_tests/evidence/template-controls")
@@ -100,6 +101,17 @@ def open_case(page, language, capability, labels):
     return region
 
 
+def study_detail(page, capability):
+    response = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples/" + capability)
+    assert response.ok, response.text()
+    info = response.json()
+    assert info["case"]["id"] == "stat6-defined-molecules"
+    assert info["study"]["target"] == "STAT6"
+    assert info["pin"] is None and info["record_pin"] is None
+    assert not info["computed_result_available"]
+    return info
+
+
 def capture(page, name):
     page.screenshot(path=EVIDENCE / (name + ".png"))
     overflowing = page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
@@ -119,16 +131,20 @@ def capture(page, name):
     assert not overflowing, name
 
 
-def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_page):
+def test_current_study_controls_are_coherent_and_keyboard_return_is_exact(case_page):
     page, language, width = case_page
     index = 0 if language == "zh" else 1
     measurements = []
     for capability, labels in CASES:
         region = open_case(page, language, capability, labels)
-        info = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples/" + capability).json()
+        info = study_detail(page, capability)
         expect(region.locator(".example-case-name")).to_contain_text(info["case"]["label"][index])
-        setup = bool(info.get("record_pin") and not info["record_pin"]["computed_result_available"])
-        kind = ("配置示例", "Setup example") if setup else ("示例结果", "Example results")
+        expect(
+            region.get_by_role(
+                "button", name="示例结果" if index == 0 else "Example results", exact=True
+            )
+        ).to_have_count(0)
+        kind = ("查看研究材料", "Preview study inputs")
         trigger = region.get_by_role("button", name=kind[index], exact=True)
         capture(page, f"{language}-{width}-{capability}-input")
         expect(trigger).to_be_visible()
@@ -137,24 +153,19 @@ def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_pag
         expect(title).to_have_text(info["case"]["label"][index])
         expect(title).to_be_focused()
         expect(region.get_by_role("button", name=kind[index], exact=True)).to_have_count(0)
-        badge = (
-            "配置示例"
-            if setup and index == 0
-            else "Setup example"
-            if setup
-            else "公开示例"
-            if index == 0
-            else "Public example"
-        )
+        badge = "研究材料预览" if index == 0 else "Reference input preview"
         expect(region.locator(".example-result-kind")).to_have_text(badge)
         result = region.locator(".module-example-result")
         expect(result).to_be_visible()
-        if capability != "campaign":
-            expect(result.locator("table").first).to_be_visible(timeout=30000)
+        preview = result.locator(".study-input-preview")
+        expect(preview).to_be_visible()
+        expect(preview.locator("table")).to_contain_text("STAT6 · P42226")
+        expect(preview.locator(".study-geometry-note")).to_contain_text("MMFF94s")
         if capability == "predict":
             expect(result.locator(".viewer-tools").first).to_be_visible(timeout=45000)
         if capability in {"admet.predict", "del.analyze"}:
-            expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
+            preview.get_by_role("button", name="2D", exact=True).click()
+            expect(preview.locator(".molecule-image")).to_have_attribute(
                 "data-drawing-state", "ready", timeout=45000
             )
         if capability == "predict":
@@ -181,12 +192,73 @@ def test_native_case_controls_are_coherent_and_keyboard_return_is_exact(case_pag
                 "capability": capability,
                 "language": language,
                 "width": width,
-                "setup_only": setup,
+                "computed_result_available": False,
                 "exact_case": info["case"]["id"],
                 "keyboard_return": True,
             }
         )
     (EVIDENCE / f"case-context-{language}-{width}.json").write_text(
+        json.dumps(measurements, ensure_ascii=False, indent=2)
+    )
+
+
+def test_archived_results_keep_original_identity_outside_the_active_study(case_page):
+    page, language, width = case_page
+    index = 0 if language == "zh" else 1
+    base = os.environ["WB_BROWSER_URL"]
+    measurements = []
+    for capability, _ in CASES:
+        current = study_detail(page, capability)
+        response = page.request.get(base + "/api/examples/" + capability + "?profile=archive")
+        assert response.ok, response.text()
+        archived = response.json()
+        assert archived["case"]["id"] != current["case"]["id"]
+        assert archived["module"]["revision"] + 1 == current["module"]["revision"]
+        if capability == "campaign":
+            pin = archived["record_pin"]
+            assert pin and not pin["computed_result_available"]
+            assert not archived["computed_result_available"]
+            plans = page.request.get(base + "/api/harness/plans").json()
+            plan = next(item for item in plans if item["id"] == pin["record_id"])
+            assert plan["state"] == "validated" and plan["task_id"] is None
+            measurements.append({"capability": capability, "validated_plan": plan["id"]})
+        else:
+            pin = archived["pin"]
+            assert archived["computed_result_available"] and pin and pin["artifact_sha256"]
+            job_id = pin["job_id"]
+            job = page.request.get(base + "/api/jobs/" + job_id).json()
+            assert job["status"] == "succeeded"
+            identity = page.request.get(base + f"/api/task-history/{job_id}/identity").json()
+            assert identity["origin"] == "fixed_example"
+            assert archived["case"]["id"] in {case["id"] for case in identity["example_cases"]}
+            # Retained results open through the actual task route, never as STAT6 outputs.
+            page.goto(base + "/#task=" + job_id)
+            if capability == "predict":
+                page.locator(".execution-detail > summary").click()
+            detail = page.locator(".detail-panel")
+            expect(detail).to_be_visible()
+            expect(detail.locator(".panel-heading h2")).to_contain_text(
+                archived["case"]["label"][index]
+            )
+            if capability == "predict":
+                expect(page.locator(".candidate-panel table")).to_be_visible(timeout=30000)
+                expect(page.locator(".candidate-panel tbody tr").first).to_be_visible(timeout=30000)
+                expect(page.locator(".candidate-state.error-box")).to_have_count(0)
+                expect(page.locator(".viewer-tools").first).to_be_visible(timeout=45000)
+            else:
+                expect(detail.locator("table").first).to_be_visible(timeout=30000)
+                expect(detail.locator(".molecule-image").first).to_have_attribute(
+                    "data-drawing-state", "ready", timeout=45000
+                )
+            capture(page, f"{language}-{width}-{capability}-archived-result")
+            assert page.request.get(base + "/api/jobs/" + job_id).json() == job
+            measurements.append({"capability": capability, "job_id": job_id})
+        assert (
+            page.request.get(base + "/api/examples/" + capability + "?profile=archive").json()
+            == archived
+        )
+        assert study_detail(page, capability) == current
+    (EVIDENCE / f"archive-identity-{language}-{width}.json").write_text(
         json.dumps(measurements, ensure_ascii=False, indent=2)
     )
 
@@ -217,14 +289,13 @@ def test_failed_metadata_retry_and_public_preview_preserve_real_sequence_input(c
     )
     expect(alert).to_be_visible()
     assert "ConnectionRefused" not in alert.inner_text() and "service.log" not in alert.inner_text()
-    info = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples/predict").json()
-    job = page.request.get(
-        os.environ["WB_BROWSER_URL"] + "/api/jobs/" + info["pin"]["job_id"]
-    ).json()
-    sequence_value = next(
-        item["value"] for item in job["request"]["components"] if item["kind"] == "protein"
+    study_detail(page, "predict")
+    sequence_value = "".join(
+        line
+        for line in verified_input("stat6_sequence").decode().splitlines()
+        if not line.startswith(">")
     )
-    assert len(sequence_value) > 80
+    assert len(sequence_value) == 847
     page.get_by_role(
         "radio", name="蛋白结构" if index == 0 else "Protein structure", exact=True
     ).check()
@@ -235,7 +306,7 @@ def test_failed_metadata_retry_and_public_preview_preserve_real_sequence_input(c
     failing = False
     alert.get_by_role("button", name="重试" if index == 0 else "Retry", exact=True).click()
     trigger = page.get_by_role(
-        "button", name="示例结果" if index == 0 else "Example results", exact=True
+        "button", name="查看研究材料" if index == 0 else "Preview study inputs", exact=True
     )
     expect(trigger).to_be_enabled()
     expect(sequence).to_have_value(sequence_value)
@@ -252,10 +323,12 @@ def test_failed_metadata_retry_and_public_preview_preserve_real_sequence_input(c
         page.get_by_role("radio", name="深色" if index == 0 else "Dark", exact=True).check()
         region = open_case(page, language, "admet.predict", CASES[1][1])
         region.get_by_role(
-            "button", name="示例结果" if index == 0 else "Example results", exact=True
+            "button", name="查看研究材料" if index == 0 else "Preview study inputs", exact=True
         ).click()
         expect(region.locator(".module-example-result table").first).to_be_visible(timeout=30000)
-        expect(region.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
+        preview = region.locator(".study-input-preview")
+        preview.get_by_role("button", name="2D", exact=True).click()
+        expect(preview.locator(".molecule-image")).to_have_attribute(
             "data-drawing-state", "ready", timeout=45000
         )
         capture(page, f"{language}-{width}-dark-public-result")

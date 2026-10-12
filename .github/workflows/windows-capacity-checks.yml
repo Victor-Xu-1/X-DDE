@@ -2,12 +2,14 @@ name: Windows physical capacity and launch controls
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &windows_capacity_paths
       - "install.ps1"
       - "scripts/opendde.ps1"
       - "tests/test_windows_installer.ps1"
       - "tests/test_windows_launch_capacity.ps1"
       - ".github/workflows/windows-capacity-checks.yml"
+  pull_request:
+    paths: *windows_capacity_paths
 permissions:
   contents: read
 jobs:

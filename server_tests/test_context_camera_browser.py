@@ -3,8 +3,9 @@
 import json
 import os
 
-from ensemble_browser_helpers import EVIDENCE, capture, download, open_result, preserve_assets
+from ensemble_browser_helpers import EVIDENCE, capture, download, preserve_assets
 from playwright.sync_api import expect, sync_playwright
+from test_ensemble_results_browser import brd4_archive
 
 
 def test_real_brd4_residue_focus_context_and_view_download():
@@ -13,6 +14,7 @@ def test_real_brd4_residue_focus_context_and_view_download():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -25,7 +27,7 @@ def test_real_brd4_residue_focus_context_and_view_download():
         )
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
-        info = page.request.get(base + "/api/examples/diffsbdd.interactions").json()
+        info = brd4_archive(page, "diffsbdd.interactions")
         job_id = info["pin"]["job_id"]
         job = page.request.get(base + "/api/jobs/" + job_id).json()
         assert job["request"]["operation"] == "diffsbdd"
@@ -36,7 +38,10 @@ def test_real_brd4_residue_focus_context_and_view_download():
         try:
             for width in (1440, 1331, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
-                open_result(page, "分子相互作用")
+                page.goto(base + "/#task=" + job_id)
+                expect(page.locator(".detail-panel .panel-heading h2")).to_contain_text(
+                    info["case"]["label"][0]
+                )
                 control = page.get_by_role("button", name="A:ASN140", exact=True)
                 control.focus()
                 control.press("Enter")
@@ -79,6 +84,8 @@ def test_real_brd4_residue_focus_context_and_view_download():
                     panel.get_by_role("button", name="生成三维视图图片", exact=True)
                 ).to_be_enabled()
             assert preserve_assets(page, references) == preserved
+            assert brd4_archive(page, "diffsbdd.interactions") == info
+            assert page.request.get(base + "/api/jobs/" + job_id).json() == job
             assert (
                 page.request.get(base + "/api/jobs").json() == before
                 and not errors
