@@ -1,13 +1,13 @@
 """Reviewed native study results; input presets alone are not computed examples."""
 
-VERSION = "2"
+VERSION = "3"
 URL = (
     "https://github.com/Victor-Xu-1/X-DDE/releases/download/"
-    "examples-stat6-results-v2/stat6-reviewed-results-v2.zip"
+    "examples-stat6-results-v3/stat6-reviewed-results-v3.zip"
 )
-SHA256 = "c90946bfab91a3d2b1cbb972a7d997f403a0a2d6dc949000123651724bee148d"
-BYTES = 2161689
-SOURCE_REVISION = "392f85a311d2efc46afa83c220a0780015810c2c"
+SHA256 = "9308312c7014da69224b17e82d9941a5b4bec28675de83ef589aa69605e11d89"
+BYTES = 2523171
+SOURCE_REVISION = "8976adb048d7701c937b4bfbe49a1281f6ee593a"
 CAPABILITIES = (
     "properties",
     "admet.predict",
@@ -21,4 +21,8 @@ CAPABILITIES = (
     "diffsbdd.interactions",
     "antibody.number",
     "antibody.humanize",
+    "chemistry.screen",
+    "biopython.ensemble",
+    "gnina.minimize",
+    "gnina.dock",
 )

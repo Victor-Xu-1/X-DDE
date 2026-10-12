@@ -86,7 +86,7 @@ artifact in isolated state, then merges through the existing stores without
 overwriting user data or launching calculations. Older archive bundles retain
 their original reviewed compatibility rules.
 
-The `public-stat6-examples` data component installs the reviewed twelve-module
+The `public-stat6-examples` data component installs the reviewed sixteen-module
 subset from its immutable checksummed release through the same deployment queue
 and restore authority. It does not install scientific engines or run inference.
 The subset includes the explicit P2Rank method-limit example, not a claim that
