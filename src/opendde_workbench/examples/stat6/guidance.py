@@ -4,6 +4,11 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "diffsbdd.prepare": (
+        "使用已明确替代原子位置的 STAT6 蛋白 PDB 进行内容筛选，保留原坐标。",
+        "Filter the explicitly prepared STAT6 protein-only PDB while preserving coordinates; "
+        "this does not repair missing atoms or optimize the protein.",
+    ),
     "gnina.dock": (
         "使用已明确替代原子位置的 9BIG 蛋白 PDB，在 AK-1690 参考口袋搜索指定分子的姿势。",
         "Use the prepared 9BIG protein-only PDB with resolved alternate positions "

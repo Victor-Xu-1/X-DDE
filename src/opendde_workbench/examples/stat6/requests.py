@@ -8,6 +8,8 @@ def study_request(capability, objects, sequences):
         return None
     if capability in {"gnina.dock", "caver.paths"} and "receptor" not in objects:
         return None
+    if capability == "diffsbdd.prepare" and "structure" not in objects:
+        return None
 
     def reference(key):
         return objects[key].reference.model_dump(mode="json")

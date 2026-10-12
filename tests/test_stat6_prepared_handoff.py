@@ -177,6 +177,30 @@ def test_docking_template_uses_its_exact_reviewed_prepared_version(settings):
     assert len(store.list_jobs()) == before
 
 
+def test_diff_receptor_template_uses_the_qualified_pdb_without_a_cif_alias(settings):
+    store, scientific, records, version = docking_fixture(settings)
+    before = len(store.list_jobs())
+    prepared = prepare_stat6("diffsbdd.prepare", scientific, records=records)
+    assert prepared.objects["structure"] == prepared.objects["receptor"] == version
+    payload = prepared.request["payload"]
+    assert payload["protein"] == version.reference.model_dump(mode="json")
+    assert payload["chains"] == ["A"] and payload["remove_water"] is True
+    assert payload["keep_ligands"] is False and payload["remove_hydrogens"] is False
+    assert prepared.objects["stat6_structure"].reference != version.reference
+    assert len(store.list_jobs()) == before
+
+
+def test_cold_diff_receptor_template_does_not_prefill_an_unsupported_cif(settings):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    prepared = prepare_stat6("diffsbdd.prepare", scientific)
+    assert prepared.request is None
+    assert "structure" not in prepared.objects and "receptor" not in prepared.objects
+    assert "stat6_structure" in prepared.objects and "stat6_receptor" in prepared.objects
+    assert prepared.study["required_materials"] and not store.list_jobs()
+
+
 @pytest.mark.parametrize("failure", ["artifact", "options", "source"])
 def test_docking_template_rejects_changed_preparation_instead_of_raw_fallback(settings, failure):
     _, scientific, records, version = docking_fixture(settings)

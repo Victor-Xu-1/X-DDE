@@ -43,7 +43,7 @@ def reviewed_receptor(scientific, records, *, retain_reference_ligand=False):
     return versions[0]
 
 
-def reviewed_docking_receptor(scientific, records):
+def reviewed_protein_only_receptor(scientific, records):
     """Reuse the exact prepared protein consumed by the reviewed docking case."""
     if records is None:
         return None

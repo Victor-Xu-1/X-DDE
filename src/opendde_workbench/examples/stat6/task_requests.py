@@ -50,7 +50,7 @@ def study_task(capability, objects, sequences):
                 protein=ref("structure"),
                 chains=["A"],
                 remove_water=True,
-                keep_ligands=True,
+                keep_ligands=False,
                 remove_hydrogens=False,
             )
         elif mode == "interactions":

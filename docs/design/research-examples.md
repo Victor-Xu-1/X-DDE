@@ -23,6 +23,10 @@ installation without that reviewed result retains the raw reference materials
 and preparation instructions but does not prefill an unresolved receptor as a
 ready docking request. Exposure and alignment keep their separate reviewed CIF
 preparation; no existing pin or original input is overwritten.
+The PDB-only DiffSBDD receptor-filtering preset uses the same qualified protein
+version. It never pre-fills the original CIF into a PDB-only input or falls back
+to the unresolved extracted PDB. The raw original stays available for inspection,
+and explicit preparation is required when the reviewed PDB is unavailable.
 The STAT6 channel preset starts from the actual deposited AK-1690 component
 (`A:A1AQQ 701`) in the reviewed CIF, removes that starting ligand from geometric
 obstacles and uses chain A. It does not substitute an arbitrary amino-acid start
