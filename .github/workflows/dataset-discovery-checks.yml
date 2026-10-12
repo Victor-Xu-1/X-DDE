@@ -1,7 +1,7 @@
 name: Dataset discovery scoped checks
 on:
   push:
-    paths:
+    paths: &dataset_paths
       - 'src/opendde_workbench/asset_upload*'
       - 'src/opendde_workbench/dataset_inputs.py'
       - 'src/opendde_workbench/datasets/**'
@@ -44,6 +44,8 @@ on:
       - "!frontend/src/datasets/ScreeningForm.tsx"
       - "!frontend/src/datasets/screening-readiness*"
       - "!.github/workflows/dataset-discovery-checks.yml"
+  pull_request:
+    paths: *dataset_paths
   workflow_dispatch:
     inputs:
       engine:
@@ -55,7 +57,7 @@ permissions:
   contents: read
 jobs:
   contracts:
-    if: github.event_name == 'push' || inputs.engine == 'contracts'
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -85,7 +87,7 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts
   native-del-data:
-    if: github.event_name == 'push' || inputs.engine == 'contracts'
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
