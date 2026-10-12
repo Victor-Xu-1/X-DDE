@@ -90,7 +90,11 @@ def test_model_validation_identity_ranges_exports_and_literal_source_names(langu
         )
         assert chart.evaluate("el => el.data[1].x") == chart.evaluate("el => el.data[1].y")
         exercise_plot_view(
-            page, panel, language, chart.evaluate("el => el._fullLayout.xaxis.range")
+            page,
+            panel,
+            language,
+            chart.evaluate("el => el._fullLayout.xaxis.range"),
+            evidence=evidence,
         )
         svg = export_figure(
             page,
