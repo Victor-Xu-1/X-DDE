@@ -261,6 +261,28 @@ it("an aligned receptor and source pose colors only the receptor, while true com
     )) as GLViewer["selectedAtoms"];
   const scene = new MolecularScene(viewer, emit);
   scene.inspect(true, false, ["pdb", "sdf"], 1);
+  const receptorBefore = source(model.selectedAtoms({})),
+    ligandBefore = source(pose.selectedAtoms({}));
+  const region = [
+    {
+      model: 0,
+      chain: "A",
+      number: 1,
+      insertion_code: "",
+      alternate_location: "",
+    },
+  ];
+  await scene.highlightResidues(region);
+  expect(emit).toHaveBeenCalledWith("site-region", {
+    requested: 1,
+    matched: 1,
+  });
+  expect(model.selectedAtoms({})[0].style?.stick?.color).toBe("#dc8e25");
+  expect(
+    model.selectedAtoms({})[0].style?.cartoon?.opacity,
+  ).toBeGreaterThanOrEqual(0.8);
+  expect(source(model.selectedAtoms({}))).toEqual(receptorBefore);
+  expect(source(pose.selectedAtoms({}))).toEqual(ligandBefore);
   await scene.configure({ mode: "surface" });
   expect(viewer.addSurface).toHaveBeenCalledWith(
     expect.anything(),
@@ -287,6 +309,10 @@ it("an aligned receptor and source pose colors only the receptor, while true com
   vi.mocked(viewer.addSurface).mockClear();
   emit.mockClear();
   scene.inspect(true, false, ["pdb", "sdf"], null);
+  await scene.highlightResidues(region);
+  expect(
+    emit.mock.calls.filter(([type]) => type === "site-region"),
+  ).toHaveLength(0);
   scene.focusLigand();
   expect(viewer.zoomTo).not.toHaveBeenCalled();
   await scene.configure({ mode: "surface" });

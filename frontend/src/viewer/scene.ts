@@ -200,7 +200,7 @@ export class MolecularScene {
     await this.paint();
   }
   async highlightResidues(value: unknown) {
-    if (this.overlay) return;
+    if (this.overlay && this.complexModel === null) return;
     const region = residueRegion(
       value,
       this.viewer.selectedAtoms({ model: 0 }),
@@ -214,7 +214,8 @@ export class MolecularScene {
     });
   }
   focusSite() {
-    if (this.overlay || !this.siteRegion.length) return;
+    if ((this.overlay && this.complexModel === null) || !this.siteRegion.length)
+      return;
     focusDisplayContext(
       this.viewer,
       this.viewer.selectedAtoms({ model: 0, index: this.siteRegion }),
@@ -253,6 +254,8 @@ export class MolecularScene {
           ["sdf", "mol", "mol2"].includes(format),
           this.complexModel === null,
         );
+      if (this.complexModel !== null && this.siteRegion.length)
+        v.addStyle({ model: 0, index: this.siteRegion }, regionStyle());
       this.drawContacts();
       await this.paintSurface();
       // Residue contact highlights can restyle whole residues after base styling.

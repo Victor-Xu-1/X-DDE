@@ -6,6 +6,8 @@ on:
       - "frontend/src/diffsbdd/reference-pocket*"
       - "frontend/src/diffsbdd/ScientificDetails.tsx"
       - "frontend/src/diffsbdd/DiffResults*"
+      - "frontend/src/viewer/scene.ts"
+      - "frontend/src/viewer/style.test.ts"
       - "server_tests/test_reference_pocket_browser.py"
       - ".github/workflows/reference-pocket-checks.yml"
   pull_request:
@@ -28,7 +30,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - working-directory: frontend
-        run: npx vitest run src/diffsbdd/reference-pocket.test.ts src/diffsbdd/DiffResults.test.tsx src/viewer/residue-region.test.ts src/viewer/StructureViewer.test.tsx
+        run: npx vitest run src/diffsbdd/reference-pocket.test.ts src/diffsbdd/DiffResults.test.tsx src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
       - run: uv run --locked ruff check server_tests/test_reference_pocket_browser.py
       - name: Restore only reviewed native evidence, with no scientific execution
         env:
