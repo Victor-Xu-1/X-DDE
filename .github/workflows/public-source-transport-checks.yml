@@ -19,7 +19,11 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Only public request transport, original archives and direct source consumers
         run: uv run --locked pytest -q tests/test_source_proxy.py tests/test_source_transport.py tests/test_reference_import.py tests/test_discovery.py
