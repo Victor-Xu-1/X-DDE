@@ -21,6 +21,7 @@ import { ModuleWorkspaceNavigation } from "./studio/ModuleWorkspaceNavigation";
 import { kindForJob, moduleForKind } from "./studio/task-history-model";
 import { PredictionResults } from "./studio/PredictionResults";
 import { TaskWorkspace } from "./studio/TaskWorkspace";
+import { TaskWorkspaceSelectionState } from "./studio/TaskWorkspaceSelectionState";
 import { taskHistoryHash, taskHistoryRoute } from "./studio/task-history-route";
 import { WorkspaceTabs } from "./studio/WorkspaceTabs";
 import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
@@ -447,10 +448,19 @@ export function App() {
                 />
               </>
             )}
-            {showingResults && (
+            {view === "tasks" && !job && (
+              <section className="utility-page task-history-workspace">
+                <TaskWorkspaceSelectionState language={language}
+                  error={work.selectedJobError} loading={work.selectedJobLoading}
+                  onRetry={refresh} historyHref={taskHistoryHash({
+                    module: "other", type: "all", status: "all", query: "", page: 0, project: projectId,
+                  })} />
+              </section>
+            )}
+            {scopedResults && (
               <TaskWorkspace
-                key={scopedResults ?? "unresolved"}
-                scopedModule={scopedResults ?? "other"}
+                key={scopedResults}
+                scopedModule={scopedResults}
                 {...common}
                 selected={selected}
                 selectedError={work.selectedJobError}

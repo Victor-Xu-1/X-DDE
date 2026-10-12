@@ -27,7 +27,7 @@ export function AdmetForm({
   const recordedLibrary = useExampleReference("library");
   const recordedMolecule = useExampleReference("ligand");
   const preset = useExampleTask("admet_predict");
-  initialMolecule ??= preset?.molecule ?? recordedMolecule;
+  initialMolecule ??= preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
   const exampleLibrary = initialMolecule ? null : recordedLibrary;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),

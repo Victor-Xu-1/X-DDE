@@ -112,6 +112,27 @@ it("shows a pending task before metadata arrives and retains the requested URL",
   ).toBeVisible();
   expect(screen.getByRole("button", { name: "Retry" })).toBeVisible();
   expect(window.location.hash).toContain(A);
+  expect(window.location.hash).toBe("#task=" + A);
+});
+
+it("waits for a task's owner before canonicalizing a same-page legacy link", async () => {
+  window.history.replaceState(null, "", "/#task=");
+  let resolve!: (value: Job) => void;
+  vi.mocked(client.request).mockImplementation(async (path) => {
+    if (path === `/jobs/${B}`) return new Promise<Job>((done) => { resolve = done; }) as never;
+    if (path.startsWith("/task-history/")) return identityFixture(job(B)) as never;
+    throw new Error("Unrelated request " + path);
+  });
+  render(<App />);
+  await advance();
+  act(() => navigate("#task=" + B));
+  await advance();
+  expect(screen.getByRole("heading", { name: "Loading selected task…" })).toBeVisible();
+  expect(window.location.hash).toBe("#task=" + B);
+  await act(async () => { resolve(job(B)); });
+  expect(document.querySelector(".page-context-title")).toHaveTextContent("Properties and safety");
+  expect(document.querySelector(".detail-panel h2")).toHaveTextContent("Selected task B");
+  expect(window.location.hash).toBe("#view=results&module=evaluation&task=" + B);
 });
 
 it.each([
