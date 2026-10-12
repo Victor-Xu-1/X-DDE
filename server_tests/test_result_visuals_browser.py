@@ -168,7 +168,7 @@ def test_real_structures_tables_and_sequences():
                 "data-drawing-state", "ready", timeout=45000
             )
             selected.get_by_role("combobox", name="结果分组", exact=True).select_option("all")
-            expect(selected.locator(".admet-endpoints tbody tr")).to_have_count(41)
+            expect(selected.locator(".admet-endpoints tr[data-endpoint-id]")).to_have_count(41)
             structure_tab = selected.get_by_role("tab", name="三维结构", exact=True)
             structure_tab.click()
             expect(structure_tab).to_have_attribute("aria-selected", "true")
