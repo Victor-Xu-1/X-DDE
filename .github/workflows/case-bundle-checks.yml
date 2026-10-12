@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/opendde_workbench/examples/bundle*.py'
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
+      - 'src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
       - 'tests/ci/test_case_bundle_scope.py'
@@ -23,6 +24,7 @@ on:
     paths:
       - 'src/opendde_workbench/examples/bundle*.py'
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
+      - 'src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
       - 'tests/ci/test_case_bundle_scope.py'
