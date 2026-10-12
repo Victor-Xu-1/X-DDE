@@ -10,6 +10,7 @@ on:
       - 'frontend/src/receptors/SurfaceForm*'
       - 'tests/test_stat6_prepared_handoff.py'
       - 'server_tests/test_surface_region_replay_browser.py'
+      - 'server_tests/test_pocket_results_browser.py'
       - '.github/workflows/module-example-checks.yml'
   pull_request:
     paths: *module_example_paths
@@ -42,16 +43,17 @@ jobs:
           echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
           gh release download examples-stat6-results-v1 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v1.zip --dir "$RUNNER_TEMP"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           gh release download v0.4.32 --repo "$GITHUB_REPOSITORY" --pattern x-dde-surface-cases-v1.zip --dir "$RUNNER_TEMP"
           .venv/bin/python - <<'PY'
           import os
           from pathlib import Path
           from opendde_workbench.examples.bundle import restore_bundle
-          from opendde_workbench.examples import stat6_bundle_release, surface_bundle_release
+          from opendde_workbench.examples import bundle_release, stat6_bundle_release, surface_bundle_release
           from opendde_workbench.settings import Settings
           settings = Settings.from_env()
           assert settings.state_dir.is_relative_to(Path(os.environ['RUNNER_TEMP']))
-          for spec in (stat6_bundle_release, surface_bundle_release):
+          for spec in (bundle_release, stat6_bundle_release, surface_bundle_release):
               file = Path(os.environ['RUNNER_TEMP']) / spec.URL.rsplit('/', 1)[-1]
               print(restore_bundle(file, settings, spec.SHA256))
           PY
@@ -64,6 +66,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
           .venv/bin/python -m pytest -x -q server_tests/test_surface_region_replay_browser.py
+          .venv/bin/python -m pytest -x -q server_tests/test_pocket_results_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
