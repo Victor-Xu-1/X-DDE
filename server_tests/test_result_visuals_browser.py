@@ -137,8 +137,8 @@ def test_real_structures_tables_and_sequences():
                 record(f"responsive-properties-{chart_width}")
             page.set_viewport_size({"width": 1440, "height": 1000})
             result("性质与早期安全性预测")
-            table = page.get_by_role("region", name="候选分子", exact=True).locator(
-                ".research-table"
+            table = page.get_by_role("region", name="候选分子", exact=True).and_(
+                page.locator(".research-table")
             )
             expect(table).to_be_visible()
             expect(table.locator("thead th")).to_have_count(4)
