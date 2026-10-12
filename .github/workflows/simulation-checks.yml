@@ -26,6 +26,9 @@ on:
       - "!src/opendde_workbench/simulations/native_md_input.py"
       - "!src/opendde_workbench/simulations/native_md_system.py"
       - "!src/opendde_workbench/simulations/native_dynamics.py"
+      # Protein input and native FEP mounting use fep-input-checks.yml.
+      - "!src/opendde_workbench/simulations/native_fep_input.py"
+      - "!src/opendde_workbench/simulations/native_fep_plan.py"
       # Routing-only workflow edits do not re-run scientific contracts.
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/simulations/DynamicsResults.tsx"

@@ -9,7 +9,7 @@ Copy-Item -LiteralPath (Join-Path $repository 'scripts/opendde.ps1') -Destinatio
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding utf8
 $wrapper = Join-Path $target 'boundary.ps1'
 @'
-param([string]$Launcher,[string]$Marker,[string]$Command)
+param([string]$Launcher,[string]$Marker,[string]$Command,[switch]$Running)
 function global:Get-Volume { param([string]$FilePath); [pscustomobject]@{SizeRemaining=0;DriveLetter='D'} }
 function global:Get-ItemProperty {
     param([string]$Path,$ErrorAction)
@@ -17,14 +17,20 @@ function global:Get-ItemProperty {
 }
 function global:wsl.exe {
     $global:LASTEXITCODE=0
-    if ($args[0] -eq '--list' -and '--running' -in $args) { return @() }
+    if ($args[0] -eq '--list' -and '--running' -in $args) {
+        if ($Running) { return 'isolated-Windows-boundary' }
+        return @()
+    }
     [IO.File]::WriteAllText($Marker,($args -join ' '))
+    if ($Running -and $args[0] -eq '-d' -and $args[1] -eq 'isolated-Windows-boundary') {
+        return '{"running":true,"distribution":"isolated-Windows-boundary"}'
+    }
     throw 'Unsafe native WSL invocation reached the isolated boundary.'
 }
 & $Launcher $Command '--no-browser'
 '@ | Set-Content -LiteralPath $wrapper -Encoding utf8
 $powershell = (Get-Process -Id $PID).Path
-function Invoke-LauncherBoundary([string]$Command,[string]$Marker) {
+function Invoke-LauncherBoundary([string]$Command,[string]$Marker,[switch]$Running) {
     $start = [Diagnostics.ProcessStartInfo]::new()
     $start.FileName = $powershell
     $start.UseShellExecute = $false
@@ -34,6 +40,7 @@ function Invoke-LauncherBoundary([string]$Command,[string]$Marker) {
     foreach ($argument in @('-NoLogo','-NoProfile','-NonInteractive','-File',$wrapper,$launcher,$Marker,$Command)) {
         $start.ArgumentList.Add($argument)
     }
+    if ($Running) { $start.ArgumentList.Add('-Running') }
     $process = [Diagnostics.Process]::Start($start)
     try {
         $stdout = $process.StandardOutput.ReadToEndAsync()
@@ -54,4 +61,12 @@ foreach ($command in @('status','stop','close')) {
     if ($result.exit -ne 0 -or (Test-Path -LiteralPath $marker)) { throw "Read-only offline control booted WSL: $command" }
     if ($command -eq 'status' -and ($result.output | ConvertFrom-Json).running -ne $false) { throw 'Offline status was not truthful.' }
 }
-Write-Output 'Low physical capacity blocks startup; offline status and close do not boot WSL.'
+foreach ($command in @('STATUS','Stop','CLOSE')) {
+    $marker = Join-Path $target ($command + '.running-native-call')
+    $result = Invoke-LauncherBoundary $command $marker -Running
+    if ($result.exit -ne 0 -or !(Test-Path -LiteralPath $marker)) { throw "Running control did not reach the registered X-DDE CLI: $command" }
+    if (Test-Path -LiteralPath (Join-Path $target 'tmp')) { throw 'Status or close created temporary storage on a full drive.' }
+    $invocation = [IO.File]::ReadAllText($marker)
+    if ($invocation -notmatch '/environment/bin/xdde' -or $invocation -notmatch "(?i) $command ") { throw 'Running control was not forwarded unchanged to the existing CLI.' }
+}
+Write-Output 'Low physical capacity blocks startup; offline controls do not boot WSL and running controls do not create temporary storage.'

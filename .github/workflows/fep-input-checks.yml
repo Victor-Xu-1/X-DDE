@@ -1,0 +1,29 @@
+name: FEP protein input geometry and mounting
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/opendde_workbench/simulations/native_fep_input.py"
+      - "src/opendde_workbench/simulations/native_fep_plan.py"
+      - "src/opendde_workbench/simulations/native_md_input.py"
+      - "src/opendde_workbench/integrations/backend.py"
+      - "tests/test_fep_input.py"
+      - ".github/workflows/fep-input-checks.yml"
+permissions:
+  contents: read
+jobs:
+  fep-input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Read-only input parser, shared peptide geometry and direct simulation contracts
+        run: |
+          uv run --locked ruff check src/opendde_workbench/simulations/native_fep_input.py src/opendde_workbench/simulations/native_fep_plan.py tests/test_fep_input.py
+          uv run --locked --with openmm==8.4.0 --with numpy==2.2.6 python -m pytest -q tests/test_fep_input.py tests/test_md_input.py tests/test_simulations.py tests/test_openfe_runtime.py
