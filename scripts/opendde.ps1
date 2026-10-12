@@ -1,4 +1,33 @@
 $ErrorActionPreference = 'Stop'
+function Get-XddeNetworkEnvironment($Configuration) {
+    $network = @()
+    $configured = $Configuration.PSObject.Properties['network_proxy']
+    if ($configured -and $configured.Value) {
+        $address = [string]$configured.Value
+        $proxyUri = $null
+        if ($address -match '[\x00-\x20\x7f]' -or
+            ![Uri]::TryCreate($address, [UriKind]::Absolute, [ref]$proxyUri) -or
+            $proxyUri.Scheme -notin @('http', 'https') -or !$proxyUri.Host -or
+            $proxyUri.UserInfo -or $proxyUri.Query -or $proxyUri.Fragment -or
+            $proxyUri.AbsolutePath -ne '/') {
+            throw 'network_proxy must be an HTTP(S) proxy URL without credentials, a path or query.'
+        }
+        foreach ($key in @('HTTP_PROXY','HTTPS_PROXY','http_proxy','https_proxy')) {
+            $network += "$key=$address"
+        }
+    } else {
+        foreach ($key in @('HTTP_PROXY','HTTPS_PROXY','http_proxy','https_proxy')) {
+            $value = [Environment]::GetEnvironmentVariable($key)
+            if ($value) { $network += "$key=$value" }
+        }
+    }
+    $bypass = @('localhost','127.0.0.1','::1') + @(
+        ([string]$env:NO_PROXY -split ',') | Where-Object { $_ }
+    )
+    $network += 'NO_PROXY=' + (($bypass | Select-Object -Unique) -join ',')
+    $network += 'no_proxy=' + (($bypass | Select-Object -Unique) -join ',')
+    return $network
+}
 try {
     $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'workbench.json') -Raw | ConvertFrom-Json
     $windowsRoot = Split-Path $PSScriptRoot -Parent
@@ -36,7 +65,8 @@ try {
     }
     $open = $launch -and '--no-browser' -notin $arguments
     if ($launch -and '--no-browser' -notin $arguments) { $arguments += '--no-browser' }
-    $output = & wsl.exe -d $config.distribution -u $config.user -- env "WB_HOME=$($config.home)" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin" "$($config.prefix)/bin/xdde" @arguments
+    $networkEnvironment = @(Get-XddeNetworkEnvironment $config)
+    $output = & wsl.exe -d $config.distribution -u $config.user -- env "WB_HOME=$($config.home)" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin" @networkEnvironment "$($config.prefix)/bin/xdde" @arguments
     $result = $LASTEXITCODE
     $output | ForEach-Object { Write-Output $_ }
     if ($result -eq 0 -and $open) {

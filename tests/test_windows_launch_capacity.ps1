@@ -70,3 +70,24 @@ foreach ($command in @('STATUS','Stop','CLOSE')) {
     if ($invocation -notmatch '/environment/bin/xdde' -or $invocation -notmatch "(?i) $command ") { throw 'Running control was not forwarded unchanged to the existing CLI.' }
 }
 Write-Output 'Low physical capacity blocks startup; offline controls do not boot WSL and running controls do not create temporary storage.'
+$configuration = Join-Path $bin 'workbench.json'
+$value = Get-Content -LiteralPath $configuration -Raw | ConvertFrom-Json
+$value | Add-Member -NotePropertyName network_proxy -NotePropertyValue 'http://127.0.0.1:7890'
+$value | ConvertTo-Json | Set-Content -LiteralPath $configuration -Encoding utf8
+$marker = Join-Path $target 'proxy.native-call'
+$result = Invoke-LauncherBoundary 'status' $marker -Running
+if ($result.exit -ne 0) { throw 'Configured application proxy blocked normal status control.' }
+$forwarded = [IO.File]::ReadAllText($marker)
+if ($forwarded -notmatch 'HTTPS_PROXY=http://127.0.0.1:7890' -or
+    $forwarded -notmatch 'http_proxy=http://127.0.0.1:7890' -or
+    $forwarded -notmatch 'NO_PROXY=localhost,127.0.0.1,::1') {
+    throw 'The application proxy or local-service bypass was not forwarded to WSL.'
+}
+$value.network_proxy = 'http://127.0.0.1:7890/bad-path'
+$value | ConvertTo-Json | Set-Content -LiteralPath $configuration -Encoding utf8
+$marker = Join-Path $target 'invalid-proxy.native-call'
+$result = Invoke-LauncherBoundary 'status' $marker -Running
+if ($result.exit -eq 0 -or (Test-Path -LiteralPath $marker)) {
+    throw 'Invalid network configuration reached native WSL execution.'
+}
+Write-Output 'Proxy transmission remains application-scoped and preserves the localhost bypass.'
