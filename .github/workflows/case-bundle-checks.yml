@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
+      - 'tests/ci/test_case_bundle_scope.py'
       - 'tests/portable/test_bundle_archive.py'
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
@@ -24,6 +25,7 @@ on:
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
+      - 'tests/ci/test_case_bundle_scope.py'
       - 'tests/test_case_bundle.py'
       - 'tests/test_stat6_case_bundle.py'
       - 'tests/portable/test_bundle_archive.py'
@@ -41,6 +43,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Verify consumer selection
+        run: python3 -m unittest discover -s tests/ci -p test_case_bundle_scope.py
       - name: Select checks for affected consumers
         id: scope
         env:
@@ -50,10 +54,19 @@ jobs:
         run: |
           if [ "$EVENT" = workflow_dispatch ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             echo 'deployment=true' >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "$BASE" "$HEAD" | rg -q '^(src/opendde_workbench/(deployment/|settings.py)|frontend/src/deployment/)'; then
-            echo 'deployment=true' >> "$GITHUB_OUTPUT"
           else
-            echo 'deployment=false' >> "$GITHUB_OUTPUT"
+            # Keep diff errors out of a conditional; errexit must stop this step.
+            changed_files=$(git diff --name-only "$BASE" "$HEAD")
+            # Consume all input, and distinguish no match from a command error.
+            if grep -E '^(src/opendde_workbench/(deployment/|settings.py)|frontend/src/deployment/)' <<< "$changed_files" > /dev/null; then
+              echo 'deployment=true' >> "$GITHUB_OUTPUT"
+            else
+              status=$?
+              if [ "$status" -ne 1 ]; then
+                exit "$status"
+              fi
+              echo 'deployment=false' >> "$GITHUB_OUTPUT"
+            fi
           fi
       - uses: actions/setup-node@v4
         with:
