@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from layout_browser_helpers import catalog, load_template
+from layout_browser_helpers import catalog, initialize_layout_page, load_template
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -14,6 +14,7 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",

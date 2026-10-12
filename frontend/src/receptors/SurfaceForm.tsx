@@ -26,7 +26,8 @@ export function SurfaceForm({
   initialStructure?: MoleculeRef;
 }) {
   const example = useExampleTask("surface_exposure");
-  const templateStructure = useExampleReference("receptor", "brd4_alt_a");
+  // The observed complex retains selectable ligands; the prepared receptor may not.
+  const templateStructure = useExampleReference("brd4_alt_a", "receptor");
   initialStructure ??= example?.structure ?? templateStructure ?? undefined;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
