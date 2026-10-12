@@ -1,7 +1,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ..assets import Asset
 from ..research.contracts import ScientificObject
@@ -17,7 +17,9 @@ class SourceFile(ExampleModel):
     url: str
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     bytes: int = Field(ge=1, le=8 * 1024**2)
-    kind: Literal["structure", "ligand", "sequences", "config", "library", "counts", "reads"]
+    kind: Literal[
+        "structure", "ligand", "sequences", "config", "library", "counts", "reads", "measurements"
+    ]
     license: Literal["CC0-1.0", "CC-BY-SA-3.0", "MIT", "CC-BY-4.0", "LicenseRef-User-Provided"]
 
 
@@ -53,10 +55,33 @@ class PreparedExample(ExampleModel):
     source_record: dict | None = None
     campaign_draft: dict | None = None
     study: dict | None = None
+    evidence_draft: dict | None = None
+
+
+class ExampleReview(ExampleModel):
+    scope: Literal["reviewed_computational_example"] = "reviewed_computational_example"
+    interpretation: str = Field(min_length=20, max_length=2000)
+    limitations: str = Field(min_length=20, max_length=2000)
+    checked: tuple[
+        Literal["input_identity", "method_scope", "native_outputs", "visual_preview", "downloads"],
+        ...,
+    ] = Field(min_length=5, max_length=5)
+
+    @model_validator(mode="after")
+    def complete_review(self):
+        if len(set(self.checked)) != 5 or any(
+            not text.strip() or any(ord(c) < 32 and c not in "\n\t" for c in text)
+            for text in (self.interpretation, self.limitations)
+        ):
+            raise ValueError(
+                "Review the input, method, native output, preview and downloads explicitly."
+            )
+        return self
 
 
 class PinRequest(ExampleModel):
     job_id: UUID
+    review: ExampleReview | None = None
 
 
 class ExamplePin(ExampleModel):
@@ -68,6 +93,7 @@ class ExamplePin(ExampleModel):
     environment_sha256: str
     artifact_sha256: dict[str, str]
     created_at: str
+    review: ExampleReview | None = None
 
 
 class RecordPinRequest(ExampleModel):

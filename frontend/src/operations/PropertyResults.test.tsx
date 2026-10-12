@@ -15,6 +15,20 @@ vi.mock("../presentation/MolecularPreview", () => ({
 }));
 afterEach(cleanup);
 
+it("shows native compound identities in the table, selector and selected structure without rewriting data", async () => {
+  const molecules = [
+    { input: "asset:0", name: "CHEMBL123", available: true, smiles: "CC(=O)N", mw: 59.07 },
+    { input: "asset:1", name: "CHEMBL456", available: true, smiles: "CC(=O)O", mw: 60.05 },
+  ];
+  const original = JSON.stringify(molecules);
+  render(<PropertyResults job={{ id: "native", request: { name: "Measured STAT6 series" } } as Job}
+    molecules={molecules} language="en" />);
+  expect(screen.getByRole("option", { name: "CHEMBL123" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "CHEMBL123" })).toBeVisible();
+  expect(screen.getByRole("table")).toHaveTextContent("CHEMBL123");
+  expect(JSON.stringify(molecules)).toBe(original);
+});
+
 it("links keyboard plot selection, original molecular identity and a reviewed new draft without modifying source records", async () => {
   const molecules: LigandProperties[] = [
     {

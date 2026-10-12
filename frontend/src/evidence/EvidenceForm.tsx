@@ -18,7 +18,7 @@ export function EvidenceForm({ language }: { language: Language }) {
     initial =
       example?.record?.kind === "experimental.evidence"
         ? example.record.value.request
-        : undefined;
+        : example?.evidence_draft ?? undefined;
   const d = useEvidenceDraft(language, initial);
   return (
     <GuidedSteps<EvidenceDocument>

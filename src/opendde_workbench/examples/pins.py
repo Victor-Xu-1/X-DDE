@@ -43,7 +43,7 @@ class ExamplePins:
             )
         return record
 
-    def pin(self, capability_id, job_id, prepared):
+    def pin(self, capability_id, job_id, prepared, *, review=None):
         module = self.modules[capability_id]
         if prepared.module != module:
             raise ValueError("The prepared inputs belong to a different reviewed study revision.")
@@ -62,6 +62,7 @@ class ExamplePins:
             environment_sha256=evidence.environment_sha256,
             artifact_sha256=digests,
             created_at=now(),
+            review=review,
         )
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -76,6 +77,7 @@ class ExamplePins:
                     or existing.artifact_sha256 != digests
                     or existing.request_sha256 != record.request_sha256
                     or existing.environment_sha256 != record.environment_sha256
+                    or existing.review != record.review
                 ):
                     raise ConflictError("The fixed example is immutable; publish a new revision.")
                 return existing

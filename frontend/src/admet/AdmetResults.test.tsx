@@ -141,7 +141,7 @@ it("retains invalid/duplicate original indices and switches exact previews and r
     "source-record-3.sdf",
   );
 });
-it("defaults to common endpoints, provides real meaning help, and exposes all units only on request", async () => {
+it("honors the requested full panel and offers a compact common-endpoint view", async () => {
   const user = userEvent.setup();
   render(
     <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
@@ -152,9 +152,10 @@ it("defaults to common endpoints, provides real meaning help, and exposes all un
   expect(screen.getByRole("tooltip")).toHaveTextContent(
     "Native label1 means hERG blockade.",
   );
-  expect(
-    screen.queryByRole("button", { name: "Half life meaning" }),
-  ).toBeNull();
+  expect(screen.getByRole("combobox", { name: "Result group" })).toHaveValue("all");
+  expect(screen.getByRole("button", { name: "Half life meaning" })).toBeVisible();
+  await user.selectOptions(screen.getByRole("combobox", { name: "Result group" }), "common");
+  expect(screen.queryByRole("button", { name: "Half life meaning" })).toBeNull();
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Result group" }),
     "all",

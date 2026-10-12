@@ -19,7 +19,7 @@ DESTINATIONS = [
     ("生物药研究", "Biologics research"),
     ("性质与安全性", "Properties and safety"),
     ("研究空间", "Research workspace"),
-    ("任务与结果", "Tasks and results"),
+    ("动力学与 FEP", "Dynamics and FEP"),
     ("全部能力", "All capabilities"),
 ]
 
@@ -197,7 +197,7 @@ def test_navigation_and_search_preserve_inputs_and_select_exact_existing_tasks(s
     capture(page, "search-real-result-390")
     page.keyboard.press("Enter")
     expect(page).to_have_url(base + "/#task=" + job_id)
-    expect(page.locator(".page-context-title")).to_have_text("任务与结果")
+    expect(page.locator(".page-context-title")).to_have_text("生物药研究")
     expect(page.locator(".sequence-score-results")).to_be_visible(timeout=30000)
     capture(page, "selected-existing-task-390")
 

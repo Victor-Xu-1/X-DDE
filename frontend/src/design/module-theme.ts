@@ -1,7 +1,7 @@
 import type { TaskRequest } from "../operations/types";
 import { tools, type ToolId } from "../operations/catalog";
 import { moduleForTool, type ModuleId } from "../studio/research-modules";
-import type { View } from "../studio/navigation-model";
+import { resultModule, type View } from "../studio/navigation-model";
 
 export type ModuleTheme =
   | "targets"
@@ -35,6 +35,8 @@ export function workspaceTheme(
   task?: TaskRequest | null,
 ): ModuleTheme {
   if (tool) return themeForTool(tool);
+  const result = resultModule(view);
+  if (result && result !== "other") return themeForModule(result);
   if (["deployment", "settings", "help"].includes(view)) return "environments";
   if (view === "tasks" && task) {
     if (task.operation === "harness")

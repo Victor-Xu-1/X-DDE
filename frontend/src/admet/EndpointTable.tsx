@@ -26,7 +26,7 @@ export function EndpointTable({
       ? "Toxicity"
       : result.options.view === "adme"
         ? "adme"
-        : "common",
+        : "all",
   );
   const available = result.endpoints;
   const visible = available.filter(

@@ -12,9 +12,18 @@ def validate_study_record(capability, source, prepared, store, *, job_ids=None):
             raise ValueError("The study region requires actual native atom identities.")
         return
     if capability == "experimental.evidence":
-        raise ValueError(
-            "Reviewed STAT6 assay measurements are required before fixing an experimental result."
-        )
+        from ...research.evidence_contracts import EvidenceDocument, EvidenceInput
+
+        # Public summaries are derived UI output, not part of the immutable document.
+        body = {key: value for key, value in source["value"].items() if key != "summaries"}
+        document = EvidenceDocument.model_validate(body)
+        expected = EvidenceInput.model_validate(prepared.evidence_draft)
+        if document.request != expected or document.source_sha256 != expected.source.sha256:
+            raise ValueError(
+                "The fixed STAT6 evidence must retain the reviewed assay, "
+                "molecules and original values."
+            )
+        return
     if capability in {"workflows", "pose_exploration", "campaign"}:
         from ..pin_validation import validate_input_lineage
 

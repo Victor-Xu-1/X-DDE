@@ -21,7 +21,7 @@ def test_every_affected_template_has_stat6_identity_and_a_distinct_revision():
     assert set(catalogue.MODULES) == set(ARCHIVE_MODULES)
     for key, module in catalogue.MODULES.items():
         assert module.case_id == "stat6-defined-molecules"
-        assert module.revision == ARCHIVE_MODULES[key].revision + 1
+        assert module.revision == ARCHIVE_MODULES[key].revision + 2
         assert catalogue.study_context(key)["target"] == "STAT6"
     assert ARCHIVE_MODULES["p2rank.detect"].case_id == "brd4-jq1"
 
@@ -58,9 +58,7 @@ def test_repeat_preparation_reuses_exact_study_versions_without_changing_origina
     assert store.list_jobs() == []
 
 
-@pytest.mark.parametrize(
-    "key", ["gnina.score", "diffsbdd.interactions", "openmm.dynamics", "openfe.rbfe"]
-)
+@pytest.mark.parametrize("key", ["openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"])
 def test_unbound_conformer_does_not_prefill_a_binding_pose_field(tmp_path, key):
     store, scientific = scientific_store(tmp_path)
     prepared = prepare_stat6(key, scientific)
@@ -72,19 +70,45 @@ def test_unbound_conformer_does_not_prefill_a_binding_pose_field(tmp_path, key):
 def test_property_training_requires_real_measurements_not_the_study_conformer(tmp_path):
     _, scientific = scientific_store(tmp_path)
     prepared = prepare_stat6("chemprop.train", scientific)
-    assert "study_ligand" in prepared.objects and "ligand" not in prepared.objects
-    assert prepared.request is None and prepared.study["required_materials"]
+    assert prepared.objects["library"].reference != prepared.objects["study_ligand"].reference
+    assert prepared.request["payload"]["activity_property"] == "pIC50"
+    assert prepared.study["supporting_sources"]["stat6_assay"]["measurements"] == 38
 
 
-@pytest.mark.parametrize(
-    "key", ["del.analyze", "antibody.humanize", "openfe.rbfe", "deepternary.model"]
-)
+@pytest.mark.parametrize("capability", ["gnina.score", "gnina.minimize", "posebusters.check"])
+def test_pose_tasks_use_the_native_paired_frame_and_keep_the_unbound_input(tmp_path, capability):
+    store, scientific = scientific_store(tmp_path)
+    prepared = prepare_stat6(capability, scientific)
+    assert prepared.objects["ligand"].reference == prepared.objects["calculated_pose"].reference
+    assert (
+        prepared.objects["receptor"].reference == prepared.objects["calculated_receptor"].reference
+    )
+    assert prepared.objects["ligand"].reference != prepared.objects["study_ligand"].reference
+    assert store.list_jobs() == []
+
+
+def test_related_antibody_is_explicit_and_observed_indices_are_not_canonical(tmp_path):
+    store, scientific = scientific_store(tmp_path)
+    antibody = prepare_stat6("antibody.number", scientific)
+    assert len(antibody.sequences["heavy"]) == 125
+    assert len(antibody.sequences["light"]) == 112
+    assert len(antibody.sequences["antigen"]) == 218
+    assert antibody.study["task_target"] == "IL-4R alpha · STAT6 pathway"
+    protein = prepare_stat6("mpnn", scientific)
+    assert len(protein.sequences["observed_protein"]) == 409
+    assert protein.sequences["observed_protein"][397] == "N"
+    assert len(protein.sequences["protein"]) == 847
+    assert protein.sequences["protein"][613] == "N"
+    assert store.list_jobs() == []
+
+
+@pytest.mark.parametrize("key", ["del.analyze", "openfe.rbfe", "deepternary.model"])
 def test_missing_experimental_inputs_are_explicit_and_no_prior_result_is_substituted(tmp_path, key):
     store, scientific = scientific_store(tmp_path)
     prepared = prepare_stat6(key, scientific)
     assert prepared.study["required_materials"]
     assert prepared.record is None and prepared.source_record is None
-    assert not prepared.data_assets
+    assert prepared.data_assets["stat6_measurements"].kind == "measurements"
     assert prepared.request is None
     assert not ({"jq1", "mz1", "heavy", "light", "tyk2_ligands"} & set(prepared.objects))
     assert store.list_jobs() == []

@@ -117,9 +117,9 @@ describe("module templates", () => {
     expect(
       screen.queryByRole("button", { name: "Example results" }),
     ).toBeNull();
-    expect(
+    await waitFor(() => expect(
       screen.getByRole("heading", { name: /BRD4–JQ1 template/ }),
-    ).toHaveFocus();
+    ).toHaveFocus());
     fireEvent.click(
       screen.getByRole("button", { name: "Return to task form" }),
     );

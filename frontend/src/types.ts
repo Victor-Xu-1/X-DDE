@@ -64,6 +64,7 @@ export interface Project {
 }
 export interface LigandProperties {
   input: string;
+  name?: string;
   available: boolean;
   reason?: string;
   smiles?: string;

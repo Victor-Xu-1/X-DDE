@@ -18,7 +18,7 @@ MODULES = MappingProxyType(
         key: ModuleExample(
             case_id=CASE.id,
             capability_id=key,
-            revision=value.revision + 1,
+            revision=value.revision + 2,
             pinned_run_required=value.pinned_run_required,
             parent_capability=value.parent_capability,
         )
@@ -50,10 +50,6 @@ def study_context(capability):
             )
         )
     if capability in {
-        "antibody.humanize",
-        "antibody.number",
-        "fold",
-        "epitope",
         "evolution",
         "compare",
         "campaign",
@@ -64,11 +60,7 @@ def study_context(capability):
                 "Actual variable-domain sequences of STAT6-related antibodies",
             )
         )
-    if capability == "experimental.evidence":
-        requirements.append(
-            ("STAT6 实测活性表及实验条件", "STAT6 assay measurements and experimental conditions")
-        )
-    if capability in {"chemprop.train", "chemprop.predict"}:
+    if capability == "chemprop.predict":
         requirements.append(
             (
                 "STAT6 实测标签数据集或已验证的性质模型",
@@ -101,14 +93,7 @@ def study_context(capability):
     if capability in {
         "openmm.dynamics",
         "gromacs.dynamics",
-        "gnina.score",
-        "gnina.minimize",
         "openmm.refine",
-        "posebusters.check",
-        "diffsbdd.interactions",
-        "diffsbdd.inpaint",
-        "diffsbdd.diversify",
-        "diffsbdd.optimize",
     }:
         requirements.append(
             (
@@ -140,6 +125,10 @@ def study_context(capability):
             for row in MANIFEST["molecules"]
         ],
         "required_materials": requirements,
+        "task_target": "IL-4R alpha · STAT6 pathway"
+        if capability in {"antibody.humanize", "antibody.number", "fold", "epitope", "campaign"}
+        else "STAT6",
+        "supporting_sources": MANIFEST.get("supporting_sources", {}),
         "guide": {
             "steps": steps(capability),
             "interpretation": (

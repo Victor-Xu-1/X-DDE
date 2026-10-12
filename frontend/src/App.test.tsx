@@ -92,13 +92,8 @@ it("browses classified history during an unavailable environment-health read", a
   const user = userEvent.setup();
   render(<App />);
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
-  await user.click(
-    within(nav).getByRole("button", { name: "Tasks and results" }),
-  );
-  const modules = await screen.findByRole("group", { name: "Task modules" });
-  await user.click(
-    within(modules).getByRole("button", { name: /Structure prediction/ }),
-  );
+  await user.click(within(nav).getByRole("button", { name: "Structure prediction" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
   expect(
     await screen.findByRole("button", { name: "Ungrouped task" }),
   ).toBeVisible();
@@ -115,14 +110,9 @@ it("starts the chosen task module's questionnaire without reusing or submitting 
   const nav = await screen.findByRole("navigation", {
     name: "Main navigation",
   });
-  await user.click(
-    within(nav).getByRole("button", { name: "Tasks and results" }),
-  );
-  const modules = await screen.findByRole("group", { name: "Task modules" });
-  await user.click(
-    within(modules).getByRole("button", { name: /Pockets and docking/ }),
-  );
-  await user.click(screen.getByRole("button", { name: "New task" }));
+  await user.click(within(nav).getByRole("button", { name: "Pockets and docking" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "New task" }));
   expect(
     await screen.findByRole("heading", { name: "1. Choose structure" }),
   ).toBeVisible();
@@ -161,11 +151,8 @@ it("opens the shared asset workspace through the integrated navigation", async (
 it("keeps all projects visible when selecting a task from a module's unfiltered history", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Tasks and results" }));
-  const modules = await screen.findByRole("group", { name: "Task modules" });
-  await user.click(
-    within(modules).getByRole("button", { name: /Structure prediction/ }),
-  );
+  await user.click(screen.getByRole("button", { name: "Structure prediction" }));
+  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
   await user.click(
     await screen.findByRole("button", { name: /Project A task/ }),
   );
@@ -300,11 +287,11 @@ it("keeps a linked non-prediction task in its task view across both history even
     window.dispatchEvent(new PopStateEvent("popstate"));
   });
   expect(
-    await screen.findByRole("heading", { name: "Tasks and results" }),
+    await screen.findByRole("heading", { name: "Task results" }),
   ).toBeInTheDocument();
   act(() => window.dispatchEvent(new HashChangeEvent("hashchange")));
   expect(
-    await screen.findByRole("heading", { name: "Tasks and results" }),
+    await screen.findByRole("heading", { name: "Task results" }),
   ).toBeInTheDocument();
   expect(
     screen.queryByRole("heading", { name: "Structure prediction" }),
@@ -330,7 +317,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
     name: "Main navigation",
   });
   expect(
-    await screen.findByRole("heading", { name: "Tasks and results" }),
+    await screen.findByRole("heading", { name: "Task results" }),
   ).toBeVisible();
   await user.click(
     within(nav).getByRole("button", { name: "Structure prediction" }),
@@ -339,7 +326,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
     await screen.findByRole("heading", { name: /^Structure prediction/ }),
   ).toBeVisible();
   expect(
-    screen.queryByRole("heading", { name: "Tasks and results" }),
+    screen.queryByRole("heading", { name: "Task results" }),
   ).not.toBeInTheDocument();
   expect(window.location.hash).toBe("#task=");
   expect(submit).not.toHaveBeenCalled();

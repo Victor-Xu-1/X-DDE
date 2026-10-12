@@ -43,6 +43,7 @@ from .pose_ensembles.routes import register_pose_explorations
 from .prediction import Prediction
 from .preflight import check
 from .projects import register_projects
+from .readiness_cache import ReadinessCache, ReadinessChanged
 from .requests import BatchRequest, TaskRequest
 from .research.constraint_routes import register_constraints
 from .research.evidence_routes import register_evidence
@@ -69,7 +70,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     deployments = DeploymentManager(settings.state_dir)
     csrf = secrets.token_urlsafe(32)
     mutations = asyncio.Lock()
-    health_cache = {"expires": 0.0, "value": None}
+    health_cache = ReadinessCache(engine.readiness)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -88,6 +89,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             try:
                 yield
             finally:
+                await health_cache.close()
                 await close_uploads()
                 await deployments.close()
                 await worker.close()
@@ -392,12 +394,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         from .deployment.activation import dynamic_snapshot
 
         dynamic = dynamic_snapshot(deployments.store.installed())
-        if time.monotonic() > health_cache["expires"] or health_cache.get("dynamic") != dynamic:
-            health_cache["value"] = await engine.readiness()
-            health_cache["expires"] = time.monotonic() + 10
-            health_cache["dynamic"] = dynamic
+        try:
+            readiness = await health_cache.read(dynamic)
+        except ReadinessChanged as exc:
+            raise HTTPException(503, str(exc)) from exc
+        if dynamic_snapshot(deployments.store.installed()) != dynamic:
+            raise HTTPException(503, "Backend configuration changed; recheck availability.")
         alive = worker.task is not None and not worker.task.done()
-        environments = engine_statuses(health_cache["value"])
+        environments = engine_statuses(readiness)
         storage_error = None
         try:
             free = min(
@@ -414,7 +418,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             "environments": environments,
             "engines": environments,
             "provisioners": provisioner_states(deployments.store.installed()),
-            "engine": health_cache["value"],
+            "engine": readiness,
             "worker_ready": alive and not worker.error,
             "worker_error": worker.error,
             "queue_wait_reason": worker.waiting_reason,

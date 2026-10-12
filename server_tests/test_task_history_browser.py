@@ -30,6 +30,25 @@ def open_list(page):
         picker.locator("summary").click()
 
 
+def open_module_results(page, language, module):
+    labels = {
+        "evaluation": ("性质与安全性", "Properties and safety"),
+        "binding": ("口袋与对接", "Pockets and docking"),
+        "simulations": ("动力学与 FEP", "Dynamics and FEP"),
+    }
+    zh = language == "zh"
+    navigation(page, language).get_by_role(
+        "button", name=labels[module][0 if zh else 1], exact=True
+    ).click()
+    workspace = page.get_by_role(
+        "navigation", name="模块工作区" if zh else "Module workspace", exact=True
+    )
+    workspace.get_by_role("button", name="任务结果" if zh else "Task results", exact=True).click()
+    expect(
+        workspace.get_by_role("button", name="任务结果" if zh else "Task results", exact=True)
+    ).to_have_attribute("aria-pressed", "true")
+
+
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_modules_filters_paging_linked_history_and_unchanged_native_result(language, width):
     zh = language == "zh"
@@ -53,16 +72,14 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         )
         page.goto(base + "/#task=")
         before = page.request.get(base + "/api/task-history").json()["total"]
-        navigation(page, language).get_by_role(
-            "button", name="任务与结果" if zh else "Tasks and results", exact=True
-        ).click()
-        overview = page.get_by_role("group", name="任务模块" if zh else "Task modules", exact=True)
-        expect(overview).to_contain_text("125", timeout=15000)
-        expect(page.locator(".task-picker")).to_have_count(0)
-        expect(overview.locator("button")).to_have_count(10)
+        expect(
+            navigation(page, language).get_by_role(
+                "button", name="任务与结果" if zh else "Tasks and results", exact=True
+            )
+        ).to_have_count(0)
+        open_module_results(page, language, "evaluation")
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth+1")
-        page.screenshot(path=root / "module-overview.png")
-        overview.locator('[data-task-module="evaluation"]').click()
+        page.screenshot(path=root / "module-results.png")
         rows = page.locator(".task-history-table tbody tr")
         expect(rows).to_have_count(20)
         expect(page.locator(".task-history-table")).not_to_contain_text(fixture["native_name"])
@@ -99,27 +116,25 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         expect(rows).to_have_count(1)
         expect(rows).to_contain_text(oldest["name"])
         page.reload()
-        expect(
-            page.get_by_role(
-                "combobox", name="切换任务模块" if zh else "Switch task module", exact=True
-            )
-        ).to_have_value("evaluation")
+        expect(page.locator(".page-context-title")).to_have_text(
+            "性质与安全性" if zh else "Properties and safety"
+        )
+        assert parse_qs(urlsplit(page.url).fragment)["module"] == ["evaluation"]
         expect(search).to_have_value(oldest["name"])
         expect(rows).to_have_count(1)
         expect(page.locator(".pocket-explorer")).to_have_count(0)
         page.screenshot(path=root / "filtered-history.png")
-        switch = page.get_by_role(
-            "combobox", name="切换任务模块" if zh else "Switch task module", exact=True
-        )
-        switch.select_option("binding")
+        open_module_results(page, language, "binding")
         page.get_by_role("button", name=fixture["native_name"], exact=True).click()
         expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
-        expect(switch).to_have_value("binding")
+        expect(page.locator(".page-context-title")).to_have_text(
+            "口袋与对接" if zh else "Pockets and docking"
+        )
         expect(page.get_by_role("heading", name=fixture["native_name"], exact=True)).to_be_visible()
         page.screenshot(path=root / "native-result.png")
         page.reload()
         expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
-        expect(switch).to_have_value("binding")
+        assert parse_qs(urlsplit(page.url).fragment)["module"] == ["binding"]
 
         # A failed new-module read must not revive the old module's result.
         def unavailable(route):
@@ -137,7 +152,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
         workspace = page.locator(".task-history-workspace")
         expect(workspace.get_by_role("alert")).to_have_count(0)
-        switch.select_option("evaluation")
+        open_module_results(page, language, "evaluation")
         expect(rows).to_have_count(20)
         expect(workspace.get_by_role("alert")).to_have_count(0)
         expect(workspace).not_to_contain_text("/private/state")
@@ -147,19 +162,19 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         expect(health_warning).to_be_visible()
         health_warning.get_by_role("button", name="重试" if zh else "Retry", exact=True).click()
         expect(health_warning).to_have_count(0)
-        switch.select_option("binding")
+        open_module_results(page, language, "binding")
         page.get_by_role("button", name=fixture["native_name"], exact=True).click()
         expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
 
         page.route("**/api/task-history?*", unavailable)
-        switch.select_option("evaluation")
+        open_module_results(page, language, "evaluation")
         expect(page.get_by_role("alert")).to_contain_text("重新连接" if zh else "reconnect")
         expect(page.locator(".pocket-explorer")).to_have_count(0)
         expect(page.locator(".task-history-workspace")).not_to_contain_text("/private/state")
         page.unroute("**/api/task-history?*", unavailable)
         page.get_by_role("button", name="重新连接" if zh else "Reconnect", exact=True).click()
         expect(rows).to_have_count(20)
-        switch.select_option("simulations")
+        open_module_results(page, language, "simulations")
         expect(
             page.get_by_role(
                 "heading",
@@ -167,7 +182,9 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
                 exact=True,
             )
         ).to_be_visible()
-        page.get_by_role("button", name="新建任务" if zh else "New task", exact=True).click()
+        page.get_by_role(
+            "navigation", name="模块工作区" if zh else "Module workspace", exact=True
+        ).get_by_role("button", name="新建任务" if zh else "New task", exact=True).click()
         expect(page.locator(".questionnaire:visible")).to_be_visible(timeout=15000)
         expect(
             page.get_by_role(
