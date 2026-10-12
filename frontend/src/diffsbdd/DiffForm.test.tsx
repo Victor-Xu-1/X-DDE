@@ -51,6 +51,33 @@ it("lets users prepare input but disables dispatch when server configuration is 
   await screen.findByText(/Configure the required DiffSBDD/);
   expect(screen.getByRole("button", { name: "Create task" })).toBeDisabled();
 });
+it("confirms the paired pose before chemical analysis and offers no empty expert panel", async () => {
+  boundary();
+  const user = userEvent.setup();
+  render(
+    <DiffForm
+      mode="interactions"
+      language="en"
+      initialProtein={{ ...ref, asset_id: "protein" }}
+      initialMolecule={ref}
+      onCreated={vi.fn()}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  await user.click(
+    screen.getByRole("checkbox", {
+      name: "This molecule already has a pose positioned in the selected receptor.",
+    }),
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(
+    screen.queryByRole("button", { name: "Expert settings" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("textbox", { name: "Task name (optional)" }),
+  ).toBeVisible();
+});
 it("retains exact candidate records through export with a real task envelope", async () => {
   boundary();
   const user = userEvent.setup(),

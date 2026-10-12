@@ -72,6 +72,7 @@ export function DiffForm({
     ),
     [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [alignedPose, setAlignedPose] = useState(false);
   const {
     ready,
     error: readinessError,
@@ -97,12 +98,14 @@ export function DiffForm({
   function selectProtein(ref: MoleculeRef | null) {
     setProtein(ref);
     setPocket(null);
+    setAlignedPose(false);
   }
   function selectMolecule(ref: MoleculeRef | null) {
     setMolecule(ref);
     setFixed([]);
     setSavedRegions(null);
     setConstraints(null);
+    setAlignedPose(false);
   }
   async function submit() {
     setError("");
@@ -185,7 +188,18 @@ export function DiffForm({
   );
   const selections = (
     <>
-      {" "}
+      {mode === "interactions" && (
+        <label>
+          <input
+            type="checkbox"
+            checked={alignedPose}
+            onChange={(event) => setAlignedPose(event.target.checked)}
+          />
+          {zh
+            ? "这个分子已有结合姿势，并与所选受体结构匹配。"
+            : "This molecule already has a pose positioned in the selected receptor."}
+        </label>
+      )}{" "}
       {(isDesign(mode) || mode === "pocket") && protein && (
         <PocketPicker
           key={referenceKey(protein)}
@@ -349,7 +363,8 @@ export function DiffForm({
     (!collectionMode || collection.length > 0);
   const selectionValid =
     (!(isDesign(mode) || mode === "pocket") || Boolean(pocket)) &&
-    (mode !== "inpaint" || fixed.length > 0);
+    (mode !== "inpaint" || fixed.length > 0) &&
+    (mode !== "interactions" || alignedPose);
   const names: Record<DiffMode, [string, string]> = {
     generate: ["口袋条件分子生成", "Pocket-conditioned generation"],
     inpaint: ["局部重设计", "Local redesign"],

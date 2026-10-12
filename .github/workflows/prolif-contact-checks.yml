@@ -1,0 +1,58 @@
+name: Native chemical contact presentation and downloads
+on:
+  push:
+    paths: &contact_paths
+      - 'frontend/src/diffsbdd/prolif-contacts*'
+      - 'frontend/src/diffsbdd/InteractionResults*'
+      - 'frontend/src/diffsbdd/DiffForm*'
+      - 'frontend/src/diffsbdd/DiffQuestions.tsx'
+      - 'frontend/src/viewer/scientific-overlay*'
+      - 'frontend/src/viewer/scientific-data.ts'
+      - 'server_tests/test_prolif_contacts_browser.py'
+      - '.github/workflows/prolif-contact-checks.yml'
+  pull_request:
+    paths: *contact_paths
+permissions:
+  contents: read
+jobs:
+  chemical-contacts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4337
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked ruff check server_tests/test_prolif_contacts_browser.py
+      - working-directory: frontend
+        run: npx vitest run src/diffsbdd/prolif-contacts.test.ts src/diffsbdd/InteractionResults.test.tsx src/diffsbdd/DiffForm.test.tsx src/viewer/scientific-overlay.test.ts src/viewer/style.test.ts
+      - name: Restore only existing native evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-prolif-contacts"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+      - name: Actual chemical overlays and full-precision downloads, English and Chinese
+        run: |
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/prolif-contacts
+          .venv/bin/python -m opendde_workbench --port 4337 > server_tests/evidence/prolif-contacts/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
+          .venv/bin/python -m pytest -x -q server_tests/test_prolif_contacts_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prolif-contact-evidence
+          path: server_tests/evidence/prolif-contacts

@@ -9,6 +9,20 @@ describe("Native scientific overlays", () => {
     expect(() =>
       nativeInteractions([{ kind: "hydrogen_bond", distance: NaN }]),
     ).toThrow();
+    expect(() =>
+      nativeInteractions([
+        {
+          kind: "hydrogen_bond",
+          chain: "A",
+          number: 140,
+          residue: "ASN",
+          insertion_code: "BAD",
+          protein_position: [1, 2, 3],
+          ligand_position: [4, 2, 3],
+          distance: 3,
+        },
+      ]),
+    ).toThrow();
   });
   it("rejects oversized and incomplete potential grids", () => {
     expect(() =>

@@ -23,12 +23,15 @@ export function nativeInteractions(
   for (const row of value) {
     if (
       !row ||
-      !(row.kind in interactionColors) ||
+      !Object.hasOwn(interactionColors, row.kind) ||
       typeof row.chain !== "string" ||
       row.chain.length > 8 ||
       !Number.isInteger(row.number) ||
       typeof row.residue !== "string" ||
       row.residue.length > 8 ||
+      (row.insertion_code !== undefined &&
+        (typeof row.insertion_code !== "string" ||
+          row.insertion_code.length > 1)) ||
       !Number.isFinite(row.distance) ||
       row.distance < 0 ||
       row.distance > 20 ||

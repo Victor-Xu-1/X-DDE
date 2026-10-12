@@ -59,6 +59,42 @@ it("selects a true residue including insertion code and preserves the paired ori
   expect(screen.getByTitle("3.49123456")).toHaveTextContent("3.49");
   expect(screen.getByText("Hydrogen bond")).toBeVisible();
 });
+it("uses exact native endpoints in 3D and provides table and original-record exports", () => {
+  const native = {
+    ...data,
+    interactions: [
+      {
+        ...(data.interactions as object[])[0],
+        start: [1, 2, 3],
+        end: [4.49, 2, 3],
+      },
+    ],
+  };
+  render(<ScientificDetails job={job} data={native} language="en" />);
+  expect(props().nativeInteractions).toMatchObject([
+    {
+      kind: "hydrogen_bond",
+      chain: "A",
+      number: 140,
+      residue: "ASN",
+      insertion_code: "B",
+      ligand_position: [1, 2, 3],
+      protein_position: [4.49, 2, 3],
+    },
+  ]);
+  expect(
+    screen.getByRole("button", { name: "Export filtered rows" }),
+  ).toBeEnabled();
+  expect(
+    screen.getByRole("link", { name: "Download native contact records" }),
+  ).toHaveAttribute(
+    "href",
+    "/api/jobs/native-contacts/download?name=interactions.json",
+  );
+  expect(
+    screen.getByRole("heading", { name: /Contact relationships/ }),
+  ).toBeVisible();
+});
 it("resets a chosen residue when the displayed scientific job changes", async () => {
   const user = userEvent.setup();
   const { rerender } = render(

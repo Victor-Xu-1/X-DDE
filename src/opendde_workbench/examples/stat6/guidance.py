@@ -149,7 +149,14 @@ def steps(capability):
             "Add real STAT6 antibody or binder materials; "
             "the STAT6 target sequence is not an antibody sequence.",
         )
-    elif capability.startswith("diffsbdd.") or capability == "gnina.dock":
+    elif capability in {
+        "diffsbdd.generate",
+        "diffsbdd.inpaint",
+        "diffsbdd.diversify",
+        "diffsbdd.optimize",
+        "diffsbdd.pocket",
+        "gnina.dock",
+    }:
         selection = (
             "使用同坐标系的 AK-1690 实验姿势定位参考口袋，再研究指定分子。",
             "Use the deposited AK-1690 pose in the matching receptor frame "
@@ -161,6 +168,7 @@ def steps(capability):
         "openmm.refine",
         "plip.profile",
         "posebusters.check",
+        "diffsbdd.interactions",
         "openmm.dynamics",
         "gromacs.dynamics",
     }:

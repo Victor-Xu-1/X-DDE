@@ -54,6 +54,7 @@ export interface NativeInteraction {
   chain: string;
   number: number;
   residue: string;
+  insertion_code?: string;
   protein_position: [number, number, number];
   ligand_position: [number, number, number];
   distance: number;

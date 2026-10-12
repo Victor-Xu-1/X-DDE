@@ -121,20 +121,22 @@ export function DiffSettingQuestions({
   const zh = language === "zh";
   return (
     <>
-      <button
-        type="button"
-        className="secondary-button"
-        aria-pressed={expert}
-        onClick={() => setExpert(!expert)}
-      >
-        {expert
-          ? zh
-            ? "返回推荐方案"
-            : "Return to recommendation"
-          : zh
-            ? "专家微调"
-            : "Expert settings"}
-      </button>
+      {isDesign(mode) && (
+        <button
+          type="button"
+          className="secondary-button"
+          aria-pressed={expert}
+          onClick={() => setExpert(!expert)}
+        >
+          {expert
+            ? zh
+              ? "返回推荐方案"
+              : "Return to recommendation"
+            : zh
+              ? "专家微调"
+              : "Expert settings"}
+        </button>
+      )}
       {isDesign(mode) && (
         <DesignOptions
           mode={mode}

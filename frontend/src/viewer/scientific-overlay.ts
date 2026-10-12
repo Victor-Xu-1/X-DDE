@@ -2,6 +2,7 @@ import { interactionColors, validatePotentialGrid } from "./scientific-data";
 import * as mol from "3dmol";
 import type { NativeInteraction } from "../integrations/types";
 import { addContactLabels } from "./contact-labels";
+import { scientificSelectionIdentity } from "./geometry";
 
 export function paintNativeContacts(
   viewer: mol.GLViewer,
@@ -14,18 +15,27 @@ export function paintNativeContacts(
     ...new Set(
       [...rows]
         .sort((a, b) => a.distance - b.distance)
-        .map((r) => `${r.chain}:${r.number}:${r.residue}`),
+        .map(
+          (r) =>
+            `${r.chain}:${r.number}:${r.insertion_code ?? ""}:${r.residue}`,
+        ),
     ),
   ].slice(0, limit === "all" ? 60 : limit);
   const labeled = new Set<string>();
   for (const row of [...rows]
     .sort((a, b) => a.distance - b.distance)
-    .filter((r) => keys.includes(`${r.chain}:${r.number}:${r.residue}`))) {
+    .filter((r) =>
+      keys.includes(
+        `${r.chain}:${r.number}:${r.insertion_code ?? ""}:${r.residue}`,
+      ),
+    )) {
     const residue = atoms.filter(
       (a) =>
         a.chain === row.chain &&
         a.resi === row.number &&
-        a.resn === row.residue,
+        a.resn === row.residue &&
+        (row.insertion_code === undefined ||
+          scientificSelectionIdentity(a).insertion_code === row.insertion_code),
     );
     if (
       !residue.length ||
@@ -68,7 +78,7 @@ export function paintNativeContacts(
         dashed: true,
         linewidth: 2,
       });
-    const labelKey = `${row.chain}:${row.residue}${row.number}`;
+    const labelKey = `${row.chain}:${row.residue}${row.number}${row.insertion_code ?? ""}`;
     if (labels && !labeled.has(labelKey)) {
       addContactLabels(viewer, [
         { text: `${labelKey} · ${row.distance.toFixed(2)} Å`, position: start },

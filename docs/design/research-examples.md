@@ -89,6 +89,14 @@ prefilling an unresolved experimental structure as a ready calculation. The
 exposure result highlights its measured regions; unrelated ligand contacts are
 not its initial presentation.
 
+ProLIF contact results use the same native residue identities and endpoints in
+the table, schematic relationship view and 3D chemical annotations. Table exports
+preserve full-precision distances and occurrence counts; the original contact
+JSON remains downloadable. Legacy results without chemical endpoints retain
+their tables and original structures with an explicit unavailable-geometry state;
+they do not substitute a different geometric proximity calculation as chemical
+analysis. A paired-pose confirmation replaces the empty interaction scope step.
+
 Compound examples point to existing immutable regions, research plans and pose
 explorations through `example_record_pins`. Their successful native source tasks
 and outputs are sealed with the same evidence checks as task examples. Viewing
