@@ -36,17 +36,27 @@ afterEach(() => {
 it("hides the old molecule and its export immediately while a new structure is being drawn", async () => {
   drawing.mockResolvedValueOnce(svg("source-A"));
   const page = render(pageFor(sourceA));
-  await screen.findByRole("img");
+  await screen.findByRole("img", {
+    name: "2D molecular structure · Selected molecule",
+  });
   let finish!: (value: Blob) => void;
   drawing.mockImplementationOnce(
     () => new Promise<Blob>((resolve) => (finish = resolve)),
   );
   page.rerender(pageFor(sourceB));
-  expect(screen.queryByRole("img")).toBeNull();
+  expect(
+    screen.queryByRole("img", {
+      name: "2D molecular structure · Selected molecule",
+    }),
+  ).toBeNull();
   expect(screen.queryByRole("button", { name: /Export figure/ })).toBeNull();
   await waitFor(() => expect(drawing).toHaveBeenCalledTimes(2));
   await act(async () => finish(svg("source-B")));
-  expect(await screen.findByRole("img")).toBeVisible();
+  expect(
+    await screen.findByRole("img", {
+      name: "2D molecular structure · Selected molecule",
+    }),
+  ).toBeVisible();
   expect(drawing.mock.lastCall![0]).toEqual(sourceB);
 });
 
@@ -59,8 +69,14 @@ it("does not apply a late drawing from a previously selected molecule", async ()
   await waitFor(() => expect(drawing).toHaveBeenCalledOnce());
   drawing.mockResolvedValueOnce(svg("source-B"));
   page.rerender(pageFor(sourceB));
-  const current = await screen.findByRole("img"),
+  const current = await screen.findByRole("img", {
+      name: "2D molecular structure · Selected molecule",
+    }),
     url = current.getAttribute("src");
   await act(async () => finish(svg("source-A")));
-  expect(screen.getByRole("img")).toHaveAttribute("src", url!);
+  expect(
+    screen.getByRole("img", {
+      name: "2D molecular structure · Selected molecule",
+    }),
+  ).toHaveAttribute("src", url!);
 });
