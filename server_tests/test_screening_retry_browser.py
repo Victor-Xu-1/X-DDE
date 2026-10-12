@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from contextlib import ExitStack
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
@@ -23,9 +24,16 @@ def test_screening_recovers_one_accepted_intent_after_a_lost_response(language, 
     with (
         platform(Settings.from_env().state_dir, evidence / f"{language}-{lost_stage}.log") as base,
         sync_playwright() as p,
+        ExitStack() as cleanup,
     ):
         browser = p.chromium.launch()
+        cleanup.callback(browser.close)
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
+        cleanup.callback(
+            page.context.tracing.stop, path=str(evidence / f"{language}-{lost_stage}-trace.zip")
+        )
+        cleanup.callback(page.screenshot, path=str(evidence / f"{language}-{lost_stage}-final.png"))
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
         calls, plans, runs, errors, forbidden = [], {}, {}, [], []
         losses = 0
@@ -44,6 +52,17 @@ def test_screening_recovers_one_accepted_intent_after_a_lost_response(language, 
         def archived_example(route):
             # Explicit archive selection preserves the reviewed original sources.
             response = route.fetch(url=route.request.url + "?profile=archive")
+            assert response.ok, response.text()
+            if route.request.url.endswith("/prepare"):
+                prepared = response.json()
+                request = prepared.get("request")
+                assert request and request["operation"] == "drugclip_retrieve", (
+                    "Restore the reviewed public-dataset-examples bundle before this browser test."
+                )
+                assert request["inputs"] and request["sources"]
+                (evidence / f"{language}-{lost_stage}-prepared.json").write_text(
+                    json.dumps(request, indent=2)
+                )
             route.fulfill(response=response)
 
         page.route("**/api/examples/drugclip.screen", archived_example)
@@ -148,4 +167,3 @@ def test_screening_recovers_one_accepted_intent_after_a_lost_response(language, 
         assert page.request.get(base + "/api/jobs").json() == jobs_before
         page.screenshot(path=str(evidence / f"{language}-{lost_stage}-recovered.png"))
         (evidence / f"{language}-{lost_stage}-calls.json").write_text(json.dumps(calls, indent=2))
-        browser.close()
