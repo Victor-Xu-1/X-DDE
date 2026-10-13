@@ -169,11 +169,11 @@ class Worker:
                 )
             if isinstance(job.request, DatasetTask):
                 await asyncio.to_thread(prepare, job, directory, self.assets)
-                if self.store.get(job.id).status == Status.CANCELLING or self.stopping:
-                    status = Status.CANCELLED if not self.stopping else Status.INTERRUPTED
-                    return
             else:
                 prepare(job, directory, self.assets)
+            if self.store.get(job.id).status == Status.CANCELLING or self.stopping:
+                status = Status.CANCELLED if not self.stopping else Status.INTERRUPTED
+                return
             process = await self.engine.start(job, directory)
             reader = asyncio.create_task(self.capture(process.stdout, directory / "run.log"))
             while process.returncode is None:
