@@ -12,21 +12,26 @@ interface Props {
   language: Language;
   projects: Project[];
   error: string;
+  loading: boolean;
+  onRetry(): void;
   active: string | null;
   onChoose(id: string | null): void;
-  onCreated(): void;
+  onCreated(project: Project): void;
 }
 export function ProjectPanel({
   language,
   projects,
   error,
+  loading,
+  onRetry,
   active,
   onChoose,
   onCreated,
 }: Props) {
   const zh = language === "zh";
   const [creating, setCreating] = useState(false),
-    [query, setQuery] = useState("");
+    [query, setQuery] = useState(""),
+    [createdName, setCreatedName] = useState("");
   const visible = projects.filter((p) =>
     `${p.name} ${p.description}`.toLowerCase().includes(query.toLowerCase()),
   );
@@ -45,10 +50,30 @@ export function ProjectPanel({
           <PlusOutlined /> {zh ? "新建项目" : "New project"}
         </button>
       </header>
-      {error && (
-        <p role="alert" className="error-box">
-          {error}
+      {createdName && (
+        <p role="status" className="notice">
+          {zh
+            ? `项目“${createdName}”已创建。`
+            : `Project “${createdName}” was created.`}
         </p>
+      )}
+      {error && (
+        <div role="alert" className="error-box">
+          <p>
+            {zh ? "项目列表读取失败。" : "Unable to load the project list."}{" "}
+            {error}
+          </p>
+          <button
+            className="secondary-button"
+            disabled={loading}
+            onClick={onRetry}
+          >
+            {loading ? (zh ? "重试中…" : "Retrying…") : zh ? "重试" : "Retry"}
+          </button>
+        </div>
+      )}
+      {loading && !error && (
+        <p role="status">{zh ? "正在读取项目…" : "Loading projects…"}</p>
       )}
       <div className="project-list">
         <button
@@ -70,7 +95,7 @@ export function ProjectPanel({
             </span>
           </button>
         ))}
-        {!visible.length && (
+        {!visible.length && (projects.length > 0 || (!error && !loading)) && (
           <div className="project-empty">
             <p>
               {projects.length
@@ -97,7 +122,8 @@ export function ProjectPanel({
           language={language}
           onClose={() => setCreating(false)}
           onCreated={(project) => {
-            onCreated();
+            setCreatedName(project.name);
+            onCreated(project);
             onChoose(project.id);
             setCreating(false);
           }}
