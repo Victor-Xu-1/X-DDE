@@ -115,8 +115,24 @@ def start(port: int | None, auto_deploy: bool) -> str:
                 env=env,
                 cwd=home(),
             )
-        record = {"pid": process.pid, "identity": process_identity(process.pid), "port": port}
-        atomic_json(home() / "service.json", record)
+        try:
+            record = {"pid": process.pid, "identity": process_identity(process.pid), "port": port}
+            atomic_json(home() / "service.json", record)
+        except BaseException as exc:
+            # This unreaped child owns the new session; never use a stale record
+            # or the listening port to choose a cleanup target.
+            try:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                process.wait(timeout=10)
+            except (OSError, subprocess.TimeoutExpired) as cleanup:
+                raise RuntimeError(
+                    f"UI startup failed: {exc}. Graceful shutdown of the newly started "
+                    f"service is unconfirmed: {cleanup}. No forced kill was issued."
+                ) from exc
+            raise
         deadline = time.monotonic() + 30
         while time.monotonic() < deadline:
             if process.poll() is not None:
