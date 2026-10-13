@@ -85,7 +85,7 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop(role)
         else:
             objects[role] = receptor
-    if capability in {"gnina.dock", "diffsbdd.prepare"}:
+    if capability in {"gnina.dock", "diffsbdd.prepare", "apbs.potential"}:
         from .prepared_inputs import reviewed_protein_only_receptor
 
         receptor = reviewed_protein_only_receptor(scientific, records)
@@ -93,10 +93,14 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop("receptor")
             if capability == "diffsbdd.prepare":
                 objects.pop("structure")
+            if capability == "apbs.potential":
+                objects.pop("protein_only")
         else:
             objects["receptor"] = receptor
             if capability == "diffsbdd.prepare":
                 objects["structure"] = receptor
+            if capability == "apbs.potential":
+                objects["protein_only"] = receptor
     if capability in {
         "openmm.dynamics",
         "gromacs.dynamics",

@@ -51,6 +51,12 @@ ancestor for provenance. Restoring the package does not enqueue calculations.
 These 22 examples are a subset of the 71 requested non-MD/FEP examples; each
 module retains its own method limits and interpretation.
 
+Protein electrostatic calculations use the reviewed protein-only receptor,
+explicit PDB2PQR/PROPKA pH-dependent state assignment, and APBS solvent/salt
+conditions. Missing loops in the experimental construct are not rebuilt by this
+protocol. The downloaded OpenDX grid retains all original bytes; rendering reads
+the validated scalar data without treating OpenDX field metadata as potential.
+
 Archived public cases and previous research remain intact. The API defaults to
 the STAT6 profile; `?profile=archive` explicitly accesses the original catalogue
 and its original immutable result revisions. No BRD4, HER2, TYK2 or synthetic DEL

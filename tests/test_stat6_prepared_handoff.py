@@ -158,6 +158,24 @@ def test_cold_docking_template_requires_explicit_preparation_without_starting_jo
     assert prepared.study["required_materials"] and not store.list_jobs()
 
 
+def test_electrostatic_template_requires_qualified_protein_and_reuses_exact_reviewed_version(
+    settings,
+):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    cold = prepare_stat6("apbs.potential", scientific)
+    assert cold.request is None
+    assert "receptor" not in cold.objects and "protein_only" not in cold.objects
+    assert not store.list_jobs()
+    store, scientific, records, version = docking_fixture(settings)
+    before = len(store.list_jobs())
+    ready = prepare_stat6("apbs.potential", scientific, records=records)
+    assert ready.objects["receptor"] == ready.objects["protein_only"] == version
+    assert ready.request["inputs"][0]["source"] == version.reference.model_dump(mode="json")
+    assert len(store.list_jobs()) == before
+
+
 def test_docking_template_uses_its_exact_reviewed_prepared_version(settings):
     store, scientific, records, version = docking_fixture(settings)
     before = len(store.list_jobs())

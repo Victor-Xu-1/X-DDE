@@ -41,6 +41,7 @@ def run(request):
             "--ff=AMBER",
             "--keep-chain",
             "--drop-water",
+            "--titration-state-method=propka",
             "--with-ph",
             payload["ph"],
             "--pdb-output",

@@ -4,6 +4,11 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "apbs.potential": (
+        "使用明确准备的 STAT6 蛋白 PDB，按所选 pH 和盐浓度计算表面电势。",
+        "Calculate the prepared STAT6 protein surface potential at the selected pH and salt; "
+        "missing loops remain unresolved and this is not a binding-energy calculation.",
+    ),
     "diffsbdd.prepare": (
         "使用已明确替代原子位置的 STAT6 蛋白 PDB 进行内容筛选，保留原坐标。",
         "Filter the explicitly prepared STAT6 protein-only PDB while preserving coordinates; "

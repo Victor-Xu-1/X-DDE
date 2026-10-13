@@ -50,7 +50,7 @@ def study_context(capability):
                 "remove the starting ligand from geometric obstacles during analysis.",
             )
         )
-    if capability in {"gnina.dock", "diffsbdd.prepare"}:
+    if capability in {"gnina.dock", "diffsbdd.prepare", "apbs.potential"}:
         requirements.append(
             (
                 "9BIG 链 A：明确选择替代位置 A，移除水与非聚合物，另存为蛋白 PDB。",
