@@ -52,6 +52,11 @@ export function nativeInteractions(
 }
 
 export function validatePotentialGrid(text: string) {
+  return potentialGridInput(text).count;
+}
+
+/** Keep native OpenDX coordinates/values; exclude field metadata from the renderer's array. */
+export function potentialGridInput(text: string) {
   const counts = text.match(
     /class gridpositions counts\s+(\d+)\s+(\d+)\s+(\d+)/,
   );
@@ -66,15 +71,20 @@ export function validatePotentialGrid(text: string) {
     (text.match(/^delta\s+/gm)?.length ?? 0) !== 3
   )
     throw new Error("Potential grid has an incomplete coordinate definition");
-  const values = text
+  const data = text
     .slice(start.index! + start[0].length)
     .split(/\n\s*(?:attribute|object|component)\s/)[0]
-    .trim()
-    .split(/\s+/);
+    .trim();
+  const values = data.split(/\s+/);
   if (
     values.length !== expected ||
     values.some((v) => !Number.isFinite(Number(v)))
   )
     throw new Error("Potential grid has missing or invalid values");
-  return expected;
+  // 3Dmol's DX reader treats trailing field metadata and whitespace as numerical
+  // values. Pass only the validated scalar block without changing the source file.
+  return {
+    count: expected,
+    text: text.slice(0, start.index! + start[0].length) + data,
+  };
 }

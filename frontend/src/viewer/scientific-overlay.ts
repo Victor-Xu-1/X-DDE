@@ -1,4 +1,4 @@
-import { interactionColors, validatePotentialGrid } from "./scientific-data";
+import { interactionColors, potentialGridInput } from "./scientific-data";
 import * as mol from "3dmol";
 import type { NativeInteraction } from "../integrations/types";
 import { addContactLabels } from "./contact-labels";
@@ -88,10 +88,10 @@ export function paintNativeContacts(
   }
 }
 export function potentialData(text: string) {
-  const expected = validatePotentialGrid(text);
-  const volume = new mol.VolumeData(text, "dx", { normalize: false });
+  const input = potentialGridInput(text);
+  const volume = new mol.VolumeData(input.text, "dx", { normalize: false });
   if (
-    volume.data.length !== expected ||
+    volume.data.length !== input.count ||
     volume.data.some((v) => !Number.isFinite(v))
   )
     throw new Error("Potential grid has missing or invalid values");

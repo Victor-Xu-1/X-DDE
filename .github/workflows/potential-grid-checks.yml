@@ -1,0 +1,25 @@
+name: Native APBS potential grid parsing
+on:
+  push:
+    paths: &potential_paths
+      - 'frontend/src/viewer/scientific-data.ts'
+      - 'frontend/src/viewer/scientific-overlay.ts'
+      - 'frontend/src/viewer/scientific-overlay.test.ts'
+      - '.github/workflows/potential-grid-checks.yml'
+  pull_request:
+    paths: *potential_paths
+permissions:
+  contents: read
+jobs:
+  potential-grid:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - working-directory: frontend
+        run: npx vitest run src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts
