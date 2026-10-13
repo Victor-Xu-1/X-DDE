@@ -186,6 +186,7 @@ it("keeps platform and scientific engine readiness independent in the runtime vi
     onSetup: vi.fn(),
     onTasks: vi.fn(),
     projectError: "",
+    loadingProjects: false,
     reloadProjects: vi.fn(),
   };
   const { rerender } = render(<RuntimeStatus {...runtimeProps} />);

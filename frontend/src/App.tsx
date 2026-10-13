@@ -327,6 +327,8 @@ export function App() {
                       language={language}
                       projects={science.projects}
                       error={science.projectError}
+                      loading={science.loadingProjects}
+                      onRetry={() => science.reloadProjects()}
                       active={projectId}
                       onChoose={(id) => {
                         chooseProject(id);

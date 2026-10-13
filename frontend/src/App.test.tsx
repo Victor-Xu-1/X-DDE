@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -92,8 +92,14 @@ it("browses classified history during an unavailable environment-health read", a
   const user = userEvent.setup();
   render(<App />);
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
-  await user.click(within(nav).getByRole("button", { name: "Structure prediction" }));
-  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
+  await user.click(
+    within(nav).getByRole("button", { name: "Structure prediction" }),
+  );
+  await user.click(
+    within(
+      screen.getByRole("navigation", { name: "Module workspace" }),
+    ).getByRole("button", { name: "Task results" }),
+  );
   expect(
     await screen.findByRole("button", { name: "Ungrouped task" }),
   ).toBeVisible();
@@ -110,9 +116,19 @@ it("starts the chosen task module's questionnaire without reusing or submitting 
   const nav = await screen.findByRole("navigation", {
     name: "Main navigation",
   });
-  await user.click(within(nav).getByRole("button", { name: "Pockets and docking" }));
-  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
-  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "New task" }));
+  await user.click(
+    within(nav).getByRole("button", { name: "Pockets and docking" }),
+  );
+  await user.click(
+    within(
+      screen.getByRole("navigation", { name: "Module workspace" }),
+    ).getByRole("button", { name: "Task results" }),
+  );
+  await user.click(
+    within(
+      screen.getByRole("navigation", { name: "Module workspace" }),
+    ).getByRole("button", { name: "New task" }),
+  );
   expect(
     await screen.findByRole("heading", { name: "1. Choose structure" }),
   ).toBeVisible();
@@ -151,8 +167,14 @@ it("opens the shared asset workspace through the integrated navigation", async (
 it("keeps all projects visible when selecting a task from a module's unfiltered history", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("button", { name: "Structure prediction" }));
-  await user.click(within(screen.getByRole("navigation", { name: "Module workspace" })).getByRole("button", { name: "Task results" }));
+  await user.click(
+    screen.getByRole("button", { name: "Structure prediction" }),
+  );
+  await user.click(
+    within(
+      screen.getByRole("navigation", { name: "Module workspace" }),
+    ).getByRole("button", { name: "Task results" }),
+  );
   await user.click(
     await screen.findByRole("button", { name: /Project A task/ }),
   );
@@ -451,4 +473,71 @@ it("focuses main after keyboard selection from task notifications", async () => 
   expect(
     await screen.findByRole("heading", { name: "Ungrouped task" }),
   ).toBeVisible();
+});
+
+it("keeps confirmed project metadata through failed refresh, page reentry and GET-only recovery", async () => {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  vi.mocked(api.jobs).mockResolvedValue([]);
+  const project = {
+    id: "55555555-5555-4555-8555-555555555555",
+    name: "Created study",
+    description: "",
+    created_at: "2026-10-13",
+  };
+  const reads = vi
+    .mocked(api.projects)
+    .mockResolvedValueOnce([])
+    .mockRejectedValueOnce(new Error("temporary project read failure"))
+    .mockResolvedValue([project]);
+  const create = vi.spyOn(api, "createProject").mockResolvedValue(project);
+  const user = userEvent.setup();
+  render(<App />);
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  await waitFor(() => expect(reads).toHaveBeenCalledTimes(1));
+  await user.click(
+    within(nav).getByRole("button", { name: "Research workspace" }),
+  );
+  await user.click(screen.getByRole("button", { name: /New project/ }));
+  await user.type(
+    screen.getByRole("textbox", { name: "Project name" }),
+    project.name,
+  );
+  await user.click(screen.getByRole("button", { name: "Create project" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await user.click(
+    within(nav).getByRole("button", { name: "Research workspace" }),
+  );
+  expect(screen.getByRole("button", { name: /Created study/ })).toHaveClass(
+    "active",
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "temporary project read failure",
+  );
+  expect(
+    screen.getByText("Project “Created study” was created."),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Create your first project" }),
+  ).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Research files" }));
+  await user.click(screen.getByRole("button", { name: "Projects" }));
+  await user.click(
+    within(nav).getByRole("button", { name: "Structure prediction" }),
+  );
+  await user.click(
+    within(nav).getByRole("button", { name: "Research workspace" }),
+  );
+  expect(screen.getByRole("button", { name: /Created study/ })).toHaveClass(
+    "active",
+  );
+  expect(reads).toHaveBeenCalledTimes(2);
+  await user.click(screen.getByRole("button", { name: "Retry" }));
+  await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  expect(reads).toHaveBeenCalledTimes(3);
+  expect(create).toHaveBeenCalledExactlyOnceWith(project.name, "");
+  expect(screen.getAllByRole("button", { name: /Created study/ })).toHaveLength(
+    1,
+  );
 });
