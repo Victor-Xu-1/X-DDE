@@ -5,6 +5,7 @@ on:
       - 'frontend/src/viewer/scientific-data.ts'
       - 'frontend/src/viewer/scientific-overlay.ts'
       - 'frontend/src/viewer/scientific-overlay.test.ts'
+      - 'server_tests/test_potential_sdk_browser.py'
       - '.github/workflows/potential-grid-checks.yml'
   pull_request:
     paths: *potential_paths
@@ -23,3 +24,21 @@ jobs:
       - run: npm run build --prefix frontend
       - working-directory: frontend
         run: npx vitest run src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev --group browser
+      - name: Build the exact production SDK consumer for Chromium
+        working-directory: frontend
+        run: |
+          node --input-type=module - <<'JS'
+          import { build } from 'vite';
+          import path from 'node:path';
+          await build({configFile:false,build:{outDir:process.env.RUNNER_TEMP+'/potential-sdk',
+            lib:{entry:path.resolve('src/viewer/scientific-overlay.ts'),name:'XDDEPotential',
+              formats:['iife'],fileName:()=> 'sdk.js'}}});
+          JS
+      - name: Real native volume parser, without scientific execution
+        env:
+          WB_POTENTIAL_SDK: ${{ runner.temp }}/potential-sdk/sdk.js
+        run: |
+          .venv/bin/python -m playwright install --with-deps chromium
+          .venv/bin/python -m pytest -x -q server_tests/test_potential_sdk_browser.py

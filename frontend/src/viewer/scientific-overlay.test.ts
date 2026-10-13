@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { nativeInteractions, validatePotentialGrid } from "./scientific-data";
+import {
+  nativeInteractions,
+  potentialGridInput,
+  validatePotentialGrid,
+} from "./scientific-data";
 import { viewerLoad } from "./source-layout";
-import { potentialData } from "./scientific-overlay";
 
 describe("Native scientific overlays", () => {
   const nativeGrid = `# Data from APBS 3.4.1
@@ -29,19 +32,20 @@ component "data" value 3
       const source =
         ending === "CRLF" ? nativeGrid.replaceAll("\n", "\r\n") : nativeGrid;
       expect(validatePotentialGrid(source)).toBe(8);
-      const volume = potentialData(source);
-      expect(Array.from(volume.data)).toEqual([
-        -1.5, 0, 2.5, 3, -4.5, 5, 6, 7.5,
-      ]);
-      expect(volume.origin.x).toBe(-71.944);
-      expect(volume.origin.y).toBe(-78.624);
-      expect(volume.origin.z).toBe(-51.693);
-      expect(volume.unit.x).toBe(0.9755313);
-      expect(volume.unit.y).toBe(1.039854);
-      expect(volume.unit.z).toBe(0.9976979);
+      const input = potentialGridInput(source);
+      expect(input.count).toBe(8);
       expect(
-        volume.getVal(volume.origin.x, volume.origin.y, volume.origin.z),
-      ).toBe(-1.5);
+        input.text
+          .split(/data follows\s*\n/)[1]
+          .trim()
+          .split(/\s+/)
+          .map(Number),
+      ).toEqual([-1.5, 0, 2.5, 3, -4.5, 5, 6, 7.5]);
+      expect(input.text.slice(0, input.text.indexOf("data follows"))).toBe(
+        source.slice(0, source.indexOf("data follows")),
+      );
+      expect(input.text).not.toContain('component "data"');
+      expect(input.text).not.toMatch(/\s$/);
       expect(source).toContain('component "data" value 3');
     },
   );
@@ -49,7 +53,7 @@ component "data" value 3
   it("rejects missing, extra and nonfinite native potential values instead of hiding corruption", () => {
     for (const data of ["6.0", "6.0 7.5 9.0", "6.0 NaN", "6.0 Infinity"]) {
       expect(() =>
-        potentialData(nativeGrid.replace("6.0 7.5", data)),
+        potentialGridInput(nativeGrid.replace("6.0 7.5", data)),
       ).toThrow();
     }
   });
