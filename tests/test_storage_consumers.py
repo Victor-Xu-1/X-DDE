@@ -279,3 +279,152 @@ def test_cancel_and_unconfirmed_cleanup_preserve_halt_until_restart(settings, mo
     assert reopened.get(jobs[1].id).status == Status.QUEUED
     assert engine.stopped == [jobs[0].id, jobs[0].id]
     assert engine.started == []
+
+
+@pytest.mark.parametrize("dataset", [False, True], ids=["ordinary", "dataset"])
+@pytest.mark.parametrize("action", ["cancel", "close", "cancel-and-close", "normal"])
+def test_predispatch_intent_prevents_new_backend_start(settings, monkeypatch, dataset, action):
+    _predispatch_intent_scenario(settings, monkeypatch, dataset, action)
+
+
+@pytest.mark.parametrize("dataset", [False, True], ids=["ordinary", "dataset"])
+def test_predispatch_cancel_cleanup_uncertainty_still_halts(settings, monkeypatch, dataset):
+    _predispatch_intent_scenario(settings, monkeypatch, dataset, "cancel", fail_stop=True)
+
+
+def _predispatch_intent_scenario(settings, monkeypatch, dataset, action, fail_stop=False):
+    """Actual Worker.run/close and HTTP cancellation; inert dispatch, no science."""
+    import threading
+
+    import httpx2 as httpx
+
+    from opendde_workbench.api import create_app
+    from opendde_workbench.datasets.contract import DatasetTask
+
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    assets = AssetStore(store, settings.state_dir / "assets")
+    if dataset:
+        content = b"SMILES,ID\nCCO,ethanol\n"
+        uploads = UploadStore(assets, 1024**2, 2 * 1024**2, 0)
+        key = uuid4()
+        uploads.create(UploadInput(name="fixture.csv", kind="library", size=len(content)), key)
+        uploads.append(key, 0, content, hashlib.sha256(content).hexdigest())
+        asset = uploads.finalize(key)
+        ref = {"asset_id": asset.id, "sha256": asset.sha256}
+        request = DatasetTask(
+            operation="library_prepare",
+            name="Controlled pre-dispatch dataset",
+            inputs=[{"role": "data", "source": ref}],
+            scientific_inputs=[ref],
+            payload={"kind": "chemistry"},
+        )
+    else:
+        request = Properties(name="Controlled pre-dispatch task", smiles=["CCO"])
+    job = store.create(request, str(uuid4()), 10, 100)
+    events = []
+
+    class Process:
+        returncode = None
+
+        async def wait(self):
+            return self.returncode
+
+        def kill(self):
+            self.returncode = -9
+
+    class Engine:
+        def __init__(self):
+            self.started = []
+            self.process = None
+
+        async def readiness(self):
+            return {"ready": True}
+
+        async def start(self, value, directory):
+            self.started.append(value.id)
+            events.append("start")
+            self.process = Process()
+            self.process.stdout = asyncio.StreamReader()
+            self.process.stdout.feed_eof()
+            # Normal control deliberately exits nonzero, without scientific output.
+            if action == "normal":
+                self.process.returncode = 1
+            return self.process
+
+        async def stop(self, identifier):
+            events.append("stop")
+            if fail_stop:
+                raise RuntimeError("Controlled cleanup uncertainty")
+            if self.process:
+                self.process.returncode = -15
+
+    engine = Engine()
+    worker = Worker(store, engine, settings, assets)
+    # No app lifespan: only this owned Worker runs, never a deployment manager.
+    app = create_app(settings, engine)
+    entered, release = threading.Event(), threading.Event()
+    require_space = disk_space.require_space
+
+    def held_storage_check(*args):
+        # Worker.run checks disk while queued; hold only execute's post-claim check.
+        if store.get(job.id).status == Status.RUNNING and not entered.is_set():
+            entered.set()
+            assert release.wait(5), "Pre-dispatch check was not released"
+        return require_space(*args)
+
+    monkeypatch.setattr(disk_space, "require_space", held_storage_check)
+
+    async def scenario():
+        closing = None
+        await worker.start()
+        try:
+            assert await asyncio.to_thread(entered.wait, 5)
+            assert engine.started == []
+            if "cancel" in action:
+                async with httpx.AsyncClient(
+                    transport=httpx.ASGITransport(app=app),
+                    base_url="http://127.0.0.1:4320",
+                ) as client:
+                    session = await client.get("/api/session")
+                    response = await client.post(
+                        f"/api/jobs/{job.id}/cancel",
+                        headers={"X-Workbench-CSRF": session.json()["csrf_token"]},
+                    )
+                assert response.status_code == 200
+                assert response.json()["status"] == "cancelling"
+                assert Store(store.path).get(job.id).status == Status.CANCELLING
+                events.append("cancel-confirmed")
+            if "close" in action:
+                closing = asyncio.create_task(worker.close())
+                await asyncio.sleep(0)
+                assert worker.stopping and not closing.done()
+                events.append("close-requested")
+        finally:
+            release.set()
+            try:
+                async with asyncio.timeout(8):
+                    while store.get(job.id).status in {Status.RUNNING, Status.CANCELLING}:
+                        await asyncio.sleep(0.01)
+            finally:
+                await asyncio.wait_for(closing or worker.close(), 8)
+
+    asyncio.run(scenario())
+    final = Store(store.path).get(job.id)
+    assert final.request == request
+    assert final.started_at is not None and final.finished_at is not None
+    assert events[-1] == "stop"
+    if fail_stop:
+        assert final.status == Status.FAILED
+        assert "Controlled cleanup uncertainty" in final.error
+        assert worker.error and store.queue_halt()["job_id"] == job.id
+    else:
+        expected = (
+            Status.FAILED
+            if action == "normal"
+            else Status.INTERRUPTED
+            if "close" in action
+            else Status.CANCELLED
+        )
+        assert final.status == expected
+        assert worker.error is None and store.queue_halt() is None
+    assert engine.started == ([job.id] if action == "normal" else [])
