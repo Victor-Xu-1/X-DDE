@@ -27,6 +27,12 @@
 .structure-workbench-details .simulation-secondary-grid {
   grid-template-columns: minmax(0, 1fr);
 }
+.structure-workbench.is-text-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+.structure-workbench.is-text-only > .structure-workbench-view {
+  display: none;
+}
 .structure-workbench .candidate-column,
 .structure-workbench .viewer-column {
   width: auto;
@@ -47,6 +53,9 @@
 }
 @media (min-width: 1001px) and (max-width: 1650px) {
   .structure-workbench-view .pose-comparison-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .structure-workbench-view .paired-structure-views {
     grid-template-columns: minmax(0, 1fr);
   }
 }

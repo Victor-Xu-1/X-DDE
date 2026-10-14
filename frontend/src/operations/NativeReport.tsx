@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { SequenceSearchResults } from "./SequenceSearchResults";
 import { sequenceHits, contactReport } from "./native-report";
 import { researchText } from "../presentation/research-content";
@@ -34,69 +35,75 @@ export function NativeReport({
         </p>
         {reports.map((report) => (
           <article key={report.name}>
-            <h3>{report.name}</h3>
-            <p>
-              {zh ? "识别接触" : "Contacts identified"}:{" "}
-              {report.counts.total ?? "—"}
-            </p>
-            <InteractionDiagram
-              language={zh ? "zh" : "en"}
-              label={report.name}
-              edges={report.contacts.map((edge) => ({
-                left: edge.left,
-                right: edge.right,
-                kind: edge.kind,
-                distance: Number.isFinite(Number(edge.distance))
-                  ? Number(edge.distance)
-                  : null,
-              }))}
-            />
-            {job && harnessCandidateSource(job, report.name) && (
-              <StructureViewer
-                urls={[
-                  "/api/assets/" +
-                    harnessCandidateSource(job, report.name)!.asset_id,
-                ]}
+            <StructureWorkbench
+              preview={
+                job &&
+                harnessCandidateSource(job, report.name) && (
+                  <StructureViewer
+                    urls={[
+                      "/api/assets/" +
+                        harnessCandidateSource(job, report.name)!.asset_id,
+                    ]}
+                    language={zh ? "zh" : "en"}
+                  />
+                )
+              }
+            >
+              <h3>{report.name}</h3>
+              <p>
+                {zh ? "识别接触" : "Contacts identified"}:{" "}
+                {report.counts.total ?? "—"}
+              </p>
+              <InteractionDiagram
                 language={zh ? "zh" : "en"}
+                label={report.name}
+                edges={report.contacts.map((edge) => ({
+                  left: edge.left,
+                  right: edge.right,
+                  kind: edge.kind,
+                  distance: Number.isFinite(Number(edge.distance))
+                    ? Number(edge.distance)
+                    : null,
+                }))}
               />
-            )}
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    {(zh
-                      ? ["结合体残基", "靶标残基", "接触类型", "距离（Å）"]
-                      : [
-                          "Binder residue",
-                          "Target residue",
-                          "Contact type",
-                          "Distance (Å)",
-                        ]
-                    ).map((h) => (
-                      <th key={h}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.contacts.map((c, i) => (
-                    <tr key={i}>
-                      <td>{c.left}</td>
-                      <td>{c.right}</td>
-                      <td>{zh ? (types[c.kind] ?? c.kind) : c.kind}</td>
-                      <td>{c.distance}</td>
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      {(zh
+                        ? ["结合体残基", "靶标残基", "接触类型", "距离（Å）"]
+                        : [
+                            "Binder residue",
+                            "Target residue",
+                            "Contact type",
+                            "Distance (Å)",
+                          ]
+                      ).map((h) => (
+                        <th key={h}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <details>
-              <summary>
-                {zh ? "原始报告摘要" : "Original report summary"}
-              </summary>
-              <pre className="native-result-report">
-                {researchText(text, zh)}
-              </pre>
-            </details>
+                  </thead>
+                  <tbody>
+                    {report.contacts.map((c, i) => (
+                      <tr key={i}>
+                        <td>{c.left}</td>
+                        <td>{c.right}</td>
+                        <td>{zh ? (types[c.kind] ?? c.kind) : c.kind}</td>
+                        <td>{c.distance}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <details>
+                <summary>
+                  {zh ? "原始报告摘要" : "Original report summary"}
+                </summary>
+                <pre className="native-result-report">
+                  {researchText(text, zh)}
+                </pre>
+              </details>
+            </StructureWorkbench>
           </article>
         ))}
       </section>

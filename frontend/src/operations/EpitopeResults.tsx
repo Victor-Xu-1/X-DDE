@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Job, Language } from "../types";
 import { ResultTree } from "./StructuredResults";
@@ -49,35 +50,40 @@ export function EpitopeResults({
       <div
         className={source ? "epitope-contact-layout" : "epitope-contact-list"}
       >
-        <EpitopeContactList
-          key={sourceKey}
-          protein={protein}
-          water={rows.length - protein.length}
-          language={language}
-          selected={selected?.residue ?? null}
-          onSelect={
-            source
-              ? (residue) =>
-                  setFocus((previous) => ({
-                    source: sourceKey,
-                    residue,
-                    nonce: (previous?.nonce ?? 0) + 1,
-                  }))
-              : undefined
+        <StructureWorkbench
+          preview={
+            source && (
+              <div className="epitope-contact-map">
+                <StructureViewer
+                  key={sourceKey}
+                  urls={["/api/assets/" + source.asset_id]}
+                  language={language}
+                  initialMode="cartoon"
+                  ligandContext={false}
+                  focusResidue={selected}
+                />
+              </div>
+            )
           }
-        />
-        {source && (
-          <div className="epitope-contact-map">
-            <StructureViewer
-              key={sourceKey}
-              urls={["/api/assets/" + source.asset_id]}
-              language={language}
-              initialMode="cartoon"
-              ligandContext={false}
-              focusResidue={selected}
-            />
-          </div>
-        )}
+        >
+          <EpitopeContactList
+            key={sourceKey}
+            protein={protein}
+            water={rows.length - protein.length}
+            language={language}
+            selected={selected?.residue ?? null}
+            onSelect={
+              source
+                ? (residue) =>
+                    setFocus((previous) => ({
+                      source: sourceKey,
+                      residue,
+                      nonce: (previous?.nonce ?? 0) + 1,
+                    }))
+                : undefined
+            }
+          />
+        </StructureWorkbench>
       </div>
       {Object.keys(details).length > 0 && (
         <details className="epitope-analysis-details">

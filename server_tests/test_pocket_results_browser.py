@@ -67,7 +67,7 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         selected_bounds, viewer_bounds = selection.bounding_box(), viewer.bounding_box()
         if width == 1440:
-            assert selected_bounds["x"] + selected_bounds["width"] <= viewer_bounds["x"]
+            assert viewer_bounds["x"] + viewer_bounds["width"] <= selected_bounds["x"]
             assert selected_bounds["y"] < viewer_bounds["y"] + viewer_bounds["height"]
         else:
             assert selected_bounds["y"] + selected_bounds["height"] <= viewer_bounds["y"]
