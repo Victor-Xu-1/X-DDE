@@ -261,6 +261,7 @@ export function ProximityResults({
               language={language}
               title={zh ? "装配比较" : "Compare assemblies"}
               selected={active.id}
+              initialVisibleColumns={["id", "geometry", "clashes"]}
               onSelect={(r) => setSelected(r.id)}
               exportName="ternary-assemblies.csv"
             />

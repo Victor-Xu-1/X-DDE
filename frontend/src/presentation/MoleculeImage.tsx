@@ -164,21 +164,29 @@ export function MoleculeImage({
           </select>
         </label>
       )}
-      {url ? (
-        compact ? (
+      {compact ? (
+        url ? (
           <img
             src={url}
             alt={(zh ? "二维分子结构 · " : "2D molecular structure · ") + label}
           />
+        ) : error ? (
+          <span>{zh ? "二维图暂不可用" : "2D unavailable"}</span>
         ) : (
-          <div className="molecule-inspection-view">
-            <FigureViewport
-              key={url}
-              language={language}
-              transparent={false}
-              ready
-              label={zh ? "二维结构画布" : "2D structure canvas"}
-            >
+          <LoadingOutlined
+            aria-label={zh ? "绘制二维结构" : "Drawing 2D structure"}
+          />
+        )
+      ) : (
+        <div className="molecule-inspection-view">
+          <FigureViewport
+            key={url ?? "loading"}
+            language={language}
+            transparent={false}
+            ready={Boolean(url)}
+            label={zh ? "二维结构画布" : "2D structure canvas"}
+          >
+            {url ? (
               <img
                 src={url}
                 draggable={false}
@@ -186,28 +194,29 @@ export function MoleculeImage({
                   (zh ? "二维分子结构 · " : "2D molecular structure · ") + label
                 }
               />
-            </FigureViewport>
-          </div>
-        )
-      ) : error ? (
-        <span
-          title={
-            zh
-              ? "二维结构暂不可绘制；请检查原始记录或 Ketcher 组件。三维与原始文件仍保留。"
-              : "2D drawing unavailable. Check the original record or Ketcher component; 3D views and originals remain available."
-          }
-        >
-          {zh ? "二维图暂不可用" : "2D unavailable"}
-        </span>
-      ) : (
-        <LoadingOutlined
-          aria-label={zh ? "绘制二维结构" : "Drawing 2D structure"}
-        />
+            ) : error ? (
+              <span
+                title={
+                  zh
+                    ? "二维结构暂不可绘制；请检查原始记录或 Ketcher 组件。三维与原始文件仍保留。"
+                    : "2D drawing unavailable. Check the original record or Ketcher component; 3D views and originals remain available."
+                }
+              >
+                {zh ? "二维图暂不可用" : "2D unavailable"}
+              </span>
+            ) : (
+              <LoadingOutlined
+                aria-label={zh ? "绘制二维结构" : "Drawing 2D structure"}
+              />
+            )}
+          </FigureViewport>
+        </div>
       )}
-      {!compact && url && (
+      {!compact && (
         <FigureExport
           sourceKey={JSON.stringify([source, label, bondThickness])}
           sourceReady={Boolean(url) && !error}
+          disabled={!url || Boolean(error)}
           language={language}
           filename={label + "-structure"}
           format="svg"

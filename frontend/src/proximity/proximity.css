@@ -47,7 +47,7 @@
   font-weight: 400;
 }
 .proximity-comparison .research-table-scroll table {
-  min-width: 490px;
+  min-width: 0;
 }
 .proximity-comparison .research-table th,
 .proximity-comparison .research-table td {
