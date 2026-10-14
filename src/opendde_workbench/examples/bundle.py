@@ -49,6 +49,18 @@ def verify_examples(settings, capabilities=None, *, profile="archive"):
                 records,
             )
             validate_case_job(capability, store.get(str(pin.job_id)), prepared, store)
+            if pin.supporting_evidence:
+                from .supporting import supporting_evidence
+
+                checked = supporting_evidence(
+                    store,
+                    settings.state_dir,
+                    store.get(str(pin.job_id)),
+                    prepared,
+                    [entry.job_id for entry in pin.supporting_evidence],
+                )
+                if checked != pin.supporting_evidence:
+                    raise ValueError("The fixed follow-up evidence changed.")
         record = records.get(capability, verify=True)
         if pin or record and record.computed_result_available:
             computed += 1

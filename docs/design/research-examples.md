@@ -15,6 +15,16 @@ optional pin review retains the interpretation and limitations; it is computatio
 review, not experimental validation. MD/FEP examples are excluded from the current
 owner case campaign while those calculations remain paused.
 
+A fixed study can retain up to eight successful follow-up task results alongside
+its original result, such as receptor-bound refinement and independent pose
+quality. Each follow-up must consume a typed scientific output of the primary
+or an earlier follow-up, and every other input must remain in the reviewed input
+lineage. The ordered results and their evidence are immutable. The module's
+example result selector displays one native stage at a time, without changing
+the draft or URL. Bundle export includes this closure; import never launches
+these tasks. Original generator metrics stay explicitly labeled as original
+metrics when a later pose is displayed.
+
 Portable result packages may retain terminal history for an exact-request retry
 of a successful native case. Those ancestor rows preserve their original status,
 request, identity and parent links, carry no scientific output files and never

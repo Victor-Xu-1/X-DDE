@@ -5,6 +5,12 @@ on:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
+      # Exact immutable stage consumers have example-result-set-checks.yml.
+      - '!src/opendde_workbench/examples/supporting.py'
+      - '!src/opendde_workbench/examples/contracts.py'
+      - '!src/opendde_workbench/examples/pins.py'
+      - '!src/opendde_workbench/examples/routes.py'
+      - '!src/opendde_workbench/examples/library.py'
       # Simulation template additions and old task bytes have a focused integration gate.
       - '!src/opendde_workbench/examples/catalogue.json'
       # Immutable historical profiles are verified by actual retained-case imports.
@@ -20,6 +26,8 @@ on:
       # This read-only material view is covered by the native figure browser gate.
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleResultSet*'
+      - '!frontend/src/examples/types.ts'
       - '!frontend/src/examples/ExampleToolbar*'
       - '!frontend/src/examples/ExampleGuide*'
       - '!frontend/src/examples/ExampleFeedback*'
@@ -41,6 +49,11 @@ on:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
+      - '!src/opendde_workbench/examples/supporting.py'
+      - '!src/opendde_workbench/examples/contracts.py'
+      - '!src/opendde_workbench/examples/pins.py'
+      - '!src/opendde_workbench/examples/routes.py'
+      - '!src/opendde_workbench/examples/library.py'
       - '!src/opendde_workbench/examples/catalogue.json'
       - '!src/opendde_workbench/examples/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/preparation.py'
@@ -53,6 +66,8 @@ on:
       - '!frontend/src/examples/useTaskLabel.test.tsx'
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleResultSet*'
+      - '!frontend/src/examples/types.ts'
       - '!frontend/src/examples/ExampleToolbar*'
       - '!frontend/src/examples/ExampleGuide*'
       - '!frontend/src/examples/ExampleFeedback*'

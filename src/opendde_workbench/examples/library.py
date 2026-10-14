@@ -78,6 +78,9 @@ class ExampleLibrary:
                         raise ValueError("The fixed task belongs to a different reviewed study.")
                     if table == "example_pins":
                         identifiers.add(body["job_id"])
+                        identifiers.update(
+                            entry["job_id"] for entry in body.get("supporting_evidence", [])
+                        )
                     else:
                         identifiers.update(entry["job_id"] for entry in body["evidence"])
             pending = set(identifiers)

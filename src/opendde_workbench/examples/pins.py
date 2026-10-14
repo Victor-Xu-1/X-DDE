@@ -41,9 +41,11 @@ class ExamplePins:
                     artifact_sha256=record.artifact_sha256,
                 ),
             )
+            for evidence in record.supporting_evidence:
+                verify_job(self.store, self.state, evidence)
         return record
 
-    def pin(self, capability_id, job_id, prepared, *, review=None):
+    def pin(self, capability_id, job_id, prepared, *, review=None, supporting_job_ids=()):
         module = self.modules[capability_id]
         if prepared.module != module:
             raise ValueError("The prepared inputs belong to a different reviewed study revision.")
@@ -52,6 +54,9 @@ class ExamplePins:
             raise ValueError("Only successful native tasks can become fixed computed examples.")
         validate_case_job(capability_id, job, prepared, self.store)
         evidence = capture_job(self.store, self.state, job_id)
+        from .supporting import supporting_evidence
+
+        followups = supporting_evidence(self.store, self.state, job, prepared, supporting_job_ids)
         digests = evidence.artifact_sha256
         record = ExamplePin(
             capability_id=capability_id,
@@ -63,6 +68,7 @@ class ExamplePins:
             artifact_sha256=digests,
             created_at=now(),
             review=review,
+            supporting_evidence=followups,
         )
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -78,6 +84,7 @@ class ExamplePins:
                     or existing.request_sha256 != record.request_sha256
                     or existing.environment_sha256 != record.environment_sha256
                     or existing.review != record.review
+                    or existing.supporting_evidence != record.supporting_evidence
                 ):
                     raise ConflictError("The fixed example is immutable; publish a new revision.")
                 return existing

@@ -3,7 +3,7 @@ import {
   useExampleTemplate,
   type ExampleTemplateOptions,
 } from "./useExampleTemplate";
-import { ExampleJobResult } from "./ExampleJobResult";
+import { ExampleResultSet } from "./ExampleResultSet";
 import { ExampleRecordResult } from "./ExampleRecordResult";
 import { ExampleToolbar } from "./ExampleToolbar";
 import { ExampleFeedback } from "./ExampleFeedback";
@@ -70,7 +70,12 @@ export function ExampleActions(
         >
           <TemplatePreviewContext.Provider value={true}>
             {state.result.job && (
-              <ExampleJobResult job={state.result.job} language={language} />
+              <ExampleResultSet
+                key={state.result.job.id}
+                job={state.result.job}
+                supporting={state.info?.pin?.supporting_evidence ?? []}
+                language={language}
+              />
             )}
             {state.result.example && (
               <ExampleRecordResult
@@ -81,7 +86,11 @@ export function ExampleActions(
           </TemplatePreviewContext.Provider>
           {state.info?.pin?.review && (
             <details className="example-result-review">
-              <summary>{zh ? "示例结果的解读与适用范围" : "Example interpretation and scope"}</summary>
+              <summary>
+                {zh
+                  ? "示例结果的解读与适用范围"
+                  : "Example interpretation and scope"}
+              </summary>
               <p>{state.info.pin.review.interpretation}</p>
               <p>{state.info.pin.review.limitations}</p>
             </details>

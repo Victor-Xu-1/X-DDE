@@ -151,6 +151,11 @@ export function GeneratedCandidates({
             </header>
             {active && (
               <>
+                <small className="field-help">
+                  {zh
+                    ? "原始生成候选的指标"
+                    : "Original generated candidate metrics"}
+                </small>
                 <dl className="native-result-metrics">
                   <div>
                     <dt>LogP</dt>

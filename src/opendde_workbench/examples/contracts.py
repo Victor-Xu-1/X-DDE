@@ -82,6 +82,14 @@ class ExampleReview(ExampleModel):
 class PinRequest(ExampleModel):
     job_id: UUID
     review: ExampleReview | None = None
+    supporting_job_ids: tuple[UUID, ...] = Field(default=(), max_length=8)
+
+
+class JobEvidence(ExampleModel):
+    job_id: UUID
+    request_sha256: str
+    environment_sha256: str
+    artifact_sha256: dict[str, str]
 
 
 class ExamplePin(ExampleModel):
@@ -94,18 +102,12 @@ class ExamplePin(ExampleModel):
     artifact_sha256: dict[str, str]
     created_at: str
     review: ExampleReview | None = None
+    supporting_evidence: tuple[JobEvidence, ...] = Field(default=(), max_length=8)
 
 
 class RecordPinRequest(ExampleModel):
     record_id: UUID
     run_id: UUID | None = None
-
-
-class JobEvidence(ExampleModel):
-    job_id: UUID
-    request_sha256: str
-    environment_sha256: str
-    artifact_sha256: dict[str, str]
 
 
 class ExampleRecordPin(ExampleModel):

@@ -46,12 +46,20 @@ export interface ExampleInfo {
   };
   files: { name: string; license: string; sha256: string }[];
   computed_result_available: boolean;
-  pin: null | { job_id: string; artifact_sha256: Record<string, string>; review?: {
-    scope: "reviewed_computational_example";
-    interpretation: string;
-    limitations: string;
-    checked: string[];
-  } | null };
+  pin: null | {
+    job_id: string;
+    artifact_sha256: Record<string, string>;
+    supporting_evidence?: {
+      job_id: string;
+      artifact_sha256: Record<string, string>;
+    }[];
+    review?: {
+      scope: "reviewed_computational_example";
+      interpretation: string;
+      limitations: string;
+      checked: string[];
+    } | null;
+  };
   record_pin?: RecordPin | null;
   study?: StudyContext;
 }
