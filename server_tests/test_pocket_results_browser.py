@@ -51,7 +51,7 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
         )
         original = page.request.get(original_url).body()
         page.goto(base + "#task=" + job_id)
-        viewer = page.locator(".pocket-explorer .viewer-panel")
+        viewer = page.locator(".structure-workbench-view .viewer-panel")
         expect(viewer).to_be_visible()
         expect(
             viewer.get_by_role(

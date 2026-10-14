@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import pytest
 
+from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.bundle_sources import archive_sources
 from opendde_workbench.examples.evidence import capture_job, verify_job
 from opendde_workbench.execution_environment import capture
@@ -15,8 +16,8 @@ from opendde_workbench.models import Status
 from opendde_workbench.store import Store
 
 
-def native_files(output):
-    source = {"asset_id": str(uuid4()), "sha256": "a" * 64, "record": 0, "conformer": 0}
+def native_files(output, source=None):
+    source = source or {"asset_id": str(uuid4()), "sha256": "a" * 64, "record": 0, "conformer": 0}
     task = IntegratedTask(
         operation="electrostatics",
         name="Manifest transfer fixture",
@@ -72,7 +73,12 @@ def test_invalid_native_potential_inventory_fails_closed(tmp_path, change):
 def test_old_sealed_pins_validate_the_transitive_manifest_without_rewriting_it(settings):
     settings.state_dir.mkdir()
     store = Store(settings.state_dir / "jobs.sqlite3")
-    task, _ = native_files(settings.state_dir / "prototype")
+    assets = AssetStore(store, settings.state_dir / "assets")
+    asset = assets.save("protocol-input.pdb", "structure", b"Controlled input fixture\n")
+    task, _ = native_files(
+        settings.state_dir / "prototype",
+        {"asset_id": asset.id, "sha256": asset.sha256, "record": 0, "conformer": 0},
+    )
     job = store.create(task, str(uuid4()), 20, 500)
     store.claim(job.id)
     output = settings.state_dir / "jobs" / job.id / "output"

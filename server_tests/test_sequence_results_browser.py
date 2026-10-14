@@ -75,14 +75,21 @@ def capture_views(page, panel, name):
     for width in (1440, 1331, 390):
         page.set_viewport_size({"width": width, "height": 1000})
         page.wait_for_function("() => document.documentElement.scrollWidth <= innerWidth + 1")
-        panel.locator(".result-inspection").scroll_into_view_if_needed()
+        molecular = panel.locator(".structure-workbench").count() > 0
+        panel.locator(
+            ".structure-workbench" if molecular else ".result-inspection"
+        ).scroll_into_view_if_needed()
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-        left = panel.locator(".result-inspection-list").bounding_box()
-        right = panel.locator(".result-inspection-detail").bounding_box()
+        left = panel.locator(
+            ".structure-workbench-view" if molecular else ".result-inspection-list"
+        ).bounding_box()
+        right = panel.locator(
+            ".structure-workbench-details" if molecular else ".result-inspection-detail"
+        ).bounding_box()
         assert left and right
         for table in panel.locator(".result-inspection-list table").all():
             bounds = table.bounding_box()
-            assert bounds and bounds["width"] <= left["width"] + 1, (
+            assert bounds and bounds["width"] <= (right if molecular else left)["width"] + 1, (
                 "Result columns extend beyond the visible list"
             )
         if width > 1000:

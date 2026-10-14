@@ -61,9 +61,15 @@ def test_stat6_campaign_input_has_exact_sequence_and_no_generated_design(languag
         assert preparation.value.ok
         prepared = preparation.value.json()
         draft = prepared["campaign_draft"]
-        sequence = draft["targets"]["A"]
+        # The canonical STAT6 sequence and IL-4R-alpha pathway reference are distinct.
+        assert draft["targets"] == {"C": prepared["sequences"]["antigen"]}
+        assert draft["binders"] == {
+            "A": prepared["sequences"]["heavy"],
+            "B": prepared["sequences"]["light"],
+        }
+        sequence = prepared["sequences"]["protein"]
         assert len(sequence) == 847
-        assert draft["binders"] == {"B": ""} and draft["cdr"] == {}
+        assert draft["cdr"] == {}
         expect(
             toolbar.get_by_role(
                 "button", name="新建空白任务" if zh else "New blank task", exact=True

@@ -200,6 +200,11 @@ def test_native_result_views_and_downloads(case, language):
             )
             inspect_svg(svg, "RMSD" if language == "en" else "RMSD")
         else:
+            root.get_by_role(
+                "button",
+                name="Network and molecules" if language == "en" else "变化网络与分子",
+                exact=True,
+            ).click()
             expect(
                 root.get_by_role(
                     "application",

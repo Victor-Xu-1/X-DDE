@@ -117,7 +117,7 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps
       - name: Native STAT6 layout geometry and preserved task identity, desktop and narrow
-        run: uv run --locked pytest -x -q server_tests/test_structure_workbench_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_structure_workbench_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
