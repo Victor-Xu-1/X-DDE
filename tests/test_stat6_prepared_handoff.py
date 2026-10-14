@@ -195,6 +195,27 @@ def test_docking_template_uses_its_exact_reviewed_prepared_version(settings):
     assert len(store.list_jobs()) == before
 
 
+def test_generation_template_requires_exact_prepared_receptor_and_matching_reference_frame(
+    settings,
+):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    cold = prepare_stat6("diffsbdd.generate", scientific)
+    assert cold.request is None and "receptor" not in cold.objects
+    assert "pocket_reference" in cold.objects and not store.list_jobs()
+    store, scientific, records, version = docking_fixture(settings)
+    before = len(store.list_jobs())
+    ready = prepare_stat6("diffsbdd.generate", scientific, records=records)
+    assert ready.request["payload"]["protein"] == version.reference.model_dump(mode="json")
+    assert ready.request["payload"]["pocket"]["ligand"] == ready.objects[
+        "pocket_reference"
+    ].reference.model_dump(mode="json")
+    assert ready.request["payload"]["initial"] is None
+    assert ready.request["payload"]["options"]["steps"] == 500
+    assert len(store.list_jobs()) == before
+
+
 def test_diff_receptor_template_uses_the_qualified_pdb_without_a_cif_alias(settings):
     store, scientific, records, version = docking_fixture(settings)
     before = len(store.list_jobs())

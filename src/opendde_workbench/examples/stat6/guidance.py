@@ -4,6 +4,12 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "diffsbdd.generate": (
+        "在明确准备的 STAT6 蛋白受体上，使用同坐标的 AK-1690 定义参考口袋并生成候选。",
+        "Generate candidates around the deposited AK-1690 reference pocket "
+        "in the reviewed STAT6 protein-only receptor; independent geometry and docking "
+        "checks are still needed before interpreting a candidate as a binding hypothesis.",
+    ),
     "apbs.potential": (
         "使用明确准备的 STAT6 蛋白 PDB，按所选 pH 和盐浓度计算表面电势。",
         "Calculate the prepared STAT6 protein surface potential at the selected pH and salt; "

@@ -85,7 +85,7 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop(role)
         else:
             objects[role] = receptor
-    if capability in {"gnina.dock", "diffsbdd.prepare", "apbs.potential"}:
+    if capability in {"gnina.dock", "diffsbdd.prepare", "diffsbdd.generate", "apbs.potential"}:
         from .prepared_inputs import reviewed_protein_only_receptor
 
         receptor = reviewed_protein_only_receptor(scientific, records)
