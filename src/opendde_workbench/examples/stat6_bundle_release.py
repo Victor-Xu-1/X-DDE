@@ -1,14 +1,15 @@
 """Reviewed native study results; input presets alone are not computed examples."""
 
-VERSION = "4"
+VERSION = "6"
 URL = (
     "https://github.com/Victor-Xu-1/X-DDE/releases/download/"
-    "examples-stat6-results-v4/stat6-reviewed-results-v4.zip"
+    "v0.5.68/stat6-reviewed-results-v6.zip"
 )
-SHA256 = "bdf1d3884e0089f8c88fc56d941d7bbd816e98e541f5c68be46ed48ab663943f"
-BYTES = 3304776
-SOURCE_REVISION = "da7bbdea9b5a66a28e026ff5e2a1979b4fbb224f"
+SHA256 = "005cea39e80683cf1597b5bae8b97135a56fefefe65fc3ceaf32cc1ea95f8c15"
+BYTES = 8180829
+SOURCE_REVISION = "c5013faa8d51b43a7e6420ac2b95cea1e7db6636"
 CAPABILITIES = (
+    "apbs.potential",
     "caver.paths",
     "antibody.humanize",
     "admet.predict",
