@@ -143,9 +143,7 @@ def test_real_structures_tables_and_sequences():
             expect(table).to_be_visible()
             expect(table.locator("thead th")).to_have_count(4)
             table.locator(".table-columns > summary").click()
-            table.get_by_role(
-                "checkbox", name=re.compile(r"^hERG 阻断\s*分数 0–1$")
-            ).check()
+            table.get_by_role("checkbox", name=re.compile(r"^hERG 阻断\s*分数 0–1$")).check()
             expect(table.locator("thead th")).to_have_count(5)
             table.locator(".table-columns > summary").click()
             exported = download(
@@ -227,9 +225,13 @@ def test_real_structures_tables_and_sequences():
             record("generated-native-records")
             result("准备分子状态与构象")
             expect(page.locator(".state-collection-preview")).to_be_visible(timeout=30000)
-            states = page.locator(".state-collection-preview > .research-table")
+            states = page.locator(
+                ".state-collection-preview .structure-workbench-details > .research-table"
+            )
             expect(states.locator("tbody tr")).to_have_count(8)
-            expect(page.locator(".state-conformer-stage .research-table tbody tr")).to_have_count(3)
+            expect(
+                page.locator(".state-collection-preview .result-inspector .research-table tbody tr")
+            ).to_have_count(3)
             expect(page.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
                 timeout=30000
             )
@@ -286,12 +288,12 @@ def test_real_structures_tables_and_sequences():
             for width in (1440, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
                 settle_responsive_layout(page)
-                table = page.locator(".dataset-indexed-workspace > section").first.bounding_box()
+                table = page.locator(".structure-workbench-details").bounding_box()
                 panel = inspector.bounding_box()
                 if width == 1440:
-                    assert table["x"] + table["width"] <= panel["x"]
+                    assert panel["x"] + panel["width"] <= table["x"]
                 else:
-                    assert table["y"] + table["height"] <= panel["y"]
+                    assert panel["y"] + panel["height"] <= table["y"]
                 inspector.scroll_into_view_if_needed()
                 expect(
                     inspector.get_by_role("button", name="生成三维视图图片", exact=True)

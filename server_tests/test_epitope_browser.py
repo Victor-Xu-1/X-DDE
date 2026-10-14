@@ -102,8 +102,8 @@ def test_native_epitope_contacts_structure_selection_and_downloads():
             expect(page.get_by_role("button", name="整体骨架", exact=True)).to_have_attribute(
                 "aria-pressed", "true"
             )
-            left = page.locator(".epitope-contact-list").first.bounding_box()
-            right = page.locator(".epitope-contact-map").bounding_box()
+            left = page.locator(".epitope-contact-map").bounding_box()
+            right = page.locator(".epitope-contact-list").first.bounding_box()
             assert left and right and left["x"] + left["width"] <= right["x"]
             assert abs(left["y"] - right["y"]) <= 2 and right["y"] < 500
             contact_heading = page.locator(".epitope-contact-heading h3").bounding_box()

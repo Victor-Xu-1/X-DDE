@@ -123,18 +123,18 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         assert parse_qs(urlsplit(page.url).fragment)["module"] == ["evaluation"]
         expect(search).to_have_value(oldest["name"])
         expect(rows).to_have_count(1)
-        expect(page.locator(".pocket-explorer")).to_have_count(0)
+        expect(page.locator(".pocket-candidates")).to_have_count(0)
         page.screenshot(path=root / "filtered-history.png")
         open_module_results(page, language, "binding")
         page.get_by_role("button", name=fixture["native_name"], exact=True).click()
-        expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
+        expect(page.locator(".pocket-candidates")).to_be_visible(timeout=30000)
         expect(page.locator(".page-context-title")).to_have_text(
             "口袋与对接" if zh else "Pockets and docking"
         )
         expect(page.get_by_role("heading", name=fixture["native_name"], exact=True)).to_be_visible()
         page.screenshot(path=root / "native-result.png")
         page.reload()
-        expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
+        expect(page.locator(".pocket-candidates")).to_be_visible(timeout=30000)
         assert parse_qs(urlsplit(page.url).fragment)["module"] == ["binding"]
 
         # A failed new-module read must not revive the old module's result.
@@ -150,7 +150,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         with page.expect_response("**/api/health") as failed_health:
             page.reload()
         assert failed_health.value.status == 503
-        expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
+        expect(page.locator(".pocket-candidates")).to_be_visible(timeout=30000)
         workspace = page.locator(".task-history-workspace")
         expect(workspace.get_by_role("alert")).to_have_count(0)
         open_module_results(page, language, "evaluation")
@@ -165,12 +165,12 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         expect(health_warning).to_have_count(0)
         open_module_results(page, language, "binding")
         page.get_by_role("button", name=fixture["native_name"], exact=True).click()
-        expect(page.locator(".pocket-explorer")).to_be_visible(timeout=30000)
+        expect(page.locator(".pocket-candidates")).to_be_visible(timeout=30000)
 
         page.route("**/api/task-history?*", unavailable)
         open_module_results(page, language, "evaluation")
         expect(page.get_by_role("alert")).to_contain_text("重新连接" if zh else "reconnect")
-        expect(page.locator(".pocket-explorer")).to_have_count(0)
+        expect(page.locator(".pocket-candidates")).to_have_count(0)
         expect(page.locator(".task-history-workspace")).not_to_contain_text("/private/state")
         page.unroute("**/api/task-history?*", unavailable)
         page.get_by_role("button", name="重新连接" if zh else "Reconnect", exact=True).click()

@@ -61,6 +61,9 @@ on:
       - "frontend/src/presentation/StructureWorkbench.tsx"
       - "frontend/src/presentation/structure-workbench.css"
       - "server_tests/test_structure_workbench_browser.py"
+      - "server_tests/test_result_visuals_browser.py"
+      - "server_tests/test_target_selection_browser.py"
+      - "server_tests/test_epitope_browser.py"
       - ".github/workflows/structure-layout-checks.yml"
   pull_request:
     paths: *structure_paths
@@ -129,3 +132,43 @@ jobs:
         with:
           name: structure-workbench-evidence
           path: outputs/structure-workbench/**
+  adjacent-result-consumers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Restore retained sources for the three changed consumers only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-adjacent-layout" WB_STATE_DIR="$RUNNER_TEMP/x-dde-adjacent-layout/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          gh release download examples-v1 --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py
+          .venv/bin/python server_tests/prepare_indexed_preview_poses.py
+      - name: Native state and indexed pose views, target picking and epitope selection
+        run: |
+          .venv/bin/python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/task-layout
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/task-layout/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -q server_tests/test_result_visuals_browser.py server_tests/test_target_selection_browser.py server_tests/test_epitope_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: adjacent-molecular-consumer-evidence
+          path: server_tests/evidence/task-layout/**

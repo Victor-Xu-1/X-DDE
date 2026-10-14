@@ -190,14 +190,14 @@ def test_shared_sidebar_switches_every_destination_from_an_existing_result(langu
             page.locator("#settings-language").select_option("zh")
         info = page.request.get(base + "/api/examples/p2rank.detect?profile=archive").json()
         page.goto(base + "#task=" + info["pin"]["job_id"])
-        expect(page.locator(".pocket-explorer")).to_be_visible()
+        expect(page.locator(".pocket-candidates")).to_be_visible()
         nav = open_navigation(page, language)
         names = [button.get_attribute("aria-label") for button in nav.get_by_role("button").all()]
         assert len(names) == 12
         for name in names:
             nav.get_by_role("button", name=name, exact=True).click()
             expect(page.get_by_role("banner")).to_contain_text(name)
-            expect(page.locator(".pocket-explorer")).to_have_count(0)
+            expect(page.locator(".pocket-candidates")).to_have_count(0)
         assert page.request.get(base + "/api/jobs").json() == before_jobs
         assert not errors and not submissions
         page.screenshot(path=EVIDENCE / f"{language}-navigation-after-result.png")

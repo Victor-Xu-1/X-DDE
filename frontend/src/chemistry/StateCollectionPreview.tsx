@@ -45,68 +45,6 @@ export function StateCollectionPreview({
   if (!state) return null;
   return (
     <section className="state-collection-preview">
-      <ResearchTable
-        rows={data.states}
-        language={language}
-        title={zh ? "化学状态" : "Chemical states"}
-        rowId={(value) => String(value.index)}
-        selected={String(stateIndex)}
-        compare={false}
-        onSelect={(value) => {
-          onSelection(value.index, null);
-        }}
-        columns={[
-          {
-            key: "state",
-            label: zh ? "状态" : "State",
-            value: (value) => (zh ? "状态 " : "State ") + (value.index + 1),
-          },
-          {
-            key: "structure",
-            label: zh ? "二维结构" : "2D structure",
-            value: (value) => value.smiles,
-            sortable: false,
-            render: (value) => (
-              <button
-                type="button"
-                className="molecule-record"
-                aria-label={
-                  (zh ? "选择状态 " : "Select state ") + (value.index + 1)
-                }
-                onClick={() => {
-                  onSelection(value.index, null);
-                }}
-              >
-                <MoleculeImage
-                  compact
-                  source={{ smiles: value.smiles }}
-                  language={language}
-                  label={String(value.index + 1)}
-                />
-              </button>
-            ),
-          },
-          {
-            key: "formula",
-            label: zh ? "分子式" : "Formula",
-            value: (value) => value.formula,
-          },
-          {
-            key: "charge",
-            label: zh ? "形式电荷" : "Formal charge",
-            value: (value) => value.charge,
-            numeric: true,
-          },
-          {
-            key: "conformers",
-            label: zh ? "构象数" : "Conformers",
-            value: (value) =>
-              data.conformers.filter((c) => c.state_index === value.index)
-                .length,
-            numeric: true,
-          },
-        ]}
-      />
       <StructureWorkbench
         preview={
           <div className="result-inspector">
@@ -174,6 +112,68 @@ export function StateCollectionPreview({
           </div>
         }
       >
+        <ResearchTable
+          rows={data.states}
+          language={language}
+          title={zh ? "化学状态" : "Chemical states"}
+          rowId={(value) => String(value.index)}
+          selected={String(stateIndex)}
+          compare={false}
+          onSelect={(value) => {
+            onSelection(value.index, null);
+          }}
+          columns={[
+            {
+              key: "state",
+              label: zh ? "状态" : "State",
+              value: (value) => (zh ? "状态 " : "State ") + (value.index + 1),
+            },
+            {
+              key: "structure",
+              label: zh ? "二维结构" : "2D structure",
+              value: (value) => value.smiles,
+              sortable: false,
+              render: (value) => (
+                <button
+                  type="button"
+                  className="molecule-record"
+                  aria-label={
+                    (zh ? "选择状态 " : "Select state ") + (value.index + 1)
+                  }
+                  onClick={() => {
+                    onSelection(value.index, null);
+                  }}
+                >
+                  <MoleculeImage
+                    compact
+                    source={{ smiles: value.smiles }}
+                    language={language}
+                    label={String(value.index + 1)}
+                  />
+                </button>
+              ),
+            },
+            {
+              key: "formula",
+              label: zh ? "分子式" : "Formula",
+              value: (value) => value.formula,
+            },
+            {
+              key: "charge",
+              label: zh ? "形式电荷" : "Formal charge",
+              value: (value) => value.charge,
+              numeric: true,
+            },
+            {
+              key: "conformers",
+              label: zh ? "构象数" : "Conformers",
+              value: (value) =>
+                data.conformers.filter((c) => c.state_index === value.index)
+                  .length,
+              numeric: true,
+            },
+          ]}
+        />
         <div className="result-inspector">
           <ResearchTable
             rows={conformers}

@@ -64,10 +64,10 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
             bounds = controls.bounding_box()
             preview = page.locator(".scientific-target-preview").bounding_box()
             if width == 1440:
-                assert bounds["x"] + bounds["width"] <= preview["x"]
+                assert preview["x"] + preview["width"] <= bounds["x"]
                 assert abs(bounds["y"] - preview["y"]) < 2
             else:
-                assert bounds["y"] + bounds["height"] <= preview["y"]
+                assert preview["y"] + preview["height"] <= bounds["y"]
             page.screenshot(path=str(evidence / f"{width}-target-selection-dms.png"))
         assert not errors, errors
         assert not submissions, "A preview selection must never queue computation"

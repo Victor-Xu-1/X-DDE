@@ -12,6 +12,7 @@ from opendde_workbench.examples.stat6.catalogue import MODULES
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.depiction_browser_helpers import settle_visible_drawings
 
 
 @pytest.mark.parametrize("width", [1440, 390])
@@ -48,6 +49,7 @@ def test_retained_stat6_views_lead_and_keep_their_selected_result(width):
             expect(view.get_by_role("button", name="Export figure ↓").first).to_be_enabled(
                 timeout=30000
             )
+            settle_visible_drawings(page)
             vp = view.bounding_box()
             dp = data.bounding_box()
             assert vp and dp

@@ -50,20 +50,20 @@ def capture(page, name):
 
 def paired_layout(page, width, detail_selector):
     page.set_viewport_size({"width": width, "height": 1000})
-    layout = page.locator(".ensemble-result-layout")
+    layout = page.locator(".structure-workbench").first
     layout.scroll_into_view_if_needed()
-    left = layout.locator(".ensemble-result-list").bounding_box()
-    right = layout.locator(detail_selector).bounding_box()
+    left = layout.locator(detail_selector).bounding_box()
+    right = layout.locator(".ensemble-result-list").bounding_box()
     assert left and right
     table = layout.locator(".pose-selection-table table")
     if table.count():
         bounds = table.bounding_box()
-        assert bounds and bounds["width"] <= left["width"] + 1, "Pose status column is clipped"
+        assert bounds and bounds["width"] <= right["width"] + 1, "Pose status column is clipped"
     if width > 1000:
         assert left["x"] + left["width"] <= right["x"] and abs(left["y"] - right["y"]) <= 3
     else:
-        assert right["y"] + right["height"] <= left["y"]
-    return {"width": width, "list": left, "preview": right}
+        assert left["y"] + left["height"] <= right["y"]
+    return {"width": width, "list": right, "preview": left}
 
 
 def download(page, control, filename):

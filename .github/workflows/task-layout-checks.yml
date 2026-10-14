@@ -122,6 +122,9 @@ on:
       # Selector-only repairs have an explicit narrow dispatch below.
       - "!server_tests/test_component_layout_browser.py"
       - "!server_tests/test_result_visuals_browser.py"
+      # Molecular view alignment covers these exact result/form consumers.
+      - "!server_tests/test_target_selection_browser.py"
+      - "!server_tests/test_epitope_browser.py"
       - "server_tests/depiction_browser_helpers.py"
       - "server_tests/layout_browser_helpers.py"
       - "server_tests/prepare_indexed_preview_poses.py"

@@ -27,6 +27,9 @@
 .structure-workbench-details .simulation-secondary-grid {
   grid-template-columns: minmax(0, 1fr);
 }
+.structure-workbench-view .simulation-main-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
 .structure-workbench.is-text-only {
   grid-template-columns: minmax(0, 1fr);
 }
