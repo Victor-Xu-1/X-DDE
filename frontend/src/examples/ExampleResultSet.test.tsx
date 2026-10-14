@@ -30,7 +30,9 @@ const quality = {
   request: { operation: "pose_quality" },
 } as unknown as Job;
 const supporting = [{ job_id: refined.id }, { job_id: quality.id }];
-beforeEach(() => transport.request.mockReset());
+beforeEach(() => {
+  transport.request.mockReset();
+});
 
 it("preserves the original and switches only to successful retained native stages without navigation", async () => {
   transport.request.mockImplementation((path: string) =>
