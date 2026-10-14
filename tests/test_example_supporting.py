@@ -36,13 +36,21 @@ def study(settings):
     followup = complete(
         settings,
         store,
-        Properties(ligand_files=[first.reference.asset_id], scientific_inputs=[first.reference]),
+        Properties(
+            name="First follow-up",
+            ligand_files=[first.reference.asset_id],
+            scientific_inputs=[first.reference],
+        ),
     )
     second = output_object(assets, scientific, followup)
     quality = complete(
         settings,
         store,
-        Properties(ligand_files=[second.reference.asset_id], scientific_inputs=[second.reference]),
+        Properties(
+            name="Second follow-up",
+            ligand_files=[second.reference.asset_id],
+            scientific_inputs=[second.reference],
+        ),
     )
     pins = ExamplePins(store, settings.state_dir, modules=catalogue.modules)
     review = ExampleReview(
