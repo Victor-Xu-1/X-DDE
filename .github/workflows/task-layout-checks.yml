@@ -246,6 +246,8 @@ on:
       - "!frontend/src/presentation/MetricScatter*"
       - "!frontend/src/presentation/metric-scatter*"
       - "!frontend/src/presentation/MoleculeImage.tsx"
+      # The same scoped publication gate owns drawing readiness and exports.
+      - "!frontend/src/presentation/MoleculeImage.test.tsx"
       - "!frontend/src/presentation/hidden-frame-focus*"
       - "!frontend/src/presentation/molecule-image.css"
       - "!frontend/src/presentation/ResearchTabs.tsx"
@@ -350,6 +352,7 @@ on:
       - "!frontend/src/integrations/ScaffoldSelection.tsx"
       - "!frontend/src/integrations/ScientificResults.tsx"
       - "!frontend/src/integrations/StructureTargetSelection.tsx"
+      - "!frontend/src/integrations/target-selection.css"
       - "!frontend/src/operations/CandidateSequenceResults.tsx"
       - "!frontend/src/operations/CovalentEditor.tsx"
       - "!frontend/src/operations/PropertyResults.tsx"

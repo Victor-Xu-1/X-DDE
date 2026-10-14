@@ -66,6 +66,7 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
             if width == 1440:
                 assert preview["x"] + preview["width"] <= bounds["x"]
                 assert abs(bounds["y"] - preview["y"]) < 2
+                assert preview["width"] > bounds["width"] * 1.3
             else:
                 assert preview["y"] + preview["height"] <= bounds["y"]
             page.screenshot(path=str(evidence / f"{width}-target-selection-dms.png"))

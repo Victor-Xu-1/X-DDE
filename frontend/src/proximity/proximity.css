@@ -1,8 +1,5 @@
 .proximity-partner-layout {
-  display: grid;
-  grid-template-columns: minmax(250px, 0.8fr) minmax(400px, 1.35fr);
-  gap: 28px;
-  align-items: start;
+  min-width: 0;
 }
 .proximity-materials {
   display: grid;
@@ -66,19 +63,6 @@
 }
 .proximity-comparison .research-table-count {
   margin-right: 0;
-}
-.proximity-results {
-  container-type: inline-size;
-}
-@container (max-width: 1040px) {
-  .proximity-assembly-preview:lang(en) {
-    grid-row: 1;
-  }
-}
-@container (max-width: 970px) {
-  .proximity-assembly-preview {
-    grid-row: 1;
-  }
 }
 .proximity-result-heading {
   display: flex;
@@ -178,11 +162,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   margin-top: 14px;
-}
-@media (max-width: 1050px) {
-  .proximity-partner-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 @media (max-width: 650px) {
   .proximity-molecule {

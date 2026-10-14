@@ -33,6 +33,7 @@ on:
       - "frontend/src/integrations/ScaffoldSelection.tsx"
       - "frontend/src/integrations/ScientificResults.tsx"
       - "frontend/src/integrations/StructureTargetSelection.tsx"
+      - "frontend/src/integrations/target-selection.css"
       - "frontend/src/operations/CandidateSequenceResults.tsx"
       - "frontend/src/operations/CampaignMonitor.tsx"
       - "frontend/src/operations/PreparedInputResults.tsx"
