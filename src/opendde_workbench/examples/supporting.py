@@ -3,6 +3,7 @@
 import json
 
 from ..requests import input_identifiers
+from .bundle_projection import references
 from .evidence import capture_job
 
 
@@ -19,13 +20,21 @@ def supporting_evidence(store, state, primary, prepared, identifiers):
         if job is None or job.status != "succeeded":
             raise ValueError("Only successful native follow-up results can support a fixed case.")
         with store.connect() as db:
-            descendants = {
-                row["asset_id"]
-                for row in db.execute("SELECT asset_id,body FROM scientific_objects")
+            outputs = [
+                row
+                for row in db.execute("SELECT id,asset_id,body FROM scientific_objects")
                 if json.loads(row["body"]).get("source_job") in known_jobs
-            }
+            ]
+        descendants = {row["asset_id"] for row in outputs}
+        versions = {row["id"] for row in outputs}
         inputs = input_identifiers(job.request)
-        if not inputs or not inputs & descendants or not inputs <= allowed_inputs | descendants:
+        # Content-addressed files can be shared by distinct scientific versions.
+        # Consume the exact earlier output version, not just coincident file bytes.
+        if (
+            not inputs
+            or not references(job.request.model_dump(mode="json")) & versions
+            or not inputs <= allowed_inputs | descendants
+        ):
             raise ValueError(
                 "Supporting results must consume computed case outputs in dependency order; "
                 "every other input must retain the same reviewed case lineage."

@@ -43,6 +43,9 @@ def study(settings):
         ),
     )
     second = output_object(assets, scientific, followup)
+    # Identical output bytes remain distinct native versions with distinct origins.
+    assert second.reference.asset_id == first.reference.asset_id
+    assert second.id != first.id
     quality = complete(
         settings,
         store,
