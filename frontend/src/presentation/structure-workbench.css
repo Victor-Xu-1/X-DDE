@@ -26,6 +26,9 @@
 .structure-workbench-view .simulation-main-grid {
   grid-template-columns: minmax(0, 1fr);
 }
+.structure-workbench-view .fep-heatmap {
+  grid-template-columns: minmax(0, 1fr);
+}
 .structure-workbench.is-text-only {
   grid-template-columns: minmax(0, 1fr);
 }

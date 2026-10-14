@@ -4,6 +4,8 @@ on:
   push:
     paths: &simulation_paths
       - "frontend/src/simulations/DynamicsResults.tsx"
+      - "frontend/src/presentation/StructureWorkbench.tsx"
+      - "frontend/src/presentation/structure-workbench.css"
       - "frontend/src/simulations/SimulationPlot.tsx"
       - "frontend/src/simulations/SimulationResults.test.tsx"
       - "frontend/src/simulations/sample-selection.ts"
