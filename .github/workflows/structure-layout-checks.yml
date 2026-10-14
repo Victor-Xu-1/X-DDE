@@ -20,6 +20,8 @@ on:
       - "frontend/src/discovery/ReferenceImportResults.tsx"
       - "frontend/src/docking/DockingResults.tsx"
       - "frontend/src/examples/ExampleJobResult.tsx"
+      - "frontend/src/examples/CampaignCasePreview.tsx"
+      - "frontend/src/examples/campaign-preview.css"
       - "frontend/src/examples/StudyInputPreview.tsx"
       - "frontend/src/examples/examples.css"
       - "frontend/src/integrations/InteractionResults.tsx"
@@ -28,6 +30,8 @@ on:
       - "frontend/src/integrations/ScientificResults.tsx"
       - "frontend/src/integrations/StructureTargetSelection.tsx"
       - "frontend/src/operations/CandidateSequenceResults.tsx"
+      - "frontend/src/operations/CampaignMonitor.tsx"
+      - "frontend/src/operations/PreparedInputResults.tsx"
       - "frontend/src/operations/CovalentEditor.tsx"
       - "frontend/src/operations/PropertyResults.tsx"
       - "frontend/src/pockets/PocketResults.tsx"
@@ -96,6 +100,8 @@ jobs:
           src/docking/DockingResults.test.tsx
           src/docking/DockingForm.test.tsx
           src/examples/ExampleJobResult.test.tsx
+          src/examples/CampaignCasePreview.test.tsx
+          src/operations/PreparedInputResults.test.tsx
           src/integrations/StructureTargetSelection.test.tsx
           src/operations/CandidateSequenceResults.test.tsx
           src/operations/CovalentEditor.test.tsx

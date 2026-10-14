@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useEffect, useState } from "react";
 import { api, request } from "../api";
 import type { Language } from "../types";
@@ -280,62 +281,69 @@ export function CampaignMonitor({
               </p>
             )}
             {report != null && <ResultTree value={report} zh={zh} />}
-            {candidates.length ? (
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>{zh ? "候选" : "Candidate"}</th>
-                      <th>{zh ? "目标分数" : "Objective"}</th>
-                      <th>{zh ? "序列" : "Sequence"}</th>
-                      <th>{zh ? "详情" : "Details"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {candidates.map((c, i) => (
-                      <tr key={i}>
-                        <td>{String(c.candidate_id ?? i + 1)}</td>
-                        <td>
-                          {c.objective == null ? "—" : String(c.objective)}
-                        </td>
-                        <td className="sequence-cell">
-                          {String(c.sequence ?? "")}
-                        </td>
-                        <td>
-                          {Boolean(c.structure_path) && (
-                            <button
-                              onClick={() => setPreview(String(c.candidate_id))}
-                            >
-                              {zh ? "查看结构" : "View structure"}
-                            </button>
-                          )}
-                          <details>
-                            <summary>
-                              {zh ? "指标与来源" : "Metrics and provenance"}
-                            </summary>
-                            <ResultTree value={c} zh={zh} />
-                          </details>
-                        </td>
+            <StructureWorkbench
+              preview={
+                preview ? (
+                  <StructureViewer
+                    language={language}
+                    urls={[
+                      `/api/harness/campaigns/${selected}/structure?${new URLSearchParams({ candidate_id: preview })}`,
+                    ]}
+                  />
+                ) : null
+              }
+            >
+              {candidates.length ? (
+                <div className="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>{zh ? "候选" : "Candidate"}</th>
+                        <th>{zh ? "目标分数" : "Objective"}</th>
+                        <th>{zh ? "序列" : "Sequence"}</th>
+                        <th>{zh ? "详情" : "Details"}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p>
-                {zh
-                  ? "尚无候选结果；任务运行后点击读取。"
-                  : "No candidates loaded; retrieve them after the campaign makes progress."}
-              </p>
-            )}
-            {preview && (
-              <StructureViewer
-                language={language}
-                urls={[
-                  `/api/harness/campaigns/${selected}/structure?${new URLSearchParams({ candidate_id: preview })}`,
-                ]}
-              />
-            )}
+                    </thead>
+                    <tbody>
+                      {candidates.map((c, i) => (
+                        <tr key={i}>
+                          <td>{String(c.candidate_id ?? i + 1)}</td>
+                          <td>
+                            {c.objective == null ? "—" : String(c.objective)}
+                          </td>
+                          <td className="sequence-cell">
+                            {String(c.sequence ?? "")}
+                          </td>
+                          <td>
+                            {Boolean(c.structure_path) && (
+                              <button
+                                onClick={() =>
+                                  setPreview(String(c.candidate_id))
+                                }
+                              >
+                                {zh ? "查看结构" : "View structure"}
+                              </button>
+                            )}
+                            <details>
+                              <summary>
+                                {zh ? "指标与来源" : "Metrics and provenance"}
+                              </summary>
+                              <ResultTree value={c} zh={zh} />
+                            </details>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p>
+                  {zh
+                    ? "尚无候选结果；任务运行后点击读取。"
+                    : "No candidates loaded; retrieve them after the campaign makes progress."}
+                </p>
+              )}
+            </StructureWorkbench>
           </>
         )}
         {error && (

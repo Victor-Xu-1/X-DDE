@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Language } from "../types";
 import { useExample } from "./context";
@@ -81,7 +82,20 @@ export function CampaignCasePreview({ language }: { language: Language }) {
       <p className="field-help campaign-template-state">
         {zh ? "输入模板 · 设计尚未运行" : "Input template · Design has not run"}
       </p>
-      <div className="campaign-material-layout">
+      <StructureWorkbench
+        preview={
+          <section
+            className="campaign-material-inspector"
+            aria-label={zh ? "输入材料预览" : "Input material preview"}
+          >
+            <ResearchTabs
+              key={current.key}
+              label={zh ? "材料视图" : "Material views"}
+              tabs={views}
+            />
+          </section>
+        }
+      >
         <section aria-label={zh ? "设计输入材料" : "Design input materials"}>
           <h3>{zh ? "准备好的研究材料" : "Prepared research materials"}</h3>
           <div className="table-scroll">
@@ -132,17 +146,7 @@ export function CampaignCasePreview({ language }: { language: Language }) {
               : "Input chain names belong to the new design and may differ from reference chains. Public references retain their original partners; these are not new antibody predictions or aligned/modified coordinates. CDR marks use the input sequence positions."}
           </Hint>
         </section>
-        <section
-          className="campaign-material-inspector"
-          aria-label={zh ? "输入材料预览" : "Input material preview"}
-        >
-          <ResearchTabs
-            key={current.key}
-            label={zh ? "材料视图" : "Material views"}
-            tabs={views}
-          />
-        </section>
-      </div>
+      </StructureWorkbench>
       <p className="field-help">
         {zh
           ? "配置对话模型后，加载此模板，按步骤确认并提交新的设计任务。"
