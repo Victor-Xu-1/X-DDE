@@ -317,6 +317,9 @@ on:
       - "!frontend/src/viewer/pose-study-input.css"
       - "!frontend/src/viewer/usePoseHandoff.ts"
       # Molecular view alignment has structure-layout-checks.yml.
+      - "!frontend/src/operations/NativeReport.tsx"
+      - "!frontend/src/operations/EpitopeResults.tsx"
+      - "!frontend/src/operations/StructureComparisonResults.tsx"
       - "!frontend/src/admet/AdmetResults.tsx"
       - "!frontend/src/admet/admet.css"
       - "!frontend/src/chemistry/StateCollectionPreview.tsx"

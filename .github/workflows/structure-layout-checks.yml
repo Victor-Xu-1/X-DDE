@@ -2,6 +2,9 @@ name: Molecular view workspace alignment
 on:
   push:
     paths: &structure_paths
+      - "frontend/src/operations/NativeReport.tsx"
+      - "frontend/src/operations/EpitopeResults.tsx"
+      - "frontend/src/operations/StructureComparisonResults.tsx"
       - "frontend/src/admet/AdmetResults.tsx"
       - "frontend/src/admet/admet.css"
       - "frontend/src/chemistry/StateCollectionPreview.tsx"
@@ -94,6 +97,9 @@ jobs:
           src/operations/CandidateSequenceResults.test.tsx
           src/operations/CovalentEditor.test.tsx
           src/operations/PropertyResults.test.tsx
+          src/operations/EpitopeResults.test.tsx
+          src/operations/StructureComparisonResults.test.tsx
+          src/operations/HarnessResults.test.tsx
           src/pockets/PocketResults.test.tsx
           src/poses/ClusterResults.test.tsx
           src/poses/PoseResults.test.tsx

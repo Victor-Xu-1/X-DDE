@@ -190,6 +190,9 @@ on:
       - "!frontend/src/diffsbdd/DiffResults.tsx"
       - "!frontend/src/presentation/MolecularPreview.tsx"
       # Molecular view alignment has structure-layout-checks.yml.
+      - "!frontend/src/operations/NativeReport.tsx"
+      - "!frontend/src/operations/EpitopeResults.tsx"
+      - "!frontend/src/operations/StructureComparisonResults.tsx"
       - "!frontend/src/admet/AdmetResults.tsx"
       - "!frontend/src/admet/admet.css"
       - "!frontend/src/chemistry/StateCollectionPreview.tsx"
@@ -396,6 +399,9 @@ on:
       - "!frontend/src/diffsbdd/DiffResults.tsx"
       - "!frontend/src/presentation/MolecularPreview.tsx"
       # Molecular view alignment has structure-layout-checks.yml.
+      - "!frontend/src/operations/NativeReport.tsx"
+      - "!frontend/src/operations/EpitopeResults.tsx"
+      - "!frontend/src/operations/StructureComparisonResults.tsx"
       - "!frontend/src/admet/AdmetResults.tsx"
       - "!frontend/src/admet/admet.css"
       - "!frontend/src/chemistry/StateCollectionPreview.tsx"
