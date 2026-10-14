@@ -33,7 +33,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("hides the old molecule and its export immediately while a new structure is being drawn", async () => {
+it("hides the old molecule and disables export until the newly selected structure is ready", async () => {
   drawing.mockResolvedValueOnce(svg("source-A"));
   const page = render(pageFor(sourceA));
   await screen.findByRole("img", {
@@ -49,7 +49,7 @@ it("hides the old molecule and its export immediately while a new structure is b
       name: "2D molecular structure · Selected molecule",
     }),
   ).toBeNull();
-  expect(screen.queryByRole("button", { name: /Export figure/ })).toBeNull();
+  expect(screen.getByRole("button", { name: /Export figure/ })).toBeDisabled();
   await waitFor(() => expect(drawing).toHaveBeenCalledTimes(2));
   await act(async () => finish(svg("source-B")));
   expect(
@@ -58,6 +58,7 @@ it("hides the old molecule and its export immediately while a new structure is b
     }),
   ).toBeVisible();
   expect(drawing.mock.lastCall![0]).toEqual(sourceB);
+  expect(screen.getByRole("button", { name: /Export figure/ })).toBeEnabled();
 });
 
 it("does not apply a late drawing from a previously selected molecule", async () => {
