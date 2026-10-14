@@ -129,6 +129,7 @@ on:
       # Molecular view alignment covers these exact result/form consumers.
       - "!server_tests/test_target_selection_browser.py"
       - "!server_tests/test_epitope_browser.py"
+      - "!frontend/src/operations/epitope.css"
       - "server_tests/depiction_browser_helpers.py"
       - "server_tests/layout_browser_helpers.py"
       - "server_tests/prepare_indexed_preview_poses.py"

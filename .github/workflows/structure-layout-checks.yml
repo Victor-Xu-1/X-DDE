@@ -4,6 +4,7 @@ on:
     paths: &structure_paths
       - "frontend/src/operations/NativeReport.tsx"
       - "frontend/src/operations/EpitopeResults.tsx"
+      - "frontend/src/operations/epitope.css"
       - "frontend/src/operations/StructureComparisonResults.tsx"
       - "frontend/src/admet/AdmetResults.tsx"
       - "frontend/src/admet/admet.css"
