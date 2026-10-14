@@ -198,6 +198,7 @@ export function GeneratedCandidates({
                 }}
                 urls={proteinUrl ? [proteinUrl, url] : [url]}
                 records={proteinUrl ? [0, selected.record] : [selected.record]}
+                focusModel={proteinUrl ? 1 : undefined}
                 defaultView="3d"
               />
             ) : (

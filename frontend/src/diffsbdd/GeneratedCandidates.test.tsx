@@ -10,13 +10,15 @@ vi.mock("../presentation/MolecularPreview", () => ({
     urls,
     records,
     source,
+    focusModel,
   }: {
     urls: string[];
     records: number[];
     source: unknown;
+    focusModel?: number;
   }) => (
     <output data-testid="candidate-frame">
-      {JSON.stringify({ urls, records, source })}
+      {JSON.stringify({ urls, records, source, focusModel })}
     </output>
   ),
 }));
@@ -69,6 +71,7 @@ it.each(["en", "zh"] as const)(
       urls: ["/receptor.pdb", "/poses.sdf"],
       records: [0, 0],
       source: { url: "/poses.sdf", record: 0 },
+      focusModel: 1,
     });
     expect(
       screen.getByText(
