@@ -1,0 +1,123 @@
+import { render, screen } from "@testing-library/react";
+import { expect, it, vi } from "vitest";
+import { GeneratedCandidates } from "./GeneratedCandidates";
+
+vi.mock("../presentation/MoleculeImage", () => ({
+  MoleculeImage: ({ label }: { label: string }) => <span>{label} drawing</span>,
+}));
+vi.mock("../presentation/MolecularPreview", () => ({
+  MolecularPreview: ({
+    urls,
+    records,
+    source,
+  }: {
+    urls: string[];
+    records: number[];
+    source: unknown;
+  }) => (
+    <output data-testid="candidate-frame">
+      {JSON.stringify({ urls, records, source })}
+    </output>
+  ),
+}));
+
+const rows = [{ record: 0 }, { record: 1 }];
+const metrics = [
+  {
+    molecular_weight: 410.45,
+    qed: 0.7,
+    sa: 3.1,
+    logp: 2.3,
+    hbd: 1,
+    hba: 5,
+    tpsa: 87.12,
+    rotatable_bonds: 5,
+    minimum_pocket_distance_angstrom: 0.88,
+    pocket_atom_pairs_under_1_2_angstrom: 4,
+  },
+  {
+    molecular_weight: 308.5,
+    qed: 0.2,
+    sa: 5.4,
+    logp: 2.4,
+    hbd: 4,
+    hba: 4,
+    tpsa: 49.69,
+    rotatable_bonds: 10,
+    minimum_pocket_distance_angstrom: 1.64,
+    pocket_atom_pairs_under_1_2_angstrom: 0,
+  },
+];
+
+it.each(["en", "zh"] as const)(
+  "shows selected native record with its matching receptor and steric warning in %s",
+  (language) => {
+    render(
+      <GeneratedCandidates
+        records={rows}
+        selected={rows[0]}
+        url="/poses.sdf"
+        proteinUrl="/receptor.pdb"
+        metrics={metrics}
+        language={language}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(
+      JSON.parse(screen.getByTestId("candidate-frame").textContent!),
+    ).toEqual({
+      urls: ["/receptor.pdb", "/poses.sdf"],
+      records: [0, 0],
+      source: { url: "/poses.sdf", record: 0 },
+    });
+    expect(
+      screen.getByText(
+        language === "zh"
+          ? "存在可能的空间碰撞：请先检查并优化姿势，再进行后续研究。"
+          : "Potential steric clashes: inspect and refine the pose before downstream research.",
+      ),
+    ).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "MW" })).toBeVisible();
+    expect(screen.getByText("0.88 Å")).toBeVisible();
+  },
+);
+
+it("keeps source record identities after a filtered/reordered table and does not label zero close pairs as binding success", () => {
+  render(
+    <GeneratedCandidates
+      records={[rows[1]]}
+      selected={rows[1]}
+      url="/poses.sdf"
+      proteinUrl="/receptor.pdb"
+      metrics={metrics}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(
+    JSON.parse(screen.getByTestId("candidate-frame").textContent!).records,
+  ).toEqual([0, 1]);
+  expect(screen.getByText("1.64 Å")).toBeVisible();
+  expect(
+    screen.getByText(
+      "This proximity check does not replace full pose-quality or binding validation.",
+    ),
+  ).toBeVisible();
+});
+
+it("keeps non-design exports standalone without inventing receptor or metrics", () => {
+  render(
+    <GeneratedCandidates
+      generated={false}
+      records={rows}
+      selected={rows[1]}
+      url="/selected.sdf"
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(
+    JSON.parse(screen.getByTestId("candidate-frame").textContent!).urls,
+  ).toEqual(["/selected.sdf"]);
+  expect(screen.queryByRole("columnheader", { name: "MW" })).toBeNull();
+});

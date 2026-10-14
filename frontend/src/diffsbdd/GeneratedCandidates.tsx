@@ -4,6 +4,7 @@ import type { CoreVerificationData } from "./types";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MolecularPreview } from "../presentation/MolecularPreview";
+import type { GeneratedMetrics } from "./generated-metrics";
 export interface GeneratedRecord {
   record: number;
   object?: ScientificObject;
@@ -15,6 +16,8 @@ export function GeneratedCandidates({
   selected,
   language,
   verification,
+  proteinUrl,
+  metrics,
   onSelect,
 }: {
   records: GeneratedRecord[];
@@ -23,6 +26,8 @@ export function GeneratedCandidates({
   selected: GeneratedRecord | null;
   language: Language;
   verification?: CoreVerificationData;
+  proteinUrl?: string;
+  metrics?: GeneratedMetrics[] | null;
   onSelect(value: GeneratedRecord): void;
 }) {
   const zh = language === "zh";
@@ -31,6 +36,12 @@ export function GeneratedCandidates({
     ((verification?.candidates.find((c) => c.qualified_record === v.record)
       ?.record ?? v.record) +
       1);
+  const metric = (v: GeneratedRecord) =>
+    metrics?.[
+      verification?.candidates.find((c) => c.qualified_record === v.record)
+        ?.record ?? v.record
+    ];
+  const active = selected ? metric(selected) : undefined;
   return (
     <div className="result-master-detail">
       <ResearchTable
@@ -100,6 +111,36 @@ export function GeneratedCandidates({
             value: (v) => v.record + 1,
             numeric: true,
           },
+          ...(metrics
+            ? [
+                {
+                  key: "molecular_weight",
+                  label: "MW",
+                  numeric: true,
+                  value: (v: GeneratedRecord) =>
+                    metric(v)?.molecular_weight ?? null,
+                },
+                {
+                  key: "qed",
+                  label: "QED",
+                  numeric: true,
+                  value: (v: GeneratedRecord) => metric(v)?.qed ?? null,
+                },
+                {
+                  key: "sa",
+                  label: "SA",
+                  numeric: true,
+                  value: (v: GeneratedRecord) => metric(v)?.sa ?? null,
+                },
+                {
+                  key: "steric_pairs",
+                  label: zh ? "近接原子对 <1.2 Å" : "Pocket pairs <1.2 Å",
+                  numeric: true,
+                  value: (v: GeneratedRecord) =>
+                    metric(v)?.pocket_atom_pairs_under_1_2_angstrom ?? null,
+                },
+              ]
+            : []),
         ]}
       />
       <div className="result-inspector">
@@ -108,6 +149,45 @@ export function GeneratedCandidates({
             <header>
               <h3>{label(selected)}</h3>
             </header>
+            {active && (
+              <>
+                <dl className="native-result-metrics">
+                  <div>
+                    <dt>LogP</dt>
+                    <dd>{active.logp}</dd>
+                  </div>
+                  <div>
+                    <dt>TPSA · Å²</dt>
+                    <dd>{active.tpsa}</dd>
+                  </div>
+                  <div>
+                    <dt>HBD / HBA</dt>
+                    <dd>
+                      {active.hbd} / {active.hba}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{zh ? "最近口袋距离" : "Nearest pocket distance"}</dt>
+                    <dd>{active.minimum_pocket_distance_angstrom} Å</dd>
+                  </div>
+                </dl>
+                <p
+                  className={
+                    active.pocket_atom_pairs_under_1_2_angstrom > 0
+                      ? "notice"
+                      : "field-help"
+                  }
+                >
+                  {active.pocket_atom_pairs_under_1_2_angstrom > 0
+                    ? zh
+                      ? "存在可能的空间碰撞：请先检查并优化姿势，再进行后续研究。"
+                      : "Potential steric clashes: inspect and refine the pose before downstream research."
+                    : zh
+                      ? "这项近接检查不能替代完整构象质控或结合验证。"
+                      : "This proximity check does not replace full pose-quality or binding validation."}
+                </p>
+              </>
+            )}
             {(selected.object?.reference.conformer ?? 0) === 0 ? (
               <MolecularPreview
                 label={label(selected)}
@@ -116,8 +196,8 @@ export function GeneratedCandidates({
                   url,
                   record: selected.record,
                 }}
-                urls={[url]}
-                records={[selected.record]}
+                urls={proteinUrl ? [proteinUrl, url] : [url]}
+                records={proteinUrl ? [0, selected.record] : [selected.record]}
                 defaultView="3d"
               />
             ) : (

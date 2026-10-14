@@ -22,6 +22,7 @@ import { isDesign } from "./types";
 import { ScientificDetails } from "./ScientificDetails";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { DesignInputContext } from "./DesignInputContext";
+import { generatedMetrics } from "./generated-metrics";
 
 export function DiffResults({
   job,
@@ -142,8 +143,16 @@ export function DiffResults({
       ? artifactUrl(job.id, targetArtifact)
       : null;
   const frame = {
-    urls: currentUrl ? [currentUrl] : [],
-    records: currentUrl ? [selectedRecord!.record] : undefined,
+    urls: currentUrl
+      ? designing && protein
+        ? [artifactUrl(job.id, protein), currentUrl]
+        : [currentUrl]
+      : [],
+    records: currentUrl
+      ? designing && protein
+        ? [0, selectedRecord!.record]
+        : [selectedRecord!.record]
+      : undefined,
     molecularSource: currentUrl
       ? { url: currentUrl, record: selectedRecord!.record }
       : undefined,
@@ -224,8 +233,8 @@ export function DiffResults({
               ? "通过固定区域复核 / 采样尝试"
               : "Fixed-region checks passed / sampling attempts"
             : zh
-              ? "有效候选 / 尝试数量"
-              : "Valid candidates / attempts"}
+              ? "化学有效候选 / 尝试数量"
+              : "Chemically valid candidates / attempts"}
           : {data.valid} / {String(data.attempted)}
         </p>
       )}
@@ -294,6 +303,10 @@ export function DiffResults({
             selected={selectedRecord}
             language={language}
             verification={data.core_verification}
+            proteinUrl={
+              designing && protein ? artifactUrl(job.id, protein) : undefined
+            }
+            metrics={designing ? generatedMetrics(data.report) : null}
             onSelect={(value) => {
               setSelectedRecord(value);
               handoff.clear();

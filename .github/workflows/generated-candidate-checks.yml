@@ -1,0 +1,24 @@
+name: Generated molecule properties and receptor preview
+on:
+  push:
+    paths: &generated_paths
+      - 'frontend/src/diffsbdd/GeneratedCandidates*'
+      - 'frontend/src/diffsbdd/generated-metrics*'
+      - 'frontend/src/diffsbdd/DiffResults*'
+      - '.github/workflows/generated-candidate-checks.yml'
+  pull_request:
+    paths: *generated_paths
+permissions:
+  contents: read
+jobs:
+  candidate-results:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - working-directory: frontend
+        run: npx vitest run src/diffsbdd/generated-metrics.test.ts src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/DiffResults.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx
