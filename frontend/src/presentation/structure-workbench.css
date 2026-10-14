@@ -17,10 +17,6 @@
 .structure-workbench-details > * {
   min-width: 0;
 }
-.studio-app .structure-workbench-view .viewer-panel .molecular-stage {
-  height: clamp(520px, 64vh, 760px);
-  min-height: 520px;
-}
 .structure-workbench-view .simulation-webgl {
   height: clamp(520px, 64vh, 760px);
 }
@@ -45,10 +41,6 @@
   .structure-workbench {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
-  }
-  .studio-app .structure-workbench-view .viewer-panel .molecular-stage {
-    height: clamp(360px, 55vh, 580px);
-    min-height: 360px;
   }
   .structure-workbench-view .simulation-webgl {
     height: clamp(360px, 55vh, 580px);

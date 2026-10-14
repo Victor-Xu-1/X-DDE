@@ -19,6 +19,9 @@ on:
       - "frontend/src/diffsbdd/interaction-results.css"
       - "frontend/src/discovery/ReferenceImportResults.tsx"
       - "frontend/src/docking/DockingResults.tsx"
+      - "frontend/src/docking/SearchRegion.tsx"
+      - "frontend/src/evidence/EvidenceResults.tsx"
+      - "frontend/src/evidence/evidence.css"
       - "frontend/src/examples/ExampleJobResult.tsx"
       - "frontend/src/examples/CampaignCasePreview.tsx"
       - "frontend/src/examples/campaign-preview.css"
@@ -62,6 +65,7 @@ on:
       - "frontend/src/space/channels.css"
       - "frontend/src/studio/PredictionResults.tsx"
       - "frontend/src/viewer/MinimizedPoseResults.tsx"
+      - "frontend/src/viewer/viewer.css"
       - "frontend/src/presentation/StructureWorkbench.tsx"
       - "frontend/src/presentation/structure-workbench.css"
       - "server_tests/test_structure_workbench_browser.py"
@@ -99,6 +103,7 @@ jobs:
           src/diffsbdd/DiffForm.test.tsx
           src/docking/DockingResults.test.tsx
           src/docking/DockingForm.test.tsx
+          src/evidence/EvidenceResults.test.tsx
           src/examples/ExampleJobResult.test.tsx
           src/examples/CampaignCasePreview.test.tsx
           src/operations/PreparedInputResults.test.tsx

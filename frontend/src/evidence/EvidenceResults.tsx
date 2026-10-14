@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Language } from "../types";
 import { ResearchTable } from "../presentation/ResearchTable";
@@ -79,130 +80,129 @@ export function EvidenceResults({
           })}
         </select>
       </label>
-      <div
-        className={
-          current?.molecule ? "evidence-visuals" : "evidence-visuals full"
+      <StructureWorkbench
+        preview={
+          current?.molecule ? (
+            <MaterialPreview row={current} language={language} />
+          ) : null
         }
       >
         <EvidencePlot rows={rows} language={language} onSelect={setSelected} />
-        {current?.molecule && (
-          <MaterialPreview row={current} language={language} />
-        )}
-      </div>
-      <ResearchTable<Observation>
-        rows={rows}
-        language={language}
-        rowId={(r) => r.id}
-        title={zh ? "原始实测记录" : "Reported observations"}
-        selected={current?.id ?? null}
-        onSelect={setSelected}
-        exportName="experimental-observations-view.csv"
-        columns={[
-          {
-            key: "compound",
-            label: zh ? "化合物/材料" : "Compound/material",
-            value: (r) => r.compound,
-          },
-          {
-            key: "endpoint",
-            label: zh ? "终点" : "Endpoint",
-            value: (r) => r.endpoint,
-          },
-          {
-            key: "reported",
-            label: zh ? "原始报告" : "As reported",
-            value: (r) =>
-              `${r.relation} ${r.reported_value} ${r.reported_unit}`,
-          },
-          {
-            key: "normalized",
-            label: zh ? "统一单位数值" : "Normalized value",
-            numeric: true,
-            value: (r) => r.normalized_value,
-            render: (r) =>
-              r.normalized_value === null
-                ? "—"
-                : `${r.relation} ${r.normalized_value.toPrecision(5)} ${r.normalized_unit}`,
-          },
-          {
-            key: "replicate",
-            label: zh ? "重复编号" : "Replicate",
-            value: (r) => r.replicate || "—",
-          },
-          {
-            key: "uncertainty",
-            label: zh ? "报告误差" : "Reported uncertainty",
-            value: (r) =>
-              r.uncertainty
-                ? `${r.uncertainty.kind.toUpperCase()} ${r.uncertainty.value} ${r.uncertainty.unit}`
-                : "—",
-          },
-          {
-            key: "review",
-            label: zh ? "需复核" : "Review",
-            value: (r) =>
-              r.issues.filter(
-                (issue) => issue !== "replicate_identity_not_reported",
-              ).length
-                ? zh
-                  ? "需检查"
-                  : "Review"
-                : "—",
-          },
-        ]}
-      />
-      <details>
-        <summary>
-          {zh ? "同条件摘要与来源" : "Condition-matched summary and source"}
-        </summary>
-        <p>{value.request.citation}</p>
-        <p>
-          {zh
-            ? "限值不作为精确值计算中位数；记录数不等于独立实验重复数。"
-            : "Limits are excluded from exact-value medians. Record counts are not independent replicate counts."}
-        </p>
-        <ResearchTable
-          rows={summaries}
+        <ResearchTable<Observation>
+          rows={rows}
           language={language}
-          rowId={(r) => r.compound}
-          title={zh ? "同条件摘要" : "Matched-condition summaries"}
+          rowId={(r) => r.id}
+          title={zh ? "原始实测记录" : "Reported observations"}
+          selected={current?.id ?? null}
+          onSelect={setSelected}
+          exportName="experimental-observations-view.csv"
           columns={[
             {
               key: "compound",
-              label: zh ? "材料" : "Material",
+              label: zh ? "化合物/材料" : "Compound/material",
               value: (r) => r.compound,
             },
             {
-              key: "count",
-              label: zh ? "记录数" : "Records",
-              numeric: true,
-              value: (r) => r.reported_count,
+              key: "endpoint",
+              label: zh ? "终点" : "Endpoint",
+              value: (r) => r.endpoint,
             },
             {
-              key: "exact",
-              label: zh ? "精确值数" : "Exact records",
-              numeric: true,
-              value: (r) => r.exact_count,
-            },
-            {
-              key: "median",
-              label: zh ? "精确值中位数" : "Median of exact values",
-              numeric: true,
-              value: (r) => r.median_if_exact,
-            },
-            {
-              key: "bounds",
-              label: zh ? "限值冲突" : "Conflicting bounds",
+              key: "reported",
+              label: zh ? "原始报告" : "As reported",
               value: (r) =>
-                r.incompatible_reported_bounds
+                `${r.relation} ${r.reported_value} ${r.reported_unit}`,
+            },
+            {
+              key: "normalized",
+              label: zh ? "统一单位数值" : "Normalized value",
+              numeric: true,
+              value: (r) => r.normalized_value,
+              render: (r) =>
+                r.normalized_value === null
+                  ? "—"
+                  : `${r.relation} ${r.normalized_value.toPrecision(5)} ${r.normalized_unit}`,
+            },
+            {
+              key: "replicate",
+              label: zh ? "重复编号" : "Replicate",
+              value: (r) => r.replicate || "—",
+            },
+            {
+              key: "uncertainty",
+              label: zh ? "报告误差" : "Reported uncertainty",
+              value: (r) =>
+                r.uncertainty
+                  ? `${r.uncertainty.kind.toUpperCase()} ${r.uncertainty.value} ${r.uncertainty.unit}`
+                  : "—",
+            },
+            {
+              key: "review",
+              label: zh ? "需复核" : "Review",
+              value: (r) =>
+                r.issues.filter(
+                  (issue) => issue !== "replicate_identity_not_reported",
+                ).length
                   ? zh
-                    ? "需复核"
+                    ? "需检查"
                     : "Review"
                   : "—",
             },
           ]}
         />
-      </details>
+        <details>
+          <summary>
+            {zh ? "同条件摘要与来源" : "Condition-matched summary and source"}
+          </summary>
+          <p>{value.request.citation}</p>
+          <p>
+            {zh
+              ? "限值不作为精确值计算中位数；记录数不等于独立实验重复数。"
+              : "Limits are excluded from exact-value medians. Record counts are not independent replicate counts."}
+          </p>
+          <ResearchTable
+            rows={summaries}
+            language={language}
+            rowId={(r) => r.compound}
+            title={zh ? "同条件摘要" : "Matched-condition summaries"}
+            columns={[
+              {
+                key: "compound",
+                label: zh ? "材料" : "Material",
+                value: (r) => r.compound,
+              },
+              {
+                key: "count",
+                label: zh ? "记录数" : "Records",
+                numeric: true,
+                value: (r) => r.reported_count,
+              },
+              {
+                key: "exact",
+                label: zh ? "精确值数" : "Exact records",
+                numeric: true,
+                value: (r) => r.exact_count,
+              },
+              {
+                key: "median",
+                label: zh ? "精确值中位数" : "Median of exact values",
+                numeric: true,
+                value: (r) => r.median_if_exact,
+              },
+              {
+                key: "bounds",
+                label: zh ? "限值冲突" : "Conflicting bounds",
+                value: (r) =>
+                  r.incompatible_reported_bounds
+                    ? zh
+                      ? "需复核"
+                      : "Review"
+                    : "—",
+              },
+            ]}
+          />
+        </details>
+      </StructureWorkbench>
     </section>
   );
 }

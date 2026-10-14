@@ -88,8 +88,8 @@
 .studio-app .viewer-panel .molecular-stage {
   position: relative;
   flex: none;
-  height: 440px;
-  min-height: 0;
+  height: clamp(520px, 64vh, 760px);
+  min-height: 520px;
   overflow: hidden;
   background: var(--surface);
   border: 0;
@@ -185,9 +185,10 @@
   max-height: 140px;
   overflow: auto;
 }
-@media (max-width: 580px) {
+@media (max-width: 1000px) {
   .studio-app .viewer-panel .molecular-stage {
-    height: 300px;
+    height: clamp(360px, 55vh, 580px);
+    min-height: 360px;
   }
 }
 .molecular-stage iframe {

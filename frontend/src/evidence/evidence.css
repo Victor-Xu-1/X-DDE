@@ -23,16 +23,6 @@
   font-weight: 600;
   color: var(--ink);
 }
-.evidence-visuals {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
-  gap: 28px;
-  align-items: start;
-  margin: 20px 0;
-}
-.evidence-visuals.full {
-  grid-template-columns: minmax(0, 1fr);
-}
 .evidence-plot-scroll {
   max-height: 460px;
   overflow: auto;
@@ -81,8 +71,7 @@
 }
 @media (max-width: 760px) {
   .evidence-fields,
-  .evidence-mapping,
-  .evidence-visuals {
+  .evidence-mapping {
     grid-template-columns: minmax(0, 1fr);
   }
   .evidence-metrics {
