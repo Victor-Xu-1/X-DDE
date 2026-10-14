@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import type { StateResult, StateSet } from "./types";
@@ -106,7 +107,73 @@ export function StateCollectionPreview({
           },
         ]}
       />
-      <div className="result-master-detail state-conformer-stage">
+      <StructureWorkbench
+        preview={
+          <div className="result-inspector">
+            <header>
+              <h3>
+                {zh ? "状态" : "State"} {state.index + 1}
+                {current
+                  ? " · " +
+                    (zh ? "构象 " : "Conformer ") +
+                    (current.native_conformer + 1)
+                  : ""}
+              </h3>
+            </header>
+            <MolecularPreview
+              key={String(state.index) + ":" + String(current?.record)}
+              label={String(state.index + 1)}
+              language={language}
+              source={{ smiles: state.smiles }}
+              defaultView={current ? "3d" : "2d"}
+              urls={
+                current ? [artifactUrl(job.id, current.artifact)] : undefined
+              }
+              records={current ? [0] : undefined}
+            />
+            {current && (
+              <a href={artifactUrl(job.id, current.artifact)} download>
+                {zh ? "下载当前构象 SDF" : "Download current conformer SDF"}
+              </a>
+            )}
+            <PoseStudyInput
+              original={reference ?? member?.reference}
+              language={language}
+            >
+              {(selection) => (
+                <div className="editor-toolbar">
+                  {member?.reference && (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      disabled={!selection?.ready}
+                      onClick={() => {
+                        if (selection) onUse(selection.reference, "properties");
+                      }}
+                    >
+                      {zh
+                        ? "计算此状态性质"
+                        : "Calculate this state's properties"}
+                    </button>
+                  )}
+                  {reference && (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      disabled={!selection?.ready}
+                      onClick={() => {
+                        if (selection) onUse(selection.reference, "docking");
+                      }}
+                    >
+                      {zh ? "用于寻找结合姿势" : "Use for binding-pose search"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </PoseStudyInput>
+          </div>
+        }
+      >
         <div className="result-inspector">
           <ResearchTable
             rows={conformers}
@@ -175,68 +242,7 @@ export function StateCollectionPreview({
             ]}
           />
         </div>
-        <div className="result-inspector">
-          <header>
-            <h3>
-              {zh ? "状态" : "State"} {state.index + 1}
-              {current
-                ? " · " +
-                  (zh ? "构象 " : "Conformer ") +
-                  (current.native_conformer + 1)
-                : ""}
-            </h3>
-          </header>
-          <MolecularPreview
-            key={String(state.index) + ":" + String(current?.record)}
-            label={String(state.index + 1)}
-            language={language}
-            source={{ smiles: state.smiles }}
-            defaultView={current ? "3d" : "2d"}
-            urls={current ? [artifactUrl(job.id, current.artifact)] : undefined}
-            records={current ? [0] : undefined}
-          />
-          {current && (
-            <a href={artifactUrl(job.id, current.artifact)} download>
-              {zh ? "下载当前构象 SDF" : "Download current conformer SDF"}
-            </a>
-          )}
-          <PoseStudyInput
-            original={reference ?? member?.reference}
-            language={language}
-          >
-            {(selection) => (
-              <div className="editor-toolbar">
-                {member?.reference && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    disabled={!selection?.ready}
-                    onClick={() => {
-                      if (selection) onUse(selection.reference, "properties");
-                    }}
-                  >
-                    {zh
-                      ? "计算此状态性质"
-                      : "Calculate this state's properties"}
-                  </button>
-                )}
-                {reference && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    disabled={!selection?.ready}
-                    onClick={() => {
-                      if (selection) onUse(selection.reference, "docking");
-                    }}
-                  >
-                    {zh ? "用于寻找结合姿势" : "Use for binding-pose search"}
-                  </button>
-                )}
-              </div>
-            )}
-          </PoseStudyInput>
-        </div>
-      </div>
+      </StructureWorkbench>
     </section>
   );
 }

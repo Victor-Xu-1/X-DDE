@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -84,21 +85,24 @@ export function SurfaceResults({
           />
         </div>
       )}
-      <div className="surface-result-layout">
-        <StructureViewer
-          urls={[artifactUrl(job.id, result.preview_artifact)]}
-          language={language}
-          focusResidue={focus}
-          ligandContext={false}
-          initialMode="cartoon"
-          residueRegion={result.regions.map((row) => ({
-            model: 0,
-            chain: row.chain,
-            number: row.number,
-            insertion_code: row.insertion_code,
-            alternate_location: "",
-          }))}
-        />
+      <StructureWorkbench
+        preview={
+          <StructureViewer
+            urls={[artifactUrl(job.id, result.preview_artifact)]}
+            language={language}
+            focusResidue={focus}
+            ligandContext={false}
+            initialMode="cartoon"
+            residueRegion={result.regions.map((row) => ({
+              model: 0,
+              chain: row.chain,
+              number: row.number,
+              insertion_code: row.insertion_code,
+              alternate_location: "",
+            }))}
+          />
+        }
+      >
         <div>
           <SurfaceTable
             result={result}
@@ -118,7 +122,7 @@ export function SurfaceResults({
             }
           />
         </div>
-      </div>
+      </StructureWorkbench>
       <div className="surface-downloads">
         <a href={artifactUrl(job.id, "regions.csv")} download>
           {zh ? "下载区域面积" : "Download region areas"}

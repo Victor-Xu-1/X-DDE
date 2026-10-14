@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import "../presentation/ensemble-results.css";
 import { useState, type ReactNode } from "react";
 import { PoseSession } from "../viewer/PoseSession";
@@ -179,7 +180,16 @@ function PoseResultWorkspace({
         </p>
       ) : (
         <>
-          <div className="ensemble-result-layout">
+          <StructureWorkbench
+            preview={
+              <PoseDetail
+                outcome={outcome}
+                record={pose}
+                language={language}
+                onNext={handoff.open}
+              />
+            }
+          >
             <PoseOutcomeList
               value={value}
               index={index}
@@ -191,13 +201,7 @@ function PoseResultWorkspace({
                 handoff.clear();
               }}
             />
-            <PoseDetail
-              outcome={outcome}
-              record={pose}
-              language={language}
-              onNext={handoff.open}
-            />
-          </div>
+          </StructureWorkbench>
           <div className="editor-toolbar">
             <button
               className="secondary-button"

@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Job, Language } from "../types";
 import { artifactUrl } from "../api";
@@ -132,7 +133,42 @@ export function CandidateSequenceResults({
           ? "模型结果；序列、界面与结构评分不等于实验结合活性。"
           : "Model outputs; sequence, interface and structure scores are not measured binding activity."}
       </p>
-      <div className="result-master-detail">
+      <StructureWorkbench
+        preview={
+          <div className="result-inspector">
+            <header>
+              <h3>{candidateLabel(current)}</h3>
+            </header>
+            <ResearchTabs
+              key={current.index}
+              label={zh ? "候选预览" : "Candidate views"}
+              tabs={tabs}
+            />
+            {Array.isArray(current.value.mutations) && (
+              <p>
+                {zh
+                  ? "变更（序列位置从 1 开始）"
+                  : "Changes (sequence positions start at 1)"}
+                : {current.value.mutations.map(mutationDescription).join("; ")}
+              </p>
+            )}
+            <details>
+              <summary>
+                {zh ? "设计依据与完整指标" : "Design evidence and full metrics"}
+              </summary>
+              <ResultTree
+                zh={zh}
+                value={{
+                  metrics: current.metrics,
+                  strategy: current.value.strategy,
+                  objective: current.value.objective,
+                  risk_level: current.value.risk_level,
+                }}
+              />
+            </details>
+          </div>
+        }
+      >
         <div className="result-inspector">
           <ResearchTable
             rows={rows}
@@ -199,39 +235,7 @@ export function CandidateSequenceResults({
             />
           )}
         </div>
-        <div className="result-inspector">
-          <header>
-            <h3>{candidateLabel(current)}</h3>
-          </header>
-          <ResearchTabs
-            key={current.index}
-            label={zh ? "候选预览" : "Candidate views"}
-            tabs={tabs}
-          />
-          {Array.isArray(current.value.mutations) && (
-            <p>
-              {zh
-                ? "变更（序列位置从 1 开始）"
-                : "Changes (sequence positions start at 1)"}
-              : {current.value.mutations.map(mutationDescription).join("; ")}
-            </p>
-          )}
-          <details>
-            <summary>
-              {zh ? "设计依据与完整指标" : "Design evidence and full metrics"}
-            </summary>
-            <ResultTree
-              zh={zh}
-              value={{
-                metrics: current.metrics,
-                strategy: current.value.strategy,
-                objective: current.value.objective,
-                risk_level: current.value.risk_level,
-              }}
-            />
-          </details>
-        </div>
-      </div>
+      </StructureWorkbench>
       {unassigned.length > 0 && (
         <details className="candidate-unassigned">
           <summary>

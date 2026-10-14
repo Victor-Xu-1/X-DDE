@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { Job, Language } from "../types";
@@ -287,7 +288,32 @@ export function ResearchWorkspace({
       )}
       {graph && graph.nodes.length > 0 && (
         <>
-          <div className="research-columns">
+          <StructureWorkbench
+            preview={
+              <ObjectInspector
+                node={node}
+                graph={graph}
+                selected={selected}
+                language={language}
+                busy={busy}
+                label={label}
+                notes={notes}
+                rating={rating}
+                setLabel={setLabel}
+                setNotes={setNotes}
+                setRating={setRating}
+                onEdit={onEdit}
+                onProperties={(value) => {
+                  setPropertyOrigin(node?.id ?? null);
+                  setProperties(value);
+                }}
+                onSelect={(id) => void select(id)}
+                onJob={onJob}
+                mutate={mutate}
+                register={register}
+              />
+            }
+          >
             <section className="setup-card">
               <label className="field">
                 {zh ? "查找研究文件或任务" : "Find research files or tasks"}
@@ -408,29 +434,7 @@ export function ResearchWorkspace({
                 </button>
               )}
             </section>
-            <ObjectInspector
-              node={node}
-              graph={graph}
-              selected={selected}
-              language={language}
-              busy={busy}
-              label={label}
-              notes={notes}
-              rating={rating}
-              setLabel={setLabel}
-              setNotes={setNotes}
-              setRating={setRating}
-              onEdit={onEdit}
-              onProperties={(value) => {
-                setPropertyOrigin(node?.id ?? null);
-                setProperties(value);
-              }}
-              onSelect={(id) => void select(id)}
-              onJob={onJob}
-              mutate={mutate}
-              register={register}
-            />
-          </div>
+          </StructureWorkbench>
           <details className="research-relationships">
             <summary>
               {zh ? "查看文件之间的关系" : "Show file relationships"}

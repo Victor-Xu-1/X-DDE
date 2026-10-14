@@ -1,0 +1,125 @@
+name: Molecular view workspace alignment
+on:
+  push:
+    paths: &structure_paths
+      - "frontend/src/admet/AdmetResults.tsx"
+      - "frontend/src/admet/admet.css"
+      - "frontend/src/chemistry/StateCollectionPreview.tsx"
+      - "frontend/src/datasets/CandidateView.tsx"
+      - "frontend/src/datasets/IndexedLibraryResults.tsx"
+      - "frontend/src/datasets/datasets.css"
+      - "frontend/src/diffsbdd/FixedAtomPicker.tsx"
+      - "frontend/src/diffsbdd/GeneratedCandidates.tsx"
+      - "frontend/src/diffsbdd/InteractionResults.tsx"
+      - "frontend/src/diffsbdd/PocketPicker.tsx"
+      - "frontend/src/diffsbdd/ReferencePocketResults.tsx"
+      - "frontend/src/diffsbdd/interaction-results.css"
+      - "frontend/src/discovery/ReferenceImportResults.tsx"
+      - "frontend/src/docking/DockingResults.tsx"
+      - "frontend/src/examples/ExampleJobResult.tsx"
+      - "frontend/src/examples/StudyInputPreview.tsx"
+      - "frontend/src/examples/examples.css"
+      - "frontend/src/integrations/InteractionResults.tsx"
+      - "frontend/src/integrations/PotentialResults.tsx"
+      - "frontend/src/integrations/ScaffoldSelection.tsx"
+      - "frontend/src/integrations/ScientificResults.tsx"
+      - "frontend/src/integrations/StructureTargetSelection.tsx"
+      - "frontend/src/operations/CandidateSequenceResults.tsx"
+      - "frontend/src/operations/CovalentEditor.tsx"
+      - "frontend/src/operations/PropertyResults.tsx"
+      - "frontend/src/pockets/PocketResults.tsx"
+      - "frontend/src/pockets/pocket-results.css"
+      - "frontend/src/poses/ClusterResults.tsx"
+      - "frontend/src/poses/PoseResults.tsx"
+      - "frontend/src/poses/cluster.css"
+      - "frontend/src/presentation/ensemble-results.css"
+      - "frontend/src/proximity/AttachmentDirections.tsx"
+      - "frontend/src/proximity/BindingRegion.tsx"
+      - "frontend/src/proximity/PartnerStep.tsx"
+      - "frontend/src/proximity/Results.tsx"
+      - "frontend/src/proximity/proximity.css"
+      - "frontend/src/quality/QualityResults.tsx"
+      - "frontend/src/receptors/ReceptorResults.tsx"
+      - "frontend/src/receptors/StructurePrepareForm.tsx"
+      - "frontend/src/receptors/StructurePrepareResults.tsx"
+      - "frontend/src/receptors/SurfaceRegionPicker.tsx"
+      - "frontend/src/receptors/SurfaceResults.tsx"
+      - "frontend/src/receptors/surface.css"
+      - "frontend/src/regions/AtomSelection.tsx"
+      - "frontend/src/regions/RegionResult.tsx"
+      - "frontend/src/research/ResearchWorkspace.tsx"
+      - "frontend/src/research/research.css"
+      - "frontend/src/simulations/DynamicsResults.tsx"
+      - "frontend/src/simulations/FreeEnergyResults.tsx"
+      - "frontend/src/space/ChannelResults.tsx"
+      - "frontend/src/space/channels.css"
+      - "frontend/src/studio/PredictionResults.tsx"
+      - "frontend/src/viewer/MinimizedPoseResults.tsx"
+      - "frontend/src/presentation/StructureWorkbench.tsx"
+      - "frontend/src/presentation/structure-workbench.css"
+      - "server_tests/test_structure_workbench_browser.py"
+      - ".github/workflows/structure-layout-checks.yml"
+  pull_request:
+    paths: *structure_paths
+permissions:
+  contents: read
+jobs:
+  view-alignment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Changed molecular result and selection consumers only
+        working-directory: frontend
+        run: >-
+          npx vitest run
+          src/admet/AdmetResults.test.tsx
+          src/chemistry/StateResults.test.tsx
+          src/datasets/IndexedLibraryResults.test.tsx
+          src/datasets/DatasetResults.test.tsx
+          src/diffsbdd/GeneratedCandidates.test.tsx
+          src/diffsbdd/DiffResults.test.tsx
+          src/diffsbdd/InteractionResults.test.tsx
+          src/diffsbdd/DiffForm.test.tsx
+          src/docking/DockingResults.test.tsx
+          src/docking/DockingForm.test.tsx
+          src/examples/ExampleJobResult.test.tsx
+          src/integrations/StructureTargetSelection.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx
+          src/operations/CovalentEditor.test.tsx
+          src/operations/PropertyResults.test.tsx
+          src/pockets/PocketResults.test.tsx
+          src/poses/ClusterResults.test.tsx
+          src/poses/PoseResults.test.tsx
+          src/receptors/ReceptorResults.test.tsx
+          src/receptors/SurfaceResults.test.tsx
+          src/receptors/StructurePrepareForm.test.tsx
+          src/regions/RegionWorkspace.test.tsx
+          src/research/ResearchWorkspace.test.tsx
+          src/simulations/SimulationResults.test.tsx
+          src/studio/PredictionResults.test.tsx
+          src/quality/tests/QualityResults.test.tsx
+      - name: Retain actual reviewed results without scientific calculations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-structure-layout" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-structure-layout/state" >> "$GITHUB_ENV"
+          gh release download examples-stat6-results-v4 --pattern stat6-reviewed-results-v4.zip --dir "$RUNNER_TEMP"
+          export WB_HOME="$RUNNER_TEMP/x-dde-structure-layout" WB_STATE_DIR="$RUNNER_TEMP/x-dde-structure-layout/state"
+          .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/"stat6-reviewed-results-v4.zip", Settings.from_env(), "bdf1d3884e0089f8c88fc56d941d7bbd816e98e541f5c68be46ed48ab663943f"))'
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Native STAT6 layout geometry and preserved task identity, desktop and narrow
+        run: uv run --locked pytest -x -q server_tests/test_structure_workbench_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: structure-workbench-evidence
+          path: outputs/structure-workbench/**

@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -83,44 +84,47 @@ export function PocketPicker({
           label={zh ? "参考配体" : "Reference ligand"}
         />
       ) : (
-        <>
-          <StructureViewer
-            urls={[`/api/assets/${protein.asset_id}`]}
-            language={language}
-            onAtomSelected={(s) => {
-              if (!s || !s.identity) return;
-              const r = s.identity;
-              if (r.insertion_code || r.alternate_location) {
-                setError(
-                  zh
-                    ? "请先处理插入编号或替代构象。"
-                    : "Resolve insertion codes or alternate locations first.",
-                );
-                return;
-              }
-              try {
-                if (kind === "bound_ligand" && !r.is_ligand)
-                  throw new Error(
+        <StructureWorkbench
+          preview={
+            <StructureViewer
+              urls={[`/api/assets/${protein.asset_id}`]}
+              language={language}
+              onAtomSelected={(s) => {
+                if (!s || !s.identity) return;
+                const r = s.identity;
+                if (r.insertion_code || r.alternate_location) {
+                  setError(
                     zh
-                      ? "请选择结构中的配体，不要选择蛋白残基。"
-                      : "Select a bound ligand, rather than a protein residue.",
+                      ? "请先处理插入编号或替代构象。"
+                      : "Resolve insertion codes or alternate locations first.",
                   );
-                const ref = residueFromSelection(protein, r.chain, r.number);
-                if (kind === "bound_ligand") onChange({ kind, residue: ref });
-                else {
-                  const token = `${ref.chain}:${ref.number}`,
-                    tokens = text.split(/[\s,，]+/).filter(Boolean);
-                  update(
-                    tokens.includes(token)
-                      ? tokens.filter((v) => v !== token).join(", ")
-                      : [...tokens, token].join(", "),
-                  );
+                  return;
                 }
-              } catch (e) {
-                setError(String(e));
-              }
-            }}
-          />
+                try {
+                  if (kind === "bound_ligand" && !r.is_ligand)
+                    throw new Error(
+                      zh
+                        ? "请选择结构中的配体，不要选择蛋白残基。"
+                        : "Select a bound ligand, rather than a protein residue.",
+                    );
+                  const ref = residueFromSelection(protein, r.chain, r.number);
+                  if (kind === "bound_ligand") onChange({ kind, residue: ref });
+                  else {
+                    const token = `${ref.chain}:${ref.number}`,
+                      tokens = text.split(/[\s,，]+/).filter(Boolean);
+                    update(
+                      tokens.includes(token)
+                        ? tokens.filter((v) => v !== token).join(", ")
+                        : [...tokens, token].join(", "),
+                    );
+                  }
+                } catch (e) {
+                  setError(String(e));
+                }
+              }}
+            />
+          }
+        >
           {kind === "residues" && (
             <label className="field">
               {zh
@@ -142,7 +146,7 @@ export function PocketPicker({
                   : "Click an atom of the bound ligand."}
             </p>
           )}
-        </>
+        </StructureWorkbench>
       )}
       {error && (
         <p role="alert" className="error-box">

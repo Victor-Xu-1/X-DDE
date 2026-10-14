@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
 import { PoseTable } from "./PoseTable";
@@ -100,7 +101,94 @@ export function DockingResults({
           ? "经验评分用于同一方法下比较候选，不是实测亲和力。化学与坐标检查通过也不等于结合模式已被实验确认。"
           : "Empirical scores compare candidates within the same method; they are not measured affinity. Chemical and coordinate checks do not establish experimental pose validity."}
       </p>
-      <div className="result-master-detail">
+      <StructureWorkbench
+        preview={
+          <div className="result-inspector">
+            {diagnostic && (
+              <>
+                <p className="field-help">
+                  {zh
+                    ? "仅供检查的规范化重原子坐标，不进入合格候选或自动复用。"
+                    : "Normalized heavy-atom coordinates for inspection only, excluded from qualified candidates and automatic handoff."}
+                </p>
+                <StructureViewer
+                  key={diagnostic}
+                  urls={[
+                    artifactUrl(job.id, result.receptor_artifact),
+                    artifactUrl(job.id, diagnostic),
+                  ]}
+                  language={language}
+                  focusModel={1}
+                />
+              </>
+            )}
+            {result.poses.length === 0 && (
+              <p role="status">{zh ? "没有返回姿势" : "No poses returned"}</p>
+            )}
+            {selected?.artifact && (
+              <>
+                <MolecularPreview
+                  key={selected.artifact}
+                  label={(zh ? "姿势 " : "Pose ") + (selected.record + 1)}
+                  source={{ url: artifactUrl(job.id, selected.artifact) }}
+                  defaultView="3d"
+                  nativeScore={poseScore(result, selected)}
+                  urls={[
+                    artifactUrl(job.id, result.receptor_artifact),
+                    artifactUrl(job.id, selected.artifact),
+                  ]}
+                  language={language}
+                  focusModel={1}
+                />
+                <a href={artifactUrl(job.id, selected.artifact)} download>
+                  {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                </a>
+                <PoseStudyInput original={version} language={language}>
+                  {(selection, waiting) =>
+                    selection ? (
+                      <div className="editor-toolbar">
+                        {(["properties", "score"] as const).map((v, n) => (
+                          <button
+                            className="secondary-button"
+                            type="button"
+                            key={v}
+                            disabled={
+                              !selection.ready ||
+                              (v === "score" &&
+                                selection.displayed &&
+                                selection.receptor === null)
+                            }
+                            onClick={() => {
+                              handoff.open(v, selection);
+                            }}
+                          >
+                            {
+                              (zh
+                                ? ["计算性质", "重新评分"]
+                                : ["Calculate properties", "Rescore"])[n]
+                            }
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        disabled={assets.busy || waiting}
+                        onClick={() => void assets.refresh()}
+                      >
+                        {zh
+                          ? "登记并读取这个姿势"
+                          : "Register and load this pose"}
+                      </button>
+                    )
+                  }
+                </PoseStudyInput>
+              </>
+            )}
+          </div>
+        }
+      >
         <div>
           <PoseTable
             jobId={job.id}
@@ -120,91 +208,7 @@ export function DockingResults({
           />
           <PoseViolations poses={result.poses} language={language} />
         </div>
-        <div className="result-inspector">
-          {diagnostic && (
-            <>
-              <p className="field-help">
-                {zh
-                  ? "仅供检查的规范化重原子坐标，不进入合格候选或自动复用。"
-                  : "Normalized heavy-atom coordinates for inspection only, excluded from qualified candidates and automatic handoff."}
-              </p>
-              <StructureViewer
-                key={diagnostic}
-                urls={[
-                  artifactUrl(job.id, result.receptor_artifact),
-                  artifactUrl(job.id, diagnostic),
-                ]}
-                language={language}
-                focusModel={1}
-              />
-            </>
-          )}
-          {result.poses.length === 0 && (
-            <p role="status">{zh ? "没有返回姿势" : "No poses returned"}</p>
-          )}
-          {selected?.artifact && (
-            <>
-              <MolecularPreview
-                key={selected.artifact}
-                label={(zh ? "姿势 " : "Pose ") + (selected.record + 1)}
-                source={{ url: artifactUrl(job.id, selected.artifact) }}
-                defaultView="3d"
-                nativeScore={poseScore(result, selected)}
-                urls={[
-                  artifactUrl(job.id, result.receptor_artifact),
-                  artifactUrl(job.id, selected.artifact),
-                ]}
-                language={language}
-                focusModel={1}
-              />
-              <a href={artifactUrl(job.id, selected.artifact)} download>
-                {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
-              </a>
-              <PoseStudyInput original={version} language={language}>
-                {(selection, waiting) =>
-                  selection ? (
-                    <div className="editor-toolbar">
-                      {(["properties", "score"] as const).map((v, n) => (
-                        <button
-                          className="secondary-button"
-                          type="button"
-                          key={v}
-                          disabled={
-                            !selection.ready ||
-                            (v === "score" &&
-                              selection.displayed &&
-                              selection.receptor === null)
-                          }
-                          onClick={() => {
-                            handoff.open(v, selection);
-                          }}
-                        >
-                          {
-                            (zh
-                              ? ["计算性质", "重新评分"]
-                              : ["Calculate properties", "Rescore"])[n]
-                          }
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      disabled={assets.busy || waiting}
-                      onClick={() => void assets.refresh()}
-                    >
-                      {zh
-                        ? "登记并读取这个姿势"
-                        : "Register and load this pose"}
-                    </button>
-                  )
-                }
-              </PoseStudyInput>
-            </>
-          )}
-        </div>
-      </div>
+      </StructureWorkbench>
       {assets.busy && (
         <button type="button" className="text-button" onClick={assets.cancel}>
           {zh ? "取消读取" : "Cancel loading"}

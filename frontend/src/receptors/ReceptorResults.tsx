@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import "../presentation/ensemble-results.css";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { Hint } from "../guided/Hint";
@@ -118,7 +119,65 @@ export function ReceptorResults({
             : "At least two qualified members are needed for multi-conformation comparison."}
         </p>
       )}
-      <div className="ensemble-result-layout">
+      <StructureWorkbench
+        preview={
+          <section
+            className="receptor-overlay-detail"
+            aria-label={zh ? "所选受体预览" : "Selected receptor preview"}
+          >
+            <header className="ensemble-result-heading">
+              <h3>
+                {member
+                  ? (zh ? "受体 " : "Receptor ") + (member.index + 1)
+                  : zh
+                    ? "结构预览"
+                    : "Structure preview"}
+              </h3>
+            </header>
+            {urls.length > 0 ? (
+              <>
+                <StructureViewer
+                  key={job.id + ":" + selected}
+                  urls={urls}
+                  language={language}
+                  comparison={urls.length > 1}
+                />
+                <p className="field-help receptor-overlay-legend">
+                  {urls.length > 1
+                    ? zh
+                      ? "蓝色：参照 · 橙色：所选受体。完全重合时可互相遮挡。"
+                      : "Blue: reference · Orange: selected receptor. Identical overlays can occlude each other."
+                    : zh
+                      ? "当前显示单个结构。"
+                      : "One structure is displayed."}
+                </p>
+                {saved && member?.quality?.backbone_complete && (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => setNext(true)}
+                  >
+                    {zh ? "用此受体寻找口袋" : "Find pockets on this receptor"}
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="ensemble-empty-preview" role="status">
+                <strong>
+                  {zh
+                    ? "没有可查看的对齐结构"
+                    : "No aligned structure to inspect"}
+                </strong>
+                <p>
+                  {zh
+                    ? "查看所选成员的原因，或选择其他受体。"
+                    : "Inspect the selected member's reason or choose another receptor."}
+                </p>
+              </div>
+            )}
+          </section>
+        }
+      >
         <div className="ensemble-result-list">
           <h3>{zh ? "选择受体" : "Select a receptor"}</h3>
           <ReceptorMemberTable
@@ -138,62 +197,7 @@ export function ReceptorResults({
             />
           )}
         </div>
-        <section
-          className="receptor-overlay-detail"
-          aria-label={zh ? "所选受体预览" : "Selected receptor preview"}
-        >
-          <header className="ensemble-result-heading">
-            <h3>
-              {member
-                ? (zh ? "受体 " : "Receptor ") + (member.index + 1)
-                : zh
-                  ? "结构预览"
-                  : "Structure preview"}
-            </h3>
-          </header>
-          {urls.length > 0 ? (
-            <>
-              <StructureViewer
-                key={job.id + ":" + selected}
-                urls={urls}
-                language={language}
-                comparison={urls.length > 1}
-              />
-              <p className="field-help receptor-overlay-legend">
-                {urls.length > 1
-                  ? zh
-                    ? "蓝色：参照 · 橙色：所选受体。完全重合时可互相遮挡。"
-                    : "Blue: reference · Orange: selected receptor. Identical overlays can occlude each other."
-                  : zh
-                    ? "当前显示单个结构。"
-                    : "One structure is displayed."}
-              </p>
-              {saved && member?.quality?.backbone_complete && (
-                <button
-                  className="secondary-button"
-                  type="button"
-                  onClick={() => setNext(true)}
-                >
-                  {zh ? "用此受体寻找口袋" : "Find pockets on this receptor"}
-                </button>
-              )}
-            </>
-          ) : (
-            <div className="ensemble-empty-preview" role="status">
-              <strong>
-                {zh
-                  ? "没有可查看的对齐结构"
-                  : "No aligned structure to inspect"}
-              </strong>
-              <p>
-                {zh
-                  ? "查看所选成员的原因，或选择其他受体。"
-                  : "Inspect the selected member's reason or choose another receptor."}
-              </p>
-            </div>
-          )}
-        </section>
-      </div>
+      </StructureWorkbench>
       {loading && (
         <p role="status">
           {zh

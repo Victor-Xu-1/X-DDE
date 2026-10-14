@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
 import { availabilityError } from "../guided/task-availability";
@@ -71,24 +72,27 @@ export function FixedAtomPicker({
         </p>
       )}
       {job && result && (
-        <>
-          <StructureViewer
-            urls={[artifactUrl(job.id, result.molecule_artifact)]}
-            language={language}
-            selectionMode="atom"
-            onAtomSelected={(s) => {
-              if (s?.pick_mode === "distance") return;
-              const atom = result.atoms.find(
-                (a) => a.index === s?.source_atom_index && a.selectable,
-              );
-              if (atom)
-                onChange(
-                  fixed.includes(atom.index)
-                    ? fixed.filter((n) => n !== atom.index)
-                    : [...fixed, atom.index].sort((a, b) => a - b),
+        <StructureWorkbench
+          preview={
+            <StructureViewer
+              urls={[artifactUrl(job.id, result.molecule_artifact)]}
+              language={language}
+              selectionMode="atom"
+              onAtomSelected={(s) => {
+                if (s?.pick_mode === "distance") return;
+                const atom = result.atoms.find(
+                  (a) => a.index === s?.source_atom_index && a.selectable,
                 );
-            }}
-          />
+                if (atom)
+                  onChange(
+                    fixed.includes(atom.index)
+                      ? fixed.filter((n) => n !== atom.index)
+                      : [...fixed, atom.index].sort((a, b) => a - b),
+                  );
+              }}
+            />
+          }
+        >
           <div
             className="sequence-picker"
             role="group"
@@ -129,7 +133,7 @@ export function FixedAtomPicker({
           <button type="button" onClick={() => onChange([])}>
             {zh ? "清空选择" : "Clear selection"}
           </button>
-        </>
+        </StructureWorkbench>
       )}
       {(error || inspectionReadinessError) && (
         <p role="alert" className="error-box">

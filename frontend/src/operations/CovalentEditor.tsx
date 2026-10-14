@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
 import { availabilityError } from "../guided/task-availability";
@@ -198,7 +199,15 @@ export function CovalentEditor({
         </p>
       )}
       {usable && job && (
-        <>
+        <StructureWorkbench
+          preview={
+            <StructureViewer
+              urls={[artifactUrl(job.id, "input-preview.cif")]}
+              language={language}
+              onAtomSelected={pick}
+            />
+          }
+        >
           <div className="segmented">
             {(["left", "right"] as const).map((s) => (
               <button
@@ -217,11 +226,6 @@ export function CovalentEditor({
               </button>
             ))}
           </div>
-          <StructureViewer
-            urls={[artifactUrl(job.id, "input-preview.cif")]}
-            language={language}
-            onAtomSelected={pick}
-          />
           <label className="field">
             {zh ? "搜索链、残基或原子" : "Search chain, residue or atom"}
             <input value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -269,7 +273,7 @@ export function CovalentEditor({
           >
             {zh ? "添加共价连接" : "Add covalent bond"}
           </button>
-        </>
+        </StructureWorkbench>
       )}
       {value.map((bond, i) => (
         <div className="bond-row" key={i}>

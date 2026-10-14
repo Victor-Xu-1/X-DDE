@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { artifactUrl } from "../api";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -29,7 +30,17 @@ export function InteractionResults({
       id: String(index),
     }));
   return (
-    <div className="results-split">
+    <StructureWorkbench
+      preview={
+        result.structure_artifact && (
+          <StructureViewer
+            urls={[artifactUrl(job.id, result.structure_artifact)]}
+            language={language}
+            nativeInteractions={result.interactions}
+          />
+        )
+      }
+    >
       <ResearchTable
         language={language}
         title={zh ? "关键相互作用" : "Key interactions"}
@@ -56,13 +67,6 @@ export function InteractionResults({
           },
         ]}
       />
-      {result.structure_artifact && (
-        <StructureViewer
-          urls={[artifactUrl(job.id, result.structure_artifact)]}
-          language={language}
-          nativeInteractions={result.interactions}
-        />
-      )}
       <a
         className="secondary-button"
         href={artifactUrl(job.id, "interactions.csv")}
@@ -70,6 +74,6 @@ export function InteractionResults({
       >
         {zh ? "下载相互作用表" : "Download interaction table"}
       </a>
-    </div>
+    </StructureWorkbench>
   );
 }

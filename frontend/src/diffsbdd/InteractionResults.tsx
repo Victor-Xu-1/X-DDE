@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { Hint } from "../guided/Hint";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -81,7 +82,30 @@ export function InteractionResults({
             : "No contacts were identified in this analysis."}
         </p>
       )}
-      <div className="ensemble-result-layout">
+      <StructureWorkbench
+        preview={
+          canLocate && protein && molecule ? (
+            <StructureViewer
+              urls={[
+                "/api/assets/" + protein.asset_id,
+                "/api/assets/" + molecule.asset_id,
+              ]}
+              records={[protein.record, molecule.record]}
+              focusModel={1}
+              focusResidue={focus}
+              language={language}
+              nativeInteractions={contactState.contacts}
+              ligandContext={!contactState.unavailable}
+            />
+          ) : (
+            <div className="ensemble-empty-preview" role="status">
+              {zh
+                ? "当前输入没有可定位的受体与分子构象。"
+                : "The current inputs do not contain a receptor and molecule conformer to locate."}
+            </div>
+          )
+        }
+      >
         <div className="interaction-contact-list">
           <header className="ensemble-result-heading">
             <h3>{zh ? "选择残基" : "Select a residue"}</h3>
@@ -142,27 +166,7 @@ export function InteractionResults({
             ]}
           />
         </div>
-        {canLocate && protein && molecule ? (
-          <StructureViewer
-            urls={[
-              "/api/assets/" + protein.asset_id,
-              "/api/assets/" + molecule.asset_id,
-            ]}
-            records={[protein.record, molecule.record]}
-            focusModel={1}
-            focusResidue={focus}
-            language={language}
-            nativeInteractions={contactState.contacts}
-            ligandContext={!contactState.unavailable}
-          />
-        ) : (
-          <div className="ensemble-empty-preview" role="status">
-            {zh
-              ? "当前输入没有可定位的受体与分子构象。"
-              : "The current inputs do not contain a receptor and molecule conformer to locate."}
-          </div>
-        )}
-      </div>
+      </StructureWorkbench>
       <InteractionDiagram
         language={language}
         label={zh ? "研究配体" : "Study ligand"}

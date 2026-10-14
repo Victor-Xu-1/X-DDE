@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { Hint } from "../guided/Hint";
@@ -47,7 +48,45 @@ export function SurfaceRegionPicker({
       onChange([...value, r]);
   }
   return (
-    <div className="surface-region-layout">
+    <StructureWorkbench
+      preview={
+        <div className="surface-region-preview">
+          <StructureViewer
+            urls={["/api/assets/" + source.asset_id]}
+            language={language}
+            selectionMode="residue"
+            focusLigand={
+              value.length === 1
+                ? scene.ligands.find(
+                    (r) => surfaceKey(regionOf(r)) === surfaceKey(value[0]),
+                  )?.key
+                : undefined
+            }
+            onSceneLoaded={(s) => {
+              setScene(s);
+              onChains(s.chains);
+            }}
+            onAtomSelected={(s) => {
+              if (!s?.identity) return;
+              const id = s.identity;
+              const candidates = available.filter(
+                (r) =>
+                  r.chain.trim() === id.chain &&
+                  r.resi === id.number &&
+                  r.icode.trim() === id.insertion_code,
+              );
+              if (candidates.length === 1) add(regionOf(candidates[0]));
+              else
+                setMessage(
+                  zh
+                    ? "此位置包含多个组分，请从列表明确选择。"
+                    : "This address has several components; choose explicitly from the list.",
+                );
+            }}
+          />
+        </div>
+      }
+    >
       <section className="surface-region-choices">
         <div className="surface-region-toolbar">
           <label className="field">
@@ -104,41 +143,6 @@ export function SurfaceRegionPicker({
         </div>
         {message && <p role="status">{message}</p>}
       </section>
-      <div className="surface-region-preview">
-        <StructureViewer
-          urls={["/api/assets/" + source.asset_id]}
-          language={language}
-          selectionMode="residue"
-          focusLigand={
-            value.length === 1
-              ? scene.ligands.find(
-                  (r) => surfaceKey(regionOf(r)) === surfaceKey(value[0]),
-                )?.key
-              : undefined
-          }
-          onSceneLoaded={(s) => {
-            setScene(s);
-            onChains(s.chains);
-          }}
-          onAtomSelected={(s) => {
-            if (!s?.identity) return;
-            const id = s.identity;
-            const candidates = available.filter(
-              (r) =>
-                r.chain.trim() === id.chain &&
-                r.resi === id.number &&
-                r.icode.trim() === id.insertion_code,
-            );
-            if (candidates.length === 1) add(regionOf(candidates[0]));
-            else
-              setMessage(
-                zh
-                  ? "此位置包含多个组分，请从列表明确选择。"
-                  : "This address has several components; choose explicitly from the list.",
-              );
-          }}
-        />
-      </div>
-    </div>
+    </StructureWorkbench>
   );
 }

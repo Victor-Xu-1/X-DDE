@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { artifactUrl } from "../api";
 import { Hint } from "../guided/Hint";
 import type { Job, Language } from "../types";
@@ -38,37 +39,40 @@ export function QualityResults({
               : "Checks are incomplete"}{" "}
         · {zh ? "通过" : "Pass"} {counts.pass} / {result.checks.length}
       </p>
-      <div className="result-inspection">
+      <StructureWorkbench
+        preview={
+          <div className="result-inspection-detail">
+            {Object.keys(result.previews_sha256).length > 0 ? (
+              <StructureViewer
+                urls={Object.keys(result.previews_sha256)
+                  .sort((a, b) =>
+                    a.endsWith(".pdb") ? -1 : b.endsWith(".pdb") ? 1 : 0,
+                  )
+                  .map((name) => artifactUrl(job.id, name))}
+                language={language}
+                molecularSource={{
+                  url: artifactUrl(job.id, "molecule-preview.sdf"),
+                }}
+                focusModel={result.inputs.protein ? 1 : 0}
+              />
+            ) : (
+              <div className="result-inspection-empty" role="status">
+                <p>
+                  {zh
+                    ? "本次质控未提供可预览的结构。"
+                    : "This quality result contains no preview structure."}
+                </p>
+              </div>
+            )}
+          </div>
+        }
+      >
         <QualityCheckList
           key={job.id}
           checks={result.checks}
           language={language}
         />
-        <div className="result-inspection-detail">
-          {Object.keys(result.previews_sha256).length > 0 ? (
-            <StructureViewer
-              urls={Object.keys(result.previews_sha256)
-                .sort((a, b) =>
-                  a.endsWith(".pdb") ? -1 : b.endsWith(".pdb") ? 1 : 0,
-                )
-                .map((name) => artifactUrl(job.id, name))}
-              language={language}
-              molecularSource={{
-                url: artifactUrl(job.id, "molecule-preview.sdf"),
-              }}
-              focusModel={result.inputs.protein ? 1 : 0}
-            />
-          ) : (
-            <div className="result-inspection-empty" role="status">
-              <p>
-                {zh
-                  ? "本次质控未提供可预览的结构。"
-                  : "This quality result contains no preview structure."}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+      </StructureWorkbench>
       <Hint
         label={
           zh

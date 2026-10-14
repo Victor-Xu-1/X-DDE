@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useEffect, useRef, useState } from "react";
 import { artifactUrl } from "../api";
 import { MolecularViewport } from "./MolecularViewport";
@@ -84,77 +85,82 @@ export function DynamicsResults({
           </select>
         </label>
       </div>
-      <div className="simulation-main-grid">
-        <section className="simulation-trajectory">
-          <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
-          <MolecularViewport
-            onExport={() => setPlaying(false)}
-            onReady={(ready) => {
-              frameReady.current = ready;
-            }}
-            frames={current.frames.map((f) => artifactUrl(job.id, f.artifact))}
-            frame={frame}
-            ligandContext={hasLigand}
-            focusResidue={focusResidue}
-            language={language}
-          />
-          <div className="trajectory-controls">
-            <button
-              type="button"
-              className="secondary-button"
-              aria-label={
-                playing
-                  ? zh
-                    ? "暂停轨迹"
-                    : "Pause trajectory"
-                  : zh
-                    ? "播放轨迹"
-                    : "Play trajectory"
-              }
-              onClick={() => setPlaying((p) => !p)}
-            >
-              {playing ? "Ⅱ" : "▶"}
-            </button>
-            <input
-              aria-label={zh ? "轨迹时间" : "Trajectory time"}
-              type="range"
-              min={0}
-              max={current.frames.length - 1}
-              value={frame}
-              onChange={(e) => {
-                setPlaying(false);
-                setFrame(Number(e.target.value));
+      <StructureWorkbench
+        preview={
+          <section className="simulation-trajectory">
+            <h3>{zh ? "三维轨迹" : "3D trajectory"}</h3>
+            <MolecularViewport
+              onExport={() => setPlaying(false)}
+              onReady={(ready) => {
+                frameReady.current = ready;
               }}
+              frames={current.frames.map((f) =>
+                artifactUrl(job.id, f.artifact),
+              )}
+              frame={frame}
+              ligandContext={hasLigand}
+              focusResidue={focusResidue}
+              language={language}
             />
-            <output>{snapshot.time_ns.toPrecision(4)} ns</output>
-            <a href={artifactUrl(job.id, snapshot.artifact)} download>
-              {zh ? "下载当前结构" : "Download frame"} ↓
-            </a>
-          </div>
-          <p className="field-help">
-            {zh ? "采样帧" : "Sampled frame"} {frame + 1} /{" "}
-            {current.frames.length} ·{" "}
-            {zh
-              ? "原始轨迹可完整下载"
-              : "Full native trajectory available for download"}
-          </p>
-          <dl className="simulation-readouts">
-            <div>
-              <dt>{zh ? "骨架 RMSD" : "Backbone RMSD"}</dt>
-              <dd>{snapshot.backbone_rmsd_angstrom.toFixed(2)} Å</dd>
+            <div className="trajectory-controls">
+              <button
+                type="button"
+                className="secondary-button"
+                aria-label={
+                  playing
+                    ? zh
+                      ? "暂停轨迹"
+                      : "Pause trajectory"
+                    : zh
+                      ? "播放轨迹"
+                      : "Play trajectory"
+                }
+                onClick={() => setPlaying((p) => !p)}
+              >
+                {playing ? "Ⅱ" : "▶"}
+              </button>
+              <input
+                aria-label={zh ? "轨迹时间" : "Trajectory time"}
+                type="range"
+                min={0}
+                max={current.frames.length - 1}
+                value={frame}
+                onChange={(e) => {
+                  setPlaying(false);
+                  setFrame(Number(e.target.value));
+                }}
+              />
+              <output>{snapshot.time_ns.toPrecision(4)} ns</output>
+              <a href={artifactUrl(job.id, snapshot.artifact)} download>
+                {zh ? "下载当前结构" : "Download frame"} ↓
+              </a>
             </div>
-            {hasLigand && (
+            <p className="field-help">
+              {zh ? "采样帧" : "Sampled frame"} {frame + 1} /{" "}
+              {current.frames.length} ·{" "}
+              {zh
+                ? "原始轨迹可完整下载"
+                : "Full native trajectory available for download"}
+            </p>
+            <dl className="simulation-readouts">
               <div>
-                <dt>{zh ? "配体 RMSD" : "Ligand RMSD"}</dt>
-                <dd>{snapshot.ligand_rmsd_angstrom?.toFixed(2)} Å</dd>
+                <dt>{zh ? "骨架 RMSD" : "Backbone RMSD"}</dt>
+                <dd>{snapshot.backbone_rmsd_angstrom.toFixed(2)} Å</dd>
               </div>
-            )}
-            <div>
-              <dt>{zh ? "回转半径" : "Radius of gyration"}</dt>
-              <dd>{snapshot.radius_gyration_angstrom.toFixed(2)} Å</dd>
-            </div>
-          </dl>
-        </section>
+              {hasLigand && (
+                <div>
+                  <dt>{zh ? "配体 RMSD" : "Ligand RMSD"}</dt>
+                  <dd>{snapshot.ligand_rmsd_angstrom?.toFixed(2)} Å</dd>
+                </div>
+              )}
+              <div>
+                <dt>{zh ? "回转半径" : "Radius of gyration"}</dt>
+                <dd>{snapshot.radius_gyration_angstrom.toFixed(2)} Å</dd>
+              </div>
+            </dl>
+          </section>
+        }
+      >
         <div className="simulation-time-plots">
           <SimulationPlot
             title={zh ? "骨架稳定性" : "Backbone stability"}
@@ -243,7 +249,7 @@ export function DynamicsResults({
             ]}
           />
         </div>
-      </div>
+      </StructureWorkbench>
       <div
         className={
           hasLigand

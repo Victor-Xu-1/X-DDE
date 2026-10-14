@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { componentsOf } from "../operations/types";
 import { ConfidencePanel } from "../operations/ConfidencePanel";
 import { TaskDetail } from "../TaskDetail";
@@ -32,7 +33,18 @@ export function PredictionResults(p: PredictionResultsProps) {
     taskLabel = useTaskLabel(p.job, p.language);
   return (
     <div className="prediction-workspace task-workspace is-result">
-      <div className="workbench-columns result-columns">
+      <StructureWorkbench
+        preview={
+          <div className="viewer-column">
+            <StructureViewer
+              urls={p.urls}
+              language={p.language}
+              focusResidue={p.focusResidue}
+              comparison={p.compared.length > 1}
+            />
+          </div>
+        }
+      >
         <div className="candidate-column">
           <h2 className="result-task-name">
             {taskLabel}{" "}
@@ -54,15 +66,7 @@ export function PredictionResults(p: PredictionResultsProps) {
             onCompare={p.onCompare}
           />
         </div>
-        <div className="viewer-column">
-          <StructureViewer
-            urls={p.urls}
-            language={p.language}
-            focusResidue={p.focusResidue}
-            comparison={p.compared.length > 1}
-          />
-        </div>
-      </div>
+      </StructureWorkbench>
       <details className="preview-properties">
         <summary>
           {zh ? "性质与结构指标" : "Properties and structure metrics"}

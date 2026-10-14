@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useMemo, useState } from "react";
 import { artifactUrl } from "../api";
 import {
@@ -199,7 +200,7 @@ export function ScientificResults({
         </table>
       )}
       {rows.length > 0 && (
-        <div className="results-split">
+        <StructureWorkbench preview={view}>
           <ResearchTable
             rows={rows}
             columns={columns}
@@ -213,8 +214,7 @@ export function ScientificResults({
             onSelect={(row) => setSelected(row.id)}
             exportName="scientific-candidates.csv"
           />
-          {view}
-        </div>
+        </StructureWorkbench>
       )}
       {result.model_artifact && (
         <section>

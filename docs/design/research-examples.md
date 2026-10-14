@@ -3,6 +3,10 @@
 The current study profile is STAT6, defined in
 `src/opendde_workbench/examples/stat6/manifest.json`. Every research module owns
 its **New task / Task results** navigation; there is no global task-results menu.
+Live structures lead on the left in the shared molecular workspace. Tables,
+conditions and follow-up actions use the right pane; narrow screens retain the
+same view-first order. Results, templates and structural selection steps share
+the same roomy viewport without changing scientific coordinates or data.
 The shared jobs database remains the sole task authority. Older direct job URLs
 and `view=tasks&module=...` links resolve to their owning module without moving or
 rewriting task records. Module filters, pagination and selected results remain
@@ -107,7 +111,11 @@ classification is derived from its restored pins.
 Fixed native outcomes reference successful tasks in the same jobs database.
 `example_pins` stores the request digest, bound environment-metadata digest and
 every retained artifact digest. A fixed example cannot be replaced in place;
-changing inputs, settings or results requires a new reviewed revision. A service
+changing inputs, settings or results requires a new reviewed revision.
+Potential examples also retain every file declared by their sealed native
+manifest, including DX grids, PQR charges and solver conditions. Existing pin
+records remain byte-identical; verification checks their transitive native file
+digests, and portable export includes the complete inventory. A service
 response that declares itself unavailable is not a calculated example. Missing
 calculations are not replaced with synthetic scores. Fresh installations can
 load inputs; viewing calculated outcomes requires retained native results or a

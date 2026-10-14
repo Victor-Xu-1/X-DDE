@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Analysis, Job, Language } from "../types";
@@ -50,7 +51,14 @@ export function ExampleJobResult({
         </p>
       )}
       {prediction ? (
-        <div className="template-result-grid">
+        <StructureWorkbench
+          preview={
+            <StructureViewer
+              urls={candidate ? [artifactUrl(job.id, candidate.artifact)] : []}
+              language={language}
+            />
+          }
+        >
           <CandidatePanel
             job={job}
             analysis={analysis}
@@ -60,11 +68,7 @@ export function ExampleJobResult({
             selected={selected}
             onSelect={setSelected}
           />
-          <StructureViewer
-            urls={candidate ? [artifactUrl(job.id, candidate.artifact)] : []}
-            language={language}
-          />
-        </div>
+        </StructureWorkbench>
       ) : (
         <OperationResults job={job} language={language} />
       )}

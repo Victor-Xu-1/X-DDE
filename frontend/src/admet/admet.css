@@ -9,18 +9,6 @@
 .admet-result-toolbar .field {
   margin: 0;
 }
-.admet-workspace {
-  display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(440px, 1.1fr);
-  align-items: start;
-  gap: 28px;
-}
-.admet-workspace > section {
-  min-width: 0;
-}
-.admet-workspace .research-tab-list {
-  margin: 0 0 16px;
-}
 .admet-candidates .research-table-scroll {
   max-height: 480px;
 }
@@ -93,12 +81,6 @@
 .admet-empty h4 {
   margin: 0 0 12px;
   color: var(--ink);
-}
-@media (max-width: 1150px) {
-  .admet-workspace {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-  }
 }
 @media (max-width: 640px) {
   .admet-candidates .research-table-scroll {

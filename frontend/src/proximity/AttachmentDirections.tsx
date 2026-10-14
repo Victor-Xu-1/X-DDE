@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { Hint } from "../guided/Hint";
@@ -107,54 +108,59 @@ export function AttachmentDirections({
   ];
   return (
     <div className="attachment-directions">
-      <div className="section-heading">
-        <h3>{zh ? "连接位点与方向" : "Attachment sites and directions"}</h3>
-        <Hint label={zh ? "连接方向说明" : "About attachment directions"}>
-          {zh
-            ? "箭头沿当前构象中真实的区域边界键，表示已有键的几何方向。箭头长度仅用于显示；不表示允许的生长空间、连接臂通行、反应位点或生物活性。原子编号对应原始分子记录。"
-            : "Arrows follow actual region-boundary bonds in this pose. Arrow length is a display aid, not allowed growth, linker clearance, reactivity or activity. Atom numbers refer to the original molecular record."}
-        </Hint>
-      </div>
-      <StructureViewer
-        initialMode="pocket"
-        urls={[artifactUrl(job.id, assembly.complex_artifact)]}
-        language={language}
-        attachmentGeometry={{
-          points: visible
-            .filter((r) => r.direction !== null)
-            .map((r) => ({
-              origin: r.origin,
-              target: r.target,
-              fromAtom: result.ligand_atom_indices.indexOf(r.region_atom),
-              toAtom: result.ligand_atom_indices.indexOf(r.outside_atom),
-              region: r.region,
-              label: atom(r, true) + " → " + atom(r, false),
-            })),
-        }}
-      />
-      <ResearchTable
-        rows={rows}
-        columns={columns}
-        initialVisibleColumns={["region", "bond", "length", "direction"]}
-        rowId={(r) => r.id}
-        title={
-          zh ? "当前构象的连接位点" : "Attachment sites in the current pose"
+      <StructureWorkbench
+        preview={
+          <StructureViewer
+            initialMode="pocket"
+            urls={[artifactUrl(job.id, assembly.complex_artifact)]}
+            language={language}
+            attachmentGeometry={{
+              points: visible
+                .filter((r) => r.direction !== null)
+                .map((r) => ({
+                  origin: r.origin,
+                  target: r.target,
+                  fromAtom: result.ligand_atom_indices.indexOf(r.region_atom),
+                  toAtom: result.ligand_atom_indices.indexOf(r.outside_atom),
+                  region: r.region,
+                  label: atom(r, true) + " → " + atom(r, false),
+                })),
+            }}
+          />
         }
-        language={language}
-        selected={selected}
-        onSelect={(r) => setSelected(r.id)}
-        compare={false}
-        exportName="attachment-bond-geometry.csv"
-      />
-      {rows.length <= 16 && rows.length > 1 && (
-        <button
-          type="button"
-          className="text-button"
-          onClick={() => setSelected(null)}
-        >
-          {zh ? "同时显示所有连接位点" : "Show all attachment sites"}
-        </button>
-      )}
+      >
+        <div className="section-heading">
+          <h3>{zh ? "连接位点与方向" : "Attachment sites and directions"}</h3>
+          <Hint label={zh ? "连接方向说明" : "About attachment directions"}>
+            {zh
+              ? "箭头沿当前构象中真实的区域边界键，表示已有键的几何方向。箭头长度仅用于显示；不表示允许的生长空间、连接臂通行、反应位点或生物活性。原子编号对应原始分子记录。"
+              : "Arrows follow actual region-boundary bonds in this pose. Arrow length is a display aid, not allowed growth, linker clearance, reactivity or activity. Atom numbers refer to the original molecular record."}
+          </Hint>
+        </div>
+        <ResearchTable
+          rows={rows}
+          columns={columns}
+          initialVisibleColumns={["region", "bond", "length", "direction"]}
+          rowId={(r) => r.id}
+          title={
+            zh ? "当前构象的连接位点" : "Attachment sites in the current pose"
+          }
+          language={language}
+          selected={selected}
+          onSelect={(r) => setSelected(r.id)}
+          compare={false}
+          exportName="attachment-bond-geometry.csv"
+        />
+        {rows.length <= 16 && rows.length > 1 && (
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => setSelected(null)}
+          >
+            {zh ? "同时显示所有连接位点" : "Show all attachment sites"}
+          </button>
+        )}
+      </StructureWorkbench>
     </div>
   );
 }

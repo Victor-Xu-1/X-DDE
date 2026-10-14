@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -34,36 +35,41 @@ export function StructurePrepareResults({
     );
   return (
     <div className="discovery-results">
-      <p>
-        {zh ? "新结构已保存" : "New structure saved"} · {result.atom_count}{" "}
-        {zh ? "原子" : "atoms"}
-      </p>
-      <StructureViewer
-        urls={[artifactUrl(job.id, result.artifact)]}
-        language={language}
-      />
-      {result.reference && onCreated && result.options.format === "pdb" && (
-        <button type="button" onClick={() => setPocket(true)}>
-          {zh ? "用这个版本寻找口袋" : "Find pockets with this version"}
-        </button>
-      )}
-      <a href={artifactUrl(job.id, result.artifact)} download>
-        {zh ? "下载结构" : "Download structure"}
-      </a>
-      <details>
-        <summary>{zh ? "处理记录" : "Preparation record"}</summary>
+      <StructureWorkbench
+        preview={
+          <StructureViewer
+            urls={[artifactUrl(job.id, result.artifact)]}
+            language={language}
+          />
+        }
+      >
         <p>
-          {zh ? "删除的残基/分子" : "Removed residues/components"}:{" "}
-          {result.removed_residues.length} ·{" "}
-          {zh ? "明确选择的替代位置" : "Explicit alternate choices"}:{" "}
-          {result.resolved_alternates.length}
+          {zh ? "新结构已保存" : "New structure saved"} · {result.atom_count}{" "}
+          {zh ? "原子" : "atoms"}
         </p>
-        {result.inspection.parser_warnings.map((message, i) => (
-          <p key={i} role="status">
-            {message}
+        {result.reference && onCreated && result.options.format === "pdb" && (
+          <button type="button" onClick={() => setPocket(true)}>
+            {zh ? "用这个版本寻找口袋" : "Find pockets with this version"}
+          </button>
+        )}
+        <a href={artifactUrl(job.id, result.artifact)} download>
+          {zh ? "下载结构" : "Download structure"}
+        </a>
+        <details>
+          <summary>{zh ? "处理记录" : "Preparation record"}</summary>
+          <p>
+            {zh ? "删除的残基/分子" : "Removed residues/components"}:{" "}
+            {result.removed_residues.length} ·{" "}
+            {zh ? "明确选择的替代位置" : "Explicit alternate choices"}:{" "}
+            {result.resolved_alternates.length}
           </p>
-        ))}
-      </details>
+          {result.inspection.parser_warnings.map((message, i) => (
+            <p key={i} role="status">
+              {message}
+            </p>
+          ))}
+        </details>
+      </StructureWorkbench>
     </div>
   );
 }

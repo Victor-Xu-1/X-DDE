@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { ResearchTable } from "../presentation/ResearchTable";
 import "./pocket-results.css";
@@ -112,7 +113,15 @@ export function PocketResults({
             : "No candidate pockets were returned. Check structure completeness, input origin and method applicability; an empty result does not establish that the target is undruggable."}
         </p>
       )}
-      <div className="pocket-explorer">
+      <StructureWorkbench
+        preview={
+          <StructureViewer
+            urls={[artifactUrl(job.id, result.protein_artifact)]}
+            language={language}
+            residueRegion={selected?.residues}
+          />
+        }
+      >
         <div className="pocket-candidates">
           <ResearchTable
             title={zh ? "候选口袋" : "Candidate pockets"}
@@ -178,12 +187,7 @@ export function PocketResults({
             />
           )}
         </div>
-        <StructureViewer
-          urls={[artifactUrl(job.id, result.protein_artifact)]}
-          language={language}
-          residueRegion={selected?.residues}
-        />
-      </div>
+      </StructureWorkbench>
       {message && <p role="status">{message}</p>}
     </section>
   );

@@ -9,6 +9,10 @@ from .bundle_archive import safe_path
 
 
 def archive_sources(job, output, *, recover=False):
+    if job.request.operation == "electrostatics":
+        from .native_sources import potential_sources
+
+        return potential_sources(job, output)
     if job.request.operation != "reference_import":
         return {}
     task = job.request

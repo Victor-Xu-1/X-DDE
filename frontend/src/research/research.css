@@ -14,8 +14,7 @@
 .research-workspace .editor-toolbar a,
 .research-inspector > button,
 .research-inspector li button,
-.research-workspace > .notice button,
-.research-columns > .setup-card > button {
+.research-workspace > .notice button {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 9px 13px;
@@ -57,15 +56,6 @@
 }
 .research-inspector li {
   margin: 8px 0;
-}
-.research-columns {
-  display: grid;
-  grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
-  gap: 28px;
-  align-items: start;
-}
-.research-columns > * {
-  min-width: 0;
 }
 .research-inspector.is-empty {
   display: flex;
@@ -169,11 +159,6 @@
   stroke: currentColor;
   stroke-width: 1.5;
   opacity: 0.8;
-}
-@media (max-width: 850px) {
-  .research-columns {
-    grid-template-columns: 1fr;
-  }
 }
 
 .research-workspace {

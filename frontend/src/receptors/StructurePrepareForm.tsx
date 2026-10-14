@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { useExampleReference, useExampleTask } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
@@ -116,7 +117,22 @@ export function StructurePrepareForm({
           title: zh ? "选择研究部分" : "Choose research region",
           valid: selectionValid,
           content: (
-            <>
+            <StructureWorkbench
+              preview={
+                structure && (
+                  <StructureViewer
+                    key={structure.asset_id}
+                    language={language}
+                    urls={["/api/assets/" + structure.asset_id]}
+                    onSceneLoaded={(scene) => setAvailableChains(scene.chains)}
+                    onAtomSelected={(selected) => {
+                      if (selected && chainMode === "select" && model === 0)
+                        toggle(selected.chain);
+                    }}
+                  />
+                )
+              }
+            >
               <ChoiceCards<"all" | "select">
                 label={zh ? "保留哪些链？" : "Which chains to keep?"}
                 value={chainMode}
@@ -140,18 +156,6 @@ export function StructurePrepareForm({
                   },
                 ]}
               />
-              {structure && (
-                <StructureViewer
-                  key={structure.asset_id}
-                  language={language}
-                  urls={["/api/assets/" + structure.asset_id]}
-                  onSceneLoaded={(scene) => setAvailableChains(scene.chains)}
-                  onAtomSelected={(selected) => {
-                    if (selected && chainMode === "select" && model === 0)
-                      toggle(selected.chain);
-                  }}
-                />
-              )}
               {chainMode === "select" && (
                 <div
                   role="group"
@@ -216,7 +220,7 @@ export function StructurePrepareForm({
                     : "An atom may have several observed positions. Your label must exist at every ambiguous site; no automatic occupancy choice or mixed states. Preview shows the first model; other model selections are validated by the backend."}
                 </Hint>
               </details>
-            </>
+            </StructureWorkbench>
           ),
         },
         {

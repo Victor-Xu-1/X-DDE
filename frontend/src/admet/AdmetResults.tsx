@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState, type ReactNode } from "react";
 import { PoseSession } from "../viewer/PoseSession";
 import { posePlan } from "../viewer/pose-plan";
@@ -77,29 +78,32 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
         </a>
       </div>
       {current ? (
-        <div className="admet-workspace">
+        <StructureWorkbench
+          preview={
+            <AdmetSelectedMolecule
+              key={current.record}
+              job={job}
+              result={result}
+              row={current}
+              language={language}
+              onPrepare={
+                onCreated
+                  ? (reference) => {
+                      setNextOrigin(origin);
+                      setNext(reference);
+                    }
+                  : undefined
+              }
+            />
+          }
+        >
           <AdmetCandidateViews
             result={result}
             language={language}
             selected={current.record}
             onSelect={(row) => setSelected(row.record)}
           />
-          <AdmetSelectedMolecule
-            key={current.record}
-            job={job}
-            result={result}
-            row={current}
-            language={language}
-            onPrepare={
-              onCreated
-                ? (reference) => {
-                    setNextOrigin(origin);
-                    setNext(reference);
-                  }
-                : undefined
-            }
-          />
-        </div>
+        </StructureWorkbench>
       ) : (
         <div className="admet-empty">
           <h3>{zh ? "没有分子结果" : "No molecule results"}</h3>

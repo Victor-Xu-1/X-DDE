@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -60,44 +61,49 @@ export function ReferenceImportResults({
     );
   return (
     <div className="discovery-results">
-      <h3>{result.identifier}</h3>
-      <p className="field-help">
-        {zh
-          ? "已保存原始参考材料。用于计算前，请按需要完成结构或分子准备。"
-          : "Original reference saved with provenance/digest; subsequent structure or molecule preparation is separate."}
-      </p>
-      <StructureViewer
-        urls={[artifactUrl(job.id, result.artifact)]}
-        language={language}
-      />
-      <div>
-        {result.reference && onCreated && result.kind === "structure" && (
-          <button type="button" onClick={() => setNext("prepare")}>
-            {zh ? "准备研究结构" : "Prepare research structure"}
-          </button>
-        )}
-        <a href={artifactUrl(job.id, result.artifact)} download>
-          {zh ? "下载原始材料" : "Download original material"}
-        </a>
-        {result.reference && onCreated && result.kind === "molecule" && (
-          <button type="button" onClick={() => setNext("states")}>
-            {zh ? "准备分子与构象" : "Prepare molecular states/conformers"}
-          </button>
-        )}
-        {result.reference &&
-          onCreated &&
-          result.kind === "structure" &&
-          result.request.format === "pdb" && (
-            <button type="button" onClick={() => setNext("pocket")}>
-              {zh ? "寻找候选口袋" : "Find candidate pockets"}
+      <StructureWorkbench
+        preview={
+          <StructureViewer
+            urls={[artifactUrl(job.id, result.artifact)]}
+            language={language}
+          />
+        }
+      >
+        <h3>{result.identifier}</h3>
+        <p className="field-help">
+          {zh
+            ? "已保存原始参考材料。用于计算前，请按需要完成结构或分子准备。"
+            : "Original reference saved with provenance/digest; subsequent structure or molecule preparation is separate."}
+        </p>
+        <div>
+          {result.reference && onCreated && result.kind === "structure" && (
+            <button type="button" onClick={() => setNext("prepare")}>
+              {zh ? "准备研究结构" : "Prepare research structure"}
             </button>
           )}
-      </div>
-      <Hint label={zh ? "下一步如何选择？" : "How to choose the next step?"}>
-        {zh
-          ? "结构可在研究资产中选择并准备模型/链；原始配体先准备状态和三维构象。口袋、结合与活性结论需独立计算或实验。"
-          : "Select/preprocess structural models/chains from Research assets. Prepare chemical states and 3D conformers for raw ligands. Pocket, binding and activity conclusions need separate evidence."}
-      </Hint>
+          <a href={artifactUrl(job.id, result.artifact)} download>
+            {zh ? "下载原始材料" : "Download original material"}
+          </a>
+          {result.reference && onCreated && result.kind === "molecule" && (
+            <button type="button" onClick={() => setNext("states")}>
+              {zh ? "准备分子与构象" : "Prepare molecular states/conformers"}
+            </button>
+          )}
+          {result.reference &&
+            onCreated &&
+            result.kind === "structure" &&
+            result.request.format === "pdb" && (
+              <button type="button" onClick={() => setNext("pocket")}>
+                {zh ? "寻找候选口袋" : "Find candidate pockets"}
+              </button>
+            )}
+        </div>
+        <Hint label={zh ? "下一步如何选择？" : "How to choose the next step?"}>
+          {zh
+            ? "结构可在研究资产中选择并准备模型/链；原始配体先准备状态和三维构象。口袋、结合与活性结论需独立计算或实验。"
+            : "Select/preprocess structural models/chains from Research assets. Prepare chemical states and 3D conformers for raw ligands. Pocket, binding and activity conclusions need separate evidence."}
+        </Hint>
+      </StructureWorkbench>
     </div>
   );
 }

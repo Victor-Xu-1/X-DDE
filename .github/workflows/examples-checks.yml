@@ -5,6 +5,8 @@ on:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
+      - '!src/opendde_workbench/examples/native_sources.py'
+      - '!src/opendde_workbench/examples/evidence.py'
       # Exact immutable stage consumers have example-result-set-checks.yml.
       - '!src/opendde_workbench/examples/supporting.py'
       - '!src/opendde_workbench/examples/contracts.py'
@@ -49,6 +51,8 @@ on:
     paths:
       - 'src/opendde_workbench/examples/**'
       - '!src/opendde_workbench/examples/bundle*.py'
+      - '!src/opendde_workbench/examples/native_sources.py'
+      - '!src/opendde_workbench/examples/evidence.py'
       - '!src/opendde_workbench/examples/supporting.py'
       - '!src/opendde_workbench/examples/contracts.py'
       - '!src/opendde_workbench/examples/pins.py'

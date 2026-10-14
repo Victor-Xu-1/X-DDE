@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -70,36 +71,40 @@ export function ChannelResults({
             : "No path was found within the declared probe and search conditions. Adjust the probe or context in a new task; this does not establish that no channel exists."}
         </p>
       )}
-      <div className="channel-result-layout">
-        <div className="channel-preview">
-          <StructureViewer
-            urls={[artifactUrl(job.id, result.preparation.artifact)]}
-            language={language}
-            channelGeometry={
-              channel ? { points: channel.points, envelope } : undefined
-            }
-          />
-          {channel && (
-            <div className="channel-legend">
-              <span>
-                <i className="channel-line" />{" "}
-                {zh ? "原生采样路径" : "Native sampled path"}
-              </span>
-              <span>
-                <i className="channel-narrow" />{" "}
-                {zh ? "采样最窄处" : "Narrowest sample"} · {mean!.toFixed(2)} Å
-              </span>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={envelope}
-                  onChange={(e) => setEnvelope(e.target.checked)}
-                />
-                {zh ? "显示采样空间" : "Show sampled clearance"}
-              </label>
-            </div>
-          )}
-        </div>
+      <StructureWorkbench
+        preview={
+          <div className="channel-preview">
+            <StructureViewer
+              urls={[artifactUrl(job.id, result.preparation.artifact)]}
+              language={language}
+              channelGeometry={
+                channel ? { points: channel.points, envelope } : undefined
+              }
+            />
+            {channel && (
+              <div className="channel-legend">
+                <span>
+                  <i className="channel-line" />{" "}
+                  {zh ? "原生采样路径" : "Native sampled path"}
+                </span>
+                <span>
+                  <i className="channel-narrow" />{" "}
+                  {zh ? "采样最窄处" : "Narrowest sample"} · {mean!.toFixed(2)}{" "}
+                  Å
+                </span>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={envelope}
+                    onChange={(e) => setEnvelope(e.target.checked)}
+                  />
+                  {zh ? "显示采样空间" : "Show sampled clearance"}
+                </label>
+              </div>
+            )}
+          </div>
+        }
+      >
         <div className="channel-analysis">
           {channel && (
             <div className="channel-table-wrap">
@@ -149,7 +154,7 @@ export function ChannelResults({
           )}
           {channel && <ChannelProfile channel={channel} language={language} />}
         </div>
-      </div>
+      </StructureWorkbench>
       <div className="channel-downloads">
         <a href={artifactUrl(job.id, "channels.csv")} download>
           {zh ? "下载路径指标" : "Download channel metrics"}

@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { ResearchTable } from "../presentation/ResearchTable";
@@ -67,7 +68,74 @@ export function ClusterResults({
           ),
         )}
       </div>
-      <div className="cluster-result-columns">
+      <StructureWorkbench
+        preview={
+          row && (
+            <div className="cluster-preview">
+              {pair ? (
+                <>
+                  <StructureViewer
+                    urls={[
+                      url("frame.pdb"),
+                      url(result.rows[pair.left].pose_artifact),
+                      url(result.rows[pair.right].pose_artifact),
+                    ]}
+                    language={language}
+                    comparison={true}
+                    focusModels={[1, 2]}
+                    records={[0, 0, 0]}
+                  />
+                  <p>
+                    {zh ? "姿势 " : "Pose "}
+                    {pair.left + 1} / {pair.right + 1} ·{" "}
+                    {zh ? "三维差异" : "3D difference"}{" "}
+                    {pair.rmsd_angstrom === null
+                      ? "—"
+                      : pair.rmsd_angstrom.toFixed(3) + " Å"}{" "}
+                    · {zh ? "接触相似度" : "Contact similarity"}{" "}
+                    {pair.contact_jaccard === null
+                      ? "—"
+                      : (pair.contact_jaccard * 100).toFixed(1) + "%"}
+                  </p>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setPair(null)}
+                  >
+                    {zh
+                      ? "查看单个姿势与配套受体"
+                      : "Inspect a single pose with its paired receptor"}
+                  </button>
+                </>
+              ) : (
+                <MolecularPreview
+                  language={language}
+                  label={(zh ? "姿势 " : "Pose ") + (row.index + 1)}
+                  source={{
+                    url: "/api/assets/" + row.reference.asset_id,
+                    record: row.reference.record,
+                  }}
+                  defaultView="3d"
+                  urls={[
+                    "/api/assets/" + row.receptor.asset_id,
+                    "/api/assets/" + row.reference.asset_id,
+                  ]}
+                  records={[0, 0]}
+                  focusModel={1}
+                />
+              )}
+              <div className="cluster-downloads">
+                <a href={url(row.pose_artifact)} download>
+                  {zh ? "下载原始姿势" : "Download original pose"}
+                </a>
+                <a href={url(row.receptor_artifact)} download>
+                  {zh ? "下载配套受体" : "Download paired receptor"}
+                </a>
+              </div>
+            </div>
+          )
+        }
+      >
         <div className="cluster-analysis">
           <ClusterPoseTable
             result={result}
@@ -86,71 +154,7 @@ export function ClusterResults({
             onSelect={selectPair}
           />
         </div>
-        {row && (
-          <div className="cluster-preview">
-            {pair ? (
-              <>
-                <StructureViewer
-                  urls={[
-                    url("frame.pdb"),
-                    url(result.rows[pair.left].pose_artifact),
-                    url(result.rows[pair.right].pose_artifact),
-                  ]}
-                  language={language}
-                  comparison={true}
-                  focusModels={[1, 2]}
-                  records={[0, 0, 0]}
-                />
-                <p>
-                  {zh ? "姿势 " : "Pose "}
-                  {pair.left + 1} / {pair.right + 1} ·{" "}
-                  {zh ? "三维差异" : "3D difference"}{" "}
-                  {pair.rmsd_angstrom === null
-                    ? "—"
-                    : pair.rmsd_angstrom.toFixed(3) + " Å"}{" "}
-                  · {zh ? "接触相似度" : "Contact similarity"}{" "}
-                  {pair.contact_jaccard === null
-                    ? "—"
-                    : (pair.contact_jaccard * 100).toFixed(1) + "%"}
-                </p>
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => setPair(null)}
-                >
-                  {zh
-                    ? "查看单个姿势与配套受体"
-                    : "Inspect a single pose with its paired receptor"}
-                </button>
-              </>
-            ) : (
-              <MolecularPreview
-                language={language}
-                label={(zh ? "姿势 " : "Pose ") + (row.index + 1)}
-                source={{
-                  url: "/api/assets/" + row.reference.asset_id,
-                  record: row.reference.record,
-                }}
-                defaultView="3d"
-                urls={[
-                  "/api/assets/" + row.receptor.asset_id,
-                  "/api/assets/" + row.reference.asset_id,
-                ]}
-                records={[0, 0]}
-                focusModel={1}
-              />
-            )}
-            <div className="cluster-downloads">
-              <a href={url(row.pose_artifact)} download>
-                {zh ? "下载原始姿势" : "Download original pose"}
-              </a>
-              <a href={url(row.receptor_artifact)} download>
-                {zh ? "下载配套受体" : "Download paired receptor"}
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
+      </StructureWorkbench>
       {row && (
         <details>
           <summary>

@@ -1,3 +1,4 @@
+import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Job, Language, LigandProperties, Prediction } from "../types";
 import { defaults } from "../form-model";
@@ -92,7 +93,69 @@ export function PropertyResults({
           ? "RDKit 计算描述符 · 点击分子或散点查看结构；QED 和 SA 不代表实测药效。"
           : "RDKit descriptors · select a molecule or plot point to inspect its structure. QED and SA are not measured potency."}
       </p>
-      <div className="result-master-detail">
+      <StructureWorkbench
+        preview={
+          <div className="result-inspector">
+            {current && (
+              <>
+                <header>
+                  <h3>{moleculeName(current)}</h3>
+                  {current.available && current.smiles && onDraft && (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() =>
+                        onDraft({
+                          name: (
+                            job.request.name +
+                            " · " +
+                            (current.index + 1)
+                          ).slice(0, 80),
+                          components: [
+                            {
+                              kind: "ligand",
+                              value: current.smiles!,
+                              count: 1,
+                            },
+                          ],
+                          parameters: { ...defaults, model: "standard" },
+                          project_id: job.request.project_id,
+                        })
+                      }
+                    >
+                      {zh ? "用此分子预测结构" : "Predict this molecule"}
+                    </button>
+                  )}
+                </header>
+                {current.available && current.smiles ? (
+                  <MolecularPreview
+                    language={language}
+                    label={moleculeName(current)}
+                    source={source ?? { smiles: current.smiles }}
+                    urls={source ? [source.url] : undefined}
+                    records={source ? [source.record] : undefined}
+                  />
+                ) : (
+                  <p role="status">{current.reason}</p>
+                )}
+              </>
+            )}
+            <MetricScatter<Row>
+              rows={rows}
+              language={language}
+              label={zh ? "性质分布" : "Property landscape"}
+              rowId={(row) => String(row.index)}
+              rowLabel={moleculeName}
+              selected={String(selection)}
+              onSelect={(row) => setSelection(row.index)}
+              metrics={numeric.map((m) => ({
+                ...m,
+                value: (row) => (row.available ? row[m.key] : null),
+              }))}
+            />
+          </div>
+        }
+      >
         <ResearchTable
           rows={rows}
           columns={columns}
@@ -102,62 +165,7 @@ export function PropertyResults({
           selected={String(selection)}
           onSelect={(row) => setSelection(row.index)}
         />
-        <div className="result-inspector">
-          {current && (
-            <>
-              <header>
-                <h3>{moleculeName(current)}</h3>
-                {current.available && current.smiles && onDraft && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() =>
-                      onDraft({
-                        name: (
-                          job.request.name +
-                          " · " +
-                          (current.index + 1)
-                        ).slice(0, 80),
-                        components: [
-                          { kind: "ligand", value: current.smiles!, count: 1 },
-                        ],
-                        parameters: { ...defaults, model: "standard" },
-                        project_id: job.request.project_id,
-                      })
-                    }
-                  >
-                    {zh ? "用此分子预测结构" : "Predict this molecule"}
-                  </button>
-                )}
-              </header>
-              {current.available && current.smiles ? (
-                <MolecularPreview
-                  language={language}
-                  label={moleculeName(current)}
-                  source={source ?? { smiles: current.smiles }}
-                  urls={source ? [source.url] : undefined}
-                  records={source ? [source.record] : undefined}
-                />
-              ) : (
-                <p role="status">{current.reason}</p>
-              )}
-            </>
-          )}
-          <MetricScatter<Row>
-            rows={rows}
-            language={language}
-            label={zh ? "性质分布" : "Property landscape"}
-            rowId={(row) => String(row.index)}
-            rowLabel={moleculeName}
-            selected={String(selection)}
-            onSelect={(row) => setSelection(row.index)}
-            metrics={numeric.map((m) => ({
-              ...m,
-              value: (row) => (row.available ? row[m.key] : null),
-            }))}
-          />
-        </div>
-      </div>
+      </StructureWorkbench>
     </section>
   );
 }

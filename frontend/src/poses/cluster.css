@@ -6,15 +6,6 @@
   overflow: auto;
   margin-top: 16px;
 }
-.cluster-result-columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 24px;
-  margin: 20px 0;
-}
-.cluster-result-columns > * {
-  min-width: 0;
-}
 .cluster-results .research-table-scroll table {
   min-width: 420px;
 }
@@ -48,11 +39,6 @@
 }
 .cluster-results > details {
   margin-top: 20px;
-}
-@media (max-width: 900px) {
-  .cluster-result-columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 @media (max-width: 600px) {
   .cluster-pose-selection {

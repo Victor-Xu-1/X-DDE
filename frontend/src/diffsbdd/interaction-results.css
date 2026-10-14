@@ -26,8 +26,3 @@
 .interaction-contact-table tr.is-selected {
   background: var(--surface-hover);
 }
-@media (max-width: 1000px) {
-  .interaction-results .ensemble-result-layout > .viewer-panel {
-    grid-row: 1;
-  }
-}
