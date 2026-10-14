@@ -70,7 +70,7 @@ def test_native_pocket_selection_handoff_and_downloads_stay_exact(language, widt
             assert viewer_bounds["x"] + viewer_bounds["width"] <= selected_bounds["x"]
             assert selected_bounds["y"] < viewer_bounds["y"] + viewer_bounds["height"]
         else:
-            assert selected_bounds["y"] + selected_bounds["height"] <= viewer_bounds["y"]
+            assert viewer_bounds["y"] + viewer_bounds["height"] <= selected_bounds["y"]
         page.screenshot(path=str(EVIDENCE / f"{prefix}-pockets.png"))
         table = page.locator(".pocket-candidates .research-table")
         with page.expect_download() as download:

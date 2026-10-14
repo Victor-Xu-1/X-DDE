@@ -47,9 +47,7 @@ export function EpitopeResults({
       className="epitope-results"
       aria-label={zh ? "表位接触结果" : "Epitope contact results"}
     >
-      <div
-        className={source ? "epitope-contact-layout" : "epitope-contact-list"}
-      >
+      <div>
         <StructureWorkbench
           preview={
             source && (
