@@ -129,8 +129,8 @@ export function PoseTable({
             label: (
               <MetricHeading
                 label={zh ? "整体偏差 (Å)" : "Whole-pose RMSD (Å)"}
-                short={zh ? "整体" : "Whole"}
-                unit="RMSD (Å)"
+                short={zh ? "整体 RMSD" : "Whole RMSD"}
+                unit="Å"
               />
             ),
             numeric: true,
@@ -143,8 +143,8 @@ export function PoseTable({
             label: (
               <MetricHeading
                 label={zh ? "接触区偏差 (Å)" : "Contact RMSD (Å)"}
-                short={zh ? "接触区" : "Contact"}
-                unit="RMSD (Å)"
+                short={zh ? "接触区 RMSD" : "Contact RMSD"}
+                unit="Å"
               />
             ),
             numeric: true,
