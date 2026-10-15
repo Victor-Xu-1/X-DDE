@@ -204,7 +204,9 @@ it("reviews and submits the changed model, site and native budget after revisiti
   };
   fireEvent.change(editor, { target: { value: JSON.stringify(options) } });
   await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(screen.getByText("Cα · moad · Conditional")).toBeVisible();
+  expect(
+    screen.getByText("Cα · moad · Conditional", { selector: "dd" }),
+  ).toBeVisible();
   expect(screen.getByText("250 steps · seed 17")).toBeVisible();
   expect(screen.getByText("10", { selector: "dd" })).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Back" }));
