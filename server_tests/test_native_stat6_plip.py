@@ -72,6 +72,31 @@ def retain_native_evidence(client, identifier, result, state, source, checks):
     (evidence / "coordinate-review.json").write_text(json.dumps(checks, indent=2))
 
 
+def require_native_success(client, job, state):
+    if job["status"] == "succeeded":
+        return
+    evidence = Path("server_tests/evidence/stat6-plip")
+    evidence.mkdir(parents=True, exist_ok=True)
+    logs = client.get(f"/api/jobs/{job['id']}/logs").json()
+    (evidence / "failed-job.json").write_text(json.dumps(job, indent=2))
+    (evidence / "native-failure.log").write_text(logs["text"])
+    print(logs["text"], flush=True)  # Do not lose the native exception in pytest's dict repr.
+    directory = state / "jobs" / job["id"]
+    for relative in (
+        "request.json",
+        "native-exit.json",
+        "plip-execution.json",
+        "output/native-inputs/structure.pdb",
+        "output/native-inputs/structure-component-identifiers.json",
+    ):
+        source = directory / relative
+        if source.is_file() and not source.is_symlink() and source.stat().st_size < 1024**2:
+            shutil.copyfile(source, evidence / source.name)
+    pytest.fail(
+        "Native STAT6 PLIP failed; complete controlled diagnostics were retained.", pytrace=False
+    )
+
+
 def test_deposited_stat6_long_component_retains_original_frame_and_downloadable_cif(tmp_path):
     from fastapi.testclient import TestClient
 
@@ -131,7 +156,7 @@ def test_deposited_stat6_long_component_retains_original_frame_and_downloadable_
             if job["status"] in {"succeeded", "failed"}:
                 break
             time.sleep(0.2)
-        assert job["status"] == "succeeded", client.get(f"/api/jobs/{identifier}/logs").json()
+        require_native_success(client, job, state)
         response = client.get(f"/api/jobs/{identifier}/result")
         assert response.status_code == 200, response.text
         result = response.json()
