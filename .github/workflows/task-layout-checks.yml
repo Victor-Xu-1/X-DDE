@@ -333,7 +333,7 @@ on:
       - "!frontend/src/viewer/PoseSession.tsx"
       - "!frontend/src/viewer/PoseStudyInput.tsx"
       - "!frontend/src/viewer/StructureViewport.tsx"
-      - "!frontend/src/viewer/pose-plan.ts"
+      - "!frontend/src/viewer/pose-plan*"
       - "!frontend/src/viewer/pose-study-input.css"
       - "!frontend/src/viewer/usePoseHandoff.ts"
       # Molecular view alignment has structure-layout-checks.yml.
