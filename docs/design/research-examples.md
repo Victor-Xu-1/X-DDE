@@ -282,6 +282,9 @@ Contact translation reads PLIP's actual atom wrappers for halogen and metal
 contacts. Ring centroids and charge centers are checked against their original
 participating atoms and residue identities. Native atom-centered functional
 groups retain that definition rather than being replaced with a centroid.
+The PLIP environment explicitly includes the mmCIF parser. Its dependency repair
+retains the existing package builds and SHA256 identities, and installation
+probes both PLIP and the structural parser before accepting a runtime receipt.
 
 Preparation dependencies are explicit. The BRD4 receptor is selected from the
 fixed Biopython preparation outcome; antibody variable domains come unchanged
