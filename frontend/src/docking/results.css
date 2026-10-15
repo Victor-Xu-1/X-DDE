@@ -30,6 +30,24 @@
   opacity: 1;
   overflow-wrap: normal;
   word-break: normal;
+  margin-inline-end: -10px;
+  min-width: 0;
+  text-align: left;
+}
+.docking-results .column-header-content {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding-inline-end: 10px;
+  box-sizing: border-box;
+}
+.docking-results .column-header-content > .column-sort {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: 8px;
+  min-height: 0;
+  line-height: 1;
 }
 .docking-results .pose-metric-heading small {
   display: block;

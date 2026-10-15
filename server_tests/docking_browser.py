@@ -129,10 +129,21 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                         "document.documentElement.scrollWidth <= window.innerWidth + 1"
                     )
                     if comparison and comparison["status"] == "ready":
-                        assert table.evaluate(
-                            "element => element.parentElement.scrollWidth "
-                            "<= element.parentElement.clientWidth + 1"
-                        ), "Core pose metrics must fit their pane without horizontal scrolling."
+                        table_layout = table.evaluate("""element => ({
+                            pane: element.parentElement.clientWidth,
+                            scroll: element.parentElement.scrollWidth,
+                            columns: Array.from(element.querySelectorAll('th')).map(header => ({
+                                text: header.textContent, width: header.clientWidth,
+                                scroll: header.scrollWidth
+                            }))
+                        })""")
+                        (evidence / f"native-pose-table-{width}.json").write_text(
+                            json.dumps(table_layout, indent=2)
+                        )
+                        assert table_layout["scroll"] <= table_layout["pane"] + 1, (
+                            "Core pose metrics must fit their pane without horizontal scrolling: "
+                            + json.dumps(table_layout)
+                        )
                     page.screenshot(
                         path=str(evidence / f"native-binding-results-{width}.png"), full_page=True
                     )
