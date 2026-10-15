@@ -78,7 +78,11 @@ def test_native_reinvent_pose_uses_exact_declared_output_without_duplicate_calcu
 
     store, assets, _ = context(settings)
     request = TASK_ADAPTER.validate_python(
-        {"operation": "reinvent_design", "payload": {"kind": "reinvent", "mode": "de_novo"}}
+        {
+            "operation": "reinvent_design",
+            "name": "Computed output admission",
+            "payload": {"kind": "reinvent", "mode": "de_novo"},
+        }
     )
     job = store.create(request, str(uuid4()), 20, 100)
     output = settings.state_dir / "jobs" / job.id / "output"
