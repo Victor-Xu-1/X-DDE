@@ -2,7 +2,7 @@
 
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 
 from ..research.constraint_contract import ConstraintReference
 from ..scientific_objects import MoleculeRef, ScientificModel
@@ -44,6 +44,15 @@ class Pose(ScientificModel):
     qualified_record: int | None = Field(default=None, strict=True, ge=0, lt=100)
     constraint_checks: tuple[BoundsCheck, ...] = Field(default=(), max_length=32)
     reference_rmsd: ReferenceRmsd | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize(self, handler):
+        value = handler(self)
+        # Old immutable pose collections did not contain this optional field.
+        # Keep their canonical representation intact instead of changing pins.
+        if self.reference_rmsd is None:
+            value.pop("reference_rmsd", None)
+        return value
 
     @model_validator(mode="after")
     def candidate(self) -> Self:
@@ -111,6 +120,13 @@ class DockingResult(ScientificModel):
     coordinate_provenance: Literal["user_confirmed", "receptor_anchored_box"]
     notes: str = Field(max_length=2000)
     reference_comparison: ReferenceComparison | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize(self, handler):
+        value = handler(self)
+        if self.reference_comparison is None:
+            value.pop("reference_comparison", None)
+        return value
 
     @model_validator(mode="after")
     def provenance(self) -> Self:

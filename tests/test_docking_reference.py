@@ -73,11 +73,19 @@ def test_reference_distances_preserve_native_status_and_legacy_results():
     original = deepcopy(value)
     result = DockingResult.model_validate(value)
     assert result.poses[0].reference_rmsd.all_heavy == 1
+    assert result.model_dump(mode="json")["poses"][0]["reference_rmsd"] == {
+        "all_heavy": 1,
+        "contact": 0.5,
+    }
     assert result.scientific_acceptance == "pending_server_validation"
     legacy = deepcopy(value)
     del legacy["reference_comparison"]
     del legacy["poses"][0]["reference_rmsd"]
-    assert DockingResult.model_validate(legacy).reference_comparison is None
+    old = DockingResult.model_validate(legacy)
+    assert old.reference_comparison is None
+    serialized = old.model_dump(mode="json")
+    assert "reference_comparison" not in serialized
+    assert "reference_rmsd" not in serialized["poses"][0]
     assert value == original
 
 

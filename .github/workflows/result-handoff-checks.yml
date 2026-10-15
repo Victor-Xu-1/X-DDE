@@ -6,6 +6,10 @@ on:
       - "frontend/src/docking/usePoseAssets*"
       - "frontend/src/docking/pose-asset-lookup*"
       - "frontend/src/docking/DockingResults*"
+      # Pose serialization is also consumed by immutable archived pose collections.
+      - "src/opendde_workbench/docking/result.py"
+      - "src/opendde_workbench/docking/reference_contract.py"
+      - "tests/test_docking_reference.py"
       - "frontend/src/datasets/CandidateHandoff*"
       - "frontend/src/datasets/CandidateView*"
       - "src/opendde_workbench/research/routes.py"
