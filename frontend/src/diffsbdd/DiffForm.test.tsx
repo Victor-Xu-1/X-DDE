@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
@@ -159,4 +165,66 @@ it("retains one fixed-atom picker and exact inputs when returning and changing l
   }
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   expect(created).not.toHaveBeenCalled();
+});
+
+it("reviews and submits the changed model, site and native budget after revisiting settings", async () => {
+  boundary();
+  const user = userEvent.setup(),
+    created = vi.fn();
+  const submit = vi
+    .spyOn(api, "submit")
+    .mockResolvedValue({ id: "study" } as never);
+  render(
+    <DiffForm
+      mode="generate"
+      language="en"
+      initialProtein={{ ...ref, asset_id: "receptor", record: 0 }}
+      initialPocket={{ kind: "ligand", ligand: ref }}
+      onCreated={created}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "How many candidates?" }),
+    "10",
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Which model?" }),
+    "moad_ca_cond",
+  );
+  await user.click(screen.getByRole("button", { name: "Expert settings" }));
+  const editor = screen.getByRole("textbox", {
+    name: "All native parameters (validated by server)",
+  });
+  const options = {
+    ...JSON.parse((editor as HTMLTextAreaElement).value),
+    seed: 17,
+    steps: 250,
+  };
+  fireEvent.change(editor, { target: { value: JSON.stringify(options) } });
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByText("Cα · moad · Conditional")).toBeVisible();
+  expect(screen.getByText("250 steps · seed 17")).toBeVisible();
+  expect(screen.getByText("10", { selector: "dd" })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "How many candidates?" }),
+    "3",
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByText("3", { selector: "dd" })).toBeVisible();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Create task" })).toBeEnabled(),
+  );
+  await user.click(screen.getByRole("button", { name: "Create task" }));
+  expect(submit.mock.calls[0][0]).toMatchObject({
+    operation: "diffsbdd",
+    payload: {
+      protein: { ...ref, asset_id: "receptor", record: 0 },
+      pocket: { kind: "ligand", ligand: ref },
+      options: { model: "moad_ca_cond", count: 3, seed: 17, steps: 250 },
+    },
+  });
+  expect(created).toHaveBeenCalledOnce();
 });

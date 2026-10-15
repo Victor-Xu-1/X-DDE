@@ -12,6 +12,13 @@ duplicate work or silently change the selected material. Verify supported behavi
 and actionable unavailable/error states in focused module checks. Installation,
 software integration and scientific method acceptance remain distinct evidence.
 
+DiffSBDD's final review shows the actual selected files and molecular records,
+the selected pocket residues or reference ligand, the current model, candidate
+count, molecular size and sampling budget. Local redesign also identifies its
+fixed heavy atoms and bond policy. Filename lookup verifies the selected digest,
+cancels superseded reads and never changes task inputs. Preparation and export
+show their own material choices rather than unrelated generation defaults.
+
 Task review offers an explicit environment recheck after an unavailable or failed
 check. It retains the current materials, method, questionnaire step and scientific
 options; it never submits a task. Each check uses the existing capability API,

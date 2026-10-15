@@ -9,6 +9,7 @@ import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { DiffInputQuestions, DiffSettingQuestions } from "./DiffQuestions";
+import { DiffReview } from "./DiffReview";
 import { PocketPicker } from "./PocketPicker";
 import { FixedAtomPicker } from "./FixedAtomPicker";
 import { designPayload, optionsFor, referenceKey } from "./model";
@@ -377,28 +378,22 @@ export function DiffForm({
     export: ["候选导出", "Candidate export"],
   };
   const review = (
-    <dl className="questionnaire-review">
-      <dt>{zh ? "任务" : "Task"}</dt>
-      <dd>{names[mode][zh ? 0 : 1]}</dd>
-      <dt>{zh ? "研究材料" : "Research inputs"}</dt>
-      <dd>
-        {zh
-          ? "沿用已选文件、记录和版本"
-          : "Use the selected files, records and versions"}
-      </dd>
-      <dt>{zh ? "参数模式" : "Parameter mode"}</dt>
-      <dd>
-        {expert
-          ? zh
-            ? "专家微调"
-            : "Expert settings"
-          : zh
-            ? "推荐方案"
-            : "Recommended settings"}
-      </dd>
-      <dt>{zh ? "任务名称" : "Task name"}</dt>
-      <dd>{name.trim() || names[mode][zh ? 0 : 1]}</dd>
-    </dl>
+    <DiffReview
+      mode={mode}
+      language={language}
+      taskLabel={names[mode][zh ? 0 : 1]}
+      name={name}
+      protein={protein}
+      molecule={molecule}
+      collection={collection}
+      pocket={pocket}
+      options={options}
+      fixed={fixed}
+      chains={chains}
+      removeWater={removeWater}
+      keepLigands={keepLigands}
+      removeH={removeH}
+    />
   );
   return (
     <Questionnaire
