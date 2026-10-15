@@ -110,7 +110,9 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
             export_box = scope.get_by_role(
                 "button", name="Export figure ↓", exact=True
             ).bounding_box()
-            actions_box = page.locator(".questionnaire-actions").bounding_box()
+            actions = page.locator(".questionnaire:visible .questionnaire-actions")
+            expect(actions).to_have_count(1)
+            actions_box = actions.bounding_box()
             assert export_box["y"] + export_box["height"] <= actions_box["y"]
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         assert not errors and not submissions
