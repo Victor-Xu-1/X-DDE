@@ -3,7 +3,7 @@
 import math
 from importlib.metadata import version
 
-from native_io import copy_artifact, csv_file, finish, metric
+from native_io import copy_artifact, csv_file, finish, input_file, metric
 from native_structure import input_pdb
 from plip_coordinates import SourceCoordinates
 
@@ -25,7 +25,7 @@ def edge(kind, item, protein, ligand):
 def run(request):
     from plip.structure.preparation import PDBComplex
 
-    source, _ = input_pdb(request)
+    source, _ = input_pdb(request, allow_component_aliases=True)
     payload = request["payload"]
     original = SourceCoordinates(source, payload["ligand_chain"], payload["ligand_number"])
     complex_ = PDBComplex()
@@ -97,7 +97,8 @@ def run(request):
                     original.atom(item.metal),
                 )
             )
-    structure = copy_artifact(source, "interaction-structure.pdb")
+    original_source, _ = input_file(request, "structure")
+    structure = copy_artifact(original_source, "interaction-structure" + original_source.suffix)
     csv_file(
         "interactions.csv",
         ["Type", "Chain", "Residue", "Number", "Distance (Å)"],

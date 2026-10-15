@@ -1,6 +1,8 @@
 """Native-only bounded structural snapshots and selected-model exports."""
 
 import hashlib
+import math
+import re
 import warnings
 
 
@@ -72,27 +74,50 @@ def read_model(file, selection):
     }
 
 
-def write_model(model, file):
+def pdb_residues(model):
+    for chain in model:
+        yield from chain.get_unpacked_list()
+
+
+def validate_pdb_format(model, *, preserve_atom_numbers=False):
+    if any(not re.fullmatch(r"[A-Za-z0-9 ]", chain.id) for chain in model):
+        raise ValueError("Prepare single-character author chain identifiers before PDB conversion.")
+    serials, count = set(), 0
+    for residue in pdb_residues(model):
+        if not 1 <= len(residue.resname) <= 3:
+            raise ValueError("PDB cannot preserve these residue identifiers; choose mmCIF.")
+        if not -999 <= residue.id[1] <= 9999 or not re.fullmatch(r"[A-Za-z0-9 ]", residue.id[2]):
+            raise ValueError("Residue identifiers exceed native PDB fixed columns; choose mmCIF.")
+        for atom in residue.get_unpacked_list():
+            count += 1
+            if not 1 <= len(atom.id) <= 4 or any(not 33 <= ord(c) <= 126 for c in atom.id):
+                raise ValueError("PDB cannot preserve these atom identifiers; choose mmCIF.")
+            if not all(
+                math.isfinite(float(v)) and len(f"{float(v):8.3f}") == 8 for v in atom.coord
+            ):
+                raise ValueError("Coordinates exceed native PDB fixed columns; choose mmCIF.")
+            if preserve_atom_numbers:
+                serial = atom.get_serial_number()
+                if not isinstance(serial, int) or not 1 <= serial <= 99999 or serial in serials:
+                    raise ValueError(
+                        "Native PDB requires unique representable source atom numbers."
+                    )
+                serials.add(serial)
+    if not 1 <= count <= 99999:
+        raise ValueError("Choose a nonempty structural selection within the native PDB atom limit.")
+
+
+def write_model(model, file, *, preserve_atom_numbers=False):
     from Bio.PDB import MMCIFIO, PDBIO
 
     if file.suffix == ".pdb":
-        # PDBIO does not reject long component/atom names and shifts fixed columns.
-        # Preserve scientific identifiers by requiring the caller to choose mmCIF.
-        if any(not 1 <= len(residue.resname) <= 3 for residue in model.get_residues()) or any(
-            not 1 <= len(atom.id) <= 4 for atom in model.get_atoms()
-        ):
-            raise ValueError("PDB cannot preserve these residue or atom identifiers; choose mmCIF.")
-        if any(
-            len(f"{float(value):8.3f}") != 8
-            for atom in model.get_atoms() for value in atom.coord
-        ):
-            raise ValueError("Coordinates exceed PDB fixed columns; choose mmCIF.")
+        validate_pdb_format(model, preserve_atom_numbers=preserve_atom_numbers)
     exporter = PDBIO() if file.suffix == ".pdb" else MMCIFIO()
     # The new artifact contains exactly one selected model; the original stays immutable.
     model.id = 0
     model.serial_num = 1
     exporter.set_structure(model)
-    exporter.save(str(file))
+    exporter.save(str(file), preserve_atom_numbering=preserve_atom_numbers)
     if not file.is_file() or file.stat().st_size > 25 * 1024**2:
         raise ValueError("Aligned structural artifact exceeds its bounded format contract.")
     return hashlib.sha256(file.read_bytes()).hexdigest()

@@ -39,6 +39,9 @@ on:
       - "tests/test_scientific_identity.py"
       - "tests/test_scientific_entrypoint.py"
       - "tests/test_apbs_protocol.py"
+      - "tests/test_plip_coordinates.py"
+      - "server_tests/test_native_structure_format.py"
+      - "server_tests/test_native_stat6_plip.py"
       - ".github/workflows/scientific-upgrade-checks.yml"
 permissions:
   contents: read
@@ -69,7 +72,13 @@ jobs:
           tests/test_scientific_entrypoint.py
           tests/test_reinvent_origin.py tests/test_scientific_cache.py
           tests/test_apbs_protocol.py
+          tests/test_plip_coordinates.py
           tests/test_capabilities.py tests/test_operations.py
+      - name: Original molecular identities and bounded PDB transport with the real parser
+        run: >-
+          uv run --no-project --python 3.10
+          --with pytest==9.1.1 --with numpy==1.26.4 --with biopython==1.88
+          python -m pytest -q server_tests/test_native_structure_format.py
       - name: Exact chemical-core and declared attachment-site counterexamples
         run: uv run --locked --with rdkit==2026.3.6 pytest -q tests/test_reinvent_scope.py
       - name: Native overlays and related preview contracts only
@@ -127,7 +136,14 @@ jobs:
         env:
           WB_TEST_INTEGRATED_NATIVE_CPU: "1"
           WB_SCIENTIFIC_PROGRAM: ${{ matrix.program }}
-        run: uv run --locked --with biopython==1.88 pytest -q server_tests/test_integrated_native_cpu.py
+        run: >-
+          uv run --locked --with biopython==1.88 pytest -q
+          server_tests/test_integrated_native_cpu.py server_tests/test_native_stat6_plip.py
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.program == 'plip'
+        with:
+          name: stat6-plip-native-evidence
+          path: server_tests/evidence/stat6-plip/**
   native-property-model:
     if: github.event_name == 'workflow_dispatch' && (inputs.check == 'chemprop' || inputs.check == 'all')
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
