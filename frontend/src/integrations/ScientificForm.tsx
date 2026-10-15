@@ -116,12 +116,13 @@ export function ScientificForm({
   const [name, setName] = useState(
     preset?.name ?? example?.case.label[zh ? 0 : 1] ?? "",
   );
-  const [options, setOptions] = useState<ScientificTask["options"]>({
+  const [options, setOptions] = useState<ScientificTask["options"]>(() => ({
     device: ["boltz", "boltzgen"].includes(program) ? "cuda" : "cpu",
     cpu: 2,
     memory_mib: ["boltz", "boltzgen"].includes(program) ? 24576 : 4096,
     seed: 101,
-  });
+    ...structuredClone(preset?.options ?? {}),
+  }));
   const readiness = useTaskReadiness(form),
     run = useTaskSubmit(onCreated);
   function update(patch: Partial<ScientificPayload>) {

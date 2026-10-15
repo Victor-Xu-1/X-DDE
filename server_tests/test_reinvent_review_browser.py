@@ -177,6 +177,21 @@ def test_explicit_stat6_template_source_survives_mode_changes_without_submitting
         expect(scope.get_by_role("img")).to_be_visible()
         expect(next_button).to_be_enabled()
         page.screenshot(path=evidence / "explicit-stat6-scaffold-origin.png", full_page=True)
+        next_button.click()
+        expect(page.get_by_role("radio", name="20 candidates", exact=True)).to_be_checked()
+        page.get_by_role("button", name="Expert tuning", exact=True).click()
+        for label, value in (
+            ("CPU cores", "2"),
+            ("Memory budget (MiB)", "2048"),
+            ("Random seed", "2026"),
+        ):
+            expect(page.get_by_role("spinbutton", name=label, exact=True)).to_have_value(value)
+        next_button.click()
+        expect(review.get_by_text("CPU · 2 cores · 2048 MiB", exact=True)).to_be_visible()
+        expect(review.get_by_text("2026", exact=True)).to_be_visible()
+        page.screenshot(path=evidence / "explicit-stat6-template-settings.png", full_page=True)
+        page.get_by_role("button", name="Back", exact=True).click()
+        page.get_by_role("button", name="Back", exact=True).click()
         page.get_by_role("button", name="Back", exact=True).click()
         source_check.uncheck()
         next_button.click()

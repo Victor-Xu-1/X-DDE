@@ -28,6 +28,11 @@ STAT6 binding, pocket compatibility or activity. Those require separate paired
 docking and independent quality review. Native 3D image capture first presents a
 preview; **Download view PNG** saves the displayed image.
 
+Scientific questionnaires initialize execution settings from the explicitly
+loaded template, including device, CPU, memory and random seed. These settings
+are reviewed and submitted unchanged unless the researcher edits them; blank
+tasks keep the ordinary defaults. Template loading never submits a calculation.
+
 Generated-candidate 2D previews and thumbnails use the same native SMILES graph,
 including explicitly declared stereochemistry. Their 3D previews and downloads
 retain the native calculated SDF. This avoids assigning apparent stereocenters

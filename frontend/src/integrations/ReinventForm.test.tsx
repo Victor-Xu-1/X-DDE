@@ -22,6 +22,7 @@ vi.mock("../examples/context", async (original) => ({
     name: "Fixed-port study",
     inputs: [],
     payload: { mode: "r_groups", fragments: [scaffold], candidates: 20 },
+    options: { device: "cpu", cpu: 2, memory_mib: 2048, seed: 2026 },
   }),
 }));
 vi.mock("../presentation/MoleculeImage", () => ({
@@ -32,6 +33,32 @@ vi.mock("../presentation/MoleculeImage", () => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+it("submits the loaded template's resource budget and seed without expert edits", async () => {
+  const submit = vi
+    .spyOn(api, "submit")
+    .mockResolvedValue({ id: "template-study" } as never);
+  render(
+    <ScientificForm form="reinvent.design" language="en" onCreated={vi.fn()} />,
+  );
+  const user = userEvent.setup();
+  const next = () => screen.getByRole("button", { name: "Next" });
+  await user.click(next());
+  await user.click(next());
+  expect(screen.getByRole("radio", { name: "20 candidates" })).toBeChecked();
+  await user.click(next());
+  const review = screen.getByRole("table", { name: "Design plan review" });
+  expect(
+    within(review).getByText("CPU · 2 cores · 2048 MiB", { exact: true }),
+  ).toBeVisible();
+  expect(within(review).getByText("2026", { exact: true })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Submit calculation" }));
+  expect(submit).toHaveBeenCalledOnce();
+  expect(submit.mock.calls[0][0]).toMatchObject({
+    options: { device: "cpu", cpu: 2, memory_mib: 2048, seed: 2026 },
+    payload: { mode: "r_groups", fragments: [scaffold], candidates: 20 },
+  });
 });
 
 it("submits only the reviewed R-group scope after editing the count, resources and seed", async () => {

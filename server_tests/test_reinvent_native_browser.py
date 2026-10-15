@@ -49,25 +49,28 @@ def test_real_stat6_fixed_port_study():
         )
         next_button = page.get_by_role("button", name="Next", exact=True)
         expect(next_button).to_be_enabled(timeout=45000)
-        page.get_by_role(
-            "combobox", name="How would you like to design molecules?", exact=True
-        ).select_option("r_groups")
+        expect(
+            page.get_by_role("combobox", name="How would you like to design molecules?", exact=True)
+        ).to_have_value("r_groups")
         expect(
             page.get_by_role("checkbox", name="Verify the scaffold's source molecule", exact=True)
         ).to_be_checked()
-        page.get_by_role("textbox", name="Fragment structures (one per line)", exact=True).fill(
-            SCAFFOLD
-        )
+        expect(
+            page.get_by_role("textbox", name="Fragment structures (one per line)", exact=True)
+        ).to_have_value(SCAFFOLD)
         next_button.click()
         expect(
             page.get_by_role("region", name="Molecular design scope").locator(".molecule-image")
         ).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         next_button.click()
-        page.get_by_role("radio", name="20 candidates", exact=True).check()
+        expect(page.get_by_role("radio", name="20 candidates", exact=True)).to_be_checked()
         page.get_by_role("button", name="Expert tuning", exact=True).click()
-        page.get_by_role("spinbutton", name="CPU cores", exact=True).fill("2")
-        page.get_by_role("spinbutton", name="Memory budget (MiB)", exact=True).fill("2048")
-        page.get_by_role("spinbutton", name="Random seed", exact=True).fill("2026")
+        for label, value in (
+            ("CPU cores", "2"),
+            ("Memory budget (MiB)", "2048"),
+            ("Random seed", "2026"),
+        ):
+            expect(page.get_by_role("spinbutton", name=label, exact=True)).to_have_value(value)
         next_button.click()
         page.get_by_role("textbox", name="Task name", exact=True).fill(
             "STAT6 · fixed-port R-group design · fluoroindole core · 20 analogues"
