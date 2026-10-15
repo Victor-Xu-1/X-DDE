@@ -24,6 +24,7 @@ export function SearchPreview({
       <StructureViewer
         urls={[`/api/assets/${receptor.asset_id}`]}
         language={language}
+        sourceSnapshot
         selectionMode="atom"
         onAtomSelected={(selection) => {
           const coordinates = selection?.position;

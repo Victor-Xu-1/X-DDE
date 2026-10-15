@@ -3,6 +3,7 @@ import { poseSource } from "./pose-source";
 import type { PreviewPose } from "./pose-types";
 
 export interface PoseFrame {
+  sourceSnapshot?: boolean;
   urls: string[];
   records?: number[];
   nativeScore?: NativePoseScore | null;
@@ -32,13 +33,14 @@ export function posePlan(frame: PoseFrame): {
         : undefined,
     score: frame.nativeScore,
     source:
-      !frame.comparison && index >= 0
+      !frame.sourceSnapshot && !frame.comparison && index >= 0
         ? poseSource(
             frame.urls[index],
             frame.molecularSource?.record ?? frame.records?.[index] ?? 0,
           )
         : null,
     receptor:
+      !frame.sourceSnapshot &&
       !frame.comparison &&
       frame.molecularSource &&
       frame.urls.length === 2 &&

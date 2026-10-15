@@ -27,6 +27,7 @@ export function AtomSelection({
           <StructureViewer
             urls={[artifactUrl(job, identity.molecule_artifact)]}
             language={language}
+            sourceSnapshot
             selectionMode="atom"
             highlightedAtoms={selected}
             onAtomSelected={(selection) => {

@@ -70,6 +70,61 @@ def test_initial_preview_uses_bounded_generation_without_changing_the_original(s
         InitialPoseInput.model_validate({"source": value.source, "method": "auto"})
 
 
+@pytest.mark.parametrize("declared_3d", [True, False])
+def test_native_reinvent_pose_uses_exact_declared_output_without_duplicate_calculation(
+    settings, declared_3d
+):
+    from opendde_workbench.research.pose_contract import ArtifactPoseSource
+
+    store, assets, _ = context(settings)
+    request = TASK_ADAPTER.validate_python(
+        {"operation": "reinvent_design", "payload": {"kind": "reinvent", "mode": "de_novo"}}
+    )
+    job = store.create(request, str(uuid4()), 20, 100)
+    output = settings.state_dir / "jobs" / job.id / "output"
+    output.mkdir(parents=True)
+    # Protocol fixture only; native STAT6 chemistry and actual WebGL rendering are separate gates.
+    raw = (
+        b"native candidate\nRDKit "
+        + (b"3D" if declared_3d else b"2D")
+        + b"\n\n0 0 V2000\nM  END\n$$$$\n"
+    )
+    file = output / "molecule-001.sdf"
+    file.write_bytes(raw)
+    result = {
+        "operation": request.operation,
+        "complete": True,
+        "program": "reinvent",
+        "version": "4.8",
+        "request_sha256": hashlib.sha256(request.model_dump_json().encode()).hexdigest(),
+        "artifact_sha256": {file.name: hashlib.sha256(raw).hexdigest()},
+        "candidates": [
+            {
+                "id": "molecule-001",
+                "artifact": file.name,
+                "smiles": "c1ccncc1",
+                "geometry": "unbound_conformer" if declared_3d else "none",
+            }
+        ],
+    }
+    (output / "result.json").write_text(json.dumps(result))
+    store.claim(expected_id=job.id)
+    store.finish(job.id, Status.SUCCEEDED)
+    value = InitialPoseInput(
+        source=ArtifactPoseSource(kind="artifact", job_id=job.id, name=file.name, record=0)
+    )
+    task, pose = InitialPosePreparation(store, assets, settings).resolve(value)
+    if declared_3d:
+        assert task is None and str(pose.source_job) == job.id
+        assert assets.path(assets.get(pose.reference.asset_id)).read_bytes() == raw
+    else:
+        assert pose is None and task.operation == "molecule_minimize"
+    assert len(store.list_jobs()) == 1
+    file.write_bytes(raw.replace(b"candidate", b"tampered"))
+    with pytest.raises(ValueError, match="bytes changed"):
+        InitialPosePreparation(store, assets, settings).resolve(value)
+
+
 def test_preview_resolution_keeps_exact_record_and_confirmed_receptor(settings):
     store, assets, service = context(settings)
     ligand = assets.save("input.sdf", "ligand", b"record one\n$$$$\nrecord two\n$$$$\n")

@@ -36,8 +36,8 @@ export function FixedAtomPicker({
     <section>
       <p>
         {zh
-          ? "先由真实化学解析器读取这个版本，再在预览中点选固定原子。显示序号从 1 开始，提交使用解析器的原子身份。"
-          : "Read this version with the real chemical parser, then click fixed atoms. Display numbering starts at 1; submission uses parser identities."}
+          ? "选择需要保留的骨架原子。预览保留所选文件的坐标；修改分子后，请另存新版本并重新选择。"
+          : "Choose the core atoms to retain. This view keeps the selected file's coordinates; save and select a new version after molecular edits."}
       </p>
       {!result && (
         <button
@@ -77,7 +77,9 @@ export function FixedAtomPicker({
             <StructureViewer
               urls={[artifactUrl(job.id, result.molecule_artifact)]}
               language={language}
+              sourceSnapshot
               selectionMode="atom"
+              highlightedAtoms={fixed}
               onAtomSelected={(s) => {
                 if (s?.pick_mode === "distance") return;
                 const atom = result.atoms.find(

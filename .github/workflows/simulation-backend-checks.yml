@@ -16,7 +16,7 @@ on:
     paths:
       - "src/opendde_workbench/simulations/native_gromacs*"
       - "src/opendde_workbench/simulations/native_md_outputs.py"
-      - "src/opendde_workbench/research/initial_pose.py"
+      # Shared calculated-pose admission has the molecular-design scope/preview gate.
       - "src/opendde_workbench/integrations/recipes/gromacs*"
       - "tests/test_gromacs_integration.py"
       # Display-name consumers use research-material-checks.yml.

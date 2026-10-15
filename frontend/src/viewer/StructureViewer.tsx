@@ -9,7 +9,7 @@ import { usePoseOptimization } from "./usePoseOptimization";
 export function StructureViewer(props: StructureViewerProps) {
   const workspace = usePoseSession();
   const plan = posePlan(props);
-  if (workspace?.plan.key === plan.key)
+  if (!props.sourceSnapshot && workspace?.plan.key === plan.key)
     return <StructureViewport {...props} optimization={workspace.controller} />;
   return <StandaloneViewer props={props} plan={plan} />;
 }

@@ -14,6 +14,7 @@ COMPUTED_OPERATIONS = {
     "molecular_states",
     "docking",
     "diffsbdd",
+    "reinvent_design",
     "dataset_dock",
     "structure_refine",
     "molecular_dynamics",

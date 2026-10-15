@@ -42,6 +42,8 @@ import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
 export interface StructureViewerProps {
+  /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
+  sourceSnapshot?: boolean;
   trajectoryKey?: string;
   ligandContext?: boolean;
   initialMode?: ViewMode;
@@ -66,6 +68,7 @@ export interface StructureViewerProps {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewport({
+  sourceSnapshot = false,
   trajectoryKey,
   ligandContext = true,
   initialMode,
@@ -228,7 +231,9 @@ export function StructureViewport({
       send("load", {
         urls,
         ...(trajectoryKey ? { trajectoryKey } : {}),
-        ...(optimization.initialReady ? { initialPosePrepared: true } : {}),
+        ...(optimization.initialReady || sourceSnapshot
+          ? { initialPosePrepared: true }
+          : {}),
         ...(ligandContext ? {} : { ligandContext: false }),
         comparison,
         focusModel,
@@ -245,7 +250,15 @@ export function StructureViewport({
       if (ready) send("clear");
       setStatus("empty");
     }
-  }, [ready, key, comparison, focusModel, focusKey, trajectoryKey]);
+  }, [
+    ready,
+    key,
+    comparison,
+    focusModel,
+    focusKey,
+    trajectoryKey,
+    sourceSnapshot,
+  ]);
   useEffect(() => {
     if (!focusLigand) {
       focusedLigand.current = null;
@@ -711,7 +724,8 @@ export function StructureViewport({
           )}
         </>
       )}
-      {!comparison &&
+      {!sourceSnapshot &&
+        !comparison &&
         (optimization.count > 1 ||
           optimization.busy ||
           (loaded &&

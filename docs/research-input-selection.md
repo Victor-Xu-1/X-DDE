@@ -67,3 +67,15 @@ The focused `reference-input-checks.yml` gate covers the shared picker and direc
 The additional result-handoff browser check uses a checksum-verified, retained native docking output in isolated CI state. It adds 125 controlled metadata-only history rows to exercise older-source paging, deliberately loses an actual registration reply, and verifies that retry creates no additional asset/version, preserves original bytes and submits no scientific job. These metadata rows are transport fixtures, not research examples.
 
 结果交接的额外浏览器检查在独立 CI 中使用校验通过的历史原生对接输出。增加 125 条仅含元数据的受控历史记录来验证旧任务分页，故意丢失真实保存请求的回复，再核对重试不增加文件/版本、原始字节不变及没有递交科学任务。这些元数据记录仅用于交互测试，不是科研案例。
+
+Atom and coordinate pickers retain the exact selected file and record. They do not
+inherit an editable result's pose history, start minimization or replace coordinates.
+Display controls, molecular images and downloads stay available; a flat input must
+first be prepared as a separate 3D version and explicitly selected. Native REINVENT
+outputs with computed 3D coordinates reuse their validated task output through the
+same pose-source authority; a 3D file header without computational provenance still
+does not qualify an ordinary preview as calculated.
+
+原子与坐标选择器始终使用所选文件和记录，不继承结果预览的姿势历史，也不启动最小化或替换坐标。
+显示调整、文献图和原始文件下载仍可使用；二维输入需要先准备为独立三维版本，再明确选择。
+REINVENT 已计算的三维输出经既有来源核对后直接显示；只有三维文件标记、没有计算来源的普通预览仍需准备。

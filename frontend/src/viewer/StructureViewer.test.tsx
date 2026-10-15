@@ -3,6 +3,56 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 import { defaultOptions } from "./protocol";
+import { api } from "../api";
+
+it("keeps atom selection on the exact source and never offers or starts pose changes", () => {
+  const submit = vi.spyOn(api, "post");
+  const url =
+    "/api/jobs/7b9bd02b-0b93-45f4-a8b9-80e1cff203c9/download?name=identity.sdf";
+  render(
+    <StructureViewer
+      sourceSnapshot
+      urls={[url]}
+      language="en"
+      selectionMode="atom"
+    />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      ),
+    );
+  message("ready");
+  const input = post.mock.calls.find(([data]) => data.type === "load")?.[0]
+    .value;
+  expect(input.urls).toEqual([url]);
+  expect(input.initialPosePrepared).toBe(true);
+  message("loaded", {
+    ...defaultOptions,
+    atoms: 25,
+    chains: [],
+    ligands: [],
+    residues: [],
+    hasPolymer: false,
+    options: defaultOptions,
+  });
+  expect(
+    screen.queryByLabelText("Pose optimization and history"),
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
+  message("initial-pose-required");
+  expect(submit).not.toHaveBeenCalled();
+  submit.mockRestore();
+});
 
 it("focuses a native pocket only after an explicit request and a matched loaded region", () => {
   render(

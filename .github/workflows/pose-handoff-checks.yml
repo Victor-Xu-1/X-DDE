@@ -55,6 +55,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/viewer/PoseSession.test.tsx src/viewer/pose-source.test.ts
+          src/viewer/pose-plan.test.ts
           src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx
           src/presentation/ResearchTabs.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts

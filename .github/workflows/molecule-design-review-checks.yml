@@ -13,6 +13,8 @@ on:
       - "frontend/src/integrations/reinvent-modes.ts"
       - "frontend/src/integrations/generated.ts"
       - "frontend/src/integrations/validation*"
+      - "src/opendde_workbench/research/initial_pose.py"
+      - "tests/test_pose_minimization.py"
       - "frontend/src/integrations/ScientificReview.tsx"
       - "frontend/src/integrations/ScientificForm*"
       - "frontend/src/integrations/ScientificInputs.tsx"
@@ -52,6 +54,7 @@ jobs:
           cd ..
           uv sync --locked --group dev --group browser
           uv run --locked python scripts/generate-capability-catalog.py --check
+          uv run --locked pytest -q tests/test_pose_minimization.py tests/test_stat6_geometry.py
           uv run --locked ruff check server_tests/test_reinvent_review_browser.py server_tests/test_reinvent_native_browser.py server_tests/reinvent_case_evidence.py server_tests/prepare_reinvent_runtime.py server_tests/export_reinvent_runtime.py
       - name: Prepare the managed graphical editor only
         run: |

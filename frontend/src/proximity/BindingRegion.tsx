@@ -28,6 +28,7 @@ export function BindingRegion({
             urls={[referenceUrl(source)]}
             records={[source.record]}
             language={language}
+            sourceSnapshot
             selectionMode="atom"
             highlightedAtoms={selected}
             onAtomSelected={(selection) => {

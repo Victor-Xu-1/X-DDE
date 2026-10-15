@@ -1,6 +1,7 @@
 """One real 20-candidate fixed-port study through the deployed frontend, never MD/FEP."""
 
 import os
+import re
 import time
 from pathlib import Path
 
@@ -23,10 +24,16 @@ def test_real_stat6_fixed_port_study():
     evidence = Path("outputs/reinvent-native")
     evidence.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as driver:
-        browser = driver.chromium.launch()
+        browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.emulate_media(reduced_motion="reduce")
         page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
+        page.add_init_script("""window.addEventListener('message', event => {
+          const frame = document.querySelector('.scientific-results .molecular-preview iframe');
+          if (event.origin === location.origin && event.source === frame?.contentWindow &&
+              event.data?.channel === 'opendde-viewer' && event.data.type === 'loaded')
+            document.documentElement.dataset.reinventAtoms = String(event.data.detail.atoms);
+        });""")
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(base)
@@ -97,7 +104,7 @@ def test_real_stat6_fixed_port_study():
             assert status.ok
             job = status.json()
         documents = retain_case(page, base, identifier, evidence / "case")
-        page.screenshot(path=evidence / "native-result.png", full_page=True)
+        page.screenshot(path=evidence / "native-result-initial.png", full_page=True)
         assert job["status"] == "succeeded", {"job": job, "logs": documents["logs"]}
         request = job["request"]
         assert request["operation"] == "reinvent_design" and len(request["inputs"]) == 1
@@ -112,5 +119,29 @@ def test_real_stat6_fixed_port_study():
         ]
         assert request["payload"]["candidates"] == 20
         assert request["options"] == {"device": "cpu", "cpu": 2, "memory_mib": 2048, "seed": 2026}
+        expect(page.locator("html")).to_have_attribute(
+            "data-reinvent-atoms", re.compile(r"^[1-9]\d*$"), timeout=60000
+        )
+        page.screenshot(path=evidence / "native-result.png", full_page=True)
+        with page.expect_download() as download:
+            page.get_by_role("button", name="Capture 3D view", exact=True).click()
+        image = evidence / "native-3d-view.png"
+        download.value.save_as(image)
+        assert image.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+        page.get_by_role("tab", name="2D structure", exact=True).click()
+        expect(
+            page.locator(".scientific-results .molecular-preview .molecule-image")
+        ).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+        page.screenshot(path=evidence / "native-result-2d.png", full_page=True)
+        if len(documents["result"]["candidates"]) > 1:
+            second = documents["result"]["candidates"][1]["id"]
+            page.evaluate("delete document.documentElement.dataset.reinventAtoms")
+            page.get_by_role("row").filter(has=page.get_by_text(second, exact=True)).click()
+            expect(page.locator("html")).to_have_attribute(
+                "data-reinvent-atoms", re.compile(r"^[1-9]\d*$"), timeout=60000
+            )
+            page.screenshot(path=evidence / "native-result-second.png", full_page=True)
+        jobs = page.request.get(base + "/api/jobs").json()
+        assert isinstance(jobs, list) and {row["id"] for row in jobs} == {identifier}, jobs
         assert not errors
         browser.close()
