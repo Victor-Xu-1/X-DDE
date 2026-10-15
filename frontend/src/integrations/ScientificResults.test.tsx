@@ -63,7 +63,7 @@ it("keeps declared stereochemistry separate from unbound 3D geometry when select
     "/api/jobs/native-study/download?name=molecule-002.sdf",
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "explicit-configuration", exact: true }),
+    screen.getByRole("button", { name: "explicit-configuration" }),
   );
   expect(selected().source).toEqual({ smiles: "C[C@H](O)c1ccccc1" });
   expect(selected().urls).toEqual([

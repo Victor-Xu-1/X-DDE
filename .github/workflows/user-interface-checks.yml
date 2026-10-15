@@ -145,7 +145,7 @@ on:
       - "!frontend/src/presentation/useReveal.test.tsx"
       - "!frontend/src/presentation/useReveal.ts"
       # Metric landscapes and exact direct consumers use landscape-checks.yml.
-      - "!frontend/src/integrations/ScientificResults.tsx"
+      - "!frontend/src/integrations/ScientificResults*"
       # Backend-choice metadata and deployment grouping use simulation-backend-checks.yml.
       - "!frontend/src/integrations/operations.ts"
       - "!frontend/src/operations/CandidateSequenceResults.test.tsx"
@@ -228,7 +228,7 @@ on:
       - "!frontend/src/integrations/InteractionResults.tsx"
       - "!frontend/src/integrations/PotentialResults.tsx"
       - "!frontend/src/integrations/ScaffoldSelection.tsx"
-      - "!frontend/src/integrations/ScientificResults.tsx"
+      - "!frontend/src/integrations/ScientificResults*"
       - "!frontend/src/integrations/StructureTargetSelection.tsx"
       - "!frontend/src/integrations/target-selection.css"
       - "!frontend/src/operations/CandidateSequenceResults.tsx"
@@ -381,7 +381,7 @@ on:
       - "!frontend/src/presentation/useReveal.test.tsx"
       - "!frontend/src/presentation/useReveal.ts"
       # Metric landscapes and exact direct consumers use landscape-checks.yml.
-      - "!frontend/src/integrations/ScientificResults.tsx"
+      - "!frontend/src/integrations/ScientificResults*"
       - "!frontend/src/operations/CandidateSequenceResults.test.tsx"
       - "!frontend/src/operations/PropertyResults.test.tsx"
       - "!server_tests/test_result_visuals_browser.py"
@@ -447,7 +447,7 @@ on:
       - "!frontend/src/integrations/InteractionResults.tsx"
       - "!frontend/src/integrations/PotentialResults.tsx"
       - "!frontend/src/integrations/ScaffoldSelection.tsx"
-      - "!frontend/src/integrations/ScientificResults.tsx"
+      - "!frontend/src/integrations/ScientificResults*"
       - "!frontend/src/integrations/StructureTargetSelection.tsx"
       - "!frontend/src/operations/CandidateSequenceResults.tsx"
       - "!frontend/src/operations/CovalentEditor.tsx"
