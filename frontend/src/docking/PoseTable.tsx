@@ -6,6 +6,25 @@ import {
 import type { DockingResult } from "./types";
 import { scoreLabel } from "./scoreLabels";
 type Pose = DockingResult["poses"][number];
+function MetricHeading({
+  label,
+  short,
+  unit,
+}: {
+  label: string;
+  short: string;
+  unit: string;
+}) {
+  return (
+    <>
+      <span className="sr-only">{label}</span>
+      <span aria-hidden="true" className="pose-metric-heading">
+        <span>{short}</span>
+        <small>{unit}</small>
+      </span>
+    </>
+  );
+}
 export function PoseTable({
   result,
   language,
@@ -62,9 +81,19 @@ export function PoseTable({
     },
     ...scoreNames.map((score) => ({
       key: score.name + ":" + score.unit,
-      label:
+      exportLabel:
         scoreLabel(score.name, language) +
         (score.unit === "model_output" ? "" : " (" + score.unit + ")"),
+      label:
+        score.name === "minimizedAffinity" ? (
+          <MetricHeading
+            label={scoreLabel(score.name, language) + " (" + score.unit + ")"}
+            short={zh ? "评分" : "Score"}
+            unit={score.unit}
+          />
+        ) : (
+          scoreLabel(score.name, language)
+        ),
       numeric: true,
       value: (p: Pose) =>
         p.scores.find(
@@ -96,14 +125,28 @@ export function PoseTable({
       ? ([
           {
             key: "reference_all_heavy",
-            label: zh ? "整体偏差 (Å)" : "Whole-pose RMSD (Å)",
+            exportLabel: zh ? "整体偏差 (Å)" : "Whole-pose RMSD (Å)",
+            label: (
+              <MetricHeading
+                label={zh ? "整体偏差 (Å)" : "Whole-pose RMSD (Å)"}
+                short={zh ? "整体" : "Whole"}
+                unit="RMSD (Å)"
+              />
+            ),
             numeric: true,
             value: (p: Pose) => p.reference_rmsd?.all_heavy,
             render: (p: Pose) => p.reference_rmsd?.all_heavy.toFixed(3) ?? "—",
           },
           {
             key: "reference_contact",
-            label: zh ? "接触区偏差 (Å)" : "Contact RMSD (Å)",
+            exportLabel: zh ? "接触区偏差 (Å)" : "Contact RMSD (Å)",
+            label: (
+              <MetricHeading
+                label={zh ? "接触区偏差 (Å)" : "Contact RMSD (Å)"}
+                short={zh ? "接触区" : "Contact"}
+                unit="RMSD (Å)"
+              />
+            ),
             numeric: true,
             value: (p: Pose) => p.reference_rmsd?.contact,
             render: (p: Pose) => p.reference_rmsd?.contact?.toFixed(3) ?? "—",

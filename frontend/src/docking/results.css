@@ -23,6 +23,18 @@
 .docking-results .column-sort {
   min-width: 0;
   max-width: 100%;
+  gap: 3px;
+}
+.docking-results .pose-metric-heading {
+  display: block;
+  opacity: 1;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.docking-results .pose-metric-heading small {
+  display: block;
+  white-space: nowrap;
+  font-size: 11px;
 }
 .docking-results .pose-record .secondary-button {
   white-space: normal;
