@@ -17,7 +17,7 @@ on:
       - 'frontend/src/space/ChannelResults.tsx'
       - 'frontend/src/datasets/ResearchTable.tsx'
       - 'frontend/src/admet/AdmetRecordTable.tsx'
-      - 'frontend/src/docking/PoseTable.tsx'
+      # GNINA's native reference metrics and table have docking-runtime-checks.yml.
       - 'frontend/src/diffsbdd/GeneratedCandidates.tsx'
       # Exact property file/pose linkage has property-preview-checks.yml.
       - 'frontend/src/viewer/scene.ts'

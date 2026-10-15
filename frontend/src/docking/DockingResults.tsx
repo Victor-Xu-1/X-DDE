@@ -2,6 +2,7 @@ import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
 import { PoseTable } from "./PoseTable";
+import { ReferenceComparison } from "./ReferenceComparison";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
@@ -190,6 +191,7 @@ export function DockingResults({
         }
       >
         <div>
+          <ReferenceComparison result={result} language={language} />
           <PoseTable
             jobId={job.id}
             result={result}

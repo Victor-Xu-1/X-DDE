@@ -86,6 +86,37 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     installed = install_docking(
         root, work, execute, lambda message: print(message, flush=True), lambda: None
     )
+    from opendde_workbench.docking import snapshot
+
+    adapter, _ = snapshot.capture(tmp_path / "reference-controls", Path(snapshot.__file__).parent)
+    geometry_controls = execute(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--network",
+            "none",
+            "--read-only",
+            "--cpus",
+            "1",
+            "--memory",
+            "512m",
+            "--tmpfs",
+            "/tmp:rw,size=32m",
+            "--mount",
+            f"type=bind,source={adapter / 'docking'},target=/adapter,readonly",
+            "--mount",
+            f"type=bind,source={Path(__file__).with_name('reference_geometry_checks.py').resolve()},target=/checks.py,readonly",
+            "--env",
+            "PYTHONPATH=/adapter",
+            "--entrypoint",
+            "python",
+            installed["image"],
+            "-B",
+            "/checks.py",
+        ],
+        timeout=60,
+    )
     settings = Settings(
         state_dir=tmp_path / "state",
         image_file=tmp_path / "missing-opendde-image",
@@ -97,6 +128,7 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     )
     evidence = Path("server_tests/evidence")
     evidence.mkdir(exist_ok=True)
+    (evidence / "reference-geometry-controls.json").write_text(geometry_controls)
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
         refs = {}
@@ -176,10 +208,11 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             "unit": "angstrom",
         }
         pose = refs["ligand"]
-        for mode in ("dock", "score", "minimize"):
+        for stage in ("dock", "score", "minimize", "reference_dock"):
+            mode = "dock" if stage == "reference_dock" else stage
             request = {
                 "operation": "docking",
-                "name": "remote native " + mode,
+                "name": "remote native " + stage,
                 "mode": mode,
                 "receptor": refs["receptor"],
                 "ligand": pose,
@@ -191,7 +224,14 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
                     "time_limit_seconds": 180,
                 },
             }
-            if mode == "dock":
+            if stage == "reference_dock":
+                request["search"] = {
+                    "kind": "reference_ligand",
+                    "frame": refs["receptor"],
+                    "reference": refs["ligand"],
+                    "coordinate_basis": "user_confirmed",
+                }
+            elif mode == "dock":
                 request["search"] = {"kind": "box", "frame": refs["receptor"], "box": explicit_box}
                 constraint = client.post(
                     "/api/research/constraints",
@@ -237,9 +277,9 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             output = settings.state_dir / "jobs" / identifier / "output"
             for file in output.glob("*"):
                 if file.is_file() and file.stat().st_size < 4 * 1024**2:
-                    shutil.copyfile(file, evidence / (mode + "-" + file.name))
+                    shutil.copyfile(file, evidence / (stage + "-" + file.name))
             retained_log = client.get("/api/jobs/" + identifier + "/logs").json()["text"]
-            (evidence / (mode + "-worker.log")).write_text(retained_log)
+            (evidence / (stage + "-worker.log")).write_text(retained_log)
             if job["status"] != "succeeded":
                 print(retained_log)
             assert job["status"] == "succeeded", client.get(
@@ -247,7 +287,7 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             ).json()
             result = client.get("/api/jobs/" + identifier + "/result").json()
             assert result["mode"] == mode and result["complete"]
-            if mode == "dock":
+            if stage == "dock":
                 receipt = client.get("/api/jobs/" + identifier + "/constraints")
                 assert receipt.status_code == 200, receipt.text
                 assert receipt.json()["conditions"][0]["value"] == explicit_box
@@ -262,10 +302,24 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             assert result["scientific_acceptance"] == "pending_server_validation"
             valid = [p for p in result["poses"] if p["valid"]]
             assert valid, result
-            if mode == "dock":
+            if stage == "dock":
                 assert all(p["constraint_checks"][0]["passed"] for p in valid)
                 assert result["pose_artifact"] == "qualified-poses.sdf"
                 assert result["raw_pose_artifact"] == "poses.sdf"
+                assert result["reference_comparison"] is None
+            else:
+                comparison = result["reference_comparison"]
+                assert comparison["status"] == "ready"
+                assert comparison["method"] == "symmetry_aware_heavy_atom_no_fit"
+                assert comparison["reference"] == (
+                    refs["ligand"] if stage == "reference_dock" else pose
+                )
+                assert comparison["role"] == (
+                    "search_reference" if stage == "reference_dock" else "input_pose"
+                )
+                assert all(p["reference_rmsd"]["all_heavy"] >= 0 for p in valid)
+                if mode == "score":
+                    assert valid[0]["reference_rmsd"]["all_heavy"] < 0.0001
             assert all(s["name"] == "minimizedAffinity" for p in valid for s in p["scores"])
             selected = valid[0]
             assert selected["artifact"] == f"pose-{selected['record'] + 1:03d}.sdf"
@@ -283,7 +337,7 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             assert selected_version["reference"]["record"] == 0
             pose = selected_version["reference"]
             assert all(v["source_job"] == identifier for v in versions)
-            (evidence / (mode + "-acceptance.json")).write_text(
+            (evidence / (stage + "-acceptance.json")).write_text(
                 json.dumps({"job": job, "result": result, "environment": environment}, indent=2)
             )
         # Real native scoring completes, but a distant hard output condition rejects its pose.
@@ -433,11 +487,12 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     # New server lifespan uses persisted jobs, versions and environment snapshots.
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
         persisted_jobs = client.get("/api/jobs").json()
-        assert len(persisted_jobs) == 5
+        assert len(persisted_jobs) == 6
         assert {j["request"]["name"] for j in persisted_jobs} == {
             "remote native dock",
             "remote native score",
             "remote native minimize",
+            "remote native reference_dock",
             "Native output rejection",
             "native cancellation",
         }

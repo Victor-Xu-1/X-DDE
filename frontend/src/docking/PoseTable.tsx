@@ -24,6 +24,7 @@ export function PoseTable({
   onDiagnostic(artifact: string): void;
 }) {
   const zh = language === "zh";
+  const referenceReady = result.reference_comparison?.status === "ready";
   const scoreNames = [
     ...new Map(
       result.poses.flatMap((p) =>
@@ -101,6 +102,24 @@ export function PoseTable({
         );
       },
     })),
+    ...(referenceReady
+      ? ([
+          {
+            key: "reference_all_heavy",
+            label: zh ? "整体偏差 (Å)" : "Whole-pose RMSD (Å)",
+            numeric: true,
+            value: (p: Pose) => p.reference_rmsd?.all_heavy,
+            render: (p: Pose) => p.reference_rmsd?.all_heavy.toFixed(3) ?? "—",
+          },
+          {
+            key: "reference_contact",
+            label: zh ? "接触区偏差 (Å)" : "Contact RMSD (Å)",
+            numeric: true,
+            value: (p: Pose) => p.reference_rmsd?.contact,
+            render: (p: Pose) => p.reference_rmsd?.contact?.toFixed(3) ?? "—",
+          },
+        ] satisfies ResearchColumn<Pose>[])
+      : []),
     {
       key: "mapping",
       label: zh ? "原子映射" : "Atom mapping",
@@ -162,6 +181,18 @@ export function PoseTable({
       canSelect={(pose) => pose.valid && !!pose.artifact}
       language={language}
       title={"GNINA " + result.software_version}
+      initialVisibleColumns={
+        referenceReady
+          ? [
+              "pose",
+              "minimizedAffinity:kcal/mol",
+              "CNNscore:model_output",
+              "reference_all_heavy",
+              "reference_contact",
+              "status",
+            ]
+          : undefined
+      }
     />
   );
 }

@@ -25,6 +25,8 @@ on:
       # Saved-material handoff is verified by exact-result-handoff-checks.
       - "!frontend/src/docking/DockingResults*"
       - "frontend/src/docking/types.ts"
+      # Native reference metadata has the exact docking runtime/result gate.
+      - "!frontend/src/docking/types.ts"
       - "frontend/src/editors/molstar*"
       - "frontend/src/editors/ketcher*"
       - "frontend/src/editors/Editors.tsx"

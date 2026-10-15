@@ -10,6 +10,7 @@ from .contract import Search
 from .manifest import BINARY_SHA256, VERSION
 from .options import DockingOptions
 from .quality import BoundsCheck
+from .reference_contract import ReferenceComparison, ReferenceRmsd
 
 
 class Score(ScientificModel):
@@ -42,6 +43,7 @@ class Pose(ScientificModel):
     diagnostic_artifact: str | None = None
     qualified_record: int | None = Field(default=None, strict=True, ge=0, lt=100)
     constraint_checks: tuple[BoundsCheck, ...] = Field(default=(), max_length=32)
+    reference_rmsd: ReferenceRmsd | None = None
 
     @model_validator(mode="after")
     def candidate(self) -> Self:
@@ -108,6 +110,7 @@ class DockingResult(ScientificModel):
     scientific_acceptance: Literal["pending_server_validation"]
     coordinate_provenance: Literal["user_confirmed", "receptor_anchored_box"]
     notes: str = Field(max_length=2000)
+    reference_comparison: ReferenceComparison | None = None
 
     @model_validator(mode="after")
     def provenance(self) -> Self:
@@ -138,4 +141,31 @@ class DockingResult(ScientificModel):
             s.name.startswith("CNN") for p in self.poses for s in p.scores
         ):
             raise ValueError("Disabled CNN cannot claim neural model outputs.")
+        comparison = self.reference_comparison
+        if comparison:
+            if (
+                comparison.status == "different_chemical_state"
+                and comparison.reference == self.ligand
+            ):
+                raise ValueError("The identical input reference cannot claim different chemistry.")
+            if self.mode == "dock":
+                if (
+                    not self.search
+                    or self.search.kind != "reference_ligand"
+                    or comparison.role != "search_reference"
+                    or comparison.reference != self.search.reference
+                ):
+                    raise ValueError(
+                        "Reference comparison differs from the declared search reference."
+                    )
+            elif comparison.role != "input_pose" or comparison.reference != self.ligand:
+                raise ValueError("Existing-pose comparison must retain its exact input pose.")
+        for pose in self.poses:
+            measured = comparison is not None and comparison.status == "ready" and pose.valid
+            if measured != (pose.reference_rmsd is not None):
+                raise ValueError("Reference RMSD must match a valid pose and comparable reference.")
+            if pose.reference_rmsd is not None and (
+                (comparison.contact_atom_count == 0) != (pose.reference_rmsd.contact is None)
+            ):
+                raise ValueError("Contact RMSD requires actual reference contact atoms.")
         return self

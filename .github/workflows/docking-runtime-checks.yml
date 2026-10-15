@@ -12,11 +12,20 @@ on:
       - "src/opendde_workbench/docking/receptor_input.py"
       - "src/opendde_workbench/docking/native.py"
       - "src/opendde_workbench/docking/snapshot.py"
+      - "src/opendde_workbench/docking/reference*.py"
+      - "src/opendde_workbench/docking/result.py"
+      - "frontend/src/docking/DockingReview*"
+      - "frontend/src/docking/ReferenceComparison*"
+      - "frontend/src/docking/PoseTable*"
+      - "frontend/src/docking/DockingForm*"
+      - "frontend/src/docking/types.ts"
       - "src/opendde_workbench/assets.py"
       - "src/opendde_workbench/container_supervision.py"
       - "tests/test_native_container_cleanup.py"
       - "tests/test_docking_runtime_qualification.py"
       - "tests/test_docking.py"
+      - "tests/test_docking_reference.py"
+      - "server_tests/reference_geometry_checks.py"
       - "server_tests/docking_browser.py"
       - "server_tests/test_native_docking.py"
       - ".github/workflows/docking-runtime-checks.yml"
@@ -43,10 +52,10 @@ jobs:
           uv sync --locked --group dev --group browser
       - name: Exact binding, source snapshot and runtime contracts
         run: |
-          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py
-          uv run --locked pytest -q tests/test_docking.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py tests/test_locked_packages.py
+          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/docking/reference.py src/opendde_workbench/docking/reference_contract.py src/opendde_workbench/docking/result.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py server_tests/reference_geometry_checks.py
+          uv run --locked pytest -q tests/test_docking.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py tests/test_locked_packages.py tests/test_pose_minimization.py tests/test_pose_score_ranking.py
           cd frontend
-          npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx
+          npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/ReferenceComparison.test.tsx
       - name: Actual isolated GNINA install, lazy CUDA-library qualification and native CPU modes
         env:
           WB_TEST_NATIVE_DOCKING: "1"

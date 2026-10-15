@@ -71,6 +71,26 @@ installation without that reviewed result retains the raw reference materials
 and preparation instructions but does not prefill an unresolved receptor as a
 ready docking request. Exposure and alignment keep their separate reviewed CIF
 preparation; no existing pin or original input is overwritten.
+GNINA review shows the actual receptor, selected SDF record, search reference or
+box, scoring method, neural-scoring stage and effective resource/search settings.
+Scoring preserves the input coordinates; local optimization retains its original
+pose separately. Neither is described as a new global docking search.
+
+New GNINA results compare geometry in the unchanged receptor frame without
+fitting the ligand. Reference-guided docking compares against the search
+reference only when full chemical state and stereochemistry match. Existing-pose
+scoring and optimization compare against their own exact input pose. Report both
+whole-heavy-atom RMSD and RMSD of reference heavy atoms within 4 Å of receptor
+heavy atoms; this contact subset is fixed before reading the calculated poses.
+Flexible exposed tails affect the whole-pose measure. Exact stereochemical
+symmetry matching is bounded at 4096; different states or excessive symmetry
+produce an explicit unavailable comparison, never a partial minimum or zero.
+An empty contact subset has no contact RMSD. These are geometric distances, not
+affinity, an acceptance verdict or an experimental validation claim. Original
+files, scores and historical results remain unchanged. The method follows
+[RDKit's in-place RMSD convention](https://www.rdkit.org/docs/source/rdkit.Chem.rdMolAlign.html)
+and keeps [GNINA's distinct docking, scoring and minimization operations](https://github.com/gnina/gnina).
+
 The PDB-only DiffSBDD receptor-filtering preset uses the same qualified protein
 version. It never pre-fills the original CIF into a PDB-only input or falls back
 to the unresolved extracted PDB. The raw original stays available for inspection,

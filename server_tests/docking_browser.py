@@ -77,6 +77,24 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                 expect(
                     panel.get_by_role("button", name="Focus selected ligand", exact=True)
                 ).to_be_visible()
+                native_result = page.request.get(base + "/api/jobs/" + job_id + "/result").json()
+                comparison = native_result.get("reference_comparison")
+                if comparison and comparison["status"] == "ready":
+                    table = panel.get_by_role(
+                        "table", name="GNINA " + native_result["software_version"], exact=True
+                    )
+                    expect(
+                        table.get_by_role("columnheader", name="Whole-pose RMSD (Å)", exact=False)
+                    ).to_be_visible()
+                    expect(
+                        table.get_by_role(
+                            "cell", name=f"{pose['reference_rmsd']['all_heavy']:.3f}", exact=True
+                        )
+                    ).to_be_visible()
+                    panel.get_by_text("Compare with the reference pose", exact=True).click()
+                    expect(
+                        panel.get_by_text("without fitting the ligand", exact=False)
+                    ).to_be_visible()
                 panel.get_by_role("button", name="Surface", exact=True).click()
                 expect(panel.get_by_text("Gray: no data", exact=True)).to_be_visible()
                 panel.get_by_role("button", name="Backbone", exact=True).click()
@@ -122,6 +140,27 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                 expect(
                     panel.get_by_role("button", name=f"Pose {pose['record'] + 1}", exact=True)
                 ).to_have_attribute("aria-pressed", "true")
+                # Read the effective selected pose/method before dispatch, without
+                # submitting a second scientific study from this browser check.
+                panel.get_by_role("button", name="Rescore", exact=True).click()
+                page.get_by_role("button", name="Next", exact=True).click()
+                page.get_by_role("checkbox", name="I confirm", exact=False).check()
+                page.get_by_role("button", name="Next", exact=True).click()
+                page.get_by_role("combobox", name="Run preset", exact=True).select_option("expert")
+                page.get_by_role("spinbutton", name="CPU threads", exact=True).fill("1")
+                page.get_by_role("button", name="Next", exact=True).click()
+                review = page.get_by_role(
+                    "table", name="Materials and calculation plan", exact=True
+                )
+                expect(review).to_contain_text(pose["artifact"])
+                expect(review).to_contain_text("VINA")
+                expect(review).to_contain_text("CPU × 1")
+                expect(review).to_contain_text("coordinates unchanged")
+                page.screenshot(path=str(evidence / "native-scoring-review.png"), full_page=True)
+                assert {
+                    j["id"] for j in page.request.get(base + "/api/jobs").json()
+                } == expected_job_ids
+                page.get_by_role("button", name="← Back to results", exact=True).click()
                 if rejected_id:
                     page.set_viewport_size({"width": 1440, "height": 1000})
                     page.goto(base + "/#task=" + rejected_id)

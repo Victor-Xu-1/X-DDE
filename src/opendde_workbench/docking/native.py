@@ -20,6 +20,7 @@ from chemistry import (
 from manifest import BINARY_SHA256, VERSION
 from options import DockingOptions, SearchBox, arguments
 from receptor_input import require_explicit_alternates
+from reference import ReferenceGeometry
 
 
 def main():
@@ -76,6 +77,7 @@ def main():
     output = root / "poses.sdf"
     args = [str(binary), "-r", str(protein), "-l", str(normalized)] + arguments(options, mode)
     search = request.get("search")
+    reference_geometry = None
     if mode == "dock":
         if not search or MoleculeRef.model_validate(search["frame"]) != receptor:
             raise ValueError("Search region and receptor frames differ.")
@@ -91,6 +93,9 @@ def main():
             ref_file = root / "reference-ligand.sdf"
             with Chem.SDWriter(str(ref_file)) as writer:
                 writer.write(mol)
+            reference_geometry = ReferenceGeometry(
+                mol, original, protein, search["reference"], "search_reference"
+            )
             args.extend(
                 ["--autobox_ligand", str(ref_file), "--autobox_add", str(options.autobox_add)]
             )
@@ -101,6 +106,10 @@ def main():
         or request["pose_coordinate_basis"] != "user_confirmed"
     ):
         raise ValueError("Existing pose lacks receptor-frame confirmation.")
+    else:
+        reference_geometry = ReferenceGeometry(
+            original, original, protein, request["ligand"], "input_pose"
+        )
     if mode != "score":
         args.extend(["-o", str(output)])
     log = root / "native.log"
@@ -152,6 +161,10 @@ def main():
         Chem.SDMolSupplier(str(output), removeHs=True) if any(p["valid"] for p in poses) else None
     )
     verify_poses(supplier, poses, execution)
+    if reference_geometry is not None:
+        for pose in poses:
+            if pose["valid"]:
+                pose["reference_rmsd"] = reference_geometry.measure(supplier[pose["record"]])
     qualified = root / "qualified-poses.sdf"
     qualified_record = 0
     with Chem.SDWriter(str(qualified)) as writer:
@@ -185,6 +198,7 @@ def main():
         "frame": request["receptor"],
         "options": options.model_dump(mode="json"),
         "search": search,
+        "reference_comparison": reference_geometry.metadata if reference_geometry else None,
         "initial_conformer_generated": generated_conformer,
         "poses": poses,
         "pose_artifact": "qualified-poses.sdf",

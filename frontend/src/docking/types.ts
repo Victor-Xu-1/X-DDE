@@ -33,6 +33,7 @@ export interface PoseResult {
   smiles?: string;
   mapping_status: string;
   qualified_record?: number | null;
+  reference_rmsd?: { all_heavy: number; contact: number | null } | null;
   constraint_checks?: {
     condition_id: string;
     passed: boolean;
@@ -69,4 +70,15 @@ export interface DockingResult {
   search?: DockingTask["search"];
   poses: PoseResult[];
   scientific_outcome: string;
+  reference_comparison?: {
+    reference: MoleculeRef;
+    role: "search_reference" | "input_pose";
+    status: "ready" | "different_chemical_state" | "symmetry_limit";
+    method: "symmetry_aware_heavy_atom_no_fit";
+    unit: "angstrom";
+    heavy_atom_count: number;
+    contact_atom_count: number | null;
+    contact_cutoff_angstrom: number;
+    symmetry_mappings: number | null;
+  } | null;
 }

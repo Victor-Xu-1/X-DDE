@@ -15,6 +15,7 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { defaults } from "./generated";
 import { task, parseBox } from "./model";
 import { DockingOptions } from "./DockingOptions";
+import { DockingReview } from "./DockingReview";
 import type { DockingMode, SearchBox } from "./types";
 export function DockingForm({
   language,
@@ -253,42 +254,11 @@ export function DockingForm({
     </>
   );
   const review = (
-    <dl className="questionnaire-review">
-      <dt>{zh ? "任务" : "Task"}</dt>
-      <dd>{labels[mode][zh ? 0 : 1]}</dd>
-      <dt>{zh ? "受体和分子" : "Receptor and molecule"}</dt>
-      <dd>
-        {zh
-          ? "沿用已选文件、记录与版本"
-          : "Use the selected files, records and versions"}
-      </dd>
-      <dt>{zh ? "计算范围" : "Calculation region"}</dt>
-      <dd>
-        {mode !== "dock"
-          ? zh
-            ? "已有姿势的原坐标系"
-            : "Original coordinate frame of the existing pose"
-          : kind === "reference"
-            ? zh
-              ? "参考配体周围"
-              : "Around the reference ligand"
-            : zh
-              ? "所选口袋或指定区域"
-              : "Selected pocket or specified region"}
-      </dd>
-      <dt>{zh ? "参数模式" : "Parameter mode"}</dt>
-      <dd>
-        {expert
-          ? zh
-            ? "专家微调"
-            : "Expert tuning"
-          : zh
-            ? "推荐的有限 CPU 方案"
-            : "Recommended bounded CPU settings"}
-      </dd>
-      <dt>{zh ? "任务名称" : "Task name"}</dt>
-      <dd>{name.trim() || labels[mode][zh ? 0 : 1]}</dd>
-    </dl>
+    <DockingReview
+      getTask={buildTask}
+      enabled={Boolean(receptor && ligand) && regionValid}
+      language={language}
+    />
   );
   return (
     <Questionnaire

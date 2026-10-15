@@ -10,6 +10,7 @@ NATIVE_FILES = (
     "options.py",
     "manifest.py",
     "receptor_input.py",
+    "reference.py",
 )
 
 
