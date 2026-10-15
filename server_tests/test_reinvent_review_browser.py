@@ -166,6 +166,12 @@ def test_explicit_stat6_template_source_survives_mode_changes_without_submitting
                 exact=True,
             )
         ).to_be_visible(timeout=45000)
+        scope = page.get_by_role("region", name="Molecular design scope", exact=True)
+        expect(scope.locator(".molecule-image")).to_have_attribute(
+            "data-drawing-state", "ready", timeout=60000
+        )
+        expect(scope.get_by_role("img")).to_be_visible()
+        expect(next_button).to_be_enabled()
         page.screenshot(path=evidence / "explicit-stat6-scaffold-origin.png", full_page=True)
         page.get_by_role("button", name="Back", exact=True).click()
         source_check.uncheck()
