@@ -28,6 +28,11 @@ STAT6 binding, pocket compatibility or activity. Those require separate paired
 docking and independent quality review. Native 3D image capture first presents a
 preview; **Download view PNG** saves the displayed image.
 
+Generated-candidate 2D previews and thumbnails use the same native SMILES graph,
+including explicitly declared stereochemistry. Their 3D previews and downloads
+retain the native calculated SDF. This avoids assigning apparent stereocenters
+from an arbitrary unbound conformation when drawing the 2D graph.
+
 A fixed study can retain up to eight successful follow-up task results alongside
 its original result, such as receptor-bound refinement and independent pose
 quality. Each follow-up must consume a typed scientific output of the primary

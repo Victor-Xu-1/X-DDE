@@ -130,7 +130,9 @@ export function ScientificResults({
     <MolecularPreview
       language={language}
       label={active.id}
-      source={url ? { url, record: 0 } : { smiles: active.smiles }}
+      // Keep the native chemical graph used by the thumbnail. A 3D editor import
+      // can infer stereochemistry not declared in the generated molecule.
+      source={{ smiles: active.smiles }}
       urls={complexUrl ? [complexUrl] : url ? [url] : []}
       defaultView={active.geometry === "none" ? "2d" : "3d"}
     />

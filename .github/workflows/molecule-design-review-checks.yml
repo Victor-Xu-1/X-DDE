@@ -21,6 +21,7 @@ on:
       - "frontend/src/integrations/ScientificForm*"
       - "frontend/src/integrations/ScientificInputs.tsx"
       - "frontend/src/integrations/ScientificSelection.tsx"
+      - "frontend/src/integrations/ScientificResults*"
       - "frontend/src/integrations/ScientificChoices*"
       - "frontend/src/integrations/inputs.css"
       - "server_tests/test_reinvent_review_browser.py"
@@ -52,7 +53,7 @@ jobs:
           npm ci --prefix frontend
           npm run build --prefix frontend
           cd frontend
-          npx vitest run src/integrations/ReinventReview.test.tsx src/integrations/ReinventInputs.test.tsx src/integrations/ReinventForm.test.tsx src/integrations/ScientificForm.test.tsx src/integrations/ScientificChoices.test.tsx src/integrations/validation.test.ts
+          npx vitest run src/integrations/ReinventReview.test.tsx src/integrations/ReinventInputs.test.tsx src/integrations/ReinventForm.test.tsx src/integrations/ScientificForm.test.tsx src/integrations/ScientificChoices.test.tsx src/integrations/ScientificResults.test.tsx src/integrations/validation.test.ts
           cd ..
           uv sync --locked --group dev --group browser
           uv run --locked python scripts/generate-capability-catalog.py --check
