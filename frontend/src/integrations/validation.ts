@@ -30,6 +30,12 @@ export function validScientificChoices(p: ScientificPayload): boolean {
       );
     case "reinvent":
       return (
+        ["de_novo", "analogues", "r_groups", "linker", "optimize"].includes(
+          String(p.mode),
+        ) &&
+        (p.validate_scaffold_origin === undefined ||
+          p.validate_scaffold_origin === false ||
+          (p.validate_scaffold_origin === true && p.mode === "r_groups")) &&
         bounded(p.candidates, 1, 500, true) &&
         bounded(p.optimization_steps, 5, 200, true) &&
         range(p.molecular_weight) &&

@@ -35,6 +35,10 @@ class ScientificBackend(PreparedContainerBackend):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
+        if identifier == "reinvent":
+            shared["native_reinvent_scope.py"] = Path(__file__).with_name(
+                "native_reinvent_scope.py"
+            )
         if identifier in {"openmm", "openfe", "gromacs"}:
             names = {
                 "openmm": ("md_input", "md_system", "md_analysis", "dynamics", "md_outputs"),

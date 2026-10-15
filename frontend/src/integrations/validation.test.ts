@@ -7,6 +7,28 @@ import {
 } from "./validation";
 
 describe("scientific form guidance", () => {
+  it("accepts optional source checking only for the supported R-group mode", () => {
+    expect(
+      validScientificChoices({
+        ...nativeDefaults.reinvent,
+        mode: "r_groups",
+        validate_scaffold_origin: true,
+      }),
+    ).toBe(true);
+    expect(
+      validScientificChoices({
+        ...nativeDefaults.reinvent,
+        mode: "linker",
+        validate_scaffold_origin: true,
+      }),
+    ).toBe(false);
+    expect(
+      validScientificChoices({
+        ...nativeDefaults.reinvent,
+        validate_scaffold_origin: "true",
+      }),
+    ).toBe(false);
+  });
   it("requires each fragment and its attachment point before advancing", () => {
     expect(
       validDesignFragments({

@@ -7,6 +7,9 @@ on:
       # Research-file classification has exact result/input handoff checks.
       - "!frontend/src/presentation/research-files*"
       - "frontend/src/integrations/**"
+      # Shared form defaults/validation have the exact scientific-form contract gate.
+      - "!frontend/src/integrations/generated.ts"
+      - "!frontend/src/integrations/validation*"
       # Chemical-scope questionnaires have a focused native Ketcher/review gate.
       - "!frontend/src/integrations/Reinvent*"
       - "!frontend/src/integrations/reinvent-modes.ts"
@@ -265,6 +268,9 @@ on:
     paths:
       - "frontend/src/presentation/**"
       - "frontend/src/integrations/**"
+      # Shared form defaults/validation have the exact scientific-form contract gate.
+      - "!frontend/src/integrations/generated.ts"
+      - "!frontend/src/integrations/validation*"
       - "!frontend/src/integrations/Reinvent*"
       - "!frontend/src/integrations/reinvent-modes.ts"
       - "!frontend/src/integrations/ScientificReview.tsx"

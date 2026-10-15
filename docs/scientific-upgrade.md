@@ -44,6 +44,16 @@ experimental binding measurement. BoltzGen antibody mode designs a selected vari
 framework chain; it does not promise whole-IgG design. Its upstream pipeline controls
 randomness; the UI does not expose an unsupported seed override.
 
+REINVENT R-group design accepts one connected scaffold with single-bonded wildcard
+attachment sites. An optional exact source-molecule reference is consumed by the
+native adapter to validate the core, stereochemistry and declared sites before
+sampling. Switching an explicitly selected starting molecule into R-group design
+retains it for that check; fresh tasks remain empty. Output admission independently
+rejects changes to protected atoms, hydrogen counts or undeclared attachment sites.
+Raw sampling output and rejected structures remain downloadable. Chemical-core
+validation does not fix 3D coordinates or establish affinity. SciPy is explicitly
+locked because the upstream CLI imports its density estimator at startup.
+
 OpenMM performs vacuum minimization, optionally retaining a precisely bound ligand.
 Its potential energy includes the selected restraints and is not binding free energy.
 The ligand must occupy the receptor frame; it is not silently docked. APBS's AMBER
@@ -76,6 +86,14 @@ environments, models, cache, outputs and case data remain on E: or the E-backed 
 Model assets are checksum-verified and mounted read-only; native execution has no network
 access. Missing environments/resources block submission. Installed readiness is reported
 separately from scientific acceptance on the target server.
+
+The managed installer can reuse a complete local native image only when its program,
+recipe, dependency lock, image-composition code and daemon platform all match. Cache
+hits and source builds pass through the same offline, nonroot native CLI check before
+publication in the installed registry. The explicit REINVENT CI study may retain the
+admitted image in a short-lived, separately checksummed Actions artifact; importing
+that cache does not install a component or validate a scientific result. The ordinary
+deployment queue remains the sole installation authority.
 
 The scientific upgrade workflow runs contract checks on pushes. Native CPU acceptance
 is explicitly dispatched per changed program (`check=admet`, `openmm`, `chemprop`,

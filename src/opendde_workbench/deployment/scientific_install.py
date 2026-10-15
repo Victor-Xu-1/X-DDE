@@ -16,6 +16,7 @@ from ..integrations.specs import PROGRAMS, recipe_digest
 from ..locations import atomic_json, read_json
 from .locked_packages import conda_archives
 from .paths import environment_root
+from .scientific_cache import cached_image
 from .transfers import download, extract
 
 
@@ -30,9 +31,15 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         raise RuntimeError(
             "Prepare the server Docker prerequisites before installing this environment."
         )
+    destination = environment_root(root, identifier) / (spec["version"] + "-" + str(uuid4()))
+    image = cached_image(identifier, execute, report)
+    if image:
+        checkpoint()
+        destination.mkdir(parents=True, exist_ok=False)
+        report("Reusing the reviewed native environment from the local image cache")
+        return verified_runtime(identifier, destination, image, execute, report)
     if available_bytes(root) < 16 * 1024**3:
         raise ValueError("The isolated scientific environment needs at least 16 GiB staging space.")
-    destination = environment_root(root, identifier) / (spec["version"] + "-" + str(uuid4()))
     source = None
     if "source" in spec:
         entry = spec["source"]
@@ -77,6 +84,11 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
     network = ["--network=none"] if identifier == "openfe" else []
     execute(["docker", "build", *network, "--tag", tag, context], timeout=7200)
     image = execute(["docker", "image", "inspect", "--format", "{{.Id}}", tag]).strip()
+    return verified_runtime(identifier, destination, image, execute, report)
+
+
+def verified_runtime(identifier, destination, image, execute, report):
+    """A cache hit and a source build share the same native readiness and receipt boundary."""
     if not image.startswith("sha256:") or len(image) != 71:
         raise ValueError("Native image build returned no immutable image identity.")
     from .native_readiness import verify_native_entrypoint

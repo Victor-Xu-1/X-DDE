@@ -12,7 +12,7 @@ import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
 import { ScientificReview } from "./ScientificReview";
-import { usesStartingMolecule } from "./reinvent-modes";
+import { usesStartingMolecule, usesMolecularInput } from "./reinvent-modes";
 import {
   validBoltzComponents,
   validDesignFragments,
@@ -74,7 +74,14 @@ export function ScientificForm({
   const [ligand, setLigand] = useState<MoleculeRef | null>(
     preset?.inputs.find((i) => ["ligand", "library"].includes(i.role))
       ?.source ??
-      (["reinvent", "chemprop"].includes(program) ? initialLigand : null),
+      (program === "chemprop" ||
+      (program === "reinvent" &&
+        usesStartingMolecule({
+          kind: "reinvent",
+          mode: preset?.payload?.mode ?? nativeDefaults.reinvent.mode,
+        }))
+        ? initialLigand
+        : null),
   );
   const [verifiedLibrary, setVerifiedLibrary] = useState<MoleculeRef | null>(
     null,
@@ -128,7 +135,7 @@ export function ScientificForm({
   if (structure) inputs.push({ role: "structure", source: structure });
   if (scaffold && ["antibody", "nanobody"].includes(String(payload.modality)))
     inputs.push({ role: "scaffold", source: scaffold });
-  if (ligand && (program !== "reinvent" || usesStartingMolecule(payload)))
+  if (ligand && (program !== "reinvent" || usesMolecularInput(payload)))
     inputs.push({
       role: program === "chemprop" ? "library" : "ligand",
       source: ligand,
@@ -137,9 +144,8 @@ export function ScientificForm({
     program === "boltz"
       ? validBoltzComponents(payload.components, payload.affinity)
       : program === "reinvent"
-        ? ["analogues", "optimize"].includes(String(payload.mode))
-          ? Boolean(ligand)
-          : validDesignFragments(payload)
+        ? validDesignFragments(payload) &&
+          (!usesMolecularInput(payload) || Boolean(ligand))
         : program === "chemprop"
           ? Boolean(
               ligand &&

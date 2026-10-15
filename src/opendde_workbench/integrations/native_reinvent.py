@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from native_io import csv_file, execute, finish, metric, molecular_candidate, source_molecule
+from native_reinvent_scope import ScaffoldScope
 
 MODELS = {
     "de_novo": "reinvent.prior",
@@ -53,6 +54,15 @@ def configuration(request, raw):
             if any(Chem.MolFromSmiles(value) is None for value in fragments):
                 raise ValueError("The selected attachment-point structure cannot be parsed.")
             smiles = "|".join(fragments)
+            if mode == "r_groups":
+                scope = ScaffoldScope(fragments[0])
+                if payload.get("validate_scaffold_origin") and not scope.matches(
+                    source_molecule(request)
+                ):
+                    raise ValueError(
+                        "The scaffold does not match the source molecule "
+                        "at the declared attachment sites."
+                    )
         seeds = raw / "starting-molecules.smi"
         seeds.write_text(smiles + "\n")
         parameters["smiles_file"] = str(seeds)
@@ -119,7 +129,12 @@ def run(request):
     )
     if not files or any(not file.is_file() for file in files):
         raise ValueError("REINVENT produced no native molecular table.")
-    unique = {}
+    scope = (
+        ScaffoldScope(request["payload"]["fragments"][0])
+        if request["payload"]["mode"] == "r_groups"
+        else None
+    )
+    unique, scope_rejected = {}, []
     for file in files:
         with file.open(encoding="utf-8-sig", newline="") as stream:
             for index, row in enumerate(csv.DictReader(stream)):
@@ -129,10 +144,26 @@ def run(request):
                 molecule = Chem.MolFromSmiles(smiles) if smiles else None
                 if molecule is None or len(Chem.GetMolFrags(molecule)) != 1:
                     continue
+                if scope and not scope.matches(molecule):
+                    scope_rejected.append(smiles)
+                    continue
                 canonical = Chem.MolToSmiles(molecule, isomericSmiles=True)
                 unique[canonical] = row
+    if scope:
+        Path("/output/scaffold-checks.json").write_text(
+            json.dumps(
+                {
+                    "scaffold": request["payload"]["fragments"][0],
+                    "rejected_smiles": scope_rejected,
+                    "accepted": min(len(unique), request["payload"]["candidates"]),
+                    "scope": "chemical_core_and_attachment_sites_not_fixed_3d_coordinates",
+                }
+            )
+        )
     if not unique:
-        raise ValueError("REINVENT produced no valid connected molecular candidates.")
+        raise ValueError(
+            "REINVENT produced no valid connected candidates within the declared chemical scope."
+        )
     candidates = []
     for smiles, row in list(unique.items())[: request["payload"]["candidates"]]:
         molecule = Chem.MolFromSmiles(smiles)
@@ -161,4 +192,28 @@ def run(request):
             for row in candidates
         ],
     )
-    finish(request, "4.8", candidates)
+    finish(
+        request,
+        "4.8",
+        candidates,
+        metrics=(
+            [
+                metric(
+                    "Scaffold-matching candidates",
+                    len(candidates),
+                    "count",
+                    "Chemical graph, stereochemistry and attachment-site check",
+                    "validation",
+                ),
+                metric(
+                    "Candidates outside scaffold scope",
+                    len(scope_rejected),
+                    "count",
+                    "Chemical graph, stereochemistry and attachment-site check",
+                    "validation",
+                ),
+            ]
+            if scope
+            else []
+        ),
+    )

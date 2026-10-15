@@ -37,6 +37,8 @@ class ReinventPayload(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
     kind: Literal["reinvent"] = "reinvent"
     mode: Literal["de_novo", "analogues", "r_groups", "linker", "optimize"] = "analogues"
+    # Absent/false is omitted so old immutable request digests remain unchanged.
+    validate_scaffold_origin: bool = Field(default=False, exclude_if=lambda value: not value)
     fragments: list[str] = Field(default_factory=list, max_length=2)
     candidates: int = Field(default=50, ge=1, le=500)
     optimization_steps: int = Field(default=25, ge=5, le=200)

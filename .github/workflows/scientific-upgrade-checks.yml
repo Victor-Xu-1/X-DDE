@@ -30,6 +30,10 @@ on:
       - "src/opendde_workbench/integrations/**"
       - "src/opendde_workbench/deployment/native_readiness.py"
       - "src/opendde_workbench/deployment/scientific_install.py"
+      - "src/opendde_workbench/deployment/scientific_cache.py"
+      - "tests/test_reinvent_scope.py"
+      - "tests/test_reinvent_origin.py"
+      - "tests/test_scientific_cache.py"
       # Image composition is a native runtime contract; model execution stays opt-in.
       - "tests/test_integrated_science.py"
       - "tests/test_scientific_identity.py"
@@ -63,8 +67,11 @@ jobs:
           uv run --locked pytest -q tests/test_integrated_science.py
           tests/test_scientific_identity.py
           tests/test_scientific_entrypoint.py
+          tests/test_reinvent_origin.py tests/test_scientific_cache.py
           tests/test_apbs_protocol.py
           tests/test_capabilities.py tests/test_operations.py
+      - name: Exact chemical-core and declared attachment-site counterexamples
+        run: uv run --locked --with rdkit==2026.3.6 pytest -q tests/test_reinvent_scope.py
       - name: Native overlays and related preview contracts only
         working-directory: frontend
         run: npx vitest run src/integrations/validation.test.ts src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts src/viewer/StructureViewer.test.tsx src/studio/research-modules.test.ts

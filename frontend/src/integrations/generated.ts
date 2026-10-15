@@ -10,6 +10,7 @@ export const nativeDefaults = {
   reinvent: {
     kind: "reinvent",
     mode: "analogues",
+    validate_scaffold_origin: false,
     candidates: 50,
     optimization_steps: 25,
     molecular_weight: [200, 550],

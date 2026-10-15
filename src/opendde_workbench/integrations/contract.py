@@ -147,11 +147,16 @@ class IntegratedTask(TaskMetadata):
             ):
                 raise ValueError("Select exact scaffold residue identities.")
         elif kind == "reinvent":
-            expected = {"ligand"} if self.payload.mode in {"analogues", "optimize"} else set()
+            if self.payload.validate_scaffold_origin and self.payload.mode != "r_groups":
+                raise ValueError("Scaffold origin validation is available for R-group design.")
+            expected = (
+                {"ligand"}
+                if self.payload.mode in {"analogues", "optimize"}
+                or self.payload.validate_scaffold_origin
+                else set()
+            )
             if roles != expected:
-                raise ValueError(
-                    "Choose an exact starting molecule for analogue generation/optimization."
-                )
+                raise ValueError("Choose the exact molecular input required by this design mode.")
             if self.payload.mode in {"r_groups", "linker"}:
                 count = 1 if self.payload.mode == "r_groups" else 2
                 if len(self.payload.fragments) != count or any(

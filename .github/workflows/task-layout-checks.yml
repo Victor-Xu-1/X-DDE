@@ -9,6 +9,9 @@ on:
       - "!frontend/src/guided/MolecularInputs.tsx"
       - "!frontend/src/guided/ChoiceCards.tsx"
       - "frontend/src/integrations/**"
+      # Shared form defaults/validation have the exact scientific-form contract gate.
+      - "!frontend/src/integrations/generated.ts"
+      - "!frontend/src/integrations/validation*"
       # Molecular design scope has exact bilingual browser/layout checks.
       - "!frontend/src/integrations/Reinvent*"
       - "!frontend/src/integrations/reinvent-modes.ts"

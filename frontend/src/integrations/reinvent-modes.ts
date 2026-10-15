@@ -11,3 +11,13 @@ export const reinventModes = [
 export function usesStartingMolecule(payload: ScientificPayload) {
   return ["analogues", "optimize"].includes(String(payload.mode));
 }
+
+export function usesScaffoldOrigin(payload: ScientificPayload) {
+  return (
+    payload.mode === "r_groups" && payload.validate_scaffold_origin === true
+  );
+}
+
+export function usesMolecularInput(payload: ScientificPayload) {
+  return usesStartingMolecule(payload) || usesScaffoldOrigin(payload);
+}

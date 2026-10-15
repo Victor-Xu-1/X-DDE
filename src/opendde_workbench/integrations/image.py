@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
+from .image_identity import composer_digest
 from .offline_context import stage_archives
 from .specs import PROGRAMS, recipe_digest
 
@@ -160,7 +161,8 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None,
     lines += [
         'LABEL org.xdde.science.program="' + identifier + '" '
         'org.xdde.science.recipe="' + recipe_digest(identifier) + '" '
-        'org.xdde.science.lock="' + lock_digest(identifier) + '"',
+        'org.xdde.science.lock="' + lock_digest(identifier) + '" '
+        'org.xdde.science.composer="' + composer_digest() + '"',
         "ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1",
         "WORKDIR /output",
     ]

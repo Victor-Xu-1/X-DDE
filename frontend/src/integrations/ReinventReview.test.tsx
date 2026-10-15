@@ -8,6 +8,17 @@ vi.mock("../presentation/MoleculeImage", () => ({
     <div role="img" aria-label={label} data-source={JSON.stringify(source)} />
   ),
 }));
+vi.mock("../diffsbdd/ReviewReference", () => ({
+  ReviewReference: ({
+    reference,
+  }: {
+    reference: { asset_id: string; record: number };
+  }) => (
+    <span>
+      {reference.asset_id} · Record {reference.record + 1}
+    </span>
+  ),
+}));
 afterEach(cleanup);
 const scaffold = "CN(C)C(=O)c1cc2ccc([*:1])c(F)c2[nH]1";
 const options = {
@@ -81,6 +92,37 @@ it("keeps both linker fragments in their submitted order, without a candidate bu
   ).toEqual(fragments);
   expect(screen.queryByText("Candidate budget")).not.toBeInTheDocument();
   expect(screen.getByText(/does not fix 3D coordinates/)).toBeVisible();
+});
+
+it("reviews the exact explicitly selected scaffold origin alongside the chemical core", () => {
+  render(
+    <ReinventReview
+      language="en"
+      ligand={{
+        asset_id: "chosen-source",
+        sha256: "a".repeat(64),
+        record: 2,
+        conformer: 0,
+      }}
+      options={options}
+      payload={{
+        ...nativeDefaults.reinvent,
+        kind: "reinvent",
+        mode: "r_groups",
+        fragments: [scaffold],
+        validate_scaffold_origin: true,
+      }}
+    />,
+  );
+  expect(
+    screen.getByRole("row", {
+      name: "Scaffold source molecule chosen-source · Record 3",
+    }),
+  ).toBeVisible();
+  expect(screen.getByRole("img")).toHaveAttribute(
+    "data-source",
+    JSON.stringify({ smiles: scaffold }),
+  );
 });
 
 it("shows optimization objectives only for the optimization mode and excludes stale fragment inputs", () => {

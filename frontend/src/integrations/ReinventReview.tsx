@@ -4,7 +4,11 @@ import type { MoleculeRef } from "../research/types";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ReviewReference } from "../diffsbdd/ReviewReference";
-import { reinventModes, usesStartingMolecule } from "./reinvent-modes";
+import {
+  reinventModes,
+  usesStartingMolecule,
+  usesScaffoldOrigin,
+} from "./reinvent-modes";
 import type { ScientificPayload, ScientificTask } from "./types";
 
 /** Review the actual chemical scope; never imply fixed coordinates or binding. */
@@ -29,6 +33,7 @@ export function ReinventReview({
       ? (payload.fragments as string[])
       : [];
   const starting = usesStartingMolecule(payload) ? ligand : null;
+  const origin = usesScaffoldOrigin(payload) ? ligand : null;
   const rows: [string, ReactNode][] = [
     [zh ? "设计方式" : "Design method", mode?.[zh ? 1 : 2] ?? "—"],
     [zh ? "计算程序" : "Scientific program", "REINVENT4"],
@@ -41,6 +46,11 @@ export function ReinventReview({
         kind="ligand"
         language={language}
       />,
+    ]);
+  if (origin)
+    rows.push([
+      zh ? "骨架来源分子" : "Scaffold source molecule",
+      <ReviewReference reference={origin} kind="ligand" language={language} />,
     ]);
   if (fragments.length)
     rows.push([

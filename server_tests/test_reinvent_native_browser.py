@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.examples.stat6.catalogue import FILES
 from server_tests.reinvent_case_evidence import retain_case
 from server_tests.test_navigation_shell_browser import open_navigation
 from server_tests.test_reinvent_review_browser import SCAFFOLD
@@ -35,13 +36,21 @@ def test_real_stat6_fixed_port_study():
         page.get_by_role("combobox", name="Research task", exact=True).select_option(
             "reinvent.design"
         )
+        page.get_by_role("button", name="Use this template", exact=True).click()
+        expect(page.get_by_role("button", name="New blank task", exact=True)).to_be_visible(
+            timeout=45000
+        )
+        next_button = page.get_by_role("button", name="Next", exact=True)
+        expect(next_button).to_be_enabled(timeout=45000)
         page.get_by_role(
             "combobox", name="How would you like to design molecules?", exact=True
         ).select_option("r_groups")
+        expect(
+            page.get_by_role("checkbox", name="Verify the scaffold's source molecule", exact=True)
+        ).to_be_checked()
         page.get_by_role("textbox", name="Fragment structures (one per line)", exact=True).fill(
             SCAFFOLD
         )
-        next_button = page.get_by_role("button", name="Next", exact=True)
         next_button.click()
         expect(
             page.get_by_role("region", name="Molecular design scope").locator(".molecule-image")
@@ -61,6 +70,13 @@ def test_real_stat6_fixed_port_study():
                 "row", name="Candidate budget 20", exact=True
             )
         ).to_be_visible()
+        expect(
+            page.get_by_role("table", name="Design plan review").get_by_role(
+                "row",
+                name="Scaffold source molecule " + FILES["study_ligand"].name + " · Record 1",
+                exact=True,
+            )
+        ).to_be_visible(timeout=45000)
         page.screenshot(path=evidence / "submitted-scope.png", full_page=True)
         submit = page.get_by_role("button", name="Submit calculation", exact=True)
         expect(submit).to_be_enabled(timeout=45000)
@@ -84,7 +100,13 @@ def test_real_stat6_fixed_port_study():
         page.screenshot(path=evidence / "native-result.png", full_page=True)
         assert job["status"] == "succeeded", {"job": job, "logs": documents["logs"]}
         request = job["request"]
-        assert request["operation"] == "reinvent_design" and request["inputs"] == []
+        assert request["operation"] == "reinvent_design" and len(request["inputs"]) == 1
+        assert request["inputs"][0]["role"] == "ligand"
+        source = request["inputs"][0]["source"]
+        assert source["sha256"] == FILES["study_ligand"].sha256
+        assert source["record"] == 0 and source["conformer"] == 0
+        assert request["scientific_inputs"] == [source]
+        assert request["payload"]["validate_scaffold_origin"] is True
         assert request["payload"]["mode"] == "r_groups" and request["payload"]["fragments"] == [
             SCAFFOLD
         ]

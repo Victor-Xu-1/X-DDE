@@ -5,7 +5,7 @@ import type { MoleculeRef } from "../research/types";
 import type { ScientificPayload, ScientificProgram } from "./types";
 import { LibraryInput } from "./LibraryInput";
 import { MoleculeImage } from "../presentation/MoleculeImage";
-import { reinventModes } from "./reinvent-modes";
+import { ReinventInputs } from "./ReinventInputs";
 
 export function ScientificInputs({
   program,
@@ -183,65 +183,13 @@ export function ScientificInputs({
   }
   if (program === "reinvent")
     return (
-      <>
-        <label className="field">
-          {zh ? "想怎样设计分子？" : "How would you like to design molecules?"}
-          <select
-            value={String(payload.mode)}
-            onChange={(e) => {
-              onChange({ mode: e.target.value });
-              onLigand(null);
-            }}
-          >
-            {reinventModes.map(([value, cn, en]) => (
-              <option key={value} value={value}>
-                {zh ? cn : en}
-              </option>
-            ))}
-          </select>
-        </label>
-        {["analogues", "optimize"].includes(String(payload.mode)) ? (
-          <ReferencePicker
-            kind="ligand"
-            value={ligand}
-            onChange={onLigand}
-            language={language}
-            label={zh ? "选择起始分子" : "Choose starting molecule"}
-            allowedSuffixes={[".sdf", ".mol"]}
-          />
-        ) : (
-          payload.mode !== "de_novo" && (
-            <label className="field">
-              {zh
-                ? "片段结构（每行一个）"
-                : "Fragment structures (one per line)"}
-              <Hint label={zh ? "连接位点说明" : "Attachment point help"}>
-                {zh
-                  ? "使用 * 标记要连接或替换的位置；连接子设计需要两个片段。"
-                  : "Mark attachment positions with *. Linker design requires two fragments."}
-              </Hint>
-              <textarea
-                aria-label={
-                  zh
-                    ? "片段结构（每行一个）"
-                    : "Fragment structures (one per line)"
-                }
-                rows={4}
-                value={
-                  Array.isArray(payload.fragments)
-                    ? payload.fragments.join("\n")
-                    : ""
-                }
-                onChange={(e) =>
-                  onChange({
-                    fragments: e.target.value.split(/\r?\n/).filter(Boolean),
-                  })
-                }
-              />
-            </label>
-          )
-        )}
-      </>
+      <ReinventInputs
+        language={language}
+        payload={payload}
+        onChange={onChange}
+        ligand={ligand}
+        onLigand={onLigand}
+      />
     );
   if (program === "chemprop")
     return (

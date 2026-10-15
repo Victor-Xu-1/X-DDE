@@ -35,6 +35,7 @@ def test_failed_cli_initialization_is_not_advertised_as_installed():
 
 
 def test_reinvent_recipe_contains_reviewed_rdkit_drawing_libraries():
+    assert "scipy==1.18.1" in PROGRAMS["reinvent"]["pip"]
     assert {
         "libxrender1=1:0.9.10-1.1",
         "libxext6=2:1.3.4-1+b1",
