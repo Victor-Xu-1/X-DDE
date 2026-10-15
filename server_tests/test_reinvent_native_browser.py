@@ -24,6 +24,7 @@ def test_real_stat6_fixed_port_study():
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.emulate_media(reduced_motion="reduce")
         page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))

@@ -45,7 +45,7 @@ export function ReinventReview({
   if (fragments.length)
     rows.push([
       zh ? "连接位置" : "Attachment sites",
-      zh ? "按图中 * 标记的位置设计" : "Design at the sites marked *",
+      zh ? "按图中 * / R 标记的位置设计" : "Design at the marked sites (* / R)",
     ]);
   if (options) {
     rows.push([
@@ -69,7 +69,12 @@ export function ReinventReview({
     rows.push([zh ? "随机种子" : "Random seed", String(options.seed)]);
   }
   return (
-    <section aria-label={zh ? "分子设计范围" : "Molecular design scope"}>
+    <section
+      className={
+        "molecule-design-review" + (options ? " is-submission-review" : "")
+      }
+      aria-label={zh ? "分子设计范围" : "Molecular design scope"}
+    >
       <StructureWorkbench
         preview={
           fragments.length ? (
@@ -86,7 +91,7 @@ export function ReinventReview({
                   />
                   <figcaption>
                     {zh ? "骨架或片段" : "Scaffold or fragment"} {index + 1} · *
-                    {zh ? " 连接位置" : " attachment sites"}
+                    / R{zh ? " 连接位置" : " attachment sites"}
                   </figcaption>
                 </figure>
               ))}

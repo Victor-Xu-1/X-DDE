@@ -11,7 +11,7 @@ from server_tests.test_navigation_shell_browser import open_navigation
 SCAFFOLD = "CN(C)C(=O)c1cc2ccc([*:1])c(F)c2[nH]1"
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 1040)])
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 1040), ("en", 390)])
 def test_reinvent_exact_chemical_scope_and_review(language, width):
     base = os.environ["WB_BROWSER_URL"]
     evidence = Path("outputs/reinvent-review")
@@ -20,6 +20,7 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 1000})
+        page.emulate_media(reduced_motion="reduce")
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -61,7 +62,8 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
         expect(drawing.get_by_role("img")).to_be_visible()
         expect(
             scope.get_by_text(
-                "按图中 * 标记的位置设计" if zh else "Design at the sites marked *", exact=True
+                "按图中 * / R 标记的位置设计" if zh else "Design at the marked sites (* / R)",
+                exact=True,
             )
         ).to_be_visible()
         page.screenshot(path=evidence / f"scope-{language}-{width}.png", full_page=True)
@@ -105,6 +107,11 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
             image_box = scope.locator(".structure-workbench-view").bounding_box()
             table_box = review.bounding_box()
             assert image_box["x"] < table_box["x"] and image_box["width"] >= 420
+            export_box = scope.get_by_role(
+                "button", name="Export figure ↓", exact=True
+            ).bounding_box()
+            actions_box = page.locator(".questionnaire-actions").bounding_box()
+            assert export_box["y"] + export_box["height"] <= actions_box["y"]
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         assert not errors and not submissions
         assert page.request.get(base + "/api/jobs").json() == jobs_before
