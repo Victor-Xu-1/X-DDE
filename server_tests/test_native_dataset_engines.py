@@ -145,28 +145,24 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
             sources=[prepared],
         )
         materials, search = target(campaign)
-        docking, docked, pose_root = campaign.task(
-            "screening_dock",
-            {
-                "kind": "gnina",
-                "mode": "batch",
-                "alternate_locations": "highest_occupancy",
-                "receptor": materials[0]["source"],
-                "search": search,
-                "selected_ids": selected,
-                "docking": {
-                    "cpu": 2,
-                    "memory_mib": 8192,
-                    "use_gpu": False,
-                    "cnn_scoring": "none",
-                    "exhaustiveness": 2,
-                    "num_modes": 2,
-                    "time_limit_seconds": 300,
-                },
+        payload = {
+            "kind": "gnina",
+            "mode": "batch",
+            "alternate_locations": "highest_occupancy",
+            "receptor": materials[0]["source"],
+            "search": search,
+            "selected_ids": selected,
+            "docking": {
+                "cpu": 2,
+                "memory_mib": 8192,
+                "use_gpu": False,
+                "cnn_scoring": "none",
+                "exhaustiveness": 2,
+                "num_modes": 2,
+                "time_limit_seconds": 300,
             },
-            materials,
-            [subset],
-        )
+        }
+        docking, docked, pose_root = campaign.task("screening_dock", payload, materials, [subset])
         assert docked["counts"]["selected"] == len(candidates["candidates"])
         assert docked["counts"]["docked"] + docked["counts"]["failed"] == len(selected)
         assert all(
@@ -193,6 +189,21 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
             if line.startswith("HETATM")
         )
         campaign.interactions(docking["job_id"], complex_name, heterogen[21], int(heterogen[22:26]))
+        _, neural, neural_root = campaign.task(
+            "screening_dock",
+            {**payload, "docking": {**payload["docking"], "cnn_scoring": "rescore"}},
+            materials,
+            [subset],
+        )
+        assert neural["counts"]["selected"] == len(selected)
+        assert neural["counts"]["docked"] + neural["counts"]["failed"] == len(selected)
+        assert neural["candidates"], "Native neural rescoring must produce real qualified poses"
+        assert all(
+            row["geometry"] == "binding_pose"
+            and all(np.isfinite(row[key]) for key in ("docking_score", "cnn_score", "cnn_affinity"))
+            and (neural_root / row["complex_artifact"]).is_file()
+            for row in neural["candidates"]
+        )
         campaign.receipt("gnina")
 
 

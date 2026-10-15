@@ -212,7 +212,7 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             "unit": "angstrom",
         }
         pose = refs["ligand"]
-        for stage in (
+        stages = (
             "dock",
             "score",
             "minimize",
@@ -220,7 +220,8 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             "cnn_score",
             "cnn_minimize",
             "cnn_reference_dock",
-        ):
+        )
+        for stage in stages:
             neural = stage.startswith("cnn_")
             operation = stage.removeprefix("cnn_")
             mode = "dock" if operation == "reference_dock" else operation
@@ -506,15 +507,12 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     # New server lifespan uses persisted jobs, versions and environment snapshots.
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
         persisted_jobs = client.get("/api/jobs").json()
-        assert len(persisted_jobs) == 6
-        assert {j["request"]["name"] for j in persisted_jobs} == {
-            "remote native dock",
-            "remote native score",
-            "remote native minimize",
-            "remote native reference_dock",
+        expected_names = {"remote native " + stage for stage in stages} | {
             "Native output rejection",
             "native cancellation",
         }
+        assert len(persisted_jobs) == len(expected_names)
+        assert {j["request"]["name"] for j in persisted_jobs} == expected_names
         persisted_rejection = next(j for j in persisted_jobs if j["id"] == rejected_id)
         assert persisted_rejection["status"] == "succeeded"
         assert (

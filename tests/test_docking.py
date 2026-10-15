@@ -217,8 +217,10 @@ def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
     }
     (source / "bounds.py").write_text("Changed verifier after capture")
     (source / "reference.py").write_text("Changed reference comparison after capture")
+    (source / "scoring.py").write_text("Changed score parser after capture")
     assert (target / "docking/bounds.py").read_bytes() == b"original adapter bytes"
     assert (target / "docking/reference.py").read_bytes() == b"original adapter bytes"
+    assert (target / "docking/scoring.py").read_bytes() == b"original adapter bytes"
     with pytest.raises(FileExistsError):
         capture(directory, source)
 
