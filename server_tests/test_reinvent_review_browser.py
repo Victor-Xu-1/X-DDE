@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.examples.stat6.catalogue import FILES
 from server_tests.test_navigation_shell_browser import open_navigation
 
 SCAFFOLD = "CN(C)C(=O)c1cc2ccc([*:1])c(F)c2[nH]1"
@@ -117,4 +118,59 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         assert not errors and not submissions
         assert page.request.get(base + "/api/jobs").json() == jobs_before
+        browser.close()
+
+
+def test_explicit_stat6_template_source_survives_mode_changes_without_submitting():
+    base = os.environ["WB_BROWSER_URL"]
+    evidence = Path("outputs/reinvent-review")
+    evidence.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(base)
+        before = page.request.get(base + "/api/jobs").json()
+        open_navigation(page, "en").get_by_role(
+            "button", name="Small-molecule design", exact=True
+        ).click()
+        page.get_by_role("combobox", name="Research task", exact=True).select_option(
+            "reinvent.design"
+        )
+        next_button = page.get_by_role("button", name="Next", exact=True)
+        expect(next_button).to_be_disabled()
+        page.get_by_role("button", name="Use this template", exact=True).click()
+        expect(page.get_by_role("button", name="New blank task", exact=True)).to_be_visible(
+            timeout=45000
+        )
+        expect(next_button).to_be_enabled(timeout=45000)
+        mode = page.get_by_role(
+            "combobox", name="How would you like to design molecules?", exact=True
+        )
+        mode.select_option("r_groups")
+        source_check = page.get_by_role(
+            "checkbox", name="Verify the scaffold's source molecule", exact=True
+        )
+        expect(source_check).to_be_checked()
+        page.get_by_role("textbox", name="Fragment structures (one per line)", exact=True).fill(
+            SCAFFOLD
+        )
+        next_button.click()
+        review = page.get_by_role("table", name="Design plan review")
+        expect(
+            review.get_by_role(
+                "row",
+                name="Scaffold source molecule " + FILES["study_ligand"].name + " · Record 1",
+                exact=True,
+            )
+        ).to_be_visible(timeout=45000)
+        page.screenshot(path=evidence / "explicit-stat6-scaffold-origin.png", full_page=True)
+        page.get_by_role("button", name="Back", exact=True).click()
+        source_check.uncheck()
+        next_button.click()
+        expect(review.get_by_text("Scaffold source molecule", exact=True)).to_have_count(0)
+        assert page.request.get(base + "/api/jobs").json() == before
+        assert not errors
         browser.close()
