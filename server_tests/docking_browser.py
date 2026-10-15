@@ -86,11 +86,21 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     expect(
                         table.get_by_role("columnheader", name="Whole-pose RMSD (Å)", exact=False)
                     ).to_be_visible()
-                    expect(
-                        table.get_by_role(
-                            "cell", name=f"{pose['reference_rmsd']['all_heavy']:.3f}", exact=True
+                    row = table.get_by_role("row").filter(
+                        has=page.get_by_role(
+                            "button", name=f"Pose {pose['record'] + 1}", exact=True
                         )
-                    ).to_be_visible()
+                    )
+                    headers = table.get_by_role("columnheader").all_text_contents()
+                    for title, key in (
+                        ("Whole-pose RMSD", "all_heavy"),
+                        ("Contact RMSD", "contact"),
+                    ):
+                        column = next(index for index, text in enumerate(headers) if title in text)
+                        value = pose["reference_rmsd"][key]
+                        expect(row.get_by_role("cell").nth(column)).to_have_text(
+                            "—" if value is None else f"{value:.3f}"
+                        )
                     panel.get_by_text("Compare with the reference pose", exact=True).click()
                     expect(
                         panel.get_by_text("without fitting the ligand", exact=False)
