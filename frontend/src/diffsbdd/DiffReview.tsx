@@ -180,10 +180,17 @@ export function DiffReview({
           {String(steps)} {zh ? "步" : "steps"} · {zh ? "种子" : "seed"}{" "}
           {String(options.seed)}
         </summary>
-        {!localSampling && (
+        {(mode === "inpaint" ||
+          (mode === "generate" &&
+            String(options.model).endsWith("_joint"))) && (
           <p>
-            {zh ? "重采样 / 跳步" : "Resampling / jump length"}:{" "}
-            {String(options.resamplings)} / {String(options.jump_length)}
+            {zh ? "重采样次数" : "Resampling passes"}:{" "}
+            {String(options.resamplings)}
+          </p>
+        )}
+        {mode === "generate" && String(options.model).endsWith("_joint") && (
+          <p>
+            {zh ? "跳步长度" : "Jump length"}: {String(options.jump_length)}
           </p>
         )}
         <p>

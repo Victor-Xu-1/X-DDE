@@ -111,7 +111,7 @@ it("retains exact candidate records through export with a real task envelope", a
   });
   expect(created).toHaveBeenCalledWith({ id: "task" });
 });
-it("exposes every native option in expert mode while language changes preserve drafts", async () => {
+it("exposes effective native controls in expert mode while language changes preserve drafts", async () => {
   boundary();
   const user = userEvent.setup(),
     created = vi.fn();
@@ -128,9 +128,12 @@ it("exposes every native option in expert mode while language changes preserve d
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Expert settings" }));
   const parameters = screen.getByRole("textbox", {
-    name: "All native parameters (validated by server)",
+    name: "Native settings for this mode and model",
   });
-  expect((parameters as HTMLTextAreaElement).value).toContain('"resamplings"');
+  expect((parameters as HTMLTextAreaElement).value).not.toContain(
+    '"resamplings"',
+  );
+  expect((parameters as HTMLTextAreaElement).value).toContain('"steps"');
   await user.type(
     screen.getByRole("textbox", { name: "Task name (optional)" }),
     "kept draft",
@@ -167,6 +170,53 @@ it("retains one fixed-atom picker and exact inputs when returning and changing l
   expect(created).not.toHaveBeenCalled();
 });
 
+it("blocks an oversized optimization budget before submission and uses the edited real budget", async () => {
+  boundary();
+  const user = userEvent.setup(),
+    created = vi.fn();
+  const submit = vi
+    .spyOn(api, "submit")
+    .mockResolvedValue({ id: "optimization" } as never);
+  render(
+    <DiffForm
+      mode="optimize"
+      language="en"
+      initialProtein={{ ...ref, asset_id: "receptor" }}
+      initialMolecule={ref}
+      initialPocket={{ kind: "ligand", ligand: ref }}
+      onCreated={created}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  const population = screen.getByRole("spinbutton", {
+    name: "How many molecules per round?",
+  });
+  fireEvent.change(population, { target: { value: "60" } });
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(submit).not.toHaveBeenCalled();
+  fireEvent.change(population, { target: { value: "12" } });
+  fireEvent.change(
+    screen.getByRole("spinbutton", { name: "How many optimization rounds?" }),
+    { target: { value: "4" } },
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByText("48", { selector: "dd" })).toBeVisible();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Create task" })).toBeEnabled(),
+  );
+  await user.click(screen.getByRole("button", { name: "Create task" }));
+  expect(submit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      payload: expect.objectContaining({
+        mode: "optimize",
+        options: expect.objectContaining({ population: 12, rounds: 4 }),
+      }),
+    }),
+    expect.any(String),
+  );
+});
+
 it("reviews and submits the changed model, site and native budget after revisiting settings", async () => {
   boundary();
   const user = userEvent.setup(),
@@ -195,7 +245,7 @@ it("reviews and submits the changed model, site and native budget after revisiti
   );
   await user.click(screen.getByRole("button", { name: "Expert settings" }));
   const editor = screen.getByRole("textbox", {
-    name: "All native parameters (validated by server)",
+    name: "Native settings for this mode and model",
   });
   const options = {
     ...JSON.parse((editor as HTMLTextAreaElement).value),

@@ -15,6 +15,7 @@ import { FixedAtomPicker } from "./FixedAtomPicker";
 import {
   designPayload,
   inpaintSizeValid,
+  optimizationBudgetValid,
   optionsFor,
   referenceKey,
 } from "./model";
@@ -373,7 +374,8 @@ export function DiffForm({
     (mode !== "inpaint" || fixed.length > 0) &&
     (mode !== "interactions" || alignedPose);
   const settingsValid =
-    mode !== "inpaint" || inpaintSizeValid(options, fixed.length);
+    (mode !== "inpaint" || inpaintSizeValid(options, fixed.length)) &&
+    (mode !== "optimize" || optimizationBudgetValid(options));
   const names: Record<DiffMode, [string, string]> = {
     generate: ["口袋条件分子生成", "Pocket-conditioned generation"],
     inpaint: ["局部重设计", "Local redesign"],

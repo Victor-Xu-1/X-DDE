@@ -2,7 +2,14 @@ import { JsonEditor } from "../operations/ScientificInputs";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import type { DesignMode } from "./types";
-import { compatibleModels, inpaintSizeValid, optionsFor } from "./model";
+import {
+  compatibleModels,
+  editableOptionNames,
+  editableOptions,
+  inpaintSizeValid,
+  optionsFor,
+} from "./model";
+import { OptimizationBudget } from "./OptimizationBudget";
 export function DesignOptions({
   mode,
   value,
@@ -21,30 +28,41 @@ export function DesignOptions({
   const zh = language === "zh";
   return (
     <section>
-      <label className="field">
-        {zh ? "这次生成多少候选？" : "How many candidates?"}
-        <select
-          value={Number(value.count)}
-          onChange={(e) =>
-            onChange({ ...value, count: Number(e.target.value) })
-          }
-        >
-          {[...new Set([Number(value.count), 1, 3, 10, 20, 50, 100])]
-            .filter((n) => Number.isInteger(n) && n >= 1 && n <= 100)
-            .sort((a, b) => a - b)
-            .map((n) => (
-              <option key={n} value={n}>
-                {n}
-                {zh ? " 个" : " candidates"}
-              </option>
-            ))}
-        </select>
-      </label>
-      <Hint label={zh ? "候选数量说明" : "Candidate count help"}>
-        {zh
-          ? "候选越多，计算与后续筛选的开销越大。优化模式按种群数量 × 轮次计算尝试预算。"
-          : "More candidates increase compute and review costs. Optimization attempts are population × rounds."}
-      </Hint>
+      {mode !== "optimize" && (
+        <>
+          <label className="field">
+            {zh ? "这次生成多少候选？" : "How many candidates?"}
+            <select
+              value={Number(value.count)}
+              onChange={(e) =>
+                onChange({ ...value, count: Number(e.target.value) })
+              }
+            >
+              {[...new Set([Number(value.count), 1, 3, 10, 20, 50, 100])]
+                .filter((n) => Number.isInteger(n) && n >= 1 && n <= 100)
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                    {zh ? " 个" : " candidates"}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <Hint label={zh ? "候选数量说明" : "Candidate count help"}>
+            {zh
+              ? "候选越多，计算与后续筛选的开销越大。优化模式按种群数量 × 轮次计算尝试预算。"
+              : "More candidates increase compute and review costs. Optimization attempts are population × rounds."}
+          </Hint>
+        </>
+      )}
+      {mode === "optimize" && (
+        <OptimizationBudget
+          value={value}
+          onChange={onChange}
+          language={language}
+        />
+      )}
       <label className="field">
         {zh ? "使用哪个模型？" : "Which model?"}
         <select
@@ -119,11 +137,30 @@ export function DesignOptions({
           <JsonEditor
             label={
               zh
-                ? "全部原生参数（服务器逐项校验）"
-                : "All native parameters (validated by server)"
+                ? "当前模式与模型的原生参数"
+                : "Native settings for this mode and model"
             }
-            value={value}
-            onChange={onChange}
+            value={editableOptions(mode, value)}
+            onChange={(changes) => {
+              const next = { ...value, ...changes };
+              const allowed = editableOptionNames(mode, next);
+              const previous = editableOptionNames(mode, value);
+              const unsupported = Object.keys(changes).filter(
+                (name) =>
+                  !allowed.has(name) &&
+                  !(
+                    previous.has(name) && Object.is(changes[name], value[name])
+                  ),
+              );
+              if (unsupported.length)
+                throw new Error(
+                  (zh
+                    ? "当前模式或模型不使用这些参数："
+                    : "These controls are not used by this mode or model: ") +
+                    unsupported.join(", "),
+                );
+              onChange(next);
+            }}
           />
         </>
       )}

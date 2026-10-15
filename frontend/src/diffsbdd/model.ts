@@ -1,4 +1,4 @@
-import { defaults, models } from "./generated";
+import { defaults, models, parameterGroups } from "./generated";
 import type { DesignMode, Pocket, ResidueRef } from "./types";
 import type { MoleculeRef } from "../research/types";
 
@@ -13,6 +13,55 @@ export const optionsFor = (
 });
 export const compatibleModels = (mode: DesignMode) =>
   models.filter((m) => mode === "generate" || m.strategy === "cond");
+
+export function editableOptionNames(
+  mode: DesignMode,
+  value: Record<string, unknown>,
+) {
+  const fields = new Set<string>([
+    ...parameterGroups.common,
+    ...parameterGroups[mode],
+  ]);
+  if (mode === "generate" && String(value.model).endsWith("_joint"))
+    for (const name of parameterGroups.generate_joint) fields.add(name);
+  if (mode === "generate" || mode === "inpaint") {
+    const sizing =
+      value.size_mode === "sample"
+        ? parameterGroups.sample
+        : parameterGroups[`fixed_${mode}`];
+    for (const name of sizing) fields.add(name);
+  }
+  return fields;
+}
+
+export function editableOptions(
+  mode: DesignMode,
+  value: Record<string, unknown>,
+) {
+  const fields = editableOptionNames(mode, value);
+  return Object.fromEntries(
+    Object.entries(value).filter(([name]) => fields.has(name)),
+  );
+}
+
+export function optimizationBudgetValid(value: Record<string, unknown>) {
+  const { population, rounds, survivors } = value;
+  return (
+    typeof population === "number" &&
+    Number.isInteger(population) &&
+    population >= 1 &&
+    population <= 100 &&
+    typeof rounds === "number" &&
+    Number.isInteger(rounds) &&
+    rounds >= 1 &&
+    rounds <= 20 &&
+    typeof survivors === "number" &&
+    Number.isInteger(survivors) &&
+    survivors >= 1 &&
+    survivors <= population &&
+    population * rounds <= 100
+  );
+}
 export const referenceKey = (ref: MoleculeRef | null) =>
   JSON.stringify(
     ref
@@ -106,6 +155,10 @@ export function designPayload(
   if (mode === "inpaint" && !inpaintSizeValid(options, fixed.length))
     throw new Error(
       "Fixed and added heavy atoms must total 8–80; adjust the core or added atoms.",
+    );
+  if (mode === "optimize" && !optimizationBudgetValid(options))
+    throw new Error(
+      "Use at most 100 optimization attempts and retain no more parents than the population.",
     );
   return {
     mode,

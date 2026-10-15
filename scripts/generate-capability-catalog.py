@@ -19,6 +19,7 @@ from opendde_workbench.datasets.drugclip_options import DrugCLIPOptions
 from opendde_workbench.datasets.library_options import LibraryOptions
 from opendde_workbench.diffsbdd.manifest import MODELS
 from opendde_workbench.diffsbdd.options import DiffOptions
+from opendde_workbench.diffsbdd.parameter_policy import PARAMETER_GROUPS
 from opendde_workbench.diffsbdd.quality import CoreVerification
 from opendde_workbench.docking.options import DockingOptions
 from opendde_workbench.humanization.manifest import MAX_RECORDS as HUMANIZATION_MAX_RECORDS
@@ -253,6 +254,8 @@ def main() -> None:
         + json.dumps(DiffOptions().model_dump(mode="json"), indent=2)
         + ";\nexport const models = "
         + json.dumps(list(MODELS.values()), indent=2)
+        + " as const;\nexport const parameterGroups = "
+        + json.dumps(PARAMETER_GROUPS, indent=2)
         + " as const;\nexport const optionSchema = "
         + json.dumps(DiffOptions.model_json_schema(), indent=2)
         + " as const;\nexport const coreVerificationSchema = "

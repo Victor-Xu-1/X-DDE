@@ -9,6 +9,9 @@ on:
       - 'frontend/src/diffsbdd/DiffReview*'
       - 'frontend/src/diffsbdd/ReviewReference*'
       - 'frontend/src/diffsbdd/DesignOptions*'
+      - 'frontend/src/diffsbdd/OptimizationBudget*'
+      - 'frontend/src/diffsbdd/GeneratedCandidates*'
+      - 'frontend/src/diffsbdd/generated-metrics*'
       - 'frontend/src/diffsbdd/model*'
       - 'frontend/src/viewer/scientific-overlay*'
       - 'frontend/src/viewer/scientific-data.ts'
@@ -36,7 +39,7 @@ jobs:
       - run: uv sync --locked --group dev --group browser
       - run: uv run --locked ruff check server_tests/test_prolif_contacts_browser.py server_tests/test_diff_review_browser.py
       - working-directory: frontend
-        run: npx vitest run src/diffsbdd/prolif-contacts.test.ts src/diffsbdd/InteractionResults.test.tsx src/diffsbdd/DiffForm.test.tsx src/diffsbdd/DiffReview.test.tsx src/diffsbdd/ReviewReference.test.tsx src/diffsbdd/DesignOptions.test.tsx src/diffsbdd/model.test.ts src/viewer/scientific-overlay.test.ts src/viewer/style.test.ts
+        run: npx vitest run src/diffsbdd/prolif-contacts.test.ts src/diffsbdd/InteractionResults.test.tsx src/diffsbdd/DiffForm.test.tsx src/diffsbdd/DiffReview.test.tsx src/diffsbdd/ReviewReference.test.tsx src/diffsbdd/DesignOptions.test.tsx src/diffsbdd/model.test.ts src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/viewer/scientific-overlay.test.ts src/viewer/style.test.ts
       - name: Restore only existing native evidence
         env:
           GH_TOKEN: ${{ github.token }}
