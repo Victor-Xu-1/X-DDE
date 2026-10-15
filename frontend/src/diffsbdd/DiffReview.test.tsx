@@ -158,3 +158,46 @@ it("uses noising steps and starting size for diversification instead of unrelate
   expect(screen.getByText("42 steps · seed 2026")).toBeVisible();
   expect(screen.queryByText(/32 heavy atoms/)).toBeNull();
 });
+
+it.each(["en", "zh"] as const)(
+  "does not imply ineffective resampling controls affect conditional generation in %s",
+  (language) => {
+    const { rerender } = render(<DiffReview {...base} language={language} />);
+    expect(screen.queryByText(/Resampling passes|重采样次数/)).toBeNull();
+    expect(screen.queryByText(/Jump length|跳步长度/)).toBeNull();
+    rerender(
+      <DiffReview
+        {...base}
+        language={language}
+        mode="inpaint"
+        options={{ ...optionsFor("inpaint"), resamplings: 10 }}
+      />,
+    );
+    expect(
+      screen.getByText(
+        language === "en" ? "Resampling passes: 10" : "重采样次数: 10",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Jump length|跳步长度/)).toBeNull();
+    rerender(
+      <DiffReview
+        {...base}
+        language={language}
+        options={{
+          ...optionsFor("generate"),
+          model: "moad_ca_joint",
+          resamplings: 3,
+          jump_length: 7,
+        }}
+      />,
+    );
+    expect(
+      screen.getByText(
+        language === "en" ? "Resampling passes: 3" : "重采样次数: 3",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(language === "en" ? "Jump length: 7" : "跳步长度: 7"),
+    ).toBeInTheDocument();
+  },
+);

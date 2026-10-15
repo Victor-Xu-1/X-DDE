@@ -1,6 +1,7 @@
 """Read actual native material, review its selected protocol, and never start inference."""
 
 import hashlib
+import json
 import os
 import re
 from pathlib import Path
@@ -58,6 +59,23 @@ def test_diffsbdd_material_and_protocol_review(language, width):
             "combobox", name="这次生成多少候选？" if zh else "How many candidates?"
         )
         count.select_option("10")
+        page.get_by_role("combobox", name="使用哪个模型？" if zh else "Which model?").select_option(
+            "moad_ca_cond"
+        )
+        page.get_by_role("button", name="专家微调" if zh else "Expert settings", exact=True).click()
+        editor = page.get_by_role(
+            "textbox",
+            name="当前模式与模型的原生参数" if zh else "Native settings for this mode and model",
+        )
+        conditional = json.loads(editor.input_value())
+        assert "steps" in conditional and "atoms" in conditional
+        assert not {"resamplings", "jump_length", "fixed_atoms", "population"} & conditional.keys()
+        page.get_by_role("combobox", name="使用哪个模型？" if zh else "Which model?").select_option(
+            "moad_ca_joint"
+        )
+        expect(editor).to_have_value(re.compile("resamplings"))
+        joint = json.loads(editor.input_value())
+        assert {"resamplings", "jump_length"} <= joint.keys()
         page.get_by_role("combobox", name="使用哪个模型？" if zh else "Which model?").select_option(
             "moad_ca_cond"
         )

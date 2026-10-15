@@ -27,10 +27,20 @@ it("keeps full precision and original record order including native steric warni
     ],
   };
   const metrics = generatedMetrics(report)!;
-  expect(metrics[0]).toEqual(row);
+  expect(metrics[0]).toEqual({ ...row, fragments: null });
   expect(metrics[1].molecular_weight).toBe(308.5);
   expect(metrics[0].pocket_atom_pairs_under_1_2_angstrom).toBe(4);
   expect(report.molecules[0]).toEqual(row);
+});
+
+it("retains reported component counts without guessing connectivity for older or invalid metadata", () => {
+  for (const fragments of [undefined, null, -1, 0, 1.5, "1"])
+    expect(
+      generatedMetrics({ molecules: [{ ...row, fragments }] })![0].fragments,
+    ).toBeNull();
+  expect(
+    generatedMetrics({ molecules: [{ ...row, fragments: 3 }] })![0].fragments,
+  ).toBe(3);
 });
 
 it("does not substitute zero or confidence for missing/invalid geometry or descriptors", () => {

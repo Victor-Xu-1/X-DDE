@@ -36,6 +36,7 @@ const metrics = [
     rotatable_bonds: 5,
     minimum_pocket_distance_angstrom: 0.88,
     pocket_atom_pairs_under_1_2_angstrom: 4,
+    fragments: 1,
   },
   {
     molecular_weight: 308.5,
@@ -48,6 +49,7 @@ const metrics = [
     rotatable_bonds: 10,
     minimum_pocket_distance_angstrom: 1.64,
     pocket_atom_pairs_under_1_2_angstrom: 0,
+    fragments: 3,
   },
 ];
 
@@ -123,4 +125,49 @@ it("keeps non-design exports standalone without inventing receptor or metrics", 
     JSON.parse(screen.getByTestId("candidate-frame").textContent!).urls,
   ).toEqual(["/selected.sdf"]);
   expect(screen.queryByRole("columnheader", { name: "MW" })).toBeNull();
+});
+
+it.each(["en", "zh"] as const)(
+  "warns about native disconnected components without dropping source atoms in %s",
+  (language) => {
+    render(
+      <GeneratedCandidates
+        records={rows}
+        selected={rows[1]}
+        url="/poses.sdf"
+        metrics={metrics}
+        language={language}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      language === "en"
+        ? "Contains 3 disconnected components"
+        : "包含 3 个未连接的结构片段",
+    );
+    expect(
+      screen.getByRole("columnheader", {
+        name: language === "en" ? "Components" : "结构片段数",
+      }),
+    ).toBeVisible();
+    expect(
+      JSON.parse(screen.getByTestId("candidate-frame").textContent!).source,
+    ).toEqual({ url: "/poses.sdf", record: 1 });
+    expect(metrics[1].fragments).toBe(3);
+  },
+);
+
+it("does not infer a single connected molecule when native connectivity is unavailable", () => {
+  render(
+    <GeneratedCandidates
+      records={rows}
+      selected={rows[0]}
+      url="/poses.sdf"
+      metrics={[{ ...metrics[0], fragments: null }]}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.queryByText(/disconnected components/)).toBeNull();
+  expect(screen.queryByText(/connected molecule/)).toBeNull();
 });

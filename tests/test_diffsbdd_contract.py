@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from opendde_workbench.diffsbdd.contract import DiffTask
 from opendde_workbench.diffsbdd.manifest import MODELS
 from opendde_workbench.diffsbdd.options import DiffOptions
+from opendde_workbench.diffsbdd.parameter_policy import editable_parameters
 from opendde_workbench.native_arguments import needs_gpu
 from opendde_workbench.requests import TASK_ADAPTER, input_identifiers
 
@@ -63,6 +64,32 @@ def test_all_eight_models_and_native_parameter_bounds():
     ]:
         with pytest.raises(ValidationError):
             DiffOptions(**overrides)
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_parameter_visibility_matches_the_pinned_native_sampling_strategy(model):
+    options = DiffOptions(model=model)
+    fields = editable_parameters(options)
+    assert {"steps", "count", "atoms"} <= fields
+    assert ("resamplings" in fields) == model.endswith("_joint")
+    assert ("jump_length" in fields) == model.endswith("_joint")
+    assert "fixed_atoms" not in fields and "task" not in fields
+    assert editable_parameters(options.model_copy(update={"size_mode": "sample"})) - fields == {
+        "size_bias",
+        "minimum_atoms",
+    }
+    assert "atoms" not in editable_parameters(options.model_copy(update={"size_mode": "sample"}))
+    if model.endswith("_cond"):
+        local = DiffOptions(task="inpaint", model=model, fixed_atoms=[0], fragment_policy="all")
+        assert {"resamplings", "added_atoms", "preserve_bonds", "center"} <= editable_parameters(
+            local
+        )
+        assert not {"jump_length", "atoms", "fixed_atoms"} & editable_parameters(local)
+        for task in ("diversify", "optimize"):
+            fields = editable_parameters(DiffOptions(task=task, model=model))
+            assert "change_steps" in fields
+            assert not {"steps", "atoms", "resamplings", "jump_length", "size_mode"} & fields
+            assert ("count" in fields) == (task == "diversify")
 
 
 def test_stale_fixed_atoms_pocket_and_insertion_codes_are_rejected():

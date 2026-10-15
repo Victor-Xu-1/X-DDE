@@ -98,6 +98,25 @@ export const models = [
     sha256: "4e0f8727c7e4c9d8c8963927ac218a9b6f777104c396f0f8c7aa4a0b88e598bd",
   },
 ] as const;
+export const parameterGroups = {
+  common: ["model", "seed", "fragment_policy", "relaxation"],
+  generate: ["count", "steps", "size_mode"],
+  generate_joint: ["resamplings", "jump_length"],
+  inpaint: [
+    "count",
+    "steps",
+    "size_mode",
+    "resamplings",
+    "preserve_bonds",
+    "center",
+    "trajectory",
+  ],
+  diversify: ["count", "change_steps"],
+  optimize: ["change_steps", "objective", "population", "rounds", "survivors"],
+  fixed_generate: ["atoms"],
+  fixed_inpaint: ["added_atoms"],
+  sample: ["size_bias", "minimum_atoms"],
+} as const;
 export const optionSchema = {
   additionalProperties: false,
   properties: {

@@ -10,6 +10,7 @@ export interface GeneratedMetrics {
   rotatable_bonds: number;
   minimum_pocket_distance_angstrom: number;
   pocket_atom_pairs_under_1_2_angstrom: number;
+  fragments: number | null;
 }
 
 export function generatedMetrics(report: unknown): GeneratedMetrics[] | null {
@@ -50,8 +51,12 @@ export function generatedMetrics(report: unknown): GeneratedMetrics[] | null {
     return null;
   return rows.map(
     (row) =>
-      Object.fromEntries(
-        fields.map((key) => [key, row[key]]),
-      ) as unknown as GeneratedMetrics,
+      ({
+        ...Object.fromEntries(fields.map((key) => [key, row[key]])),
+        fragments:
+          Number.isSafeInteger(row.fragments) && row.fragments >= 1
+            ? row.fragments
+            : null,
+      }) as unknown as GeneratedMetrics,
   );
 }

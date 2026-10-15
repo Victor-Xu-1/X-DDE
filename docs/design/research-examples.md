@@ -108,6 +108,19 @@ Example-only projects are omitted from the personal list; projects containing an
 personal job remain visible. The current immutable result bundle is unchanged:
 classification is derived from its restored pins.
 
+DiffSBDD expert controls follow the pinned sampler's actual mode and model.
+Conditional de novo generation does not expose resampling or jump length;
+conditional inpainting exposes resampling but not jump length. Diversification
+and optimization use their noising steps and starting molecule size. Optimization
+shows population, rounds and retained parents instead of an unused candidate
+count, with the same 100-attempt budget enforced before questionnaire submission.
+The backend parameter groups generate the frontend contract; task and atom
+identity remain questionnaire-owned. Historical complete option envelopes stay
+readable and unmodified. Generated-result tables retain the native component
+count, explicitly warn about disconnected products and keep unknown counts
+unknown. Passing fixed-core checks does not establish successful fragment linking.
+No components are silently removed to make a molecule appear connected.
+
 Fixed native outcomes reference successful tasks in the same jobs database.
 `example_pins` stores the request digest, bound environment-metadata digest and
 every retained artifact digest. A fixed example cannot be replaced in place;
