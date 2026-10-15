@@ -77,12 +77,13 @@ def test_diffsbdd_atom_identity_uses_real_parser_and_exact_record(tmp_path):
         )
 
 
-def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path):
+def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path, monkeypatch):
     from types import SimpleNamespace
 
     from rdkit.Chem import AllChem
 
     source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/docking/chemistry.py"
+    monkeypatch.syspath_prepend(str(source.parent))
     spec = importlib.util.spec_from_file_location("docking_chemistry", source)
     chemistry = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(chemistry)
@@ -109,9 +110,10 @@ def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path)
     molecule.SetProp("minimizedAffinity", "NaN")
     with Chem.SDWriter(str(output)) as writer:
         writer.write(molecule)
-    assert not chemistry.summarize_poses(
-        output, molecule, SimpleNamespace(num_modes=1, cnn_scoring="none")
-    )[0]["valid"]
+    with pytest.raises(ValueError, match="not finite"):
+        chemistry.summarize_poses(
+            output, molecule, SimpleNamespace(num_modes=1, cnn_scoring="none")
+        )
 
     output.write_text("")
     assert (
@@ -122,8 +124,9 @@ def test_docking_native_atom_labels_must_match_the_real_chemical_graph(tmp_path)
     )
 
 
-def test_atom_map_identifiers_do_not_create_false_stereochemical_changes():
+def test_atom_map_identifiers_do_not_create_false_stereochemical_changes(monkeypatch):
     source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/docking/chemistry.py"
+    monkeypatch.syspath_prepend(str(source.parent))
     spec = importlib.util.spec_from_file_location("docking_stereochemistry", source)
     chemistry = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(chemistry)

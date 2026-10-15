@@ -60,6 +60,7 @@ class DatasetBackend(PreparedContainerBackend):
                 "native_resources.py": Path(__file__).parent.parent
                 / "integrations/native_resources.py",
                 "docking_chemistry.py": Path(__file__).parent.parent / "docking/chemistry.py",
+                "scoring.py": Path(__file__).parent.parent / "docking/scoring.py",
                 "docking_options.py": Path(__file__).parent.parent / "docking/options.py",
                 "docking_manifest.py": Path(__file__).parent.parent / "docking/manifest.py",
                 **{

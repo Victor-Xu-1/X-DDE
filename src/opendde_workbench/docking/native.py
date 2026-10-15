@@ -1,7 +1,6 @@
 """One-shot GNINA execution/normalization in the isolated offline container."""
 
 import json
-import re
 import runpy
 import shutil
 import subprocess
@@ -14,13 +13,13 @@ from chemistry import (
     digest,
     molecule,
     plain_smiles,
-    score,
     summarize_poses,
 )
 from manifest import BINARY_SHA256, VERSION
 from options import DockingOptions, SearchBox, arguments
 from receptor_input import require_explicit_alternates
 from reference import ReferenceGeometry
+from scoring import parse_score_only
 
 
 def main():
@@ -130,16 +129,8 @@ def main():
         ) from exc
     text = log.read_text() if log.stat().st_size <= 8 * 1024**2 else ""
     if mode == "score":
-        match = re.search(r"^Affinity:\s+([-+0-9.eE]+)", text, re.MULTILINE)
-        if not match:
-            raise ValueError("Native score-only output has no finite empirical score.")
         shutil.copyfile(normalized, output)
-        metrics = [score("minimizedAffinity", match[1], "kcal/mol", "lower")]
-        if options.cnn_scoring != "none":
-            for field in ("CNNscore", "CNNaffinity"):
-                found = re.search(r"^" + field + r":\s+([-+0-9.eE]+)", text, re.MULTILINE)
-                if found:
-                    metrics.append(score(field, found[1], "model_output", "higher"))
+        metrics = parse_score_only(text, options.cnn_scoring)
         for metric in metrics:
             original.SetProp(metric["name"], str(metric["value"]))
         with Chem.SDWriter(str(output)) as writer:

@@ -9,6 +9,7 @@ from docking_manifest import BINARY_SHA256, VERSION
 from docking_options import DockingOptions, SearchBox, arguments
 from docking_receptor import prepare as prepare_receptor
 from platformnative_io import finish, input_file, progress, source_result, write_csv
+from scoring import select_pose
 
 
 def pocket_arguments(request):
@@ -117,14 +118,7 @@ def run(request):
                 if not valid:
                     raise ValueError("no_chemically_valid_native_pose")
 
-                def empirical(pose):
-                    return next(
-                        score["value"]
-                        for score in pose["scores"]
-                        if score["name"] == "minimizedAffinity"
-                    )
-
-                best = min(valid, key=empirical)
+                best = select_pose(valid, options.cnn_scoring)
                 supplier = Chem.SDMolSupplier(str(output), removeHs=True)
                 pose = comparison_graph(supplier[best["record"]])
                 pose.SetProp("_Name", identifier)

@@ -1,8 +1,9 @@
 """Native RDKit boundary, imported only inside the scientific environment."""
 
 import hashlib
-import math
 from pathlib import Path
+
+from scoring import molecule_scores
 
 
 def digest(file):
@@ -77,13 +78,6 @@ def plain_smiles(mol):
     return Chem.MolToSmiles(comparison_graph(mol), isomericSmiles=True)
 
 
-def score(name, value, unit, direction):
-    number = float(value)
-    if not math.isfinite(number):
-        raise ValueError("Native score is not finite.")
-    return {"name": name, "value": number, "unit": unit, "direction": direction}
-
-
 def summarize_poses(file, original, options):
     import numpy as np
     from rdkit import Chem
@@ -114,17 +108,6 @@ def summarize_poses(file, original, options):
                 or not np.isfinite(mol.GetConformer().GetPositions()).all()
             ):
                 raise ValueError("Native pose has invalid coordinates.")
-            for field, unit, direction in [
-                ("minimizedAffinity", "kcal/mol", "lower"),
-                ("CNNscore", "model_output", "higher"),
-                ("CNNaffinity", "model_output", "higher"),
-            ]:
-                if field.startswith("CNN") and options.cnn_scoring == "none":
-                    continue
-                if mol.HasProp(field):
-                    row["scores"].append(score(field, mol.GetProp(field), unit, direction))
-            if not any(value["name"] == "minimizedAffinity" for value in row["scores"]):
-                raise ValueError("Native pose has no empirical score.")
             mapping = {atom.GetAtomMapNum(): atom.GetIdx() for atom in mol.GetAtoms()}
             mapped_indices = [mapping.get(i + 1, -1) for i in range(original.GetNumAtoms())]
             if set(mapping) == set(
@@ -143,9 +126,13 @@ def summarize_poses(file, original, options):
                     row["mapping_status"] = "unique_graph_match"
                 else:
                     row["mapping_status"] = "ambiguous_reconfirm_selections"
-            row.update(valid=True, smiles=source_smiles)
         except (ValueError, RuntimeError) as exc:
             row["reason"] = str(exc)
+        else:
+            # Missing requested scores are an incomplete engine response, not a
+            # chemical rejection or permission to fall back to empirical scoring.
+            row["scores"] = molecule_scores(mol, options.cnn_scoring)
+            row.update(valid=True, smiles=source_smiles)
         poses.append(row)
     return poses
 

@@ -75,6 +75,16 @@ GNINA review shows the actual receptor, selected SDF record, search reference or
 box, scoring method, neural-scoring stage and effective resource/search settings.
 Scoring preserves the input coordinates; local optimization retains its original
 pose separately. Neither is described as a new global docking search.
+Requested neural scoring requires both native CNN pose and affinity model
+outputs alongside the empirical score. Missing, duplicate or nonfinite outputs
+fail the calculation with its native diagnostics retained; they never become an
+empirical-only success or a chemical no-hit result. Empirical-only tasks retain
+their original contract. Model outputs are not measured affinity.
+Candidate-batch docking uses that same frozen score contract. With neural
+rescoring it retains the highest native CNN pose score for each molecule;
+empirical-only tasks retain the lowest empirical score. Ties retain native
+order. Original poses and both kinds of score remain available; no weighted
+combination or measured-affinity conversion is invented.
 
 New GNINA results compare geometry in the unchanged receptor frame without
 fitting the ligand. Reference-guided docking compares against the search

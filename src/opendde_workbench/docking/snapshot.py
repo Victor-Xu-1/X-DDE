@@ -11,6 +11,7 @@ NATIVE_FILES = (
     "manifest.py",
     "receptor_input.py",
     "reference.py",
+    "scoring.py",
 )
 
 

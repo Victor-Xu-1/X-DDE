@@ -89,34 +89,41 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     from opendde_workbench.docking import snapshot
 
     adapter, _ = snapshot.capture(tmp_path / "reference-controls", Path(snapshot.__file__).parent)
-    geometry_controls = execute(
-        [
-            "docker",
-            "run",
-            "--rm",
-            "--network",
-            "none",
-            "--read-only",
-            "--cpus",
-            "1",
-            "--memory",
-            "512m",
-            "--tmpfs",
-            "/tmp:rw,size=32m",
-            "--mount",
-            f"type=bind,source={adapter / 'docking'},target=/adapter,readonly",
-            "--mount",
-            f"type=bind,source={Path(__file__).with_name('reference_geometry_checks.py').resolve()},target=/checks.py,readonly",
-            "--env",
-            "PYTHONPATH=/adapter",
-            "--entrypoint",
-            "python",
-            installed["image"],
-            "-B",
-            "/checks.py",
-        ],
-        timeout=60,
-    )
+    evidence = Path("server_tests/evidence")
+    evidence.mkdir(exist_ok=True)
+    for name, script in (
+        ("reference-geometry-controls", "reference_geometry_checks.py"),
+        ("native-scoring-controls", "docking_scoring_checks.py"),
+    ):
+        controls = execute(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--network",
+                "none",
+                "--read-only",
+                "--cpus",
+                "1",
+                "--memory",
+                "512m",
+                "--tmpfs",
+                "/tmp:rw,size=32m",
+                "--mount",
+                f"type=bind,source={adapter / 'docking'},target=/adapter,readonly",
+                "--mount",
+                f"type=bind,source={Path(__file__).with_name(script).resolve()},target=/checks.py,readonly",
+                "--env",
+                "PYTHONPATH=/adapter",
+                "--entrypoint",
+                "python",
+                installed["image"],
+                "-B",
+                "/checks.py",
+            ],
+            timeout=60,
+        )
+        (evidence / (name + ".json")).write_text(controls)
     settings = Settings(
         state_dir=tmp_path / "state",
         image_file=tmp_path / "missing-opendde-image",
@@ -126,9 +133,6 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         minimum_free_bytes=0,
         gnina_image=installed["image"],
     )
-    evidence = Path("server_tests/evidence")
-    evidence.mkdir(exist_ok=True)
-    (evidence / "reference-geometry-controls.json").write_text(geometry_controls)
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
         refs = {}
@@ -208,8 +212,18 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             "unit": "angstrom",
         }
         pose = refs["ligand"]
-        for stage in ("dock", "score", "minimize", "reference_dock"):
-            mode = "dock" if stage == "reference_dock" else stage
+        for stage in (
+            "dock",
+            "score",
+            "minimize",
+            "reference_dock",
+            "cnn_score",
+            "cnn_minimize",
+            "cnn_reference_dock",
+        ):
+            neural = stage.startswith("cnn_")
+            operation = stage.removeprefix("cnn_")
+            mode = "dock" if operation == "reference_dock" else operation
             request = {
                 "operation": "docking",
                 "name": "remote native " + stage,
@@ -217,14 +231,14 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
                 "receptor": refs["receptor"],
                 "ligand": pose,
                 "options": {
-                    "cnn_scoring": "none",
+                    "cnn_scoring": "rescore" if neural else "none",
                     "cpu": 2,
                     "exhaustiveness": 1,
                     "num_modes": 2,
                     "time_limit_seconds": 180,
                 },
             }
-            if stage == "reference_dock":
+            if operation == "reference_dock":
                 request["search"] = {
                     "kind": "reference_ligand",
                     "frame": refs["receptor"],
@@ -312,15 +326,20 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
                 assert comparison["status"] == "ready"
                 assert comparison["method"] == "symmetry_aware_heavy_atom_no_fit"
                 assert comparison["reference"] == (
-                    refs["ligand"] if stage == "reference_dock" else pose
+                    refs["ligand"] if operation == "reference_dock" else pose
                 )
                 assert comparison["role"] == (
-                    "search_reference" if stage == "reference_dock" else "input_pose"
+                    "search_reference" if operation == "reference_dock" else "input_pose"
                 )
                 assert all(p["reference_rmsd"]["all_heavy"] >= 0 for p in valid)
                 if mode == "score":
                     assert valid[0]["reference_rmsd"]["all_heavy"] < 0.0001
-            assert all(s["name"] == "minimizedAffinity" for p in valid for s in p["scores"])
+            expected = (
+                {"minimizedAffinity", "CNNscore", "CNNaffinity"}
+                if neural
+                else {"minimizedAffinity"}
+            )
+            assert all({s["name"] for s in p["scores"]} == expected for p in valid)
             selected = valid[0]
             assert selected["artifact"] == f"pose-{selected['record'] + 1:03d}.sdf"
             environment = client.get("/api/jobs/" + identifier + "/environment").json()

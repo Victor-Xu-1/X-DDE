@@ -11,6 +11,10 @@ on:
       - "src/opendde_workbench/docking/native-requirements.*"
       - "src/opendde_workbench/docking/receptor_input.py"
       - "src/opendde_workbench/docking/native.py"
+      - "src/opendde_workbench/docking/chemistry.py"
+      - "src/opendde_workbench/docking/scoring.py"
+      - "src/opendde_workbench/datasets/native_docking.py"
+      - "src/opendde_workbench/datasets/backend.py"
       - "src/opendde_workbench/docking/snapshot.py"
       - "src/opendde_workbench/docking/reference*.py"
       - "src/opendde_workbench/docking/result.py"
@@ -25,8 +29,11 @@ on:
       - "tests/test_native_container_cleanup.py"
       - "tests/test_docking_runtime_qualification.py"
       - "tests/test_docking.py"
+      - "tests/test_docking_scoring.py"
       - "tests/test_docking_reference.py"
       - "server_tests/reference_geometry_checks.py"
+      - "server_tests/docking_scoring_checks.py"
+      - "server_tests/test_scientific_handoff.py"
       - "server_tests/docking_browser.py"
       - "server_tests/test_native_docking.py"
       - ".github/workflows/docking-runtime-checks.yml"
@@ -53,11 +60,21 @@ jobs:
           uv sync --locked --group dev --group browser
       - name: Exact binding, source snapshot and runtime contracts
         run: |
-          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/docking/reference.py src/opendde_workbench/docking/reference_contract.py src/opendde_workbench/docking/result.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py server_tests/reference_geometry_checks.py
-          uv run --locked pytest -q tests/test_docking.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py tests/test_locked_packages.py tests/test_pose_minimization.py tests/test_pose_score_ranking.py
+          uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/chemistry.py src/opendde_workbench/docking/scoring.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/docking/reference.py src/opendde_workbench/docking/reference_contract.py src/opendde_workbench/docking/result.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_scoring.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py server_tests/reference_geometry_checks.py server_tests/docking_scoring_checks.py server_tests/test_native_docking.py
+          uv run --locked pytest -q tests/test_docking.py tests/test_docking_scoring.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py tests/test_locked_packages.py tests/test_pose_minimization.py tests/test_pose_score_ranking.py
           cd frontend
           npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/ReferenceComparison.test.tsx
-      - name: Actual isolated GNINA install, lazy CUDA-library qualification and native CPU modes
+      - name: Direct source handoff with the real pinned chemical parser
+        env:
+          PYTHONPATH: src
+        run: >-
+          uv run --no-project --python 3.10
+          --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
+          --with pydantic==2.13.5
+          python -m pytest -q
+          server_tests/test_scientific_handoff.py::test_docking_native_atom_labels_must_match_the_real_chemical_graph
+          server_tests/test_scientific_handoff.py::test_atom_map_identifiers_do_not_create_false_stereochemical_changes
+      - name: Actual isolated GNINA install, native CPU and CNN scoring modes
         env:
           WB_TEST_NATIVE_DOCKING: "1"
         run: |

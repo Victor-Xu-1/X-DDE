@@ -11,6 +11,7 @@ from .manifest import BINARY_SHA256, VERSION
 from .options import DockingOptions
 from .quality import BoundsCheck
 from .reference_contract import ReferenceComparison, ReferenceRmsd
+from .scoring import require_score_names
 
 
 class Score(ScientificModel):
@@ -177,6 +178,8 @@ class DockingResult(ScientificModel):
             elif comparison.role != "input_pose" or comparison.reference != self.ligand:
                 raise ValueError("Existing-pose comparison must retain its exact input pose.")
         for pose in self.poses:
+            if pose.valid:
+                require_score_names((score.name for score in pose.scores), self.options.cnn_scoring)
             measured = comparison is not None and comparison.status == "ready" and pose.valid
             if measured != (pose.reference_rmsd is not None):
                 raise ValueError("Reference RMSD must match a valid pose and comparable reference.")
