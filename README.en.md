@@ -2,205 +2,160 @@
 
 [中文](README.md) · **English**
 
-Use the links above to switch between the complete Chinese and English overviews. Both versions show actual software pages captured in the **English interface**.
+### Connect scientific tools into drug-discovery research you can build on.
 
-**A visual research platform for early drug discovery.**
+X-DDE is an open-source visual research platform for early drug discovery.
+Work with targets, structures and candidate molecules in one workspace:
+prepare a task, choose a method, inspect the results, and carry the material into the next step.
 
-Connect scientific tools, models and research files into usable research workflows. Start with targets, structures and pockets; explore small molecules, biologics, high-throughput screening and DNA-encoded libraries. Prepare tasks, inspect results, revise materials and continue the next step in one workspace.
+For small molecules, antibodies, proteins and peptides, library screening and
+DNA-encoded library (DEL) research, it helps researchers spend less time moving
+files and switching tools, and more time asking: **What should we investigate next, and why?**
 
-[Get started](#get-started) · [Actual interface](#what-the-interface-looks-like) · [Research capabilities](#what-you-can-do) · [Architecture](#how-the-architecture-works) · [Latest release](https://github.com/Victor-Xu-1/X-DDE/releases) · [Apache-2.0](LICENSE)
+[Get started](#get-started) · [Research workflows](#from-a-research-question-to-the-next-step) · [Latest releases](https://github.com/Victor-Xu-1/X-DDE/releases) · [Apache-2.0](LICENSE)
 
-## Why X-DDE
+![Actual X-DDE interface: BRD4–JQ1 structure results, candidate table and 3D pocket inspection](docs/images/structure-and-pocket.jpg)
 
-Drug discovery already has many excellent open-source tools. The friction often lies between them: difficult environments, different parameters and file formats, and outputs that are hard to pass to the next tool. Researchers also need to distinguish an experimental reference, a model prediction and an input template that has not been executed.
+*Native model output from the public BRD4–JQ1 case. Model confidence is not measured binding activity.*
 
-X-DDE brings these handoffs into the platform. Medicinal chemists and biologics researchers work around research questions, while computational experts retain control over methods, settings and interpretation.
+## What X-DDE helps solve
 
-| Common research problem                                             | How X-DDE addresses it                                                                  | What changes for researchers                                                            |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Separate installations and conflicting dependencies, models or data | Components organized by research use; isolated scientific environments                  | One place to choose storage, inspect readiness and maintain components                  |
-| Dozens of parameters before the purpose is clear                    | One visible step at a time, recommended choices, explanations and expert controls       | Answer the research question before reviewing the settings that matter                  |
-| Repeatedly moving structures, molecules and sequences between tools | Shared research assets, explicit input versions and direct handoffs                     | Use pockets for generation; pass molecules into properties and docking                  |
-| Results presented as files, numbers or technical logs               | Linked candidate tables, 2D / 3D structures, sequences and analysis charts              | Select a candidate, inspect its structure, adjust the view and download results         |
-| Original materials and result origins become difficult to track     | Preserve source files, derived versions and task relationships                          | Revise, compare, return to originals and continue the research                          |
-| Toy examples or demonstration jobs clutter personal history         | Public research templates inside each task, with computed outcomes presented separately | Learn inputs and result interpretation from real cases, then submit a new personal task |
+Drug discovery has many excellent scientific tools. Bringing them together is often the difficult part.
 
-## What you can do
+- **Organize tools around research goals.** Start with a question such as predicting a structure, exploring binding poses or comparing candidates, and prepare the independent scientific environments you need
+- **Turn one result into the next input.** Continue from structure to pocket, pocket to molecule, and candidate to properties or docking, selecting explicit materials and versions along the way
+- **Make results readable and reviewable.** Link candidate tables to 2D molecules, 3D structures, sequences and plots; retain original materials and derived versions for comparison, download and review
 
-The current catalogue has **74 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
+X-DDE connects scientific software such as OpenDDE, Boltz-2, DiffSBDD and GNINA
+through a shared research interface. Each retains its own methods, environment
+and license, and performs the corresponding scientific calculation.
 
-| Research area                   | Supported work                                                                                                                                  | Outputs or next steps                                                                                         |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Target research**             | Disease associations, target evidence, canonical sequences, public structures and measured-activity records                                     | Source-linked research materials for structure and candidate work                                             |
-| **Structure prediction**        | Protein and complex prediction, structure preparation, receptor alignment and comparison                                                        | Structures, native confidence, alignment results and downloadable files                                       |
-| **Pockets and binding modes**   | Pocket discovery, docking and rescoring, receptor/state exploration, interactions and pose quality                                              | Candidate sites, multiple poses, native scores and contact analysis                                           |
-| **Small-molecule design**       | Pocket-conditioned generation, analogues and local design, chemical states and unbound conformers                                               | New molecules or derived versions for properties, docking or screening                                        |
-| **Biologics research**          | Antibody numbering and CDRs, framework proposals, protein/peptide design, sequence scoring, folding and interface review                        | Sequences, CDR positions, structural candidates and interface results                                         |
-| **Induced proximity**           | Ternary assembly hypotheses and related structural exploration of degraders and bifunctional molecules                                          | Candidate assemblies and traceable structural hypotheses                                                      |
-| **High-throughput screening**   | Supplier-file import, library preparation, reusable sharded indexes, pocket-conditioned retrieval, diversity selection and shortlisted docking  | Candidates retaining library/supplier identifiers and actual poses                                            |
-| **DEL research**                | Library definitions, member structures, read decoding, UMI/counts, enrichment and controls, building-block series, research models and handoffs | Counts, enrichment evidence, series charts, candidate structures and experimental follow-up                   |
-| **Properties and early safety** | Descriptors, 41 model endpoints, structural alerts, scaffold representatives and models from experimental data                                  | Molecular tables, native units, selected candidates and reusable molecules                                    |
-| **Molecular dynamics**          | Explicit-water protein/complex dynamics with switchable OpenMM / GROMACS; independent repeats and native states                                 | Interactive 3D playback, linked RMSD/RMSF/Rg/contact occupancy, raw trajectories and downloads                |
-| **Binding free energy / FEP**   | OpenFE perturbation planning and relative binding free-energy calculations for aligned, same-charge analogues                                   | Interactive molecule network, A/B poses, atom maps, native uncertainties, overlap and convergence diagnostics |
+## From a research question to the next step
 
-RNA / DNA support currently focuses on structural inputs, complex prediction and relevant feature preparation; it is not a general nucleic-acid drug-design system. Synthesis routes, retrosynthesis and wet-lab automation are outside the current scope.
+### Prepare a well-defined task
 
-### Connect individual calculations into research paths
+Choose a research goal, provide materials, select a method, then review and run.
+Step-by-step forms focus on one question at a time. Recommended options help you
+get started; expert mode retains control over methods and parameters. Public
+research templates explain the inputs, while retained example results help you learn what to inspect.
 
-```mermaid
-flowchart LR
-  T[Target evidence and materials] --> S[Prepare or predict structures]
-  S --> P[Choose a pocket]
-  P --> M[Generate or screen molecules]
-  M --> D[Binding poses and quality]
-  M --> A[Properties and early safety]
-  D --> C[Compare and hand off candidates]
-  A --> C
-  S --> B[Protein or antibody sequence design]
-  B --> F[Folding and interface analysis]
-  F --> C
-  R[DEL reads and library definitions] --> E[Decode, count and enrich]
-  E --> M
-```
+![Actual guided task interface: choosing a research purpose and preparing BRD4–JQ1 inputs](docs/images/guided-task.jpg)
 
-These are connected research paths. Each handoff selects actual materials and versions; the researcher reviews the plan before running the corresponding task.
+*An input template. Loading it does not start a calculation; submitting creates your own new task.*
 
-## What the interface looks like
+### Explore targets, structures and potential binding sites
 
-The images below are **actual English-language pages from the running v0.4.53 software**, using public research inputs and retained native results. Structures, tables, molecules and values come directly from the application. No screenshot text has been repainted or translated in the image. Architecture illustrations are separate explanatory visuals.
+Gather target evidence, canonical sequences and public structures. Prepare or
+predict proteins and complexes, then inspect candidate pockets, binding poses
+and interactions. Select a candidate to examine its structure, compare poses,
+and carry a confirmed receptor and pocket into molecule generation or screening.
 
-### 1. Prepare tasks like a questionnaire
+Combine structure prediction, pocket finding, docking, rescoring and pose-quality
+checks as needed. Model confidence, docking scores and geometric contacts have
+different meanings; they do not directly establish measured affinity.
 
-Choose a purpose → provide materials → select settings → review and submit → inspect results. Only the current step is visible, with Next at the lower right. Guided mode offers recommended choices; expert mode exposes scientific settings. New tasks start with new materials, and **Historical files** is an explicit choice.
+### Compare candidate molecules with their structures in view
 
-![Actual English questionnaire: research-purpose choices for the BRD4–JQ1 template](docs/images/guided-task.jpg)
+Generate molecules around a pocket, explore analogues and local changes, prepare
+chemical states and unbound conformers, then compare properties, structural alerts
+and binding poses. Linked 2D structures, metrics and 3D molecules keep every row of numbers connected to a molecule.
 
-**Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
+![Actual candidate comparison: ABL inhibitors with 2D structures, predicted properties and a 3D molecule](docs/images/molecule-properties.jpg)
 
-### 2. Inspect structures alongside candidate tables
+*Predicted endpoints retain their original names and units. Property and early-safety predictions support research screening and require experimental validation.*
 
-Select a table row to inspect its actual structure, chains, ligand, pocket and confidence. Rotate, zoom, select atoms/residues, adjust display, inspect surfaces and download views. Original scientific files remain separately downloadable.
+### Continue from protein and antibody sequences to design and structure review
 
-![Actual English BRD4–JQ1 native structure result and ligand/pocket preview](docs/images/structure-and-pocket.jpg)
+Inspect antibody numbering and CDRs, select variable positions, and carry out
+antibody, protein or peptide design. Continue into sequence scoring, folding and
+interface analysis. Reviewing sequences alongside structures helps compare
+candidates and preserves the material behind each round of changes.
 
-This is a model result from the public BRD4–JQ1 case. Model confidence is not measured binding activity. Geometric distances are not automatically hydrogen bonds, interaction energies or affinity.
+![Actual antibody-design template: trastuzumab–HER2 variable-domain sequences and CDR selection](docs/images/antibody-template.jpg)
 
-### 3. Read properties and screening results through molecular structures
+*A validated design-input template, with no new antibody-design run. Experimental references, input materials and newly generated outputs remain distinct.*
 
-2D structures, candidate metrics and 3D molecules are linked. Properties retain original endpoints and units. Screening retains library identifiers and retrieval scores; shortlisted candidates can continue into independent docking.
+### Shortlist a molecular library for deeper investigation
 
-![Actual English ABL inhibitor comparison with 2D structures, predicted properties and a 3D molecule](docs/images/molecule-properties.jpg)
+Import legitimately obtained supplier or in-house libraries, prepare structures
+and indexes, retrieve candidates for a pocket, and use diversity selection to
+narrow the set before independent docking. Library-member and supplier identifiers
+stay with candidates so you can return to the source material.
 
-![Actual English BRD4 pocket-conditioned screening and the selected unbound conformer](docs/images/screening-candidates.jpg)
+![Actual pocket-conditioned screening: BRD4 candidate table and the selected molecule's 3D preview](docs/images/screening-candidates.jpg)
 
-The screening case uses 177 public research molecules. The displayed 3D structure is an unbound conformer, not a predicted binding pose or a supplier-wide/billion-scale performance benchmark.
+*A retrieval case using 177 public research molecules. The 3D view is an unbound conformer, not a binding pose or a large-library throughput benchmark.*
 
-### 4. Make DEL and biologics materials readable
+### Turn DEL reads into interpretable series and candidates
 
-DEL results retain member structures, target/control counts, enrichment intervals and replicate information. Antibody templates provide actual variable-domain sequences, adjustable CDR positions and reference-structure inspection. **Setup example** opens these prepared materials without starting a design run.
+Connect library definitions, member structures and sequencing reads for decoding,
+UMI/count analysis, enrichment and controls, and building-block series comparisons.
+Review counts, replicates and structures together, then select candidates for
+properties, docking or experimental follow-up.
 
-![Actual English UNCDEL006–BRD4 enrichment and member-structure results](docs/images/del-enrichment.jpg)
+![Actual DEL analysis: UNCDEL006–BRD4 member structures, target/control counts and enrichment](docs/images/del-enrichment.jpg)
 
-![Actual English native DEL read and UMI comparison, with interactive inspection and figure export](docs/images/del-counts-interactive.png)
+*Native analysis of public experimental data. Counts and enrichment do not establish binding affinity; missing information remains unreported.*
 
-Sequencing quality, count evidence, sample correlations, building-block series and model evaluation use the same interactive chart system as MD and FEP. Missing values remain unreported, and count evidence is kept distinct from binding affinity.
+### Go beyond a static pose with dynamics and free energy
 
-![Actual English trastuzumab–HER2 design input template with variable-domain sequence and CDRs](docs/images/antibody-template.jpg)
+Use OpenMM or GROMACS to investigate protein and complex dynamics, linking 3D
+trajectories with RMSD, RMSF, radius of gyration and contact occupancy. For aligned,
+same-charge analogues that meet the input requirements, use OpenFE to plan
+perturbation networks and calculate relative binding free energies, reviewing
+native uncertainties, sampling overlap and convergence diagnostics alongside the results.
 
-The antibody image shows a validated **input template**, without a new design run. Experimental reference structures, supplied materials and newly generated model outputs retain distinct identities.
+![Actual interactive dynamics result: 3D trajectory playback linked to stability plots](docs/images/dynamics-interactive.png)
 
-### Interactive dynamics and binding free energy
+*Retained native short-simulation output for BRD4–JQ1. A short run can check the calculation pipeline; it does not establish adequate sampling or affinity accuracy.*
 
-Mol* renders live 3D structures and sampled trajectories; Plotly charts link sampled times to structures and provide hover, zoom, pan and SVG export. FEP uses a draggable Cytoscape network, Ketcher structures and selected-pose interaction inspection. Original research files remain separately downloadable.
-
-Research figure export offers 89/183 mm widths, native 300/600 dpi PNGs and editable SVG plots with physical type sizes. View changes retain the original structures and values; dialogs can be closed during rendering, and compact panels keep their controls within the available width.
-
-![Actual English interactive MD result: 3D playback and linked stability plots](docs/images/dynamics-interactive.png)
-
-This BRD4/JQ1 view uses retained native short-simulation output to demonstrate interaction and downloads. It is not evidence of production convergence or affinity accuracy.
-
-![Actual English TYK2 perturbation network and bound-pose overlay](docs/images/fep-interactive.png)
-
-The TYK2 image is a genuine planned network, with no calculated binding free energy. The software also implements native uncertainty, overlap and convergence views for completed calculations; target-server calculation validation is deferred under the current software-first workflow. See [methods and preview architecture](docs/simulations.md).
-
-## How the architecture works
-
-**X-DDE owns the frontend and platform backend. Scientific software such as OpenDDE, Boltz-2, DiffSBDD and GNINA runs in independent integrated environments.**
-
-The platform manages projects, tasks, workflows, research assets, environment deployment and result presentation. Each tool connects through an explicit adapter and retains its native methods, models, dependencies and license. The absence of one engine does not define the availability of the whole platform.
-
-![X-DDE architecture: research workspace, platform backend, isolated scientific environments and lineage](docs/images/platform-architecture.png)
-
-| Layer                                   | Responsibilities                                                                          | Purpose                                                              |
-| --------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Research workspace**                  | Guided tasks, method selection, 2D / 3D / sequence inspection, comparisons and downloads  | Let researchers work with research questions and visible results     |
-| **X-DDE platform backend**              | Validated APIs, tasks/workflows, asset versions, deployment and result ownership          | Give multiple tools one task and data authority                      |
-| **Execution and deployment adapters**   | Validate native inputs, invoke real programs, prepare isolated environments and resources | Distinguish installation from valid completed computation            |
-| **Independent scientific environments** | Each tool's scientific programs, models, dependencies and native execution                | Isolate dependencies and support suitable alternatives within a task |
-| **Assets and lineage**                  | Source materials, derived versions, input/output relationships and history                | Reuse exact materials, retain originals and trace changes            |
-
-The execution path is **task form → X-DDE API → one persistent task queue and backend router → native program → platform assets and results**. Installation uses deployment adapters; scientific work uses execution adapters. The platform does not copy a competing workbench or scientific-agent loop.
-
-### Revise assets and continue the next step
-
-![How research assets connect small-molecule, biologics and DEL workflows](docs/images/connected-research-en.png)
-
-| Existing material or result                                     | Possible next step                                                    |
-| --------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Canonical sequences, public structures or predicted models      | Structure preparation, pockets, protein design and interface analysis |
-| Confirmed receptors and pockets                                 | Pocket-conditioned generation, fast screening and bounded docking     |
-| New molecules, library candidates or derived molecular versions | Properties, chemical states/conformers, docking and pose quality      |
-| Protein or antibody candidate sequences                         | Folding, sequence scoring, interface comparison and further design    |
-| DEL enriched members and building-block series                  | Structural handoff, properties/docking and experimental follow-up     |
-
-Edits create derived versions while source files remain available. Distances, confidence, docking scores and experimental activity are interpreted with their own meanings and units.
-
-Large libraries use streaming preparation, sharded indexes and bounded candidate retrieval. The frontend reads results by page to control memory use. Pocket-conditioned retrieval precedes slower pose computation on shortlisted candidates. See [screening and DEL methods, scale and licensing](docs/design/screening-and-del.md).
+Induced-proximity workflows also support structural assembly hypotheses for
+ternary complexes, degraders and other bifunctional molecules. These hypotheses
+still require appropriate computational checks and experimental validation.
 
 ## Get started
 
-Download `install.ps1` for Windows or `install.sh` for Linux / WSL from [GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases). Release packages contain the built frontend; users do not need Node.js or a frontend build.
+Download the installer for your system from
+[GitHub Releases](https://github.com/Victor-Xu-1/X-DDE/releases).
+Release packages include the built frontend; you do not need Node.js or a frontend build.
 
-| System             | Install                                                             | Start            |
-| ------------------ | ------------------------------------------------------------------- | ---------------- |
-| Windows PowerShell | `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1` | `X-DDE UI`       |
-| Linux / WSL        | `bash install.sh`, then follow the command-path instructions        | `xdde dashboard` |
+**Windows PowerShell:** download `install.ps1`, then run:
 
-Use `xdde stop` to stop, `xdde status` to inspect status, and `xdde restart` to restart. Windows commands and startup arguments support case compatibility. Historical OpenDDE commands remain launcher aliases.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+X-DDE UI
+```
 
-Open **Settings and help → Installation and runtime**. Choose one installation directory and prepare components by research use. Environments remain independent. Installed components show Installed; maintenance contains repair, upgrade and uninstall. Large models and databases are selected as needed.
+**Linux / WSL:** download `install.sh`, run `bash install.sh`, follow the
+installer's command-path instructions, then run `xdde dashboard`.
 
-![Actual English component management with one directory, research-use groups and native installation states](docs/images/component-management.jpg)
+Open **Settings and help → Installation and runtime** and choose components,
+models and data for your research. Execution depends on the required scientific
+environments, resources and hardware; you do not need every optional component
+to get started. See the [user guide](docs/user-guide.md) for detailed steps.
 
-The default Windows entry is `E:\WSL\apps\x-dde`. Linux environments, models and data follow the selected WSL storage and component directories; an E: launcher directory does not migrate an existing system disk. See the [user guide](docs/user-guide.md) for detailed installation, existing-environment connections, server access and recovery.
+## Scope and responsible research
 
-## Current scope and scientific use
+- **Research use.** Review sources, methods, inputs and uncertainty. Software checks, screenshots and short calculations do not establish scientific accuracy or clinical suitability
+- **Defined scope.** RNA / DNA support focuses on structural inputs, complex prediction and feature preparation. General nucleic-acid drug design, synthesis routes, retrosynthesis and wet-lab automation are outside the current scope
+- **Resources and data.** Some tasks need GPUs, substantial storage, models or external services. Supplier listings do not establish possession of full commercial libraries, live inventory or procurement authorization. Review data destinations and access permissions before use
+- **Controlled access.** This is currently a single-user, loopback workbench. Use controlled access or an SSH tunnel on servers rather than publicly exposing an unauthenticated service
 
-- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 74 entries do not mean every machine already has all required resources.
-- Public cases include BRD4–JQ1, trastuzumab–HER2, ABL inhibitors, MZ1 ternary assemblies, RNA–TPP and public DEL research. Calculated cases retain native outputs; input-only examples are explicitly templates. See [case provenance and identities](docs/design/research-examples.md).
-- Supplier access uses official public downloads and legitimately obtained files. Catalogue entries are not possession of every commercial library, live inventory or procurement authorization. See [verified resources and coverage](docs/design/supplier-structure-files.md).
-- Models, weights, third-party data and outputs can have independent restrictions, including noncommercial research terms. X-DDE's code license does not replace them.
-- The current application is a single-user workbench with loopback access. Use controlled access or an SSH tunnel on servers rather than exposing it publicly without authentication.
+Interface images come from the running software using public research materials;
+see [image sources and capture versions](docs/images/README.md).
+Explore the [research cases](docs/design/research-examples.md),
+[screening and DEL](docs/design/screening-and-del.md), and
+[dynamics and free-energy guide](docs/simulations.md) for more detail.
 
-GPU inference, server throughput, scientific accuracy and experimental conclusions need evidence from their actual environments. Screenshots do not establish those conclusions. See [server acceptance](docs/server-acceptance.md) and [independent scientific environments](docs/scientific-upgrade.md).
+## Open source and acknowledgments
 
-## Documentation
+Original X-DDE code is licensed under [Apache-2.0](LICENSE), with attribution in
+[NOTICE](NOTICE). Integrated software, models, weights, data and outputs retain
+their own terms, which may include GPL, attribution or noncommercial-research
+conditions. For example, current official DrugCLIP weights, precomputed data and
+model outputs use CC BY-NC 4.0; X-DDE's license does not expand those rights.
 
-| Question                                                         | Document                                                     |
-| ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| Installation, startup, existing environments and recovery        | [User guide](docs/user-guide.md)                             |
-| Molecular dynamics, FEP and linked previews                      | [Simulation and free-energy guide](docs/simulations.md)      |
-| Platform responsibilities, supported tools and native interfaces | [Architecture and capability mapping](docs/design/README.md) |
-| Fast screening, supplier libraries and DEL                       | [Screening and DEL](docs/design/screening-and-del.md)        |
-| Ternary complexes and bifunctional molecules                     | [Induced proximity](docs/design/proximity-design.md)         |
-| Real templates, public sources and native results                | [Research cases](docs/design/research-examples.md)           |
-| Native execution, hardware and scientific acceptance             | [Server acceptance](docs/server-acceptance.md)               |
-| Development, focused verification and publication numbering      | [Development and release](docs/development.md)               |
-
-This overview is available in full in both languages. Some detailed technical documents linked above currently use Chinese or mixed bilingual text.
-
-## License and provenance
-
-Original X-DDE code is [Apache-2.0](LICENSE), with attribution in [NOTICE](NOTICE). Integrated software, models, weights and data retain their own licenses. Historical MIT releases retain the terms distributed with those releases. The repository does not include private research data, model-service secrets or upstream large model weights.
-
-Architecture images are explanatory illustrations. Actual interface captures retain their displayed scientific content. See [image provenance](docs/images/README.md).
+Thanks to upstream projects including OpenDDE, Boltz, DiffSBDD, GNINA, RDKit,
+OpenMM, GROMACS, OpenFE, DrugCLIP, DELi, Mol* and Ketcher. Historical MIT releases
+retain their distributed terms. The repository does not include private research
+data, service secrets or upstream large model weights.
