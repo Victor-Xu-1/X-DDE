@@ -121,6 +121,15 @@ count, explicitly warn about disconnected products and keep unknown counts
 unknown. Passing fixed-core checks does not establish successful fragment linking.
 No components are silently removed to make a molecule appear connected.
 
+REINVENT's native CLI uses the same explicit private Torch cache and non-secret
+container username as the OpenFF-based integrations. Numerical task ownership,
+read-only scientific inputs, network isolation and tmpfs limits remain in force;
+an absent passwd entry for the host UID cannot prevent CLI initialization.
+Its reviewed image includes the pinned RDKit drawing libraries. Installation runs
+the complete offline, non-root `reinvent --help` entrypoint before publishing the
+runtime receipt; successful package installation alone is insufficient. This
+readiness check does not load a prior, sample molecules or claim scientific acceptance.
+
 Fixed native outcomes reference successful tasks in the same jobs database.
 `example_pins` stores the request digest, bound environment-metadata digest and
 every retained artifact digest. A fixed example cannot be replaced in place;

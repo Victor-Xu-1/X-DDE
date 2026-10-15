@@ -79,6 +79,10 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
     image = execute(["docker", "image", "inspect", "--format", "{{.Id}}", tag]).strip()
     if not image.startswith("sha256:") or len(image) != 71:
         raise ValueError("Native image build returned no immutable image identity.")
+    from .native_readiness import verify_native_entrypoint
+
+    report("Checking the installed native command entrypoint")
+    verify_native_entrypoint(identifier, image, execute)
     return {
         "directory": str(destination),
         "image": image,

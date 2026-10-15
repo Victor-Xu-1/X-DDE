@@ -113,6 +113,12 @@
       "name": "REINVENT4",
       "gpu": false,
       "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
+      "system_packages": [
+        "libxrender1=1:0.9.10-1.1",
+        "libxext6=2:1.3.4-1+b1",
+        "libexpat1=2.5.0-1+deb12u4"
+      ],
+      "system_packages_after_python": true,
       "pip": [
         "torch==2.12.0",
         "torchvision",

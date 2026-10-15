@@ -5,6 +5,7 @@ from pathlib import Path
 from ..prepared_container import PreparedContainerBackend
 from ..store import Store
 from .bindings import trained_model
+from .cache_environment import torch_cache_arguments
 from .runtime import configuration, readiness
 from .specs import PROGRAMS
 
@@ -108,19 +109,10 @@ class ScientificBackend(PreparedContainerBackend):
             "--env",
             "NUMBA_CACHE_DIR=/tmp/numba",
         ]
+        # Native CLI imports must also work for a UID absent from the image passwd.
+        args += torch_cache_arguments(self.program)
         if self.program in {"openfe", "gromacs"}:
-            # OpenFF imports Torch while discovering optional toolkits. A task UID
-            # deliberately has no image passwd entry; keep native caches in tmpfs.
-            args += [
-                "--env",
-                "USER=xdde",
-                "--env",
-                "LOGNAME=xdde",
-                "--env",
-                "TORCHINDUCTOR_CACHE_DIR=/tmp/torch-inductor",
-                "--env",
-                "OPENMM_CPU_THREADS=" + str(job.request.options.cpu),
-            ]
+            args += ["--env", "OPENMM_CPU_THREADS=" + str(job.request.options.cpu)]
         if self.program == "openfe":
             # Replica contexts own the allocated CPU budget; BLAS/NumExpr must
             # not independently size their thread pools from the host core count.

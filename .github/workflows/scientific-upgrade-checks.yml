@@ -28,9 +28,12 @@ on:
   push:
     paths:
       - "src/opendde_workbench/integrations/**"
-      # Construction-only networking does not change scientific adapters or execution.
-      - "!src/opendde_workbench/integrations/image.py"
+      - "src/opendde_workbench/deployment/native_readiness.py"
+      - "src/opendde_workbench/deployment/scientific_install.py"
+      # Image composition is a native runtime contract; model execution stays opt-in.
       - "tests/test_integrated_science.py"
+      - "tests/test_scientific_identity.py"
+      - "tests/test_scientific_entrypoint.py"
       - "tests/test_apbs_protocol.py"
       - ".github/workflows/scientific-upgrade-checks.yml"
 permissions:
@@ -58,6 +61,8 @@ jobs:
       - name: Changed adapter and dispatch contracts only
         run: >-
           uv run --locked pytest -q tests/test_integrated_science.py
+          tests/test_scientific_identity.py
+          tests/test_scientific_entrypoint.py
           tests/test_apbs_protocol.py
           tests/test_capabilities.py tests/test_operations.py
       - name: Native overlays and related preview contracts only

@@ -29,12 +29,21 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None,
     destination.mkdir(parents=True, exist_ok=True)
     recipes = Path(__file__).parent / "recipes"
     lines = ["FROM " + spec["base"], "USER root"]
+    runtime_libraries = spec.get("system_packages_after_python") is True
+    system_install = []
     if spec.get("system_packages"):
-        lines += [
-            "RUN apt-get update && apt-get install -y --no-install-recommends "
+        system_install = [
+            (
+                "RUN apt-get -o APT::Update::Error-Mode=any update"
+                if runtime_libraries
+                else "RUN apt-get update"
+            )
+            + " && apt-get install -y --no-install-recommends "
             + " ".join(spec["system_packages"])
             + " && rm -rf /var/lib/apt/lists/*"
         ]
+    if not runtime_libraries:
+        lines += system_install
     if spec.get("conda"):
         locked = recipes / (identifier + ".conda.txt")
         if not locked.is_file():
@@ -144,6 +153,10 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None,
             ]
     if spec.get("source", {}).get("python_path"):
         lines += ["ENV PYTHONPATH=/opt/native"]
+    if runtime_libraries:
+        # Precompiled-wheel drawing libraries need not invalidate the cached
+        # scientific Python/model installation layers when repairing this image.
+        lines += system_install
     lines += [
         'LABEL org.xdde.science.program="' + identifier + '" '
         'org.xdde.science.recipe="' + recipe_digest(identifier) + '" '
