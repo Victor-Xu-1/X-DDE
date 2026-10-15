@@ -72,6 +72,7 @@ jobs:
           --with pytest==9.1.1 --with numpy==1.26.4 --with rdkit==2023.9.6
           --with pydantic==2.13.5
           python -m pytest -q
+          server_tests/test_scientific_handoff.py::test_property_handoff_selects_one_real_sdf_record
           server_tests/test_scientific_handoff.py::test_docking_native_atom_labels_must_match_the_real_chemical_graph
           server_tests/test_scientific_handoff.py::test_atom_map_identifiers_do_not_create_false_stereochemical_changes
       - name: Actual isolated GNINA install, native CPU and CNN scoring modes
