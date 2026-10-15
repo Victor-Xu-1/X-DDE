@@ -75,8 +75,9 @@ def test_malformed_or_ambiguous_cache_fails_closed(identities):
         scientific_cache.cached_image("reinvent", execute, lambda _: None)
 
 
+@pytest.mark.parametrize("identifier", ["reinvent", "plip"])
 def test_cached_install_still_checks_full_native_cli_before_returning_receipt(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, identifier
 ):
     monkeypatch.setattr(scientific_install.shutil, "which", lambda _: "/usr/bin/docker")
     monkeypatch.setattr(scientific_install, "cached_image", lambda *args: IMAGE)
@@ -94,11 +95,11 @@ def test_cached_install_still_checks_full_native_cli_before_returning_receipt(
         "opendde_workbench.deployment.native_readiness.verify_native_entrypoint", verify
     )
     receipt = scientific_install.install_runtime(
-        "reinvent", tmp_path, tmp_path / "work", None, lambda _: None, lambda: None
+        identifier, tmp_path, tmp_path / "work", None, lambda _: None, lambda: None
     )
-    assert calls == [("reinvent", IMAGE)]
-    assert receipt["image"] == IMAGE and receipt["runtime_lock_sha256"] == lock_digest("reinvent")
-    assert receipt["recipe_sha256"] == recipe_digest("reinvent")
+    assert calls == [(identifier, IMAGE)]
+    assert receipt["image"] == IMAGE and receipt["runtime_lock_sha256"] == lock_digest(identifier)
+    assert receipt["recipe_sha256"] == recipe_digest(identifier)
     assert len(receipt) == 4
 
     def failed(*args):
@@ -109,7 +110,7 @@ def test_cached_install_still_checks_full_native_cli_before_returning_receipt(
     )
     with pytest.raises(RuntimeError, match="dependency missing"):
         scientific_install.install_runtime(
-            "reinvent", tmp_path, tmp_path / "work", None, lambda _: None, lambda: None
+            identifier, tmp_path, tmp_path / "work", None, lambda _: None, lambda: None
         )
 
 

@@ -242,11 +242,11 @@
       "license": "APBS BSD-3-Clause; PDB2PQR BSD-3-Clause; PROPKA LGPL"
     },
     "plip": {
-      "version": "3.0.1-openbabel-3.2.1",
+      "version": "3.0.1-openbabel-3.2.1-biopython-1.88",
       "name": "PLIP",
       "gpu": false,
       "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
-      "conda": ["python=3.12", "plip=3.0.1", "openbabel=3.2.1"],
+      "conda": ["python=3.12", "plip=3.0.1", "openbabel=3.2.1", "biopython=1.88"],
       "pip": [],
       "models": [],
       "license": "PLIP GPL-2.0; Open Babel GPL-2.0"
