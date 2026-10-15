@@ -96,6 +96,8 @@ export function DiffReview({
     rows.push([zh ? "口袋范围" : "Pocket scope", scope]);
   }
   if (designing) {
+    const localSampling = mode === "diversify" || mode === "optimize";
+    const steps = localSampling ? options.change_steps : options.steps;
     const model = models.find((value) => value.id === options.model);
     const modelLabel = model
       ? [
@@ -115,12 +117,29 @@ export function DiffReview({
         ].join(" · ")
       : String(options.model);
     rows.push([zh ? "生成模型" : "Generation model", modelLabel]);
-    rows.push([zh ? "候选数量" : "Candidate count", String(options.count)]);
+    rows.push([
+      mode === "optimize"
+        ? zh
+          ? "采样尝试预算"
+          : "Sampling attempt budget"
+        : zh
+          ? "候选数量"
+          : "Candidate count",
+      String(
+        mode === "optimize"
+          ? Number(options.population) * Number(options.rounds)
+          : options.count,
+      ),
+    ]);
     rows.push([
       zh ? "分子大小" : "Molecular size",
-      options.size_mode === "fixed"
-        ? `${options.atoms} ${zh ? "个重原子（后处理前）" : "heavy atoms before post-processing"}`
-        : `${zh ? "按口袋采样" : "Sampled for the pocket"} · ${zh ? "最少" : "minimum"} ${options.minimum_atoms} · ${zh ? "偏移" : "bias"} ${options.size_bias}`,
+      localSampling
+        ? zh
+          ? "沿用起始分子的原子数量（后处理前）"
+          : "Starting-molecule atom count before post-processing"
+        : options.size_mode === "fixed"
+          ? `${mode === "inpaint" ? fixed.length + Number(options.added_atoms) : options.atoms} ${zh ? "个重原子（后处理前）" : "heavy atoms before post-processing"}`
+          : `${zh ? "按口袋采样" : "Sampled for the pocket"} · ${zh ? "最少" : "minimum"} ${Math.max(Number(options.minimum_atoms), mode === "inpaint" ? fixed.length : 0)} · ${zh ? "偏移" : "bias"} ${options.size_bias}`,
     ]);
     if (mode === "inpaint")
       rows.push([
@@ -147,22 +166,19 @@ export function DiffReview({
     if (mode === "optimize")
       rows.push([
         zh ? "优化目标与预算" : "Optimization objective & budget",
-        `${String(options.objective).toUpperCase()} · ${options.population} × ${options.rounds} ${zh ? "轮" : "rounds"}`,
+        `${String(options.objective).toUpperCase()} · ${options.population} × ${options.rounds} ${zh ? "轮" : "rounds"} · ${options.survivors} ${zh ? "个后续亲本/轮" : "parents per round"}`,
       ]);
     rows.push([
       zh ? "采样详情" : "Sampling details",
       <details>
         <summary>
-          {String(options.steps)} {zh ? "步" : "steps"} · {zh ? "种子" : "seed"}{" "}
+          {String(steps)} {zh ? "步" : "steps"} · {zh ? "种子" : "seed"}{" "}
           {String(options.seed)}
         </summary>
-        <p>
-          {zh ? "重采样 / 跳步" : "Resampling / jump length"}:{" "}
-          {String(options.resamplings)} / {String(options.jump_length)}
-        </p>
-        {mode === "diversify" && (
+        {!localSampling && (
           <p>
-            {zh ? "修改步数" : "Change steps"}: {String(options.change_steps)}
+            {zh ? "重采样 / 跳步" : "Resampling / jump length"}:{" "}
+            {String(options.resamplings)} / {String(options.jump_length)}
           </p>
         )}
         <p>

@@ -81,6 +81,9 @@ it("tracks changes to the starting record, fixed core and model without rewritin
   expect(screen.getByText("Cα · moad · Conditional")).toBeVisible();
   expect(screen.getByText("Atom numbers: 1, 3")).toBeInTheDocument();
   expect(
+    screen.getByText("12 heavy atoms before post-processing"),
+  ).toBeVisible();
+  expect(
     screen.getByText("Allow internal core bond changes"),
   ).toBeInTheDocument();
   rerender(
@@ -133,5 +136,25 @@ it("shows the actual optimization objective and population budget separately fro
       }}
     />,
   );
-  expect(screen.getByText("SA · 12 × 4 rounds")).toBeVisible();
+  expect(
+    screen.getByText("SA · 12 × 4 rounds · 3 parents per round"),
+  ).toBeVisible();
+  expect(screen.getByText("48", { selector: "dd" })).toBeVisible();
+  expect(screen.queryByText("Candidate count")).toBeNull();
+  expect(
+    screen.getByText("Starting-molecule atom count before post-processing"),
+  ).toBeVisible();
+  expect(screen.getByText("100 steps · seed 2026")).toBeVisible();
+});
+
+it("uses noising steps and starting size for diversification instead of unrelated de novo defaults", () => {
+  render(
+    <DiffReview
+      {...base}
+      mode="diversify"
+      options={{ ...optionsFor("diversify"), steps: 500, change_steps: 42 }}
+    />,
+  );
+  expect(screen.getByText("42 steps · seed 2026")).toBeVisible();
+  expect(screen.queryByText(/32 heavy atoms/)).toBeNull();
 });
