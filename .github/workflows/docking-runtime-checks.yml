@@ -19,6 +19,7 @@ on:
       - "frontend/src/docking/PoseTable*"
       - "frontend/src/docking/DockingForm*"
       - "frontend/src/docking/types.ts"
+      - "frontend/src/docking/results.css"
       - "src/opendde_workbench/assets.py"
       - "src/opendde_workbench/container_supervision.py"
       - "tests/test_native_container_cleanup.py"

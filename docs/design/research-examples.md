@@ -91,6 +91,14 @@ files, scores and historical results remain unchanged. The method follows
 [RDKit's in-place RMSD convention](https://www.rdkit.org/docs/source/rdkit.Chem.rdMolAlign.html)
 and keeps [GNINA's distinct docking, scoring and minimization operations](https://github.com/gnina/gnina).
 
+The docking table lists conformers of the same molecular graph as compact rows;
+its shared left-hand inspector provides the selected pose's 2D and 3D views.
+It does not repeat identical molecular thumbnails in every pose row. Scores and
+reference distances fit the default pane, while atom mappings, additional neural
+outputs and qualification details remain available through the column selector.
+Rejected poses keep their exclusion status visible. CSV exports retain all
+metrics independently of the visible columns.
+
 The PDB-only DiffSBDD receptor-filtering preset uses the same qualified protein
 version. It never pre-fills the original CIF into a PDB-only input or falls back
 to the unresolved extracted PDB. The raw original stays available for inspection,

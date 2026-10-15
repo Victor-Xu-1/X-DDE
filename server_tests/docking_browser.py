@@ -105,6 +105,7 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     expect(
                         panel.get_by_text("without fitting the ligand", exact=False)
                     ).to_be_visible()
+                    panel.get_by_text("Compare with the reference pose", exact=True).click()
                 panel.get_by_role("button", name="Surface", exact=True).click()
                 expect(panel.get_by_text("Gray: no data", exact=True)).to_be_visible()
                 panel.get_by_role("button", name="Backbone", exact=True).click()
@@ -127,6 +128,11 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                     assert page.evaluate(
                         "document.documentElement.scrollWidth <= window.innerWidth + 1"
                     )
+                    if comparison and comparison["status"] == "ready":
+                        assert table.evaluate(
+                            "element => element.parentElement.scrollWidth "
+                            "<= element.parentElement.clientWidth + 1"
+                        ), "Core pose metrics must fit their pane without horizontal scrolling."
                     page.screenshot(
                         path=str(evidence / f"native-binding-results-{width}.png"), full_page=True
                     )

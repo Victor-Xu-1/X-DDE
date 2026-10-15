@@ -193,7 +193,6 @@ export function DockingResults({
         <div>
           <ReferenceComparison result={result} language={language} />
           <PoseTable
-            jobId={job.id}
             result={result}
             language={language}
             selected={record}

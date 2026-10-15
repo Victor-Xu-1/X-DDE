@@ -5,7 +5,6 @@ import { ReferenceComparison } from "./ReferenceComparison";
 import { PoseTable } from "./PoseTable";
 import type { DockingResult } from "./types";
 
-vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 vi.mock("../diffsbdd/ReviewReference", () => ({
   ReviewReference: () => <span>Original reference · Record 1</span>,
 }));
@@ -98,7 +97,6 @@ it("keeps each native pose's whole and contact RMSD selectable, sortable and dis
     <PoseTable
       result={result()}
       language="en"
-      jobId="j"
       selected={0}
       onSelect={onSelect}
       onDiagnostic={() => {}}
@@ -137,7 +135,6 @@ it("leaves unavailable comparisons and legacy results without invented zero dist
       <PoseTable
         result={value}
         language="en"
-        jobId="j"
         selected={0}
         onSelect={() => {}}
         onDiagnostic={() => {}}

@@ -6,8 +6,28 @@
   width: 100%;
   min-width: 0;
 }
-.docking-results table {
-  min-width: 40rem;
+.docking-results .research-table table {
+  min-width: 0;
+  table-layout: fixed;
+}
+.docking-results .research-table th,
+.docking-results .research-table td {
+  padding: 10px 8px;
+}
+.docking-results .research-table thead th,
+.docking-results .column-sort,
+.docking-results .column-header-content {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.docking-results .column-sort {
+  min-width: 0;
+  max-width: 100%;
+}
+.docking-results .pose-record .secondary-button {
+  white-space: normal;
+  min-width: 0;
+  max-width: 100%;
 }
 .pose-violations {
   margin-block: 1rem;

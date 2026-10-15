@@ -1,22 +1,18 @@
-import { artifactUrl } from "../api";
 import type { Language } from "../types";
 import {
   ResearchTable,
   type ResearchColumn,
 } from "../presentation/ResearchTable";
-import { MoleculeImage } from "../presentation/MoleculeImage";
 import type { DockingResult } from "./types";
 import { scoreLabel } from "./scoreLabels";
 type Pose = DockingResult["poses"][number];
 export function PoseTable({
-  jobId,
   result,
   language,
   selected,
   onSelect,
   onDiagnostic,
 }: {
-  jobId: string;
   result: DockingResult;
   language: Language;
   selected: number | null;
@@ -40,13 +36,7 @@ export function PoseTable({
       label: zh ? "姿势" : "Pose",
       value: (p) => (zh ? "姿势 " : "Pose ") + (p.record + 1),
       render: (p) => (
-        <div className="molecule-record">
-          <MoleculeImage
-            compact
-            source={p.artifact ? { url: artifactUrl(jobId, p.artifact) } : null}
-            label={(zh ? "姿势 " : "Pose ") + (p.record + 1)}
-            language={language}
-          />
+        <div className="pose-record">
           <span>
             <button
               type="button"
@@ -189,7 +179,7 @@ export function PoseTable({
               "CNNscore:model_output",
               "reference_all_heavy",
               "reference_contact",
-              "status",
+              ...(result.poses.some((pose) => !pose.valid) ? ["status"] : []),
             ]
           : undefined
       }
