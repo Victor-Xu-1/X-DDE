@@ -20,6 +20,8 @@ on:
       - '!src/opendde_workbench/examples/preparation.py'
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
+      # Native integrated presets have exact questionnaire/chemical-source checks.
+      - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
       - 'frontend/src/examples/**'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
@@ -63,6 +65,7 @@ on:
       - '!src/opendde_workbench/examples/preparation.py'
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
+      - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
       - 'frontend/src/examples/**'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.

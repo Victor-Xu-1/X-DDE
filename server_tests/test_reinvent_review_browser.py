@@ -149,6 +149,10 @@ def test_explicit_stat6_template_source_survives_mode_changes_without_submitting
         mode = page.get_by_role(
             "combobox", name="How would you like to design molecules?", exact=True
         )
+        expect(mode).to_have_value("r_groups")
+        expect(
+            page.get_by_role("textbox", name="Fragment structures (one per line)", exact=True)
+        ).to_have_value(SCAFFOLD)
         mode.select_option("r_groups")
         source_check = page.get_by_role(
             "checkbox", name="Verify the scaffold's source molecule", exact=True

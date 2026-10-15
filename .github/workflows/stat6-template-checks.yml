@@ -11,6 +11,8 @@ on:
       - '!src/opendde_workbench/examples/stat6/preparation.py'
       - '!src/opendde_workbench/examples/stat6/requests.py'
       - '!src/opendde_workbench/examples/stat6/catalogue.py'
+      # Exact integrated-design presets are covered by molecule-design-review-checks.yml.
+      - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
       - 'src/opendde_workbench/examples/routes.py'
       - 'src/opendde_workbench/examples/input_geometry.py'
       - 'tests/test_stat6_geometry.py'

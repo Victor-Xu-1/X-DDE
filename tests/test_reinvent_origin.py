@@ -46,3 +46,32 @@ def test_old_and_explicitly_false_requests_keep_the_same_canonical_bytes():
     unused.update(inputs=[{"role": "ligand", "source": REFERENCE}], scientific_inputs=[REFERENCE])
     with pytest.raises(ValidationError, match="exact molecular input"):
         IntegratedTask.model_validate(unused)
+
+
+def test_stat6_template_retains_the_actual_fixed_port_study_without_starting_jobs(tmp_path):
+    from opendde_workbench.assets import AssetStore
+    from opendde_workbench.examples.stat6.catalogue import FILES
+    from opendde_workbench.examples.stat6.preparation import prepare_stat6
+    from opendde_workbench.research.storage import ScientificStore
+    from opendde_workbench.store import Store
+
+    store = Store(tmp_path / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, tmp_path / "assets"))
+    prepared = prepare_stat6("reinvent.design", scientific)
+    task = IntegratedTask.model_validate(prepared.request)
+    assert task.payload.mode == "r_groups"
+    assert task.payload.fragments == ["CN(C)C(=O)c1cc2ccc([*:1])c(F)c2[nH]1"]
+    assert task.payload.validate_scaffold_origin is True
+    assert task.payload.candidates == 20
+    assert task.options.model_dump() == {
+        "device": "cpu",
+        "cpu": 2,
+        "memory_mib": 2048,
+        "seed": 2026,
+    }
+    assert len(task.inputs) == 1 and task.inputs[0].role == "ligand"
+    reference = prepared.objects["study_ligand"].reference
+    assert task.inputs[0].source == reference and task.scientific_inputs == [reference]
+    assert reference.sha256 == FILES["study_ligand"].sha256
+    assert reference.record == reference.conformer == 0
+    assert store.list_jobs() == []

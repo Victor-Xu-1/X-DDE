@@ -123,11 +123,16 @@ def test_real_stat6_fixed_port_study():
             "data-reinvent-atoms", re.compile(r"^[1-9]\d*$"), timeout=60000
         )
         page.screenshot(path=evidence / "native-result.png", full_page=True)
+        page.get_by_role("button", name="Capture 3D view", exact=True).click()
+        image_link = page.get_by_role("link", name="Download view PNG", exact=True)
+        expect(image_link).to_be_visible(timeout=60000)
+        expect(image_link).to_have_attribute("href", re.compile(r"^data:image/png;base64,"))
         with page.expect_download() as download:
-            page.get_by_role("button", name="Capture 3D view", exact=True).click()
+            image_link.click()
         image = evidence / "native-3d-view.png"
         download.value.save_as(image)
         assert image.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+        page.get_by_role("button", name="Close image", exact=True).click()
         page.get_by_role("tab", name="2D structure", exact=True).click()
         expect(
             page.locator(".scientific-results .molecular-preview .molecule-image")
@@ -136,7 +141,7 @@ def test_real_stat6_fixed_port_study():
         if len(documents["result"]["candidates"]) > 1:
             second = documents["result"]["candidates"][1]["id"]
             page.evaluate("delete document.documentElement.dataset.reinventAtoms")
-            page.get_by_role("row").filter(has=page.get_by_text(second, exact=True)).click()
+            page.get_by_role("button", name=second, exact=True).click()
             expect(page.locator("html")).to_have_attribute(
                 "data-reinvent-atoms", re.compile(r"^[1-9]\d*$"), timeout=60000
             )

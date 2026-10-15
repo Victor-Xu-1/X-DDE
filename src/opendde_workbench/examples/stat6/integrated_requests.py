@@ -19,6 +19,11 @@ def integrated_study(capability, objects, sequences):
         return None
     operation, kind = programs[capability]
     payload, inputs = {"kind": kind}, []
+    options = {
+        "device": "cuda" if kind in {"boltz", "boltzgen"} else "cpu",
+        "cpu": 2,
+        "memory_mib": 24576 if kind in {"boltz", "boltzgen"} else 4096,
+    }
 
     def add(role, key):
         reference = objects[key].reference
@@ -34,7 +39,13 @@ def integrated_study(capability, objects, sequences):
         payload["samples"] = 3
     elif kind == "reinvent":
         add("ligand", "study_ligand")
-        payload.update(mode="analogues", candidates=50)
+        payload.update(
+            mode="r_groups",
+            fragments=["CN(C)C(=O)c1cc2ccc([*:1])c(F)c2[nH]1"],
+            validate_scaffold_origin=True,
+            candidates=20,
+        )
+        options.update(memory_mib=2048, seed=2026)
     elif kind == "chemprop":
         add("library", "stat6_assay_library")
         payload.update(mode="train", activity_property="pIC50", activity_unit="pIC50", epochs=30)
@@ -54,9 +65,5 @@ def integrated_study(capability, objects, sequences):
         inputs=inputs,
         scientific_inputs=[i["source"] for i in inputs],
         payload=payload,
-        options={
-            "device": "cuda" if kind in {"boltz", "boltzgen"} else "cpu",
-            "cpu": 2,
-            "memory_mib": 24576 if kind in {"boltz", "boltzgen"} else 4096,
-        },
+        options=options,
     ).model_dump(mode="json")

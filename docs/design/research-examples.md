@@ -19,6 +19,15 @@ optional pin review retains the interpretation and limitations; it is computatio
 review, not experimental validation. MD/FEP examples are excluded from the current
 owner case campaign while those calculations remain paused.
 
+The STAT6 REINVENT template uses the source-verified fluoroindole scaffold from
+the supplied study molecule, with one explicitly marked R-group attachment site,
+a 20-candidate budget and the retained CPU/memory/seed settings. Loading the
+template does not run a calculation. Generated molecules are unbound calculated
+conformers; preserved scaffold connectivity and molecular properties do not prove
+STAT6 binding, pocket compatibility or activity. Those require separate paired
+docking and independent quality review. Native 3D image capture first presents a
+preview; **Download view PNG** saves the displayed image.
+
 A fixed study can retain up to eight successful follow-up task results alongside
 its original result, such as receptor-bound refinement and independent pose
 quality. Each follow-up must consume a typed scientific output of the primary
