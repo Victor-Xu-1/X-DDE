@@ -140,7 +140,11 @@ it.each(["en", "zh"] as const)(
         onSelect={vi.fn()}
       />,
     );
-    expect(screen.getByRole("status")).toHaveTextContent(
+    expect(
+      screen.getByRole("status", {
+        name: language === "en" ? "Molecular connectivity" : "分子连接状态",
+      }),
+    ).toHaveTextContent(
       language === "en"
         ? "Contains 3 disconnected components"
         : "包含 3 个未连接的结构片段",
