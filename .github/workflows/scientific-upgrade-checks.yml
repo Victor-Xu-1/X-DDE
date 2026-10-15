@@ -40,6 +40,7 @@ on:
       - "tests/test_scientific_entrypoint.py"
       - "tests/test_apbs_protocol.py"
       - "tests/test_plip_coordinates.py"
+      - "tests/test_plip_contacts.py"
       - "server_tests/test_native_structure_format.py"
       - "server_tests/test_native_stat6_plip.py"
       - ".github/workflows/scientific-upgrade-checks.yml"
@@ -73,6 +74,7 @@ jobs:
           tests/test_reinvent_origin.py tests/test_scientific_cache.py
           tests/test_apbs_protocol.py
           tests/test_plip_coordinates.py
+          tests/test_plip_contacts.py
           tests/test_capabilities.py tests/test_operations.py
       - name: Original molecular identities and bounded PDB transport with the real parser
         run: >-

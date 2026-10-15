@@ -278,6 +278,10 @@ long component names instead of silently corrupting fields. Native PLIP owns its
 configured alternate-location interpretation; format conversion makes no implicit
 conformer selection. Geometric distances and chemical contact types remain
 distinct from interaction energy or measured binding affinity.
+Contact translation reads PLIP's actual atom wrappers for halogen and metal
+contacts. Ring centroids and charge centers are checked against their original
+participating atoms and residue identities. Native atom-centered functional
+groups retain that definition rather than being replaced with a centroid.
 
 Preparation dependencies are explicit. The BRD4 receptor is selected from the
 fixed Biopython preparation outcome; antibody variable domains come unchanged

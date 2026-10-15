@@ -26,6 +26,7 @@ FILES = (
     "native_validation.py",
     "native_plip.py",
     "plip_coordinates.py",
+    "plip_contacts.py",
     "recipes.json",
 )
 
