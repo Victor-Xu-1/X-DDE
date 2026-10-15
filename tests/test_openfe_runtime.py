@@ -27,7 +27,7 @@ def test_cuda_solver_binds_virtual_driver_and_keeps_package_sha256(resolver, mon
     calls = []
     package = {
         "name": "openmm",
-        "url": "https://conda.anaconda.org/conda-forge/linux-64/reviewed.conda",
+        "url": "https://conda.anaconda.org/conda-forge/linux-64/openmm-8.4.0-py312h5a97af1_2.conda",
         "sha256": "a" * 64,
     }
 

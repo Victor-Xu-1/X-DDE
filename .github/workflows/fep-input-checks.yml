@@ -11,6 +11,8 @@ on:
       - "src/opendde_workbench/integrations/backend.py"
       - "tests/test_fep_input.py"
       - "tests/test_fep_leg.py"
+      - "tests/test_openfe_runtime.py"
+      - "scripts/resolve-openfe-lock.py"
       - ".github/workflows/fep-input-checks.yml"
 permissions:
   contents: read
