@@ -125,7 +125,7 @@ it("reviews the current purpose and excludes a retained receptor after switching
   fireEvent.click(screen.getByRole("button", { name: "Back" }));
   fireEvent.click(screen.getByRole("button", { name: "Back" }));
   fireEvent.click(
-    screen.getByRole("radio", { name: "Molecular conformation", exact: true }),
+      screen.getByRole("radio", { name: "Molecular conformation" }),
   );
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
