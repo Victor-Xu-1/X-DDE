@@ -5,6 +5,7 @@ import type { MoleculeRef } from "../research/types";
 import type { ScientificPayload, ScientificProgram } from "./types";
 import { LibraryInput } from "./LibraryInput";
 import { MoleculeImage } from "../presentation/MoleculeImage";
+import { reinventModes } from "./reinvent-modes";
 
 export function ScientificInputs({
   program,
@@ -192,23 +193,11 @@ export function ScientificInputs({
               onLigand(null);
             }}
           >
-            <option value="analogues">
-              {zh ? "从已有分子寻找类似物" : "Find analogues of a molecule"}
-            </option>
-            <option value="optimize">
-              {zh
-                ? "围绕已有分子优化性质"
-                : "Optimize properties around a molecule"}
-            </option>
-            <option value="de_novo">
-              {zh ? "从头生成" : "De novo generation"}
-            </option>
-            <option value="r_groups">
-              {zh ? "替换 R 基" : "Replace R-groups"}
-            </option>
-            <option value="linker">
-              {zh ? "连接两个片段" : "Link two fragments"}
-            </option>
+            {reinventModes.map(([value, cn, en]) => (
+              <option key={value} value={value}>
+                {zh ? cn : en}
+              </option>
+            ))}
           </select>
         </label>
         {["analogues", "optimize"].includes(String(payload.mode)) ? (
@@ -232,6 +221,11 @@ export function ScientificInputs({
                   : "Mark attachment positions with *. Linker design requires two fragments."}
               </Hint>
               <textarea
+                aria-label={
+                  zh
+                    ? "片段结构（每行一个）"
+                    : "Fragment structures (one per line)"
+                }
                 rows={4}
                 value={
                   Array.isArray(payload.fragments)

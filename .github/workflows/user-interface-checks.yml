@@ -7,6 +7,13 @@ on:
       # Research-file classification has exact result/input handoff checks.
       - "!frontend/src/presentation/research-files*"
       - "frontend/src/integrations/**"
+      # Chemical-scope questionnaires have a focused native Ketcher/review gate.
+      - "!frontend/src/integrations/Reinvent*"
+      - "!frontend/src/integrations/reinvent-modes.ts"
+      - "!frontend/src/integrations/ScientificReview.tsx"
+      - "!frontend/src/integrations/ScientificSelection.tsx"
+      - "!frontend/src/integrations/ScientificChoices*"
+      - "!frontend/src/integrations/inputs.css"
       - "frontend/src/App.tsx"
       - "frontend/src/App.test.tsx"
       # Task-history navigation and App's direct consumers have exact scoped checks.
@@ -258,6 +265,12 @@ on:
     paths:
       - "frontend/src/presentation/**"
       - "frontend/src/integrations/**"
+      - "!frontend/src/integrations/Reinvent*"
+      - "!frontend/src/integrations/reinvent-modes.ts"
+      - "!frontend/src/integrations/ScientificReview.tsx"
+      - "!frontend/src/integrations/ScientificSelection.tsx"
+      - "!frontend/src/integrations/ScientificChoices*"
+      - "!frontend/src/integrations/inputs.css"
       - "frontend/src/App.tsx"
       - "frontend/src/App.test.tsx"
       - "frontend/src/TaskDetail*"

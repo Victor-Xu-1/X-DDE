@@ -200,6 +200,7 @@ export function ScientificChoices({
               </Hint>
               <input
                 type="number"
+                aria-label={zh ? "随机种子" : "Random seed"}
                 min={0}
                 max={2147483647}
                 value={options.seed}

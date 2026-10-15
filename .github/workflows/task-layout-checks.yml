@@ -9,6 +9,13 @@ on:
       - "!frontend/src/guided/MolecularInputs.tsx"
       - "!frontend/src/guided/ChoiceCards.tsx"
       - "frontend/src/integrations/**"
+      # Molecular design scope has exact bilingual browser/layout checks.
+      - "!frontend/src/integrations/Reinvent*"
+      - "!frontend/src/integrations/reinvent-modes.ts"
+      - "!frontend/src/integrations/ScientificReview.tsx"
+      - "!frontend/src/integrations/ScientificSelection.tsx"
+      - "!frontend/src/integrations/ScientificChoices*"
+      - "!frontend/src/integrations/inputs.css"
       - "frontend/src/datasets/SourcePicker*"
       - "frontend/src/datasets/useDatasetSources*"
       - "frontend/src/datasets/DEL*"

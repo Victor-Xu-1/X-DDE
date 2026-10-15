@@ -11,6 +11,8 @@ import { ScientificInputs } from "./ScientificInputs";
 import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
+import { ScientificReview } from "./ScientificReview";
+import { usesStartingMolecule } from "./reinvent-modes";
 import {
   validBoltzComponents,
   validDesignFragments,
@@ -126,7 +128,7 @@ export function ScientificForm({
   if (structure) inputs.push({ role: "structure", source: structure });
   if (scaffold && ["antibody", "nanobody"].includes(String(payload.modality)))
     inputs.push({ role: "scaffold", source: scaffold });
-  if (ligand)
+  if (ligand && (program !== "reinvent" || usesStartingMolecule(payload)))
     inputs.push({
       role: program === "chemprop" ? "library" : "ligand",
       source: ligand,
@@ -237,6 +239,7 @@ export function ScientificForm({
                 payload={payload}
                 onChange={update}
                 structure={structure}
+                ligand={ligand}
                 onValid={setSelectionValid}
                 onTrainModel={
                   onChooseTask
@@ -287,28 +290,13 @@ export function ScientificForm({
                   placeholder={zh ? "为这次研究起个名字" : "Name this study"}
                 />
               </label>
-              <table className="compact-table">
-                <tbody>
-                  <tr>
-                    <th>{zh ? "计算程序" : "Scientific program"}</th>
-                    <td>{program === "boltz" ? "Boltz-2" : program}</td>
-                  </tr>
-                  <tr>
-                    <th>{zh ? "材料" : "Inputs"}</th>
-                    <td>
-                      {inputs.length
-                        ? `${inputs.length} ${zh ? "份已确认文件" : "confirmed files"}`
-                        : zh
-                          ? "本次填写的分子与序列"
-                          : "Molecules and sequences entered for this task"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>{zh ? "计算设备" : "Device"}</th>
-                    <td>{options.device === "cuda" ? "GPU" : "CPU"}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <ScientificReview
+                program={program}
+                language={language}
+                payload={payload}
+                inputs={inputs}
+                options={options}
+              />
             </>
           ),
         },

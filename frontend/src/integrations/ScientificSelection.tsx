@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { StructureTargetSelection } from "./StructureTargetSelection";
 import { PropertyModelSelection } from "./PropertyModelSelection";
+import { ReinventReview } from "./ReinventReview";
 
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
@@ -12,6 +13,7 @@ export function ScientificSelection({
   payload,
   onChange,
   structure,
+  ligand = null,
   onValid,
   onTrainModel,
 }: {
@@ -20,6 +22,7 @@ export function ScientificSelection({
   payload: ScientificPayload;
   onChange(value: Partial<ScientificPayload>): void;
   structure: MoleculeRef | null;
+  ligand?: MoleculeRef | null;
   onValid(value: boolean): void;
   onTrainModel?(): void;
 }) {
@@ -40,6 +43,10 @@ export function ScientificSelection({
             : true,
     );
   }, [program, payload, onValid]);
+  if (program === "reinvent")
+    return (
+      <ReinventReview payload={payload} language={language} ligand={ligand} />
+    );
   if (program === "chemprop")
     return payload.mode === "train" ? (
       <>

@@ -46,6 +46,18 @@
   display: block;
   margin-top: 18px;
 }
+.design-fragment-previews {
+  display: grid;
+  gap: 20px;
+}
+.design-fragment-previews figure {
+  margin: 0;
+  min-width: 0;
+}
+.design-fragment-previews figcaption {
+  color: var(--muted);
+  font-size: 12px;
+}
 .scientific-input-grid > .secondary-button {
   grid-column: 1/-1;
   justify-self: start;

@@ -35,9 +35,8 @@ on:
       - "frontend/src/research/SdfRecordPicker*"
       - "frontend/src/research/useSdfAsset*"
       - "frontend/src/integrations/LibraryInput*"
-      - "frontend/src/integrations/ScientificInputs.tsx"
-      - "frontend/src/integrations/ScientificForm.tsx"
-      - "frontend/src/integrations/ScientificForm.test.tsx"
+      # These direct form consumers run in molecule-design-review-checks.yml;
+      # changed shared transports above still run this complete input gate.
       - "frontend/src/simulations/SimulationForm.tsx"
       - "frontend/src/diffsbdd/ReferenceFormats*"
       - "src/opendde_workbench/research/input_catalog.py"
@@ -46,7 +45,6 @@ on:
       - "server_tests/test_generic_input_browser.py"
       - "server_tests/test_result_reuse_browser.py"
       - "server_tests/test_reference_input_browser.py"
-      - ".github/workflows/reference-input-checks.yml"
 permissions:
   contents: read
 jobs:

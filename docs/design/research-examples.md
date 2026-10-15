@@ -130,6 +130,21 @@ the complete offline, non-root `reinvent --help` entrypoint before publishing th
 runtime receipt; successful package installation alone is insufficient. This
 readiness check does not load a prior, sample molecules or claim scientific acceptance.
 
+REINVENT's scope and submission steps show the actual selected starting record or
+attachment-point scaffolds through the shared native Ketcher renderer. The review
+uses the same mode, candidate budget, optimization targets (optimization only),
+resources and seed as the submitted request. Editing an earlier step updates that
+review. R-group, linker and de novo requests exclude unrelated starting-molecule
+references, including fallback material from a template. Chemical scaffold design
+does not promise fixed 3D coordinates or establish a binding pose; generated
+candidates still need independent structural and property review.
+The focused molecular-design workflow keeps real model execution opt-in. Its
+`native-reinvent` mode installs the same managed runtime and official priors, then
+submits one 20-candidate, CPU-bounded STAT6 scaffold study through the real frontend.
+It retains the original request, environment, native files and database snapshot.
+This is a computed case awaiting independent review, not an automatic fixed
+example or evidence that the owner's local runtime is ready.
+
 Fixed native outcomes reference successful tasks in the same jobs database.
 `example_pins` stores the request digest, bound environment-metadata digest and
 every retained artifact digest. A fixed example cannot be replaced in place;
