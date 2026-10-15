@@ -44,7 +44,9 @@ def test_diffsbdd_material_and_protocol_review(language, width):
         page.get_by_role("navigation", name="主导航" if zh else "Main navigation").get_by_role(
             "button", name="小分子设计" if zh else "Small-molecule design", exact=True
         ).click()
-        upload = page.locator('input[type="file"]')
+        upload = page.get_by_role(
+            "group", name="选择材料" if zh else "Choose inputs", exact=True
+        ).locator('input[type="file"]')
         expect(upload).to_have_count(1)
         upload.set_input_files(input_file)
         next_button = page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
@@ -71,7 +73,7 @@ def test_diffsbdd_material_and_protocol_review(language, width):
                 "Cα · moad · 条件生成" if zh else "Cα · moad · Conditional", exact=True
             )
         ).to_be_visible()
-        review.get_by_text("1 个选定残基" if zh else "1 selected residues", exact=True).click()
+        review.get_by_text("1 个选定残基" if zh else "1 selected residue", exact=True).click()
         expect(review.get_by_text(residue, exact=True)).to_be_visible()
         with page.expect_download() as pending:
             review.get_by_role("link", name=input_file.name, exact=True).click()

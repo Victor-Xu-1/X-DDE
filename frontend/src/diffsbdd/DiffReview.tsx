@@ -80,7 +80,12 @@ export function DiffReview({
       pocket.kind === "residues" ? (
         <details>
           <summary>
-            {pocket.residues.length} {zh ? "个选定残基" : "selected residues"}
+            {pocket.residues.length}{" "}
+            {zh
+              ? "个选定残基"
+              : pocket.residues.length === 1
+                ? "selected residue"
+                : "selected residues"}
           </summary>
           <p>
             {pocket.residues
