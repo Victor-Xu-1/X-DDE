@@ -1,5 +1,6 @@
 name: Molecular view workspace alignment
 on:
+  workflow_dispatch:
   push:
     paths: &structure_paths
       - "frontend/src/operations/NativeReport.tsx"
