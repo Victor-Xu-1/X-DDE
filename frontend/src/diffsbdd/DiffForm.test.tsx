@@ -193,9 +193,7 @@ it("blocks an oversized optimization budget before submission and uses the edite
     name: "How many molecules per round?",
   });
   fireEvent.change(population, { target: { value: "60" } });
-  expect(
-    screen.getByRole("button", { name: "Next" }),
-  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   expect(submit).not.toHaveBeenCalled();
   fireEvent.change(population, { target: { value: "12" } });
   fireEvent.change(
@@ -205,13 +203,9 @@ it("blocks an oversized optimization budget before submission and uses the edite
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByText("48", { selector: "dd" })).toBeVisible();
   await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Create task" }),
-    ).toBeEnabled(),
+    expect(screen.getByRole("button", { name: "Create task" })).toBeEnabled(),
   );
-  await user.click(
-    screen.getByRole("button", { name: "Create task" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Create task" }));
   expect(submit).toHaveBeenCalledWith(
     expect.objectContaining({
       payload: expect.objectContaining({
@@ -219,6 +213,7 @@ it("blocks an oversized optimization budget before submission and uses the edite
         options: expect.objectContaining({ population: 12, rounds: 4 }),
       }),
     }),
+    expect.any(String),
   );
 });
 
