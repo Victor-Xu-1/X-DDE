@@ -50,6 +50,15 @@ def readiness(settings):
 
 
 def validate(request, state):
+    # Admission-only: retain readable historical requests that failed this native limit.
+    if request.payload.mode == "inpaint":
+        options = request.payload.options
+        if options.size_mode == "fixed" and not (
+            8 <= len(options.fixed_atoms) + options.added_atoms <= 80
+        ):
+            raise ValueError(
+                "Fixed and added heavy atoms must total 8–80; adjust the core or added atoms."
+            )
     if not state.get("ready"):
         raise RuntimeError(state.get("reason") or "DiffSBDD runtime is unavailable.")
     if request.payload.mode in {"generate", "inpaint", "diversify", "optimize"}:

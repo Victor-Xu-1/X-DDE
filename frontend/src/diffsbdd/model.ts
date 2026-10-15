@@ -25,6 +25,29 @@ export const referenceKey = (ref: MoleculeRef | null) =>
         ]
       : null,
   );
+
+export function inpaintSizeValid(
+  options: Record<string, unknown>,
+  fixedCount: number,
+) {
+  const added = options.added_atoms;
+  if (
+    !Number.isInteger(fixedCount) ||
+    fixedCount < 1 ||
+    fixedCount > 80 ||
+    typeof added !== "number" ||
+    !Number.isInteger(added) ||
+    added < 0 ||
+    added > 79
+  )
+    return false;
+  return (
+    options.size_mode === "sample" ||
+    (options.size_mode === "fixed" &&
+      fixedCount + added >= 8 &&
+      fixedCount + added <= 80)
+  );
+}
 export function residueFromSelection(
   protein: MoleculeRef,
   chain: string,
@@ -80,6 +103,10 @@ export function designPayload(
     (!fixed.length || new Set(fixed).size !== fixed.length)
   )
     throw new Error("Select fixed atoms on the validated molecular preview.");
+  if (mode === "inpaint" && !inpaintSizeValid(options, fixed.length))
+    throw new Error(
+      "Fixed and added heavy atoms must total 8–80; adjust the core or added atoms.",
+    );
   return {
     mode,
     saved_regions: mode === "inpaint" ? savedRegions : null,

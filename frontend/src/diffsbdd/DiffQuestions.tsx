@@ -108,6 +108,7 @@ export function DiffSettingQuestions({
   setOptions,
   name,
   setName,
+  fixedCount = 0,
 }: {
   mode: DiffMode;
   language: Language;
@@ -117,6 +118,7 @@ export function DiffSettingQuestions({
   setOptions(value: Record<string, unknown>): void;
   name: string;
   setName(value: string): void;
+  fixedCount?: number;
 }) {
   const zh = language === "zh";
   return (
@@ -144,6 +146,7 @@ export function DiffSettingQuestions({
           onChange={setOptions}
           expert={expert}
           language={language}
+          fixedCount={fixedCount}
         />
       )}
       <label className="field">

@@ -12,7 +12,12 @@ import { DiffInputQuestions, DiffSettingQuestions } from "./DiffQuestions";
 import { DiffReview } from "./DiffReview";
 import { PocketPicker } from "./PocketPicker";
 import { FixedAtomPicker } from "./FixedAtomPicker";
-import { designPayload, optionsFor, referenceKey } from "./model";
+import {
+  designPayload,
+  inpaintSizeValid,
+  optionsFor,
+  referenceKey,
+} from "./model";
 import { isDesign, type DiffMode, type Pocket } from "./types";
 import { defaults } from "./generated";
 import "./diffsbdd.css";
@@ -356,6 +361,7 @@ export function DiffForm({
       setOptions={setOptions}
       name={name}
       setName={setName}
+      fixedCount={fixed.length}
     />
   );
   const inputValid =
@@ -366,6 +372,8 @@ export function DiffForm({
     (!(isDesign(mode) || mode === "pocket") || Boolean(pocket)) &&
     (mode !== "inpaint" || fixed.length > 0) &&
     (mode !== "interactions" || alignedPose);
+  const settingsValid =
+    mode !== "inpaint" || inpaintSizeValid(options, fixed.length);
   const names: Record<DiffMode, [string, string]> = {
     generate: ["口袋条件分子生成", "Pocket-conditioned generation"],
     inpaint: ["局部重设计", "Local redesign"],
@@ -423,12 +431,12 @@ export function DiffForm({
         {
           title: zh ? "选择方案" : "Choose settings",
           content: settings,
-          valid: true,
+          valid: settingsValid,
         },
         {
           title: zh ? "确认启动" : "Review & start",
           content: review,
-          valid: inputValid && selectionValid,
+          valid: inputValid && selectionValid && settingsValid,
         },
       ]}
     />

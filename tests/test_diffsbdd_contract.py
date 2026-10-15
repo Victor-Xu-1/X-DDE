@@ -92,3 +92,27 @@ def test_atom_identity_uses_same_task_queue_and_cpu_only():
     assert not needs_gpu(task)
     assert input_identifiers(task) == {ref["asset_id"]}
     assert TASK_ADAPTER.validate_json(task.model_dump_json()) == task
+
+
+@pytest.mark.parametrize(
+    "fixed,added,allowed",
+    [(1, 6, False), (1, 7, True), (71, 9, True), (71, 10, False), (80, 0, True)],
+)
+def test_inpaint_size_is_checked_at_admission_without_breaking_history(fixed, added, allowed):
+    from opendde_workbench.diffsbdd.runtime import validate
+
+    body = design("inpaint")
+    payload = body["payload"]
+    payload["options"].update(fixed_atoms=list(range(fixed)), added_atoms=added)
+    payload["fixed_atoms"] = [{"molecule": payload["initial"], "index": i} for i in range(fixed)]
+    request = TASK_ADAPTER.validate_python(body)
+    state = {"ready": True, "models": {request.payload.options.model: True}}
+    if allowed:
+        validate(request, state)
+    else:
+        with pytest.raises(ValueError, match="total 8–80"):
+            validate(request, state)
+    # Failed historical requests remain readable; native sample mode does not use added_atoms.
+    assert TASK_ADAPTER.validate_json(request.model_dump_json()) == request
+    payload["options"]["size_mode"] = "sample"
+    validate(TASK_ADAPTER.validate_python(body), state)

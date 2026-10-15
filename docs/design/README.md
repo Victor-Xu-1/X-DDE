@@ -18,6 +18,10 @@ count, molecular size and sampling budget. Local redesign also identifies its
 fixed heavy atoms and bond policy. Filename lookup verifies the selected digest,
 cancels superseded reads and never changes task inputs. Preparation and export
 show their own material choices rather than unrelated generation defaults.
+Local redesign exposes the added-heavy-atom budget beside the selected core.
+Fixed and added atoms must total 8–80 before dispatch. This check is repeated
+at task admission, without making previously failed historical requests unreadable;
+native sampled-size mode retains its separate size policy.
 
 Task review offers an explicit environment recheck after an unavailable or failed
 check. It retains the current materials, method, questionnaire step and scientific

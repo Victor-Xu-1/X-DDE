@@ -2,19 +2,21 @@ import { JsonEditor } from "../operations/ScientificInputs";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import type { DesignMode } from "./types";
-import { compatibleModels, optionsFor } from "./model";
+import { compatibleModels, inpaintSizeValid, optionsFor } from "./model";
 export function DesignOptions({
   mode,
   value,
   onChange,
   expert,
   language,
+  fixedCount = 0,
 }: {
   mode: DesignMode;
   value: Record<string, unknown>;
   onChange(v: Record<string, unknown>): void;
   expert: boolean;
   language: Language;
+  fixedCount?: number;
 }) {
   const zh = language === "zh";
   return (
@@ -61,6 +63,37 @@ export function DesignOptions({
           ? "默认使用全原子条件模型。CA 表示仅用 Cα 受体表示；joint 模型仅供从头生成。安装状态由服务器确认。"
           : "The default uses full-atom conditioning. CA uses a Cα receptor representation; joint models support generation only. The server verifies installation."}
       </p>
+      {mode === "inpaint" && value.size_mode === "fixed" && (
+        <>
+          <label className="field">
+            {zh
+              ? "在固定核心外新增多少个重原子？"
+              : "How many heavy atoms should be added to the fixed core?"}
+            <input
+              type="number"
+              min={Math.max(0, 8 - fixedCount)}
+              max={Math.min(79, 80 - fixedCount)}
+              step={1}
+              required
+              value={Number(value.added_atoms)}
+              aria-invalid={!inpaintSizeValid(value, fixedCount)}
+              onChange={(event) =>
+                onChange({ ...value, added_atoms: Number(event.target.value) })
+              }
+            />
+          </label>
+          <p
+            className={
+              inpaintSizeValid(value, fixedCount) ? "field-help" : "notice"
+            }
+            role={inpaintSizeValid(value, fixedCount) ? undefined : "alert"}
+          >
+            {zh
+              ? `固定 ${fixedCount} ＋ 新增 ${value.added_atoms} ＝ ${fixedCount + Number(value.added_atoms)} 个重原子；合计需为 8–80。`
+              : `${fixedCount} fixed + ${value.added_atoms} added = ${fixedCount + Number(value.added_atoms)} heavy atoms; the total must be 8–80.`}
+          </p>
+        </>
+      )}
       {mode === "optimize" && (
         <label className="field">
           {zh
