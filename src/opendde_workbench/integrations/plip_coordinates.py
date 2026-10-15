@@ -24,7 +24,10 @@ class SourceCoordinates:
             self.points.setdefault(point, []).append(residue)
 
     def atom(self, atom, *, protein=None, ligand=False):
-        native = tuple(float(value) for value in atom.coords)
+        return self.point(atom.coords, protein=protein, ligand=ligand)
+
+    def point(self, coordinates, *, protein=None, ligand=False):
+        native = tuple(float(value) for value in coordinates)
         key = tuple(round(value, 3) for value in native)
         entries = self.points.get(key, [])
         if protein is not None:
@@ -36,3 +39,20 @@ class SourceCoordinates:
                 "A native interaction endpoint differs from the exact source frame or residue."
             )
         return list(key)
+
+    def group(self, atoms, center, *, protein=None, ligand=False, atom_center=False):
+        atoms = list(atoms)
+        if not 1 <= len(atoms) <= 256 or len(center) != 3:
+            raise ValueError(
+                "A native interaction group needs bounded original atoms and a center."
+            )
+        points = [self.atom(atom, protein=protein, ligand=ligand) for atom in atoms]
+        native = tuple(float(value) for value in center)
+        if atom_center:
+            # PLIP places phosphate/sulfate/guanidine charge centers on a source
+            # atom, which need not be the centroid of its contributing atoms.
+            return self.point(native, protein=protein, ligand=ligand)
+        average = tuple(sum(point[axis] for point in points) / len(points) for axis in range(3))
+        if not all(math.isfinite(value) for value in native) or math.dist(average, native) > 0.001:
+            raise ValueError("A native interaction center differs from its original source atoms.")
+        return list(native)

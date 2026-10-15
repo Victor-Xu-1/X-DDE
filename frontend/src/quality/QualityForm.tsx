@@ -9,7 +9,8 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import { qualityDefaults } from "./generated";
-import type { QualityProfile } from "./types";
+import { QualityReview } from "./QualityReview";
+import type { PoseQualityTask, QualityProfile } from "./types";
 
 export function QualityForm({
   language,
@@ -42,6 +43,24 @@ export function QualityForm({
   const contextValid =
     profile === "mol" ||
     Boolean(protein && confirmed && (profile !== "redock" || reference));
+  function getTask(): PoseQualityTask {
+    return {
+      operation: "pose_quality",
+      name:
+        name.trim() ||
+        (zh ? "构象与姿势质控" : "Conformation and pose quality"),
+      molecule: molecule!,
+      protein: profile === "mol" ? null : protein,
+      reference: profile === "redock" ? reference : null,
+      coordinate_basis: profile === "mol" ? null : "user_confirmed",
+      scientific_inputs: [
+        molecule!,
+        ...(profile !== "mol" && protein ? [protein] : []),
+        ...(profile === "redock" && reference ? [reference] : []),
+      ],
+      options,
+    };
+  }
   return (
     <Questionnaire
       language={language}
@@ -55,24 +74,7 @@ export function QualityForm({
           : "Install the independent PoseBusters environment in Installation & components."
       }
       submitLabel={zh ? "开始质控" : "Check pose quality"}
-      onSubmit={() =>
-        run.submit({
-          operation: "pose_quality",
-          name:
-            name.trim() ||
-            (zh ? "构象与姿势质控" : "Conformation and pose quality"),
-          molecule: molecule!,
-          protein: profile === "mol" ? null : protein,
-          reference: profile === "redock" ? reference : null,
-          coordinate_basis: profile === "mol" ? null : "user_confirmed",
-          scientific_inputs: [
-            molecule!,
-            ...(profile !== "mol" && protein ? [protein] : []),
-            ...(profile === "redock" && reference ? [reference] : []),
-          ],
-          options,
-        })
-      }
+      onSubmit={() => run.submit(getTask())}
       steps={[
         {
           title: zh ? "选择三维分子" : "Choose a 3D molecule",
@@ -216,17 +218,11 @@ export function QualityForm({
           valid: Boolean(molecule) && contextValid,
           content: (
             <>
-              <dl className="questionnaire-review">
-                <dt>{zh ? "分子版本" : "Molecule version"}</dt>
-                <dd>
-                  {molecule?.version_id ?? molecule?.asset_id} · #
-                  {(molecule?.record ?? 0) + 1}
-                </dd>
-                <dt>{zh ? "检查方案" : "Profile"}</dt>
-                <dd>PoseBusters 0.6.5 · {profile}</dd>
-                <dt>{zh ? "原始结构" : "Original structures"}</dt>
-                <dd>{zh ? "保持原样" : "Remain unchanged"}</dd>
-              </dl>
+              <QualityReview
+                language={language}
+                getTask={getTask}
+                enabled={Boolean(molecule) && contextValid}
+              />
               <Hint
                 label={zh ? "质控通过代表什么？" : "What does a pass mean?"}
               >

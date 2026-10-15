@@ -12,6 +12,17 @@ vi.mock("../../operations/useTaskSubmit", () => ({
 vi.mock("../../diffsbdd/ReferencePicker", () => ({
   ReferencePicker: ({ label }: { label: string }) => <span>{label}</span>,
 }));
+vi.mock("../../diffsbdd/ReviewReference", () => ({
+  ReviewReference: ({
+    reference,
+  }: {
+    reference: { asset_id: string; record: number };
+  }) => (
+    <span>
+      {reference.asset_id} · record {reference.record + 1}
+    </span>
+  ),
+}));
 const molecule = {
   asset_id: "molecule",
   sha256: "a".repeat(64),
@@ -89,4 +100,52 @@ it("blocks submission when the independent quality environment is unavailable", 
     screen.getByRole("button", { name: "Check pose quality" }),
   ).toBeDisabled();
   expect(mocks.submit).not.toHaveBeenCalled();
+});
+
+it("reviews the current purpose and excludes a retained receptor after switching to molecular checks", async () => {
+  render(
+    <QualityForm
+      language="en"
+      onCreated={vi.fn()}
+      initialMolecule={molecule}
+      initialProtein={{ ...molecule, asset_id: "protein", record: 0 }}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  fireEvent.click(
+    screen.getByRole("checkbox", {
+      name: "These poses share the selected protein coordinate frame",
+    }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(
+    screen.getByRole("table", { name: "Quality materials and plan" }),
+  ).toHaveTextContent("protein · record 1");
+  fireEvent.click(screen.getByRole("button", { name: "Back" }));
+  fireEvent.click(screen.getByRole("button", { name: "Back" }));
+  fireEvent.click(
+    screen.getByRole("radio", { name: "Molecular conformation" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  const review = screen.getByRole("table", {
+    name: "Quality materials and plan",
+  });
+  expect(review).toHaveTextContent("molecule · record 3");
+  expect(review).not.toHaveTextContent("protein · record 1");
+  expect(mocks.submit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Check pose quality" }));
+  await waitFor(() =>
+    expect(mocks.submit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        molecule,
+        protein: null,
+        reference: null,
+        coordinate_basis: null,
+        scientific_inputs: [molecule],
+        options: expect.objectContaining({ profile: "mol" }),
+      }),
+    ),
+  );
 });

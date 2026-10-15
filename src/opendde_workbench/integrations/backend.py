@@ -26,6 +26,7 @@ FILES = (
     "native_validation.py",
     "native_plip.py",
     "plip_coordinates.py",
+    "plip_contacts.py",
     "recipes.json",
 )
 
@@ -35,6 +36,8 @@ class ScientificBackend(PreparedContainerBackend):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
+        if identifier in {"plip", "apbs", "openmm", "ligandmpnn"}:
+            shared["receptor_native_io.py"] = root / "receptors/native_io.py"
         if identifier == "reinvent":
             shared["native_reinvent_scope.py"] = Path(__file__).with_name(
                 "native_reinvent_scope.py"

@@ -1,5 +1,7 @@
 """Installed scientific readiness includes the real CLI import boundary."""
 
+from pathlib import Path
+
 import pytest
 
 from opendde_workbench.deployment.native_readiness import verify_native_entrypoint
@@ -26,12 +28,31 @@ def test_reinvent_cli_probe_preserves_offline_nonroot_execution_and_does_not_loa
     assert kwargs["timeout"] == 120
 
 
-def test_failed_cli_initialization_is_not_advertised_as_installed():
+@pytest.mark.parametrize("identifier", ["reinvent", "plip"])
+def test_failed_cli_initialization_is_not_advertised_as_installed(identifier):
     def fail(args, **kwargs):
         raise RuntimeError("native CLI has a missing runtime library")
 
     with pytest.raises(RuntimeError, match="missing runtime library"):
-        verify_native_entrypoint("reinvent", "sha256:fixed-image", fail)
+        verify_native_entrypoint(identifier, "sha256:fixed-image", fail)
+
+
+def test_plip_installation_probes_its_declared_mmcif_parser_without_loading_research():
+    calls = []
+    verify_native_entrypoint(
+        "plip", "sha256:fixed-image", lambda args, **kwargs: calls.append((args, kwargs))
+    )
+    args, kwargs = calls[0]
+    assert args[-5:-1] == ["--entrypoint", "python", "sha256:fixed-image", "-c"]
+    assert "from Bio.PDB import MMCIFParser, PDBIO" in args[-1]
+    assert "from plip.structure.preparation import PDBComplex" in args[-1]
+    assert args[args.index("--network") + 1] == "none" and "--read-only" in args
+    assert "--mount" not in args and "--gpus" not in args and kwargs["timeout"] == 120
+    assert "biopython=1.88" in PROGRAMS["plip"]["conda"]
+    lock = Path(__file__).parents[1] / "src/opendde_workbench/integrations/recipes/plip.conda.txt"
+    assert "/biopython-1.88-" in lock.read_text(), (
+        "Publish the actual hash-locked parser dependency"
+    )
 
 
 def test_reinvent_recipe_contains_reviewed_rdkit_drawing_libraries():

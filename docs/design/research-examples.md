@@ -268,6 +268,24 @@ result cannot change the sealed native artifact inventory. Display caches use
 schema 4; legacy schema-3 display caches are preserved during the verified local
 migration, outside native output.
 
+PLIP inputs retain their original mmCIF identifiers and source coordinates in
+the downloadable structure. For PDB-only native execution, the existing receptor
+writer enforces fixed-column bounds; long heterocomponent names receive a
+collision-free private alias with an immutable source-reference receipt. This
+translation preserves atom names, author numbering, alternate locations and
+coordinates at PDB decimal precision. Other PDB-only programs reject untranslated
+long component names instead of silently corrupting fields. Native PLIP owns its
+configured alternate-location interpretation; format conversion makes no implicit
+conformer selection. Geometric distances and chemical contact types remain
+distinct from interaction energy or measured binding affinity.
+Contact translation reads PLIP's actual atom wrappers for halogen and metal
+contacts. Ring centroids and charge centers are checked against their original
+participating atoms and residue identities. Native atom-centered functional
+groups retain that definition rather than being replaced with a centroid.
+The PLIP environment explicitly includes the mmCIF parser. Its dependency repair
+retains the existing package builds and SHA256 identities, and installation
+probes both PLIP and the structural parser before accepting a runtime receipt.
+
 Preparation dependencies are explicit. The BRD4 receptor is selected from the
 fixed Biopython preparation outcome; antibody variable domains come unchanged
 from native ANARCII numbering. Whole-library property and ADMET examples retain

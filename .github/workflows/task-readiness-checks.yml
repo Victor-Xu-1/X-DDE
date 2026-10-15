@@ -44,6 +44,8 @@ on:
       - "frontend/src/poses/ClusterForm.tsx"
       - "frontend/src/proximity/Form.tsx"
       - "frontend/src/quality/QualityForm.tsx"
+      - "frontend/src/quality/QualityReview*"
+      - "frontend/src/quality/tests/QualityForm.test.tsx"
       - "frontend/src/receptors/ReceptorForm.tsx"
       - "frontend/src/receptors/StructurePrepareForm.tsx"
       - "frontend/src/receptors/SurfaceForm.tsx"
@@ -94,6 +96,7 @@ jobs:
           src/editors/AlignedEditAction.test.tsx
           src/pockets/PocketForm.test.tsx
           src/quality/tests/QualityForm.test.tsx
+          src/quality/QualityReview.test.tsx src/diffsbdd/ReviewReference.test.tsx
           src/receptors/ReceptorForm.test.tsx
           src/receptors/StructurePrepareForm.test.tsx
           src/receptors/SurfaceForm.test.tsx

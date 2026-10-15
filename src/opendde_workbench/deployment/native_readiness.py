@@ -6,8 +6,8 @@ from ..integrations.cache_environment import torch_cache_arguments
 
 
 def verify_native_entrypoint(identifier, image, execute):
-    """REINVENT startup imports its full dependency chain; no model is loaded."""
-    if identifier != "reinvent":
+    """Probe the declared native entry points without loading models or research inputs."""
+    if identifier not in {"reinvent", "plip"}:
         return
     args = [
         "docker",
@@ -46,4 +46,16 @@ def verify_native_entrypoint(identifier, image, execute):
         "NUMBA_CACHE_DIR=/tmp/numba",
     ]
     args += torch_cache_arguments(identifier)
-    execute([*args, "--entrypoint", "reinvent", image, "--help"], timeout=120)
+    entrypoint = (
+        ["--entrypoint", "reinvent", image, "--help"]
+        if identifier == "reinvent"
+        else [
+            "--entrypoint",
+            "python",
+            image,
+            "-c",
+            "from Bio.PDB import MMCIFParser, PDBIO; "
+            "from plip.structure.preparation import PDBComplex",
+        ]
+    )
+    execute([*args, *entrypoint], timeout=120)
