@@ -38,6 +38,14 @@ including explicitly declared stereochemistry. Their 3D previews and downloads
 retain the native calculated SDF. This avoids assigning apparent stereocenters
 from an arbitrary unbound conformation when drawing the 2D graph.
 
+The reviewed STAT6 data package now contains 24 computed capability examples,
+including the source-verified single-site R-group study. Its immutable archive
+retains original requests, native files and computational interpretations.
+Cold restoration is idempotent and never executes historical calculations.
+PNG snapshot previews retain the original native pixels, while their download
+links use bounded Blob URLs for browser compatibility and release those URLs
+when the preview closes or its source changes.
+
 A fixed study can retain up to eight successful follow-up task results alongside
 its original result, such as receptor-bound refinement and independent pose
 quality. Each follow-up must consume a typed scientific output of the primary

@@ -568,13 +568,15 @@ export function StructureViewport({
             alt={zh ? "当前三维视图图片" : "Current 3D view image"}
           />
           <figcaption>
-            <a
-              className="secondary-button"
-              href={snapshot.image}
-              download="X-DDE-structure-view.png"
-            >
-              {zh ? "下载视图 PNG" : "Download view PNG"}
-            </a>
+            {snapshot.downloadUrl && (
+              <a
+                className="secondary-button"
+                href={snapshot.downloadUrl}
+                download="X-DDE-structure-view.png"
+              >
+                {zh ? "下载视图 PNG" : "Download view PNG"}
+              </a>
+            )}
             <button
               type="button"
               className="secondary-button"

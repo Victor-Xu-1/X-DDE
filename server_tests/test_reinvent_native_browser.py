@@ -129,7 +129,7 @@ def test_real_stat6_fixed_port_study():
         page.get_by_role("button", name="Capture 3D view", exact=True).click()
         image_link = page.get_by_role("link", name="Download view PNG", exact=True)
         expect(image_link).to_be_visible(timeout=60000)
-        expect(image_link).to_have_attribute("href", re.compile(r"^data:image/png;base64,"))
+        expect(image_link).to_have_attribute("href", re.compile(r"^blob:"))
         with page.expect_download() as download:
             image_link.click()
         image = evidence / "native-3d-view.png"

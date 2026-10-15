@@ -23,6 +23,33 @@ export function useViewerSnapshot(key: string) {
   const [image, setImage] = useState(""),
     [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false);
+  const [download, setDownload] = useState<{
+    image: string;
+    url: string;
+  } | null>(null);
+  useEffect(() => {
+    let abandoned = false,
+      url = "";
+    if (!image) {
+      setDownload(null);
+      return;
+    }
+    // Use the same bounded Blob decoder as publication exports. Browsers may
+    // display a data URI while refusing it as a downloadable navigation target.
+    void dataUrlBlob(image)
+      .then((blob) => {
+        if (abandoned) return;
+        url = URL.createObjectURL(blob);
+        setDownload({ image, url });
+      })
+      .catch(() => {
+        if (!abandoned) setFailed(true);
+      });
+    return () => {
+      abandoned = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [image]);
   function close() {
     setImage("");
   }
@@ -110,5 +137,6 @@ export function useViewerSnapshot(key: string) {
       send("snapshot", { id, figure: settings });
     });
   }
-  return { image, busy, failed, close, begin, figure, receive };
+  const downloadUrl = download?.image === image ? download.url : "";
+  return { image, downloadUrl, busy, failed, close, begin, figure, receive };
 }
