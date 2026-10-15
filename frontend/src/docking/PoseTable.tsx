@@ -9,18 +9,18 @@ type Pose = DockingResult["poses"][number];
 function MetricHeading({
   label,
   short,
-  unit,
+  caption,
 }: {
   label: string;
   short: string;
-  unit: string;
+  caption: string;
 }) {
   return (
     <>
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="pose-metric-heading">
         <span>{short}</span>
-        <small>{unit}</small>
+        <small>{caption}</small>
       </span>
     </>
   );
@@ -84,16 +84,30 @@ export function PoseTable({
       exportLabel:
         scoreLabel(score.name, language) +
         (score.unit === "model_output" ? "" : " (" + score.unit + ")"),
-      label:
-        score.name === "minimizedAffinity" ? (
-          <MetricHeading
-            label={scoreLabel(score.name, language) + " (" + score.unit + ")"}
-            short={zh ? "评分" : "Score"}
-            unit={score.unit}
-          />
-        ) : (
-          scoreLabel(score.name, language)
-        ),
+      label: (
+        <MetricHeading
+          label={
+            scoreLabel(score.name, language) +
+            (score.unit === "model_output" ? "" : " (" + score.unit + ")")
+          }
+          short={
+            score.name === "minimizedAffinity"
+              ? zh
+                ? "评分"
+                : "Score"
+              : score.name === "CNNscore"
+                ? zh
+                  ? "模型姿势"
+                  : "CNN pose"
+                : zh
+                  ? "模型结合"
+                  : "CNN binding"
+          }
+          caption={
+            score.unit === "model_output" ? (zh ? "分数" : "score") : score.unit
+          }
+        />
+      ),
       numeric: true,
       value: (p: Pose) =>
         p.scores.find(
@@ -130,7 +144,7 @@ export function PoseTable({
               <MetricHeading
                 label={zh ? "整体偏差 (Å)" : "Whole-pose RMSD (Å)"}
                 short={zh ? "整体 RMSD" : "Whole RMSD"}
-                unit="Å"
+                caption="Å"
               />
             ),
             numeric: true,
@@ -144,7 +158,7 @@ export function PoseTable({
               <MetricHeading
                 label={zh ? "接触区偏差 (Å)" : "Contact RMSD (Å)"}
                 short={zh ? "接触区 RMSD" : "Contact RMSD"}
-                unit="Å"
+                caption="Å"
               />
             ),
             numeric: true,
