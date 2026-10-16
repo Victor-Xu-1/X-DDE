@@ -155,10 +155,6 @@
 .task-workspace .viewer-panel {
   padding: 16px;
 }
-.studio-app .task-workspace.is-input .viewer-panel .molecular-stage {
-  height: 320px;
-  min-height: 0;
-}
 
 .input-purpose {
   font-size: 14px;

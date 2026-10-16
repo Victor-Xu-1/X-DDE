@@ -14,6 +14,7 @@ TABLES = (
     "research_regions",
     "research_evidence",
     "research_receptor_sets",
+    "research_state_sets",
     "research_site_sets",
     "research_pose_explorations",
     "research_pose_sets",
@@ -39,6 +40,7 @@ REFERENCE_KEYS = {
     "pose_set_id",
     "receptor_set_id",
     "site_set_id",
+    "state_set_id",
     "exploration_id",
     "run_id",
     "plan_id",
@@ -118,6 +120,8 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                             "native_prepared",
                             "native_generated",
                         }
+                    elif name == "research_state_sets" and not included:
+                        included = row["source_job"] in job_ids
                     elif name == "workflow_attempts":
                         included = row["run_id"] in run_ids
                     if included:

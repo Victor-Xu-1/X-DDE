@@ -397,6 +397,7 @@ on:
       - "!frontend/src/presentation/StructureWorkbench.tsx"
       - "!frontend/src/presentation/structure-workbench.css"
       # Defined-region sources and exact PLIP review use defined-site-checks.yml.
+      - "!frontend/src/design/capabilities.css"
       - "!server_tests/test_defined_region_browser.py"
       # Do not select the whole-product browser matrix for these bounded changes.
       - "!frontend/src/sites/**"

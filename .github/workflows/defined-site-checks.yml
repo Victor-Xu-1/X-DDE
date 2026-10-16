@@ -5,6 +5,8 @@ on:
     paths:
       - "src/opendde_workbench/sites/**"
       - "src/opendde_workbench/examples/stat6_bundle_release.py"
+      - "src/opendde_workbench/examples/bundle_states.py"
+      - "src/opendde_workbench/examples/record_sources.py"
       - "src/opendde_workbench/receptors/alignment_evidence.py"
       - "src/opendde_workbench/pose_ensembles/contracts.py"
       - "src/opendde_workbench/pose_ensembles/planning.py"
@@ -14,6 +16,7 @@ on:
       - "src/opendde_workbench/research/receptor_sets.py"
       - "src/opendde_workbench/research/routes.py"
       - "frontend/src/sites/**"
+      - "frontend/src/design/capabilities.css"
       - "frontend/src/poses/Pose*"
       - "frontend/src/poses/LigandChoice*"
       - "frontend/src/poses/source-label.ts"
@@ -90,6 +93,8 @@ jobs:
           src/opendde_workbench/research/graph_records.py
           src/opendde_workbench/research/receptor_sets.py
           src/opendde_workbench/research/routes.py
+          src/opendde_workbench/examples/bundle_states.py
+          src/opendde_workbench/examples/record_sources.py
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py
           tests/test_stat6_case_data.py
           server_tests/test_defined_region_browser.py

@@ -6,9 +6,24 @@ from ..pose_ensembles.collections import PoseSets
 from ..pose_ensembles.storage import Explorations
 from ..research.receptor_sets import ReceptorSets
 from ..research.regions import RegionRecords
+from ..sites.contracts import BindingSiteSet
 from ..sites.storage import SiteSets
 from ..workflows.storage import WorkflowRecords
 from .pin_validation import validate_case_job
+
+
+def pose_source_jobs(ensemble, sites, ligands, store, assets):
+    """Keep factual source jobs; defined search conditions have no pocket predictor."""
+    jobs = [str(ensemble.source_job)]
+    if isinstance(sites, BindingSiteSet):
+        jobs.extend(str(observation.source_job) for observation in sites.observations)
+    state_ids = {row["state_set_id"] for row in ligands if row.get("state_set_id")}
+    if state_ids:
+        from ..research.state_sets import StateSets
+
+        states = StateSets(store, assets)
+        jobs.extend(str(states.get(identifier).source_job) for identifier in sorted(state_ids))
+    return list(dict.fromkeys(jobs))
 
 
 def record_source(capability, identifier, run_id, store, assets, settings):
@@ -70,8 +85,7 @@ def record_source(capability, identifier, run_id, store, assets, settings):
         ]
         if len(result["poses"]) != 1 or result["poses"][0]["qualified_pose_count"] < 1:
             raise ValueError("The pose example requires a captured native pose collection.")
-        jobs += [str(ensemble.source_job)]
-        jobs += [str(observation.source_job) for observation in sites.observations]
+        jobs += pose_source_jobs(ensemble, sites, value["request"]["ligands"], store, assets)
     return result, jobs
 
 

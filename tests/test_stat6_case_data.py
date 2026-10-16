@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -11,14 +12,46 @@ import pytest
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.deployment.manager import DeploymentManager
 from opendde_workbench.examples import stat6_bundle_release as spec
-from opendde_workbench.examples.bundle import restore_bundle, verify_examples
+from opendde_workbench.examples.bundle import export_bundle, restore_bundle, verify_examples
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.examples.stat6.catalogue import MODULES
+from opendde_workbench.research.outputs import OutputCatalog
+from opendde_workbench.research.state_sets import StateSets
+from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.store import Store
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("WB_REVIEWED_STAT6_ARCHIVE"), reason="Select the actual published-data gate."
 )
+
+
+def retained_state_roundtrip(settings, store, assets, tmp_path):
+    job = store.get("444d5076-82f9-44fc-8743-43ad4def6af8")
+    assert job and job.status == "succeeded" and job.request.operation == "molecular_states"
+    indexed = OutputCatalog(store, assets).index(
+        job, settings.state_dir / "jobs" / job.id / "output"
+    )
+    assert indexed["state"] == "complete", indexed
+    states = StateSets(store, assets).list(source_job=job.id)
+    assert len(states) == 1 and states[0].members[0].conformers
+    state = states[0]
+    target = tmp_path / "native-state-case.zip"
+    exported = export_bundle(
+        settings, target, spec.SOURCE_REVISION, capabilities=["chemistry.states"], profile="stat6"
+    )
+    destination = replace(settings, state_dir=tmp_path / "state-replay")
+    assert restore_bundle(target, destination, exported["sha256"])["computed"] == 1
+    replayed = Store(destination.state_dir / "jobs.sqlite3")
+    replayed_assets = AssetStore(replayed, destination.state_dir / "assets")
+    exact = StateSets(replayed, replayed_assets).get(state.id)
+    assert exact.model_dump_json() == state.model_dump_json()
+    scientific = ScientificStore(replayed, replayed_assets)
+    for member in exact.members:
+        scientific.validate_reference(member.reference)
+        for conformer in member.conformers:
+            scientific.validate_reference(conformer.reference)
+    assert restore_bundle(target, destination, exported["sha256"])["computed"] == 1
+    return str(state.id)
 
 
 def test_real_current_data_queue_replay_original_inputs_and_native_plip(
@@ -70,6 +103,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         hashlib.sha256((output / "interaction-structure.cif").read_bytes()).hexdigest()
         == "6a116614692defb2b092e18e61d20c7256de59943c26188b702b167bf4e2c544"
     )
+    retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)
     (evidence / "installation.json").write_text(
@@ -84,6 +118,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
                 "contact_count": 11,
                 "existing_attachment_unchanged": True,
                 "idempotent_replay": True,
+                "native_state_collection_replayed": retained_states,
                 "new_scientific_tasks": 0,
                 "experimental_activity_claim": False,
             },

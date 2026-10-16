@@ -311,6 +311,15 @@ and launch it through the established workflow controls. Historical predicted
 pockets and defined regions remain an explicit alternative. The read-only
 receptor-choice projection never changes stored ensemble documents or hashes.
 
+Portable pose studies also retain their existing molecular-state collections,
+exact conformer versions and source jobs. The archive uses the platform's
+existing state-set table, with no new database authority. Original archives
+without that optional table remain unchanged and restore with no declared state
+rows. Declared collections must reproduce their successful native preparation
+outputs before the atomic import; metadata alone cannot replace missing evidence.
+Defined searches add the alignment and actual state-preparation sources to the
+example evidence, without inventing pocket-prediction jobs.
+
 PLIP's submission review names the selected original PDB/mmCIF, author ligand
 address and resource budget. The shared source review retains its caller's
 accepted formats; allowing mmCIF here does not relax PDB-only docking inputs.

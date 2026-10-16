@@ -68,8 +68,14 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             selected = tuple(declared)
         elif profile != "archive":
             raise ValueError("A current study bundle must declare its reviewed module scope.")
-        if selected is not None and set(rows) == set(TABLES) - {"research_evidence"}:
-            rows = {**rows, "research_evidence": []}
+        optional = {"research_state_sets"}
+        if selected is not None:
+            optional.add("research_evidence")
+        missing = set(TABLES) - set(rows)
+        if missing <= optional:
+            # Older immutable archives predate these existing record authorities.
+            # Keep their original documents intact; absent collections contain no rows.
+            rows = {**rows, **{name: [] for name in missing}}
         if set(rows) != set(TABLES) or sum(map(len, rows.values())) > 5000:
             raise ValueError(
                 "The bundle must match the reviewed current catalogue and record schema."
@@ -136,6 +142,10 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                 name = path.relative_to(staging).as_posix()
                 if name not in manifest["files"]:
                     recovered_sources[name] = {"sha256": sha256(path)}
+        stage_assets = AssetStore(stage_store, staging / "assets")
+        from .bundle_states import validate_states
+
+        validate_states(stage_store, stage_assets, staging, rows["research_state_sets"])
         summary = (
             verify_examples(replace(settings, state_dir=staging), selected, profile=profile)
             if profile != "archive"
@@ -143,7 +153,6 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             if selected is None
             else verify_examples(replace(settings, state_dir=staging), selected)
         )
-        stage_assets = AssetStore(stage_store, staging / "assets")
         for row in rows["jobs"]:
             if row["id"] in retry_history:
                 continue
