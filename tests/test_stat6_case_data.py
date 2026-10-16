@@ -33,7 +33,9 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         "preserved-user-input.pdb", "structure", b"HEADER retained attachment\nEND\n"
     )
     original_bytes = assets.path(original).read_bytes()
-    root = tmp_path / "components"
+    manager = DeploymentManager(settings.state_dir)
+    manager.configure(str(tmp_path / "components"), False)
+    root = Path(manager.store.config()["root"])
     cached = root / "downloads" / spec.URL.rsplit("/", 1)[1]
     cached.parent.mkdir(parents=True)
     shutil.copyfile(archive, cached)
@@ -42,8 +44,6 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         pytest.fail("A checksum-verified cached case archive must not be downloaded again.")
 
     monkeypatch.setattr("urllib.request.urlopen", no_network)
-    manager = DeploymentManager(settings.state_dir)
-    manager.configure(str(root), False)
     operations = manager.enqueue("public-stat6-examples", "install")
     assert len(operations) == 1
     manager.tick()
