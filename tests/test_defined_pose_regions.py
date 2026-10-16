@@ -6,11 +6,12 @@ from uuid import uuid4
 
 import pytest
 from test_pose_exploration_contract import example, reference
+from test_site_association import evidence as site_evidence
 
 from opendde_workbench.examples.record_sources import pose_source_jobs
 from opendde_workbench.pose_ensembles.contracts import ExplorationInput, PoseCombination
 from opendde_workbench.pose_ensembles.planning import compile_plan
-from opendde_workbench.sites.contracts import SITE_SET_ADAPTER
+from opendde_workbench.sites.contracts import SITE_SET_ADAPTER, BindingSiteSet, SiteInput
 from opendde_workbench.sites.definitions import DefinedSite, DefinedSiteInput, DefinedSiteSet
 
 
@@ -71,7 +72,20 @@ def test_portable_pose_sources_do_not_fabricate_pocket_prediction_jobs_for_defin
     _, sites = defined_example()
     ensemble = SimpleNamespace(source_job=sites.alignment_job)
     assert pose_source_jobs(ensemble, sites, [], None, None) == [str(sites.alignment_job)]
-    _, native_sites, _ = example()
+    _, observations = site_evidence()
+    native_sites = BindingSiteSet(
+        id=uuid4(),
+        request=SiteInput(
+            ensemble_id=sites.request.ensemble_id, pocket_jobs=[o.source_job for o in observations]
+        ),
+        reference=observations[0].protein,
+        alignment_job=sites.alignment_job,
+        observations=observations,
+        sites=[],
+        relations=[],
+        groups=[],
+        created_at=sites.created_at,
+    )
     assert pose_source_jobs(ensemble, native_sites, [], None, None) == list(
         dict.fromkeys(
             [
