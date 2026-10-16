@@ -8,6 +8,7 @@ import pytest
 from test_example_records import fixture as region_fixture
 from test_example_supporting import complete, output_object
 
+from opendde_workbench.api import create_app
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.bundle import export_bundle, restore_bundle
 from opendde_workbench.examples.bundle_catalogue import BundleCatalogue
@@ -21,6 +22,7 @@ from opendde_workbench.store import ConflictError, Store
 
 
 def study(settings):
+    create_app(settings)
     pins, prepared, record, _, _, _ = region_fixture(settings)
     store = pins.store
     assets = AssetStore(store, settings.state_dir / "assets")
