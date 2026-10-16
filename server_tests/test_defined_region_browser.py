@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,23 @@ pytestmark = pytest.mark.skipif(
 )
 ALIGNMENT = "90df5f6d-75e8-4990-a696-e06b43b6a7f2"
 LIGAND = Path(__file__).parents[1] / "tests/fixtures/stat6/9big-ak1690.sdf"
+
+
+@contextmanager
+def inspected_page(driver, width, evidence):
+    browser = driver.chromium.launch()
+    context = browser.new_context(viewport={"width": width, "height": 1000})
+    context.tracing.start(screenshots=True, snapshots=True, sources=False)
+    page = context.new_page()
+    try:
+        yield page
+    except Exception:
+        page.screenshot(path=evidence / "failure.png", full_page=True)
+        (evidence / "failure.html").write_text(page.content())
+        raise
+    finally:
+        context.tracing.stop(path=evidence / "trace.zip")
+        browser.close()
 
 
 def reference_bounds():
@@ -71,9 +89,11 @@ def test_native_reference_and_manual_regions_save_and_compile_without_running(
     evidence.mkdir(parents=True, exist_ok=True)
     center, size = reference_bounds()
     zh = language == "zh"
-    with platform(settings.state_dir, evidence / "platform.log") as base, sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 1000})
+    with (
+        platform(settings.state_dir, evidence / "platform.log") as base,
+        sync_playwright() as pw,
+        inspected_page(pw, width, evidence) as page,
+    ):
         if zh:
             page.add_init_script("localStorage.setItem('opendde-workbench.language','zh')")
         errors, scientific_posts = [], []
@@ -224,7 +244,6 @@ def test_native_reference_and_manual_regions_save_and_compile_without_running(
         ]
         page.screenshot(path=evidence / "exploration-handoff.png", full_page=True)
         assert not scientific_posts and not errors, (scientific_posts, errors)
-        browser.close()
     assert {row.id: row.status for row in store.list_jobs()} == before
     (evidence / "acceptance.json").write_text(
         json.dumps(
