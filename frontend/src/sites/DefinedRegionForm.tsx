@@ -109,7 +109,7 @@ export function DefinedRegionForm({
     : null;
   return (
     <section
-      className="site-workspace"
+      className="site-workspace defined-region-form"
       aria-label={zh ? "指定搜索区域" : "Define search regions"}
     >
       <StructureWorkbench

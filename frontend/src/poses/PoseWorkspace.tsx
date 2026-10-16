@@ -145,14 +145,16 @@ export function PoseWorkspace({
             </select>
           </label>
         )}
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={loading}
-          onClick={() => setReload((v) => v + 1)}
-        >
-          {zh ? "刷新" : "Refresh"}
-        </button>{" "}
+        {(sourceMode === "history" || error) && (
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={loading}
+            onClick={() => setReload((v) => v + 1)}
+          >
+            {zh ? "刷新" : "Refresh"}
+          </button>
+        )}{" "}
       </div>
       {sourceMode === "new" && !loading && !error && !plan && (
         <DefinedSiteStart

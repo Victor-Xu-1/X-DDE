@@ -61,8 +61,8 @@ def reference_bounds():
         [min(v[i] for v in xyz) for i in range(3)],
         [max(v[i] for v in xyz) for i in range(3)],
     )
-    return [(lo + hi) / 2 for lo, hi in zip(lower, upper, strict=True)], [
-        hi - lo + 8 for lo, hi in zip(lower, upper, strict=True)
+    return [round((lo + hi) / 2, 4) for lo, hi in zip(lower, upper, strict=True)], [
+        round(hi - lo + 8, 4) for lo, hi in zip(lower, upper, strict=True)
     ]
 
 

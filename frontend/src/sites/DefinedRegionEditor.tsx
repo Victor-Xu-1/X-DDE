@@ -14,7 +14,7 @@ export function DefinedRegionEditor({
 }) {
   const zh = language === "zh";
   return (
-    <>
+    <div className="defined-region-editor">
       <label className="field">
         {zh ? "区域名称" : "Region name"}
         <input
@@ -74,6 +74,6 @@ export function DefinedRegionEditor({
           }
         />
       )}
-    </>
+    </div>
   );
 }
