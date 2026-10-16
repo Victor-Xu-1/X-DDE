@@ -8,6 +8,7 @@ import type { WorkflowRun } from "../workflows/types";
 import type { Language } from "../types";
 import { PoseResults } from "./PoseResults";
 import type { Exploration, PoseSet } from "./types";
+import { poseSourceLabel } from "./source-label";
 export function PosePlanRun({
   value,
   language,
@@ -136,8 +137,8 @@ export function PosePlanRun({
           {value.combinations.map((c) => (
             <li key={c.step_id}>
               {zh ? "受体 " : "Receptor "}
-              {c.member_index + 1} · {zh ? "口袋 " : "Pocket "}
-              {c.pocket_rank} · {zh ? "分子 " : "Ligand "}
+              {c.member_index + 1} · {poseSourceLabel(c, language)} ·{" "}
+              {zh ? "分子 " : "Ligand "}
               {c.ligand_index + 1} · seed {c.seed}
             </li>
           ))}

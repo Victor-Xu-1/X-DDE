@@ -12,6 +12,7 @@ import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
 import { spatialMolecule } from "./initial-geometry";
 import { initializeTheme } from "../theme";
+import { searchBoxGeometry } from "./search-box";
 import "./frame.css";
 import { captureView, captureFigure } from "./capture";
 import { validFigure } from "../publication/settings";
@@ -81,7 +82,8 @@ async function load(input: ViewerLoad) {
     comparison: input.comparison,
   });
   const retainedView =
-    (input.channelGeometry && loadedSourceIdentity === sourceIdentity) ||
+    ((input.channelGeometry || input.searchBox) &&
+      loadedSourceIdentity === sourceIdentity) ||
     (input.trajectoryKey &&
       loadedTrajectoryKey === input.trajectoryKey &&
       loadedSourceIdentity)
@@ -170,6 +172,7 @@ async function load(input: ViewerLoad) {
     }
     if (retainedOptions) Object.assign(scene.options, retainedOptions);
     scene.channelGeometry = input.channelGeometry;
+    scene.searchBox = input.searchBox;
     if (input.channelGeometry) {
       scene.options.mode = "cartoon";
       scene.options.labels = false;
@@ -227,6 +230,10 @@ async function command(type: string, value: unknown) {
     if (type === "site-region") await scene.highlightResidues(value);
     if (type === "focus-site") scene.focusSite();
     if (type === "attachment-geometry") await scene.showAttachments(value);
+    if (type === "search-box") {
+      scene.searchBox = searchBoxGeometry(value);
+      await scene.paint();
+    }
   } catch {
     notify("error", "Could not update structure display.");
   }
@@ -263,6 +270,7 @@ window.addEventListener("message", (event) => {
       "site-region",
       "focus-site",
       "attachment-geometry",
+      "search-box",
     ].includes(type)
   )
     void command(type, value);

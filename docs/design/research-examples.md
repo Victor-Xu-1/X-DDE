@@ -298,6 +298,22 @@ Reference ligands retain their exact saved SDF record, source checksum and nativ
 coordinates. Defining a search region does not perform docking or establish the
 binding site of a different study molecule.
 
+In **Multi-receptor/state pose exploration**, a new task starts with **New search
+regions**. Choose an existing aligned receptor collection by its actual source
+task name, select qualified members, and define each reference-ligand or manual
+region through the four guided pages. The large live structure stays on the
+left. Unconfirmed ligand pairs are displayed as a comparison without cross-model
+contacts. A manual box is a wireframe in the saved angstrom coordinates; editing
+it updates display shapes without reloading or moving molecular atoms. Saving
+conditions starts no calculation. Continue into the existing exploration plan
+and launch it through the established workflow controls. Historical predicted
+pockets and defined regions remain an explicit alternative. The read-only
+receptor-choice projection never changes stored ensemble documents or hashes.
+
+PLIP's submission review names the selected original PDB/mmCIF, author ligand
+address and resource budget. The shared source review retains its caller's
+accepted formats; allowing mmCIF here does not relax PDB-only docking inputs.
+
 Preparation dependencies are explicit. The BRD4 receptor is selected from the
 fixed Biopython preparation outcome; antibody variable domains come unchanged
 from native ANARCII numbering. Whole-library property and ADMET examples retain

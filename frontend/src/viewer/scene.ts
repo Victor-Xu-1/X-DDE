@@ -32,6 +32,7 @@ import {
   type AttachmentGeometry,
 } from "./attachment-geometry";
 import type { NativeInteraction } from "../integrations/types";
+import { paintSearchBox, type SearchBoxGeometry } from "./search-box";
 import {
   defaultOptions,
   residueLabel,
@@ -60,6 +61,7 @@ import {
 } from "./channel-geometry";
 export class MolecularScene {
   channelGeometry?: ChannelGeometry;
+  searchBox?: SearchBoxGeometry;
   attachmentGeometry?: AttachmentGeometry;
   nativeInteractions?: NativeInteraction[];
   potential?: { data: mol.VolumeData; range: number };
@@ -96,6 +98,7 @@ export class MolecularScene {
     nativeLabelLayer(this.viewer).clear();
     this.nativeInteractions = undefined;
     this.channelGeometry = undefined;
+    this.searchBox = undefined;
     this.attachmentGeometry = undefined;
     this.attachmentCount = 0;
     this.potential = undefined;
@@ -240,6 +243,7 @@ export class MolecularScene {
     v.removeAllSurfaces();
     v.removeAllShapes();
     paintChannel(v, this.channelGeometry);
+    paintSearchBox(v, this.searchBox);
     const previousAttachments = this.attachmentCount;
     this.attachmentCount = this.overlay
       ? 0

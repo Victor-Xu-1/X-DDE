@@ -19,7 +19,9 @@ export interface Combination {
   step_id: string;
   site_id: string;
   member_index: number;
-  pocket_rank: number;
+  pocket_rank?: number | null;
+  source_kind?: "defined_search" | null;
+  source_label?: string | null;
   receptor: MoleculeRef;
   ligand_index: number;
   ligand: LigandSelection;

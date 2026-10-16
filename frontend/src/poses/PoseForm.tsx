@@ -5,6 +5,7 @@ import { GuidedSteps } from "../guided/Questionnaire";
 import { JsonEditor } from "../operations/ScientificInputs";
 import type { StateSet } from "../chemistry/types";
 import type { SiteSet } from "../sites/types";
+import { siteChoices } from "../sites/site-labels";
 import type { Language } from "../types";
 import { defaults } from "./generated";
 import { LigandChoice } from "./LigandChoice";
@@ -118,7 +119,7 @@ export function PoseForm({
         role="group"
         aria-label={zh ? "探索哪些位点？" : "Which sites should be explored?"}
       >
-        {sites.sites.map((s) => (
+        {siteChoices(sites, language).map((s) => (
           <label key={s.id}>
             <input
               type="checkbox"
@@ -132,10 +133,8 @@ export function PoseForm({
                 )
               }
             />
-            {zh ? "受体 " : "Receptor "}
-            {s.member_index + 1} · {zh ? "口袋 " : "Pocket "}
-            {s.native.rank}
-            {s.mapping_status === "insufficient"
+            {s.label}
+            {s.limited
               ? " · " +
                 (zh ? "跨构象对应不足" : "Limited cross-conformation mapping")
               : ""}

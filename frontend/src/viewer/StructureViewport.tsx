@@ -41,6 +41,7 @@ import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
+import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
@@ -48,6 +49,7 @@ export interface StructureViewerProps {
   ligandContext?: boolean;
   initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
+  searchBox?: SearchBoxGeometry;
   attachmentGeometry?: AttachmentGeometry;
   urls: string[];
   language: Language;
@@ -84,6 +86,7 @@ export function StructureViewport({
   highlightedAtoms,
   nativeInteractions,
   channelGeometry,
+  searchBox,
   attachmentGeometry,
   electrostaticMap,
   onAtomSelected,
@@ -148,6 +151,25 @@ export function StructureViewport({
       { channel: "opendde-viewer", type, value },
       location.origin,
     );
+  }
+  function loadSpecification() {
+    return {
+      urls,
+      ...(trajectoryKey ? { trajectoryKey } : {}),
+      ...(optimization.initialReady || sourceSnapshot
+        ? { initialPosePrepared: true }
+        : {}),
+      ...(ligandContext ? {} : { ligandContext: false }),
+      comparison,
+      focusModel,
+      ...(focusModels ? { focusModels } : {}),
+      records,
+      ...(initialMode ? { initialMode } : {}),
+      nativeInteractions,
+      ...(channelGeometry ? { channelGeometry } : {}),
+      ...(searchBox ? { searchBox } : {}),
+      electrostaticMap,
+    };
   }
   useEffect(() => {
     function message(event: MessageEvent) {
@@ -228,22 +250,7 @@ export function StructureViewport({
     previousTrajectory.current = trajectoryKey;
     if (ready && urls.length) {
       requestedKey.current = key;
-      send("load", {
-        urls,
-        ...(trajectoryKey ? { trajectoryKey } : {}),
-        ...(optimization.initialReady || sourceSnapshot
-          ? { initialPosePrepared: true }
-          : {}),
-        ...(ligandContext ? {} : { ligandContext: false }),
-        comparison,
-        focusModel,
-        ...(focusModels ? { focusModels } : {}),
-        records,
-        ...(initialMode ? { initialMode } : {}),
-        nativeInteractions,
-        ...(channelGeometry ? { channelGeometry } : {}),
-        electrostaticMap,
-      });
+      send("load", loadSpecification());
       setStatus("loading");
     } else if (!urls.length) {
       requestedKey.current = null;
@@ -314,6 +321,10 @@ export function StructureViewport({
     send("options", value);
   }
   const loaded = status === "loaded" && loadedKey === key;
+  const searchBoxKey = JSON.stringify(searchBox ?? null);
+  useEffect(() => {
+    if (loaded) send("search-box", searchBox);
+  }, [loaded, key, searchBoxKey]);
   return (
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
@@ -512,20 +523,7 @@ export function StructureViewport({
               type="button"
               onClick={() => {
                 setError("");
-                send("load", {
-                  urls,
-                  ...(trajectoryKey ? { trajectoryKey } : {}),
-                  ...(optimization.initialReady
-                    ? { initialPosePrepared: true }
-                    : {}),
-                  comparison,
-                  focusModel,
-                  ...(focusModels ? { focusModels } : {}),
-                  records,
-                  nativeInteractions,
-                  ...(channelGeometry ? { channelGeometry } : {}),
-                  electrostaticMap,
-                });
+                send("load", loadSpecification());
               }}
             >
               {zh ? "重新加载" : "Reload"}

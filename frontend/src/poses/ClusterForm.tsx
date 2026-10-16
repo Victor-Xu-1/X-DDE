@@ -8,6 +8,7 @@ import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { Language } from "../types";
 import type { PoseSet } from "./types";
+import { poseSourceLabel } from "./source-label";
 import type {
   ClusterOptions,
   PoseClusterTask,
@@ -44,8 +45,7 @@ export function ClusterForm({
               (zh ? "受体 " : "Receptor ") +
               (o.combination.member_index + 1) +
               " · " +
-              (zh ? "口袋 " : "Pocket ") +
-              o.combination.pocket_rank +
+              poseSourceLabel(o.combination, language) +
               " · " +
               (zh ? "姿势 " : "Pose ") +
               (p.evidence.record + 1) +

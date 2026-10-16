@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import * as client from "../api";
 import { PoseWorkspace } from "./PoseWorkspace";
 afterEach(() => {
@@ -11,8 +12,17 @@ it("shows a real empty source state without creating synthetic plans or poses", 
   const post = vi.spyOn(client.api, "post");
   render(<PoseWorkspace language="en" />);
   expect(
-    await screen.findByText(/Align receptors, find pockets/),
+    await screen.findByText(/Align receptors in Structure prediction/),
   ).toBeVisible();
+  expect(
+    screen.getByRole("radio", { name: "New search regions" }),
+  ).toBeChecked();
+  expect(
+    screen.queryByRole("combobox", { name: "Which site set?" }),
+  ).not.toBeInTheDocument();
+  await userEvent.click(
+    screen.getByRole("radio", { name: "Historical pockets and regions" }),
+  );
   expect(screen.getByRole("combobox", { name: "Which site set?" })).toHaveValue(
     "",
   );
@@ -30,7 +40,7 @@ it("reports source loading errors with a recovery action", async () => {
     "source API unavailable",
   );
   expect(
-    screen.queryByText(/Align receptors, find pockets/),
+    screen.queryByText(/Align receptors in Structure prediction/),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
 });

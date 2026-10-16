@@ -11,12 +11,14 @@ export function LigandChoice({
   states,
   language,
   index,
+  purpose = "study",
 }: {
   value: LigandSelection | null;
   onChange(v: LigandSelection | null): void;
   states: StateSet[];
   language: Language;
   index: number;
+  purpose?: "study" | "reference";
 }) {
   const zh = language === "zh";
   const [mode, setMode] = useState("version"),
@@ -60,7 +62,14 @@ export function LigandChoice({
     const body = {
       asset_id: pending.asset_id,
       kind: "molecule",
-      label: zh ? "姿势探索分子" : "Pose exploration ligand",
+      label:
+        purpose === "reference"
+          ? zh
+            ? "参考口袋配体"
+            : "Reference pocket ligand"
+          : zh
+            ? "姿势探索分子"
+            : "Pose exploration ligand",
       record: pending.record,
       conformer: pending.conformer,
     };
@@ -93,31 +102,39 @@ export function LigandChoice({
   return (
     <section
       className="receptor-input"
-      aria-label={(zh ? "探索分子 " : "Exploration ligand ") + (index + 1)}
+      aria-label={
+        purpose === "reference"
+          ? zh
+            ? "参考口袋配体"
+            : "Reference pocket ligand"
+          : (zh ? "探索分子 " : "Exploration ligand ") + (index + 1)
+      }
     >
-      <label className="field">
-        {zh ? "分子来源" : "Ligand source"}
-        <select
-          value={mode}
-          disabled={busy}
-          onChange={(e) => {
-            selection.current++;
-            setMode(e.target.value);
-            setPending(null);
-            setError("");
-            onChange(null);
-          }}
-        >
-          <option value="version">
-            {zh ? "上传新分子 / 历史文件" : "New ligand / historical files"}
-          </option>
-          <option value="states">
-            {zh
-              ? "准备后的化学状态与构象"
-              : "Prepared chemical state and conformer"}
-          </option>
-        </select>
-      </label>
+      {purpose !== "reference" && (
+        <label className="field">
+          {zh ? "分子来源" : "Ligand source"}
+          <select
+            value={mode}
+            disabled={busy}
+            onChange={(e) => {
+              selection.current++;
+              setMode(e.target.value);
+              setPending(null);
+              setError("");
+              onChange(null);
+            }}
+          >
+            <option value="version">
+              {zh ? "上传新分子 / 历史文件" : "New ligand / historical files"}
+            </option>
+            <option value="states">
+              {zh
+                ? "准备后的化学状态与构象"
+                : "Prepared chemical state and conformer"}
+            </option>
+          </select>
+        </label>
+      )}
       {mode === "version" ? (
         <>
           <ReferencePicker
@@ -125,7 +142,15 @@ export function LigandChoice({
             allowedSuffixes={[".sdf"]}
             value={pending ?? value?.reference ?? null}
             language={language}
-            label={zh ? "选择探索分子" : "Choose exploration ligand"}
+            label={
+              purpose === "reference"
+                ? zh
+                  ? "参考口袋配体"
+                  : "Reference pocket ligand"
+                : zh
+                  ? "选择探索分子"
+                  : "Choose exploration ligand"
+            }
             onChange={(r) => {
               selection.current++;
               setBusy(false);

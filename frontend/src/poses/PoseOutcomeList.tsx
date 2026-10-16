@@ -1,6 +1,7 @@
 import { PoseList } from "./PoseList";
 import type { Language } from "../types";
 import type { PoseSet } from "./types";
+import { poseSourceLabel } from "./source-label";
 
 export function PoseOutcomeList({
   value,
@@ -38,8 +39,9 @@ export function PoseOutcomeList({
           {value.outcomes.map((row, target) => (
             <option key={row.combination.step_id} value={target}>
               {target + 1}. {zh ? "受体 " : "Receptor "}
-              {row.combination.member_index + 1} · {zh ? "口袋 " : "Pocket "}
-              {row.combination.pocket_rank} · {zh ? "分子 " : "Ligand "}
+              {row.combination.member_index + 1} ·{" "}
+              {poseSourceLabel(row.combination, language)} ·{" "}
+              {zh ? "分子 " : "Ligand "}
               {row.combination.ligand_index + 1} ·{" "}
               {labels[row.status] ?? row.status}
             </option>

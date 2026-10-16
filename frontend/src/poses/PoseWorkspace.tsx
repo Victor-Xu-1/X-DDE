@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useExample } from "../examples/context";
 import { request } from "../api";
 import { loadPages } from "../research/loadPages";
@@ -7,6 +7,7 @@ import type { SiteSet } from "../sites/types";
 import type { Language } from "../types";
 import { PoseForm } from "./PoseForm";
 import { PosePlanRun } from "./PosePlanRun";
+import { DefinedSiteStart } from "../sites/DefinedSiteStart";
 import type { Exploration } from "./types";
 import "./poses.css";
 export function PoseWorkspace({
@@ -19,10 +20,14 @@ export function PoseWorkspace({
   initialExplorationId?: string;
 }) {
   const zh = language === "zh";
+  const sourceGroup = useId();
   const example = useExample(),
     preset =
       example?.record?.kind === "pose_exploration" ? example.record : null;
   const selectedId = initialExplorationId;
+  const [sourceMode, setSourceMode] = useState(
+    initialSites || preset ? "history" : "new",
+  );
   const [sites, setSites] = useState<SiteSet[]>(
       initialSites ? [initialSites] : preset ? [preset.sites] : [],
     ),
@@ -81,34 +86,65 @@ export function PoseWorkspace({
             : "Loading sites, states and plans…"}
         </p>
       )}
-      {!loading && !error && !sites.length && (
+      <div
+        className="pose-site-choices"
+        role="radiogroup"
+        aria-label={zh ? "搜索区域来源" : "Search region source"}
+      >
+        {(
+          [
+            ["new", zh ? "新建搜索区域" : "New search regions"],
+            [
+              "history",
+              zh ? "历史口袋与区域" : "Historical pockets and regions",
+            ],
+          ] as const
+        ).map(([mode, label]) => (
+          <label key={mode}>
+            <input
+              type="radio"
+              name={sourceGroup}
+              checked={sourceMode === mode}
+              onChange={() => {
+                setSourceMode(mode);
+                setSiteId("");
+                setSelected("");
+              }}
+            />
+            {label}
+          </label>
+        ))}
+      </div>
+      {!loading && !error && !sites.length && sourceMode === "history" && (
         <p role="status">
           {zh
-            ? "先完成受体构象对齐、为各对齐版本寻找口袋，并保存跨构象位点集合；也可复用已有集合。"
-            : "Align receptors, find pockets on their aligned versions and save a cross-conformation site set, or reuse an existing set."}
+            ? "尚无保存的位点集合。可新建搜索区域，或为对齐受体寻找并关联口袋。"
+            : "No saved site sets. Define search regions, or find and associate pockets on aligned receptors."}
         </p>
       )}
       <div className="pose-context-row">
-        <label className="field">
-          {zh ? "使用哪个位点集合？" : "Which site set?"}
-          <select
-            value={siteId}
-            disabled={loading}
-            onChange={(e) => {
-              setSiteId(e.target.value);
-              setSelected("");
-            }}
-          >
-            <option value="">
-              {zh ? "选择已有位点集合" : "Choose an existing site set"}
-            </option>
-            {sites.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.request.name}
+        {sourceMode === "history" && (
+          <label className="field">
+            {zh ? "使用哪个位点集合？" : "Which site set?"}
+            <select
+              value={siteId}
+              disabled={loading}
+              onChange={(e) => {
+                setSiteId(e.target.value);
+                setSelected("");
+              }}
+            >
+              <option value="">
+                {zh ? "选择已有位点集合" : "Choose an existing site set"}
               </option>
-            ))}
-          </select>
-        </label>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.request.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <button
           className="secondary-button"
           type="button"
@@ -118,7 +154,21 @@ export function PoseWorkspace({
           {zh ? "刷新" : "Refresh"}
         </button>{" "}
       </div>
-      {site && !loading && !plan && (
+      {sourceMode === "new" && !loading && !error && !plan && (
+        <DefinedSiteStart
+          language={language}
+          onSaved={(value) => {
+            setSites((rows) => [
+              value,
+              ...rows.filter((row) => row.id !== value.id),
+            ]);
+            setSiteId(value.id);
+            setSourceMode("history");
+            setSelected("");
+          }}
+        />
+      )}
+      {site && sourceMode === "history" && !loading && !plan && (
         <PoseForm
           key={site.id}
           sites={site}

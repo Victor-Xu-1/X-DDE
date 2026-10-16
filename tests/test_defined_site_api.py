@@ -108,6 +108,17 @@ def test_retained_native_sites_plan_graph_csrf_idempotency_and_restart(
     ensemble, _, _ = retained_alignment
     with client_factory() as client:
         baseline_jobs = client.get("/api/jobs").json()
+        choices = client.get("/api/research/receptor-choices?limit=1&offset=0")
+        assert choices.status_code == 200
+        listed = next(
+            row
+            for row in client.get("/api/research/receptor-choices").json()
+            if row["id"] == str(ensemble.id)
+        )
+        native_source = client.get(f"/api/jobs/{ensemble.source_job}").json()
+        assert listed["name"] == native_source["request"]["name"]
+        assert listed["source_status"] == "succeeded" and listed["usable_members"] == 2
+        assert client.get("/api/research/receptor-choices?limit=201").status_code == 422
         ligand = create_reference(client)
         body = site_input(ensemble, ligand)
         key = str(uuid4())

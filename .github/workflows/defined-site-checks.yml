@@ -10,6 +10,17 @@ on:
       - "src/opendde_workbench/pose_ensembles/sources.py"
       - "src/opendde_workbench/pose_ensembles/storage.py"
       - "src/opendde_workbench/research/graph_records.py"
+      - "src/opendde_workbench/research/receptor_sets.py"
+      - "src/opendde_workbench/research/routes.py"
+      - "frontend/src/sites/**"
+      - "frontend/src/poses/Pose*"
+      - "frontend/src/poses/LigandChoice*"
+      - "frontend/src/poses/source-label.ts"
+      - "frontend/src/viewer/search-box*"
+      - "frontend/src/viewer/source-layout.ts"
+      - "frontend/src/integrations/PlipReview*"
+      - "frontend/src/integrations/ScientificReview.tsx"
+      - "frontend/src/diffsbdd/ReviewReference.tsx"
       - "tests/test_defined*"
       - "tests/fixtures/stat6/9big-ak1690*"
       - ".github/workflows/defined-site-checks.yml"
@@ -29,6 +40,14 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
+      - name: Defined-source questionnaire, exact source labels and PLIP review
+        working-directory: frontend
+        run: >-
+          npx vitest run src/sites/DefinedRegionForm.test.tsx src/sites/defined-sources.test.ts
+          src/poses/PoseWorkspace.test.tsx src/poses/PoseForm.test.tsx
+          src/viewer/search-box.test.ts
+          src/viewer/source-layout.test.ts src/diffsbdd/ReviewReference.test.tsx
+          src/integrations/PlipReview.test.tsx
       - name: Restore only the immutable public data fixture; no tasks run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -50,4 +69,6 @@ jobs:
           src/opendde_workbench/pose_ensembles/sources.py
           src/opendde_workbench/pose_ensembles/storage.py
           src/opendde_workbench/research/graph_records.py
+          src/opendde_workbench/research/receptor_sets.py
+          src/opendde_workbench/research/routes.py
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py

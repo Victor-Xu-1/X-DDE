@@ -48,6 +48,14 @@ class ReceptorEnsemble(ScientificModel):
     created_at: str
 
 
+class ReceptorChoice(ScientificModel):
+    id: UUID
+    name: str | None
+    source_status: str | None
+    usable_members: int = Field(ge=0, le=16)
+    created_at: str
+
+
 class ReceptorSets:
     def __init__(self, store, assets):
         self.store, self.assets = store, assets
@@ -120,6 +128,30 @@ class ReceptorSets:
                 (str(source_job), limit, offset) if source_job else (limit, offset),
             ).fetchall()
         return [self.decode(row) for row in rows]
+
+    def choices(self, limit=100, offset=0):
+        """Read-only display projection; never rewrite immutable ensemble documents."""
+        choices = []
+        for value in self.list(limit, offset):
+            job = self.store.get(str(value.source_job))
+            choices.append(
+                ReceptorChoice(
+                    id=value.id,
+                    name=job.request.name if job else None,
+                    source_status=job.status if job else None,
+                    usable_members=sum(
+                        bool(
+                            member.reference
+                            and member.evidence.quality
+                            and member.evidence.quality.backbone_complete
+                            and member.evidence.transformation
+                        )
+                        for member in value.members
+                    ),
+                    created_at=value.created_at,
+                )
+            )
+        return choices
 
     @staticmethod
     def decode(row):

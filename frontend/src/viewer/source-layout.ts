@@ -2,12 +2,14 @@ import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
 import { channelGeometry, type ChannelGeometry } from "./channel-input";
 import type { ViewMode } from "./protocol";
+import { searchBoxGeometry, type SearchBoxGeometry } from "./search-box";
 export interface ViewerLoad {
   trajectoryKey?: string;
   initialPosePrepared?: boolean;
   ligandContext?: boolean;
   initialMode?: ViewMode;
   channelGeometry?: ChannelGeometry;
+  searchBox?: SearchBoxGeometry;
   urls: string[];
   comparison: boolean;
   focusModel?: number;
@@ -106,6 +108,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
     ...(v.channelGeometry === undefined
       ? {}
       : { channelGeometry: channelGeometry(v.channelGeometry) }),
+    ...(v.searchBox === undefined
+      ? {}
+      : { searchBox: searchBoxGeometry(v.searchBox) }),
     ...(v.electrostaticMap
       ? { electrostaticMap: potentialMap(v.electrostaticMap) }
       : {}),

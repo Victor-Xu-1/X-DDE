@@ -18,9 +18,19 @@ def register_research(app, store, assets, mutation):
     from .state_sets import MolecularStateSet, StateSets
 
     state_sets = StateSets(store, assets)
-    from .receptor_sets import ReceptorEnsemble, ReceptorSets
+    from .receptor_sets import ReceptorChoice, ReceptorEnsemble, ReceptorSets
 
     receptor_sets = ReceptorSets(store, assets)
+
+    @app.get("/api/research/receptor-choices", response_model=list[ReceptorChoice])
+    def receptor_choices(
+        limit: int = Query(default=100, ge=1, le=200),
+        offset: int = Query(default=0, ge=0),
+    ):
+        try:
+            return receptor_sets.choices(limit, offset)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
 
     @app.get("/api/research/receptor-ensembles", response_model=list[ReceptorEnsemble])
     def receptor_collections(

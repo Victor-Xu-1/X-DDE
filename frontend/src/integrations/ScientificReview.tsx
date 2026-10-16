@@ -5,6 +5,7 @@ import type {
   ScientificTask,
 } from "./types";
 import { ReinventReview } from "./ReinventReview";
+import { PlipReview } from "./PlipReview";
 
 export function ScientificReview({
   program,
@@ -26,6 +27,15 @@ export function ScientificReview({
         payload={payload}
         options={options}
         ligand={inputs.find((input) => input.role === "ligand")?.source ?? null}
+      />
+    );
+  if (program === "plip")
+    return (
+      <PlipReview
+        inputs={inputs}
+        payload={payload}
+        options={options}
+        language={language}
       />
     );
   const zh = language === "zh";

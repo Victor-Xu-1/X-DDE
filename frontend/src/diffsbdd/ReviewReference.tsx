@@ -9,13 +9,18 @@ export function ReviewReference({
   reference,
   kind,
   language,
+  allowedFormats,
 }: {
   reference: MoleculeRef;
   kind: "structure" | "ligand";
   language: Language;
+  allowedFormats?: readonly string[];
 }) {
   const zh = language === "zh";
   const identity = referenceKey(reference);
+  const formats =
+    allowedFormats ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
+  const formatKey = formats.join(",");
   const [file, setFile] = useState({ identity: "", name: "", failed: false });
   useEffect(() => {
     const controller = new AbortController();
@@ -26,7 +31,7 @@ export function ReviewReference({
     void resolveReference(
       reference.asset_id,
       kind,
-      kind === "structure" ? [".pdb"] : [".sdf"],
+      formats,
       reference,
       signal,
       (asset) => {
@@ -38,7 +43,7 @@ export function ReviewReference({
         setFile({ identity, name: "", failed: true });
     });
     return () => controller.abort();
-  }, [identity, kind]);
+  }, [identity, kind, formatKey]);
   const current = file.identity === identity ? file : null;
   return (
     <span>
