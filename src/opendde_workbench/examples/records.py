@@ -8,6 +8,7 @@ from .catalogue import MODULES
 from .contracts import ExampleRecordPin
 from .evidence import capture_job, verify_job
 from .record_sources import record_source, validate_record_source
+from .supporting import record_supporting_evidence
 
 RECORD_MODULES = {"regions", "workflows", "pose_exploration", "campaign", "experimental.evidence"}
 
@@ -60,6 +61,16 @@ class ExampleRecords:
                 raise ValueError("The fixed case's scientific record changed.")
             for evidence in record.evidence:
                 verify_job(self.store, self.settings.state_dir, evidence)
+            followups = record_supporting_evidence(
+                self.store,
+                self.settings.state_dir,
+                jobs,
+                [entry.job_id for entry in record.supporting_evidence],
+            )
+            if followups != record.supporting_evidence:
+                raise ValueError("The fixed record's follow-up evidence changed.")
+            for evidence in record.supporting_evidence:
+                verify_job(self.store, self.settings.state_dir, evidence)
         return record
 
     def prepared(self, capability):
@@ -69,7 +80,7 @@ class ExampleRecords:
         source, _ = self.source(record)
         return {**source, "pin": record.model_dump(mode="json")}
 
-    def pin(self, capability, record_id, run_id, prepared):
+    def pin(self, capability, record_id, run_id, prepared, *, review=None, supporting_job_ids=()):
         if capability not in RECORD_MODULES:
             raise ValueError("This module uses a native task result.")
         module = self.modules[capability]
@@ -79,6 +90,9 @@ class ExampleRecords:
             capability, record_id, run_id, self.store, self.assets, self.settings
         )
         validate_record_source(capability, source, prepared, self.store, job_ids=jobs)
+        followups = record_supporting_evidence(
+            self.store, self.settings.state_dir, jobs, supporting_job_ids
+        )
         record = ExampleRecordPin(
             capability_id=capability,
             case_id=module.case_id,
@@ -91,6 +105,8 @@ class ExampleRecords:
             ),
             computed_result_available=capability != "campaign",
             created_at=now(),
+            review=review,
+            supporting_evidence=followups,
         )
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")

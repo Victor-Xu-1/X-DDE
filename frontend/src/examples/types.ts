@@ -8,10 +8,22 @@ import type { Exploration, PoseSet } from "../poses/types";
 import type { SiteSet } from "../sites/types";
 import type { Plan, DesignDraft } from "../operations/campaign-model";
 
+export interface ExampleReview {
+  scope: "reviewed_computational_example";
+  interpretation: string;
+  limitations: string;
+  checked: string[];
+}
+export interface ExampleJobEvidence {
+  job_id: string;
+  artifact_sha256: Record<string, string>;
+}
 export interface RecordPin {
   record_id: string;
   record_sha256: string;
   computed_result_available: boolean;
+  review?: ExampleReview | null;
+  supporting_evidence?: ExampleJobEvidence[];
 }
 export type ExampleRecord =
   | {
@@ -49,16 +61,8 @@ export interface ExampleInfo {
   pin: null | {
     job_id: string;
     artifact_sha256: Record<string, string>;
-    supporting_evidence?: {
-      job_id: string;
-      artifact_sha256: Record<string, string>;
-    }[];
-    review?: {
-      scope: "reviewed_computational_example";
-      interpretation: string;
-      limitations: string;
-      checked: string[];
-    } | null;
+    supporting_evidence?: ExampleJobEvidence[];
+    review?: ExampleReview | null;
   };
   record_pin?: RecordPin | null;
   study?: StudyContext;

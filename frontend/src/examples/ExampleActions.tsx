@@ -26,6 +26,7 @@ export function ExampleActions(
     }
   }, [state.result]);
   const zh = language === "zh";
+  const review = state.info?.pin?.review ?? state.info?.record_pin?.review;
   return (
     <section
       className={"module-template" + (state.result ? " is-preview" : "")}
@@ -78,21 +79,34 @@ export function ExampleActions(
               />
             )}
             {state.result.example && (
-              <ExampleRecordResult
-                example={state.result.example}
+              <ExampleResultSet
+                primaryId={
+                  "record:" +
+                  state.result.example.record?.pin.record_id +
+                  ":" +
+                  state.result.example.record?.pin.record_sha256
+                }
+                primaryLabel={zh ? "研究结果" : "Study results"}
+                primary={
+                  <ExampleRecordResult
+                    example={state.result.example}
+                    language={language}
+                  />
+                }
+                supporting={state.info?.record_pin?.supporting_evidence ?? []}
                 language={language}
               />
             )}
           </TemplatePreviewContext.Provider>
-          {state.info?.pin?.review && (
+          {review && (
             <details className="example-result-review">
               <summary>
                 {zh
                   ? "示例结果的解读与适用范围"
                   : "Example interpretation and scope"}
               </summary>
-              <p>{state.info.pin.review.interpretation}</p>
-              <p>{state.info.pin.review.limitations}</p>
+              <p>{review.interpretation}</p>
+              <p>{review.limitations}</p>
             </details>
           )}
         </section>

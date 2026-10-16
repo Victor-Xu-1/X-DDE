@@ -62,6 +62,15 @@ def verify_examples(settings, capabilities=None, *, profile="archive"):
                 if checked != pin.supporting_evidence:
                     raise ValueError("The fixed follow-up evidence changed.")
         record = records.get(capability, verify=True)
+        if (
+            record
+            and profile == "stat6"
+            and record.capability_id in {"regions", "workflows", "pose_exploration"}
+            and record.review is None
+        ):
+            raise ValueError(
+                "Computed study records require an explicit scientific and visual review."
+            )
         if pin or record and record.computed_result_available:
             computed += 1
         elif record:

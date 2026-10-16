@@ -117,9 +117,11 @@ describe("module templates", () => {
     expect(
       screen.queryByRole("button", { name: "Example results" }),
     ).toBeNull();
-    await waitFor(() => expect(
-      screen.getByRole("heading", { name: /BRD4–JQ1 template/ }),
-    ).toHaveFocus());
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /BRD4–JQ1 template/ }),
+      ).toHaveFocus(),
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "Return to task form" }),
     );
@@ -140,7 +142,15 @@ describe("module templates", () => {
     });
     transport.post.mockResolvedValue({
       module: info.module,
-      record: { kind: "regions", value: { id: "retained-region" } },
+      record: {
+        kind: "regions",
+        value: { id: "retained-region" },
+        pin: {
+          record_id: "retained-region",
+          record_sha256: "a".repeat(64),
+          computed_result_available: true,
+        },
+      },
     });
     const onLoad = vi.fn();
     render(
@@ -268,7 +278,14 @@ it("preserves setup-only provenance when presenting a record without computed ou
   });
   transport.post.mockResolvedValueOnce({
     module: info.module,
-    record: { kind: "campaign" },
+    record: {
+      kind: "campaign",
+      pin: {
+        record_id: "setup",
+        record_sha256: "a".repeat(64),
+        computed_result_available: false,
+      },
+    },
   });
   render(
     <ExampleActions capability="gnina.dock" language="en" onLoad={vi.fn()} />,
@@ -278,6 +295,98 @@ it("preserves setup-only provenance when presenting a record without computed ou
   expect(screen.getByText("Setup example")).toBeVisible();
   expect(screen.queryByText("Public example")).toBeNull();
 });
+
+it.each(["en", "zh"] as const)(
+  "shows a record's review and retained native stages in %s without changing the task draft",
+  async (language) => {
+    const review = {
+      scope: "reviewed_computational_example" as const,
+      interpretation:
+        "Protocol record review retains the original result and its independent quality stage.",
+      limitations:
+        "This UI fixture does not establish experimental binding, affinity or selectivity.",
+      checked: [
+        "input_identity",
+        "method_scope",
+        "native_outputs",
+        "visual_preview",
+        "downloads",
+      ],
+    };
+    const pin = {
+      record_id: "reviewed-record",
+      record_sha256: "a".repeat(64),
+      computed_result_available: true,
+      review,
+      supporting_evidence: [
+        {
+          job_id: "retained-quality",
+          artifact_sha256: { "result.json": "b".repeat(64) },
+        },
+      ],
+    };
+    transport.request.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/jobs/retained-quality"
+          ? {
+              id: "retained-quality",
+              status: "succeeded",
+              request: {
+                operation: "pose_quality",
+                name: "Retained independent pose review",
+              },
+            }
+          : {
+              ...info,
+              module: { ...info.module, capability_id: "regions" },
+              computed_result_available: true,
+              record_pin: pin,
+            },
+      ),
+    );
+    transport.post.mockResolvedValue({
+      module: { ...info.module, capability_id: "regions" },
+      record: { kind: "regions", value: { id: pin.record_id }, pin },
+    });
+    const onLoad = vi.fn();
+    render(
+      <ExampleActions
+        capability="regions"
+        language={language}
+        onLoad={onLoad}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: language === "zh" ? "示例结果" : "Example results",
+      }),
+    );
+    expect(await screen.findByText("Verified compound output")).toBeVisible();
+    fireEvent.click(
+      screen.getByText(
+        language === "zh"
+          ? "示例结果的解读与适用范围"
+          : "Example interpretation and scope",
+        { exact: true },
+      ),
+    );
+    expect(screen.getByText(review.interpretation)).toBeVisible();
+    expect(screen.getByText(review.limitations)).toBeVisible();
+    const stage = screen.getByRole("combobox", {
+      name: language === "zh" ? "研究阶段结果" : "Study result stage",
+    });
+    const primary = (stage as HTMLSelectElement).value;
+    fireEvent.change(stage, { target: { value: "retained-quality" } });
+    expect(
+      await screen.findByText("Native output retained-quality"),
+    ).toBeVisible();
+    expect(screen.getByText("Verified compound output")).not.toBeVisible();
+    fireEvent.change(stage, { target: { value: primary } });
+    expect(screen.getByText("Verified compound output")).toBeVisible();
+    expect(onLoad).not.toHaveBeenCalled();
+    expect(transport.post).toHaveBeenCalledTimes(1);
+  },
+);
 
 it("ignores a template response after the user changes modules", async () => {
   let resolve: (value: unknown) => void = () => {};

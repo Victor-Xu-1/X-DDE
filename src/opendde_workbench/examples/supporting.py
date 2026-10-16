@@ -8,12 +8,28 @@ from .evidence import capture_job
 
 
 def supporting_evidence(store, state, primary, prepared, identifiers):
-    identifiers = tuple(map(str, identifiers))
-    if len(set(identifiers)) != len(identifiers) or primary.id in identifiers:
-        raise ValueError("Supporting task identities must be unique and distinct from the primary.")
-    known_jobs = {primary.id}
     allowed_inputs = {str(value.reference.asset_id) for value in prepared.objects.values()}
     allowed_inputs.update(input_identifiers(primary.request))
+    return _followups(store, state, {primary.id}, allowed_inputs, identifiers)
+
+
+def record_supporting_evidence(store, state, source_jobs, identifiers):
+    """Record roots come from its verified native run, never caller-provided extra roots."""
+    roots = set(map(str, source_jobs))
+    allowed_inputs = set()
+    for identifier in roots:
+        job = store.get(identifier)
+        if job is None or job.status != "succeeded":
+            raise ValueError("Record follow-ups require successful native source tasks.")
+        allowed_inputs.update(input_identifiers(job.request))
+    return _followups(store, state, roots, allowed_inputs, identifiers)
+
+
+def _followups(store, state, roots, allowed_inputs, identifiers):
+    identifiers = tuple(map(str, identifiers))
+    if len(set(identifiers)) != len(identifiers) or roots.intersection(identifiers):
+        raise ValueError("Supporting task identities must be unique and distinct from the primary.")
+    known_jobs = set(roots)
     evidence = []
     for identifier in identifiers:
         job = store.get(identifier)

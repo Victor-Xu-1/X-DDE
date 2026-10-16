@@ -5,9 +5,12 @@ on:
       - "src/opendde_workbench/examples/supporting.py"
       - "src/opendde_workbench/examples/contracts.py"
       - "src/opendde_workbench/examples/pins.py"
+      - "src/opendde_workbench/examples/records.py"
+      - "src/opendde_workbench/examples/bundle.py"
       - "src/opendde_workbench/examples/routes.py"
       - "src/opendde_workbench/examples/library.py"
       - "tests/test_example_supporting.py"
+      - "tests/test_record_example_supporting.py"
       - "frontend/src/examples/ExampleResultSet*"
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/examples/types.ts"
@@ -31,7 +34,8 @@ jobs:
       - name: Typed lineage, immutable outputs, portable closure and personal history
         run: >-
           uv run --locked pytest -q tests/test_example_supporting.py
-          tests/test_example_pins.py tests/test_example_library.py
+          tests/test_record_example_supporting.py
+          tests/test_example_records.py tests/test_example_pins.py tests/test_example_library.py
           tests/test_stat6_case_bundle.py
       - name: Bilingual stage switching, stale replies and preserved module draft
         working-directory: frontend

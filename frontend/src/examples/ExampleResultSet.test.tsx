@@ -46,7 +46,7 @@ it("preserves the original and switches only to successful retained native stage
   const choose = screen.getByRole("combobox", { name: "Study result stage" });
   fireEvent.change(choose, { target: { value: "refined" } });
   expect(await screen.findByText("Native output refined")).toBeVisible();
-  expect(screen.queryByText("Native output generator")).toBeNull();
+  expect(screen.getByText("Native output generator")).not.toBeVisible();
   expect(
     screen.getByRole("option", { name: "Locally minimize a binding pose" }),
   ).toBeVisible();
@@ -130,4 +130,32 @@ it("a different root study cannot inherit the selected follow-up from the previo
   );
   expect(screen.getByText("Native output new-study")).toBeVisible();
   expect(screen.getByRole("combobox")).toHaveValue("new-study");
+});
+
+it("keeps a record's original pose choice while showing retained native quality stages", async () => {
+  transport.request.mockResolvedValue(quality);
+  render(
+    <ExampleResultSet
+      primaryId="record:reviewed-collection"
+      primaryLabel="Study results"
+      primary={
+        <input aria-label="Selected native pose" defaultValue="Pose 1" />
+      }
+      supporting={[{ job_id: quality.id }]}
+      language="en"
+    />,
+  );
+  const original = screen.getByRole("textbox", {
+    name: "Selected native pose",
+  });
+  fireEvent.change(original, { target: { value: "Pose 9" } });
+  const choose = screen.getByRole("combobox", { name: "Study result stage" });
+  fireEvent.change(choose, { target: { value: quality.id } });
+  expect(await screen.findByText("Native output quality")).toBeVisible();
+  expect(original).not.toBeVisible();
+  fireEvent.change(choose, { target: { value: "record:reviewed-collection" } });
+  expect(original).toBeVisible();
+  expect(original).toHaveValue("Pose 9");
+  expect(screen.queryByText("Native output quality")).toBeNull();
+  expect(transport.request).toHaveBeenCalledTimes(1);
 });

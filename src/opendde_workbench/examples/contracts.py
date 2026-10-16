@@ -108,6 +108,8 @@ class ExamplePin(ExampleModel):
 class RecordPinRequest(ExampleModel):
     record_id: UUID
     run_id: UUID | None = None
+    review: ExampleReview | None = None
+    supporting_job_ids: tuple[UUID, ...] = Field(default=(), max_length=8)
 
 
 class ExampleRecordPin(ExampleModel):
@@ -122,3 +124,5 @@ class ExampleRecordPin(ExampleModel):
     evidence: tuple[JobEvidence, ...]
     computed_result_available: bool
     created_at: str
+    review: ExampleReview | None = None
+    supporting_evidence: tuple[JobEvidence, ...] = Field(default=(), max_length=8)

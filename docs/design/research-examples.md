@@ -373,7 +373,6 @@ example file authority. Verification targets this feature, changed forms and
 their direct consumers. Global regression/scientific suites are not required
 or automatically triggered by this work.
 
-
 ### 可移植真实结果 / Portable native results
 
 组件库中的「公开研发案例」下载 `examples-v1/x-dde-public-cases-v1.zip`，
@@ -391,3 +390,21 @@ or automatically triggered by this work.
 不会把备注或名称中的 UUID 当作引用。`bundle_archive.py` 限制大小、数量和路径；
 `bundle_restore.py` 负责校验、冲突处理和事务恢复。新案例数据必须创建新数据版本，
 更新内容摘要；数据版与 X-DDE 软件版本独立。
+
+### 记录型示例的复核与阶段 / Reviewed record stages
+
+固定探索计划、区域或连续任务时，可以和单任务示例一样保存解读、适用限制及五项明确复核。
+原始计划和运行的核心证据保持独立；追加质控或比较结果必须按依赖顺序使用这些真实产物的
+确切科学版本，其他输入也必须属于同一来源链。相同文件字节不代表可以替换一个无关版本。
+原始结果、复核文字和后续文件均不可就地覆盖；修改示例需要新的案例修订。
+
+任务与记录共用一个研究阶段选择器。原始结果保留所选姿势，查看后续原生报告后可以返回；
+默认任务草稿保持不变。解读与限制按需展开，不向研究者展示校验摘要或内部日志。
+
+Job and record examples use the same retained-stage controller. Core run evidence stays separate
+from optional follow-up evidence, and verification rechecks the exact computed output versions,
+environment and artifact bytes in dependency order. Portable archives retain these native stages,
+their review and their asset closure without copying unrelated personal tasks. Legacy pin rows
+and archives remain unchanged and readable; a new computed study record requires an explicit
+scientific and visual review before export. A plausibility review does not establish binding,
+affinity, selectivity or experimental activity.

@@ -115,9 +115,23 @@ def register_examples(app, store, assets, settings, mutation):
         try:
             if profile == "stat6":
                 prepared = prepare_stat6(capability_id, scientific, records=study_records)
-                return study_records.pin(capability_id, value.record_id, value.run_id, prepared)
+                return study_records.pin(
+                    capability_id,
+                    value.record_id,
+                    value.run_id,
+                    prepared,
+                    review=value.review,
+                    supporting_job_ids=value.supporting_job_ids,
+                )
             prepared = prepare_example(capability_id, scientific, cache, records=records)
-            return records.pin(capability_id, value.record_id, value.run_id, prepared)
+            return records.pin(
+                capability_id,
+                value.record_id,
+                value.run_id,
+                prepared,
+                review=value.review,
+                supporting_job_ids=value.supporting_job_ids,
+            )
         except (ValueError, OSError, KeyError, ConflictError) as exc:
             raise HTTPException(409, str(exc)) from exc
 
