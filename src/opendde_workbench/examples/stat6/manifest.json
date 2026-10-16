@@ -241,6 +241,42 @@
       "bytes": 439,
       "kind": "sequences",
       "license": "CC0-1.0"
+    },
+    "stat6_prediction": {
+      "key": "stat6_prediction",
+      "name": "AF-P42226-F1-model_v6.pdb",
+      "url": "https://alphafold.ebi.ac.uk/files/AF-P42226-F1-model_v6.pdb",
+      "sha256": "9a02ce94376561f86c13fc58db865a09e2ccdecfd499b88df41f2e7e8f95ebd6",
+      "bytes": 545534,
+      "kind": "structure",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_predicted_construct": {
+      "key": "stat6_predicted_construct",
+      "name": "STAT6-AFv6-construct-113-658.pdb",
+      "url": "https://raw.githubusercontent.com/Victor-Xu-1/X-DDE/v0.5.85/src/opendde_workbench/examples/stat6/inputs/STAT6-AFv6-construct-113-658.pdb",
+      "sha256": "83cd4db1c3e8729a77100055f13abdda9eb9c4d518f34c28e2090d9f827bbb1e",
+      "bytes": 348975,
+      "kind": "structure",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_prediction_metadata": {
+      "key": "stat6_prediction_metadata",
+      "name": "STAT6-AFv6-source-metadata.json",
+      "url": "https://raw.githubusercontent.com/Victor-Xu-1/X-DDE/v0.5.85/src/opendde_workbench/examples/stat6/inputs/STAT6-AFv6-source-metadata.json",
+      "sha256": "d2a63ff00641f55116d58502efead093c29692e8023fba97c00e4aba2d9d6842",
+      "bytes": 10265,
+      "kind": "config",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_prediction_provenance": {
+      "key": "stat6_prediction_provenance",
+      "name": "STAT6-AFv6-construct-source.json",
+      "url": "https://raw.githubusercontent.com/Victor-Xu-1/X-DDE/v0.5.85/src/opendde_workbench/examples/stat6/inputs/STAT6-AFv6-construct-source.json",
+      "sha256": "eea9122e9f64c2e968d68bbd11ce77fa1be7d68a3f30bc733dd1f9c0f4cc2486",
+      "bytes": 1183,
+      "kind": "config",
+      "license": "CC-BY-4.0"
     }
   },
   "molecules": [

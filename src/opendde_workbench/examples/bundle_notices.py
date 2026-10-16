@@ -8,6 +8,11 @@ from .catalogue import CASES, FILES, MODULES
 def bundle_notices(selected, rows, *, modules=MODULES, cases=CASES, files=FILES):
     selected_cases = {modules[key].case_id for key in selected}
     selected_files = {key for case in selected_cases for key in cases[case].files}
+    # Optional scientific references belong to an archive only when their exact
+    # content-addressed files are actually retained. Do not add unrelated licences.
+    retained_hashes = {row["sha256"] for row in rows.get("assets", [])}
+    optional_files = {key for key, spec in files.items() if spec.sha256 in retained_hashes}
+    selected_files.update(optional_files)
     operations = {json.loads(row["request"]).get("operation", "predict") for row in rows["jobs"]}
     licenses = sorted({files[key].license for key in selected_files})
     if any(operation.startswith("drugclip_") for operation in operations):
@@ -27,7 +32,10 @@ def bundle_notices(selected, rows, *, modules=MODULES, cases=CASES, files=FILES)
             "energy or affinity."
         )
     return {
-        "sources": sorted({url for case in selected_cases for url in cases[case].sources}),
+        "sources": sorted(
+            {url for case in selected_cases for url in cases[case].sources}
+            | {files[key].url for key in optional_files}
+        ),
         "licenses": licenses,
         "methods": " ".join(methods),
     }

@@ -408,3 +408,32 @@ their review and their asset closure without copying unrelated personal tasks. L
 and archives remain unchanged and readable; a new computed study record requires an explicit
 scientific and visual review before export. A plausibility review does not establish binding,
 affinity, selectivity or experimental activity.
+
+### 预测参考与原生派生链 / Predicted references and native provenance
+
+多受体探索及其分群模块可使用固定的 AlphaFold DB v6 人 STAT6 参考模型，
+以及该模型链 A 的 113–658 片段。完整模型、原始接口响应与截取来源记录均保留精确字节；
+片段的 4,306 个原子身份、坐标、占有率和置信度与完整模型对应区域一致。
+这是预测参考，不是实验结构，也不是重新计算的模型。其他模板不会默认导入这些可选材料。
+公开结构仍遵循 AlphaFold DB 的 CC-BY-4.0 数据条款，与平台代码的 Apache-2.0 分开。
+
+案例来源沿现有科学版本和原生任务关系验证，最多 32 层、64 个源任务。
+一个未固定的中间产物必须指向成功任务及其保留的确切输出，并且该任务的所有文件输入
+最终都属于案例来源。文件名、备注、成功状态或相同文件字节均不能单独替代派生关系。
+已固定上游结果也要重新核对原始证据，循环、缺失环境、来源不明或被改动的文件会被拒绝。
+这项验证不启动计算，不修改原始任务或科学版本。
+
+The receptor-comparison study optionally includes the exact AlphaFold DB v6 STAT6 model,
+its unchanged chain-A113–658 atom selection, the original API snapshot and source receipt.
+These are predicted references, not experimental structures or new calculations. Optional source
+files remain in the single study manifest and are not prefilled into unrelated templates.
+User-facing source links omit engineering receipts; portable archives retain their exact bytes
+and applicable data attribution.
+
+Native provenance uses the existing version, asset and task authorities. Each unpinned derived
+version must match an actual retained output of a successful native source job; every source
+input must reach the reviewed case roots. Traversal rejects cycles, missing environments,
+unqualified derived versions and changed output files, with explicit depth and job budgets.
+An explicitly recognized historical STAT6 catalogue is accepted only if reconstructing its
+original source and module projection reproduces the published digest exactly. Unknown or
+modified catalogues remain invalid; original archives and native rows are never rewritten.

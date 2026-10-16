@@ -6,6 +6,7 @@ from uuid import UUID, uuid5
 from ...research.contracts import VersionInput
 from ..contracts import PreparedExample
 from .catalogue import CASE, FILES, MODULES, study_context, verified_input
+from .reference_inputs import case_for, input_keys
 
 NAMESPACE = UUID("dc83ffaf-3aef-49fc-af71-bf9732d06a78")
 
@@ -47,10 +48,11 @@ def register_input(scientific, key):
 
 def prepare_stat6(capability, scientific, *, records=None):
     module = MODULES[capability]
+    case = case_for(capability)
     originals = {
         key: register_input(scientific, key)
-        for key, spec in FILES.items()
-        if spec.kind in {"structure", "ligand", "sequences"}
+        for key in input_keys(capability)
+        if FILES[key].kind in {"structure", "ligand", "sequences"}
     }
     objects = {
         **originals,
@@ -149,6 +151,11 @@ def prepare_stat6(capability, scientific, *, records=None):
     measurements = scientific.assets.save(
         measured_file.name, measured_file.kind, verified_input("stat6_measurements")
     )
+    data_assets = {"stat6_measurements": measurements}
+    for key in input_keys(capability):
+        spec = FILES[key]
+        if spec.kind == "config":
+            data_assets[key] = scientific.assets.save(spec.name, spec.kind, verified_input(key))
 
     sequence_sources = {
         key: (sequence,) for key in ("protein_sequence", "target_sequence", "stat6_sequence")
@@ -164,12 +171,12 @@ def prepare_stat6(capability, scientific, *, records=None):
 
     return PreparedExample(
         module=module,
-        case=CASE,
+        case=case,
         objects=objects,
-        data_assets={"stat6_measurements": measurements},
+        data_assets=data_assets,
         sequences=sequences,
         sequence_sources=sequence_sources,
-        sources=CASE.sources,
+        sources=case.sources,
         request=study_request(capability, objects, sequences),
         campaign_draft={
             "targetName": "STAT6 pathway · IL-4R alpha · 6WGL",

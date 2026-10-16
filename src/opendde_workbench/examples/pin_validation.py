@@ -1,9 +1,7 @@
 """A fixed result must belong to the reviewed public case and native operation."""
 
-import json
-
 from ..capabilities.definitions import CAPABILITIES
-from ..requests import input_identifiers
+from .input_lineage import validate_input_lineage
 
 
 def validate_case_job(capability_id, job, prepared, store):
@@ -45,23 +43,3 @@ def validate_case_job(capability_id, job, prepared, store):
 
         return validate_dataset_case(job, prepared, store)
     validate_input_lineage(job, prepared, store)
-
-
-def validate_input_lineage(job, prepared, store):
-    """Shared source-lineage policy for individual jobs and completed study workflows."""
-    allowed = {str(obj.reference.asset_id) for obj in prepared.objects.values()}
-    families = {str(obj.family_id) for obj in prepared.objects.values()}
-    with store.connect() as db:
-        pinned_jobs = {
-            row["job_id"]
-            for row in db.execute("SELECT job_id,body FROM example_pins")
-            if json.loads(row["body"])["case_id"] == prepared.case.id
-        }
-        allowed |= {
-            row["asset_id"]
-            for row in db.execute("SELECT family_id,asset_id,body FROM scientific_objects")
-            if row["family_id"] in families or json.loads(row["body"])["source_job"] in pinned_jobs
-        }
-    inputs = input_identifiers(job.request)
-    if not inputs or not inputs <= allowed:
-        raise ValueError("Every task input must belong to this example's scientific lineage.")

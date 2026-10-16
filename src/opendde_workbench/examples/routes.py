@@ -13,6 +13,7 @@ from .preparation import prepare_example
 from .records import ExampleRecords
 from .stat6 import catalogue as stat6
 from .stat6.preparation import prepare_stat6
+from .stat6.reference_inputs import case_for, visible_files
 
 
 def register_examples(app, store, assets, settings, mutation):
@@ -34,8 +35,8 @@ def register_examples(app, store, assets, settings, mutation):
                 raise HTTPException(409, str(exc)) from exc
             return {
                 "module": stat6.MODULES[capability_id],
-                "case": stat6.CASE,
-                "files": list(stat6.FILES.values()),
+                "case": case_for(capability_id),
+                "files": visible_files(capability_id),
                 "pin": record,
                 "record_pin": compound,
                 "study": stat6.study_context(capability_id),

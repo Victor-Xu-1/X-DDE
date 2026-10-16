@@ -42,11 +42,9 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
         rows = manifest.get("records", {})
         selected = None
         if manifest.get("catalogue_sha256") != catalogue.digest:
-            if profile != "archive":
-                raise ValueError("The study catalogue or module revisions differ from this bundle.")
             from .catalogue_profiles import compatible_modules
 
-            selected = compatible_modules(manifest.get("catalogue_sha256"))
+            selected = compatible_modules(manifest.get("catalogue_sha256"), profile=profile)
         if manifest.get("capabilities") is not None:
             declared = manifest["capabilities"]
             permitted_modules = set(catalogue.modules if selected is None else selected)

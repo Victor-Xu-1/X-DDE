@@ -9,8 +9,13 @@ on:
       - "src/opendde_workbench/examples/bundle.py"
       - "src/opendde_workbench/examples/routes.py"
       - "src/opendde_workbench/examples/library.py"
+      - "src/opendde_workbench/examples/input_lineage.py"
+      - "src/opendde_workbench/examples/pin_validation.py"
+      - "src/opendde_workbench/examples/catalogue_profiles.py"
       - "tests/test_example_supporting.py"
       - "tests/test_record_example_supporting.py"
+      - "tests/test_example_native_lineage.py"
+      - "tests/test_stat6_predicted_references.py"
       - "frontend/src/examples/ExampleResultSet*"
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/examples/types.ts"
@@ -35,6 +40,7 @@ jobs:
         run: >-
           uv run --locked pytest -q tests/test_example_supporting.py
           tests/test_record_example_supporting.py
+          tests/test_example_native_lineage.py tests/test_stat6_predicted_references.py
           tests/test_example_records.py tests/test_example_pins.py tests/test_example_library.py
           tests/test_stat6_case_bundle.py
       - name: Bilingual stage switching, stale replies and preserved module draft
