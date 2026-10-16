@@ -1,6 +1,6 @@
 """Native provenance graph boundaries using protocol files, never R&D results."""
 
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from test_example_pins import fixture
@@ -83,7 +83,7 @@ def test_native_graph_cannot_admit_foreign_or_unproved_inputs(settings, mutation
             VersionInput(asset_id=asset.id, kind="molecule", label="Private"), uuid4()
         )
         changed = first.request.model_copy(
-            update={"ligand_files": [asset.id], "scientific_inputs": [foreign.reference]}
+            update={"ligand_files": [UUID(asset.id)], "scientific_inputs": [foreign.reference]}
         )
         with store.connect() as db:
             db.execute(
@@ -114,7 +114,9 @@ def test_native_graph_cannot_admit_foreign_or_unproved_inputs(settings, mutation
             db.execute("UPDATE jobs SET status='failed' WHERE id=?", (first.id,))
     else:
         target = stage(settings, store, two.reference.model_copy(update={"version_id": None}))
-    with pytest.raises(ValueError, match="lineage|native output|scientific version"):
+    with pytest.raises(
+        ValueError, match="lineage|native output|scientific version|successful native task"
+    ):
         validate_input_lineage(target, prepared, store)
 
 

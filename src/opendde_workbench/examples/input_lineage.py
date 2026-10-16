@@ -92,9 +92,13 @@ class NativeInputLineage:
                     for source_id in self.pinned_sources.get(asset_id, ())
                 ):
                     continue
-                if not refs or any(ref.version_id is None for ref in refs):
+                if not refs:
                     raise ValueError(
-                        "Scientific lineage requires an exact saved scientific version."
+                        "Every task input must belong to this example's scientific lineage."
+                    )
+                if any(ref.version_id is None for ref in refs):
+                    raise ValueError(
+                        "The scientific lineage requires an exact saved scientific version."
                     )
                 for ref in refs:
                     version = self.scientific.get(ref.version_id)
