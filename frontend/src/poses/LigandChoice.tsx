@@ -180,8 +180,12 @@ export function LigandChoice({
                   ? "保存中…"
                   : "Saving…"
                 : zh
-                  ? "保存此分子的研究版本"
-                  : "Save this molecular version"}
+                  ? purpose === "reference"
+                    ? "使用此参考配体"
+                    : "保存此分子的研究版本"
+                  : purpose === "reference"
+                    ? "Use this reference ligand"
+                    : "Save this molecular version"}
             </button>
           )}
         </>

@@ -23,6 +23,7 @@ on:
       - "frontend/src/diffsbdd/ReviewReference.tsx"
       - "tests/test_defined*"
       - "tests/fixtures/stat6/9big-ak1690*"
+      - "server_tests/test_defined_region_browser.py"
       - ".github/workflows/defined-site-checks.yml"
 permissions:
   contents: read
@@ -39,7 +40,7 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --group browser
       - name: Defined-source questionnaire, exact source labels and PLIP review
         working-directory: frontend
         run: >-
@@ -60,6 +61,16 @@ jobs:
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py
           tests/test_pose_exploration_contract.py tests/test_pose_exploration_api.py
           tests/test_site_association.py tests/test_receptor_contract.py
+      - run: uv run --locked python -m playwright install --with-deps chromium
+      - name: Real STAT6 source questionnaire, live 3D and plan-only handoff in Chromium
+        run: >-
+          uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
+          server_tests/test_defined_region_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: defined-region-browser
+          path: outputs/defined-regions
       - name: Only changed source authorities and direct consumers
         run: >-
           uv run --locked ruff check src/opendde_workbench/sites
@@ -72,3 +83,4 @@ jobs:
           src/opendde_workbench/research/receptor_sets.py
           src/opendde_workbench/research/routes.py
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py
+          server_tests/test_defined_region_browser.py

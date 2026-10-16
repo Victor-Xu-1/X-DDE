@@ -396,6 +396,23 @@ on:
       - "!frontend/src/viewer/MinimizedPoseResults.tsx"
       - "!frontend/src/presentation/StructureWorkbench.tsx"
       - "!frontend/src/presentation/structure-workbench.css"
+      # Defined-region sources and exact PLIP review use defined-site-checks.yml.
+      - "!server_tests/test_defined_region_browser.py"
+      # Do not select the whole-product browser matrix for these bounded changes.
+      - "!frontend/src/sites/**"
+      - "!frontend/src/integrations/PlipReview*"
+      - "!frontend/src/poses/PoseWorkspace*"
+      - "!frontend/src/poses/PoseForm*"
+      - "!frontend/src/poses/PosePlanRun*"
+      - "!frontend/src/poses/PoseOutcomeList*"
+      - "!frontend/src/poses/source-label.ts"
+      - "!frontend/src/poses/types.ts"
+      - "!frontend/src/poses/LigandChoice*"
+      - "!frontend/src/poses/ClusterForm.tsx"
+      - "!frontend/src/viewer/search-box*"
+      - "!frontend/src/viewer/StructureViewport.tsx"
+      - "!frontend/src/diffsbdd/ReviewReference.tsx"
+      - "!.github/workflows/task-layout-checks.yml"
   workflow_dispatch:
     inputs:
       result_controls_only:
