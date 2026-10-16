@@ -153,8 +153,20 @@ def test_retained_native_sites_plan_graph_csrf_idempotency_and_restart(
         )
         plan = client.get("/api/workflows/plans/" + exploration["plan_id"]).json()
         assert len(plan["body"]["steps"]) == 2
-        for step, region in zip(plan["body"]["steps"], body["regions"], strict=True):
-            assert step["request"]["search"] == region["search"]
+        for step, saved_site, region in zip(
+            plan["body"]["steps"], sites["sites"], body["regions"], strict=True
+        ):
+            search = step["request"]["search"]
+            assert search == saved_site["search"]
+            assert search["kind"] == region["search"]["kind"]
+            assert search["frame"] == region["search"]["frame"]
+            if search["kind"] == "box":
+                assert search["box"]["unit"] == "angstrom"
+                assert search["box"]["center"] == region["search"]["box"]["center"]
+                assert search["box"]["size"] == region["search"]["box"]["size"]
+            else:
+                assert search["reference"] == region["search"]["reference"]
+                assert search["coordinate_basis"] == "user_confirmed"
         graph = client.get("/api/research/graph?focus=site_set:" + sites["id"])
         assert graph.status_code == 200, graph.text
         assert any(e["relation"] == "defined_search_input" for e in graph.json()["edges"])
@@ -194,13 +206,17 @@ def test_wrong_member_frame_mutated_file_and_faked_prediction_data_do_not_save(
         path = assets.path(assets.get(ligand["asset_id"]))
         original = path.read_bytes()
         try:
-            path.write_bytes(original + b"changed")
-            rejected = client.post(
-                "/api/research/site-sets",
-                json=site_input(ensemble, ligand),
-                headers={"Idempotency-Key": str(uuid4())},
-            )
-            assert rejected.status_code == 422 and "integrity" in rejected.text
+            for content, reason in (
+                (original + b"changed", "size changed"),
+                (bytes([original[0] ^ 1]) + original[1:], "integrity"),
+            ):
+                path.write_bytes(content)
+                rejected = client.post(
+                    "/api/research/site-sets",
+                    json=site_input(ensemble, ligand),
+                    headers={"Idempotency-Key": str(uuid4())},
+                )
+                assert rejected.status_code == 422 and reason in rejected.text
         finally:
             path.write_bytes(original)
         assert client.get("/api/research/site-sets").json() == baseline
