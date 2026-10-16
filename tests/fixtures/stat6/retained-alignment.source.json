@@ -1,0 +1,10 @@
+{
+  "profile": "stat6",
+  "data_version": "7",
+  "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.5.77/stat6-reviewed-results-v7.zip",
+  "sha256": "882cb0aba3cbb1dca9a1bc907e3e45b9f3ac35290346b4c5bfbee25a48cca58d",
+  "bytes": 8202583,
+  "source_revision": "5377257ed6173ffab325e200a6c64aa9a5616113",
+  "alignment_job": "90df5f6d-75e8-4990-a696-e06b43b6a7f2",
+  "scope": "Retained experimental and predicted STAT6 constructs aligned by their native SIFTS-anchored calculation. Restoring and indexing this fixture must not run inference. This fixture remains independent of the latest product example-data version."
+}

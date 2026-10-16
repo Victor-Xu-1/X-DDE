@@ -1,6 +1,7 @@
 """Real retained STAT6 alignment, files, SQLite and API; no inference is dispatched."""
 
 import hashlib
+import json
 import os
 from pathlib import Path
 from uuid import uuid4
@@ -9,7 +10,6 @@ import pytest
 
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.bundle_restore import restore_bundle
-from opendde_workbench.examples.stat6_bundle_release import SHA256
 from opendde_workbench.research.outputs import OutputCatalog
 from opendde_workbench.research.receptor_sets import ReceptorSets
 from opendde_workbench.store import Store
@@ -18,7 +18,10 @@ pytestmark = pytest.mark.skipif(
     not os.environ.get("WB_DEFINED_SITE_ARCHIVE"),
     reason="Select the retained native-data API gate.",
 )
-ALIGNMENT = "90df5f6d-75e8-4990-a696-e06b43b6a7f2"
+FIXTURE = json.loads(
+    (Path(__file__).parent / "fixtures/stat6/retained-alignment.source.json").read_text()
+)
+ALIGNMENT, SHA256 = FIXTURE["alignment_job"], FIXTURE["sha256"]
 
 
 @pytest.fixture

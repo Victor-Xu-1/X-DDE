@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "src/opendde_workbench/sites/**"
+      - "src/opendde_workbench/examples/stat6_bundle_release.py"
       - "src/opendde_workbench/receptors/alignment_evidence.py"
       - "src/opendde_workbench/pose_ensembles/contracts.py"
       - "src/opendde_workbench/pose_ensembles/planning.py"
@@ -22,7 +23,9 @@ on:
       - "frontend/src/integrations/ScientificReview.tsx"
       - "frontend/src/diffsbdd/ReviewReference.tsx"
       - "tests/test_defined*"
+      - "tests/test_stat6_case_data.py"
       - "tests/fixtures/stat6/9big-ak1690*"
+      - "tests/fixtures/stat6/retained-alignment.source.json"
       - "server_tests/test_defined_region_browser.py"
       - ".github/workflows/defined-site-checks.yml"
 permissions:
@@ -55,12 +58,15 @@ jobs:
         run: |
           gh release download v0.5.77 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v7.zip --dir "$RUNNER_TEMP/defined-site-data"
           echo "WB_DEFINED_SITE_ARCHIVE=$RUNNER_TEMP/defined-site-data/stat6-reviewed-results-v7.zip" >> "$GITHUB_ENV"
+          gh release download v0.5.81 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v8.zip --dir "$RUNNER_TEMP/defined-site-data"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/defined-site-data/stat6-reviewed-results-v8.zip" >> "$GITHUB_ENV"
       - name: Defined conditions, existing native-site contracts and real retained-frame API
         run: >-
           uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py
           tests/test_pose_exploration_contract.py tests/test_pose_exploration_api.py
           tests/test_site_association.py tests/test_receptor_contract.py
+          tests/test_stat6_case_data.py
       - run: uv run --locked python -m playwright install --with-deps chromium
       - name: Real STAT6 source questionnaire, live 3D and plan-only handoff in Chromium
         run: >-
@@ -70,7 +76,9 @@ jobs:
         if: always()
         with:
           name: defined-region-browser
-          path: outputs/defined-regions
+          path: |
+            outputs/defined-regions
+            outputs/stat6-case-data
       - name: Only changed source authorities and direct consumers
         run: >-
           uv run --locked ruff check src/opendde_workbench/sites
@@ -83,4 +91,5 @@ jobs:
           src/opendde_workbench/research/receptor_sets.py
           src/opendde_workbench/research/routes.py
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py
+          tests/test_stat6_case_data.py
           server_tests/test_defined_region_browser.py

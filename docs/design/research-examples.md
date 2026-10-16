@@ -38,8 +38,9 @@ including explicitly declared stereochemistry. Their 3D previews and downloads
 retain the native calculated SDF. This avoids assigning apparent stereocenters
 from an arbitrary unbound conformation when drawing the 2D graph.
 
-The reviewed STAT6 data package now contains 24 computed capability examples,
-including the source-verified single-site R-group study. Its immutable archive
+The reviewed STAT6 data package now contains 25 computed capability examples,
+including the source-verified single-site R-group study and the original 9BIG
+mmCIF contact map (7 hydrogen bonds and 4 hydrophobic contacts). Its immutable archive
 retains original requests, native files and computational interpretations.
 Cold restoration is idempotent and never executes historical calculations.
 PNG snapshot previews retain the original native pixels, while their download

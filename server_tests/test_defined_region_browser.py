@@ -12,7 +12,6 @@ from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.bundle_restore import restore_bundle
-from opendde_workbench.examples.stat6_bundle_release import SHA256
 from opendde_workbench.research.outputs import OutputCatalog
 from opendde_workbench.research.receptor_sets import ReceptorSets
 from opendde_workbench.settings import Settings
@@ -23,8 +22,10 @@ from server_tests.test_navigation_shell_browser import open_navigation
 pytestmark = pytest.mark.skipif(
     not os.environ.get("WB_DEFINED_SITE_ARCHIVE"), reason="Select the retained STAT6 browser gate."
 )
-ALIGNMENT = "90df5f6d-75e8-4990-a696-e06b43b6a7f2"
-LIGAND = Path(__file__).parents[1] / "tests/fixtures/stat6/9big-ak1690.sdf"
+FIXTURES = Path(__file__).parents[1] / "tests/fixtures/stat6"
+SOURCE = json.loads((FIXTURES / "retained-alignment.source.json").read_text())
+ALIGNMENT, SHA256 = SOURCE["alignment_job"], SOURCE["sha256"]
+LIGAND = FIXTURES / "9big-ak1690.sdf"
 
 
 @contextmanager
@@ -47,13 +48,15 @@ def inspected_page(driver, width, evidence):
 def reference_bounds():
     """Explicit box from deposited SDF heavy-atom extents, not predicted cavity evidence."""
     lines = LIGAND.read_text().splitlines()
-    assert "V2000" in lines[3]
+    # RCSB ModelServer retains an implicit legacy V2000 counts line. Preserve it.
+    assert "V3000" not in lines[3] and int(lines[3][:3]) == 127
     atoms = lines[4 : 4 + int(lines[3][:3])]
     xyz = [
         [float(line[axis * 10 : (axis + 1) * 10]) for axis in range(3)]
         for line in atoms
         if line[31:34].strip() not in {"H", "D"}
     ]
+    assert len(xyz) == 71
     lower, upper = (
         [min(v[i] for v in xyz) for i in range(3)],
         [max(v[i] for v in xyz) for i in range(3)],
