@@ -60,6 +60,7 @@ jobs:
           src/presentation/ResearchTabs.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
+          src/docking/poseScore.test.ts src/quality/QualityForm.test.tsx
           src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx
           src/chemistry/StateResults.test.tsx src/diffsbdd/DiffResults.test.tsx
           src/operations/PropertyForm.test.tsx

@@ -53,6 +53,7 @@ jobs:
         run: >-
           npx vitest run src/sites/DefinedRegionForm.test.tsx src/sites/defined-sources.test.ts
           src/poses/PoseWorkspace.test.tsx src/poses/PoseForm.test.tsx
+          src/poses/PosePlanRun.test.tsx
           src/viewer/search-box.test.ts
           src/viewer/source-layout.test.ts src/diffsbdd/ReviewReference.test.tsx
           src/integrations/PlipReview.test.tsx

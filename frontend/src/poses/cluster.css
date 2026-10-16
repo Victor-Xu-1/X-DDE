@@ -14,9 +14,6 @@
   white-space: nowrap;
   overflow-wrap: normal;
 }
-.studio-app .cluster-preview .viewer-panel .molecular-stage {
-  height: 440px;
-}
 .cluster-downloads {
   display: flex;
   flex-wrap: wrap;
@@ -44,9 +41,32 @@
   .cluster-pose-selection {
     grid-template-columns: minmax(0, 1fr);
   }
-  .studio-app .cluster-preview .viewer-panel .molecular-stage {
-    height: 340px;
-  }
+}
+
+.cluster-coverage dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin-block: 12px;
+}
+.cluster-coverage dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.cluster-coverage dt {
+  color: var(--muted);
+}
+.cluster-coverage dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.cluster-comparison-note {
+  margin-block: 8px 16px;
+  max-width: 95ch;
+  color: var(--muted);
+  font-size: 0.875rem;
 }
 
 .cluster-analysis {

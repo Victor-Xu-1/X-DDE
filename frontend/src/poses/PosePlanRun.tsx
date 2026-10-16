@@ -1,14 +1,12 @@
-import { historyChoiceLabel } from "../presentation/history-choice";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useExample } from "../examples/context";
 import { api, request } from "../api";
 import { loadPages } from "../research/loadPages";
-import { RunMonitor, workflowStateLabel } from "../workflows/RunMonitor";
 import type { WorkflowRun } from "../workflows/types";
 import type { Language } from "../types";
 import { PoseResults } from "./PoseResults";
 import type { Exploration, PoseSet } from "./types";
-import { poseSourceLabel } from "./source-label";
+import { PoseRunControls } from "./PoseRunControls";
 export function PosePlanRun({
   value,
   language,
@@ -29,6 +27,7 @@ export function PosePlanRun({
     [selected, setSelected] = useState(preset?.poses[0]?.id ?? ""),
     [ready, setReady] = useState(false),
     [loading, setLoading] = useState(true),
+    [reload, setReload] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const updateRun = useCallback((current: WorkflowRun) => {
@@ -41,6 +40,7 @@ export function PosePlanRun({
     mounted.current = true;
     const c = new AbortController();
     setLoading(true);
+    setError("");
     void Promise.all([
       loadPages<WorkflowRun>(
         "/workflows/runs?plan_id=" + value.plan_id,
@@ -59,6 +59,13 @@ export function PosePlanRun({
         if (!c.signal.aborted) {
           setHistory(r);
           setSets(s);
+          setRun(
+            (current) =>
+              r.find((row) => row.id === current?.id) ??
+              preset?.run ??
+              r[0] ??
+              null,
+          );
           setReady(cap.availability.configuration_present);
         }
       })
@@ -72,7 +79,7 @@ export function PosePlanRun({
       mounted.current = false;
       c.abort();
     };
-  }, [value.id, value.plan_id]);
+  }, [value.id, value.plan_id, reload]);
   async function start() {
     if (busy || !ready) return;
     setBusy(true);
@@ -116,9 +123,8 @@ export function PosePlanRun({
       if (mounted.current) setBusy(false);
     }
   }
-  const terminal =
-      !!run && ["succeeded", "failed", "cancelled"].includes(run.state),
-    saved = sets.find((s) => s.id === selected);
+  const currentSets = run ? sets.filter((s) => s.run_id === run.id) : [];
+  const saved = currentSets.find((s) => s.id === selected) ?? currentSets[0];
   return (
     <section
       className="pose-plan-run"
@@ -129,110 +135,14 @@ export function PosePlanRun({
         {value.request.name} · {value.combinations.length}{" "}
         {zh ? "个独立组合" : "independent combinations"}
       </p>
-      <details>
-        <summary>
-          {zh ? "检查配套输入与预算" : "Review paired inputs and budget"}
-        </summary>
-        <ul>
-          {value.combinations.map((c) => (
-            <li key={c.step_id}>
-              {zh ? "受体 " : "Receptor "}
-              {c.member_index + 1} · {poseSourceLabel(c, language)} ·{" "}
-              {zh ? "分子 " : "Ligand "}
-              {c.ligand_index + 1} · seed {c.seed}
-            </li>
-          ))}
-        </ul>
-      </details>
-      {loading && (
-        <p role="status">
-          {zh ? "读取运行记录与环境…" : "Loading run history and environment…"}
-        </p>
-      )}
-      {!loading && !ready && (
-        <p className="notice">
-          {zh
-            ? "请先在安装与组件中配置独立 GNINA 环境。计划已保存，不会启动假计算。"
-            : "Configure the independent GNINA environment in Installation & components. The plan is saved; no synthetic computation is started."}
-        </p>
-      )}
-      {!run && (
-        <button
-          className="primary-button"
-          type="button"
-          disabled={!ready || busy || loading}
-          onClick={() => void start()}
-        >
-          {zh ? "启动已审阅的姿势探索" : "Start reviewed pose exploration"}
-        </button>
-      )}
-      {terminal && (
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={!ready || busy}
-          onClick={() => {
-            runKey.current = crypto.randomUUID();
-            void start();
-          }}
-        >
-          {zh ? "再运行一次此计划" : "Run this plan again"}
-        </button>
-      )}
-      {history.length > 0 && (
-        <label className="field">
-          {zh ? "已执行的运行" : "Existing runs"}
-          <select
-            value={run?.id ?? ""}
-            onChange={(e) => {
-              setRun(history.find((r) => r.id === e.target.value) ?? null);
-              setSelected("");
-            }}
-          >
-            <option value="">{zh ? "选择运行记录" : "Choose a run"}</option>
-            {history.map((r, index) => (
-              <option key={r.id} value={r.id}>
-                {historyChoiceLabel(
-                  zh ? "运行" : "Run",
-                  index,
-                  zh,
-                  r.created_at,
-                )}{" "}
-                · {workflowStateLabel(r.state, zh)}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      {run && (
-        <RunMonitor
-          key={run.id}
-          initial={run}
-          language={language}
-          onChange={updateRun}
-        />
-      )}
-      {terminal && (
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={busy}
-          onClick={() => void capture()}
-        >
-          {zh ? "保存所有组合与姿势" : "Capture all combinations and poses"}
-        </button>
-      )}
-      {sets.length > 0 && (
+      {currentSets.length > 1 && (
         <label className="field">
           {zh ? "已保存姿势集合" : "Saved pose ensembles"}
           <select
-            value={selected}
+            value={saved?.id ?? ""}
             onChange={(e) => setSelected(e.target.value)}
           >
-            <option value="">
-              {zh ? "选择结果集合" : "Choose a pose set"}
-            </option>
-            {sets.map((s, index) => (
+            {currentSets.map((s, index) => (
               <option value={s.id} key={s.id}>
                 {zh ? "结果集" : "Result set"} {index + 1} ·{" "}
                 {s.qualified_pose_count}{" "}
@@ -245,10 +155,44 @@ export function PosePlanRun({
       {saved && (
         <PoseResults key={saved.id} value={saved} language={language} />
       )}
+      <details className="pose-run-settings" open={!saved}>
+        <summary>
+          {zh ? "计算设置与运行记录" : "Run settings and history"}
+        </summary>
+        <PoseRunControls
+          value={value}
+          language={language}
+          run={run}
+          history={history}
+          ready={ready}
+          busy={busy}
+          loading={loading}
+          captured={Boolean(saved)}
+          onStart={() => void start()}
+          onRepeat={() => {
+            runKey.current = crypto.randomUUID();
+            void start();
+          }}
+          onRun={(id) => {
+            setRun(history.find((r) => r.id === id) ?? null);
+            setSelected("");
+          }}
+          onUpdate={updateRun}
+          onCapture={() => void capture()}
+        />
+      </details>
       {error && (
-        <p role="alert" className="error-box">
-          {error}
-        </p>
+        <div className="error-box">
+          <p role="alert">{error}</p>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={loading || busy}
+            onClick={() => setReload((v) => v + 1)}
+          >
+            {zh ? "重新读取结果" : "Retry loading results"}
+          </button>
+        </div>
       )}
     </section>
   );

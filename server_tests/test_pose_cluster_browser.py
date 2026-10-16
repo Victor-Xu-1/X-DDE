@@ -129,9 +129,9 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 page.get_by_role("combobox", name="选择历史计划", exact=True).select_option(
                     accepted["exploration_id"]
                 )
-                page.get_by_role("combobox", name="已保存姿势集合", exact=True).select_option(
-                    accepted["pose_set_id"]
-                )
+                expect(
+                    page.get_by_role("region", name="多假设姿势集合", exact=True)
+                ).to_have_attribute("data-pose-set-id", accepted["pose_set_id"])
                 page.get_by_role("button", name="按结合模式分群", exact=True).click()
                 form = page.locator(".pose-results form.questionnaire")
                 expect(form.get_by_role("button", name="下一步", exact=True)).to_be_disabled()

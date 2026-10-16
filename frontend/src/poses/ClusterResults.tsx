@@ -12,6 +12,7 @@ import type {
   PoseClusterResult,
 } from "./cluster-types";
 import { ClusterMatrix } from "./ClusterMatrix";
+import { ClusterCoverage } from "./ClusterCoverage";
 import { ClusterPoseTable, ClusterPairTable } from "./ClusterTables";
 import "./cluster.css";
 export function ClusterResults({
@@ -43,7 +44,7 @@ export function ClusterResults({
     >
       <div className="section-heading">
         <h2>
-          {result.clusters.length} {zh ? "组结合模式" : "binding-mode groups"}
+          {result.clusters.length} {zh ? "个姿势组" : "pose groups"}
         </h2>
         <Hint
           label={zh ? "如何解读分群？" : "How should clusters be interpreted?"}
@@ -53,6 +54,7 @@ export function ClusterResults({
             : "Receptors define the common frame; ligands are not independently fitted. Identical chemical states cluster at the selected geometric/contact resolution. Representatives are original medoids. Counts are not binding probabilities, potency or free energies."}
         </Hint>
       </div>
+      <ClusterCoverage result={result} language={language} />
       <div className="cluster-downloads">
         {(["clusters.csv", "pairs.csv", "contacts.csv"] as const).map(
           (name, i) => (

@@ -42,8 +42,8 @@ export function PoseOutcomeList({
               {row.combination.member_index + 1} ·{" "}
               {poseSourceLabel(row.combination, language)} ·{" "}
               {zh ? "分子 " : "Ligand "}
-              {row.combination.ligand_index + 1} ·{" "}
-              {labels[row.status] ?? row.status}
+              {row.combination.ligand_index + 1} · {zh ? "种子 " : "Seed "}
+              {row.combination.seed} · {labels[row.status] ?? row.status}
             </option>
           ))}
         </select>

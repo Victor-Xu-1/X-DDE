@@ -311,6 +311,23 @@ and launch it through the established workflow controls. Historical predicted
 pockets and defined regions remain an explicit alternative. The read-only
 receptor-choice projection never changes stored ensemble documents or hashes.
 
+Opening an explicitly selected historical pose study restores its saved native
+result without launching another run. Pose sets remain paired to their actual
+run; changing run history cannot display a different run's structures. The large
+structure and result table lead the page, with source choices and completed-run
+controls folded away. Repeated searches name their real random seed. A selected
+pose can continue directly into independent quality checking with the exact
+molecular record and paired receptor. The new questionnaire still requires an
+explicit coordinate-frame confirmation and never adds an experimental reference
+for a different molecule. The view's native whole-pose docking score follows the
+selected pose; it is not a per-residue energy or measured affinity.
+
+Clustering reports **pose groups**, with separate finite-comparison counts for
+geometry and mapped contacts. Unavailable contact comparisons remain missing,
+not zero similarity. Missing residue correspondences can prevent a contact
+comparison even when an unfitted geometric RMSD is available. Group counts alone
+do not establish how many physical binding modes exist.
+
 Portable pose studies also retain their existing molecular-state collections,
 exact conformer versions and source jobs. The archive uses the platform's
 existing state-set table, with no new database authority. Original archives

@@ -3,19 +3,27 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'src/opendde_workbench/chemistry/cluster*.py'
-      - 'src/opendde_workbench/chemistry/native_cluster.py'
-      - 'src/opendde_workbench/pose_ensembles/clustering*.py'
-      - 'frontend/src/poses/Cluster*'
-      - 'frontend/src/poses/cluster*'
-      - 'tests/test_pose_clustering*.py'
-      - 'server_tests/*cluster*'
-      - 'src/opendde_workbench/examples/analysis_validation.py'
-      - 'src/opendde_workbench/examples/pose_bundle_release.py'
-      - 'server_tests/pose_case_install_acceptance.py'
+      - "src/opendde_workbench/chemistry/cluster*.py"
+      - "src/opendde_workbench/chemistry/native_cluster.py"
+      - "src/opendde_workbench/pose_ensembles/clustering*.py"
+      - "frontend/src/poses/Cluster*"
+      - "frontend/src/poses/cluster*"
+      - "frontend/src/poses/PosePlanRun*"
+      - "frontend/src/poses/PoseRunControls*"
+      - "frontend/src/poses/PoseWorkspace*"
+      - "frontend/src/poses/PoseDetail*"
+      - "frontend/src/poses/PoseResults*"
+      - "frontend/src/poses/PoseOutcomeList*"
+      - "frontend/src/poses/poses.css"
+      - "server_tests/test_pose_quality_handoff_browser.py"
+      - "tests/test_pose_clustering*.py"
+      - "server_tests/*cluster*"
+      - "src/opendde_workbench/examples/analysis_validation.py"
+      - "src/opendde_workbench/examples/pose_bundle_release.py"
+      - "server_tests/pose_case_install_acceptance.py"
       # Shared print sizing has a readonly retained-case gate; no reclustering for styles.
-      - '!frontend/src/poses/ClusterMatrix.tsx'
-      - 'scripts/stage-release-examples.py'
+      - "!frontend/src/poses/ClusterMatrix.tsx"
+      - "scripts/stage-release-examples.py"
       # Native execution is selected by scientific source changes or explicit dispatch.
 permissions:
   contents: read
@@ -24,12 +32,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
-      WB_AUTO_DEPLOY: '0'
+      WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
@@ -59,7 +67,7 @@ jobs:
       - name: Actual clustering questionnaire, previews, heatmap and downloads
         env:
           WB_POSE_CLUSTER: ${{ runner.temp }}/pose-cluster
-        run: uv run --locked python -m pytest -q server_tests/test_pose_cluster_browser.py
+        run: uv run --locked python -m pytest -q server_tests/test_pose_cluster_browser.py server_tests/test_pose_quality_handoff_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -73,3 +81,4 @@ jobs:
             ${{ runner.temp }}/pose-cluster/*.svg
             ${{ runner.temp }}/pose-cluster/*.log
             ${{ runner.temp }}/pose-cluster/*.txt
+            outputs/pose-quality-handoff

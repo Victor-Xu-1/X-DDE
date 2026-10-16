@@ -11,10 +11,12 @@ import { PoseOutcomeList } from "./PoseOutcomeList";
 import { PoseDetail } from "./PoseDetail";
 import { PropertyForm } from "../operations/PropertyForm";
 import { DockingForm } from "../docking/DockingForm";
+import { poseScore } from "../docking/poseScore";
+import { QualityForm } from "../quality/QualityForm";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
-import type { PoseSet } from "./types";
+import type { PoseNextAction, PoseSet } from "./types";
 import "./poses.css";
 
 export function PoseResults({
@@ -68,6 +70,8 @@ function PoseResultWorkspace({
     ? "/api/assets/" + selected.reference.asset_id
     : null;
   const frame = {
+    nativeScore:
+      selected && outcome ? poseScore(outcome, selected.evidence) : null,
     urls:
       ligandUrl && outcome
         ? ["/api/assets/" + outcome.combination.receptor.asset_id, ligandUrl]
@@ -83,7 +87,7 @@ function PoseResultWorkspace({
   const wrap = (content: ReactNode) => (
     <PoseSession frame={frame}>{content}</PoseSession>
   );
-  const handoff = usePoseHandoff<"properties" | "score">(
+  const handoff = usePoseHandoff<PoseNextAction>(
     JSON.stringify([
       value.id,
       outcome?.combination.step_id,
@@ -133,7 +137,7 @@ function PoseResultWorkspace({
               setMessage(zh ? "新任务已创建。" : "New task created.")
             }
           />
-        ) : (
+        ) : next === "score" ? (
           <DockingForm
             language={language}
             mode="score"
@@ -143,6 +147,15 @@ function PoseResultWorkspace({
               setMessage(zh ? "新任务已创建。" : "New task created.")
             }
           />
+        ) : (
+          <QualityForm
+            language={language}
+            initialMolecule={input.reference}
+            initialProtein={input.receptor ?? outcome.combination.receptor}
+            onCreated={() =>
+              setMessage(zh ? "质控任务已创建。" : "Quality task created.")
+            }
+          />
         )}
         {message && <p role="status">{message}</p>}
       </ResearchHandoff>,
@@ -150,6 +163,7 @@ function PoseResultWorkspace({
   return wrap(
     <section
       className="pose-results"
+      data-pose-set-id={value.id}
       aria-label={zh ? "多假设姿势集合" : "Multi-hypothesis pose ensemble"}
     >
       <header className="ensemble-result-heading">

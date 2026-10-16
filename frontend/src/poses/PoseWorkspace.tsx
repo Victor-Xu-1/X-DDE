@@ -86,126 +86,136 @@ export function PoseWorkspace({
             : "Loading sites, states and plans…"}
         </p>
       )}
-      <div
-        className="pose-site-choices"
-        role="radiogroup"
-        aria-label={zh ? "搜索区域来源" : "Search region source"}
-      >
-        {(
-          [
-            ["new", zh ? "新建搜索区域" : "New search regions"],
+      <details className="pose-study-context" open={!plan}>
+        <summary>
+          {zh ? "研究输入与历史计划" : "Study inputs and historical plans"}
+        </summary>
+        <div
+          className="pose-site-choices"
+          role="radiogroup"
+          aria-label={zh ? "搜索区域来源" : "Search region source"}
+        >
+          {(
             [
-              "history",
-              zh ? "历史口袋与区域" : "Historical pockets and regions",
-            ],
-          ] as const
-        ).map(([mode, label]) => (
-          <label key={mode}>
-            <input
-              type="radio"
-              name={sourceGroup}
-              checked={sourceMode === mode}
-              onChange={() => {
-                setSourceMode(mode);
-                setSiteId("");
-                setSelected("");
-              }}
-            />
-            {label}
-          </label>
-        ))}
-      </div>
-      {!loading && !error && !sites.length && sourceMode === "history" && (
-        <p role="status">
-          {zh
-            ? "尚无保存的位点集合。可新建搜索区域，或为对齐受体寻找并关联口袋。"
-            : "No saved site sets. Define search regions, or find and associate pockets on aligned receptors."}
-        </p>
-      )}
-      <div className="pose-context-row">
-        {sourceMode === "history" && (
-          <label className="field">
-            {zh ? "使用哪个位点集合？" : "Which site set?"}
-            <select
-              value={siteId}
-              disabled={loading}
-              onChange={(e) => {
-                setSiteId(e.target.value);
-                setSelected("");
-              }}
-            >
-              <option value="">
-                {zh ? "选择已有位点集合" : "Choose an existing site set"}
-              </option>
-              {sites.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.request.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              ["new", zh ? "新建搜索区域" : "New search regions"],
+              [
+                "history",
+                zh ? "历史口袋与区域" : "Historical pockets and regions",
+              ],
+            ] as const
+          ).map(([mode, label]) => (
+            <label key={mode}>
+              <input
+                type="radio"
+                name={sourceGroup}
+                checked={sourceMode === mode}
+                onChange={() => {
+                  setSourceMode(mode);
+                  setSiteId("");
+                  setSelected("");
+                }}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        {!loading && !error && !sites.length && sourceMode === "history" && (
+          <p role="status">
+            {zh
+              ? "尚无保存的位点集合。可新建搜索区域，或为对齐受体寻找并关联口袋。"
+              : "No saved site sets. Define search regions, or find and associate pockets on aligned receptors."}
+          </p>
         )}
-        {(sourceMode === "history" || error) && (
-          <button
-            className="secondary-button"
-            type="button"
-            disabled={loading}
-            onClick={() => setReload((v) => v + 1)}
-          >
-            {zh ? "刷新" : "Refresh"}
-          </button>
-        )}{" "}
-      </div>
-      {sourceMode === "new" && !loading && !error && !plan && (
-        <DefinedSiteStart
-          language={language}
-          onSaved={(value) => {
-            setSites((rows) => [
-              value,
-              ...rows.filter((row) => row.id !== value.id),
-            ]);
-            setSiteId(value.id);
-            setSourceMode("history");
-            setSelected("");
-          }}
-        />
-      )}
-      {site && sourceMode === "history" && !loading && !plan && (
-        <PoseForm
-          key={site.id}
-          sites={site}
-          states={states}
-          language={language}
-          initial={
-            preset?.sites.id === site.id ? preset.value.request : undefined
-          }
-          onSaved={(p) => {
-            setPlans((v) => [p, ...v.filter((old) => old.id !== p.id)]);
-            setSelected(p.id);
-          }}
-        />
-      )}
-      {plans.length > 0 && (
-        <details className="pose-history" open={Boolean(plan)}>
-          <summary>
-            {zh ? "历史探索计划" : "Historical exploration plans"}
-          </summary>
-          <label className="field">
-            {zh ? "选择历史计划" : "Choose a historical plan"}
-            <select
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-            >
-              <option value="">{zh ? "选择计划" : "Choose a plan"}</option>
-              {plans.map((p) => (
-                <option value={p.id} key={p.id}>
-                  {p.request.name}
+        <div className="pose-context-row">
+          {sourceMode === "history" && (
+            <label className="field">
+              {zh ? "使用哪个位点集合？" : "Which site set?"}
+              <select
+                value={siteId}
+                disabled={loading}
+                onChange={(e) => {
+                  setSiteId(e.target.value);
+                  setSelected("");
+                }}
+              >
+                <option value="">
+                  {zh ? "选择已有位点集合" : "Choose an existing site set"}
                 </option>
-              ))}
-            </select>
-          </label>
-        </details>
-      )}
+                {sites.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.request.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {(sourceMode === "history" || error) && (
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={loading}
+              onClick={() => setReload((v) => v + 1)}
+            >
+              {zh ? "刷新" : "Refresh"}
+            </button>
+          )}{" "}
+        </div>
+        {sourceMode === "new" && !loading && !error && !plan && (
+          <DefinedSiteStart
+            language={language}
+            onSaved={(value) => {
+              setSites((rows) => [
+                value,
+                ...rows.filter((row) => row.id !== value.id),
+              ]);
+              setSiteId(value.id);
+              setSourceMode("history");
+              setSelected("");
+            }}
+          />
+        )}
+        {site && sourceMode === "history" && !loading && !plan && (
+          <PoseForm
+            key={site.id}
+            sites={site}
+            states={states}
+            language={language}
+            initial={
+              preset?.sites.id === site.id ? preset.value.request : undefined
+            }
+            onSaved={(p) => {
+              setPlans((v) => [p, ...v.filter((old) => old.id !== p.id)]);
+              setSelected(p.id);
+            }}
+          />
+        )}
+        {plans.length > 0 && (
+          <details className="pose-history" open={Boolean(plan)}>
+            <summary>
+              {zh ? "历史探索计划" : "Historical exploration plans"}
+            </summary>
+            <label className="field">
+              {zh ? "选择历史计划" : "Choose a historical plan"}
+              <select
+                value={selected}
+                onChange={(e) => {
+                  const historical = plans.find((p) => p.id === e.target.value);
+                  setSelected(historical?.id ?? "");
+                  setSiteId(historical?.request.site_set_id ?? "");
+                  setSourceMode(historical ? "history" : "new");
+                }}
+              >
+                <option value="">{zh ? "选择计划" : "Choose a plan"}</option>
+                {plans.map((p) => (
+                  <option value={p.id} key={p.id}>
+                    {p.request.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </details>
+        )}
+      </details>
       {plan && <PosePlanRun key={plan.id} value={plan} language={language} />}
       {error && (
         <p role="alert" className="error-box">

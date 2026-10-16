@@ -93,3 +93,19 @@
 .pose-history > .field {
   margin-top: 12px;
 }
+
+.pose-study-context > summary,
+.pose-run-settings > summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding-block: 10px;
+}
+.pose-study-context[open] > summary {
+  margin-bottom: 10px;
+}
+.pose-run-controls {
+  display: grid;
+  gap: 12px;
+  padding-block: 10px;
+}

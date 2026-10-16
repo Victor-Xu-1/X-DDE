@@ -1,6 +1,7 @@
 import { MolecularPreview } from "../presentation/MolecularPreview";
+import { poseScore } from "../docking/poseScore";
 import type { Language } from "../types";
-import type { PoseSet } from "./types";
+import type { PoseNextAction, PoseSet } from "./types";
 import {
   PoseStudyInput,
   type PoseStudySelection,
@@ -15,7 +16,7 @@ export function PoseDetail({
   outcome: PoseSet["outcomes"][number];
   record: number | null;
   language: Language;
-  onNext(choice: "properties" | "score", input: PoseStudySelection): void;
+  onNext(choice: PoseNextAction, input: PoseStudySelection): void;
 }) {
   const zh = language === "zh";
   const selected = outcome.poses.find(
@@ -62,12 +63,26 @@ export function PoseDetail({
           "/api/assets/" + ligand.asset_id,
         ]}
         records={[receptor.record, ligand.record]}
+        nativeScore={poseScore(outcome, selected.evidence)}
         focusModel={1}
         language={language}
       />
       <PoseStudyInput original={ligand} language={language}>
         {(selection) => (
           <div className="editor-toolbar">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={
+                !selection?.ready ||
+                (selection.displayed && selection.receptor === null)
+              }
+              onClick={() => {
+                if (selection) onNext("quality", selection);
+              }}
+            >
+              {zh ? "检查此姿势质量" : "Check pose quality"}
+            </button>
             <button
               className="secondary-button"
               type="button"

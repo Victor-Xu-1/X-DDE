@@ -3,6 +3,9 @@ import { afterEach, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import * as client from "../api";
 import { PoseWorkspace } from "./PoseWorkspace";
+vi.mock("./PosePlanRun", () => ({
+  PosePlanRun: () => <output>Existing study result</output>,
+}));
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -43,4 +46,48 @@ it("reports source loading errors with a recovery action", async () => {
     screen.queryByText(/Align receptors in Structure prediction/),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
+});
+
+it("makes historical source choices explicit and lets a researcher return to a genuinely new study", async () => {
+  const user = userEvent.setup();
+  const post = vi.spyOn(client.api, "post");
+  vi.spyOn(client, "request").mockImplementation(async (path) => {
+    if (path.startsWith("/research/site-sets")) {
+      return [
+        { id: "saved-sites", request: { name: "Saved search region" } },
+      ] as never;
+    }
+    if (path.startsWith("/research/pose-explorations")) {
+      return [
+        {
+          id: "retained-plan",
+          request: {
+            name: "Historical receptor study",
+            site_set_id: "saved-sites",
+          },
+        },
+      ] as never;
+    }
+    return [] as never;
+  });
+  render(<PoseWorkspace language="en" />);
+  await user.click(await screen.findByText("Historical exploration plans"));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Choose a historical plan" }),
+    "retained-plan",
+  );
+  expect(screen.getByText("Existing study result")).toBeVisible();
+  await user.click(screen.getByText("Study inputs and historical plans"));
+  expect(
+    screen.getByRole("radio", { name: "Historical pockets and regions" }),
+  ).toBeChecked();
+  expect(screen.getByRole("combobox", { name: "Which site set?" })).toHaveValue(
+    "saved-sites",
+  );
+  await user.click(screen.getByRole("radio", { name: "New search regions" }));
+  expect(screen.queryByText("Existing study result")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("radio", { name: "New search regions" }),
+  ).toBeChecked();
+  expect(post).not.toHaveBeenCalled();
 });

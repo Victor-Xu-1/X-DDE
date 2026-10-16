@@ -19,6 +19,11 @@ vi.mock("../docking/DockingForm", () => ({
     <output data-testid="score-input">{JSON.stringify(props)}</output>
   ),
 }));
+vi.mock("../quality/QualityForm", () => ({
+  QualityForm: (props: unknown) => (
+    <output data-testid="quality-input">{JSON.stringify(props)}</output>
+  ),
+}));
 vi.mock("./PoseScoreComparison", () => ({ PoseScoreComparison: () => null }));
 afterEach(cleanup);
 const reference = (asset: string, record = 0) => ({
@@ -157,6 +162,54 @@ it("opens one fresh handoff page and returns to the same selected pose", async (
     initialReceptor: reference("paired-receptor", 1),
     initialLigand: reference("pose-5", 3),
   });
+});
+
+it("hands the selected native pose and its exact paired receptor to independent quality review", async () => {
+  const user = userEvent.setup();
+  render(<PoseResults value={value()} language="en" />);
+  await user.click(screen.getByRole("button", { name: "Pose 6" }));
+  await user.click(screen.getByRole("button", { name: "Check pose quality" }));
+  expect(props("quality-input")).toMatchObject({
+    initialMolecule: reference("pose-5", 3),
+    initialProtein: reference("paired-receptor", 1),
+  });
+  expect(props("quality-input")).not.toHaveProperty("initialReference");
+  expect(screen.queryByTestId("paired-preview")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "← Back to results" }));
+  expect(screen.getByRole("button", { name: "Pose 6" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+it("updates the 3D view's whole-pose score when another native pose is selected", async () => {
+  const user = userEvent.setup();
+  const ensemble = value();
+  ensemble.outcomes[0].poses[1].evidence.scores[0].value = -5.4321;
+  render(<PoseResults value={ensemble} language="en" />);
+  await user.click(screen.getByRole("button", { name: "Pose 6" }));
+  expect(props("paired-preview").nativeScore).toEqual({
+    value: -5.4321,
+    unit: "kcal/mol",
+    method: "GNINA 1.3",
+    scope: "whole_pose",
+  });
+});
+
+it("distinguishes repeated searches of the same receptor and ligand by their actual seed", () => {
+  const ensemble = value();
+  ensemble.outcomes = [42, 43].map((seed) => ({
+    ...ensemble.outcomes[0],
+    combination: {
+      ...ensemble.outcomes[0].combination,
+      step_id: "seed-" + seed,
+      seed,
+    },
+  }));
+  render(<PoseResults value={ensemble} language="en" />);
+  const options = screen.getByRole("combobox", { name: "Which combination?" });
+  expect(options).toHaveTextContent("Seed 42");
+  expect(options).toHaveTextContent("Seed 43");
 });
 
 it("resets selection for a different ensemble and handles an empty collection", async () => {

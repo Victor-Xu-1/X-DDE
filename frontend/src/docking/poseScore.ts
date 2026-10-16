@@ -1,7 +1,11 @@
 import type { NativePoseScore } from "../viewer/PoseScore";
-import type { DockingResult, PoseResult } from "./types";
+import type { PoseResult } from "./types";
+interface NativeDockingContext {
+  software_version: string | null;
+  options?: { scoring?: string };
+}
 export function poseScore(
-  result: DockingResult,
+  result: NativeDockingContext,
   pose: PoseResult,
 ): NativePoseScore | null {
   const score = pose.scores.find(
@@ -10,7 +14,8 @@ export function poseScore(
       s.unit === "kcal/mol" &&
       Number.isFinite(s.value),
   );
-  if (!pose.valid || !pose.artifact || !score) return null;
+  if (!result.software_version || !pose.valid || !pose.artifact || !score)
+    return null;
   return {
     value: score.value,
     unit: "kcal/mol",

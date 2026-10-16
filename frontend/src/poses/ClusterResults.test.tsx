@@ -83,8 +83,17 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
     />,
   );
   expect(
-    screen.getByRole("heading", { name: "2 组结合模式" }),
+    screen.getByRole("heading", { name: "2 个姿势组" }),
   ).toBeInTheDocument();
+  expect(screen.getByLabelText("两两比较覆盖情况")).toHaveTextContent(
+    "几何可比0 / 1",
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "1 / 1 对姿势的接触无法比较",
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "缺失比较不会当作零相似度",
+  );
   expect(screen.getByLabelText("paired-source").textContent).toBe(
     "/api/assets/receptor-source-0|/api/assets/pose-source-0",
   );
@@ -108,4 +117,33 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
   expect(
     screen.getByRole("link", { name: "下载全部接触" }).getAttribute("href"),
   ).toContain("contacts.csv");
+});
+
+it("keeps known zero contact overlap distinct from an unavailable comparison", () => {
+  render(
+    <ClusterResults
+      job={{ id: "native-job" } as Job}
+      result={{
+        ...result,
+        pairs: [
+          {
+            ...result.pairs[0],
+            rmsd_angstrom: 1.8,
+            atom_mapping_status: "complete_stereo_preserving_symmetry",
+            symmetry_maps: 2,
+            contact_jaccard: 0,
+            contact_status: "mapped_geometric_residue_contacts",
+          },
+        ],
+      }}
+      language="en"
+    />,
+  );
+  expect(screen.getByRole("heading", { name: "2 pose groups" })).toBeVisible();
+  expect(
+    screen.getByLabelText("Pairwise comparison coverage"),
+  ).toHaveTextContent("Contacts comparable1 / 1");
+  expect(
+    screen.queryByText(/Missing comparisons are not zero similarity/),
+  ).not.toBeInTheDocument();
 });

@@ -2,6 +2,7 @@ import type { MoleculeRef } from "../research/types";
 import type { PoseResult } from "../docking/types";
 import type { defaults } from "./generated";
 export type Options = typeof defaults;
+export type PoseNextAction = "properties" | "score" | "quality";
 export interface LigandSelection {
   reference: MoleculeRef;
   state_set_id: string | null;
