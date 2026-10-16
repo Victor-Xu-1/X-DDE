@@ -31,7 +31,9 @@ def study(settings):
         settings,
         store,
         Properties(
-            ligand_files=[original.reference.asset_id], scientific_inputs=[original.reference]
+            name="First record follow-up",
+            ligand_files=[original.reference.asset_id],
+            scientific_inputs=[original.reference],
         ),
     )
     next_version = output_object(assets, scientific, followup)
@@ -40,6 +42,7 @@ def study(settings):
         store,
         Properties(
             ligand_files=[next_version.reference.asset_id],
+            name="Second record follow-up",
             scientific_inputs=[next_version.reference],
         ),
     )
@@ -94,7 +97,11 @@ def test_record_followups_cannot_admit_unrelated_versions_or_invalid_order(setti
     other_version = complete(
         settings,
         store,
-        Properties(ligand_files=[copied.reference.asset_id], scientific_inputs=[copied.reference]),
+        Properties(
+            name="Unrelated same-byte version",
+            ligand_files=[copied.reference.asset_id],
+            scientific_inputs=[copied.reference],
+        ),
     )
     identifiers = {
         "reverse": [final.id, followup.id],

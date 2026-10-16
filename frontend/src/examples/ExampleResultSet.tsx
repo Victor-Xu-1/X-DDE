@@ -24,12 +24,10 @@ export function ExampleResultSet(
   const root = props.job
     ? {
         id: props.job.id,
-        label: historyKindLabel(kindForJob(props.job), language),
         content: <ExampleJobResult job={props.job} language={language} />,
       }
     : {
         id: props.primaryId,
-        label: props.primaryLabel,
         content: props.primary,
       };
   const [choice, setChoice] = useState({ root: root.id, id: root.id });
@@ -79,7 +77,11 @@ export function ExampleResultSet(
             setChoice({ root: root.id, id: event.target.value });
           }}
         >
-          <option value={root.id}>{root.label}</option>
+          <option value={root.id}>
+            {props.job
+              ? historyKindLabel(kindForJob(props.job), language)
+              : props.primaryLabel}
+          </option>
           {supporting.map((entry, index) => (
             <option key={entry.job_id} value={entry.job_id}>
               {loaded[entry.job_id]
