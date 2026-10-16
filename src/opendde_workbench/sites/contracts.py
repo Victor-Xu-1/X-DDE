@@ -1,12 +1,13 @@
 """Immutable site associations distinguish hypotheses from biochemical conclusions."""
 
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from ..receptors.selection import ResidueAddress
 from ..scientific_objects import MoleculeRef, ResidueRef, ScientificModel
+from .definitions import DefinedSiteSet
 
 
 class SiteOptions(ScientificModel):
@@ -122,3 +123,7 @@ class BindingSiteSet(ScientificModel):
     surface_volume: Literal["not_computed"] = "not_computed"
     accessibility: Literal["not_computed"] = "not_computed"
     created_at: str
+
+
+SavedSiteSet = Annotated[BindingSiteSet | DefinedSiteSet, Field(discriminator="schema_version")]
+SITE_SET_ADAPTER = TypeAdapter(SavedSiteSet)

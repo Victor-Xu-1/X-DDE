@@ -3,6 +3,7 @@
 import hashlib
 from uuid import UUID, uuid5
 
+from ..docking.contract import references
 from ..store import ConflictError, now
 from ..workflows.storage import WorkflowRecords
 from .models import ExplorationPlan
@@ -53,8 +54,8 @@ class Explorations:
             ).fetchone()
             if row is None or row["sha256"] != site_hash:
                 raise ValueError("Saved site evidence changed before planning.")
-            for combination in combinations:
-                for reference in (combination.receptor, combination.ligand.reference):
+            for step in plan.steps:
+                for _, reference in references(step.request):
                     row = db.execute(
                         "SELECT body FROM scientific_objects WHERE id=?",
                         (str(reference.version_id),),

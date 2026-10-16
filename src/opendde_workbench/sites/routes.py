@@ -7,7 +7,8 @@ from fastapi import Depends, Header, HTTPException, Query
 
 from ..models import Job
 from ..store import ConflictError
-from .contracts import BindingSiteSet, SiteInput
+from .contracts import SavedSiteSet, SiteInput
+from .definitions import DefinedSiteInput
 from .storage import SiteSets
 
 
@@ -29,11 +30,11 @@ def register_sites(app, store, assets, settings, mutation):
 
     @app.post(
         "/api/research/site-sets",
-        response_model=BindingSiteSet,
+        response_model=SavedSiteSet,
         status_code=201,
         dependencies=[Depends(mutation)],
     )
-    def create(value: SiteInput, idempotency_key: Annotated[UUID, Header()]):
+    def create(value: SiteInput | DefinedSiteInput, idempotency_key: Annotated[UUID, Header()]):
         try:
             return sites.save(value, idempotency_key)
         except ConflictError as exc:
@@ -51,7 +52,7 @@ def register_sites(app, store, assets, settings, mutation):
             )
             raise HTTPException(422, message) from exc
 
-    @app.get("/api/research/site-sets", response_model=list[BindingSiteSet])
+    @app.get("/api/research/site-sets", response_model=list[SavedSiteSet])
     def list_sets(
         limit: int = Query(default=100, ge=1, le=200),
         offset: int = Query(default=0, ge=0),
@@ -62,7 +63,7 @@ def register_sites(app, store, assets, settings, mutation):
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
 
-    @app.get("/api/research/site-sets/{set_id}", response_model=BindingSiteSet)
+    @app.get("/api/research/site-sets/{set_id}", response_model=SavedSiteSet)
     def get_set(set_id: UUID):
         try:
             return sites.get(set_id)

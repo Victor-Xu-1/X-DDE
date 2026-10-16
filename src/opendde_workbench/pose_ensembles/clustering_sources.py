@@ -9,6 +9,7 @@ from ..chemistry.cluster_contract import ClusterPose, ClusterReceptor, PoseClust
 from ..chemistry.cluster_options import ClusterOptions
 from ..research.receptor_sets import ReceptorSets
 from ..scientific_objects import ScientificModel
+from ..sites.definitions import DefinedSiteSet
 from ..sites.storage import SiteSets
 from .collections import PoseSets
 from .comparison_sources import comparison_inputs
@@ -51,7 +52,9 @@ def compile_clustering(sets, identifier, value):
         raise ValueError("Site and receptor collections must share their exact reference frame.")
     if sites.alignment_job != ensemble.source_job:
         raise ValueError("Site evidence does not originate from this receptor alignment.")
-    observations = {row.member_index: row for row in sites.observations}
+    defined = isinstance(sites, DefinedSiteSet)
+    observations = {} if defined else {row.member_index: row for row in sites.observations}
+    definitions = {row.id: row for row in sites.sites} if defined else {}
     outcomes = {row.combination.step_id: row for row in collection.outcomes}
     rows, receptors = [], {}
     for selected in value.selections:
@@ -64,13 +67,28 @@ def compile_clustering(sets, identifier, value):
         if (
             member.evidence.index != index
             or not member.reference
-            or observation is None
-            or observation.protein != member.reference
             or outcome.combination.receptor != member.reference
             or not member.evidence.transformation
         ):
             raise ValueError("A pose is not paired with its verified aligned receptor.")
-        if observation.protein_artifact != "protein.pdb":
+        if defined:
+            definition = definitions.get(outcome.combination.site_id)
+            if (
+                definition is None
+                or definition.member_index != index
+                or definition.protein != member.reference
+                or definition.search.frame != member.reference
+                or outcome.combination.source_kind != "defined_search"
+                or outcome.combination.source_label != definition.label
+            ):
+                raise ValueError("A pose differs from its exact saved defined search region.")
+            asset = sets.assets.get(member.reference.asset_id)
+            pdb_receptor = asset.kind == "structure" and asset.suffix == ".pdb"
+        else:
+            if observation is None or observation.protein != member.reference:
+                raise ValueError("A pose is not paired with its verified aligned receptor.")
+            pdb_receptor = observation.protein_artifact == "protein.pdb"
+        if not pdb_receptor:
             raise ValueError(
                 "This clustering method needs explicitly prepared aligned PDB receptors."
             )

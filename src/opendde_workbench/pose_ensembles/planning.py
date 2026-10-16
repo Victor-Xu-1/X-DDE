@@ -2,6 +2,7 @@
 
 from ..docking.contract import DockingTask, ExplicitSearch
 from ..docking.options import SearchBox
+from ..sites.definitions import DefinedSiteSet
 from ..workflows.contracts import Budget, PlanInput, Step
 from .contracts import PoseCombination
 
@@ -10,16 +11,26 @@ def compile_plan(value, sites):
     if sites.id != value.site_set_id:
         raise ValueError("Selected site-set identity differs from its immutable evidence.")
     by_id = {site.id: site for site in sites.sites}
-    observations = {row.member_index: row for row in sites.observations}
+    defined = isinstance(sites, DefinedSiteSet)
+    observations = {} if defined else {row.member_index: row for row in sites.observations}
     combinations, steps = [], []
     for site_id in value.site_ids:
         site = by_id.get(site_id)
         if site is None:
             raise ValueError("Selected pocket hypothesis is absent from this saved site set.")
-        observation = observations[site.member_index]
-        if observation.protein_artifact != "protein.pdb":
-            raise ValueError(
-                "GNINA needs PDB receptors; convert with explicit frame provenance first."
+        if defined:
+            receptor, search, label, rank = site.protein, site.search, site.label, None
+        else:
+            observation = observations[site.member_index]
+            if observation.protein_artifact != "protein.pdb":
+                raise ValueError(
+                    "GNINA needs PDB receptors; convert with explicit frame provenance first."
+                )
+            receptor, label, rank = observation.protein, None, site.native.rank
+            search = ExplicitSearch(
+                kind="box",
+                frame=receptor,
+                box=SearchBox(center=site.center, size=value.options.box_size),
             )
         for ligand_index, ligand in enumerate(value.ligands):
             for offset in range(value.options.seed_count):
@@ -29,23 +40,25 @@ def compile_plan(value, sites):
                     step_id=step_id,
                     site_id=site_id,
                     member_index=site.member_index,
-                    pocket_rank=site.native.rank,
-                    receptor=observation.protein,
+                    pocket_rank=rank,
+                    source_kind="defined_search" if defined else None,
+                    source_label=label,
+                    receptor=receptor,
                     ligand_index=ligand_index,
                     ligand=ligand,
                     seed=seed,
                 )
                 request = DockingTask(
-                    name=f"Receptor {site.member_index + 1} pocket {site.native.rank} "
-                    f"ligand {ligand_index + 1} seed {seed}",
-                    mode="dock",
-                    receptor=observation.protein,
-                    ligand=ligand.reference,
-                    search=ExplicitSearch(
-                        kind="box",
-                        frame=observation.protein,
-                        box=SearchBox(center=site.center, size=value.options.box_size),
+                    name=(
+                        f"{label[:32]} ligand {ligand_index + 1} seed {seed}"
+                        if defined
+                        else f"Receptor {site.member_index + 1} pocket {rank} "
+                        f"ligand {ligand_index + 1} seed {seed}"
                     ),
+                    mode="dock",
+                    receptor=receptor,
+                    ligand=ligand.reference,
+                    search=search,
                     options=value.options.docking.model_copy(update={"seed": seed}),
                 )
                 combinations.append(combination)

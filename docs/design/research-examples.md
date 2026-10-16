@@ -286,6 +286,18 @@ The PLIP environment explicitly includes the mmCIF parser. Its dependency repair
 retains the existing package builds and SHA256 identities, and installation
 probes both PLIP and the structural parser before accepting a runtime receipt.
 
+The existing site-set authority also retains explicitly defined search regions.
+Version 1 records remain native P2Rank association evidence. Version 2 records
+retain an exact aligned receptor collection and either a reference-ligand search
+with explicit frame confirmation or an explicit search box. They have no invented
+native rank, probability, association or binding claim. Both record types use the
+same immutable site store, mutation/idempotency boundary and existing exploration
+workflow; no additional task queue, scientific file authority or database table
+is introduced. Existing version-1 request and record bytes remain unchanged.
+Reference ligands retain their exact saved SDF record, source checksum and native
+coordinates. Defining a search region does not perform docking or establish the
+binding site of a different study molecule.
+
 Preparation dependencies are explicit. The BRD4 receptor is selected from the
 fixed Biopython preparation outcome; antibody variable domains come unchanged
 from native ANARCII numbering. Whole-library property and ADMET examples retain

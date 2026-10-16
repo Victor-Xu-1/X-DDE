@@ -1,6 +1,6 @@
 """Bounded paired hypotheses preserve site, chemical state and initialization identities."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import Field, model_validator
@@ -50,7 +50,7 @@ class ExplorationInput(ScientificModel):
         pattern=r"^[^\x00-\x1f]+$",
     )
     site_set_id: UUID
-    site_ids: tuple[Annotated[str, Field(pattern=r"^m[0-9]{2}-p[0-9]{1,6}$")], ...] = Field(
+    site_ids: tuple[Annotated[str, Field(pattern=r"^m[0-9]{2}-[pr][0-9]{1,6}$")], ...] = Field(
         min_length=1, max_length=12
     )
     ligands: tuple[ExplorationLigand, ...] = Field(min_length=1, max_length=12)
@@ -75,10 +75,32 @@ class ExplorationInput(ScientificModel):
 
 class PoseCombination(ScientificModel):
     step_id: str = Field(pattern=r"^pose_[0-9]{3}$")
-    site_id: str = Field(pattern=r"^m[0-9]{2}-p[0-9]{1,6}$")
+    site_id: str = Field(pattern=r"^m[0-9]{2}-[pr][0-9]{1,6}$")
     member_index: int = Field(ge=0, le=15)
-    pocket_rank: int = Field(ge=1, le=100000)
+    pocket_rank: int | None = Field(
+        default=None, ge=1, le=100000, exclude_if=lambda value: value is None
+    )
+    source_kind: Literal["defined_search"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    source_label: str | None = Field(
+        default=None, min_length=1, max_length=80, exclude_if=lambda value: value is None
+    )
     receptor: MoleculeRef
     ligand_index: int = Field(ge=0, le=11)
     ligand: ExplorationLigand
     seed: int = Field(strict=True, ge=0, le=2147483647)
+
+    @model_validator(mode="after")
+    def honest_source(self):
+        if self.source_kind == "defined_search":
+            if (
+                "-r" not in self.site_id
+                or self.pocket_rank is not None
+                or not self.source_label
+                or not self.source_label.strip()
+            ):
+                raise ValueError("A defined region has a label, never a fabricated pocket rank.")
+        elif "-p" not in self.site_id or self.pocket_rank is None or self.source_label is not None:
+            raise ValueError("A predicted site retains its actual native pocket rank.")
+        return self

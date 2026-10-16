@@ -136,18 +136,34 @@ def project_record(store, kind, row):
             edges,
         )
     if kind == "site_set":
+        from ..sites.defined_evidence import definition_references
+        from ..sites.definitions import DefinedSiteSet
         from ..sites.storage import SiteSets
 
         value = SiteSets.decode(row)
-        edges = [("receptor_set:" + str(value.request.ensemble_id), identifier, "site_association")]
-        edges.extend(
-            ("task:" + str(o.source_job), identifier, "pocket_evidence") for o in value.observations
-        )
-        edges.extend(
-            ("object:" + str(o.protein.version_id), identifier, "aligned_site_context")
-            for o in value.observations
-            if o.protein.version_id
-        )
+        defined = isinstance(value, DefinedSiteSet)
+        edges = [
+            (
+                "receptor_set:" + str(value.request.ensemble_id),
+                identifier,
+                "defined_search_context" if defined else "site_association",
+            )
+        ]
+        if defined:
+            edges.extend(
+                ("object:" + str(reference.version_id), identifier, "defined_search_input")
+                for _, _, reference in definition_references(value.request)
+            )
+        else:
+            edges.extend(
+                ("task:" + str(o.source_job), identifier, "pocket_evidence")
+                for o in value.observations
+            )
+            edges.extend(
+                ("object:" + str(o.protein.version_id), identifier, "aligned_site_context")
+                for o in value.observations
+                if o.protein.version_id
+            )
         return (
             identifier,
             {

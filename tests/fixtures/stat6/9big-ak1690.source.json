@@ -1,0 +1,10 @@
+{
+  "source": "https://models.rcsb.org/v1/9big/ligand?auth_asym_id=A&auth_seq_id=701&encoding=sdf",
+  "entry": "https://www.rcsb.org/structure/9BIG",
+  "component": "A1AQQ",
+  "author_chain": "A",
+  "author_residue": 701,
+  "sha256": "edae02152fd2b053d5bdfce9a2ca573c463bdc813c0a433e9659a816948fc868",
+  "license": "CC0-1.0",
+  "scope": "Deposited AK-1690 reference coordinates; distinct from the user study warhead and PROTAC. This fixture is not a newly predicted pose, physiological protonation claim or experimental affinity."
+}

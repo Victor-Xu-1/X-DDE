@@ -1,12 +1,15 @@
 """Immutable derived site sets share the platform database and asset authority."""
 
 import hashlib
+import json
 import logging
 from uuid import UUID, uuid5
 
 from ..store import ConflictError, now
 from .association import associate
-from .contracts import BindingSiteSet
+from .contracts import SITE_SET_ADAPTER, BindingSiteSet
+from .defined_evidence import load_definitions, validate_definition_snapshot
+from .definitions import DefinedSiteInput, DefinedSiteSet
 
 NAMESPACE = UUID("ad27fa9d-1f44-4876-9eaa-98002de1162e")
 LOG = logging.getLogger(__name__)
@@ -82,21 +85,30 @@ class SiteSets:
                     "Site-set key already identifies a different immutable analysis."
                 )
             return self.decode(old)
-        ensemble, observations = load_evidence(self.store, self.assets, self.settings, value)
-        sites, relations, groups = associate(ensemble, observations, value.options)
+        defined = isinstance(value, DefinedSiteInput)
+        if defined:
+            ensemble, sites = load_definitions(self.store, self.assets, self.settings, value)
+            observations = ()
+        else:
+            ensemble, observations = load_evidence(self.store, self.assets, self.settings, value)
+            sites, relations, groups = associate(ensemble, observations, value.options)
         reference = ensemble.members[ensemble.options.reference_index].reference
         if reference is None:
             raise ValueError("A qualified reference is required for cross-conformation sites.")
-        record = BindingSiteSet(
+        common = dict(
             id=identifier,
             request=value,
             reference=reference,
             alignment_job=ensemble.source_job,
-            observations=observations,
             sites=sites,
-            relations=relations,
-            groups=groups,
             created_at=now(),
+        )
+        record = (
+            DefinedSiteSet(**common)
+            if defined
+            else BindingSiteSet(
+                observations=observations, relations=relations, groups=groups, **common
+            )
         )
         body = record.model_dump_json()
         checksum = hashlib.sha256(body.encode()).hexdigest()
@@ -116,6 +128,8 @@ class SiteSets:
 
             if row is None or ReceptorSets.decode(row) != ensemble:
                 raise ValueError("Receptor collection changed before saving the site set.")
+            if defined:
+                validate_definition_snapshot(db, value, ensemble)
             for observation in observations:
                 row = db.execute(
                     "SELECT status,request FROM jobs WHERE id=?", (str(observation.source_job),)
@@ -159,7 +173,12 @@ class SiteSets:
     def decode(row):
         if hashlib.sha256(row["body"].encode()).hexdigest() != row["sha256"]:
             raise ValueError("Stored site-set evidence failed integrity verification.")
-        record = BindingSiteSet.model_validate_json(row["body"])
+        document = json.loads(row["body"])
+        record = (
+            SITE_SET_ADAPTER.validate_python(document)
+            if "schema_version" in document
+            else BindingSiteSet.model_validate(document)
+        )
         if (
             str(record.id) != row["id"]
             or str(record.request.ensemble_id) != row["ensemble_id"]

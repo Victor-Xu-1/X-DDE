@@ -2,6 +2,7 @@
 
 import hashlib
 
+from ..docking.contract import references
 from ..research.state_sets import StateSets
 from ..research.storage import ScientificStore
 from ..sites.storage import SiteSets
@@ -34,6 +35,8 @@ def validate_sources(value, store, assets, settings):
     plan, combinations = compile_plan(value, sites)
     checked = set()
     for step in plan.steps:
+        for _, reference in references(step.request):
+            scientific.validate_reference(reference)
         bindings = assets.validate_bindings(step.request)
         for asset in bindings.values():
             if asset.id not in checked:
