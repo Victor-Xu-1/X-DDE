@@ -88,12 +88,12 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
   expect(screen.getByLabelText("两两比较覆盖情况")).toHaveTextContent(
     "几何可比0 / 1",
   );
-  expect(screen.getByRole("status")).toHaveTextContent(
-    "1 / 1 对姿势的接触无法比较",
-  );
-  expect(screen.getByRole("status")).toHaveTextContent(
-    "缺失比较不会当作零相似度",
-  );
+  expect(
+    screen.getByRole("status", { name: "接触比较可用性" }),
+  ).toHaveTextContent("1 / 1 对姿势的接触无法比较");
+  expect(
+    screen.getByRole("status", { name: "接触比较可用性" }),
+  ).toHaveTextContent("缺失比较不会当作零相似度");
   expect(screen.getByLabelText("paired-source").textContent).toBe(
     "/api/assets/receptor-source-0|/api/assets/pose-source-0",
   );

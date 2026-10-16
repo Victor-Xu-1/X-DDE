@@ -68,6 +68,7 @@ function value(id = "ensemble"): PoseSet {
           evidence: {
             record,
             valid: true,
+            artifact: "pose-" + record + ".sdf",
             mapping_status: "matched",
             scores: [
               {

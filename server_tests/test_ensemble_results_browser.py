@@ -79,11 +79,9 @@ def test_native_pose_result_selection_downloads_and_handoff():
             expect(toolbar.get_by_role("button", name="示例结果", exact=True)).to_have_count(0)
             page.locator(".pose-history > summary").click()
             page.get_by_role("combobox", name="选择历史计划", exact=True).select_option(record_id)
-            page.get_by_role("combobox", name="已保存姿势集合", exact=True).select_option(
-                saved["id"]
-            )
             result = page.get_by_role("region", name="多假设姿势集合", exact=True)
             expect(result).to_be_visible()
+            expect(result).to_have_attribute("data-pose-set-id", saved["id"])
             index = next(
                 i
                 for i, outcome in enumerate(saved["outcomes"])

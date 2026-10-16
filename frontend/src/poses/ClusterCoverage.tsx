@@ -41,7 +41,11 @@ export function ClusterCoverage({
         </div>
       </dl>
       {missingContacts > 0 && (
-        <p role="status" className="cluster-comparison-note">
+        <p
+          role="status"
+          aria-label={zh ? "接触比较可用性" : "Contact comparison availability"}
+          className="cluster-comparison-note"
+        >
           {zh
             ? `${missingContacts} / ${total} 对姿势的接触无法比较。缺失比较不会当作零相似度；分组表示当前尺度下的计算样本。`
             : `Contact comparison is unavailable for ${missingContacts} of ${total} pose pairs. Missing comparisons are not zero similarity; groups describe the sampled poses.`}

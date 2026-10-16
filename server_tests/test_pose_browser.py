@@ -12,6 +12,8 @@ from urllib.request import urlopen
 
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.test_navigation_shell_browser import open_navigation
+
 
 def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
     fixture = Path(os.environ["WB_CORE_FIXTURE"]) / "pose-ensemble"
@@ -50,16 +52,20 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch()
                 page = browser.new_page(viewport={"width": 1440, "height": 1000})
+                page.add_init_script("localStorage.setItem('opendde-workbench.language','zh')")
                 errors = []
                 page.on("pageerror", lambda e: errors.append(str(e)))
                 try:
                     page.goto(base)
-                    page.get_by_role("navigation", name="主导航", exact=True).get_by_role(
-                        "button", name="全部能力", exact=True
+                    open_navigation(page, "zh").get_by_role(
+                        "button", name="口袋与对接", exact=True
                     ).click()
-                    page.get_by_role("button", name="多受体与状态姿势探索", exact=True).click()
+                    page.get_by_role("combobox", name="研究任务", exact=True).select_option(
+                        "pose_exploration"
+                    )
                     workspace = page.get_by_role("region", name="多受体与状态姿势探索", exact=True)
                     before = len(page.request.get(base + "/api/jobs").json())
+                    workspace.get_by_role("radio", name="历史口袋与区域", exact=True).check()
                     workspace.get_by_role(
                         "combobox", name="使用哪个位点集合？", exact=True
                     ).select_option(accepted["site_set_id"])
@@ -106,14 +112,14 @@ def test_actual_pose_ensemble_guided_plan_preview_and_version_reuse(tmp_path):
                         workspace.get_by_role("button", name="启动已审阅的姿势探索", exact=True)
                     ).to_be_disabled()
                     assert len(page.request.get(base + "/api/jobs").json()) == before
+                    workspace.locator(".pose-study-context > summary").click()
+                    workspace.locator(".pose-history > summary").click()
                     workspace.get_by_role(
-                        "combobox", name="复用已保存探索计划", exact=True
+                        "combobox", name="选择历史计划", exact=True
                     ).select_option(accepted["exploration_id"])
-                    workspace.get_by_role(
-                        "combobox", name="已保存姿势集合", exact=True
-                    ).select_option(accepted["pose_set_id"])
                     result = workspace.get_by_role("region", name="多假设姿势集合", exact=True)
                     expect(result).to_be_visible()
+                    expect(result).to_have_attribute("data-pose-set-id", accepted["pose_set_id"])
                     saved = page.request.get(
                         base + "/api/research/pose-ensembles/" + accepted["pose_set_id"]
                     ).json()
