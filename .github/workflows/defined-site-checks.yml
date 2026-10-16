@@ -25,6 +25,7 @@ on:
       - "frontend/src/integrations/PlipReview*"
       - "frontend/src/integrations/ScientificReview.tsx"
       - "frontend/src/diffsbdd/ReviewReference.tsx"
+      - "frontend/src/docking/BoxFields.tsx"
       - "tests/test_defined*"
       - "tests/test_stat6_case_data.py"
       - "tests/fixtures/stat6/9big-ak1690*"
@@ -55,6 +56,7 @@ jobs:
           src/viewer/search-box.test.ts
           src/viewer/source-layout.test.ts src/diffsbdd/ReviewReference.test.tsx
           src/integrations/PlipReview.test.tsx
+          src/docking/DockingForm.test.tsx src/docking/SearchPreview.test.tsx
       - name: Restore only the immutable public data fixture; no tasks run
         env:
           GH_TOKEN: ${{ github.token }}

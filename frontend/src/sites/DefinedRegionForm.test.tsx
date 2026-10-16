@@ -111,6 +111,11 @@ it("requires explicit receptor and bounds, preserves idempotency after a failed 
     screen.getByRole("spinbutton", { name: "Center Z (Å)" }),
     "20",
   );
+  await user.clear(screen.getByRole("spinbutton", { name: "Length X (Å)" }));
+  await user.type(
+    screen.getByRole("spinbutton", { name: "Length X (Å)" }),
+    "26.501",
+  );
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(post).not.toHaveBeenCalled();
@@ -137,7 +142,7 @@ it("requires explicit receptor and bounds, preserves idempotency after a failed 
           frame,
           box: {
             center: [1.25, -8.1, 20],
-            size: [20, 20, 20],
+            size: [26.501, 20, 20],
             unit: "angstrom",
           },
         },

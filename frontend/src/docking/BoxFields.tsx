@@ -23,7 +23,7 @@ export function BoxFields({
               <input
                 type="number"
                 value={center[index]}
-                step="0.1"
+                step="any"
                 onChange={(event) =>
                   onCenter(
                     center.map((v, n) =>
@@ -39,6 +39,7 @@ export function BoxFields({
                 type="number"
                 min={4}
                 max={100}
+                step="any"
                 value={size[index]}
                 onChange={(event) =>
                   onSize(
