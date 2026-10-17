@@ -82,7 +82,9 @@ export function QualityPreview({
         records={records}
         language={language}
         comparison={comparing}
-        focusModel={moleculeIndex >= 0 ? moleculeIndex : 0}
+        focusModel={
+          comparing ? undefined : moleculeIndex >= 0 ? moleculeIndex : 0
+        }
         focusModels={comparing ? [moleculeIndex, urls.length - 1] : undefined}
         molecularSource={
           moleculeIndex >= 0
