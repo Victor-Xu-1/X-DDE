@@ -71,6 +71,7 @@ def chemistry(molecule):
 
 
 def unbound_conformer(molecule, seed):
+    from molfile_stereo import source_stereo_molecule
     from rdkit import Chem
     from rdkit.Chem import AllChem
 
@@ -83,4 +84,4 @@ def unbound_conformer(molecule, seed):
     if AllChem.EmbedMolecule(mol, parameters) < 0:
         raise ValueError("A valid unbound conformer could not be generated.")
     # Encoding uses a seeded ETKDG conformer. No affinity or optimized pose is claimed.
-    return Chem.RemoveHs(mol)
+    return source_stereo_molecule(Chem.RemoveHs(mol))

@@ -6,6 +6,7 @@ from pathlib import PurePosixPath
 
 from minimization_geometry import check_geometry, check_stereo, identity
 from minimization_options import MinimizationOptions
+from molfile_stereo import source_stereo_molecule
 from sdf_io import read_records
 
 
@@ -110,7 +111,7 @@ def run_minimization(request, bindings, job, output):
     file = output / "minimized.sdf"
     writer = Chem.SDWriter(str(file))
     try:
-        writer.write(final)
+        writer.write(source_stereo_molecule(final))
     finally:
         writer.close()
     saved = read_records(file.read_bytes())

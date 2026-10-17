@@ -55,6 +55,9 @@ class DatasetBackend(PreparedContainerBackend):
             self.configured_image,
             self.unselected_readiness,
             shared_sources={
+                "molfile_stereo.py": Path(__file__).parent.parent
+                / "chemistry"
+                / "molfile_stereo.py",
                 "platformnative_io.py": Path(__file__).with_name("native_io.py"),
                 "recipes.json": Path(__file__).parent.parent / "integrations/recipes.json",
                 "native_resources.py": Path(__file__).parent.parent

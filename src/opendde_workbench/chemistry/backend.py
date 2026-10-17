@@ -19,6 +19,7 @@ FILES = (
     "native_screen.py",
     "screen_io.py",
     "sdf_io.py",
+    "molfile_stereo.py",
     "screen_options.py",
     "screen_inspection.py",
     "screen_selection.py",
@@ -38,6 +39,11 @@ SHARED_SOURCES = {
 class ChemistryBackend(PreparedContainerBackend):
     def __init__(self, settings):
         super().__init__(
-            settings, "chemistry", Path(__file__).parent, FILES, configuration, readiness,
+            settings,
+            "chemistry",
+            Path(__file__).parent,
+            FILES,
+            configuration,
+            readiness,
             shared_sources=SHARED_SOURCES,
         )

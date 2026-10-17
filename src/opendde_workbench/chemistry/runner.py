@@ -7,6 +7,7 @@ from pathlib import Path
 
 from conformers import prepare_conformers
 from mapping import source_molecule
+from molfile_stereo import source_stereo_molecule
 from options import StateOptions
 from states import enumerate_states
 
@@ -56,17 +57,18 @@ def run(request, bindings, directory, output):
             mol = item.pop("molecule")
             mol.SetProp("X_DDE_STATE", str(state_index))
             rdDepictor.Compute2DCoords(mol)
-            state_writer.write(mol)
+            state_writer.write(source_stereo_molecule(mol))
             conformers, status = prepare_conformers(source, mol, options)
             state_rows.append({"index": state_index, "conformer_status": status, **item})
             for row in conformers:
                 conformer = row.pop("molecule")
                 conformer.SetProp("X_DDE_STATE", str(state_index))
                 conformer.SetProp("X_DDE_GEOMETRY", "unbound_conformer")
-                conf_writer.write(conformer)
+                exported = source_stereo_molecule(conformer)
+                conf_writer.write(exported)
                 name = f"conformer-{len(conformer_rows) + 1:03d}.sdf"
                 with Chem.SDWriter(str(output / name)) as preview_writer:
-                    preview_writer.write(conformer)
+                    preview_writer.write(exported)
                 row.update(
                     artifact=name,
                     artifact_sha256=hashlib.sha256((output / name).read_bytes()).hexdigest(),
