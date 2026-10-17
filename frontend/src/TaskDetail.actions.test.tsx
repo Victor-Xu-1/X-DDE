@@ -13,6 +13,11 @@ import { TaskDetail } from "./TaskDetail";
 import type { Job } from "./types";
 import { defaults } from "./form-model";
 
+// Label-source reads have their own tests; keep these action races deterministic.
+vi.mock("./examples/useTaskLabel", () => ({
+  useTaskLabel: (job: Job | null) => job?.request.name ?? "",
+}));
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
