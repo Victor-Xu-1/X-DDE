@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import struct
 from pathlib import Path
 
 import pytest
@@ -136,6 +137,19 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         restored_load = molecular_frame.evaluate("window.__nativeViewerLoads.at(-1)")
         assert restored_load == first_load
         expect(selected).to_have_attribute("aria-pressed", "true")
+        capture.click()
+        image_link = preview.get_by_role(
+            "link", name="下载视图 PNG" if zh else "Download view PNG", exact=True
+        )
+        expect(image_link).to_be_visible(timeout=30000)
+        with page.expect_download() as image_download:
+            image_link.click()
+        image_path = evidence / "restored-native-view.png"
+        image_download.value.save_as(image_path)
+        image = image_path.read_bytes()
+        assert image[:8] == b"\x89PNG\r\n\x1a\n" and len(image) > 10000
+        image_width, image_height = struct.unpack(">II", image[16:24])
+        assert image_width >= 500 and image_height >= 500
         page.screenshot(path=evidence / "retained-native-generation.png", full_page=True)
         prepare = details.get_by_role(
             "button", name="准备后续研究材料" if zh else "Prepare for follow-up", exact=True
@@ -227,6 +241,12 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
                 "original_artifacts_unchanged": True,
                 "native_iframe_reload_restores_exact_source": True,
                 "restored_viewer_load": restored_load,
+                "restored_native_png": {
+                    "sha256": hashlib.sha256(image).hexdigest(),
+                    "bytes": len(image),
+                    "width": image_width,
+                    "height": image_height,
+                },
                 "selected_original_record": 1,
                 "output_heavy_atoms": native_row["heavy_atoms"],
                 "target_atoms": result["report"]["target_atoms"],

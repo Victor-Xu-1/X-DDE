@@ -1,5 +1,5 @@
 import { version as productVersion } from "../../package.json";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   CameraOutlined,
   FullscreenOutlined,
@@ -32,6 +32,7 @@ import type { DisplayResidue } from "./residue-region";
 import { researchError } from "../presentation/research-content";
 import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
+import { useViewerConnection } from "./useViewerConnection";
 import { FigureExport } from "../publication/FigureExport";
 import type { PoseController } from "./PoseSession";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
@@ -113,8 +114,12 @@ export function StructureViewport({
         initialMode,
         ligandContext,
       });
+  const connection = useViewerConnection(frame, urls.length > 0);
+  const { ready } = connection;
+  const sceneKey = `${connection.revision}:${key}`;
+  const lastRequest = useRef<string | null>(null);
   const overlay = urls.length > 1;
-  const requestedKey = useRef<string | null>(key);
+  const requestedKey = useRef<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const focusedLigand = useRef<string | null>(null);
   const snapshot = useViewerSnapshot(key),
@@ -132,8 +137,7 @@ export function StructureViewport({
   selectionCallback.current = onAtomSelected;
   const sceneCallback = useRef(onSceneLoaded);
   sceneCallback.current = onSceneLoaded;
-  const [ready, setReady] = useState(false),
-    [status, setStatus] = useState("empty"),
+  const [status, setStatus] = useState("empty"),
     [error, setError] = useState("");
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
@@ -171,7 +175,7 @@ export function StructureViewport({
       electrostaticMap,
     };
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     function message(event: MessageEvent) {
       if (
         event.origin !== location.origin ||
@@ -192,7 +196,7 @@ export function StructureViewport({
         }
       }
       if (type === "snapshot") snapshotReceiver.current(detail);
-      if (type === "ready") setReady(true);
+      if (type === "ready") connection.receiveReady(detail);
       if (type === "selected") {
         setSelection(detail);
         selectionCallback.current?.(detail);
@@ -234,8 +238,13 @@ export function StructureViewport({
     }
     window.addEventListener("message", message);
     return () => window.removeEventListener("message", message);
-  }, []);
+  }, [connection.receiveReady]);
   useEffect(() => {
+    if (!ready && urls.length) return;
+    const specification = urls.length ? loadSpecification() : null;
+    const request = JSON.stringify([sceneKey, specification]);
+    if (lastRequest.current === request) return;
+    lastRequest.current = ready ? request : null;
     focusedLigand.current = null;
     setSelection(null);
     setDistance(null);
@@ -249,8 +258,8 @@ export function StructureViewport({
       setOptions(defaultOptions);
     previousTrajectory.current = trajectoryKey;
     if (ready && urls.length) {
-      requestedKey.current = key;
-      send("load", loadSpecification());
+      requestedKey.current = sceneKey;
+      send("load", specification);
       setStatus("loading");
     } else if (!urls.length) {
       requestedKey.current = null;
@@ -259,6 +268,7 @@ export function StructureViewport({
     }
   }, [
     ready,
+    sceneKey,
     key,
     comparison,
     focusModel,
@@ -274,53 +284,53 @@ export function StructureViewport({
     if (
       !ready ||
       status !== "loaded" ||
-      loadedKey !== key ||
+      loadedKey !== sceneKey ||
       !scene.ligands.some((ligand) => ligand.key === focusLigand)
     )
       return;
-    const request = `${key}:${focusLigand}`;
+    const request = `${sceneKey}:${focusLigand}`;
     if (focusedLigand.current === request) return;
     focusedLigand.current = request;
     configure({ ligand: focusLigand });
-  }, [ready, status, loadedKey, key, focusLigand, scene.ligands]);
+  }, [ready, status, loadedKey, sceneKey, focusLigand, scene.ligands]);
   const attachmentKey = JSON.stringify(attachmentGeometry);
   const lastAttachment = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (
       ready &&
       status === "loaded" &&
-      loadedKey === key &&
+      loadedKey === sceneKey &&
       (attachmentGeometry !== undefined || lastAttachment.current !== undefined)
     ) {
       send("attachment-geometry", attachmentGeometry);
       lastAttachment.current = attachmentKey;
     }
-  }, [ready, status, loadedKey, key, attachmentKey]);
+  }, [ready, status, loadedKey, sceneKey, attachmentKey]);
   useEffect(() => {
-    if (ready && status === "loaded" && loadedKey === key && focusResidue)
+    if (ready && status === "loaded" && loadedKey === sceneKey && focusResidue)
       send("residue", focusResidue.residue);
-  }, [ready, status, loadedKey, key, focusResidue]);
+  }, [ready, status, loadedKey, sceneKey, focusResidue]);
   const regionKey = highlightedAtoms?.join(",") ?? "";
   const siteKey = JSON.stringify(residueRegion ?? []);
   useEffect(() => {
     if (
       ready &&
       status === "loaded" &&
-      loadedKey === key &&
+      loadedKey === sceneKey &&
       residueRegion !== undefined
     )
       send("site-region", residueRegion);
-  }, [ready, status, loadedKey, key, siteKey]);
+  }, [ready, status, loadedKey, sceneKey, siteKey]);
   useEffect(() => {
-    if (ready && status === "loaded" && loadedKey === key)
+    if (ready && status === "loaded" && loadedKey === sceneKey)
       send("atom-region", highlightedAtoms ?? []);
-  }, [ready, status, loadedKey, key, regionKey]);
+  }, [ready, status, loadedKey, sceneKey, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
     if (value.mode) setSurface(null);
     setOptions((o) => ({ ...o, ...value }));
     send("options", value);
   }
-  const loaded = status === "loaded" && loadedKey === key;
+  const loaded = ready && status === "loaded" && loadedKey === sceneKey;
   const searchBoxKey = JSON.stringify(searchBox ?? null);
   useEffect(() => {
     if (loaded) send("search-box", searchBox);
@@ -489,20 +499,23 @@ export function StructureViewport({
       )}
       <div className="molecular-stage">
         <iframe
+          key={connection.frameKey}
           ref={frame}
+          onLoad={connection.onLoad}
           src={`/viewer.html?v=${encodeURIComponent(productVersion)}`}
           title={zh ? "可交互分子结构" : "Interactive molecular structure"}
         />
-        {status === "loading" && (
-          <div className="viewer-message" role="status">
-            <LoadingOutlined spin />
-            {zh ? "正在读取结构…" : "Loading structure…"}
-          </div>
-        )}
+        {(status === "loading" || (!ready && urls.length > 0)) &&
+          !connection.failed && (
+            <div className="viewer-message" role="status">
+              <LoadingOutlined spin />
+              {zh ? "正在读取结构…" : "Loading structure…"}
+            </div>
+          )}
         {status === "preparing" && (
           <InitialPoseStatus state={optimization} language={language} />
         )}
-        {status === "empty" && (
+        {status === "empty" && urls.length === 0 && (
           <div className="viewer-message">
             <strong>
               {zh
@@ -516,14 +529,18 @@ export function StructureViewport({
             </span>
           </div>
         )}
-        {error && (
+        {(error || connection.failed) && (
           <div className="viewer-error" role="alert">
-            {poseError(error, zh)}
+            {connection.failed
+              ? zh
+                ? "三维预览未能启动，请重新加载。"
+                : "3D preview could not start. Reload the preview."
+              : poseError(error, zh)}
             <button
               type="button"
               onClick={() => {
                 setError("");
-                send("load", loadSpecification());
+                connection.reload();
               }}
             >
               {zh ? "重新加载" : "Reload"}

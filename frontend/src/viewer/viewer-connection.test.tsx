@@ -175,3 +175,22 @@ it("does not turn an empty viewer into a startup error", () => {
   expect(screen.getByText(/Select a file or conformer/)).toBeVisible();
   expect(screen.queryByRole("alert")).toBeNull();
 });
+
+it("does not apply the startup deadline to a connected structure that is still loading", () => {
+  vi.useFakeTimers();
+  render(<StructureViewer {...input} />);
+  ready(iframe(), "connected-document");
+  act(() => vi.advanceTimersByTime(60_000));
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(capture()).toBeDisabled();
+  emit(iframe(), "loaded", scene);
+  expect(capture()).toBeEnabled();
+});
+
+it("offers the same startup recovery in Chinese", () => {
+  vi.useFakeTimers();
+  render(<StructureViewer {...input} language="zh" />);
+  act(() => vi.advanceTimersByTime(30_001));
+  expect(screen.getByRole("alert")).toHaveTextContent("三维预览未能启动");
+  expect(screen.getByRole("button", { name: "重新加载" })).toBeEnabled();
+});

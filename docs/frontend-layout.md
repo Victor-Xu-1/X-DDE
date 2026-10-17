@@ -402,13 +402,17 @@ Feature preparation previews read the actual typed task components; converted in
 
 ### 结果列表的选择与后续研究
 
-候选口袋表格、所选残基和生成/对接入口集中在同一列，三维结构在桌面并排、窄屏下方展示。评分解释使用可聚焦的提示，不重复占用介绍区。口袋表格的选择只更新真实残基高亮，保留已有镜头；“定位口袋”才进入局部视图，“回到全局”恢复整体结构。研究人员可自行旋转、缩放；初始镜头不要求显示全部蛋白。
+三维结构位于桌面左侧主区域，候选口袋表格、所选残基和生成/对接入口集中在右侧；窄屏先展示结构，再展示控制。评分解释使用可聚焦的提示，不重复占用介绍区。口袋表格的选择只更新真实残基高亮，保留已有镜头；“定位口袋”才进入局部视图，“回到全局”恢复整体结构。研究人员可自行旋转、缩放；初始镜头不要求显示全部蛋白。
 
 共用研究表格中，带有选择行为的结果支持点击整行和在行上按 Enter/Space，原有名称按钮继续可用。对比勾选、下载、诊断、编辑等独立控件不被行选择截获，也不会重复触发选择。只读表格不冒充可选择列表；不合格对接姿势继续遵守原有禁用规则。`presentation/ResultRow.tsx` 是唯一行选择实现，供通用表格、结构预测构象、受体构象、多组合姿势、通道和服务器分页表格使用；保留原始记录身份、筛选排序和导出值。口袋、分子性质、ADMET、生成候选、序列和 FEP 等消费者通过共用表格获得同一行为。
 
 真实口袋结果以其原始研究对象和任务身份验收。默认 STAT6 模板保持独立，不将历史 BRD4 输出改名为 STAT6。`pocket-result-checks.yml` 只验证口袋控件、直接消费者和原生口袋结果：中英文、1440/768/390 px、键盘选择、生成/对接材料交接、返回状态、原始结构校验和、原生 CSV 数值及文献图导出，不执行新的预测或提交科研任务。
 
 ### 原生图件预览与选择状态
+
+三维窗口的就绪通知属于每次加载的独立文档。父页面在文档加载后主动确认就绪；同一文档的重复通知不重复读取结构，重新加载的文档会重新接收当前确切来源和记录编号。重连期间禁用尚未就绪的捕获、原子点选和显示操作，不把已选材料误报为空白输入。启动通知超过 30 秒时显示简短错误和手动重新加载入口；该期限不控制结构文件读取、科学计算或任务状态。重新加载只替换预览文档，保留分子、原始坐标、当前 pose 与历史，不取消或重新提交科学任务。
+
+The molecular iframe confirms readiness for each document instance. Duplicate replies do not reload a scene; a new document receives the current exact source and record selection. Capture and scene controls stay unavailable while reconnecting. A 30-second bootstrap deadline offers a manual preview reload without imposing a scientific-task or structure-file deadline. Reloading the preview preserves the selected pose, native coordinates and pose history, and never cancels or resubmits scientific work. Focused component checks and real Chromium replay verify the retained native scene, its PNG download and exact follow-up inputs in both interface languages.
 
 导出面板并排显示版面参数和实际原生图件，窄屏按顺序排列。预览由当前 Ketcher、Plotly、3Dmol、Mol* 或 Cytoscape 渲染器生成；下载直接使用已解码预览的同一份 SVG/PNG 字节，不二次渲染或使用概念图片替代科学结果。版面宽度、印刷字号、PNG 清晰度和透明背景沿用共用参数，预览按窗口缩放，下载保留真实印刷尺寸。PNG 保留严格的分辨率与 CRC 校验，SVG 沿用原生安全导出契约。
 

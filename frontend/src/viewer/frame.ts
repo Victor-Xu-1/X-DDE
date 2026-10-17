@@ -53,6 +53,7 @@ new ResizeObserver(([entry]) => {
   if (next.width > 0 && next.height > 0) previousViewport = next;
   viewer.render();
 }).observe(document.getElementById("molecule")!);
+const instanceId = crypto.randomUUID();
 function notify(type: string, detail: unknown = {}) {
   window.parent.postMessage(
     { channel: "opendde-viewer", type, detail },
@@ -246,6 +247,7 @@ window.addEventListener("message", (event) => {
   )
     return;
   const { type, value } = event.data;
+  if (type === "ready-request") notify("ready", { instanceId });
   if (type === "clear") {
     loadedSourceIdentity = null;
     controller?.abort();
@@ -352,4 +354,4 @@ window.addEventListener("message", (event) => {
     }
   }
 });
-notify("ready");
+notify("ready", { instanceId });
