@@ -39,15 +39,17 @@ def review_saved_regions(page, language, evidence):
     capture = ready_structure(page, zh)
     capture.scroll_into_view_if_needed()
     page.screenshot(path=str(evidence / "regions-native-result.png"), full_page=True)
+    region.locator(".viewer-original-downloads summary").click()
     with page.expect_download() as transfer:
         region.get_by_role(
-            "link", name="下载当前 pose" if zh else "Download current pose", exact=True
+            "link", name="结构 1" if zh else "Structure 1", exact=True
         ).click()
     native = evidence / "regions-native-selection.sdf"
     transfer.value.save_as(native)
     assert hashlib.sha256(native.read_bytes()).hexdigest() == (
         "1a60971c824f4f80d7a378356f2217394f51f3732b605f43440b22dc8d8fe283"
     )
+    region.locator(".viewer-original-downloads summary").click()
     capture.click()
     png = page.get_by_role("link", name="下载视图 PNG" if zh else "Download view PNG", exact=True)
     expect(png).to_be_visible(timeout=30000)
