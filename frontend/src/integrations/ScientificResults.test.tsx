@@ -76,17 +76,17 @@ it("shows native energy units and never pools equal metric names across incompat
   );
   expect(
     screen.getByRole("columnheader", {
-      name: /Initial potential energy \(kJ\/mol\)/,
+      name: /Initial energy.*kJ\/mol/,
     }),
   ).toBeVisible();
   expect(
     screen.getByRole("columnheader", {
-      name: /Final potential energy \(kJ\/mol\)/,
+      name: /Final energy.*kJ\/mol/,
     }),
   ).toBeVisible();
   expect(
     screen.getByRole("columnheader", {
-      name: /Final potential energy \(kcal\/mol\)/,
+      name: /Final energy.*kcal\/mol/,
     }),
   ).toBeVisible();
   expect(screen.getAllByTitle(`${method} · kJ/mol`)).toHaveLength(2);

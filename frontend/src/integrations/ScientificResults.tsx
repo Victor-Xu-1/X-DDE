@@ -19,6 +19,11 @@ import "./results.css";
 import { DynamicsResults } from "../simulations/DynamicsResults";
 import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
 
+const ENERGY_NAMES: Record<string, readonly [string, string]> = {
+  "Initial potential energy": ["优化前势能", "Initial energy"],
+  "Final potential energy": ["优化后势能", "Final energy"],
+};
+
 export function ScientificResults({
   job,
   result,
@@ -67,7 +72,13 @@ export function ScientificResults({
         : []),
       ...metrics.map(({ name, unit }) => ({
         key: JSON.stringify([name, unit]),
-        label: unit ? `${name} (${unit})` : name,
+        label: (
+          <strong className="native-metric-heading" title={name}>
+            {ENERGY_NAMES[name]?.[zh ? 0 : 1] ?? name}
+            {unit && <small>{unit}</small>}
+          </strong>
+        ),
+        exportLabel: unit ? `${name} (${unit})` : name,
         numeric: true,
         value: (row: NativeCandidate) =>
           row.metrics.find(

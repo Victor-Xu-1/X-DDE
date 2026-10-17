@@ -117,8 +117,14 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
             "region", name="模板的真实结果" if zh else "Actual template result"
         )
         expect(actual).to_be_visible(timeout=30000)
-        for name in ENERGIES:
-            expect(actual.get_by_role("columnheader").filter(has_text=name)).to_be_visible()
+        viewport = actual.locator(".research-table-scroll").bounding_box()
+        assert viewport
+        for label in ("优化前势能", "优化后势能") if zh else ("Initial energy", "Final energy"):
+            header = actual.get_by_role("columnheader").filter(has_text=label)
+            expect(header).to_contain_text("kJ/mol")
+            bounds = header.bounding_box()
+            assert bounds and bounds["x"] >= viewport["x"] - 1
+            assert bounds["x"] + bounds["width"] <= viewport["x"] + viewport["width"] + 1
         assert (
             actual.get_by_title(
                 "OpenMM vacuum potential with backbone positional restraints · kJ/mol", exact=True
@@ -135,7 +141,10 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
             else left["y"] < right["y"]
         )
         downloads(page, evidence, zh)
-        page.screenshot(path=str(evidence / "native-refinement-example.png"), full_page=True)
+        actual.locator(".structure-workbench-view").scroll_into_view_if_needed()
+        page.screenshot(path=str(evidence / "native-refinement-example.png"))
+        actual.locator(".research-table").scroll_into_view_if_needed()
+        page.screenshot(path=str(evidence / "native-energy-table.png"))
         page.get_by_role(
             "button", name="返回任务填写" if zh else "Return to task form", exact=True
         ).click()
@@ -153,6 +162,7 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
                     "width": width,
                     "cold_restored_actual_native_files": True,
                     "visible_energy_units": True,
+                    "both_energy_columns_fit_without_horizontal_scroll": True,
                     "full_precision_csv_and_byte_identical_pdb": True,
                     "native_png_export": True,
                     "structure_on_left_or_above_mobile_details": True,
