@@ -7,6 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { StrictMode } from "react";
 import { api } from "./api";
 import { TaskDetail } from "./TaskDetail";
 import type { Job } from "./types";
@@ -100,6 +101,86 @@ it.each(["resolved", "rejected"])(
     expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
   },
 );
+
+it.each([
+  ["other task", "resolved"],
+  ["other task", "rejected"],
+  ["leave results", "resolved"],
+  ["leave results", "rejected"],
+] as const)(
+  "does not reclaim navigation after keyed detail unmounts for %s and retry is %s",
+  async (destination, outcome) => {
+    let resolve!: (job: Job) => void, reject!: (error: Error) => void;
+    const retry = vi.spyOn(api, "retry").mockImplementation(
+      () =>
+        new Promise((done, fail) => {
+          resolve = done;
+          reject = fail;
+        }),
+    );
+    const changed = vi.fn();
+    const detail = (id: string) => (
+      <TaskDetail
+        key={id}
+        job={source(id)}
+        detail={null}
+        failed={false}
+        language="en"
+        onChange={changed}
+      />
+    );
+    const view = render(<StrictMode>{detail("parent-a")}</StrictMode>);
+    fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+    expect(retry).toHaveBeenCalledTimes(1);
+    view.rerender(
+      <StrictMode>
+        {destination === "other task" ? detail("parent-b") : <h1>New task</h1>}
+      </StrictMode>,
+    );
+    await act(async () => {
+      if (outcome === "resolved") resolve(child());
+      else reject(new Error("Old retry response failed"));
+    });
+    expect(changed).not.toHaveBeenCalled();
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
+    if (destination === "other task")
+      expect(
+        screen.getByRole("heading", { name: "Lifecycle parent-b" }),
+      ).toBeVisible();
+    else
+      expect(screen.getByRole("heading", { name: "New task" })).toBeVisible();
+  },
+);
+
+it("invalidates an earlier retry when a retained detail changes A to B to A", async () => {
+  let resolve!: (job: Job) => void;
+  const retry = vi.spyOn(api, "retry").mockImplementation(
+    () =>
+      new Promise((done) => {
+        resolve = done;
+      }),
+  );
+  const changed = vi.fn();
+  const detail = (id: string) => (
+    <TaskDetail
+      job={source(id)}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={changed}
+    />
+  );
+  const view = render(detail("parent-a"));
+  fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+  view.rerender(detail("parent-b"));
+  view.rerender(detail("parent-a"));
+  await act(async () => resolve(child()));
+  expect(changed).not.toHaveBeenCalled();
+  expect(retry).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
+});
 
 it("honors a dismissed cancellation confirmation", () => {
   vi.spyOn(window, "confirm").mockReturnValue(false);
