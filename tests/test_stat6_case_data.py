@@ -85,14 +85,22 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert operation["state"] == "succeeded", operation
     installed = manager.store.installed()["public-stat6-examples"]
     assert installed["version"] == spec.VERSION and installed["bundle_sha256"] == spec.SHA256
-    assert installed["computed"] == len(spec.CAPABILITIES) == 27
-    expected = {"modules": 27, "computed": 27, "validated": 0}
+    assert installed["computed"] == len(spec.CAPABILITIES) == 28
+    expected = {"modules": 28, "computed": 28, "validated": 0}
     assert restore_bundle(archive, settings, spec.SHA256) == expected
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 40 and not any(
+    assert len(jobs) == 46 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
+    )
+    generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
+        "diffsbdd.generate", verify=True
+    )
+    assert str(generated.job_id) == "be6389cf-e6ce-4d2e-ae5a-9786d62dfe8a"
+    assert generated.review and len(generated.supporting_evidence) == 5
+    assert str(generated.supporting_evidence[-1].job_id) == (
+        "b5b7a896-929b-45ad-88b9-e147c5b7540f"
     )
     pin = ExamplePins(store, settings.state_dir, modules=MODULES).get("plip.profile", verify=True)
     assert pin and str(pin.job_id) == "b8d92dc4-3dd3-418a-9ceb-2eaa6723d624"
