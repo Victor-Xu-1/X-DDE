@@ -28,6 +28,8 @@ on:
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/viewer/scene.ts"
       - "!frontend/src/viewer/style.ts"
+      # Library/index result routing is covered by the native member gate.
+      - "!frontend/src/datasets/DatasetResults.tsx"
 permissions:
   contents: read
 jobs:

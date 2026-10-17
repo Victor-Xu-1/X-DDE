@@ -44,7 +44,6 @@ jobs:
     env:
       WB_TEST_LIBRARY_MEMBERS: "1"
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-library-member-review
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,6 +54,8 @@ jobs:
       - run: uv sync --locked --python 3.12 --group dev --group browser
       - name: Matching reviewed RDKit for real source-to-subset chemistry only
         run: uv pip install --python .venv/bin/python rdkit==2026.3.6 numpy==1.26.4
+      - name: Isolated native member-review state
+        run: echo "WB_HOME=$RUNNER_TEMP/x-dde-library-member-review" >> "$GITHUB_ENV"
       - name: Actual frozen STAT6 library and portable three-member subsets
         run: uv run --locked pytest -q server_tests/test_library_member_native.py
       - run: uv run --locked playwright install chromium --with-deps
