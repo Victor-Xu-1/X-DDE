@@ -3,6 +3,7 @@
 import hashlib
 import importlib.util
 import math
+import sqlite3
 import sys
 from pathlib import Path
 from uuid import uuid4
@@ -102,3 +103,63 @@ def test_real_initial_minimization_retains_unspecified_stereo_after_saved_file_p
     assert result["converged"] and math.isfinite(result["energy_after"])
     assert result["energy_after"] <= result["energy_before"] + 1e-3
     assert file.read_bytes() == content
+
+
+def test_actual_index_mol_readback_to_retrieval_sdf_preserves_unknown_and_known_stereo(
+    native, tmp_path
+):
+    from drugclip_candidates import retain_candidates
+
+    library, _ = native
+    index = tmp_path / "index"
+    index.mkdir()
+    file = index / "index-members.sqlite"
+    expected, blocks = [], []
+    for smiles in (
+        UNSPECIFIED_REFERENCE,
+        UNSPECIFIED_REFERENCE.replace("CCC(O)C3", "CC[C@H](O)C3"),
+    ):
+        source = Chem.MolFromSmiles(smiles)
+        expected.append(identity(source))
+        block = Chem.MolToMolBlock(library.unbound_conformer(source, 101))
+        assert identity(Chem.MolFromMolBlock(block, removeHs=False)) == expected[-1]
+        blocks.append(block)
+    with sqlite3.connect(file) as database:
+        database.execute(
+            "CREATE TABLE members (ordinal INTEGER PRIMARY KEY,id TEXT,display_name TEXT,"
+            "source_job TEXT,source_record INTEGER,supplier TEXT,smiles TEXT,molblock TEXT)"
+        )
+        for ordinal, (smiles, block) in enumerate(zip(expected, blocks, strict=True)):
+            database.execute(
+                "INSERT INTO members VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    ordinal,
+                    "member-" + str(ordinal),
+                    "STAT6 compound " + str(ordinal),
+                    "source-library",
+                    ordinal,
+                    "custom",
+                    smiles,
+                    block,
+                ),
+            )
+    original = file.read_bytes()
+    output = tmp_path / "output"
+    output.mkdir()
+    request = {"payload": {"top_k": 2, "retain": 2}, "options": {"seed": 101}}
+    rows, failures = retain_candidates(
+        request,
+        [(index, None, [], 2)],
+        [(0.8, 0.8, 0, 0), (0.5, 0.5, 0, 1)],
+        output=output,
+    )
+    assert not failures and len(rows) == 2
+    saved = list(Chem.SDMolSupplier(str(output / "candidates.sdf"), removeHs=False))
+    assert len(saved) == 2
+    for ordinal, molecule in enumerate(saved):
+        assert molecule is not None and identity(molecule) == expected[ordinal]
+        source = Chem.MolFromMolBlock(blocks[ordinal], removeHs=False)
+        assert np.array_equal(
+            molecule.GetConformer().GetPositions(), source.GetConformer().GetPositions()
+        )
+    assert file.read_bytes() == original

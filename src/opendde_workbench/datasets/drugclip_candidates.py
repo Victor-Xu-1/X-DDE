@@ -1,6 +1,7 @@
 """Curate only the actually retrieved shortlist with the existing RDKit selection authority."""
 
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 from platformnative_io import readonly_database, write_csv
@@ -55,9 +56,10 @@ def selection(members, options, seed):
     return set(selected), rows
 
 
-def retain_candidates(request, indexes, ranked):
+def retain_candidates(request, indexes, ranked, *, output: Path | None = None):
     from rdkit import Chem
 
+    output = output if output is not None else Path("/output")
     databases = [readonly_database(item[0] / "index-members.sqlite") for item in indexes]
     members, seen = [], set()
     try:
@@ -79,7 +81,7 @@ def retain_candidates(request, indexes, ranked):
             database.close()
     selected, evidence = selection(members, request["payload"], request["options"]["seed"])
     candidates, failures, ranking, written = [], [], [], 0
-    writer = Chem.SDWriter("/output/candidates.sdf")
+    writer = Chem.SDWriter(str(output / "candidates.sdf"))
     try:
         for position, (score, raw, _, row) in enumerate(members):
             item = evidence[position]
@@ -136,7 +138,7 @@ def retain_candidates(request, indexes, ranked):
     finally:
         writer.close()
     write_csv(
-        "/output/ranked-candidates.csv",
+        output / "ranked-candidates.csv",
         [
             "rank",
             "compound",
@@ -156,5 +158,5 @@ def retain_candidates(request, indexes, ranked):
         ],
         ranking,
     )
-    write_csv("/output/candidate-failures.csv", ["compound", "reason"], failures)
+    write_csv(output / "candidate-failures.csv", ["compound", "reason"], failures)
     return candidates, failures
