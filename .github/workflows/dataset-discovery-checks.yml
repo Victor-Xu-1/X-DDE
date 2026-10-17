@@ -80,7 +80,9 @@ jobs:
         run: >-
           uv run --no-project --python 3.12 --with pytest==9.1.1
           --with numpy==2.3.4 --with rdkit==2026.3.6 --with pydantic==2.14.0
+          --with dimorphite-dl==2.1.0
           python -m pytest -q server_tests/test_source_stereo_serialization.py
+          server_tests/test_molecular_states.py
   contracts:
     if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04
