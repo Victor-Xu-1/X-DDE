@@ -65,10 +65,22 @@ on:
         description: Changed contracts or one actual isolated scientific engine
         type: choice
         default: contracts
-        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina]
+        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina, stereo]
 permissions:
   contents: read
 jobs:
+  native-source-stereo:
+    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'stereo'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Actual RDKit source-to-3D Molfile and minimization roundtrips only
+        run: >-
+          uv run --no-project --python 3.12 --with pytest==9.1.1
+          --with numpy==2.3.4 --with rdkit==2026.3.6 --with pydantic==2.14.0
+          python -m pytest -q server_tests/test_source_stereo_serialization.py
   contracts:
     if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04
