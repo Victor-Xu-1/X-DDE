@@ -11,6 +11,7 @@ from chemistry import (
     bound,
     comparison_graph,
     digest,
+    export_molecule,
     molecule,
     plain_smiles,
     summarize_poses,
@@ -72,7 +73,7 @@ def main():
     root = Path("/output")
     normalized = root / "input-ligand.sdf"
     with Chem.SDWriter(str(normalized)) as writer:
-        writer.write(original)
+        writer.write(export_molecule(original))
     output = root / "poses.sdf"
     args = [str(binary), "-r", str(protein), "-l", str(normalized)] + arguments(options, mode)
     search = request.get("search")
@@ -91,7 +92,7 @@ def main():
             mol = molecule(bound(reference, bindings, ".sdf"), reference.record, require_pose=True)
             ref_file = root / "reference-ligand.sdf"
             with Chem.SDWriter(str(ref_file)) as writer:
-                writer.write(mol)
+                writer.write(export_molecule(mol))
             reference_geometry = ReferenceGeometry(
                 mol, original, protein, search["reference"], "search_reference"
             )
@@ -129,12 +130,11 @@ def main():
         ) from exc
     text = log.read_text() if log.stat().st_size <= 8 * 1024**2 else ""
     if mode == "score":
-        shutil.copyfile(normalized, output)
         metrics = parse_score_only(text, options.cnn_scoring)
         for metric in metrics:
             original.SetProp(metric["name"], str(metric["value"]))
         with Chem.SDWriter(str(output)) as writer:
-            writer.write(original)
+            writer.write(export_molecule(original))
         poses = [
             {
                 "record": 0,
@@ -163,17 +163,17 @@ def main():
             if pose["valid"]:
                 pose["qualified_record"] = qualified_record
                 qualified_record += 1
-                writer.write(comparison_graph(supplier[pose["record"]]))
+                writer.write(export_molecule(comparison_graph(supplier[pose["record"]])))
     for pose in poses:
         if pose["valid"]:
             file = root / f"pose-{pose['record'] + 1:03d}.sdf"
             with Chem.SDWriter(str(file)) as writer:
-                writer.write(comparison_graph(supplier[pose["record"]]))
+                writer.write(export_molecule(comparison_graph(supplier[pose["record"]])))
             pose["artifact"] = file.name
         elif pose["constraint_checks"]:
             file = root / f"diagnostic-pose-{pose['record'] + 1:03d}.sdf"
             with Chem.SDWriter(str(file)) as writer:
-                writer.write(comparison_graph(supplier[pose["record"]]))
+                writer.write(export_molecule(comparison_graph(supplier[pose["record"]])))
             pose["diagnostic_artifact"] = file.name
     shutil.copyfile(protein, root / "receptor.pdb")
     result = {

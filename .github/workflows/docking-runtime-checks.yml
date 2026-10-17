@@ -34,6 +34,7 @@ on:
       - "server_tests/reference_geometry_checks.py"
       - "server_tests/docking_scoring_checks.py"
       - "server_tests/test_scientific_handoff.py"
+      - "server_tests/test_docking_serialization.py"
       - "server_tests/docking_browser.py"
       - "server_tests/test_native_docking.py"
       - ".github/workflows/docking-runtime-checks.yml"
@@ -75,6 +76,7 @@ jobs:
           server_tests/test_scientific_handoff.py::test_property_handoff_selects_one_real_sdf_record
           server_tests/test_scientific_handoff.py::test_docking_native_atom_labels_must_match_the_real_chemical_graph
           server_tests/test_scientific_handoff.py::test_atom_map_identifiers_do_not_create_false_stereochemical_changes
+          server_tests/test_docking_serialization.py
       - name: Actual isolated GNINA install, native CPU and CNN scoring modes
         env:
           WB_TEST_NATIVE_DOCKING: "1"

@@ -72,6 +72,17 @@ def comparison_graph(mol):
     return copy
 
 
+def export_molecule(mol):
+    """Retain source uncertainty without treating atom-map IDs as substituents."""
+    from molfile_stereo import source_stereo_molecule
+
+    maps = [atom.GetAtomMapNum() for atom in mol.GetAtoms()]
+    exported = source_stereo_molecule(comparison_graph(mol))
+    for atom, identifier in zip(exported.GetAtoms(), maps, strict=True):
+        atom.SetAtomMapNum(identifier)
+    return exported
+
+
 def plain_smiles(mol):
     from rdkit import Chem
 

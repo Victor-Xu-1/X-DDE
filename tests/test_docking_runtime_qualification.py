@@ -47,6 +47,12 @@ def test_native_task_snapshot_retains_the_same_alternate_guard(tmp_path):
     import opendde_workbench.docking.snapshot as snapshot
 
     adapter, hashes = capture(tmp_path / "job", Path(snapshot.__file__).parent)
+    stereo = adapter / "docking/molfile_stereo.py"
+    assert hashlib.sha256(stereo.read_bytes()).hexdigest() == hashes["docking/molfile_stereo.py"]
+    assert (
+        stereo.read_bytes()
+        == (Path(snapshot.__file__).parent.parent / "chemistry/molfile_stereo.py").read_bytes()
+    )
     file = adapter / "docking/receptor_input.py"
     assert hashlib.sha256(file.read_bytes()).hexdigest() == hashes["docking/receptor_input.py"]
     namespace = {}

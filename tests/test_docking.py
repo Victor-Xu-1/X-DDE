@@ -198,6 +198,8 @@ def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
     for name in NATIVE_FILES:
         (source / name).write_text("original adapter bytes")
     (source.parent / "scientific_objects.py").write_text("canonical contract bytes")
+    (source.parent / "chemistry").mkdir()
+    (source.parent / "chemistry/molfile_stereo.py").write_text("source stereo export bytes")
     directory = tmp_path / "job"
     directory.mkdir()
     target, digests = capture(directory, source)
@@ -214,7 +216,9 @@ def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
         "docking/reference.py",
         "docking/scoring.py",
         "scientific_objects.py",
+        "docking/molfile_stereo.py",
     }
+    assert (target / "docking/molfile_stereo.py").read_bytes() == b"source stereo export bytes"
     (source / "bounds.py").write_text("Changed verifier after capture")
     (source / "reference.py").write_text("Changed reference comparison after capture")
     (source / "scoring.py").write_text("Changed score parser after capture")

@@ -20,7 +20,8 @@ def capture(directory: Path, source: Path):
     (target / "docking").mkdir(parents=True, exist_ok=False)
     digests = {}
     for file, relative in [(source / name, "docking/" + name) for name in NATIVE_FILES] + [
-        (source.parent / "scientific_objects.py", "scientific_objects.py")
+        (source.parent / "scientific_objects.py", "scientific_objects.py"),
+        (source.parent / "chemistry/molfile_stereo.py", "docking/molfile_stereo.py"),
     ]:
         if file.is_symlink() or file.stat().st_size > 2 * 1024**2:
             raise ValueError("Native adapter source must be a bounded regular file.")

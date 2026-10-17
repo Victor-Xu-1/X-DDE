@@ -4,7 +4,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from docking_chemistry import comparison_graph, digest, molecule, summarize_poses
+from docking_chemistry import comparison_graph, digest, export_molecule, molecule, summarize_poses
 from docking_manifest import BINARY_SHA256, VERSION
 from docking_options import DockingOptions, SearchBox, arguments
 from docking_receptor import prepare as prepare_receptor
@@ -26,7 +26,7 @@ def pocket_arguments(request):
     file, reference = input_file(request, "ligand")
     selected = molecule(file, reference["record"], require_pose=True)
     with Chem.SDWriter("/output/reference-ligand.sdf") as writer:
-        writer.write(selected)
+        writer.write(export_molecule(selected))
     return [
         "--autobox_ligand",
         "/output/reference-ligand.sdf",
@@ -91,7 +91,7 @@ def run(request):
                 output = folder / f"poses-{index:04d}.sdf"
                 log = folder / f"native-{index:04d}.log"
                 with Chem.SDWriter(str(input_path)) as single:
-                    single.write(source)
+                    single.write(export_molecule(source))
                 command = [
                     str(binary),
                     "-r",
@@ -126,12 +126,12 @@ def run(request):
                 pose.SetProp("XDDE_GEOMETRY", "binding_pose")
                 qualified = f"pose-{index + 1:04d}.sdf"
                 with Chem.SDWriter("/output/" + qualified) as single:
-                    single.write(pose)
+                    single.write(export_molecule(pose))
                 from pose_complex import export as export_complex
 
                 complex_artifact = f"complex-{index + 1:04d}.pdb"
                 export_complex("/output/receptor.pdb", pose, "/output/" + complex_artifact)
-                writer.write(pose)
+                writer.write(export_molecule(pose))
                 scores = {item["name"]: item["value"] for item in best["scores"]}
                 poses.append(
                     {
