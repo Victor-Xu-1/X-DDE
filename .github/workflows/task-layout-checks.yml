@@ -333,6 +333,9 @@ on:
       - "!frontend/src/viewer/PoseSession.tsx"
       - "!frontend/src/viewer/PoseStudyInput.tsx"
       - "!frontend/src/viewer/StructureViewport.tsx"
+      # Viewer document lifecycle uses generated-candidate-checks.yml.
+      - "!frontend/src/viewer/useViewerConnection.ts"
+      - "!frontend/src/viewer/viewer-connection.test.tsx"
       - "!frontend/src/viewer/pose-plan*"
       - "!frontend/src/viewer/pose-study-input.css"
       - "!frontend/src/viewer/usePoseHandoff.ts"
@@ -420,6 +423,9 @@ on:
       - "!frontend/src/poses/ClusterForm.tsx"
       - "!frontend/src/viewer/search-box*"
       - "!frontend/src/viewer/StructureViewport.tsx"
+      # Viewer document lifecycle uses generated-candidate-checks.yml.
+      - "!frontend/src/viewer/useViewerConnection.ts"
+      - "!frontend/src/viewer/viewer-connection.test.tsx"
       - "!frontend/src/diffsbdd/ReviewReference.tsx"
       - "!.github/workflows/task-layout-checks.yml"
   workflow_dispatch:

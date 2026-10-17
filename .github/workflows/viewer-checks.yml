@@ -78,6 +78,9 @@ on:
       - "!frontend/src/viewer/PoseSession.tsx"
       - "!frontend/src/viewer/PoseStudyInput.tsx"
       - "!frontend/src/viewer/StructureViewport.tsx"
+      # Document readiness has exact native replay in generated-candidate-checks.yml.
+      - "!frontend/src/viewer/useViewerConnection.ts"
+      - "!frontend/src/viewer/viewer-connection.test.tsx"
       - "!frontend/src/viewer/pose-plan.ts"
       - "!frontend/src/viewer/pose-source.test.ts"
       - "!frontend/src/viewer/pose-source.ts"

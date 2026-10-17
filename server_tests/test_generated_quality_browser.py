@@ -46,6 +46,12 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 1050})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        page.add_init_script("""window.__nativeViewerLoads = [];
+            window.addEventListener('message', event => {
+                if (event.origin === location.origin && event.source === window.parent &&
+                    event.data?.channel === 'opendde-viewer' && event.data.type === 'load')
+                    window.__nativeViewerLoads.push(structuredClone(event.data.value));
+            });""")
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -108,6 +114,25 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         else:
             assert view_box["y"] < detail_box["y"]
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        capture = preview.get_by_role(
+            "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True
+        )
+        expect(capture).to_be_enabled(timeout=30000)
+        frame_element = preview.locator(".molecular-stage iframe").element_handle()
+        assert frame_element
+        molecular_frame = frame_element.content_frame()
+        assert molecular_frame
+        first_load = molecular_frame.evaluate("window.__nativeViewerLoads.at(-1)")
+        assert first_load and 1 in first_load["records"]
+        with molecular_frame.expect_navigation(wait_until="load", timeout=30000):
+            molecular_frame.evaluate("location.reload()")
+        molecular_frame.wait_for_function(
+            "window.__nativeViewerLoads?.length > 0", timeout=30000
+        )
+        expect(capture).to_be_enabled(timeout=30000)
+        restored_load = molecular_frame.evaluate("window.__nativeViewerLoads.at(-1)")
+        assert restored_load == first_load
+        expect(selected).to_have_attribute("aria-pressed", "true")
         page.screenshot(path=evidence / "retained-native-generation.png", full_page=True)
         prepare = details.get_by_role(
             "button", name="准备后续研究材料" if zh else "Prepare for follow-up", exact=True
@@ -197,6 +222,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
                 "new_scientific_jobs": 0,
                 "prepared_missing_materials": prepared_missing_materials,
                 "original_artifacts_unchanged": True,
+                "native_iframe_reload_restores_exact_source": True,
+                "restored_viewer_load": restored_load,
                 "selected_original_record": 1,
                 "output_heavy_atoms": native_row["heavy_atoms"],
                 "target_atoms": result["report"]["target_atoms"],

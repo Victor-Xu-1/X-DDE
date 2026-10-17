@@ -10,6 +10,10 @@ on:
       - "frontend/src/diffsbdd/GeneratedCandidates*"
       - "frontend/src/diffsbdd/generated-metrics*"
       - "frontend/src/diffsbdd/useGeneratedRecords*"
+      - "frontend/src/viewer/viewer-connection.test.tsx"
+      - "frontend/src/viewer/useViewerConnection.ts"
+      - "frontend/src/viewer/StructureViewport.tsx"
+      - "frontend/src/viewer/frame.ts"
       - "server_tests/test_generated_quality_browser.py"
       - ".github/workflows/generated-candidate-checks.yml"
   pull_request:
@@ -31,8 +35,10 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Selected candidate identity, fragment interpretation and exact quality inputs
+        id: unit
+        continue-on-error: true
         working-directory: frontend
-        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx
+        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/viewer-connection.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:
@@ -47,6 +53,9 @@ jobs:
       - run: uv run --locked python -m playwright install --with-deps chromium
       - name: Native 3D and selected source questionnaire in desktop English and narrow Chinese
         run: uv run --locked python -m pytest -x -q server_tests/test_generated_quality_browser.py
+      - name: Require the selected component checks after collecting browser evidence
+        if: always() && steps.unit.outcome != 'success'
+        run: exit 1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
