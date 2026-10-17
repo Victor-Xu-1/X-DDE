@@ -1,5 +1,11 @@
 name: Publication version checks
 on:
+  workflow_dispatch:
+    inputs:
+      base_revision:
+        type: string
+        required: true
+        description: Exact previous published main SHA for the one-step counter check
   push:
     branches: [main, feat/platform-integration, feat/ai-biomed-design, feat/research-layout, feat/scientific-upgrades, feat/stat6-templates, feat/native-pocket-review, feat/figure-motion-review]
   pull_request:
@@ -22,7 +28,7 @@ jobs:
       - run: uv sync --locked --group dev
       - name: Verify one increment from the published main revision
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || (github.ref == 'refs/heads/main' && github.event.before) || '' }}
+          BASE_SHA: ${{ inputs.base_revision || github.event.pull_request.base.sha || (github.ref == 'refs/heads/main' && github.event.before) || '' }}
         run: |
           if [ -z "$BASE_SHA" ]; then BASE_SHA=$(git rev-parse origin/main); fi
           uv run --locked python scripts/release-version.py check --base "$BASE_SHA"
