@@ -9,6 +9,7 @@ from pathlib import Path
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.capabilities.definitions import CAPABILITIES
+from server_tests.test_hydrogen_policy_browser import non_donor_hydrogens
 from server_tests.test_ketcher_depiction_browser import assert_native_bonds
 from server_tests.test_navigation_shell_browser import open_navigation
 
@@ -31,7 +32,7 @@ def test_cold_embedded_ketcher_can_initialize_without_taking_user_focus():
         def cold_component(route):
             # The real script is delayed, not replaced. Parent readiness polling
             # can observe the iframe's body before Ketcher's native initialization.
-            time.sleep(0.75)
+            time.sleep(21)
             route.continue_()
 
         page.route("**/tools/ketcher/static/js/main*.js", cold_component)
@@ -56,16 +57,23 @@ def test_cold_embedded_ketcher_can_initialize_without_taking_user_focus():
             assert url and url.startswith("data:image/svg+xml;base64,")
             drawing = base64.b64decode(url.split(",", 1)[1])
             assert_native_bonds(drawing)
+            display = page.evaluate("""async () => {
+                const frame = document.querySelector('.drawing-service-frame');
+                const editor = frame.contentWindow.ketcher;
+                return {ket: JSON.parse(await editor.getKet()), mol: await editor.getMolfile()};
+            }""")
+            assert not non_donor_hydrogens(display["ket"])
             assert page.evaluate(
                 "document.querySelector('.drawing-service-frame').contentDocument.body.inert"
             )
             assert not submissions
             assert not errors
             (evidence / "native-STAT6-kekule.svg").write_bytes(drawing)
+            (evidence / "native-display-copy.mol").write_text(display["mol"])
             (evidence / "acceptance.json").write_text(
                 json.dumps(
                     {
-                        "real_component_script_delayed_seconds": 0.75,
+                        "real_component_script_delayed_seconds": 21,
                         "native_svg_ready": True,
                         "source": "Defined STAT6 study small molecule",
                         "source_or_scientific_files_modified": False,

@@ -69,6 +69,11 @@ on:
       - "!.github/workflows/examples-checks.yml"
       # Cluster selection and its native SVG export use pose-cluster-checks.yml.
       - "!frontend/src/poses/ClusterMatrix.tsx"
+      # Embedded 2D startup, native Kekule drawings, focus and their export
+      # consumers have ketcher-depiction-checks.yml. Other figure changes still
+      # execute the shared publication regression set below.
+      - "!frontend/src/presentation/MoleculeImage*"
+      - "!frontend/src/presentation/hidden-frame-focus*"
   pull_request:
     paths: *figure_paths
 permissions:

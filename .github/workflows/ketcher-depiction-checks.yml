@@ -79,7 +79,7 @@ jobs:
           npm ci --prefix frontend
           npm run build --prefix frontend
           cd frontend
-          npx vitest run src/presentation/depiction-renderer.test.ts src/presentation/MoleculeImage.test.tsx
+          npx vitest run src/presentation/depiction-renderer.test.ts src/presentation/MoleculeImage.test.tsx src/publication/molecular-vector.test.ts src/publication/FigureExport.test.tsx
           cd ..
           uv sync --locked --group dev --group browser
       - name: Prepare native graphical service only

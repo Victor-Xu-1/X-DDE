@@ -5,6 +5,7 @@ on:
       - "frontend/src/datasets/useDatasetRun*"
       - "frontend/src/datasets/ExecutionView*"
       - "frontend/src/datasets/DatasetSubmission*"
+      - "frontend/src/datasets/LibraryForm*"
       - "server_tests/test_dataset_submission_browser.py"
       - ".github/workflows/dataset-submission-checks.yml"
   pull_request:
@@ -32,6 +33,7 @@ jobs:
           src/datasets/ExecutionView.receipt.test.tsx
           src/operations/useTaskSubmit.test.ts src/guided/Questionnaire.test.tsx
           src/datasets/dataset-model.test.ts
+          src/datasets/LibraryForm.template.test.tsx
       - run: uv run --locked playwright install chromium --with-deps
       - name: Real library form navigation and receipt recovery with simulated transport
         run: >-
