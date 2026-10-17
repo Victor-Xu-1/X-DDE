@@ -18,6 +18,7 @@ on:
       - 'tests/test_example_pins.py'
       - 'frontend/src/examples/useExampleTemplate.ts'
       - 'frontend/src/examples/ExampleActions.test.tsx'
+      - 'frontend/src/diffsbdd/DiffTemplateReplay.test.tsx'
       - 'server_tests/test_surface_region_replay_browser.py'
       - 'server_tests/test_pocket_results_browser.py'
       - 'server_tests/test_generation_case_stages_browser.py'
@@ -47,7 +48,7 @@ jobs:
           base = os.environ.get("BASE", "")
           changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
           data = {"src/opendde_workbench/examples/stat6_bundle_release.py", "server_tests/test_generation_case_stages_browser.py", "src/opendde_workbench/examples/pins.py", "src/opendde_workbench/examples/preparation.py", "src/opendde_workbench/examples/stat6/preparation.py", "src/opendde_workbench/examples/stat6/design_replay.py", "tests/test_stat6_design_replay.py", "tests/test_example_pins.py"}
-          companions = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1", ".github/workflows/module-example-checks.yml", ".github/workflows/examples-checks.yml", "docs/frontend-layout.md", "frontend/src/examples/useExampleTemplate.ts", "frontend/src/examples/ExampleActions.test.tsx"}
+          companions = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1", ".github/workflows/module-example-checks.yml", ".github/workflows/examples-checks.yml", "docs/frontend-layout.md", "frontend/src/examples/useExampleTemplate.ts", "frontend/src/examples/ExampleActions.test.tsx", "frontend/src/diffsbdd/DiffForm.tsx", "frontend/src/diffsbdd/DiffTemplateReplay.test.tsx"}
           only_data = bool(set(changed) & data) and all(path in data | companions for path in changed)
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               output.write("data_only=" + str(only_data).lower() + "\n")
@@ -70,7 +71,7 @@ jobs:
       - name: Retained case-stage navigation and example actions
         if: steps.scope.outputs.data_only == 'true'
         working-directory: frontend
-        run: npx vitest run src/examples/ExampleResultSet.test.tsx src/examples/ExampleActions.test.tsx src/diffsbdd/DiffForm.test.tsx
+        run: npx vitest run src/examples/ExampleResultSet.test.tsx src/examples/ExampleActions.test.tsx src/diffsbdd/DiffForm.test.tsx src/diffsbdd/DiffTemplateReplay.test.tsx
       - name: Restore exact reviewed result packages; no scientific workers
         if: steps.scope.outputs.data_only != 'true'
         env:
