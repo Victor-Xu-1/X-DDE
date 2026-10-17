@@ -68,6 +68,13 @@ it("shows chart-only model results directly without two identical result tabs", 
   expect(screen.queryByRole("button", { name: /^Results$/ })).toBeNull();
 });
 
+it("opens prepared libraries in the shared native member inspector", () => {
+  render(<DatasetResults job={job} result={data("library")} language="en" />);
+  expect(
+    screen.getByRole("region", { name: "Library member inspection" }),
+  ).toBeVisible();
+});
+
 it("preserves a quality tab when real primary data and real chart artifacts both exist", () => {
   render(
     <DatasetResults job={job} result={data("library", true)} language="en" />,

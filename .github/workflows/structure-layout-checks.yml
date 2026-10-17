@@ -83,6 +83,8 @@ on:
       - "!.github/workflows/structure-layout-checks.yml"
       # Generated-candidate counts/handoff have exact native desktop/narrow checks.
       - "!frontend/src/diffsbdd/GeneratedCandidates.tsx"
+      # Native prepared/indexed member layouts have their own browser gate.
+      - "!frontend/src/datasets/IndexedLibraryResults.tsx"
   pull_request:
     paths: *structure_paths
 permissions:

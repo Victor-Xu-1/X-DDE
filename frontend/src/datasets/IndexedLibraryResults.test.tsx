@@ -5,15 +5,31 @@ import { IndexedLibraryResults } from "./IndexedLibraryResults";
 import * as transport from "../api";
 
 vi.mock("./ResearchTable", () => ({
-  ResearchTable: ({ onSelect }: { onSelect(row: unknown): void }) => (
+  ResearchTable: ({
+    onSelect,
+    view,
+  }: {
+    onSelect(row: unknown): void;
+    view: string;
+  }) => (
     <button onClick={() => onSelect({ id: "record-1" })}>
-      Select native record
+      Select native record {view}
     </button>
   ),
 }));
 vi.mock("../presentation/MolecularPreview", () => ({
-  MolecularPreview: ({ urls }: { urls: string[] }) => (
-    <div>Native preview: {urls[0]}</div>
+  MolecularPreview: ({
+    urls,
+    source,
+  }: {
+    urls?: string[];
+    source: { url: string };
+  }) => (
+    <div>
+      {urls?.length
+        ? `Native preview: ${urls[0]}`
+        : `Native 2D only: ${source.url}`}
+    </div>
   ),
 }));
 afterEach(() => {
@@ -53,7 +69,7 @@ it("inspects the exact native conformer and only saves when explicitly chosen", 
   render(<IndexedLibraryResults jobId={job} language="en" />);
   await userEvent
     .setup()
-    .click(screen.getByRole("button", { name: "Select native record" }));
+    .click(screen.getByRole("button", { name: "Select native record index" }));
   expect(
     await screen.findByRole("heading", { name: detail.label }),
   ).toBeVisible();
@@ -81,9 +97,36 @@ it("refuses a record URL with a mismatched native report instead of opening anot
     url: nativeUrl.replace(report, "c".repeat(64)),
   });
   render(<IndexedLibraryResults jobId={job} language="en" />);
-  fireEvent.click(screen.getByRole("button", { name: "Select native record" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Select native record index" }),
+  );
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "could not be loaded",
   );
   expect(screen.queryByText(/Native preview/)).toBeNull();
+});
+
+it("inspects a prepared 2D library without pretending it is a calculated 3D conformer", async () => {
+  vi.spyOn(transport, "request").mockResolvedValue({
+    ...detail,
+    geometry: "source_2d",
+  });
+  const save = vi.spyOn(transport.api, "post");
+  render(
+    <IndexedLibraryResults
+      {...{ jobId: job, language: "en" as const, view: "library" as const }}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Select native record library" }),
+  );
+  expect(
+    await screen.findByRole("heading", { name: detail.label }),
+  ).toBeVisible();
+  expect(screen.getByText(`Native 2D only: ${nativeUrl}`)).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "Original structure MOL" }),
+  ).toHaveAttribute("href", nativeUrl);
+  expect(screen.queryByText("Unbound conformer")).toBeNull();
+  expect(save).not.toHaveBeenCalled();
 });

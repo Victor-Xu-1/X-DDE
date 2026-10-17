@@ -30,6 +30,8 @@ on:
       - '!frontend/src/viewer/scene.ts'
       # Generated-candidate selection and its consumers use generated-candidate-checks.yml.
       - '!frontend/src/diffsbdd/GeneratedCandidates.tsx'
+      # Dataset member labels/exports use library-member-checks.yml.
+      - '!frontend/src/datasets/ResearchTable.tsx'
 permissions:
   contents: read
 jobs:

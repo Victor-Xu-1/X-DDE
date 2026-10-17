@@ -1,0 +1,51 @@
+name: Native library member review checks
+on:
+  push:
+    paths: &member_paths
+      - "src/opendde_workbench/datasets/member_structure.py"
+      - "src/opendde_workbench/datasets/member_inspection.py"
+      - "src/opendde_workbench/datasets/native_library.py"
+      - "frontend/src/datasets/IndexedLibraryResults*"
+      - "frontend/src/datasets/useIndexedMember*"
+      - "frontend/src/datasets/DatasetResults*"
+      - "frontend/src/datasets/ResearchTable*"
+      - "tests/test_dataset_member_inspection.py"
+      - "server_tests/test_library_member*"
+      - ".github/workflows/library-member-checks.yml"
+  pull_request:
+    paths: *member_paths
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact immutable member reads, saves and pagination
+        run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
+      - name: Member inspection, selection and direct routing consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/IndexedLibraryResults.test.tsx
+          src/datasets/DatasetResults.test.tsx src/datasets/ResearchTable.test.tsx
+          src/presentation/ResultRow.test.tsx
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_TEST_LIBRARY_MEMBERS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.12 --group dev --group browser
+      - name: Matching reviewed RDKit for real source-to-subset chemistry only
+        run: uv pip install --python .venv/bin/python rdkit==2026.3.6 numpy==1.26.4
+      - name: Actual frozen STAT6 library and portable three-member subsets
+        run: uv run --locked pytest -q server_tests/test_library_member_native.py

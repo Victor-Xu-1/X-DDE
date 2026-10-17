@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { ResearchTable } from "./ResearchTable";
 import * as transport from "../api";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("../presentation/MoleculeImage", () => ({
   MoleculeImage: ({ label }: { label: string }) => (
@@ -11,6 +12,32 @@ vi.mock("../presentation/MoleculeImage", () => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+it("labels selection with the public name while retaining the exact internal identity", async () => {
+  vi.spyOn(transport, "request").mockResolvedValue({
+    rows: [
+      { id: "cmp-exact", display_name: "CHEMBL487451", smiles: "c1ccccc1" },
+    ],
+    total: 1,
+    offset: 0,
+    has_more: false,
+  });
+  const select = vi.fn();
+  render(
+    <ResearchTable
+      jobId="study"
+      view="library"
+      language="en"
+      onSelection={select}
+    />,
+  );
+  await userEvent
+    .setup()
+    .click(
+      await screen.findByRole("checkbox", { name: "Select CHEMBL487451" }),
+    );
+  expect(select).toHaveBeenCalledWith(["cmp-exact"]);
 });
 it("uses supplied medicinal-chemistry names and human sources without dead identifier buttons", async () => {
   vi.spyOn(transport, "request").mockResolvedValue({

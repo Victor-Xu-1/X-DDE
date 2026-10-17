@@ -47,6 +47,15 @@ on:
       - "!frontend/src/datasets/ScreeningForm.tsx"
       - "!frontend/src/datasets/screening-readiness*"
       - "!.github/workflows/dataset-discovery-checks.yml"
+      # Native member inspection and its library adapter have their exact gate.
+      - "!src/opendde_workbench/datasets/member_structure.py"
+      - "!src/opendde_workbench/datasets/member_inspection.py"
+      - "!src/opendde_workbench/datasets/native_library.py"
+      - "!frontend/src/datasets/IndexedLibraryResults*"
+      - "!frontend/src/datasets/useIndexedMember*"
+      - "!frontend/src/datasets/DatasetResults*"
+      - "!frontend/src/datasets/ResearchTable*"
+      - "!tests/test_dataset_member_inspection.py"
   pull_request:
     paths: *dataset_paths
   workflow_dispatch:

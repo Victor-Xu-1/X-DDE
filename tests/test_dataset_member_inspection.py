@@ -117,3 +117,87 @@ def test_invalid_members_and_changed_native_files_cannot_be_previewed(settings, 
         assert (
             client.get(f"/api/datasets/{job}/members/detail?member_id=member-1").status_code == 422
         )
+
+
+def test_prepared_library_inspection_preserves_2d_coordinates_and_source_identity(
+    settings, client_factory
+):
+    from opendde_workbench.datasets.library_database import create
+
+    store, job, old_file = prepared_index(settings)
+    root = old_file.parent
+    content = MOL.replace("3D", "2D")
+    file = root / "library.sqlite"
+    with create(file) as db:
+        db.execute(
+            "INSERT INTO compounds VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            ("member-1", "CNO", content, 47.06, -0.3, 46.25, 0.4, 2, 2, 0, 3, 0, 17, "custom"),
+        )
+        db.execute(
+            "INSERT INTO records VALUES (?,?,?,?,?)",
+            (17, "custom", "CHEMBL487451", "member-1", None),
+        )
+        db.execute(
+            "INSERT INTO records VALUES (?,?,?,?,?)",
+            (18, "custom", "another offer", "member-1", None),
+        )
+    task = DatasetTask.model_validate(
+        {
+            "name": "Source 2D library",
+            "operation": "library_prepare",
+            "payload": {"kind": "chemistry", "id_column": "Compound_ID"},
+        }
+    )
+    with store.connect() as db:
+        db.execute("UPDATE jobs SET request=? WHERE id=?", (task.model_dump_json(), job))
+    result = json.loads((root / "result.json").read_text())
+    result.update(
+        operation="library_prepare",
+        program="rdkit",
+        data_kind="library",
+        request_sha256=hashlib.sha256(task.model_dump_json().encode()).hexdigest(),
+        counts={
+            "source_records": 2,
+            "valid_records": 2,
+            "rejected_records": 0,
+            "unique_compounds": 1,
+            "duplicate_chemical_records": 1,
+        },
+    )
+    result["artifacts"] = [
+        {
+            "name": file.name,
+            "role": "compound_library",
+            "format": "sqlite",
+            "size": file.stat().st_size,
+            "sha256": hashlib.sha256(file.read_bytes()).hexdigest(),
+        }
+    ]
+    (root / "result.json").write_text(json.dumps(result))
+    original = file.read_bytes()
+    with client_factory() as client:
+        response = client.get(f"/api/datasets/{job}/members/detail?member_id=member-1")
+        assert response.status_code == 200, response.text
+        detail = response.json()
+        assert detail["label"] == "CHEMBL487451"
+        assert detail["geometry"] == "source_2d"
+        assert detail["source_record"] == 17 and detail["source_records"] == 2
+        molecular = client.get(detail["url"])
+        assert molecular.content == content.encode()
+        assert molecular.headers["X-Structure-Geometry"] == "source_2d"
+        assert not client.get("/api/assets").json()
+        body = {"member_id": detail["id"], "report_sha256": detail["report_sha256"]}
+        first = client.post(f"/api/datasets/{job}/members/preserve", json=body)
+        assert first.status_code == 200, first.text
+        assert (
+            client.post(f"/api/datasets/{job}/members/preserve", json=body).json() == first.json()
+        )
+        saved = first.json()
+        assert saved["label"] == "CHEMBL487451" and saved["source_job"] == job
+        assert (
+            client.get("/api/assets/" + saved["reference"]["asset_id"]).content == content.encode()
+        )
+        assert (
+            client.get(detail["url"].replace(detail["report_sha256"], "0" * 64)).status_code == 409
+        )
+    assert file.read_bytes() == original and len(store.list_jobs()) == 1
