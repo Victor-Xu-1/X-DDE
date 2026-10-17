@@ -5,13 +5,19 @@ import {
 import { posePlan } from "./pose-plan";
 import { usePoseSession } from "./PoseSession";
 import { usePoseOptimization } from "./usePoseOptimization";
+import { useContext } from "react";
+import { TemplatePreviewContext } from "../examples/context";
 
 export function StructureViewer(props: StructureViewerProps) {
+  const preview = useContext(TemplatePreviewContext);
+  const scoped = preview ? { ...props, sourceSnapshot: true } : props;
   const workspace = usePoseSession();
-  const plan = posePlan(props);
-  if (!props.sourceSnapshot && workspace?.plan.key === plan.key)
-    return <StructureViewport {...props} optimization={workspace.controller} />;
-  return <StandaloneViewer props={props} plan={plan} />;
+  const plan = posePlan(scoped);
+  if (!scoped.sourceSnapshot && workspace?.plan.key === plan.key)
+    return (
+      <StructureViewport {...scoped} optimization={workspace.controller} />
+    );
+  return <StandaloneViewer props={scoped} plan={plan} />;
 }
 function StandaloneViewer({
   props,

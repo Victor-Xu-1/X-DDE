@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { posePlan, type PoseFrame } from "./pose-plan";
 import { usePoseOptimization } from "./usePoseOptimization";
+import { TemplatePreviewContext } from "../examples/context";
 
 export type PoseController = ReturnType<typeof usePoseOptimization>;
 interface Workspace {
@@ -22,7 +23,11 @@ export function PoseSession({
   frame: PoseFrame;
   children: ReactNode;
 }) {
-  const plan = posePlan(frame);
+  const preview = useContext(TemplatePreviewContext);
+  const plan = posePlan({
+    ...frame,
+    sourceSnapshot: frame.sourceSnapshot || preview,
+  });
   const existing = usePoseSession();
   if (existing?.plan.key === plan.key) return <>{children}</>;
   return <OwnedPoseSession plan={plan}>{children}</OwnedPoseSession>;

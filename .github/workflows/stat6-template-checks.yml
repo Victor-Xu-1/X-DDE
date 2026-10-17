@@ -54,6 +54,9 @@ on:
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - '!frontend/src/examples/guide.ts'
       # still run this suite. workflow_dispatch retains explicit full template verification.
+      # Exact read-only stage captions are verified by example-result-set-checks.yml.
+      - '!src/opendde_workbench/examples/routes.py'
+      - '!.github/workflows/stat6-template-checks.yml'
   pull_request:
     paths: *stat6_template_paths
 permissions:

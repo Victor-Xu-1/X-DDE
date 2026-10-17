@@ -4,6 +4,8 @@ import { expect, it, vi } from "vitest";
 import { StructureViewer } from "./StructureViewer";
 import { defaultOptions } from "./protocol";
 import { api } from "../api";
+import { TemplatePreviewContext } from "../examples/context";
+import { PoseSession } from "./PoseSession";
 
 function announceReady(frame: HTMLIFrameElement) {
   act(() => {
@@ -20,6 +22,48 @@ function announceReady(frame: HTMLIFrameElement) {
     );
   });
 }
+
+it("reads a fixed-case pose through the shared example scope without submitting initial preparation", () => {
+  const submit = vi.spyOn(api, "post");
+  const url =
+    "/api/jobs/7b9bd02b-0b93-45f4-a8b9-80e1cff203c9/download?name=pose.sdf";
+  const frame = {
+    urls: [url],
+    records: [2],
+    molecularSource: { url, record: 2 },
+  };
+  render(
+    <TemplatePreviewContext.Provider value={true}>
+      <PoseSession frame={frame}>
+        <StructureViewer {...frame} language="en" />
+      </PoseSession>
+    </TemplatePreviewContext.Provider>,
+  );
+  const iframe = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(iframe.contentWindow!, "postMessage");
+  announceReady(iframe);
+  const load = post.mock.calls.find(([message]) => message.type === "load")?.[0]
+    .value;
+  expect(load).toMatchObject({
+    urls: [url],
+    records: [2],
+    initialPosePrepared: true,
+  });
+  act(() =>
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: location.origin,
+        source: iframe.contentWindow,
+        data: { channel: "opendde-viewer", type: "initial-pose-required" },
+      }),
+    ),
+  );
+  expect(submit).not.toHaveBeenCalled();
+  expect(screen.queryByLabelText("Pose optimization and history")).toBeNull();
+  submit.mockRestore();
+});
 
 it("keeps atom selection on the exact source and never offers or starts pose changes", () => {
   const submit = vi.spyOn(api, "post");

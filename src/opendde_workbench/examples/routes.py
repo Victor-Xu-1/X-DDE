@@ -40,7 +40,9 @@ def register_examples(app, store, assets, settings, mutation):
                 "files": visible_files(capability_id),
                 "pin": record,
                 "record_pin": compound,
-                "supporting_stage_names": supporting_stage_names(store, record or compound),
+                "supporting_stage_names": supporting_stage_names(
+                    store, record or compound, scientific
+                ),
                 "study": stat6.study_context(capability_id),
                 "computed_result_available": record is not None
                 or bool(compound and compound.computed_result_available),
@@ -60,7 +62,7 @@ def register_examples(app, store, assets, settings, mutation):
             "files": [FILES[key] for key in case.files],
             "pin": record,
             "record_pin": compound,
-            "supporting_stage_names": supporting_stage_names(store, record or compound),
+            "supporting_stage_names": supporting_stage_names(store, record or compound, scientific),
             "computed_result_available": record is not None
             or bool(compound and compound.computed_result_available),
         }

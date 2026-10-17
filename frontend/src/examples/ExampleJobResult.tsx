@@ -6,6 +6,7 @@ import { isPrediction } from "../operations/types";
 import { CandidatePanel } from "../studio/CandidatePanel";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { OperationResults } from "../operations/OperationResults";
+import { TemplatePreviewContext } from "./context";
 
 export function ExampleJobResult({
   job,
@@ -40,38 +41,42 @@ export function ExampleJobResult({
   }, [job.id, prediction]);
   const candidate = analysis?.candidates.find((value) => value.id === selected);
   return (
-    <section
-      aria-label={
-        language === "zh" ? "模板的真实结果" : "Actual template result"
-      }
-    >
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-      {prediction ? (
-        <StructureWorkbench
-          preview={
-            <StructureViewer
-              urls={candidate ? [artifactUrl(job.id, candidate.artifact)] : []}
+    <TemplatePreviewContext.Provider value={true}>
+      <section
+        aria-label={
+          language === "zh" ? "模板的真实结果" : "Actual template result"
+        }
+      >
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        {prediction ? (
+          <StructureWorkbench
+            preview={
+              <StructureViewer
+                urls={
+                  candidate ? [artifactUrl(job.id, candidate.artifact)] : []
+                }
+                language={language}
+              />
+            }
+          >
+            <CandidatePanel
+              job={job}
+              analysis={analysis}
               language={language}
+              loading={!analysis && !error}
+              error={error}
+              selected={selected}
+              onSelect={setSelected}
             />
-          }
-        >
-          <CandidatePanel
-            job={job}
-            analysis={analysis}
-            language={language}
-            loading={!analysis && !error}
-            error={error}
-            selected={selected}
-            onSelect={setSelected}
-          />
-        </StructureWorkbench>
-      ) : (
-        <OperationResults job={job} language={language} />
-      )}
-    </section>
+          </StructureWorkbench>
+        ) : (
+          <OperationResults job={job} language={language} />
+        )}
+      </section>
+    </TemplatePreviewContext.Provider>
   );
 }

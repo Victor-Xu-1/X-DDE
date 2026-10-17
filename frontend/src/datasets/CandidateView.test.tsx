@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
 import type { DatasetCandidate, DatasetResult } from "./types";
 import { CandidateView } from "./CandidateView";
+import { TemplatePreviewContext } from "../examples/context";
 
 const probes = vi.hoisted(() => ({ handoff: vi.fn(), structure: vi.fn() }));
 vi.mock("../viewer/PoseSession", () => ({
@@ -55,20 +56,20 @@ const result = (...candidates: DatasetCandidate[]) =>
 
 it("opens a fixed native case without mounting an interactive research handoff", () => {
   render(
-    <CandidateView
-      {...{
-        job,
-        result: result(candidate("CHEMBL487451", "unbound_conformer")),
-        language: "en" as const,
-        sourceSnapshot: true,
-      }}
-    />,
+    <TemplatePreviewContext.Provider value={true}>
+      <CandidateView
+        {...{
+          job,
+          result: result(candidate("CHEMBL487451", "unbound_conformer")),
+          language: "en" as const,
+        }}
+      />
+    </TemplatePreviewContext.Provider>,
   );
   expect(screen.getByText("Calculated native 3D")).toBeVisible();
   expect(probes.handoff).not.toHaveBeenCalled();
   expect(probes.structure).toHaveBeenLastCalledWith(
     expect.objectContaining({
-      sourceSnapshot: true,
       records: [0],
     }),
   );

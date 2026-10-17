@@ -67,6 +67,8 @@ on:
       - "!.github/workflows/publication-checks.yml"
       - "!.github/workflows/stat6-template-checks.yml"
       - "!.github/workflows/examples-checks.yml"
+      # Fixed-case rendering leaves publication capture unchanged; stage gate checks the viewer.
+      - "!frontend/src/viewer/StructureViewer.tsx"
       # Cluster selection and its native SVG export use pose-cluster-checks.yml.
       - "!frontend/src/poses/ClusterMatrix.tsx"
       # Embedded 2D startup, native Kekule drawings, focus and their export

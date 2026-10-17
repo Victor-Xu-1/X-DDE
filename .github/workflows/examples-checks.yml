@@ -35,6 +35,7 @@ on:
       # This read-only material view is covered by the native figure browser gate.
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleJobResult*'
       - '!frontend/src/examples/ExampleResultSet*'
       - '!frontend/src/examples/types.ts'
       - '!frontend/src/examples/ExampleToolbar*'
@@ -83,6 +84,7 @@ on:
       - '!frontend/src/examples/useTaskLabel.test.tsx'
       - '!frontend/src/examples/StudyInputPreview.tsx'
       - '!frontend/src/examples/ExampleActions*'
+      - '!frontend/src/examples/ExampleJobResult*'
       - '!frontend/src/examples/ExampleResultSet*'
       - '!frontend/src/examples/types.ts'
       - '!frontend/src/examples/ExampleToolbar*'

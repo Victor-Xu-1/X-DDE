@@ -35,6 +35,8 @@ on:
       # Fixed-case inspection and its personal-result defaults have exact stage checks.
       - "!frontend/src/datasets/CandidateView*"
       - "!frontend/src/presentation/MolecularPreview*"
+      - "!frontend/src/viewer/PoseSession*"
+      - "!frontend/src/viewer/StructureViewer*"
       - "!.github/workflows/pose-handoff-checks.yml"
   pull_request:
     paths: *pose_handoff_paths

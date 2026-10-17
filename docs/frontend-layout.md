@@ -25,6 +25,16 @@ pose or inserted into a receptor frame. Original files and the independent 2D vi
 remain available. A genuinely planar calculated molecule stays physically planar;
 display code never displaces atoms to make it look three-dimensional.
 
+Fixed example results use the existing template-preview scope across all molecular
+viewers and pose sessions. Opening or switching a saved result displays its exact
+native coordinates without registering or recalculating an initial preview pose.
+Candidates with geometry `none` remain 2D-only even when an SDF artifact exists;
+calculated candidates offer full-size Ketcher 2D and native 3D tabs in the same left
+preview. Personal task results keep their original pose history and follow-up
+workflow. Repeated minimization-stage captions include the exact source version's
+public molecular label only when the complete typed input reference matches; sealed
+task names and scientific files are never rewritten to improve presentation.
+
 The visual system uses a continuous cool-white canvas, indigo/violet actions, teal scientific accents, readable
 typography and a single spacing palette. Section titles, whitespace and subtle
 horizontal rules organize pages without nested framed cards or raised panels. Scientific

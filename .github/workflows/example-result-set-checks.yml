@@ -13,6 +13,7 @@ on:
       - "src/opendde_workbench/examples/input_lineage.py"
       - "src/opendde_workbench/examples/pin_validation.py"
       - "src/opendde_workbench/examples/catalogue_profiles.py"
+      - "src/opendde_workbench/examples/stat6_bundle_release.py"
       - "tests/test_example_supporting.py"
       - "tests/test_example_stage_names.py"
       - "tests/test_record_example_supporting.py"
@@ -25,8 +26,11 @@ on:
       - "frontend/src/datasets/DatasetResults*"
       - "frontend/src/datasets/IndexedLibraryResults*"
       - "frontend/src/presentation/MolecularPreview*"
+      - "frontend/src/viewer/PoseSession*"
+      - "frontend/src/viewer/StructureViewer*"
       - "frontend/src/operations/OperationResults*"
       - "frontend/src/examples/types.ts"
+      - "server_tests/test_reviewed_example_previews_browser.py"
       - ".github/workflows/example-result-set-checks.yml"
   pull_request:
     paths: *stage_paths
@@ -61,3 +65,38 @@ jobs:
           src/datasets/CandidateView.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/datasets/DatasetResults.test.tsx src/datasets/IndexedLibraryResults.test.tsx
           src/operations/OperationResults.test.tsx
+          src/viewer/PoseSession.test.tsx src/viewer/StructureViewer.test.tsx
+          src/viewer/pose-plan.test.ts src/viewer/pose-source.test.ts
+          src/viewer/usePoseOptimization.test.tsx
+  native-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Download the immutable reviewed native study package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-reviewed-previews" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-reviewed-previews/state" >> "$GITHUB_ENV"
+          echo "WB_TEST_REVIEWED_BUNDLE=$RUNNER_TEMP/stat6-reviewed-results-v11.zip" >> "$GITHUB_ENV"
+          gh release download v0.5.95 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v11.zip --dir "$RUNNER_TEMP"
+      - name: Native Ketcher only; no model or scientific engine installation
+        run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Cold-restored native structures, distinct stages, 2D/3D and downloads without calculation
+        run: uv run --locked pytest -x -q server_tests/test_reviewed_example_previews_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reviewed-stat6-example-previews
+          path: server_tests/evidence/reviewed-example-previews
+          if-no-files-found: warn

@@ -2,6 +2,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
 import { ExampleJobResult } from "./ExampleJobResult";
+import { useContext } from "react";
+import { TemplatePreviewContext } from "./context";
 const transport = vi.hoisted(() => ({
   analysis: vi.fn(),
   artifacts: vi.fn(),
@@ -13,8 +15,8 @@ vi.mock("../api", () => ({
     `/api/jobs/${id}/download?name=${name}`,
 }));
 vi.mock("../operations/OperationResults", () => ({
-  OperationResults: (props: unknown) => {
-    transport.results(props);
+  OperationResults: () => {
+    transport.results(useContext(TemplatePreviewContext));
     return <div>Authoritative native results</div>;
   },
 }));
@@ -37,7 +39,5 @@ it("uses the operation result's single native presentation instead of fetching a
   expect(screen.getByText("Authoritative native results")).toBeVisible();
   expect(transport.artifacts).not.toHaveBeenCalled();
   expect(screen.queryByText("Extra native viewer")).not.toBeInTheDocument();
-  expect(transport.results).toHaveBeenLastCalledWith(
-    expect.objectContaining({ sourceSnapshot: true }),
-  );
+  expect(transport.results).toHaveBeenLastCalledWith(true);
 });

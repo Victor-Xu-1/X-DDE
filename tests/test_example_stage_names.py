@@ -21,11 +21,18 @@ def stages(settings):
     assets = AssetStore(store, settings.state_dir / "assets")
     scientific = ScientificStore(store, assets)
     # This is a storage-only protocol fixture; no scientific output or claim is fabricated.
-    asset = assets.save("protocol-records.sdf", "ligand", b"Protocol fixture\n$$$$\n")
+    labels = ("CHEMBL487451", "CHEMBL374380", "CHEMBL520539")
+    raw = "".join(label + "\nProtocol fixture\n\nM  END\n$$$$\n" for label in labels)
+    asset = assets.save("protocol-records.sdf", "ligand", raw.encode())
     jobs = []
-    for record, label in enumerate(("CHEMBL487451", "CHEMBL374380", "CHEMBL520539")):
+    for record in range(len(labels)):
         source = scientific.create(
-            VersionInput(asset_id=asset.id, kind="molecule", label=label, record=record),
+            VersionInput(
+                asset_id=asset.id,
+                kind="molecule",
+                label=f"candidates.sdf · #{record + 1}",
+                record=record,
+            ),
             uuid4(),
         )
         job = store.create(
@@ -38,13 +45,13 @@ def stages(settings):
         store.finish(job.id, Status.SUCCEEDED)
         jobs.append(store.get(job.id))
     pin = SimpleNamespace(supporting_evidence=[SimpleNamespace(job_id=job.id) for job in jobs])
-    return store, jobs, pin
+    return store, scientific, jobs, pin
 
 
 def test_repeated_optimization_captions_retain_the_exact_public_source_name(settings):
-    store, jobs, pin = stages(settings)
+    store, scientific, jobs, pin = stages(settings)
     before = {job.id: job.model_dump() for job in jobs}
-    captions = supporting_stage_names(store, pin)
+    captions = supporting_stage_names(store, pin, scientific)
     assert [captions[job.id] for job in jobs] == [
         "Initial optimized 3D preview · " + label
         for label in ("CHEMBL487451", "CHEMBL374380", "CHEMBL520539")
@@ -54,7 +61,7 @@ def test_repeated_optimization_captions_retain_the_exact_public_source_name(sett
 
 @pytest.mark.parametrize("mismatch", ["record", "sha256", "missing"])
 def test_a_missing_or_inconsistent_version_never_supplies_an_unrelated_caption(settings, mismatch):
-    store, jobs, pin = stages(settings)
+    store, scientific, jobs, pin = stages(settings)
     source = jobs[0].request.molecule
     with store.connect() as db:
         if mismatch == "missing":
@@ -68,13 +75,22 @@ def test_a_missing_or_inconsistent_version_never_supplies_an_unrelated_caption(s
                     str(source.version_id),
                 ),
             )
-    captions = supporting_stage_names(store, pin)
+    captions = supporting_stage_names(store, pin, scientific)
     assert captions[jobs[0].id] == jobs[0].request.name
     assert "CHEMBL487451" not in captions[jobs[0].id]
 
 
 def test_unique_authored_stage_names_and_empty_cases_are_preserved(settings):
-    store, jobs, pin = stages(settings)
+    store, scientific, jobs, pin = stages(settings)
     pin.supporting_evidence = pin.supporting_evidence[:1]
-    assert supporting_stage_names(store, pin) == {jobs[0].id: jobs[0].request.name}
-    assert supporting_stage_names(store, None) == {}
+    assert supporting_stage_names(store, pin, scientific) == {jobs[0].id: jobs[0].request.name}
+    assert supporting_stage_names(store, None, scientific) == {}
+
+
+def test_a_changed_native_file_never_supplies_a_molecular_caption(settings):
+    store, scientific, jobs, pin = stages(settings)
+    asset = scientific.assets.get(jobs[0].request.molecule.asset_id)
+    scientific.assets.path(asset).write_bytes(b"An unrelated molecular title\n$$$$\n")
+    assert supporting_stage_names(store, pin, scientific) == {
+        job.id: job.request.name for job in jobs
+    }
