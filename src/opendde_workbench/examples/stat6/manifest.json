@@ -41,7 +41,8 @@
       "https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-v1",
       "https://models.rcsb.org/v1/9big/ligand?auth_asym_id=A&auth_seq_id=701&encoding=sdf",
       "https://www.ebi.ac.uk/chembl/api/data/assay/CHEMBL982109.json",
-      "https://www.rcsb.org/structure/6WGL"
+      "https://www.rcsb.org/structure/6WGL",
+      "https://platform.opentargets.org/disease/MONDO_0004979/associations"
     ],
     "evidence_entities": {
       "structure": {
@@ -58,6 +59,11 @@
         "id": "P42226",
         "description": "Canonical human STAT6, 847 amino acids.",
         "name": "STAT6"
+      },
+      "disease": {
+        "id": "MONDO_0004979",
+        "name": "asthma",
+        "description": "Asthma context in the reviewed human STAT6 evidence; association scores do not establish causal or clinical validation."
       }
     }
   },

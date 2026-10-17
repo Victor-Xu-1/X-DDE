@@ -65,10 +65,32 @@ on:
         description: Changed contracts or one actual isolated scientific engine
         type: choice
         default: contracts
-        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina, stereo, inputs]
+        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina, stereo, inputs, discovery]
 permissions:
   contents: read
 jobs:
+  discovery-evidence:
+    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'discovery'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact target and disease identity, without molecular calculation
+        run: >-
+          uv run --locked pytest -q tests/test_discovery.py tests/test_stat6_disease_example.py
+          tests/test_stat6_source_revisions.py tests/test_stat6_predicted_references.py
+      - name: Bilingual disease scope, target handoff, result tables and tabs
+        working-directory: frontend
+        run: >-
+          npx vitest run src/discovery/TargetResearchResults.test.tsx
+          src/discovery/TargetResearchForm.test.tsx src/presentation/ResearchTable.test.tsx
+          src/presentation/ResearchTabs.test.tsx
   source-inputs:
     if: github.event_name == 'workflow_dispatch' && inputs.engine == 'inputs'
     runs-on: ubuntu-24.04

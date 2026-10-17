@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "case": {
+    "id": "stat6-defined-molecules",
+    "revision": 2,
+    "label": [
+      "STAT6 · 指定分子研究",
+      "STAT6 · Defined-molecule study"
+    ],
+    "description": [
+      "使用人 STAT6 的真实序列与结构，以及指定的小分子和 PROTAC。结构参考、未结合态计算构象和真实任务结果分别保留来源。",
+      "Use the real human STAT6 sequence and structures with the specified small molecule and PROTAC. Reference structures, computed unbound conformers and actual task results retain their distinct provenance."
+    ],
+    "files": [
+      "stat6_sequence",
+      "stat6_structure",
+      "stat6_receptor",
+      "stat6_alternative",
+      "crbn_receptor",
+      "study_ligand",
+      "study_protac",
+      "bound_reference",
+      "stat6_alternative_receptor",
+      "calculated_pose",
+      "calculated_poses",
+      "calculated_receptor",
+      "dupilumab_complex",
+      "dupilumab_heavy",
+      "dupilumab_light",
+      "dupilumab_antigen",
+      "stat6_assay_library",
+      "stat6_measurements",
+      "dupilumab_variable_domains",
+      "stat6_observed_sequence"
+    ],
+    "sources": [
+      "https://www.uniprot.org/uniprotkb/P42226",
+      "https://www.rcsb.org/structure/9BIG",
+      "https://www.rcsb.org/structure/4Y5U",
+      "https://www.rcsb.org/structure/8RQA",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-v1",
+      "https://models.rcsb.org/v1/9big/ligand?auth_asym_id=A&auth_seq_id=701&encoding=sdf",
+      "https://www.ebi.ac.uk/chembl/api/data/assay/CHEMBL982109.json",
+      "https://www.rcsb.org/structure/6WGL"
+    ],
+    "evidence_entities": {
+      "structure": {
+        "id": "9BIG",
+        "description": "STAT6 bound to AK-1690; this reference ligand differs from the study PROTAC.",
+        "name": "STAT6 experimental reference"
+      },
+      "target": {
+        "id": "ENSG00000166888",
+        "description": "Human signal transducer and activator of transcription 6.",
+        "name": "STAT6"
+      },
+      "protein": {
+        "id": "P42226",
+        "description": "Canonical human STAT6, 847 amino acids.",
+        "name": "STAT6"
+      }
+    }
+  },
+  "files": {
+    "stat6_sequence": {
+      "key": "stat6_sequence",
+      "name": "STAT6-human-P42226.fasta",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-human-P42226.fasta",
+      "sha256": "4aeaacebfcdea8bc90ce51325a98634dff75bfe185894450833e63fd916f377e",
+      "bytes": 878,
+      "kind": "sequences",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_structure": {
+      "key": "stat6_structure",
+      "name": "9BIG.cif",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/9BIG.cif",
+      "sha256": "6a116614692defb2b092e18e61d20c7256de59943c26188b702b167bf4e2c544",
+      "bytes": 448259,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "stat6_receptor": {
+      "key": "stat6_receptor",
+      "name": "STAT6-9BIG-observed-receptor.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-9BIG-observed-receptor.pdb",
+      "sha256": "96f6d5f4ce3c90f80957e9c0c1d3cd25d213497c836eac6a3b55500fa9c67105",
+      "bytes": 262124,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "stat6_alternative": {
+      "key": "stat6_alternative",
+      "name": "4Y5U.cif",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/4Y5U.cif",
+      "sha256": "e4a6ffaa490671b76ff5e7aa475a6011fdc0bb8889314a9c4ed92a8c49c03fdb",
+      "bytes": 793905,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "crbn_receptor": {
+      "key": "crbn_receptor",
+      "name": "CRBN-8RQA-observed-receptor.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/CRBN-8RQA-observed-receptor.pdb",
+      "sha256": "36397dab833888f554ec141b80f65ecc4af14b89aa12876d2c7cf03b17ba553b",
+      "bytes": 183716,
+      "kind": "structure",
+      "license": "CC0-1.0"
+    },
+    "study_ligand": {
+      "key": "study_ligand",
+      "name": "STAT6-user-warhead.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-user-warhead.sdf",
+      "sha256": "d1d34633711dec2c0da53add660dd47d766f25c807df5ad73465908686713e32",
+      "bytes": 4992,
+      "kind": "ligand",
+      "license": "LicenseRef-User-Provided"
+    },
+    "study_protac": {
+      "key": "study_protac",
+      "name": "STAT6-user-PROTAC-stereo-uncertainty-v2.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-stereo-v2/STAT6-user-PROTAC-stereo-uncertainty-v2.sdf",
+      "sha256": "034e6209f81b3c85d62a96a62fa4643dcf9f188ab64df5beb8c482bb18a738b0",
+      "bytes": 9688,
+      "kind": "ligand",
+      "license": "LicenseRef-User-Provided"
+    },
+    "bound_reference": {
+      "key": "bound_reference",
+      "name": "9BIG-AK1690-A701.sdf",
+      "kind": "ligand",
+      "license": "CC0-1.0",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/9BIG-AK1690-A701.sdf",
+      "bytes": 12558,
+      "sha256": "edae02152fd2b053d5bdfce9a2ca573c463bdc813c0a433e9659a816948fc868"
+    },
+    "stat6_alternative_receptor": {
+      "key": "stat6_alternative_receptor",
+      "name": "STAT6-4Y5U-observed-receptor.pdb",
+      "kind": "structure",
+      "license": "CC0-1.0",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-stat6-v1/STAT6-4Y5U-observed-receptor.pdb",
+      "bytes": 287639,
+      "sha256": "c30b50d8b796c2603f795d15266ccd767827e1c4659a64c65a8cc36dda583021"
+    },
+    "calculated_pose": {
+      "key": "calculated_pose",
+      "name": "STAT6-native-pose-001.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/blob/main/src/opendde_workbench/examples/stat6/inputs/STAT6-native-pose-001.sdf",
+      "kind": "ligand",
+      "license": "LicenseRef-User-Provided",
+      "sha256": "65937569a8071ec798371ac9081b327d6e7dc0aad2addaf674c6698ab3232494",
+      "bytes": 3122
+    },
+    "calculated_poses": {
+      "key": "calculated_poses",
+      "name": "STAT6-native-search-poses.sdf",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/blob/main/src/opendde_workbench/examples/stat6/inputs/STAT6-native-search-poses.sdf",
+      "kind": "ligand",
+      "license": "LicenseRef-User-Provided",
+      "sha256": "059bec94d7d16164b0d073d15a2139dce4e02e2ed0fb885ba41e892a56283d18",
+      "bytes": 62539
+    },
+    "calculated_receptor": {
+      "key": "calculated_receptor",
+      "name": "STAT6-native-receptor.pdb",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/blob/main/src/opendde_workbench/examples/stat6/inputs/STAT6-native-receptor.pdb",
+      "kind": "structure",
+      "license": "LicenseRef-User-Provided",
+      "sha256": "d2f906af63bc7effab649f4b396ea8bf37491fe632d10d5df6e133c274578b20",
+      "bytes": 147371
+    },
+    "dupilumab_complex": {
+      "key": "dupilumab_complex",
+      "name": "6WGL.pdb",
+      "url": "https://files.rcsb.org/download/6WGL.pdb",
+      "kind": "structure",
+      "license": "CC0-1.0",
+      "sha256": "191dc7c83515d48793c473fde50a48f34e37bc2b8a6d2172268e9ca040b91da6",
+      "bytes": 446877
+    },
+    "dupilumab_heavy": {
+      "key": "dupilumab_heavy",
+      "name": "6WGL-heavy.fasta",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6WGL/1",
+      "kind": "sequences",
+      "license": "CC0-1.0",
+      "sha256": "fd99059481635e2815812f805afa7f2bb549a1a4ca3509d8fd5026e05efe9886",
+      "bytes": 164
+    },
+    "dupilumab_light": {
+      "key": "dupilumab_light",
+      "name": "6WGL-light.fasta",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6WGL/2",
+      "kind": "sequences",
+      "license": "CC0-1.0",
+      "sha256": "2f64d8e42317b4557c1eb6f64330b6a0e5a80f83d45b341c5d892c2f1fdfe5a4",
+      "bytes": 151
+    },
+    "dupilumab_antigen": {
+      "key": "dupilumab_antigen",
+      "name": "6WGL-antigen.fasta",
+      "url": "https://data.rcsb.org/rest/v1/core/polymer_entity/6WGL/3",
+      "kind": "sequences",
+      "license": "CC0-1.0",
+      "sha256": "05b3786aafbf05ae2163486dd50c8440bc11008567a00ad25c7a030a051e7ed8",
+      "bytes": 243
+    },
+    "stat6_assay_library": {
+      "key": "stat6_assay_library",
+      "name": "STAT6-CHEMBL982109-38-compounds.sdf",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/activity.json?assay_chembl_id=CHEMBL982109&limit=1000",
+      "kind": "ligand",
+      "license": "CC-BY-SA-3.0",
+      "sha256": "00b497255bd1bad749d47f689e77b00e535018a0f70192a312da42b9981f53d4",
+      "bytes": 109884
+    },
+    "stat6_measurements": {
+      "key": "stat6_measurements",
+      "name": "STAT6-CHEMBL982109-IC50.csv",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/assay/CHEMBL982109.json",
+      "kind": "measurements",
+      "license": "CC-BY-SA-3.0",
+      "sha256": "92568eae46bd175c537e446427c9784a6743cfbb3761986da532385cf43c3ad3",
+      "bytes": 1607
+    },
+    "dupilumab_variable_domains": {
+      "key": "dupilumab_variable_domains",
+      "name": "6WGL-dupilumab-variable-domains.fasta",
+      "url": "https://www.rcsb.org/structure/6WGL",
+      "sha256": "245d8b320b8e0a8236c4c331af4f75dfa4bec194ebb889483b518e4dad087909",
+      "bytes": 315,
+      "kind": "sequences",
+      "license": "CC0-1.0"
+    },
+    "stat6_observed_sequence": {
+      "key": "stat6_observed_sequence",
+      "name": "STAT6-9BIG-observed-chain-A.fasta",
+      "url": "https://www.rcsb.org/structure/9BIG",
+      "sha256": "156fa1560da538fc06c4000123dec549e44cb525c66caebc1367a13aa990a649",
+      "bytes": 439,
+      "kind": "sequences",
+      "license": "CC0-1.0"
+    },
+    "stat6_prediction": {
+      "key": "stat6_prediction",
+      "name": "AF-P42226-F1-model_v6.pdb",
+      "url": "https://alphafold.ebi.ac.uk/files/AF-P42226-F1-model_v6.pdb",
+      "sha256": "9a02ce94376561f86c13fc58db865a09e2ccdecfd499b88df41f2e7e8f95ebd6",
+      "bytes": 545534,
+      "kind": "structure",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_predicted_construct": {
+      "key": "stat6_predicted_construct",
+      "name": "STAT6-AFv6-construct-113-658.pdb",
+      "url": "https://raw.githubusercontent.com/Victor-Xu-1/X-DDE/v0.5.85/src/opendde_workbench/examples/stat6/inputs/STAT6-AFv6-construct-113-658.pdb",
+      "sha256": "83cd4db1c3e8729a77100055f13abdda9eb9c4d518f34c28e2090d9f827bbb1e",
+      "bytes": 348975,
+      "kind": "structure",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_prediction_metadata": {
+      "key": "stat6_prediction_metadata",
+      "name": "STAT6-AFv6-source-metadata.json",
+      "url": "https://raw.githubusercontent.com/Victor-Xu-1/X-DDE/v0.5.85/src/opendde_workbench/examples/stat6/inputs/STAT6-AFv6-source-metadata.json",
+      "sha256": "d2a63ff00641f55116d58502efead093c29692e8023fba97c00e4aba2d9d6842",
+      "bytes": 10265,
+      "kind": "config",
+      "license": "CC-BY-4.0"
+    },
+    "stat6_prediction_provenance": {
+      "key": "stat6_prediction_provenance",
+      "name": "STAT6-AFv6-construct-source.json",
+      "url": "https://raw.githubusercontent.com/Victor-Xu-1/X-DDE/v0.5.85/src/opendde_workbench/examples/stat6/inputs/STAT6-AFv6-construct-source.json",
+      "sha256": "eea9122e9f64c2e968d68bbd11ce77fa1be7d68a3f30bc733dd1f9c0f4cc2486",
+      "bytes": 1183,
+      "kind": "config",
+      "license": "CC-BY-4.0"
+    }
+  },
+  "molecules": [
+    {
+      "name": "STAT6-user-warhead",
+      "original_smiles": "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+      "canonical_isomeric_smiles": "CN(C)C(=O)c1cc2ccc(C3=CCCN(C(=O)CCn4ccnn4)C3)c(F)c2[nH]1",
+      "heavy_atoms": 30,
+      "molecular_weight": 410.4530000000001,
+      "undefined_stereocenters": [],
+      "geometry": "computed_unbound_conformer",
+      "binding_pose": false,
+      "force_field": "MMFF94s",
+      "minimization_converged": true,
+      "energy_kcal_mol": -17.554914894726352,
+      "candidate_conformers": 8,
+      "seed": 20261009,
+      "nonplanarity_singular_value": 7.403270704970226,
+      "rdkit": "2026.03.6",
+      "file": "STAT6-user-warhead.sdf",
+      "sha256": "d1d34633711dec2c0da53add660dd47d766f25c807df5ad73465908686713e32",
+      "bytes": 4992
+    },
+    {
+      "name": "STAT6-user-PROTAC",
+      "original_smiles": "COC1=CC(N2CCN(CC2)C3=CC=C(C(F)=C3F)C4=CC(C5=CCCN(C5)C(CCN6C=CC=N6)=O)=C(C7=C4C=C(N7)C(N(C)C)=O)F)=C(C=C1NC8CCC(NC8=O)=O)F",
+      "canonical_isomeric_smiles": "COc1cc(N2CCN(c3ccc(-c4cc(C5=CCCN(C(=O)CCn6cccn6)C5)c(F)c5[nH]c(C(=O)N(C)C)cc45)c(F)c3F)CC2)c(F)cc1NC1CCC(=O)NC1=O",
+      "heavy_atoms": 62,
+      "molecular_weight": 855.894,
+      "undefined_stereocenters": [
+        53
+      ],
+      "geometry": "computed_unbound_conformer",
+      "binding_pose": false,
+      "force_field": "MMFF94s",
+      "minimization_converged": true,
+      "energy_kcal_mol": 180.94905650800018,
+      "candidate_conformers": 8,
+      "seed": 20261009,
+      "nonplanarity_singular_value": 10.418278256448845,
+      "rdkit": "2026.03.6",
+      "file": "STAT6-user-PROTAC-stereo-uncertainty-v2.sdf",
+      "sha256": "034e6209f81b3c85d62a96a62fa4643dcf9f188ab64df5beb8c482bb18a738b0",
+      "bytes": 9688
+    }
+  ],
+  "reference_roles": {
+    "pocket_reference": "Deposited AK-1690 coordinates in the exact 9BIG receptor frame; a site reference, not the supplied study molecule.",
+    "study_ligand": "User-confirmed small molecule; minimized unbound conformer.",
+    "study_protac": "User-supplied PROTAC; minimized unbound conformer with unspecified stereochemistry retained.",
+    "crbn_receptor": "Experimental CRBN-midi reference construct; not a supplied-PROTAC complex."
+  },
+  "supporting_sources": {
+    "stat6_assay": {
+      "id": "CHEMBL982109",
+      "type": "cellular IC50",
+      "unit": "nM",
+      "target": "STAT6",
+      "measurements": 38,
+      "citation": "PMID:18534856",
+      "interpretation": "Inhibition of STAT6 activation in FW4 reporter cells, not direct binding affinity."
+    },
+    "biologic_reference": {
+      "pdb": "6WGL",
+      "target": "IL-4R alpha",
+      "binder": "Dupilumab Fab with Crystal Kappa constant-domain design",
+      "study_relation": "STAT6 signalling pathway; not a direct STAT6 antibody.",
+      "chains": {
+        "heavy": "A",
+        "light": "B",
+        "antigen": "C"
+      }
+    },
+    "native_pose": {
+      "job_id": "9a568b6b-9f8c-4908-9192-c31b434afbf2",
+      "status": "succeeded",
+      "method": "GNINA/Vina, empirical search, seed 101, exhaustiveness 64",
+      "interpretation": "Calculated study-molecule binding hypothesis; not an experimental pose or measured affinity.",
+      "receptor_key": "calculated_receptor",
+      "pose_key": "calculated_pose",
+      "poses_key": "calculated_poses",
+      "receptor_geometry": "Predicted P42226 residues 436-658, linker and SH2 domain; aligned to the 9BIG reference frame. Not an experimental receptor or a full-protein model.",
+      "geometry_review": "The top three poses passed independent PoseBusters checks. The retained 20-mode search is not an assertion that every mode passed independent quality review."
+    }
+  },
+  "observed_construct": {
+    "chain": "A",
+    "sequence_key": "stat6_observed_sequence",
+    "length": 409,
+    "mutable_position": 397,
+    "author_residue": "A:ASN614",
+    "index_basis": "0-based observed sequence; author residue numbers remain distinct"
+  },
+  "source_corrections": [
+    {
+      "method": "Molfile stereo annotation correction only",
+      "source_file": "STAT6-user-PROTAC.sdf",
+      "source_sha256": "60b2c7e1831c1f14009e01760b2c6427108e58d94459ac7278fa50e36f6ada30",
+      "derived_file": "STAT6-user-PROTAC-stereo-uncertainty-v2.sdf",
+      "derived_sha256": "034e6209f81b3c85d62a96a62fa4643dcf9f188ab64df5beb8c482bb18a738b0",
+      "source_original_smiles": "COC1=CC(N2CCN(CC2)C3=CC=C(C(F)=C3F)C4=CC(C5=CCCN(C5)C(CCN6C=CC=N6)=O)=C(C7=C4C=C(N7)C(N(C)C)=O)F)=C(C=C1NC8CCC(NC8=O)=O)F",
+      "source_undefined_stereocenters": [
+        53
+      ],
+      "atom_order_preserved": true,
+      "all_coordinates_preserved_exactly": true,
+      "new_geometry_or_energy_calculations": 0,
+      "rdkit": "2026.03.6",
+      "historical_manifest": "manifest-v1.json",
+      "historical_manifest_sha256": "90075f30f6af069f07c825d63283e6309343067267c03a3741de18af658cf7d4",
+      "standard_reference": "https://www.rdkit.org/docs/RDKit_Book.html#sources-of-information-about-stereochemistry"
+    }
+  ]
+}
