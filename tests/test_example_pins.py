@@ -143,3 +143,24 @@ def test_future_default_fields_do_not_rewrite_the_original_task_evidence(setting
         db.execute("UPDATE jobs SET request=? WHERE id=?", (original + " ", job.id))
     with pytest.raises(ValueError, match="output bytes changed"):
         verify_job(store, settings.state_dir, evidence)
+
+
+def test_replay_reads_authored_json_without_adding_future_defaults(settings):
+    store, _, prepared, job, output, pins = fixture(settings)
+    assert pins.request("properties") is None
+    store.finish(job.id, Status.SUCCEEDED)
+    with store.connect() as db:
+        body = json.loads(
+            db.execute("SELECT request FROM jobs WHERE id=?", (job.id,)).fetchone()["request"]
+        )
+        body.pop("constraints", None)
+        authored = json.dumps(body, separators=(",", ":"))
+        db.execute("UPDATE jobs SET request=? WHERE id=?", (authored, job.id))
+    pins.pin("properties", job.id, prepared)
+    assert pins.request("properties") == body
+    assert "constraints" not in pins.request("properties")
+    with pytest.raises(ValueError, match="review"):
+        pins.request("properties", reviewed=True)
+    (output / "result.json").write_text('{"changed":true}')
+    with pytest.raises(ValueError, match="output bytes changed"):
+        pins.request("properties")

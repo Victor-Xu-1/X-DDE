@@ -8,9 +8,14 @@ on:
       - 'src/opendde_workbench/examples/stat6/catalogue.py'
       - 'src/opendde_workbench/examples/stat6/guidance.py'
       - 'src/opendde_workbench/examples/stat6_bundle_release.py'
+      - 'src/opendde_workbench/examples/pins.py'
+      - 'src/opendde_workbench/examples/preparation.py'
+      - 'src/opendde_workbench/examples/stat6/design_replay.py'
       - 'frontend/src/receptors/SurfaceResults*'
       - 'frontend/src/receptors/SurfaceForm*'
       - 'tests/test_stat6_prepared_handoff.py'
+      - 'tests/test_stat6_design_replay.py'
+      - 'tests/test_example_pins.py'
       - 'server_tests/test_surface_region_replay_browser.py'
       - 'server_tests/test_pocket_results_browser.py'
       - 'server_tests/test_generation_case_stages_browser.py'
@@ -39,12 +44,12 @@ jobs:
           import os, subprocess
           base = os.environ.get("BASE", "")
           changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
-          data = {"src/opendde_workbench/examples/stat6_bundle_release.py", "server_tests/test_generation_case_stages_browser.py"}
+          data = {"src/opendde_workbench/examples/stat6_bundle_release.py", "server_tests/test_generation_case_stages_browser.py", "src/opendde_workbench/examples/pins.py", "src/opendde_workbench/examples/preparation.py", "src/opendde_workbench/examples/stat6/preparation.py", "src/opendde_workbench/examples/stat6/design_replay.py", "tests/test_stat6_design_replay.py", "tests/test_example_pins.py"}
           companions = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1", ".github/workflows/module-example-checks.yml", "docs/frontend-layout.md"}
           only_data = bool(set(changed) & data) and all(path in data | companions for path in changed)
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               output.write("data_only=" + str(only_data).lower() + "\n")
-          print("Reviewed generation case stages only" if only_data else "Changed module-input and surface consumers")
+          print("Reviewed design recipes and case-stage consumers" if only_data else "Changed module-input and surface consumers")
           PY
       - uses: actions/setup-node@v4
         with:
@@ -54,13 +59,16 @@ jobs:
       - run: uv sync --locked --group dev --group browser
       - if: steps.scope.outputs.data_only != 'true'
         run: uv run --locked pytest -q tests/test_stat6_prepared_handoff.py tests/test_stat6_templates.py tests/test_stat6_guidance.py
+      - name: Exact authored recipe, integrity and preparation contracts
+        if: steps.scope.outputs.data_only == 'true'
+        run: uv run --locked pytest -q tests/test_example_pins.py tests/test_stat6_prepared_handoff.py tests/test_stat6_design_replay.py
       - working-directory: frontend
         if: steps.scope.outputs.data_only != 'true'
         run: npx vitest run src/receptors/SurfaceResults.test.tsx src/receptors/SurfaceForm.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/residue-region.test.ts
       - name: Retained case-stage navigation and example actions
         if: steps.scope.outputs.data_only == 'true'
         working-directory: frontend
-        run: npx vitest run src/examples/ExampleResultSet.test.tsx src/examples/ExampleActions.test.tsx
+        run: npx vitest run src/examples/ExampleResultSet.test.tsx src/examples/ExampleActions.test.tsx src/diffsbdd/DiffForm.test.tsx
       - name: Restore exact reviewed result packages; no scientific workers
         if: steps.scope.outputs.data_only != 'true'
         env:
