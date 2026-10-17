@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from native_io import finish, metric, source_molecule
+from native_md_input import validate_peptide_links
 from native_structure import input_pdb
 
 
@@ -102,7 +103,11 @@ def run(request):
             "Prepare nonstandard residues explicitly; refinement never silently replaces them."
         )
     fixer.findMissingAtoms()
+    validate_peptide_links(
+        fixer.topology, fixer.positions.value_in_unit(unit.angstrom), require_complete=False
+    )
     fixer.addMissingAtoms(seed=request["options"]["seed"])
+    validate_peptide_links(fixer.topology, fixer.positions.value_in_unit(unit.angstrom))
     modeller = app.Modeller(fixer.topology, fixer.positions)
     forcefield = app.ForceField("amber14-all.xml", "amber14/tip3p.xml")
     ligand = None
@@ -182,9 +187,12 @@ def run(request):
     structure_name = "refined-structure.pdb"
     with Path("/output", structure_name).open("w") as stream:
         app.PDBFile.writeFile(modeller.topology, state.getPositions(), stream, keepIds=True)
+    energy_method = "OpenMM vacuum potential" + (
+        " with backbone positional restraints" if payload["restrain_backbone"] else ""
+    )
     metrics = [
-        metric("Initial potential energy", initial, "kJ/mol", "OpenMM vacuum potential", "energy"),
-        metric("Final potential energy", final, "kJ/mol", "OpenMM vacuum potential", "energy"),
+        metric("Initial potential energy", initial, "kJ/mol", energy_method, "energy"),
+        metric("Final potential energy", final, "kJ/mol", energy_method, "energy"),
     ]
     candidates = [
         {

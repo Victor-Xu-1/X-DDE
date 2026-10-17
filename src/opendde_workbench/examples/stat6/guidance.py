@@ -29,6 +29,11 @@ OBJECTIVES = {
         "预测指定小分子与 STAT6 的复合物。",
         "Predict a complex of STAT6 and the study small molecule.",
     ),
+    "openmm.refine": (
+        "对连续的 AlphaFold v6 STAT6 113–658 预测参考构象进行有限的骨架约束优化。",
+        "Perform bounded backbone-restrained refinement of the continuous "
+        "AlphaFold v6 STAT6 113–658 predicted reference.",
+    ),
     "discovery.target": ("查询 STAT6 的靶点证据。", "Retrieve target evidence for STAT6."),
     "discovery.disease": (
         "选择与 STAT6 有关的疾病，再查询关联证据。",
@@ -120,6 +125,29 @@ def steps(capability):
                 "核对各区域的原子与用途后保存；分子保持完整，不切断化学键。",
                 "Check each region's atoms and intended use, then save; "
                 "the molecule stays intact and no bonds are cut.",
+            ),
+        ]
+    if capability == "openmm.refine":
+        return [
+            (
+                "选择完整、连续的蛋白构象；模板提供明确标注来源的预测参考。",
+                "Choose a complete, continuous protein construct; "
+                "the template supplies a documented predicted reference.",
+            ),
+            (
+                "保留骨架约束，减少结构偏移；缺失区段需另行处理。",
+                "Keep backbone restraints to limit structural drift; "
+                "unresolved segments require separate preparation.",
+            ),
+            (
+                "核对 pH 和优化步数；当前方法在真空中优化，不计算结合自由能。",
+                "Review pH and the iteration limit; this method minimizes "
+                "in vacuum and does not calculate binding free energy.",
+            ),
+            (
+                "确认输入和计算资源后递交，比较优化前后结构与原生能量。",
+                "Confirm the input and resource limits, then compare "
+                "the original/refined structures and native energies.",
             ),
         ]
     if capability == "experimental.evidence":

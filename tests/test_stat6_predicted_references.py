@@ -76,6 +76,23 @@ def test_predicted_references_are_opt_in_to_relevant_modules_without_jobs(tmp_pa
     assert store.list_jobs() == []
 
 
+def test_refinement_uses_a_documented_continuous_construct_without_starting_science(tmp_path):
+    store, scientific = scientific_store(tmp_path)
+    prepared = prepare_stat6("openmm.refine", scientific)
+    request = prepared.request
+    source = prepared.objects["stat6_predicted_construct"].reference.model_dump(mode="json")
+    assert request["inputs"] == [{"role": "structure", "source": source}]
+    assert request["scientific_inputs"] == [source]
+    assert source["sha256"] == "83cd4db1c3e8729a77100055f13abdda9eb9c4d518f34c28e2090d9f827bbb1e"
+    assert source != prepared.objects["receptor"].reference.model_dump(mode="json")
+    assert request["payload"]["restrain_backbone"] and request["payload"]["ph"] == 7.4
+    assert request["options"]["cpu"] == 2 and request["options"]["memory_mib"] == 2048
+    assert request["options"]["seed"] == 2026
+    assert "predicted" in prepared.case.description[1]
+    assert set(PREDICTED_RECEIPTS) <= prepared.data_assets.keys()
+    assert store.list_jobs() == []
+
+
 def test_only_retained_optional_sources_add_their_notices():
     def notices(capability, retained):
         return bundle_notices(

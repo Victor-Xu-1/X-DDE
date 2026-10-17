@@ -25,7 +25,7 @@ def validate_peptide_links(topology, positions_angstrom, *, require_complete=Tru
             if require_complete and not {"N", "CA", "C"} <= atoms.keys():
                 raise ValueError(
                     f"Incomplete protein backbone in chain {chain.id}, residue {residue.id}. "
-                    "Prepare a complete structure before dynamics."
+                    "Prepare a complete structure before force-field calculations."
                 )
             if previous is not None and "N" in atoms:
                 preceding, carbon = previous
@@ -36,7 +36,8 @@ def validate_peptide_links(topology, positions_angstrom, *, require_complete=Tru
                     raise ValueError(
                         f"Unresolved peptide link in chain {chain.id}: "
                         f"residues {preceding.id} to {residue.id} have invalid C-N geometry. "
-                        "Repair the backbone or prepare explicit chain fragments before dynamics; "
+                        "Repair the backbone or prepare explicit chain fragments before "
+                        "force-field calculations; "
                         "no missing sequence or connecting bond is invented."
                     )
             previous = (residue, atoms["C"]) if "C" in atoms else None

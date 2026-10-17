@@ -1,0 +1,48 @@
+name: Refinement input scoped checks
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  shared-contracts:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Shared geometry authority and opt-in predicted references
+        run: uv run --locked pytest -q tests/test_md_input.py tests/test_stat6_predicted_references.py
+      - name: Retain compatibility with the current immutable case package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+          WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/$asset" uv run --locked pytest -q tests/test_stat6_case_data.py
+  native-parser:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Actual OpenMM and PDBFixer; reject gaps before any force context
+        run: >-
+          uv run --no-project --python 3.12 --with pytest==9.1.1
+          --with numpy==1.26.4 --with openmm==8.6.1 --with pdbfixer==1.12.0
+          python -m pytest -q server_tests/test_refinement_input_geometry.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refinement-input-geometry
+          path: server_tests/evidence/refinement-inputs
+          if-no-files-found: warn

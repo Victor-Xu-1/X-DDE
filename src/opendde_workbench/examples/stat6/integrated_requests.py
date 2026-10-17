@@ -49,6 +49,11 @@ def integrated_study(capability, objects, sequences):
     elif kind == "chemprop":
         add("library", "stat6_spr_library")
         payload.update(mode="train", activity_property="pKd", activity_unit="pKd", epochs=30)
+    elif kind == "openmm":
+        # The observed crystal receptor has unresolved internal segments. Do not
+        # turn missing SEQRES records into apparently continuous peptide bonds.
+        add("structure", "stat6_predicted_construct")
+        options.update(memory_mib=2048, seed=2026)
     else:
         add("structure", "structure" if kind in {"ligandmpnn", "plip"} else "receptor")
         if kind == "ligandmpnn":

@@ -17,6 +17,7 @@ on:
             plip-lock,
             chemprop,
             property-review,
+            refinement-input,
             source-stereo,
             simulation-lock,
             simulation-native,
@@ -77,6 +78,9 @@ jobs:
   source-stereo:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'source-stereo'
     uses: ./.github/workflows/diffsbdd-source-stereo-checks.yml
+  refinement-input:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'refinement-input'
+    uses: ./.github/workflows/refinement-input-checks.yml
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
