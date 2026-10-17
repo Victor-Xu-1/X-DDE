@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api";
@@ -94,11 +100,15 @@ it.each(["en", "zh"] as const)(
     );
     await user.click(next());
     expect(screen.queryByText(/相似度 ≥|contact similarity ≥/)).toBeNull();
-    expect(screen.getByText("2 Å")).toBeVisible();
+    const scaleChoices = screen.getByRole("radiogroup", {
+      name: zh ? "希望分得多细？" : "How finely should modes be separated?",
+    });
+    expect(within(scaleChoices).getByText("2 Å")).toBeVisible();
     await user.click(next());
     const review = screen.getByLabelText(
       zh ? "本次分群条件" : "Selected clustering conditions",
     );
+    expect(review).toBeVisible();
     expect(review).toHaveTextContent(zh ? "三维姿势" : "3D pose");
     expect(review).toHaveTextContent("2 Å");
     expect(review).not.toHaveTextContent("50%");
