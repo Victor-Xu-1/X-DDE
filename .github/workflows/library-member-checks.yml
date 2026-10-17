@@ -28,14 +28,14 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - name: Exact immutable member reads, saves and pagination
-        run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
       - name: Member inspection, selection and direct routing consumers
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/IndexedLibraryResults.test.tsx
           src/datasets/DatasetResults.test.tsx src/datasets/ResearchTable.test.tsx
           src/presentation/ResultRow.test.tsx
+      - name: Exact immutable member reads, saves and pagination
+        run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
   native:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -43,7 +43,11 @@ jobs:
       WB_TEST_LIBRARY_MEMBERS: "1"
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --python 3.12 --group dev --group browser
       - name: Matching reviewed RDKit for real source-to-subset chemistry only
         run: uv pip install --python .venv/bin/python rdkit==2026.3.6 numpy==1.26.4

@@ -141,11 +141,14 @@ def test_prepared_library_inspection_preserves_2d_coordinates_and_source_identit
             "INSERT INTO records VALUES (?,?,?,?,?)",
             (18, "custom", "another offer", "member-1", None),
         )
+    reference = {"asset_id": str(uuid4()), "sha256": "c" * 64}
     task = DatasetTask.model_validate(
         {
             "name": "Source 2D library",
             "operation": "library_prepare",
             "payload": {"kind": "chemistry", "id_column": "Compound_ID"},
+            "inputs": [{"role": "data", "source": reference}],
+            "scientific_inputs": [reference],
         }
     )
     with store.connect() as db:
