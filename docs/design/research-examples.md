@@ -472,3 +472,12 @@ file, record, conformer, version and receptor. This action does not launch compu
 establish binding; researchers must confirm the coordinate context and submit explicitly.
 Failed geometry or stereochemical checks preserve the original pose and must not be bypassed
 to make an example appear successful.
+
+若恢复的历史任务只有原始文件而尚无共享材料，当前候选提供“准备后续研究材料”入口。
+它复用现有、幂等的原生产物登记接口，复核文件摘要、记录与来源任务，并保留选中记录。
+登记不是科学计算；失败可重试，切换任务后旧请求不得覆盖新任务的候选。
+
+For restored results without registered inputs, Prepare for follow-up uses the existing
+idempotent native-output registration API. It rechecks the original digest and record count,
+keeps the selected record, and never launches scientific calculation. Preparation can be
+retried after failure; an old response cannot replace another task's selected candidates.

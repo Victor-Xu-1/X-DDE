@@ -1,12 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
-import {
-  GeneratedCandidates,
-  type GeneratedRecord,
-} from "./GeneratedCandidates";
-import { artifactUrl, request } from "../api";
-import { artifactInfo } from "../presentation/artifact-digest";
+import { useState, type ReactNode } from "react";
+import { GeneratedCandidates } from "./GeneratedCandidates";
+import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
-import type { MoleculeRef, ScientificObject } from "../research/types";
+import type { MoleculeRef } from "../research/types";
 import { PoseSession } from "../viewer/PoseSession";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
 import { usePoseHandoff } from "../viewer/usePoseHandoff";
@@ -23,6 +19,7 @@ import { DesignInputContext } from "./DesignInputContext";
 import { generatedMetrics } from "./generated-metrics";
 import { CandidateFollowup, type CandidateAction } from "./CandidateFollowup";
 import { GenerationSummary } from "./GenerationSummary";
+import { useGeneratedRecords } from "./useGeneratedRecords";
 
 export function DiffResults({
   job,
@@ -33,13 +30,7 @@ export function DiffResults({
   data: OperationResult;
   language: Language;
 }) {
-  const zh = language === "zh",
-    [error, setError] = useState("");
-  const [records, setRecords] = useState<GeneratedRecord[]>([]),
-    [selectedRecord, setSelectedRecord] = useState<GeneratedRecord | null>(
-      null,
-    );
-  const selected = selectedRecord?.object ?? null;
+  const zh = language === "zh";
   const [message, setMessage] = useState("");
   const targetArtifact =
     typeof data.molecule_artifact === "string"
@@ -50,68 +41,20 @@ export function DiffResults({
   const mode =
     job.request.operation === "diffsbdd" ? job.request.payload.mode : "";
   const designing = isDesign(mode);
-  useEffect(() => {
-    const c = new AbortController();
-    setError("");
-    setSelectedRecord(null);
-    setRecords([]);
-    async function load() {
-      if (!targetArtifact || data.valid === 0) return;
-      const info = await artifactInfo(
-        artifactUrl(job.id, targetArtifact),
-        c.signal,
-      );
-      const digest = info.sha256;
-      if (typeof data.valid === "number" && data.valid !== info.records)
-        throw new Error(
-          "The declared candidate count does not match the original molecular records.",
-        );
-      if (
-        data.core_verification &&
-        (digest !== data.core_verification.qualified_sha256 ||
-          info.records !== data.core_verification.qualified_count)
-      )
-        throw new Error(
-          "The qualified molecular result does not match its scientific checks.",
-        );
-      const all: ScientificObject[] = [];
-      for (let offset = 0; offset < 10000; offset += 200) {
-        const page = await request<ScientificObject[]>(
-          `/research/objects?source_job=${encodeURIComponent(job.id)}&limit=200&offset=${offset}`,
-          { signal: c.signal },
-        );
-        all.push(
-          ...page.filter(
-            (v) =>
-              v.source_job === job.id &&
-              v.kind === "molecule" &&
-              v.reference.sha256 === digest &&
-              (!data.core_verification ||
-                (v.reference.sha256 ===
-                  data.core_verification.qualified_sha256 &&
-                  v.reference.record < data.core_verification.qualified_count)),
-          ),
-        );
-        if (page.length < 200) break;
-      }
-      if (!c.signal.aborted) {
-        all.sort((a, b) => a.reference.record - b.reference.record);
-        const current = Array.from({ length: info.records }, (_, record) => ({
-          record,
-          object: all.find((v) => v.reference.record === record),
-        }));
-        setRecords(current);
-        setSelectedRecord(current[0] ?? null);
-      }
-    }
-    void load().catch((e) => {
-      if (!c.signal.aborted)
-        setError(
-          zh ? "分子结果与原始记录无法核对，请检查原始文件。" : String(e),
-        );
-    });
-    return () => c.abort();
-  }, [job.id, data.core_verification, targetArtifact, data.valid]);
+  const candidates = useGeneratedRecords(job.id, targetArtifact, data);
+  const records = candidates.records,
+    selectedRecord = candidates.selected;
+  const selected = selectedRecord?.object ?? null;
+  const error =
+    candidates.error === "prepare"
+      ? zh
+        ? "研究材料暂未准备好，请重试准备后续研究材料。原始结果已保留。"
+        : "Research inputs could not be prepared. Retry Prepare for follow-up; original results are preserved."
+      : candidates.error
+        ? zh
+          ? "分子结果与原始记录无法核对，请检查原始文件。"
+          : candidates.error
+        : "";
   const names = [
     "protein_artifact",
     "pocket_artifact",
@@ -293,81 +236,98 @@ export function DiffResults({
             }
             metrics={designing ? generatedMetrics(data.report) : null}
             onSelect={(value) => {
-              setSelectedRecord(value);
+              candidates.select(value);
               handoff.clear();
             }}
-          />
-          <PoseStudyInput original={selected} language={language}>
-            {(selection) => (
-              <>
-                {selection &&
-                  job.request.operation === "diffsbdd" &&
-                  "protein" in job.request.payload && (
-                    <label className="field">
-                      {zh
-                        ? "下一轮想怎样设计？"
-                        : "What should the next design round do?"}
-                      <select
-                        value=""
-                        disabled={!selection.ready}
-                        onChange={(e) => {
-                          const value = (
-                            ["inpaint", "diversify", "optimize"] as const
-                          ).find((v) => v === e.target.value);
-                          if (value) handoff.open(value, selection);
-                        }}
-                      >
-                        <option value="">—</option>
-                        <option value="inpaint">
+          >
+            {selectedRecord && !selected && (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={candidates.preparing}
+                onClick={() => void candidates.prepare()}
+              >
+                {candidates.preparing
+                  ? zh
+                    ? "正在准备研究材料…"
+                    : "Preparing research inputs…"
+                  : zh
+                    ? "准备后续研究材料"
+                    : "Prepare for follow-up"}
+              </button>
+            )}
+            <PoseStudyInput original={selected} language={language}>
+              {(selection) => (
+                <>
+                  {selection &&
+                    job.request.operation === "diffsbdd" &&
+                    "protein" in job.request.payload && (
+                      <label className="field">
+                        {zh
+                          ? "下一轮想怎样设计？"
+                          : "What should the next design round do?"}
+                        <select
+                          value=""
+                          disabled={!selection.ready}
+                          onChange={(e) => {
+                            const value = (
+                              ["inpaint", "diversify", "optimize"] as const
+                            ).find((v) => v === e.target.value);
+                            if (value) handoff.open(value, selection);
+                          }}
+                        >
+                          <option value="">—</option>
+                          <option value="inpaint">
+                            {zh
+                              ? "保留核心，局部重设计"
+                              : "Keep a core and redesign locally"}
+                          </option>
+                          <option value="diversify">
+                            {zh
+                              ? "围绕当前分子多样化"
+                              : "Diversify this molecule"}
+                          </option>
+                          <option value="optimize">
+                            {zh ? "按 QED/SA 优化" : "Optimize QED/SA"}
+                          </option>
+                        </select>
+                      </label>
+                    )}
+                  {selection && (
+                    <div className="editor-toolbar">
+                      {designing && (
+                        <button
+                          type="button"
+                          disabled={!selection.ready}
+                          onClick={() => handoff.open("quality", selection)}
+                        >
                           {zh
-                            ? "保留核心，局部重设计"
-                            : "Keep a core and redesign locally"}
-                        </option>
-                        <option value="diversify">
-                          {zh
-                            ? "围绕当前分子多样化"
-                            : "Diversify this molecule"}
-                        </option>
-                        <option value="optimize">
-                          {zh ? "按 QED/SA 优化" : "Optimize QED/SA"}
-                        </option>
-                      </select>
-                    </label>
-                  )}
-                {selection && (
-                  <div className="editor-toolbar">
-                    {designing && (
+                            ? "检查这个候选的姿势质量"
+                            : "Check this candidate's pose quality"}
+                        </button>
+                      )}
                       <button
                         type="button"
                         disabled={!selection.ready}
-                        onClick={() => handoff.open("quality", selection)}
+                        onClick={() => handoff.open("properties", selection)}
                       >
                         {zh
-                          ? "检查这个候选的姿势质量"
-                          : "Check this candidate's pose quality"}
+                          ? "计算这个候选的性质"
+                          : "Calculate this candidate's properties"}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      disabled={!selection.ready}
-                      onClick={() => handoff.open("properties", selection)}
-                    >
-                      {zh
-                        ? "计算这个候选的性质"
-                        : "Calculate this candidate's properties"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!selection.ready}
-                      onClick={() => handoff.open("export", selection)}
-                    >
-                      {zh ? "导出这个候选" : "Export this candidate"}
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </PoseStudyInput>
+                      <button
+                        type="button"
+                        disabled={!selection.ready}
+                        onClick={() => handoff.open("export", selection)}
+                      >
+                        {zh ? "导出这个候选" : "Export this candidate"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </PoseStudyInput>
+          </GeneratedCandidates>
         </>
       )}
       {message && <p role="status">{message}</p>}

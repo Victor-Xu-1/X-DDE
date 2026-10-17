@@ -1,4 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import type { ReactNode } from "react";
 import type { Language } from "../types";
 import type { ScientificObject } from "../research/types";
 import type { CoreVerificationData } from "./types";
@@ -20,6 +21,7 @@ export function GeneratedCandidates({
   proteinUrl,
   metrics,
   onSelect,
+  children,
 }: {
   records: GeneratedRecord[];
   generated?: boolean;
@@ -30,6 +32,7 @@ export function GeneratedCandidates({
   proteinUrl?: string;
   metrics?: GeneratedMetrics[] | null;
   onSelect(value: GeneratedRecord): void;
+  children?: ReactNode;
 }) {
   const zh = language === "zh";
   const label = (v: GeneratedRecord) =>
@@ -248,6 +251,7 @@ export function GeneratedCandidates({
           </p>
         </>
       )}
+      {children}
     </StructureWorkbench>
   );
 }

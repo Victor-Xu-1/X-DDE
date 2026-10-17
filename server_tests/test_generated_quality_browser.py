@@ -107,7 +107,17 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             assert view_box["y"] < detail_box["y"]
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         page.screenshot(path=evidence / "retained-native-generation.png", full_page=True)
-        page.get_by_role(
+        prepare = details.get_by_role(
+            "button", name="准备后续研究材料" if zh else "Prepare for follow-up", exact=True
+        )
+        if not zh:
+            expect(prepare).to_be_visible()
+        prepared_missing_materials = prepare.count() > 0
+        if prepared_missing_materials:
+            prepare.click()
+            expect(prepare).to_have_count(0, timeout=30000)
+            expect(selected).to_have_attribute("aria-pressed", "true")
+        details.get_by_role(
             "button",
             name="检查这个候选的姿势质量" if zh else "Check this candidate's pose quality",
             exact=True,
@@ -183,6 +193,7 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
                 "source_case": "brd4-jq1",
                 "scope": "Native archive UI and exact quality draft; no inference or STAT6 claim",
                 "new_scientific_jobs": 0,
+                "prepared_missing_materials": prepared_missing_materials,
                 "original_artifacts_unchanged": True,
                 "selected_original_record": 1,
                 "output_heavy_atoms": native_row["heavy_atoms"],

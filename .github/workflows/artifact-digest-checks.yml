@@ -4,6 +4,7 @@ on:
     paths: &artifact_digest_paths
       - "frontend/src/presentation/artifact-digest*"
       - "frontend/src/diffsbdd/DiffResults*"
+      - "frontend/src/diffsbdd/useGeneratedRecords*"
       - ".github/workflows/artifact-digest-checks.yml"
   pull_request:
     paths: *artifact_digest_paths

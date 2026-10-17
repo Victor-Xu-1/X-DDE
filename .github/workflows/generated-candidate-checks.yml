@@ -9,6 +9,7 @@ on:
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/GeneratedCandidates*"
       - "frontend/src/diffsbdd/generated-metrics*"
+      - "frontend/src/diffsbdd/useGeneratedRecords*"
       - "server_tests/test_generated_quality_browser.py"
       - ".github/workflows/generated-candidate-checks.yml"
   pull_request:
