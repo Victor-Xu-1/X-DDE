@@ -72,6 +72,7 @@ export function ExampleResultSet(
       <label className="field">
         {zh ? "研究阶段结果" : "Study result stage"}
         <select
+          aria-label={zh ? "研究阶段结果" : "Study result stage"}
           value={selected}
           onChange={(event) => {
             setFailure(null);
