@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -113,7 +114,21 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                     format="SVG",
                 )
                 assert "<svg" in comparison.read_text()
-                assert 'stroke-width="2"' in comparison.read_text()
+                figure = ET.fromstring(comparison.read_text())
+                assert figure.get("width", "").endswith("mm")
+                outlines = figure.findall(
+                    './/svg:g[@aria-pressed="true"]/svg:rect',
+                    {"svg": "http://www.w3.org/2000/svg"},
+                )
+                assert len(outlines) == 2
+                for outline in outlines:
+                    assert outline.get("stroke", "none") != "none"
+                    assert "var(" not in outline.get("stroke", "")
+                    width = re.fullmatch(
+                        r"([0-9]+(?:\.[0-9]+)?)(?:px|pt|mm)?",
+                        outline.get("stroke-width", ""),
+                    )
+                    assert width and float(width[1]) > 0
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
                 heading = result.locator(".viewer-panel > .studio-heading > h3")
