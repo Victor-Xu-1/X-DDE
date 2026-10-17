@@ -17,11 +17,17 @@ from server_tests.test_navigation_shell_browser import open_navigation
 def test_cold_embedded_ketcher_can_initialize_without_taking_user_focus():
     evidence = Path("server_tests/evidence/hydrogen-policy/cold-start")
     evidence.mkdir(parents=True, exist_ok=True)
-    errors, submissions = [], []
+    errors, warnings, submissions = [], [], []
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "console",
+            lambda message: warnings.append(message.text)
+            if message.type in {"warning", "error"}
+            else None,
+        )
         page.on(
             "request",
             lambda request: submissions.append(request.url)
@@ -74,6 +80,7 @@ def test_cold_embedded_ketcher_can_initialize_without_taking_user_focus():
                 json.dumps(
                     {
                         "real_component_script_delayed_seconds": 21,
+                        "declared_drawing_initialization_budget_seconds": 60,
                         "native_svg_ready": True,
                         "source": "Defined STAT6 study small molecule",
                         "source_or_scientific_files_modified": False,
@@ -87,4 +94,5 @@ def test_cold_embedded_ketcher_can_initialize_without_taking_user_focus():
         finally:
             page.screenshot(path=str(evidence / "result.png"))
             (evidence / "page-errors.json").write_text(json.dumps(errors, indent=2))
+            (evidence / "console-warnings.json").write_text(json.dumps(warnings, indent=2))
             browser.close()

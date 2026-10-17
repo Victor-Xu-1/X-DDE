@@ -72,15 +72,12 @@ afterEach(cleanup);
 async function finishReview(user: ReturnType<typeof userEvent.setup>) {
   for (
     let step = 0;
-    step < 4 &&
-    !screen.queryByRole("button", { name: "Submit task", exact: true });
+    step < 4 && !screen.queryByRole("button", { name: "Submit task" });
     step++
   ) {
-    await user.click(screen.getByRole("button", { name: "Next", exact: true }));
+    await user.click(screen.getByRole("button", { name: "Next" }));
   }
-  await user.click(
-    screen.getByRole("button", { name: "Submit task", exact: true }),
-  );
+  await user.click(screen.getByRole("button", { name: "Submit task" }));
   await waitFor(() => expect(fixture.submit).toHaveBeenCalledOnce());
   return fixture.submit.mock.lastCall![0] as DatasetTask;
 }
@@ -93,7 +90,7 @@ it("recognizes an actual compound identifier when every SDF title is blank", asy
   await user.click(
     screen.getByRole("button", { name: "Choose real STAT6 series" }),
   );
-  await user.click(screen.getByRole("button", { name: "Next", exact: true }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
   const id = screen.getByRole("combobox", {
     name: "Supplier or compound ID",
   }) as HTMLSelectElement;
@@ -153,9 +150,7 @@ it("retains the reviewed identifier choice, input version and original bounded r
   render(
     <LibraryForm tool="library.import" language="en" onCreated={vi.fn()} />,
   );
-  await user.click(
-    await screen.findByRole("button", { name: "Next", exact: true }),
-  );
+  await user.click(await screen.findByRole("button", { name: "Next" }));
   expect(
     await screen.findByRole("combobox", { name: "Supplier or compound ID" }),
   ).toHaveValue("Compound_ID");
