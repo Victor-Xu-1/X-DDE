@@ -9,6 +9,7 @@ on:
       - "frontend/src/datasets/useIndexedMember*"
       - "frontend/src/datasets/DatasetResults*"
       - "frontend/src/datasets/ResearchTable*"
+      - "frontend/src/datasets/member-page-export*"
       - "tests/test_dataset_member_inspection.py"
       - "server_tests/test_library_member*"
       - ".github/workflows/library-member-checks.yml"
@@ -33,6 +34,7 @@ jobs:
         run: >-
           npx vitest run src/datasets/IndexedLibraryResults.test.tsx
           src/datasets/DatasetResults.test.tsx src/datasets/ResearchTable.test.tsx
+          src/datasets/member-page-export.test.ts
           src/presentation/ResultRow.test.tsx
       - name: Exact immutable member reads, saves and pagination
         run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
@@ -41,6 +43,8 @@ jobs:
     timeout-minutes: 15
     env:
       WB_TEST_LIBRARY_MEMBERS: "1"
+      WB_AUTO_DEPLOY: "0"
+      WB_HOME: ${{ runner.temp }}/x-dde-library-member-review
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,3 +57,14 @@ jobs:
         run: uv pip install --python .venv/bin/python rdkit==2026.3.6 numpy==1.26.4
       - name: Actual frozen STAT6 library and portable three-member subsets
         run: uv run --locked pytest -q server_tests/test_library_member_native.py
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Native drawing assets only, without unrelated case packages or engines
+        run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Real STAT6 SQLite, member switching, native MOL and full-precision page export
+        run: uv run --locked pytest -x -q server_tests/test_library_members_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: library-member-native-review
+          path: server_tests/evidence/library-members
+          if-no-files-found: warn

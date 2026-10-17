@@ -134,18 +134,22 @@ def subset(request):
                 if options["generate_conformers"] and not is_3d:
                     molecule = unbound_conformer(molecule, 2026 + row["source_record"] % 100000)
                     is_3d = True
-                molecule.SetProp("_Name", identifier)
+                supplier_id = database.execute(
+                    "SELECT supplier_id FROM records WHERE record=? AND compound_id=?",
+                    (row["source_record"], identifier),
+                ).fetchone()[0]
+                molecule.SetProp("_Name", supplier_id or identifier)
+                molecule.SetProp("XDDE_SUPPLIER_ID", supplier_id)
+                molecule.SetProp("XDDE_SUPPLIER", row["supplier"])
                 molecule.SetProp("XDDE_COMPOUND_ID", identifier)
                 molecule.SetProp("XDDE_SOURCE_JOB", request["sources"][0]["job_id"])
+                molecule.SetProp("XDDE_SOURCE_RECORD", str(row["source_record"]))
                 molecule.SetProp("XDDE_GEOMETRY", "unbound_conformer" if is_3d else "none")
                 writer.write(molecule)
                 candidates.append(
                     {
                         "id": identifier,
-                        "display_name": database.execute(
-                            "SELECT supplier_id FROM records WHERE record=?",
-                            (row["source_record"],),
-                        ).fetchone()[0],
+                        "display_name": supplier_id,
                         "smiles": row["smiles"],
                         "source_job": request["sources"][0]["job_id"],
                         "source_record": row["source_record"],

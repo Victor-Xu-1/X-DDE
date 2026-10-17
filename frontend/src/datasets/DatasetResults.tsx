@@ -127,14 +127,15 @@ export function DatasetResults({
               onCreated={onCreated}
             />
           )}
-          {tableView === "index" && (
+          {(tableView === "index" || tableView === "library") && (
             <IndexedLibraryResults
               key={job.id}
               jobId={job.id}
               language={language}
+              view={tableView}
             />
           )}
-          {tableView && tableView !== "index" && (
+          {tableView && tableView !== "index" && tableView !== "library" && (
             <ResearchTable
               jobId={job.id}
               view={tableView}

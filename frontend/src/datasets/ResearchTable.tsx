@@ -6,6 +6,8 @@ import type { Language } from "../types";
 import { evidenceNotes } from "./evidence-labels";
 import { supplierLabel } from "./supplier-label";
 import { ResultRow } from "../presentation/ResultRow";
+import { memberPageCsv } from "./member-page-export";
+import { downloadBlob } from "../presentation/visual-export";
 
 export type TableRow = Record<string, string | number | null>;
 interface Page {
@@ -161,6 +163,22 @@ export function ResearchTable({
           placeholder={zh ? "搜索成员或货号" : "Search members or IDs"}
           aria-label={zh ? "搜索成员或货号" : "Search members or IDs"}
         />
+        {(view === "library" || view === "index") && (
+          <button
+            type="button"
+            disabled={busy || !page?.rows.length}
+            onClick={() =>
+              downloadBlob(
+                new Blob([memberPageCsv(jobId, page!.rows)], {
+                  type: "text/csv;charset=utf-8",
+                }),
+                "library-page.csv",
+              )
+            }
+          >
+            {zh ? "导出当前页 CSV" : "Export page CSV"}
+          </button>
+        )}
         {view === "enrichment" && (
           <label>
             <input
@@ -212,7 +230,7 @@ export function ResearchTable({
                     <td>
                       <input
                         type="checkbox"
-                        aria-label={`${zh ? "选择" : "Select"} ${id}`}
+                        aria-label={`${zh ? "选择" : "Select"} ${row.display_name || id}`}
                         checked={selected.has(id)}
                         onClick={(e) => e.stopPropagation()}
                         onChange={() => choose(id)}

@@ -14,10 +14,10 @@ SOURCE = Path("src/opendde_workbench/examples/stat6/inputs/STAT6-CHEMBL982109-38
 SOURCE_SHA = "00b497255bd1bad749d47f689e77b00e535018a0f70192a312da42b9981f53d4"
 
 
-def prepare(native):
+def prepare(native, material=None):
     raw = SOURCE.read_bytes()
     assert hashlib.sha256(raw).hexdigest() == SOURCE_SHA
-    material = native.material(raw, ".sdf", "data")
+    material = material or native.material(raw, ".sdf", "data")
     task = native.task(
         "library_prepare",
         {

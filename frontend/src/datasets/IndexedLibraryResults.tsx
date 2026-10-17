@@ -10,9 +10,11 @@ import type { Language } from "../types";
 export function IndexedLibraryResults({
   jobId,
   language,
+  view = "index",
 }: {
   jobId: string;
   language: Language;
+  view?: "index" | "library";
 }) {
   const zh = language === "zh",
     [selected, setSelected] = useState<TableRow | null>(null);
@@ -32,7 +34,7 @@ export function IndexedLibraryResults({
       preview={
         <section
           className="dataset-member-inspector"
-          aria-label={zh ? "入库分子结构检查" : "Indexed member inspection"}
+          aria-label={zh ? "分子库成员结构检查" : "Library member inspection"}
           aria-busy={Boolean(memberId) && member.phase === "loading"}
         >
           {!memberId ? (
@@ -65,18 +67,36 @@ export function IndexedLibraryResults({
                 <span>{supplierLabel(detail.supplier, zh)}</span>
               </header>
               <div className="dataset-member-actions">
-                <span>{zh ? "游离构象" : "Unbound conformer"}</span>
+                <span>
+                  {detail.geometry === "unbound_conformer"
+                    ? zh
+                      ? "游离构象"
+                      : "Unbound conformer"
+                    : detail.geometry === "source_3d"
+                      ? zh
+                        ? "原始三维结构"
+                        : "Original 3D structure"
+                      : zh
+                        ? "二维结构"
+                        : "2D structure"}
+                </span>
                 <Hint label={zh ? "构象说明" : "Conformer help"}>
                   {zh
-                    ? "显示检索库中实际保存的构象，不代表蛋白结合姿势。保存为历史文件后，可继续最小化、编辑或用于新任务。"
-                    : "Shows the actual conformer stored in the index, not a protein-bound pose. Save it as a historical file to refine, edit or use in another task."}
+                    ? "读取分子库实际保存的记录；二维记录不冒充三维构象，导入的三维坐标也不视为已验证的结合姿势。保存为历史文件后，可继续准备、编辑或用于新任务。"
+                    : "Reads the actual stored molecular record. A 2D record is not a 3D conformer, and imported 3D coordinates do not establish a validated binding pose. Save a historical file to prepare, edit or use in another task."}
                 </Hint>
                 <a
                   className="secondary-button"
                   href={detail.url}
-                  download="indexed-member.mol"
+                  download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
                 >
-                  {zh ? "原始构象 MOL" : "Original conformer MOL"}
+                  {detail.geometry === "unbound_conformer"
+                    ? zh
+                      ? "原始构象 MOL"
+                      : "Original conformer MOL"
+                    : zh
+                      ? "原始结构 MOL"
+                      : "Original structure MOL"}
                 </a>
                 {member.saved ? (
                   <span className="dataset-member-saved" role="status">
@@ -110,9 +130,9 @@ export function IndexedLibraryResults({
                 label={detail.label}
                 language={language}
                 source={{ url: url!, record: 0 }}
-                urls={[url!]}
-                records={[0]}
-                defaultView="3d"
+                urls={detail.geometry === "source_2d" ? undefined : [url!]}
+                records={detail.geometry === "source_2d" ? undefined : [0]}
+                defaultView={detail.geometry === "source_2d" ? "2d" : "3d"}
               />
             </>
           )}
@@ -122,7 +142,7 @@ export function IndexedLibraryResults({
       <section>
         <ResearchTable
           jobId={jobId}
-          view="index"
+          view={view}
           language={language}
           onSelect={setSelected}
           selection={memberId ? [memberId] : []}

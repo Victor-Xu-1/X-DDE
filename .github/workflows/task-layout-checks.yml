@@ -351,6 +351,7 @@ on:
       - "!frontend/src/datasets/useIndexedMember*"
       - "!frontend/src/datasets/DatasetResults*"
       - "!frontend/src/datasets/ResearchTable*"
+      - "!frontend/src/datasets/member-page-export*"
       - "!frontend/src/datasets/datasets.css"
       - "!frontend/src/diffsbdd/FixedAtomPicker.tsx"
       - "!frontend/src/diffsbdd/GeneratedCandidates.tsx"

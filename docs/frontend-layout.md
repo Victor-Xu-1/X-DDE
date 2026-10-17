@@ -401,6 +401,20 @@ options and execution/storage ceilings survive template loading. The submission
 review shows the selected compound-ID field. Missing metadata or incompatible
 fields require review rather than advancing with an assumed column.
 
+Prepared and indexed libraries share one native member inspector: the actual
+structure leads on the left and member selection remains on the right. Imported
+2D records stay in 2D; imported 3D coordinates and indexed unbound conformers retain
+their distinct meanings. Reading a record neither embeds nor optimizes it. Explicit
+preservation uses the existing scientific asset authority and is idempotent. Native
+MOL downloads preserve original bytes, and the CSV action explicitly exports the
+current server page with full numerical precision, source records and safe cells.
+Selecting candidates retains exact internal keys while showing public identifiers.
+New native subset SDFs carry public molecule names, supplier IDs, source job and
+zero-based source record, alongside the existing stable compound identity. Old
+native files are never rewritten. library-member-checks.yml covers these contracts,
+actual frozen STAT6 chemistry and desktop English/narrow Chinese native Ketcher
+inspection without DEL scenarios or MD/FEP calculations.
+
 Native 2D initialization uses the full declared 60-second startup budget, including
 cold Ketcher script loading. Both full structure views and compact library images
 offer an explicit retry after failure. Retries retain the selected source and the

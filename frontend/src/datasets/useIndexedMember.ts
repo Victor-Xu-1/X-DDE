@@ -6,7 +6,7 @@ export interface IndexedMember {
   id: string;
   label: string;
   supplier: string;
-  geometry: "unbound_conformer";
+  geometry: "unbound_conformer" | "source_2d" | "source_3d";
   sha256: string;
   report_sha256: string;
   url: string;
@@ -34,13 +34,20 @@ export function useIndexedMember(jobId: string, memberId: string | null) {
     setState({ key, detail: null, saved: null, phase: "loading" });
     void request<IndexedMember>(
       `/datasets/${jobId}/members/detail?${new URLSearchParams({ member_id: memberId })}`,
-      { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) },
+      {
+        signal: AbortSignal.any([
+          controller.signal,
+          AbortSignal.timeout(30000),
+        ]),
+      },
     )
       .then((detail) => {
         const url = new URL(detail.url, location.origin);
         if (
           detail.id !== memberId ||
-          detail.geometry !== "unbound_conformer" ||
+          !["unbound_conformer", "source_2d", "source_3d"].includes(
+            detail.geometry,
+          ) ||
           !/^[0-9a-f]{64}$/.test(detail.sha256) ||
           !/^[0-9a-f]{64}$/.test(detail.report_sha256) ||
           url.origin !== location.origin ||

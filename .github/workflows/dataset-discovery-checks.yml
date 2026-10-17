@@ -55,6 +55,7 @@ on:
       - "!frontend/src/datasets/useIndexedMember*"
       - "!frontend/src/datasets/DatasetResults*"
       - "!frontend/src/datasets/ResearchTable*"
+      - "!frontend/src/datasets/member-page-export*"
       - "!tests/test_dataset_member_inspection.py"
   pull_request:
     paths: *dataset_paths
