@@ -7,6 +7,7 @@ import {
 import type { Language } from "../types";
 import { supplierLabel } from "./supplier-label";
 import type { DatasetCandidate, DatasetResult } from "./types";
+import "./candidate-table.css";
 
 export function CandidateTable({
   result,
