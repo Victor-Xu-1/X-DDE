@@ -52,6 +52,8 @@ on:
       - "frontend/src/proximity/Results.tsx"
       - "frontend/src/proximity/proximity.css"
       - "frontend/src/quality/QualityResults.tsx"
+      # Assessment-only result changes have native layout coverage in sequence-result-checks.yml.
+      - "!frontend/src/quality/QualityResults.tsx"
       - "frontend/src/receptors/ReceptorResults.tsx"
       - "frontend/src/receptors/StructurePrepareForm.tsx"
       - "frontend/src/receptors/StructurePrepareResults.tsx"

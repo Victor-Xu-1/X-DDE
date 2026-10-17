@@ -23,6 +23,12 @@ on:
       - "frontend/src/quality/QualityCheckList*"
       - "frontend/src/quality/quality-results.css"
       - "frontend/src/quality/tests/QualityResults.test.tsx"
+      - "frontend/src/quality/tests/QualityAssessment.test.tsx"
+      - "frontend/src/quality/assessment.ts"
+      - "frontend/src/quality/labels.ts"
+      - "server_tests/prepare_quality_context_cases.py"
+      - "server_tests/test_quality_context_browser.py"
+      - "tests/test_pose_quality.py"
       - "server_tests/test_sequence_results_browser.py"
       - "server_tests/test_campaign_sequence_browser.py"
       - "server_tests/test_humanization_details_browser.py"
@@ -52,9 +58,12 @@ jobs:
           mirrors = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1"}
           own_checks = {"server_tests/test_humanization_details_browser.py", ".github/workflows/sequence-result-checks.yml"}
           only = bool(changed) and any(p.startswith("frontend/src/humanization/") for p in changed) and all(p.startswith("frontend/src/humanization/") or p in mirrors | own_checks for p in changed)
+          quality_checks = {"server_tests/prepare_quality_context_cases.py", "server_tests/test_quality_context_browser.py", "tests/test_pose_quality.py", "docs/frontend-layout.md", ".github/workflows/sequence-result-checks.yml", ".github/workflows/structure-layout-checks.yml", ".github/workflows/user-interface-checks.yml", ".github/workflows/task-layout-checks.yml"}
+          only_quality = bool(changed) and any(p.startswith("frontend/src/quality/") for p in changed) and all(p.startswith("frontend/src/quality/") or p in mirrors | quality_checks for p in changed)
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write("only_humanization=" + str(only).lower() + "\n")
-          print("Human reference results only" if only else "Shared sequence-view consumers")
+              f.write("only_quality=" + str(only_quality).lower() + "\n")
+          print("Pose-quality assessment only" if only_quality else "Human reference results only" if only else "Shared sequence-view consumers")
           PY
       - uses: actions/setup-node@v4
         with:
@@ -62,7 +71,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Verify result interactions and direct sequence-view consumers
-        if: steps.scope.outputs.only_humanization != 'true'
+        if: steps.scope.outputs.only_humanization != 'true' && steps.scope.outputs.only_quality != 'true'
         working-directory: frontend
         run: >-
           npx vitest run
@@ -79,6 +88,12 @@ jobs:
           src/presentation/ResearchTable.test.tsx
           src/presentation/MetricScatter.test.tsx
           src/humanization/ReferenceMetricsDetails.test.tsx
+      - name: Native quality flags, actual measurement scope and direct result consumers
+        if: steps.scope.outputs.only_quality == 'true'
+        id: quality_unit
+        continue-on-error: true
+        working-directory: frontend
+        run: npx vitest run src/quality/tests/QualityAssessment.test.tsx src/quality/tests/QualityResults.test.tsx src/quality/QualityReview.test.tsx src/operations/OperationResults.test.tsx
       - name: Native probabilities, linked residue positions and full-precision exports
         if: steps.scope.outputs.only_humanization == 'true'
         working-directory: frontend
@@ -87,6 +102,7 @@ jobs:
           src/humanization/HumanizationResults.test.tsx
           src/presentation/ResearchTable.test.tsx src/presentation/plots/InteractivePlot.test.tsx
       - name: Restore reviewed native public cases without inference
+        if: steps.scope.outputs.only_quality != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -95,6 +111,7 @@ jobs:
           uv sync --locked --group dev --group browser
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Native sequence, antibody and quality results in Chromium
+        if: steps.scope.outputs.only_quality != 'true'
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python -m playwright install --with-deps chromium
@@ -109,10 +126,27 @@ jobs:
           else
             .venv/bin/python -m pytest -q server_tests/test_sequence_results_browser.py server_tests/test_campaign_sequence_browser.py server_tests/test_humanization_details_browser.py
           fi
+      - name: Real retained STAT6 quality context in desktop English and narrow Chinese
+        if: steps.scope.outputs.only_quality == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-quality-context"
+          export WB_STATE_DIR="$WB_HOME/state"
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check server_tests/prepare_quality_context_cases.py server_tests/test_quality_context_browser.py
+          uv run --locked python server_tests/prepare_quality_context_cases.py
+          uv run --locked python -m playwright install --with-deps chromium
+          uv run --locked python -m pytest -x -q tests/test_pose_quality.py server_tests/test_quality_context_browser.py
+      - name: Require quality component checks after collecting native browser evidence
+        if: always() && steps.scope.outputs.only_quality == 'true' && steps.quality_unit.outcome != 'success'
+        run: exit 1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-sequence-result-evidence
           path: |
             server_tests/evidence/sequence-results
+            outputs/quality-context/en
+            outputs/quality-context/zh
           if-no-files-found: error
