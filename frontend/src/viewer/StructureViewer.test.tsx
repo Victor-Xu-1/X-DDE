@@ -5,6 +5,22 @@ import { StructureViewer } from "./StructureViewer";
 import { defaultOptions } from "./protocol";
 import { api } from "../api";
 
+function announceReady(frame: HTMLIFrameElement) {
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: location.origin,
+        source: frame.contentWindow,
+        data: {
+          channel: "opendde-viewer",
+          type: "ready",
+          detail: { instanceId: "native-viewer-document" },
+        },
+      }),
+    );
+  });
+}
+
 it("keeps atom selection on the exact source and never offers or starts pose changes", () => {
   const submit = vi.spyOn(api, "post");
   const url =
@@ -412,6 +428,7 @@ it("focuses the actual pose and enables interactions without pretending comparis
     "Interactive molecular structure",
   ) as HTMLIFrameElement;
   const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  announceReady(frame);
   act(() =>
     window.dispatchEvent(
       new MessageEvent("message", {
@@ -477,6 +494,7 @@ it("reports selection choices only from its own same-origin loaded frame", () =>
   const frame = screen
     .getAllByTitle("Interactive molecular structure")
     .at(-1) as HTMLIFrameElement;
+  announceReady(frame);
   const scene = {
     chains: ["A"],
     atoms: 10,
@@ -529,6 +547,7 @@ it("charge surface accepts only its own frame summary and clears it when returni
       ),
     );
   }
+  message("ready", { instanceId: "native-viewer-document" });
   message("loaded", {
     chains: ["A"],
     atoms: 100,

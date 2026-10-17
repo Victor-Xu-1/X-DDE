@@ -13,6 +13,7 @@ on:
       - "frontend/src/viewer/viewer-connection.test.tsx"
       - "frontend/src/viewer/useViewerConnection.ts"
       - "frontend/src/viewer/StructureViewport.tsx"
+      - "frontend/src/viewer/StructureViewer*"
       - "frontend/src/viewer/frame.ts"
       - "server_tests/test_generated_quality_browser.py"
       - ".github/workflows/generated-candidate-checks.yml"
