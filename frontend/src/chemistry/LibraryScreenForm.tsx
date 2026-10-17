@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useExampleReference } from "../examples/context";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { AssetPicker } from "../operations/AssetPicker";
 import { useSdfAsset } from "../research/useSdfAsset";
 import { Questionnaire } from "../guided/Questionnaire";
@@ -26,22 +26,31 @@ export function LibraryScreenForm({
   initialLibrary?: LibraryRef | null;
 }) {
   const exampleLibrary = useExampleReference("library");
+  const preset = useExampleTask("library_screen");
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
   useEffect(() => {
-    const selected = initialLibrary ?? exampleLibrary;
+    const selected = initialLibrary ?? preset?.library ?? exampleLibrary;
     if (selected) void input.choose(selected.asset_id);
-  }, [initialLibrary?.asset_id, exampleLibrary?.asset_id, input.choose]);
+  }, [
+    initialLibrary?.asset_id,
+    preset?.library.asset_id,
+    exampleLibrary?.asset_id,
+    input.choose,
+  ]);
   const library: LibraryRef | null = input.asset
       ? { asset_id: input.asset.id, sha256: input.asset.sha256 }
       : null,
     libraryName = input.asset?.name ?? "",
     loading = input.loading,
     error = input.error;
-  const [query, setQuery] = useState<MoleculeRef | null>(null),
-    [options, setOptions] = useState<ScreenOptions>({ ...screenDefaults }),
+  const [query, setQuery] = useState<MoleculeRef | null>(preset?.query ?? null),
+    [options, setOptions] = useState<ScreenOptions>(() => ({
+      ...screenDefaults,
+      ...structuredClone(preset?.options ?? {}),
+    })),
     [name, setName] = useState("");
   const requiresQuery =
       options.mode === "similarity" || options.mode === "substructure",

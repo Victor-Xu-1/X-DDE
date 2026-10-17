@@ -21,7 +21,7 @@ export function PocketForm({
 }) {
   const example = useExampleReference("receptor", "brd4");
   const preset = useExampleTask("pocket_search");
-  initialProtein ??= example;
+  initialProtein ??= preset?.protein ?? example;
   const zh = language === "zh",
     [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),
     [profile, setProfile] = useState<"experimental" | "predicted" | "">(

@@ -24,9 +24,10 @@ on:
       - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
       # Recipe replay and portable stage consumers have the focused module gate.
       - '!src/opendde_workbench/examples/stat6/preparation.py'
-      - '!src/opendde_workbench/examples/stat6/design_replay.py'
+      - '!src/opendde_workbench/examples/stat6/*_replay.py'
       - '!src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/RecipeInputs.test.tsx'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
       - '!frontend/src/examples/useTaskLabel.ts'
@@ -72,9 +73,10 @@ on:
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
       - '!src/opendde_workbench/examples/stat6/preparation.py'
-      - '!src/opendde_workbench/examples/stat6/design_replay.py'
+      - '!src/opendde_workbench/examples/stat6/*_replay.py'
       - '!src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/RecipeInputs.test.tsx'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
       - '!frontend/src/examples/useTaskLabel.ts'

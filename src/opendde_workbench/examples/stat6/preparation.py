@@ -6,8 +6,8 @@ from uuid import UUID, uuid5
 from ...research.contracts import VersionInput
 from ..contracts import PreparedExample
 from .catalogue import CASE, FILES, MODULES, study_context, verified_input
-from .design_replay import replay_context, reviewed_design
 from .reference_inputs import case_for, input_keys
+from .request_replay import replay_context, reviewed_request
 
 NAMESPACE = UUID("dc83ffaf-3aef-49fc-af71-bf9732d06a78")
 
@@ -50,7 +50,7 @@ def register_input(scientific, key):
 def prepare_stat6(capability, scientific, *, records=None):
     module = MODULES[capability]
     case = case_for(capability)
-    native_design = reviewed_design(capability, scientific, records)
+    native_request = reviewed_request(capability, scientific, records)
     originals = {
         key: register_input(scientific, key)
         for key in input_keys(capability)
@@ -89,7 +89,7 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop(role)
         else:
             objects[role] = receptor
-    if native_design is None and capability in {
+    if native_request is None and capability in {
         "gnina.dock",
         "diffsbdd.prepare",
         "diffsbdd.generate",
@@ -176,10 +176,18 @@ def prepare_stat6(capability, scientific, *, records=None):
         }
     )
 
-    if native_design is not None:
-        for role, key in (("receptor", "protein"), ("ligand", "initial")):
-            reference = native_design["payload"].get(key)
-            if reference and reference.get("version_id"):
+    if native_request is not None:
+        body = native_request.get("payload", native_request)
+        for role, key in (
+            ("receptor", "protein"),
+            ("receptor", "receptor"),
+            ("structure", "structure"),
+            ("ligand", "initial"),
+            ("ligand", "molecule"),
+            ("ligand", "ligand"),
+        ):
+            reference = body.get(key)
+            if isinstance(reference, dict) and reference.get("version_id"):
                 objects[role] = scientific.get(reference["version_id"])
     study = study_context(capability)
 
@@ -191,8 +199,8 @@ def prepare_stat6(capability, scientific, *, records=None):
         sequences=sequences,
         sequence_sources=sequence_sources,
         sources=case.sources,
-        request=native_design
-        if native_design is not None
+        request=native_request
+        if native_request is not None
         else study_request(capability, objects, sequences),
         campaign_draft={
             "targetName": "STAT6 pathway · IL-4R alpha · 6WGL",
@@ -209,7 +217,7 @@ def prepare_stat6(capability, scientific, *, records=None):
         source_record=records.prepared(module.parent_capability)
         if records and module.parent_capability
         else None,
-        study=replay_context(study) if native_design is not None else study,
+        study=replay_context(study, capability) if native_request is not None else study,
         evidence_draft=evidence_draft(scientific, objects, measurements)
         if capability == "experimental.evidence"
         else None,

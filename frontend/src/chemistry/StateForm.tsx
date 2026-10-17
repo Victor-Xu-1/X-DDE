@@ -22,7 +22,7 @@ export function StateForm({
 }) {
   const preset = useExampleTask("molecular_states");
   const example = useExampleReference("ligand", "imatinib", "jq1");
-  initialMolecule ??= example;
+  initialMolecule ??= preset?.molecule ?? example;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
   const [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule),

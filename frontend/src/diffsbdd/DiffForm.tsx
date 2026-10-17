@@ -47,8 +47,10 @@ export function DiffForm({
   initialProtein ??=
     (preset?.protein as MoleculeRef | undefined) ?? exampleProtein;
   initialMolecule ??=
-    ((preset?.initial ?? preset?.molecule) as MoleculeRef | undefined) ??
-    exampleMolecule;
+    ((preset?.initial ??
+      preset?.molecule ??
+      (preset?.molecules as MoleculeRef[] | undefined)?.[0]) as
+      MoleculeRef | undefined) ?? exampleMolecule;
   initialPocket ??=
     (preset?.pocket as Pocket | undefined) ??
     (examplePocket ? { kind: "ligand", ligand: examplePocket } : null);

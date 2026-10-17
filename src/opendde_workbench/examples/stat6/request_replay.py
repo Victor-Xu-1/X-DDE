@@ -1,30 +1,50 @@
-"""Reviewed native design requests take precedence over illustrative input presets."""
+"""Verified authored task recipes take precedence over illustrative study presets."""
 
-from ...diffsbdd.contract import DiffTask, references
+import hashlib
+
+from ...requests import TASK_ADAPTER, input_identifiers
+from ..input_lineage import molecule_references
 from ..pins import ExamplePins
 from .catalogue import MODULES
 
 DESIGN_MODES = {"generate", "inpaint", "diversify", "optimize"}
 
 
-def reviewed_design(capability, scientific, records):
-    if capability not in {"diffsbdd." + mode for mode in DESIGN_MODES} or records is None:
+def reviewed_request(capability, scientific, records):
+    if records is None:
         return None
     request = ExamplePins(scientific.store, records.settings.state_dir, modules=MODULES).request(
         capability, reviewed=True
     )
     if request is None:
         return None
-    task = DiffTask.model_validate(request)
-    if task.payload.mode != capability.split(".")[1]:
-        raise ValueError("The reviewed design recipe belongs to a different native mode.")
-    for _, reference in references(task):
+    task = TASK_ADAPTER.validate_python(request)
+    assets = {
+        identifier: scientific.assets.get(identifier) for identifier in input_identifiers(task)
+    }
+    validated = set()
+    for reference in molecule_references(task):
+        if reference in validated:
+            continue
         scientific.validate_reference(reference)
+        identifier = str(reference.asset_id)
+        if identifier not in assets:
+            assets[identifier] = scientific.assets.get(identifier)
+        asset = assets[identifier]
+        if reference.sha256 != asset.sha256:
+            raise ValueError("A reviewed task input differs from its exact scientific reference.")
+        validated.add(reference)
+    for asset in assets.values():
+        with scientific.assets.path(asset).open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != asset.sha256:
+                raise ValueError("The reviewed task input bytes changed.")
     return request
 
 
-def replay_context(study):
+def replay_context(study, capability):
     """Preparation is supplied by the sealed request; new dispatch still needs review."""
+    if capability not in {"diffsbdd." + mode for mode in DESIGN_MODES}:
+        return {**study, "required_materials": []}
     return {
         **study,
         "required_materials": [],

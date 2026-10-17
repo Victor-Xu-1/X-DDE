@@ -99,9 +99,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     )
     assert str(generated.job_id) == "be6389cf-e6ce-4d2e-ae5a-9786d62dfe8a"
     assert generated.review and len(generated.supporting_evidence) == 5
-    assert str(generated.supporting_evidence[-1].job_id) == (
-        "b5b7a896-929b-45ad-88b9-e147c5b7540f"
-    )
+    assert str(generated.supporting_evidence[-1].job_id) == ("b5b7a896-929b-45ad-88b9-e147c5b7540f")
     pin = ExamplePins(store, settings.state_dir, modules=MODULES).get("plip.profile", verify=True)
     assert pin and str(pin.job_id) == "b8d92dc4-3dd3-418a-9ceb-2eaa6723d624"
     assert pin.revision == 3 and pin.review and pin.review.scope == "reviewed_computational_example"
@@ -133,9 +131,11 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
                 "source_revision": spec.SOURCE_REVISION,
                 "data_version": spec.VERSION,
                 "bundle_sha256": spec.SHA256,
-                "modules": 27,
-                "native_jobs": 40,
-                "core_templates": 26,
+                "modules": len(spec.CAPABILITIES),
+                "native_jobs": len(jobs),
+                "core_templates": sum(
+                    MODULES[cap].parent_capability is None for cap in spec.CAPABILITIES
+                ),
                 "nested_clustering_example": True,
                 "retained_record_followup_stages": 5,
                 "native_plip_job": str(pin.job_id),
