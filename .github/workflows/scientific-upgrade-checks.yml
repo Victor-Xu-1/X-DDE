@@ -17,6 +17,7 @@ on:
             plip-lock,
             chemprop,
             property-review,
+            source-stereo,
             simulation-lock,
             simulation-native,
             simulation-views,
@@ -73,6 +74,9 @@ jobs:
     uses: ./.github/workflows/property-model-review-checks.yml
     with:
       runner: ${{ inputs.runner || 'ubuntu-24.04' }}
+  source-stereo:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'source-stereo'
+    uses: ./.github/workflows/diffsbdd-source-stereo-checks.yml
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

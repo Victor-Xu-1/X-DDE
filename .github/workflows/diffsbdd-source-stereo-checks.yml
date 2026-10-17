@@ -1,0 +1,17 @@
+name: DiffSBDD source identity scoped checks
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  managed-rdkit:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Exact managed Python and RDKit; real PROTAC and stereo counterexamples only
+        run: >-
+          uv run --no-project --python 3.10 --with pytest==9.1.1
+          --with numpy==1.26.4 --with rdkit==2023.9.6
+          python -m pytest -q server_tests/test_diffsbdd_source_stereo.py

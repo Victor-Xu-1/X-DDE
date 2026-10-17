@@ -8,6 +8,8 @@ import hashlib
 import io
 import json
 
+from molfile_stereo import source_stereo_molecule
+
 
 def bound_file(ref, bindings, directory, suffix):
     relative = bindings[str(ref["asset_id"])]
@@ -29,11 +31,13 @@ def molecule(ref, bindings, directory, require_3d=True):
     from rdkit import Chem
 
     path = bound_file(ref, bindings, directory, ".sdf")
-    supplier = Chem.SDMolSupplier(str(path), removeHs=True)
+    # Preserve the authored uncertainty before removing explicit H atoms. A
+    # direct removeHs=True parse can discard an unknown-stereo H bond first.
+    supplier = Chem.SDMolSupplier(str(path), removeHs=False)
     record = ref.get("record", 0)
     if not 0 <= record < len(supplier) or supplier[record] is None:
         raise ValueError("Selected SDF record is missing or chemically invalid.")
-    mol = supplier[record]
+    mol = Chem.RemoveHs(supplier[record])
     if ref.get("conformer", 0) != 0 or not 1 <= mol.GetNumHeavyAtoms() <= 5000:
         raise ValueError("Unsupported conformer or molecular size.")
     if require_3d and (
@@ -52,7 +56,7 @@ def sdf(mol):
 
     stream = io.StringIO()
     writer = Chem.SDWriter(stream)
-    writer.write(mol)
+    writer.write(source_stereo_molecule(mol))
     writer.close()
     return stream.getvalue()
 
@@ -176,7 +180,7 @@ def molecular_collection(payload, bindings, directory, output):
                 smiles = Chem.MolToSmiles(mol)
                 duplicate = smiles in unique
                 unique.add(smiles)
-                writer.write(mol)
+                writer.write(source_stereo_molecule(mol))
                 records.append(
                     {
                         "reference": ref,
