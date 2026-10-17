@@ -163,7 +163,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
             path=str(evidence / "prepared-library.png"), full_page=True, animations="disabled"
         )
         page.reload()
-        expect(page.locator("html")).to_have_attribute("lang", language)
+        expect(page.locator("html")).to_have_attribute("lang", "zh-CN" if zh else "en")
         assert not errors, errors
         assert not mutations, mutations
         browser.close()
