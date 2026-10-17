@@ -20,7 +20,7 @@ afterEach(() => {
 const source = (id = "parent-a"): Job => ({
   id,
   request: {
-    name: "Lifecycle " + id,
+    name: id === "parent-b" ? "Destination study" : "Origin study",
     components: [{ kind: "protein", value: "MSLWGLVSKMPPEK", count: 1 }],
     parameters: defaults,
   },
@@ -147,7 +147,7 @@ it.each([
     expect(screen.queryByRole("alert")).toBeNull();
     if (destination === "other task")
       expect(
-        screen.getByRole("heading", { name: "Lifecycle parent-b" }),
+        screen.getByRole("heading", { name: "Destination study" }),
       ).toBeVisible();
     else
       expect(screen.getByRole("heading", { name: "New task" })).toBeVisible();
@@ -180,6 +180,64 @@ it("invalidates an earlier retry when a retained detail changes A to B to A", as
   expect(changed).not.toHaveBeenCalled();
   expect(retry).toHaveBeenCalledTimes(1);
   expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
+});
+
+it("does not reclaim a newer task after the old cancellation finishes", async () => {
+  let resolve!: (job: Job) => void;
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const cancel = vi.spyOn(api, "cancel").mockImplementation(
+    () =>
+      new Promise((done) => {
+        resolve = done;
+      }),
+  );
+  const changed = vi.fn();
+  const view = render(
+    <TaskDetail
+      key="parent-a"
+      job={{ ...source(), status: "queued" }}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={changed}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Cancel task" }));
+  view.rerender(
+    <TaskDetail
+      key="parent-b"
+      job={source("parent-b")}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={changed}
+    />,
+  );
+  await act(async () => resolve(source()));
+  expect(changed).not.toHaveBeenCalled();
+  expect(cancel).toHaveBeenCalledTimes(1);
+  expect(
+    screen.getByRole("heading", { name: "Destination study" }),
+  ).toBeVisible();
+});
+
+it("opens a still-current confirmed retry in StrictMode", async () => {
+  const retry = vi.spyOn(api, "retry").mockResolvedValue(child());
+  const changed = vi.fn();
+  render(
+    <StrictMode>
+      <TaskDetail
+        job={source()}
+        detail={null}
+        failed={false}
+        language="en"
+        onChange={changed}
+      />
+    </StrictMode>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+  await waitFor(() => expect(changed).toHaveBeenCalledWith(child()));
+  expect(retry).toHaveBeenCalledTimes(1);
 });
 
 it("honors a dismissed cancellation confirmation", () => {

@@ -1,5 +1,5 @@
 import { ConstraintReceipt } from "./constraints/ConstraintReceipt";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { api, artifactUrl } from "./api";
 import { translator } from "./i18n";
 import {
@@ -43,9 +43,24 @@ export function TaskDetail({
   const actionPending = useRef(new Set<string>());
   const selectedId = useRef(job?.id);
   selectedId.current = job?.id;
+  // Invalidate ownership during the commit that replaces this keyed result view.
+  const actionView = useRef({ mounted: false, generation: 0 });
+  useLayoutEffect(() => {
+    actionView.current.mounted = true;
+    actionView.current.generation += 1;
+    return () => {
+      actionView.current.mounted = false;
+      actionView.current.generation += 1;
+    };
+  }, [job?.id]);
   async function action(kind: "cancel" | "retry") {
     if (!job || actionPending.current.has(job.id)) return;
     if (kind === "cancel" && !window.confirm(t("cancelConfirm"))) return;
+    const generation = actionView.current.generation;
+    const ownsView = () =>
+      actionView.current.mounted &&
+      actionView.current.generation === generation &&
+      selectedId.current === job.id;
     actionPending.current.add(job.id);
     setPendingIds(new Set(actionPending.current));
     setActionErrors((previous) => ({ ...previous, [job.id]: "" }));
@@ -57,7 +72,7 @@ export function TaskDetail({
         retryKeys.current.set(job.id, key);
         result = await api.retry(job.id, key);
       }
-      if (selectedId.current === job.id) {
+      if (ownsView()) {
         try {
           onChange(result);
           if (kind === "retry") retryKeys.current.delete(job.id);
@@ -74,6 +89,7 @@ export function TaskDetail({
         }
       }
     } catch (error) {
+      if (!ownsView()) return;
       setActionErrors((previous) => ({
         ...previous,
         [job.id]:
@@ -87,7 +103,8 @@ export function TaskDetail({
       }));
     } finally {
       actionPending.current.delete(job.id);
-      setPendingIds(new Set(actionPending.current));
+      if (actionView.current.mounted)
+        setPendingIds(new Set(actionPending.current));
     }
   }
   if (!job)

@@ -1,8 +1,8 @@
 # Task modules and results / 任务模块与结果
 
-Tasks and results opens a compact module overview: targets, structures, pockets and docking, small-molecule design, induced proximity, screening, DEL, biologics, properties and safety, and dynamics/FEP. Choose a module to see its own history, filter by exact task type or status, search by name or ID, and open the existing result preview. The module's **New task** action opens its default questionnaire without submitting anything.
+Each research module owns its **Task results** workspace: targets, structures, pockets and docking, small-molecule design, induced proximity, screening, DEL, biologics, properties and safety, and dynamics/FEP. Open a module's history, filter by exact task type or status, search by name or ID, and inspect its existing result preview. The module's **New task** action opens its default questionnaire without submitting anything.
 
-任务与结果默认展示简洁的模块入口：靶点、结构、口袋与对接、小分子设计、诱导邻近、高通量筛选、DEL、生物药、性质与安全性、动力学与 FEP。进入模块后，可按具体任务类型、状态或名称/编号查找任务，并打开原有结果预览。“新建任务”进入该模块的默认问卷，不会自动递交。
+靶点、结构、口袋与对接、小分子设计、诱导邻近、高通量筛选、DEL、生物药、性质与安全性、动力学与 FEP 分别拥有自己的“任务结果”工作区。进入模块后，可按具体任务类型、状态或名称/编号查找任务，并打开原有结果预览。“新建任务”进入该模块的默认问卷，不会自动递交。
 
 Classification follows the actual stored request and the reviewed capability catalogue, never the task title. Shared operations retain their distinctions: docking/score/minimize, individual design modes, target/disease evidence, native protein tools, and MD/FEP methods. Supporting and unclassified historical tasks remain reachable; fixed examples stay in their module's case library. Opening an existing task link selects its module automatically. Selecting another module removes the previous result from view, while selecting a row preserves that list's filters and page.
 
@@ -11,6 +11,10 @@ Classification follows the actual stored request and the reviewed capability cat
 Module browsing is represented in the URL even without a selected task. Refreshing restores the module, compatible task type, status, search, page and project. Existing direct task links remain supported. Invalid or incompatible URL filters are discarded before querying; a module overview does not display one mixed task list.
 
 只浏览模块、尚未选择任务时，网址也会保留当前位置。刷新后恢复模块、相容任务类型、状态、搜索、页码和项目；原有任务直达链接继续可用。不合法或不属于该模块的筛选不会传入查询；模块总览不展示混合任务列表。
+
+Cancellation and rerun responses belong to the result view that initiated them. Switching tasks, leaving results, or choosing A → B → A invalidates that view's earlier navigation intent. A late confirmed response never takes over the newer page; accepted server work remains in its module's history. Navigation does not cancel or resubmit that work. An action that is still current opens its confirmed result, retaining the existing idempotency and repeated-click protection.
+
+取消和重新运行的回复只属于发起操作时的结果页面。切换任务、离开结果页或选择 A → B → A 后，原先的导航意图失效；稍晚返回的确认不会抢回当前页面。已经受理的任务仍保留在所属模块历史中，页面切换不会取消或重复递交它。当前页面的操作仍可正常打开已确认的结果，并保留原有幂等与重复点击保护。
 
 The read-only `/api/task-history` endpoint queries the existing SQLite authority. It returns 20 rows by default, exact type counts for the selected project, and a filtered total. Search is literal and parameters are bound; pagination uses creation time plus ID as a stable tie-breaker. Rows and counts share a read snapshot. No new task store, queue, result format or data migration is introduced. The UI cancels stale reads, bounds each request to 30 seconds, and keeps an explicit reconnection action and honest empty states. Earlier jobs beyond the first hundred are queried directly rather than silently omitted.
 
