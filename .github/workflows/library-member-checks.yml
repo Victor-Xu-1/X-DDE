@@ -35,7 +35,11 @@ jobs:
           npx vitest run src/datasets/IndexedLibraryResults.test.tsx
           src/datasets/DatasetResults.test.tsx src/datasets/ResearchTable.test.tsx
           src/datasets/member-page-export.test.ts
-          src/presentation/ResultRow.test.tsx
+      - name: Shared row keyboard, pointer and independent nested controls
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/ResearchTable.test.tsx
+          -t "selects a whole row|preserves disabled record"
       - name: Exact immutable member reads, saves and pagination
         run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
   native:
