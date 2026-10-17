@@ -118,7 +118,15 @@ def test_prepared_stat6_library_has_native_inspection_switching_and_portable_dow
         expect(inspector.get_by_role("status")).to_contain_text(
             "已保存到历史文件" if zh else "Saved to historical files"
         )
-        page.screenshot(path=str(evidence / "native-member-workspace.png"), full_page=True)
+        expect(inspector.locator(".molecule-image")).to_have_attribute(
+            "data-drawing-state", "ready"
+        )
+        inspector.locator(".molecule-image img").evaluate("image => image.decode()")
+        page.screenshot(
+            path=str(evidence / "native-member-workspace.png"),
+            full_page=True,
+            animations="disabled",
+        )
         assert not errors, errors
         assert [(item.id, item.status) for item in store.list_jobs()] == before_jobs
         assert database.read_bytes() == original

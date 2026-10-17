@@ -166,6 +166,7 @@ export function ResearchTable({
         {(view === "library" || view === "index") && (
           <button
             type="button"
+            className="secondary-button"
             disabled={busy || !page?.rows.length}
             onClick={() =>
               downloadBlob(
