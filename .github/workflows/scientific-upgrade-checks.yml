@@ -16,6 +16,7 @@ on:
             plip,
             plip-lock,
             chemprop,
+            property-review,
             simulation-lock,
             simulation-native,
             simulation-views,
@@ -67,6 +68,9 @@ jobs:
     uses: ./.github/workflows/simulation-checks.yml
     with:
       check: ${{ inputs.check == 'simulation-lock' && 'locks' || inputs.check == 'simulation-views' && 'md-views' || 'native' }}
+  property-model-review:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'property-review'
+    uses: ./.github/workflows/property-model-review-checks.yml
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

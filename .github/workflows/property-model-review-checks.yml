@@ -1,20 +1,6 @@
 name: Property model review scoped checks
 on:
-  workflow_dispatch:
-  push:
-    paths: &model_paths
-      - "src/opendde_workbench/examples/native_sources.py"
-      - "src/opendde_workbench/examples/evidence.py"
-      - "src/opendde_workbench/examples/bundle_sources.py"
-      - "frontend/src/integrations/PropertyModelResults*"
-      - "frontend/src/integrations/ScientificResults*"
-      - "frontend/src/integrations/results.css"
-      - "tests/test_model_case_sources.py"
-      - "server_tests/test_property_model_review_browser.py"
-      - "server_tests/fixtures/stat6-spr-*"
-      - ".github/workflows/property-model-review-checks.yml"
-  pull_request:
-    paths: *model_paths
+  workflow_call:
 permissions:
   contents: read
 jobs:
