@@ -240,7 +240,7 @@ export function DiffResults({
               handoff.clear();
             }}
           >
-            {selectedRecord && !selected && (
+            {designing && selectedRecord && !selected && (
               <button
                 type="button"
                 className="secondary-button"
