@@ -1,6 +1,11 @@
 name: Exact research input selection and recovery
 on:
   workflow_dispatch:
+    inputs:
+      quality_preview_only:
+        type: boolean
+        default: false
+        description: Recheck only the retained native quality browser after unchanged input gates passed
   push:
     paths:
       - "frontend/src/diffsbdd/ReferencePicker*"
@@ -69,6 +74,7 @@ jobs:
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Changed file selection and directly connected questionnaires
+        if: ${{ !inputs.quality_preview_only }}
         working-directory: frontend
         run: >-
           npx vitest run src/diffsbdd/ReferencePicker.test.tsx
@@ -94,12 +100,15 @@ jobs:
           src/operations/ResultTaskSelect.test.tsx src/operations/result-source-labels.test.ts
           src/presentation/research-files.test.tsx
       - name: Actual filtered input catalog, immutable versions and existing research API
+        if: ${{ !inputs.quality_preview_only }}
         run: >-
           uv run --locked pytest -q tests/test_input_catalog.py tests/test_research_assets.py tests/test_result_metadata.py tests/test_pose_quality.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual real STAT6 metadata deadline, file pagination, identity and exact review; no simulation
+        if: ${{ !inputs.quality_preview_only }}
         run: uv run --locked python -m pytest -x -q server_tests/test_reference_input_browser.py server_tests/test_material_catalog_browser.py server_tests/test_generic_input_browser.py
       - name: Restore an archived native result for input handoff; never calculate
+        if: ${{ !inputs.quality_preview_only }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -107,6 +116,7 @@ jobs:
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-result-reuse/state" >> "$GITHUB_ENV"
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Bilingual actual result selection, immutable digest and uncertain-response handoff
+        if: ${{ !inputs.quality_preview_only }}
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python -m pytest -x -q server_tests/test_result_reuse_browser.py
@@ -117,7 +127,7 @@ jobs:
           echo "WB_HOME=$RUNNER_TEMP/x-dde-quality-reference" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-quality-reference/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-quality-reference" WB_STATE_DIR="$RUNNER_TEMP/x-dde-quality-reference/state" uv run --locked python server_tests/prepare_quality_context_cases.py
-      - run: uv run --locked pytest -x -q server_tests/test_quality_context_browser.py
+      - run: uv run --locked python -m pytest -x -q server_tests/test_quality_context_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
