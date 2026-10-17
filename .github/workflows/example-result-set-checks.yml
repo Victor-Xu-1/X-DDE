@@ -4,6 +4,7 @@ on:
   push:
     paths: &stage_paths
       - "src/opendde_workbench/examples/supporting.py"
+      - "src/opendde_workbench/examples/source_captions.py"
       - "src/opendde_workbench/examples/contracts.py"
       - "src/opendde_workbench/examples/pins.py"
       - "src/opendde_workbench/examples/records.py"
@@ -16,6 +17,7 @@ on:
       - "src/opendde_workbench/examples/stat6_bundle_release.py"
       - "tests/test_example_supporting.py"
       - "tests/test_example_stage_names.py"
+      - "tests/test_example_dataset_stage_names.py"
       - "tests/test_record_example_supporting.py"
       - "tests/test_example_native_lineage.py"
       - "tests/test_stat6_predicted_references.py"
@@ -31,6 +33,8 @@ on:
       - "frontend/src/operations/OperationResults*"
       - "frontend/src/examples/types.ts"
       - "server_tests/test_reviewed_example_previews_browser.py"
+      - "server_tests/example_preview_actions.py"
+      - "server_tests/reviewed_retrieval_preview.py"
       - ".github/workflows/example-result-set-checks.yml"
   pull_request:
     paths: *stage_paths
@@ -53,6 +57,7 @@ jobs:
           uv run --locked pytest -q tests/test_example_supporting.py
           tests/test_record_example_supporting.py
           tests/test_example_stage_names.py
+          tests/test_example_dataset_stage_names.py
           tests/test_example_native_lineage.py tests/test_stat6_predicted_references.py
           tests/test_stat6_source_revisions.py
           tests/test_example_records.py tests/test_example_pins.py tests/test_example_library.py

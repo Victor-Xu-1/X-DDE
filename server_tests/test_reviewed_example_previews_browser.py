@@ -8,8 +8,9 @@ from pathlib import Path
 
 import pytest
 from browser_platform import platform
+from example_preview_actions import choose_task, ready_structure
 from playwright.sync_api import expect, sync_playwright
-from test_navigation_shell_browser import open_navigation
+from reviewed_retrieval_preview import review_retrieval_example
 
 from opendde_workbench.examples.bundle import restore_bundle
 from opendde_workbench.examples.stat6_bundle_release import CAPABILITIES, SHA256
@@ -26,28 +27,6 @@ def records(state):
             table: db.execute("SELECT * FROM " + table + " ORDER BY 1").fetchall()
             for table in ("jobs", "scientific_objects", "example_pins")
         }
-
-
-def ready_structure(page, zh):
-    label = "生成三维视图图片" if zh else "Capture 3D view"
-    capture = page.locator(f'button[aria-label="{label}"]:visible')
-    expect(capture).to_be_enabled(timeout=60000)
-    return capture
-
-
-def choose_task(page, language, key):
-    zh = language == "zh"
-    if not page.locator(".module-task-picker select:visible").count():
-        navigation = open_navigation(page, language)
-        navigation.get_by_role(
-            "button", name="高通量筛选" if zh else "High-throughput screening", exact=True
-        ).click()
-    page.locator(".module-task-picker select:visible").select_option(key)
-    toolbar = page.locator(".module-template:visible")
-    toolbar.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
-    expect(
-        page.get_by_role("region", name="模板的真实结果" if zh else "Actual template result")
-    ).to_be_visible()
 
 
 def review_index_example(page, base, language, evidence):
@@ -216,6 +195,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
             path=str(evidence / "prepared-library.png"), full_page=True, animations="disabled"
         )
         index_stages = review_index_example(page, base, language, evidence)
+        retrieval_stages = review_retrieval_example(page, base, language, evidence)
         page.reload()
         expect(page.locator("html")).to_have_attribute("lang", "zh-CN" if zh else "en")
         assert not errors, errors
@@ -231,6 +211,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
                 "native_source_sha256": RAW_FIRST_SHA,
                 "unique_stage_captions": stages,
                 "index_minimization_stages": index_stages,
+                "retrieval_minimization_stages": retrieval_stages,
                 "source_unspecified_index_member_downloaded": True,
                 "api_mutations": mutations,
                 "jobs_and_scientific_versions_unchanged": True,

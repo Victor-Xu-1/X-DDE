@@ -95,7 +95,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 55 and not any(
+    assert len(jobs) == 58 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
     )
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
@@ -143,6 +143,15 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         "8f68fd01-eb6a-43db-9230-d28904d42107",
         "487253fc-aeb4-4e0b-ab44-39d459e5ef34",
     ]
+    retrieved = library_pins.get("drugclip.screen", verify=True)
+    assert str(retrieved.job_id) == "8f0e8e38-02d1-4753-a736-6d0619355967"
+    assert retrieved.review and [str(row.job_id) for row in retrieved.supporting_evidence] == [
+        "63cdb6e0-a698-4b44-8d1f-127e88782b13",
+        "636bee83-ae2f-4b2e-8f52-36ca6031068c",
+    ]
+    assert not {"fce65413-b248-4659-b7f3-5dabaef15b4a", "0ed1be39-410d-4b66-b6a3-fb4aaf9d02e9"} & {
+        row.id for row in jobs
+    }
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)
