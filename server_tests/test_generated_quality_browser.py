@@ -49,8 +49,11 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         page.add_init_script("""window.__nativeViewerLoads = [];
             window.addEventListener('message', event => {
                 if (event.origin === location.origin && event.source === window.parent &&
-                    event.data?.channel === 'opendde-viewer' && event.data.type === 'load')
+                    event.data?.channel === 'opendde-viewer' && event.data.type === 'load') {
                     window.__nativeViewerLoads.push(structuredClone(event.data.value));
+                    document.documentElement.dataset.nativeViewerLoadCount =
+                        String(window.__nativeViewerLoads.length);
+                }
             });""")
         errors, submissions = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -126,8 +129,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         assert first_load and 1 in first_load["records"]
         with molecular_frame.expect_navigation(wait_until="load", timeout=30000):
             molecular_frame.evaluate("location.reload()")
-        molecular_frame.wait_for_function(
-            "window.__nativeViewerLoads?.length > 0", timeout=30000
+        expect(molecular_frame.locator("html")).to_have_attribute(
+            "data-native-viewer-load-count", "1", timeout=30000
         )
         expect(capture).to_be_enabled(timeout=30000)
         restored_load = molecular_frame.evaluate("window.__nativeViewerLoads.at(-1)")
