@@ -1,6 +1,7 @@
 import type { Language } from "../types";
 import type { GraphNode } from "./types";
 import { datasetTools } from "../datasets/catalog";
+import { researchDate } from "../presentation/research-date";
 
 /** Human context supplements filenames without renaming scientific records. */
 export function assetContext(
@@ -43,17 +44,7 @@ export function assetContext(
         ? `记录 ${object.reference.record + 1}`
         : `Record ${object.reference.record + 1}`,
     );
-  const date = new Date(object.created_at);
-  if (Number.isFinite(date.getTime()))
-    parts.push(
-      new Intl.DateTimeFormat(language === "zh" ? "zh-CN" : "en-GB", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }).format(date),
-    );
+  const date = researchDate(object.created_at, language);
+  if (date) parts.push(date);
   return parts.join(" · ");
 }

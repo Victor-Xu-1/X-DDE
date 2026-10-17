@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { Language } from "../types";
 import type { AvailableDataset, DatasetSource } from "./types";
-import { datasetName } from "./source-label";
+import { datasetName, datasetSourceCaptions } from "./source-label";
 import { researchError } from "../presentation/research-content";
 import { useDatasetSources } from "./useDatasetSources";
 
@@ -67,6 +67,7 @@ export function SourcePicker({
         value.report_sha256 === item.report_sha256 &&
         value.role === item.role,
     );
+  const captions = datasetSourceCaptions(records, language);
   const filtered = records.filter((item) =>
     [item.name, datasetName(item, language)].some((name) =>
       name.toLowerCase().includes(search.toLowerCase()),
@@ -137,7 +138,12 @@ export function SourcePicker({
             </span>
             <span>
               <strong>{datasetName(item, language)}</strong>
-              <small>{recordLabel(item, zh)}</small>
+              <small>
+                {recordLabel(item, zh)}
+                {captions.get(item.job_id) && (
+                  <> · {captions.get(item.job_id)}</>
+                )}
+              </small>
             </span>
           </button>
         ))}

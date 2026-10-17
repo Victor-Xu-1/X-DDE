@@ -58,6 +58,7 @@ def register(app, store, settings, assets, mutation):
         return {
             "job_id": job.id,
             "name": job.request.name,
+            "created_at": job.created_at,
             "label": job_labels(store).get(job.id),
             "operation": job.request.operation,
             "report_sha256": digest,
@@ -128,6 +129,7 @@ def register(app, store, settings, assets, mutation):
                         {
                             "job_id": job.id,
                             "name": job.request.name,
+                            "created_at": job.created_at,
                             "label": labels.get(job.id),
                             "operation": job.request.operation,
                             "report_sha256": digest,

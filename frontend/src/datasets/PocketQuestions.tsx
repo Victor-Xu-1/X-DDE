@@ -127,6 +127,7 @@ export function PocketQuestion({
           <input
             type="checkbox"
             checked={value.confirmed}
+            disabled={!value.receptor || !value.reference}
             onChange={(e) => value.setConfirmed(e.target.checked)}
           />
           {zh

@@ -5,6 +5,7 @@ import * as client from "../api";
 import { SourcePicker } from "./SourcePicker";
 import { DELPrerequisite } from "./DELPrerequisite";
 import type { AvailableDataset } from "./types";
+import { researchDate } from "../presentation/research-date";
 
 afterEach(() => {
   cleanup();
@@ -120,3 +121,51 @@ it("shows an explicitly loaded template source that is absent from personal hist
   );
   expect(screen.queryByText(/No completed materials yet/)).toBeNull();
 });
+
+it.each(["en", "zh"] as const)(
+  "distinguishes same-name source results by their recorded times in %s",
+  async (language) => {
+    const earlier = { ...item, created_at: "2026-10-17T13:44:46Z" };
+    const later = {
+      ...item,
+      job_id: "reviewed-index",
+      report_sha256: "b".repeat(64),
+      created_at: "2026-10-17T14:46:43Z",
+    };
+    vi.spyOn(client, "request").mockResolvedValue([later, earlier]);
+    const update = vi.fn();
+    render(<SourcePicker {...props} language={language} onChange={update} />);
+    const option = await screen.findByRole("button", {
+      name: new RegExp(researchDate(later.created_at, language)),
+    });
+    expect(option).toHaveTextContent(item.name);
+    await userEvent.setup().click(option);
+    expect(update).toHaveBeenCalledExactlyOnceWith([later]);
+    expect(
+      screen.getByRole("button", {
+        name: new RegExp(researchDate(earlier.created_at, language)),
+      }),
+    ).toHaveAttribute("aria-pressed", "false");
+  },
+);
+
+it.each(["not-a-date", "2026-10-17T14:46:43Z"])(
+  "keeps duplicate sources distinct at %s",
+  async (created_at) => {
+    const older = { ...item, job_id: "A", created_at };
+    const newer = { ...older, job_id: "B", report_sha256: "b".repeat(64) };
+    vi.spyOn(client, "request").mockResolvedValue([newer, older]);
+    const update = vi.fn();
+    const { rerender } = render(<SourcePicker {...props} onChange={update} />);
+    await userEvent
+      .setup()
+      .click(await screen.findByRole("button", { name: /#2/ }));
+    expect(update).toHaveBeenCalledExactlyOnceWith([newer]);
+    expect(screen.queryByText(/Invalid Date|1970/)).toBeNull();
+    rerender(<SourcePicker {...props} values={[older]} onChange={update} />);
+    expect(screen.getByRole("button", { name: /#1/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  },
+);

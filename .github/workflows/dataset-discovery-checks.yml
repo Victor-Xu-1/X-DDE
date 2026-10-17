@@ -65,10 +65,32 @@ on:
         description: Changed contracts or one actual isolated scientific engine
         type: choice
         default: contracts
-        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina, stereo]
+        options: [contracts, browser, images, supplier-files, drugclip, deli, gnina, stereo, inputs]
 permissions:
   contents: read
 jobs:
+  source-inputs:
+    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'inputs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact native source context without result mutation or model execution
+        run: uv run --locked pytest -q tests/test_dataset_source_context.py tests/test_dataset_contracts.py
+      - name: Same-name selection, pending-file confirmation and direct form consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/SourcePicker.test.tsx src/datasets/PocketQuestions.test.tsx
+          src/datasets/ScreeningForm.test.tsx src/datasets/dataset-model.test.ts
+          src/research/asset-context.test.ts src/diffsbdd/ReferencePickerLifecycle.test.tsx
   native-source-stereo:
     if: github.event_name == 'workflow_dispatch' && inputs.engine == 'stereo'
     runs-on: ubuntu-24.04
