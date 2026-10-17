@@ -25,7 +25,7 @@ def persisted_native_library(tmp_path, monkeypatch):
     settings = Settings.from_env()
     store = Store(settings.state_dir / "jobs.sqlite3")
     asset = AssetStore(store, settings.state_dir / "assets").save(
-        "STAT6-reference-library.sdf", "library", SOURCE.read_bytes()
+        "STAT6-reference-library.sdf", "ligand", SOURCE.read_bytes()
     )
     native = Native(tmp_path / "native", monkeypatch)
     material = native.material(SOURCE.read_bytes(), ".sdf", "data")
