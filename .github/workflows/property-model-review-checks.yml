@@ -26,7 +26,7 @@ jobs:
       - name: Linked structures, errors, units, model downloads and ordinary candidate results
         working-directory: frontend
         run: npx vitest run src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx src/presentation/MetricScatter.test.tsx
-      - name: Get the current immutable legacy case data for compatibility only
+      - name: Get the current immutable public case data for cold restoration
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -45,7 +45,7 @@ jobs:
       - name: Install native Ketcher only; no training or scientific engine
         run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps
-      - name: Real weak-model output replay in English desktop and Chinese mobile browsers
+      - name: Actual restored model and region examples in English desktop and Chinese mobile browsers
         run: uv run --locked pytest -x -q server_tests/test_property_model_review_browser.py
       - uses: actions/upload-artifact@v4
         if: always()

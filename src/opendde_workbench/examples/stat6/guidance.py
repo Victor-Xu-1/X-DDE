@@ -101,6 +101,27 @@ def steps(capability):
     simulation = simulation_steps(capability)
     if simulation is not None:
         return simulation
+    if capability == "regions":
+        return [
+            (
+                "选择完整分子，保留原始结构与立体化学说明。",
+                "Choose the complete molecule and retain its original stereo specification.",
+            ),
+            (
+                "读取实际原子编号，分别标记两端与连接区；标签不证明结合。",
+                "Read native atom numbers and annotate the two arms and connector; "
+                "labels do not establish binding.",
+            ),
+            (
+                "为区域集命名，便于后续研究选择同一分子上的区域。",
+                "Name the region set for subsequent selection on the same molecule.",
+            ),
+            (
+                "核对各区域的原子与用途后保存；分子保持完整，不切断化学键。",
+                "Check each region's atoms and intended use, then save; "
+                "the molecule stays intact and no bonds are cut.",
+            ),
+        ]
     if capability == "experimental.evidence":
         return [
             (

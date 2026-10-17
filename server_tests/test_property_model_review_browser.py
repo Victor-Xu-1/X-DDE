@@ -3,44 +3,20 @@
 import hashlib
 import json
 import os
-import re
 from pathlib import Path
 
 import pytest
 from browser_platform import platform
 from playwright.sync_api import expect, sync_playwright
+from reviewed_regions_preview import review_saved_regions
+from test_navigation_shell_browser import open_navigation
 
+from opendde_workbench.models import Job
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 
 FIXTURES = Path(__file__).parent / "fixtures"
 EVIDENCE = Path("server_tests/evidence/property-model-review")
-
-
-def persist_replay_download(settings, job, original):
-    """Serve the real CSV through the isolated API, without enqueueing history."""
-    store = Store(settings.state_dir / "jobs.sqlite3")
-    body = json.dumps(job["request"], separators=(",", ":"))
-    with store.connect() as database:
-        database.execute(
-            "INSERT INTO jobs(id,request,request_hash,idempotency_key,status,created_at,"
-            "started_at,finished_at,error,parent_id) VALUES(?,?,?,?,?,?,?,?,?,?)",
-            (
-                job["id"],
-                body,
-                hashlib.sha256(body.encode()).hexdigest(),
-                job["id"],
-                job["status"],
-                job["created_at"],
-                job["started_at"],
-                job["finished_at"],
-                job["error"],
-                job["parent_id"],
-            ),
-        )
-    output = settings.state_dir / "jobs" / job["id"] / "output"
-    output.mkdir(parents=True)
-    (output / "held-out-predictions.csv").write_bytes(original)
 
 
 @pytest.fixture(scope="module")
@@ -55,7 +31,10 @@ def model_review_fixture():
     )
     settings = Settings.from_env()
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
-    persist_replay_download(settings, job, original)
+    restored = Store(settings.state_dir / "jobs.sqlite3").get(job["id"])
+    assert restored and restored == Job.model_validate(job)
+    output = settings.state_dir / "jobs" / job["id"] / "output"
+    assert (output / "held-out-predictions.csv").read_bytes() == original
     return settings, job, result, original
 
 
@@ -85,11 +64,18 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
             ),
         )
         before = page.request.get(base + "/api/jobs").json()
-        page.route(re.compile(r"/api/jobs(?:\?|$)"), lambda route: route.fulfill(json=[job]))
-        page.route("**/api/jobs/" + job["id"], lambda route: route.fulfill(json=job))
-        page.route("**/api/jobs/" + job["id"] + "/result", lambda route: route.fulfill(json=result))
-        page.route("**/api/jobs/" + job["id"] + "/artifacts", lambda route: route.fulfill(json=[]))
-        page.goto(base + "/#view=results&module=evaluation&task=" + job["id"])
+        assert page.request.get(base + "/api/jobs/" + job["id"] + "/result").json() == result
+        page.goto(base + "/")
+        open_navigation(page, language).get_by_role(
+            "button", name="性质与安全性" if zh else "Properties and safety", exact=True
+        ).click()
+        page.locator(".module-task-picker select:visible").select_option("chemprop.train")
+        expect(
+            page.get_by_role("radio", name="上传新文件" if zh else "Upload a new file", exact=True)
+        ).to_be_checked()
+        page.locator(".module-template:visible").get_by_role(
+            "button", name="示例结果" if zh else "Example results", exact=True
+        ).click()
         region = page.get_by_role(
             "region", name="性质模型测试集复核" if zh else "Property model held-out review"
         )
@@ -164,6 +150,15 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         destination = evidence / "browser-held-out-predictions.csv"
         transfer.value.save_as(destination)
         assert destination.read_bytes() == original
+        with page.expect_download() as transfer:
+            page.get_by_role("link", name="property-model.pt", exact=True).click()
+        checkpoint = evidence / "browser-property-model.pt"
+        transfer.value.save_as(checkpoint)
+        assert (
+            hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+            == (result["artifact_sha256"]["property-model.pt"])
+        )
+        review_saved_regions(page, language, evidence)
         assert page.request.get(base + "/api/jobs").json() == before
         assert not errors and not writes, {"errors": errors, "api_writes": writes}
         (evidence / "acceptance.json").write_text(
@@ -179,6 +174,9 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
                     "linked_plot_record_and_error_table": True,
                     "native_plot_mouse_selection": True,
                     "original_csv_download": True,
+                    "original_model_download": True,
+                    "restored_case_without_response_mocks": True,
+                    "model_and_regions_loaded_from_their_modules": True,
                     "api_writes": writes,
                     "page_errors": errors,
                 },

@@ -22,3 +22,9 @@ The CSV retains its exact original bytes, SHA256
 `e2fcbadc51df6fc4b207b6a3772e62d8384f0555399c1edb4d18af91adcbc446`.
 The model's original checkpoint identity is retained in the result manifest;
 the checkpoint is not embedded in this UI replay fixture.
+
+The current browser gate restores the reviewed public case package first. Its
+real persisted task, model and CSV are used without seeding job rows or mocking
+HTTP responses. These small fixtures remain independent checks of the original
+job, result and CSV. Both CSV and checkpoint downloads are checked through the
+actual platform API, followed by the saved PROTAC-region example.

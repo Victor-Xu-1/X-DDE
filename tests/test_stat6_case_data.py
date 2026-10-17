@@ -55,6 +55,60 @@ def retained_state_roundtrip(settings, store, assets, tmp_path):
     return str(state.id)
 
 
+def retained_model_and_regions(settings, store, assets, tmp_path):
+    pins = ExamplePins(store, settings.state_dir, modules=MODULES)
+    model = pins.get("chemprop.train", verify=True)
+    assert str(model.job_id) == "d90b04d5-f76d-44db-8762-78ff550dc1ec"
+    assert model.review and model.review.scope == "reviewed_computational_example"
+    assert "Predictive utility is NOT established" in model.review.limitations
+    output = settings.state_dir / "jobs" / str(model.job_id) / "output"
+    checkpoint_sha = "7424bd97c84d53c4a2318219d608fa6d489e92d1bcc98e62432eae530b3722fc"
+    assert hashlib.sha256((output / "property-model.pt").read_bytes()).hexdigest() == checkpoint_sha
+    result = json.loads((output / "result.json").read_bytes())
+    assert len(result["validation_points"]) == 16
+    assert next(row["value"] for row in result["metrics"] if row["name"] == "Test R²") < 0
+    records = ExampleRecords(store, assets, settings, modules=MODULES)
+    regions = records.get("regions", verify=True)
+    assert str(regions.record_id) == "29b2cbf6-381f-58b4-83b2-96f26911c649"
+    from opendde_workbench.research.regions import RegionRecords
+
+    document = RegionRecords(store, assets, settings).get(regions.record_id)
+    assert document["body"]["identity_job"] == "8e66e83e-cce1-40ca-b343-ac33a12a495d"
+    assert document["body"]["subject"]["sha256"] == (
+        "034e6209f81b3c85d62a96a62fa4643dcf9f188ab64df5beb8c482bb18a738b0"
+    )
+    assert [len(row["atom_indices"]) for row in document["body"]["regions"]] == [38, 6, 18]
+    identity = (
+        settings.state_dir / "jobs" / document["body"]["identity_job"] / "output/selection.sdf"
+    )
+    assert hashlib.sha256(identity.read_bytes()).hexdigest() == (
+        "1a60971c824f4f80d7a378356f2217394f51f3732b605f43440b22dc8d8fe283"
+    )
+    target = tmp_path / "model-and-regions.zip"
+    exported = export_bundle(
+        settings,
+        target,
+        spec.SOURCE_REVISION,
+        capabilities=["chemprop.train", "regions"],
+        profile="stat6",
+    )
+    replay = replace(settings, state_dir=tmp_path / "model-region-replay")
+    assert restore_bundle(target, replay, exported["sha256"])["computed"] == 2
+    replayed = Store(replay.state_dir / "jobs.sqlite3")
+    replay_assets = AssetStore(replayed, replay.state_dir / "assets")
+    assert (
+        ExamplePins(replayed, replay.state_dir, modules=MODULES).get("chemprop.train", verify=True)
+        == model
+    )
+    assert (
+        ExampleRecords(replayed, replay_assets, replay, modules=MODULES).get("regions", verify=True)
+        == regions
+    )
+    retained = replay.state_dir / "jobs" / str(model.job_id) / "output/property-model.pt"
+    assert hashlib.sha256(retained.read_bytes()).hexdigest() == checkpoint_sha
+    return {"model": str(model.job_id), "regions": str(regions.record_id)}
+
+
 def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     settings, tmp_path, monkeypatch
 ):
@@ -95,7 +149,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 62 and not any(
+    assert len(jobs) == 64 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
     )
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
@@ -185,6 +239,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         "a7f43f32a2c30345797b65664752c51b57a8827af798033577f02d8f61b230a8"
     )
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
+    retained_model_regions = retained_model_and_regions(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)
     (evidence / "installation.json").write_text(
@@ -205,6 +260,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
                 "existing_attachment_unchanged": True,
                 "idempotent_replay": True,
                 "native_state_collection_replayed": retained_states,
+                "native_model_and_region_subset_replayed": retained_model_regions,
                 "new_scientific_tasks": 0,
                 "experimental_activity_claim": False,
             },
