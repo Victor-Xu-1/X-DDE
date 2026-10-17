@@ -73,14 +73,15 @@ foreach ($command in @('STATUS','Stop','CLOSE')) {
     if (Test-Path -LiteralPath (Join-Path $target 'tmp')) { throw 'Status or close created temporary storage on a full drive.' }
     $invocation = [IO.File]::ReadAllText($marker)
     if ($invocation -notmatch '/environment/bin/xdde' -or $invocation -notmatch "(?i) $command ") { throw 'Running control was not forwarded unchanged to the existing CLI.' }
-    if ($invocation -notmatch ' --cd / -- env ') { throw 'Running control inherited the caller Windows drive directory.' }
+    # PowerShell function boundaries consume --; native wsl.exe retains it.
+    if ($invocation -notmatch ' --cd / (?:-- )?env ') { throw 'Running control inherited the caller Windows drive directory.' }
 }
 foreach ($command in @('UI','DASHBOARD','START')) {
     $marker = Join-Path $target ($command + '.available-native-call')
     $result = Invoke-LauncherBoundary $command $marker -Running -Available
     if ($result.exit -ne 0 -or !(Test-Path -LiteralPath $marker)) { throw "Available startup failed: $command" }
     $invocation = [IO.File]::ReadAllText($marker)
-    if ($invocation -notmatch ' --cd / -- env ' -or $invocation -notmatch '/environment/bin/xdde') {
+    if ($invocation -notmatch ' --cd / (?:-- )?env ' -or $invocation -notmatch '/environment/bin/xdde') {
         throw 'Startup did not enter the registered distribution from an explicit Linux directory.'
     }
 }

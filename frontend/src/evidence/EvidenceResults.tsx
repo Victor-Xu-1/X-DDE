@@ -87,7 +87,12 @@ export function EvidenceResults({
           ) : null
         }
       >
-        <EvidencePlot rows={rows} language={language} onSelect={setSelected} />
+        <EvidencePlot
+          rows={rows}
+          language={language}
+          selectedId={current?.id}
+          onSelect={setSelected}
+        />
         <ResearchTable<Observation>
           rows={rows}
           language={language}

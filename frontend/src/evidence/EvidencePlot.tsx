@@ -4,10 +4,12 @@ export function EvidencePlot({
   rows,
   language,
   onSelect,
+  selectedId,
 }: {
   rows: Observation[];
   language: Language;
   onSelect(row: Observation): void;
+  selectedId?: string | null;
 }) {
   const zh = language === "zh";
   const logarithmic = rows[0]?.normalized_unit === "nM";
@@ -83,6 +85,7 @@ export function EvidencePlot({
               tabIndex={0}
               role="button"
               aria-label={`${r.compound} ${r.relation} ${r.reported_value} ${r.reported_unit}`}
+              aria-pressed={r.id === selectedId}
               onClick={() => onSelect(r)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -91,6 +94,13 @@ export function EvidencePlot({
                 }
               }}
             >
+              <rect
+                x={0}
+                y={18 + i * 25}
+                width={680}
+                height={24}
+                fill="transparent"
+              />
               <title>
                 {r.compound} · {r.relation} {r.reported_value} {r.reported_unit}
               </title>

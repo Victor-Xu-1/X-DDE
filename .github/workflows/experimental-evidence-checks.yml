@@ -6,7 +6,7 @@ on:
         description: The affected experimental module contracts or only STAT6 input metadata
         type: choice
         default: module
-        options: [module, stat6-inputs]
+        options: [module, stat6-inputs, interaction]
   push:
     paths:
       - "src/opendde_workbench/research/evidence*.py"
@@ -53,11 +53,12 @@ jobs:
       - run: uv sync --locked --group dev --group browser
       - name: CSV, immutable evidence, assets and legacy case boundaries
         id: evidence_contracts
-        run: >-
-          uv run --locked pytest -q tests/test_experimental_evidence.py
-          tests/test_experimental_evidence_api.py tests/test_capabilities.py
-          tests/test_examples.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
-          tests/test_example_records.py tests/test_example_pins.py tests/test_research_assets.py
+        run: |
+          if [ "${{ inputs.scope }}" = "interaction" ]; then
+            uv run --locked pytest -q tests/test_experimental_evidence.py tests/test_experimental_evidence_api.py
+          else
+            uv run --locked pytest -q tests/test_experimental_evidence.py tests/test_experimental_evidence_api.py tests/test_capabilities.py tests/test_examples.py tests/test_case_bundle.py tests/test_case_bundle_sources.py tests/test_example_records.py tests/test_example_pins.py tests/test_research_assets.py
+          fi
       - name: Changed evidence results and question flow
         if: ${{ success() || (failure() && steps.evidence_contracts.outcome == 'failure') }}
         working-directory: frontend

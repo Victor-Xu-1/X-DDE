@@ -8,7 +8,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 from server_tests.archived_case_browser import archived_case_context
 
@@ -88,6 +88,22 @@ def test_reported_evidence_example_and_fresh_questionnaire():
                 molecule.wait_for(timeout=30000)
                 assert molecule.evaluate("img => img.complete && img.naturalWidth > 0")
                 page.screenshot(path=output / "reported-results-desktop.png", full_page=True)
+                # SVG text and markers leave most of the row unpainted. Its full
+                # hit area must still select the linked molecular record by mouse.
+                plot = page.get_by_role("img", name="同条件实测值对比图", exact=True)
+                point = plot.get_by_role("button").nth(1)
+                compound = point.get_attribute("aria-label").split()[0]
+                original_image = molecule.get_attribute("src")
+                point.click()
+                expect(point).to_have_attribute("aria-pressed", "true")
+                expect(page.locator(".evidence-structure h3")).to_have_text(compound)
+                linked = page.get_by_role("img", name=f"二维分子结构 · {compound}", exact=True)
+                expect(linked).to_be_visible(timeout=30000)
+                expect(linked).not_to_have_attribute("src", original_image)
+                assert linked.evaluate("img => img.complete && img.naturalWidth > 0")
+                page.screenshot(
+                    path=output / "mouse-selected-reported-molecule.png", full_page=True
+                )
                 with page.expect_download() as download:
                     page.get_by_role("link", name="下载实测表格", exact=True).click()
                 download.value.save_as(output / "downloaded-observations.csv")

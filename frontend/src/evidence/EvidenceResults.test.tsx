@@ -91,13 +91,25 @@ describe("reported evidence presentation", () => {
       <EvidencePlot
         rows={[
           negative,
-          { ...negative, id: "High", compound: "High", normalized_value: 104 },
+          {
+            ...negative,
+            id: "High",
+            compound: "High",
+            reported_value: "104",
+            value: 104,
+            normalized_value: 104,
+          },
         ]}
         language="en"
+        selectedId="Noise"
         onSelect={pick}
       />,
     );
     const point = screen.getByRole("button", { name: "Noise = -4 %" });
+    expect(point).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: "High = 104 %" }),
+    ).toHaveAttribute("aria-pressed", "false");
     fireEvent.keyDown(point, { key: "Enter" });
     expect(pick).toHaveBeenCalledWith(negative);
   });
