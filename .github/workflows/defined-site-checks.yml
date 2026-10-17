@@ -94,6 +94,7 @@ jobs:
           path: |
             outputs/defined-regions
             outputs/stat6-case-data
+            outputs/reviewed-recipe-replay
       - name: Only changed source authorities and direct consumers
         run: >-
           uv run --locked ruff check src/opendde_workbench/sites
