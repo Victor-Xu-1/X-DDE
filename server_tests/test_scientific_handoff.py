@@ -44,12 +44,20 @@ def test_property_handoff_selects_one_real_sdf_record(tmp_path, monkeypatch):
         native_properties.properties(request, {"input": str(file)}, tmp_path)
 
 
-def test_diffsbdd_atom_identity_uses_real_parser_and_exact_record(tmp_path):
+def test_diffsbdd_atom_identity_uses_real_parser_and_exact_record(tmp_path, monkeypatch):
     import hashlib
 
     from rdkit.Chem import AllChem
 
     source = Path(__file__).resolve().parents[1] / "src/opendde_workbench/diffsbdd/chemistry.py"
+    # Load the same frozen adapter as native execution, including its shared
+    # stereo serializer; direct source-file imports omit that dependency.
+    spec = importlib.util.spec_from_file_location("xdde_snapshot", source.with_name("snapshot.py"))
+    snapshot = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(snapshot)
+    runner, _ = snapshot.capture(tmp_path)
+    source = runner.with_name("chemistry.py")
+    monkeypatch.syspath_prepend(str(runner.parent))
     spec = importlib.util.spec_from_file_location("xdde_chemistry", source)
     chemistry = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(chemistry)

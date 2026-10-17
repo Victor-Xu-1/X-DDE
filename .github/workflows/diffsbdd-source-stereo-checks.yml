@@ -15,3 +15,4 @@ jobs:
           uv run --no-project --python 3.10 --with pytest==9.1.1
           --with numpy==1.26.4 --with rdkit==2023.9.6
           python -m pytest -q server_tests/test_diffsbdd_source_stereo.py
+          server_tests/test_scientific_handoff.py::test_diffsbdd_atom_identity_uses_real_parser_and_exact_record
