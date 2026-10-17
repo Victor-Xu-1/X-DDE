@@ -66,7 +66,8 @@ try {
     $open = $launch -and '--no-browser' -notin $arguments
     if ($launch -and '--no-browser' -notin $arguments) { $arguments += '--no-browser' }
     $networkEnvironment = @(Get-XddeNetworkEnvironment $config)
-    $output = & wsl.exe -d $config.distribution -u $config.user -- env "WB_HOME=$($config.home)" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin" @networkEnvironment "$($config.prefix)/bin/xdde" @arguments
+    # Never inherit a Windows working directory whose drive mount may be stalled.
+    $output = & wsl.exe -d $config.distribution -u $config.user --cd / -- env "WB_HOME=$($config.home)" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin" @networkEnvironment "$($config.prefix)/bin/xdde" @arguments
     $result = $LASTEXITCODE
     $output | ForEach-Object { Write-Output $_ }
     if ($result -eq 0 -and $open) {

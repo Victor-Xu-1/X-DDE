@@ -41,7 +41,7 @@ if ($Distribution -notin ($distributions | ForEach-Object { $_.Trim() })) {
     if (Test-Path -LiteralPath (Join-Path $diskLocation 'ext4.vhdx')) { throw 'The shared Linux disk already exists. Register or select its distribution before installing; existing disks will not be overwritten.' }
     & wsl.exe --install --distribution $Distribution --location $diskLocation --no-launch
     if ($LASTEXITCODE -ne 0) { throw 'WSL installation requires administrator access or a Windows restart. Complete the displayed Windows step, then re-run this installer.' }
-    & wsl.exe -d $Distribution -u root -- useradd --create-home --shell /bin/bash opendde
+    & wsl.exe -d $Distribution -u root --cd / -- useradd --create-home --shell /bin/bash opendde
     if ($LASTEXITCODE -ne 0) { throw 'Could not create the dedicated Linux account.' }
     $LinuxUser = 'opendde'
 }
@@ -59,13 +59,13 @@ if ($taskBackingVolume.Count -ne 1 -or $taskBackingVolume[0].SizeRemaining -lt 2
     throw 'At least 2 GiB free space is required on the WSL storage drive before installation.'
 }
 if (!$LinuxUser) {
-    $LinuxUser = ((& wsl.exe -d $Distribution -- whoami) | Out-String).Trim()
+    $LinuxUser = ((& wsl.exe -d $Distribution --cd / -- whoami) | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or !$LinuxUser) { throw 'Open your WSL distribution once to finish its initial user setup.' }
 }
 if ($LinuxUser -eq 'root') { throw 'Choose an existing non-root account using -LinuxUser. Workbench must not run as root.' }
-$linuxRoot = ((& wsl.exe -d $Distribution -u $LinuxUser -- wslpath -a -u $InstallRoot.Replace('\', '/')) | Out-String).Trim()
+$linuxRoot = ((& wsl.exe -d $Distribution -u $LinuxUser --cd / -- wslpath -a -u $InstallRoot.Replace('\', '/')) | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Could not resolve installation location in WSL.' }
-$linuxHome = ((& wsl.exe -d $Distribution -u $LinuxUser -- printenv HOME) | Out-String).Trim()
+$linuxHome = ((& wsl.exe -d $Distribution -u $LinuxUser --cd / -- printenv HOME) | Out-String).Trim()
 if (!$linuxHome.StartsWith('/')) { throw 'Could not resolve the Linux account home directory.' }
 $prefix = "$linuxHome/.local/share/opendde-workbench/app"
 New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
@@ -93,9 +93,9 @@ Get-ReleaseFile 'opendde.ps1' (Join-Path $bin 'xdde-launcher.ps1')
 $wheel = "x_dde-$($Release.Substring(1))-py3-none-any.whl"
 Get-ReleaseFile $wheel (Join-Path $downloads $wheel)
 $uvVersion = ''
-& wsl.exe -d $Distribution -u $LinuxUser -- test -x "$prefix/bin/uv"
+& wsl.exe -d $Distribution -u $LinuxUser --cd / -- test -x "$prefix/bin/uv"
 if ($LASTEXITCODE -eq 0) {
-    $uvVersion = (& wsl.exe -d $Distribution -u $LinuxUser -- "$prefix/bin/uv" --version | Out-String).Trim()
+    $uvVersion = (& wsl.exe -d $Distribution -u $LinuxUser --cd / -- "$prefix/bin/uv" --version | Out-String).Trim()
 }
 if ($uvVersion -notlike 'uv 0.12.20*') {
     $uvBase = 'https://github.com/astral-sh/uv/releases/download/0.12.20'
@@ -103,7 +103,7 @@ if ($uvVersion -notlike 'uv 0.12.20*') {
         Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 "$uvBase/$name" -OutFile (Join-Path $downloads $name)
     }
 }
-& wsl.exe -d $Distribution -u $LinuxUser -- bash "$linuxRoot/install.sh" $Release $prefix "$linuxRoot/downloads"
+& wsl.exe -d $Distribution -u $LinuxUser --cd / -- bash "$linuxRoot/install.sh" $Release $prefix "$linuxRoot/downloads"
 if ($LASTEXITCODE -ne 0) { throw 'Workbench install failed. Fix the displayed error and run this installer again.' }
 $appConfig = @{ distribution = $Distribution; user = $LinuxUser; prefix = $prefix; home = "$linuxHome/.local/share/opendde-workbench" }
 if ($savedConfig) {

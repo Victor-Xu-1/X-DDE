@@ -33,7 +33,13 @@ function global:Get-ItemProperty {
 function global:wsl.exe {
     $global:LASTEXITCODE = 0
     if ($args[0] -eq '--list') { return $boundary.distributions }
-    if ($args[0] -eq '-d') { $boundary.lastDistribution = $args[1]; $boundary.boots++ }
+    if ($args[0] -eq '-d') {
+        $directoryIndex = [Array]::IndexOf($args, '--cd')
+        if ($directoryIndex -lt 0 -or $args[$directoryIndex + 1] -ne '/') {
+            throw 'A Windows drive working directory reached the WSL startup boundary.'
+        }
+        $boundary.lastDistribution = $args[1]; $boundary.boots++
+    }
     if ('whoami' -in $args) { return 'researcher' }
     if ('printenv' -in $args) { return '/home/researcher' }
     if ('test' -in $args) { return }

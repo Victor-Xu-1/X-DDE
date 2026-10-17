@@ -75,18 +75,41 @@ def test_curated_spr_template_reaches_the_actual_native_input_table_without_trai
     assert store.list_jobs() == []
 
 
-def test_the_small_cellular_series_still_fails_the_unchanged_training_guard(tmp_path, monkeypatch):
+def test_the_original_cellular_salts_are_not_silently_desalted_for_training(tmp_path, monkeypatch):
     pytest.importorskip("rdkit.Chem")
     source = tmp_path / "original-cellular.sdf"
     source.write_bytes(verified_input("stat6_assay_library"))
     native = native_consumer(monkeypatch)
     monkeypatch.setattr(native, "input_file", lambda actual, role: (source, {}))
-    with pytest.raises(ValueError, match="at least 50 distinct labeled molecules"):
+    with pytest.raises(ValueError, match="invalid or disconnected"):
         native.input_table(
             {"operation": "chemprop_train", "payload": {"activity_property": "pIC50"}},
             tmp_path / "data.csv",
         )
     assert not (tmp_path / "data.csv").exists()
+
+
+def test_a_small_clean_spr_subset_still_fails_the_unchanged_fifty_molecule_guard(
+    tmp_path, monkeypatch
+):
+    chem = pytest.importorskip("rdkit.Chem")
+    import io
+
+    molecules = list(
+        chem.ForwardSDMolSupplier(io.BytesIO(verified_input("stat6_spr_library")), removeHs=False)
+    )
+    source = tmp_path / "small-clean-spr.sdf"
+    with chem.SDWriter(str(source)) as writer:
+        for molecule in molecules[:38]:
+            writer.write(molecule)
+    native = native_consumer(monkeypatch)
+    monkeypatch.setattr(native, "input_file", lambda actual, role: (source, {}))
+    with pytest.raises(ValueError, match="at least 50 distinct labeled molecules"):
+        native.input_table(
+            {"operation": "chemprop_train", "payload": {"activity_property": "pKd"}},
+            tmp_path / "small.csv",
+        )
+    assert not (tmp_path / "small.csv").exists()
 
 
 def test_original_observations_exclusions_precision_and_assay_context_remain_distinct():

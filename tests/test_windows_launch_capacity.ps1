@@ -9,8 +9,11 @@ Copy-Item -LiteralPath (Join-Path $repository 'scripts/opendde.ps1') -Destinatio
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding utf8
 $wrapper = Join-Path $target 'boundary.ps1'
 @'
-param([string]$Launcher,[string]$Marker,[string]$Command,[switch]$Running)
-function global:Get-Volume { param([string]$FilePath); [pscustomobject]@{SizeRemaining=0;DriveLetter='D'} }
+param([string]$Launcher,[string]$Marker,[string]$Command,[switch]$Running,[switch]$Available)
+function global:Get-Volume {
+    param([string]$FilePath)
+    [pscustomobject]@{SizeRemaining=$(if ($Available) { 32GB } else { 0 });DriveLetter='D'}
+}
 function global:Get-ItemProperty {
     param([string]$Path,$ErrorAction)
     [pscustomobject]@{DistributionName='isolated-Windows-boundary';BasePath=(Split-Path $Launcher -Parent)}
@@ -30,17 +33,19 @@ function global:wsl.exe {
 & $Launcher $Command '--no-browser'
 '@ | Set-Content -LiteralPath $wrapper -Encoding utf8
 $powershell = (Get-Process -Id $PID).Path
-function Invoke-LauncherBoundary([string]$Command,[string]$Marker,[switch]$Running) {
+function Invoke-LauncherBoundary([string]$Command,[string]$Marker,[switch]$Running,[switch]$Available) {
     $start = [Diagnostics.ProcessStartInfo]::new()
     $start.FileName = $powershell
     $start.UseShellExecute = $false
     $start.CreateNoWindow = $true
+    $start.WorkingDirectory = $target
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
     foreach ($argument in @('-NoLogo','-NoProfile','-NonInteractive','-File',$wrapper,$launcher,$Marker,$Command)) {
         $start.ArgumentList.Add($argument)
     }
     if ($Running) { $start.ArgumentList.Add('-Running') }
+    if ($Available) { $start.ArgumentList.Add('-Available') }
     $process = [Diagnostics.Process]::Start($start)
     try {
         $stdout = $process.StandardOutput.ReadToEndAsync()
@@ -68,6 +73,16 @@ foreach ($command in @('STATUS','Stop','CLOSE')) {
     if (Test-Path -LiteralPath (Join-Path $target 'tmp')) { throw 'Status or close created temporary storage on a full drive.' }
     $invocation = [IO.File]::ReadAllText($marker)
     if ($invocation -notmatch '/environment/bin/xdde' -or $invocation -notmatch "(?i) $command ") { throw 'Running control was not forwarded unchanged to the existing CLI.' }
+    if ($invocation -notmatch ' --cd / -- env ') { throw 'Running control inherited the caller Windows drive directory.' }
+}
+foreach ($command in @('UI','DASHBOARD','START')) {
+    $marker = Join-Path $target ($command + '.available-native-call')
+    $result = Invoke-LauncherBoundary $command $marker -Running -Available
+    if ($result.exit -ne 0 -or !(Test-Path -LiteralPath $marker)) { throw "Available startup failed: $command" }
+    $invocation = [IO.File]::ReadAllText($marker)
+    if ($invocation -notmatch ' --cd / -- env ' -or $invocation -notmatch '/environment/bin/xdde') {
+        throw 'Startup did not enter the registered distribution from an explicit Linux directory.'
+    }
 }
 Write-Output 'Low physical capacity blocks startup; offline controls do not boot WSL and running controls do not create temporary storage.'
 $configuration = Join-Path $bin 'workbench.json'
