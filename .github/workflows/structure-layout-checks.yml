@@ -76,6 +76,9 @@ on:
       - "server_tests/test_target_selection_browser.py"
       - "server_tests/test_epitope_browser.py"
       - ".github/workflows/structure-layout-checks.yml"
+      # Pair selection does not change shared sizing; its native views use the cluster gate.
+      - "!frontend/src/poses/ClusterResults.tsx"
+      - "!.github/workflows/structure-layout-checks.yml"
   pull_request:
     paths: *structure_paths
 permissions:

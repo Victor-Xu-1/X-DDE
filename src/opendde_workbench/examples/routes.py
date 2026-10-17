@@ -14,6 +14,7 @@ from .records import ExampleRecords
 from .stat6 import catalogue as stat6
 from .stat6.preparation import prepare_stat6
 from .stat6.reference_inputs import case_for, visible_files
+from .supporting import supporting_stage_names
 
 
 def register_examples(app, store, assets, settings, mutation):
@@ -39,6 +40,7 @@ def register_examples(app, store, assets, settings, mutation):
                 "files": visible_files(capability_id),
                 "pin": record,
                 "record_pin": compound,
+                "supporting_stage_names": supporting_stage_names(store, record or compound),
                 "study": stat6.study_context(capability_id),
                 "computed_result_available": record is not None
                 or bool(compound and compound.computed_result_available),
@@ -58,6 +60,7 @@ def register_examples(app, store, assets, settings, mutation):
             "files": [FILES[key] for key in case.files],
             "pin": record,
             "record_pin": compound,
+            "supporting_stage_names": supporting_stage_names(store, record or compound),
             "computed_result_available": record is not None
             or bool(compound and compound.computed_result_available),
         }

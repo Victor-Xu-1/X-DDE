@@ -79,6 +79,9 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 )
                 pair = result.get_by_role("button", name=expected_label, exact=True)
                 pair.click()
+                expect(pair).to_have_attribute("aria-pressed", "true")
+                pair_row = result.get_by_role("button", name="1 ↔ 2", exact=True)
+                expect(pair_row).to_have_attribute("aria-pressed", "true")
                 metrics = result.locator(".cluster-preview > p")
                 expect(metrics).to_be_visible()
                 expect(metrics).to_contain_text(
@@ -110,6 +113,7 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                     format="SVG",
                 )
                 assert "<svg" in comparison.read_text()
+                assert 'stroke-width="2"' in comparison.read_text()
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
                 heading = result.locator(".viewer-panel > .studio-heading > h3")

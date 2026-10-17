@@ -72,3 +72,37 @@ it("requires explicit pose choice and final review before preparing and submitti
     screen.getByRole("link", { name: "查看任务进度与结果" }),
   ).toHaveAttribute("href", "/#task=new-analysis");
 });
+
+it.each(["en", "zh"] as const)(
+  "reviews only the applicable geometric thresholds in %s without starting science",
+  async (language) => {
+    const user = userEvent.setup();
+    const prepare = vi.spyOn(client.api, "post");
+    const submit = vi.spyOn(client.api, "submit");
+    const zh = language === "zh";
+    render(<ClusterForm value={value} language={language} />);
+    await user.click(
+      screen.getByRole("button", { name: zh ? "全选" : "Select all" }),
+    );
+    const next = () =>
+      screen.getByRole("button", { name: zh ? "下一步" : "Next" });
+    await user.click(next());
+    await user.click(
+      screen.getByRole("radio", {
+        name: zh ? "三维姿势" : "3D pose",
+      }),
+    );
+    await user.click(next());
+    expect(screen.queryByText(/相似度 ≥|contact similarity ≥/)).toBeNull();
+    expect(screen.getByText("2 Å")).toBeVisible();
+    await user.click(next());
+    const review = screen.getByLabelText(
+      zh ? "本次分群条件" : "Selected clustering conditions",
+    );
+    expect(review).toHaveTextContent(zh ? "三维姿势" : "3D pose");
+    expect(review).toHaveTextContent("2 Å");
+    expect(review).not.toHaveTextContent("50%");
+    expect(prepare).not.toHaveBeenCalled();
+    expect(submit).not.toHaveBeenCalled();
+  },
+);

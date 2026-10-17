@@ -7,6 +7,17 @@ from .bundle_projection import references
 from .evidence import capture_job
 
 
+def supporting_stage_names(store, pin):
+    """Read labels from the sealed native requests; no additional result authority."""
+    names = {}
+    for entry in pin.supporting_evidence if pin else ():
+        job = store.get(str(entry.job_id))
+        name = getattr(job.request, "name", None) if job else None
+        if name:
+            names[str(entry.job_id)] = name
+    return names
+
+
 def supporting_evidence(store, state, primary, prepared, identifiers):
     allowed_inputs = {str(value.reference.asset_id) for value in prepared.objects.values()}
     allowed_inputs.update(input_identifiers(primary.request))

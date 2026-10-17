@@ -437,3 +437,23 @@ unqualified derived versions and changed output files, with explicit depth and j
 An explicitly recognized historical STAT6 catalogue is accepted only if reconstructing its
 original source and module projection reproduces the published digest exactly. Unknown or
 modified catalogues remain invalid; original archives and native rows are never rewritten.
+
+### STAT6 Data 9
+
+当前 STAT6 数据包固定 26 个主模板及 1 个姿势分群子模块，保留 40 个原生任务和
+74 份必要资产。多受体探索包含 36 个确切姿势，以及两种分群和三份独立质控的后续阶段。
+原生任务分别来自当时已发布的 v0.5.82 / v0.5.83；示例在 v0.5.85 中复核固定，
+数据打包不重算原任务。数据包的校验摘要、版本和来源提交由
+`examples/stat6_bundle_release.py` 统一指定，旧数据包保持不可变。
+
+The current STAT6 package contains 26 reviewed primary templates and one nested clustering
+example, with 40 native tasks and 74 necessary assets. The receptor study retains its exact
+36 poses, two grouping analyses and three independent quality reports. It preserves the
+original calculation versions, source constructs and missing-contact evidence. Installing or
+replaying this package does not launch inference, MD or FEP. These are reviewed computational
+examples; the package does not establish experimental binding or publication-ready acceptance.
+
+Stage labels come directly from retained native request names, so researchers can choose an
+analysis before loading its full result. Pair-table and heatmap selection identify the same
+unfitted overlay without changing the numerical color scale. The final clustering review shows
+only the thresholds used by the chosen grouping criterion; original native options remain intact.

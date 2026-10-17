@@ -5,10 +5,12 @@ import type { PoseClusterResult, ClusterPair } from "./cluster-types";
 export function ClusterMatrix({
   value,
   language,
+  selected,
   onSelect,
 }: {
   value: PoseClusterResult;
   language: Language;
+  selected: ClusterPair | null;
   onSelect(pair: ClusterPair): void;
 }) {
   const zh = language === "zh",
@@ -70,6 +72,12 @@ export function ClusterMatrix({
               );
               const numeric = pair?.[metric],
                 unknown = numeric == null;
+              const active = Boolean(
+                pair &&
+                selected &&
+                pair.left === selected.left &&
+                pair.right === selected.right,
+              );
               const strength = unknown
                 ? 0
                 : metric === "contact_jaccard"
@@ -98,6 +106,7 @@ export function ClusterMatrix({
                   role={pair ? "button" : undefined}
                   tabIndex={pair ? 0 : undefined}
                   aria-label={title}
+                  aria-pressed={pair ? active : undefined}
                   onClick={() => pair && onSelect(pair)}
                   onKeyDown={(e) => {
                     if (pair && (e.key === "Enter" || e.key === " ")) {
@@ -112,6 +121,8 @@ export function ClusterMatrix({
                     y={30 + left.index * 26}
                     width="24"
                     height="24"
+                    stroke={active ? "var(--ink)" : undefined}
+                    strokeWidth={active ? 2 : undefined}
                     fill={
                       left.index === right.index
                         ? "var(--surface-muted)"

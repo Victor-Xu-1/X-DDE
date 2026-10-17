@@ -14,6 +14,7 @@ from opendde_workbench.deployment.manager import DeploymentManager
 from opendde_workbench.examples import stat6_bundle_release as spec
 from opendde_workbench.examples.bundle import export_bundle, restore_bundle, verify_examples
 from opendde_workbench.examples.pins import ExamplePins
+from opendde_workbench.examples.records import ExampleRecords
 from opendde_workbench.examples.stat6.catalogue import MODULES
 from opendde_workbench.research.outputs import OutputCatalog
 from opendde_workbench.research.state_sets import StateSets
@@ -84,13 +85,13 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert operation["state"] == "succeeded", operation
     installed = manager.store.installed()["public-stat6-examples"]
     assert installed["version"] == spec.VERSION and installed["bundle_sha256"] == spec.SHA256
-    assert installed["computed"] == len(spec.CAPABILITIES) == 25
-    expected = {"modules": 25, "computed": 25, "validated": 0}
+    assert installed["computed"] == len(spec.CAPABILITIES) == 27
+    expected = {"modules": 27, "computed": 27, "validated": 0}
     assert restore_bundle(archive, settings, spec.SHA256) == expected
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 31 and not any(
+    assert len(jobs) == 40 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
     )
     pin = ExamplePins(store, settings.state_dir, modules=MODULES).get("plip.profile", verify=True)
@@ -103,6 +104,18 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         hashlib.sha256((output / "interaction-structure.cif").read_bytes()).hexdigest()
         == "6a116614692defb2b092e18e61d20c7256de59943c26188b702b167bf4e2c544"
     )
+    records = ExampleRecords(store, assets, settings, modules=MODULES)
+    exploration = records.get("pose_exploration", verify=True)
+    assert str(exploration.record_id) == "aa3bd371-01cc-5013-bb06-338fd50a19d4"
+    assert len(exploration.evidence) == 6 and len(exploration.supporting_evidence) == 5
+    assert str(exploration.supporting_evidence[-1].job_id) == (
+        "448af5fb-2957-4f08-b3c9-3fbd5f84a9d1"
+    )
+    cluster = ExamplePins(store, settings.state_dir, modules=MODULES).get(
+        "pose.cluster", verify=True
+    )
+    assert str(cluster.job_id) == "18c3c20f-70e0-455b-89ff-bff6735c6843"
+    assert cluster.review and exploration.review
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -112,8 +125,11 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
                 "source_revision": spec.SOURCE_REVISION,
                 "data_version": spec.VERSION,
                 "bundle_sha256": spec.SHA256,
-                "modules": 25,
-                "native_jobs": 31,
+                "modules": 27,
+                "native_jobs": 40,
+                "core_templates": 26,
+                "nested_clustering_example": True,
+                "retained_record_followup_stages": 5,
                 "native_plip_job": str(pin.job_id),
                 "contact_count": 11,
                 "existing_attachment_unchanged": True,

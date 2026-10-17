@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { request } from "../api";
 import { ExampleJobResult } from "../examples/ExampleJobResult";
 import type { Job, Language } from "../types";
+import type { ExampleInfo } from "../examples/types";
 export function ClusterExample({ language }: { language: Language }) {
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
+    [label, setLabel] = useState<ExampleInfo["case"]["label"] | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -14,13 +16,19 @@ export function ClusterExample({ language }: { language: Language }) {
     void request<{
       computed_result_available: boolean;
       pin: { job_id: string } | null;
+      case: ExampleInfo["case"];
     }>("/examples/pose.cluster", { signal: controller.signal })
       .then(async (value) => {
         if (value.computed_result_available && value.pin) {
           const source = await request<Job>("/jobs/" + value.pin.job_id, {
             signal: controller.signal,
           });
-          if (!controller.signal.aborted) setJob(source);
+          if (source.id !== value.pin.job_id || source.status !== "succeeded")
+            throw new Error("The fixed clustering source is unavailable.");
+          if (!controller.signal.aborted) {
+            setLabel(value.case.label);
+            setJob(source);
+          }
         }
       })
       .catch((e) => {
@@ -56,7 +64,8 @@ export function ClusterExample({ language }: { language: Language }) {
   return (
     <section
       aria-label={
-        zh ? "BRD4–JQ1 固定分群案例" : "Fixed BRD4–JQ1 clustering case"
+        (zh ? "固定分群案例" : "Fixed clustering case") +
+        (label ? " · " + label[zh ? 0 : 1] : "")
       }
     >
       <ExampleJobResult job={job} language={language} />

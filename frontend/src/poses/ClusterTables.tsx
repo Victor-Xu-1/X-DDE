@@ -72,10 +72,12 @@ export function ClusterPoseTable({
 export function ClusterPairTable({
   result,
   language,
+  selected,
   onSelect,
 }: {
   result: PoseClusterResult;
   language: Language;
+  selected: ClusterPair | null;
   onSelect(pair: ClusterPair): void;
 }) {
   const zh = language === "zh";
@@ -84,6 +86,7 @@ export function ClusterPairTable({
       rows={result.pairs}
       language={language}
       rowId={(p) => p.left + ":" + p.right}
+      selected={selected ? selected.left + ":" + selected.right : undefined}
       compare={false}
       onSelect={onSelect}
       title={zh ? "两两姿势比较" : "Pairwise pose comparison"}

@@ -19,6 +19,8 @@ on:
       - 'frontend/index.html'
       - 'frontend/src/presentation/result-layout.css'
       - 'server_tests/test_template_controls_browser.py'
+      # Retained-stage labels and unchanged drafts have example-result-set-checks.yml.
+      - '!frontend/src/examples/ExampleActions.tsx'
   pull_request:
     paths: *template_controls_paths
 permissions:

@@ -147,3 +147,46 @@ it("keeps known zero contact overlap distinct from an unavailable comparison", (
     screen.queryByText(/Missing comparisons are not zero similarity/),
   ).not.toBeInTheDocument();
 });
+
+it("keeps the pair table, both matrix cells and actual overlay selection synchronized", async () => {
+  const user = userEvent.setup();
+  render(
+    <ClusterResults
+      job={{ id: "native-job" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  const row = screen.getByRole("button", { name: "1 ↔ 2" });
+  const cells = screen
+    .getAllByRole("button", { name: "Pose 1 / 2 · Unknown" })
+    .concat(screen.getAllByRole("button", { name: "Pose 2 / 1 · Unknown" }));
+  const colors = cells.map((cell) =>
+    cell.querySelector("rect")?.getAttribute("fill"),
+  );
+  expect(row).toHaveAttribute("aria-pressed", "false");
+  await user.click(row);
+  expect(row).toHaveAttribute("aria-pressed", "true");
+  for (const cell of cells)
+    expect(cell).toHaveAttribute("aria-pressed", "true");
+  expect(
+    cells.map((cell) => cell.querySelector("rect")?.getAttribute("fill")),
+  ).toEqual(colors);
+  expect(screen.getByLabelText("comparison-source")).toHaveTextContent(
+    "pose-000.sdf",
+  );
+  expect(screen.getByLabelText("comparison-source")).toHaveTextContent(
+    "pose-001.sdf",
+  );
+  await user.click(
+    screen.getByRole("button", {
+      name: "Inspect a single pose with its paired receptor",
+    }),
+  );
+  expect(row).toHaveAttribute("aria-pressed", "false");
+  for (const cell of cells)
+    expect(cell).toHaveAttribute("aria-pressed", "false");
+  expect(screen.queryByLabelText("comparison-source")).toBeNull();
+  await user.click(cells[1]);
+  expect(row).toHaveAttribute("aria-pressed", "true");
+});

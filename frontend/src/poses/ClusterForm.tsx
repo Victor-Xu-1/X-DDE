@@ -15,6 +15,10 @@ import type {
   PoseSelector,
 } from "./cluster-types";
 import { clusterDefaults } from "./cluster-generated";
+import {
+  clusterCriterionLabel,
+  clusterResolutionLabel,
+} from "./cluster-resolution";
 export function ClusterForm({
   value,
   language,
@@ -56,6 +60,15 @@ export function ClusterForm({
     [value, zh],
   );
   const choices = poses.filter((p) => selected.includes(p.key));
+  const resolution = (rmsd: number, contact: number) =>
+    clusterResolutionLabel(
+      {
+        criterion: options.criterion,
+        maximum_rmsd_angstrom: rmsd,
+        minimum_contact_jaccard: contact,
+      },
+      language,
+    );
   async function submit() {
     setPreparing(true);
     setError("");
@@ -217,23 +230,17 @@ export function ClusterForm({
                   {
                     value: "1",
                     title: zh ? "精细" : "Fine",
-                    note: zh
-                      ? "1 Å · 接触相似度 ≥70%"
-                      : "1 Å · contact similarity ≥70%",
+                    note: resolution(1, 0.7),
                   },
                   {
                     value: "2",
                     title: zh ? "标准 · 推荐" : "Standard · Recommended",
-                    note: zh
-                      ? "2 Å · 接触相似度 ≥50%"
-                      : "2 Å · contact similarity ≥50%",
+                    note: resolution(2, 0.5),
                   },
                   {
                     value: "3",
                     title: zh ? "较宽松" : "Broad",
-                    note: zh
-                      ? "3 Å · 接触相似度 ≥30%"
-                      : "3 Å · contact similarity ≥30%",
+                    note: resolution(3, 0.3),
                   },
                 ]}
               />
@@ -290,6 +297,22 @@ export function ClusterForm({
                   ? "代表姿势保留原始坐标，可预览和下载。"
                   : "Representatives retain original coordinates for preview and download."}
               </p>
+              <dl
+                className="questionnaire-review"
+                aria-label={
+                  zh ? "本次分群条件" : "Selected clustering conditions"
+                }
+              >
+                <dt>{zh ? "比较方式" : "Comparison"}</dt>
+                <dd>{clusterCriterionLabel(options.criterion, language)}</dd>
+                <dt>{zh ? "分群尺度" : "Resolution"}</dt>
+                <dd>
+                  {resolution(
+                    options.maximum_rmsd_angstrom,
+                    options.minimum_contact_jaccard,
+                  )}
+                </dd>
+              </dl>
             </>
           ),
         },

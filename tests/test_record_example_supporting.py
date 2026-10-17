@@ -204,6 +204,13 @@ def test_record_pin_api_keeps_review_metadata_and_csrf_boundary(
             "supporting_job_ids"
         ]
         assert pins.get("regions", verify=True).review == review
+        metadata = client.get("/api/examples/regions?profile=archive")
+        assert metadata.status_code == 200, metadata.text
+        assert metadata.json()["supporting_stage_names"] == {
+            followup.id: followup.request.name,
+            final.id: final.request.name,
+        }
+        assert metadata.json()["record_pin"] == response.json()
         client.headers.pop("X-Workbench-CSRF")
         assert (
             client.post("/api/examples/regions/record-pin?profile=archive", json=body).status_code

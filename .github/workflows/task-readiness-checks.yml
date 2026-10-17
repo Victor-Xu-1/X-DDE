@@ -56,6 +56,9 @@ on:
       - "frontend/src/datasets/screening-readiness*"
       - "frontend/src/operations/ToolQuestionnaires.test.tsx"
       - ".github/workflows/task-readiness-checks.yml"
+      # Criterion labels/review use the real questionnaire in pose-cluster-checks.yml.
+      - "!frontend/src/poses/ClusterForm.tsx"
+      - "!.github/workflows/task-readiness-checks.yml"
   pull_request:
     paths: *readiness_paths
 permissions:

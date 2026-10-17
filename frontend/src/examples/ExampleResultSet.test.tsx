@@ -34,6 +34,36 @@ beforeEach(() => {
   transport.request.mockReset();
 });
 
+it("names retained stages immediately from the case projection without extra requests", async () => {
+  transport.request.mockResolvedValue(quality);
+  render(
+    <ExampleResultSet
+      job={primary}
+      supporting={supporting}
+      stageNames={{
+        refined: "STAT6 local refinement",
+        quality: "STAT6 independent quality",
+      }}
+      language="en"
+    />,
+  );
+  expect(
+    screen.getByRole("option", { name: "STAT6 local refinement" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("option", { name: "STAT6 independent quality" }),
+  ).toBeVisible();
+  expect(transport.request).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByRole("combobox"), {
+    target: { value: quality.id },
+  });
+  expect(await screen.findByText("Native output quality")).toBeVisible();
+  expect(
+    screen.getByRole("option", { name: "STAT6 independent quality" }),
+  ).toBeVisible();
+  expect(transport.request).toHaveBeenCalledTimes(1);
+});
+
 it("preserves the original and switches only to successful retained native stages without navigation", async () => {
   transport.request.mockImplementation((path: string) =>
     Promise.resolve(path.endsWith("refined") ? refined : quality),

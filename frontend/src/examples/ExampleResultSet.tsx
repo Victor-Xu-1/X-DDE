@@ -17,6 +17,7 @@ type PrimaryResult =
 export function ExampleResultSet(
   props: PrimaryResult & {
     supporting: { job_id: string }[];
+    stageNames?: Record<string, string>;
     language: Language;
   },
 ) {
@@ -84,12 +85,16 @@ export function ExampleResultSet(
           </option>
           {supporting.map((entry, index) => (
             <option key={entry.job_id} value={entry.job_id}>
-              {loaded[entry.job_id]
-                ? historyKindLabel(kindForJob(loaded[entry.job_id]), language) +
-                  (loaded[entry.job_id].request.name
-                    ? ` · ${loaded[entry.job_id].request.name}`
-                    : "")
-                : `${zh ? "后续结果" : "Follow-up result"} ${index + 1}`}
+              {props.stageNames?.[entry.job_id] ||
+                (loaded[entry.job_id]
+                  ? historyKindLabel(
+                      kindForJob(loaded[entry.job_id]),
+                      language,
+                    ) +
+                    (loaded[entry.job_id].request.name
+                      ? ` · ${loaded[entry.job_id].request.name}`
+                      : "")
+                  : `${zh ? "后续结果" : "Follow-up result"} ${index + 1}`)}
             </option>
           ))}
         </select>

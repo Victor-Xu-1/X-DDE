@@ -65,6 +65,7 @@ export interface ExampleInfo {
     review?: ExampleReview | null;
   };
   record_pin?: RecordPin | null;
+  supporting_stage_names?: Record<string, string>;
   study?: StudyContext;
 }
 

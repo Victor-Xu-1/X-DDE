@@ -75,6 +75,7 @@ export function ExampleActions(
                 key={state.result.job.id}
                 job={state.result.job}
                 supporting={state.info?.pin?.supporting_evidence ?? []}
+                stageNames={state.info?.supporting_stage_names}
                 language={language}
               />
             )}
@@ -94,6 +95,7 @@ export function ExampleActions(
                   />
                 }
                 supporting={state.info?.record_pin?.supporting_evidence ?? []}
+                stageNames={state.info?.supporting_stage_names}
                 language={language}
               />
             )}

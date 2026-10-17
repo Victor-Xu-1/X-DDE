@@ -148,11 +148,13 @@ export function ClusterResults({
           <ClusterMatrix
             value={result}
             language={language}
+            selected={pair}
             onSelect={selectPair}
           />
           <ClusterPairTable
             result={result}
             language={language}
+            selected={pair}
             onSelect={selectPair}
           />
         </div>

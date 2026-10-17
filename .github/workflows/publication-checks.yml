@@ -67,6 +67,8 @@ on:
       - "!.github/workflows/publication-checks.yml"
       - "!.github/workflows/stat6-template-checks.yml"
       - "!.github/workflows/examples-checks.yml"
+      # Cluster selection and its native SVG export use pose-cluster-checks.yml.
+      - "!frontend/src/poses/ClusterMatrix.tsx"
   pull_request:
     paths: *figure_paths
 permissions:
