@@ -101,6 +101,9 @@ def test_unreviewed_design_is_not_silently_substituted_for_the_reviewed_recipe(s
 def test_changed_input_bytes_are_not_loaded_as_the_reviewed_design_recipe(settings):
     _, scientific, records, _, authored = retained_design(settings, "generate")
     protein = scientific.assets.get(authored["payload"]["protein"]["asset_id"])
-    scientific.assets.path(protein).write_bytes(b"Changed after the native calculation\n")
+    path = scientific.assets.path(protein)
+    content = bytearray(path.read_bytes())
+    content[0] ^= 1  # Same size: this must exercise content integrity, not a size guard.
+    path.write_bytes(content)
     with pytest.raises(ValueError, match="input bytes changed"):
         prepare_stat6("diffsbdd.generate", scientific, records=records)

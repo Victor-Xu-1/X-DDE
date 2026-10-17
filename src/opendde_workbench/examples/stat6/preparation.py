@@ -89,7 +89,7 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop(role)
         else:
             objects[role] = receptor
-    if native_request is None and capability in {
+    if capability in {
         "gnina.dock",
         "diffsbdd.prepare",
         "diffsbdd.generate",
