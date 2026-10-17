@@ -52,6 +52,13 @@ def compatible_study_modules(digest):
         if hashlib.sha256(raw).hexdigest() != profile.get("manifest_sha256"):
             raise ValueError("Historical study manifest changed.")
         source_manifest = json.loads(raw)
+    # A frozen manifest permits reviewed source corrections, not an unchecked
+    # current catalogue. Reuse the bundle's canonical digest authority so a
+    # mutation of current sources/modules still closes historical restoration.
+    from .bundle_catalogue import bundle_catalogue
+
+    if bundle_catalogue("stat6").digest not in profiles:
+        raise ValueError("Historical study sources or module revisions changed.")
     try:
         manifest = {
             **source_manifest,
