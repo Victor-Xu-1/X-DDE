@@ -1,0 +1,18 @@
+{
+  "method": "Molfile stereo annotation correction only",
+  "source_file": "STAT6-user-PROTAC.sdf",
+  "source_sha256": "60b2c7e1831c1f14009e01760b2c6427108e58d94459ac7278fa50e36f6ada30",
+  "derived_file": "STAT6-user-PROTAC-stereo-uncertainty-v2.sdf",
+  "derived_sha256": "034e6209f81b3c85d62a96a62fa4643dcf9f188ab64df5beb8c482bb18a738b0",
+  "source_original_smiles": "COC1=CC(N2CCN(CC2)C3=CC=C(C(F)=C3F)C4=CC(C5=CCCN(C5)C(CCN6C=CC=N6)=O)=C(C7=C4C=C(N7)C(N(C)C)=O)F)=C(C=C1NC8CCC(NC8=O)=O)F",
+  "source_undefined_stereocenters": [
+    53
+  ],
+  "atom_order_preserved": true,
+  "all_coordinates_preserved_exactly": true,
+  "new_geometry_or_energy_calculations": 0,
+  "rdkit": "2026.03.6",
+  "historical_manifest": "manifest-v1.json",
+  "historical_manifest_sha256": "90075f30f6af069f07c825d63283e6309343067267c03a3741de18af658cf7d4",
+  "standard_reference": "https://www.rdkit.org/docs/RDKit_Book.html#sources-of-information-about-stereochemistry"
+}

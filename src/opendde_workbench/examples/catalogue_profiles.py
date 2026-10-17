@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from .catalogue import MANIFEST
@@ -39,10 +40,22 @@ def compatible_study_modules(digest):
     profile = profiles.get(digest)
     if profile is None:
         raise ValueError("The study catalogue is not a reviewed published revision.")
+    source_manifest = catalogue.MANIFEST
+    if "manifest_file" in profile:
+        name = profile["manifest_file"]
+        if not re.fullmatch(r"manifest-v[1-9][0-9]*\.json", name):
+            raise ValueError("Historical study manifest identity is invalid.")
+        path = catalogue.ROOT / name
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 8 * 1024**2:
+            raise ValueError("Historical study manifest is unavailable.")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != profile.get("manifest_sha256"):
+            raise ValueError("Historical study manifest changed.")
+        source_manifest = json.loads(raw)
     try:
         manifest = {
-            **catalogue.MANIFEST,
-            "files": {key: catalogue.MANIFEST["files"][key] for key in profile["file_keys"]},
+            **source_manifest,
+            "files": {key: source_manifest["files"][key] for key in profile["file_keys"]},
         }
         content = {
             "manifest": manifest,

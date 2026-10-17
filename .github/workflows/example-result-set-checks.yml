@@ -54,8 +54,13 @@ jobs:
           tests/test_record_example_supporting.py
           tests/test_example_stage_names.py
           tests/test_example_native_lineage.py tests/test_stat6_predicted_references.py
+          tests/test_stat6_source_revisions.py
           tests/test_example_records.py tests/test_example_pins.py tests/test_example_library.py
           tests/test_stat6_case_bundle.py
+      - name: Exact corrected PROTAC source identity and unchanged coordinates
+        run: >-
+          uv run --locked --with rdkit==2026.3.6 --with numpy==2.3.4
+          pytest -q tests/test_stat6_source_revisions.py -k corrected_protac
       - name: Bilingual stage switching, stale replies and preserved module draft
         if: ${{ !cancelled() }}
         working-directory: frontend
