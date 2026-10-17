@@ -73,6 +73,12 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
+      - name: Quality preview and real iframe-layout contract
+        if: ${{ inputs.quality_preview_only }}
+        working-directory: frontend
+        run: >-
+          npx vitest run src/quality/tests/QualityResults.test.tsx
+          src/viewer/source-layout.test.ts src/viewer/StructureViewer.test.tsx
       - name: Changed file selection and directly connected questionnaires
         if: ${{ !inputs.quality_preview_only }}
         working-directory: frontend

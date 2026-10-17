@@ -4,11 +4,14 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../../types";
 import { QualityResults } from "../QualityResults";
 import type { PoseQualityResult } from "../types";
+import { viewerLoad } from "../../viewer/source-layout";
 afterEach(cleanup);
 
 const preview = vi.hoisted(() => vi.fn());
 vi.mock("../../viewer/StructureViewer", () => ({
   StructureViewer: (props: unknown) => {
+    // Exercise the real iframe boundary even though WebGL is outside jsdom.
+    viewerLoad(props);
     preview(props);
     return <span>Real source preview</span>;
   },
