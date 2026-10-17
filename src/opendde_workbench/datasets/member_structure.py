@@ -1,11 +1,17 @@
 """Read one native prepared/indexed MOL record without computing or rewriting it."""
 
+import re
 import sqlite3
 import time
 from pathlib import Path
 
 from ..artifacts import contained
 from .result import DatasetResult
+
+
+def member_filename(row):
+    name = re.sub(r'[\\/:*?"<>|\x00-\x1f\x7f]', "_", row["display_name"] or row["id"])
+    return (name.strip()[:100] or "molecule") + ".mol"
 
 
 def member_structure(root: Path, result: DatasetResult, member_id: str):

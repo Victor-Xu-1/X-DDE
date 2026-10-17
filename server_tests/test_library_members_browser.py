@@ -90,6 +90,7 @@ def test_prepared_stat6_library_has_native_inspection_switching_and_portable_dow
                 "link", name="原始结构 MOL" if zh else "Original structure MOL", exact=True
             ).click()
         file = evidence / "CHEMBL487451.mol"
+        assert transfer.value.suggested_filename == "CHEMBL487451.mol"
         transfer.value.save_as(file)
         assert hashlib.sha256(file.read_bytes()).hexdigest() == detail["sha256"]
         with page.expect_download() as transfer:

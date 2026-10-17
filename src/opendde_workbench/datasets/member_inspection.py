@@ -2,7 +2,7 @@
 
 import hashlib
 import sqlite3
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Query, Response
@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..research.contracts import ScientificObject, VersionInput
 from ..research.storage import ScientificStore
-from .member_structure import member_structure
+from .member_structure import member_filename, member_structure
 
 
 class PreserveMember(BaseModel):
@@ -61,7 +61,8 @@ def register(app, store, assets, mutation, completed):
             headers={
                 "X-Structure-Format": "mol",
                 "X-Structure-Geometry": row["geometry"],
-                "Content-Disposition": 'attachment; filename="indexed-member.mol"',
+                "Content-Disposition": "attachment; filename=\"molecule.mol\"; filename*=UTF-8''"
+                + quote(member_filename(row), safe=""),
             },
         )
 
@@ -89,7 +90,7 @@ def register(app, store, assets, mutation, completed):
                 raise HTTPException(409, "The saved molecular record differs from its source.")
             return previous
         try:
-            asset = assets.save("indexed-member-" + identity[:20] + ".mol", "ligand", content)
+            asset = assets.save(member_filename(row), "ligand", content)
             return scientific.create(
                 VersionInput(
                     asset_id=asset.id,

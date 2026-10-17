@@ -188,6 +188,7 @@ def test_prepared_library_inspection_preserves_2d_coordinates_and_source_identit
         molecular = client.get(detail["url"])
         assert molecular.content == content.encode()
         assert molecular.headers["X-Structure-Geometry"] == "source_2d"
+        assert "filename*=UTF-8''CHEMBL487451.mol" in molecular.headers["Content-Disposition"]
         assert not client.get("/api/assets").json()
         body = {"member_id": detail["id"], "report_sha256": detail["report_sha256"]}
         first = client.post(f"/api/datasets/{job}/members/preserve", json=body)
@@ -197,6 +198,7 @@ def test_prepared_library_inspection_preserves_2d_coordinates_and_source_identit
         )
         saved = first.json()
         assert saved["label"] == "CHEMBL487451" and saved["source_job"] == job
+        assert client.get("/api/assets").json()[0]["name"] == "CHEMBL487451.mol"
         assert (
             client.get("/api/assets/" + saved["reference"]["asset_id"]).content == content.encode()
         )
