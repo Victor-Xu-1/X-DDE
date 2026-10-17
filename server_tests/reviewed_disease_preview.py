@@ -39,7 +39,7 @@ def review_disease_example(page, base, language, evidence):
     search.fill("")
     with page.expect_download() as transfer:
         region.get_by_role(
-            "button", name="导出筛选结果" if zh else "Export filtered results", exact=True
+            "button", name="导出筛选结果" if zh else "Export filtered rows", exact=True
         ).click()
     file = evidence / "asthma-source-associations.csv"
     transfer.value.save_as(file)
