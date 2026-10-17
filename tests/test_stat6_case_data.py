@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import zipfile
 from dataclasses import replace
 from pathlib import Path
 
@@ -115,6 +116,10 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     archive = Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"])
     assert archive.stat().st_size == spec.BYTES
     assert hashlib.sha256(archive.read_bytes()).hexdigest() == spec.SHA256
+    with zipfile.ZipFile(archive) as source:
+        expected_jobs = {
+            row["id"] for row in json.loads(source.read("manifest.json"))["records"]["jobs"]
+        }
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     original = assets.save(
@@ -148,10 +153,10 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert restore_bundle(archive, settings, spec.SHA256) == expected
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
-    jobs = store.list_jobs()
-    assert len(jobs) == 64 and not any(
-        row.status in {"queued", "running", "cancelling"} for row in jobs
-    )
+    # Read one beyond the sealed inventory to detect extra work, including beyond a default page.
+    jobs = store.list_jobs(limit=len(expected_jobs) + 1)
+    assert {row.id for row in jobs} == expected_jobs
+    assert not any(row.status in {"queued", "running", "cancelling"} for row in jobs)
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
         "diffsbdd.generate", verify=True
     )
