@@ -156,7 +156,7 @@ def test_prepared_library_inspection_preserves_2d_coordinates_and_source_identit
     result = json.loads((root / "result.json").read_text())
     result.update(
         operation="library_prepare",
-        program="rdkit",
+        program="chemistry",
         data_kind="library",
         request_sha256=hashlib.sha256(task.model_dump_json().encode()).hexdigest(),
         counts={

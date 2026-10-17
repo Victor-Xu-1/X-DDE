@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from browser_platform import platform
 from dataset_native_fixture import Native
 from playwright.sync_api import expect, sync_playwright
 from test_library_member_native import SOURCE, prepare
@@ -16,7 +17,6 @@ from test_library_member_native import SOURCE, prepare
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
-from server_tests.browser_platform import platform
 
 EVIDENCE = Path("server_tests/evidence/library-members")
 
