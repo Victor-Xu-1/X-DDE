@@ -43,6 +43,7 @@ on:
       # The actual library questionnaire, identifier choices and reviewed
       # recipes use dataset-submission-checks.yml, without unrelated DEL runs.
       - "!frontend/src/datasets/LibraryForm*"
+      - "!frontend/src/datasets/DatasetSubmission*"
       - "!frontend/src/datasets/ScreeningForm.tsx"
       - "!frontend/src/datasets/screening-readiness*"
       - "!.github/workflows/dataset-discovery-checks.yml"
