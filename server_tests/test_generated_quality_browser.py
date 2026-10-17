@@ -25,6 +25,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
     )
     job = store.get(str(pin.job_id))
     assert job and job.request.operation == "diffsbdd"
+    assert job.request.payload.protein is not None
+    receptor_asset = str(job.request.payload.protein.asset_id)
     root = settings.state_dir / "jobs" / job.id / "output"
     result = json.loads((root / "result.json").read_text())
     assert result["valid"] >= 2
@@ -171,7 +173,7 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             )
         )
         expect(receptor.get_by_role("link")).to_have_attribute(
-            "href", "/api/assets/" + job.request.payload["protein"]["asset_id"]
+            "href", "/api/assets/" + receptor_asset
         )
         page.screenshot(path=evidence / "exact-quality-draft.png", full_page=True)
         page.get_by_role(
