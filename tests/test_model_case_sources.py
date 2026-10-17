@@ -93,4 +93,6 @@ def test_sealed_model_case_verifies_binary_bytes_without_changing_its_pin(settin
     assert capture_job(store, settings.state_dir, job.id) == evidence
     (output / "property-model.pt").write_bytes(b"Changed native binary")
     with pytest.raises(ValueError, match="artifact bytes changed"):
+        capture_job(store, settings.state_dir, job.id)
+    with pytest.raises(ValueError, match="artifact bytes changed"):
         verify_job(store, settings.state_dir, evidence)

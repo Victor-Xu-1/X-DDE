@@ -71,6 +71,8 @@ jobs:
   property-model-review:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'property-review'
     uses: ./.github/workflows/property-model-review-checks.yml
+    with:
+      runner: ${{ inputs.runner || 'ubuntu-24.04' }}
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

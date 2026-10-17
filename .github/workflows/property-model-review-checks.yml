@@ -1,11 +1,15 @@
 name: Property model review scoped checks
 on:
   workflow_call:
+    inputs:
+      runner:
+        type: string
+        default: ubuntu-24.04
 permissions:
   contents: read
 jobs:
   model-review:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 15
     env:
       WB_AUTO_DEPLOY: "0"

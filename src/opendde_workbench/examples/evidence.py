@@ -17,6 +17,11 @@ def capture_job(store, state, job_id):
     if authored is None:
         raise ValueError("The original public-case request is unavailable.")
     output = state / "jobs" / str(job_id) / "output"
+    from .native_sources import declared_native_sources
+
+    # The sealed manifest verifies binary dependencies before a pin is created,
+    # without adding keys to historical pin inventories.
+    declared_native_sources(job, output)
     if job.request.operation == "harness":
         file = contained(output, "result.json")
         if file.stat().st_size > 2 * 1024**2:
@@ -56,9 +61,3 @@ def verify_job(store, state, evidence):
     current = capture_job(store, state, evidence.job_id)
     if current != evidence:
         raise ValueError("The fixed example's task, environment or output bytes changed.")
-    # Existing pins seal result.json, whose manifest seals these native files.
-    # Validate that transitive evidence without rewriting their original pin bytes.
-    from .native_sources import declared_native_sources
-
-    job = store.get(str(evidence.job_id))
-    declared_native_sources(job, state / "jobs" / str(evidence.job_id) / "output")
