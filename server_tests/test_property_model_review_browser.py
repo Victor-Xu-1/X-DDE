@@ -11,6 +11,8 @@ from playwright.sync_api import expect, sync_playwright
 from reviewed_regions_preview import review_saved_regions
 from test_navigation_shell_browser import open_navigation
 
+from opendde_workbench.examples.bundle import restore_bundle
+from opendde_workbench.examples.stat6_bundle_release import CAPABILITIES, SHA256
 from opendde_workbench.models import Job
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
@@ -31,6 +33,8 @@ def model_review_fixture():
     )
     settings = Settings.from_env()
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
+    restored_cases = restore_bundle(Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, SHA256)
+    assert restored_cases["computed"] == len(CAPABILITIES)
     restored = Store(settings.state_dir / "jobs.sqlite3").get(job["id"])
     assert restored and restored == Job.model_validate(job)
     output = settings.state_dir / "jobs" / job["id"] / "output"
