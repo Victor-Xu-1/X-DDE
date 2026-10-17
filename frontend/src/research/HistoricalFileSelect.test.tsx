@@ -87,20 +87,68 @@ it("distinguishes same-named outputs without changing the selected immutable rec
   expect(choose).toHaveBeenLastCalledWith("asset-7", refs[1]);
 });
 
-it.each(["en", "zh"] as const)("shows the source task of each exact version in %s, including an off-page selection", async (language) => {
-  const reference = { asset_id: "shared", sha256: "c".repeat(64), record: 4, conformer: 0, version_id: "one" };
-  const version = { id: "one", label: "pose-001.sdf", kind: "molecule", created_at: "2026-10-17", reference } as never;
-  const choose = vi.fn();
-  const { rerender } = render(<HistoricalFileSelect language={language} label="Input" value={reference}
-    versions={[version]} files={[]} busy={false} onSelect={choose}
-    sourceTasks={{ one: { id: "source-one", name: "STAT6 neural recovery" } }} />);
-  expect(screen.getByRole("option", { name: /STAT6 neural recovery.*pose-001.sdf/ })).toBeVisible();
-  await userEvent.setup().selectOptions(screen.getByRole("combobox"), "version:one");
-  expect(choose).toHaveBeenLastCalledWith("shared", reference);
-  rerender(<HistoricalFileSelect language={language} label="Input" value={reference}
-    versions={[]} files={[]} selectedVersion={version} busy={false} onSelect={choose}
-    sourceTasks={{ one: { id: "source-one", name: "STAT6 neural recovery" } }} />);
-  expect(screen.getByRole("option", { name: /STAT6 neural recovery.*pose-001.sdf/ })).toBeVisible();
-  expect(screen.getByRole("combobox")).toHaveValue("version:one");
-  expect(screen.queryByText(/source-one/)).toBeNull();
-});
+it.each(["en", "zh"] as const)(
+  "shows the source task of each exact version in %s, including an off-page selection",
+  async (language) => {
+    const reference = {
+      asset_id: "shared",
+      sha256: "c".repeat(64),
+      record: 4,
+      conformer: 0,
+      version_id: "one",
+    };
+    const version = {
+      id: "one",
+      label: "pose-001.sdf",
+      kind: "molecule",
+      created_at: "2026-10-17",
+      reference,
+    } as never;
+    const choose = vi.fn();
+    const { rerender } = render(
+      <HistoricalFileSelect
+        language={language}
+        label="Input"
+        value={reference}
+        versions={[version]}
+        files={[]}
+        busy={false}
+        onSelect={choose}
+        sourceTasks={{
+          one: { id: "source-one", name: "STAT6 neural recovery" },
+        }}
+      />,
+    );
+    expect(
+      screen.getByRole("option", {
+        name: /STAT6 neural recovery.*pose-001.sdf/,
+      }),
+    ).toBeVisible();
+    await userEvent
+      .setup()
+      .selectOptions(screen.getByRole("combobox"), "version:one");
+    expect(choose).toHaveBeenLastCalledWith("shared", reference);
+    rerender(
+      <HistoricalFileSelect
+        language={language}
+        label="Input"
+        value={reference}
+        versions={[]}
+        files={[]}
+        selectedVersion={version}
+        busy={false}
+        onSelect={choose}
+        sourceTasks={{
+          one: { id: "source-one", name: "STAT6 neural recovery" },
+        }}
+      />,
+    );
+    expect(
+      screen.getByRole("option", {
+        name: /STAT6 neural recovery.*pose-001.sdf/,
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("combobox")).toHaveValue("version:one");
+    expect(screen.queryByText(/source-one/)).toBeNull();
+  },
+);

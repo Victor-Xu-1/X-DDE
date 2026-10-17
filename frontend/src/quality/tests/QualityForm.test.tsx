@@ -32,6 +32,10 @@ const molecule = {
   conformer: 0,
   version_id: "version",
 };
+it("leaves a new task blank without explicitly loading a template", () => {
+  render(<QualityForm language="en" onCreated={vi.fn()} />);
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+});
 beforeEach(() => {
   mocks.ready = true;
   mocks.submit.mockReset();
@@ -155,20 +159,72 @@ it("reviews the current purpose and excludes a retained receptor after switching
 it("restores the exact redocking example but requires fresh coordinate confirmation", async () => {
   const protein = { ...molecule, asset_id: "protein", record: 0 };
   const reference = { ...molecule, asset_id: "experimental", record: 7 };
-  const request = { operation: "pose_quality", molecule, protein, reference,
-    coordinate_basis: "user_confirmed", scientific_inputs: [molecule, protein, reference],
-    options: { profile: "redock", cpu: 2, memory_mib: 3072 } };
-  render(<ExampleContext.Provider value={{ request, objects: {} } as unknown as PreparedExample}>
-    <QualityForm language="en" onCreated={vi.fn()} />
-  </ExampleContext.Provider>);
+  const request = {
+    operation: "pose_quality",
+    molecule,
+    protein,
+    reference,
+    coordinate_basis: "user_confirmed",
+    scientific_inputs: [molecule, protein, reference],
+    options: { profile: "redock", cpu: 2, memory_mib: 3072 },
+  };
+  render(
+    <ExampleContext.Provider
+      value={{ request, objects: {} } as unknown as PreparedExample}
+    >
+      <QualityForm language="en" onCreated={vi.fn()} />
+    </ExampleContext.Provider>,
+  );
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
-  expect(screen.getByRole("radio", { name: "Compare with an experimental pose" })).toBeChecked();
+  expect(
+    screen.getByRole("radio", { name: "Compare with an experimental pose" }),
+  ).toBeChecked();
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox", { name: "These poses share the selected protein coordinate frame" }));
+  fireEvent.click(
+    screen.getByRole("checkbox", {
+      name: "These poses share the selected protein coordinate frame",
+    }),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
-  const review = screen.getByRole("table", { name: "Quality materials and plan" });
+  const review = screen.getByRole("table", {
+    name: "Quality materials and plan",
+  });
   expect(review).toHaveTextContent("experimental · record 8");
   fireEvent.click(screen.getByRole("button", { name: "Check pose quality" }));
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining(request)));
+  await waitFor(() =>
+    expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining(request)),
+  );
+});
+
+it("does not attach an old example receptor or reference to an explicit molecular handoff", () => {
+  const request = {
+    operation: "pose_quality",
+    molecule,
+    protein: { ...molecule, asset_id: "old-protein" },
+    reference: { ...molecule, asset_id: "old-reference" },
+    options: { profile: "redock", cpu: 2, memory_mib: 3072 },
+  };
+  render(
+    <ExampleContext.Provider
+      value={{ request, objects: {} } as unknown as PreparedExample}
+    >
+      <QualityForm
+        language="en"
+        onCreated={vi.fn()}
+        initialMolecule={molecule}
+      />
+    </ExampleContext.Provider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(
+    screen.getByRole("radio", { name: "Molecular conformation" }),
+  ).toBeChecked();
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  const review = screen.getByRole("table", {
+    name: "Quality materials and plan",
+  });
+  expect(review).not.toHaveTextContent("old-protein");
+  expect(review).not.toHaveTextContent("old-reference");
 });

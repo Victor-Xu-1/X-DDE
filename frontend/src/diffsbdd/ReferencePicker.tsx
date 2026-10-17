@@ -165,6 +165,7 @@ export function ReferencePicker({
           }
           selectedFile={history.selected?.asset}
           selectedVersion={history.selected?.version ?? undefined}
+          sourceTasks={history.sourceTasks}
           onSelect={chooseHistorical}
         />
         {history.loading && (

@@ -12,6 +12,11 @@ from ..scientific_objects import MoleculeRef
 from .contracts import ScientificObject
 
 
+class InputSourceTask(BaseModel):
+    id: UUID
+    name: str
+
+
 class InputChoice(BaseModel):
     key: str
     origin: Literal["upload", "saved"]
@@ -20,6 +25,7 @@ class InputChoice(BaseModel):
     asset: Asset
     reference: MoleculeRef
     version: ScientificObject | None = None
+    source_task: InputSourceTask | None = None
 
 
 class InputCatalog(BaseModel):
@@ -40,7 +46,8 @@ def input_page(
     suffix_sql = ",".join("?" for _ in formats)
     sql = (
         "WITH choices AS (SELECT 'file:'||a.id AS choice_key, 'upload' AS origin, "
-        "a.name AS label, a.created_at AS choice_time, a.*, NULL AS body FROM assets a "
+        "a.name AS label, a.created_at AS choice_time, a.*, NULL AS body, "
+        "NULL AS source_job_name FROM assets a "
         f"WHERE a.kind=? AND a.suffix IN ({suffix_sql})"
     )
     parameters = [kind, *formats]
@@ -50,8 +57,10 @@ def input_page(
     if scope == "records" and object_kind:
         sql += (
             " UNION ALL SELECT 'version:'||s.id, 'saved', "
-            "json_extract(s.body,'$.label'), s.created_at, a.*, s.body "
+            "json_extract(s.body,'$.label'), s.created_at, a.*, s.body, "
+            "json_extract(j.request,'$.name') AS source_job_name "
             "FROM scientific_objects s JOIN assets a ON a.id=s.asset_id "
+            "LEFT JOIN jobs j ON j.id=json_extract(s.body,'$.source_job') "
             f"WHERE a.kind=? AND a.suffix IN ({suffix_sql}) "
             "AND json_extract(s.body,'$.kind')=?"
         )
@@ -59,8 +68,11 @@ def input_page(
     sql += ") "
     where, values = "", []
     if query.strip():
-        where = " WHERE instr(lower(label),lower(?))>0 OR instr(lower(name),lower(?))>0"
-        values = [query.strip(), query.strip()]
+        where = (
+            " WHERE instr(lower(label),lower(?))>0 OR instr(lower(name),lower(?))>0 "
+            "OR instr(lower(source_job_name),lower(?))>0"
+        )
+        values = [query.strip()] * 3
     with scientific.store.connect() as db:
         db.execute("BEGIN")
         total = db.execute(
@@ -97,6 +109,11 @@ def input_page(
             asset=asset,
             reference=reference,
             version=version,
+            source_task=(
+                InputSourceTask(id=version.source_job, name=row["source_job_name"])
+                if version and version.source_job and row["source_job_name"]
+                else None
+            ),
         )
 
     return InputCatalog(

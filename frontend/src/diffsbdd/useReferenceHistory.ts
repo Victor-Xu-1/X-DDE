@@ -52,8 +52,19 @@ export function useReferenceHistory(
     return () => controller.abort();
   }, [key, attempt]);
   const data = active && state.key === key ? state.data : null;
+  const sourceTasks = Object.fromEntries(
+    [
+      ...(data?.items ?? []),
+      ...(data?.selected ? [data.selected] : []),
+    ].flatMap((item) =>
+      item.version && item.source_task
+        ? [[item.version.id, item.source_task] as const]
+        : [],
+    ),
+  );
   return {
     data,
+    sourceTasks,
     files:
       data?.items
         .filter((item) => item.origin === "upload")

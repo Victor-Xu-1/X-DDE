@@ -180,6 +180,7 @@ export function SequencePicker({
             requestedChoice={selection.requestedChoice}
             selectedFile={history.selected?.asset}
             selectedVersion={history.selected?.version ?? undefined}
+            sourceTasks={history.sourceTasks}
             onSelect={choose}
           />
           {history.loading && (

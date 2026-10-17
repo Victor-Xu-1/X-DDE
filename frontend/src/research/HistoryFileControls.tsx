@@ -29,7 +29,9 @@ export function HistoryFileControls({
           type="search"
           value={query}
           maxLength={180}
-          placeholder={zh ? "文件名或研究结果名称" : "File name or result name"}
+          placeholder={
+            zh ? "文件名、结果名或来源任务" : "File, result or source task name"
+          }
           onChange={(event) => onQuery(event.target.value)}
         />
       </label>

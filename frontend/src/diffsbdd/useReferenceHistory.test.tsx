@@ -69,3 +69,21 @@ it("aborts a previous query and never restores its late options", async () => {
   await act(async () => reply(catalogFixture([], [file])));
   expect(view.result.current.files).toEqual([]);
 });
+
+it("retains source task captions for the selected version outside a filtered page", async () => {
+  const selected = {
+    key: "version:native",
+    origin: "saved",
+    version: { id: "native" },
+    source_task: { id: "study", name: "STAT6 neural recovery" },
+  };
+  vi.mocked(request).mockResolvedValue({ ...catalogFixture(), selected });
+  const { result } = renderHook(() =>
+    useReferenceHistory("ligand", [".sdf"], true),
+  );
+  await waitFor(() =>
+    expect(result.current.sourceTasks.native).toEqual(selected.source_task),
+  );
+  expect(result.current.versions).toEqual([]);
+  expect(request).toHaveBeenCalledOnce();
+});

@@ -53,6 +53,17 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
             "region", name="构象与姿势质控结果" if zh else "Pose quality results"
         )
         expect(panel).to_be_visible(timeout=30000)
+        measurement = panel.get_by_role("region", name="姿势测量" if zh else "Pose measurements")
+        expect(
+            measurement.get_by_text(
+                f"{result['metrics']['smallest_distance_protein']:.2f} Å", exact=True
+            )
+        ).to_be_visible()
+        expect(
+            panel.get_by_role(
+                "button", name="受体内最小化" if zh else "Minimize in receptor", exact=True
+            )
+        ).to_have_count(0)
         table = panel.get_by_role("table", name="质控检查结果" if zh else "Quality check outcomes")
         (evidence / "native-source.json").write_text(
             json.dumps(

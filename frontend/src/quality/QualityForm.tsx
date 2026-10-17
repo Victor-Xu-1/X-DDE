@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useExampleReference } from "../examples/context";
+import { useExampleReference, useExampleTask } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
@@ -25,21 +25,26 @@ export function QualityForm({
 }) {
   const exampleMolecule = useExampleReference("ligand", "jq1");
   const exampleProtein = useExampleReference("receptor", "brd4");
-  initialMolecule ??= exampleMolecule;
-  initialProtein ??= exampleProtein;
+  const exampleTask = useExampleTask("pose_quality");
+  const handoff = Boolean(initialMolecule || initialProtein);
+  const preset = handoff ? null : exampleTask;
+  initialMolecule ??= preset?.molecule ?? (handoff ? null : exampleMolecule);
+  initialProtein ??= preset?.protein ?? (handoff ? null : exampleProtein);
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
     availability = useTaskReadiness("posebusters.check");
   const [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule),
     [protein, setProtein] = useState<MoleculeRef | null>(initialProtein),
-    [reference, setReference] = useState<MoleculeRef | null>(null);
+    [reference, setReference] = useState<MoleculeRef | null>(
+      preset?.reference ?? null,
+    );
   const [profile, setProfile] = useState<QualityProfile>(
-      initialProtein ? "dock" : "mol",
+      preset?.options.profile ?? (initialProtein ? "dock" : "mol"),
     ),
     [confirmed, setConfirmed] = useState(false),
-    [cpu, setCPU] = useState(1),
+    [cpu, setCPU] = useState(preset?.options.cpu ?? qualityDefaults.cpu),
     [name, setName] = useState("");
-  const options = { ...qualityDefaults, profile, cpu };
+  const options = { ...qualityDefaults, ...preset?.options, profile, cpu };
   const contextValid =
     profile === "mol" ||
     Boolean(protein && confirmed && (profile !== "redock" || reference));
@@ -172,6 +177,11 @@ export function QualityForm({
                     <input
                       type="checkbox"
                       checked={confirmed}
+                      disabled={
+                        !molecule ||
+                        !protein ||
+                        (profile === "redock" && !reference)
+                      }
                       onChange={(e) => setConfirmed(e.target.checked)}
                     />
                     {zh
@@ -194,6 +204,7 @@ export function QualityForm({
                 <label className="field">
                   CPU
                   <select
+                    aria-label="CPU"
                     value={cpu}
                     onChange={(e) => setCPU(Number(e.target.value))}
                   >

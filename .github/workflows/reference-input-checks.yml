@@ -41,6 +41,13 @@ on:
       - "frontend/src/diffsbdd/ReferenceFormats*"
       - "src/opendde_workbench/research/input_catalog.py"
       - "tests/test_input_catalog.py"
+      - "frontend/src/quality/QualityForm.tsx"
+      - "frontend/src/quality/QualityPreview.tsx"
+      - "frontend/src/quality/QualityMeasurements.tsx"
+      - "frontend/src/quality/QualityResults.tsx"
+      - "frontend/src/quality/quality-results.css"
+      - "frontend/src/quality/tests/QualityForm.test.tsx"
+      - "frontend/src/quality/tests/QualityResults.test.tsx"
       - "server_tests/test_material_catalog_browser.py"
       - "server_tests/test_generic_input_browser.py"
       - "server_tests/test_result_reuse_browser.py"
@@ -70,6 +77,8 @@ jobs:
           src/research/HistoricalFileSelect.test.tsx src/diffsbdd/DiffForm.test.tsx
           src/docking/DockingForm.test.tsx src/pockets/PocketForm.test.tsx
           src/receptors/StructurePrepareForm.test.tsx src/quality/tests/QualityForm.test.tsx
+          src/quality/tests/QualityResults.test.tsx src/quality/tests/QualityAssessment.test.tsx
+          src/quality/QualityReview.test.tsx
           src/simulations/SimulationForm.test.tsx src/simulations/SimulationReview.test.tsx
           src/diffsbdd/ReferenceFormats.test.tsx src/research/SdfRecordPicker.test.tsx
           src/integrations/LibraryInput.test.tsx src/research/useSdfAsset.test.tsx
@@ -86,7 +95,7 @@ jobs:
           src/presentation/research-files.test.tsx
       - name: Actual filtered input catalog, immutable versions and existing research API
         run: >-
-          uv run --locked pytest -q tests/test_input_catalog.py tests/test_research_assets.py tests/test_result_metadata.py
+          uv run --locked pytest -q tests/test_input_catalog.py tests/test_research_assets.py tests/test_result_metadata.py tests/test_pose_quality.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual real STAT6 metadata deadline, file pagination, identity and exact review; no simulation
         run: uv run --locked python -m pytest -x -q server_tests/test_reference_input_browser.py server_tests/test_material_catalog_browser.py server_tests/test_generic_input_browser.py
@@ -101,8 +110,19 @@ jobs:
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python -m pytest -x -q server_tests/test_result_reuse_browser.py
+      - name: Inspect retained native quality measurements without calculations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-quality-reference" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-quality-reference/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-quality-reference" WB_STATE_DIR="$RUNNER_TEMP/x-dde-quality-reference/state" uv run --locked python server_tests/prepare_quality_context_cases.py
+      - run: uv run --locked pytest -x -q server_tests/test_quality_context_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: reference-input-evidence
-          path: outputs/reference-input/**
+          path: |
+            outputs/reference-input/**
+            outputs/quality-context/en/**
+            outputs/quality-context/zh/**

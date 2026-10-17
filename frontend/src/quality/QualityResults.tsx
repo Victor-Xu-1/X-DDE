@@ -1,7 +1,7 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { QualityPreview } from "./QualityPreview";
+import { QualityMeasurements } from "./QualityMeasurements";
 import type { PoseQualityResult } from "./types";
 import { QualityCheckList } from "./QualityCheckList";
 import { assessQuality, type AssessmentOutcome } from "./assessment";
@@ -60,31 +60,16 @@ export function QualityResults({
       <StructureWorkbench
         preview={
           <div className="result-inspection-detail">
-            {Object.keys(result.previews_sha256).length > 0 ? (
-              <StructureViewer
-                urls={Object.keys(result.previews_sha256)
-                  .sort((a, b) =>
-                    a.endsWith(".pdb") ? -1 : b.endsWith(".pdb") ? 1 : 0,
-                  )
-                  .map((name) => artifactUrl(job.id, name))}
-                language={language}
-                molecularSource={{
-                  url: artifactUrl(job.id, "molecule-preview.sdf"),
-                }}
-                focusModel={result.inputs.protein ? 1 : 0}
-              />
-            ) : (
-              <div className="result-inspection-empty" role="status">
-                <p>
-                  {zh
-                    ? "本次质控未提供可预览的结构。"
-                    : "This quality result contains no preview structure."}
-                </p>
-              </div>
-            )}
+            <QualityPreview
+              key={job.id}
+              job={job}
+              result={result}
+              language={language}
+            />
           </div>
         }
       >
+        <QualityMeasurements result={result} language={language} />
         <QualityCheckList
           key={job.id}
           checks={assessment.checks}

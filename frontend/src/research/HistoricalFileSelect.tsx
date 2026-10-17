@@ -2,6 +2,7 @@ import { historyChoiceLabel, nameCounts } from "../presentation/history-choice";
 import type { Asset } from "../operations/types";
 import type { Language } from "../types";
 import type { MoleculeRef, ScientificObject } from "./types";
+import type { InputSourceTask } from "./input-catalog";
 
 /** One historical selector for exact research versions and unregistered uploads. */
 export function HistoricalFileSelect({
@@ -16,6 +17,7 @@ export function HistoricalFileSelect({
   selectedFile,
   selectedVersion,
   compact = false,
+  sourceTasks = {},
 }: {
   language: Language;
   label: string;
@@ -28,12 +30,17 @@ export function HistoricalFileSelect({
   selectedFile?: Asset;
   selectedVersion?: ScientificObject;
   compact?: boolean;
+  sourceTasks?: Record<string, InputSourceTask>;
 }) {
   const zh = language === "zh";
   const versionNames = nameCounts(versions.map((v) => v.label));
   const fileNames = nameCounts(files.map((v) => v.name));
   // A file collection and an immutable record are distinct usable inputs.
   const uploads = files;
+  const withSource = (version: ScientificObject, caption: string) =>
+    sourceTasks[version.id]?.name
+      ? `${sourceTasks[version.id].name} — ${caption}`
+      : caption;
   const selected =
     requestedChoice ||
     (value?.version_id
@@ -74,16 +81,19 @@ export function HistoricalFileSelect({
         <optgroup label={zh ? "研究结果" : "Research results"}>
           {versions.map((v, index) => (
             <option key={v.id} value={"version:" + v.id}>
-              {(versionNames.get(v.label) ?? 0) > 1
-                ? historyChoiceLabel(v.label, index, zh, v.created_at)
-                : v.label}
+              {withSource(
+                v,
+                (versionNames.get(v.label) ?? 0) > 1
+                  ? historyChoiceLabel(v.label, index, zh, v.created_at)
+                  : v.label,
+              )}
               {v.kind === "molecule"
                 ? ` · ${zh ? "记录" : "record"} ${v.reference.record + 1}`
                 : ""}
             </option>
           ))}
         </optgroup>
-        <optgroup label={zh ? "上传文件" : "Uploaded files"}>
+        <optgroup label={zh ? "原始文件" : "Original files"}>
           {uploads.map((f, index) => (
             <option key={f.id} value={"file:" + f.id}>
               {(fileNames.get(f.name) ?? 0) > 1
@@ -97,7 +107,9 @@ export function HistoricalFileSelect({
           !uploads.some((f) => "file:" + f.id === selected) && (
             <option value={selected}>
               {zh ? "当前选择：" : "Current selection: "}
-              {selectedVersion?.label ??
+              {(selectedVersion
+                ? withSource(selectedVersion, selectedVersion.label)
+                : undefined) ??
                 selectedFile?.name ??
                 (zh ? "已选择的文件" : "Selected file")}
               {selectedVersion?.kind === "molecule"

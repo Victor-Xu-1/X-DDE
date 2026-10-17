@@ -1,5 +1,9 @@
 import type { Asset } from "../operations/types";
 import type { MoleculeRef, ScientificObject } from "./types";
+export interface InputSourceTask {
+  id: string;
+  name: string;
+}
 export interface InputChoice {
   key: string;
   origin: "upload" | "saved";
@@ -8,6 +12,7 @@ export interface InputChoice {
   asset: Asset;
   reference: MoleculeRef;
   version: ScientificObject | null;
+  source_task?: InputSourceTask | null;
 }
 export interface InputCatalog {
   items: InputChoice[];
