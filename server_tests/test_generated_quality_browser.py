@@ -65,7 +65,20 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         expect(
             table.get_by_role("columnheader", name="输出重原子数" if zh else "Output heavy atoms")
         ).to_be_visible()
-        row = table.get_by_role("row").filter(has=selected)
+        row = table.get_by_role("row").filter(
+            has=page.get_by_role("button", name="候选 2" if zh else "Candidate 2", exact=True)
+        )
+        (evidence / "selected-row.json").write_text(
+            json.dumps(
+                {
+                    "native_output_heavy_atoms": native_row["heavy_atoms"],
+                    "visible_table_rows": table.get_by_role("row").all_inner_texts(),
+                    "selected_rows": row.count(),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
         expect(
             row.get_by_role("cell", name=str(native_row["heavy_atoms"]), exact=True)
         ).to_be_visible()
