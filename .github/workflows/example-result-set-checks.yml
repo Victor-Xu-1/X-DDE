@@ -37,6 +37,8 @@ on:
       - "server_tests/example_preview_actions.py"
       - "server_tests/reviewed_retrieval_preview.py"
       - "server_tests/reviewed_disease_preview.py"
+      - "server_tests/reviewed_batch_preview.py"
+      - "frontend/src/datasets/candidate-table.css"
       - ".github/workflows/example-result-set-checks.yml"
   pull_request:
     paths: *stage_paths

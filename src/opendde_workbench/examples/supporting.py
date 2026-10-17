@@ -10,7 +10,7 @@ from .source_captions import source_label
 
 
 def supporting_stage_names(store, pin, scientific):
-    """Preserve authored names, identifying repeated minimizations by their exact source."""
+    """Preserve authored names; identify repeated molecular follow-ups by exact source."""
     names = {}
     jobs = {}
     for entry in pin.supporting_evidence if pin else ():
@@ -21,7 +21,10 @@ def supporting_stage_names(store, pin, scientific):
             jobs[str(entry.job_id)] = job
     repeated = Counter(names.values())
     for identifier, job in jobs.items():
-        if repeated[names[identifier]] < 2 or job.request.operation != "molecule_minimize":
+        if repeated[names[identifier]] < 2 or job.request.operation not in {
+            "molecule_minimize",
+            "pose_quality",
+        }:
             continue
         molecule = job.request.molecule
         if molecule.version_id is None:

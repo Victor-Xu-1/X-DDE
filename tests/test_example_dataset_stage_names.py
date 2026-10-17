@@ -7,14 +7,16 @@ from uuid import uuid4
 import pytest
 from test_example_stage_names import stages
 
+from opendde_workbench.chemistry.minimization_contract import MoleculeMinimizeTask
 from opendde_workbench.datasets.contract import DatasetTask
 from opendde_workbench.datasets.result import DatasetResult
 from opendde_workbench.examples.supporting import supporting_stage_names
 from opendde_workbench.models import Status
+from opendde_workbench.quality.contract import PoseQualityTask
 
 
-def dataset_stages(settings):
-    store, scientific, jobs, pin = stages(settings)
+def dataset_stages(settings, task_type=MoleculeMinimizeTask):
+    store, scientific, jobs, pin = stages(settings, task_type)
     task = DatasetTask(
         operation="library_subset",
         name="Candidate protocol fixture",
@@ -66,10 +68,12 @@ def dataset_stages(settings):
     return store, scientific, jobs, pin, manifest, report
 
 
+@pytest.mark.parametrize("task_type", [MoleculeMinimizeTask, PoseQualityTask])
 def test_dataset_stage_captions_use_exact_public_record_names_without_rewriting_native_data(
     settings,
+    task_type,
 ):
-    store, scientific, jobs, pin, manifest, _ = dataset_stages(settings)
+    store, scientific, jobs, pin, manifest, _ = dataset_stages(settings, task_type)
     before = {job.id: store.get(job.id).model_dump_json() for job in jobs}
     raw = manifest.read_bytes()
     captions = supporting_stage_names(store, pin, scientific)
@@ -84,8 +88,11 @@ def test_dataset_stage_captions_use_exact_public_record_names_without_rewriting_
 @pytest.mark.parametrize(
     "mismatch", ["record", "sha256", "request", "ambiguous", "control", "long"]
 )
-def test_inconsistent_dataset_metadata_never_supplies_an_unrelated_caption(settings, mismatch):
-    store, scientific, jobs, pin, manifest, report = dataset_stages(settings)
+@pytest.mark.parametrize("task_type", [MoleculeMinimizeTask, PoseQualityTask])
+def test_inconsistent_dataset_metadata_never_supplies_an_unrelated_caption(
+    settings, mismatch, task_type
+):
+    store, scientific, jobs, pin, manifest, report = dataset_stages(settings, task_type)
     if mismatch == "sha256":
         report["artifacts"][0]["sha256"] = "f" * 64
     elif mismatch == "request":

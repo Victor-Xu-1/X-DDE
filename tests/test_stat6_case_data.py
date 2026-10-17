@@ -95,7 +95,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 59 and not any(
+    assert len(jobs) == 62 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
     )
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
@@ -156,6 +156,15 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert str(disease.job_id) == "0ea187a3-59ac-4478-96d2-c29f72168c1f" and disease.review
     assert disease.artifact_sha256["source-01.json"] == (
         "db5307903f9a2480ada5ea50cdf5c24efe6a50206b505e190b38d28087fb01c1"
+    )
+    docked = library_pins.get("screening.dock", verify=True)
+    assert str(docked.job_id) == "c3d97cc9-a7ec-401d-a1ed-20c3bbb9404d" and docked.review
+    assert [str(row.job_id) for row in docked.supporting_evidence] == [
+        "7e29f874-81a8-4526-8dde-209e4ba03c92",
+        "b00f1296-cf14-4ace-b59a-8aa74bdbf604",
+    ]
+    assert docked.artifact_sha256["receptor.pdb"] == (
+        "a7f43f32a2c30345797b65664752c51b57a8827af798033577f02d8f61b230a8"
     )
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
