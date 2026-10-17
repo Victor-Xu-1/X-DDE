@@ -35,6 +35,7 @@ on:
       - "server_tests/docking_scoring_checks.py"
       - "server_tests/test_scientific_handoff.py"
       - "server_tests/test_docking_serialization.py"
+      - "server_tests/docking_source_tools.py"
       - "server_tests/docking_browser.py"
       - "server_tests/test_native_docking.py"
       - ".github/workflows/docking-runtime-checks.yml"

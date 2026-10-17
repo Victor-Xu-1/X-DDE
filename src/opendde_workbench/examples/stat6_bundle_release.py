@@ -1,10 +1,10 @@
 """Reviewed native study results; input presets alone are not computed examples."""
 
-VERSION = "13"
-URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.1/stat6-reviewed-results-v13.zip"
-SHA256 = "23c39af3c7d6d96b7b974257f94f61cbf065c8ece3c6defeaff429a48656e8eb"
-BYTES = 10599043
-SOURCE_REVISION = "b70d2361d66b95e0b79a1b53497a3695a60f9157"
+VERSION = "14"
+URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.4/stat6-reviewed-results-v14.zip"
+SHA256 = "b0cc8f13e6c906db25981e86b117c4a141ba4a6209a5375ef10cb5a8f82e0e9e"
+BYTES = 10604900
+SOURCE_REVISION = "891c4920144d2649e032eb2ba816150180b9a5e4"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
@@ -19,6 +19,7 @@ CAPABILITIES = (
     "biopython.exposure",
     "discovery.import",
     "discovery.target",
+    "discovery.disease",
     "properties",
     "diffsbdd.generate",
     "diffsbdd.pocket",

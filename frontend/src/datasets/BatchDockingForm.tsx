@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { BatchSettings, defaultBatchSettings } from "./BatchSettings";
-import { request } from "../api";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { ChoiceCards } from "../guided/ChoiceCards";
-import { MoleculeImage } from "../presentation/MoleculeImage";
+import { BatchCandidates } from "./BatchCandidates";
 import type { Job, Language } from "../types";
 import { SourcePicker } from "./SourcePicker";
 import {
@@ -15,12 +14,8 @@ import {
 import { taskFor } from "./dataset-model";
 import { useDatasetRun, type DatasetExecution } from "./useDatasetRun";
 import { ExecutionView } from "./ExecutionView";
-import type {
-  AvailableDataset,
-  DatasetResult,
-  DatasetCandidate,
-} from "./types";
 import { useDatasetExample } from "./useDatasetExample";
+import { useBatchCandidates } from "./useBatchCandidates";
 
 export function BatchDockingForm({
   language,
@@ -33,46 +28,29 @@ export function BatchDockingForm({
     pocket = usePocketQuestions(language),
     run = useDatasetRun(onCreated),
     readiness = useTaskReadiness("screening.dock"),
-    [source, setSource] = useState<AvailableDataset[]>([]),
-    [candidates, setCandidates] = useState<DatasetCandidate[]>([]),
-    [selected, setSelected] = useState<string[]>([]),
     [device, setDevice] = useState<"cpu" | "cuda">("cpu"),
     [name, setName] = useState(""),
     [error, setError] = useState("");
-  const [settings, setSettings] = useState({ ...defaultBatchSettings }),
-    intent = useRef(0);
-  useEffect(
-    () => () => {
-      intent.current++;
-    },
-    [],
-  );
-  async function choose(values: AvailableDataset[]) {
-    const current = ++intent.current;
-    setSource(values);
-    setCandidates([]);
-    setSelected([]);
-    setError("");
-    if (!values[0]) return;
-    try {
-      const result = await request<DatasetResult>(
-        `/jobs/${values[0].job_id}/result`,
-      );
-      const rows = result.candidates.filter((row) => row.artifact);
-      if (current !== intent.current) return;
-      setCandidates(rows);
-      setSelected(rows.slice(0, 25).map((row) => row.id));
-    } catch (e) {
-      if (current === intent.current) setError(String(e));
-    }
-  }
+  const [settings, setSettings] = useState({ ...defaultBatchSettings });
+  const {
+    source,
+    candidates,
+    selected,
+    choose,
+    toggle,
+    setSelected,
+    ready: selectionReady,
+    loading,
+  } = useBatchCandidates(setError);
   const example = useDatasetExample(setError, language);
   useEffect(() => {
     if (!example) return;
-    void choose(example.sources).then(() =>
-      setSelected((example.task.payload.selected_ids as string[]) ?? []),
+    void choose(
+      example.sources,
+      (example.task.payload.selected_ids as string[]) ?? [],
     );
     setName(example.task.name);
+    setDevice(example.task.options?.device === "cuda" ? "cuda" : "cpu");
     setSettings(
       (old) =>
         Object.fromEntries(
@@ -84,15 +62,8 @@ export function BatchDockingForm({
         ) as typeof old,
     );
   }, [example]);
-  function toggle(id: string) {
-    setSelected((values) =>
-      values.includes(id)
-        ? values.filter((value) => value !== id)
-        : [...values, id],
-    );
-  }
   async function submit() {
-    if (!pocket.receptor || !pocket.pocket) return;
+    if (!pocket.receptor || !pocket.pocket || !selectionReady) return;
     return run.submit(
       taskFor(
         "screening.dock",
@@ -159,7 +130,7 @@ export function BatchDockingForm({
           },
           {
             title: zh ? "选择候选分子" : "Choose candidates",
-            valid: source.length === 1 && selected.length > 0,
+            valid: selectionReady,
             content: (
               <div className="dataset-question-content">
                 <SourcePicker
@@ -173,52 +144,26 @@ export function BatchDockingForm({
                       : "Completed screening or DEL candidate set"
                   }
                 />
+                {loading && (
+                  <p className="field-help" role="status">
+                    {zh ? "正在读取候选分子…" : "Loading candidate molecules…"}
+                  </p>
+                )}
                 {candidates.length > 0 && (
-                  <>
-                    <div className="dataset-field-heading">
-                      <strong>
-                        {zh ? "选择要对接的分子" : "Select molecules to dock"}
-                      </strong>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelected(candidates.map((row) => row.id))
-                        }
-                      >
-                        {zh ? "选择全部" : "Select all"}
-                      </button>
-                    </div>
-                    <div className="dataset-candidate-select-grid">
-                      {candidates.map((row) => (
-                        <label
-                          key={row.id}
-                          className={
-                            selected.includes(row.id) ? "selected" : ""
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selected.includes(row.id)}
-                            onChange={() => toggle(row.id)}
-                          />
-                          <MoleculeImage
-                            source={row.smiles ? { smiles: row.smiles } : null}
-                            language={language}
-                            label={row.id}
-                            compact
-                          />
-                          <strong>{row.id}</strong>
-                        </label>
-                      ))}
-                    </div>
-                  </>
+                  <BatchCandidates
+                    candidates={candidates}
+                    selected={selected}
+                    onToggle={toggle}
+                    onSelection={setSelected}
+                    language={language}
+                  />
                 )}
               </div>
             ),
           },
           {
             title: zh ? "确认对接方案" : "Review docking plan",
-            valid: !!pocket.pocket && selected.length > 0,
+            valid: !!pocket.pocket && selectionReady,
             content: (
               <div className="dataset-question-content">
                 <ChoiceCards<"cpu" | "cuda">

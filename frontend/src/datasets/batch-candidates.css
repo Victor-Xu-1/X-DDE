@@ -1,0 +1,13 @@
+.batch-candidate-heading {
+  flex-wrap: wrap;
+}
+.batch-candidate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.batch-candidate-count {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}

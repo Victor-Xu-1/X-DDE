@@ -10,6 +10,7 @@ import pytest
 from browser_platform import platform
 from example_preview_actions import choose_task, ready_structure
 from playwright.sync_api import expect, sync_playwright
+from reviewed_disease_preview import review_disease_example
 from reviewed_retrieval_preview import review_retrieval_example
 
 from opendde_workbench.examples.bundle import restore_bundle
@@ -196,6 +197,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
         )
         index_stages = review_index_example(page, base, language, evidence)
         retrieval_stages = review_retrieval_example(page, base, language, evidence)
+        disease = review_disease_example(page, base, language, evidence)
         page.reload()
         expect(page.locator("html")).to_have_attribute("lang", "zh-CN" if zh else "en")
         assert not errors, errors
@@ -212,6 +214,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
                 "unique_stage_captions": stages,
                 "index_minimization_stages": index_stages,
                 "retrieval_minimization_stages": retrieval_stages,
+                "disease_evidence": disease,
                 "source_unspecified_index_member_downloaded": True,
                 "api_mutations": mutations,
                 "jobs_and_scientific_versions_unchanged": True,

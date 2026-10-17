@@ -35,6 +35,7 @@ on:
       - "server_tests/test_reviewed_example_previews_browser.py"
       - "server_tests/example_preview_actions.py"
       - "server_tests/reviewed_retrieval_preview.py"
+      - "server_tests/reviewed_disease_preview.py"
       - ".github/workflows/example-result-set-checks.yml"
   pull_request:
     paths: *stage_paths

@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 
 from docking_chemistry import comparison_graph, digest, export_molecule, molecule, summarize_poses
+from docking_inputs import candidate_molecule
 from docking_manifest import BINARY_SHA256, VERSION
 from docking_options import DockingOptions, SearchBox, arguments
 from docking_receptor import prepare as prepare_receptor
@@ -75,7 +76,7 @@ def run(request):
         for index, identifier in enumerate(selected):
             original = candidates[identifier]
             try:
-                source = molecule(root / original["artifact"], original["record"])
+                source = candidate_molecule(root, original)
                 if not source.GetConformer().Is3D():
                     source = unbound_conformer(source, options.seed + index)
                 for prop in (

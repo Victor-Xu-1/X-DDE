@@ -77,7 +77,7 @@ Choose a purpose → provide materials → select settings → review and submit
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
-The current [STAT6 case package](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.1/stat6-reviewed-results-v13.zip) contains 31 reviewed module examples and one nested follow-up. It includes frontend-submitted index construction and pocket retrieval for 38 reference compounds: scores are independently reproduced, retained conformers preserve chemical identity, stereo specification and coordinates, and minimized previews and native downloads are checked. These cases verify the computational and data-handling chain; they are not affinity validation or a prospective enrichment benchmark. Scientific acceptance of the remaining modules continues.
+The current [STAT6 case package](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.4/stat6-reviewed-results-v14.zip) contains 32 reviewed module examples and one nested follow-up. It includes frontend-submitted index construction and pocket retrieval for 38 reference compounds, plus an asthma association query. Cases retain independent score reproduction, chemical/stereo checks, minimized previews and native downloads. The disease snapshot distinguishes its 50 retrieved records from 7,772 source associations. These cases verify computational and data-handling consistency; they are not affinity validation, causal validation or a prospective enrichment benchmark. Scientific acceptance of the remaining modules continues.
 
 ### 2. Inspect structures alongside candidate tables
 
