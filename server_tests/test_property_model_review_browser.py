@@ -124,6 +124,7 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         expect(
             region.get_by_role("heading", name="测试记录 2" if zh else "Test record 2", exact=True)
         ).to_be_visible()
+        drawing.scroll_into_view_if_needed()
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         table = region.get_by_role(
             "table", name="测试集逐分子误差" if zh else "Held-out errors by molecule"
@@ -141,6 +142,7 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         expect(
             region.get_by_role("heading", name="测试记录 3" if zh else "Test record 3", exact=True)
         ).to_be_visible()
+        drawing.scroll_into_view_if_needed()
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         drawing.locator("img").evaluate("image => image.decode()")
         expect(chart).to_have_attribute("aria-busy", "false", timeout=60000)
