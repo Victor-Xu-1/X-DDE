@@ -139,7 +139,7 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         )
         expect(ligand).to_contain_text("记录 2" if zh else "Record 2")
         receptor = review.get_by_role("row").filter(
-            has=review.get_by_role(
+            has=page.get_by_role(
                 "rowheader", name="对应受体" if zh else "Matching receptor", exact=True
             )
         )
