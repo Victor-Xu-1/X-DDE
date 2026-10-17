@@ -5,34 +5,42 @@ import {
   MinusCircleOutlined,
 } from "@ant-design/icons";
 import type { Language } from "../types";
-import { checkLabels } from "./labels";
-import type { PoseQualityResult } from "./types";
+import { assessmentLabels, assessmentReasons, checkLabels } from "./labels";
+import type { AssessedCheck, AssessmentOutcome } from "./assessment";
 
-type Outcome = PoseQualityResult["checks"][number]["outcome"];
+type Outcome = AssessmentOutcome;
 export function QualityCheckList({
   checks,
   language,
 }: {
-  checks: PoseQualityResult["checks"];
+  checks: readonly AssessedCheck[];
   language: Language;
 }) {
   const zh = language === "zh",
     [filter, setFilter] = useState<Outcome | "all">("all");
-  const labels = {
-    all: zh ? "全部项目" : "All checks",
-    pass: zh ? "通过" : "Pass",
-    fail: zh ? "需要复核" : "Needs review",
-    unavailable: zh ? "未能计算" : "Not calculated",
+  const label = (value: Outcome | "all") =>
+    value === "all"
+      ? zh
+        ? "全部项目"
+        : "All checks"
+      : assessmentLabels[value][zh ? 0 : 1];
+  const counts = {
+    pass: 0,
+    fail: 0,
+    unavailable: 0,
+    unassessed: 0,
+    not_applicable: 0,
   };
-  const counts = { pass: 0, fail: 0, unavailable: 0 };
-  checks.forEach((row) => counts[row.outcome]++);
+  checks.forEach((row) => counts[row.assessment]++);
   const visible = checks.filter(
-    (row) => filter === "all" || row.outcome === filter,
+    (row) => filter === "all" || row.assessment === filter,
   );
   const icons = {
     pass: <CheckCircleOutlined aria-hidden="true" />,
     fail: <ExclamationCircleOutlined aria-hidden="true" />,
     unavailable: <MinusCircleOutlined aria-hidden="true" />,
+    unassessed: <ExclamationCircleOutlined aria-hidden="true" />,
+    not_applicable: <MinusCircleOutlined aria-hidden="true" />,
   };
   return (
     <div className="result-inspection-list quality-checks">
@@ -46,10 +54,18 @@ export function QualityCheckList({
           value={filter}
           onChange={(event) => setFilter(event.target.value as Outcome | "all")}
         >
-          {(["all", "fail", "unavailable", "pass"] as const).map((value) => (
+          {(
+            [
+              "all",
+              "fail",
+              "unassessed",
+              "unavailable",
+              "not_applicable",
+              "pass",
+            ] as const
+          ).map((value) => (
             <option key={value} value={value}>
-              {labels[value]} ·{" "}
-              {value === "all" ? checks.length : counts[value]}
+              {label(value)} · {value === "all" ? checks.length : counts[value]}
             </option>
           ))}
         </select>
@@ -67,10 +83,15 @@ export function QualityCheckList({
               <tr key={row.id}>
                 <td>{checkLabels[row.id]?.[zh ? 0 : 1] ?? row.id}</td>
                 <td>
-                  <span className={"quality-outcome is-" + row.outcome}>
-                    {icons[row.outcome]}
-                    {labels[row.outcome]}
+                  <span className={"quality-outcome is-" + row.assessment}>
+                    {icons[row.assessment]}
+                    {label(row.assessment)}
                   </span>
+                  {row.reason && (
+                    <small className="quality-check-note">
+                      {assessmentReasons[row.reason][zh ? 0 : 1]}
+                    </small>
+                  )}
                 </td>
               </tr>
             ))}

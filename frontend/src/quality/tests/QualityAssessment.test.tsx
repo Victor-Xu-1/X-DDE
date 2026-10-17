@@ -1,4 +1,5 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../../types";
 import type { PoseQualityResult } from "../types";
@@ -75,6 +76,7 @@ it.each(["en", "zh"] as const)(
 );
 
 const contexts = [
+  ["protein-ligand_maximum_distance", "smallest_distance_protein"],
   ["minimum_distance_to_protein", "smallest_distance_protein"],
   [
     "minimum_distance_to_organic_cofactors",
@@ -120,6 +122,26 @@ it("does not infer a pass from a missing receptor source", () => {
   delete native.inputs.protein;
   expect(within(show(native)).getByText("Not assessed")).toBeVisible();
 });
+it.each([-0.1, 1.1, Number.POSITIVE_INFINITY])(
+  "does not accept an invalid overlap fraction %s",
+  (value) => {
+    const table = show(
+      report("volume_overlap_with_waters", { volume_overlap_waters: value }),
+    );
+    expect(within(table).getByText("Not assessed")).toBeVisible();
+  },
+);
+it.each([undefined, -1, 0.5, null, "0"])(
+  "does not accept an invalid or missing feature count %s",
+  (value) => {
+    const table = show(
+      report("aromatic_ring_flatness", {
+        number_aromatic_rings_checked: value as number,
+      }),
+    );
+    expect(within(table).getByText("Not assessed")).toBeVisible();
+  },
+);
 it("preserves a native failure even when its measurement is missing", () => {
   const native = report("minimum_distance_to_organic_cofactors");
   native.classification = "fails";
@@ -142,3 +164,63 @@ it("does not convert a failure into inapplicable when a feature count is zero", 
   native.checks[0].outcome = "fail";
   expect(within(show(native)).getByText("Needs review")).toBeVisible();
 });
+
+it.each(["en", "zh"] as const)(
+  "keeps source counts available without counting unassessed or inapplicable items as passes in %s",
+  async (language) => {
+    const native = report("bond_lengths", {
+      number_bonds: 33,
+      number_aromatic_rings_checked: 0,
+    });
+    native.checks.push(
+      { id: "minimum_distance_to_waters", outcome: "pass" },
+      { id: "aromatic_ring_flatness", outcome: "pass" },
+      { id: "internal_energy", outcome: "unavailable" },
+    );
+    native.classification = "incomplete";
+    const before = structuredClone(native);
+    const user = userEvent.setup();
+    const table = show(native, language);
+    const zh = language === "zh";
+    const summary = screen.getByRole("status", {
+      name: zh ? "质控评估摘要" : "Quality assessment summary",
+    });
+    for (const text of zh
+      ? ["通过: 1", "未评估: 1", "不适用: 1", "未能计算: 1"]
+      : [
+          "Pass: 1",
+          "Not assessed: 1",
+          "Not applicable: 1",
+          "Not calculated: 1",
+        ])
+      expect(within(summary).getByText(text, { exact: true })).toBeVisible();
+    const sourceCounts = screen.getByText(
+      zh
+        ? /原始报告：3 项通过，0 项需复核，1 项未能计算/
+        : /Source report: 3 passed, 0 need review, 1 were not calculated/,
+    );
+    expect(sourceCounts).not.toBeVisible();
+    await user.click(
+      screen.getByText(zh ? "方法与评估范围" : "Method and assessment scope", {
+        exact: true,
+      }),
+    );
+    expect(sourceCounts).toBeVisible();
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: zh ? "显示哪些检查？" : "Which checks?",
+      }),
+      "pass",
+    );
+    expect(within(table).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(table).getByText(zh ? "通过" : "Pass", { exact: true }),
+    ).toBeVisible();
+    expect(
+      within(table).queryByText(zh ? "未评估" : "Not assessed", {
+        exact: true,
+      }),
+    ).toBeNull();
+    expect(native).toEqual(before);
+  },
+);

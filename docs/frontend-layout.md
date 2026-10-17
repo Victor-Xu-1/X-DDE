@@ -382,7 +382,9 @@ Feature preparation previews read the actual typed task components; converted in
 
 抗体页将完整输入序列和已编号可变域分别标注，CDR 点击与原始序列位置联动。IMGT 插入码和域 FASTA 保留原样。人源参考页只在确有修改建议时显示对照列；自适应的残基列将原始与建议序列上下对齐，修改表可定位到同一位置。原生残基概率与 OAS 精确肽段匹配分别解释，不归一化为人源化百分比或临床评分。
 
-姿势质控将全部检查直接放在原始三维预览旁，并可筛选通过、需复核和未能计算；缺少结构预览不会变成检查通过。结果交互和实际源文件由 `sequence-result-checks.yml` 的限定组件与公开原生案例检查验证，使用中文/英文和 1440、1331、390 px。此专项不运行全局测试或新的科学推理。
+姿势质控将全部检查直接放在原始三维预览旁，可筛选通过、需复核、未评估、未能计算和不适用。原始判定、阈值、报告和坐标保留：本页只统计实际可解释的检查。上下文检查没有有限的距离或体积测量值时不计为评估通过；有效的零重叠值仍是实际测量。报告明确没有待检结构特征时显示不适用，原始失败或未能计算不能被这一规则覆盖。没有测量值可能源于未保留相应成分或其位于检测范围之外，不能据此推断真实生物体系中不存在水或辅因子。“分子靠近受体”与“没有过近接触”分别说明，不能互相替代。原始计数及方法范围按需展开，主界面不显示内部日志或 JSON。
+
+Pose-quality presentation keeps native decisions, thresholds, reports and coordinates intact. Missing finite distance or overlap measurements are distinguished from assessed passes, while a valid zero overlap remains a real measurement. Explicit zero tested-feature counts are inapplicable; native failures and unavailable checks are never waived. Missing measurements do not establish biological absence. Being near the receptor does not rule out a clash. Source counts and scope are disclosed on demand. The quality-only branch of `sequence-result-checks.yml` verifies components and real retained STAT6 outputs in desktop English and narrow Chinese, including immutable artifacts and unchanged task states. No global suite or new scientific inference is required.
 
 ### 共用导航与任务页位置
 

@@ -1,3 +1,5 @@
+import type { AssessmentOutcome, AssessmentReason } from "./assessment";
+
 export const checkLabels: Record<string, [string, string]> = {
   mol_pred_loaded: ["分子可读取", "Molecule can be read"],
   mol_true_loaded: ["参考姿势可读取", "Reference can be read"],
@@ -24,8 +26,8 @@ export const checkLabels: Record<string, [string, string]> = {
   double_bond_flatness: ["双键周围平面合理", "Double-bond flatness"],
   internal_energy: ["内部能量检查", "Internal energy check"],
   "protein-ligand_maximum_distance": [
-    "与受体距离合理",
-    "Distance from receptor",
+    "分子靠近受体",
+    "Ligand is near the receptor",
   ],
   minimum_distance_to_protein: [
     "与蛋白无明显距离冲突",
@@ -60,4 +62,27 @@ export const checkLabels: Record<string, [string, string]> = {
     "Water volume overlap",
   ],
   "rmsd_≤_2å": ["与参考姿势偏差 ≤ 2 Å", "Reference RMSD ≤ 2 Å"],
+};
+export const assessmentLabels: Record<AssessmentOutcome, [string, string]> = {
+  pass: ["通过", "Pass"],
+  fail: ["需要复核", "Needs review"],
+  unavailable: ["未能计算", "Not calculated"],
+  unassessed: ["未评估", "Not assessed"],
+  not_applicable: ["不适用", "Not applicable"],
+};
+export const assessmentReasons: Record<AssessmentReason, [string, string]> = {
+  missing_receptor: ["缺少对应受体来源", "No corresponding receptor source"],
+  missing_distance: ["无有效距离测量", "No finite distance measurement"],
+  invalid_distance: ["距离测量无效", "Invalid distance measurement"],
+  missing_overlap: [
+    "无有效体积重叠测量",
+    "No finite volume-overlap measurement",
+  ],
+  invalid_overlap: ["体积重叠测量无效", "Invalid volume-overlap measurement"],
+  missing_feature_count: ["缺少待检特征计数", "No tested-feature count"],
+  invalid_feature_count: ["待检特征计数无效", "Invalid tested-feature count"],
+  no_matching_feature: [
+    "本次未检查到相关结构特征",
+    "No matching structural features were tested",
+  ],
 };

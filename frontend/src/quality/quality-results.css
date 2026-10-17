@@ -23,6 +23,40 @@
 .quality-outcome.is-unavailable {
   color: var(--muted);
 }
+.quality-outcome.is-unassessed {
+  color: var(--warning);
+}
+.quality-outcome.is-not_applicable {
+  color: var(--muted);
+}
+.quality-assessment-summary {
+  display: grid;
+  gap: 6px;
+}
+.quality-assessment-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.quality-check-note {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.quality-method-details {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.quality-method-details summary {
+  cursor: pointer;
+}
+.quality-method-details p {
+  max-width: 90ch;
+}
 .studio-app
   .task-workspace.is-result
   .quality-results

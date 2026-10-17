@@ -77,7 +77,28 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
                 "已通过全部适用检查" if zh else "All applicable checks passed", exact=False
             )
         ).to_have_count(0)
+        summary = panel.get_by_role(
+            "status", name="质控评估摘要" if zh else "Quality assessment summary"
+        )
+        for text in (
+            ["通过: 15", "未评估: 6", "不适用: 1"]
+            if zh
+            else ["Pass: 15", "Not assessed: 6", "Not applicable: 1"]
+        ):
+            expect(summary.get_by_text(text, exact=True)).to_be_visible()
+        disclosure = panel.locator(".quality-method-details")
+        expect(disclosure).not_to_have_attribute("open", "")
+        disclosure.locator("summary").click()
+        expect(
+            disclosure.get_by_text(
+                "原始报告：22 项通过" if zh else "Source report: 22 passed", exact=False
+            )
+        ).to_be_visible()
+        disclosure.locator("summary").click()
         selector = panel.get_by_role("combobox", name="显示哪些检查？" if zh else "Which checks?")
+        selector.select_option("not_applicable")
+        expect(table.get_by_role("row")).to_have_count(2)
+        expect(table.get_by_text("不适用" if zh else "Not applicable", exact=True)).to_have_count(1)
         selector.select_option("unassessed")
         expect(table.get_by_role("row")).to_have_count(7)
         expect(table.get_by_text("未评估" if zh else "Not assessed", exact=True)).to_have_count(6)
