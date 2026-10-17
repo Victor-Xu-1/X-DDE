@@ -48,7 +48,7 @@ jobs:
           PYTHONPATH=src uv run --locked python scripts/generate-capability-catalog.py --check
       - name: Check only the changed questionnaire and result consumers
         working-directory: frontend
-        run: npx vitest run src/chemistry/LibraryScreenForm.test.tsx src/chemistry/LibraryScreenResults.test.tsx
+        run: npx vitest run src/chemistry/LibraryScreenForm.test.tsx src/chemistry/LibraryScreenTemplate.test.tsx src/chemistry/LibraryScreenResults.test.tsx
       - name: Real pinned RDKit rules, scaffolds and chemical preservation on remote CPU
         run: >-
           uv run --no-project --python 3.10

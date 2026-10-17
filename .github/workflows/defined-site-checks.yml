@@ -28,6 +28,7 @@ on:
       - "frontend/src/docking/BoxFields.tsx"
       - "tests/test_defined*"
       - "tests/test_stat6_case_data.py"
+      - "tests/test_stat6_recipe_replay.py"
       - "src/opendde_workbench/examples/stat6/catalogue-profiles.json"
       - "src/opendde_workbench/examples/catalogue_profiles.py"
       - "tests/fixtures/stat6/9big-ak1690*"
@@ -80,7 +81,7 @@ jobs:
           tests/test_defined_pose_regions.py tests/test_defined_site_api.py
           tests/test_pose_exploration_contract.py tests/test_pose_exploration_api.py
           tests/test_site_association.py tests/test_receptor_contract.py
-          tests/test_stat6_case_data.py
+          tests/test_stat6_case_data.py tests/test_stat6_recipe_replay.py
       - run: uv run --locked python -m playwright install --with-deps chromium
       - name: Real STAT6 source questionnaire, live 3D and plan-only handoff in Chromium
         run: >-

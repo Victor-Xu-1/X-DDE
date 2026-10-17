@@ -14,6 +14,41 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("shows the saved export molecule as already selected rather than offering an unrelated study input", () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response("[]", { headers: { "Content-Type": "application/json" } }),
+  );
+  vi.spyOn(api, "assets").mockResolvedValue([]);
+  const native = {
+    asset_id: "native-pose",
+    sha256: "b".repeat(64),
+    record: 2,
+    conformer: 0,
+    version_id: "native-version",
+  };
+  const study = {
+    ...native,
+    asset_id: "generic-study-input",
+    sha256: "d".repeat(64),
+    version_id: "study-version",
+  };
+  const example = {
+    objects: { ligand: { reference: study } },
+    request: {
+      operation: "diffsbdd",
+      payload: { mode: "export", molecules: [native] },
+    },
+  } as unknown as PreparedExample;
+  render(
+    <ExampleContext.Provider value={example}>
+      <DiffForm mode="export" language="en" onCreated={vi.fn()} />
+    </ExampleContext.Provider>,
+  );
+  expect(
+    screen.getByRole("button", { name: "Add to collection" }),
+  ).toBeDisabled();
+});
+
 it.each(["generate", "inpaint"] as const)(
   "submits the explicitly loaded %s recipe including exact references and saved conditions",
   async (mode) => {
