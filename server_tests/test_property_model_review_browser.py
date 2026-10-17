@@ -72,7 +72,29 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         expect(region).to_be_visible(timeout=30000)
         page.screenshot(path=str(evidence / "initial-render.png"), full_page=True)
         expect(region.get_by_role("status").filter(has_text="R² ≤ 0")).to_contain_text("R² ≤ 0")
+        chart = region.get_by_role("application")
+        expect(chart).to_have_attribute("aria-busy", "false", timeout=60000)
         drawing = region.locator(".molecule-image")
+        expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+        # An isolated real marker avoids coincident-point ambiguity. Click through
+        # Plotly's normal interaction layer with a real mouse event.
+        point_index = min(
+            range(len(result["validation_points"])),
+            key=lambda index: result["validation_points"][index]["observed"],
+        )
+        marker = chart.locator(".scatterlayer .trace").first.locator(".point").nth(point_index)
+        marker.scroll_into_view_if_needed()
+        bounds = marker.bounding_box()
+        assert bounds
+        page.mouse.click(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] / 2)
+        expect(
+            region.get_by_role(
+                "heading",
+                name=("测试记录 " if zh else "Test record ") + str(point_index + 1),
+                exact=True,
+            )
+        ).to_be_visible()
+        drawing.scroll_into_view_if_needed()
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         region.get_by_label("查看记录" if zh else "Inspect record", exact=True).select_option("1")
         expect(
@@ -88,6 +110,7 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         ).to_be_visible()
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         drawing.locator("img").evaluate("image => image.decode()")
+        expect(chart).to_have_attribute("aria-busy", "false", timeout=60000)
         assert not region.locator('iframe[src*="viewer.html"]').count()
         left = region.locator(".structure-workbench-view").bounding_box()
         right = region.locator(".structure-workbench-details").bounding_box()
@@ -119,6 +142,7 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
                     "negative_performance_kept_visible": True,
                     "structures_on_left": True,
                     "linked_plot_record_and_error_table": True,
+                    "native_plot_mouse_selection": True,
                     "original_csv_download": True,
                     "api_writes": writes,
                     "page_errors": errors,

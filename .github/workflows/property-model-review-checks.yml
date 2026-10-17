@@ -25,7 +25,7 @@ jobs:
         run: uv run --locked pytest -q tests/test_model_case_sources.py tests/test_potential_case_sources.py tests/test_case_bundle_sources.py
       - name: Linked structures, errors, units, model downloads and ordinary candidate results
         working-directory: frontend
-        run: npx vitest run src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx
+        run: npx vitest run src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx src/presentation/MetricScatter.test.tsx
       - name: Get the current immutable legacy case data for compatibility only
         env:
           GH_TOKEN: ${{ github.token }}

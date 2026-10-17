@@ -110,6 +110,7 @@ export function MetricScatter<T>({
           <label className="scatter-record-choice">
             {zh ? "查看记录" : "Inspect record"}
             <select
+              aria-label={zh ? "查看记录" : "Inspect record"}
               value={current ? String(current.sourceIndex) : ""}
               onChange={(event) => {
                 const point = points.find(
