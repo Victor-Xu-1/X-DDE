@@ -85,6 +85,9 @@ on:
       - "!frontend/src/diffsbdd/GeneratedCandidates.tsx"
       # Native prepared/indexed member layouts have their own browser gate.
       - "!frontend/src/datasets/IndexedLibraryResults.tsx"
+      # Fixed-case stage checks verify these exact native preview layouts.
+      - "!frontend/src/datasets/CandidateView.tsx"
+      - "!frontend/src/examples/ExampleJobResult.tsx"
   pull_request:
     paths: *structure_paths
 permissions:

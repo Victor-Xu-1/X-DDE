@@ -1,6 +1,6 @@
 [project]
 name = "x-dde"
-version = "0.5.95"
+version = "0.5.96"
 description = "Independent discovery platform integrating scientific software backends"
 readme = "README.md"
 requires-python = ">=3.12"

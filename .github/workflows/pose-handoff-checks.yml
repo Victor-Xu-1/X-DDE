@@ -32,6 +32,9 @@ on:
       - ".github/workflows/pose-handoff-checks.yml"
       # Candidate-specific drafts use generated-candidate-checks.yml; shared continuity stays here.
       - "!frontend/src/diffsbdd/DiffResults*"
+      # Fixed-case inspection and its personal-result defaults have exact stage checks.
+      - "!frontend/src/datasets/CandidateView*"
+      - "!frontend/src/presentation/MolecularPreview*"
       - "!.github/workflows/pose-handoff-checks.yml"
   pull_request:
     paths: *pose_handoff_paths

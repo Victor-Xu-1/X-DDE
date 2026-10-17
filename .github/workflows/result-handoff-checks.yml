@@ -17,6 +17,9 @@ on:
       - "tests/test_result_version_lookup.py"
       - "server_tests/test_result_handoff_browser.py"
       - ".github/workflows/result-handoff-checks.yml"
+      # Candidate inspection has direct handoff regressions in the fixed-stage gate.
+      - "!frontend/src/datasets/CandidateView*"
+      - "!.github/workflows/result-handoff-checks.yml"
   pull_request:
     paths: *handoff_paths
 permissions:

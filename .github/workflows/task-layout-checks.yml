@@ -224,7 +224,7 @@ on:
       - "!frontend/src/research/history-file-controls.css"
       - "!frontend/src/research/input-catalog*"
       - "!frontend/src/research/SdfRecordPicker*"
-      - "!frontend/src/operations/OperationResults.tsx"
+      - "!frontend/src/operations/OperationResults*"
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/operations/PropertyForm*"
       # Shared material widgets have exact pagination, identity and native-input checks.
@@ -328,7 +328,7 @@ on:
       - "!.github/workflows/task-layout-checks.yml"
       # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
       - "!frontend/src/diffsbdd/DiffResults.tsx"
-      - "!frontend/src/presentation/MolecularPreview.tsx"
+      - "!frontend/src/presentation/MolecularPreview*"
       - "!frontend/src/viewer/PoseSession.test.tsx"
       - "!frontend/src/viewer/PoseSession.tsx"
       - "!frontend/src/viewer/PoseStudyInput.tsx"
@@ -361,7 +361,7 @@ on:
       - "!frontend/src/diffsbdd/interaction-results.css"
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
       - "!frontend/src/docking/DockingResults.tsx"
-      - "!frontend/src/examples/ExampleJobResult.tsx"
+      - "!frontend/src/examples/ExampleJobResult*"
       - "!frontend/src/examples/StudyInputPreview.tsx"
       - "!frontend/src/examples/examples.css"
       - "!frontend/src/integrations/InteractionResults.tsx"

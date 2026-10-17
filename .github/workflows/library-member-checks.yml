@@ -14,6 +14,10 @@ on:
       - "tests/test_dataset_member_inspection.py"
       - "server_tests/test_library_member*"
       - ".github/workflows/library-member-checks.yml"
+      # Read-only example propagation has direct member contracts in the stage gate.
+      - "!frontend/src/datasets/DatasetResults*"
+      - "!frontend/src/datasets/IndexedLibraryResults*"
+      - "!.github/workflows/library-member-checks.yml"
   pull_request:
     paths: *member_paths
 permissions:
