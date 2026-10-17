@@ -13,6 +13,9 @@ on:
       - 'frontend/src/editors/molecule-save-intent*'
       - 'frontend/src/editors/molstar-appearance*'
       - 'frontend/src/presentation/depiction-renderer*'
+      - 'frontend/src/presentation/MoleculeImage*'
+      - 'frontend/src/presentation/hidden-frame-focus*'
+      - 'server_tests/test_ketcher_startup_browser.py'
       - 'frontend/src/viewer/donor-hydrogens*'
       # Native scene consumers have source/hydrogen and figure checks in publication-checks.yml.
       - 'frontend/src/viewer/molstar-sticks.ts'
@@ -35,17 +38,48 @@ jobs:
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select the actual embedded-editor startup consumer
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          python - <<'PY'
+          import fnmatch, os, subprocess
+          base = os.environ.get("BASE_SHA", "")
+          if not base or set(base) == {"0"}:
+              base = "HEAD^"
+          changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()
+          primary = ["frontend/src/presentation/MoleculeImage*", "frontend/src/presentation/hidden-frame-focus*", "frontend/src/presentation/depiction-renderer*", "server_tests/test_ketcher_startup_browser.py"]
+          companions = ["pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1", "docs/frontend-layout.md", ".github/workflows/ketcher-depiction-checks.yml", ".github/workflows/publication-checks.yml", ".github/workflows/user-interface-checks.yml", ".github/workflows/dataset-submission-checks.yml", ".github/workflows/dataset-discovery-checks.yml", "frontend/src/datasets/LibraryForm*", "frontend/src/datasets/library-field-selection*"]
+          matches = lambda name, patterns: any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns)
+          startup = any(matches(name, primary) for name in changed) and all(matches(name, primary + companions) for name in changed)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("startup_only=" + str(startup).lower() + "\n")
+          print({"embedded_startup_only": startup, "changed": changed})
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - uses: astral-sh/setup-uv@v6
       - name: Check only shared display policy and its direct consumers
+        if: steps.scope.outputs.startup_only != 'true'
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
           cd frontend
           npx vitest run src/editors/ketcher-hydrogens.test.ts src/editors/ketcher-appearance.test.ts src/editors/molstar-appearance.test.ts src/editors/scientificEditor.test.ts src/presentation/depiction-renderer.test.ts src/presentation/molecular-record.test.ts src/viewer/donor-hydrogens.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/simulations/molstar-figure.test.ts
           npx vitest run src/editors/molecule-save-intent.test.ts src/editors/retained-molecule.test.ts src/editors/Editors.load.test.tsx src/research/fasta-file.test.ts src/simulations/fep-series.test.ts
+          cd ..
+          uv sync --locked --group dev --group browser
+      - name: Exact embedded startup, image identity and export consumers
+        if: steps.scope.outputs.startup_only == 'true'
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          cd frontend
+          npx vitest run src/presentation/depiction-renderer.test.ts src/presentation/MoleculeImage.test.tsx
           cd ..
           uv sync --locked --group dev --group browser
       - name: Prepare native graphical service only
@@ -62,8 +96,12 @@ jobs:
           trap 'kill "$service_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null
-          .venv/bin/python -m pytest -q server_tests/test_hydrogen_policy_browser.py server_tests/test_molecule_save_browser.py server_tests/test_molecule_open_browser.py
-          uv run --locked --with rdkit==2026.3.6 python server_tests/hydrogen_chemistry_acceptance.py
+          if [[ '${{ steps.scope.outputs.startup_only }}' == 'true' ]]; then
+            .venv/bin/python -m pytest -q server_tests/test_ketcher_startup_browser.py
+          else
+            .venv/bin/python -m pytest -q server_tests/test_hydrogen_policy_browser.py server_tests/test_molecule_save_browser.py server_tests/test_molecule_open_browser.py
+            uv run --locked --with rdkit==2026.3.6 python server_tests/hydrogen_chemistry_acceptance.py
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
