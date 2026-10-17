@@ -87,7 +87,24 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
                 "status", name="生成片段处理" if zh else "Generation fragment processing"
             )
         ).to_contain_text(str(result["report"]["target_atoms"]))
-        expect(page.locator(".molecular-stage").first).to_be_visible(timeout=30000)
+        workspace = page.locator(".structure-workbench").filter(
+            has=page.get_by_role(
+                "table",
+                name="生成的候选分子" if zh else "Generated candidate molecules",
+                exact=True,
+            )
+        )
+        preview = workspace.locator(".structure-workbench-view")
+        details = workspace.locator(".structure-workbench-details")
+        page.screenshot(path=evidence / "selected-native-view-loading.png", full_page=True)
+        expect(preview.locator(".molecular-stage")).to_be_visible(timeout=30000)
+        view_box, detail_box = preview.bounding_box(), details.bounding_box()
+        assert view_box and detail_box
+        if width > 1000:
+            assert view_box["x"] + view_box["width"] <= detail_box["x"] + 2
+            assert view_box["width"] > detail_box["width"]
+        else:
+            assert view_box["y"] < detail_box["y"]
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         page.screenshot(path=evidence / "retained-native-generation.png", full_page=True)
         page.get_by_role(
