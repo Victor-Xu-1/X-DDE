@@ -1,5 +1,6 @@
 /** Native row order is the molecular record authority, not the current table order. */
 export interface GeneratedMetrics {
+  heavy_atoms?: number | null;
   molecular_weight: number;
   qed: number;
   sa: number;
@@ -53,6 +54,10 @@ export function generatedMetrics(report: unknown): GeneratedMetrics[] | null {
     (row) =>
       ({
         ...Object.fromEntries(fields.map((key) => [key, row[key]])),
+        heavy_atoms:
+          Number.isSafeInteger(row.heavy_atoms) && row.heavy_atoms > 0
+            ? row.heavy_atoms
+            : null,
         fragments:
           Number.isSafeInteger(row.fragments) && row.fragments >= 1
             ? row.fragments

@@ -6,15 +6,13 @@ import {
 import { artifactUrl, request } from "../api";
 import { artifactInfo } from "../presentation/artifact-digest";
 import type { Job, Language } from "../types";
-import type { ScientificObject } from "../research/types";
+import type { MoleculeRef, ScientificObject } from "../research/types";
 import { PoseSession } from "../viewer/PoseSession";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
 import { usePoseHandoff } from "../viewer/usePoseHandoff";
 import { posePlan } from "../viewer/pose-plan";
 import type { OperationResult } from "../operations/types";
-import { DiffForm } from "./DiffForm";
 import { CoreVerification } from "./CoreVerification";
-import { PropertyForm } from "../operations/PropertyForm";
 import { isResearchFile } from "../presentation/research-files";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { ResultTree } from "../operations/StructuredResults";
@@ -23,6 +21,8 @@ import { ScientificDetails } from "./ScientificDetails";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { DesignInputContext } from "./DesignInputContext";
 import { generatedMetrics } from "./generated-metrics";
+import { CandidateFollowup, type CandidateAction } from "./CandidateFollowup";
+import { GenerationSummary } from "./GenerationSummary";
 
 export function DiffResults({
   job,
@@ -160,9 +160,7 @@ export function DiffResults({
   const wrap = (content: ReactNode) => (
     <PoseSession frame={frame}>{content}</PoseSession>
   );
-  const handoff = usePoseHandoff<
-    "properties" | "export" | "inpaint" | "diversify" | "optimize"
-  >(
+  const handoff = usePoseHandoff<CandidateAction>(
     JSON.stringify([
       job.id,
       targetArtifact,
@@ -175,41 +173,25 @@ export function DiffResults({
   if (nextInput && action)
     return wrap(
       <ResearchHandoff language={language} onBack={handoff.clear}>
-        {action === "properties" ? (
-          <PropertyForm
-            key={(nextInput.version_id ?? nextInput.asset_id) + action}
-            language={language}
-            initialFile={nextInput.asset_id}
-            scientificInput={nextInput}
-            onCreated={() =>
-              setMessage(
-                zh
-                  ? "性质任务已创建，可在任务记录中查看。"
-                  : "Properties task created; view it in Task history.",
-              )
-            }
-          />
-        ) : (
-          <DiffForm
-            key={(nextInput.version_id ?? nextInput.asset_id) + action}
-            mode={action}
-            language={language}
-            initialMolecule={nextInput}
-            initialProtein={
-              job.request.operation === "diffsbdd"
-                ? (job.request.payload
-                    .protein as import("../research/types").MoleculeRef)
-                : null
-            }
-            onCreated={() =>
-              setMessage(
-                zh
-                  ? "新任务已创建，可在任务记录中查看。"
-                  : "New task created; view it in Task history.",
-              )
-            }
-          />
-        )}
+        <CandidateFollowup
+          key={(nextInput.version_id ?? nextInput.asset_id) + action}
+          action={action}
+          language={language}
+          molecule={nextInput}
+          protein={
+            handoff.value?.selection.receptor ??
+            (job.request.operation === "diffsbdd"
+              ? (job.request.payload.protein as MoleculeRef)
+              : null)
+          }
+          onCreated={() =>
+            setMessage(
+              zh
+                ? "新任务已创建，可在任务记录中查看。"
+                : "New task created; view it in Task history.",
+            )
+          }
+        />
       </ResearchHandoff>,
     );
   return wrap(
@@ -226,6 +208,9 @@ export function DiffResults({
         </p>
       )}
       <ScientificDetails job={job} data={data} language={language} />
+      {designing && (
+        <GenerationSummary report={data.report} language={language} />
+      )}
       {typeof data.valid === "number" && (
         <p>
           {data.core_verification
@@ -351,6 +336,17 @@ export function DiffResults({
                   )}
                 {selection && (
                   <div className="editor-toolbar">
+                    {designing && (
+                      <button
+                        type="button"
+                        disabled={!selection.ready}
+                        onClick={() => handoff.open("quality", selection)}
+                      >
+                        {zh
+                          ? "检查这个候选的姿势质量"
+                          : "Check this candidate's pose quality"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       disabled={!selection.ready}

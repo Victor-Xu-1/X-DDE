@@ -18,6 +18,10 @@ on:
       - 'server_tests/test_prolif_contacts_browser.py'
       - 'server_tests/test_diff_review_browser.py'
       - '.github/workflows/prolif-contact-checks.yml'
+      # Output metrics and candidate checks have a dedicated native-source UI gate.
+      - '!frontend/src/diffsbdd/GeneratedCandidates*'
+      - '!frontend/src/diffsbdd/generated-metrics*'
+      - '!.github/workflows/prolif-contact-checks.yml'
   pull_request:
     paths: *contact_paths
 permissions:

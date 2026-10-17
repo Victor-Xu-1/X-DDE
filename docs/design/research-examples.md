@@ -457,3 +457,18 @@ Stage labels come directly from retained native request names, so researchers ca
 analysis before loading its full result. Pair-table and heatmap selection identify the same
 unfitted overlay without changing the numerical color scale. The final clustering review shows
 only the thresholds used by the chosen grouping criterion; original native options remain intact.
+
+### 生成候选的复核 / Reviewing generated candidates
+
+生成结果同时展示实际输出重原子数与输出片段数。使用最大连接片段处理时，页面明确说明
+采样目标大小位于片段处理之前；输出连通不证明原始采样完整连通。条件口袋的近接指标
+只覆盖输入口袋原子，不能代表完整受体检查。从选中的原生候选可直接进入独立姿势质控，
+保留确切的文件、记录、构象、版本及受体；坐标确认和提交仍由新问卷明确完成。
+
+Generation results distinguish output heavy-atom and component counts from the sampling target
+before largest-component processing. Pocket proximity covers only conditioning-pocket atoms.
+The selected native candidate can open an independent quality questionnaire with its exact
+file, record, conformer, version and receptor. This action does not launch computation or
+establish binding; researchers must confirm the coordinate context and submit explicitly.
+Failed geometry or stereochemical checks preserve the original pose and must not be bypassed
+to make an example appear successful.

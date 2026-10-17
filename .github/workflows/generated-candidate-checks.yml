@@ -1,11 +1,16 @@
 name: Generated molecule properties and receptor preview
 on:
+  workflow_dispatch:
   push:
     paths: &generated_paths
-      - 'frontend/src/diffsbdd/GeneratedCandidates*'
-      - 'frontend/src/diffsbdd/generated-metrics*'
-      - 'frontend/src/diffsbdd/DiffResults*'
-      - '.github/workflows/generated-candidate-checks.yml'
+      - "frontend/src/diffsbdd/CandidateFollowup*"
+      - "frontend/src/diffsbdd/GenerationSummary*"
+      - "frontend/src/diffsbdd/DiffQualityHandoff*"
+      - "frontend/src/diffsbdd/DiffResults*"
+      - "frontend/src/diffsbdd/GeneratedCandidates*"
+      - "frontend/src/diffsbdd/generated-metrics*"
+      - "server_tests/test_generated_quality_browser.py"
+      - ".github/workflows/generated-candidate-checks.yml"
   pull_request:
     paths: *generated_paths
 permissions:
@@ -13,12 +18,36 @@ permissions:
 jobs:
   candidate-results:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - working-directory: frontend
-        run: npx vitest run src/diffsbdd/generated-metrics.test.ts src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/DiffResults.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Selected candidate identity, fragment interpretation and exact quality inputs
+        working-directory: frontend
+        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx
+      - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
+      - name: Restore retained native files and graphical editor; no scientific inference
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-generated-review" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-generated-review/state" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          export WB_HOME="$RUNNER_TEMP/x-dde-generated-review" WB_STATE_DIR="$RUNNER_TEMP/x-dde-generated-review/state"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+      - run: uv run --locked python -m playwright install --with-deps chromium
+      - name: Native 3D and selected source questionnaire in desktop English and narrow Chinese
+        run: uv run --locked python -m pytest -x -q server_tests/test_generated_quality_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generated-candidate-review
+          path: outputs/generated-quality/**

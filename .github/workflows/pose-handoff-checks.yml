@@ -30,6 +30,9 @@ on:
       - "server_tests/prepare_pose_handoff.py"
       - "server_tests/test_pose_handoff_browser.py"
       - ".github/workflows/pose-handoff-checks.yml"
+      # Candidate-specific drafts use generated-candidate-checks.yml; shared continuity stays here.
+      - "!frontend/src/diffsbdd/DiffResults*"
+      - "!.github/workflows/pose-handoff-checks.yml"
   pull_request:
     paths: *pose_handoff_paths
 permissions:

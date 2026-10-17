@@ -161,6 +161,12 @@ export function GeneratedCandidates({
           ...(metrics
             ? [
                 {
+                  key: "heavy_atoms",
+                  label: zh ? "输出重原子数" : "Output heavy atoms",
+                  numeric: true,
+                  value: (v: GeneratedRecord) => metric(v)?.heavy_atoms ?? null,
+                },
+                {
                   key: "molecular_weight",
                   label: "MW",
                   numeric: true,
@@ -181,7 +187,7 @@ export function GeneratedCandidates({
                 },
                 {
                   key: "fragments",
-                  label: zh ? "结构片段数" : "Components",
+                  label: zh ? "输出片段数" : "Output components",
                   numeric: true,
                   value: (v: GeneratedRecord) => metric(v)?.fragments ?? null,
                 },
@@ -199,7 +205,7 @@ export function GeneratedCandidates({
       {active && (
         <>
           <small className="field-help">
-            {zh ? "原始生成候选的指标" : "Original generated candidate metrics"}
+            {zh ? "输出分子的指标" : "Output molecule metrics"}
           </small>
           <dl className="native-result-metrics">
             <div>
@@ -217,7 +223,11 @@ export function GeneratedCandidates({
               </dd>
             </div>
             <div>
-              <dt>{zh ? "最近口袋距离" : "Nearest pocket distance"}</dt>
+              <dt>
+                {zh
+                  ? "最近条件口袋距离"
+                  : "Nearest conditioning-pocket distance"}
+              </dt>
               <dd>{active.minimum_pocket_distance_angstrom} Å</dd>
             </div>
           </dl>
@@ -233,8 +243,8 @@ export function GeneratedCandidates({
                 ? "存在可能的空间碰撞：请先检查并优化姿势，再进行后续研究。"
                 : "Potential steric clashes: inspect and refine the pose before downstream research."
               : zh
-                ? "这项近接检查不能替代完整构象质控或结合验证。"
-                : "This proximity check does not replace full pose-quality or binding validation."}
+                ? "近接指标仅检查作为生成条件的口袋原子，不覆盖其余蛋白；请继续进行完整受体的姿势质控。"
+                : "Proximity metrics cover conditioning-pocket atoms only, not the rest of the protein. Continue with full-receptor pose-quality checks."}
           </p>
         </>
       )}

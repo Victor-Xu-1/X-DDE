@@ -105,7 +105,7 @@ it("keeps source record identities after a filtered/reordered table and does not
   expect(screen.getByText("1.64 Å")).toBeVisible();
   expect(
     screen.getByText(
-      "This proximity check does not replace full pose-quality or binding validation.",
+      "Proximity metrics cover conditioning-pocket atoms only, not the rest of the protein. Continue with full-receptor pose-quality checks.",
     ),
   ).toBeVisible();
 });
@@ -151,7 +151,7 @@ it.each(["en", "zh"] as const)(
     );
     expect(
       screen.getByRole("columnheader", {
-        name: language === "en" ? "Components" : "结构片段数",
+        name: language === "en" ? "Output components" : "输出片段数",
       }),
     ).toBeVisible();
     expect(

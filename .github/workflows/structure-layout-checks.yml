@@ -79,6 +79,8 @@ on:
       # Pair selection does not change shared sizing; its native views use the cluster gate.
       - "!frontend/src/poses/ClusterResults.tsx"
       - "!.github/workflows/structure-layout-checks.yml"
+      # Generated-candidate counts/handoff have exact native desktop/narrow checks.
+      - "!frontend/src/diffsbdd/GeneratedCandidates.tsx"
   pull_request:
     paths: *structure_paths
 permissions:
