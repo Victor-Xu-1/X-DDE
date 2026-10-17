@@ -11,6 +11,24 @@ from .catalogue import verified_input
 from .preparation import NAMESPACE
 
 
+def experimental_context(study):
+    return {
+        **study,
+        "guide": {
+            **study["guide"],
+            "interpretation": (
+                "本例导入同一细胞报告实验的 38 条 STAT6 IC50 观测，"
+                "保留来源、单位、未知条件及原始分子关联。"
+                "这些数值不是直接结合亲和力，也不是指定研究分子的预测值。",
+                "This example imports 38 STAT6 IC50 observations from one cellular reporter assay, "
+                "preserving their source, units, unknown conditions and original molecular links. "
+                "They are neither direct binding affinities nor predictions "
+                "for the supplied study molecule.",
+            ),
+        },
+    }
+
+
 def evidence_draft(scientific, objects, asset):
     rows = list(csv.DictReader(io.StringIO(verified_input("stat6_measurements").decode())))
     library = objects["stat6_assay_library"]

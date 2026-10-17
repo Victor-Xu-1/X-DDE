@@ -115,6 +115,24 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         == "6a116614692defb2b092e18e61d20c7256de59943c26188b702b167bf4e2c544"
     )
     records = ExampleRecords(store, assets, settings, modules=MODULES)
+    reported = records.get("experimental.evidence", verify=True)
+    assert str(reported.record_id) == "3d3140eb-4576-5e95-b503-e64794657cea"
+    assert not reported.evidence and not reported.supporting_evidence
+    assert (
+        reported.review
+        and "not model inference or a new experiment" in reported.review.interpretation
+    )
+    from opendde_workbench.research.evidence_records import EvidenceRecords
+
+    document = EvidenceRecords(store, assets).get(reported.record_id)
+    assert len(document.observations) == len(document.request.compound_links) == 38
+    assert (
+        document.source_sha256 == "92568eae46bd175c537e446427c9784a6743cfbb3761986da532385cf43c3ad3"
+    )
+    assert document.request.conditions.species == ""
+    assert (
+        document.request.conditions.temperature_c is None and document.request.conditions.ph is None
+    )
     exploration = records.get("pose_exploration", verify=True)
     assert str(exploration.record_id) == "aa3bd371-01cc-5013-bb06-338fd50a19d4"
     assert len(exploration.evidence) == 6 and len(exploration.supporting_evidence) == 5

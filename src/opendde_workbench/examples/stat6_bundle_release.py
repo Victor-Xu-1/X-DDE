@@ -1,10 +1,10 @@
-"""Reviewed native study results; input presets alone are not computed examples."""
+"""Reviewed study outputs, with reported-data imports distinct from model inference."""
 
-VERSION = "15"
-URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.6/stat6-reviewed-results-v15.zip"
-SHA256 = "74f68c996edc4ea32284b949833cf3e685216075324a738c6eb014dbd809731b"
-BYTES = 11029226
-SOURCE_REVISION = "fe61c10f40e305d1e523913fd4d84df0d7a475b9"
+VERSION = "16"
+URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.9/stat6-reviewed-results-v16.zip"
+SHA256 = "d74dbae28105e3459d8e393eed9b0c98d37f6ae89192ea0eb7457cf09e4ea24e"
+BYTES = 11037636
+SOURCE_REVISION = "f524c49010e9fe5776777d990070574741fe274d"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
@@ -40,4 +40,5 @@ CAPABILITIES = (
     "drugclip.index",
     "drugclip.screen",
     "screening.dock",
+    "experimental.evidence",
 )

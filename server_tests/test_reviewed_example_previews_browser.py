@@ -12,6 +12,7 @@ from example_preview_actions import choose_task, ready_structure
 from playwright.sync_api import expect, sync_playwright
 from reviewed_batch_preview import review_batch_example
 from reviewed_disease_preview import review_disease_example
+from reviewed_experimental_preview import review_experimental_example
 from reviewed_retrieval_preview import review_retrieval_example
 
 from opendde_workbench.examples.bundle import restore_bundle
@@ -27,7 +28,13 @@ def records(state):
     with sqlite3.connect(state / "jobs.sqlite3") as db:
         return {
             table: db.execute("SELECT * FROM " + table + " ORDER BY 1").fetchall()
-            for table in ("jobs", "scientific_objects", "example_pins")
+            for table in (
+                "jobs",
+                "scientific_objects",
+                "example_pins",
+                "example_record_pins",
+                "research_evidence",
+            )
         }
 
 
@@ -200,6 +207,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
         retrieval_stages = review_retrieval_example(page, base, language, evidence)
         batch = review_batch_example(page, base, language, evidence)
         disease = review_disease_example(page, base, language, evidence)
+        reported = review_experimental_example(page, base, language, evidence)
         page.reload()
         expect(page.locator("html")).to_have_attribute("lang", "zh-CN" if zh else "en")
         assert not errors, errors
@@ -218,6 +226,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
                 "retrieval_minimization_stages": retrieval_stages,
                 "native_batch_and_quality": batch,
                 "disease_evidence": disease,
+                "reported_experimental_evidence": reported,
                 "source_unspecified_index_member_downloaded": True,
                 "api_mutations": mutations,
                 "jobs_and_scientific_versions_unchanged": True,

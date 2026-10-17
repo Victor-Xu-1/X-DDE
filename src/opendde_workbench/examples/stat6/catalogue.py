@@ -170,4 +170,8 @@ def study_context(capability):
         from .training_inputs import training_context
 
         return training_context(study)
+    if capability == "experimental.evidence":
+        from .experimental_inputs import experimental_context
+
+        return experimental_context(study)
     return study

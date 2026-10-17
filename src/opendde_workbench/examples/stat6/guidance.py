@@ -101,6 +101,29 @@ def steps(capability):
     simulation = simulation_steps(capability)
     if simulation is not None:
         return simulation
+    if capability == "experimental.evidence":
+        return [
+            (
+                "载入原始实验表格，确认化合物编号与实测值对应的数据列。",
+                "Load the original experimental table and confirm the compound "
+                "and measured-value columns.",
+            ),
+            (
+                "核对 IC50、原始单位和来源；仅填写已报告的实验条件，未知信息保持为空。",
+                "Confirm IC50, original units and the source; retain only reported "
+                "conditions and leave unknown information blank.",
+            ),
+            (
+                "检查全部 38 条记录及确切的分子关联，保留原始值与报告限值。",
+                "Check all 38 observations and exact molecule links while preserving "
+                "reported values and limits.",
+            ),
+            (
+                "确认后保存实验记录；通过分子结构、测量图和可下载表格查看结果。",
+                "Confirm and save the experimental record; inspect linked structures, "
+                "the measurement plot and downloadable tables.",
+            ),
+        ]
     if capability == "chemistry.screen":
         return [
             (

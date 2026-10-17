@@ -48,14 +48,16 @@ retained with the inputs. These inputs are **not predicted binding poses**.
 depictions and source downloads. A reference preview is labelled separately
 from **Example results**, which requires verified computational evidence.
 
-The [reviewed result package Data 15](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.6/stat6-reviewed-results-v15.zip)
-contains 34 independently reviewed examples: 33 primary task examples and one
+The [reviewed result package Data 16](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.9/stat6-reviewed-results-v16.zip)
+contains 35 independently reviewed examples: 34 primary task examples and one
 nested result stage. It retains 87 scientific files and 62 source-task records,
 including historical evidence required for their provenance. Restoring the
 package does not enqueue calculations. These remain a subset of the 71 requested
 primary non-MD/FEP examples. The SPR training input is prepared separately and
 does not become a completed model example until an actual submitted run and
 held-out results have been reviewed.
+The additional reported-data example imports 38 original cellular IC50 observations;
+it does not execute a prediction model or claim a newly validated binding experiment.
 
 ### Single-assay SPR modelling input
 
@@ -119,10 +121,11 @@ X-DDE 各模块默认使用 **人 STAT6（P42226）及用户指定的两份分�
 “查看研究材料”提供真实 2D、3D 和文件下载。“示例结果”只在有可验证的真实结果时
 显示。旧 BRD4 等案例保留在历史资料中，不会改名为 STAT6 结果。
 
-[已核对结果包 Data 15](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.6/stat6-reviewed-results-v15.zip)
-包含 34 项已独立复核示例：33 个主任务示例和 1 个嵌套结果阶段，保留 87 个科学文件和
+[已核对结果包 Data 16](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.9/stat6-reviewed-results-v16.zip)
+包含 35 项已独立复核示例：34 个主任务示例和 1 个嵌套结果阶段，保留 87 个科学文件和
 62 条来源任务记录。恢复不会排队计算；这些示例仍是所需 71 个非动力学/FEP 主任务示例的
 一部分，各模块保留各自的方法限制和结果解释。
+新增的实测数据示例导入 38 条原始细胞 IC50 观测，不执行预测模型，也不宣称完成新的结合实验。
 
 **性质模型训练输入**使用 BindingDB entry 13376 / assay 1 中单一 STAT6 SPR 实验的数据。
 192 条原始 Kd 记录中，排除 5 条未指定手性记录，以及 12 组重复分子结构涉及的全部 24 条记录，

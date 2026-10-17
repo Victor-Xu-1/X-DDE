@@ -24,6 +24,11 @@ def test_reported_stat6_draft_preserves_unknown_conditions_original_values_and_a
     assert draft.conditions.temperature_c is None and draft.conditions.ph is None
     assert draft.conditions.method == "FW4 cellular reporter assay"
     assert "organism not reported" in draft.citation and "confidence 8" in draft.citation
+    guide = prepared.study["guide"]
+    assert len(guide["steps"]) == 4 and "38" in guide["steps"][2][1]
+    assert "unknown information blank" in guide["steps"][1][1]
+    assert "direct binding affinities" in guide["interpretation"][1]
+    assert "unbound conformer" not in guide["interpretation"][1]
     records = EvidenceRecords(store, scientific.assets)
     observations = records.preview(draft)
     assert len(observations) == len(rows) == len(draft.compound_links) == 38
