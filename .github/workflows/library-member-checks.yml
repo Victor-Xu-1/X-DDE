@@ -1,5 +1,6 @@
 name: Native library member review checks
 on:
+  workflow_dispatch:
   push:
     paths: &member_paths
       - "src/opendde_workbench/datasets/member_structure.py"
