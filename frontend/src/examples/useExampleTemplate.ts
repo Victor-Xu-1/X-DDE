@@ -32,6 +32,8 @@ export function useExampleTemplate({
   const [failure, setFailure] = useState<ExampleFailure | null>(null);
   const [info, setInfo] = useState<ExampleInfo | null>(null);
   const [loaded, setLoaded] = useState(false),
+    [templateStudy, setTemplateStudy] =
+      useState<PreparedExample["study"]>(null),
     [result, setResult] = useState<{
       job?: Job;
       example?: PreparedExample;
@@ -45,6 +47,7 @@ export function useExampleTemplate({
     setInfo(null);
     setResult(null);
     setLoaded(false);
+    setTemplateStudy(null);
     onPreviewChange?.(false);
     void request<ExampleInfo>(`/examples/${capability}`, {
       signal: controller.signal,
@@ -101,6 +104,7 @@ export function useExampleTemplate({
       );
       if (!current()) return;
       closeResult();
+      setTemplateStudy(prepared.study ?? null);
       setLoaded(true);
       onLoad({
         ...prepared,
@@ -128,6 +132,7 @@ export function useExampleTemplate({
   function clear() {
     closeResult();
     setLoaded(false);
+    setTemplateStudy(null);
     onClear?.();
   }
   function retry() {
@@ -137,7 +142,10 @@ export function useExampleTemplate({
     else if (failure?.action === "result") void showResult();
   }
   return {
-    info,
+    info:
+      info && loaded && templateStudy
+        ? { ...info, study: templateStudy }
+        : info,
     loadingInfo,
     pending,
     failure,

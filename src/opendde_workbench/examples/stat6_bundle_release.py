@@ -1,14 +1,15 @@
 """Reviewed native study results; input presets alone are not computed examples."""
 
-VERSION = "9"
-URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.5.85/stat6-reviewed-results-v9.zip"
-SHA256 = "f8ae55d450d72f6468eee0d1789e22deb8b4824e09fbf5d4ed8aab1a1220433f"
-BYTES = 9892416
-SOURCE_REVISION = "7bf0ecb6134584ca2476abb1b1ee36fae962c5b5"
+VERSION = "10"
+URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.5.90/stat6-reviewed-results-v10.zip"
+SHA256 = "7ec2fce7fcf61bb69344a599dafc0f18dfd0e02a7d3336e36e765ef15a1ebe39"
+BYTES = 10326279
+SOURCE_REVISION = "bcd15ba850cea6921feec504668b12b38502c691"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
     "apbs.potential",
+    "plip.profile",
     "antibody.humanize",
     "admet.predict",
     "posebusters.check",
@@ -19,6 +20,7 @@ CAPABILITIES = (
     "discovery.import",
     "discovery.target",
     "properties",
+    "diffsbdd.generate",
     "diffsbdd.pocket",
     "diffsbdd.prepare",
     "diffsbdd.interactions",
@@ -30,7 +32,6 @@ CAPABILITIES = (
     "gnina.minimize",
     "chemistry.states",
     "biopython.ensemble",
-    "plip.profile",
     "pose_exploration",
     "pose.cluster",
 )

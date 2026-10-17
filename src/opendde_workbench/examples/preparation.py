@@ -192,8 +192,7 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
 
         experimental, asset = prepare_experimental(scientific, cache, objects["egfr_library"])
         data_assets["experimental_observations"] = asset
-    pin = ExamplePins(scientific.store, cache.parent).get(capability_id, verify=True)
-    request = scientific.store.get(str(pin.job_id)).request.model_dump(mode="json") if pin else None
+    request = ExamplePins(scientific.store, cache.parent).request(capability_id)
     if capability_id == "deepternary.model" and request is None:
         from .proximity_inputs import proximity_template
 

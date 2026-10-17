@@ -1,5 +1,8 @@
 """Immutable pointers to successful native jobs in the existing platform database."""
 
+import hashlib
+import json
+
 from ..store import ConflictError, now
 from .catalogue import MODULES
 from .contracts import ExamplePin, JobEvidence
@@ -44,6 +47,19 @@ class ExamplePins:
             for evidence in record.supporting_evidence:
                 verify_job(self.store, self.state, evidence)
         return record
+
+    def request(self, capability_id, *, reviewed=False):
+        """Replay sealed authored JSON without introducing later model defaults."""
+        pin = self.get(capability_id, verify=True)
+        if pin is None:
+            return None
+        if reviewed and pin.review is None:
+            raise ValueError("The fixed task requires an explicit scientific example review.")
+        with self.store.connect() as db:
+            row = db.execute("SELECT request FROM jobs WHERE id=?", (str(pin.job_id),)).fetchone()
+        if row is None or hashlib.sha256(row["request"].encode()).hexdigest() != pin.request_sha256:
+            raise ValueError("The original fixed-example request changed or is unavailable.")
+        return json.loads(row["request"])
 
     def pin(self, capability_id, job_id, prepared, *, review=None, supporting_job_ids=()):
         module = self.modules[capability_id]

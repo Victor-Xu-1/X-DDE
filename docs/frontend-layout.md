@@ -386,6 +386,14 @@ Feature preparation previews read the actual typed task components; converted in
 
 Pose-quality presentation keeps native decisions, thresholds, reports and coordinates intact. Missing finite distance or overlap measurements are distinguished from assessed passes, while a valid zero overlap remains a real measurement. Explicit zero tested-feature counts are inapplicable; native failures and unavailable checks are never waived. Missing measurements do not establish biological absence. Being near the receptor does not rule out a clash. Source counts and scope are disclosed on demand. The quality-only branch of `sequence-result-checks.yml` verifies components and real retained STAT6 outputs in desktop English and narrow Chinese, including immutable artifacts and unchanged task states. No global suite or new scientific inference is required.
 
+STAT6 口袋生成示例保留三次原生尝试，并通过已有的“研究阶段结果”切换初始质控、分子内优化、受体内局部优化和最终独立质控。各阶段保持自己的任务、原始文件、评分含义与坐标来源；优化结果不能覆盖或冒充原始生成。Data10 保存这组已复核的计算示例及完整成功阶段，几何合格的衍生片段不等于经过实验验证的候选药物。英文桌面和中文窄屏的专项回放检查阶段切换、原始选择保留、结构下载、实际三维图件及不新增计算任务。
+
+The retained STAT6 generation example uses the existing study-stage selector for initial checks, intramolecular relaxation, receptor-aware local refinement and final independent quality. Every stage keeps its own native task, files, score scope and coordinates. A refined pose never replaces the raw generation result. Data10 preserves this reviewed computational example; a geometry-qualified derived fragment is not an experimentally established drug candidate. Focused English desktop and Chinese narrow-screen replays verify stage navigation, retained raw selection, structure downloads, actual 3D captures and zero new scientific jobs.
+
+已复核的分子设计模板读取固定任务的原始请求，保留确切材料版本、口袋定义、采样设置、固定原子、选区和约束引用。读取前校验原生任务、环境和结果摘要，不用通用预设替换损坏或未经复核的固定示例。载入后的问卷提示和案例说明共同使用这份已准备材料的引导；清空任务后恢复通用说明。坐标检查和当前模型可用性仍须确认，载入模板不派发新计算。
+
+Reviewed molecular-design templates replay the sealed authored request, retaining exact material versions, pocket definitions, sampling settings, fixed atoms, saved regions and constraint references. Native task, environment and output evidence are verified first; damaged or unreviewed pins are never silently replaced by generic presets. Loaded questionnaire tips and the case guide share the prepared recipe's guidance; clearing the task restores the reference guide. Coordinate review and current model availability remain explicit, and loading a template never dispatches computation.
+
 ### 共用导航与任务页位置
 
 窄屏研究导航使用原生模态抽屉，保留全部研究分类和完整名称。桌面继续显示侧栏；窄屏顶栏显示当前研究方向，搜索按需展开。抽屉使用原生焦点限制、Escape 和背景关闭，关闭时保留表单内容与当前步骤；页面跳转后按原有应用导航规则进入目的页面。

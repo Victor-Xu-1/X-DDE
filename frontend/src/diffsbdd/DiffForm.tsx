@@ -62,9 +62,11 @@ export function DiffForm({
         ?.fixed_atoms ?? [],
     );
   const [constraints, setConstraints] = useState<ConstraintReference | null>(
-    null,
+    exampleTask?.constraints ?? null,
   );
-  const [savedRegions, setSavedRegions] = useState<string | null>(null);
+  const [savedRegions, setSavedRegions] = useState<string | null>(
+    (preset?.saved_regions as string | null | undefined) ?? null,
+  );
   const [expert, setExpert] = useState(false),
     [options, setOptions] = useState<Record<string, unknown>>(() =>
       isDesign(mode)
@@ -105,6 +107,7 @@ export function DiffForm({
   function selectProtein(ref: MoleculeRef | null) {
     setProtein(ref);
     setPocket(null);
+    setConstraints(null);
     setAlignedPose(false);
   }
   function selectMolecule(ref: MoleculeRef | null) {

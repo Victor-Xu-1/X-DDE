@@ -6,6 +6,7 @@ from uuid import UUID, uuid5
 from ...research.contracts import VersionInput
 from ..contracts import PreparedExample
 from .catalogue import CASE, FILES, MODULES, study_context, verified_input
+from .design_replay import replay_context, reviewed_design
 from .reference_inputs import case_for, input_keys
 
 NAMESPACE = UUID("dc83ffaf-3aef-49fc-af71-bf9732d06a78")
@@ -49,6 +50,7 @@ def register_input(scientific, key):
 def prepare_stat6(capability, scientific, *, records=None):
     module = MODULES[capability]
     case = case_for(capability)
+    native_design = reviewed_design(capability, scientific, records)
     originals = {
         key: register_input(scientific, key)
         for key in input_keys(capability)
@@ -87,7 +89,12 @@ def prepare_stat6(capability, scientific, *, records=None):
             objects.pop(role)
         else:
             objects[role] = receptor
-    if capability in {"gnina.dock", "diffsbdd.prepare", "diffsbdd.generate", "apbs.potential"}:
+    if native_design is None and capability in {
+        "gnina.dock",
+        "diffsbdd.prepare",
+        "diffsbdd.generate",
+        "apbs.potential",
+    }:
         from .prepared_inputs import reviewed_protein_only_receptor
 
         receptor = reviewed_protein_only_receptor(scientific, records)
@@ -169,6 +176,13 @@ def prepare_stat6(capability, scientific, *, records=None):
         }
     )
 
+    if native_design is not None:
+        for role, key in (("receptor", "protein"), ("ligand", "initial")):
+            reference = native_design["payload"].get(key)
+            if reference and reference.get("version_id"):
+                objects[role] = scientific.get(reference["version_id"])
+    study = study_context(capability)
+
     return PreparedExample(
         module=module,
         case=case,
@@ -177,7 +191,9 @@ def prepare_stat6(capability, scientific, *, records=None):
         sequences=sequences,
         sequence_sources=sequence_sources,
         sources=case.sources,
-        request=study_request(capability, objects, sequences),
+        request=native_design
+        if native_design is not None
+        else study_request(capability, objects, sequences),
         campaign_draft={
             "targetName": "STAT6 pathway · IL-4R alpha · 6WGL",
             "targets": {"C": sequences["antigen"]},
@@ -193,7 +209,7 @@ def prepare_stat6(capability, scientific, *, records=None):
         source_record=records.prepared(module.parent_capability)
         if records and module.parent_capability
         else None,
-        study=study_context(capability),
+        study=replay_context(study) if native_design is not None else study,
         evidence_draft=evidence_draft(scientific, objects, measurements)
         if capability == "experimental.evidence"
         else None,

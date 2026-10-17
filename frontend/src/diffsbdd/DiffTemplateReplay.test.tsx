@@ -99,12 +99,9 @@ it.each(["generate", "inpaint"] as const)(
     );
     const user = userEvent.setup();
     for (let step = 0; step < 3; step++)
-      await user.click(
-        screen.getByRole("button", { name: "Next", exact: true }),
-      );
+      await user.click(screen.getByRole("button", { name: "Next" }));
     const create = screen.getByRole("button", {
       name: "Create task",
-      exact: true,
     });
     await waitFor(() => expect(create).toBeEnabled());
     await user.click(create);

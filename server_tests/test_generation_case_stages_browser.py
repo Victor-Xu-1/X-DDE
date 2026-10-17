@@ -145,7 +145,9 @@ def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, 
         ]
         before_files = file_hashes(settings.state_dir)
         expect(choose.locator("option")).to_have_count(6)
-        table = page.get_by_role("table", name="生成的候选分子" if zh else "Generated candidates")
+        table = page.get_by_role(
+            "table", name="生成的候选分子" if zh else "Generated candidate molecules"
+        )
         expect(table.get_by_role("row")).to_have_count(4)
         table.get_by_text("候选 3" if zh else "Candidate 3", exact=True).click()
         for identifier in RAW_QUALITY:
