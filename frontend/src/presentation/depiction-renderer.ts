@@ -93,7 +93,9 @@ export class DepictionRenderer {
           throw new Error(
             "Install the Ketcher component to draw 2D structures.",
           );
-        const editor = await editorReady(this.frame, signal, 200);
+        // Use the declared 60-second initialization budget. A cold native
+        // component can still be loading after the previous 20-second poll cap.
+        const editor = await editorReady(this.frame, signal, 600);
         // Ketcher's image service derives its native carbon/hydrogen label mode
         // from these editor options, keeping images and the visible editor consistent.
         configureKetcherPreview(editor);

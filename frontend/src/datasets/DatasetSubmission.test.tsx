@@ -40,9 +40,20 @@ vi.mock("../guided/useTaskReadiness", () => ({
   useTaskReadiness: () => ({ ready: true, error: "", recheck: vi.fn() }),
 }));
 vi.mock("./useDatasetExample", () => ({ useDatasetExample: () => null }));
-vi.mock("./useTablePreview", () => ({
-  useTablePreview: () => ({ preview: null, error: "" }),
-}));
+vi.mock("./useTablePreview", () => {
+  const preview = {
+    columns: ["ID", "SMILES"],
+    rows: [],
+    format: "csv",
+    table: true,
+  };
+  return {
+    useTablePreview: (asset: Asset | null) => ({
+      preview: asset ? preview : null,
+      error: "",
+    }),
+  };
+});
 vi.mock("./DatasetPicker", () => ({
   DatasetPicker: ({ onChange }: { onChange(asset: Asset): void }) => (
     <button type="button" onClick={() => onChange(fixture.library as Asset)}>

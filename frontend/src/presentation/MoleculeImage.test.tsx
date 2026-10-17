@@ -2,13 +2,16 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { MoleculeDrawingProvider, MoleculeImage } from "./MoleculeImage";
 
-const { drawing } = vi.hoisted(() => ({ drawing: vi.fn() }));
+const { drawing, retry } = vi.hoisted(() => ({
+  drawing: vi.fn(),
+  retry: vi.fn(),
+}));
 vi.mock("./depiction-renderer", async (original) => ({
   ...(await original<typeof import("./depiction-renderer")>()),
   DepictionRenderer: class {
     render = drawing;
     close() {}
-    retryInitialization() {}
+    retryInitialization = retry;
   },
 }));
 const svg = (label: string) =>
@@ -30,8 +33,51 @@ beforeEach(() => vi.stubGlobal("IntersectionObserver", undefined));
 afterEach(() => {
   cleanup();
   drawing.mockReset();
+  retry.mockReset();
   vi.unstubAllGlobals();
 });
+
+it.each([false, true])(
+  "recovers the actual selected structure after an explicit retry (compact=%s)",
+  async (compact) => {
+    const warning = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => undefined);
+    drawing.mockRejectedValueOnce(
+      new Error("Native component initialization timed out"),
+    );
+    render(
+      <MoleculeDrawingProvider>
+        <MoleculeImage
+          source={sourceA}
+          label="Selected molecule"
+          language="en"
+          compact={compact}
+        />
+      </MoleculeDrawingProvider>,
+    );
+    try {
+      const button = await screen.findByRole("button", {
+        name: /Retry drawing/,
+      });
+      drawing.mockResolvedValueOnce(svg("selected-native-structure"));
+      await act(async () => button.click());
+      expect(
+        await screen.findByRole("img", {
+          name: "2D molecular structure · Selected molecule",
+        }),
+      ).toBeVisible();
+      expect(retry).toHaveBeenCalledOnce();
+      expect(drawing).toHaveBeenCalledTimes(2);
+      expect(drawing.mock.lastCall![0]).toEqual(sourceA);
+      expect(
+        screen.queryByRole("button", { name: /Retry drawing/ }),
+      ).toBeNull();
+    } finally {
+      warning.mockRestore();
+    }
+  },
+);
 
 it("hides the old molecule and disables export until the newly selected structure is ready", async () => {
   drawing.mockResolvedValueOnce(svg("source-A"));

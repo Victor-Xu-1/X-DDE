@@ -9,6 +9,7 @@ import { LibraryForm } from "./LibraryForm";
 
 const fixture = vi.hoisted(() => ({
   example: null as DataExample | null,
+  previewReady: true,
   submit: vi.fn(),
   asset: {
     id: "11111111-1111-4111-8111-111111111111",
@@ -32,7 +33,7 @@ vi.mock("./useDatasetExample", () => ({
 }));
 vi.mock("./useTablePreview", () => ({
   useTablePreview: (asset: Asset | null) => ({
-    preview: asset ? fixture.preview : null,
+    preview: asset && fixture.previewReady ? fixture.preview : null,
     error: "",
   }),
 }));
@@ -64,6 +65,7 @@ beforeAll(() => {
 });
 beforeEach(() => {
   fixture.example = null;
+  fixture.previewReady = true;
   fixture.submit.mockReset();
   fixture.submit.mockResolvedValue(undefined);
 });
@@ -146,6 +148,7 @@ it("retains the reviewed identifier choice, input version and original bounded r
     assets: new Map([[fixture.asset.id, fixture.asset]]),
     sources: [],
   };
+  const originalRequest = structuredClone(task);
   const user = userEvent.setup();
   render(
     <LibraryForm tool="library.import" language="en" onCreated={vi.fn()} />,
@@ -160,5 +163,29 @@ it("retains the reviewed identifier choice, input version and original bounded r
   expect(replay.options).toEqual(task.options);
   expect(replay.time_limit_seconds).toBe(180);
   expect(replay.output_bytes).toBe(1024 ** 3);
-  expect(fixture.example.task).toEqual(task);
+  expect(fixture.example.task).toEqual(originalRequest);
+});
+
+it("waits for the actual molecular fields before accepting the input review", async () => {
+  fixture.previewReady = false;
+  const user = userEvent.setup();
+  const view = render(
+    <LibraryForm tool="library.import" language="en" onCreated={vi.fn()} />,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Choose real STAT6 series" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Reading molecule fields",
+  );
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  fixture.previewReady = true;
+  view.rerender(
+    <LibraryForm tool="library.import" language="en" onCreated={vi.fn()} />,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled(),
+  );
+  expect(fixture.submit).not.toHaveBeenCalled();
 });

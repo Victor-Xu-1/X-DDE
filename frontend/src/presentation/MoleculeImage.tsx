@@ -237,10 +237,11 @@ export function MoleculeImage({
           }}
         />
       )}
-      {!compact && error && source && (
+      {error && source && renderer && (
         <button
           type="button"
-          className="secondary-button"
+          className={compact ? "text-button" : "secondary-button"}
+          aria-label={(zh ? "重新绘图" : "Retry drawing") + " · " + label}
           onClick={() => {
             renderer?.retryInitialization();
             setAttempt((value) => value + 1);

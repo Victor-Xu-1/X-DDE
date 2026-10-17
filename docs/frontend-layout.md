@@ -394,6 +394,20 @@ The retained STAT6 generation example uses the existing study-stage selector for
 
 Reviewed single-task templates replay the sealed authored request, retaining exact material versions, pocket definitions, sampling settings, fixed atoms, saved regions and constraint references. Native task, environment, output and input-file evidence are verified first; damaged or unreviewed pins are never silently replaced by generic presets. Loaded questionnaire tips and the case guide share the prepared recipe's guidance; clearing the task restores the reference guide. Coordinate review and current model availability remain explicit, and loading a template never dispatches computation. Library selection retains the actual selection method, alert policy and budget; export templates select the exact molecular record consumed by the original task.
 
+Library import reads identifier choices from the actual SDF properties or table
+headers before accepting the field-review step. Reviewed choices take precedence
+over automatic recognition; explicit source versions, permission metadata, native
+options and execution/storage ceilings survive template loading. The submission
+review shows the selected compound-ID field. Missing metadata or incompatible
+fields require review rather than advancing with an assumed column.
+
+Native 2D initialization uses the full declared 60-second startup budget, including
+cold Ketcher script loading. Both full structure views and compact library images
+offer an explicit retry after failure. Retries retain the selected source and the
+serialized native drawing lane; they never dispatch a scientific job or substitute
+another depiction engine. The native startup check delays the real component and
+verifies a real Kekule SVG, donor-hydrogen policy and preserved user input focus.
+
 ### 共用导航与任务页位置
 
 窄屏研究导航使用原生模态抽屉，保留全部研究分类和完整名称。桌面继续显示侧栏；窄屏顶栏显示当前研究方向，搜索按需展开。抽屉使用原生焦点限制、Escape 和背景关闭，关闭时保留表单内容与当前步骤；页面跳转后按原有应用导航规则进入目的页面。

@@ -52,7 +52,7 @@ jobs:
               base = "HEAD^"
           changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()
           primary = ["frontend/src/presentation/MoleculeImage*", "frontend/src/presentation/hidden-frame-focus*", "frontend/src/presentation/depiction-renderer*", "server_tests/test_ketcher_startup_browser.py"]
-          companions = ["pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1", "docs/frontend-layout.md", ".github/workflows/ketcher-depiction-checks.yml", ".github/workflows/publication-checks.yml", ".github/workflows/user-interface-checks.yml", ".github/workflows/dataset-submission-checks.yml", ".github/workflows/dataset-discovery-checks.yml", "frontend/src/datasets/LibraryForm*", "frontend/src/datasets/library-field-selection*"]
+          companions = ["pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1", "docs/frontend-layout.md", ".github/workflows/ketcher-depiction-checks.yml", ".github/workflows/publication-checks.yml", ".github/workflows/user-interface-checks.yml", ".github/workflows/dataset-submission-checks.yml", ".github/workflows/dataset-discovery-checks.yml", "frontend/src/datasets/LibraryForm*", "frontend/src/datasets/DatasetSubmission.test.tsx"]
           matches = lambda name, patterns: any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns)
           startup = any(matches(name, primary) for name in changed) and all(matches(name, primary + companions) for name in changed)
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:

@@ -10,7 +10,11 @@ import type { Job, Language } from "../types";
 import { DatasetPicker } from "./DatasetPicker";
 import { SourcePicker } from "./SourcePicker";
 import { ResearchTable } from "./ResearchTable";
-import { materialFor, taskFor } from "./dataset-model";
+import {
+  libraryFields,
+  libraryRequest,
+  validLibraryFields,
+} from "./LibraryForm.model";
 import { useDatasetRun, type DatasetExecution } from "./useDatasetRun";
 import { ExecutionView } from "./ExecutionView";
 import { useTablePreview } from "./useTablePreview";
@@ -56,28 +60,28 @@ export function LibraryForm({
     setIdColumn(String(task.payload.id_column ?? "ID"));
     setSmilesColumn(String(task.payload.smiles_column ?? "SMILES"));
     setName(task.name);
+    setDevice(task.options?.device ?? "cpu");
   }, [example]);
 
   useEffect(() => {
-    if (preview?.sdf_properties) {
-      const candidate = preview.sdf_properties.find((column) =>
-        /^(id|id[_ ]?number|cat(alog)?[_ ]?(no|number)|code|cmpdid)$/i.test(
-          column,
-        ),
-      );
-      setIdColumn(candidate ?? "_Name");
-      return;
-    }
-    if (!preview?.columns.length) return;
-    const ids = preview.columns.find((column) =>
-      /^(id|compound_id|catalog.?id|molport.?id|chembl.?id)$/i.test(column),
+    if (!preview) return;
+    const original = example?.task.inputs.find(
+      (item) =>
+        item.source.asset_id === asset?.id &&
+        item.source.sha256 === asset.sha256,
     );
-    const smiles = preview.columns.find((column) =>
-      /^(smiles|smi|canonical_smiles)$/i.test(column),
-    );
-    if (ids) setIdColumn(ids);
-    if (smiles) setSmilesColumn(smiles);
-  }, [preview]);
+    const preferred = original
+      ? {
+          id_column: example?.task.payload.id_column,
+          smiles_column: example?.task.payload.smiles_column,
+        }
+      : publicResource?.asset?.id === asset?.id
+        ? (publicResource ?? undefined)
+        : undefined;
+    const fields = libraryFields(preview, preferred);
+    setIdColumn(fields.id);
+    setSmilesColumn(fields.smiles);
+  }, [preview, example, asset?.id, publicResource]);
   const purpose = indexing
     ? zh
       ? "建立快速筛选索引"
@@ -90,46 +94,21 @@ export function LibraryForm({
         ? "提取候选分子"
         : "Extract candidates";
   async function submit() {
-    const payload = indexing
-      ? { kind: "drugclip" as const, mode: "index", use: "non_commercial" }
-      : importing
-        ? {
-            kind: "chemistry" as const,
-            mode: "prepare",
-            supplier,
-            library_name: name.trim() || asset?.name || purpose,
-            id_column: idColumn,
-            smiles_column: smilesColumn,
-            source_permission:
-              publicResource?.asset?.id === asset?.id
-                ? "official_public_resource"
-                : "user_owned_file",
-            source_url:
-              publicResource?.asset?.id === asset?.id
-                ? publicResource?.source_page
-                : "",
-            delimiter: asset?.suffix.includes(".tsv") ? "\t" : ",",
-          }
-        : {
-            kind: "chemistry" as const,
-            mode: "subset",
-            selected_ids: selected,
-            generate_conformers: true,
-          };
     return run.submit(
-      taskFor(
+      libraryRequest({
         tool,
-        payload,
-        importing && asset ? [materialFor(asset, "data")] : [],
-        importing ? [] : source,
-        name.trim() || purpose,
-        {
-          device: indexing ? device : "cpu",
-          cpu: 2,
-          memory_mib: indexing ? 8192 : 4096,
-          seed: 101,
-        },
-      ),
+        asset,
+        source,
+        publicResource,
+        supplier,
+        idColumn,
+        smilesColumn,
+        selected,
+        name,
+        purpose,
+        device,
+        template: example?.task,
+      }),
     );
   }
   return (
@@ -210,10 +189,7 @@ export function LibraryForm({
                   ? "选择候选"
                   : "Select candidates",
             valid: importing
-              ? !!asset &&
-                (!preview?.table ||
-                  (preview.columns.includes(idColumn) &&
-                    preview.columns.includes(smilesColumn)))
+              ? !!asset && validLibraryFields(preview, idColumn, smilesColumn)
               : indexing
                 ? source.length === 1
                 : selected.length > 0,
@@ -234,6 +210,19 @@ export function LibraryForm({
                       onId={setIdColumn}
                       onSmiles={setSmilesColumn}
                     />
+                    {!preview && !error && (
+                      <p role="status">
+                        {zh ? "正在读取分子信息…" : "Reading molecule fields…"}
+                      </p>
+                    )}
+                    {preview &&
+                      !validLibraryFields(preview, idColumn, smilesColumn) && (
+                        <p role="alert">
+                          {zh
+                            ? "请在当前文件中选择对应的化合物编号和结构列。"
+                            : "Choose compound ID and structure fields present in this file."}
+                        </p>
+                      )}
                     {preview?.rows.length ? (
                       <div className="dataset-input-sample">
                         <table>
@@ -359,6 +348,18 @@ export function LibraryForm({
                     <div>
                       <span>{zh ? "选中分子" : "Selected molecules"}</span>
                       <strong>{selected.length}</strong>
+                    </div>
+                  )}
+                  {importing && (
+                    <div>
+                      <span>{zh ? "化合物编号列" : "Compound ID column"}</span>
+                      <strong>
+                        {idColumn === "_Name"
+                          ? zh
+                            ? "分子名称"
+                            : "Molecule title"
+                          : idColumn}
+                      </strong>
                     </div>
                   )}
                 </div>
