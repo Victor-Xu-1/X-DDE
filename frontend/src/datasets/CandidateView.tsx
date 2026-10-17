@@ -2,14 +2,12 @@ import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useContext, useState } from "react";
 import { TemplatePreviewContext } from "../examples/context";
 import { artifactUrl } from "../api";
-import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MolecularPreview } from "../presentation/MolecularPreview";
-import { ResultRow } from "../presentation/ResultRow";
 import { Hint } from "../guided/Hint";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 import { CandidateHandoff } from "./CandidateHandoff";
-import { supplierLabel } from "./supplier-label";
+import { CandidateTable } from "./CandidateTable";
 import { PoseSession } from "../viewer/PoseSession";
 export function CandidateView({
   job,
@@ -29,12 +27,10 @@ export function CandidateView({
       result.candidates.findIndex((row) => Boolean(row.artifact)),
     ),
     [selected, setSelected] = useState(initial),
-    [page, setPage] = useState(Math.floor(initial / 15)),
     candidate = result.candidates[selected];
   const hasReceptor = result.artifacts.some(
       (file) => file.name === "receptor.pdb",
     ),
-    hasScore = ["gnina", "drugclip", "deli"].includes(result.program),
     molecular = candidate?.artifact
       ? artifactUrl(job.id, candidate.artifact)
       : null;
@@ -100,9 +96,9 @@ export function CandidateView({
           {source ? (
             <MolecularPreview
               key={candidate.id}
-                urls={urls}
-                records={records}
-                nativeScore={nativeScore}
+              urls={urls}
+              records={records}
+              nativeScore={nativeScore}
               source={source}
               label={candidate.display_name || candidate.id}
               defaultView={has3d ? "3d" : "2d"}
@@ -136,102 +132,12 @@ export function CandidateView({
         </section>
       }
     >
-      <section className="dataset-candidate-table">
-        <div className="dataset-panel-title">
-          <strong>{zh ? "候选分子" : "Candidates"}</strong>
-          <span>{result.candidates.length.toLocaleString()}</span>
-        </div>
-        <div className="dataset-table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>{zh ? "结构" : "Structure"}</th>
-                <th>{zh ? "成员" : "Member"}</th>
-                {hasScore && (
-                  <th>
-                    {result.program === "gnina"
-                      ? zh
-                        ? "对接能量"
-                        : "Docking energy"
-                      : result.program === "drugclip"
-                        ? zh
-                          ? "检索分数"
-                          : "Retrieval score"
-                        : result.metadata.model_action === "predict"
-                          ? zh
-                            ? "预测 log(1＋富集)"
-                            : "Predicted log(1+enrichment)"
-                          : zh
-                            ? "原 DEL 成员富集"
-                            : "Original DEL enrichment"}
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {result.candidates
-                .slice(page * 15, (page + 1) * 15)
-                .map((row, index) => (
-                  <ResultRow
-                    key={row.id}
-                    onSelect={() => setSelected(page * 15 + index)}
-                    selected={selected === page * 15 + index}
-                    className={selected === page * 15 + index ? "selected" : ""}
-                  >
-                    <td>
-                      {row.smiles ? (
-                        <MoleculeImage
-                          source={{ smiles: row.smiles }}
-                          language={language}
-                          label={row.display_name || row.id}
-                          compact
-                        />
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="dataset-row-title"
-                        onClick={() => setSelected(page * 15 + index)}
-                      >
-                        {row.display_name || row.id}
-                      </button>
-                      <small>{supplierLabel(row.supplier, zh)}</small>
-                    </td>
-                    {hasScore && (
-                      <td>
-                        {(result.program === "gnina"
-                          ? row.docking_score
-                          : row.score
-                        )?.toFixed(3) ?? "—"}
-                        {result.program === "gnina" && <small>kcal/mol</small>}
-                      </td>
-                    )}
-                  </ResultRow>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="dataset-table-footer">
-          <button
-            type="button"
-            disabled={!page}
-            onClick={() => setPage(page - 1)}
-          >
-            {zh ? "上一页" : "Previous"}
-          </button>
-          <span>{page + 1}</span>
-          <button
-            type="button"
-            disabled={(page + 1) * 15 >= result.candidates.length}
-            onClick={() => setPage(page + 1)}
-          >
-            {zh ? "下一页" : "Next"}
-          </button>
-        </div>
-      </section>
+      <CandidateTable
+        result={result}
+        language={language}
+        selected={candidate?.id}
+        onSelect={(row) => setSelected(result.candidates.indexOf(row))}
+      />
     </StructureWorkbench>
   );
   return (

@@ -132,12 +132,14 @@ jobs:
           python -m pytest -q server_tests/test_source_stereo_serialization.py
           server_tests/test_docking_serialization.py
           server_tests/test_docking_candidate_inputs.py
+          server_tests/test_docking_receptor_handoff.py
           server_tests/test_molecular_states.py
       - name: Exact batch candidate chemistry with the GNINA-pinned parser
         run: >-
           uv run --no-project --python 3.10 --with pytest==9.1.1
           --with numpy==1.26.4 --with rdkit==2023.9.6
           python -m pytest -q server_tests/test_docking_candidate_inputs.py
+          server_tests/test_docking_receptor_handoff.py
   contracts:
     if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04

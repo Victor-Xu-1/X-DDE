@@ -25,6 +25,7 @@ on:
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/examples/ExampleJobResult*"
       - "frontend/src/datasets/CandidateView*"
+      - "frontend/src/datasets/CandidateTable*"
       - "frontend/src/datasets/DatasetResults*"
       - "frontend/src/datasets/IndexedLibraryResults*"
       - "frontend/src/presentation/MolecularPreview*"
@@ -73,7 +74,8 @@ jobs:
         run: >-
           npx vitest run src/examples/ExampleResultSet.test.tsx
           src/examples/ExampleActions.test.tsx src/examples/ExampleJobResult.test.tsx
-          src/datasets/CandidateView.test.tsx src/datasets/CandidateHandoff.test.tsx
+          src/datasets/CandidateView.test.tsx src/datasets/CandidateTable.test.tsx
+          src/presentation/ResearchTable.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/datasets/DatasetResults.test.tsx src/datasets/IndexedLibraryResults.test.tsx
           src/operations/OperationResults.test.tsx
           src/viewer/PoseSession.test.tsx src/viewer/StructureViewer.test.tsx

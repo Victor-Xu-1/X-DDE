@@ -193,6 +193,7 @@ def run(request):
     artifacts.update(
         {
             "receptor.pdb": "docking_receptor",
+            "receptor-selection.json": "receptor_conformer_selection",
             "docking-candidates.csv": "candidate_docking_scores",
             "docking-failures.csv": "candidate_failures",
         }

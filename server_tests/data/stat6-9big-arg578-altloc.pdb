@@ -1,0 +1,23 @@
+REMARK   Bounded unmodified 9BIG ARG578 extract; not a full receptor.
+REMARK   https://www.rcsb.org/structure/9BIG
+REMARK   Full source SHA256 96f6d5f4ce3c90f80957e9c0c1d3cd25d213497c836eac6a3b55500fa9c67105
+ATOM   2844  N   ARG A 578      -0.313 -61.056 -29.741  1.00 11.76           N  
+ATOM   2845  CA AARG A 578       0.410 -62.312 -29.587  0.50 12.41           C  
+ATOM   2846  CA BARG A 578       0.407 -62.307 -29.534  0.50 12.49           C  
+ATOM   2847  C   ARG A 578       1.830 -61.962 -29.138  1.00 13.42           C  
+ATOM   2848  O   ARG A 578       2.469 -61.114 -29.763  1.00 13.77           O  
+ATOM   2849  CB AARG A 578       0.470 -63.031 -30.940  0.50 13.27           C  
+ATOM   2850  CB BARG A 578       0.344 -63.213 -30.762  0.50 13.54           C  
+ATOM   2851  CG AARG A 578       0.272 -64.527 -30.851  0.50 15.10           C  
+ATOM   2852  CG BARG A 578      -0.972 -63.961 -30.846  0.50 15.90           C  
+ATOM   2853  CD AARG A 578      -1.119 -64.948 -31.284  0.50 16.77           C  
+ATOM   2854  CD BARG A 578      -0.924 -65.065 -31.879  0.50 18.15           C  
+ATOM   2855  NE AARG A 578      -2.168 -64.336 -30.467  0.50 17.49           N  
+ATOM   2856  NE BARG A 578      -1.434 -64.629 -33.181  0.50 19.41           N  
+ATOM   2857  CZ AARG A 578      -2.688 -64.887 -29.377  0.50 17.74           C  
+ATOM   2858  CZ BARG A 578      -0.679 -64.431 -34.256  0.50 20.07           C  
+ATOM   2859  NH1AARG A 578      -2.267 -66.076 -28.959  0.50 16.38           N  
+ATOM   2860  NH1BARG A 578       0.631 -64.637 -34.203  0.50 18.88           N  
+ATOM   2861  NH2AARG A 578      -3.638 -64.260 -28.701  0.50 17.22           N  
+ATOM   2862  NH2BARG A 578      -1.231 -64.050 -35.398  0.50 19.86           N  
+END
