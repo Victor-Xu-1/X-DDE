@@ -1,5 +1,8 @@
 name: Reference pose study and input provenance
 on:
+  push:
+    paths:
+      - ".github/workflows/reference-quality-checks.yml"
   workflow_dispatch:
     inputs:
       regression_only:
