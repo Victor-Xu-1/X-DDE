@@ -11,15 +11,40 @@ from browser_platform import platform
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.settings import Settings
+from opendde_workbench.store import Store
 
 FIXTURES = Path(__file__).parent / "fixtures"
 EVIDENCE = Path("server_tests/evidence/property-model-review")
 
 
-@pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
-def test_actual_weak_model_display_links_structures_errors_units_and_original_download(
-    language, width
-):
+def persist_replay_download(settings, job, original):
+    """Serve the real CSV through the isolated API, without enqueueing history."""
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    body = json.dumps(job["request"], separators=(",", ":"))
+    with store.connect() as database:
+        database.execute(
+            "INSERT INTO jobs(id,request,request_hash,idempotency_key,status,created_at,"
+            "started_at,finished_at,error,parent_id) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            (
+                job["id"],
+                body,
+                hashlib.sha256(body.encode()).hexdigest(),
+                job["id"],
+                job["status"],
+                job["created_at"],
+                job["started_at"],
+                job["finished_at"],
+                job["error"],
+                job["parent_id"],
+            ),
+        )
+    output = settings.state_dir / "jobs" / job["id"] / "output"
+    output.mkdir(parents=True)
+    (output / "held-out-predictions.csv").write_bytes(original)
+
+
+@pytest.fixture(scope="module")
+def model_review_fixture():
     job = json.loads((FIXTURES / "stat6-spr-training-job.json").read_bytes())
     result = json.loads((FIXTURES / "stat6-spr-training-result.json").read_bytes())
     original = (FIXTURES / "stat6-spr-held-out-predictions.csv").read_bytes()
@@ -30,6 +55,15 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
     )
     settings = Settings.from_env()
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
+    persist_replay_download(settings, job, original)
+    return settings, job, result, original
+
+
+@pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
+def test_actual_weak_model_display_links_structures_errors_units_and_original_download(
+    model_review_fixture, language, width
+):
+    settings, job, result, original = model_review_fixture
     evidence = EVIDENCE / language
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
@@ -55,16 +89,6 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         page.route("**/api/jobs/" + job["id"], lambda route: route.fulfill(json=job))
         page.route("**/api/jobs/" + job["id"] + "/result", lambda route: route.fulfill(json=result))
         page.route("**/api/jobs/" + job["id"] + "/artifacts", lambda route: route.fulfill(json=[]))
-        page.route(
-            "**/api/jobs/" + job["id"] + "/download?name=held-out-predictions.csv",
-            lambda route: route.fulfill(
-                body=original,
-                headers={
-                    "Content-Type": "text/csv",
-                    "Content-Disposition": 'attachment; filename="held-out-predictions.csv"',
-                },
-            ),
-        )
         page.goto(base + "/#view=results&module=evaluation&task=" + job["id"])
         region = page.get_by_role(
             "region", name="性质模型测试集复核" if zh else "Property model held-out review"
