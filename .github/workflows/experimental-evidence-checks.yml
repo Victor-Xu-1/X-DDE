@@ -1,27 +1,53 @@
 name: Experimental evidence scoped checks
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: The affected experimental module contracts or only STAT6 input metadata
+        type: choice
+        default: module
+        options: [module, stat6-inputs]
   push:
     paths:
-      - 'src/opendde_workbench/research/evidence*.py'
-      - 'src/opendde_workbench/deployment/experimental_cases.py'
-      - 'src/opendde_workbench/examples/experimental.py'
-      - 'frontend/src/evidence/**'
-      - 'tests/test_experimental_evidence*.py'
-      - 'server_tests/experimental_evidence_acceptance.py'
-      - 'server_tests/test_experimental_evidence_browser.py'
-      - '.github/workflows/experimental-evidence-checks.yml'
+      - "src/opendde_workbench/research/evidence*.py"
+      - "src/opendde_workbench/deployment/experimental_cases.py"
+      - "src/opendde_workbench/examples/experimental.py"
+      - "src/opendde_workbench/examples/stat6/experimental_inputs.py"
+      - "frontend/src/evidence/**"
+      - "tests/test_experimental_evidence*.py"
+      - "tests/test_stat6_experimental_inputs.py"
+      - "server_tests/experimental_evidence_acceptance.py"
+      - "server_tests/test_experimental_evidence_browser.py"
+      - ".github/workflows/experimental-evidence-checks.yml"
 permissions:
   contents: read
 jobs:
+  stat6-inputs:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'stat6-inputs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Real STAT6 source values, unknown assay organism and exact molecule links
+        run: uv run --locked pytest -q tests/test_stat6_experimental_inputs.py tests/test_experimental_evidence.py
+      - name: The experimental questionnaire and results that consume the draft
+        working-directory: frontend
+        run: npx vitest run src/evidence/EvidenceForm.test.tsx src/evidence/EvidenceResults.test.tsx
   evidence:
+    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'stat6-inputs'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
@@ -38,7 +64,7 @@ jobs:
         run: npx vitest run src/evidence/EvidenceResults.test.tsx src/evidence/EvidenceForm.test.tsx
       - name: Install the actual public assay and preserve its original records
         env:
-          WB_AUTO_DEPLOY: '0'
+          WB_AUTO_DEPLOY: "0"
         run: uv run --locked python server_tests/experimental_evidence_acceptance.py --output "$RUNNER_TEMP/experimental-evidence"
       - run: uv run --locked python -m playwright install --with-deps chromium
       - name: Real browser questionnaire, reported results and download

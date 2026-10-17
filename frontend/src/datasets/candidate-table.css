@@ -1,3 +1,32 @@
+.dataset-candidate-table {
+  container-type: inline-size;
+}
+
+.dataset-candidate-table .research-table th,
+.dataset-candidate-table .research-table td {
+  padding: 10px 5px;
+}
+
+.dataset-candidate-table .research-table .mark-cell {
+  width: 22px;
+  padding-left: 4px;
+  padding-right: 2px;
+}
+
+.dataset-candidate-table .research-table .column-sort {
+  max-width: 80px;
+  white-space: normal;
+}
+
+.dataset-candidate-table .research-table .molecule-image.is-thumbnail {
+  width: clamp(88px, 24cqi, 136px);
+  height: 88px;
+}
+
+.dataset-candidate-table .research-table .molecule-image.is-thumbnail > img {
+  height: 80px;
+}
+
 .dataset-candidate-table .research-table td small {
   display: block;
   margin-top: 4px;

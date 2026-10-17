@@ -38,9 +38,11 @@ def evidence_draft(scientific, objects, asset):
         name="STAT6 · CHEMBL982109 · reported cellular IC50",
         source=MoleculeRef(asset_id=asset.id, sha256=asset.sha256),
         conditions={
-            "target": "Human STAT6 activation",
+            "target": "STAT6 activation (ChEMBL5401; homologous assignment)",
             "assay": "CHEMBL982109",
-            "species": "Homo sapiens",
+            # CHEMBL982109 does not report the assay organism. The assigned
+            # target's organism cannot supply the missing experimental condition.
+            "species": "",
             "method": "FW4 cellular reporter assay",
         },
         endpoint="IC50",
@@ -49,6 +51,7 @@ def evidence_draft(scientific, objects, asset):
         citation=(
             "ChEMBL CHEMBL982109; PMID:18534856; CC-BY-SA-3.0. "
             "Original reported cellular IC50; not direct binding affinity."
+            " Assay organism not reported; ChEMBL homologous assignment, confidence 8."
         ),
         compound_links={
             row["compound"]: version.reference for row, version in zip(rows, versions, strict=True)

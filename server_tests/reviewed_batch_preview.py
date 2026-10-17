@@ -22,6 +22,14 @@ def review_batch_example(page, base, language, evidence):
     preview = region.locator(".dataset-preview-pane")
     expect(preview.locator(".dataset-panel-title strong")).to_have_text("CHEMBL517122")
     ready_structure(page, zh)
+    if page.viewport_size["width"] >= 1000:
+        viewport = region.locator(".dataset-candidate-table .research-table-scroll").bounding_box()
+        assert viewport
+        # A present-but-clipped header cannot qualify as visible score information.
+        for column in table.get_by_role("columnheader").all():
+            bounds = column.bounding_box()
+            assert bounds and bounds["x"] >= viewport["x"] - 1
+            assert bounds["x"] + bounds["width"] <= viewport["x"] + viewport["width"] + 1
     # Hidden native model outputs must still be present in the actual browser CSV.
     with page.expect_download() as transfer:
         region.get_by_role(
