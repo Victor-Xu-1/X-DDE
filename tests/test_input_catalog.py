@@ -12,6 +12,7 @@ from opendde_workbench.research.contracts import VersionInput
 from opendde_workbench.research.input_catalog import input_page, register_input_catalog
 from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.store import Store
+from opendde_workbench.quality.contract import PoseQualityTask
 
 
 @pytest.fixture
@@ -147,3 +148,34 @@ def test_sequence_versions_keep_exact_identity_beyond_the_current_page(scientifi
     assert page.total == 30 and len(page.items) == 25
     assert page.selected.reference == version.reference and page.selected.version == version
     assert scientific.store.list_jobs() == []
+
+
+def test_source_task_search_keeps_shared_assets_and_exact_versions_distinct(scientific):
+    source = scientific.assets.save("pose-001.sdf", "ligand", b"catalogue fixture\n$$$$\n" * 2)
+    ref = dict(asset_id=source.id, sha256=source.sha256, record=0, conformer=0)
+    names = ["STAT6 neural recovery", "STAT6 local refinement"]
+    jobs, versions = [], []
+    for index, name in enumerate(names):
+        job = scientific.store.create(
+            PoseQualityTask(name=name, molecule=ref, scientific_inputs=[ref]), str(uuid4()),
+            max_pending=10, max_jobs=100,
+        )
+        jobs.append(job)
+        versions.append(scientific.create(
+            VersionInput(asset_id=source.id, kind="molecule", label="pose-001.sdf", record=index),
+            uuid4(), source_job=job.id,
+        ))
+    page = input_page(scientific, "ligand", [".sdf"], query=names[0])
+    assert page.total == 1 and page.items[0].reference == versions[0].reference
+    assert str(page.items[0].source_task.id) == jobs[0].id
+    assert page.items[0].source_task.name == names[0]
+    assert page.items[0].version == versions[0]
+    assert input_page(scientific, "ligand", [".sdf"], query=names[0], scope="files").total == 0
+    all_choices = input_page(scientific, "ligand", [".sdf"])
+    assert all_choices.total == 3
+    assert next(item for item in all_choices.items if item.origin == "upload").source_task is None
+    selected = input_page(scientific, "ligand", [".sdf"], query="unmatched",
+                          selected="version:" + str(versions[1].id))
+    assert selected.items == [] and selected.selected.reference == versions[1].reference
+    assert selected.selected.source_task.name == names[1]
+    assert scientific.store.get(jobs[0].id).request.name == names[0]

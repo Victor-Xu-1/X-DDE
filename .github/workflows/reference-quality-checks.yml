@@ -1,0 +1,72 @@
+name: Reference pose study and input provenance
+on:
+  workflow_dispatch:
+    inputs:
+      regression_only:
+        type: boolean
+        default: false
+        description: Reproduce the focused regression before implementation
+permissions:
+  contents: read
+jobs:
+  study-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact history, source identity and unchanged quality contract
+        run: uv run --locked pytest -q tests/test_input_catalog.py tests/test_pose_quality.py
+      - name: Historical selection, redocking questionnaire and native result inspection
+        if: ${{ !cancelled() }}
+        working-directory: frontend
+        run: >-
+          npx vitest run src/research/HistoricalFileSelect.test.tsx
+          src/diffsbdd/ReferencePicker.test.tsx src/diffsbdd/ReferencePickerLifecycle.test.tsx
+          src/diffsbdd/useReferenceHistory.test.tsx src/research/SequencePicker.test.tsx
+          src/quality/tests/QualityForm.test.tsx src/quality/QualityReview.test.tsx
+          src/quality/tests/QualityResults.test.tsx src/quality/tests/QualityAssessment.test.tsx
+          src/diffsbdd/ReviewReference.test.tsx
+      - name: Production type check and build
+        if: ${{ success() && !inputs.regression_only }}
+        run: npm run build --prefix frontend
+  native-browser:
+    needs: study-contracts
+    if: ${{ !inputs.regression_only }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Bilingual catalogue selection in a real isolated browser
+        run: uv run --locked pytest -x -q server_tests/test_material_catalog_browser.py
+      - name: Restore the reviewed native quality case without scientific execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-reference-quality" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-reference-quality/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-reference-quality" WB_STATE_DIR="$RUNNER_TEMP/x-dde-reference-quality/state" uv run --locked python server_tests/prepare_quality_context_cases.py
+      - name: Real retained native quality results, context and downloads
+        run: uv run --locked pytest -x -q server_tests/test_quality_context_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reference-quality-browser
+          path: |
+            outputs/reference-input/catalog
+            outputs/quality-context/en
+            outputs/quality-context/zh

@@ -6,8 +6,9 @@ import { QualityResults } from "../QualityResults";
 import type { PoseQualityResult } from "../types";
 afterEach(cleanup);
 
+const preview = vi.hoisted(() => vi.fn());
 vi.mock("../../viewer/StructureViewer", () => ({
-  StructureViewer: () => <span>Real source preview</span>,
+  StructureViewer: (props: unknown) => { preview(props); return <span>Real source preview</span>; },
 }));
 it("keeps failed and unavailable checks distinct without fabricating a quality pass", () => {
   const result: PoseQualityResult = {
@@ -68,4 +69,23 @@ it("keeps all check categories reachable and never treats a missing preview or c
   expect(within(table).getByText("Not calculated")).toBeVisible();
   expect(within(table).queryByText("Pass")).toBeNull();
   expect(screen.queryByText("Real source preview")).toBeNull();
+});
+
+it.each(["en", "zh"] as const)("shows whole-pose RMSD and a read-only exact-record experimental overlay in %s", async (language) => {
+  const result = { classification: "fails", coordinate_basis: "user_confirmed",
+    options: { profile: "redock", cpu: 1, memory_mib: 2048 },
+    inputs: { protein: {}, molecule: {}, reference: { asset_id: "experimental", record: 7 } },
+    previews_sha256: { "protein-preview.pdb": "a".repeat(64), "molecule-preview.sdf": "b".repeat(64) },
+    metrics: { rmsd: 8.6789695619, kabsch_rmsd: 5.166254826, smallest_distance_protein: 2.60249064 },
+    checks: [{ id: "rmsd_≤_2å", outcome: "fail" }] } as unknown as PoseQualityResult;
+  render(<QualityResults job={{ id: "native" } as Job} result={result} language={language} />);
+  expect(screen.getByText("8.68 Å", { exact: true })).toBeVisible();
+  expect(screen.getByText(language === "zh" ? "整分子原位 RMSD" : "Whole-molecule RMSD in receptor frame")).toBeVisible();
+  expect(preview).toHaveBeenLastCalledWith(expect.objectContaining({ sourceSnapshot: true }));
+  await userEvent.setup().click(screen.getByRole("button", { name: language === "zh" ? "实验参考叠合" : "Experimental overlay", exact: true }));
+  expect(preview).toHaveBeenLastCalledWith(expect.objectContaining({
+    urls: ["/api/jobs/native/download?name=protein-preview.pdb", "/api/jobs/native/download?name=molecule-preview.sdf", "/api/assets/experimental"],
+    records: [0, 0, 7], comparison: true, sourceSnapshot: true, focusModels: [1, 2],
+  }));
+  expect(result.metrics.rmsd).toBe(8.6789695619);
 });
