@@ -50,7 +50,8 @@ def test_every_retained_native_task_recipe_replays_exactly_without_starting_jobs
     assert not different, "Prepared recipes differ from reviewed native tasks: " + ", ".join(
         different
     )
-    assert len(matched) == 27
+    assert len(matched) == 29
+    assert {"library.import", "library.select"} <= set(matched)
     destination = Path("outputs/reviewed-recipe-replay")
     destination.mkdir(parents=True, exist_ok=True)
     (destination / "native-recipes.json").write_text(

@@ -85,13 +85,13 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert operation["state"] == "succeeded", operation
     installed = manager.store.installed()["public-stat6-examples"]
     assert installed["version"] == spec.VERSION and installed["bundle_sha256"] == spec.SHA256
-    assert installed["computed"] == len(spec.CAPABILITIES) == 28
-    expected = {"modules": 28, "computed": 28, "validated": 0}
+    assert installed["computed"] == len(spec.CAPABILITIES) == 30
+    expected = {"modules": 30, "computed": 30, "validated": 0}
     assert restore_bundle(archive, settings, spec.SHA256) == expected
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 46 and not any(
+    assert len(jobs) == 52 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
     )
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
@@ -122,6 +122,17 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     )
     assert str(cluster.job_id) == "18c3c20f-70e0-455b-89ff-bff6735c6843"
     assert cluster.review and exploration.review
+    library_pins = ExamplePins(store, settings.state_dir, modules=MODULES)
+    assert str(library_pins.get("library.import", verify=True).job_id) == (
+        "1b34aff9-9daf-4c44-a47e-e29adb76313b"
+    )
+    selected = library_pins.get("library.select", verify=True)
+    assert str(selected.job_id) == "1f9725ee-9075-4ef8-aec9-9de8cefd8124"
+    assert [str(row.job_id) for row in selected.supporting_evidence] == [
+        "b6bf5f47-2d73-4014-aadd-6ed7105b8d25",
+        "d0cc112e-9978-4ca4-b9c2-fca33abd1c1c",
+        "91d8a0c6-b093-45bf-8334-6e2b1af614e0",
+    ]
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)

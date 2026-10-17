@@ -37,12 +37,12 @@ def ready_structure(page, zh):
 
 def choose_task(page, language, key):
     zh = language == "zh"
-    if not page.locator(".module-task-picker select").count():
+    if not page.locator(".module-task-picker select:visible").count():
         navigation = open_navigation(page, language)
         navigation.get_by_role(
             "button", name="高通量筛选" if zh else "High-throughput screening", exact=True
         ).click()
-    page.locator(".module-task-picker select").select_option(key)
+    page.locator(".module-task-picker select:visible").select_option(key)
     toolbar = page.locator(".module-template:visible")
     toolbar.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
     expect(
