@@ -70,7 +70,8 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
             "region", name="性质模型测试集复核" if zh else "Property model held-out review"
         )
         expect(region).to_be_visible(timeout=30000)
-        expect(region.get_by_role("status")).to_contain_text("R² ≤ 0")
+        page.screenshot(path=str(evidence / "initial-render.png"), full_page=True)
+        expect(region.get_by_role("status").filter(has_text="R² ≤ 0")).to_contain_text("R² ≤ 0")
         drawing = region.locator(".molecule-image")
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         region.get_by_label("查看记录" if zh else "Inspect record", exact=True).select_option("1")
