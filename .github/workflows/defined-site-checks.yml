@@ -66,8 +66,14 @@ jobs:
         run: |
           gh release download v0.5.77 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v7.zip --dir "$RUNNER_TEMP/defined-site-data"
           echo "WB_DEFINED_SITE_ARCHIVE=$RUNNER_TEMP/defined-site-data/stat6-reviewed-results-v7.zip" >> "$GITHUB_ENV"
-          gh release download v0.5.85 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v9.zip --dir "$RUNNER_TEMP/defined-site-data"
-          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/defined-site-data/stat6-reviewed-results-v9.zip" >> "$GITHUB_ENV"
+          uv run --locked python - <<'PY'
+          import os
+          from pathlib import Path
+          from server_tests.prepare_quality_context_cases import download_archive
+          archive = download_archive(Path(os.environ['RUNNER_TEMP']) / 'defined-site-data')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'WB_REVIEWED_STAT6_ARCHIVE={archive}\n')
+          PY
       - name: Defined conditions, existing native-site contracts and real retained-frame API
         run: >-
           uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
