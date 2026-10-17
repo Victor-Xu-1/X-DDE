@@ -1,10 +1,15 @@
 name: Refinement input scoped checks
 on:
   workflow_call:
+    inputs:
+      check:
+        type: string
+        default: input
 permissions:
   contents: read
 jobs:
   shared-contracts:
+    if: inputs.check == 'input'
     runs-on: ubuntu-22.04
     timeout-minutes: 12
     steps:
@@ -30,6 +35,7 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
           WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/$asset" uv run --locked pytest -q tests/test_stat6_case_data.py
   native-parser:
+    if: inputs.check == 'input'
     runs-on: windows-latest
     timeout-minutes: 12
     steps:
@@ -45,4 +51,48 @@ jobs:
         with:
           name: refinement-input-geometry
           path: server_tests/evidence/refinement-inputs
+          if-no-files-found: warn
+  result-preview:
+    if: inputs.check == 'preview'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Native metric units, comparisons and original candidate selection
+        working-directory: frontend
+        run: npx vitest run src/integrations/ScientificResults.test.tsx
+      - name: Protein-only template inputs and published reference compatibility
+        run: uv run --locked pytest -q tests/test_stat6_predicted_references.py
+      - name: Download the immutable case package through its declared release identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-refinement-review" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-refinement-review/state" >> "$GITHUB_ENV"
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+      - name: Cold restore and retain original pins, binary models and native files
+        run: uv run --locked pytest -q tests/test_stat6_case_data.py
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Real English desktop and Chinese mobile result replay; no scientific engine
+        run: uv run --locked pytest -x -q server_tests/test_refinement_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refinement-result-preview
+          path: server_tests/evidence/refinement-review
           if-no-files-found: warn

@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { ScientificResults } from "./ScientificResults";
 import type { NativeResult } from "./types";
@@ -14,6 +20,80 @@ vi.mock("../presentation/MolecularPreview", () => ({
 vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 
 afterEach(cleanup);
+
+it("shows native energy units and never pools equal metric names across incompatible units", () => {
+  const method = "OpenMM vacuum potential with backbone positional restraints";
+  const result: NativeResult = {
+    operation: "structure_refine",
+    program: "openmm",
+    version: "8.6.1",
+    candidates: [
+      {
+        id: "refined-structure",
+        geometry: "source_frame",
+        metrics: [
+          {
+            name: "Initial potential energy",
+            value: -50383.56773217576,
+            unit: "kJ/mol",
+            method,
+            meaning: "energy",
+          },
+          {
+            name: "Final potential energy",
+            value: -58503.15506459447,
+            unit: "kJ/mol",
+            method,
+            meaning: "energy",
+          },
+        ],
+      },
+      {
+        id: "independent-unit-result",
+        geometry: "none",
+        metrics: [
+          {
+            name: "Final potential energy",
+            value: -13982.5896425895,
+            unit: "kcal/mol",
+            method: "Separate unit context",
+            meaning: "energy",
+          },
+        ],
+      },
+    ],
+    metrics: [],
+    artifact_sha256: {},
+    interactions: [],
+    validation_points: [],
+  };
+  render(
+    <ScientificResults
+      job={{ id: "native-refinement" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  expect(
+    screen.getByRole("columnheader", {
+      name: /Initial potential energy \(kJ\/mol\)/,
+    }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("columnheader", {
+      name: /Final potential energy \(kJ\/mol\)/,
+    }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("columnheader", {
+      name: /Final potential energy \(kcal\/mol\)/,
+    }),
+  ).toBeVisible();
+  expect(screen.getAllByTitle(`${method} · kJ/mol`)).toHaveLength(2);
+  const foreign = screen.getByText("independent-unit-result").closest("tr")!;
+  expect(within(foreign).getAllByText("—")).toHaveLength(2);
+  expect(within(foreign).getByText("-1.398e+4")).toBeVisible();
+});
 
 it("keeps declared stereochemistry separate from unbound 3D geometry when selecting a candidate", () => {
   const result: NativeResult = {

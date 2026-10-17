@@ -117,7 +117,6 @@ def study_context(capability):
     if capability in {
         "openmm.dynamics",
         "gromacs.dynamics",
-        "openmm.refine",
     }:
         requirements.append(
             (

@@ -86,6 +86,10 @@ def test_refinement_uses_a_documented_continuous_construct_without_starting_scie
     assert source["sha256"] == "83cd4db1c3e8729a77100055f13abdda9eb9c4d518f34c28e2090d9f827bbb1e"
     assert source != prepared.objects["receptor"].reference.model_dump(mode="json")
     assert request["payload"]["restrain_backbone"] and request["payload"]["ph"] == 7.4
+    assert request["payload"]["iterations"] == 500
+    assert not prepared.study["required_materials"], (
+        "Protein-only preparation needs no bound ligand."
+    )
     assert request["options"]["cpu"] == 2 and request["options"]["memory_mib"] == 2048
     assert request["options"]["seed"] == 2026
     assert "predicted" in prepared.case.description[1]

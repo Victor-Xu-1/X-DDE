@@ -35,10 +35,15 @@ export function ScientificResults({
   const [selected, setSelected] = useState(rows[0]?.id ?? "");
   const active = rows.find((row) => row.id === selected) ?? rows[0];
   const columns = useMemo<ResearchColumn<NativeCandidate>[]>(() => {
-    const names = [
-      ...new Set(
-        rows.flatMap((row) => row.metrics.map((metric) => metric.name)),
-      ),
+    const metrics = [
+      ...new Map(
+        rows
+          .flatMap((row) => row.metrics)
+          .map((metric) => [
+            JSON.stringify([metric.name, metric.unit]),
+            metric,
+          ]),
+      ).values(),
     ];
     return [
       { key: "id", label: zh ? "候选" : "Candidate", value: (row) => row.id },
@@ -60,14 +65,18 @@ export function ScientificResults({
             },
           ]
         : []),
-      ...names.map((name) => ({
-        key: name,
-        label: name,
+      ...metrics.map(({ name, unit }) => ({
+        key: JSON.stringify([name, unit]),
+        label: unit ? `${name} (${unit})` : name,
         numeric: true,
         value: (row: NativeCandidate) =>
-          row.metrics.find((metric) => metric.name === name)?.value ?? null,
+          row.metrics.find(
+            (metric) => metric.name === name && metric.unit === unit,
+          )?.value ?? null,
         render: (row: NativeCandidate) => {
-          const metric = row.metrics.find((m) => m.name === name);
+          const metric = row.metrics.find(
+            (m) => m.name === name && m.unit === unit,
+          );
           return metric ? (
             <span title={`${metric.method} · ${metric.unit}`}>
               {metric.value.toPrecision(4)}

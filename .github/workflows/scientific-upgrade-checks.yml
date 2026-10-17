@@ -18,6 +18,7 @@ on:
             chemprop,
             property-review,
             refinement-input,
+            refinement-preview,
             source-stereo,
             simulation-lock,
             simulation-native,
@@ -79,8 +80,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'source-stereo'
     uses: ./.github/workflows/diffsbdd-source-stereo-checks.yml
   refinement-input:
-    if: github.event_name == 'workflow_dispatch' && inputs.check == 'refinement-input'
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["refinement-input","refinement-preview"]'), inputs.check)
     uses: ./.github/workflows/refinement-input-checks.yml
+    with:
+      check: ${{ inputs.check == 'refinement-preview' && 'preview' || 'input' }}
   contracts:
     if: github.event_name != 'workflow_dispatch' || inputs.check == 'contracts' || inputs.check == 'all'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
