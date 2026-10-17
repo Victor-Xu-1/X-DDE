@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+from molfile_stereo import source_stereo_molecule
 from platformnative_io import readonly_database, write_csv
 from screen_inspection import AlertInspector, scaffold_identity
 from screen_record import evaluate_record
@@ -109,7 +110,7 @@ def retain_candidates(request, indexes, ranked, *, output: Path | None = None):
                     molecule.SetProp("XDDE_COMPOUND_ID", row["id"])
                     molecule.SetProp("XDDE_GEOMETRY", "unbound_conformer")
                     molecule.SetDoubleProp("DRUGCLIP_SCORE", score)
-                    writer.write(molecule)
+                    writer.write(source_stereo_molecule(molecule))
                     candidate.update(
                         artifact="candidates.sdf", record=written, geometry="unbound_conformer"
                     )
