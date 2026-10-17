@@ -75,6 +75,25 @@ def register_examples(app, store, assets, settings, mutation):
     def example(capability_id: str, profile: Literal["stat6", "archive"] = "stat6"):
         return detail(capability_id, verify=True, profile=profile)
 
+    @app.get("/api/examples/{capability_id}/result", response_model=PreparedExample)
+    def result(capability_id: str, profile: Literal["stat6", "archive"] = "stat6"):
+        metadata = detail(capability_id, profile=profile)
+        try:
+            record = (study_records if profile == "stat6" else records).prepared(capability_id)
+        except (ValueError, OSError, KeyError, ConflictError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+        if not record or not record["pin"]["computed_result_available"]:
+            raise HTTPException(404, "This module has no saved reviewed record result.")
+        return PreparedExample(
+            module=metadata["module"],
+            case=metadata["case"],
+            objects={},
+            sequences={},
+            sources=metadata["case"].sources,
+            record=record,
+            study=metadata.get("study"),
+        )
+
     @app.post(
         "/api/examples/{capability_id}/prepare",
         response_model=PreparedExample,

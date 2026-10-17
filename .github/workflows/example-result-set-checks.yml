@@ -1,6 +1,12 @@
 name: Reviewed example result stages
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Verify the affected record opening path or the complete result-stage contracts
+        type: choice
+        default: all
+        options: [all, record-results]
   push:
     paths: &stage_paths
       - "src/opendde_workbench/examples/supporting.py"
@@ -23,6 +29,7 @@ on:
       - "tests/test_stat6_predicted_references.py"
       - "frontend/src/examples/ExampleResultSet*"
       - "frontend/src/examples/ExampleActions*"
+      - "frontend/src/examples/useExampleTemplate.ts"
       - "frontend/src/examples/ExampleJobResult*"
       - "frontend/src/datasets/CandidateView*"
       - "frontend/src/datasets/CandidateTable*"
@@ -58,6 +65,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Typed lineage, immutable outputs, portable closure and personal history
+        if: inputs.scope != 'record-results'
         run: >-
           uv run --locked pytest -q tests/test_example_supporting.py
           tests/test_record_example_supporting.py
@@ -68,11 +76,12 @@ jobs:
           tests/test_example_records.py tests/test_example_pins.py tests/test_example_library.py
           tests/test_stat6_case_bundle.py
       - name: Exact corrected PROTAC source identity and unchanged coordinates
+        if: inputs.scope != 'record-results'
         run: >-
           uv run --locked --with rdkit==2026.3.6 --with numpy==2.3.4
           pytest -q tests/test_stat6_source_revisions.py -k corrected_protac
       - name: Bilingual stage switching, stale replies and preserved module draft
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && inputs.scope != 'record-results' }}
         working-directory: frontend
         run: >-
           npx vitest run src/examples/ExampleResultSet.test.tsx
@@ -84,6 +93,13 @@ jobs:
           src/viewer/PoseSession.test.tsx src/viewer/StructureViewer.test.tsx
           src/viewer/pose-plan.test.ts src/viewer/pose-source.test.ts
           src/viewer/usePoseOptimization.test.tsx
+      - name: Read-only record loading, immutable evidence and missing or changed results
+        if: inputs.scope == 'record-results'
+        run: uv run --locked pytest -q tests/test_record_example_supporting.py tests/test_example_records.py
+      - name: Record result opening and retained stages preserve the module draft
+        if: inputs.scope == 'record-results'
+        working-directory: frontend
+        run: npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
   native-preview:
     runs-on: ubuntu-24.04
     timeout-minutes: 16

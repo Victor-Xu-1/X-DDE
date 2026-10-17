@@ -216,3 +216,49 @@ def test_record_pin_api_keeps_review_metadata_and_csrf_boundary(
             client.post("/api/examples/regions/record-pin?profile=archive", json=body).status_code
             == 403
         )
+
+
+def test_fixed_record_result_is_read_only_and_rejects_changed_native_evidence(
+    settings, client_factory, monkeypatch
+):
+    pins, prepared, record, _, followup, final, review, _ = study(settings)
+
+    def no_preparation(*args, **kwargs):
+        raise AssertionError("Viewing a saved result must not prepare or import any input.")
+
+    monkeypatch.setattr("opendde_workbench.examples.routes.prepare_example", no_preparation)
+    monkeypatch.setattr("opendde_workbench.examples.routes.prepare_stat6", no_preparation)
+    tables = ("jobs", "assets", "scientific_objects", "example_pins", "example_record_pins")
+
+    def snapshot():
+        with pins.store.connect() as db:
+            return {
+                table: [tuple(row) for row in db.execute("SELECT * FROM " + table)]
+                for table in tables
+            }
+
+    with client_factory() as client:
+        client.headers.pop("X-Workbench-CSRF")
+        path = "/api/examples/regions/result?profile=archive"
+        assert client.get(path).status_code == 404
+        pin = pins.pin(
+            "regions",
+            record["id"],
+            None,
+            prepared,
+            review=review,
+            supporting_job_ids=[followup.id, final.id],
+        )
+        before = snapshot()
+        response = client.get(path)
+        assert response.status_code == 200, response.text
+        assert response.json()["record"] == pins.prepared("regions")
+        assert response.json()["record"]["pin"] == pin.model_dump(mode="json")
+        assert not response.json()["objects"]
+        assert response.json()["request"] is None
+        assert snapshot() == before
+        (settings.state_dir / "jobs" / final.id / "output" / "result.json").write_text(
+            '{"changed":true}'
+        )
+        assert client.get(path).status_code == 409
+        assert snapshot() == before

@@ -119,12 +119,18 @@ export function useExampleTemplate({
       if (!info) return;
       const value = info.pin
         ? { job: await request<Job>(`/jobs/${info.pin.job_id}`) }
-        : {
-            example: await api.post<PreparedExample>(
-              `/examples/${capability}/prepare`,
-              {},
-            ),
-          };
+        : info.record_pin?.computed_result_available
+          ? {
+              example: await request<PreparedExample>(
+                `/examples/${capability}/result`,
+              ),
+            }
+          : {
+              example: await api.post<PreparedExample>(
+                `/examples/${capability}/prepare`,
+                {},
+              ),
+            };
       if (!current()) return;
       setResult(value);
       onPreviewChange?.(true);

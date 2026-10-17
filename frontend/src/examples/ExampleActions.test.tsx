@@ -200,7 +200,7 @@ describe("module templates", () => {
     ).toHaveFocus();
   });
   it("opens a verified compound result without loading it into a live plan", async () => {
-    transport.request.mockResolvedValue({
+    transport.request.mockResolvedValueOnce({
       ...info,
       module: { ...info.module, capability_id: "regions" },
       record_pin: {
@@ -208,7 +208,7 @@ describe("module templates", () => {
         computed_result_available: true,
       },
     });
-    transport.post.mockResolvedValue({
+    transport.request.mockResolvedValueOnce({
       module: info.module,
       record: {
         kind: "regions",
@@ -229,10 +229,10 @@ describe("module templates", () => {
     );
     expect(await screen.findByText("Verified compound output")).toBeVisible();
     expect(onLoad).not.toHaveBeenCalled();
-    expect(transport.post).toHaveBeenCalledExactlyOnceWith(
-      "/examples/regions/prepare",
-      {},
+    expect(transport.request).toHaveBeenLastCalledWith(
+      "/examples/regions/result",
     );
+    expect(transport.post).not.toHaveBeenCalled();
   });
   it("lets the user explicitly return to a new blank task", async () => {
     transport.post.mockResolvedValue({ module: info.module, case: info.case });
@@ -404,18 +404,19 @@ it.each(["en", "zh"] as const)(
                 name: "Retained independent pose review",
               },
             }
-          : {
-              ...info,
-              module: { ...info.module, capability_id: "regions" },
-              computed_result_available: true,
-              record_pin: pin,
-            },
+          : path === "/examples/regions/result"
+            ? {
+                module: { ...info.module, capability_id: "regions" },
+                record: { kind: "regions", value: { id: pin.record_id }, pin },
+              }
+            : {
+                ...info,
+                module: { ...info.module, capability_id: "regions" },
+                computed_result_available: true,
+                record_pin: pin,
+              },
       ),
     );
-    transport.post.mockResolvedValue({
-      module: { ...info.module, capability_id: "regions" },
-      record: { kind: "regions", value: { id: pin.record_id }, pin },
-    });
     const onLoad = vi.fn();
     render(
       <ExampleActions
@@ -452,7 +453,7 @@ it.each(["en", "zh"] as const)(
     fireEvent.change(stage, { target: { value: primary } });
     expect(screen.getByText("Verified compound output")).toBeVisible();
     expect(onLoad).not.toHaveBeenCalled();
-    expect(transport.post).toHaveBeenCalledTimes(1);
+    expect(transport.post).not.toHaveBeenCalled();
   },
 );
 
