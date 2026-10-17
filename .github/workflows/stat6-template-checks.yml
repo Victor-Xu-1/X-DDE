@@ -1,6 +1,12 @@
 name: STAT6 study template checks
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: The full study-template checks or only the curated SPR training inputs
+        type: choice
+        default: templates
+        options: [templates, spr-training]
   push:
     paths: &stat6_template_paths
       - 'src/opendde_workbench/examples/stat6/**'
@@ -62,7 +68,11 @@ on:
 permissions:
   contents: read
 jobs:
+  spr-training:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'spr-training'
+    uses: ./.github/workflows/stat6-training-input-checks.yml
   templates:
+    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

@@ -47,8 +47,8 @@ def integrated_study(capability, objects, sequences):
         )
         options.update(memory_mib=2048, seed=2026)
     elif kind == "chemprop":
-        add("library", "stat6_assay_library")
-        payload.update(mode="train", activity_property="pIC50", activity_unit="pIC50", epochs=30)
+        add("library", "stat6_spr_library")
+        payload.update(mode="train", activity_property="pKd", activity_unit="pKd", epochs=30)
     else:
         add("structure", "structure" if kind in {"ligandmpnn", "plip"} else "receptor")
         if kind == "ligandmpnn":

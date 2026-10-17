@@ -132,8 +132,11 @@ def prepare_stat6(capability, scientific, *, records=None):
         objects["ligand"] = originals["calculated_pose"]
         objects["receptor"] = originals["calculated_receptor"]
     if capability in {"chemprop.train", "chemistry.screen"}:
-        objects["library"] = originals["stat6_assay_library"]
-        objects["ligand"] = originals["stat6_assay_library"]
+        library_key = (
+            "stat6_spr_library" if capability == "chemprop.train" else "stat6_assay_library"
+        )
+        objects["library"] = originals[library_key]
+        objects["ligand"] = originals[library_key]
     sequence = "".join(verified_input("stat6_sequence").decode().splitlines()[1:])
     if len(sequence) != 847:
         raise ValueError("The fixed canonical STAT6 sequence differs from its reviewed length.")

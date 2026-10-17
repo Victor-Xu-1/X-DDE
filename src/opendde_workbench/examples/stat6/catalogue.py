@@ -135,7 +135,7 @@ def study_context(capability):
                 ),
             ]
         )
-    return {
+    study = {
         "id": "stat6",
         "target": "STAT6",
         "organism": "Homo sapiens",
@@ -166,3 +166,8 @@ def study_context(capability):
             ),
         },
     }
+    if capability == "chemprop.train":
+        from .training_inputs import training_context
+
+        return training_context(study)
+    return study

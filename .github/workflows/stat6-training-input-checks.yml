@@ -1,0 +1,60 @@
+name: STAT6 SPR training input checks
+on:
+  workflow_call:
+  push:
+    paths:
+      - "src/opendde_workbench/examples/stat6/training_inputs.py"
+      - "src/opendde_workbench/examples/stat6/inputs/STAT6-BindingDB13376-*"
+      - "tests/test_stat6_training_inputs.py"
+      - "frontend/src/integrations/ScientificSelection*"
+      - ".github/workflows/stat6-training-input-checks.yml"
+permissions:
+  contents: read
+jobs:
+  source-and-intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Original source values, unchanged training guard and actual native table intake
+        run: >-
+          uv run --locked --with rdkit==2026.3.6 --with numpy==2.3.4 pytest -q
+          tests/test_stat6_training_inputs.py tests/test_stat6_source_revisions.py
+          tests/test_stat6_templates.py::test_property_training_requires_real_measurements_not_the_study_conformer
+      - name: Bilingual training units and downstream model selection
+        working-directory: frontend
+        run: npx vitest run src/integrations/ScientificSelection.test.tsx src/integrations/PropertyModelSelection.test.tsx
+  historical-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Retain the exact published Data 15 archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+          echo "WB_TEST_REVIEWED_BUNDLE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+      - name: Cold restore preserves all reviewed results without executing historical jobs
+        run: uv run --locked pytest -q tests/test_stat6_case_data.py

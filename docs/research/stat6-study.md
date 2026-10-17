@@ -18,6 +18,8 @@ fill the task list with demonstrations. New tasks still start blank by default.
 | 8RQA observed CRBN-midi receptor | CRBN reference for induced proximity research | Modified experimental construct; not a supplied-PROTAC complex. |
 | Supplied small molecule | Small-molecule preparation, properties, design and binding studies | Eight ETKDGv3 conformers, followed by converged MMFF94s minimization. |
 | Supplied PROTAC | Molecular-region selection and STAT6/CRBN ternary-system setup | Minimized unbound conformer; one unspecified stereocenter remains unresolved. |
+| 38 ChEMBL CHEMBL982109 observations and structures | Experimental-data import and molecular-library examples | Reported cellular IC50; assay organism is unreported, not inferred from target identity. |
+| 163 curated BindingDB entry 13376 / assay 1 structures | Chemprop pKd training input | One reported STAT6 SPR assay; full-precision Kd retained, with duplicate graphs and unspecified stereo excluded before modelling. |
 
 The user confirmed that `POI` was a label, so the small-molecule SMILES begins
 `O=C(CCN1C=CN=N1)…`. Original confirmed SMILES, canonical identity, software
@@ -37,19 +39,41 @@ retained with the inputs. These inputs are **not predicted binding poses**.
 | Pose scoring / interactions / dynamics | STAT6 study context and source molecules | A calculated, aligned pose of the supplied molecule; a simulation-ready system for MD. |
 | Relative binding free energy | STAT6 study context and supplied small molecule | A second congeneric molecule, comparable binding poses and parameterized systems. |
 | High-throughput screening | STAT6 receptor and study-specific guidance | Actual compound library/index and completed upstream results. |
-| DEL / experimental evidence / learned property model | STAT6-specific workflow guidance | Real definitions, reads, counts, assays or validated endpoint models. |
+| Experimental evidence | 38 original STAT6 cellular IC50 observations with exact molecule links | Review assay conditions and import the actual table. |
+| Learned property model | 163 distinct molecules from one STAT6 SPR assay, with pKd labels | Inspect the actual held-out model errors before reuse; prediction requires a trained model with its endpoint and checksum. |
+| DEL | STAT6-specific workflow guidance | Actual library definitions, sequencing reads and selection/control counts are still required. |
 | Workflows / pose clustering | STAT6-specific inputs and source-validation rules | Actual study-specific upstream results; archived jobs cannot become STAT6 outputs. |
 
 **Preview study inputs** shows real interactive 3D references, Ketcher 2D
 depictions and source downloads. A reference preview is labelled separately
 from **Example results**, which requires verified computational evidence.
 
-The [reviewed result package v4](https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-results-v4)
-contains 22 frontend-submitted, independently checked module examples. It retains
-244 scientific files, 27 successful source tasks and one terminal failed retry
-ancestor for provenance. Restoring the package does not enqueue calculations.
-These 22 examples are a subset of the 71 requested non-MD/FEP examples; each
-module retains its own method limits and interpretation.
+The [reviewed result package Data 15](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.6/stat6-reviewed-results-v15.zip)
+contains 34 independently reviewed examples: 33 primary task examples and one
+nested result stage. It retains 87 scientific files and 62 source-task records,
+including historical evidence required for their provenance. Restoring the
+package does not enqueue calculations. These remain a subset of the 71 requested
+primary non-MD/FEP examples. The SPR training input is prepared separately and
+does not become a completed model example until an actual submitted run and
+held-out results have been reviewed.
+
+### Single-assay SPR modelling input
+
+The source reports 192 STAT6 SPR Kd observations in
+[BindingDB entry 13376](https://www.bindingdb.org/rwd/jsp/dbsearch/PrimarySearch_ki.jsp?tag=entry&submit=Search&entryid=13376),
+from [US20250340551A1](https://patents.google.com/patent/US20250340551A1/en).
+The training input excludes five records with unspecified stereochemistry and
+all 24 records involved in 12 duplicate molecular-graph groups. It retains
+163 distinct structures and computes `pKd = 9 - log10(Kd in nM)` from the
+full-precision public observations. No measurements are averaged or filtered
+by model performance; the provenance file retains all 192 source observations.
+This is separate from the 38-compound cellular IC50 library.
+
+The reported SPR method uses a human STAT6 aa122–658 His-tag construct and
+measurements at 25 °C. The immobilization-buffer pH of 5.5 is not substituted
+for the unreported running-buffer pH. A scaffold split is a test of this assay
+series, not proof of predictive performance for a different assay or the supplied
+warhead/PROTAC. Viewing or loading these inputs does not train a model.
 
 Protein electrostatic calculations use the reviewed protein-only receptor,
 explicit PDB2PQR/PROPKA pH-dependent state assignment, and APBS solvent/salt
@@ -71,6 +95,10 @@ results are renamed as STAT6 results.
 - User-provided molecular definitions: `LicenseRef-User-Provided`; no independent
   third-party rights or experimental activity are asserted. The project's
   Apache-2.0 software license does not relicense research inputs.
+- BindingDB-curated SPR observations and molecular definitions: CC-BY-3.0-US,
+  with BindingDB, patent and data DOI `10.7270/Q2ZC87P0` attribution retained.
+- ChEMBL cellular-assay observations: CC-BY-SA-3.0, retaining the assay identity,
+  original values, source activity IDs and molecule records.
 
 ## 中文
 
@@ -91,10 +119,22 @@ X-DDE 各模块默认使用 **人 STAT6（P42226）及用户指定的两份分�
 “查看研究材料”提供真实 2D、3D 和文件下载。“示例结果”只在有可验证的真实结果时
 显示。旧 BRD4 等案例保留在历史资料中，不会改名为 STAT6 结果。
 
-[已核对结果包 v4](https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-results-v4)
-包含 22 个前端实际递交并独立核对的模块示例，保留 244 个科学文件、27 个成功来源任务，
-以及 1 个只用于保留重试来源关系的已结束失败祖先。恢复不会排队计算。这是所需
-71 个非动力学/FEP 示例的一部分；各模块保留各自的方法限制和结果解释。
+[已核对结果包 Data 15](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.6/stat6-reviewed-results-v15.zip)
+包含 34 项已独立复核示例：33 个主任务示例和 1 个嵌套结果阶段，保留 87 个科学文件和
+62 条来源任务记录。恢复不会排队计算；这些示例仍是所需 71 个非动力学/FEP 主任务示例的
+一部分，各模块保留各自的方法限制和结果解释。
+
+**性质模型训练输入**使用 BindingDB entry 13376 / assay 1 中单一 STAT6 SPR 实验的数据。
+192 条原始 Kd 记录中，排除 5 条未指定手性记录，以及 12 组重复分子结构涉及的全部 24 条记录，
+得到 163 个不同分子。使用完整精度的原始 Kd（nM）换算 `pKd = 9 - log10(Kd)`，
+不平均冲突记录，不按模型表现选择样本；来源文件保留全部 192 条原始观测及排除原因。
+此数据与原有 38 个分子的细胞 IC50 数据分别保存。
+
+该 SPR 方法使用人 STAT6 aa122–658 His-tag 构建体，在 25 °C 测量；固定蛋白所用缓冲液的
+pH 5.5 不能充当未报告的运行缓冲液 pH。载入模板不触发训练。只有实际递交、检查原生模型的
+保留测试集误差并复核后，才能将其固定为完成的模型示例；不能据此宣称已知指定研究小分子或
+PROTAC 的实测亲和力。BindingDB 数据保留 CC-BY-3.0-US 与来源署名；ChEMBL 数据保留
+CC-BY-SA-3.0。
 
 公开结构数据、UniProt 序列、用户提供的分子定义分别保留来源和许可；
 软件 Apache-2.0 许可不替代研究数据本身的许可。

@@ -71,7 +71,9 @@ def test_property_training_requires_real_measurements_not_the_study_conformer(tm
     _, scientific = scientific_store(tmp_path)
     prepared = prepare_stat6("chemprop.train", scientific)
     assert prepared.objects["library"].reference != prepared.objects["study_ligand"].reference
-    assert prepared.request["payload"]["activity_property"] == "pIC50"
+    assert prepared.request["payload"]["activity_property"] == "pKd"
+    assert prepared.request["payload"]["activity_unit"] == "pKd"
+    assert prepared.study["supporting_sources"]["stat6_spr_training"]["retained_molecules"] == 163
     assert prepared.study["supporting_sources"]["stat6_assay"]["measurements"] == 38
 
 

@@ -14,6 +14,10 @@ PREDICTION_SOURCES = (
 
 
 def case_for(capability):
+    if capability == "chemprop.train":
+        from .training_inputs import training_case
+
+        return training_case(CASE)
     if capability not in PREDICTED_CAPABILITIES:
         return CASE
     return CASE.model_copy(
@@ -28,7 +32,7 @@ def input_keys(capability):
     return (
         (*CASE.files, *PREDICTED_STRUCTURES, *PREDICTED_RECEIPTS)
         if capability in PREDICTED_CAPABILITIES
-        else CASE.files
+        else case_for(capability).files
     )
 
 

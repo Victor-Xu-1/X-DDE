@@ -65,6 +65,7 @@ export function ScientificSelection({
           >
             <option value="pIC50">pIC50</option>
             <option value="pKi">pKi</option>
+            <option value="pKd">pKd</option>
             <option value="nM">nM</option>
             <option value="µM">µM</option>
             <option value="mg/L">mg/L</option>

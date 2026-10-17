@@ -283,6 +283,24 @@
       "bytes": 1183,
       "kind": "config",
       "license": "CC-BY-4.0"
+    },
+    "stat6_spr_library": {
+      "key": "stat6_spr_library",
+      "name": "STAT6-BindingDB13376-SPR-pKd-163.sdf",
+      "url": "https://www.bindingdb.org/rwd/jsp/dbsearch/PrimarySearch_ki.jsp?tag=entry&submit=Search&entryid=13376",
+      "sha256": "32ac69a8dab90d0db09cf841cf85a4a99a5b10ade733485d5720c0db1a049753",
+      "bytes": 647022,
+      "kind": "ligand",
+      "license": "CC-BY-3.0-US"
+    },
+    "stat6_spr_provenance": {
+      "key": "stat6_spr_provenance",
+      "name": "STAT6-BindingDB13376-SPR-pKd.provenance.json",
+      "url": "https://www.bindingdb.org/rwd/jsp/dbsearch/PrimarySearch_ki.jsp?tag=entry&submit=Search&entryid=13376",
+      "sha256": "34c8113bd66b4d0a03c37422d481e9fad17751dfdc9d9db2e335de0b170590b5",
+      "bytes": 178262,
+      "kind": "config",
+      "license": "CC-BY-3.0-US"
     }
   },
   "molecules": [

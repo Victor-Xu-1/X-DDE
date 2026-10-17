@@ -20,7 +20,9 @@ class SourceFile(ExampleModel):
     kind: Literal[
         "structure", "ligand", "sequences", "config", "library", "counts", "reads", "measurements"
     ]
-    license: Literal["CC0-1.0", "CC-BY-SA-3.0", "MIT", "CC-BY-4.0", "LicenseRef-User-Provided"]
+    license: Literal[
+        "CC0-1.0", "CC-BY-SA-3.0", "CC-BY-3.0-US", "MIT", "CC-BY-4.0", "LicenseRef-User-Provided"
+    ]
 
 
 class CaseStudy(ExampleModel):
