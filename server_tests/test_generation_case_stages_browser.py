@@ -39,6 +39,70 @@ def quality_panel(page, zh):
     return page.get_by_role("region", name="构象与姿势质控结果" if zh else "Pose quality results")
 
 
+def assert_template_replay(page, store, evidence, zh):
+    with store.connect() as db:
+        original = json.loads(
+            db.execute("SELECT request FROM jobs WHERE id=?", (GENERATED,)).fetchone()["request"]
+        )
+    with page.expect_response(
+        lambda response: response.url.endswith("/api/examples/diffsbdd.generate/prepare")
+    ) as pending:
+        page.get_by_role(
+            "button", name="使用此模板" if zh else "Use this template", exact=True
+        ).click()
+    assert pending.value.ok
+    prepared = pending.value.json()
+    assert prepared["request"] == original
+    assert prepared["study"]["required_materials"] == []
+    assert "AK-1690" not in str(prepared["study"]["guide"]["steps"])
+    next_step = page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
+    next_step.click()
+    expect(
+        page.get_by_role(
+            "combobox", name="如何指定口袋？" if zh else "How should the pocket be defined?"
+        )
+    ).to_have_value("residues")
+    residues = original["payload"]["pocket"]["residues"]
+    assert len(residues) == 37
+    expect(
+        page.get_by_role(
+            "textbox",
+            name="已选残基（也可输入 A:10, A:11）"
+            if zh
+            else "Selected residues (or enter A:10, A:11)",
+        )
+    ).to_have_value(", ".join(f"{row['chain']}:{row['number']}" for row in residues))
+    next_step.click()
+    expect(
+        page.get_by_role("combobox", name="这次生成多少候选？" if zh else "How many candidates?")
+    ).to_have_value("3")
+    page.get_by_role("button", name="专家微调" if zh else "Expert settings", exact=True).click()
+    visible = json.loads(
+        page.get_by_role(
+            "textbox",
+            name="当前模式与模型的原生参数" if zh else "Native settings for this mode and model",
+        ).input_value()
+    )
+    for key in (
+        "model",
+        "count",
+        "steps",
+        "seed",
+        "size_mode",
+        "size_bias",
+        "minimum_atoms",
+        "fragment_policy",
+        "relaxation",
+    ):
+        assert visible[key] == original["payload"]["options"][key]
+    next_step.click()
+    expect(
+        page.get_by_text("37 个选定残基" if zh else "37 selected residues", exact=True)
+    ).to_be_visible()
+    page.screenshot(path=evidence / "exact-template-review.png", full_page=True)
+    (evidence / "prepared-native-recipe.json").write_text(json.dumps(prepared, indent=2))
+
+
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, width):
     settings = Settings.from_env()
@@ -156,6 +220,7 @@ def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, 
             page.get_by_role("heading", name="候选 3" if zh else "Candidate 3", exact=True)
         ).to_be_visible()
         expect(table.get_by_role("row")).to_have_count(4)
+        assert_template_replay(page, store, evidence, zh)
         assert not errors
         browser.close()
     assert {job.id: job.status for job in store.list_jobs(1000)} == before_jobs
@@ -169,6 +234,7 @@ def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, 
                 "raw_selected_candidate_retained": 3,
                 "native_reports_and_files_unchanged": True,
                 "new_scientific_jobs": 0,
+                "exact_authored_template_recipe": True,
                 "language": language,
                 "width": width,
                 "fresh_english_default": not zh,

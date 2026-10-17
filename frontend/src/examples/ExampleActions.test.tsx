@@ -40,6 +40,74 @@ beforeEach(() => {
   transport.post.mockReset();
 });
 describe("module templates", () => {
+  it.each(["en", "zh"] as const)(
+    "uses the prepared recipe guide only while its template is loaded (%s)",
+    async (language) => {
+      const zh = language === "zh";
+      const study: NonNullable<ExampleInfo["study"]> = {
+        id: "stat6",
+        target: "STAT6",
+        organism: "Homo sapiens",
+        uniprot: "P42226",
+        template_kind: "research_study",
+        required_materials: [],
+        guide: {
+          steps: [["通用参考口袋", "Generic reference pocket"]],
+          interpretation: ["计算示例", "Computational example"],
+        },
+      };
+      const preparedStudy = {
+        ...study,
+        guide: {
+          ...study.guide,
+          steps: [["已保存的实际口袋", "Saved actual pocket"]],
+        },
+      };
+      transport.request.mockResolvedValue({ ...info, study });
+      transport.post.mockResolvedValue({
+        module: info.module,
+        case: info.case,
+        objects: {},
+        sequences: {},
+        sources: info.case.sources,
+        study: preparedStudy,
+      });
+      render(
+        <ExampleActions
+          capability="gnina.dock"
+          language={language}
+          onLoad={vi.fn()}
+          onClear={vi.fn()}
+        />,
+      );
+      fireEvent.click(
+        await screen.findByRole("button", {
+          name: zh ? "使用此模板" : "Use this template",
+        }),
+      );
+      expect(
+        await screen.findByText(
+          zh ? "已保存的实际口袋" : "Saved actual pocket",
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(zh ? "通用参考口袋" : "Generic reference pocket"),
+      ).not.toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: zh ? "新建空白任务" : "New blank task",
+        }),
+      );
+      expect(
+        await screen.findByText(
+          zh ? "通用参考口袋" : "Generic reference pocket",
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(zh ? "已保存的实际口袋" : "Saved actual pocket"),
+      ).not.toBeInTheDocument();
+    },
+  );
   it("starts blank and loads a template only by explicit choice without submitting", async () => {
     const onLoad = vi.fn(),
       prepared = {

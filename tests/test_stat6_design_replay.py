@@ -35,7 +35,7 @@ def retained_design(settings, mode, *, reviewed=True):
         steps=200,
         size_mode="sample",
         fragment_policy="all",
-        relax_iterations=0,
+        relaxation=0,
     )
     request = TASK_ADAPTER.validate_python(body)
     job = store.create(request, str(uuid4()), 20, 500)

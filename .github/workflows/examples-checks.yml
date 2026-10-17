@@ -22,6 +22,10 @@ on:
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       # Native integrated presets have exact questionnaire/chemical-source checks.
       - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
+      # Recipe replay and portable stage consumers have the focused module gate.
+      - '!src/opendde_workbench/examples/stat6/preparation.py'
+      - '!src/opendde_workbench/examples/stat6/design_replay.py'
+      - '!src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/examples/**'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
@@ -48,6 +52,7 @@ on:
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
+      - '!tests/test_example_pins.py'
       - 'tests/test_example_library.py'
   pull_request:
     paths:
@@ -66,6 +71,9 @@ on:
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
+      - '!src/opendde_workbench/examples/stat6/preparation.py'
+      - '!src/opendde_workbench/examples/stat6/design_replay.py'
+      - '!src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/examples/**'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
@@ -86,6 +94,7 @@ on:
       - 'tests/test_examples.py'
       - 'tests/test_example_observed_inputs.py'
       - 'tests/test_example_pins.py'
+      - '!tests/test_example_pins.py'
       - 'tests/test_example_library.py'
 permissions:
   contents: read
