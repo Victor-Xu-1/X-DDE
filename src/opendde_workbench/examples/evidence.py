@@ -58,7 +58,7 @@ def verify_job(store, state, evidence):
         raise ValueError("The fixed example's task, environment or output bytes changed.")
     # Existing pins seal result.json, whose manifest seals these native files.
     # Validate that transitive evidence without rewriting their original pin bytes.
-    from .native_sources import potential_sources
+    from .native_sources import declared_native_sources
 
     job = store.get(str(evidence.job_id))
-    potential_sources(job, state / "jobs" / str(evidence.job_id) / "output")
+    declared_native_sources(job, state / "jobs" / str(evidence.job_id) / "output")

@@ -26,6 +26,12 @@
 .scientific-results .compact-table {
   width: 100%;
 }
+.property-model-warning {
+  padding: 10px 14px;
+  border-inline-start: 3px solid #af6b16;
+  background: #fff7e8;
+  color: #784a12;
+}
 .results-split > .secondary-button {
   justify-self: start;
 }

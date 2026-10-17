@@ -13,7 +13,7 @@ import type { NativeCandidate, NativeResult } from "./types";
 import { InteractionResults } from "./InteractionResults";
 import { PotentialResults } from "./PotentialResults";
 import { ProximityResults } from "../proximity/Results";
-import { MetricScatter } from "../presentation/MetricScatter";
+import { PropertyModelResults } from "./PropertyModelResults";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import "./results.css";
 import { DynamicsResults } from "../simulations/DynamicsResults";
@@ -161,33 +161,10 @@ export function ScientificResults({
   );
   return (
     <div className="scientific-results">
-      {result.validation_points?.length > 1 && (
-        <MetricScatter
-          rows={result.validation_points}
-          identity
-          language={language}
-          label={
-            zh
-              ? "测试集：实验值与预测值"
-              : "Held-out observations and predictions"
-          }
-          rowId={(r) => r.smiles}
-          rowLabel={(r) => r.smiles}
-          metrics={[
-            {
-              key: "observed",
-              label: zh ? "实验值" : "Observed",
-              value: (r) => r.observed,
-            },
-            {
-              key: "predicted",
-              label: zh ? "预测值" : "Predicted",
-              value: (r) => r.predicted,
-            },
-          ]}
-        />
+      {result.operation === "chemprop_train" && (
+        <PropertyModelResults result={result} language={language} />
       )}
-      {result.metrics.length > 0 && (
+      {result.operation !== "chemprop_train" && result.metrics.length > 0 && (
         <table className="compact-table">
           <tbody>
             {result.metrics.map((metric) => (

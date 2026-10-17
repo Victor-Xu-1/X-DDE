@@ -1,0 +1,65 @@
+name: Property model review scoped checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &model_paths
+      - "src/opendde_workbench/examples/native_sources.py"
+      - "src/opendde_workbench/examples/evidence.py"
+      - "src/opendde_workbench/examples/bundle_sources.py"
+      - "frontend/src/integrations/PropertyModelResults*"
+      - "frontend/src/integrations/ScientificResults*"
+      - "frontend/src/integrations/results.css"
+      - "tests/test_model_case_sources.py"
+      - "server_tests/test_property_model_review_browser.py"
+      - "server_tests/fixtures/stat6-spr-*"
+      - ".github/workflows/property-model-review-checks.yml"
+  pull_request:
+    paths: *model_paths
+permissions:
+  contents: read
+jobs:
+  model-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Sealed checkpoints and adjacent potential and original-source transfer boundaries
+        run: uv run --locked pytest -q tests/test_model_case_sources.py tests/test_potential_case_sources.py tests/test_case_bundle_sources.py
+      - name: Linked structures, errors, units, model downloads and ordinary candidate results
+        working-directory: frontend
+        run: npx vitest run src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx
+      - name: Get the current immutable legacy case data for compatibility only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-model-review" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-model-review/state" >> "$GITHUB_ENV"
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+      - name: Existing sealed pins remain portable without changing their bytes or executing history
+        run: uv run --locked pytest -q tests/test_stat6_case_data.py
+      - name: Install native Ketcher only; no training or scientific engine
+        run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Real weak-model output replay in English desktop and Chinese mobile browsers
+        run: uv run --locked pytest -x -q server_tests/test_property_model_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: property-model-review
+          path: server_tests/evidence/property-model-review
+          if-no-files-found: warn

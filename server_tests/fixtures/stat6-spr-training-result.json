@@ -1,0 +1,135 @@
+{
+  "operation": "chemprop_train",
+  "schema_version": 1,
+  "complete": true,
+  "request_sha256": "81da022a88cbd2b6a94ffdb1fbc87b9985a318e09362dad26ba0c73f4f814607",
+  "program": "chemprop",
+  "version": "2.3.1",
+  "candidates": [],
+  "metrics": [
+    {
+      "name": "Test RMSE",
+      "value": 0.9588102920766935,
+      "unit": "pKd",
+      "method": "Chemprop best exported model; held-out scaffold split",
+      "meaning": "validation"
+    },
+    {
+      "name": "Test MAE",
+      "value": 0.7717642033502687,
+      "unit": "pKd",
+      "method": "Chemprop best exported model; held-out scaffold split",
+      "meaning": "validation"
+    },
+    {
+      "name": "Test molecules",
+      "value": 16.0,
+      "unit": "count",
+      "method": "Chemprop best exported model; held-out scaffold split",
+      "meaning": "validation"
+    },
+    {
+      "name": "Test R²",
+      "value": -0.19374784151046387,
+      "unit": "dimensionless",
+      "method": "Chemprop best exported model; held-out scaffold split",
+      "meaning": "validation"
+    }
+  ],
+  "artifact_sha256": {
+    "training-data.csv": "cbb71157e0f064ce2414f38eebf6f8c964b388c0f4f8d846531e434ca7f4d4d0",
+    "property-model.pt": "7424bd97c84d53c4a2318219d608fa6d489e92d1bcc98e62432eae530b3722fc",
+    "held-out-predictions.csv": "e2fcbadc51df6fc4b207b6a3772e62d8384f0555399c1edb4d18af91adcbc446"
+  },
+  "model_artifact": "property-model.pt",
+  "potential_artifact": null,
+  "proximity": null,
+  "dynamics": null,
+  "free_energy": null,
+  "structure_artifact": null,
+  "potential_unit": null,
+  "interactions": [],
+  "validation_points": [
+    {
+      "smiles": "CNc1ccc(-c2ccnc3c2cc(CN2CCN(c4ccc(C(=O)N(C)C)cc4)CC2)n3C)nn1",
+      "observed": 6.482804102050025,
+      "predicted": 6.839755
+    },
+    {
+      "smiles": "CNc1ccc(-c2ccnc3c2cc(CN2CCN(c4ccc(C(=O)N(C)C)cc4C)CC2)n3C)nn1",
+      "observed": 7.71669877129645,
+      "predicted": 6.8394694
+    },
+    {
+      "smiles": "CN(C)C(=O)c1ccc(C2CCN(Cc3cc4c(-c5cnc(N)c(-c6nnn[nH]6)c5)ccnc4n3C)CC2)cc1",
+      "observed": 5.769551078621726,
+      "predicted": 6.8392553
+    },
+    {
+      "smiles": "CNc1ccc(-c2ccnc3c2cc(CN2CC=C(c4ccc(C(=O)N(C)C)cc4C)CC2)n3C)[n+]([O-])c1",
+      "observed": 7.795880017344075,
+      "predicted": 6.8389153
+    },
+    {
+      "smiles": "Cc1cc(C(=O)N(C)C)ccc1C1=CCN(Cc2cc3c(-c4ccc(N)c[n+]4[O-])ccnc3n2C)CC1",
+      "observed": 7.621602099051862,
+      "predicted": 6.8389997
+    },
+    {
+      "smiles": "Cc1nc(-c2ccnc3c2cc(CN2CCC(c4ccc(C(=O)N(C)C)cc4)CC2)n3C)cnc1N",
+      "observed": 5.821023052706831,
+      "predicted": 6.8394613
+    },
+    {
+      "smiles": "Cc1nc(N)cnc1-c1ccnc2c1cc(CN1CCC(c3ccc(C(=O)N(C)C)cc3)CC1)n2C",
+      "observed": 5.642065152999546,
+      "predicted": 6.8394904
+    },
+    {
+      "smiles": "CN(C)C(=O)c1ccc(C2CCN(Cc3cc4c(-c5cnc(N)c(C#N)n5)ccnc4n3C)CC2)cc1",
+      "observed": 6.115771230367396,
+      "predicted": 6.8395433
+    },
+    {
+      "smiles": "CN(C)C(=O)c1ccc(C2CCN(Cc3cc4c(-c5cnc(N)cn5)ccnc4n3C)CC2)cc1",
+      "observed": 6.34008379993015,
+      "predicted": 6.8397684
+    },
+    {
+      "smiles": "C[C@@H]1CN(c2ccc(C(=O)N(C)C)cc2)CCN1Cc1cc2c(-c3ccc(N)nc3)ccnc2n1C",
+      "observed": 6.832682665251824,
+      "predicted": 6.8392467
+    },
+    {
+      "smiles": "C[C@H]1CN(c2ccc(C(=O)N(C)C)cc2)CCN1Cc1cc2c(-c3ccc(N)nc3)ccnc2n1C",
+      "observed": 7.163675884293248,
+      "predicted": 6.8391232
+    },
+    {
+      "smiles": "CNc1ccc(-c2ccnc3c2cc(CN2CCN(c4ccc(C(=O)N(C)C)cc4)CC2)n3C)cn1",
+      "observed": 6.72584215073632,
+      "predicted": 6.839561
+    },
+    {
+      "smiles": "CNc1cc(C)c(-c2ccnc3c2cc(CN2CCN(c4ccc(C(=O)N(C)C)cc4)CC2)n3C)cn1",
+      "observed": 5.585026652029182,
+      "predicted": 6.839304
+    },
+    {
+      "smiles": "CNC(=O)c1ccc(-c2ccnc3c2cc(CN2CCN(c4ccc(C(=O)N(C)C)cc4)CC2)n3C)cc1",
+      "observed": 4.429457060118103,
+      "predicted": 6.8391113
+    },
+    {
+      "smiles": "CNc1ccc(-c2ccnc3c2cc(CN2CCC(n4ccc(C(=O)N(C)C)cc4=O)CC2)n3C)cn1",
+      "observed": 6.22548303427145,
+      "predicted": 6.8391957
+    },
+    {
+      "smiles": "CN(C)C(=O)c1ccc(C2CCN(Cc3cc4c(-c5cnc(N)nn5)ccnc4n3C)CC2)cc1",
+      "observed": 6.982966660701219,
+      "predicted": 6.839991
+    }
+  ],
+  "scope": "native_computation_not_experimental_measurement"
+}

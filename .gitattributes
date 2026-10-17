@@ -5,3 +5,4 @@
 src/opendde_workbench/examples/stat6/inputs/* binary
 # Frozen catalogue manifests are verified by their exact published bytes.
 src/opendde_workbench/examples/stat6/manifest-v*.json -text
+server_tests/fixtures/stat6-spr-held-out-predictions.csv -text

@@ -5,14 +5,15 @@ import json
 
 from ..artifacts import contained
 from ..discovery.import_runner import validate_import_result
+from ..integrations.contract import IntegratedTask
 from .bundle_archive import safe_path
 
 
 def archive_sources(job, output, *, recover=False):
-    if job.request.operation == "electrostatics":
-        from .native_sources import potential_sources
+    if isinstance(job.request, IntegratedTask):
+        from .native_sources import declared_native_sources
 
-        return potential_sources(job, output)
+        return declared_native_sources(job, output)
     if job.request.operation != "reference_import":
         return {}
     task = job.request
