@@ -104,6 +104,15 @@ def test_actual_weak_model_display_links_structures_errors_units_and_original_do
         table = region.get_by_role(
             "table", name="测试集逐分子误差" if zh else "Held-out errors by molecule"
         )
+        error_column = (
+            table.get_by_role("columnheader")
+            .filter(has_text="偏差" if zh else "Error")
+            .bounding_box()
+        )
+        viewport = region.locator(".research-table-scroll").bounding_box()
+        assert error_column and viewport
+        assert error_column["x"] >= viewport["x"] - 1
+        assert error_column["x"] + error_column["width"] <= viewport["x"] + viewport["width"] + 1
         table.get_by_role("row").nth(3).click()
         expect(
             region.get_by_role("heading", name="测试记录 3" if zh else "Test record 3", exact=True)

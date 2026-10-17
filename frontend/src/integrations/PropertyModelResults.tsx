@@ -25,9 +25,21 @@ export function PropertyModelResults({
     (metric) => metric.name === "Test RMSE",
   )?.unit;
   const label = (name: string) => name + (unit ? ` (${unit})` : "");
+  const columnLabel = (name: string) => (
+    <span className="property-model-column-label">
+      {name}
+      {unit && (
+        <>
+          {" "}
+          <small>({unit})</small>
+        </>
+      )}
+    </span>
+  );
   const r2 = result.metrics.find((metric) => metric.name === "Test R²")?.value;
   return (
     <section
+      className="property-model-review"
       aria-label={zh ? "性质模型测试集复核" : "Property model held-out review"}
     >
       {r2 !== undefined && r2 <= 0 && (
@@ -91,21 +103,30 @@ export function PropertyModelResults({
                 key: "record",
                 label: zh ? "记录" : "Record",
                 value: (row) => Number(row.id),
-                render: (row) => row.label,
+                render: (row) => row.id,
               },
               {
                 key: "observed",
-                label: label(zh ? "实验值" : "Observed"),
+                label: columnLabel(zh ? "实验值" : "Observed"),
+                exportLabel: label(zh ? "实验值" : "Observed"),
                 value: (row) => row.observed,
               },
               {
                 key: "predicted",
-                label: label(zh ? "预测值" : "Predicted"),
+                label: columnLabel(zh ? "预测值" : "Predicted"),
+                exportLabel: label(zh ? "预测值" : "Predicted"),
                 value: (row) => row.predicted,
               },
               {
                 key: "error",
-                label: label(zh ? "预测 − 实验" : "Predicted − observed"),
+                label: (
+                  <span
+                    title={zh ? "预测值减去实验值" : "Predicted minus observed"}
+                  >
+                    {columnLabel(zh ? "偏差" : "Error")}
+                  </span>
+                ),
+                exportLabel: label(zh ? "预测 − 实验" : "Predicted − observed"),
                 value: (row) => row.predicted - row.observed,
               },
               { key: "smiles", label: "SMILES", value: (row) => row.smiles },
