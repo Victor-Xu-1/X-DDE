@@ -92,8 +92,17 @@ jobs:
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-reviewed-previews" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-reviewed-previews/state" >> "$GITHUB_ENV"
-          echo "WB_TEST_REVIEWED_BUNDLE=$RUNNER_TEMP/stat6-reviewed-results-v11.zip" >> "$GITHUB_ENV"
-          gh release download v0.5.95 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v11.zip --dir "$RUNNER_TEMP"
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          echo "WB_TEST_REVIEWED_BUNDLE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+      - name: Install and idempotently replay the exact native case data through the component queue
+        run: uv run --locked pytest -q tests/test_stat6_case_data.py
       - name: Native Ketcher only; no model or scientific engine installation
         run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps

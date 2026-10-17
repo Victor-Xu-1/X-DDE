@@ -77,6 +77,8 @@ Choose a purpose → provide materials → select settings → review and submit
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
+The current [STAT6 case package](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.5.99/stat6-reviewed-results-v12.zip) contains 30 reviewed module examples and one nested follow-up. It includes an actually submitted 38-compound screening-index study, with exact chemical/stereo readback and independently checked minimized previews. This establishes index construction; it does not establish target ranking or binding affinity. Scientific acceptance of the remaining modules continues.
+
 ### 2. Inspect structures alongside candidate tables
 
 Select a table row to inspect its actual structure, chains, ligand, pocket and confidence. Rotate, zoom, select atoms/residues, adjust display, inspect surfaces and download views. Original scientific files remain separately downloadable.

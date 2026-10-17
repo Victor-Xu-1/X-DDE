@@ -50,6 +50,59 @@ def choose_task(page, language, key):
     ).to_be_visible()
 
 
+def review_index_example(page, base, language, evidence):
+    """Replay the exact accepted index and both derived minima without inference."""
+    zh = language == "zh"
+    choose_task(page, language, "drugclip.index")
+    detail = page.request.get(base + "/api/examples/drugclip.index").json()
+    assert detail["pin"]["job_id"] == "f027c8d6-9b47-4455-abf9-4f545d624642"
+    stages = detail["supporting_stage_names"]
+    assert len(stages) == 2
+    assert any("CHEMBL374380" in caption for caption in stages.values())
+    assert any("CHEMBL458325" in caption for caption in stages.values())
+    inspector = page.get_by_role(
+        "region", name="分子库成员结构检查" if zh else "Library member inspection"
+    )
+    expect(inspector.get_by_role("heading", name="CHEMBL374380", exact=True)).to_be_visible()
+    ready_structure(page, zh)
+    assert not inspector.get_by_label(
+        "Pose 优化与历史" if zh else "Pose optimization and history", exact=True
+    ).count()
+    page.get_by_role("searchbox", name="搜索成员或货号" if zh else "Search members or IDs").fill(
+        "CHEMBL458325"
+    )
+    page.get_by_role("button", name="CHEMBL458325", exact=True).click()
+    expect(inspector.get_by_role("heading", name="CHEMBL458325", exact=True)).to_be_visible()
+    ready_structure(page, zh)
+    with page.expect_download() as transfer:
+        inspector.get_by_role(
+            "link", name="原始构象 MOL" if zh else "Original conformer MOL", exact=True
+        ).click()
+    original = evidence / "CHEMBL458325-index-native.mol"
+    transfer.value.save_as(original)
+    assert hashlib.sha256(original.read_bytes()).hexdigest() == (
+        "850981c4abfeeba2cc9f81ef6b8ebcb5f139c566514c6a45e859739e7130c1fb"
+    )
+    inspector.get_by_role("tab", name="二维结构" if zh else "2D structure").click()
+    drawing = inspector.locator(".molecule-image:visible")
+    expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+    drawing.locator("img").evaluate("image => image.decode()")
+    page.screenshot(path=str(evidence / "index-unknown-stereo-2d.png"), full_page=True)
+    inspector.get_by_role("tab", name="三维结构" if zh else "3D structure").click()
+    ready_structure(page, zh)
+    stage = page.get_by_label("研究阶段结果" if zh else "Study result stage", exact=True)
+    for identifier in stages:
+        stage.select_option(identifier)
+        expect(
+            page.get_by_role(
+                "region", name="能量最小化结果" if zh else "Energy minimization results"
+            )
+        ).to_be_visible()
+        ready_structure(page, zh)
+    page.screenshot(path=str(evidence / "index-retained-minimum.png"), full_page=True)
+    return stages
+
+
 @pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
 def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_science(
     language, width
@@ -59,7 +112,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
     settings = Settings.from_env()
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     first = restore_bundle(archive, settings, SHA256)
-    assert first["modules"] == len(CAPABILITIES) == 30
+    assert first["modules"] == len(CAPABILITIES)
     assert restore_bundle(archive, settings, SHA256) == first
     before = records(settings.state_dir)
     evidence = EVIDENCE / language
@@ -162,6 +215,7 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
         page.screenshot(
             path=str(evidence / "prepared-library.png"), full_page=True, animations="disabled"
         )
+        index_stages = review_index_example(page, base, language, evidence)
         page.reload()
         expect(page.locator("html")).to_have_attribute("lang", "zh-CN" if zh else "en")
         assert not errors, errors
@@ -172,10 +226,12 @@ def test_cold_restored_stat6_examples_show_exact_molecules_without_starting_scie
         json.dumps(
             {
                 "archive_sha256": SHA256,
-                "computed_cases": 30,
+                "computed_cases": len(CAPABILITIES),
                 "members": MEMBERS,
                 "native_source_sha256": RAW_FIRST_SHA,
                 "unique_stage_captions": stages,
+                "index_minimization_stages": index_stages,
+                "source_unspecified_index_member_downloaded": True,
                 "api_mutations": mutations,
                 "jobs_and_scientific_versions_unchanged": True,
                 "native_2d_and_3d": True,

@@ -85,13 +85,17 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     assert operation["state"] == "succeeded", operation
     installed = manager.store.installed()["public-stat6-examples"]
     assert installed["version"] == spec.VERSION and installed["bundle_sha256"] == spec.SHA256
-    assert installed["computed"] == len(spec.CAPABILITIES) == 30
-    expected = {"modules": 30, "computed": 30, "validated": 0}
+    assert installed["computed"] == len(spec.CAPABILITIES)
+    expected = {
+        "modules": len(spec.CAPABILITIES),
+        "computed": len(spec.CAPABILITIES),
+        "validated": 0,
+    }
     assert restore_bundle(archive, settings, spec.SHA256) == expected
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
     assert assets.path(original).read_bytes() == original_bytes
     jobs = store.list_jobs()
-    assert len(jobs) == 52 and not any(
+    assert len(jobs) == 55 and not any(
         row.status in {"queued", "running", "cancelling"} for row in jobs
     )
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
@@ -132,6 +136,12 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
         "b6bf5f47-2d73-4014-aadd-6ed7105b8d25",
         "d0cc112e-9978-4ca4-b9c2-fca33abd1c1c",
         "91d8a0c6-b093-45bf-8334-6e2b1af614e0",
+    ]
+    indexed = library_pins.get("drugclip.index", verify=True)
+    assert str(indexed.job_id) == "f027c8d6-9b47-4455-abf9-4f545d624642"
+    assert indexed.review and [str(row.job_id) for row in indexed.supporting_evidence] == [
+        "8f68fd01-eb6a-43db-9230-d28904d42107",
+        "487253fc-aeb4-4e0b-ab44-39d459e5ef34",
     ]
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")

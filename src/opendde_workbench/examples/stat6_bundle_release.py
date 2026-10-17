@@ -1,10 +1,10 @@
 """Reviewed native study results; input presets alone are not computed examples."""
 
-VERSION = "11"
-URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.5.95/stat6-reviewed-results-v11.zip"
-SHA256 = "afcf9f42a05d770bfa9a98ec61667462181cf6eb11d61b5df935c6d6d9b99a6d"
-BYTES = 10385854
-SOURCE_REVISION = "b3db7b5f0a8c145d08134552391f612259b2e762"
+VERSION = "12"
+URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.5.99/stat6-reviewed-results-v12.zip"
+SHA256 = "95122a06a30839338b74a41596d3dba489c876a9cefc45e11fcd2ffa578377ab"
+BYTES = 10545835
+SOURCE_REVISION = "631a797053905491014afcd19585aefffb56885a"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
@@ -36,4 +36,5 @@ CAPABILITIES = (
     "pose.cluster",
     "library.import",
     "library.select",
+    "drugclip.index",
 )
