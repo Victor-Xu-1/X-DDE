@@ -20,6 +20,7 @@ on:
             refinement-input,
             refinement-preview,
             ligandmpnn-input,
+            ligandmpnn-startup,
             source-stereo,
             simulation-lock,
             simulation-native,
@@ -55,6 +56,30 @@ on:
 permissions:
   contents: read
 jobs:
+  ligandmpnn-startup:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'ligandmpnn-startup'
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Related offline nonroot entrypoint contracts
+        run: uv run --locked pytest -q tests/test_scientific_entrypoint.py
+      - name: Exact managed LigandMPNN runtime; native help only, no models or science
+        env:
+          WB_TEST_NATIVE_LIGANDMPNN_STARTUP: "1"
+        run: uv run --locked pytest -x -q server_tests/test_ligandmpnn_startup.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ligandmpnn-native-startup
+          path: server_tests/evidence/ligandmpnn-startup
+          if-no-files-found: warn
   ligandmpnn-input:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'ligandmpnn-input'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

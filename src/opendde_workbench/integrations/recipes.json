@@ -85,7 +85,9 @@
         "numpy==1.26.4",
         "biopython==1.88",
         "prody==2.6.1",
-        "rdkit==2026.3.6"
+        "rdkit==2026.3.6",
+        "ml-collections==1.1.0",
+        "dm-tree==0.1.9"
       ],
       "models": [
         {
