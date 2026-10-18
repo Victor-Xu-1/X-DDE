@@ -1,6 +1,7 @@
 """Digest-pinned Docker adapter shared by every OpenDDE operation."""
 
 import asyncio
+import json
 import logging
 import os
 import re
@@ -9,6 +10,7 @@ from typing import Protocol
 
 from .models import Job
 from .native_arguments import native_arguments, needs_gpu, network_enabled
+from .opendde_limits import OpenDDELimits, require_support, verify_created
 from .settings import Settings
 
 
@@ -61,6 +63,7 @@ class DockerEngine:
 
     def arguments(self, job: Job, directory: Path, runtime=None) -> list[str]:
         image, code = runtime or self.runtime()
+        limits = OpenDDELimits.configured(self.settings)
         resource = job.request.operation == "resources"
         args = [
             "docker",
@@ -77,8 +80,9 @@ class DockerEngine:
             "no-new-privileges",
             "--cap-drop",
             "ALL",
-            "--pids-limit",
-            "1024",
+            "--label",
+            "org.xdde.job=" + job.id,
+            *limits.arguments(),
         ]
         if needs_gpu(job.request):
             ids = job.request.parameters.gpu_ids
@@ -87,8 +91,8 @@ class DockerEngine:
             "OPENDDE_ROOT_DIR": "/opendde",
             "PYTHONPATH": "/runtime/external/opendde",
             "LAYERNORM_TYPE": "torch",
-            "OMP_NUM_THREADS": "4",
-            "MKL_NUM_THREADS": "4",
+            "OMP_NUM_THREADS": str(limits.cpus),
+            "MKL_NUM_THREADS": str(limits.cpus),
             "XDG_CACHE_HOME": "/cache",
             "TRITON_CACHE_DIR": "/cache/triton",
             "CUDA_CACHE_PATH": "/cache/cuda",
@@ -138,6 +142,8 @@ class DockerEngine:
         return args + ["--workdir", "/job", "--entrypoint", invocation[0], image, *invocation[1:]]
 
     async def start(self, job: Job, directory: Path) -> asyncio.subprocess.Process:
+        limits = OpenDDELimits.configured(self.settings)
+        controllers = await require_support(command)
         self.settings.cache_dir.mkdir(parents=True, exist_ok=True)
         if job.request.operation == "resources":
             self.settings.model_dir.mkdir(parents=True, exist_ok=True)
@@ -147,14 +153,37 @@ class DockerEngine:
         args = self.arguments(job, directory, runtime)
         entry = args.index("--entrypoint")
         write_provenance(directory, runtime[0], runtime[1], [args[entry + 1], *args[entry + 3 :]])
-        code, output = await command(*args)
+        code, output = await command(*args, separate_stderr=True)
         if code:
             raise RuntimeError(f"Docker could not create the task container: {output}")
+        identifier = output.strip()
+        if not re.fullmatch(r"[0-9a-f]{64}", identifier):
+            raise RuntimeError("Docker did not return a valid container identity; not started.")
+        applied = await verify_created(
+            command,
+            limits,
+            identifier,
+            name=self.container(job.id),
+            image=runtime[0],
+            job_id=job.id,
+        )
+        (directory / "resource-limits.json").write_text(
+            json.dumps(
+                {
+                    "method": "docker_hostconfig_v1",
+                    "container_id": identifier,
+                    "requested": limits.model_dump(),
+                    "controllers": controllers,
+                    "verified_before_start": applied,
+                }
+            ),
+            encoding="utf-8",
+        )
         return await asyncio.create_subprocess_exec(
             "docker",
             "start",
             "--attach",
-            self.container(job.id),
+            identifier,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
         )
@@ -183,6 +212,9 @@ class DockerEngine:
             code, _ = await command("docker", "image", "inspect", image, timeout=8)
             if code:
                 raise ValueError("Configured Docker image is unavailable.")
+            limits = OpenDDELimits.configured(self.settings)
+            await require_support(command)
+            result["resource_limits"] = limits.model_dump()
             result["ready"] = True
             try:
                 code, output = await command(

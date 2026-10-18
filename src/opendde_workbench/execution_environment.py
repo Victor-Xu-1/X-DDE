@@ -106,7 +106,14 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
         }
         matched = bool(runtime["image"] and entry.get("recipe_sha256") == runtime["recipe_sha256"])
     elif software == "opendde":
+        from .opendde_limits import OpenDDELimits
+
+        limits = OpenDDELimits.configured(settings)
         runtime = {
+            "cpu_limit": str(limits.cpus),
+            "memory_limit_mib": str(limits.memory_mib),
+            "swap_limit_mib": "0",
+            "pids_limit": str(limits.pids),
             "image": settings.image_file.read_text().strip()
             if settings.image_file.is_file()
             else "",

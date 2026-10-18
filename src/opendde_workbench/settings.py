@@ -44,6 +44,9 @@ class Settings:
     sapiens_image: str | None = None
     native_tools_dir: Path | None = None
     engine_network: str = "bridge"
+    opendde_cpus: int = 2
+    opendde_memory_mib: int = 4096
+    opendde_pids: int = 256
     dataset_file_bytes: int = 50 * 1024**3
     dataset_quota_bytes: int = 200 * 1024**3
 
@@ -82,6 +85,9 @@ class Settings:
         connection = prepare_connection(state, root, installed, network) if root else connection
         tools = installed.get("opendde-tools", {}).get("directory")
         return cls(
+            opendde_cpus=int(os.environ.get("WB_OPENDDE_CPUS", "2")),
+            opendde_memory_mib=int(os.environ.get("WB_OPENDDE_MEMORY_MIB", "4096")),
+            opendde_pids=int(os.environ.get("WB_OPENDDE_PIDS", "256")),
             dataset_file_bytes=int(os.environ.get("WB_DATASET_FILE_BYTES", 50 * 1024**3)),
             dataset_quota_bytes=int(os.environ.get("WB_DATASET_QUOTA_BYTES", 200 * 1024**3)),
             engine_network=network,
