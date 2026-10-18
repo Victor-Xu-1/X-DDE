@@ -106,6 +106,7 @@ export function DockingRegion({
         <label>
           <input
             type="checkbox"
+            disabled={!receptor || (mode === "dock" && !reference)}
             checked={confirmed}
             onChange={(event) => onConfirmed(event.target.checked)}
           />
