@@ -21,6 +21,7 @@ on:
             refinement-preview,
             ligandmpnn-input,
             ligandmpnn-startup,
+            study-templates,
             source-stereo,
             simulation-lock,
             simulation-native,
@@ -56,6 +57,9 @@ on:
 permissions:
   contents: read
 jobs:
+  study-templates:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'study-templates'
+    uses: ./.github/workflows/del-template-checks.yml
   ligandmpnn-startup:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'ligandmpnn-startup'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
