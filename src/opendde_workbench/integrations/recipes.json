@@ -104,7 +104,8 @@
       "source": {
         "url": "https://codeload.github.com/dauparas/LigandMPNN/zip/26ec57ac976ade5379920dbd43c7f97a91cf82de",
         "sha256": "08c34d9e8662b253c2cf3663bf5d10da805e14419713a783e76e4b68169281b8",
-        "prefix": "LigandMPNN-26ec57ac976ade5379920dbd43c7f97a91cf82de"
+        "prefix": "LigandMPNN-26ec57ac976ade5379920dbd43c7f97a91cf82de",
+        "runtime_access": "readonly_all_users"
       },
       "license": "MIT code and models; OpenFold component terms"
     },
@@ -246,7 +247,12 @@
       "name": "PLIP",
       "gpu": false,
       "base": "docker.io/mambaorg/micromamba@sha256:e0a99b0f17a759e14c2f967dc0ca2d3a3c1ca3c62955f4d20bba770eaaf0184d",
-      "conda": ["python=3.12", "plip=3.0.1", "openbabel=3.2.1", "biopython=1.88"],
+      "conda": [
+        "python=3.12",
+        "plip=3.0.1",
+        "openbabel=3.2.1",
+        "biopython=1.88"
+      ],
       "pip": [],
       "models": [],
       "license": "PLIP GPL-2.0; Open Babel GPL-2.0"

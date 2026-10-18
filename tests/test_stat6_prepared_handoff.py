@@ -282,19 +282,42 @@ def test_channel_template_uses_retained_reference_site_in_the_reviewed_cif(setti
     assert len(store.list_jobs()) == before
 
 
-def test_channel_template_requires_the_reference_ligand_not_a_protein_only_export(settings):
+@pytest.mark.parametrize("capability", ["caver.paths", "ligandmpnn.design"])
+def test_ligand_context_templates_reject_a_protein_only_export(settings, capability):
     _, scientific, records, _ = preparation_fixture(settings, protein_only=True)
     with pytest.raises(ValueError, match="retaining the reference ligand"):
-        prepare_stat6("caver.paths", scientific, records=records)
+        prepare_stat6(capability, scientific, records=records)
 
 
-def test_cold_channel_template_does_not_choose_an_unreviewed_residue_start(settings):
+@pytest.mark.parametrize(
+    ("capability", "role"), [("caver.paths", "receptor"), ("ligandmpnn.design", "structure")]
+)
+def test_cold_ligand_context_templates_do_not_prefill_an_unreviewed_structure(
+    settings, capability, role
+):
     create_app(settings)
     store = Store(settings.state_dir / "jobs.sqlite3")
     scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
-    result = prepare_stat6("caver.paths", scientific)
-    assert result.request is None and "receptor" not in result.objects
+    result = prepare_stat6(capability, scientific)
+    assert result.request is None and role not in result.objects
     assert result.study["required_materials"] and not store.list_jobs()
+
+
+def test_ligandmpnn_template_uses_exact_prepared_ligand_context_without_phantom_prerequisites(
+    settings,
+):
+    store, scientific, records, native = preparation_fixture(settings)
+    before = len(store.list_jobs())
+    prepared = prepare_stat6("ligandmpnn.design", scientific, records=records)
+    assert prepared.objects["structure"] == native
+    assert prepared.request["inputs"] == [
+        {"role": "structure", "source": native.reference.model_dump(mode="json")}
+    ]
+    assert prepared.request["payload"]["redesigned_residues"] == ["A614"]
+    assert prepared.request["payload"]["pack_sidechains"] is True
+    assert prepared.request["payload"]["candidates"] == 8
+    assert not prepared.study["required_materials"]
+    assert len(store.list_jobs()) == before
 
 
 def test_ensemble_requires_the_exact_reviewed_reference_preparation(settings):

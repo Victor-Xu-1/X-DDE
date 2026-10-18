@@ -3,6 +3,7 @@
 import sys
 from pathlib import Path
 
+from native_components import restored_packed_components
 from native_io import copy_artifact, csv_file, execute, finish
 from native_structure import input_pdb
 
@@ -11,11 +12,17 @@ def run(request):
     from Bio import SeqIO
     from Bio.PDB import PDBParser
 
-    source, _ = input_pdb(request)
+    source, reference = input_pdb(request, allow_component_aliases=True)
     structure = PDBParser(QUIET=True).get_structure("source", source)
     models = list(structure.get_models())
     if len(models) != 1:
         raise ValueError("Select one original structural model before sequence design.")
+    if any(residue.is_disordered() == 2 for residue in structure.get_residues()) or any(
+        atom.is_disordered() or atom.get_altloc().strip() for atom in structure.get_atoms()
+    ):
+        raise ValueError(
+            "Choose explicit alternate locations in Structure preparation before sequence design."
+        )
     identities = {
         f"{chain.id}{residue.id[1]}{residue.id[2].strip()}"
         for chain in models[0]
@@ -87,9 +94,16 @@ def run(request):
             if len(matches) != 1:
                 raise ValueError("A packed structure has no unique native design identifier.")
             packed = matches[0]
+            restored = restored_packed_components(packed, source, reference)
+            if restored != packed:
+                copy_artifact(packed, f"native-packed-{index:03d}.pdb")
             candidates[index - 1].update(
-                artifact=copy_artifact(packed, f"packed-{index:03d}.pdb"), geometry="source_frame"
+                artifact=copy_artifact(restored, f"packed-{index:03d}{restored.suffix}"),
+                geometry="source_frame",
             )
+        translation = source.with_name(source.stem + "-component-identifiers.json")
+        if translation.is_file():
+            copy_artifact(translation, "component-identifiers.json")
     csv_file(
         "sequences.csv",
         ["Candidate", "Sequence"],

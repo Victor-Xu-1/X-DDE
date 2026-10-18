@@ -4,6 +4,11 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "ligandmpnn.design": (
+        "在明确选择替代位置并保留参考配体的 STAT6 结构中，探索 A614 的局部序列设计。",
+        "Explore local sequence designs at A614 in the explicitly prepared STAT6 "
+        "structure retaining its reference ligand.",
+    ),
     "diffsbdd.generate": (
         "在明确准备的 STAT6 蛋白受体上，使用同坐标的 AK-1690 定义参考口袋并生成候选。",
         "Generate candidates around the deposited AK-1690 reference pocket "
@@ -103,6 +108,28 @@ def objective(capability):
 
 
 def steps(capability):
+    if capability == "ligandmpnn.design":
+        return [
+            (
+                "选择已准备的链 A CIF，核对替代位置 A 和保留的参考配体。",
+                "Choose the prepared chain-A CIF and review the explicit alternate "
+                "selection and retained reference ligand.",
+            ),
+            (
+                "指定要改动的残基；模板使用结构中的 A614 编号。",
+                "Choose residues to redesign; the template uses author residue A614.",
+            ),
+            (
+                "选择序列数量及侧链构象生成，保留原始结构作为对照。",
+                "Choose the sample count and side-chain packing; keep the original "
+                "structure as a reference.",
+            ),
+            (
+                "递交后核对序列变化、结构及配体；模型偏好不代表药效或抗性。",
+                "Review sequence changes, structures and ligand context after submission; "
+                "model preferences do not demonstrate efficacy or resistance.",
+            ),
+        ]
     simulation = simulation_steps(capability)
     if simulation is not None:
         return simulation

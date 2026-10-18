@@ -19,6 +19,7 @@ on:
             property-review,
             refinement-input,
             refinement-preview,
+            ligandmpnn-input,
             source-stereo,
             simulation-lock,
             simulation-native,
@@ -54,6 +55,27 @@ on:
 permissions:
   contents: read
 jobs:
+  ligandmpnn-input:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'ligandmpnn-input'
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Native startup permissions and exact prepared example handoff
+        run: >-
+          uv run --locked pytest -q tests/test_scientific_entrypoint.py
+          tests/test_stat6_prepared_handoff.py
+      - name: Real molecular parser preserves identifiers and rejects unresolved alternates
+        run: >-
+          uv run --no-project --python 3.10
+          --with pytest==9.1.1 --with numpy==1.26.4 --with biopython==1.88
+          python -m pytest -q server_tests/test_native_structure_format.py
   plip-lock:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'plip-lock'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}

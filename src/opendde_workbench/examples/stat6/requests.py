@@ -11,7 +11,7 @@ def study_request(capability, objects, sequences):
         and "receptor" not in objects
     ):
         return None
-    if capability == "diffsbdd.prepare" and "structure" not in objects:
+    if capability in {"diffsbdd.prepare", "ligandmpnn.design"} and "structure" not in objects:
         return None
 
     def reference(key):

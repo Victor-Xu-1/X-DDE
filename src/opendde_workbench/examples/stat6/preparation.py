@@ -76,13 +76,26 @@ def prepare_stat6(capability, scientific, *, records=None):
         "receptor_b": originals["stat6_alternative_receptor"],
         "variable_domains": originals["dupilumab_variable_domains"],
     }
-    if capability in {"biopython.exposure", "biopython.ensemble", "caver.paths"}:
+    if capability in {
+        "biopython.exposure",
+        "biopython.ensemble",
+        "caver.paths",
+        "ligandmpnn.design",
+    }:
         from .prepared_inputs import reviewed_receptor
 
         receptor = reviewed_receptor(
-            scientific, records, retain_reference_ligand=capability == "caver.paths"
+            scientific,
+            records,
+            retain_reference_ligand=capability in {"caver.paths", "ligandmpnn.design"},
         )
-        role = "receptor_a" if capability == "biopython.ensemble" else "receptor"
+        role = (
+            "receptor_a"
+            if capability == "biopython.ensemble"
+            else "structure"
+            if capability == "ligandmpnn.design"
+            else "receptor"
+        )
         if receptor is None:
             # 9BIG contains observed alternate positions. A raw reference is not
             # silently converted into a preparation that resolves that choice.
@@ -193,6 +206,14 @@ def prepare_stat6(capability, scientific, *, records=None):
             if isinstance(reference, dict) and reference.get("version_id"):
                 objects[role] = scientific.get(reference["version_id"])
     study = study_context(capability)
+    if capability == "ligandmpnn.design" and "structure" not in objects:
+        study["required_materials"] = [
+            (
+                "先完成链 A、替代位置 A、保留参考配体的结构准备，再选择生成的 CIF。",
+                "Prepare chain A with explicit alternate A and retain the reference ligand; "
+                "choose the prepared CIF.",
+            )
+        ]
 
     return PreparedExample(
         module=module,

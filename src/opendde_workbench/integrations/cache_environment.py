@@ -2,7 +2,7 @@
 
 
 def torch_cache_arguments(program):
-    if program not in {"openfe", "gromacs", "reinvent"}:
+    if program not in {"openfe", "gromacs", "reinvent", "ligandmpnn"}:
         return []
     return [
         "--env",

@@ -28,7 +28,7 @@ def reviewed_receptor(scientific, records, *, retain_reference_ligand=False):
         or result.options.waters
     ):
         raise ValueError(
-            "Channel analysis requires the reviewed CIF retaining the reference ligand."
+            "Use the reviewed chain-A CIF retaining the reference ligand and explicit alternate A."
         )
     versions = scientific.list(
         source_job=pin.job_id,

@@ -3,6 +3,7 @@
 import hashlib
 import importlib.util
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -152,4 +153,106 @@ def test_alternate_locations_are_preserved_without_an_implicit_transport_selecti
     assert set(atom.child_dict) == {"A", "B"}
     assert np.allclose(atom.child_dict["A"].coord, [1, 2, 3])
     assert np.allclose(atom.child_dict["B"].coord, [1.5, 2.5, 3.5])
+    assert file.read_bytes() == original
+
+
+@pytest.fixture
+def packed_components(serializer):
+    file = Path(__file__).parents[1] / "src/opendde_workbench/integrations/native_components.py"
+    spec = importlib.util.spec_from_file_location("native_component_format", file)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_packed_cif_restores_extended_names_without_moving_or_rewriting_native_atoms(
+    tmp_path, monkeypatch, serializer, packed_components
+):
+    original, reference = source(
+        tmp_path, monkeypatch, serializer, complex_model(existing_alias=True)
+    )
+    original_bytes = original.read_bytes()
+    transported, _ = serializer.input_pdb({}, allow_component_aliases=True)
+    native = tmp_path / "native-packed.pdb"
+    shutil.copyfile(transported, native)
+    native_bytes = native.read_bytes()
+    restored = packed_components.restored_packed_components(native, transported, reference)
+    assert restored.suffix == ".cif"
+    parsed = MMCIFParser(QUIET=True).get_structure("restored", str(restored))
+    assert parsed[0]["A"][("H_A1AQQ", 701, " ")].resname == "A1AQQ"
+    assert parsed[0]["A"][("H_X00", 702, " ")].resname == "X00"
+    packed = PDBParser(QUIET=True).get_structure("packed", str(native))
+    for before, after in zip(packed.get_atoms(), parsed.get_atoms(), strict=True):
+        assert before.name == after.name and before.element == after.element
+        assert before.serial_number == after.serial_number
+        assert np.allclose(before.coord, after.coord, rtol=0, atol=0.00001)
+    assert original.read_bytes() == original_bytes and native.read_bytes() == native_bytes
+
+
+@pytest.mark.parametrize("invalid", ["source", "missing", "coordinates"])
+def test_component_restoration_rejects_changed_binding_or_ligand_instead_of_inventing_context(
+    tmp_path, monkeypatch, serializer, packed_components, invalid
+):
+    _, reference = source(tmp_path, monkeypatch, serializer, complex_model())
+    transported, _ = serializer.input_pdb({}, allow_component_aliases=True)
+    native = tmp_path / "native-packed.pdb"
+    lines = transported.read_text().splitlines(keepends=True)
+    if invalid == "source":
+        reference = {**reference, "sha256": "0" * 64}
+    elif invalid == "missing":
+        lines = [line for line in lines if not line.startswith("HETATM")]
+    else:
+        index = next(i for i, line in enumerate(lines) if line.startswith("HETATM"))
+        line = lines[index]
+        lines[index] = line[:30] + f"{float(line[30:38]) + 1:8.3f}" + line[38:]
+    native.write_text("".join(lines))
+    before = native.read_bytes()
+    with pytest.raises(ValueError):
+        packed_components.restored_packed_components(native, transported, reference)
+    assert native.read_bytes() == before and not native.with_suffix(".cif").exists()
+
+
+def test_ordinary_packed_pdb_keeps_its_native_format_and_bytes(
+    tmp_path, monkeypatch, serializer, packed_components
+):
+    _, reference = source(tmp_path, monkeypatch, serializer, complex_model("LIG"))
+    transported, _ = serializer.input_pdb({})
+    native = tmp_path / "native-packed.pdb"
+    shutil.copyfile(transported, native)
+    before = native.read_bytes()
+    assert packed_components.restored_packed_components(native, transported, reference) == native
+    assert native.read_bytes() == before and not native.with_suffix(".cif").exists()
+
+
+def test_real_stat6_alternates_are_rejected_before_any_ligandmpnn_inference(
+    tmp_path, monkeypatch, serializer
+):
+    root = Path(__file__).parents[1] / "src/opendde_workbench"
+    file = root / "examples/stat6/inputs/9BIG.cif"
+    original = file.read_bytes()
+    reference = {"asset_id": "stat6-original", "sha256": hashlib.sha256(original).hexdigest()}
+    monkeypatch.setattr(serializer, "input_file", lambda request, role: (file, reference))
+    monkeypatch.setitem(sys.modules, "native_structure", serializer)
+    spec = importlib.util.spec_from_file_location(
+        "ligandmpnn_input_boundary", root / "integrations/native_ligandmpnn.py"
+    )
+    adapter = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(adapter)
+    monkeypatch.setattr(
+        adapter,
+        "execute",
+        lambda *args, **kwargs: pytest.fail("Do not run inference on unresolved alternates"),
+    )
+    with pytest.raises(ValueError, match="explicit alternate locations"):
+        adapter.run(
+            {
+                "payload": {
+                    "redesigned_residues": ["A614"],
+                    "candidates": 1,
+                    "temperature": 0.1,
+                    "pack_sidechains": True,
+                },
+                "options": {"seed": 2026, "cpu": 2, "memory_mib": 2048, "device": "cpu"},
+            }
+        )
     assert file.read_bytes() == original

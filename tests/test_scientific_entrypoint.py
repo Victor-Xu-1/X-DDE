@@ -28,13 +28,46 @@ def test_reinvent_cli_probe_preserves_offline_nonroot_execution_and_does_not_loa
     assert kwargs["timeout"] == 120
 
 
-@pytest.mark.parametrize("identifier", ["reinvent", "plip"])
+@pytest.mark.parametrize("identifier", ["reinvent", "plip", "ligandmpnn"])
 def test_failed_cli_initialization_is_not_advertised_as_installed(identifier):
     def fail(args, **kwargs):
         raise RuntimeError("native CLI has a missing runtime library")
 
     with pytest.raises(RuntimeError, match="missing runtime library"):
         verify_native_entrypoint(identifier, "sha256:fixed-image", fail)
+
+
+def test_ligandmpnn_startup_is_nonroot_offline_and_never_mounts_models(monkeypatch, tmp_path):
+    monkeypatch.setattr("opendde_workbench.deployment.native_readiness.os.getuid", lambda: 12345)
+    monkeypatch.setattr("opendde_workbench.deployment.native_readiness.os.getgid", lambda: 23456)
+    calls = []
+    verify_native_entrypoint(
+        "ligandmpnn", "sha256:fixed-image", lambda args, **kwargs: calls.append((args, kwargs))
+    )
+    args, kwargs = calls[0]
+    assert args[-5:] == [
+        "--entrypoint",
+        "python",
+        "sha256:fixed-image",
+        "/opt/native/run.py",
+        "--help",
+    ]
+    assert args[args.index("--user") + 1] == "12345:23456"
+    assert args[args.index("--network") + 1] == "none" and "--read-only" in args
+    assert "--mount" not in args and "--gpus" not in args and kwargs["timeout"] == 120
+    assert "USER=xdde" in args and "TORCHINDUCTOR_CACHE_DIR=/tmp/torch-inductor" in args
+    source = tmp_path / "source"
+    source.mkdir()
+    private = source / "run.py"
+    private.write_text("# fixed upstream source\n")
+    private.chmod(0o600)
+    context = tmp_path / "context"
+    prepare_context("ligandmpnn", context, source)
+    dockerfile = (context / "Dockerfile").read_text()
+    assert dockerfile.index("COPY source /opt/native") < dockerfile.index(
+        "RUN chmod -R a+rX /opt/native"
+    )
+    assert "chmod -R 777" not in dockerfile
 
 
 def test_plip_installation_probes_its_declared_mmcif_parser_without_loading_research():
