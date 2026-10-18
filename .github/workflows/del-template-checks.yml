@@ -1,7 +1,16 @@
 name: Study template scoped checks
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        type: choice
+        options: [templates, case-data]
+        default: templates
   workflow_call:
+    inputs:
+      scope:
+        type: string
+        default: templates
 permissions:
   contents: read
 jobs:
@@ -17,12 +26,14 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Cohort identity, exact source lineage and unchanged STAT6 replay
+        if: inputs.scope != 'case-data'
         run: >-
           uv run --locked pytest -q tests/test_del_current_examples.py
           tests/test_stat6_templates_api.py tests/test_dataset_examples.py
           tests/test_stat6_recipe_replay.py tests/test_stat6_case_bundle.py
           tests/test_stat6_prepared_handoff.py tests/test_ligandmpnn_review.py
       - name: Real form options, compact steps, readonly input previews and research downloads
+        if: inputs.scope != 'case-data'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/del-template.test.ts
@@ -30,6 +41,12 @@ jobs:
           src/guided/Questionnaire.test.tsx src/examples/ExampleActions.test.tsx
           src/presentation/research-files.test.tsx
           src/integrations/SequenceDesignOverview.test.tsx
+      - name: Scientific file downloads retain restored structures and exclude transport backups
+        if: inputs.scope == 'case-data'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/research-files.test.tsx
+          src/integrations/ScientificResults.test.tsx
       - name: Preserve compatibility with the installed immutable STAT6 package
         env:
           GH_TOKEN: ${{ github.token }}

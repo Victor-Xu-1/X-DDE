@@ -18,6 +18,10 @@ it("retains structures, sequences, tables and reports while excluding engineerin
     expect(isResearchFile(name)).toBe(true);
   for (const name of [
     "arbitrary-internal.json",
+    "native-inputs/structure.pdb",
+    "native/packed/structure_packed_1_1.cif",
+    "native/backbones/structure_1.pdb",
+    "native-packed-001.pdb",
     "result.json",
     "audit.csv",
     "source-manifest.csv",

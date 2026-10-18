@@ -19,6 +19,7 @@ import "./results.css";
 import { DynamicsResults } from "../simulations/DynamicsResults";
 import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
 import { SequenceDesignOverview } from "./SequenceDesignOverview";
+import { isInternalResearchFile } from "../presentation/research-files";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
   "Initial potential energy": ["优化前势能", "Initial energy"],
@@ -244,8 +245,10 @@ export function ScientificResults({
             content: (
               <div className="download-actions">
                 {Object.keys(result.artifact_sha256)
-                  .filter((name) =>
-                    /\.(sdf|pdb|cif|fasta|csv|dx|pqr|pt)$/.test(name),
+                  .filter(
+                    (name) =>
+                      /\.(sdf|pdb|cif|fasta|csv|dx|pqr|pt)$/.test(name) &&
+                      !isInternalResearchFile(name),
                   )
                   .map((name) => (
                     <a

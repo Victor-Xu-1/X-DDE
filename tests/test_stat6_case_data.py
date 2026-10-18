@@ -157,6 +157,24 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     jobs = store.list_jobs(limit=len(expected_jobs) + 1)
     assert {row.id for row in jobs} == expected_jobs
     assert not any(row.status in {"queued", "running", "cancelling"} for row in jobs)
+    sequence_pin = ExamplePins(store, settings.state_dir, modules=MODULES).get(
+        "ligandmpnn.design", verify=True
+    )
+    assert str(sequence_pin.job_id) == "66aecb45-f475-419b-9e40-4bc6dfb7d472"
+    assert sequence_pin.review and "three distinct sequences" in sequence_pin.review.interpretation
+    sequence_output = settings.state_dir / "jobs" / str(sequence_pin.job_id) / "output"
+    sequence_result = json.loads((sequence_output / "result.json").read_bytes())
+    sequence_review = sequence_result["sequence_design"]
+    assert (sequence_review["sample_count"], sequence_review["unique_sequence_count"]) == (8, 3)
+    assert sequence_review["native_ligand_scored_residues"] == 3
+    assert {row["identity"] for row in sequence_review["selected_residues"]} == {
+        "A566",
+        "A588",
+        "A590",
+    }
+    assert hashlib.sha256((sequence_output / "packed-006.cif").read_bytes()).hexdigest() == (
+        "6fe963480a5096c87f7dabec541973cee83fa03f97f8207e01bac197d64b344a"
+    )
     generated = ExamplePins(store, settings.state_dir, modules=MODULES).get(
         "diffsbdd.generate", verify=True
     )

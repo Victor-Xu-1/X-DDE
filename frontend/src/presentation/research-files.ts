@@ -39,7 +39,14 @@ export function isResearchFile(name: string) {
   );
 }
 export function isInternalResearchFile(name: string) {
-  return internalName.test(name.replaceAll("\\", "/").split("/").at(-1) ?? "");
+  const path = name.replaceAll("\\", "/");
+  if (
+    /^(?:native-inputs\/|native\/(?:backbones|packed)\/|native-packed-\d+\.pdb$)/.test(
+      path,
+    )
+  )
+    return true;
+  return internalName.test(path.split("/").at(-1) ?? "");
 }
 export function researchFileLabel(name: string, zh: boolean) {
   const base = name.replaceAll("\\", "/").split("/").at(-1) ?? name,

@@ -21,6 +21,37 @@ vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 
 afterEach(cleanup);
 
+it("offers the restored scientific structure and sequence without transport aliases", () => {
+  const result: NativeResult = {
+    operation: "ligandmpnn_design",
+    program: "ligandmpnn",
+    version: "fixed-native-version",
+    candidates: [],
+    metrics: [],
+    interactions: [],
+    validation_points: [],
+    artifact_sha256: {
+      "packed-001.cif": "a".repeat(64),
+      "native-packed-001.pdb": "b".repeat(64),
+      "designed-sequences.fasta": "c".repeat(64),
+    },
+  };
+  render(
+    <ScientificResults
+      job={{ id: "retained" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  expect(screen.getByRole("link", { name: "packed-001.cif" })).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "designed-sequences.fasta" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("link", { name: "native-packed-001.pdb" }),
+  ).toBeNull();
+});
+
 it("shows native energy units and never pools equal metric names across incompatible units", () => {
   const method = "OpenMM vacuum potential with backbone positional restraints";
   const result: NativeResult = {
