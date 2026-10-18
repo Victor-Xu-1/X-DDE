@@ -11,6 +11,12 @@ import { useTablePreview } from "./useTablePreview";
 import { newReadLane, validReadLanes, type ReadLane } from "./DELReadFiles";
 import { delExpertDefaults } from "./DELExpertSettings";
 import { useDatasetExample } from "./useDatasetExample";
+import {
+  defaultDELExecution,
+  executionForDEL,
+  retainedDELParameters,
+  validDELExecution,
+} from "./del-template";
 import type {
   AvailableDataset,
   DELComparison,
@@ -61,6 +67,7 @@ export function useDELForm({
     [attachmentPolicy, setAttachmentPolicy] = useState<
       "retain" | "cap_hydrogen"
     >("retain");
+  const [execution, setExecution] = useState(defaultDELExecution);
   const [modelAction, setModelAction] = useState<"train" | "predict">("train"),
     [models, setModels] = useState<AvailableDataset[]>([]);
   const hasFile =
@@ -85,6 +92,9 @@ export function useDELForm({
     setDefinitions(sources.filter((item) => item.role === "definition"));
     setInputKind(task.inputs.length ? "new" : "counts");
     setName(task.name);
+    setExecution(executionForDEL(task));
+    setMinimum(Number(payload.minimum_counts ?? 10));
+    setEnrichment(Number(payload.minimum_enrichment ?? 3));
     setSamples((payload.samples as DELSample[]) ?? []);
     setComparisons((payload.comparisons as DELComparison[]) ?? []);
     setComparison(String(payload.chosen_comparison ?? ""));
@@ -169,6 +179,7 @@ export function useDELForm({
     setSamples([]);
     setComparisons([]);
     setReadLanes([newReadLane()]);
+    setExecution(defaultDELExecution());
   }, [tool]);
   useEffect(() => {
     if (!preview?.columns.length) return;
@@ -192,10 +203,18 @@ export function useDELForm({
     (definitions[0]?.metadata.libraries as
       { library: string; members: number; cycles: number }[] | undefined) ?? [];
   useEffect(() => {
-    setLibrary(availableLibraries[0]?.library ?? "");
+    setLibrary((old) =>
+      availableLibraries.some((item) => item.library === old)
+        ? old
+        : (availableLibraries[0]?.library ?? ""),
+    );
   }, [definitions[0]?.job_id]);
   useEffect(() => {
-    setComparison(availableComparisons[0]?.id ?? "");
+    setComparison((old) =>
+      availableComparisons.some((item) => item.id === old)
+        ? old
+        : (availableComparisons[0]?.id ?? ""),
+    );
   }, [source[0]?.job_id]);
   const sourceRole: DatasetSource["role"] =
     mode === "analyze" ? "counts" : mode === "count" ? "decoded" : "analysis";
@@ -263,10 +282,16 @@ export function useDELForm({
       .split(/\r?\n/)
       .filter((value) => value.trim())
       .map((line) => line.trim().split(/[\s,]+/));
-    return run.submit(
-      taskFor(
+    return run.submit({
+      ...taskFor(
         tool,
         {
+          ...retainedDELParameters(
+            example?.task,
+            definition.operation,
+            inputs,
+            sources,
+          ),
           ...expert,
           kind: "deli",
           mode,
@@ -309,8 +334,11 @@ export function useDELForm({
         inputs,
         sources,
         name.trim() || definition.label[zh ? 0 : 1],
+        execution.options,
       ),
-    );
+      time_limit_seconds: execution.time_limit_seconds,
+      output_bytes: execution.output_bytes,
+    });
   }
 
   return {
@@ -389,6 +417,9 @@ export function useDELForm({
     planValid,
     chooseDefinition,
     submit,
+    execution,
+    setExecution,
+    executionValid: validDELExecution(execution),
     modelAction,
     setModelAction,
     models,

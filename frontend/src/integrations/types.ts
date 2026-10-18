@@ -76,6 +76,7 @@ export interface NativeResult {
   proximity?: TernaryResult | null;
   dynamics?: DynamicsResult | null;
   free_energy?: FreeEnergyResult | null;
+  sequence_design?: import("./sequence-design").SequenceDesignResult | null;
 }
 export interface PropertyModel {
   job_id: string;

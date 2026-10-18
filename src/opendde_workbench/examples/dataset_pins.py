@@ -8,6 +8,10 @@ from .catalogue import FILES
 def validate_dataset_case(job, prepared, store):
     assets = AssetStore(store, store.path.parent / "assets")
     catalogue = FILES
+    if prepared.study and prepared.study.get("profile") == "del6":
+        from .del6.catalogue import FILES as DEL_FILES
+
+        catalogue = DEL_FILES
     if prepared.study and prepared.study.get("id") == "stat6":
         from .stat6.catalogue import FILES as STUDY_FILES
 

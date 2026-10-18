@@ -7,6 +7,7 @@ from ..store import now
 from .bundle_jobs import TERMINAL_HISTORY
 from .bundle_projection import references
 from .catalogue import MODULES
+from .del6.catalogue import MODULES as DEL_MODULES
 from .stat6.catalogue import MODULES as STUDY_MODULES
 
 
@@ -58,7 +59,7 @@ class ExampleLibrary:
         # Follow only current immutable pin evidence and its explicitly referenced input versions.
         active = {
             (module.capability_id, module.revision): module
-            for profile in (MODULES, STUDY_MODULES)
+            for profile in (MODULES, STUDY_MODULES, DEL_MODULES)
             for module in profile.values()
         }
         identifiers = set()

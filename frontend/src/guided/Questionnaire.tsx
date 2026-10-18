@@ -18,6 +18,7 @@ import { availabilityError } from "./task-availability";
 import { EnvironmentRecheck } from "./EnvironmentRecheck";
 export interface QuestionStep {
   title: string;
+  guideStep?: number;
   actions?: ReactNode;
   content: ReactNode;
   valid: boolean;
@@ -37,7 +38,7 @@ export function GuidedSteps<T extends { id: string }>({
   initialResult = null,
 }: {
   language: Language;
-  steps: readonly [QuestionStep, QuestionStep, QuestionStep, QuestionStep];
+  steps: readonly QuestionStep[];
   busy: boolean;
   error: string;
   ready: boolean | undefined;
@@ -51,9 +52,11 @@ export function GuidedSteps<T extends { id: string }>({
 }) {
   const preview = useContext(TemplatePreviewContext);
   const zh = language === "zh",
-    id = useId();
-  const [current, setCurrent] = useState(initialResult ? 4 : 0),
-    [visited, setVisited] = useState(initialResult ? 3 : 0),
+    id = useId(),
+    resultIndex = steps.length,
+    lastQuestion = resultIndex - 1;
+  const [current, setCurrent] = useState(initialResult ? resultIndex : 0),
+    [visited, setVisited] = useState(initialResult ? lastQuestion : 0),
     [job, setJob] = useState<T | null>(initialResult),
     [notice, setNotice] = useState("");
   const heading = useRef<HTMLHeadingElement>(null),
@@ -74,7 +77,7 @@ export function GuidedSteps<T extends { id: string }>({
   }, [current]);
   const complete = steps.every((s) => s.valid);
   function move(target: number) {
-    if (busy || job || target < 0 || target > 3) return;
+    if (busy || job || target < 0 || target > lastQuestion) return;
     if (target > current) {
       const invalid = firstInvalidQuestion(steps, panels.current, target - 1);
       if (invalid >= 0) {
@@ -93,12 +96,12 @@ export function GuidedSteps<T extends { id: string }>({
   }
   async function submit() {
     if (preview) return;
-    if (current !== 3) {
+    if (current !== lastQuestion) {
       move(current + 1);
       return;
     }
     if (!complete || !ready || busy || pending.current) return;
-    const invalid = firstInvalidQuestion(steps, panels.current, 3);
+    const invalid = firstInvalidQuestion(steps, panels.current, lastQuestion);
     if (invalid >= 0) {
       setCurrent(invalid);
       setNotice(
@@ -113,7 +116,7 @@ export function GuidedSteps<T extends { id: string }>({
       const created = await onSubmit();
       if (created && mounted.current) {
         setJob(created);
-        setCurrent(4);
+        setCurrent(resultIndex);
       }
     } catch (e) {
       if (mounted.current)
@@ -145,7 +148,10 @@ export function GuidedSteps<T extends { id: string }>({
             key={index}
             aria-current={current === index ? "step" : undefined}
             disabled={
-              busy || (job ? index !== 4 : index === 4 || index > visited)
+              busy ||
+              (job
+                ? index !== resultIndex
+                : index === resultIndex || index > visited)
             }
             title={title}
             aria-label={(zh ? "步骤 " : "Step ") + (index + 1) + ": " + title}
@@ -169,13 +175,18 @@ export function GuidedSteps<T extends { id: string }>({
         >
           {titles[current]}
         </h2>
-        {current < 4 && steps[current].actions && (
+        {current < resultIndex && steps[current].actions && (
           <fieldset className="questionnaire-heading-tools" disabled={busy}>
             {steps[current].actions}
           </fieldset>
         )}
       </header>
-      <TemplateStepHelp step={current} language={language} />
+      {current < resultIndex && (
+        <TemplateStepHelp
+          step={steps[current].guideStep ?? current}
+          language={language}
+        />
+      )}
       {steps.map((step, index) => (
         <fieldset
           ref={(node) => {
@@ -193,13 +204,13 @@ export function GuidedSteps<T extends { id: string }>({
           {step.content}
         </fieldset>
       ))}
-      {current === 4 && job && renderResult(job)}
+      {current === resultIndex && job && renderResult(job)}
       {(notice || error) && (
         <p role="alert" className="error-box">
           {researchError(availabilityError(error || notice, zh), zh)}
         </p>
       )}
-      {current === 3 && !ready && !error && (
+      {current === lastQuestion && !ready && !error && (
         <div role="status" className="notice">
           {ready === undefined
             ? zh
@@ -208,7 +219,7 @@ export function GuidedSteps<T extends { id: string }>({
             : unavailable}
         </div>
       )}
-      {current === 3 && !preview && (
+      {current === lastQuestion && !preview && (
         <EnvironmentRecheck
           ready={ready}
           onRecheck={onCheckEnvironment}
@@ -216,7 +227,7 @@ export function GuidedSteps<T extends { id: string }>({
           busy={busy}
         />
       )}
-      {current < 4 && (
+      {current < resultIndex && (
         <div className="questionnaire-actions">
           {current > 0 && (
             <button
@@ -228,7 +239,7 @@ export function GuidedSteps<T extends { id: string }>({
               {zh ? "上一步" : "Back"}
             </button>
           )}
-          {current < 3 ? (
+          {current < lastQuestion ? (
             <button
               key="next-question"
               type="button"

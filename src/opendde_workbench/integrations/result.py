@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from ..artifacts import contained
 from ..proximity.result_models import TernaryResult
 from ..simulations.results import DynamicsResult, FreeEnergyResult, validate_simulation
+from .sequence_design_result import SequenceDesignResult, validate_sequence_design
 
 
 class NativeMetric(BaseModel):
@@ -45,6 +46,7 @@ class NativeResult(BaseModel):
     proximity: TernaryResult | None = None
     dynamics: DynamicsResult | None = None
     free_energy: FreeEnergyResult | None = None
+    sequence_design: SequenceDesignResult | None = None
     structure_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_unit: Literal["kBT/e"] | None = None
     interactions: list["NativeInteraction"] = Field(default_factory=list, max_length=1000)
@@ -84,6 +86,7 @@ class ValidationPoint(BaseModel):
 
 def validate_result(value, request, output):
     result = NativeResult.model_validate(value)
+    validate_sequence_design(result, request)
     expected = hashlib.sha256(request.model_dump_json().encode()).hexdigest()
     if (
         result.operation != request.operation

@@ -26,10 +26,17 @@ const researchExtensions = new Set([
 ]);
 const internalName =
   /(?:^|[_.-])(manifest|provenance|environment|audit|diagnostic|stdout|stderr|bindings|checkpoint|execution|request|verification|runtime[_.-]lock)(?:[_.-]|$)/i;
+const scientificJSON = new Map([
+  ["del-definition.json", ["DEL 库定义", "DEL library definition"]],
+  ["barcode-review.json", ["条码质量", "Barcode quality"]],
+]);
 export function isResearchFile(name: string) {
   const base = name.replaceAll("\\", "/").split("/").at(-1) ?? "";
   const extension = base.split(".").at(-1)?.toLowerCase() ?? "";
-  return researchExtensions.has(extension) && !isInternalResearchFile(name);
+  return (
+    (researchExtensions.has(extension) || scientificJSON.has(base)) &&
+    !isInternalResearchFile(name)
+  );
 }
 export function isInternalResearchFile(name: string) {
   return internalName.test(name.replaceAll("\\", "/").split("/").at(-1) ?? "");
@@ -38,6 +45,8 @@ export function researchFileLabel(name: string, zh: boolean) {
   const base = name.replaceAll("\\", "/").split("/").at(-1) ?? name,
     ext = base.split(".").at(-1)?.toUpperCase() ?? "";
   const numbered = /^pose[-_](\d+)/i.exec(base);
+  if (scientificJSON.has(base))
+    return scientificJSON.get(base)![zh ? 0 : 1] + " · JSON";
   if (numbered)
     return (
       (zh ? "结合姿势 " : "Binding pose ") + Number(numbered[1]) + " · " + ext

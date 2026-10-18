@@ -36,11 +36,15 @@ export function DefinitionView({
     [error, setError] = useState("");
   useEffect(() => {
     const c = new AbortController();
+    setPage(null);
+    setError("");
     void request<DefinitionPage>(
       `/datasets/${job.id}/definition?library=${encodeURIComponent(library)}&cycle=${cycle}&offset=${offset}`,
       { signal: c.signal },
     )
-      .then(setPage)
+      .then((value) => {
+        if (!c.signal.aborted) setPage(value);
+      })
       .catch((e) => {
         if (!c.signal.aborted) setError(String(e));
       });
@@ -120,7 +124,10 @@ export function DefinitionView({
           </button>
         ))}
       </div>
-      <div className="dataset-block-grid">
+      {!page && !error && (
+        <p role="status">{zh ? "正在读取砌块…" : "Loading building blocks…"}</p>
+      )}
+      <div className="dataset-block-grid" aria-busy={!page && !error}>
         {page?.rows.map((row) => (
           <article key={row.id}>
             <div>

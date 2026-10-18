@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "case": {
+    "revision": 2,
+    "label": [
+      "BRD4 · DEL006 实验筛选研究",
+      "BRD4 · DEL006 experimental selection"
+    ],
+    "description": [
+      "使用公开 BRD4 实验的真实条码、读段及全部 518,285 个观测成员的原始计数。两组洗脱分别包含三个靶点重复和一个空白对照；保留原靶点 BRD4。",
+      "Real public BRD4 barcodes, reads and raw counts for all 518,285 observed members. Each eluate has three target replicates and one matrix control; the original target remains BRD4."
+    ],
+    "files": [
+      "del_definition",
+      "del_reads",
+      "del_counts",
+      "del_followup"
+    ],
+    "sources": [
+      "https://github.com/Popov-Lab-UNC/DELi/tree/edeb06ca8ffe6a158c1231c4014e569e04a9b83b/examples",
+      "https://doi.org/10.1186/s13321-026-01296-1",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC11888370/",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/raw-count-projection.json",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-PUBLIC-DATA-NOTICE.txt",
+      "https://creativecommons.org/licenses/by/4.0/"
+    ]
+  },
+  "files": {
+    "del_counts": {
+      "key": "del_counts",
+      "name": "DEL006-BRD4-observed-raw-counts.csv.gz",
+      "kind": "counts",
+      "bytes": 11872353,
+      "sha256": "0af8236a384393b33f11e98780b5f5f59c54a9ff55f9f0d11ad6782d73af7cfd",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-BRD4-observed-raw-counts.csv.gz",
+      "license": "MIT"
+    },
+    "del_followup": {
+      "key": "del_followup",
+      "name": "DEL006-BRD4-reported-followup.csv",
+      "kind": "counts",
+      "bytes": 209,
+      "sha256": "e821e23416e26e19b8f531c120008fb306c575a02d07f0f0942c359e284c5d05",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-BRD4-reported-followup.csv",
+      "license": "MIT"
+    },
+    "del_definition": {
+      "key": "del_definition",
+      "name": "DEL006-BRD4-library-definition.json",
+      "kind": "config",
+      "bytes": 36464,
+      "sha256": "66091770a49e55841faae0aab4112d32afdd52eefc8147418523e8e0c8846ed4",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-BRD4-library-definition.json",
+      "license": "MIT"
+    }
+  },
+  "source_revision": "edeb06ca8ffe6a158c1231c4014e569e04a9b83b",
+  "observed_count_rows": 518285,
+  "nominal_library_combinations": 884736,
+  "raw_read_subset": 1000,
+  "definition_variant": "The current self-contained JSON retains exactly the original library schema and all 288 source rows. Its exact new bytes are pinned; the historical compact input stays in the archive cohort.",
+  "old_sample_scope": "The historical 3000-row input stays in the archive catalogue; current analysis uses every observed row."
+}

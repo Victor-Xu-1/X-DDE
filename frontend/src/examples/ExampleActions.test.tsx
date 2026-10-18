@@ -39,6 +39,41 @@ beforeEach(() => {
   transport.request.mockReset().mockResolvedValue(info);
   transport.post.mockReset();
 });
+it.each(["zh", "en"] as const)(
+  "previews DEL input metadata without importing assets or changing the personal draft (%s)",
+  async (language) => {
+    const metadata: ExampleInfo = {
+      ...info,
+      module: { ...info.module, capability_id: "del.library" },
+      study: {
+        id: "del6",
+        target: "BRD4",
+        organism: "Homo sapiens",
+        template_kind: "research_study",
+        materials: [],
+        required_materials: [],
+        guide: { steps: [], interpretation: ["来源明确", "Source identified"] },
+      },
+    };
+    transport.request.mockResolvedValue(metadata);
+    const onLoad = vi.fn();
+    render(
+      <ExampleActions
+        capability="del.library"
+        language={language}
+        onLoad={onLoad}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: language === "zh" ? "查看研究材料" : "Preview study inputs",
+      }),
+    );
+    expect(await screen.findByText("Verified compound output")).toBeVisible();
+    expect(transport.post).not.toHaveBeenCalled();
+    expect(onLoad).not.toHaveBeenCalled();
+  },
+);
 describe("module templates", () => {
   it.each(["en", "zh"] as const)(
     "uses the prepared recipe guide only while its template is loaded (%s)",

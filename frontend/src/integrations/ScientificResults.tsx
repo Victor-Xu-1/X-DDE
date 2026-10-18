@@ -18,6 +18,7 @@ import { MoleculeImage } from "../presentation/MoleculeImage";
 import "./results.css";
 import { DynamicsResults } from "../simulations/DynamicsResults";
 import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
+import { SequenceDesignOverview } from "./SequenceDesignOverview";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
   "Initial potential energy": ["优化前势能", "Initial energy"],
@@ -199,21 +200,30 @@ export function ScientificResults({
         </table>
       )}
       {rows.length > 0 && (
-        <StructureWorkbench preview={view}>
-          <ResearchTable
-            rows={rows}
-            columns={columns}
-            initialVisibleColumns={columns
-              .slice(0, 4)
-              .map((column) => column.key)}
-            rowId={(row) => row.id}
-            language={language}
-            title={zh ? "研究候选" : "Research candidates"}
-            selected={active?.id}
-            onSelect={(row) => setSelected(row.id)}
-            exportName="scientific-candidates.csv"
-          />
-        </StructureWorkbench>
+        <>
+          {result.sequence_design && (
+            <SequenceDesignOverview
+              result={result.sequence_design}
+              selected={active?.id ?? ""}
+              zh={zh}
+            />
+          )}
+          <StructureWorkbench preview={view}>
+            <ResearchTable
+              rows={rows}
+              columns={columns}
+              initialVisibleColumns={columns
+                .slice(0, 4)
+                .map((column) => column.key)}
+              rowId={(row) => row.id}
+              language={language}
+              title={zh ? "研究候选" : "Research candidates"}
+              selected={active?.id}
+              onSelect={(row) => setSelected(row.id)}
+              exportName="scientific-candidates.csv"
+            />
+          </StructureWorkbench>
+        </>
       )}
       {result.model_artifact && (
         <section>

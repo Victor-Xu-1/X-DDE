@@ -125,12 +125,23 @@ export function useExampleTemplate({
                 `/examples/${capability}/result`,
               ),
             }
-          : {
-              example: await api.post<PreparedExample>(
-                `/examples/${capability}/prepare`,
-                {},
-              ),
-            };
+          : info.study?.id === "del6"
+            ? {
+                example: {
+                  module: info.module,
+                  case: info.case,
+                  objects: {},
+                  sequences: {},
+                  sources: info.case.sources,
+                  study: info.study,
+                },
+              }
+            : {
+                example: await api.post<PreparedExample>(
+                  `/examples/${capability}/prepare`,
+                  {},
+                ),
+              };
       if (!current()) return;
       setResult(value);
       onPreviewChange?.(true);

@@ -1,16 +1,19 @@
 """Use upstream ligand-aware inverse folding at explicitly selected residue identities."""
 
+import json
 import sys
 from pathlib import Path
 
+from ligandmpnn_review import review_sequences
 from native_components import restored_packed_components
-from native_io import copy_artifact, csv_file, execute, finish
+from native_io import copy_artifact, csv_file, execute, finish, metric
 from native_structure import input_pdb
 
 
 def run(request):
     from Bio import SeqIO
     from Bio.PDB import PDBParser
+    from Bio.PDB.Polypeptide import protein_letters_3to1
 
     source, reference = input_pdb(request, allow_component_aliases=True)
     structure = PDBParser(QUIET=True).get_structure("source", source)
@@ -32,6 +35,31 @@ def run(request):
     payload, options = request["payload"], request["options"]
     if not set(payload["redesigned_residues"]) <= identities:
         raise ValueError("Selected design residues are absent from the exact input structure.")
+    ligand_atoms = [
+        atom
+        for residue in structure.get_residues()
+        if residue.id[0].startswith("H_")
+        for atom in residue
+        if atom.element not in {"H", "D"}
+    ]
+    residues = [
+        {
+            "identity": f"{chain.id}{residue.id[1]}{residue.id[2].strip()}",
+            "amino_acid": protein_letters_3to1[residue.resname],
+            "minimum_ligand_distance_A": min(
+                (
+                    float(atom - ligand)
+                    for atom in residue
+                    for ligand in ligand_atoms
+                    if atom.element not in {"H", "D"}
+                ),
+                default=None,
+            ),
+        }
+        for chain in models[0]
+        for residue in chain
+        if residue.id[0] == " " and residue.resname in protein_letters_3to1
+    ]
     native = Path("/output/native")
     execute(
         [
@@ -73,6 +101,12 @@ def run(request):
     generated = records[1:]
     if len(generated) != payload["candidates"]:
         raise ValueError("LigandMPNN sequence count differs from the requested designs.")
+    review = review_sequences(
+        [(record.description, str(record.seq)) for record in records],
+        residues,
+        payload["redesigned_residues"],
+    )
+    Path("/output/sequence-design.json").write_text(json.dumps(review, allow_nan=False))
     fasta = copy_artifact(files[0], "designed-sequences.fasta")
     candidates = []
     for index, record in enumerate(generated, 1):
@@ -81,7 +115,26 @@ def run(request):
                 "id": f"sequence-{index:03d}",
                 "sequence": str(record.seq),
                 "artifact": fasta,
-                "metrics": [],
+                "metrics": [
+                    metric(
+                        "Sequence likelihood",
+                        review["candidates"][index - 1]["overall_likelihood"],
+                        "1",
+                        "Native exp(-mean NLL) on designed residues; not binding probability",
+                    ),
+                    *(
+                        [
+                            metric(
+                                "Ligand-context likelihood",
+                                review["candidates"][index - 1]["ligand_likelihood"],
+                                "1",
+                                "Native exp(-mean NLL) on nonempty ligand-neighborhood design mask",
+                            )
+                        ]
+                        if review["native_ligand_scored_residues"]
+                        else []
+                    ),
+                ],
                 "geometry": "none",
             }
         )
@@ -106,7 +159,29 @@ def run(request):
             copy_artifact(translation, "component-identifiers.json")
     csv_file(
         "sequences.csv",
-        ["Candidate", "Sequence"],
-        [[row["id"], row["sequence"]] for row in candidates],
+        [
+            "Candidate",
+            "First identical sample",
+            "Mutations",
+            "Sequence likelihood",
+            "Ligand-context likelihood",
+            "Sequence recovery",
+            "Sequence",
+        ],
+        [
+            [
+                row["id"],
+                value["first_identical_sample"],
+                ";".join(
+                    item["residue"] + ":" + item["original"] + ">" + item["designed"]
+                    for item in value["mutations"]
+                ),
+                value["overall_likelihood"],
+                value["ligand_likelihood"] if value["ligand_likelihood"] is not None else "",
+                value["sequence_recovery"],
+                row["sequence"],
+            ]
+            for row, value in zip(candidates, review["candidates"], strict=True)
+        ],
     )
-    finish(request, "26ec57ac976ade5379920dbd43c7f97a91cf82de", candidates)
+    finish(request, "26ec57ac976ade5379920dbd43c7f97a91cf82de", candidates, sequence_design=review)

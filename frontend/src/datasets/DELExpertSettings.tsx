@@ -41,13 +41,15 @@ export function DELExpertSettings({
         value={Number(value[key])}
         onChange={(e) => onChange({ ...value, [key]: Number(e.target.value) })}
       >
-        {choices.map((choice) => (
-          <option key={choice} value={choice}>
-            {key === "holdout_fraction"
-              ? `${choice * 100}%`
-              : choice.toLocaleString()}
-          </option>
-        ))}
+        {[...new Set([...choices, Number(value[key])])]
+          .sort((a, b) => a - b)
+          .map((choice) => (
+            <option key={choice} value={choice}>
+              {key === "holdout_fraction"
+                ? `${choice * 100}%`
+                : choice.toLocaleString()}
+            </option>
+          ))}
       </select>
     </label>
   );

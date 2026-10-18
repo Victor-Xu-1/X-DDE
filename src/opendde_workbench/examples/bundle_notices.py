@@ -31,7 +31,7 @@ def bundle_notices(selected, rows, *, modules=MODULES, cases=CASES, files=FILES)
             "CAVER static geometric channels do not establish whole-drug passage, "
             "energy or affinity."
         )
-    return {
+    notices = {
         "sources": sorted(
             {url for case in selected_cases for url in cases[case].sources}
             | {files[key].url for key in optional_files}
@@ -39,3 +39,8 @@ def bundle_notices(selected, rows, *, modules=MODULES, cases=CASES, files=FILES)
         "licenses": licenses,
         "methods": " ".join(methods),
     }
+    if "del-unc006-brd4" in selected_cases and cases["del-unc006-brd4"].revision >= 2:
+        from .del6.catalogue import ROOT
+
+        notices["data_attribution"] = (ROOT / "NOTICE.txt").read_text(encoding="utf-8")
+    return notices

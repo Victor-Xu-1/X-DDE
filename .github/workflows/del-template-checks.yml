@@ -1,0 +1,40 @@
+name: Study template scoped checks
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  templates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Cohort identity, exact source lineage and unchanged STAT6 replay
+        run: >-
+          uv run --locked pytest -q tests/test_del_current_examples.py
+          tests/test_stat6_templates_api.py tests/test_dataset_examples.py
+          tests/test_stat6_recipe_replay.py tests/test_stat6_case_bundle.py
+          tests/test_stat6_prepared_handoff.py tests/test_ligandmpnn_review.py
+      - name: Real form options, compact steps, readonly input previews and research downloads
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/del-template.test.ts
+          src/datasets/DELTemplateReplay.test.tsx
+          src/guided/Questionnaire.test.tsx src/examples/ExampleActions.test.tsx
+          src/presentation/research-files.test.tsx
+          src/integrations/SequenceDesignOverview.test.tsx
+      - name: Preserve compatibility with the installed immutable STAT6 package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/${source[1]}" uv run --locked pytest -q tests/test_stat6_case_data.py

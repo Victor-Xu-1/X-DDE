@@ -70,12 +70,19 @@ export interface ExampleInfo {
 }
 
 export interface StudyContext {
-  id: "stat6";
+  id: "stat6" | "del6";
   target: string;
   organism: string;
-  uniprot: string;
+  uniprot?: string;
   template_kind: "research_study";
   molecules?: { input_key: string; original_smiles: string; file: string }[];
+  materials?: {
+    name: string;
+    bytes: number;
+    url: string;
+    kind: string;
+    description: [string, string];
+  }[];
   required_materials: [string, string][];
   guide: { steps: [string, string][]; interpretation: [string, string] };
 }

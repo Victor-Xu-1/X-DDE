@@ -1,4 +1,5 @@
 import type { DELFormState } from "./useDELForm";
+import { DELExecutionSettings } from "./DELExecutionSettings";
 
 export function DELReviewQuestion({ model }: { model: DELFormState }) {
   const {
@@ -47,6 +48,11 @@ export function DELReviewQuestion({ model }: { model: DELFormState }) {
           </>
         )}
       </div>
+      <DELExecutionSettings
+        value={model.execution}
+        onChange={model.setExecution}
+        zh={zh}
+      />
     </div>
   );
 }

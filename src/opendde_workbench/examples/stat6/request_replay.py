@@ -10,10 +10,10 @@ from .catalogue import MODULES
 DESIGN_MODES = {"generate", "inpaint", "diversify", "optimize"}
 
 
-def reviewed_request(capability, scientific, records):
+def reviewed_request(capability, scientific, records, *, modules=MODULES):
     if records is None:
         return None
-    request = ExamplePins(scientific.store, records.settings.state_dir, modules=MODULES).request(
+    request = ExamplePins(scientific.store, records.settings.state_dir, modules=modules).request(
         capability, reviewed=True
     )
     if request is None:

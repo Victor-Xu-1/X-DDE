@@ -5,8 +5,10 @@ from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
     "ligandmpnn.design": (
-        "在明确选择替代位置并保留参考配体的 STAT6 结构中，探索 A614 的局部序列设计。",
-        "Explore local sequence designs at A614 in the explicitly prepared STAT6 "
+        "在明确选择替代位置并保留参考配体的 STAT6 结构中，"
+        "探索接触位点 A566、A588、A590 的局部序列设计。",
+        "Explore local sequence designs at contacting residues A566, A588 and A590 "
+        "in the explicitly prepared STAT6 "
         "structure retaining its reference ligand.",
     ),
     "diffsbdd.generate": (
@@ -116,8 +118,8 @@ def steps(capability):
                 "selection and retained reference ligand.",
             ),
             (
-                "指定要改动的残基；模板使用结构中的 A614 编号。",
-                "Choose residues to redesign; the template uses author residue A614.",
+                "指定要改动的残基；模板使用与参考配体接触的 A566、A588、A590 编号。",
+                "Review the selected contacting author residues A566, A588 and A590.",
             ),
             (
                 "选择序列数量及侧链构象生成，保留原始结构作为对照。",

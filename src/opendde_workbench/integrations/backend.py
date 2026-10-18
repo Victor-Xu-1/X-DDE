@@ -40,6 +40,7 @@ class ScientificBackend(PreparedContainerBackend):
             shared["receptor_native_io.py"] = root / "receptors/native_io.py"
         if identifier == "ligandmpnn":
             shared["native_components.py"] = Path(__file__).with_name("native_components.py")
+            shared["ligandmpnn_review.py"] = Path(__file__).with_name("ligandmpnn_review.py")
         if identifier == "reinvent":
             shared["native_reinvent_scope.py"] = Path(__file__).with_name(
                 "native_reinvent_scope.py"

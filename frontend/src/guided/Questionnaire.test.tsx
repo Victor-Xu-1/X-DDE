@@ -41,6 +41,33 @@ it("opens a verified existing result without running the questionnaire or submit
   expect(submit).not.toHaveBeenCalled();
 });
 import { JsonEditor } from "../operations/ScientificInputs";
+it("submits a compact two-question study without empty intermediate pages", async () => {
+  const user = userEvent.setup(),
+    submit = vi.fn().mockResolvedValue({ id: "saved" });
+  render(
+    <GuidedSteps
+      language="en"
+      steps={[
+        { title: "Materials", valid: true, content: <p>Selected materials</p> },
+        { title: "Review", valid: true, content: <p>Confirmed resources</p> },
+      ]}
+      busy={false}
+      error=""
+      ready
+      submitLabel="Submit study"
+      onSubmit={submit}
+      renderResult={(value) => <p>Actual receipt {value.id}</p>}
+    />,
+  );
+  expect(screen.getByText("Selected materials")).toBeVisible();
+  expect(screen.getByText("Confirmed resources")).not.toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByText("Confirmed resources")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Submit study" }));
+  expect(await screen.findByText("Actual receipt saved")).toBeVisible();
+  expect(submit).toHaveBeenCalledOnce();
+});
 afterEach(cleanup);
 it("keeps step-specific controls disabled during submission and retains their state on navigation", async () => {
   const changeMode = vi.fn(),

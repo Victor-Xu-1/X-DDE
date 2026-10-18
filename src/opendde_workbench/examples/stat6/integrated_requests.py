@@ -57,7 +57,12 @@ def integrated_study(capability, objects, sequences):
     else:
         add("structure", "structure" if kind in {"ligandmpnn", "plip"} else "receptor")
         if kind == "ligandmpnn":
-            payload.update(redesigned_residues=["A614"], candidates=8)
+            # Prepared 9BIG author residues have complete backbones and measured
+            # heavy-atom contacts to the retained AK-1690 reference ligand.
+            payload.update(
+                redesigned_residues=["A566", "A588", "A590"], candidates=8, temperature=0.2
+            )
+            options.update(memory_mib=2048, seed=2026)
         elif kind == "boltzgen":
             payload.update(
                 modality="protein", target_chains=["A"], candidates=20, retain=5, length=[80, 120]

@@ -313,7 +313,8 @@ def test_ligandmpnn_template_uses_exact_prepared_ligand_context_without_phantom_
     assert prepared.request["inputs"] == [
         {"role": "structure", "source": native.reference.model_dump(mode="json")}
     ]
-    assert prepared.request["payload"]["redesigned_residues"] == ["A614"]
+    assert prepared.request["payload"]["redesigned_residues"] == ["A566", "A588", "A590"]
+    assert prepared.request["payload"]["temperature"] == 0.2
     assert prepared.request["payload"]["pack_sidechains"] is True
     assert prepared.request["payload"]["candidates"] == 8
     assert not prepared.study["required_materials"]

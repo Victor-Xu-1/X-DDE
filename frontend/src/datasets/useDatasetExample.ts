@@ -59,7 +59,10 @@ export function useDatasetExample(
           setExample({
             task: { ...value, name: title.slice(0, 80) },
             assets: new Map(assets.map((asset) => [asset.id, asset])),
-            sources,
+            sources: sources.map((source, index) => ({
+              ...source,
+              ...value.sources[index],
+            })),
           });
       })
       .catch((error) => {

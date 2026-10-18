@@ -34,11 +34,11 @@ def verify_examples(settings, capabilities=None, *, profile="archive"):
         if parent and parent not in selected:
             raise ValueError("A follow-up case must retain its fixed parent-case pin.")
         pin = pins.get(capability, verify=True)
-        if pin and profile == "stat6" and pin.review is None:
+        if pin and profile != "archive" and pin.review is None:
             raise ValueError(
                 "Current study results require an explicit scientific and visual review."
             )
-        if pin and (parent or profile == "stat6"):
+        if pin and (parent or profile != "archive"):
             from ..research.storage import ScientificStore
             from .pin_validation import validate_case_job
 
@@ -64,7 +64,7 @@ def verify_examples(settings, capabilities=None, *, profile="archive"):
         record = records.get(capability, verify=True)
         if (
             record
-            and profile == "stat6"
+            and profile != "archive"
             and record.capability_id in {"regions", "workflows", "pose_exploration"}
             and record.review is None
         ):

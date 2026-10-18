@@ -16,9 +16,9 @@ from opendde_workbench.requests import TASK_ADAPTER, Properties
 from opendde_workbench.store import now
 
 
-def test_default_api_returns_stat6_for_every_module_and_prepares_without_jobs(client_factory):
+def test_explicit_stat6_profile_preserves_every_module_and_prepares_without_jobs(client_factory):
     with client_factory() as client:
-        response = client.get("/api/examples")
+        response = client.get("/api/examples?profile=stat6")
         assert response.status_code == 200
         values = response.json()["examples"]
         assert {value["module"]["capability_id"] for value in values} == set(catalogue.MODULES)
@@ -26,9 +26,9 @@ def test_default_api_returns_stat6_for_every_module_and_prepares_without_jobs(cl
             assert value["case"]["id"] == catalogue.CASE.id
             assert not value["computed_result_available"]
             capability = value["module"]["capability_id"]
-            detail = client.get("/api/examples/" + capability)
+            detail = client.get("/api/examples/" + capability + "?profile=stat6")
             assert detail.status_code == 200 and detail.json()["study"]["target"] == "STAT6"
-            prepared = client.post("/api/examples/" + capability + "/prepare")
+            prepared = client.post("/api/examples/" + capability + "/prepare?profile=stat6")
             assert prepared.status_code == 200, prepared.text
             data = prepared.json()
             assert data["case"]["id"] == catalogue.CASE.id

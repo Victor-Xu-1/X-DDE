@@ -4,6 +4,8 @@ import { isResearchFile, isResearchField } from "./research-files";
 import { ResultTree } from "../operations/OperationResults";
 it("retains structures, sequences, tables and reports while excluding engineering attachments", () => {
   for (const name of [
+    "del-definition.json",
+    "barcode-review.json",
     "BRD4-JQ1/complex.cif",
     "BRD4_receptor.pdb",
     "candidate_12.sdf",
@@ -15,6 +17,7 @@ it("retains structures, sequences, tables and reports while excluding engineerin
   ])
     expect(isResearchFile(name)).toBe(true);
   for (const name of [
+    "arbitrary-internal.json",
     "result.json",
     "audit.csv",
     "source-manifest.csv",

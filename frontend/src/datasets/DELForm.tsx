@@ -53,30 +53,41 @@ export function DELForm({
               <DELMaterialQuestion model={model} onPrepare={onPrepare} />
             ),
           },
-          {
-            title:
-              mode === "analyze"
-                ? zh
-                  ? "填写实验分组"
-                  : "Assign study groups"
-                : mode === "candidates"
-                  ? zh
-                    ? "选择候选成员"
-                    : "Choose members"
-                  : zh
-                    ? "确认研究范围"
-                    : "Confirm study scope",
-            valid: planValid,
-            content: <DELScopeQuestion model={model} />,
-          },
-          {
-            title: zh ? "选择分析方案" : "Choose analysis",
-            valid: planValid,
-            content: <DELMethodQuestion model={model} />,
-          },
+          ...(!["validate", "count"].includes(mode)
+            ? [
+                {
+                  title:
+                    mode === "analyze"
+                      ? zh
+                        ? "填写实验分组"
+                        : "Assign study groups"
+                      : mode === "candidates"
+                        ? zh
+                          ? "选择候选成员"
+                          : "Choose members"
+                        : zh
+                          ? "确认研究范围"
+                          : "Confirm study scope",
+                  valid: planValid,
+                  guideStep: 1,
+                  content: <DELScopeQuestion model={model} />,
+                },
+              ]
+            : []),
+          ...(mode !== "validate"
+            ? [
+                {
+                  title: zh ? "选择分析方案" : "Choose analysis",
+                  valid: planValid,
+                  guideStep: 2,
+                  content: <DELMethodQuestion model={model} />,
+                },
+              ]
+            : []),
           {
             title: zh ? "确认并提交" : "Review and submit",
-            valid: planValid && firstValid,
+            valid: planValid && firstValid && model.executionValid,
+            guideStep: 3,
             content: <DELReviewQuestion model={model} />,
           },
         ]}

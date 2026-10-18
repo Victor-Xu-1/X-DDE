@@ -16,13 +16,19 @@ class SourceFile(ExampleModel):
     name: str
     url: str
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
-    bytes: int = Field(ge=1, le=8 * 1024**2)
+    bytes: int = Field(ge=1, le=64 * 1024**2)
     kind: Literal[
         "structure", "ligand", "sequences", "config", "library", "counts", "reads", "measurements"
     ]
     license: Literal[
         "CC0-1.0", "CC-BY-SA-3.0", "CC-BY-3.0-US", "MIT", "CC-BY-4.0", "LicenseRef-User-Provided"
     ]
+
+    @model_validator(mode="after")
+    def bounded_public_input(self):
+        if self.kind not in {"counts", "reads", "library"} and self.bytes > 8 * 1024**2:
+            raise ValueError("Public structure and configuration examples remain limited to 8 MiB.")
+        return self
 
 
 class CaseStudy(ExampleModel):
