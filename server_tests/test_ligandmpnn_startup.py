@@ -22,17 +22,23 @@ def test_managed_ligandmpnn_imports_sidechain_dependencies_under_the_owning_uid(
     root.mkdir()
     operation = str(uuid4())
     stages = []
-    installed = install("ligandmpnn", root, {}, operation, stages.append, lambda: None)
+    evidence = Path(__file__).with_name("evidence") / "ligandmpnn-startup"
+    evidence.mkdir(parents=True, exist_ok=True)
+    log_file = root / "operations" / operation / "install.log"
+    try:
+        installed = install("ligandmpnn", root, {}, operation, stages.append, lambda: None)
+    finally:
+        (evidence / "stages.json").write_text(json.dumps(stages, indent=2))
+        if log_file.is_file():
+            (evidence / "install.log").write_bytes(log_file.read_bytes())
     assert installed["image"].startswith("sha256:")
     assert installed["recipe_sha256"] == recipe_digest("ligandmpnn")
     assert installed["runtime_lock_sha256"] == lock_digest("ligandmpnn")
     assert "models" not in installed
     assert "Checking the installed native command entrypoint" in stages
-    log = (root / "operations" / operation / "install.log").read_text()
+    log = log_file.read_text()
     assert "--pack_side_chains" in log and "--checkpoint_path_sc" in log
     assert "ModuleNotFoundError" not in log and "Traceback" not in log
-    evidence = Path(__file__).with_name("evidence") / "ligandmpnn-startup"
-    evidence.mkdir(parents=True, exist_ok=True)
     (evidence / "acceptance.json").write_text(
         json.dumps(
             {
