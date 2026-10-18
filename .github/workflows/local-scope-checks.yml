@@ -19,7 +19,7 @@ jobs:
       - name: Owned resource policies, admission and related existing process contracts
         run: >-
           uv run --locked pytest -q tests/test_local_scope.py tests/test_local_process.py
-          tests/test_environment_roles.py tests/test_diffsbdd_contract.py
+          tests/test_environment_roles.py tests/test_diffsbdd_contract.py tests/test_dataset_worker.py
       - name: Prepare only the ephemeral runner user's resource manager
         run: |
           sudo loginctl enable-linger "$(id -un)"
@@ -40,5 +40,6 @@ jobs:
             ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-ready.json
             ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-exit.json
             ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-cleanup.json
+            ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-launch-closed.json
             ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-launch.log
           if-no-files-found: warn

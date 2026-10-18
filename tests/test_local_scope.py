@@ -99,3 +99,37 @@ def test_environment_metadata_records_policy_without_claiming_kernel_verificatio
     assert runtime["resource_controller"] == "systemd_user_scope_v1"
     assert json.loads(runtime["resource_policy"])["memory_mib"] == 4096
     assert len(runtime["resource_guard_sha256"]) == 64
+
+
+@pytest.mark.parametrize("cleanup_fails", [False, True])
+def test_non_dataset_startup_cancellation_wins_only_after_confirmed_cleanup(
+    settings, cleanup_fails
+):
+    from opendde_workbench.models import Status
+    from opendde_workbench.prediction import Prediction
+    from opendde_workbench.store import Store
+    from opendde_workbench.worker import Worker
+
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    task = Prediction(
+        name="Controlled cancellation protocol", components=[{"kind": "protein", "value": "AAAA"}]
+    )
+    job = store.create(task, str(uuid4()), 10, 100)
+    job = store.claim(job.id)
+
+    class DelayedStart:
+        async def start(self, current, directory):
+            store.cancel(current.id)
+            raise RuntimeError("The task launch closed while its controller was starting.")
+
+        async def stop(self, identifier):
+            assert identifier == job.id
+            if cleanup_fails:
+                raise RuntimeError("Owned native resource cleanup is unconfirmed.")
+
+    asyncio.run(Worker(store, DelayedStart(), settings).execute(job))
+    final = store.get(job.id)
+    assert final.status == (Status.FAILED if cleanup_fails else Status.CANCELLED)
+    assert bool(store.queue_halt()) == cleanup_fails
+    if not cleanup_fails:
+        assert final.error is None

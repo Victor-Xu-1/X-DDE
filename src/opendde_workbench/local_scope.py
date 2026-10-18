@@ -86,7 +86,10 @@ async def launch(python, script, directory, environment, limits):
     controller_environment()  # Fail before scientific execution; there is no unbounded fallback.
     unit = f"xdde-native-{UUID(directory.name)}-{uuid4().hex[:16]}.scope"
     config = directory / "scope-config.json"
-    if config.exists() or (directory / "scope-ready.json").exists():
+    if any(
+        (directory / name).exists()
+        for name in ("scope-config.json", "scope-ready.json", "scope-launch-closed.json")
+    ):
         raise RuntimeError("Preserve the existing scientific launch and resource evidence.")
     atomic_json(
         config,

@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 
-from opendde_workbench import local_process
+from opendde_workbench import local_process, local_scope, scope_control
 from opendde_workbench.local_scope import ScopeLimits, controller_environment
 
 pytestmark = pytest.mark.skipif(
@@ -31,7 +31,12 @@ def study_directory(tmp_path, body):
 def keep_evidence(name, directory):
     target = Path(__file__).parent / "evidence/local-resource-scopes" / name
     target.mkdir(parents=True, exist_ok=True)
-    for file in ("scope-ready.json", "scope-exit.json", "scope-cleanup.json"):
+    for file in (
+        "scope-ready.json",
+        "scope-exit.json",
+        "scope-cleanup.json",
+        "scope-launch-closed.json",
+    ):
         if (directory / file).is_file():
             shutil.copyfile(directory / file, target / file)
     (target / "scope.json").write_text(
@@ -134,5 +139,38 @@ def test_native_wall_time_survives_without_a_worker_watchdog(tmp_path):
         evidence = json.loads((directory / "scope-exit.json").read_text())
         assert evidence["state"]["Result"] == "timeout", evidence
         keep_evidence("wall-time", directory)
+
+    asyncio.run(exercise())
+
+
+def test_late_launcher_cannot_start_science_after_cleanup(tmp_path):
+    directory, script = study_directory(
+        tmp_path, "from pathlib import Path\nPath('science-started.txt').write_text('unexpected')\n"
+    )
+
+    async def exercise():
+        arguments, environment, unit = await local_scope.launch(
+            Path(sys.executable),
+            script,
+            directory,
+            {"HOME": str(directory), "PATH": "/usr/bin:/bin"},
+            ScopeLimits(memory_mib=128, runtime_seconds=10),
+        )
+        await scope_control.stop_scope(directory, {"scope_unit": unit})
+        # Real delayed process creation after the cancellation/recovery boundary.
+        process = await asyncio.create_subprocess_exec(
+            *arguments,
+            cwd=directory,
+            env=environment,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+        output, _ = await asyncio.wait_for(process.communicate(), 8)
+        (directory / "scope-launch.log").write_bytes(output)
+        assert process.returncode != 0
+        assert not (directory / "science-started.txt").exists()
+        assert b"launch was closed" in output
+        await scope_control.stop_scope(directory, {"scope_unit": unit})
+        keep_evidence("late-launch-fence", directory)
 
     asyncio.run(exercise())

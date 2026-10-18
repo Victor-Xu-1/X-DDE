@@ -263,9 +263,7 @@ class Worker:
                         f"Scientific task exited with code {code}; {missing}. Inspect the task log."
                     )
         except Exception as exc:
-            cancelled = isinstance(job.request, DatasetTask) and (
-                self.store.get(job.id).status == Status.CANCELLING
-            )
+            cancelled = self.store.get(job.id).status == Status.CANCELLING
             if cancelled:
                 status, error = Status.CANCELLED, None
             else:

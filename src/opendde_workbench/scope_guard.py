@@ -53,6 +53,9 @@ def main(config_file):
         rf"xdde-native-{re.escape(job_id)}-[a-f0-9]{{16}}\.scope", config["unit"]
     ):
         raise RuntimeError("Scientific resource group differs from the persisted task.")
+    closed = directory / "scope-launch-closed.json"
+    if closed.exists() or closed.is_symlink():
+        raise RuntimeError("The task launch was closed before scientific execution.")
     evidence = verify_kernel_group(config["unit"], config["limits"])
     evidence["limits"] = config["limits"]
     target = directory / "scope-ready.json"
@@ -70,6 +73,8 @@ def main(config_file):
         raise RuntimeError(
             "Scientific software must not inherit its resource controller connection."
         )
+    if closed.exists() or closed.is_symlink():
+        raise RuntimeError("The task launch was closed before scientific execution.")
     os.execve(config["python"], [config["python"], config["script"], str(directory)], environment)
 
 

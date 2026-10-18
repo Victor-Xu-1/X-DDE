@@ -60,6 +60,14 @@ def kernel_state(root):
 
 async def stop_scope(directory, data):
     unit = owned_unit(data["scope_unit"], directory)
+    closed = directory / "scope-launch-closed.json"
+    if closed.is_symlink():
+        raise RuntimeError("Task launch closure cannot be a link.")
+    if closed.exists() and json.loads(closed.read_text()).get("unit") != unit:
+        raise RuntimeError("Task launch ownership changed; queue must remain paused.")
+    # Persist intent before querying the manager: a launcher still being created
+    # must not start science after cleanup has observed an as-yet absent unit.
+    atomic_json(closed, {"unit": unit})
     evidence = data.get("scope")
     if evidence and evidence.get("unit") != unit:
         raise RuntimeError("Task resource evidence differs from its owned launch.")
