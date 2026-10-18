@@ -140,7 +140,15 @@ class BackendRouter:
                     }
                 )
             )
-            return await local_process.start(python, runner, directory, env)
+            from .local_scope import ScopeLimits
+
+            return await local_process.start(
+                python,
+                runner,
+                directory,
+                env,
+                limits=ScopeLimits(runtime_seconds=self.settings.job_timeout),
+            )
         if implementation == "opendde":
             return await self.opendde.start(job, directory)
         raise ValueError("No execution adapter for registered engine: " + implementation)
@@ -154,7 +162,8 @@ class BackendRouter:
         environment = self.store.environment(job.id)
         implementation = (
             environment.specification.scientific_software
-            if environment else engine_for(job.request.operation).id
+            if environment
+            else engine_for(job.request.operation).id
         )
         if isinstance(job.request, DatasetTask):
             await self.datasets.stop(job.id, directory)

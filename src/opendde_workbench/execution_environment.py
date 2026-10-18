@@ -212,6 +212,17 @@ def capture(settings: Settings, software: str) -> EnvironmentRecord:
             )
             and entry.get("runtime") == runtime["home"]
         )
+        from dataclasses import asdict
+
+        from .local_scope import ScopeLimits
+
+        runtime["resource_controller"] = "systemd_user_scope_v1"
+        runtime["resource_policy"] = json.dumps(
+            asdict(ScopeLimits(runtime_seconds=settings.job_timeout)), sort_keys=True
+        )
+        runtime["resource_guard_sha256"] = hashlib.sha256(
+            Path(__file__).with_name("scope_guard.py").read_bytes()
+        ).hexdigest()
     else:
         runtime = {"python": str(settings.harness_python or "")}
         matched = bool(

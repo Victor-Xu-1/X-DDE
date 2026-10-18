@@ -40,11 +40,14 @@ def readiness(settings):
     }
     try:
         _, _, root = configuration(settings)
+        from ..local_scope import controller_environment
+
+        controller_environment()
         result["ready"] = True
         for identifier, spec in MODELS.items():
             file = root / "models" / spec["file"]
             result["models"][identifier] = file.is_file() and file.stat().st_size == spec["bytes"]
-    except (OSError, ValueError, KeyError) as exc:
+    except (OSError, ValueError, KeyError, RuntimeError) as exc:
         result["reason"] = str(exc)
     return result
 

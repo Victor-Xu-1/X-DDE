@@ -1,0 +1,44 @@
+name: Native resource scope checks
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  resource-lifecycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Owned resource policies, admission and related existing process contracts
+        run: >-
+          uv run --locked pytest -q tests/test_local_scope.py tests/test_local_process.py
+          tests/test_environment_roles.py tests/test_diffsbdd_contract.py
+      - name: Prepare only the ephemeral runner user's resource manager
+        run: |
+          sudo loginctl enable-linger "$(id -un)"
+          sudo systemctl start "user@$(id -u).service"
+          test -S "/run/user/$(id -u)/bus"
+      - name: Actual cgroup memory cap, detached-child cancellation, recovery and wall time
+        env:
+          WB_NATIVE_LOCAL_SCOPE: "1"
+        run: >-
+          uv run --locked pytest -x -q server_tests/test_local_resource_scopes.py
+          --basetemp "$RUNNER_TEMP/x-dde-scope-fixtures"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-resource-scope-evidence
+          path: |
+            server_tests/evidence/local-resource-scopes
+            ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-ready.json
+            ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-exit.json
+            ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-cleanup.json
+            ${{ runner.temp }}/x-dde-scope-fixtures/**/scope-launch.log
+          if-no-files-found: warn
