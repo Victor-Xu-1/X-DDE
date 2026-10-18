@@ -29,7 +29,12 @@ if Path(__file__).with_name("mode.txt").read_text() == "oom":
 """
 
 
-@pytest.mark.asyncio
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize("mode", ["normal", "oom"])
 async def test_actual_cgroup_limits_and_isolated_oom(tmp_path, mode):
     directory = tmp_path / str(uuid4())

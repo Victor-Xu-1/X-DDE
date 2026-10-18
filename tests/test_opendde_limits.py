@@ -19,6 +19,11 @@ IMAGE = "example/runtime@sha256:" + "a" * 64
 SUPPORT = dict.fromkeys(("memory", "swap", "cpu_quota", "cpu_period", "pids"), True)
 
 
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
 def job():
     return SimpleNamespace(
         id=str(uuid4()),
@@ -84,7 +89,7 @@ def test_defaults_configured_threads_and_immutable_environment(settings, tmp_pat
     assert changed.specification.runtime["swap_limit_mib"] == "0"
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.parametrize("change", [{key: False} for key in SUPPORT] + [{"memory": 1}])
 async def test_missing_or_invalid_controller_prevents_admission(change):
     async def command(*args, **kwargs):
@@ -123,7 +128,7 @@ def test_created_container_cannot_ignore_limits_or_change_identity(change):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.parametrize("valid", [False, True])
 async def test_start_verifies_created_identity_and_caps_before_native_launch(
     settings, tmp_path, monkeypatch, valid
@@ -183,7 +188,7 @@ def test_operator_configuration_uses_existing_settings_authority(tmp_path, monke
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_unsupported_host_never_creates_or_starts_a_container(
     settings, tmp_path, monkeypatch
 ):
@@ -200,7 +205,7 @@ async def test_unsupported_host_never_creates_or_starts_a_container(
     assert len(calls) == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_unavailable_controller_changes_engine_readiness_only(
     settings, tmp_path, monkeypatch
 ):
