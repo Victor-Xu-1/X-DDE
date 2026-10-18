@@ -107,7 +107,24 @@
         "url": "https://codeload.github.com/dauparas/LigandMPNN/zip/26ec57ac976ade5379920dbd43c7f97a91cf82de",
         "sha256": "08c34d9e8662b253c2cf3663bf5d10da805e14419713a783e76e4b68169281b8",
         "prefix": "LigandMPNN-26ec57ac976ade5379920dbd43c7f97a91cf82de",
-        "runtime_access": "readonly_all_users"
+        "runtime_access": "readonly_all_users",
+        "patches": [
+          {
+            "file": "openfold/np/residue_constants.py",
+            "old": "restype_atom37_to_rigid_group = np.zeros([21, 37], dtype=np.int)",
+            "new": "restype_atom37_to_rigid_group = np.zeros([21, 37], dtype=np.int64)"
+          },
+          {
+            "file": "openfold/np/residue_constants.py",
+            "old": "restype_atom14_to_rigid_group = np.zeros([21, 14], dtype=np.int)",
+            "new": "restype_atom14_to_rigid_group = np.zeros([21, 14], dtype=np.int64)"
+          },
+          {
+            "file": "openfold/np/residue_constants.py",
+            "old": "np.arange(14, dtype=np.int), (21, 1)",
+            "new": "np.arange(14, dtype=np.int64), (21, 1)"
+          }
+        ]
       },
       "license": "MIT code and models; OpenFold component terms"
     },

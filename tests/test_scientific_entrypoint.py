@@ -61,6 +61,14 @@ def test_ligandmpnn_startup_is_nonroot_offline_and_never_mounts_models(monkeypat
     private = source / "run.py"
     private.write_text("# fixed upstream source\n")
     private.chmod(0o600)
+    constants = source / "openfold/np/residue_constants.py"
+    constants.parent.mkdir(parents=True)
+    constants.write_text(
+        "restype_atom37_to_rigid_group = np.zeros([21, 37], dtype=np.int)\n"
+        "restype_atom14_to_rigid_group = np.zeros([21, 14], dtype=np.int)\n"
+        "restype_atom14_ambiguous_atoms_swap_idx = np.tile(\n"
+        "    np.arange(14, dtype=np.int), (21, 1)\n)\n"
+    )
     context = tmp_path / "context"
     prepare_context("ligandmpnn", context, source)
     dockerfile = (context / "Dockerfile").read_text()
@@ -68,6 +76,9 @@ def test_ligandmpnn_startup_is_nonroot_offline_and_never_mounts_models(monkeypat
         "RUN chmod -R a+rX /opt/native"
     )
     assert "chmod -R 777" not in dockerfile
+    patched = (context / "source/openfold/np/residue_constants.py").read_text()
+    assert "dtype=np.int)" not in patched and patched.count("dtype=np.int64)") == 3
+    assert constants.read_text().count("dtype=np.int)") == 3
 
 
 def test_plip_installation_probes_its_declared_mmcif_parser_without_loading_research():
