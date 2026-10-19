@@ -57,6 +57,15 @@ the draft or URL. Bundle export includes this closure; import never launches
 these tasks. Original generator metrics stay explicitly labeled as original
 metrics when a later pose is displayed.
 
+The STAT6 diversification study can also retain the exact reviewed 9BIG
+protein-only preparation as an experimental-receptor control. This optional
+material uses the existing native preparation and provenance checks; it never
+replaces the paired predicted receptor in the diversification request. A cold
+installation without that reviewed preparation leaves the control unavailable.
+Matched controls retain the same prepared ligand and search settings, while
+keeping receptor conditions, pose rankings and missing environmental context
+explicit. Their scores and quality checks do not establish experimental binding.
+
 Portable result packages may retain terminal history for an exact-request retry
 of a successful native case. Those ancestor rows preserve their original status,
 request, identity and parent links, carry no scientific output files and never

@@ -216,6 +216,52 @@ def test_generation_template_requires_exact_prepared_receptor_and_matching_refer
     assert len(store.list_jobs()) == before
 
 
+def test_diversification_control_retains_reviewed_experimental_receptor_without_changing_task(
+    settings,
+):
+    store, scientific, records, experimental = docking_fixture(settings)
+    before = len(store.list_jobs())
+    prepared = prepare_stat6("diffsbdd.diversify", scientific, records=records)
+    assert prepared.objects["experimental_receptor_control"] == experimental
+    assert prepared.objects["receptor"] == prepared.objects["calculated_receptor"]
+    assert prepared.objects["receptor"].reference != experimental.reference
+    assert prepared.request["payload"]["protein"] == prepared.objects[
+        "calculated_receptor"
+    ].reference.model_dump(mode="json")
+    assert prepared.request["payload"]["initial"] == prepared.objects[
+        "calculated_pose"
+    ].reference.model_dump(mode="json")
+    assert len(store.list_jobs()) == before
+
+
+def test_cold_diversification_does_not_invent_an_experimental_receptor_control(settings):
+    create_app(settings)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
+    prepared = prepare_stat6("diffsbdd.diversify", scientific)
+    assert "experimental_receptor_control" not in prepared.objects
+    assert prepared.objects["receptor"] == prepared.objects["calculated_receptor"]
+    assert not store.list_jobs()
+
+
+@pytest.mark.parametrize("failure", ["artifact", "options", "source"])
+def test_diversification_control_rejects_changed_preparation(settings, failure):
+    _, scientific, records, experimental = docking_fixture(settings)
+    output = settings.state_dir / "jobs" / str(experimental.source_job) / "output"
+    if failure == "artifact":
+        (output / "prepared.pdb").write_text("Changed after native preparation\n")
+    else:
+        path = output / "result.json"
+        report = json.loads(path.read_text())
+        if failure == "options":
+            report["options"]["alternate"] = "B"
+        else:
+            report["source"]["sha256"] = "0" * 64
+        path.write_text(json.dumps(report))
+    with pytest.raises(ValueError):
+        prepare_stat6("diffsbdd.diversify", scientific, records=records)
+
+
 def test_diff_receptor_template_uses_the_qualified_pdb_without_a_cif_alias(settings):
     store, scientific, records, version = docking_fixture(settings)
     before = len(store.list_jobs())

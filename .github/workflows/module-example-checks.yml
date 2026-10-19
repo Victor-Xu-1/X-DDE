@@ -62,12 +62,14 @@ jobs:
               "src/opendde_workbench/examples/stat6/design_replay.py",
               "src/opendde_workbench/examples/stat6/request_replay.py",
               "tests/test_stat6_design_replay.py", "tests/test_example_pins.py",
+              "tests/test_stat6_prepared_handoff.py",
           }
           companions = {
               "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
               "install.sh", "install.ps1", ".github/workflows/module-example-checks.yml",
               ".github/workflows/examples-checks.yml", ".github/workflows/defined-site-checks.yml",
               ".github/workflows/library-screen-checks.yml", "docs/frontend-layout.md",
+              "docs/design/research-examples.md",
               "frontend/src/examples/useExampleTemplate.ts", "frontend/src/examples/ExampleActions.test.tsx",
               "frontend/src/diffsbdd/DiffForm.tsx", "frontend/src/diffsbdd/DiffTemplateReplay.test.tsx",
               "frontend/src/chemistry/LibraryScreenForm.tsx", "frontend/src/chemistry/LibraryScreenTemplate.test.tsx",

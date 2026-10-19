@@ -144,6 +144,14 @@ def prepare_stat6(capability, scientific, *, records=None):
     }:
         objects["ligand"] = originals["calculated_pose"]
         objects["receptor"] = originals["calculated_receptor"]
+    if capability == "diffsbdd.diversify":
+        from .prepared_inputs import reviewed_protein_only_receptor
+
+        experimental = reviewed_protein_only_receptor(scientific, records)
+        if experimental is not None:
+            # A curated control input, not a replacement for the native paired
+            # prediction frame or permission to admit arbitrary follow-up roots.
+            objects["experimental_receptor_control"] = experimental
     if capability in {"chemprop.train", "chemistry.screen"}:
         library_key = (
             "stat6_spr_library" if capability == "chemprop.train" else "stat6_assay_library"
