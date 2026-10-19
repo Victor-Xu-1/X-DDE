@@ -40,14 +40,10 @@ it("shows native separation, chemical validity and complete pair coverage with a
     name: "Barcode and structure checks",
   });
   const row = within(table).getByRole("row", { name: /DEL006_BBA/ });
+  expect(within(row).getByRole("cell", { name: "96 / 96" })).toBeVisible();
+  expect(within(row).getByRole("cell", { name: "4" })).toBeVisible();
   expect(
-    within(row).getByRole("cell", { name: "96 / 96", exact: true }),
-  ).toBeVisible();
-  expect(
-    within(row).getByRole("cell", { name: "4", exact: true }),
-  ).toBeVisible();
-  expect(
-    within(row).getByRole("cell", { name: "4,560 / 4,560", exact: true }),
+    within(row).getByRole("cell", { name: "4,560 / 4,560" }),
   ).toBeVisible();
   expect(within(table).getAllByText("Separated")).toHaveLength(3);
   expect(
@@ -105,11 +101,7 @@ it("localizes the scientific scope and preserves unknown values", () => {
   );
   const table = screen.getByRole("table", { name: "条码区分与结构检查" });
   expect(within(table).getByText("未评估")).toBeVisible();
-  expect(
-    within(table).getByRole("cell", { name: "— / —", exact: true }),
-  ).toBeVisible();
-  expect(
-    within(table).queryByRole("cell", { name: "0", exact: true }),
-  ).toBeNull();
+  expect(within(table).getByRole("cell", { name: "— / —" })).toBeVisible();
+  expect(within(table).queryByRole("cell", { name: "0" })).toBeNull();
   expect(screen.getByText(/插入和缺失错误不在这项检查范围内/)).toBeVisible();
 });
