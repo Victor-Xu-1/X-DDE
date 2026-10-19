@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 from stat6_diversification_case import retained_diversification
+from stat6_optimization_case import retained_optimization
 
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.deployment.manager import DeploymentManager
@@ -265,6 +266,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     retained_states = retained_state_roundtrip(settings, store, assets, tmp_path)
     retained_model_regions = retained_model_and_regions(settings, store, assets, tmp_path)
     diversification = retained_diversification(settings, store, library_pins)
+    optimization = retained_optimization(settings, store, library_pins)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)
     (evidence / "installation.json").write_text(
@@ -287,6 +289,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
                 "native_state_collection_replayed": retained_states,
                 "native_model_and_region_subset_replayed": retained_model_regions,
                 "retained_diversification_control_stages": diversification,
+                "retained_optimization_control_stages": optimization,
                 "new_scientific_tasks": 0,
                 "experimental_activity_claim": False,
             },

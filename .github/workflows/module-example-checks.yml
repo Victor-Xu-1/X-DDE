@@ -26,6 +26,7 @@ on:
       - 'server_tests/test_generation_case_stages_browser.py'
       - 'server_tests/prepare_quality_context_cases.py'
       - 'tests/test_stat6_case_data.py'
+      - 'tests/stat6_optimization_case.py'
       - '.github/workflows/module-example-checks.yml'
   pull_request:
     paths: *module_example_paths
@@ -64,6 +65,7 @@ jobs:
               "tests/test_stat6_design_replay.py", "tests/test_example_pins.py",
               "tests/test_stat6_prepared_handoff.py",
               "tests/stat6_diversification_case.py",
+              "tests/stat6_optimization_case.py",
           }
           companions = {
               "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
