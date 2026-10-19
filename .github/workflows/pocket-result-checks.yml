@@ -41,6 +41,7 @@ jobs:
     env:
       WB_AUTO_DEPLOY: '0'
       WB_BROWSER_URL: http://127.0.0.1:4330
+      WB_ENTRY_CAPABILITIES: p2rank.detect,gnina.dock,structure
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

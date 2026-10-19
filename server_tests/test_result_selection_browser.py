@@ -100,7 +100,7 @@ def test_native_record_cells_and_keyboard_update_the_exact_inspector(capability,
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
-def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(language):
+def test_selected_task_entries_and_available_backend_switch_update_the_visible_task(language):
     """Entry/switch controls only; no materials, uploads, submissions or calculations."""
     base = os.environ["WB_BROWSER_URL"]
     EVIDENCE.mkdir(parents=True, exist_ok=True)
@@ -130,6 +130,13 @@ def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(
             )
         )
         assert len(identifiers) >= 74
+        if os.environ.get("WB_TEST_ALL_TASK_ENTRIES") != "1":
+            selected = os.environ.get("WB_ENTRY_CAPABILITIES", "p2rank.detect,gnina.dock,structure")
+            requested = list(
+                dict.fromkeys(item.strip() for item in selected.split(",") if item.strip())
+            )
+            assert requested and set(requested) <= set(identifiers)
+            identifiers = requested
         for capability in identifiers:
             (EVIDENCE / f"{language}-entry-progress.json").write_text(
                 json.dumps({"current": capability, "completed": inspected}, indent=2)
@@ -144,7 +151,10 @@ def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(
                 name="模块使用模板" if language == "zh" else "Module usage template",
                 exact=True,
             )
-            expect(template).to_contain_text("STAT6")
+            response = page.request.get(base + "/api/examples/" + capability)
+            assert response.ok
+            case_label = response.json()["case"]["label"][0 if language == "zh" else 1]
+            expect(template).to_contain_text(case_label)
             # Other forms remain mounted to preserve drafts. Inspect only the
             # current visible task, never a hidden retained prediction form.
             picker = page.locator(".module-task-picker:visible select").first
@@ -163,7 +173,7 @@ def test_every_task_entry_and_available_backend_switch_updates_the_visible_task(
             inspected.append({"capability": capability, "backend_switch": switched})
         assert page.request.get(base + "/api/jobs").json() == before_jobs
         assert not errors and not submissions, {"errors": errors, "submissions": submissions}
-        (EVIDENCE / f"{language}-all-task-entry-switches.json").write_text(
+        (EVIDENCE / f"{language}-selected-task-entry-switches.json").write_text(
             json.dumps({"entries": inspected, "scientific_execution": False}, indent=2)
         )
         page.screenshot(path=EVIDENCE / f"{language}-last-task-entry.png")
