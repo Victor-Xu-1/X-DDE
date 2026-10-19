@@ -9,6 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from stat6_comparison_case import retained_comparison
 from stat6_diversification_case import retained_diversification
 from stat6_interface_case import retained_interface
 from stat6_optimization_case import retained_optimization
@@ -269,6 +270,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     diversification = retained_diversification(settings, store, library_pins)
     optimization = retained_optimization(settings, store, library_pins)
     interface = retained_interface(settings, store, tmp_path)
+    comparison = retained_comparison(settings, store, assets, tmp_path)
     evidence = Path("outputs/stat6-case-data")
     evidence.mkdir(parents=True, exist_ok=True)
     (evidence / "installation.json").write_text(
@@ -293,6 +295,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
                 "retained_diversification_control_stages": diversification,
                 "retained_optimization_control_stages": optimization,
                 "retained_complete_protein_interface": interface,
+                "retained_functional_state_comparison": comparison,
                 "new_scientific_tasks": 0,
                 "experimental_activity_claim": False,
             },

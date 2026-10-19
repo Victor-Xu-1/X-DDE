@@ -27,6 +27,7 @@ on:
       - 'server_tests/prepare_quality_context_cases.py'
       - 'tests/test_stat6_case_data.py'
       - 'tests/stat6_optimization_case.py'
+      - 'tests/stat6_comparison_case.py'
       - '.github/workflows/module-example-checks.yml'
   pull_request:
     paths: *module_example_paths
@@ -66,6 +67,7 @@ jobs:
               "tests/test_stat6_prepared_handoff.py",
               "tests/stat6_diversification_case.py",
               "tests/stat6_optimization_case.py",
+              "tests/stat6_comparison_case.py",
           }
           companions = {
               "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
@@ -73,6 +75,7 @@ jobs:
               ".github/workflows/examples-checks.yml", ".github/workflows/defined-site-checks.yml",
               ".github/workflows/library-screen-checks.yml", "docs/frontend-layout.md",
               "docs/design/research-examples.md",
+              "docs/design/reference-conditioned-comparison.md",
               "README.md", "README.en.md",
               "tests/test_record_example_supporting.py",
               "frontend/src/examples/useExampleTemplate.ts", "frontend/src/examples/ExampleActions.test.tsx",

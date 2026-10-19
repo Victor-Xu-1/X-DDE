@@ -71,6 +71,24 @@ remains the authority for small molecules; do not advertise unsupported parity.
 
 ## Gates and delivery
 
+The reviewed real study is retained as immutable example revision 4 for `rmsd`
+(task `0f2b0361-94af-4fe6-a4a8-62bbc80ca196`, calculated with v0.6.42).
+Its explicit author-numbered mapping matches 441 target and 433 partner C-alpha
+observations. Independent source-coordinate SVD reproduces 1.803036 A target-fit
+RMSD and 23.740955 A partner RMSD in the same frame. Independent 5-A heavy-atom
+contact counting reproduces 76 shared contacts out of 95 reference contacts;
+the comparison has 81 contacts. These describe experimental functional-state
+geometry, not failed prediction, affinity or activity. The whole-target fit also
+differs from the source paper's SH2-domain alignment.
+
+Data package 24 retains the case alongside the existing cohort: 43 STAT6 entries,
+83 task records and 844 files, including one reported-data import that is distinct
+from model inference. Cold and repeat restoration, exact input-version replay and
+the new case's real result presenter were checked without starting scientific work.
+The actual frontend was exercised in English and Chinese, including linked 3D/table/
+plot selection, native structural downloads, a 3854x2176 PNG and an 89-mm SVG retaining
+all 874 vector markers. Immutable originals and earlier case revisions remain intact.
+
 Native checks must cover chain renaming, insertion codes, mutated/missing residues,
 ambiguous mappings, proper rotations, known rigid controls, invalid source identities,
 modified-polymer retention, source integrity and native report/export consistency.
