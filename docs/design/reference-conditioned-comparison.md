@@ -1,10 +1,14 @@
 # Reference-conditioned protein comparisons
 
-Status: native geometry/export and actual API/queue/asset controls passed on candidate
-`e556918a2da1a93727200fda947001c87aff118f`
-([focused native gate](https://github.com/Victor-Xu-1/X-DDE/actions/runs/39328904466)).
-Guided frontend and example-input integration are in progress. These calibration
-controls are not a pinned research study. The published v0.6.41 runtime remains unchanged.
+Status: implemented for v0.6.42, including the guided frontend, source-bound STAT6
+inputs and interactive comparison views. Native geometry/export, actual API/queue/
+asset controls and bilingual Chromium interaction checks passed on candidate
+`0a398b03a478119d71fd4fa853b1b044768bd27a`
+([focused native gate](https://github.com/Victor-Xu-1/X-DDE/actions/runs/39332656652)).
+These calibration controls are not a pinned research study. Formal release,
+installed runtime, managed structural-environment upgrade and real research
+acceptance are separate delivery gates; the platform version alone proves none
+of the later gates.
 
 ## Problem and ownership
 
@@ -41,6 +45,9 @@ Biopython 1.88 is already managed. DockQ belongs in the same structural environm
 with locked runtime/build dependencies and a native gate, not a duplicate service.
 Its standard file parser discards HETATM residues and only specially maps MSE/CME;
 the wrapper must preserve source-annotated modified polymer residues such as PTR.
+For PDB input, reject amino-acid-like HETATM observations without MODRES rather
+than silently removing possible modified residues. Deposited mmCIF retains their
+polymer membership without requiring this ambiguous conversion.
 Do not silently omit phosphate atoms or rename their chemical identity. Verify all
 selected polymer observations before native quality metrics can be accepted.
 
