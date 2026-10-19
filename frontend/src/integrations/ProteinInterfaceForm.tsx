@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ProteinInterfaceInputs } from "./ProteinInterfaceInputs";
+import { ProteinInterfaceReview } from "./ProteinInterfaceReview";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
@@ -27,7 +28,6 @@ export function ProteinInterfaceForm({
     id: crypto.randomUUID(),
     source: null,
     label: zh ? "复合物 1" : "Complex 1",
-    fileName: "",
     chains: [],
   });
   const [inputs, setInputs] = useState<InterfaceInput[]>(
@@ -36,9 +36,11 @@ export function ProteinInterfaceForm({
         id: crypto.randomUUID(),
         source: i.source,
         label: labels?.[n] ?? `Complex ${n + 1}`,
-        fileName: "",
         chains: [],
       })) ?? [fresh()],
+  );
+  const [reviewedFiles, setReviewedFiles] = useState<Record<string, boolean>>(
+    {},
   );
   const [target, setTarget] = useState<string[]>(
     (preset?.payload.target_chains as string[]) ?? [],
@@ -70,18 +72,7 @@ export function ProteinInterfaceForm({
   function source(id: string, value: MoleculeRef | null) {
     setInputs((current) =>
       current.map((i) =>
-        i.id === id ? { ...i, source: value, chains: [], fileName: "" } : i,
-      ),
-    );
-  }
-  function verified(id: string, value: MoleculeRef, fileName: string) {
-    setInputs((current) =>
-      current.map((i) =>
-        i.id === id &&
-        i.source &&
-        referenceKey(i.source) === referenceKey(value)
-          ? { ...i, fileName }
-          : i,
+        i.id === id ? { ...i, source: value, chains: [] } : i,
       ),
     );
   }
@@ -118,7 +109,6 @@ export function ProteinInterfaceForm({
               inputs={inputs}
               language={language}
               onSource={source}
-              onVerified={verified}
               onLabel={(id, label) =>
                 setInputs((current) =>
                   current.map((i) => (i.id === id ? { ...i, label } : i)),
@@ -175,47 +165,25 @@ export function ProteinInterfaceForm({
             fileValid &&
             chainValid &&
             Boolean(name.trim()) &&
-            name.length <= 80,
+            name.length <= 80 &&
+            inputs.every(
+              (i) => i.source && reviewedFiles[referenceKey(i.source)],
+            ),
           content: (
-            <>
-              <label>
-                {zh ? "任务名称" : "Task name"}
-                <input
-                  value={name}
-                  maxLength={80}
-                  required
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </label>
-              <table>
-                <thead>
-                  <tr>
-                    <th>{zh ? "复合物" : "Complex"}</th>
-                    <th>{zh ? "研究文件" : "Research file"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {inputs.map((i) => (
-                    <tr key={i.id}>
-                      <td>{i.label}</td>
-                      <td>
-                        {i.fileName ||
-                          (zh ? "已选择原始结构" : "Selected source structure")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p>
-                {zh ? "靶蛋白链" : "Target chains"}: {target.join(", ")} ·{" "}
-                {zh ? "伙伴链" : "Partner chains"}: {binder.join(", ")}
-              </p>
-              <p className="field-help">
-                {zh
-                  ? "保留原始坐标和已记录的修饰残基，分析全部原生接触；距离与接触数量不是结合能或亲和力。"
-                  : "Analyze native contacts in the original coordinate frame, retaining deposited residue modifications. Contact distances and counts are not binding energies or affinity."}
-              </p>
-            </>
+            <ProteinInterfaceReview
+              inputs={inputs}
+              language={language}
+              name={name}
+              onName={setName}
+              target={target}
+              binder={binder}
+              onVerified={(source, valid) =>
+                setReviewedFiles((current) => ({
+                  ...current,
+                  [referenceKey(source)]: valid,
+                }))
+              }
+            />
           ),
         },
       ]}

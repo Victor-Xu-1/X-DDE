@@ -18,6 +18,28 @@ on:
 permissions:
   contents: read
 jobs:
+  native-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      native: ${{ steps.files.outputs.native }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: files
+        name: Select native execution only for changed scientific code or an explicit request
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          event = json.load(open(os.environ['GITHUB_EVENT_PATH']))
+          if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
+              native = str(event.get('inputs', {}).get('native', 'false')).lower() == 'true'
+          else:
+              files = subprocess.check_output(['git', 'diff', '--name-only', event['before'], 'HEAD'], text=True).splitlines()
+              native = any(p.startswith('src/opendde_workbench/integrations/') or p == 'server_tests/test_native_protein_interface.py' for p in files)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('native=' + str(native).lower() + '\n')
+          PY
   contracts-and-preview:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -44,8 +66,10 @@ jobs:
           src/integrations/ProteinInterfaceResults.test.tsx
           src/integrations/ScientificResults.test.tsx
           src/viewer/scientific-overlay.test.ts
+          src/operations/useSelectedAsset.test.tsx
   native-stat6-interface:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.native)
+    needs: native-scope
+    if: needs.native-scope.outputs.native == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:

@@ -8,7 +8,6 @@ export interface InterfaceInput {
   id: string;
   source: MoleculeRef | null;
   label: string;
-  fileName: string;
   chains: string[];
 }
 

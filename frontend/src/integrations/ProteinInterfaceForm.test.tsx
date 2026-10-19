@@ -1,9 +1,22 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import type { Job } from "../types";
 import { ProteinInterfaceForm } from "./ProteinInterfaceForm";
+
+const sourceMetadata = vi.hoisted(() => ({ sha256: "a".repeat(64) }));
+beforeEach(() => {
+  sourceMetadata.sha256 = "a".repeat(64);
+});
+vi.mock("../operations/useSelectedAsset", () => ({
+  useSelectedAsset: (id: string) => ({
+    asset: id ? { id, sha256: sourceMetadata.sha256, name: "4Y5U.cif" } : null,
+    error: false,
+    loading: false,
+    retry: vi.fn(),
+  }),
+}));
 
 vi.mock("../guided/useTaskReadiness", () => ({
   useTaskReadiness: () => ({ ready: true, error: "", recheck: vi.fn() }),
@@ -79,6 +92,7 @@ it("starts with a new input and submits exact source lineage and disjoint chains
     ).getByLabelText("Chain B"),
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("table")).toHaveTextContent("4Y5U.cif");
   await user.click(
     screen.getByRole("button", { name: "Analyze protein interface" }),
   );
@@ -94,6 +108,32 @@ it("starts with a new input and submits exact source lineage and disjoint chains
   expect(task.scientific_inputs).toEqual(task.inputs.map((i: any) => i.source));
   expect(task.inputs[0].source.version_id).toBeNull();
   expect(created).toHaveBeenCalledTimes(1);
+});
+
+it("blocks confirmation when file metadata differs from the exact selected scientific bytes", async () => {
+  sourceMetadata.sha256 = "b".repeat(64);
+  const user = userEvent.setup();
+  render(<ProteinInterfaceForm language="en" onCreated={vi.fn()} />);
+  await user.click(screen.getByRole("button", { name: "Choose Complex 1" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Read model chains" }));
+  await user.click(
+    within(
+      screen.getByRole("group", { name: "Target protein" }),
+    ).getByLabelText("Chain A"),
+  );
+  await user.click(
+    within(
+      screen.getByRole("group", { name: "Binding partner" }),
+    ).getByLabelText("Chain B"),
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Verify the selected source file.",
+  );
+  expect(
+    screen.getByRole("button", { name: "Analyze protein interface" }),
+  ).toBeDisabled();
 });
 
 it("retains the three-complex comparison bound without a hidden fourth input", async () => {

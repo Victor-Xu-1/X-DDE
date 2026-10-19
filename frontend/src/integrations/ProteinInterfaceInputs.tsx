@@ -8,7 +8,6 @@ export function ProteinInterfaceInputs({
   language,
   onLabel,
   onSource,
-  onVerified,
   onAdd,
   onRemove,
 }: {
@@ -16,7 +15,6 @@ export function ProteinInterfaceInputs({
   language: Language;
   onLabel(id: string, value: string): void;
   onSource(id: string, value: MoleculeRef | null): void;
-  onVerified(id: string, value: MoleculeRef, fileName: string): void;
   onAdd(): void;
   onRemove(id: string): void;
 }) {
@@ -42,9 +40,6 @@ export function ProteinInterfaceInputs({
             label={zh ? `复合物 ${index + 1}` : `Complex ${index + 1}`}
             language={language}
             onChange={(value) => onSource(input.id, value)}
-            onAssetVerified={(asset, value) =>
-              onVerified(input.id, value, asset.name)
-            }
           />
           {inputs.length > 1 && (
             <button type="button" onClick={() => onRemove(input.id)}>
