@@ -1,5 +1,7 @@
 """Short study questions retain the original experimental target and the limits of each stage."""
 
+from .stage_hints import STAGES
+
 PURPOSES = {
     "del.library": (
         "核对 DEL006 的三轮砌块、条码和化学规则。",
@@ -18,8 +20,8 @@ PURPOSES = {
         "Review raw reads, unique UMIs and corrected counts within each sample and compound.",
     ),
     "del.analyze": (
-        "比较真实 BRD4 重复、对应空白对照和两个洗脱组的富集证据。",
-        "Compare real BRD4 replicates, matched matrix controls and the two eluates.",
+        "比较 BRD4 靶点样本、对应空白对照和两个洗脱组的富集证据。",
+        "Compare BRD4 target samples, matched matrix controls and the two eluates.",
     ),
     "del.series": (
         "用 B、C 两轮砌块查看系列富集和实际观测覆盖。",
@@ -80,24 +82,7 @@ def context(capability):
         ],
         "required_materials": [],
         "guide": {
-            "steps": [
-                PURPOSES[capability],
-                (
-                    "核对本步骤的公开原始材料或已完成的上一步结果。",
-                    "Review this stage's original public materials or completed upstream result.",
-                ),
-                (
-                    "核对条码或分组；分析使用八列原始读数，两次洗脱分别比较对应空白。",
-                    (
-                        "Confirm barcodes or sample groups; compare each eluate with its matched "
-                        "matrix control using the eight original read-count columns."
-                    ),
-                ),
-                (
-                    "提交后检查失败记录、对照及重复差异，再下载原始结果。",
-                    "Inspect failures, controls and replicate variation, then download outputs.",
-                ),
-            ],
+            "steps": [PURPOSES[capability], *STAGES[capability]],
             "interpretation": (
                 (
                     "原实验靶点是 BRD4，不是 STAT6。公开读段只有 1,000 条，"

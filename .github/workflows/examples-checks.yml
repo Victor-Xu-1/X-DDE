@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/examples/**'
+      # DEL cohort wording has its exact stage-guidance gate, without unrelated forms.
+      - '!src/opendde_workbench/examples/del6/guidance.py'
+      - '!src/opendde_workbench/examples/del6/stage_hints.py'
+      - '!src/opendde_workbench/examples/del6/current-inputs.json'
       - '!src/opendde_workbench/examples/bundle*.py'
       - '!src/opendde_workbench/examples/native_sources.py'
       - '!src/opendde_workbench/examples/evidence.py'
@@ -59,6 +63,9 @@ on:
   pull_request:
     paths:
       - 'src/opendde_workbench/examples/**'
+      - '!src/opendde_workbench/examples/del6/guidance.py'
+      - '!src/opendde_workbench/examples/del6/stage_hints.py'
+      - '!src/opendde_workbench/examples/del6/current-inputs.json'
       - '!src/opendde_workbench/examples/bundle*.py'
       - '!src/opendde_workbench/examples/native_sources.py'
       - '!src/opendde_workbench/examples/evidence.py'

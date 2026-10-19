@@ -1,0 +1,25 @@
+name: DEL study guidance scoped checks
+on:
+  push:
+    paths: &del_guidance_paths
+      - 'src/opendde_workbench/examples/del6/guidance.py'
+      - 'src/opendde_workbench/examples/del6/stage_hints.py'
+      - 'src/opendde_workbench/examples/del6/current-inputs.json'
+      - 'tests/test_del_current_examples.py'
+      - '.github/workflows/del-example-guidance-checks.yml'
+  pull_request:
+    paths: *del_guidance_paths
+permissions:
+  contents: read
+jobs:
+  del-guidance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Check DEL evidence scope, cohort metadata and sealed replay only
+        run: uv run --locked pytest -q tests/test_del_current_examples.py

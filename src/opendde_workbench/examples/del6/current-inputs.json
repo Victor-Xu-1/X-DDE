@@ -7,8 +7,8 @@
       "BRD4 · DEL006 experimental selection"
     ],
     "description": [
-      "使用公开 BRD4 实验的真实条码、读段及全部 518,285 个观测成员的原始计数。两组洗脱分别包含三个靶点重复和一个空白对照；保留原靶点 BRD4。",
-      "Real public BRD4 barcodes, reads and raw counts for all 518,285 observed members. Each eluate has three target replicates and one matrix control; the original target remains BRD4."
+      "使用公开 BRD4 实验的真实条码、读段及全部 518,285 个观测成员的原始计数。两组洗脱各有三列靶点样本及对应空白对照；保留原靶点 BRD4。",
+      "Real public BRD4 barcodes, reads and raw counts for all 518,285 observed members. Each eluate has three target-sample columns and a matched matrix control; the original target remains BRD4."
     ],
     "files": [
       "del_definition",

@@ -7,6 +7,7 @@ from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
 from opendde_workbench.examples.catalogue import FILES as ARCHIVE_FILES
 from opendde_workbench.examples.contracts import SourceFile
 from opendde_workbench.examples.del6.catalogue import CASE, FILES, MODULES
+from opendde_workbench.examples.del6.guidance import context
 from opendde_workbench.examples.stat6.catalogue import MODULES as STAT6_MODULES
 
 
@@ -81,3 +82,27 @@ def test_sealed_del_replay_does_not_import_materials_again(monkeypatch):
     assert prepared.request == sentinel
     assert prepared.data_assets == prepared.objects == {}
     assert prepared.study["target"] == "BRD4"
+
+
+@pytest.mark.parametrize("capability", sorted(MODULES))
+def test_each_del_questionnaire_explains_its_own_evidence_scope(capability):
+    study = context(capability)
+    assert len(study["guide"]["steps"]) == 4
+    for bilingual in study["guide"]["steps"]:
+        assert len(bilingual) == 2 and all(text.strip() for text in bilingual)
+    hints = " ".join(text for pair in study["guide"]["steps"] for text in pair)
+    if capability in {"del.decode", "del.count", "del.enumerate", "del.library"}:
+        assert "eluate" not in hints and "八列" not in hints
+    if capability == "del.count":
+        assert "完整 UMI" in hints and "do not imply zero molecules" in hints
+    if capability == "del.enumerate":
+        assert "unobserved combinations are not experimental hits" in hints
+        assert "attachment markers" in hints
+    if capability == "del.analyze":
+        assert "three target-sample columns" in hints
+        assert "PCR bias" in hints and "enrichment is not affinity" in hints
+
+
+def test_count_source_description_does_not_invent_independent_biological_replicates():
+    assert "three target-sample columns" in CASE.description[1]
+    assert "three target replicates" not in CASE.description[1]
