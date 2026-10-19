@@ -44,16 +44,18 @@ def check_barcode_quality(page, root, state, identifier, evidence, language):
     expect(table).to_be_visible()
     # Plotly resizes asynchronously after ResizeObserver/window notifications.
     # Keep the exact overflow requirement, and observe the completed layout.
-    page.wait_for_function(
-        "document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
-    )
-    page.screenshot(path=str(evidence / (language + "-barcode-quality-mobile.png")))
-    widths = page.evaluate("""() => ({width: innerWidth,
-      scroll: document.documentElement.scrollWidth,
-      overflow: Array.from(document.querySelectorAll('body *')).map(el => ({
-        tag: el.tagName, class: String(el.className), right: el.getBoundingClientRect().right,
-        width: el.getBoundingClientRect().width, scroll: el.scrollWidth
-      })).filter(el => el.right > innerWidth + 1).slice(0, 30)})""")
-    (evidence / (language + "-barcode-mobile-bounds.json")).write_text(json.dumps(widths))
+    try:
+        page.wait_for_function(
+            "() => document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
+        )
+    finally:
+        page.screenshot(path=str(evidence / (language + "-barcode-quality-mobile.png")))
+        widths = page.evaluate("""() => ({width: innerWidth,
+          scroll: document.documentElement.scrollWidth,
+          overflow: Array.from(document.querySelectorAll('body *')).map(el => ({
+            tag: el.tagName, class: String(el.className), right: el.getBoundingClientRect().right,
+            width: el.getBoundingClientRect().width, scroll: el.scrollWidth
+          })).filter(el => el.right > innerWidth + 1).slice(0, 30)})""")
+        (evidence / (language + "-barcode-mobile-bounds.json")).write_text(json.dumps(widths))
     assert widths["scroll"] <= widths["width"] + 1, widths
     page.set_viewport_size({"width": 1440, "height": 1000})
