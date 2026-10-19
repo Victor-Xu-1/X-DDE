@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { GLModel } from "3dmol";
 import { afterAll, describe, expect, it, vi } from "vitest";
 // Only the unused worker Blob URL is isolated; both real molecular parsers run.
@@ -13,9 +14,9 @@ import { retainModifiedPolymer } from "./modified-polymer";
 describe("deposited modified-polymer display classification", () => {
   it("retains both real STAT6 phosphotyrosines without changing their atoms or coordinates", async () => {
     const source = readFileSync(
-      new URL(
-        "../../../src/opendde_workbench/examples/stat6/inputs/4Y5U.cif",
-        import.meta.url,
+      resolve(
+        process.cwd(),
+        "../src/opendde_workbench/examples/stat6/inputs/4Y5U.cif",
       ),
       "utf8",
     );
