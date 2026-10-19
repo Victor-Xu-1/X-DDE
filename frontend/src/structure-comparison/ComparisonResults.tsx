@@ -40,18 +40,6 @@ export function ComparisonResults({
     [handoff, setHandoff] = useState(false);
   const columns: ResearchColumn<Displacement>[] = [
     {
-      key: "role",
-      label: zh ? "角色" : "Role",
-      value: (r) =>
-        r.role === "target"
-          ? zh
-            ? "靶蛋白"
-            : "Target"
-          : zh
-            ? "伙伴"
-            : "Partner",
-    },
-    {
       key: "reference",
       label: zh ? "参照" : "Reference",
       value: (r) => addressLabel(r.reference) + " " + r.reference_letter,
@@ -66,6 +54,18 @@ export function ComparisonResults({
       label: zh ? "位移（Å）" : "Displacement (Å)",
       numeric: true,
       value: (r) => r.displacement_angstrom,
+    },
+    {
+      key: "role",
+      label: zh ? "角色" : "Role",
+      value: (r) =>
+        r.role === "target"
+          ? zh
+            ? "靶蛋白"
+            : "Target"
+          : zh
+            ? "伙伴"
+            : "Partner",
     },
   ];
   const saved = result.derived_references?.moving;

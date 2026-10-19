@@ -53,11 +53,13 @@ def verify_browser(state, job_id, result, evidence):
                 expect(
                     table.get_by_role(
                         "columnheader", name="位移（Å）" if zh else "Displacement (Å)", exact=True
-                    )
+                    ).get_by_role("button")
                 ).to_be_in_viewport(ratio=1)
                 for title in ("参照", "比较") if zh else ("Reference", "Comparison"):
                     expect(
-                        table.get_by_role("columnheader", name=title, exact=True)
+                        table.get_by_role("columnheader", name=title, exact=True).get_by_role(
+                            "button"
+                        )
                     ).to_be_in_viewport(ratio=1)
                 row.click()
                 expect(panel.locator("output")).to_be_visible()
