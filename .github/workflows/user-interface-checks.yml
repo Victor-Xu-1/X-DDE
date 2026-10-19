@@ -203,6 +203,8 @@ on:
       # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
       - "!frontend/src/integrations/ProteinInterface*"
       - "!frontend/src/viewer/modified-polymer*"
+      - "!frontend/src/integrations/types.ts"
+      - "!frontend/src/operations/ToolCenter.tsx"
       - "!.github/workflows/user-interface-checks.yml"
       # Saved-material handoff uses result-handoff-checks.yml.
       - "!frontend/src/docking/DockingResults*"

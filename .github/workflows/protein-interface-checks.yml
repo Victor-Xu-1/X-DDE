@@ -45,7 +45,7 @@ jobs:
           src/integrations/ScientificResults.test.tsx
           src/viewer/scientific-overlay.test.ts
   native-stat6-interface:
-    if: github.event_name == 'workflow_dispatch' && inputs.native
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.native)
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:

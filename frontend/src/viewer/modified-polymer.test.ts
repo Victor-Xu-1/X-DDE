@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 import { GLModel } from "3dmol";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
+// Only the unused worker Blob URL is isolated; both real molecular parsers run.
+const workerUrl = vi.hoisted(() =>
+  vi
+    .spyOn(URL, "createObjectURL")
+    .mockReturnValue("blob:modified-polymer-worker"),
+);
+afterAll(() => workerUrl.mockRestore());
 import { retainModifiedPolymer } from "./modified-polymer";
 
 describe("deposited modified-polymer display classification", () => {
