@@ -50,3 +50,28 @@ def test_deposited_phosphotyrosine_atoms_and_polymer_annotations_roundtrip(tmp_p
     with pytest.raises(ValueError, match="changed source identities or aligned coordinates"):
         verify_export(again, output)
     assert hashlib.sha256(source.read_bytes()).hexdigest() == original_sha
+
+
+def test_missing_pdb_modification_annotations_cannot_silently_remove_real_stat6_PTR(
+    tmp_path, monkeypatch
+):
+    from Bio.PDB import PDBIO
+
+    from opendde_workbench.structure_comparison.native_polymer import selected_polymer
+
+    folder = Path(__file__).parents[1] / "src/opendde_workbench/receptors"
+    monkeypatch.syspath_prepend(str(folder))
+    from native_io import read_model
+    from selection import MemberSelection
+
+    original = folder.parent / "examples/stat6/inputs/4Y5U.cif"
+    model, _ = read_model(original, MemberSelection(chains=("A", "B")))
+    converted = tmp_path / "conversion-without-MODRES.pdb"
+    writer = PDBIO()
+    writer.set_structure(model)
+    writer.save(str(converted))
+    assert "MODRES" not in converted.read_text()
+    parsed, _ = read_model(converted, MemberSelection(chains=("A", "B")))
+    assert sum(res.resname == "PTR" for res in parsed.get_residues()) == 2
+    with pytest.raises(ValueError, match="must not be silently discarded"):
+        selected_polymer(converted, parsed)

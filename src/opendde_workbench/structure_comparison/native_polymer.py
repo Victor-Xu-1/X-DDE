@@ -73,6 +73,12 @@ def selected_polymer(file, model):
         for residue in list(chain):
             key = (chain.id, residue.id[1], residue.id[2].strip(), residue.resname)
             if key not in expected:
+                if file.suffix == ".pdb" and residue.resname in protein_letters_3to1_extended:
+                    raise ValueError(
+                        "An amino-acid-like PDB HETATM lacks a source MODRES annotation. "
+                        "Use the deposited mmCIF or explicitly prepare its polymer identity; "
+                        "modified residues must not be silently discarded."
+                    )
                 excluded.append(
                     {
                         "chain": chain.id,
