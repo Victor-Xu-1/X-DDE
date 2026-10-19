@@ -51,7 +51,7 @@ class InterfaceCoordinates(SourceCoordinates):
         self.expected = set()
         lines = file.read_text().splitlines()
         modified = {
-            (line[16], int(line[18:22]), line[12:15].strip())
+            (line[16], int(line[18:22]), line[12:15].strip(), line[22].strip())
             for line in lines
             if line.startswith("MODRES")
         }
@@ -63,8 +63,8 @@ class InterfaceCoordinates(SourceCoordinates):
             point = tuple(float(line[start : start + 8]) for start in (30, 38, 46))
             identity = (line[21], int(line[22:26]), line[17:20].strip(), line[26].strip())
             self.identities.setdefault(point, set()).add(identity)
-            if line.startswith("ATOM  ") or identity[:3] in modified:
-                self.expected.add(identity[:3])
+            if line.startswith("ATOM  ") or identity in modified:
+                self.expected.add(identity)
             if line[16] not in {" ", "A"}:
                 raise ValueError(
                     "Select one resolved alternate conformation before interface analysis."

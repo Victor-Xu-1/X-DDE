@@ -29,13 +29,18 @@ def analyze_candidate(request, item, index):
     directory.mkdir(parents=True, exist_ok=True)
     complex_.output_path = str(directory) + "/"
     complex_.load_pdb(str(source))
-    included = {
-        (r.GetChain(), int32_to_negative(r.GetNum()), r.GetName())
-        for r in complex_.resis
-        if r.GetChain() in coordinates.targets
-    }
+
+    def identity(residue):
+        return (
+            residue.GetChain(),
+            int32_to_negative(residue.GetNum()),
+            residue.GetName(),
+            residue.GetInsertionCode().strip("\x00 "),
+        )
+
+    included = {identity(r) for r in complex_.resis if r.GetChain() in coordinates.targets}
     for ligand in complex_.ligands:
-        included.update((chain, number, name) for name, chain, number in ligand.members)
+        included.update(identity(atom.OBAtom.GetResidue()) for atom in ligand.mol.atoms)
     expected = {
         r for r in coordinates.expected if r[0] in coordinates.targets | coordinates.binders
     }
