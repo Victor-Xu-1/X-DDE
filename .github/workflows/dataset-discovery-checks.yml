@@ -12,6 +12,9 @@ on:
       - 'tests/test_dataset*'
       - 'tests/test_supplier*'
       - 'server_tests/*dataset*'
+      - 'server_tests/test_del_umi_count.py'
+      - 'tests/test_del_umi.py'
+      - 'scripts/del-ci-scope.py'
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/datasets/CountBars.tsx"
       - "!frontend/src/datasets/DatasetCharts.test.tsx"
@@ -148,6 +151,13 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select exact DEL or wider dataset consumers
+        id: scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/del-ci-scope.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -155,6 +165,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Research upload and directly affected trust boundaries
+        if: steps.scope.outputs.del_only != 'true'
         run: >-
           uv run --locked pytest -q tests/test_dataset_uploads.py
           tests/test_dataset_contracts.py tests/test_api_security.py
@@ -170,14 +181,31 @@ jobs:
           tests/test_supplier_resources.py
           tests/test_supplier_text.py
       - name: Changed data forms, upload and workflow UI only
+        if: steps.scope.outputs.del_only != 'true'
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts
+      - name: DEL completeness, submission, source integrity, paging and direct worker contracts
+        if: steps.scope.outputs.del_only == 'true'
+        run: >-
+          uv run --locked pytest -q tests/test_del_umi.py tests/test_dataset_contracts.py
+          tests/test_dataset_views.py tests/test_dataset_worker.py tests/test_dataset_workflows.py
+      - name: Actual UMI method choices and unchanged template replay
+        if: steps.scope.outputs.del_only == 'true'
+        working-directory: frontend
+        run: npx vitest run src/datasets/UMICountChoices.test.tsx src/datasets/DELTemplateReplay.test.tsx
   native-del-data:
     if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select exact native DEL or wider dataset consumers
+        id: scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/del-ci-scope.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -189,10 +217,19 @@ jobs:
           uv pip install --python .dataset-native/bin/python --require-hashes -r src/opendde_workbench/integrations/recipes/deli.txt
           uv pip install --python .dataset-native/bin/python -e . pytest==9.1.1 pydantic==2.13.0
       - name: Real compound libraries, public DEL chemistry/reads/counts and ranking boundaries only
+        if: steps.scope.outputs.del_only != 'true'
         env:
           PYTHONPATH: src
           WB_TEST_DATASET_NATIVE: '1'
         run: .dataset-native/bin/python -m pytest -q server_tests/test_dataset_native.py server_tests/test_dataset_curation.py
+      - name: Real public 1000-read decoding, professional UMI methods and incomplete-barcode exclusions
+        if: steps.scope.outputs.del_only == 'true'
+        env:
+          PYTHONPATH: src
+          WB_TEST_DATASET_NATIVE: '1'
+        run: >-
+          .dataset-native/bin/python -m pytest -q server_tests/test_del_umi_count.py
+          server_tests/test_dataset_native.py -k 'umi'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

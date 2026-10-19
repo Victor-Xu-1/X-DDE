@@ -8,6 +8,7 @@ import { supplierLabel } from "./supplier-label";
 import { ResultRow } from "../presentation/ResultRow";
 import { memberPageCsv } from "./member-page-export";
 import { downloadBlob } from "../presentation/visual-export";
+import { umiStateLabel } from "./sequencing-quality";
 
 export type TableRow = Record<string, string | number | null>;
 interface Page {
@@ -36,6 +37,13 @@ const labels: Record<string, [string, string]> = {
   raw: ["读段", "Reads"],
   unique_umi: ["独立 UMI", "Unique UMIs"],
   corrected_umi: ["纠错 UMI", "Corrected UMIs"],
+  eligible_reads: ["完整 UMI 读段", "Complete-UMI reads"],
+  excluded_reads: ["不用于 UMI 去重", "Excluded from UMI deduplication"],
+  umi: ["UMI 序列", "UMI sequence"],
+  reads: ["读段", "Reads"],
+  observed_length: ["UMI 长度", "UMI length"],
+  expected_length: ["定义长度", "Expected length"],
+  umi_status: ["UMI 完整性", "UMI completeness"],
   kind: ["系列", "Series"],
   block_a: ["砌块 A", "Block A"],
   block_b: ["砌块 B", "Block B"],
@@ -61,7 +69,24 @@ const views = {
     "replicate_cv",
     "flags",
   ],
-  counts: ["member", "sample", "raw", "unique_umi", "corrected_umi"],
+  counts: [
+    "member",
+    "sample",
+    "raw",
+    "eligible_reads",
+    "excluded_reads",
+    "unique_umi",
+    "corrected_umi",
+  ],
+  decoded: [
+    "member",
+    "sample",
+    "umi",
+    "reads",
+    "observed_length",
+    "expected_length",
+    "umi_status",
+  ],
   series: [
     "kind",
     "block_a",
@@ -253,6 +278,8 @@ export function ResearchTable({
                             {zh ? "结构待解析" : "Unresolved"}
                           </span>
                         )
+                      ) : key === "umi_status" ? (
+                        umiStateLabel(row.umi_status, zh)
                       ) : key === "supplier" ? (
                         supplierLabel(row.supplier, zh)
                       ) : key === "flags" ? (

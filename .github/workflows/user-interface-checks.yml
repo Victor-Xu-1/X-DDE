@@ -195,6 +195,7 @@ on:
       - "!frontend/src/presentation/active-indicator.css"
       # Questionnaire availability controls use task-readiness-checks.yml.
       - "!frontend/src/datasets/DELForm.tsx"
+      - "!frontend/src/datasets/DELMethodQuestion.tsx"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
       - "!.github/workflows/user-interface-checks.yml"
@@ -445,6 +446,7 @@ on:
       - "!frontend/src/presentation/active-indicator.css"
       # Questionnaire availability controls use task-readiness-checks.yml.
       - "!frontend/src/datasets/DELForm.tsx"
+      - "!frontend/src/datasets/DELMethodQuestion.tsx"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
       - "!.github/workflows/user-interface-checks.yml"

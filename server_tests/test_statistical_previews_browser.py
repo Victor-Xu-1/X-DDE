@@ -9,6 +9,7 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.settings import Settings
 from server_tests.barcode_quality_browser import check_barcode_quality
 from server_tests.browser_platform import platform
+from server_tests.decoding_quality_browser import check_decoding_quality
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
 
 
@@ -152,6 +153,10 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         inspect_svg(svg, "")
         if capability == "del.library":
             check_barcode_quality(
+                page, root, Settings.from_env().state_dir, identifier, evidence, language
+            )
+        if capability == "del.decode":
+            check_decoding_quality(
                 page, root, Settings.from_env().state_dir, identifier, evidence, language
             )
         if capability == "del.series":

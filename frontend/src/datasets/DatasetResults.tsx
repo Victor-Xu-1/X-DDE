@@ -34,17 +34,19 @@ export function DatasetResults({
     ? "enrichment"
     : result.artifacts.some((file) => file.role === "compound_count_matrix")
       ? "counts"
-      : result.artifacts.some((file) => file.role === "del_series_counts")
-        ? "series"
-        : result.artifacts.some(
-              (file) => file.role === "reported_followup_measurements",
-            )
-          ? "followup"
-          : result.data_kind === "library"
-            ? "library"
-            : result.data_kind === "index"
-              ? "index"
-              : null;
+      : result.data_kind === "decoded"
+        ? "decoded"
+        : result.artifacts.some((file) => file.role === "del_series_counts")
+          ? "series"
+          : result.artifacts.some(
+                (file) => file.role === "reported_followup_measurements",
+              )
+            ? "followup"
+            : result.data_kind === "library"
+              ? "library"
+              : result.data_kind === "index"
+                ? "index"
+                : null;
   const hasCharts =
     chartArtifacts(result.artifacts).length > 0 ||
     countSummary(result) !== null;
@@ -59,6 +61,7 @@ export function DatasetResults({
       ([key, value]) =>
         names[key] &&
         key !== "shards" &&
+        !(result.operation === "del_count" && key === "member_sample_pairs") &&
         !(key === "unresolved_structures" && value === 0),
     )
     .slice(0, 5);

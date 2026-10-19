@@ -5,6 +5,7 @@
   --dataset-ink: #24344c;
   --dataset-soft: #f6f8fc;
   width: 100%;
+  min-width: 0;
   color: var(--dataset-ink);
 }
 .dataset-continuation {
@@ -397,6 +398,8 @@
 .dataset-table-scroll {
   overflow: auto;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: #fff;
   min-height: 90px;
   max-height: min(48vh, 560px);
@@ -568,6 +571,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
+  min-width: 0;
+  max-width: 100%;
 }
 .dataset-chart {
   min-width: 0;

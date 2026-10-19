@@ -68,6 +68,43 @@ it("shows chart-only model results directly without two identical result tabs", 
   expect(screen.queryByRole("button", { name: /^Results$/ })).toBeNull();
 });
 
+it("offers decoded member observations before the separate quality view without calling them unique molecules", () => {
+  const result = {
+    ...data("decoded", true),
+    counts: {
+      input_reads: 1000,
+      decoded_reads: 710,
+      distinct_umi_records: 703,
+    },
+  };
+  render(<DatasetResults job={job} result={result} language="en" />);
+  expect(screen.getByText("Native members: decoded")).toBeVisible();
+  expect(screen.getByText("UMI observations")).toBeVisible();
+  expect(screen.queryByText("Distinct UMIs")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Charts and quality" }),
+  ).toBeVisible();
+});
+
+it("keeps UMI exclusions visible in count summaries instead of spending space on matrix bookkeeping", () => {
+  const result = {
+    ...data("counts"),
+    operation: "del_count" as const,
+    counts: {
+      counted_reads: 710,
+      observed_members: 701,
+      member_sample_pairs: 701,
+      samples: 1,
+      complete_umi_reads: 709,
+      excluded_umi_reads: 1,
+    },
+  };
+  render(<DatasetResults job={job} result={result} language="en" />);
+  expect(screen.getByText("Complete-UMI reads")).toBeVisible();
+  expect(screen.getByText("Excluded from UMI deduplication")).toBeVisible();
+  expect(screen.queryByText("Member/sample pairs")).toBeNull();
+});
+
 it("opens prepared libraries in the shared native member inspector", () => {
   render(<DatasetResults job={job} result={data("library")} language="en" />);
   expect(

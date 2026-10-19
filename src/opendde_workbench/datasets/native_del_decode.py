@@ -10,6 +10,7 @@ from del_decoder_compat import reviewed_decoder
 from del_definition import prepare_home
 from del_fastq import Quality
 from del_read_pairs import observations
+from del_umi import database_summary, expected_lengths, umi_status
 from platformnative_io import finish, input_file, progress, source_result, write_csv
 
 
@@ -23,6 +24,7 @@ def run(request):
     root, _ = source_result(request)
     definition = json.loads((root / "del-definition.json").read_text())
     libraries = prepare_home(definition)
+    umi_lengths = expected_lengths(definition)
     options = request["payload"]
     settings = DecodingSettings(
         revcomp=options["reverse_complement"],
@@ -73,6 +75,7 @@ def run(request):
     database.execute("PRAGMA cache_size=-16384")
     database.executescript("""
         CREATE TABLE reads (sample TEXT,library TEXT,member TEXT,cycles TEXT,umi TEXT,count INTEGER,
+          umi_status TEXT NOT NULL,
           PRIMARY KEY(sample,library,member,umi));
         CREATE INDEX member_umi ON reads(sample,library,member);
         CREATE TABLE failures (reason TEXT PRIMARY KEY, count INTEGER NOT NULL);
@@ -126,13 +129,13 @@ def run(request):
                     )
                 member = generate_del_compound_id(library, blocks)
                 umi = row.get("umi", "") or ""
-                if umi and (set(umi) - set("ACGT") or len(umi) > 64):
-                    reasons["invalid_or_ambiguous_umi"] += 1
-                    continue
+                # A member call and a complete molecular barcode are distinct observations.
+                state = umi_status(umi, umi_lengths[library])
                 database.execute(
-                    "INSERT INTO reads VALUES (?,?,?,?,?,1) ON CONFLICT(sample,library,member,umi) "
+                    "INSERT INTO reads VALUES (?,?,?,?,?,1,?) "
+                    "ON CONFLICT(sample,library,member,umi) "
                     "DO UPDATE SET count=count+1",
-                    (sample["sample"], library, member, json.dumps(blocks), umi),
+                    (sample["sample"], library, member, json.dumps(blocks), umi, state),
                 )
                 decoded += 1
                 corrected += outcome.get_overall_score() > 0
@@ -144,8 +147,21 @@ def run(request):
         database.commit()
         if total != decoded + sum(reasons.values()) or not total:
             raise ValueError("Raw DEL reads do not reconcile with decoded and rejected reads.")
+        database.execute(
+            "CREATE INDEX observation_depth ON reads(count DESC,sample,library,member,umi)"
+        )
+        database.commit()
         grouped = database.execute("SELECT COUNT(*) FROM reads").fetchone()[0]
+        integrity = database_summary(database, umi_lengths)
         write_csv("/output/decode-failures.csv", ["reason", "reads"], sorted(reasons.items()))
+        write_csv(
+            "/output/decoded-members.csv",
+            ["sample", "library", "member", "umi", "reads", "umi_status"],
+            database.execute(
+                "SELECT sample,library,member,umi,count,umi_status FROM reads "
+                "ORDER BY sample,library,member,umi"
+            ),
+        )
     finally:
         database.close()
     Path("/output/sequencing-qc.json").write_text(
@@ -157,6 +173,7 @@ def run(request):
                 "failures": dict(reasons),
                 "sample_assignment": options["read_samples"],
                 "umi_scope": "within_sample_and_compound",
+                "umi_integrity": integrity,
                 "trimming": "none; the native DEL barcode schema is preserved",
                 "paired_reads": "one confirmed code-bearing mate per matched pair",
             }
@@ -170,6 +187,7 @@ def run(request):
             "decoded.sqlite": "decoded_umi_evidence",
             "sequencing-qc.json": "sequencing_quality",
             "decode-failures.csv": "decode_failure_counts",
+            "decoded-members.csv": "decoded_member_observations",
         },
         counts={
             "input_reads": total,
@@ -177,10 +195,14 @@ def run(request):
             "rejected_reads": total - decoded,
             "decoded_with_errors": corrected,
             "distinct_umi_records": grouped,
+            "complete_umi_reads": integrity["reads_by_status"]["complete"],
+            "complete_umi_records": integrity["records_by_status"]["complete"],
+            "excluded_umi_reads": decoded - integrity["reads_by_status"]["complete"],
         },
         metadata={
             "samples": sorted({sample["sample"] for sample in options["read_samples"]}),
             "definition": request["sources"][0],
             "method": "DELi.SelectionDecoder.search_all",
+            "umi_integrity": integrity,
         },
     )

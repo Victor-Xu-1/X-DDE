@@ -8,6 +8,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..artifacts import contained
+from .del_umi import read_summary
 from .integrity import verified
 
 RESULT_KINDS = {
@@ -124,6 +125,22 @@ def validate_result(value, request, output: Path, *, full_hash=True):
             )
     if any(value < 0 for value in result.counts.values()):
         raise ValueError("Research record counts cannot be negative.")
+    if request.operation == "del_decode":
+        integrity = read_summary(
+            result.metadata.get("umi_integrity"),
+            result.counts.get("decoded_reads"),
+            result.counts.get("distinct_umi_records"),
+        )
+        if integrity is not None and (
+            result.counts.get("complete_umi_reads") != integrity["reads_by_status"]["complete"]
+            or result.counts.get("complete_umi_records")
+            != integrity["records_by_status"]["complete"]
+            or result.counts.get("excluded_umi_reads")
+            != result.counts["decoded_reads"] - integrity["reads_by_status"]["complete"]
+            or result.counts.get("input_reads")
+            != result.counts["decoded_reads"] + result.counts.get("rejected_reads", -1)
+        ):
+            raise ValueError("Decoded reads and UMI completeness summaries do not reconcile.")
     for item in result.artifacts:
         file = contained(output, item.name)
         if file.stat().st_size != item.size:

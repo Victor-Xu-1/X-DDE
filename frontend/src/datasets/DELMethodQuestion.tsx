@@ -1,4 +1,5 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
+import { UMICountChoices } from "./UMICountChoices";
 import { Hint } from "../guided/Hint";
 import { SourcePicker } from "./SourcePicker";
 import type { DELFormState } from "./useDELForm";
@@ -33,30 +34,11 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
   return (
     <div className="dataset-question-content">
       {mode === "count" && (
-        <ChoiceCards<"directional" | "unique" | "raw">
-          label={zh ? "计数方法" : "Counting method"}
+        <UMICountChoices
           value={umi}
           onChange={setUmi}
-          options={[
-            {
-              value: "directional",
-              title: zh ? "UMI 纠错 · 推荐" : "UMI correction · Recommended",
-              note: zh
-                ? "在样本和成员内进行方向图纠错"
-                : "Directional correction within each sample and member",
-            },
-            {
-              value: "unique",
-              title: zh ? "独立 UMI" : "Unique UMIs",
-            },
-            {
-              value: "raw",
-              title: zh ? "仅原始读段" : "Raw reads only",
-              note: zh
-                ? "无 UMI 时使用，保留 PCR 偏倚限制"
-                : "For un-UMI'd data; PCR bias remains",
-            },
-          ]}
+          issue={model.umiIssue}
+          language={language}
         />
       )}
       {mode === "analyze" && (

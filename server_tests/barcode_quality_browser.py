@@ -42,6 +42,13 @@ def check_barcode_quality(page, root, state, identifier, evidence, language):
     page.set_viewport_size({"width": 390, "height": 844})
     table.scroll_into_view_if_needed()
     expect(table).to_be_visible()
-    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
     page.screenshot(path=str(evidence / (language + "-barcode-quality-mobile.png")))
+    widths = page.evaluate("""() => ({width: innerWidth,
+      scroll: document.documentElement.scrollWidth,
+      overflow: Array.from(document.querySelectorAll('body *')).map(el => ({
+        tag: el.tagName, class: String(el.className), right: el.getBoundingClientRect().right,
+        width: el.getBoundingClientRect().width, scroll: el.scrollWidth
+      })).filter(el => el.right > innerWidth + 1).slice(0, 30)})""")
+    (evidence / (language + "-barcode-mobile-bounds.json")).write_text(json.dumps(widths))
+    assert widths["scroll"] <= widths["width"] + 1, widths
     page.set_viewport_size({"width": 1440, "height": 1000})

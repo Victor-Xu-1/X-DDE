@@ -3,9 +3,11 @@ import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 
 export function SequencingQualityPlot({
   values,
+  coverage,
   language,
 }: {
   values: number[];
+  coverage?: number[];
   language: Language;
 }) {
   const zh = language === "zh";
@@ -19,9 +21,13 @@ export function SequencingQualityPlot({
           mode: "lines+markers",
           x: values.map((_, i) => i + 1),
           y: values,
+          customdata: coverage,
           line: { color: "#2494ad", width: 2.4 },
           marker: { size: 4 },
-          hovertemplate: "%{x} · %{y:.3f} Phred<extra></extra>",
+          hovertemplate:
+            "%{x} · %{y:.3f} Phred" +
+            (coverage ? `<br>%{customdata:,} ${zh ? "读段" : "reads"}` : "") +
+            "<extra></extra>",
         },
       ]}
       layout={{

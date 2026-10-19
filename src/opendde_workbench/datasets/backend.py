@@ -27,6 +27,7 @@ FILES = (
     "del_decoder_compat.py",
     "del_fastq.py",
     "del_read_pairs.py",
+    "del_umi.py",
     "native_del_library.py",
     "native_del_decode.py",
     "native_del_count.py",

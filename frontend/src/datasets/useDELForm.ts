@@ -11,6 +11,7 @@ import { useTablePreview } from "./useTablePreview";
 import { newReadLane, validReadLanes, type ReadLane } from "./DELReadFiles";
 import { delExpertDefaults } from "./DELExpertSettings";
 import { useDatasetExample } from "./useDatasetExample";
+import { umiCountingIssue } from "./umi-count-readiness";
 import {
   defaultDELExecution,
   executionForDEL,
@@ -235,19 +236,22 @@ export function useDELForm({
                 (mode !== "model" ||
                   modelAction === "train" ||
                   models.length === 1);
+  const umiIssue = umiCountingIssue(source[0]);
   const planValid =
-    mode === "analyze"
-      ? samples.length > 0 &&
-        (!preview?.table || preview.columns.includes(memberId))
-      : mode === "enumerate"
-        ? !!library && (allMembers || !!members.trim())
-        : mode === "candidates"
-          ? selected.length > 0
-          : mode === "series" || mode === "model"
-            ? !!comparison
-            : mode === "decode"
-              ? validReadLanes(readLanes, true)
-              : firstValid;
+    mode === "count"
+      ? firstValid && (umi === "raw" || umiIssue === null)
+      : mode === "analyze"
+        ? samples.length > 0 &&
+          (!preview?.table || preview.columns.includes(memberId))
+        : mode === "enumerate"
+          ? !!library && (allMembers || !!members.trim())
+          : mode === "candidates"
+            ? selected.length > 0
+            : mode === "series" || mode === "model"
+              ? !!comparison
+              : mode === "decode"
+                ? validReadLanes(readLanes, true)
+                : firstValid;
   async function chooseDefinition(id: string) {
     setAsset(id ? await request<Asset>(`/assets/${id}/metadata`) : null);
   }
@@ -415,6 +419,7 @@ export function useDELForm({
     sourceRole,
     firstValid,
     planValid,
+    umiIssue,
     chooseDefinition,
     submit,
     execution,

@@ -295,6 +295,23 @@ def test_del_native_decode_and_compound_scoped_umi_counting_reconcile_public_rea
     assert decoded.counts["input_reads"] == 1000
     assert decoded.counts["decoded_reads"] > 100
     assert decoded.counts["decoded_reads"] + decoded.counts["rejected_reads"] == 1000
+    assert decoded.counts["decoded_reads"] == 710
+    assert decoded.counts["distinct_umi_records"] == 703
+    assert decoded.counts["complete_umi_reads"] == 709
+    assert decoded.counts["complete_umi_records"] == 702
+    assert decoded.counts["excluded_umi_reads"] == 1
+    qc = json.loads((native.root / "output/sequencing-qc.json").read_text())
+    assert qc["umi_integrity"]["expected_lengths"] == {"DEL006": 11}
+    assert qc["umi_integrity"]["reads_by_status"]["truncated"] == 1
+    with (native.root / "output/decoded-members.csv").open(encoding="utf-8-sig") as stream:
+        rows = list(csv.DictReader(stream))
+    partial = [row for row in rows if row["umi_status"] != "complete"]
+    assert len(partial) == 1
+    assert (partial[0]["member"], partial[0]["umi"], partial[0]["reads"]) == (
+        "DEL006-A071-B015-C004",
+        "ACAG",
+        "1",
+    )
     source = native.capture(decode)
     count = native.task(
         "del_count",
@@ -306,11 +323,16 @@ def test_del_native_decode_and_compound_scoped_umi_counting_reconcile_public_rea
     assert counted.counts["counted_reads"] == decoded.counts["decoded_reads"]
     database = sqlite3.connect(native.root / "output/counts.sqlite")
     assert all(
-        0 < corrected <= unique <= raw
+        0 <= corrected <= unique <= raw
         for raw, unique, corrected in database.execute(
             "SELECT raw,unique_umi,corrected_umi FROM counts"
         )
     )
+    assert counted.counts["complete_umi_reads"] == 709
+    assert counted.counts["excluded_umi_reads"] == 1
+    assert database.execute(
+        "SELECT SUM(eligible_reads),SUM(excluded_reads) FROM counts"
+    ).fetchone() == (709, 1)
     database.close()
 
 
@@ -355,5 +377,5 @@ def test_del_raw_counts_without_umi_cannot_be_presented_as_pcr_corrected(native)
         "report_sha256": hashlib.sha256(report.read_bytes()).hexdigest(),
     }
     corrected = native.task("del_count", {"kind": "deli", "mode": "count"}, sources=[source])
-    with pytest.raises(ValueError, match="lacks valid UMIs"):
+    with pytest.raises(ValueError, match="completeness was not assessed"):
         native.module("native_del_count").run(corrected.model_dump(mode="json"))

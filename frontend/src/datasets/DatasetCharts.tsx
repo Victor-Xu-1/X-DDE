@@ -7,6 +7,8 @@ import { useChartDocuments } from "./useChartDocuments";
 import { countSummary } from "./count-summary";
 import { CountEvidencePlot } from "./CountEvidencePlot";
 import { BarcodeQuality } from "./BarcodeQuality";
+import { SequencingDiagnostics } from "./SequencingDiagnostics";
+import { positionCoverage } from "./sequencing-quality";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 
@@ -73,8 +75,10 @@ export function DatasetCharts({
           />
           <SequencingQualityPlot
             values={sequencing.mean_quality}
+            coverage={positionCoverage(sequencing)}
             language={language}
           />
+          <SequencingDiagnostics document={sequencing} language={language} />
         </>
       )}
       {count && (

@@ -318,6 +318,7 @@ on:
       - "!frontend/src/studio/method-switch.css"
       # Questionnaire availability controls use task-readiness-checks.yml.
       - "!frontend/src/datasets/DELForm.tsx"
+      - "!frontend/src/datasets/DELMethodQuestion.tsx"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/CovalentEditor.tsx"
       - "!frontend/src/operations/FeatureForm.tsx"

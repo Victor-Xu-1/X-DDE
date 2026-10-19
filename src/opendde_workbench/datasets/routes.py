@@ -161,7 +161,7 @@ def register(app, store, settings, assets, mutation):
     @app.get("/api/datasets/{job_id}/table")
     def research_table(
         job_id: UUID,
-        view: str = Query(pattern="^(enrichment|counts|series|followup)$"),
+        view: str = Query(pattern="^(enrichment|counts|series|followup|decoded)$"),
         comparison: str = Query(default="", max_length=64),
         limit: int = Query(default=30, ge=1, le=100),
         offset: int = Query(default=0, ge=0, le=100000000),
@@ -174,6 +174,7 @@ def register(app, store, settings, assets, mutation):
             "counts": ("counts.sqlite", "compound_count_matrix"),
             "series": ("series.sqlite", "del_series_counts"),
             "followup": ("followup.sqlite", "reported_followup_measurements"),
+            "decoded": ("decoded.sqlite", "decoded_umi_evidence"),
         }[view]
         file_name, role = file_and_role
         if not any(item.name == file_name and item.role == role for item in result.artifacts):
@@ -189,6 +190,10 @@ def register(app, store, settings, assets, mutation):
             database.execute("PRAGMA trusted_schema=OFF")
             deadline = time.monotonic() + 5
             database.set_progress_handler(lambda: int(time.monotonic() > deadline), 10000)
+            if view == "decoded":
+                from .decoded_view import page as decoded_page
+
+                return decoded_page(database, result, limit=limit, offset=offset, search=search)
             values = []
             pattern = (
                 "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"

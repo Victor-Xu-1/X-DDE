@@ -26,6 +26,12 @@ on:
       - "frontend/src/simulations/OverlapHeatmap.tsx"
       - "server_tests/test_statistical_previews_browser.py"
       - "server_tests/barcode_quality_browser.py"
+      - "server_tests/decoding_quality_browser.py"
+      - "frontend/src/datasets/SequencingDiagnostics*"
+      - "frontend/src/datasets/sequencing-quality*"
+      - "frontend/src/datasets/ResearchTable*"
+      - "frontend/src/datasets/datasets.css"
+      - "scripts/del-ci-scope.py"
       - ".github/workflows/chart-quality-checks.yml"
       - "scripts/generate-plotly-css.py"
       # Dynamics/FEP-specific consumers now have simulation-view-checks.yml.
@@ -46,30 +52,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Select the affected barcode or shared chart consumers
+      - name: Select the affected DEL or shared chart consumers
         id: scope
         env:
-          BASE: ${{ github.event.before }}
-        run: |
-          python3 - <<'PY'
-          import os, subprocess
-          base = os.environ.get("BASE", "")
-          changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
-          barcode = {
-              "frontend/src/datasets/BarcodeQuality.tsx", "frontend/src/datasets/BarcodeQuality.test.tsx",
-              "frontend/src/datasets/barcode-quality.ts", "frontend/src/datasets/chart-documents.ts",
-              "frontend/src/datasets/chart-documents.test.ts", "frontend/src/datasets/DatasetCharts.tsx",
-              "frontend/src/datasets/DatasetCharts.test.tsx", "server_tests/barcode_quality_browser.py",
-              "server_tests/test_statistical_previews_browser.py",
-          }
-          companions = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1",
-              ".github/workflows/chart-quality-checks.yml", ".github/workflows/dataset-discovery-checks.yml",
-              ".github/workflows/user-interface-checks.yml", ".github/workflows/task-layout-checks.yml"}
-          selected = bool(set(changed) & barcode) and all(name in barcode | companions for name in changed)
-          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              output.write("barcode_only=" + str(selected).lower() + "\n")
-          print("Barcode documents, table, download and direct chart consumers" if selected else "Shared chart consumers")
-          PY
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/del-ci-scope.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -77,7 +64,7 @@ jobs:
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Changed chart, document, structure appearance and direct simulation consumers
-        if: steps.scope.outputs.barcode_only != 'true'
+        if: steps.scope.outputs.del_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/DatasetCharts.test.tsx src/datasets/DatasetResults.test.tsx src/datasets/chart-documents.test.ts
@@ -88,11 +75,13 @@ jobs:
           src/publication/embedded-raster.test.ts src/viewer/style.test.ts
           src/simulations/SimulationResults.test.tsx
       - name: Native barcode evidence, missing/contradictory checks and direct result consumers
-        if: steps.scope.outputs.barcode_only == 'true'
+        if: steps.scope.outputs.del_only == 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/BarcodeQuality.test.tsx src/datasets/chart-documents.test.ts
           src/datasets/DatasetCharts.test.tsx src/datasets/DatasetResults.test.tsx
+          src/datasets/sequencing-quality.test.ts src/datasets/SequencingDiagnostics.test.tsx
+          src/datasets/ResearchTable.test.tsx src/datasets/statistical-plots.test.tsx
       - name: Restore public research cases and graphical tools; never re-run science for layout
         env:
           GH_TOKEN: ${{ github.token }}
@@ -105,11 +94,11 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-dataset-examples
           uv run --locked playwright install chromium --with-deps
       - name: Actual bilingual statistical charts, interactions and paper figures
-        if: steps.scope.outputs.barcode_only != 'true'
+        if: steps.scope.outputs.del_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py
       - name: Actual retained barcode quality, bilingual downloads and mobile overflow
-        if: steps.scope.outputs.barcode_only == 'true'
-        run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.library'
+        if: steps.scope.outputs.del_only == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.library or del.decode'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

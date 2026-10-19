@@ -1,11 +1,9 @@
 import type { DatasetArtifact } from "./types";
 import { validBarcodeCycle, type BarcodeCycleQuality } from "./barcode-quality";
+import { validSequencing } from "./sequencing-quality";
+import type { SequencingDocument } from "./sequencing-quality";
 
-export interface SequencingDocument {
-  reads: number;
-  decoded: number;
-  mean_quality: number[];
-}
+export type { SequencingDocument } from "./sequencing-quality";
 export interface CountDocument {
   samples: { column: string; depth: number }[];
   correlation_logcpm_pearson: number[][];
@@ -67,12 +65,7 @@ export function validateChartDocument(role: string, value: unknown) {
   if (!object(value)) throw new Error("Invalid chart data");
   let valid = false;
   if (role === "sequencing_quality") {
-    valid =
-      count(value.reads) &&
-      count(value.decoded) &&
-      value.decoded <= value.reads &&
-      numbers(value.mean_quality) &&
-      value.mean_quality.every((n) => n >= 0);
+    valid = validSequencing(value);
   } else if (role === "count_quality") {
     const samples = value.samples;
     valid =
