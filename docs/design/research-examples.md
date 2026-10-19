@@ -453,6 +453,18 @@ An explicitly recognized historical STAT6 catalogue is accepted only if reconstr
 original source and module projection reproduces the published digest exactly. Unknown or
 modified catalogues remain invalid; original archives and native rows are never rewritten.
 
+Portable export also retains a minimal, automatically indexed output version when
+a follow-up uses the same file through another historical version. The witness
+must belong to a selected successful source task and match the exact retained
+artifact name and SHA-256. This witness path does not add manual copies or
+unrelated or unconsumed versions as case roots. Authored input versions and validation labels,
+including `file_integrity_only`, remain unchanged. This preserves the dependency
+proof in a clean installation without claiming additional scientific validation.
+
+若后续任务通过不同历史版本使用同一份输出文件，数据包同时保留证明该文件来源所需的
+最小原生登记版本。它必须对应选定任务的确切产物名称与摘要；此补充路径不纳入无关文件、
+手动副本或未消费的材料版本，也不会改写原任务输入或提升其科学验证等级。
+
 ### STAT6 Data 9
 
 当前 STAT6 数据包固定 26 个主模板及 1 个姿势分群子模块，保留 40 个原生任务和

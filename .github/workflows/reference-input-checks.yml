@@ -29,6 +29,7 @@ on:
       - "src/opendde_workbench/artifacts.py"
       - "src/opendde_workbench/operation_routes.py"
       - "src/opendde_workbench/research/outputs.py"
+      - "src/opendde_workbench/research/output_identity.py"
       - "tests/test_research_assets.py"
       - "tests/test_result_metadata.py"
       - "frontend/src/operations/AssetHistorySelect*"

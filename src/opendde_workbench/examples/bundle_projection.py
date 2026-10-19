@@ -87,8 +87,11 @@ def row_references(row):
 
 
 def project_records(store, roots, *, capabilities=None, modules=MODULES):
+    from .bundle_output_witnesses import OutputWitnesses
+
     selected = {name: [] for name in TABLES}
     identifiers, seen = set(roots), set()
+    witnesses = OutputWitnesses(store)
     with store.connect() as db:
         rows = {name: [dict(row) for row in db.execute("SELECT * FROM " + name)] for name in TABLES}
         for name in ("example_pins", "example_record_pins"):
@@ -106,6 +109,11 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
         while changed:
             changed = False
             job_ids = {row["id"] for row in selected["jobs"]}
+            input_assets = {
+                identifier
+                for row in selected["jobs"]
+                for identifier in input_identifiers(TASK_ADAPTER.validate_json(row["request"]))
+            }
             run_ids = {row["id"] for row in selected["workflow_runs"]}
             for name, values in rows.items():
                 for index, row in enumerate(values):
@@ -120,6 +128,8 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                             "native_prepared",
                             "native_generated",
                         }
+                        if not included:
+                            included = witnesses.includes(row, job_ids, input_assets)
                     elif name == "research_state_sets" and not included:
                         included = row["source_job"] in job_ids
                     elif name == "workflow_attempts":

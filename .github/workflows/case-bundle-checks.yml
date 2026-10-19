@@ -13,6 +13,9 @@ on:
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_case_bundle.py'
+      - 'tests/test_case_output_witnesses.py'
+      - 'src/opendde_workbench/research/output_identity.py'
+      - 'src/opendde_workbench/research/outputs.py'
       - 'tests/test_stat6_case_bundle.py'
       - 'tests/test_case_retry_history.py'
       - 'tests/test_case_bundle_sources.py'
@@ -33,6 +36,9 @@ on:
       - 'tests/test_dataset_resources.py'
       - 'tests/ci/test_case_bundle_scope.py'
       - 'tests/test_case_bundle.py'
+      - 'tests/test_case_output_witnesses.py'
+      - 'src/opendde_workbench/research/output_identity.py'
+      - 'src/opendde_workbench/research/outputs.py'
       - 'tests/test_stat6_case_bundle.py'
       - 'tests/test_case_retry_history.py'
       - 'src/opendde_workbench/examples/native_sources.py'
@@ -84,7 +90,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_stat6_case_bundle.py tests/test_case_retry_history.py tests/test_case_bundle_sources.py tests/test_potential_case_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_api_security.py
+      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_case_output_witnesses.py tests/test_example_supporting.py tests/test_stat6_case_bundle.py tests/test_case_retry_history.py tests/test_case_bundle_sources.py tests/test_potential_case_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_research_assets.py tests/test_api_security.py
       - name: Changed deployment consumers
         if: steps.scope.outputs.deployment == 'true'
         run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py

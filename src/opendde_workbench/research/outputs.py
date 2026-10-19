@@ -6,6 +6,7 @@ import json
 from ..artifacts import SourceFileChanged, contained, list_artifacts
 from ..store import ConflictError, now
 from .contracts import VersionInput
+from .output_identity import artifact_key
 from .storage import ScientificStore
 
 KINDS = {
@@ -437,7 +438,7 @@ class OutputCatalog:
                         parent_id=parent,
                         relation=relation,
                     ),
-                    f"artifact:{job_id}:{asset.id}:{kind}:{record}",
+                    artifact_key(job_id, asset.id, kind, record),
                 )
             )
         objects = self.scientific.create_many(
