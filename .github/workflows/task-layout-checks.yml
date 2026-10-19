@@ -67,6 +67,8 @@ on:
       # Pocket prototype removal belongs to the focused selection gate.
       - "!frontend/src/viewer/source-depth*"
       - "!frontend/src/viewer/context-focus*"
+      # Model-scoped comparison regions have their native overlay gate.
+      - "!frontend/src/viewer/residue-region*"
       - "!frontend/src/viewer/style.test.ts"
       - "!frontend/src/viewer/contact-label*"
       - "!frontend/src/viewer/contacts*"

@@ -8,6 +8,7 @@ export function focusDisplayContext(
   anchors: AtomSpec[],
   pairedModel: number | null,
   viewport?: ViewportSize,
+  explicitModels?: number[],
 ) {
   const anchorPositions = anchors.flatMap((atom) => {
     const point = finiteCoordinates(atom);
@@ -32,9 +33,9 @@ export function focusDisplayContext(
       upper[axis] = Math.max(upper[axis], point[axis] + 8);
     }
   const selection: AtomSelectionSpec = {
-    // The primary source is the selection authority. Only an explicitly paired
-    // ligand may contribute context; comparison models never imply a complex.
-    model: pairedModel === null ? 0 : [0, pairedModel],
+    // Default to the primary source; another source requires explicit selection
+    // or a paired ligand. Focusing comparisons never implies a shared complex.
+    model: explicitModels ?? (pairedModel === null ? 0 : [0, pairedModel]),
     predicate: (atom) => {
       const point = finiteCoordinates(atom);
       return Boolean(

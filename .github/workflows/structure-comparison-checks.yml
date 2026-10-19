@@ -17,6 +17,9 @@ on:
       - "server_tests/comparison_api_harness.py"
       - "server_tests/comparison_browser_harness.py"
       - "frontend/src/structure-comparison/**"
+      - "frontend/src/viewer/residue-region*"
+      - "frontend/src/viewer/context-focus*"
+      - "frontend/src/viewer/scene.ts"
       - "frontend/src/operations/ToolCenter.tsx"
       - "frontend/src/operations/OperationResults.tsx"
       - "frontend/src/operations/types.ts"
@@ -51,6 +54,9 @@ jobs:
         working-directory: frontend
         run: >-
           npm test -- src/structure-comparison/ComparisonForm.test.tsx
+          src/structure-comparison/ComparisonScene.test.ts
+          src/viewer/residue-region.test.ts src/viewer/context-focus.test.ts
+          src/viewer/native-interface-context.test.ts
           src/operations/StructureComparisonResults.test.tsx
           src/examples/stat6-harness.test.ts src/examples/harness.test.ts
       - name: Exact chain roles, mutations, insertions, source versions and fitted partner frame

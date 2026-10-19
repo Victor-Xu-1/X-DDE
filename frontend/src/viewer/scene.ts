@@ -12,7 +12,7 @@ import {
 import { electricalSurfaceStyle } from "./charge-surface";
 import { residueContacts, paintContacts } from "./contacts";
 import { regionAtomIndices } from "./atom-region";
-import { residueRegion } from "./residue-region";
+import { modelResidueRegion } from "./residue-region";
 import { focusDisplayContext } from "./context-focus";
 import { nativeAnnotationStyle, nativeLabelLayer } from "./native-labels";
 import { viewportFitFactor, type ViewportSize } from "./camera-resize";
@@ -75,7 +75,7 @@ export class MolecularScene {
   };
   private selected: number[] = [];
   private highlighted: number[] = [];
-  private siteRegion: number[] = [];
+  private siteRegions: ReturnType<typeof modelResidueRegion>["selections"] = [];
   private hidden = new Set<number>();
   private attachmentCount = 0;
   private edits = new Map<
@@ -105,7 +105,7 @@ export class MolecularScene {
     this.revision++;
     this.selected = [];
     this.highlighted = [];
-    this.siteRegion = [];
+    this.siteRegions = [];
     this.hidden.clear();
     this.edits.clear();
     this.measurement = [];
@@ -203,12 +203,14 @@ export class MolecularScene {
     await this.paint();
   }
   async highlightResidues(value: unknown) {
-    if (this.overlay && this.complexModel === null) return;
-    const region = residueRegion(
+    const region = modelResidueRegion(
       value,
-      this.viewer.selectedAtoms({ model: 0 }),
+      Array.from({ length: Math.max(1, this.formats.length) }, (_, model) => ({
+        model,
+        atoms: this.viewer.selectedAtoms({ model }),
+      })),
     );
-    this.siteRegion = region.indices;
+    this.siteRegions = region.selections;
     await this.paint();
     // Selection highlights native residues without changing the researcher's camera.
     this.emit("site-region", {
@@ -217,13 +219,18 @@ export class MolecularScene {
     });
   }
   focusSite() {
-    if ((this.overlay && this.complexModel === null) || !this.siteRegion.length)
-      return;
+    if (!this.siteRegions.length) return;
     focusDisplayContext(
       this.viewer,
-      this.viewer.selectedAtoms({ model: 0, index: this.siteRegion }),
+      this.siteRegions.flatMap((region) =>
+        this.viewer.selectedAtoms({
+          model: region.model,
+          index: region.indices,
+        }),
+      ),
       null,
       this.viewport?.(),
+      this.siteRegions.map((region) => region.model),
     );
   }
   paint(): Promise<void> {
@@ -258,8 +265,11 @@ export class MolecularScene {
           ["sdf", "mol", "mol2"].includes(format),
           this.complexModel === null,
         );
-      if (this.complexModel !== null && this.siteRegion.length)
-        v.addStyle({ model: 0, index: this.siteRegion }, regionStyle());
+      for (const region of this.siteRegions)
+        v.addStyle(
+          { model: region.model, index: region.indices },
+          regionStyle(),
+        );
       this.drawContacts();
       await this.paintSurface();
       // Residue contact highlights can restyle whole residues after base styling.
@@ -269,9 +279,8 @@ export class MolecularScene {
       return;
     }
     paintBase(v, this.info, this.options, [...this.hidden]);
-    if (this.siteRegion.length) {
-      v.addStyle({ model: 0, index: this.siteRegion }, regionStyle());
-    }
+    for (const region of this.siteRegions)
+      v.addStyle({ model: region.model, index: region.indices }, regionStyle());
     this.drawContacts();
     if (this.highlighted.length)
       v.setStyle({ index: this.highlighted }, regionStyle());

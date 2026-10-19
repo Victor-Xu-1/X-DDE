@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import type { AtomSpec } from "3dmol";
-import { residueRegion } from "./residue-region";
+import { modelResidueRegion, residueRegion } from "./residue-region";
 it("requires the exact model, chain, number, insertion and alternate identity", () => {
   const atoms = [
     { index: 0, chain: "A", resi: 42, icode: "", altLoc: "" },
@@ -30,4 +30,35 @@ it("requires the exact model, chain, number, insertion and alternate identity", 
 it("rejects unbounded or malformed region messages", () => {
   for (const input of [null, [{ model: 0, number: 42 }], Array(2001).fill({})])
     expect(() => residueRegion(input, [])).toThrow();
+});
+it("keeps identical atom indices and residue addresses separate in multiple source models", () => {
+  const atoms = [{ index: 0, chain: "A", resi: 42 }] as AtomSpec[];
+  const base = {
+    chain: "A",
+    number: 42,
+    insertion_code: "",
+    alternate_location: "",
+  };
+  expect(
+    modelResidueRegion(
+      [
+        { ...base, model: 0 },
+        { ...base, model: 1 },
+      ],
+      [
+        { model: 0, atoms },
+        { model: 1, atoms },
+      ],
+    ),
+  ).toEqual({
+    selections: [
+      { model: 0, indices: [0] },
+      { model: 1, indices: [0] },
+    ],
+    requested: 2,
+    matched: 2,
+  });
+  expect(
+    modelResidueRegion([{ ...base, model: 2 }], [{ model: 0, atoms }]),
+  ).toEqual({ selections: [], requested: 1, matched: 0 });
 });
