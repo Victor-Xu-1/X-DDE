@@ -223,6 +223,13 @@ export function ResearchTable({
           </Hint>
         )}
       </div>
+      {view === "counts" && (
+        <p className="field-help">
+          {zh
+            ? "— 表示未计算或缺少可用的完整 UMI 证据，不代表零分子。"
+            : "— means not calculated or insufficient complete-UMI evidence, not a zero-molecule result."}
+        </p>
+      )}
       <div
         className={`dataset-table-scroll dataset-${view}-table`}
         aria-busy={busy}

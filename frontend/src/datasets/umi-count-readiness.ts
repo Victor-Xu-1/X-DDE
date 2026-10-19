@@ -5,7 +5,7 @@ export function umiCountingIssue(
   source?: AvailableDataset,
 ): "unassessed" | "undefined" | null {
   if (
-    !source?.metadata.umi_integrity ||
+    !source?.metadata?.umi_integrity ||
     !validSequencing({
       reads: source.counts.decoded_reads,
       decoded: source.counts.decoded_reads,

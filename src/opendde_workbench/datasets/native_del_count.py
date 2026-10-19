@@ -58,17 +58,14 @@ def run(request):
             raw = raw_count(umis)
             eligible = (raw_count(complete) if complete else 0) if integrity is not None else None
             excluded = raw - eligible if eligible is not None else None
-            unique = (
-                (dedup_count(complete) if complete else 0)
-                if options["umi_method"] != "raw"
-                else None
-            )
+            # No complete UMI is unavailable molecular evidence, not a biological zero.
+            unique = dedup_count(complete) if complete and options["umi_method"] != "raw" else None
             corrected = (
-                (corrected_count(complete, method=options["umi_method"]) if complete else 0)
-                if options["umi_method"] in {"directional", "cluster"}
+                corrected_count(complete, method=options["umi_method"])
+                if complete and options["umi_method"] in {"directional", "cluster"}
                 else None
             )
-            if corrected is not None and not 0 <= corrected <= unique <= eligible <= raw:
+            if corrected is not None and not 0 < corrected <= unique <= eligible <= raw:
                 raise ValueError(
                     "Native UMI correction does not reconcile with the observed reads."
                 )

@@ -323,7 +323,7 @@ def test_del_native_decode_and_compound_scoped_umi_counting_reconcile_public_rea
     assert counted.counts["counted_reads"] == decoded.counts["decoded_reads"]
     database = sqlite3.connect(native.root / "output/counts.sqlite")
     assert all(
-        0 <= corrected <= unique <= raw
+        (unique is None and corrected is None) or (0 < corrected <= unique <= raw)
         for raw, unique, corrected in database.execute(
             "SELECT raw,unique_umi,corrected_umi FROM counts"
         )
