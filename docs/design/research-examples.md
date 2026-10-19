@@ -58,14 +58,19 @@ the draft or URL. Bundle export includes this closure; import never launches
 these tasks. Original generator metrics stay explicitly labeled as original
 metrics when a later pose is displayed.
 
-The STAT6 diversification study can also retain the exact reviewed 9BIG
-protein-only preparation as an experimental-receptor control. This optional
+The STAT6 diversification and descriptor-optimization studies can also retain the
+exact reviewed 9BIG protein-only preparation as an experimental-receptor control. This optional
 material uses the existing native preparation and provenance checks; it never
-replaces the paired predicted receptor in the diversification request. A cold
+replaces the paired predicted receptor in the original design request. A cold
 installation without that reviewed preparation leaves the control unavailable.
 Matched controls retain the same prepared ligand and search settings, while
 keeping receptor conditions, pose rankings and missing environmental context
 explicit. Their scores and quality checks do not establish experimental binding.
+
+STAT6 分子多样化与描述符优化示例可将经过同一来源、原生准备和文件完整性核验的
+9BIG 蛋白受体保存为可选对照。该对照不改变原任务的受体或配体坐标系；未安装已复核
+准备结果时不创建替代材料。相同分子与搜索设置下的受体比较仍须保留不同姿势、评分
+与缺失环境信息。QED 上升不代表骨架保留、亲和力或活性改善。
 
 Portable result packages may retain terminal history for an exact-request retry
 of a successful native case. Those ancestor rows preserve their original status,

@@ -144,7 +144,7 @@ def prepare_stat6(capability, scientific, *, records=None):
     }:
         objects["ligand"] = originals["calculated_pose"]
         objects["receptor"] = originals["calculated_receptor"]
-    if capability == "diffsbdd.diversify":
+    if capability in {"diffsbdd.diversify", "diffsbdd.optimize"}:
         from .prepared_inputs import reviewed_protein_only_receptor
 
         experimental = reviewed_protein_only_receptor(scientific, records)

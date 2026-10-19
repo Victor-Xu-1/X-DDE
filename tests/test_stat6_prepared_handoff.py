@@ -216,12 +216,14 @@ def test_generation_template_requires_exact_prepared_receptor_and_matching_refer
     assert len(store.list_jobs()) == before
 
 
-def test_diversification_control_retains_reviewed_experimental_receptor_without_changing_task(
+@pytest.mark.parametrize("capability", ["diffsbdd.diversify", "diffsbdd.optimize"])
+def test_design_control_retains_reviewed_experimental_receptor_without_changing_task(
     settings,
+    capability,
 ):
     store, scientific, records, experimental = docking_fixture(settings)
     before = len(store.list_jobs())
-    prepared = prepare_stat6("diffsbdd.diversify", scientific, records=records)
+    prepared = prepare_stat6(capability, scientific, records=records)
     assert prepared.objects["experimental_receptor_control"] == experimental
     assert prepared.objects["receptor"] == prepared.objects["calculated_receptor"]
     assert prepared.objects["receptor"].reference != experimental.reference
@@ -234,18 +236,20 @@ def test_diversification_control_retains_reviewed_experimental_receptor_without_
     assert len(store.list_jobs()) == before
 
 
-def test_cold_diversification_does_not_invent_an_experimental_receptor_control(settings):
+@pytest.mark.parametrize("capability", ["diffsbdd.diversify", "diffsbdd.optimize"])
+def test_cold_design_does_not_invent_an_experimental_receptor_control(settings, capability):
     create_app(settings)
     store = Store(settings.state_dir / "jobs.sqlite3")
     scientific = ScientificStore(store, AssetStore(store, settings.state_dir / "assets"))
-    prepared = prepare_stat6("diffsbdd.diversify", scientific)
+    prepared = prepare_stat6(capability, scientific)
     assert "experimental_receptor_control" not in prepared.objects
     assert prepared.objects["receptor"] == prepared.objects["calculated_receptor"]
     assert not store.list_jobs()
 
 
+@pytest.mark.parametrize("capability", ["diffsbdd.diversify", "diffsbdd.optimize"])
 @pytest.mark.parametrize("failure", ["artifact", "options", "source"])
-def test_diversification_control_rejects_changed_preparation(settings, failure):
+def test_design_control_rejects_changed_preparation(settings, failure, capability):
     _, scientific, records, experimental = docking_fixture(settings)
     output = settings.state_dir / "jobs" / str(experimental.source_job) / "output"
     if failure == "artifact":
@@ -259,7 +263,7 @@ def test_diversification_control_rejects_changed_preparation(settings, failure):
             report["source"]["sha256"] = "0" * 64
         path.write_text(json.dumps(report))
     with pytest.raises(ValueError):
-        prepare_stat6("diffsbdd.diversify", scientific, records=records)
+        prepare_stat6(capability, scientific, records=records)
 
 
 def test_diff_receptor_template_uses_the_qualified_pdb_without_a_cif_alias(settings):
