@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { DatasetCharts } from "./DatasetCharts";
@@ -121,7 +121,10 @@ it("never retains a previous study's chart after switching native sources", asyn
   const previousSignal = fetcher.mock.calls[0][1].signal;
   rerender(<DatasetCharts job={job("current")} result={data} language="en" />);
   expect(previousSignal.aborted).toBe(true);
-  expect(await screen.findByText("NEW")).toBeVisible();
+  const table = await screen.findByRole("table", {
+    name: "Barcode and structure checks",
+  });
+  expect(within(table).getByText("NEW")).toBeVisible();
   rerender(
     <DatasetCharts
       job={job("current")}
@@ -134,5 +137,5 @@ it("never retains a previous study's chart after switching native sources", asyn
     settle(json({ cycles: [{ set: "OLD", members: 500 }] })),
   );
   expect(screen.queryByText("OLD")).toBeNull();
-  expect(screen.getByText("NEW")).toBeVisible();
+  expect(within(table).getByText("NEW")).toBeVisible();
 });

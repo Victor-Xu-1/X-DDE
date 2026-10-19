@@ -1,4 +1,5 @@
 import type { DatasetArtifact } from "./types";
+import { validBarcodeCycle, type BarcodeCycleQuality } from "./barcode-quality";
 
 export interface SequencingDocument {
   reads: number;
@@ -24,7 +25,7 @@ export interface SeriesRow {
 export interface ChartDocuments {
   sequencing_quality?: SequencingDocument;
   count_quality?: CountDocument;
-  barcode_quality?: { cycles: { set: string; members: number }[] };
+  barcode_quality?: { cycles: BarcodeCycleQuality[] };
   del_series_visualization?: {
     series: SeriesRow[];
     total_series?: number;
@@ -108,10 +109,8 @@ export function validateChartDocument(role: string, value: unknown) {
   } else if (role === "barcode_quality") {
     valid =
       Array.isArray(value.cycles) &&
-      value.cycles.every(
-        (row) =>
-          object(row) && typeof row.set === "string" && count(row.members),
-      );
+      value.cycles.every(validBarcodeCycle) &&
+      new Set(value.cycles.map((row) => row.set)).size === value.cycles.length;
   } else if (role === "del_series_visualization") {
     valid =
       Array.isArray(value.series) &&

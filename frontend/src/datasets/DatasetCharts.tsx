@@ -6,6 +6,7 @@ import { SeriesEnrichmentPlot } from "./SeriesEnrichmentPlot";
 import { useChartDocuments } from "./useChartDocuments";
 import { countSummary } from "./count-summary";
 import { CountEvidencePlot } from "./CountEvidencePlot";
+import { BarcodeQuality } from "./BarcodeQuality";
 import type { Job, Language } from "../types";
 import type { DatasetResult } from "./types";
 
@@ -90,14 +91,23 @@ export function DatasetCharts({
         </>
       )}
       {barcode && (
-        <Bars
-          language={language}
-          title={zh ? "砌块与编码覆盖" : "Building-block and barcode coverage"}
-          rows={barcode.cycles.map((row) => ({
-            name: row.set,
-            value: row.members,
-          }))}
-        />
+        <>
+          <Bars
+            language={language}
+            title={
+              zh ? "砌块与编码覆盖" : "Building-block and barcode coverage"
+            }
+            rows={barcode.cycles.map((row) => ({
+              name: row.set,
+              value: row.members,
+            }))}
+          />
+          <BarcodeQuality
+            jobId={job.id}
+            cycles={barcode.cycles}
+            language={language}
+          />
+        </>
       )}
       {series && (
         <SeriesEnrichmentPlot

@@ -7,6 +7,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.settings import Settings
+from server_tests.barcode_quality_browser import check_barcode_quality
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
 
@@ -149,6 +150,10 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             "SVG",
         )
         inspect_svg(svg, "")
+        if capability == "del.library":
+            check_barcode_quality(
+                page, root, Settings.from_env().state_dir, identifier, evidence, language
+            )
         if capability == "del.series":
             scale = root.get_by_role(
                 "combobox", name="Color scale" if language == "en" else "颜色刻度"

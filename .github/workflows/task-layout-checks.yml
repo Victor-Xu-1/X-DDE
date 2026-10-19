@@ -278,7 +278,7 @@ on:
       - "!frontend/src/datasets/DatasetCharts.test.tsx"
       - "!frontend/src/datasets/DatasetCharts.tsx"
       - "!frontend/src/datasets/ModelValidationPlot.tsx"
-      - "!frontend/src/datasets/chart-documents.ts"
+      - "!frontend/src/datasets/chart-documents*"
       - "!frontend/src/viewer/appearance.ts"
       - "!frontend/src/datasets/CountEvidencePlot.tsx"
       - "!frontend/src/datasets/count-summary.ts"
