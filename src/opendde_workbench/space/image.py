@@ -1,4 +1,4 @@
-"""Reuse the structural dependency lock, with a distinct managed Java/native image."""
+"""Independent channel dependencies with a distinct managed Java/native image."""
 
 import hashlib
 import json
@@ -8,7 +8,7 @@ from pathlib import Path
 from ..receptors.image import PYTHON_IMAGE
 from .manifest import JAR_SHA256, JAVA_IMAGE, SHA256, VERSION
 
-LOCK = Path(__file__).parent.parent / "receptors" / "native-requirements.txt"
+LOCK = Path(__file__).with_name("native-requirements.txt")
 
 
 def lock_digest():

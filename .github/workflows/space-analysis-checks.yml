@@ -5,7 +5,8 @@ on:
     paths:
       - 'src/opendde_workbench/space/**'
       - 'src/opendde_workbench/receptors/image.py'
-      - 'src/opendde_workbench/receptors/native-requirements.txt'
+      - 'scripts/generate-channel-lock.py'
+      - '.github/workflows/space-analysis-checks.yml'
       - 'server_tests/caver*_probe.py'
       - 'server_tests/channel*.py'
       - 'server_tests/test_channel_browser.py'
@@ -15,6 +16,7 @@ on:
       - 'tests/test_space_frame.py'
       - 'tests/test_caver_profiles.py'
       - 'tests/test_channel_analysis.py'
+      - 'tests/test_channel_runtime.py'
       # Native execution is selected by scientific source changes or explicit dispatch.
       # Shared print sizing has a readonly retained-case gate; no channel recomputation for styles.
       - '!frontend/src/space/ChannelProfile.tsx'
@@ -23,7 +25,69 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      runtime_only: ${{ steps.changed.outputs.runtime_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changed
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          python - <<'PY'
+          import fnmatch, os, subprocess
+          patterns = (
+              'src/opendde_workbench/space/*', 'src/opendde_workbench/receptors/image.py',
+              'server_tests/caver*_probe.py', 'server_tests/channel*.py',
+              'server_tests/test_channel_browser.py', 'frontend/src/space/*',
+              'tests/test_space_frame.py', 'tests/test_caver_profiles.py',
+              'tests/test_channel_analysis.py', 'tests/test_channel_runtime.py',
+              'scripts/generate-channel-lock.py', '.github/workflows/space-analysis-checks.yml',
+          )
+          allowed = {
+              'src/opendde_workbench/space/image.py',
+              'src/opendde_workbench/space/native-requirements.in',
+              'src/opendde_workbench/space/native-requirements.txt',
+              'scripts/generate-channel-lock.py', 'tests/test_channel_runtime.py',
+              'server_tests/channel_runtime_probe.py', '.github/workflows/space-analysis-checks.yml',
+          }
+          before = os.environ.get('BEFORE', '')
+          only = False
+          if os.environ['GITHUB_EVENT_NAME'] == 'push' and before.strip('0'):
+              changed = subprocess.check_output(
+                  ['git', 'diff', '--name-only', before, os.environ['GITHUB_SHA']], text=True
+              ).splitlines()
+              relevant = {p for p in changed if any(fnmatch.fnmatch(p, q) for q in patterns)}
+              only = bool(relevant) and relevant <= allowed
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('runtime_only=' + str(only).lower() + '\n')
+          PY
+  runtime:
+    needs: scope
+    if: needs.scope.outputs.runtime_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - run: uv run --locked ruff check src/opendde_workbench/space/image.py scripts/generate-channel-lock.py tests/test_channel_runtime.py server_tests/channel_runtime_probe.py
+      - run: uv run --locked python scripts/generate-channel-lock.py --check
+      - run: uv run --locked pytest -q tests/test_channel_runtime.py tests/test_channel_analysis.py
+      - name: Real native installation, dependency imports and exact readiness
+        run: uv run --locked python server_tests/channel_runtime_probe.py --output "$RUNNER_TEMP/channel-runtime"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: channel-runtime-evidence
+          path: ${{ runner.temp }}/channel-runtime/acceptance.json
   native:
+    needs: scope
+    if: needs.scope.outputs.runtime_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -34,7 +98,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --group dev --group browser
-      - run: uv run --locked pytest -q tests/test_caver_profiles.py tests/test_space_frame.py tests/test_channel_analysis.py tests/test_structure_preparation.py tests/test_surface_exposure.py tests/test_capabilities.py tests/test_research_assets.py tests/test_examples.py tests/test_example_pins.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
+      - run: uv run --locked pytest -q tests/test_caver_profiles.py tests/test_space_frame.py tests/test_channel_analysis.py tests/test_channel_runtime.py tests/test_structure_preparation.py tests/test_surface_exposure.py tests/test_capabilities.py tests/test_research_assets.py tests/test_examples.py tests/test_example_pins.py tests/test_case_bundle.py tests/test_case_bundle_sources.py
       - name: Stable native protocol on official and real drug-complex inputs
         run: uv run --locked python server_tests/caver_native_probe.py --output "$RUNNER_TEMP/caver-native"
       - name: Actual composed adapter, reusable structure and undefined-radius rejection

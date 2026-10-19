@@ -11,6 +11,17 @@ fixed by SHA-256; its GPL-3.0 and bundled library notices stay with the separate
 managed environment. X-DDE keeps the APIs, task queue, Worker/BackendRouter,
 AssetStore, scientific versions and deployment authority.
 
+Channel dependencies have their own `space/native-requirements.in` and generated
+hash-locked `.txt`, maintained by `scripts/generate-channel-lock.py`. They retain
+the exact previously reviewed BioPython/NumPy/Pydantic recipe. Adding DockQ or
+another dependency to structure comparison must not invalidate an unchanged
+channel image. Runtime admission still requires the exact channel lock, source,
+Java/Python image identities and native image labels; this is not an allowlist of
+old locks or a fallback to an unverified image. The narrow runtime gate exercises
+real installation, imports, readiness and rejection of a changed channel lock
+without running a scientific channel search. Geometric algorithm changes retain
+the separate native protocol and researcher-flow checks below.
+
 Use the existing reference picker, residue/ligand 3D picker and one-step
 questionnaire. A fresh file is the default. The user selects an observed ligand
 or active-site residues and one of a few geometric-probe choices. Model selection
