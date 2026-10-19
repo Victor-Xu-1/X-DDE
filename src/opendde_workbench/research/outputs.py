@@ -314,6 +314,9 @@ class OutputCatalog:
         core = self.core_output(job_id, file)
         states = self.state_output(job_id, file)
         receptors = receptor_result or self.receptor_output(job_id, file)
+        from ..structure_comparison.presentation import comparison_output
+
+        comparison = comparison_output(self.store, self.assets, job_id, file)
         preparation = self.preparation_output(job_id, file)
         self.screen_output(job_id, file)
         antibodies = antibody_result or self.antibody_output(job_id, file)
@@ -407,6 +410,11 @@ class OutputCatalog:
             member = next(m for m in receptors.members if m.artifact == file.name)
             parent = member.source.structure.version_id
             relation = "prepared_from"
+        if comparison and object_kind == "structure":
+            from ..structure_comparison.presentation import DERIVED_STRUCTURES
+
+            parent = getattr(comparison, DERIVED_STRUCTURES[file.name]).version_id
+            relation = "prepared_from"
         if job and job.request.operation == "docking":
             ref = (
                 job.request.receptor
@@ -477,6 +485,12 @@ class OutputCatalog:
             )
             reusable = {candidate.artifact for candidate in result.candidates} | {"result.json"}
             artifacts = [item for item in artifacts if item.name in reusable]
+        if job.request.operation == "structure_compare":
+            from ..structure_comparison.presentation import DERIVED_STRUCTURES
+
+            artifacts = [
+                item for item in artifacts if item.name in {"result.json", *DERIVED_STRUCTURES}
+            ]
         receptor_result = None
         antibody_result = None
         humanization_result = None

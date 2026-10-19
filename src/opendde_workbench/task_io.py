@@ -66,6 +66,10 @@ def successful(job: Job, directory: Path, exit_code: int) -> bool:
         from .receptors.preparation_result import validate_preparation
 
         validate_preparation(result, job.request, output)
+    if operation == "structure_compare":
+        from .structure_comparison.validation import validate_comparison
+
+        validate_comparison(result, job.request, output)
     if operation == "receptor_ensemble":
         from .receptors.result import validate_result
 

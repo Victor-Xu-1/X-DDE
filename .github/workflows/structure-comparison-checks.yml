@@ -14,6 +14,7 @@ on:
       - "src/opendde_workbench/receptors/runner.py"
       - "scripts/generate-biopython-lock.py"
       - "server_tests/*comparison*native*"
+      - "server_tests/comparison_api_harness.py"
       - "server_tests/test_native_structure_comparison.py"
       - "tests/test_structure_comparison*.py"
       - ".github/workflows/structure-comparison-checks.yml"
@@ -42,6 +43,7 @@ jobs:
           uv run --locked ruff check src/opendde_workbench/structure_comparison
           src/opendde_workbench/receptors
           tests/test_structure_comparison*.py server_tests/comparison_native_harness.py
+          server_tests/comparison_api_harness.py
           server_tests/test_native_structure_comparison.py
   native-structural-runtime:
     needs: contracts-and-frame

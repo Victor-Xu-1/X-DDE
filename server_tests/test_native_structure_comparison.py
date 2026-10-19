@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import numpy as np
 import pytest
+from comparison_api_harness import verify_api
 from comparison_native_harness import execution, run_native
 
 pytestmark = pytest.mark.skipif(
@@ -119,6 +120,7 @@ def test_native_interface_runtime_preserves_PTR_and_only_fits_the_target(tmp_pat
     table.write_bytes(raw)
     for label, control in (("identity-control", identical), ("shifted-partner-control", negative)):
         shutil.copytree(control.output, evidence / label)
+    verify_api(tmp_path, runtime["image"], source, fixture, options, evidence)
     (evidence / "runtime-controls.json").write_text(
         json.dumps(
             {

@@ -222,6 +222,10 @@ class AssetStore:
                 raise ValueError("Structure preparation requires exact PDB/mmCIF input bytes.")
             self.path(asset)
             return {asset.id: asset}
+        if getattr(request, "operation", None) == "structure_compare":
+            from .structure_comparison.bindings import comparison_bindings
+
+            return comparison_bindings(request, self)
         if getattr(request, "operation", None) == "receptor_ensemble":
             for item in request.inputs:
                 ref = item.structure

@@ -141,6 +141,13 @@ def register_operations(app, store, assets, settings, mutation):
                     raise HTTPException(
                         422, "Prepared structure evidence is invalid or changed."
                     ) from exc
+            if job.request.operation == "structure_compare":
+                from .structure_comparison.presentation import present_comparison
+
+                try:
+                    value = present_comparison(value, job, root / "output", store, assets)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    raise HTTPException(422, "Comparison evidence is invalid or changed.") from exc
             if job.request.operation == "receptor_ensemble":
                 from .receptors.result import validate_result
 

@@ -20,7 +20,11 @@ def main():
     value = json.loads(file.read_text())
     if value.get("versions", {}).get("biopython") != "1.88":
         raise ValueError("New structural tasks must use the reviewed Biopython 1.88 runtime.")
-    if request.operation == "surface_exposure":
+    if request.operation == "structure_compare":
+        from opendde_workbench.structure_comparison.validation import validate_comparison
+
+        validate_comparison(value, request, directory / "output")
+    elif request.operation == "surface_exposure":
         from opendde_workbench.receptors.surface_result import validate_surface
 
         validate_surface(value, request, directory / "output")

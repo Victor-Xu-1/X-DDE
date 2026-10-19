@@ -39,6 +39,7 @@ from .receptors.contract import ReceptorEnsembleTask
 from .receptors.preparation_contract import StructurePrepareTask
 from .receptors.surface_contract import SurfaceExposureTask
 from .space.contract import ChannelTask
+from .structure_comparison.contract import StructureComparisonTask
 from .task_metadata import TaskMetadata
 
 
@@ -177,6 +178,7 @@ TaskRequest = Annotated[
     | Annotated[ChannelTask, Tag("channel_analysis")]
     | Annotated[SurfaceExposureTask, Tag("surface_exposure")]
     | Annotated[StructurePrepareTask, Tag("structure_prepare")]
+    | Annotated[StructureComparisonTask, Tag("structure_compare")]
     | Annotated[ReceptorEnsembleTask, Tag("receptor_ensemble")],
     Discriminator(request_kind),
 ]
@@ -197,6 +199,8 @@ def input_identifiers(request: TaskRequest) -> set[str]:
         return {str(ref.asset_id) for ref in request.scientific_inputs}
     if isinstance(request, (StructurePrepareTask, SurfaceExposureTask, ChannelTask)):
         return {str(request.structure.asset_id)}
+    if isinstance(request, StructureComparisonTask):
+        return {str(ref.asset_id) for ref in (request.reference, request.moving)}
     if isinstance(request, ReceptorEnsembleTask):
         return {str(item.structure.asset_id) for item in request.inputs} | {
             str(ref.asset_id) for ref in request.scientific_inputs
