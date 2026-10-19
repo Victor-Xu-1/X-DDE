@@ -42,6 +42,11 @@ def check_barcode_quality(page, root, state, identifier, evidence, language):
     page.set_viewport_size({"width": 390, "height": 844})
     table.scroll_into_view_if_needed()
     expect(table).to_be_visible()
+    # Plotly resizes asynchronously after ResizeObserver/window notifications.
+    # Keep the exact overflow requirement, and observe the completed layout.
+    page.wait_for_function(
+        "document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
+    )
     page.screenshot(path=str(evidence / (language + "-barcode-quality-mobile.png")))
     widths = page.evaluate("""() => ({width: innerWidth,
       scroll: document.documentElement.scrollWidth,

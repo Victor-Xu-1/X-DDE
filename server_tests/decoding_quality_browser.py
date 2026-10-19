@@ -88,6 +88,9 @@ def check_decoding_quality(page, root, state, identifier, evidence, language):
         expect(table.locator("tbody tr")).to_have_count(len(rows))
         page.set_viewport_size({"width": 390, "height": 844})
         table.scroll_into_view_if_needed()
+        page.wait_for_function(
+            "document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
+        )
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / (language + "-decoded-members-mobile.png")))
         page.set_viewport_size({"width": 1440, "height": 1000})
