@@ -122,6 +122,7 @@ def test_canonical_registration_key_cannot_claim_an_unreturned_artifact(
         settings,
         store,
         Properties(
+            name="Reject an unreturned historical artifact",
             ligand_files=[*followup.request.ligand_files, historical.reference.asset_id],
             scientific_inputs=[*followup.request.scientific_inputs, historical.reference],
         ),
