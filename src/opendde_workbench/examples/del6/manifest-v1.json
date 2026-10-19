@@ -1,0 +1,133 @@
+{
+  "case": {
+    "id": "del-unc006-brd4",
+    "revision": 2,
+    "label": [
+      "BRD4 · DEL006 实验筛选研究",
+      "BRD4 · DEL006 experimental selection"
+    ],
+    "description": [
+      "使用公开 BRD4 实验的真实条码、读段及全部 518,285 个观测成员的原始计数。两组洗脱分别包含三个靶点重复和一个空白对照；保留原靶点 BRD4。",
+      "Real public BRD4 barcodes, reads and raw counts for all 518,285 observed members. Each eluate has three target replicates and one matrix control; the original target remains BRD4."
+    ],
+    "files": [
+      "del_definition",
+      "del_reads",
+      "del_counts",
+      "del_followup"
+    ],
+    "sources": [
+      "https://github.com/Popov-Lab-UNC/DELi/tree/edeb06ca8ffe6a158c1231c4014e569e04a9b83b/examples",
+      "https://doi.org/10.1186/s13321-026-01296-1",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC11888370/",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/raw-count-projection.json",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-PUBLIC-DATA-NOTICE.txt",
+      "https://creativecommons.org/licenses/by/4.0/"
+    ],
+    "evidence_entities": {}
+  },
+  "files": {
+    "del_definition": {
+      "key": "del_definition",
+      "name": "DEL006-BRD4-library-definition.json",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-BRD4-library-definition.json",
+      "sha256": "66091770a49e55841faae0aab4112d32afdd52eefc8147418523e8e0c8846ed4",
+      "bytes": 36464,
+      "kind": "config",
+      "license": "MIT"
+    },
+    "del_reads": {
+      "key": "del_reads",
+      "name": "UNCDEL006-1000-reads.fastq",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-datasets-v1/UNCDEL006-1000-reads.fastq",
+      "sha256": "adde40372892584d61d5a6ae324ba37b622bf0db36d89824defb26b23b1b185c",
+      "bytes": 509174,
+      "kind": "reads",
+      "license": "MIT"
+    },
+    "del_counts": {
+      "key": "del_counts",
+      "name": "DEL006-BRD4-observed-raw-counts.csv.gz",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-BRD4-observed-raw-counts.csv.gz",
+      "sha256": "0af8236a384393b33f11e98780b5f5f59c54a9ff55f9f0d11ad6782d73af7cfd",
+      "bytes": 11872353,
+      "kind": "counts",
+      "license": "MIT"
+    },
+    "del_followup": {
+      "key": "del_followup",
+      "name": "DEL006-BRD4-reported-followup.csv",
+      "url": "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.16/DEL006-BRD4-reported-followup.csv",
+      "sha256": "e821e23416e26e19b8f531c120008fb306c575a02d07f0f0942c359e284c5d05",
+      "bytes": 209,
+      "kind": "counts",
+      "license": "MIT"
+    }
+  },
+  "modules": {
+    "del.library": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.library",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.enumerate": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.enumerate",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.decode": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.decode",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.count": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.count",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.analyze": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.analyze",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.series": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.series",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.model": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.model",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.candidates": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.candidates",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    },
+    "del.followup": {
+      "case_id": "del-unc006-brd4",
+      "capability_id": "del.followup",
+      "revision": 5,
+      "pinned_run_required": true,
+      "parent_capability": null
+    }
+  },
+  "source_revision": "edeb06ca8ffe6a158c1231c4014e569e04a9b83b"
+}

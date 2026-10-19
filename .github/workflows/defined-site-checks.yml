@@ -30,7 +30,8 @@ on:
       - "tests/test_stat6_case_data.py"
       - "tests/test_stat6_recipe_replay.py"
       - "src/opendde_workbench/examples/stat6/catalogue-profiles.json"
-      - "src/opendde_workbench/examples/catalogue_profiles.py"
+      # Shared catalogue compatibility has exact DEL/STAT6 cold-restore checks
+      # in del-example-guidance-checks.yml; source/profile changes still run here.
       - "tests/fixtures/stat6/9big-ak1690*"
       - "tests/fixtures/stat6/retained-alignment.source.json"
       - "server_tests/test_defined_region_browser.py"
@@ -38,7 +39,22 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      del_only: ${{ steps.select.outputs.del_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: python3 scripts/del-ci-scope.py
   definitions:
+    needs: scope
+    if: needs.scope.outputs.del_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

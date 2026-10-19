@@ -19,7 +19,7 @@ on:
       - "src/opendde_workbench/examples/library.py"
       - "src/opendde_workbench/examples/input_lineage.py"
       - "src/opendde_workbench/examples/pin_validation.py"
-      - "src/opendde_workbench/examples/catalogue_profiles.py"
+      # Shared catalogue compatibility uses del-example-guidance-checks.yml.
       - "src/opendde_workbench/examples/stat6_bundle_release.py"
       - "tests/test_example_supporting.py"
       - "tests/test_example_stage_names.py"

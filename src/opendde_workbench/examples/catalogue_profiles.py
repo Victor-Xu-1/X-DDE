@@ -11,6 +11,10 @@ from .catalogue import MANIFEST
 def compatible_modules(digest, *, profile="archive"):
     if profile == "stat6":
         return compatible_study_modules(digest)
+    if profile == "del6":
+        from .del6.compatibility import compatible_modules as compatible_del_modules
+
+        return compatible_del_modules(digest)
     if profile != "archive":
         raise ValueError("The bundle study profile is not a reviewed published revision.")
     profiles = json.loads(

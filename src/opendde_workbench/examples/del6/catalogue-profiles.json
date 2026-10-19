@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "catalogues": {
+    "7ef51d6407a65c496223d3d67a03d386a364b6e07fb24445136d3645c6593eb5": {
+      "manifest_file": "manifest-v1.json",
+      "manifest_sha256": "d7f316889ba5f5df76091a6a25e6ba68e0ec0d9e54c5f63f10dc0c0a2eff08a8",
+      "module_ids": [
+        "del.library"
+      ],
+      "release": "v0.6.29",
+      "archive_sha256": "b210b9c0a270f59b4f292440f1140c2a0c71a705a79c6b306e8373a49a929645"
+    },
+    "8ac458063dd964999b9ac81eb6bfae92eb7c86e1da3f8766060183978e98302d": {
+      "module_ids": [
+        "del.analyze",
+        "del.candidates",
+        "del.count",
+        "del.decode",
+        "del.enumerate",
+        "del.followup",
+        "del.library",
+        "del.model",
+        "del.series"
+      ]
+    }
+  }
+}

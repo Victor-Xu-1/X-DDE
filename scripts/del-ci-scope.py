@@ -32,6 +32,15 @@ PATTERNS = (
     "src/opendde_workbench/datasets/bindings.py",
     "src/opendde_workbench/datasets/result.py",
     "src/opendde_workbench/datasets/routes.py",
+    "src/opendde_workbench/examples/catalogue_profiles.py",
+    "src/opendde_workbench/examples/del6/guidance.py",
+    "src/opendde_workbench/examples/del6/stage_hints.py",
+    "src/opendde_workbench/examples/del6/current-inputs.json",
+    "src/opendde_workbench/examples/del6/compatibility.py",
+    "src/opendde_workbench/examples/del6/catalogue-profiles.json",
+    "src/opendde_workbench/examples/del6/manifest-v1.json",
+    "tests/test_del_current_examples.py",
+    "tests/test_del_bundle_compatibility.py",
     "tests/test_del_umi.py",
     "server_tests/test_del_umi_count.py",
     "server_tests/test_dataset_native.py",
@@ -55,6 +64,9 @@ PATTERNS = (
     ".github/workflows/library-member-checks.yml",
     ".github/workflows/structure-layout-checks.yml",
     ".github/workflows/example-result-set-checks.yml",
+    ".github/workflows/defined-site-checks.yml",
+    ".github/workflows/del-example-guidance-checks.yml",
+    ".github/workflows/examples-checks.yml",
 )
 
 
@@ -78,7 +90,13 @@ def main():
     selected = (
         bool(changed)
         and any(
-            name.startswith(("frontend/src/datasets/", "src/opendde_workbench/datasets/"))
+            name.startswith(
+                (
+                    "frontend/src/datasets/",
+                    "src/opendde_workbench/datasets/",
+                    "src/opendde_workbench/examples/del6/",
+                )
+            )
             for name in changed
         )
         and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS) for name in changed)
@@ -97,7 +115,7 @@ def main():
         )
         output.write("native_umi_changed=" + str(native).lower() + "\n")
     print(
-        "DEL barcode/UMI and shared table consumers"
+        "DEL evidence, catalogue and shared table consumers"
         if selected
         else "Wider changed-feature consumers"
     )
