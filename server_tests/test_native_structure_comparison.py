@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+from copy import deepcopy
 from pathlib import Path
 from uuid import uuid4
 
@@ -24,6 +25,7 @@ def test_native_interface_runtime_preserves_PTR_and_only_fits_the_target(tmp_pat
     from opendde_workbench.structure_comparison.contract import StructureComparisonTask
     from opendde_workbench.structure_comparison.native_export import write_compared_model
     from opendde_workbench.structure_comparison.native_polymer import selected_polymer
+    from opendde_workbench.structure_comparison.validation import validate_comparison
 
     evidence = Path("server_tests/evidence/structure-comparison")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -59,6 +61,7 @@ def test_native_interface_runtime_preserves_PTR_and_only_fits_the_target(tmp_pat
         reference=original, moving=original, options=options, scientific_inputs=[original, original]
     )
     identical = run_native(tmp_path, runtime["image"], request, {str(original.asset_id): source})
+    validate_comparison(identical.value, request, identical.output)
     assert identical.value["geometry"]["partner_rmsd_angstrom"] < 1e-6
     metric = identical.value["native_quality"]["interfaces"][0]["metrics"]
     assert metric["DockQ"] == pytest.approx(1, abs=1e-8)
@@ -86,10 +89,36 @@ def test_native_interface_runtime_preserves_PTR_and_only_fits_the_target(tmp_pat
         ),
         {str(original.asset_id): source, str(comparison.asset_id): fixture},
     )
+    negative_request = StructureComparisonTask(
+        reference=original,
+        moving=comparison,
+        options=options,
+        scientific_inputs=[original, comparison],
+    )
+    validate_comparison(negative.value, negative_request, negative.output)
     assert negative.value["geometry"]["target_rmsd_angstrom"] < 1e-5
     assert negative.value["geometry"]["partner_rmsd_angstrom"] == pytest.approx(8, abs=0.001)
     assert negative.value["native_quality"]["interfaces"][0]["metrics"]["DockQ"] < metric["DockQ"]
     assert hashlib.sha256(source.read_bytes()).hexdigest() == source_sha
+    for key in ("partner_rmsd_angstrom", "target_rmsd_angstrom"):
+        corrupt = deepcopy(negative.value)
+        corrupt["geometry"][key] += 0.25
+        with pytest.raises(ValueError, match="RMSD differs"):
+            validate_comparison(corrupt, negative_request, negative.output)
+    corrupt = deepcopy(negative.value)
+    corrupt["native_quality"]["interfaces"][0]["metrics"]["DockQ"] = 1
+    with pytest.raises(ValueError, match="scores differ"):
+        validate_comparison(corrupt, negative_request, negative.output)
+    table = negative.output / "residue-displacements.csv"
+    raw = table.read_bytes()
+    table.write_bytes(raw.replace(b"target,A,", b"target,Z,", 1))
+    corrupt = deepcopy(negative.value)
+    corrupt["artifact_sha256"][table.name] = hashlib.sha256(table.read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="residue identities differ"):
+        validate_comparison(corrupt, negative_request, negative.output)
+    table.write_bytes(raw)
+    for label, control in (("identity-control", identical), ("shifted-partner-control", negative)):
+        shutil.copytree(control.output, evidence / label)
     (evidence / "runtime-controls.json").write_text(
         json.dumps(
             {
@@ -98,6 +127,7 @@ def test_native_interface_runtime_preserves_PTR_and_only_fits_the_target(tmp_pat
                 "positive_control": metric,
                 "negative_control": negative.value["geometry"]["partner_rmsd_angstrom"],
                 "retained_source_PTR": True,
+                "typed_report_and_downloads_verified": True,
                 "purpose": "geometric_runtime_controls_not_drug_research",
                 "accepted_module_example": False,
                 "scientific_model_or_MD_FEP_run": False,

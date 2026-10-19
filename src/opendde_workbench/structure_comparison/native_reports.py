@@ -5,6 +5,47 @@ import hashlib
 import json
 import shutil
 
+DISPLACEMENT_FIELDS = (
+    "role",
+    "reference_chain",
+    "reference_number",
+    "reference_insertion",
+    "reference_letter",
+    "moving_chain",
+    "moving_number",
+    "moving_insertion",
+    "moving_letter",
+    "displacement_angstrom",
+    "reference_x",
+    "reference_y",
+    "reference_z",
+    "moving_source_x",
+    "moving_source_y",
+    "moving_source_z",
+    "moving_aligned_x",
+    "moving_aligned_y",
+    "moving_aligned_z",
+)
+
+
+def displacement_values(row):
+    left, right = row["reference"], row["moving"]
+    return [
+        row["role"],
+        left["chain"],
+        left["number"],
+        left["insertion_code"],
+        row["reference_letter"],
+        right["chain"],
+        right["number"],
+        right["insertion_code"],
+        row["moving_letter"],
+        row["displacement_angstrom"],
+        *row["reference_position"],
+        *row["moving_source_position"],
+        *row["moving_aligned_position"],
+    ]
+
 
 def digest(file):
     return hashlib.sha256(file.read_bytes()).hexdigest()
@@ -35,52 +76,11 @@ def write_reports(output, sources, models, inspections, geometry, quality):
     )
     artifacts[report.name] = digest(report)
     table = output / "residue-displacements.csv"
-    fields = (
-        "role",
-        "reference_chain",
-        "reference_number",
-        "reference_insertion",
-        "reference_letter",
-        "moving_chain",
-        "moving_number",
-        "moving_insertion",
-        "moving_letter",
-        "displacement_angstrom",
-        "reference_x",
-        "reference_y",
-        "reference_z",
-        "moving_source_x",
-        "moving_source_y",
-        "moving_source_z",
-        "moving_aligned_x",
-        "moving_aligned_y",
-        "moving_aligned_z",
-    )
     with table.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream)
-        writer.writerow(fields)
+        writer.writerow(DISPLACEMENT_FIELDS)
         for row in geometry["residue_displacements"]:
-            left, right = row["reference"], row["moving"]
-            writer.writerow(
-                map(
-                    csv_value,
-                    [
-                        row["role"],
-                        left["chain"],
-                        left["number"],
-                        left["insertion_code"],
-                        row["reference_letter"],
-                        right["chain"],
-                        right["number"],
-                        right["insertion_code"],
-                        row["moving_letter"],
-                        row["displacement_angstrom"],
-                        *row["reference_position"],
-                        *row["moving_source_position"],
-                        *row["moving_aligned_position"],
-                    ],
-                )
-            )
+            writer.writerow(map(csv_value, displacement_values(row)))
     artifacts[table.name] = digest(table)
     if any(not 0 < (output / name).stat().st_size <= 25 * 1024**2 for name in artifacts):
         raise ValueError("Comparison scientific reports exceed their bounded output contract.")

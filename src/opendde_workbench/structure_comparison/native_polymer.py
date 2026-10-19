@@ -119,6 +119,7 @@ def selected_polymer(file, model):
         parent_codes,
         {
             "polymer_residues": len(observed),
+            "chain_residue_counts": {chain.id: len(chain) for chain in selected},
             "modified_residues": retained_modifications,
             "excluded_nonpolymer_residues": excluded,
         },

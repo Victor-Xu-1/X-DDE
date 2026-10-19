@@ -22,7 +22,15 @@ def read_input(file, model_index, mappings, side):
     chains, quality = profile(model, parent_codes=codes)
     if set(chains) != set(selection.chains):
         raise ValueError("Every mapped role must be represented by observed protein C-alpha atoms.")
-    return model, chains, codes, {"source": details, "polymer": polymer, "quality": quality}
+    return (
+        model,
+        chains,
+        codes,
+        {
+            "structure": {**details, **quality, "source_profile": "unspecified"},
+            "polymer": polymer,
+        },
+    )
 
 
 def run_comparison(request, bindings, directory, output):
