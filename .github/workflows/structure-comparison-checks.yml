@@ -25,6 +25,7 @@ jobs:
         run: >-
           uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
           tests/test_structure_comparison.py tests/test_structure_comparison_geometry.py
+          server_tests/test_receptor_science.py::test_actual_rigid_structure_copy_recovers_frame_and_original_residue_correspondence
       - name: Changed Python contracts and adapters
         run: >-
           uv run --locked ruff check src/opendde_workbench/structure_comparison
