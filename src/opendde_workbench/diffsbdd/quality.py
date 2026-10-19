@@ -21,7 +21,7 @@ class CoreCandidate(ScientificModel):
     diagnostic_artifact: str | None = Field(
         default=None, pattern=r"^diagnostic-core-[0-9]{3}\.sdf$"
     )
-    method: Literal["rdkit_fixed_core_v1"]
+    method: Literal["rdkit_fixed_core_v1", "rdkit_fixed_core_attachments_v2"]
     status: Literal["passed", "failed", "indeterminate"]
     reason: str | None = Field(default=None, max_length=120)
     preserve_bonds: bool
@@ -47,8 +47,11 @@ class CoreCandidate(ScientificModel):
 
 
 class CoreVerification(ScientificModel):
-    schema_version: Literal[1]
-    method: Literal["rdkit_fixed_core_v1"]
+    schema_version: Literal[1, 2]
+    method: Literal["rdkit_fixed_core_v1", "rdkit_fixed_core_attachments_v2"]
+    attachment_policy: Literal["original_cuts", "any_core_atom"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     source: MoleculeRef
     fixed_atoms: tuple[int, ...] = Field(min_length=1, max_length=80)
     preserve_bonds: bool
@@ -63,6 +66,13 @@ class CoreVerification(ScientificModel):
 
     @model_validator(mode="after")
     def consistent(self):
+        strict = self.attachment_policy == "original_cuts"
+        if strict and not self.preserve_bonds:
+            raise ValueError("Attachment verification requires preservation of core bonds.")
+        if self.schema_version != (2 if strict else 1) or self.method != (
+            "rdkit_fixed_core_attachments_v2" if strict else "rdkit_fixed_core_v1"
+        ):
+            raise ValueError("Core verification method differs from its attachment policy.")
         if len(set(self.fixed_atoms)) != len(self.fixed_atoms) or any(
             i < 0 or i > 4999 for i in self.fixed_atoms
         ):
@@ -75,9 +85,13 @@ class CoreVerification(ScientificModel):
         ):
             raise ValueError("Qualified core record count/order disagree.")
         for candidate in self.candidates:
-            if candidate.preserve_bonds != self.preserve_bonds or (
-                candidate.status == "passed"
-                and [m.source_atom for m in candidate.mapping] != list(self.fixed_atoms)
+            if (
+                candidate.method != self.method
+                or candidate.preserve_bonds != self.preserve_bonds
+                or (
+                    candidate.status == "passed"
+                    and [m.source_atom for m in candidate.mapping] != list(self.fixed_atoms)
+                )
             ):
                 raise ValueError("Core check does not cover the exact declared selection.")
         return self
@@ -97,6 +111,7 @@ def validate_verification(result, request, output: Path):
         or evidence.source != payload.initial
         or list(evidence.fixed_atoms) != payload.options.fixed_atoms
         or evidence.preserve_bonds != payload.options.preserve_bonds
+        or evidence.attachment_policy != payload.options.attachment_policy
     ):
         raise ValueError("Core verification differs from the immutable inpainting request.")
     if (

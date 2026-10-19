@@ -1,0 +1,74 @@
+{
+  "source_docking_job": "aa0283f3-310d-4801-a3af-26a0da4a1d44",
+  "inpainting_job": "34988ee9-20f4-4556-9ab7-8e1d56be7669",
+  "fixed_atoms": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    25,
+    26,
+    27,
+    28,
+    29
+  ],
+  "unexpected_attachment_source_atom": 28,
+  "scientific_scope": "Retained computed STAT6 study-molecule poses, not experimental affinity or an accepted design. Regression reproduces an internal-core-preserved product with a new bond at a protected methyl carbon.",
+  "files": {
+    "source.sdf": {
+      "sha256": "072f447b76101d61f3e934f91cda7bd2f547e4583580cbbf8533e90125ebc606",
+      "bytes": 3122
+    },
+    "unexpected-methyl-growth.sdf": {
+      "sha256": "7a27e9ccf3e6a30cd000a0b43e8d851aa76238495910581989b300f20351d081",
+      "bytes": 2626
+    }
+  },
+  "original_options": {
+    "task": "inpaint",
+    "model": "crossdocked_fullatom_cond",
+    "count": 3,
+    "atoms": 32,
+    "size_mode": "fixed",
+    "size_bias": 0,
+    "minimum_atoms": 8,
+    "seed": 2026,
+    "steps": 500,
+    "resamplings": 10,
+    "jump_length": 1,
+    "fragment_policy": "all",
+    "relaxation": 0,
+    "fixed_atoms": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "preserve_bonds": true,
+    "added_atoms": 15,
+    "center": "ligand",
+    "trajectory": false,
+    "objective": "qed",
+    "population": 10,
+    "rounds": 2,
+    "survivors": 3,
+    "change_steps": 100
+  }
+}

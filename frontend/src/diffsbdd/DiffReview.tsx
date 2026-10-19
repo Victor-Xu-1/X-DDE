@@ -166,6 +166,15 @@ export function DiffReview({
                 ? "允许改变核心内部键"
                 : "Allow internal core bond changes"}
           </p>
+          <p>
+            {options.attachment_policy === "original_cuts"
+              ? zh
+                ? "新增连接仅限原有断点，并独立检查分子连续性。"
+                : "New attachments are limited to original cut sites; molecular connectivity is checked independently."
+              : zh
+                ? "允许在核心其他位置增加连接；不等于只替换原有侧链。"
+                : "Other core attachment positions are allowed; this is not side-chain-only replacement."}
+          </p>
         </details>,
       ]);
     if (mode === "optimize")

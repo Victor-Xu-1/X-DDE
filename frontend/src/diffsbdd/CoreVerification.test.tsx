@@ -62,3 +62,31 @@ it("does not claim bond preservation in atom-only mode and handles empty results
   ).toBeVisible();
   expect(screen.getByText(/no candidate to verify/)).toBeVisible();
 });
+
+it("explains rejected attachment sites and does not label the product reusable", async () => {
+  render(
+    <CoreVerification
+      data={{
+        ...data,
+        method: "rdkit_fixed_core_attachments_v2",
+        attachment_policy: "original_cuts",
+        qualified_count: 0,
+        candidates: [
+          {
+            ...data.candidates[1],
+            status: "failed",
+            reason: "unexpected_core_attachment",
+          },
+        ],
+      }}
+      jobId="job"
+      language="en"
+    />,
+  );
+  await userEvent
+    .setup()
+    .click(screen.getByText(/Independent fixed-core verification/));
+  expect(screen.getByText(/original cut sites only/)).toBeVisible();
+  expect(screen.getByText(/outside the allowed core sites/)).toBeVisible();
+  expect(screen.queryByRole("button", { name: /reuse/i })).toBeNull();
+});

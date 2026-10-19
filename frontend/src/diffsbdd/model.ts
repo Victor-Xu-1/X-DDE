@@ -9,7 +9,13 @@ export const optionsFor = (
   ...structuredClone(defaults),
   task: mode,
   count,
-  ...(mode === "inpaint" ? { fragment_policy: "all", relaxation: 0 } : {}),
+  ...(mode === "inpaint"
+    ? {
+        fragment_policy: "all",
+        relaxation: 0,
+        attachment_policy: "original_cuts",
+      }
+    : {}),
 });
 export const compatibleModels = (mode: DesignMode) =>
   models.filter((m) => mode === "generate" || m.strategy === "cond");
@@ -155,6 +161,14 @@ export function designPayload(
   if (mode === "inpaint" && !inpaintSizeValid(options, fixed.length))
     throw new Error(
       "Fixed and added heavy atoms must total 8–80; adjust the core or added atoms.",
+    );
+  if (
+    mode === "inpaint" &&
+    options.attachment_policy === "original_cuts" &&
+    !options.preserve_bonds
+  )
+    throw new Error(
+      "Original attachment sites require preservation of core bonds.",
     );
   if (mode === "optimize" && !optimizationBudgetValid(options))
     throw new Error(

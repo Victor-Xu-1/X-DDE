@@ -86,6 +86,7 @@ def generate(payload, bindings, directory, output):
             destination / "molecules.sdf",
             output,
             report["valid"],
+            attachment_policy=payload["options"].get("attachment_policy"),
         )
         result.update(
             core_verification=evidence,

@@ -31,6 +31,10 @@ class DiffOptions(BaseModel):
     relaxation: int = Field(default=0, ge=0, le=1000)
     fixed_atoms: list[int] = Field(default_factory=list, max_length=80)
     preserve_bonds: bool = True
+    # Omit the absent field so immutable historical request hashes remain exact.
+    attachment_policy: Literal["original_cuts", "any_core_atom"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     added_atoms: int = Field(default=10, ge=0, le=79)
     center: Literal["ligand", "pocket"] = "ligand"
     trajectory: bool = False
@@ -53,6 +57,8 @@ class DiffOptions(BaseModel):
         if self.trajectory and (self.task != "inpaint" or self.count != 1):
             raise ValueError("Trajectories require inpainting with exactly one candidate.")
         if self.task == "inpaint":
+            if self.attachment_policy == "original_cuts" and not self.preserve_bonds:
+                raise ValueError("Original attachment sites require preservation of core bonds.")
             if (
                 not self.fixed_atoms
                 or min(self.fixed_atoms) < 0
@@ -63,6 +69,8 @@ class DiffOptions(BaseModel):
                 raise ValueError(
                     "Inpainting must preserve all fragments and disable free relaxation."
                 )
+        elif self.attachment_policy is not None:
+            raise ValueError("Attachment-site policies are only supported by inpainting.")
         if self.task == "optimize":
             if self.survivors > self.population:
                 raise ValueError("Survivors cannot exceed population size.")

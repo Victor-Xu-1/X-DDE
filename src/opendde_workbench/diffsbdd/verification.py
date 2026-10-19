@@ -3,7 +3,7 @@
 import hashlib
 from pathlib import Path
 
-from fixed_core import METHOD, assess
+from fixed_core import ATTACHMENT_METHOD, METHOD, assess
 from stereo import chemical_stereo
 
 
@@ -13,7 +13,16 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def verify_inpaint(source, initial, fixed_atoms, preserve_bonds, native_file, output, expected):
+def verify_inpaint(
+    source,
+    initial,
+    fixed_atoms,
+    preserve_bonds,
+    native_file,
+    output,
+    expected,
+    attachment_policy=None,
+):
     from rdkit import Chem
 
     raw_sha = digest(native_file)
@@ -29,7 +38,13 @@ def verify_inpaint(source, initial, fixed_atoms, preserve_bonds, native_file, ou
         for record, candidate in enumerate(supplier):
             if candidate is None:
                 raise ValueError("Native accepted output contains an invalid molecule.")
-            check = assess(source, candidate, fixed_atoms, preserve_bonds)
+            check = assess(
+                source,
+                candidate,
+                fixed_atoms,
+                preserve_bonds,
+                attachment_policy=attachment_policy,
+            )
             # Keep raw native files intact. Canonical handoff records use the same
             # chemical stereo interpretation as the verifier; atom order is unchanged.
             candidate = chemical_stereo(candidate)
@@ -45,8 +60,9 @@ def verify_inpaint(source, initial, fixed_atoms, preserve_bonds, native_file, ou
                 row["diagnostic_artifact"] = name
             rows.append(row)
     return {
-        "schema_version": 1,
-        "method": METHOD,
+        "schema_version": 2 if attachment_policy == "original_cuts" else 1,
+        "method": ATTACHMENT_METHOD if attachment_policy == "original_cuts" else METHOD,
+        **({"attachment_policy": attachment_policy} if attachment_policy is not None else {}),
         "source": initial,
         "fixed_atoms": fixed_atoms,
         "preserve_bonds": preserve_bonds,

@@ -1,0 +1,52 @@
+name: Local design attachment scope checks
+on:
+  push:
+    paths: &attachment_paths
+      - 'src/opendde_workbench/diffsbdd/core_boundary.py'
+      - 'src/opendde_workbench/diffsbdd/fixed_core.py'
+      - 'src/opendde_workbench/diffsbdd/chemistry.py'
+      - 'src/opendde_workbench/diffsbdd/verification.py'
+      - 'src/opendde_workbench/diffsbdd/options.py'
+      - 'src/opendde_workbench/diffsbdd/quality.py'
+      - 'frontend/src/diffsbdd/DesignOptions*'
+      - 'frontend/src/diffsbdd/CoreVerification*'
+      - 'frontend/src/diffsbdd/model.ts'
+      - 'frontend/src/diffsbdd/generated.ts'
+      - 'frontend/src/diffsbdd/types.ts'
+      - 'frontend/src/diffsbdd/DiffReview.tsx'
+      - 'server_tests/test_inpaint_attachments.py'
+      - 'tests/test_inpaint_attachment_contract.py'
+      - 'tests/fixtures/stat6/inpaint_attachment/**'
+      - '.github/workflows/inpaint-attachment-checks.yml'
+  pull_request:
+    paths: *attachment_paths
+permissions:
+  contents: read
+jobs:
+  native-attachment-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Real retained STAT6 counterexample in the exact managed RDKit version
+        run: >-
+          uv run --no-project --python 3.10 --with pytest==9.1.1
+          --with numpy==1.26.4 --with rdkit==2023.9.6
+          python -m pytest -q server_tests/test_inpaint_attachments.py
+  questionnaire-and-result:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Scope choices, historical recipe replay and diagnostic result consumers only
+        working-directory: frontend
+        run: >-
+          npx vitest run src/diffsbdd/DesignOptions.test.tsx
+          src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/DiffReview.test.tsx
+          src/diffsbdd/model.test.ts src/diffsbdd/DiffTemplateReplay.test.tsx
+          src/diffsbdd/DiffForm.test.tsx src/diffsbdd/DiffResults.test.tsx

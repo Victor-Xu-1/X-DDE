@@ -66,6 +66,8 @@ def generation_input(payload, bindings, directory):
 
     protein = bound_file(payload["protein"], bindings, directory, ".pdb").read_text()
     options = dict(payload["options"])
+    # This is an independent platform result check, not an upstream sampler setting.
+    attachment_policy = options.pop("attachment_policy", None)
     pocket = payload["pocket"]
     fields = {}
     if pocket["kind"] == "ligand":
@@ -80,6 +82,14 @@ def generation_input(payload, bindings, directory):
         fixed = options.get("fixed_atoms", [])
         if fixed and max(fixed) >= mol.GetNumAtoms():
             raise ValueError("A selected fixed atom no longer exists in this molecule version.")
+        if payload["mode"] == "inpaint" and attachment_policy == "original_cuts":
+            from core_boundary import ports
+            from rdkit import Chem
+
+            if len(Chem.GetMolFrags(mol)) != 1:
+                raise ValueError("Original-cut replacement requires a connected starting molecule.")
+            if not any(ports(mol, fixed).values()) and options["added_atoms"] > 0:
+                raise ValueError("Leave an editable side chain outside the fixed core.")
         fields["initial_sdf"] = sdf(mol)
     # Inspecting a pocket precedes selection of a fixed fragment; native inspection still
     # receives a fully valid generate contract instead of invalid inpainting parameters.

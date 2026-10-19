@@ -114,6 +114,8 @@ on:
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/DesignInputContext*"
       - "frontend/src/diffsbdd/CoreVerification*"
+      # Exact attachment-scope controls and diagnostic results use their native gate.
+      - "!frontend/src/diffsbdd/CoreVerification*"
       - "frontend/src/examples/examples.css"
       - "frontend/src/poses/PoseWorkspace*"
       - "frontend/src/poses/poses.css"

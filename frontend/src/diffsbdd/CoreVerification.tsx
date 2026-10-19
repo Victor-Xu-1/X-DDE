@@ -5,6 +5,14 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import type { CoreVerificationData } from "./types";
 
 const reasons: Record<string, [string, string]> = {
+  unexpected_core_attachment: [
+    "新片段连接到了未允许的核心位置，或改变了原有连接键。",
+    "A new fragment attaches outside the allowed core sites or changes the original attachment bond.",
+  ],
+  disconnected_candidate: [
+    "候选包含互不连接的片段，不能作为连续分子复用。",
+    "The candidate contains disconnected fragments and is not a reusable connected molecule.",
+  ],
   source_stereo_geometry_inconsistent: [
     "参考双键的立体声明与三维几何不一致，请检查输入",
     "Reference double-bond stereo disagrees with its coordinates; inspect the input",
@@ -79,6 +87,15 @@ export function CoreVerification({
           : zh
             ? "当前仅要求原子身份与坐标保留，未要求保留键或立体化学。此结果不能解释为完整化学核心保留。"
             : "This task requires atom identity and coordinates only, without bond or stereo preservation. It is not proof of a preserved chemical core."}
+      </p>
+      <p className="muted">
+        {data.attachment_policy === "original_cuts"
+          ? zh
+            ? "新增连接：仅限原有断点，同时检查分子连续性。"
+            : "New attachments: original cut sites only, with molecular connectivity checked."
+          : zh
+            ? "本任务未限制新增连接位点，不能解释为只替换原有侧链。"
+            : "This task did not restrict new attachment sites; it does not establish side-chain-only replacement."}
       </p>
       {data.candidates.length === 0 && (
         <p>

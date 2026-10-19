@@ -4,11 +4,13 @@ on:
     paths:
       - 'src/opendde_workbench/diffsbdd/**'
       - 'tests/test_diffsbdd_*.py'
+      - 'tests/test_inpaint_attachment_contract.py'
       - '.github/workflows/diffsbdd-checks.yml'
   pull_request:
     paths:
       - 'src/opendde_workbench/diffsbdd/**'
       - 'tests/test_diffsbdd_*.py'
+      - 'tests/test_inpaint_attachment_contract.py'
       - '.github/workflows/diffsbdd-checks.yml'
 permissions:
   contents: read
@@ -24,4 +26,4 @@ jobs:
       - run: npm ci && npm run build
         working-directory: frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/test_diffsbdd_runner.py tests/test_diffsbdd_contract.py tests/test_diffsbdd_quality.py
+      - run: uv run --locked pytest -q tests/test_diffsbdd_runner.py tests/test_diffsbdd_contract.py tests/test_diffsbdd_quality.py tests/test_inpaint_attachment_contract.py

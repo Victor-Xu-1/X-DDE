@@ -9,6 +9,7 @@ import math
 from stereo import chemical_stereo, stereo_status
 
 METHOD = "rdkit_fixed_core_v1"
+ATTACHMENT_METHOD = "rdkit_fixed_core_attachments_v2"
 TOLERANCE = 0.5  # The frozen native inpainting coordinate contract, in angstrom.
 SEARCH_LIMIT = 10000
 
@@ -33,7 +34,22 @@ def bond_identity(mol, left, right):
     return None if bond is None else (str(bond.GetBondType()), bond.GetIsAromatic())
 
 
-def assess(source, candidate, fixed_atoms, preserve_bonds=True, *, search_limit=SEARCH_LIMIT):
+def assess(
+    source,
+    candidate,
+    fixed_atoms,
+    preserve_bonds=True,
+    *,
+    search_limit=SEARCH_LIMIT,
+    attachment_policy=None,
+):
+    from core_boundary import assess_attachments
+
+    if attachment_policy not in (None, "any_core_atom", "original_cuts"):
+        raise ValueError("Unknown fixed-core attachment policy.")
+    strict = attachment_policy == "original_cuts"
+    if strict and not preserve_bonds:
+        raise ValueError("Original attachment sites require preservation of core bonds.")
     source, candidate = chemical_stereo(source), chemical_stereo(candidate)
     points, output_points = coordinates(source), coordinates(candidate)
     fixed = tuple(fixed_atoms)
@@ -71,6 +87,10 @@ def assess(source, candidate, fixed_atoms, preserve_bonds=True, *, search_limit=
                 if preserve_bonds
                 else ("passed", None)
             )
+            if status == "passed" and strict:
+                boundary = assess_attachments(source, candidate, mapping)
+                if boundary["reason"]:
+                    status, reason = "failed", boundary["reason"]
             if status == "passed":
                 matches.append(dict(mapping))
             else:
@@ -112,7 +132,7 @@ def assess(source, candidate, fixed_atoms, preserve_bonds=True, *, search_limit=
     )
     mapping = matches[0] if status == "passed" else {}
     return {
-        "method": METHOD,
+        "method": ATTACHMENT_METHOD if strict else METHOD,
         "status": status,
         "reason": reason,
         "preserve_bonds": preserve_bonds,

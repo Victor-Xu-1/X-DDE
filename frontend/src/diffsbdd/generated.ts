@@ -220,6 +220,19 @@ export const optionSchema = {
       title: "Preserve Bonds",
       type: "boolean",
     },
+    attachment_policy: {
+      anyOf: [
+        {
+          enum: ["original_cuts", "any_core_atom"],
+          type: "string",
+        },
+        {
+          type: "null",
+        },
+      ],
+      default: null,
+      title: "Attachment Policy",
+    },
     added_atoms: {
       default: 10,
       maximum: 79,
@@ -335,7 +348,7 @@ export const coreVerificationSchema = {
           title: "Diagnostic Artifact",
         },
         method: {
-          const: "rdkit_fixed_core_v1",
+          enum: ["rdkit_fixed_core_v1", "rdkit_fixed_core_attachments_v2"],
           title: "Method",
           type: "string",
         },
@@ -462,14 +475,27 @@ export const coreVerificationSchema = {
   additionalProperties: false,
   properties: {
     schema_version: {
-      const: 1,
+      enum: [1, 2],
       title: "Schema Version",
       type: "integer",
     },
     method: {
-      const: "rdkit_fixed_core_v1",
+      enum: ["rdkit_fixed_core_v1", "rdkit_fixed_core_attachments_v2"],
       title: "Method",
       type: "string",
+    },
+    attachment_policy: {
+      anyOf: [
+        {
+          enum: ["original_cuts", "any_core_atom"],
+          type: "string",
+        },
+        {
+          type: "null",
+        },
+      ],
+      default: null,
+      title: "Attachment Policy",
     },
     source: {
       $ref: "#/$defs/MoleculeRef",

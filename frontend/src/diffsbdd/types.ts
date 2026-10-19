@@ -31,7 +31,8 @@ export const isDesign = (mode: string): mode is DesignMode =>
   ["generate", "inpaint", "diversify", "optimize"].includes(mode);
 
 export interface CoreVerificationData {
-  method: "rdkit_fixed_core_v1";
+  method: "rdkit_fixed_core_v1" | "rdkit_fixed_core_attachments_v2";
+  attachment_policy?: "original_cuts" | "any_core_atom";
   preserve_bonds: boolean;
   qualified_count: number;
   qualified_sha256: string;

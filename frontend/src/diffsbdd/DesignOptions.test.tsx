@@ -37,6 +37,48 @@ function Form({ language }: { language: "en" | "zh" }) {
 }
 
 it.each(["en", "zh"] as const)(
+  "defaults new local design to original cut sites in %s",
+  (language) => {
+    render(<Form language={language} />);
+    expect(
+      screen.getByRole("combobox", {
+        name:
+          language === "zh"
+            ? "新片段可以连接在哪里？"
+            : "Where may the new fragment attach?",
+      }),
+    ).toHaveValue("original_cuts");
+  },
+);
+
+it("shows the historical growth scope without silently changing its request", () => {
+  const value = { ...optionsFor("inpaint"), attachment_policy: undefined };
+  const onChange = vi.fn();
+  render(
+    <DesignOptions
+      mode="inpaint"
+      value={value}
+      onChange={onChange}
+      expert={false}
+      language="en"
+      fixedCount={15}
+    />,
+  );
+  const choice = screen.getByRole("combobox", {
+    name: "Where may the new fragment attach?",
+  });
+  expect(choice).toHaveValue("any_core_atom");
+  expect(onChange).not.toHaveBeenCalled();
+  fireEvent.change(choice, { target: { value: "original_cuts" } });
+  expect(onChange).toHaveBeenCalledWith(
+    expect.objectContaining({
+      attachment_policy: "original_cuts",
+      preserve_bonds: true,
+    }),
+  );
+});
+
+it.each(["en", "zh"] as const)(
   "makes the true local-design budget editable without expert JSON in %s",
   (language) => {
     render(<Form language={language} />);

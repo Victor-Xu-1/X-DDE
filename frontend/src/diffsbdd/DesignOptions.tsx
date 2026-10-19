@@ -112,6 +112,34 @@ export function DesignOptions({
           </p>
         </>
       )}
+      {mode === "inpaint" && (
+        <label className="field">
+          {zh ? "新片段可以连接在哪里？" : "Where may the new fragment attach?"}
+          <select
+            value={String(value.attachment_policy ?? "any_core_atom")}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                attachment_policy: event.target.value,
+                ...(event.target.value === "original_cuts"
+                  ? { preserve_bonds: true }
+                  : {}),
+              })
+            }
+          >
+            <option value="original_cuts">
+              {zh
+                ? "仅原有断点 · 推荐"
+                : "Original cut sites only · Recommended"}
+            </option>
+            <option value="any_core_atom">
+              {zh
+                ? "允许在核心其他位置生长"
+                : "Allow growth at other core positions"}
+            </option>
+          </select>
+        </label>
+      )}
       {mode === "optimize" && (
         <label className="field">
           {zh

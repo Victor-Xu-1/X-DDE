@@ -10,6 +10,7 @@ FILES = {
             "runner.py",
             "chemistry.py",
             "fixed_core.py",
+            "core_boundary.py",
             "stereo.py",
             "verification.py",
         )
