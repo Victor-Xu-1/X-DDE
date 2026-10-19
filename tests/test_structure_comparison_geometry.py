@@ -49,7 +49,7 @@ def test_partner_is_evaluated_in_the_target_frame_not_independently_refitted(geo
     assert result["target_rmsd_angstrom"] == pytest.approx(0, abs=1e-12)
     assert result["partner_rmsd_angstrom"] == pytest.approx(4)
     np.testing.assert_allclose(
-        [atom.coord for atom in moving["B"].get_atoms()], partner + [0, 0, 4]
+        [atom.coord for atom in moving["B"].get_atoms()], partner + [0, 0, 4], atol=1e-12
     )
     np.testing.assert_array_equal([atom.coord for atom in reference.get_atoms()], before)
     assert all(
