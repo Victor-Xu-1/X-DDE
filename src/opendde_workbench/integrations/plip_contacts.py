@@ -28,12 +28,16 @@ def edge(kind, item, protein, ligand):
     }
 
 
-def profile_contacts(profile, original):
+def profile_contacts(profile, original, *, annotate=None):
+    def contact(kind, item, protein, ligand):
+        row = edge(kind, item, protein, ligand)
+        return annotate(row, item) if annotate else row
+
     interactions = []
     for item in profile.hydrophobic_contacts:
         protein = (str(item.reschain), int(item.resnr), str(item.restype))
         interactions.append(
-            edge(
+            contact(
                 "hydrophobic",
                 item,
                 original.atom(item.bsatom, protein=protein),
@@ -46,7 +50,7 @@ def profile_contacts(profile, original):
             ligand = item.a if protein_donor else item.d
             residue = (str(item.reschain), int(item.resnr), str(item.restype))
             interactions.append(
-                edge(
+                contact(
                     "hydrogen_bond",
                     item,
                     original.atom(protein, protein=residue),
@@ -56,7 +60,7 @@ def profile_contacts(profile, original):
     for item in profile.pistacking:
         residue = (str(item.reschain), int(item.resnr), str(item.restype))
         interactions.append(
-            edge(
+            contact(
                 "pi_stack",
                 item,
                 original.group(item.proteinring.atoms, item.proteinring.center, protein=residue),
@@ -69,7 +73,7 @@ def profile_contacts(profile, original):
             ligand = item.negative if positive else item.positive
             residue = (str(item.reschain), int(item.resnr), str(item.restype))
             interactions.append(
-                edge(
+                contact(
                     "salt_bridge",
                     item,
                     charge_center(protein, original, protein=residue),
@@ -82,7 +86,7 @@ def profile_contacts(profile, original):
             ligand = item.ring if protein_charged else item.charge
             residue = (str(item.reschain), int(item.resnr), str(item.restype))
             interactions.append(
-                edge(
+                contact(
                     "pi_cation",
                     item,
                     (
@@ -100,7 +104,7 @@ def profile_contacts(profile, original):
     for item in profile.halogen_bonds:
         residue = (str(item.reschain), int(item.resnr), str(item.restype))
         interactions.append(
-            edge(
+            contact(
                 "halogen_bond",
                 item,
                 original.atom(item.acc.o, protein=residue),
@@ -111,7 +115,7 @@ def profile_contacts(profile, original):
         protein = item.d if item.protisdon else item.a
         ligand = item.a if item.protisdon else item.d
         residue = (str(item.reschain), int(item.resnr), str(item.restype))
-        row = edge(
+        row = contact(
             "water_bridge",
             item,
             original.atom(protein, protein=residue),
@@ -123,7 +127,7 @@ def profile_contacts(profile, original):
         if "protein" in item.location:
             residue = (str(item.reschain), int(item.resnr), str(item.restype))
             interactions.append(
-                edge(
+                contact(
                     "metal_complex",
                     item,
                     original.atom(item.target.atom, protein=residue),

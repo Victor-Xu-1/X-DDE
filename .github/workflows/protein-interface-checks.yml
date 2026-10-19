@@ -1,0 +1,67 @@
+name: Complete protein interface and modified polymer checks
+on:
+  workflow_dispatch:
+    inputs:
+      native:
+        description: Run the real managed PLIP 3 STAT6 dimer calculation
+        type: boolean
+        default: false
+  push:
+    paths:
+      - "src/opendde_workbench/integrations/*interface*"
+      - "src/opendde_workbench/integrations/plip_contacts.py"
+      - "frontend/src/integrations/ProteinInterface*"
+      - "frontend/src/viewer/modified-polymer*"
+      - "tests/test_protein_interface.py"
+      - "server_tests/test_native_protein_interface.py"
+      - ".github/workflows/protein-interface-checks.yml"
+permissions:
+  contents: read
+jobs:
+  contracts-and-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact native request, all-contact report and historical classification contracts
+        run: >-
+          uv run --locked pytest -q tests/test_protein_interface.py
+          tests/test_plip_contacts.py tests/test_plip_coordinates.py
+          tests/test_scientific_entrypoint.py tests/test_task_history.py
+      - name: Generated capability and backend-operation authorities
+        run: uv run --locked python scripts/generate-capability-catalog.py --check
+      - name: Real modified STAT6 source and affected form/result consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/viewer/modified-polymer.test.ts
+          src/integrations/ProteinInterfaceForm.test.tsx
+          src/integrations/ProteinInterfaceResults.test.tsx
+          src/integrations/ScientificResults.test.tsx
+          src/viewer/scientific-overlay.test.ts
+  native-stat6-interface:
+    if: github.event_name == 'workflow_dispatch' && inputs.native
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Deposited STAT6 dimer through the actual queue and managed PLIP environment
+        env:
+          WB_TEST_NATIVE_INTERFACE: "1"
+        run: uv run --locked --with biopython==1.88 pytest -x -q server_tests/test_native_protein_interface.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stat6-protein-interface-native
+          path: server_tests/evidence/protein-interface/**

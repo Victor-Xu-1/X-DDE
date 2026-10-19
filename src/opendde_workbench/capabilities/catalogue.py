@@ -88,12 +88,13 @@ _ROWS = (
     (
         "structure",
         "analyze",
-        ("复合物相互作用分析", "Complex interaction analysis"),
+        ("蛋白界面相互作用", "Protein interface interactions"),
         (
-            "PLIP 结构分析，可比较最多三个候选。",
-            "PLIP structural interaction analysis for up to three candidates.",
+            "比较最多三个蛋白复合物，查看完整原生接触与修饰残基。",
+            "Compare up to three protein complexes with complete native contacts "
+            "and modified residues.",
         ),
-        "Harness / PLIP",
+        "PLIP",
     ),
     (
         "rmsd",
@@ -194,8 +195,13 @@ def forms() -> tuple[CapabilitySpec, ...]:
     for identifier, group, label, note, source in _ROWS:
         campaign = identifier == "campaign"
         environment = (
-            "chemistry" if identifier == "properties"
-            else "opendde" if identifier in _CORE else "harness"
+            "plip"
+            if identifier == "structure"
+            else "chemistry"
+            if identifier == "properties"
+            else "opendde"
+            if identifier in _CORE
+            else "harness"
         )
         result.append(
             CapabilitySpec(
@@ -206,7 +212,9 @@ def forms() -> tuple[CapabilitySpec, ...]:
                 note=note,
                 source=source,
                 environment=environment,
-                operations=_CORE.get(identifier, () if campaign else ("harness",)),
+                operations=("protein_interface",)
+                if identifier == "structure"
+                else _CORE.get(identifier, () if campaign else ("harness",)),
                 frontend_form=identifier,
                 native_tool=identifier if environment == "harness" and not campaign else None,
                 submission="native_campaign" if campaign else "task",

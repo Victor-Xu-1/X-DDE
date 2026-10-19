@@ -200,6 +200,9 @@ on:
       - "!frontend/src/datasets/supplier-label*"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
+      # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
+      - "!frontend/src/integrations/ProteinInterface*"
+      - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/user-interface-checks.yml"
       # Saved-material handoff uses result-handoff-checks.yml.
       - "!frontend/src/docking/DockingResults*"
@@ -297,6 +300,9 @@ on:
       - "!frontend/src/viewer/search-box*"
       - "!frontend/src/viewer/StructureViewport.tsx"
       - "!frontend/src/diffsbdd/ReviewReference.tsx"
+      # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
+      - "!frontend/src/integrations/ProteinInterface*"
+      - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/user-interface-checks.yml"
   pull_request:
     paths:
@@ -453,6 +459,9 @@ on:
       - "!frontend/src/datasets/supplier-label*"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
+      # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
+      - "!frontend/src/integrations/ProteinInterface*"
+      - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/user-interface-checks.yml"
       # Saved-material handoff uses result-handoff-checks.yml.
       - "!frontend/src/docking/DockingResults*"
@@ -549,6 +558,9 @@ on:
       - "!frontend/src/viewer/search-box*"
       - "!frontend/src/viewer/StructureViewport.tsx"
       - "!frontend/src/diffsbdd/ReviewReference.tsx"
+      # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
+      - "!frontend/src/integrations/ProteinInterface*"
+      - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/user-interface-checks.yml"
   workflow_dispatch:
 jobs:

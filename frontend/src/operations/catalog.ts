@@ -709,12 +709,12 @@ export const tools = [
   {
     id: "structure",
     group: "analyze",
-    label: ["复合物相互作用分析", "Complex interaction analysis"],
+    label: ["蛋白界面相互作用", "Protein interface interactions"],
     note: [
-      "PLIP 结构分析，可比较最多三个候选。",
-      "PLIP structural interaction analysis for up to three candidates.",
+      "比较最多三个蛋白复合物，查看完整原生接触与修饰残基。",
+      "Compare up to three protein complexes with complete native contacts and modified residues.",
     ],
-    source: "Harness / PLIP",
+    source: "PLIP",
     modalities: [
       "chemical",
       "small_molecule",

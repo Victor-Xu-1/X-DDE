@@ -4,6 +4,8 @@ on:
   push:
     paths: &viewer_paths
       - "frontend/src/viewer/**"
+      # Deposited polymer identity has exact real-source checks.
+      - "!frontend/src/viewer/modified-polymer*"
       - "frontend/src/poses/PoseResults*"
       - "frontend/src/poses/PoseList*"
       - "frontend/src/poses/PoseOutcomeList*"

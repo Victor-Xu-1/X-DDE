@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..artifacts import contained
 from ..proximity.result_models import TernaryResult
+from ..scientific_objects import MoleculeRef
 from ..simulations.results import DynamicsResult, FreeEnergyResult, validate_simulation
 from .sequence_design_result import SequenceDesignResult, validate_sequence_design
 
@@ -50,6 +51,9 @@ class NativeResult(BaseModel):
     structure_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_unit: Literal["kBT/e"] | None = None
     interactions: list["NativeInteraction"] = Field(default_factory=list, max_length=1000)
+    protein_interfaces: list["ProteinInterfaceResult"] | None = Field(
+        default=None, min_length=1, max_length=3, exclude_if=lambda value: value is None
+    )
     validation_points: list["ValidationPoint"] = Field(default_factory=list, max_length=500)
     scope: Literal["native_computation_not_experimental_measurement"] = (
         "native_computation_not_experimental_measurement"
@@ -77,6 +81,32 @@ class NativeInteraction(BaseModel):
     bridge_position: tuple[float, float, float] | None = None
 
 
+class InterfaceResidue(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    chain: str = Field(pattern=r"^[A-Za-z0-9]$")
+    number: int = Field(ge=-9999, le=99999)
+    residue: str = Field(min_length=1, max_length=8)
+    insertion_code: str = Field(default="", max_length=1)
+
+
+class InterfaceInteraction(NativeInteraction):
+    insertion_code: str = Field(default="", max_length=1)
+    partner: InterfaceResidue
+    partner_role: Literal["partner", "cofactor"] = "partner"
+
+
+class ProteinInterfaceResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(min_length=1, max_length=80)
+    source: MoleculeRef
+    structure_artifact: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,160}$")
+    xml_artifact: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,160}$")
+    text_artifact: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,160}$")
+    table_artifact: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,160}$")
+    interactions: list[InterfaceInteraction] = Field(max_length=10000)
+    polymer_residues: int = Field(ge=2, le=50000)
+
+
 class ValidationPoint(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
     smiles: str = Field(min_length=1, max_length=5000)
@@ -87,6 +117,9 @@ class ValidationPoint(BaseModel):
 def validate_result(value, request, output):
     result = NativeResult.model_validate(value)
     validate_sequence_design(result, request)
+    from .protein_interface_result import validate_interface_result
+
+    validate_interface_result(result, request, output)
     expected = hashlib.sha256(request.model_dump_json().encode()).hexdigest()
     if (
         result.operation != request.operation

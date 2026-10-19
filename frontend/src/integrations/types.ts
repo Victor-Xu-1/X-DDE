@@ -72,11 +72,32 @@ export interface NativeResult {
   structure_artifact?: string | null;
   potential_unit?: "kBT/e" | null;
   interactions: NativeInteraction[];
+  protein_interfaces?: ProteinInterfaceResult[] | null;
   validation_points: { smiles: string; observed: number; predicted: number }[];
   proximity?: TernaryResult | null;
   dynamics?: DynamicsResult | null;
   free_energy?: FreeEnergyResult | null;
   sequence_design?: import("./sequence-design").SequenceDesignResult | null;
+}
+export interface ProteinInterfaceInteraction extends NativeInteraction {
+  insertion_code: string;
+  partner: {
+    chain: string;
+    number: number;
+    residue: string;
+    insertion_code: string;
+  };
+  partner_role: "partner" | "cofactor";
+}
+export interface ProteinInterfaceResult {
+  name: string;
+  source: MoleculeRef;
+  structure_artifact: string;
+  xml_artifact: string;
+  text_artifact: string;
+  table_artifact: string;
+  polymer_residues: number;
+  interactions: ProteinInterfaceInteraction[];
 }
 export interface PropertyModel {
   job_id: string;

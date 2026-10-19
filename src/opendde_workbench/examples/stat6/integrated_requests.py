@@ -13,6 +13,7 @@ def integrated_study(capability, objects, sequences):
         "openmm.refine": ("structure_refine", "openmm"),
         "apbs.potential": ("electrostatics", "apbs"),
         "plip.profile": ("interaction_profile", "plip"),
+        "structure": ("protein_interface", "plip"),
         "chemprop.train": ("chemprop_train", "chemprop"),
     }
     if capability not in programs:
@@ -30,7 +31,15 @@ def integrated_study(capability, objects, sequences):
         inputs.append({"role": role, "source": reference})
         return reference
 
-    if kind == "boltz":
+    if operation == "protein_interface":
+        add("structure", "stat6_alternative")
+        payload.update(
+            scope="protein_interface",
+            target_chains=["A"],
+            binder_chains=["B"],
+            candidate_names=["STAT6 4Y5U phosphorylated A/B dimer"],
+        )
+    elif kind == "boltz":
         ligand = add("ligand", "study_ligand")
         payload["components"] = [
             MolecularComponent(id="A", kind="protein", value=sequences["protein"]),

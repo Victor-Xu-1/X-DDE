@@ -272,9 +272,9 @@ export const taskKindRules = [
   },
   {
     id: "structure",
-    operation: "harness",
-    field: "tool",
-    value: "structure",
+    operation: "protein_interface",
+    field: null,
+    value: null,
   },
   {
     id: "rmsd",
@@ -467,5 +467,11 @@ export const taskKindRules = [
     operation: "molecule_minimize",
     field: null,
     value: null,
+  },
+  {
+    id: "structure",
+    operation: "harness",
+    field: "tool",
+    value: "structure",
   },
 ] as const;

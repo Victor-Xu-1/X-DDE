@@ -11,6 +11,7 @@ import { MolecularScene } from "./scene";
 import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
 import { spatialMolecule } from "./initial-geometry";
+import { retainModifiedPolymer } from "./modified-polymer";
 import { initializeTheme } from "../theme";
 import { searchBoxGeometry } from "./search-box";
 import "./frame.css";
@@ -140,6 +141,8 @@ async function load(input: ViewerLoad) {
       }
       inputCharges.push(inputChargesDeclared(record, format));
       const model = viewer.addModel(record, format);
+      await retainModifiedPolymer(model, record, format);
+      if (current !== generation) return;
       if (
         ["sdf", "mol", "mol2"].includes(format) &&
         !spatialMolecule(

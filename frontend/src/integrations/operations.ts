@@ -13,6 +13,7 @@ export const nativeOperations = [
   "chemprop_train",
   "chemprop_predict",
   "interaction_profile",
+  "protein_interface",
 ] as const;
 export const nativeOperationPrograms = {
   ternary_model: "deepternary",
@@ -28,4 +29,5 @@ export const nativeOperationPrograms = {
   chemprop_train: "chemprop",
   chemprop_predict: "chemprop",
   interaction_profile: "plip",
+  protein_interface: "plip",
 } as const;

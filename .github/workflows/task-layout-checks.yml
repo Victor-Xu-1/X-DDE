@@ -335,6 +335,9 @@ on:
       - "!frontend/src/operations/ToolQuestionnaires.test.tsx"
       - "!frontend/src/pockets/PocketForm.tsx"
       - "!frontend/src/guided/EnvironmentRecheck.tsx"
+      # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
+      - "!frontend/src/integrations/ProteinInterface*"
+      - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/task-layout-checks.yml"
       # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
       - "!frontend/src/diffsbdd/DiffResults.tsx"
@@ -441,6 +444,9 @@ on:
       - "!frontend/src/viewer/useViewerConnection.ts"
       - "!frontend/src/viewer/viewer-connection.test.tsx"
       - "!frontend/src/diffsbdd/ReviewReference.tsx"
+      # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
+      - "!frontend/src/integrations/ProteinInterface*"
+      - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/task-layout-checks.yml"
   workflow_dispatch:
     inputs:

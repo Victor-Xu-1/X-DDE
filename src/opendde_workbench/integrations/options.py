@@ -101,3 +101,14 @@ class InteractionPayload(BaseModel):
     kind: Literal["plip"] = "plip"
     ligand_chain: str = Field(pattern=r"^[A-Za-z0-9]$")
     ligand_number: int = Field(ge=-9999, le=99999)
+
+
+class ProteinInterfacePayload(BaseModel):
+    """One protocol for up to three exact complexes, using the existing PLIP engine."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["plip"] = "plip"
+    scope: Literal["protein_interface"] = "protein_interface"
+    target_chains: list[str] = Field(min_length=1, max_length=8)
+    binder_chains: list[str] = Field(min_length=1, max_length=8)
+    candidate_names: list[str] = Field(min_length=1, max_length=3)

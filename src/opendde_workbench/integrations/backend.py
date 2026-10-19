@@ -25,6 +25,8 @@ FILES = (
     "native_chemprop.py",
     "native_validation.py",
     "native_plip.py",
+    "native_protein_interface.py",
+    "plip_interface_source.py",
     "plip_coordinates.py",
     "plip_contacts.py",
     "recipes.json",

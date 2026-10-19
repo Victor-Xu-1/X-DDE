@@ -9,6 +9,10 @@ from plip_coordinates import SourceCoordinates
 
 
 def run(request):
+    if request["operation"] == "protein_interface":
+        from native_protein_interface import run as analyze_interface
+
+        return analyze_interface(request)
     from plip.structure.preparation import PDBComplex
 
     source, _ = input_pdb(request, allow_component_aliases=True)

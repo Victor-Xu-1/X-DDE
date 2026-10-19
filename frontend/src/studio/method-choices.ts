@@ -849,7 +849,7 @@ export const methodChoices = [
   },
   {
     id: "method.structure",
-    label: ["复合物相互作用分析", "Complex interaction analysis"],
+    label: ["蛋白界面相互作用", "Protein interface interactions"],
     default: "structure",
     default_basis: [
       "当前唯一接入的方法，已默认选中。",
@@ -858,10 +858,10 @@ export const methodChoices = [
     options: [
       {
         id: "structure",
-        label: "Harness / PLIP",
+        label: "PLIP",
         note: [
-          "PLIP 结构分析，可比较最多三个候选。",
-          "PLIP structural interaction analysis for up to three candidates.",
+          "比较最多三个蛋白复合物，查看完整原生接触与修饰残基。",
+          "Compare up to three protein complexes with complete native contacts and modified residues.",
         ],
       },
     ],

@@ -41,6 +41,7 @@ import type { PreparedExample } from "../examples/types";
 import type { DockingMode } from "../docking/types";
 import type { DiffMode } from "../diffsbdd/types";
 import { ScientificForm } from "../integrations/ScientificForm";
+import { ProteinInterfaceForm } from "../integrations/ProteinInterfaceForm";
 import { isScientificForm } from "../integrations/types";
 import { SimulationForm } from "../simulations/SimulationForm";
 import { isSimulationForm } from "../simulations/types";
@@ -140,6 +141,11 @@ export function ToolCenter({
               ) : isSimulationForm(selected) ? (
                 <SimulationForm
                   form={selected}
+                  language={language}
+                  onCreated={onCreated}
+                />
+              ) : selected === "structure" ? (
+                <ProteinInterfaceForm
                   language={language}
                   onCreated={onCreated}
                 />

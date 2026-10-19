@@ -15,7 +15,7 @@ environment through the same task envelope. None starts a separate workbench or 
 | BoltzGen | 0.3.2 | Protein/peptide design and scaffold-based antibody variable-region design |
 | Refinement | PDBFixer 1.12.0, OpenMM 8.6.1, OpenFF Toolkit 0.19.0 | Resolved-atom preparation and restrained vacuum minimization |
 | Electrostatics | PDB2PQR 3.7.1 / APBS 3.4.1 | Coordinate-bound DX potential in kBT/e at recorded conditions |
-| Interactions | PLIP 3.0.1 / Open Babel 3.2.1 | Classified protein–ligand contacts and original-coordinate annotations |
+| Interactions | PLIP 3.0.1 / Open Babel 3.2.1 | Classified protein–ligand and protein-interface contacts in the original coordinate frame |
 | Property modeling | Chemprop 2.3.1 | Scaffold-split regression, held-out plots and reusable native models |
 | Structure editor | Mol* 5.13.0 | Integrated editor; the main preview continues using 3Dmol 2.5.5 |
 
@@ -32,6 +32,20 @@ source archive after its declared scientific dependencies. Dependency locks incl
 immutable conda artifact URLs/SHA-256 and pip hashes.
 
 ## Research inputs and results
+
+Protein-interface analysis uses the same managed PLIP environment and task queue as
+small-molecule interaction profiling. Select one to three complete complexes and
+disjoint target/partner chain sets. Each comparison retains its exact source input,
+full contact table, and native XML/TXT reports. The result validator compares all
+reported contact classes, including water bridges, with the full native report;
+missing or truncated contacts cannot be accepted as a complete result.
+
+Deposited modified-polymer annotations survive mmCIF-to-PDB transport. Selected
+polymer residues must all survive the native preparation. The web viewer uses exact
+deposited residue identities to classify modified polymer residues, without changing
+their names, bonds, coordinates, or source downloads. Historical Harness structure
+tasks remain in their original module; new interface tasks use the managed PLIP 3
+adapter. Contact distances and counts do not measure affinity or interaction energy.
 
 New tasks start with fresh materials. Explicitly choosing a historical file or a module
 template preserves its exact asset, record, conformer and checksum. PDB-only programs

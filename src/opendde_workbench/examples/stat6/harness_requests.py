@@ -48,12 +48,6 @@ def harness_study(capability, objects, sequences):
             "cutoff": 4.5,
             "hotspots": [],
         },
-        "structure": {
-            "structure_paths": [structure],
-            "candidate_names": ["STAT6 9BIG observed construct"],
-            "binder_chain_ids": [],
-            "target_chain_ids": ["A"],
-        },
         "rmsd": {
             "reference_path": structure,
             "mobile_path": "asset:" + str(objects["receptor_b"].reference.asset_id),

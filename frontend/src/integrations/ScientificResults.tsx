@@ -11,6 +11,7 @@ import { ResearchTabs } from "../presentation/ResearchTabs";
 import type { Job, Language } from "../types";
 import type { NativeCandidate, NativeResult } from "./types";
 import { InteractionResults } from "./InteractionResults";
+import { ProteinInterfaceResults } from "./ProteinInterfaceResults";
 import { PotentialResults } from "./PotentialResults";
 import { ProximityResults } from "../proximity/Results";
 import { PropertyModelResults } from "./PropertyModelResults";
@@ -124,6 +125,15 @@ export function ScientificResults({
         files={result.artifact_sha256}
         protein={result.structure_artifact}
         onCreated={onCreated}
+      />
+    );
+  if (result.operation === "protein_interface" && result.protein_interfaces)
+    return (
+      <ProteinInterfaceResults
+        key={job.id}
+        job={job}
+        interfaces={result.protein_interfaces}
+        language={language}
       />
     );
   if (result.program === "plip")

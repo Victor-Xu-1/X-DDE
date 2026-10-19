@@ -23,6 +23,7 @@ from .options import (
     ExecutionOptions,
     InteractionPayload,
     LigandMPNNPayload,
+    ProteinInterfacePayload,
     RefinementPayload,
     ReinventPayload,
 )
@@ -41,7 +42,15 @@ OPERATIONS = {
     "chemprop_train": "chemprop",
     "chemprop_predict": "chemprop",
     "interaction_profile": "plip",
+    "protein_interface": "plip",
 }
+
+
+def native_payload_tag(value):
+    scope = value.get("scope") if isinstance(value, dict) else getattr(value, "scope", None)
+    if payload_tag(value) == "plip" and scope == "protein_interface":
+        return "plip_interface"
+    return payload_tag(value)
 
 
 class MaterialInput(BaseModel):
@@ -64,8 +73,9 @@ Payload = Annotated[
     | Annotated[ElectrostaticsPayload, Tag("apbs")]
     | Annotated[ChempropPayload, Tag("chemprop")]
     | Annotated[InteractionPayload, Tag("plip")]
+    | Annotated[ProteinInterfacePayload, Tag("plip_interface")]
     | Annotated[TernaryPayload, Tag("deepternary")],
-    Discriminator(payload_tag),
+    Discriminator(native_payload_tag),
 ]
 
 
@@ -85,6 +95,7 @@ class IntegratedTask(TaskMetadata):
         "chemprop_train",
         "chemprop_predict",
         "interaction_profile",
+        "protein_interface",
     ]
     name: str = Field(min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$")
     project_id: UUID | None = None
@@ -100,8 +111,15 @@ class IntegratedTask(TaskMetadata):
         if self.constraints:
             raise ValueError("This native adapter does not execute platform constraint sets.")
         roles = {item.role for item in self.inputs}
-        if len(roles) != len(self.inputs):
+        interface = isinstance(self.payload, ProteinInterfacePayload)
+        if (self.operation == "protein_interface") != interface:
+            raise ValueError("Choose the protein-interface protocol for this operation.")
+        if not interface and len(roles) != len(self.inputs):
             raise ValueError("Select each input role exactly once.")
+        if interface:
+            from .protein_interface_contract import validate_interface_inputs
+
+            validate_interface_inputs(self)
         if self.scientific_inputs != [item.source for item in self.inputs]:
             raise ValueError("Confirm the exact scientific input versions before submission.")
         if any(

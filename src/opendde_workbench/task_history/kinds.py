@@ -22,6 +22,8 @@ def task_kind_rules() -> list[dict]:
     rules.append(
         {"id": "pose.minimize", "operation": "molecule_minimize", "field": None, "value": None}
     )
+    # Historical Harness snapshots remain readable under their original module.
+    rules.append({"id": "structure", "operation": "harness", "field": "tool", "value": "structure"})
     return rules
 
 
