@@ -72,6 +72,7 @@ jobs:
               ".github/workflows/library-screen-checks.yml", "docs/frontend-layout.md",
               "docs/design/research-examples.md",
               "README.md", "README.en.md",
+              "tests/test_record_example_supporting.py",
               "frontend/src/examples/useExampleTemplate.ts", "frontend/src/examples/ExampleActions.test.tsx",
               "frontend/src/diffsbdd/DiffForm.tsx", "frontend/src/diffsbdd/DiffTemplateReplay.test.tsx",
               "frontend/src/chemistry/LibraryScreenForm.tsx", "frontend/src/chemistry/LibraryScreenTemplate.test.tsx",

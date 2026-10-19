@@ -188,9 +188,7 @@ def test_record_pin_api_keeps_review_metadata_and_csrf_boundary(
     settings, client_factory, monkeypatch
 ):
     pins, prepared, record, _, followup, final, review, _ = study(settings)
-    monkeypatch.setattr(
-        "opendde_workbench.examples.routes.prepare_example", lambda *args, **kwargs: prepared
-    )
+    monkeypatch.setattr(BundleCatalogue, "prepare", lambda *args, **kwargs: prepared)
     body = dict(
         record_id=record["id"],
         review=review.model_dump(mode="json"),
@@ -226,8 +224,7 @@ def test_fixed_record_result_is_read_only_and_rejects_changed_native_evidence(
     def no_preparation(*args, **kwargs):
         raise AssertionError("Viewing a saved result must not prepare or import any input.")
 
-    monkeypatch.setattr("opendde_workbench.examples.routes.prepare_example", no_preparation)
-    monkeypatch.setattr("opendde_workbench.examples.routes.prepare_stat6", no_preparation)
+    monkeypatch.setattr(BundleCatalogue, "prepare", no_preparation)
     tables = ("jobs", "assets", "scientific_objects", "example_pins", "example_record_pins")
 
     def snapshot():
