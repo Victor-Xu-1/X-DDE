@@ -15,7 +15,8 @@ def test_insertion_codes_cannot_collapse_distinct_polymer_residues(tmp_path, mon
         (("A", 10, "A", 1), ("A", 10, "B", 2), ("B", 20, "", 3)), 1
     ):
         rows.append(
-            f"ATOM  {serial:5d}   CA ALA {chain}{number:4d}{code:1s}   {x:8.3f}{0:8.3f}{0:8.3f}  1.00 50.00           C  \n"
+            f"ATOM  {serial:5d}   CA ALA {chain}{number:4d}{code:1s}   "
+            f"{x:8.3f}{0:8.3f}{0:8.3f}  1.00 50.00           C  \n"
         )
     file = tmp_path / "insertions.pdb"
     file.write_text("".join(rows))
