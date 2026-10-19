@@ -2,6 +2,23 @@
 
 
 def study_request(capability, objects, sequences):
+    if capability == "rmsd":
+        from ...structure_comparison.contract import StructureComparisonTask
+
+        reference = objects["comparison_reference"].reference
+        moving = objects["comparison_moving"].reference
+        return StructureComparisonTask(
+            name="STAT6 · DNA-free vs DNA-bound phosphorylated dimer",
+            reference=reference,
+            moving=moving,
+            scientific_inputs=[reference, moving],
+            options={
+                "purpose": "conformational_comparison",
+                "correspondence": "author_numbering",
+                "target_mapping": [{"reference": "A", "moving": "A"}],
+                "partner_mapping": [{"reference": "B", "moving": "C"}],
+            },
+        ).model_dump(mode="json")
     if capability == "biopython.exposure" and "receptor" not in objects:
         return None
     if capability == "biopython.ensemble" and "receptor_a" not in objects:

@@ -207,6 +207,9 @@ on:
       - "!frontend/src/integrations/types.ts"
       - "!frontend/src/integrations/operations.ts"
       - "!frontend/src/operations/ToolCenter.tsx"
+      # Shared task-union/comparison projection changes have the exact native comparison gate.
+      - "!frontend/src/operations/types.ts"
+      - "!frontend/src/operations/harness-fields.ts"
       - "!frontend/src/operations/catalog.ts"
       - "!frontend/src/studio/method-choices.ts"
       # Exact backend-switch behavior is covered in simulation-backend-checks.yml.

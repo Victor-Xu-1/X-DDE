@@ -868,7 +868,10 @@ export const methodChoices = [
   },
   {
     id: "method.rmsd",
-    label: ["对齐目标后比较结合姿势", "Compare target-aligned binding poses"],
+    label: [
+      "蛋白界面与构象比较",
+      "Compare protein interfaces and conformations",
+    ],
     default: "rmsd",
     default_basis: [
       "当前唯一接入的方法，已默认选中。",
@@ -877,10 +880,10 @@ export const methodChoices = [
     options: [
       {
         id: "rmsd",
-        label: "Harness",
+        label: "Biopython / DockQ",
         note: [
-          "对齐目标链后计算结合链 RMSD。",
-          "Align target chains and calculate binder RMSD.",
+          "明确靶蛋白与伙伴链，在同一坐标系比较构象、界面和观测覆盖率。",
+          "Map target and partner chains, then compare geometry, interfaces and observed coverage in one frame.",
         ],
       },
     ],

@@ -278,9 +278,9 @@ export const taskKindRules = [
   },
   {
     id: "rmsd",
-    operation: "harness",
-    field: "tool",
-    value: "rmsd",
+    operation: "structure_compare",
+    field: null,
+    value: null,
   },
   {
     id: "evolution",
@@ -473,5 +473,11 @@ export const taskKindRules = [
     operation: "harness",
     field: "tool",
     value: "structure",
+  },
+  {
+    id: "rmsd",
+    operation: "harness",
+    field: "tool",
+    value: "rmsd",
   },
 ] as const;

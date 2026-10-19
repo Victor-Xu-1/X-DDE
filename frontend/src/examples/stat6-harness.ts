@@ -40,12 +40,6 @@ export function stat6HarnessPayload(
     payload.binder_chain_ids = [];
     payload.target_chain_ids = ["A"];
   }
-  if (tool === "rmsd") {
-    payload.reference_path = structure;
-    payload.mobile_path = `asset:${example.objects.receptor_b.reference.asset_id}`;
-    payload.target_chain_ids = ["A"];
-    payload.binder_chain_ids = [];
-  }
   if (tool === "protrek-sequence") payload.sequence = sequence;
   if (tool === "protrek-structure") {
     payload.structure_path = structure;

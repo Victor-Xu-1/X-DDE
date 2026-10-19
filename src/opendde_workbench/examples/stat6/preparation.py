@@ -76,6 +76,9 @@ def prepare_stat6(capability, scientific, *, records=None):
         "receptor_b": originals["stat6_alternative_receptor"],
         "variable_domains": originals["dupilumab_variable_domains"],
     }
+    if capability == "rmsd":
+        objects["comparison_reference"] = originals["stat6_alternative"]
+        objects["comparison_moving"] = originals["stat6_dna_bound"]
     if capability in {
         "biopython.exposure",
         "biopython.ensemble",

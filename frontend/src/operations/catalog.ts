@@ -727,13 +727,16 @@ export const tools = [
   {
     id: "rmsd",
     group: "analyze",
-    label: ["对齐目标后比较结合姿势", "Compare target-aligned binding poses"],
-    note: [
-      "对齐目标链后计算结合链 RMSD。",
-      "Align target chains and calculate binder RMSD.",
+    label: [
+      "蛋白界面与构象比较",
+      "Compare protein interfaces and conformations",
     ],
-    source: "Harness",
-    modalities: ["biologic", "antibody", "protein"],
+    note: [
+      "明确靶蛋白与伙伴链，在同一坐标系比较构象、界面和观测覆盖率。",
+      "Map target and partner chains, then compare geometry, interfaces and observed coverage in one frame.",
+    ],
+    source: "Biopython / DockQ",
+    modalities: ["biologic", "antibody", "protein", "peptide"],
     modality_role: "research_object",
   },
   {

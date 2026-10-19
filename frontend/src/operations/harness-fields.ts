@@ -157,20 +157,6 @@ export const harnessFields: Record<string, FieldSpec[]> = {
     binder,
     target,
   ],
-  rmsd: [
-    {
-      ...structure,
-      key: "reference_path",
-      label: ["参考结构", "Reference structure"],
-    },
-    {
-      ...structure,
-      key: "mobile_path",
-      label: ["待比较结构", "Mobile structure"],
-    },
-    binder,
-    target,
-  ],
   evolution: [
     {
       key: "objective_key",
@@ -291,12 +277,6 @@ export const harnessDefaults: Record<string, Record<string, unknown>> = {
   structure: {
     structure_paths: [],
     candidate_names: [],
-    binder_chain_ids: ["B"],
-    target_chain_ids: ["A"],
-  },
-  rmsd: {
-    reference_path: "",
-    mobile_path: "",
     binder_chain_ids: ["B"],
     target_chain_ids: ["A"],
   },

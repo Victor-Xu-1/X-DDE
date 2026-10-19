@@ -1,6 +1,10 @@
 # Reference-conditioned protein comparisons
 
-Status: implementation in progress. The published v0.6.41 runtime remains unchanged.
+Status: native geometry/export and actual API/queue/asset controls passed on candidate
+`e556918a2da1a93727200fda947001c87aff118f`
+([focused native gate](https://github.com/Victor-Xu-1/X-DDE/actions/runs/39328904466)).
+Guided frontend and example-input integration are in progress. These calibration
+controls are not a pinned research study. The published v0.6.41 runtime remains unchanged.
 
 ## Problem and ownership
 

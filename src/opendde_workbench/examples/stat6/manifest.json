@@ -301,6 +301,15 @@
       "bytes": 178262,
       "kind": "config",
       "license": "CC-BY-3.0-US"
+    },
+    "stat6_dna_bound": {
+      "key": "stat6_dna_bound",
+      "name": "4Y5W.cif",
+      "kind": "structure",
+      "license": "CC0-1.0",
+      "url": "https://files.rcsb.org/download/4Y5W.cif",
+      "bytes": 1842780,
+      "sha256": "4ce400d25293e6926fe4c3ea58dcd5e28e98393d295a13e2b2362aada78fe073"
     }
   },
   "molecules": [

@@ -32,6 +32,7 @@ import { PocketForm } from "../pockets/PocketForm";
 import { PoseWorkspace } from "../poses/PoseWorkspace";
 import { WorkflowCenter } from "../workflows/WorkflowCenter";
 import { ReceptorForm } from "../receptors/ReceptorForm";
+import { ComparisonForm } from "../structure-comparison/ComparisonForm";
 import { StateForm } from "../chemistry/StateForm";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
@@ -191,6 +192,8 @@ export function ToolCenter({
                 />
               ) : selected === "pose_exploration" ? (
                 <PoseWorkspace language={language} />
+              ) : selected === "rmsd" ? (
+                <ComparisonForm language={language} onCreated={onCreated} />
               ) : selected === "biopython.ensemble" ? (
                 <ReceptorForm language={language} onCreated={onCreated} />
               ) : selected === "chemistry.states" ? (

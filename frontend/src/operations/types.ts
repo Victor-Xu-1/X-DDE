@@ -66,6 +66,7 @@ export interface HarnessTask extends BaseTask {
   allow_external: boolean;
 }
 export type TaskRequest =
+  | import("../structure-comparison/types").ComparisonTask
   | import("../datasets/types").DatasetTask
   | import("../integrations/types").ScientificTask
   | Prediction

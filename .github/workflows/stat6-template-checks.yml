@@ -10,6 +10,12 @@ on:
   push:
     paths: &stat6_template_paths
       - 'src/opendde_workbench/examples/stat6/**'
+      # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
+      - '!src/opendde_workbench/examples/stat6/manifest.json'
+      - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
+      - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
+      - '!src/opendde_workbench/examples/stat6/requests.py'
+      - '!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif'
       # The retired structure-only preset and its exact replacement have an interface gate.
       - '!src/opendde_workbench/examples/stat6/harness_requests.py'
       # Two preparation presets have exact native-coordinate and questionnaire checks.
@@ -26,6 +32,7 @@ on:
       - 'tests/test_stat6_geometry.py'
       - 'tests/test_stat6_templates*'
       - 'frontend/src/examples/stat6*'
+      - '!frontend/src/examples/stat6-harness*'
       # The read-only material preview has real STAT6 inputs in publication-checks.yml.
       - 'frontend/src/examples/study-input-preview.css'
       - 'server_tests/test_stat6_templates_browser.py'

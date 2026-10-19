@@ -14,6 +14,23 @@ PREDICTION_SOURCES = (
 
 
 def case_for(capability):
+    if capability == "rmsd":
+        return CASE.model_copy(
+            update={
+                "label": ("STAT6 · DNA 结合前后的二聚体", "STAT6 · DNA-free and DNA-bound dimers"),
+                "description": (
+                    "对齐 4Y5U 与 4Y5W 的靶蛋白链，比较伙伴位置与界面；保留 PTR641。",
+                    "Align the target chains of 4Y5U and 4Y5W, "
+                    "compare partner placement and interfaces, and retain PTR641.",
+                ),
+                "files": (*CASE.files, "stat6_dna_bound"),
+                "sources": (
+                    *CASE.sources,
+                    "https://www.rcsb.org/structure/4Y5W",
+                    "https://data.rcsb.org/rest/v1/core/assembly/4Y5W/1",
+                ),
+            }
+        )
     if capability == "chemprop.train":
         from .training_inputs import training_case
 

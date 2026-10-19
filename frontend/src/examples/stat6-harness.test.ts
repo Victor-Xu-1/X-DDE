@@ -44,10 +44,9 @@ it("uses STAT6 protein sequence inputs without carrying over an unrelated antibo
     binder_chain_ids: ["A"],
   });
 });
-it("preserves actual structure roles and clears absent measured comparison inputs", () => {
+it("does not invent legacy comparison roles and clears absent measured population inputs", () => {
   const value = exampleHarnessPayload("rmsd", {}, example);
-  expect(value.reference_path).toBe("asset:stat6-structure");
-  expect(value.mobile_path).toBe("asset:stat6-alternative");
+  expect(value).toEqual({});
   expect(
     exampleHarnessPayload(
       "compare",

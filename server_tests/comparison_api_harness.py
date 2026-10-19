@@ -1,6 +1,7 @@
 """Actual API/Router/Worker/scientific-asset handoff in the isolated comparison runtime gate."""
 
 import json
+import os
 import time
 from uuid import uuid4
 
@@ -95,3 +96,7 @@ def verify_api(root, image, reference, moving, options, evidence):
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         response = client.get(f"/api/jobs/{identifier}/result")
         assert response.status_code == 200 and response.json() == result
+    if os.environ.get("WB_TEST_COMPARISON_BROWSER") == "1":
+        from comparison_browser_harness import verify_browser
+
+        verify_browser(settings.state_dir, identifier, result, evidence)

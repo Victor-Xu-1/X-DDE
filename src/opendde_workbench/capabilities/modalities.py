@@ -112,7 +112,7 @@ _MEMBERSHIP = {
     "fold": _ANTIBODY,
     "epitope": _ANTIBODY,
     "structure": _SMALL + _ANTIBODY,
-    "rmsd": _ANTIBODY,
+    "rmsd": _PROTEIN,
     "evolution": _ANTIBODY,
     "compare": _ANTIBODY,
     "protrek-sequence": _PROTEIN,

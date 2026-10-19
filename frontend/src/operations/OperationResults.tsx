@@ -26,6 +26,8 @@ import type { PocketResult } from "../pockets/types";
 import { DockingResults } from "../docking/DockingResults";
 import type { DockingResult } from "../docking/types";
 import { ReceptorResults } from "../receptors/ReceptorResults";
+import { ComparisonResults } from "../structure-comparison/ComparisonResults";
+import type { ComparisonResult } from "../structure-comparison/types";
 import type { ReceptorResult } from "../receptors/types";
 import {
   ReferenceImportResults,
@@ -90,6 +92,7 @@ export function OperationResults({
     "molecular_states",
     "molecule_minimize",
     "receptor_ensemble",
+    "structure_compare",
     "properties",
     "inspect",
     "json",
@@ -143,6 +146,16 @@ export function OperationResults({
         key={job.id}
         job={job}
         result={data as unknown as NativeResult}
+        language={language}
+        onCreated={onCreated}
+      />
+    );
+  if (job.request.operation === "structure_compare")
+    return (
+      <ComparisonResults
+        key={job.id}
+        job={job}
+        result={data as unknown as ComparisonResult}
         language={language}
         onCreated={onCreated}
       />

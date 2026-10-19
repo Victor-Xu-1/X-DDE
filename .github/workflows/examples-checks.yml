@@ -4,6 +4,12 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/examples/**'
+      # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
+      - '!src/opendde_workbench/examples/stat6/manifest.json'
+      - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
+      - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
+      - '!src/opendde_workbench/examples/stat6/requests.py'
+      - '!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif'
       # Protein-interface presets have exact source/chain and native result checks.
       - '!src/opendde_workbench/examples/stat6/harness_requests.py'
       # DEL cohort wording has its exact stage-guidance gate, without unrelated forms.
@@ -38,6 +44,7 @@ on:
       - '!src/opendde_workbench/examples/stat6/*_replay.py'
       - '!src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/stat6-harness*'
       - '!frontend/src/examples/RecipeInputs.test.tsx'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.
@@ -70,6 +77,12 @@ on:
   pull_request:
     paths:
       - 'src/opendde_workbench/examples/**'
+      # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
+      - '!src/opendde_workbench/examples/stat6/manifest.json'
+      - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
+      - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
+      - '!src/opendde_workbench/examples/stat6/requests.py'
+      - '!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif'
       - '!src/opendde_workbench/examples/del6/guidance.py'
       - '!src/opendde_workbench/examples/del6/stage_hints.py'
       - '!src/opendde_workbench/examples/del6/current-inputs.json'
@@ -95,6 +108,7 @@ on:
       - '!src/opendde_workbench/examples/stat6/*_replay.py'
       - '!src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/examples/**'
+      - '!frontend/src/examples/stat6-harness*'
       - '!frontend/src/examples/RecipeInputs.test.tsx'
       - 'frontend/src/poses/PoseForm.test.tsx'
       # Task identity and its direct consumers have task-history-checks.yml.

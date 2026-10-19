@@ -99,9 +99,13 @@ _ROWS = (
     (
         "rmsd",
         "analyze",
-        ("对齐目标后比较结合姿势", "Compare target-aligned binding poses"),
-        ("对齐目标链后计算结合链 RMSD。", "Align target chains and calculate binder RMSD."),
-        "Harness",
+        ("蛋白界面与构象比较", "Compare protein interfaces and conformations"),
+        (
+            "明确靶蛋白与伙伴链，在同一坐标系比较构象、界面和观测覆盖率。",
+            "Map target and partner chains, then compare geometry, interfaces "
+            "and observed coverage in one frame.",
+        ),
+        "Biopython / DockQ",
     ),
     (
         "evolution",
@@ -195,7 +199,9 @@ def forms() -> tuple[CapabilitySpec, ...]:
     for identifier, group, label, note, source in _ROWS:
         campaign = identifier == "campaign"
         environment = (
-            "plip"
+            "biopython"
+            if identifier == "rmsd"
+            else "plip"
             if identifier == "structure"
             else "chemistry"
             if identifier == "properties"
@@ -212,7 +218,9 @@ def forms() -> tuple[CapabilitySpec, ...]:
                 note=note,
                 source=source,
                 environment=environment,
-                operations=("protein_interface",)
+                operations=("structure_compare",)
+                if identifier == "rmsd"
+                else ("protein_interface",)
                 if identifier == "structure"
                 else _CORE.get(identifier, () if campaign else ("harness",)),
                 frontend_form=identifier,

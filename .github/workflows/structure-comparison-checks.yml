@@ -2,7 +2,7 @@ name: Structure comparison contracts and rigid-frame controls
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &comparison_paths
       - "src/opendde_workbench/structure_comparison/**"
       - "src/opendde_workbench/receptors/native_fit.py"
       - "src/opendde_workbench/receptors/image.py"
@@ -15,9 +15,23 @@ on:
       - "scripts/generate-biopython-lock.py"
       - "server_tests/*comparison*native*"
       - "server_tests/comparison_api_harness.py"
+      - "server_tests/comparison_browser_harness.py"
+      - "frontend/src/structure-comparison/**"
+      - "frontend/src/operations/ToolCenter.tsx"
+      - "frontend/src/operations/OperationResults.tsx"
+      - "frontend/src/operations/types.ts"
+      - "frontend/src/operations/harness-fields.ts"
+      - "frontend/src/examples/stat6-harness*"
+      - "src/opendde_workbench/examples/stat6/requests.py"
+      - "src/opendde_workbench/examples/stat6/reference_inputs.py"
+      - "src/opendde_workbench/examples/stat6/manifest.json"
+      - "src/opendde_workbench/examples/stat6/catalogue-profiles.json"
+      - "src/opendde_workbench/examples/stat6/inputs/4Y5W.cif"
       - "server_tests/test_native_structure_comparison.py"
       - "tests/test_structure_comparison*.py"
       - ".github/workflows/structure-comparison-checks.yml"
+  pull_request:
+    paths: *comparison_paths
 permissions:
   contents: read
 jobs:
@@ -32,11 +46,20 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
+      - name: Exact comparison form and historical reader controls
+        working-directory: frontend
+        run: >-
+          npm test -- src/structure-comparison/ComparisonForm.test.tsx
+          src/operations/StructureComparisonResults.test.tsx
+          src/examples/stat6-harness.test.ts src/examples/harness.test.ts
       - name: Exact chain roles, mutations, insertions, source versions and fitted partner frame
         run: >-
           uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
           tests/test_structure_comparison.py tests/test_structure_comparison_geometry.py
           tests/test_structure_comparison_polymer.py
+          tests/test_structure_comparison_example.py
+          tests/test_capabilities.py tests/test_method_choices.py
+          tests/test_stat6_templates.py::test_actual_bundled_inputs_keep_confirmed_smiles_and_computed_geometry
           server_tests/test_receptor_science.py::test_actual_rigid_structure_copy_recovers_frame_and_original_residue_correspondence
       - name: Changed Python contracts and adapters
         run: >-
@@ -44,6 +67,7 @@ jobs:
           src/opendde_workbench/receptors
           tests/test_structure_comparison*.py server_tests/comparison_native_harness.py
           server_tests/comparison_api_harness.py
+          server_tests/comparison_browser_harness.py
           server_tests/test_native_structure_comparison.py
   native-structural-runtime:
     needs: contracts-and-frame
@@ -56,7 +80,8 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked --group browser playwright install --with-deps chromium
       - name: Verify exact runtime and isolated compiler dependency hashes
         run: uv run --locked python scripts/generate-biopython-lock.py --check
       - name: Prepare only the existing native receptor consumer fixture
@@ -67,8 +92,9 @@ jobs:
         env:
           WB_TEST_NATIVE_COMPARISON: "1"
           WB_TEST_NATIVE_RECEPTORS: "1"
+          WB_TEST_COMPARISON_BROWSER: "1"
         run: >-
-          uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -x -q
+          uv run --locked --group browser --with biopython==1.88 --with numpy==1.26.4 pytest -x -q
           server_tests/test_native_structure_comparison.py
           server_tests/test_native_receptors.py::test_actual_receptor_environment_and_reusable_persistent_alignment_collection
       - uses: actions/upload-artifact@v4

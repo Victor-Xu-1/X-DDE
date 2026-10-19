@@ -48,12 +48,6 @@ def harness_study(capability, objects, sequences):
             "cutoff": 4.5,
             "hotspots": [],
         },
-        "rmsd": {
-            "reference_path": structure,
-            "mobile_path": "asset:" + str(objects["receptor_b"].reference.asset_id),
-            "binder_chain_ids": [],
-            "target_chain_ids": ["A"],
-        },
         "protrek-sequence": {"sequence": sequence, "topk": 5},
         "protrek-structure": {"structure_path": structure, "chain": "A", "topk": 5},
         "target-msa": {

@@ -24,6 +24,7 @@ def task_kind_rules() -> list[dict]:
     )
     # Historical Harness snapshots remain readable under their original module.
     rules.append({"id": "structure", "operation": "harness", "field": "tool", "value": "structure"})
+    rules.append({"id": "rmsd", "operation": "harness", "field": "tool", "value": "rmsd"})
     return rules
 
 
