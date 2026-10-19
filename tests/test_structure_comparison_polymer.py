@@ -3,9 +3,15 @@
 import hashlib
 from pathlib import Path
 
+import numpy as np
+import pytest
+
 
 def test_deposited_phosphotyrosine_atoms_and_polymer_annotations_roundtrip(tmp_path, monkeypatch):
-    from opendde_workbench.structure_comparison.native_export import write_compared_model
+    from opendde_workbench.structure_comparison.native_export import (
+        verify_export,
+        write_compared_model,
+    )
     from opendde_workbench.structure_comparison.native_polymer import selected_polymer
     from opendde_workbench.structure_comparison.native_quality_model import (
         heavy_coordinates,
@@ -39,4 +45,8 @@ def test_deposited_phosphotyrosine_atoms_and_polymer_annotations_roundtrip(tmp_p
     assert metadata["polymer_residues"] == 883
     assert metadata["modified_residues"] == details["modified_residues"]
     assert heavy_coordinates(again) == heavy_coordinates(selected)
+    atom = next(again.get_atoms())
+    atom.set_coord(atom.coord + np.array([0.5, 0, 0]))
+    with pytest.raises(ValueError, match="changed source identities or aligned coordinates"):
+        verify_export(again, output)
     assert hashlib.sha256(source.read_bytes()).hexdigest() == original_sha

@@ -3,6 +3,33 @@
 import hashlib
 
 
+def verify_export(model, path):
+    import math
+
+    from native_io import read_model
+    from selection import MemberSelection
+
+    restored, _ = read_model(path, MemberSelection(chains=tuple(chain.id for chain in model)))
+
+    def atoms(value):
+        return {
+            (chain.id, res.id[1], res.id[2].strip(), res.resname, atom.id, atom.element): tuple(
+                map(float, atom.coord)
+            )
+            for chain in value
+            for res in chain
+            for atom in res
+        }
+
+    expected, actual = atoms(model), atoms(restored)
+    if expected.keys() != actual.keys() or any(
+        math.dist(point, actual[key]) > 0.001 for key, point in expected.items()
+    ):
+        raise ValueError(
+            "Derived structural export changed source identities or aligned coordinates."
+        )
+
+
 def write_compared_model(model, modifications, path):
     from Bio.PDB import MMCIFIO
     from Bio.PDB.MMCIF2Dict import MMCIF2Dict
@@ -28,4 +55,5 @@ def write_compared_model(model, modifications, path):
         writer.save(str(path))
     if not path.is_file() or not 1 <= path.stat().st_size <= 25 * 1024**2:
         raise ValueError("Derived comparison structure exceeds its bounded output contract.")
+    verify_export(model, path)
     return hashlib.sha256(path.read_bytes()).hexdigest()

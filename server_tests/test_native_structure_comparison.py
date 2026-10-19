@@ -9,8 +9,7 @@ from uuid import uuid4
 
 import numpy as np
 import pytest
-
-from server_tests.comparison_native_harness import execution, run_native
+from comparison_native_harness import execution, run_native
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("WB_TEST_NATIVE_COMPARISON") != "1",

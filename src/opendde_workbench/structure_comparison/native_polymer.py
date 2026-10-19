@@ -104,7 +104,9 @@ def selected_polymer(file, model):
                         "residue": key[3],
                         "parent": parent or "?",
                         "annotation_basis": (
-                            "deposited_modification" if parent else "deposited_polymer_membership"
+                            "source_modification_annotation"
+                            if parent not in {None, ".", "?"}
+                            else "source_polymer_membership"
                         ),
                     }
                 )
