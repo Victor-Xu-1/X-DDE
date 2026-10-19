@@ -1,6 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { it, expect } from "vitest";
+import { it, expect, vi } from "vitest";
+import { api } from "../api";
+import { defaultOptions } from "../viewer/protocol";
 import { CoreVerification } from "./CoreVerification";
 import type { CoreVerificationData } from "./types";
 
@@ -89,4 +91,61 @@ it("explains rejected attachment sites and does not label the product reusable",
   expect(screen.getByText(/original cut sites only/)).toBeVisible();
   expect(screen.getByText(/outside the allowed core sites/)).toBeVisible();
   expect(screen.queryByRole("button", { name: /reuse/i })).toBeNull();
+});
+
+it("opens rejected diagnostic coordinates without requesting candidate reuse or pose preparation", async () => {
+  const submit = vi.spyOn(api, "post");
+  const jobId = "7b9bd02b-0b93-45f4-a8b9-80e1cff203c9";
+  render(
+    <CoreVerification
+      data={{ ...data, qualified_count: 0, candidates: [data.candidates[1]] }}
+      jobId={jobId}
+      language="en"
+    />,
+  );
+  const user = userEvent.setup();
+  await user.click(screen.getByText(/Independent fixed-core verification/));
+  await user.click(screen.getByText("Inspect diagnostic structure"));
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const message = (type: string, detail?: unknown) =>
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      );
+    });
+  message("ready");
+  const input = post.mock.calls.find(([value]) => value.type === "load")?.[0]
+    .value;
+  expect(input).toMatchObject({
+    urls: [`/api/jobs/${jobId}/download?name=diagnostic-core-002.sdf`],
+    initialPosePrepared: true,
+  });
+  message("loaded", {
+    ...defaultOptions,
+    atoms: 30,
+    chains: [],
+    ligands: [],
+    residues: [],
+    hasPolymer: false,
+    options: defaultOptions,
+  });
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
+  message("initial-pose-required");
+  expect(submit).not.toHaveBeenCalled();
+  expect(screen.queryByLabelText("Pose optimization and history")).toBeNull();
+  expect(
+    screen.getByRole("link", { name: "Download diagnostic SDF" }),
+  ).toHaveAttribute(
+    "href",
+    `/api/jobs/${jobId}/download?name=diagnostic-core-002.sdf`,
+  );
+  expect(screen.queryByRole("button", { name: /reuse/i })).toBeNull();
+  submit.mockRestore();
 });

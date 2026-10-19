@@ -162,6 +162,7 @@ export function CoreVerification({
                   {zh ? "下载诊断 SDF" : "Download diagnostic SDF"}
                 </a>
                 <StructureViewer
+                  sourceSnapshot
                   urls={[artifactUrl(jobId, c.diagnostic_artifact)]}
                   language={language}
                 />
