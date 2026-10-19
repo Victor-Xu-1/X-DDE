@@ -37,7 +37,11 @@ vi.mock("../viewer/StructureViewer", () => ({
     <button
       type="button"
       onClick={() =>
-        onSceneLoaded({ chains: ["A", "B"], residues: [], ligands: [] })
+        onSceneLoaded({
+          chains: ["A", "B", "W"],
+          residues: [{ chain: "A" }, { chain: "B" }],
+          ligands: [],
+        })
       }
       data-snapshot={String(sourceSnapshot)}
     >
@@ -58,6 +62,7 @@ it("starts with a new input and submits exact source lineage and disjoint chains
   await user.click(screen.getByRole("button", { name: "Choose Complex 1" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Read model chains" }));
+  expect(screen.queryByLabelText("Chain W")).not.toBeInTheDocument();
   await user.click(
     within(
       screen.getByRole("group", { name: "Target protein" }),

@@ -73,7 +73,9 @@ export function ProteinInterfaceChains({
               urls={["/api/assets/" + active.source.asset_id]}
               language={language}
               onSceneLoaded={(scene) =>
-                onChains(active.id, active.source!, scene.chains)
+                onChains(active.id, active.source!, [
+                  ...new Set(scene.residues.map((residue) => residue.chain)),
+                ])
               }
             />
           )

@@ -10,6 +10,8 @@ on:
   push:
     paths: &stat6_template_paths
       - 'src/opendde_workbench/examples/stat6/**'
+      # The retired structure-only preset and its exact replacement have an interface gate.
+      - '!src/opendde_workbench/examples/stat6/harness_requests.py'
       # Two preparation presets have exact native-coordinate and questionnaire checks.
       - '!src/opendde_workbench/examples/stat6/task_requests.py'
       # Prepared-reference handoffs and their direct contracts have a focused gate.

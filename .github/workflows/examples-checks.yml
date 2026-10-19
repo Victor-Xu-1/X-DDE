@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/examples/**'
+      # Protein-interface presets have exact source/chain and native result checks.
+      - '!src/opendde_workbench/examples/stat6/harness_requests.py'
       # DEL cohort wording has its exact stage-guidance gate, without unrelated forms.
       - '!src/opendde_workbench/examples/del6/guidance.py'
       - '!src/opendde_workbench/examples/del6/stage_hints.py'

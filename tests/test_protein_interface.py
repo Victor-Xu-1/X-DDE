@@ -2,6 +2,7 @@
 
 import hashlib
 from copy import deepcopy
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -10,6 +11,7 @@ from pydantic import ValidationError
 from opendde_workbench.integrations.contract import IntegratedTask
 from opendde_workbench.integrations.result import validate_result
 from opendde_workbench.requests import TASK_ADAPTER
+from opendde_workbench.scientific_objects import MoleculeRef
 from opendde_workbench.task_history.kinds import classify_request
 
 
@@ -203,3 +205,17 @@ def test_original_ligand_only_request_keeps_its_payload_and_dispatch():
     task = TASK_ADAPTER.validate_python(value)
     assert task.payload.model_dump() == value["payload"]
     assert "scope" not in task.model_dump_json()
+
+
+def test_stat6_interface_template_uses_the_deposited_phosphorylated_dimer():
+    from opendde_workbench.examples.stat6.integrated_requests import integrated_study
+
+    source = MoleculeRef.model_validate(request()["inputs"][0]["source"])
+    value = integrated_study(
+        "structure", {"stat6_alternative": SimpleNamespace(reference=source)}, {}
+    )
+    task = TASK_ADAPTER.validate_python(value)
+    assert task.operation == "protein_interface"
+    assert task.payload.target_chains == ["A"] and task.payload.binder_chains == ["B"]
+    assert task.payload.candidate_names == ["STAT6 4Y5U phosphorylated A/B dimer"]
+    assert task.inputs[0].source == source and task.scientific_inputs == [source]
