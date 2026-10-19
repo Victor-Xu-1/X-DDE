@@ -19,7 +19,12 @@ jobs:
       WB_AUTO_DEPLOY: '0'
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: astral-sh/setup-uv@v6
+      - name: Build the required packaged frontend
+        run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Check DEL evidence scope, cohort metadata and sealed replay only
         run: uv run --locked pytest -q tests/test_del_current_examples.py
