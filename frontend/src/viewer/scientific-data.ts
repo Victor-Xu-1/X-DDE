@@ -18,7 +18,7 @@ export function nativeInteractions(
   value: unknown,
 ): NativeInteraction[] | undefined {
   if (value === undefined) return undefined;
-  if (!Array.isArray(value) || value.length > 1000)
+  if (!Array.isArray(value) || value.length > 10000)
     throw new Error("Invalid native interaction set");
   for (const row of value) {
     if (

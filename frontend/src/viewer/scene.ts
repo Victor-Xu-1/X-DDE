@@ -371,7 +371,11 @@ export class MolecularScene {
     nativeLabelLayer(this.viewer).protectLigand(
       ligandAtoms.filter((atom) => finiteCoordinates(atom)).map(position),
     );
-    if (!this.options.interactions || !this.info.hasInteractionContext) {
+    if (
+      !this.options.interactions ||
+      (this.nativeInteractions === undefined &&
+        !this.info.hasInteractionContext)
+    ) {
       this.emit("contacts", null);
       return;
     }

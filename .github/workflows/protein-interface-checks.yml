@@ -12,6 +12,9 @@ on:
       - "src/opendde_workbench/integrations/plip_contacts.py"
       - "frontend/src/integrations/ProteinInterface*"
       - "frontend/src/viewer/modified-polymer*"
+      - "frontend/src/viewer/native-interface-context.test.ts"
+      - "frontend/src/viewer/scene.ts"
+      - "frontend/src/viewer/scientific-data.ts"
       - "tests/test_protein_interface*.py"
       - "server_tests/test_native_protein_interface.py"
       - ".github/workflows/protein-interface-checks.yml"
@@ -72,6 +75,7 @@ jobs:
           src/integrations/ProteinInterfaceResults.test.tsx
           src/integrations/ScientificResults.test.tsx
           src/viewer/scientific-overlay.test.ts
+          src/viewer/native-interface-context.test.ts
           src/operations/useSelectedAsset.test.tsx
   native-stat6-interface:
     needs: native-scope
