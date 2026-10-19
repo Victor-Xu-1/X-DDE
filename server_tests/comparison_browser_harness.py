@@ -143,6 +143,15 @@ def verify_browser(state, job_id, result, evidence):
                 )
                 assert not errors, errors
                 context.close()
+        except Exception:
+            if "page" in locals() and not page.is_closed():
+                page.screenshot(
+                    path=str(evidence / (language + "-failed-comparison.png")), full_page=True
+                )
+                (evidence / (language + "-failed-view.txt")).write_text(
+                    page.locator("body").inner_text(), encoding="utf-8"
+                )
+            raise
         finally:
             browser.close()
     (evidence / "browser-controls.json").write_text(

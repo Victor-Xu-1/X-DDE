@@ -6,6 +6,7 @@ on:
       - 'src/opendde_workbench/examples/**'
       # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
       - '!src/opendde_workbench/examples/stat6/manifest.json'
+      - '!src/opendde_workbench/examples/stat6/catalogue.py'
       - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
       - '!src/opendde_workbench/examples/stat6/requests.py'
@@ -79,6 +80,7 @@ on:
       - 'src/opendde_workbench/examples/**'
       # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
       - '!src/opendde_workbench/examples/stat6/manifest.json'
+      - '!src/opendde_workbench/examples/stat6/catalogue.py'
       - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
       - '!src/opendde_workbench/examples/stat6/requests.py'

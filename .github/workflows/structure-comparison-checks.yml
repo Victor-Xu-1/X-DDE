@@ -24,6 +24,7 @@ on:
       - "frontend/src/examples/stat6-harness*"
       - "src/opendde_workbench/examples/stat6/requests.py"
       - "src/opendde_workbench/examples/stat6/reference_inputs.py"
+      - "src/opendde_workbench/examples/stat6/catalogue.py"
       - "src/opendde_workbench/examples/stat6/manifest.json"
       - "src/opendde_workbench/examples/stat6/catalogue-profiles.json"
       - "src/opendde_workbench/examples/stat6/inputs/4Y5W.cif"
@@ -60,6 +61,7 @@ jobs:
           tests/test_structure_comparison_example.py
           tests/test_capabilities.py tests/test_method_choices.py
           tests/test_stat6_templates.py::test_actual_bundled_inputs_keep_confirmed_smiles_and_computed_geometry
+          tests/test_stat6_templates.py::test_every_affected_template_has_stat6_identity_and_a_distinct_revision
           server_tests/test_receptor_science.py::test_actual_rigid_structure_copy_recovers_frame_and_original_residue_correspondence
       - name: Changed Python contracts and adapters
         run: >-
