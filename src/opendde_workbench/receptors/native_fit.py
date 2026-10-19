@@ -1,7 +1,7 @@
 """Actual Biopython rigid superposition, never receptor-flexibility sampling."""
 
 
-def fit(model, pairs, options):
+def rigid_solver(pairs):
     import numpy as np
     from Bio.PDB import Superimposer
 
@@ -9,6 +9,8 @@ def fit(model, pairs, options):
     moving = [right[1] for _, right in pairs]
     for atoms in (fixed, moving):
         points = np.asarray([a.coord for a in atoms], dtype=float)
+        if len(atoms) < 3 or points.shape != (len(atoms), 3) or not np.isfinite(points).all():
+            raise ValueError("Rigid alignment requires at least three finite source anchors.")
         singular = np.linalg.svd(points - points.mean(axis=0), compute_uv=False)
         if len(singular) < 2 or singular[1] <= 1e-6:
             raise ValueError(
@@ -28,6 +30,15 @@ def fit(model, pairs, options):
         np.linalg.det(rotation), 1, atol=1e-6
     ):
         raise ValueError("Alignment is not a proper orthogonal rotation.")
+    return solver
+
+
+def fit(model, pairs, options):
+    import numpy as np
+
+    solver = rigid_solver(pairs)
+    rotation, translation = solver.rotran
+    rmsd = float(solver.rms)
     if rmsd > options.maximum_rmsd_angstrom:
         raise ValueError(f"C-alpha RMSD {rmsd:.4f} A exceeds the requested alignment threshold.")
     # Bio.PDB uses a right-multiplying row-vector rotation; record that convention explicitly.

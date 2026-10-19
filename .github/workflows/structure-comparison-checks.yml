@@ -1,0 +1,32 @@
+name: Structure comparison contracts and rigid-frame controls
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/opendde_workbench/structure_comparison/**"
+      - "src/opendde_workbench/receptors/native_fit.py"
+      - "tests/test_structure_comparison*.py"
+      - ".github/workflows/structure-comparison-checks.yml"
+permissions:
+  contents: read
+jobs:
+  contracts-and-frame:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact chain roles, mutations, insertions, source versions and fitted partner frame
+        run: >-
+          uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
+          tests/test_structure_comparison.py tests/test_structure_comparison_geometry.py
+      - name: Changed Python contracts and adapters
+        run: >-
+          uv run --locked ruff check src/opendde_workbench/structure_comparison
+          src/opendde_workbench/receptors/native_fit.py
+          tests/test_structure_comparison.py tests/test_structure_comparison_geometry.py
