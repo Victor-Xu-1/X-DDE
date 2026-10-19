@@ -15,6 +15,8 @@ import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { canGuide } from "./guided-contract";
 import { tools } from "./catalog";
 import { Questionnaire } from "../guided/Questionnaire";
+import { HarnessReview } from "./HarnessReview";
+import { useHarnessSources } from "./useHarnessSources";
 import {
   harnessInputsComplete,
   harnessMaterialsComplete,
@@ -71,6 +73,12 @@ export function HarnessForm({
       result.minimize = result.objective_key !== "iptm";
     return result;
   }
+  const sources = useHarnessSources(
+    payload,
+    harnessInputsComplete(tool, payload)
+      ? exampleHarnessInputs(tool, payload, example)
+      : [],
+  );
   const renderFields = (required: boolean, region = false) =>
     harnessFields[tool]
       ?.filter(
@@ -135,7 +143,7 @@ export function HarnessForm({
       </div>
     </>
   );
-  const inputs = expert ? (
+  const inputFields = expert ? (
     <>
       <p className="notice">
         {zh
@@ -152,6 +160,28 @@ export function HarnessForm({
     <FoldInputs value={payload} onChange={setPayload} language={language} />
   ) : (
     <>{renderFields(true)}</>
+  );
+  const inputs = (
+    <>
+      {inputFields}
+      {sources.loading && (
+        <p role="status">
+          {zh ? "正在核对研究文件…" : "Verifying selected research files…"}
+        </p>
+      )}
+      {sources.error && (
+        <div className="error-box">
+          <p role="alert">
+            {zh
+              ? "无法核对所选研究文件。请重新读取或选择原始文件。"
+              : "The selected research files could not be verified. Retry or choose the original files."}
+          </p>
+          <button type="button" onClick={sources.retry}>
+            {zh ? "重新读取研究文件" : "Retry research files"}
+          </button>
+        </div>
+      )}
+    </>
   );
   const options = !expert ? (
     <>
@@ -218,38 +248,23 @@ export function HarnessForm({
     </>
   );
   const review = (
-    <dl className="questionnaire-review">
-      <dt>{zh ? "输入" : "Input"}</dt>
-      <dd>
-        {zh
-          ? "使用当前填写的文件、序列与位置"
-          : "Use the entered files, sequences and positions"}
-      </dd>
-      <dt>{zh ? "参数模式" : "Parameter mode"}</dt>
-      <dd>
-        {expert
-          ? zh
-            ? "专家参数"
-            : "Expert parameters"
-          : zh
-            ? "推荐方案及已选可选设置"
-            : "Recommended settings and chosen adjustments"}
-      </dd>
-      <dt>{zh ? "服务调用" : "Service calls"}</dt>
-      <dd>
-        {needsExternal
-          ? zh
-            ? "已确认使用配置的外部服务"
-            : "Configured external services approved"
-          : zh
-            ? "由服务器管理的计算环境"
-            : "Server-managed compute environment"}
-      </dd>
-    </dl>
+    <HarnessReview
+      tool={tool}
+      payload={payload}
+      assets={sources.assets}
+      name={name}
+      expert={expert}
+      external={needsExternal && external}
+      language={language}
+    />
   );
   async function submit() {
     setSetupError("");
     try {
+      if (!sources.ready)
+        throw new Error(
+          zh ? "请先核对研究文件。" : "Verify the research files first.",
+        );
       const normalized = normalize();
       return await run.submit({
         operation: "harness",
@@ -259,7 +274,7 @@ export function HarnessForm({
           tools.find((t) => t.id === tool)?.label[zh ? 0 : 1] ||
           (zh ? "蛋白与抗体任务" : "Protein & antibody task"),
         payload: normalized,
-        scientific_inputs: exampleHarnessInputs(tool, normalized, example),
+        scientific_inputs: sources.references,
         allow_external: external,
       });
     } catch (error) {
@@ -269,7 +284,7 @@ export function HarnessForm({
   return (
     <Questionnaire
       language={language}
-      ready={readiness.ready}
+      ready={sources.ready ? readiness.ready : false}
       onCheckEnvironment={readiness.recheck}
       busy={run.busy}
       error={run.error || readiness.error || setupError}
@@ -285,9 +300,11 @@ export function HarnessForm({
           title: zh ? "填写材料" : "Provide inputs",
           actions: mode,
           content: inputs,
-          valid: expert
-            ? harnessInputsComplete(tool, payload)
-            : harnessMaterialsComplete(tool, payload),
+          valid:
+            sources.ready &&
+            (expert
+              ? harnessInputsComplete(tool, payload)
+              : harnessMaterialsComplete(tool, payload)),
         },
         {
           title: zh ? "选择方案" : "Choose settings",

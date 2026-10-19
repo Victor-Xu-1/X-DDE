@@ -39,6 +39,8 @@ on:
       - "frontend/src/operations/CovalentEditor.tsx"
       - "frontend/src/operations/FeatureForm.tsx"
       - "frontend/src/operations/HarnessForm.tsx"
+      # Whole-file scientific references and Harness review have their exact gate.
+      - "!frontend/src/operations/HarnessForm.tsx"
       - "frontend/src/operations/ImportForm.tsx"
       - "frontend/src/pockets/PocketForm.tsx"
       - "frontend/src/poses/ClusterForm.tsx"

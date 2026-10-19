@@ -1,0 +1,39 @@
+name: Harness scientific files and concrete review
+on:
+  push:
+    paths: &harness_input_paths
+      - 'frontend/src/operations/HarnessForm.tsx'
+      - 'frontend/src/operations/HarnessReview*'
+      - 'frontend/src/operations/HarnessSourcesForm*'
+      - 'frontend/src/operations/harness-sources*'
+      - 'frontend/src/operations/useHarnessSources*'
+      - 'frontend/src/operations/harness-generated.ts'
+      - 'src/opendde_workbench/harness_tools.py'
+      - 'scripts/generate-capability-catalog.py'
+      - '.github/workflows/harness-input-checks.yml'
+  pull_request:
+    paths: *harness_input_paths
+permissions:
+  contents: read
+jobs:
+  input-identity-and-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Native file-field authority and generated contract
+        run: |
+          uv sync --locked --group dev
+          uv run --locked python scripts/generate-capability-catalog.py --check
+      - name: Fresh files, saved versions, cancellation, review and direct consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/harness-sources.test.ts
+          src/operations/useHarnessSources.test.tsx src/operations/HarnessSourcesForm.test.tsx
+          src/operations/HarnessReview.test.tsx src/operations/ToolQuestionnaires.test.tsx
+          src/examples/harness.test.ts src/operations/HarnessResults.test.tsx
