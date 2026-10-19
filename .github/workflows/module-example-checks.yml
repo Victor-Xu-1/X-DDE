@@ -76,6 +76,12 @@ jobs:
               ".github/workflows/library-screen-checks.yml", "docs/frontend-layout.md",
               "docs/design/research-examples.md",
               "docs/design/reference-conditioned-comparison.md",
+              "src/opendde_workbench/space/image.py",
+              "src/opendde_workbench/space/native-requirements.in",
+              "src/opendde_workbench/space/native-requirements.txt",
+              "scripts/generate-channel-lock.py", "tests/test_channel_runtime.py",
+              "server_tests/channel_runtime_probe.py", ".github/workflows/space-analysis-checks.yml",
+              "docs/design/space-analysis.md",
               "README.md", "README.en.md",
               "tests/test_record_example_supporting.py",
               "frontend/src/examples/useExampleTemplate.ts", "frontend/src/examples/ExampleActions.test.tsx",
@@ -100,6 +106,21 @@ jobs:
       - name: Exact authored recipe, integrity and preparation contracts
         if: steps.scope.outputs.data_only == 'true'
         run: uv run --locked pytest -q tests/test_examples.py tests/test_example_pins.py tests/test_stat6_prepared_handoff.py tests/test_stat6_design_replay.py
+      - name: Exact published cohort, comparison result and sealed input replay
+        if: steps.scope.outputs.data_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run --locked python - <<'PY'
+          import os
+          from pathlib import Path
+          from server_tests.prepare_quality_context_cases import download_archive
+          archive = download_archive(Path(os.environ['RUNNER_TEMP']) / 'reviewed-stat6-data')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'WB_REVIEWED_STAT6_ARCHIVE={archive}\n')
+          PY
+      - if: steps.scope.outputs.data_only == 'true'
+        run: uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q tests/test_stat6_case_data.py tests/test_stat6_recipe_replay.py
       - working-directory: frontend
         if: steps.scope.outputs.data_only != 'true'
         run: npx vitest run src/receptors/SurfaceResults.test.tsx src/receptors/SurfaceForm.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/residue-region.test.ts
