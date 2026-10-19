@@ -48,11 +48,21 @@ PATTERNS = (
     ".github/workflows/task-layout-checks.yml",
     ".github/workflows/docking-runtime-checks.yml",
     ".github/workflows/library-member-checks.yml",
+    ".github/workflows/structure-layout-checks.yml",
+    ".github/workflows/example-result-set-checks.yml",
 )
 
 
 def main():
     base = os.environ.get("BASE", "")
+    default = os.environ.get("DEFAULT_BRANCH", "main")
+    reference = os.environ.get("GITHUB_REF_NAME", "")
+    if reference and reference != default:
+        # Fix-ups belong to the same unpublished batch. Looking only at the last
+        # CI-only commit would incorrectly launch unrelated scientific suites.
+        base = subprocess.check_output(
+            ["git", "merge-base", "origin/" + default, "HEAD"], text=True
+        ).strip()
     changed = (
         subprocess.check_output(
             ["git", "diff", "--name-only", base, "HEAD"], text=True

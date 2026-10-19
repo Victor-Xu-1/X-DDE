@@ -53,7 +53,22 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      del_only: ${{ steps.change.outputs.del_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: change
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/del-ci-scope.py
   immutable-stages:
+    needs: scope
+    if: needs.scope.outputs.del_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -101,6 +116,8 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
   native-preview:
+    needs: scope
+    if: needs.scope.outputs.del_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     env:
