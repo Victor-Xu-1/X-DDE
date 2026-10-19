@@ -57,6 +57,7 @@ jobs:
           src/structure-comparison/ComparisonScene.test.ts
           src/viewer/residue-region.test.ts src/viewer/context-focus.test.ts
           src/viewer/native-interface-context.test.ts
+          src/viewer/style.test.ts
           src/operations/StructureComparisonResults.test.tsx
           src/examples/stat6-harness.test.ts src/examples/harness.test.ts
       - name: Exact chain roles, mutations, insertions, source versions and fitted partner frame

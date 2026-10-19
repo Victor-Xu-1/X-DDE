@@ -230,7 +230,9 @@ export class MolecularScene {
       ),
       null,
       this.viewport?.(),
-      this.siteRegions.map((region) => region.model),
+      this.siteRegions.length === 1 && this.siteRegions[0].model === 0
+        ? undefined
+        : this.siteRegions.map((region) => region.model),
     );
   }
   paint(): Promise<void> {

@@ -310,9 +310,16 @@ it("an aligned receptor and source pose colors only the receptor, while true com
   emit.mockClear();
   scene.inspect(true, false, ["pdb", "sdf"], null);
   await scene.highlightResidues(region);
-  expect(
-    emit.mock.calls.filter(([type]) => type === "site-region"),
-  ).toHaveLength(0);
+  expect(emit).toHaveBeenCalledWith("site-region", {
+    requested: 1,
+    matched: 1,
+  });
+  expect(model.selectedAtoms({})[0].style?.cartoon?.color).toBe("#478dff");
+  expect(pose.selectedAtoms({})[0].style?.stick?.colorscheme).toBe(
+    "orangeCarbon",
+  );
+  expect(source(model.selectedAtoms({}))).toEqual(receptorBefore);
+  expect(source(pose.selectedAtoms({}))).toEqual(ligandBefore);
   scene.focusLigand();
   expect(viewer.zoomTo).not.toHaveBeenCalled();
   await scene.configure({ mode: "surface" });
