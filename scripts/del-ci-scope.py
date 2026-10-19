@@ -34,6 +34,7 @@ PATTERNS = (
     "server_tests/test_dataset_native.py",
     "server_tests/barcode_quality_browser.py",
     "server_tests/decoding_quality_browser.py",
+    "server_tests/responsive_chart_browser.py",
     "server_tests/test_statistical_previews_browser.py",
     "scripts/del-ci-scope.py",
     "pyproject.toml",

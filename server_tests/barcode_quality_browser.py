@@ -5,6 +5,8 @@ import json
 
 from playwright.sync_api import expect
 
+from server_tests.responsive_chart_browser import wait_for_responsive_width
+
 
 def check_barcode_quality(page, root, state, identifier, evidence, language):
     original = json.loads((state / "jobs" / identifier / "output/barcode-review.json").read_bytes())
@@ -45,9 +47,7 @@ def check_barcode_quality(page, root, state, identifier, evidence, language):
     # Plotly resizes asynchronously after ResizeObserver/window notifications.
     # Keep the exact overflow requirement, and observe the completed layout.
     try:
-        page.wait_for_function(
-            "() => document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
-        )
+        wait_for_responsive_width(page)
     finally:
         page.screenshot(path=str(evidence / (language + "-barcode-quality-mobile.png")))
         widths = page.evaluate("""() => ({width: innerWidth,

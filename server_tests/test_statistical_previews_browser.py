@@ -11,6 +11,7 @@ from server_tests.barcode_quality_browser import check_barcode_quality
 from server_tests.browser_platform import platform
 from server_tests.decoding_quality_browser import check_decoding_quality
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
+from server_tests.responsive_chart_browser import wait_for_responsive_width
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
@@ -175,9 +176,7 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             chart.scroll_into_view_if_needed()
-            page.wait_for_function(
-                "() => document.documentElement.scrollWidth <= innerWidth + 1", timeout=5000
-            )
+            wait_for_responsive_width(page)
             page.screenshot(path=str(evidence / f"{language}-{width}.png"), full_page=False)
         assert not errors and not scientific_posts
         assert before == page.request.get(base + "/api/jobs").json()

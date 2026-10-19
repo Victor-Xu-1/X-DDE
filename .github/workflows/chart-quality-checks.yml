@@ -27,6 +27,7 @@ on:
       - "server_tests/test_statistical_previews_browser.py"
       - "server_tests/barcode_quality_browser.py"
       - "server_tests/decoding_quality_browser.py"
+      - "server_tests/responsive_chart_browser.py"
       - "frontend/src/datasets/SequencingDiagnostics*"
       - "frontend/src/datasets/sequencing-quality*"
       - "frontend/src/datasets/ResearchTable*"
