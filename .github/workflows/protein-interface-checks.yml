@@ -34,7 +34,13 @@ jobs:
           event = json.load(open(os.environ['GITHUB_EVENT_PATH']))
           if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
               native = str(event.get('inputs', {}).get('native', 'false')).lower() == 'true'
+          elif not event.get('before') or set(event['before']) == {'0'}:
+              print('First branch push: verify the native interface once.')
+              native = True
           else:
+              present = subprocess.run(['git', 'cat-file', '-e', event['before'] + '^{commit}'], capture_output=True).returncode == 0
+              if not present:
+                  subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', event['before']], check=True)
               files = subprocess.check_output(['git', 'diff', '--name-only', event['before'], 'HEAD'], text=True).splitlines()
               native = any(p.startswith('src/opendde_workbench/integrations/') or p == 'server_tests/test_native_protein_interface.py' for p in files)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
