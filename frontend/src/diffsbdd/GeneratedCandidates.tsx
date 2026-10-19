@@ -4,9 +4,12 @@ import type { Language } from "../types";
 import type { ScientificObject } from "../research/types";
 import type { CoreVerificationData } from "./types";
 import { ResearchTable } from "../presentation/ResearchTable";
-import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import type { GeneratedMetrics } from "./generated-metrics";
+import { generatedColumns } from "./generated-columns";
+import { GeneratedMetricsView } from "./GeneratedMetricsView";
+import { OptimizationFigures } from "./OptimizationFigures";
+import type { OptimizationData } from "./optimization-model";
 export interface GeneratedRecord {
   record: number;
   object?: ScientificObject;
@@ -20,6 +23,7 @@ export function GeneratedCandidates({
   verification,
   proteinUrl,
   metrics,
+  optimization,
   onSelect,
   children,
 }: {
@@ -31,6 +35,7 @@ export function GeneratedCandidates({
   verification?: CoreVerificationData;
   proteinUrl?: string;
   metrics?: GeneratedMetrics[] | null;
+  optimization?: OptimizationData;
   onSelect(value: GeneratedRecord): void;
   children?: ReactNode;
 }) {
@@ -94,162 +99,66 @@ export function GeneratedCandidates({
         </div>
       }
     >
-      <ResearchTable
-        rows={records}
-        rowId={(v) => String(v.record)}
-        title={
-          generated
-            ? zh
-              ? "生成的候选分子"
-              : "Generated candidate molecules"
-            : zh
-              ? "结果中的分子"
-              : "Molecules in this result"
-        }
-        language={language}
-        selected={selected ? String(selected.record) : null}
-        onSelect={onSelect}
-        columns={[
-          {
-            key: "candidate",
-            label: generated
+      <div
+        className={optimization ? "optimization-candidate-table" : undefined}
+      >
+        <ResearchTable
+          key={url}
+          rows={records}
+          rowId={(value) => String(value.record)}
+          title={
+            generated
               ? zh
-                ? "候选分子"
-                : "Candidate molecule"
+                ? "生成的候选分子"
+                : "Generated candidate molecules"
               : zh
-                ? "分子"
-                : "Molecule",
-            value: (v) => label(v),
-            render: (v) => (
-              <button
-                type="button"
-                className="molecule-record"
-                aria-label={
-                  label(v) +
-                  (verification
-                    ? zh
-                      ? " · 固定区域检查通过"
-                      : " · Fixed-region checks passed"
-                    : "")
+                ? "结果中的分子"
+                : "Molecules in this result"
+          }
+          language={language}
+          selected={selected ? String(selected.record) : null}
+          onSelect={onSelect}
+          initialVisibleColumns={
+            optimization
+              ? ["candidate", "qed", "sa", "objective_delta"]
+              : undefined
+          }
+          initialSort={
+            optimization
+              ? {
+                  key: optimization.objective,
+                  direction:
+                    optimization.objective === "qed"
+                      ? "descending"
+                      : "ascending",
                 }
-                aria-pressed={selected?.record === v.record}
-                onClick={() => onSelect(v)}
-              >
-                <MoleculeImage
-                  compact
-                  language={language}
-                  label={label(v)}
-                  source={{
-                    url,
-                    record: v.record,
-                  }}
-                />
-                <span>
-                  <strong>{label(v)}</strong>
-                  {verification && (
-                    <small>
-                      {zh ? "固定区域检查通过" : "Fixed-region checks passed"}
-                    </small>
-                  )}
-                </span>
-              </button>
-            ),
-          },
-          {
-            key: "record",
-            label: zh ? "原始记录" : "Original record",
-            value: (v) => v.record + 1,
-            numeric: true,
-          },
-          ...(metrics
-            ? [
-                {
-                  key: "heavy_atoms",
-                  label: zh ? "输出重原子数" : "Output heavy atoms",
-                  numeric: true,
-                  value: (v: GeneratedRecord) => metric(v)?.heavy_atoms ?? null,
-                },
-                {
-                  key: "molecular_weight",
-                  label: "MW",
-                  numeric: true,
-                  value: (v: GeneratedRecord) =>
-                    metric(v)?.molecular_weight ?? null,
-                },
-                {
-                  key: "qed",
-                  label: "QED",
-                  numeric: true,
-                  value: (v: GeneratedRecord) => metric(v)?.qed ?? null,
-                },
-                {
-                  key: "sa",
-                  label: "SA",
-                  numeric: true,
-                  value: (v: GeneratedRecord) => metric(v)?.sa ?? null,
-                },
-                {
-                  key: "fragments",
-                  label: zh ? "输出片段数" : "Output components",
-                  numeric: true,
-                  value: (v: GeneratedRecord) => metric(v)?.fragments ?? null,
-                },
-                {
-                  key: "steric_pairs",
-                  label: zh ? "近接原子对 <1.2 Å" : "Pocket pairs <1.2 Å",
-                  numeric: true,
-                  value: (v: GeneratedRecord) =>
-                    metric(v)?.pocket_atom_pairs_under_1_2_angstrom ?? null,
-                },
-              ]
-            : []),
-        ]}
-      />
-      {active && (
-        <>
-          <small className="field-help">
-            {zh ? "输出分子的指标" : "Output molecule metrics"}
-          </small>
-          <dl className="native-result-metrics">
-            <div>
-              <dt>LogP</dt>
-              <dd>{active.logp}</dd>
-            </div>
-            <div>
-              <dt>TPSA · Å²</dt>
-              <dd>{active.tpsa}</dd>
-            </div>
-            <div>
-              <dt>HBD / HBA</dt>
-              <dd>
-                {active.hbd} / {active.hba}
-              </dd>
-            </div>
-            <div>
-              <dt>
-                {zh
-                  ? "最近条件口袋距离"
-                  : "Nearest conditioning-pocket distance"}
-              </dt>
-              <dd>{active.minimum_pocket_distance_angstrom} Å</dd>
-            </div>
-          </dl>
-          <p
-            className={
-              active.pocket_atom_pairs_under_1_2_angstrom > 0
-                ? "notice"
-                : "field-help"
-            }
-          >
-            {active.pocket_atom_pairs_under_1_2_angstrom > 0
-              ? zh
-                ? "存在可能的空间碰撞：请先检查并优化姿势，再进行后续研究。"
-                : "Potential steric clashes: inspect and refine the pose before downstream research."
-              : zh
-                ? "近接指标仅检查作为生成条件的口袋原子，不覆盖其余蛋白；请继续进行完整受体的姿势质控。"
-                : "Proximity metrics cover conditioning-pocket atoms only, not the rest of the protein. Continue with full-receptor pose-quality checks."}
-          </p>
-        </>
+              : undefined
+          }
+          columns={generatedColumns({
+            url,
+            language,
+            generated,
+            selected,
+            verification: Boolean(verification),
+            metrics: Boolean(metrics),
+            optimization,
+            label,
+            metric,
+            onSelect,
+          })}
+        />
+      </div>
+      {active && <GeneratedMetricsView active={active} language={language} />}
+      {optimization && (
+        <OptimizationFigures
+          data={optimization}
+          language={language}
+          selected={selected?.record ?? null}
+          onSelect={(record) => {
+            const row = records.find((value) => value.record === record);
+            if (row) onSelect(row);
+          }}
+        />
       )}
       {children}
     </StructureWorkbench>

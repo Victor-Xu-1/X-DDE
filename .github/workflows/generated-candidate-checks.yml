@@ -9,6 +9,10 @@ on:
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/GeneratedCandidates*"
       - "frontend/src/diffsbdd/generated-metrics*"
+      - "frontend/src/diffsbdd/generated-columns*"
+      - "frontend/src/diffsbdd/GeneratedMetricsView*"
+      - "frontend/src/diffsbdd/optimization-*"
+      - "frontend/src/diffsbdd/Optimization*"
       - "frontend/src/diffsbdd/useGeneratedRecords*"
       - "frontend/src/viewer/viewer-connection.test.tsx"
       - "frontend/src/viewer/useViewerConnection.ts"
@@ -39,7 +43,7 @@ jobs:
         id: unit
         continue-on-error: true
         working-directory: frontend
-        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/viewer-connection.test.tsx
+        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/optimization-model.test.ts src/diffsbdd/OptimizationSummary.test.tsx src/diffsbdd/OptimizationFigures.test.tsx src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/viewer-connection.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:

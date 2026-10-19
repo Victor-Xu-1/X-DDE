@@ -1,0 +1,139 @@
+{
+  "source_job_id": "3f337bc1-b773-4a99-a985-6c657ef3a1f5",
+  "source_version": "0.6.25",
+  "mode": "optimization",
+  "valid": 12,
+  "attempted": 12,
+  "optimization": {
+    "objective": "qed",
+    "initial_score": 0.6993186718877541,
+    "best_score": 0.7325849246144713,
+    "noising_steps": 100,
+    "population": 6,
+    "rounds": 2,
+    "survivors": 3,
+    "history": [
+      {
+        "round": 1,
+        "valid": 6,
+        "best_score": 0.7325849246144713
+      },
+      {
+        "round": 2,
+        "valid": 6,
+        "best_score": 0.5760463973047971
+      }
+    ],
+    "note": "QED/SA property optimization; no affinity improvement is claimed. Chemical graph may change."
+  },
+  "molecules": [
+    {
+      "attempt": 1,
+      "round": 1,
+      "smiles": "CN(C)C(=O)C1CC2N=CC(c3cccc(C(=O)NCN4CCCC4)c3)=C(N)N2N1",
+      "qed": 0.6381,
+      "sa": 4.1006,
+      "objective_score": 0.63807,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 2,
+      "round": 1,
+      "smiles": "CN(C)C(=O)C1Nc2c(ccc(-c3ccnc(C(O)CCC4=NCCO4)c3)c2F)S1",
+      "qed": 0.7326,
+      "sa": 4.3187,
+      "objective_score": 0.73258,
+      "improved_over_input": true
+    },
+    {
+      "attempt": 3,
+      "round": 1,
+      "smiles": "Cc1c(C2=CN(C(=O)CCc3ccno3)CCC2)ncc2sc(C(=O)N(C)C)cc12",
+      "qed": 0.6208,
+      "sa": 3.3874,
+      "objective_score": 0.62079,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 4,
+      "round": 1,
+      "smiles": "Cc1c(-c2cccc(C(=O)CCn3ccnn3)c2)ccc2[nH]c(C(=O)C3CC3)nc12",
+      "qed": 0.4743,
+      "sa": 2.8331,
+      "objective_score": 0.47427,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 5,
+      "round": 1,
+      "smiles": "Cc1c2nc(C(=O)N(C)C)cc-2ccn1C1C=CCN(C(=O)CCc2nnc[nH]2)C1",
+      "qed": 0.649,
+      "sa": 4.0115,
+      "objective_score": 0.64897,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 6,
+      "round": 1,
+      "smiles": "Cc1c(C2=CC(C(=O)Cc3ncccn3)CC=N2)ccc2cc(C(=O)N(C)C)nn12",
+      "qed": 0.6533,
+      "sa": 4.0261,
+      "objective_score": 0.65325,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 7,
+      "round": 2,
+      "smiles": "CN(C)C(=O)c1nc2c(s1)C=CN(c1ccnc(C(=O)NCc3ncn[nH]3)c1)C2N",
+      "qed": 0.5423,
+      "sa": 3.9479,
+      "objective_score": 0.54235,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 8,
+      "round": 2,
+      "smiles": "CC(C)C(=O)C1Cc2ccc(C3CC(C(O)CC4=CC=CSN4)CCN3)c(F)c2S1",
+      "qed": 0.5569,
+      "sa": 5.0576,
+      "objective_score": 0.55693,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 9,
+      "round": 2,
+      "smiles": "Cc1c(-c2cccc(C(=O)NCC(N)CCN)c2)cnc2c1NC(C(=O)N(C)C)C2",
+      "qed": 0.5369,
+      "sa": 3.6953,
+      "objective_score": 0.53694,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 10,
+      "round": 2,
+      "smiles": "CC(O)C(=O)c1cc2c(F)c(-c3ccnc(C(=O)CCC(N)C4CO4)c3)ccc2s1",
+      "qed": 0.421,
+      "sa": 4.0533,
+      "objective_score": 0.42101,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 11,
+      "round": 2,
+      "smiles": "CN(O)C(=O)C1=CC2C=CC(c3cc(C(O)CC4CCCCN4)ccn3)=C(F)C2=N1",
+      "qed": 0.5103,
+      "sa": 4.7013,
+      "objective_score": 0.51031,
+      "improved_over_input": false
+    },
+    {
+      "attempt": 12,
+      "round": 2,
+      "smiles": "CC1CN(C(=O)CCC2=NN=NC2)CC1N1CCC2OC(C(O)[PH](=O)O)=NC2C1C",
+      "qed": 0.576,
+      "sa": 5.794,
+      "objective_score": 0.57605,
+      "improved_over_input": false
+    }
+  ]
+}

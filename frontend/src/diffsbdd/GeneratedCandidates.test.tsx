@@ -1,6 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { GeneratedCandidates } from "./GeneratedCandidates";
+import nativeOptimization from "./optimization-native.fixture.json";
+import { optimizationReview } from "./optimization-model";
+
+vi.mock("./OptimizationFigures", () => ({ OptimizationFigures: () => null }));
 
 vi.mock("../presentation/MoleculeImage", () => ({
   MoleculeImage: ({ label }: { label: string }) => <span>{label} drawing</span>,
@@ -52,6 +56,52 @@ const metrics = [
     fragments: 3,
   },
 ];
+
+it("puts optimization descriptors first without changing native record identity when sorting", () => {
+  const review = optimizationReview(nativeOptimization, "qed");
+  if (review.state !== "ready")
+    throw new Error("Native result was not admitted");
+  const records = nativeOptimization.molecules.map((_, record) => ({ record }));
+  const onSelect = vi.fn();
+  const { rerender } = render(
+    <GeneratedCandidates
+      records={records}
+      selected={records[0]}
+      language="en"
+      url="/native/optimization/molecules.sdf"
+      proteinUrl="/native/receptor.pdb"
+      optimization={review.data}
+      onSelect={onSelect}
+    />,
+  );
+  const table = screen.getByRole("table", {
+    name: "Generated candidate molecules",
+  });
+  const headers = within(table).getAllByRole("columnheader");
+  expect(headers).toHaveLength(5);
+  ["Select for comparison", "Candidate molecule", "QED", "SA", "ΔQED"].forEach(
+    (name, index) => {
+      expect(headers[index]).toHaveAccessibleName(name);
+    },
+  );
+  expect(within(table).getAllByRole("row")[1]).toHaveTextContent("Candidate 2");
+  fireEvent.click(within(table).getByRole("button", { name: "Candidate 2" }));
+  expect(onSelect).toHaveBeenCalledExactlyOnceWith(records[1]);
+  rerender(
+    <GeneratedCandidates
+      records={records}
+      selected={records[1]}
+      language="en"
+      url="/native/optimization/molecules.sdf"
+      proteinUrl="/native/receptor.pdb"
+      optimization={review.data}
+      onSelect={onSelect}
+    />,
+  );
+  expect(
+    JSON.parse(screen.getByTestId("candidate-frame").textContent!).records,
+  ).toEqual([0, 1]);
+});
 
 it.each(["en", "zh"] as const)(
   "shows selected native record with its matching receptor and steric warning in %s",

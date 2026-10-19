@@ -473,3 +473,12 @@ Each export explicitly identifies its data and display selection. Equal paper se
 Mol* 的印刷捕获保持所选 300/600 dpi 和完整几何，采用四次原生抖动采样；避免上游默认十六次采样使双模型场景的软件 WebGL 超时。捕获后恢复原有采样、灯光、裁剪和截图设置，不延长等待上限，也不降低用户所选输出尺寸。
 
 任务步骤、结果页签和模型选择共用随实际选中控件移动的指示线。换行、语言切换和屏幕调整后重新测量，不替换输入控件或清空草稿；系统设置减少动画时停止非必要动画。`publication-checks.yml` 仅检查共享控件、原生导出和直接消费者，使用保留的真实公开输出、双语与代表性窄屏，不启动新科学计算。保留的 FEP 规划可验证规划预览，不能证明自由能计算或科学接受；界面质量目标也不等于获奖或顶级期刊接受。
+
+
+### Descriptor-guided optimization results / 描述符引导优化结果
+
+DiffSBDD optimization displays its recorded starting objective, best generated candidate, improved-candidate count and completed rounds. QED is maximized; the native SA heuristic is minimized. The retained best can still be the input, so it is never substituted for an unobserved generated candidate. Missing or contradictory summary metadata remains explicit and does not suppress original structures or files. A descriptor gain is not affinity, activity or protected-scaffold validation.
+
+The large molecular view stays on the left. The right-hand table initially exposes QED, SA and the objective delta; auxiliary columns and full exports stay available through the existing table. Sorting never changes native SDF record indices. The native Plotly viewer provides candidate trade-offs and per-round results, with a separate retained-best series including the input. Declining round winners remain visible; no unrun rounds are projected. Plot points, record choices and the leading-candidate action select the same immutable native record. The existing figure exporter handles online figure downloads. No alternate chart renderer or scientific execution path is introduced.
+
+优化结果直接显示原生起始分数、最佳生成候选、改善候选数和已完成轮次。QED 越高越好，SA 启发式指标越低越好；累计保留最佳可能仍是起始分子，不能冒充已生成候选。缺失或矛盾的数据明确说明，原始结构与文件仍可查看。桌面保持左侧大结构，右侧优先显示 QED、SA 和变化值；排序、图上点选和领先候选按钮沿用同一个原始 SDF 记录身份。交互图保留每轮实际下降，累计最佳包含起始分子；描述符变化不作为亲和力、活性或骨架保留证明。

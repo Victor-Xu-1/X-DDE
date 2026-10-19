@@ -20,6 +20,8 @@ import { generatedMetrics } from "./generated-metrics";
 import { CandidateFollowup, type CandidateAction } from "./CandidateFollowup";
 import { GenerationSummary } from "./GenerationSummary";
 import { useGeneratedRecords } from "./useGeneratedRecords";
+import { optimizationReview } from "./optimization-model";
+import { OptimizationSummary } from "./OptimizationSummary";
 
 export function DiffResults({
   job,
@@ -41,6 +43,14 @@ export function DiffResults({
   const mode =
     job.request.operation === "diffsbdd" ? job.request.payload.mode : "";
   const designing = isDesign(mode);
+  const options =
+    job.request.operation === "diffsbdd" ? job.request.payload.options : null;
+  const objective =
+    options && typeof options === "object" && "objective" in options
+      ? options.objective
+      : undefined;
+  const optimization =
+    mode === "optimize" ? optimizationReview(data.report, objective) : null;
   const candidates = useGeneratedRecords(job.id, targetArtifact, data);
   const records = candidates.records,
     selectedRecord = candidates.selected;
@@ -143,7 +153,7 @@ export function DiffResults({
         zh ? "DiffSBDD 结果与下一步" : "DiffSBDD results and next steps"
       }
     >
-      {designing && (
+      {designing && mode !== "optimize" && (
         <p className="field-help">
           {zh
             ? "生成数量不代表活性或亲和力；请继续比较性质和结合姿势。"
@@ -151,10 +161,29 @@ export function DiffResults({
         </p>
       )}
       <ScientificDetails job={job} data={data} language={language} />
+      {optimization && (
+        <OptimizationSummary
+          review={optimization}
+          language={language}
+          canSelect={
+            optimization.state === "ready" &&
+            records.some(
+              (row) => row.record === optimization.data.bestGenerated?.record,
+            )
+          }
+          onSelect={(record) => {
+            const row = records.find((value) => value.record === record);
+            if (row) {
+              candidates.select(row);
+              handoff.clear();
+            }
+          }}
+        />
+      )}
       {designing && (
         <GenerationSummary report={data.report} language={language} />
       )}
-      {typeof data.valid === "number" && (
+      {typeof data.valid === "number" && optimization?.state !== "ready" && (
         <p>
           {data.core_verification
             ? zh
@@ -235,6 +264,9 @@ export function DiffResults({
               designing && protein ? artifactUrl(job.id, protein) : undefined
             }
             metrics={designing ? generatedMetrics(data.report) : null}
+            optimization={
+              optimization?.state === "ready" ? optimization.data : undefined
+            }
             onSelect={(value) => {
               candidates.select(value);
               handoff.clear();
