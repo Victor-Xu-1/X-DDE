@@ -34,6 +34,8 @@ def pair_evidence(pairs, rotation, translation, role):
 
 
 def compare_frame(model, target_pairs, partner_pairs):
+    import numpy as np
+
     solver = rigid_solver(target_pairs)
     rotation, translation = solver.rotran
     target = pair_evidence(target_pairs, rotation, translation, "target")
@@ -43,6 +45,8 @@ def compare_frame(model, target_pairs, partner_pairs):
     )
     # Preserve source endpoints before using Biopython's native transform on the selected model.
     solver.apply(list(model.get_atoms()))
+    if not np.isfinite(np.asarray([atom.coord for atom in model.get_atoms()], dtype=float)).all():
+        raise ValueError("Aligned comparison coordinates must remain finite.")
     return {
         "rotation": rotation.tolist(),
         "translation": translation.tolist(),

@@ -24,7 +24,7 @@ class ComparisonOptions(ComparisonModel):
     minimum_identity: float = Field(default=0.9, ge=0.5, le=1)
     minimum_coverage: float = Field(default=0.7, ge=0.1, le=1)
     minimum_target_pairs: int = Field(default=12, strict=True, ge=3, le=5000)
-    minimum_partner_pairs: int = Field(default=3, strict=True, ge=1, le=5000)
+    minimum_partner_pairs: int = Field(default=3, strict=True, ge=3, le=5000)
     cpu: int = Field(default=1, strict=True, ge=1, le=2)
     memory_mib: int = Field(default=2048, strict=True, ge=512, le=8192)
 

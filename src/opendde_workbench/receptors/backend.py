@@ -22,6 +22,31 @@ FILES = (
 
 class ReceptorBackend(PreparedContainerBackend):
     def __init__(self, settings):
+        comparison = Path(__file__).parent.parent / "structure_comparison"
+        shared = {
+            "comparison_native.py": comparison / "native_entry.py",
+            "comparison_options.py": comparison / "options.py",
+        }
+        shared.update(
+            {
+                "comparison_" + name + ".py": comparison / ("native_" + name + ".py")
+                for name in (
+                    "matching",
+                    "geometry",
+                    "polymer",
+                    "export",
+                    "quality",
+                    "quality_model",
+                    "reports",
+                )
+            }
+        )
         super().__init__(
-            settings, "biopython", Path(__file__).parent, FILES, configuration, readiness
+            settings,
+            "biopython",
+            Path(__file__).parent,
+            FILES,
+            configuration,
+            readiness,
+            shared_sources=shared,
         )

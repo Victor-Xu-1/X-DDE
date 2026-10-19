@@ -1,0 +1,5 @@
+cython==3.3.0
+numpy==1.26.4
+packaging==26.3
+setuptools==84.2.0
+wheel==0.48.0

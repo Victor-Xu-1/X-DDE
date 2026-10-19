@@ -7,10 +7,11 @@ def address(chain, residue):
     return {"chain": chain.id, "number": residue.id[1], "insertion_code": residue.id[2].strip()}
 
 
-def profile(model):
+def profile(model, parent_codes=None):
     from Bio.PDB.Polypeptide import protein_letters_3to1_extended
 
     chains, evidence, missing = {}, [], []
+    parent_codes = parent_codes or {}
     atoms = list(model.get_atoms())
     occupancies, b_factors = [], []
     for atom in atoms:
@@ -26,7 +27,10 @@ def profile(model):
     for chain in model.get_chains():
         residues = []
         for residue in chain.get_residues():
-            code = protein_letters_3to1_extended.get(residue.get_resname().upper())
+            identity = (chain.id, residue.id[1], residue.id[2].strip())
+            code = parent_codes.get(identity) or protein_letters_3to1_extended.get(
+                residue.get_resname().upper()
+            )
             if not code or not residue.has_id("CA"):
                 continue
             if len(residues) >= 2000:

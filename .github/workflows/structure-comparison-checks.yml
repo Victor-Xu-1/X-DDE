@@ -5,6 +5,16 @@ on:
     paths:
       - "src/opendde_workbench/structure_comparison/**"
       - "src/opendde_workbench/receptors/native_fit.py"
+      - "src/opendde_workbench/receptors/image.py"
+      - "src/opendde_workbench/receptors/native*requirements*"
+      - "src/opendde_workbench/receptors/build/**"
+      - "src/opendde_workbench/receptors/native.Dockerfile"
+      - "src/opendde_workbench/receptors/backend.py"
+      - "src/opendde_workbench/receptors/profiles.py"
+      - "src/opendde_workbench/receptors/runner.py"
+      - "scripts/generate-biopython-lock.py"
+      - "server_tests/*comparison*native*"
+      - "server_tests/test_native_structure_comparison.py"
       - "tests/test_structure_comparison*.py"
       - ".github/workflows/structure-comparison-checks.yml"
 permissions:
@@ -25,9 +35,43 @@ jobs:
         run: >-
           uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
           tests/test_structure_comparison.py tests/test_structure_comparison_geometry.py
+          tests/test_structure_comparison_polymer.py
           server_tests/test_receptor_science.py::test_actual_rigid_structure_copy_recovers_frame_and_original_residue_correspondence
       - name: Changed Python contracts and adapters
         run: >-
           uv run --locked ruff check src/opendde_workbench/structure_comparison
-          src/opendde_workbench/receptors/native_fit.py
-          tests/test_structure_comparison.py tests/test_structure_comparison_geometry.py
+          src/opendde_workbench/receptors
+          tests/test_structure_comparison*.py server_tests/comparison_native_harness.py
+          server_tests/test_native_structure_comparison.py
+  native-structural-runtime:
+    needs: contracts-and-frame
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Verify exact runtime and isolated compiler dependency hashes
+        run: uv run --locked python scripts/generate-biopython-lock.py --check
+      - name: Prepare only the existing native receptor consumer fixture
+        run: >-
+          uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q
+          server_tests/test_receptor_science.py::test_actual_rigid_structure_copy_recovers_frame_and_original_residue_correspondence
+      - name: Actual compiled interface runtime, modified polymers and existing receptor handoff
+        env:
+          WB_TEST_NATIVE_COMPARISON: "1"
+          WB_TEST_NATIVE_RECEPTORS: "1"
+        run: >-
+          uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -x -q
+          server_tests/test_native_structure_comparison.py
+          server_tests/test_native_receptors.py::test_actual_receptor_environment_and_reusable_persistent_alignment_collection
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-structure-comparison-runtime-controls
+          path: server_tests/evidence/structure-comparison/**
+          if-no-files-found: warn

@@ -5,6 +5,12 @@ X-DDE original code is licensed under the Apache License, Version 2.0.
 Integrated third-party software, model resources and reference artwork retain
 their respective upstream licenses, copyright notices and attribution.
 
+Reference-conditioned structural comparison (candidate v0.6.42)
+DockQ 2.1.3 by Claudio Mirabello and Bjorn Wallner is integrated under its MIT license.
+Its native license and copyright notices remain in the installed distribution.
+Biopython and NumPy retain their existing licenses. Native coordinate-comparison
+metrics and DockQ reference-quality measures are not binding energies or affinities.
+
 Scientific integrations added in v0.4.26
 Boltz / BoltzGen / LigandMPNN / Chemprop / OpenFF: upstream MIT components, with their own resource terms.
 REINVENT4: Apache-2.0 code; reviewed public priors retain their published terms.

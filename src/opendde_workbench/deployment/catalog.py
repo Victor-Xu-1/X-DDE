@@ -39,6 +39,7 @@ from ..integrations.specs import PROGRAMS as SCIENTIFIC_PROGRAMS
 from ..pockets.manifest import SHA256 as P2_SHA
 from ..pockets.manifest import URL as P2_URL
 from ..pockets.manifest import VERSION as P2_VERSION
+from ..receptors.image import VERSION as BIOPYTHON_VERSION
 from ..space.manifest import LICENSE as CAVER_LICENSE
 from ..space.manifest import SHA256 as CAVER_SHA
 from ..space.manifest import URL as CAVER_URL
@@ -80,12 +81,13 @@ PACKAGES = {
         ),
         Package(
             "biopython",
-            "biopython-1.88-numpy-1.26.4",
-            "Biopython 结构与空间分析",
-            "结构准备、受体对齐与区域暴露 / Preparation, alignment and region exposure",
-            "约 100 MB 下载；至少 2 GiB 安装空间 / ~100 MB download; 2 GiB staging",
+            BIOPYTHON_VERSION,
+            "Biopython / DockQ 结构分析",
+            "结构准备、构象与界面对照 / Preparation, conformation and interface comparison",
+            "约 200 MB 下载；至少 2 GiB 安装空间 / ~200 MB download; 2 GiB staging",
             license=(
-                "Biopython License Agreement / BSD-3-Clause; NumPy BSD-3-Clause; dependency terms"
+                "Biopython License Agreement / BSD-3-Clause; DockQ MIT; "
+                "NumPy BSD-3-Clause; NetworkX BSD-3-Clause; dependency terms"
             ),
             engine="biopython",
             kind="runtime",

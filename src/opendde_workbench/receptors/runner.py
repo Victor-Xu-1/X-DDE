@@ -28,6 +28,10 @@ def run(request, bindings, directory, output):
     import numpy as np
     from Bio import __version__ as bio_version
 
+    if request["operation"] == "structure_compare":
+        from comparison_native import run_comparison
+
+        return run_comparison(request, bindings, directory, output)
     if request["operation"] == "surface_exposure":
         from native_surface import run_surface
 

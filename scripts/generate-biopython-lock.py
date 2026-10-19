@@ -12,6 +12,7 @@ def main():
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1] / "src/opendde_workbench/receptors"
     write_lock(root, args.check)
+    write_lock(root / "build", args.check)
 
 
 if __name__ == "__main__":
