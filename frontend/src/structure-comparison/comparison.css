@@ -35,8 +35,15 @@
   border-bottom: 1px solid #e3e8f1;
 }
 .comparison-result-metrics dt {
+  min-height: 2.6em;
   color: var(--muted-text, #65748b);
   font-size: 12px;
+}
+.comparison-result-view output {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .comparison-result-metrics dd {
   margin: 5px 0;

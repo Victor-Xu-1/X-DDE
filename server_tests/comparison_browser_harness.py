@@ -1,5 +1,6 @@
 """Read and interact with the actual persisted native comparison in Chromium, bilingual."""
 
+import hashlib
 import json
 
 from browser_platform import platform
@@ -40,11 +41,33 @@ def verify_browser(state, job_id, result, evidence):
                 table = panel.get_by_role(
                     "table", name="逐残基比较" if zh else "Per-residue comparison", exact=True
                 )
+                panel.get_by_role(
+                    "searchbox",
+                    name=("搜索 · 逐残基比较" if zh else "Search · Per-residue comparison"),
+                    exact=True,
+                ).fill("伙伴" if zh else "Partner")
                 row = table.get_by_role("row").nth(1)
+                table.get_by_role(
+                    "columnheader", name="位移（Å）" if zh else "Displacement (Å)", exact=True
+                ).scroll_into_view_if_needed()
+                expect(
+                    table.get_by_role(
+                        "columnheader", name="位移（Å）" if zh else "Displacement (Å)", exact=True
+                    )
+                ).to_be_in_viewport(ratio=1)
+                for title in ("参照", "比较") if zh else ("Reference", "Comparison"):
+                    expect(
+                        table.get_by_role("columnheader", name=title, exact=True)
+                    ).to_be_in_viewport(ratio=1)
                 row.click()
                 expect(panel.locator("output")).to_be_visible()
                 row.press("Enter")
                 expect(row).to_have_attribute("aria-selected", "true")
+                expect(
+                    panel.get_by_role("status").filter(
+                        has_text=("已定位区域残基" if zh else "Region residues located")
+                    )
+                ).to_contain_text("2 / 2", timeout=15000)
                 for name, title in (
                     (
                         "界面" if zh else "Interfaces",
@@ -70,12 +93,26 @@ def verify_browser(state, job_id, result, evidence):
                     control.click()
                     expect(control).to_have_attribute("aria-pressed", "true")
                     expect(capture).to_be_enabled(timeout=45000)
+                    expect(
+                        panel.get_by_role("status").filter(
+                            has_text=("已定位区域残基" if zh else "Region residues located")
+                        )
+                    ).to_contain_text(
+                        "1 / 1"
+                        if "comparison" in mode.lower() or mode == "已对齐比较结构"
+                        else "2 / 2",
+                        timeout=15000,
+                    )
                 with page.expect_download() as download:
                     panel.get_by_role(
                         "link", name="完整位移 CSV" if zh else "Full displacement CSV", exact=True
                     ).click()
                 downloaded = evidence / (language + "-downloaded-displacements.csv")
                 download.value.save_as(downloaded)
+                assert (
+                    hashlib.sha256(downloaded.read_bytes()).hexdigest()
+                    == result["artifact_sha256"]["residue-displacements.csv"]
+                )
                 assert (
                     downloaded.read_text(encoding="utf-8")
                     .splitlines()[0]
@@ -85,6 +122,22 @@ def verify_browser(state, job_id, result, evidence):
                     "button", name="残基位移" if zh else "Residue displacement", exact=True
                 ).click()
                 expect(panel.locator(".research-plot .js-plotly-plot")).to_be_visible(timeout=45000)
+                capture.click()
+                image_link = panel.get_by_role(
+                    "link", name="下载视图 PNG" if zh else "Download view PNG", exact=True
+                )
+                expect(image_link).to_be_visible(timeout=45000)
+                with page.expect_download() as image_download:
+                    image_link.click()
+                image_path = evidence / (language + "-native-overlay.png")
+                image_download.value.save_as(image_path)
+                assert (
+                    image_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+                    and image_path.stat().st_size > 10000
+                )
+                panel.get_by_role(
+                    "button", name="关闭图片" if zh else "Close image", exact=True
+                ).click()
                 page.screenshot(
                     path=str(evidence / (language + "-native-comparison.png")), full_page=True
                 )

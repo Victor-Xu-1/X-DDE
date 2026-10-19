@@ -120,7 +120,21 @@ def test_native_interface_runtime_preserves_PTR_and_only_fits_the_target(tmp_pat
     table.write_bytes(raw)
     for label, control in (("identity-control", identical), ("shifted-partner-control", negative)):
         shutil.copytree(control.output, evidence / label)
-    verify_api(tmp_path, runtime["image"], source, fixture, options, evidence)
+    moved["B"].id = "C"
+    remapped = tmp_path / "renamed-partner-control-not-a-research-prediction.cif"
+    modifications = [
+        {**row, "chain": "C" if row["chain"] == "B" else row["chain"]}
+        for row in metadata["modified_residues"]
+    ]
+    write_compared_model(moved, modifications, remapped)
+    verify_api(
+        tmp_path,
+        runtime["image"],
+        source,
+        remapped,
+        {**options, "partner_mapping": [{"reference": "B", "moving": "C"}]},
+        evidence,
+    )
     (evidence / "runtime-controls.json").write_text(
         json.dumps(
             {

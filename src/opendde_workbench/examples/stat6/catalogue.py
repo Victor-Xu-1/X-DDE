@@ -165,6 +165,10 @@ def study_context(capability):
             ),
         },
     }
+    if capability == "rmsd":
+        from ...structure_comparison.study_guidance import study_context as comparison_context
+
+        return comparison_context(study)
     if capability == "chemprop.train":
         from .training_inputs import training_context
 

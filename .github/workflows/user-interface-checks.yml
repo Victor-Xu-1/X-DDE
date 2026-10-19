@@ -31,6 +31,9 @@ on:
       - "frontend/src/studio/runtime-status.css"
       - "frontend/src/operations/filter*"
       - "frontend/src/**/*Results*"
+      # Structural comparison has exact bilingual/native lifecycle checks.
+      - "!frontend/src/structure-comparison/**"
+      - "!frontend/src/operations/OperationResults*"
       # Paired-result inspection is verified by viewer-checks.yml.
       - "!frontend/src/poses/PoseResults*"
       - "!frontend/src/receptors/ReceptorResults*"
@@ -47,6 +50,7 @@ on:
       - "!frontend/src/presentation/ensemble-results.css"
       - "frontend/src/research/ResearchWorkspace*"
       - "frontend/src/operations/ToolCenter*"
+      - "!frontend/src/operations/ToolCenter.tsx"
       - "frontend/src/studio/HomeWorkspace*"
       - "frontend/src/deployment/**"
       - "!frontend/src/deployment/labels.ts"
@@ -328,6 +332,9 @@ on:
       - "frontend/src/studio/runtime-status.css"
       - "frontend/src/operations/filter*"
       - "frontend/src/**/*Results*"
+      # Structural comparison has exact bilingual/native lifecycle checks.
+      - "!frontend/src/structure-comparison/**"
+      - "!frontend/src/operations/OperationResults*"
       # Paired-result inspection is verified by viewer-checks.yml.
       - "!frontend/src/poses/PoseResults*"
       - "!frontend/src/receptors/ReceptorResults*"
@@ -335,6 +342,7 @@ on:
       - "!frontend/src/presentation/ensemble-results.css"
       - "frontend/src/research/ResearchWorkspace*"
       - "frontend/src/operations/ToolCenter*"
+      - "!frontend/src/operations/ToolCenter.tsx"
       - "frontend/src/studio/HomeWorkspace*"
       - "frontend/src/deployment/**"
       - "!frontend/src/deployment/labels.ts"

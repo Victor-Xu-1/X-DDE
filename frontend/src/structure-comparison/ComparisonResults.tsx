@@ -53,12 +53,12 @@ export function ComparisonResults({
     },
     {
       key: "reference",
-      label: zh ? "参照残基" : "Reference residue",
+      label: zh ? "参照" : "Reference",
       value: (r) => addressLabel(r.reference) + " " + r.reference_letter,
     },
     {
       key: "moving",
-      label: zh ? "比较残基" : "Comparison residue",
+      label: zh ? "比较" : "Comparison",
       value: (r) => addressLabel(r.moving) + " " + r.moving_letter,
     },
     {
@@ -172,6 +172,7 @@ export function ComparisonResults({
               title={zh ? "逐残基比较" : "Per-residue comparison"}
               language={language}
               exportName="selected-residue-displacements.csv"
+              initialVisibleColumns={["reference", "moving", "displacement"]}
             />
           </>
         )}
