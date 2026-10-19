@@ -265,7 +265,7 @@ def test_real_structures_tables_and_sequences():
             expect(page.get_by_role("button", name="图表与质量", exact=True)).not_to_be_visible()
             assert page.locator(".dataset-chart").count() == 0
             initial_member = members.first.locator("td").first.inner_text()
-            inspector = page.get_by_role("region", name="入库分子结构检查", exact=True)
+            inspector = page.get_by_role("region", name="分子库成员结构检查", exact=True)
             expect(inspector.get_by_role("heading", name=initial_member, exact=True)).to_be_visible(
                 timeout=30000
             )

@@ -1,6 +1,7 @@
 import { ResearchTable } from "./ResearchTable";
 import { DELSampleDesign } from "./DELSampleDesign";
 import { DELReadFiles } from "./DELReadFiles";
+import { DELExpertSettings } from "./DELExpertSettings";
 import type { DELFormState } from "./useDELForm";
 
 export function DELScopeQuestion({ model }: { model: DELFormState }) {
@@ -118,6 +119,12 @@ export function DELScopeQuestion({ model }: { model: DELFormState }) {
               />
             </label>
           )}
+          <DELExpertSettings
+            mode={mode}
+            language={language}
+            value={model.expert}
+            onChange={model.setExpert}
+          />
         </>
       ) : mode === "candidates" ? (
         <>

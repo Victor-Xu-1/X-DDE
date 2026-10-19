@@ -212,6 +212,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Install the reviewed independent DEL environment, without platform interpreter changes
+        if: steps.scope.outputs.del_only != 'true' || steps.scope.outputs.native_umi_changed == 'true'
         run: |
           uv venv --python 3.13 .dataset-native
           uv pip install --python .dataset-native/bin/python --require-hashes -r src/opendde_workbench/integrations/recipes/deli.txt
@@ -223,7 +224,7 @@ jobs:
           WB_TEST_DATASET_NATIVE: '1'
         run: .dataset-native/bin/python -m pytest -q server_tests/test_dataset_native.py server_tests/test_dataset_curation.py
       - name: Real public 1000-read decoding, professional UMI methods and incomplete-barcode exclusions
-        if: steps.scope.outputs.del_only == 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_umi_changed == 'true'
         env:
           PYTHONPATH: src
           WB_TEST_DATASET_NATIVE: '1'

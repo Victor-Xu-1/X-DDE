@@ -11,6 +11,7 @@ on:
       - "frontend/src/datasets/DatasetResults*"
       - "frontend/src/datasets/ResearchTable*"
       - "frontend/src/datasets/member-page-export*"
+      - "frontend/src/datasets/supplier-label*"
       - "tests/test_dataset_member_inspection.py"
       - "server_tests/test_library_member*"
       - ".github/workflows/library-member-checks.yml"
@@ -64,7 +65,6 @@ jobs:
         run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
   native:
     needs: scope
-    if: needs.scope.outputs.del_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

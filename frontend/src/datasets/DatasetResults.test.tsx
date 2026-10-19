@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { DatasetResults } from "./DatasetResults";
 import type { DatasetResult } from "./types";
 import type { Job } from "../types";
+import { nativeQuality } from "./sequencing-quality.test-data";
 
 vi.mock("./ResearchTable", () => ({
   ResearchTable: ({ view }: { view: string }) => (
@@ -103,6 +104,42 @@ it("keeps UMI exclusions visible in count summaries instead of spending space on
   expect(screen.getByText("Complete-UMI reads")).toBeVisible();
   expect(screen.getByText("Excluded from UMI deduplication")).toBeVisible();
   expect(screen.queryByText("Member/sample pairs")).toBeNull();
+});
+
+it("distinguishes unassessed historical UMI counts from current assessed or explicit raw counts", () => {
+  const result = {
+    ...data("counts"),
+    operation: "del_count" as const,
+    metadata: { umi_method: "directional" },
+  };
+  const { rerender } = render(
+    <DatasetResults job={job} result={result} language="en" />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "UMI completeness was not assessed",
+  );
+  rerender(
+    <DatasetResults
+      job={job}
+      result={{
+        ...result,
+        metadata: {
+          ...result.metadata,
+          umi_integrity: nativeQuality.umi_integrity,
+        },
+      }}
+      language="en"
+    />,
+  );
+  expect(screen.queryByRole("status")).toBeNull();
+  rerender(
+    <DatasetResults
+      job={job}
+      result={{ ...result, metadata: { umi_method: "raw" } }}
+      language="en"
+    />,
+  );
+  expect(screen.queryByRole("status")).toBeNull();
 });
 
 it("opens prepared libraries in the shared native member inspector", () => {

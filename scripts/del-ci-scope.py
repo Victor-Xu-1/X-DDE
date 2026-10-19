@@ -19,6 +19,9 @@ PATTERNS = (
     "frontend/src/datasets/result-labels.ts",
     "frontend/src/datasets/useDELForm.ts",
     "frontend/src/datasets/DELMethodQuestion.tsx",
+    "frontend/src/datasets/DELForm.tsx",
+    "frontend/src/datasets/DELScopeQuestion.tsx",
+    "frontend/src/datasets/supplier-label*",
     "frontend/src/datasets/datasets.css",
     "frontend/src/datasets/DELTemplateReplay.test.tsx",
     "src/opendde_workbench/datasets/del_umi.py",
@@ -35,6 +38,7 @@ PATTERNS = (
     "server_tests/barcode_quality_browser.py",
     "server_tests/decoding_quality_browser.py",
     "server_tests/responsive_chart_browser.py",
+    "server_tests/test_result_visuals_browser.py",
     "server_tests/test_statistical_previews_browser.py",
     "scripts/del-ci-scope.py",
     "pyproject.toml",
@@ -81,6 +85,17 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("del_only=" + str(selected).lower() + "\n")
+        native = any(
+            name.startswith("src/opendde_workbench/datasets/")
+            or name
+            in {
+                "server_tests/test_dataset_native.py",
+                "server_tests/test_del_umi_count.py",
+                "tests/test_del_umi.py",
+            }
+            for name in changed
+        )
+        output.write("native_umi_changed=" + str(native).lower() + "\n")
     print(
         "DEL barcode/UMI and shared table consumers"
         if selected

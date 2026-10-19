@@ -319,6 +319,8 @@ on:
       # Questionnaire availability controls use task-readiness-checks.yml.
       - "!frontend/src/datasets/DELForm.tsx"
       - "!frontend/src/datasets/DELMethodQuestion.tsx"
+      - "!frontend/src/datasets/DELScopeQuestion.tsx"
+      - "!frontend/src/datasets/supplier-label*"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/CovalentEditor.tsx"
       - "!frontend/src/operations/FeatureForm.tsx"

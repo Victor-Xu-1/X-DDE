@@ -83,6 +83,15 @@ export function DatasetResults({
           language={language}
         />
       </div>
+      {result.operation === "del_count" &&
+        result.metadata.umi_method !== "raw" &&
+        !result.metadata.umi_integrity && (
+          <p className="field-help" role="status">
+            {zh
+              ? "此历史计数未评估 UMI 完整性；原始结果保留。重新解码并计数后，再用于 UMI 比较。"
+              : "UMI completeness was not assessed for these historical counts. The original result is retained; decode and count again before UMI comparisons."}
+          </p>
+        )}
       {(showTabs || hasComparisons) && (
         <div className="dataset-result-tabs">
           {showTabs && (

@@ -74,7 +74,7 @@ export function DELForm({
                 },
               ]
             : []),
-          ...(mode !== "validate"
+          ...(!["validate", "enumerate"].includes(mode)
             ? [
                 {
                   title: zh ? "选择分析方案" : "Choose analysis",
