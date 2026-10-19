@@ -3,14 +3,23 @@
 import math
 
 
-def charge_center(group, original, *, protein=None, ligand=False):
+def charge_center(group, original, *, protein=None, ligand=False, detector=None, centers=()):
+    atomic_groups = {"phosphate", "sulfonicacid", "sulfate", "guanidine"}
+    atomic = getattr(group, "fgroup", None) in atomic_groups
+    # PLIP's receptor pcharge tuple omits fgroup. Recover its center convention
+    # only with the same native functional-group detector on the exact center atom.
+    if not atomic and detector is not None and protein is not None:
+        atomic = any(
+            math.dist(atom.coords, group.center) < 1e-6
+            and any(detector.is_functional_group(atom, kind) for kind in atomic_groups)
+            for atom in centers
+        )
     return original.group(
         group.atoms,
         group.center,
         protein=protein,
         ligand=ligand,
-        atom_center=getattr(group, "fgroup", None)
-        in {"phosphate", "sulfonicacid", "sulfate", "guanidine"},
+        atom_center=atomic,
     )
 
 
@@ -29,6 +38,20 @@ def edge(kind, item, protein, ligand):
 
 
 def profile_contacts(profile, original, *, annotate=None):
+    detector = getattr(profile, "bindingsite", None)
+    center_atoms = {}
+    for atom in getattr(detector, "all_atoms", ()):
+        center_atoms.setdefault(tuple(atom.coords), []).append(atom)
+
+    def protein_charge(group, residue):
+        return charge_center(
+            group,
+            original,
+            protein=residue,
+            detector=detector,
+            centers=center_atoms.get(tuple(group.center), ()),
+        )
+
     def contact(kind, item, protein, ligand):
         row = edge(kind, item, protein, ligand)
         return annotate(row, item) if annotate else row
@@ -76,7 +99,7 @@ def profile_contacts(profile, original, *, annotate=None):
                 contact(
                     "salt_bridge",
                     item,
-                    charge_center(protein, original, protein=residue),
+                    protein_charge(protein, residue),
                     charge_center(ligand, original, ligand=True),
                 )
             )
@@ -90,7 +113,7 @@ def profile_contacts(profile, original, *, annotate=None):
                     "pi_cation",
                     item,
                     (
-                        charge_center(protein, original, protein=residue)
+                        protein_charge(protein, residue)
                         if protein_charged
                         else original.group(protein.atoms, protein.center, protein=residue)
                     ),

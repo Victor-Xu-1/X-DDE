@@ -126,6 +126,25 @@ def test_declared_atomic_charge_center_is_not_replaced_with_a_group_centroid(sou
         module("plip_contacts").charge_center(group, original, ligand=True)
 
 
+def test_receptor_modified_group_needs_native_classification_at_the_exact_source_center(source):
+    original, atoms = source
+    group = Item(atoms=atoms[:2], center=atoms[0].coords)
+    detector = Item(is_functional_group=lambda atom, kind: atom is atoms[0] and kind == "phosphate")
+    assert module("plip_contacts").charge_center(
+        group, original, protein=("A", 33, "ASN"), detector=detector, centers=[atoms[0]]
+    ) == [1, 2, 3]
+    for refused in (None, Item(is_functional_group=lambda atom, kind: False)):
+        with pytest.raises(ValueError, match="center differs"):
+            module("plip_contacts").charge_center(
+                group, original, protein=("A", 33, "ASN"), detector=refused, centers=[atoms[0]]
+            )
+    group.center = (1.01, 2, 3)
+    with pytest.raises(ValueError, match="center differs"):
+        module("plip_contacts").charge_center(
+            group, original, protein=("A", 33, "ASN"), detector=detector, centers=[atoms[0]]
+        )
+
+
 def test_contact_cannot_point_to_a_different_residue_or_swap_protein_and_ligand(source):
     original, atoms = source
     for item in (
