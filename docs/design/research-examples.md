@@ -37,6 +37,12 @@ store remain the only execution and asset authorities. This is a computational
 pose-plausibility and descriptor study, not a binding-affinity, selectivity or
 experimental activity claim. Historical results remain unchanged.
 
+The run selector follows the same live run record as the progress monitor.
+An older startup history response cannot replace a newer observed completion.
+Loaded study templates retain their exact time and job budgets; draft settings
+apply only to a newly assembled plan. The ordinary review shows authored task
+names and the quality condition, with machine step IDs left to expert editing.
+
 The STAT6 REINVENT template uses the source-verified fluoroindole scaffold from
 the supplied study molecule, with one explicitly marked R-group attachment site,
 a 20-candidate budget and the retained CPU/memory/seed settings. Loading the

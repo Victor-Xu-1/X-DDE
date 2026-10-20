@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import type { Job, Language } from "../types";
 import { planFromJobs } from "./model";
@@ -36,12 +36,27 @@ export function useWorkflowController(
   const intent = useRef({ body: "", key: crypto.randomUUID() }),
     runKey = useRef(crypto.randomUUID());
   const mounted = useRef(true);
+  const recordRun = useCallback((value: WorkflowRun) => {
+    if (!mounted.current) return;
+    setRun(value);
+    setHistory((previous) => {
+      const existing = previous.find((row) => row.id === value.id);
+      if (existing === value) return previous;
+      return existing
+        ? previous.map((row) => (row.id === value.id ? value : row))
+        : [value, ...previous];
+    });
+  }, []);
   useEffect(() => {
     mounted.current = true;
     const c = new AbortController();
     void request<WorkflowRun[]>("/workflows/runs", { signal: c.signal })
       .then((values) => {
-        if (!c.signal.aborted) setHistory(values);
+        if (!c.signal.aborted)
+          setHistory((previous) => {
+            const known = new Set(previous.map((row) => row.id));
+            return [...previous, ...values.filter((row) => !known.has(row.id))];
+          });
       })
       .catch((e) => {
         if (!c.signal.aborted) setError(String(e));
@@ -69,10 +84,6 @@ export function useWorkflowController(
             ? {
                 ...preset,
                 name: name.trim() || preset.name,
-                budget: {
-                  ...preset.budget,
-                  wall_seconds: Math.round(hours * 3600),
-                },
               }
             : planFromJobs(name, ids, jobs, handoffs, hours),
         body = JSON.stringify(value);
@@ -108,8 +119,7 @@ export function useWorkflowController(
         runKey.current,
       );
       if (mounted.current) {
-        setRun(value);
-        setHistory((old) => [value, ...old.filter((r) => r.id !== value.id)]);
+        recordRun(value);
         return value;
       }
     } catch (e) {
@@ -137,6 +147,7 @@ export function useWorkflowController(
     setSelected,
     run,
     setRun,
+    recordRun,
     history,
     error,
     setError,

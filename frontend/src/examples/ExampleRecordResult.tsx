@@ -84,9 +84,13 @@ export function ExampleRecordResult({
       {record.kind === "workflows" && (
         <section aria-label={zh ? "模板流程结果" : "Template workflow result"}>
           <p>
-            {zh
-              ? "对接产物已进入性质计算。选择一步查看它的真实输出。"
-              : "The docking output was passed into property analysis. Select a step to view its actual output."}
+            {record.value.body.steps.some((step) => step.quality_gate)
+              ? zh
+                ? "所选姿势通过了计划指定的质控检查，再进入后续计算。选择一步查看它的真实输出。"
+                : "The selected pose passed the plan's required quality checks before downstream calculations. Select a step to inspect its actual output."
+              : zh
+                ? "研究已按所列步骤完成。选择一步查看它的真实输出。"
+                : "The study completed the listed steps. Select a step to inspect its actual output."}
           </p>
           <div className="segmented">
             {record.run.attempts.map((value, index) => (

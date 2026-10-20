@@ -38,6 +38,7 @@ export function WorkflowCenter({
     setSelected,
     run,
     setRun,
+    recordRun,
     history,
     error,
     setError,
@@ -345,7 +346,14 @@ export function WorkflowCenter({
           <ol>
             {selected.body.steps.map((s) => (
               <li key={s.id}>
-                {s.id} · {s.request.name} · {s.request.operation ?? "predict"}
+                {s.request.name}
+                {s.quality_gate && (
+                  <span className="field-help">
+                    {zh
+                      ? " · 质控通过后继续"
+                      : " · Continue after required quality checks pass"}
+                  </span>
+                )}
               </li>
             ))}
           </ol>
@@ -465,7 +473,7 @@ export function WorkflowCenter({
             key={run.id}
             initial={run}
             language={language}
-            onChange={setRun}
+            onChange={recordRun}
           />
         )}
       </details>
