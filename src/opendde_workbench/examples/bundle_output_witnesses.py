@@ -17,12 +17,15 @@ class OutputWitnesses:
         self.assets = AssetStore(store, self.state / "assets")
         self.evidence = {}
 
-    def includes(self, row, job_ids, input_assets):
+    def includes(self, row, job_ids, input_assets, selected_ids):
         if row["asset_id"] not in input_assets:
             return False
         body = json.loads(row["body"])
         source = body.get("source_job")
-        if source not in job_ids:
+        # An unversioned file input can still be an exact automatically indexed
+        # output derived from a selected study input. Retain that native origin,
+        # not arbitrary same-file versions, annotations or family siblings.
+        if source not in job_ids and body.get("parent_id") not in selected_ids:
             return False
         reference = body.get("reference", {})
         # File-level admission needs one deterministic, automatically indexed

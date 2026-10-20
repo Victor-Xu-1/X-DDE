@@ -129,7 +129,7 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                             "native_generated",
                         }
                         if not included:
-                            included = witnesses.includes(row, job_ids, input_assets)
+                            included = witnesses.includes(row, job_ids, input_assets, identifiers)
                     elif name == "research_state_sets" and not included:
                         included = row["source_job"] in job_ids
                     elif name == "workflow_attempts":

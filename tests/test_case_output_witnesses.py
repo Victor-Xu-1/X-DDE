@@ -132,3 +132,50 @@ def test_canonical_registration_key_cannot_claim_an_unreturned_artifact(
     with pytest.raises(ValueError, match="not a retained native artifact"):
         export_bundle(settings, target, "a" * 40, capabilities=["properties"], profile="stat6")
     assert not target.exists()
+
+
+def test_unversioned_file_retains_exact_native_origin_from_selected_input(settings, tmp_path):
+    store, assets, scientific, prepared, producer, _, _, pins, review = study(settings)
+    parent = prepared.objects["ligand"]
+    path = settings.state_dir / "jobs" / producer.id / "output" / "native-source.sdf"
+    path.write_bytes(b"Native source protocol fixture\n$$$$\n")
+    asset = assets.save(path.name, "ligand", path.read_bytes())
+    native = scientific.create(
+        VersionInput(asset_id=asset.id, kind="molecule", label=path.name, parent_id=parent.id),
+        artifact_key(producer.id, asset.id, "ligand", 0),
+        source_job=producer.id,
+    )
+    private = scientific.create(
+        VersionInput(
+            asset_id=asset.id, kind="molecule", label="Private annotation", parent_id=parent.id
+        ),
+        uuid4(),
+        source_job=producer.id,
+    )
+    consumer = complete(
+        settings,
+        store,
+        Properties(
+            name="Explicit file input without a saved version selector",
+            ligand_files=[asset.id],
+            scientific_inputs=[native.reference.model_copy(update={"version_id": None})],
+        ),
+    )
+    pin = pins.pin("properties", consumer.id, prepared, review=review)
+    archive = tmp_path / "native-file-source.zip"
+    exported = export_bundle(
+        settings, archive, "a" * 40, capabilities=["properties"], profile="stat6"
+    )
+    manifest = read_archive(archive, tmp_path / "inspect-origin", exported["sha256"])
+    objects = {row["id"] for row in manifest["records"]["scientific_objects"]}
+    assert str(native.id) in objects and str(private.id) not in objects
+    assert {row["id"] for row in manifest["records"]["jobs"]} == {producer.id, consumer.id}
+    destination = replace(settings, state_dir=tmp_path / "restored-native-origin")
+    assert restore_bundle(archive, destination, exported["sha256"])["computed"] == 1
+    restored = Store(destination.state_dir / "jobs.sqlite3")
+    assert (
+        ExamplePins(restored, destination.state_dir, modules=bundle_catalogue("stat6").modules).get(
+            "properties", verify=True
+        )
+        == pin
+    )
