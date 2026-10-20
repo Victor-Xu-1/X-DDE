@@ -1,4 +1,4 @@
-"""Reviewed study outputs, with reported-data imports distinct from model inference."""
+"""Reviewed STAT6 outputs: original-port analogues, contact-box poses and retained source cases."""
 
 VERSION = "25"
 URL = (
