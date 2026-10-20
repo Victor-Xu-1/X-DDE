@@ -24,15 +24,16 @@ jobs:
     timeout-minutes: 15
     env:
       WB_AUTO_DEPLOY: '0'
-      WB_TEST_DATA24: ${{ runner.temp }}/stat6-reviewed-results-v24.zip
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --group dev
       - name: Fetch the exact immutable prior native archive only
         run: |
-          curl --fail --location --retry 2 --max-time 120 --output "$WB_TEST_DATA24" https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.42/stat6-reviewed-results-v24.zip
-          echo "9512b41060d611056cafc13fb49c12a7f3dcfe4c3c0d34581b1412cf9e206d3e  $WB_TEST_DATA24" | sha256sum --check
+          case_archive="$RUNNER_TEMP/stat6-reviewed-results-v24.zip"
+          echo "WB_TEST_DATA24=$case_archive" >> "$GITHUB_ENV"
+          curl --fail --location --retry 2 --max-time 120 --output "$case_archive" https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.42/stat6-reviewed-results-v24.zip
+          echo "9512b41060d611056cafc13fb49c12a7f3dcfe4c3c0d34581b1412cf9e206d3e  $case_archive" | sha256sum --check
       - name: Check changed catalogue and restoration code
         run: >-
           uv run --locked ruff check
