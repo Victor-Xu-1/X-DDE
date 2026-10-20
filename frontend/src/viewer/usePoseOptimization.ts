@@ -4,6 +4,7 @@ import type { Job, Status } from "../types";
 import { optimizedPose, computedPose } from "./pose-source";
 import type { ScientificObject } from "../research/types";
 import type { PreviewPose, SavedPose } from "./pose-types";
+import { poseDownloadUrl } from "./pose-download";
 
 type Phase = Status | "idle" | "submitting" | "saving" | "error";
 interface State {
@@ -247,7 +248,7 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
   }
   return {
     pose,
-    downloadUrl: pose.urls[index],
+    downloadUrl: poseDownloadUrl(pose, index),
     busy,
     phase: visible.phase,
     error: visible.error,

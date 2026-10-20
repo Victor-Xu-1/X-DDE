@@ -1,0 +1,38 @@
+name: Selected pose download and quality handoff
+on:
+  push:
+    paths: &selected_pose_paths
+      - 'src/opendde_workbench/asset_records.py'
+      - 'src/opendde_workbench/asset_routes.py'
+      - 'tests/test_asset_record_download.py'
+      - 'frontend/src/viewer/pose-download*'
+      - 'frontend/src/viewer/usePoseOptimization*'
+      - 'frontend/src/docking/DockingResults*'
+      - '.github/workflows/selected-pose-checks.yml'
+  pull_request:
+    paths: *selected_pose_paths
+permissions:
+  contents: read
+jobs:
+  selected-pose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Exact record, pose history and direct quality questionnaire consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/viewer/pose-download.test.ts
+          src/viewer/usePoseOptimization.test.tsx src/viewer/PoseSession.test.tsx
+          src/docking/DockingResults.test.tsx src/quality/tests/QualityForm.test.tsx
+      - run: uv sync --locked --group dev
+      - run: uv run --locked ruff check src/opendde_workbench/asset_records.py src/opendde_workbench/asset_routes.py tests/test_asset_record_download.py
+      - name: Actual ASGI download of complex STAT6/PROTAC native records with RDKit readback
+        run: uv run --locked --with rdkit==2026.3.6 pytest -q tests/test_asset_record_download.py

@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 
+from .asset_records import molecular_record_response
 from .assets import AssetKind, AssetStore
 from .disk_space import StorageCapacityError, StorageUnavailable, require_space
 
@@ -88,9 +89,11 @@ def register_assets(app: FastAPI, assets: AssetStore, mutation, minimum_free_byt
             raise HTTPException(404, str(exc)) from exc
 
     @app.get("/api/assets/{asset_id}")
-    def download(asset_id: UUID):
+    def download(asset_id: UUID, record: int | None = Query(None, ge=0, le=499)):
         try:
             asset = assets.get(asset_id)
+            if record is not None:
+                return molecular_record_response(assets, asset, record)
             return FileResponse(
                 assets.path(asset),
                 filename=asset.name,
@@ -99,6 +102,8 @@ def register_assets(app: FastAPI, assets: AssetStore, mutation, minimum_free_byt
             )
         except FileNotFoundError as exc:
             raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
 
     @app.delete("/api/assets/{asset_id}", dependencies=[Depends(mutation)])
     def remove(asset_id: UUID):

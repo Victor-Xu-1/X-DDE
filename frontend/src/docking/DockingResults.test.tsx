@@ -30,6 +30,19 @@ vi.mock("../operations/PropertyForm", () => ({
   ),
 }));
 vi.mock("./DockingForm", () => ({ DockingForm: () => null }));
+vi.mock("../quality/QualityForm", () => ({
+  QualityForm: ({
+    initialMolecule,
+    initialProtein,
+  }: {
+    initialMolecule: unknown;
+    initialProtein: unknown;
+  }) => (
+    <pre data-testid="quality-inputs">
+      {JSON.stringify({ molecule: initialMolecule, protein: initialProtein })}
+    </pre>
+  ),
+}));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -156,4 +169,43 @@ it("offers explicit reindexing rather than pretending a missing asset is reusabl
       expect.objectContaining({ method: "POST", body: "{}" }),
     ),
   );
+});
+
+it("hands the actually selected saved pose and its receptor to the existing quality questionnaire", async () => {
+  const reference = {
+    ...receptor,
+    asset_id: "selected-pose",
+    version_id: "saved-pose",
+  };
+  mocks.request.mockImplementation((path: string) =>
+    path.includes("artifact-metadata")
+      ? {
+          job_id: "j",
+          name: "pose-002.sdf",
+          size: 123,
+          sha256: receptor.sha256,
+        }
+      : [
+          {
+            id: "saved-pose",
+            kind: "molecule",
+            label: "pose-002.sdf",
+            source_job: "j",
+            reference,
+          },
+        ],
+  );
+  render(
+    <DockingResults language="zh" job={{ id: "j" } as Job} result={data} />,
+  );
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: "检查姿势质量" }));
+  expect(JSON.parse(screen.getByTestId("quality-inputs").textContent!)).toEqual(
+    { molecule: reference, protein: receptor },
+  );
+  await user.click(screen.getByRole("button", { name: "← 返回结果" }));
+  expect(screen.getByTestId("viewer")).toHaveTextContent(
+    "/artifact/j/pose-002.sdf",
+  );
+  expect(mocks.authorized).not.toHaveBeenCalled();
 });

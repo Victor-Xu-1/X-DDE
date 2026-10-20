@@ -52,10 +52,11 @@ it("saves then switches pose, supports undo/redo, and minimizes the actually sel
     await result.current.minimize("MMFF94s", 1000);
   });
   await waitFor(() => expect(result.current.count).toBe(2));
-  expect(result.current.downloadUrl).toBe(`/api/assets/${next}`);
+  expect(result.current.downloadUrl).toBe(`/api/assets/${next}?record=0`);
   expect(result.current.pose.energy?.after).toBe(10);
   act(() => result.current.previous());
   expect(result.current.pose.urls).toEqual(base.urls);
+  expect(result.current.downloadUrl).toBe(`/api/assets/${old}?record=2`);
   act(() => result.current.next());
   expect(result.current.pose.urls).toEqual([`/api/assets/${next}`]);
   act(() => result.current.previous());
@@ -110,6 +111,7 @@ it("reuses a qualified calculated record without minimization and does not chang
   });
   expect(result.current.initialReady).toBe(true);
   expect(result.current.pose.records).toEqual([3]);
+  expect(result.current.downloadUrl).toBe(`/api/assets/${next}?record=3`);
   expect(vi.mocked(request)).not.toHaveBeenCalled();
 });
 

@@ -32,3 +32,13 @@ The existing stereo serializer and exact scaffold/attachment consumers are
 included. Native research acceptance additionally requires the reviewed main
 release on the unchanged localhost frontend, actual task submission, independent
 chemical/output review and an explicit decision before fixing a template.
+
+For saved ensembles, the pose-history download link includes the displayed
+zero-based record on the existing asset URL. The asset endpoint extracts the
+original record using the shared SDF framing utility, verifies the immutable
+source digest, and retains coordinates, stereo and SD properties without
+chemical reserialization. Downloads without a record still return the entire
+unchanged original file. Bounds, empty/missing records and changed bytes fail
+explicitly. The docking result can hand the selected saved pose and its matching
+receptor directly to the existing PoseBusters questionnaire; coordinate-frame
+confirmation remains required and opening the questionnaire runs no calculation.

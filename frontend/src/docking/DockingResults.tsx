@@ -19,6 +19,7 @@ import { posePlan } from "../viewer/pose-plan";
 import { usePoseHandoff } from "../viewer/usePoseHandoff";
 import { PoseSession } from "../viewer/PoseSession";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
+import { QualityForm } from "../quality/QualityForm";
 export function DockingResults({
   job,
   result,
@@ -57,7 +58,7 @@ export function DockingResults({
   const wrap = (content: ReactNode) => (
     <PoseSession frame={frame}>{content}</PoseSession>
   );
-  const handoff = usePoseHandoff<"properties" | "score">(
+  const handoff = usePoseHandoff<"properties" | "score" | "quality">(
     JSON.stringify([job.id, record, posePlan(frame).key]),
   );
   const next = handoff.value?.action;
@@ -72,6 +73,17 @@ export function DockingResults({
             scientificInput={nextInput}
             onCreated={() =>
               setMessage(zh ? "新任务已创建。" : "New task created.")
+            }
+          />
+        ) : next === "quality" ? (
+          <QualityForm
+            language={language}
+            initialMolecule={nextInput}
+            initialProtein={
+              handoff.value?.selection.receptor ?? result.receptor
+            }
+            onCreated={() =>
+              setMessage(zh ? "质控任务已创建。" : "Quality task created.")
             }
           />
         ) : (
@@ -148,28 +160,34 @@ export function DockingResults({
                   {(selection, waiting) =>
                     selection ? (
                       <div className="editor-toolbar">
-                        {(["properties", "score"] as const).map((v, n) => (
-                          <button
-                            className="secondary-button"
-                            type="button"
-                            key={v}
-                            disabled={
-                              !selection.ready ||
-                              (v === "score" &&
-                                selection.displayed &&
-                                selection.receptor === null)
-                            }
-                            onClick={() => {
-                              handoff.open(v, selection);
-                            }}
-                          >
-                            {
-                              (zh
-                                ? ["计算性质", "重新评分"]
-                                : ["Calculate properties", "Rescore"])[n]
-                            }
-                          </button>
-                        ))}
+                        {(["properties", "score", "quality"] as const).map(
+                          (v, n) => (
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              key={v}
+                              disabled={
+                                !selection.ready ||
+                                ((v === "score" || v === "quality") &&
+                                  selection.displayed &&
+                                  selection.receptor === null)
+                              }
+                              onClick={() => {
+                                handoff.open(v, selection);
+                              }}
+                            >
+                              {
+                                (zh
+                                  ? ["计算性质", "重新评分", "检查姿势质量"]
+                                  : [
+                                      "Calculate properties",
+                                      "Rescore",
+                                      "Check pose quality",
+                                    ])[n]
+                              }
+                            </button>
+                          ),
+                        )}
                       </div>
                     ) : (
                       <button
