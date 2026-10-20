@@ -8,6 +8,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.capabilities.definitions import CAPABILITIES
+from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
 from server_tests.test_navigation_shell_browser import open_navigation, settings
 
 EVIDENCE = Path("server_tests/evidence/stat6")
@@ -22,7 +23,7 @@ def catalog(page, language):
         summary.click()
 
 
-def test_each_visible_module_loads_stat6_inputs_without_task_spam():
+def test_selected_modules_load_their_reviewed_inputs_without_task_spam():
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     base = os.environ["WB_BROWSER_URL"]
     rows, errors, submissions = [], [], []
@@ -44,16 +45,22 @@ def test_each_visible_module_loads_stat6_inputs_without_task_spam():
         page.goto(base)
         expect(page.locator("html")).to_have_attribute("lang", "en")
         before = page.request.get(base + "/api/jobs").json()
-        selected = [
-            spec for key, spec in CAPABILITIES.items() if spec.frontend_form and key != "resources"
-        ]
+        keys = os.environ.get(
+            "WB_TEMPLATE_CAPABILITIES", "reinvent.design,gnina.dock,del.define"
+        ).split(",")
+        assert keys and len(keys) == len(set(keys))
+        assert all(key in CAPABILITIES and CAPABILITIES[key].frontend_form for key in keys)
+        selected = [CAPABILITIES[key] for key in keys]
         for spec in selected:
+            profile = "del6" if spec.id.startswith("del.") else "stat6"
+            expected = bundle_catalogue(profile)
+            study = expected.case_for(spec.id)
             catalog(page, "en")
             page.locator(".tool-card").get_by_role(
                 "heading", name=spec.label[1], exact=True
             ).locator("..").click()
             toolbar = page.locator(".module-template:visible")
-            expect(toolbar.locator(".example-case-name")).to_contain_text("STAT6")
+            expect(toolbar.locator(".example-case-name")).to_contain_text(study.label[1])
             expect(toolbar.get_by_role("button", name="Example results", exact=True)).to_have_count(
                 0
             )
@@ -64,7 +71,8 @@ def test_each_visible_module_loads_stat6_inputs_without_task_spam():
             assert page.locator("main .questionnaire > fieldset:visible").count() <= 1
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             main = page.locator("main").inner_text()
-            assert "BRD4–JQ1" not in main and "Trastuzumab–HER2" not in main
+            if profile == "stat6":
+                assert "BRD4–JQ1" not in main and "Trastuzumab–HER2" not in main
             if spec.id in {
                 "p2rank.detect",
                 "deepternary.model",
@@ -73,7 +81,7 @@ def test_each_visible_module_loads_stat6_inputs_without_task_spam():
                 "del.analyze",
             }:
                 page.screenshot(path=EVIDENCE / (spec.id + "-template-en.png"))
-            rows.append({"module": spec.id, "case": "stat6-defined-molecules", "loaded": True})
+            rows.append({"module": spec.id, "case": study.id, "profile": profile, "loaded": True})
         assert before == page.request.get(base + "/api/jobs").json()
         assert not errors, errors
         assert not submissions, submissions

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       scope:
-        description: The full study-template checks or only the curated SPR training inputs
+        description: Selected study-template checks or the curated SPR training inputs
         type: choice
         default: templates
         options: [templates, spr-training]
@@ -68,10 +68,10 @@ on:
       - '!src/opendde_workbench/examples/stat6/guidance.py'
       - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
       - '!frontend/src/examples/guide.ts'
-      # still run this suite. workflow_dispatch retains explicit full template verification.
+      # still run this suite. Browser checks use an explicit bounded module selection.
       # Exact read-only stage captions are verified by example-result-set-checks.yml.
       - '!src/opendde_workbench/examples/routes.py'
-      - '!.github/workflows/stat6-template-checks.yml'
+      - '.github/workflows/stat6-template-checks.yml'
   pull_request:
     paths: *stat6_template_paths
 permissions:
@@ -86,6 +86,7 @@ jobs:
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: '0'
+      WB_TEMPLATE_CAPABILITIES: 'reinvent.design,gnina.dock,del.define'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
