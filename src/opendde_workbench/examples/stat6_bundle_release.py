@@ -1,12 +1,12 @@
 """Reviewed study outputs, with reported-data imports distinct from model inference."""
 
-VERSION = "24"
+VERSION = "25"
 URL = (
-    "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.42/stat6-reviewed-results-v24.zip"
+    "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.48/stat6-reviewed-results-v25.zip"
 )
-SHA256 = "9512b41060d611056cafc13fb49c12a7f3dcfe4c3c0d34581b1412cf9e206d3e"
-BYTES = 18133173
-SOURCE_REVISION = "ca26ee9d2709924077afa96bb902b0e326698cf0"
+SHA256 = "74d06df0f275bb3c1be72546aa77ec16a8e973c4f75c3feb88fe19558936a046"
+BYTES = 18554175
+SOURCE_REVISION = "98b018f0cb0a91d5d59a88890dfa6f3159b94333"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",

@@ -13,6 +13,7 @@ from stat6_comparison_case import retained_comparison
 from stat6_diversification_case import retained_diversification
 from stat6_interface_case import retained_interface
 from stat6_optimization_case import retained_optimization
+from stat6_original_port_case import retained_original_port
 
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.deployment.manager import DeploymentManager
@@ -156,6 +157,7 @@ def test_real_current_data_queue_replay_original_inputs_and_native_plip(
     }
     assert restore_bundle(archive, settings, spec.SHA256) == expected
     assert verify_examples(settings, spec.CAPABILITIES, profile="stat6") == expected
+    retained_original_port(settings, store, ExamplePins(store, settings.state_dir, modules=MODULES))
     assert assets.path(original).read_bytes() == original_bytes
     # Read one beyond the sealed inventory to detect extra work, including beyond a default page.
     jobs = store.list_jobs(limit=len(expected_jobs) + 1)
