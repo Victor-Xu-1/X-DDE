@@ -117,6 +117,23 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             assert view_box["width"] > detail_box["width"]
         else:
             assert view_box["y"] < detail_box["y"]
+        checks = details.get_by_role(
+            "region", name="所选构象检查" if zh else "Selected structure checks", exact=True
+        )
+        expect(checks).to_be_visible()
+        check_box, table_box = checks.bounding_box(), table.bounding_box()
+        assert (
+            check_box and table_box and check_box["y"] + check_box["height"] <= table_box["y"] + 2
+        )
+        convergence = native_row.get("relaxation_converged")
+        label = (
+            ("已报告收敛" if zh else "Reported converged")
+            if convergence is True
+            else ("未收敛" if zh else "Not converged")
+            if convergence is False
+            else ("未报告收敛信息" if zh else "Convergence not reported")
+        )
+        expect(checks).to_contain_text(label)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
         capture = preview.get_by_role(
             "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True

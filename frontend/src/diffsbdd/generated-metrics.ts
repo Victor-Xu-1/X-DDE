@@ -12,6 +12,7 @@ export interface GeneratedMetrics {
   minimum_pocket_distance_angstrom: number;
   pocket_atom_pairs_under_1_2_angstrom: number;
   fragments: number | null;
+  relaxation_converged?: boolean | null;
 }
 
 export function generatedMetrics(report: unknown): GeneratedMetrics[] | null {
@@ -61,6 +62,10 @@ export function generatedMetrics(report: unknown): GeneratedMetrics[] | null {
         fragments:
           Number.isSafeInteger(row.fragments) && row.fragments >= 1
             ? row.fragments
+            : null,
+        relaxation_converged:
+          typeof row.relaxation_converged === "boolean"
+            ? row.relaxation_converged
             : null,
       }) as unknown as GeneratedMetrics,
   );

@@ -10,12 +10,28 @@ on:
       - "frontend/src/viewer/style.test.ts"
       - "server_tests/test_reference_pocket_browser.py"
       - ".github/workflows/reference-pocket-checks.yml"
+      - "scripts/generated-result-scope.py"
   pull_request:
     paths: *reference_paths
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      review_only: ${{ steps.changes.outputs.review_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changes
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/generated-result-scope.py
   reference-pocket:
+    needs: scope
+    if: needs.scope.outputs.review_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:

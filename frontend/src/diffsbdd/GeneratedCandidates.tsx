@@ -60,18 +60,6 @@ export function GeneratedCandidates({
               <header>
                 <h3>{label(selected)}</h3>
               </header>
-              {active?.fragments != null && active.fragments > 1 && (
-                <p
-                  className="notice"
-                  role="status"
-                  aria-label={zh ? "分子连接状态" : "Molecular connectivity"}
-                >
-                  {zh
-                    ? `包含 ${active.fragments} 个未连接的结构片段，尚未形成一个完整分子。固定区域检查通过不代表片段连接成功；请检查连接关系后再用于后续设计。`
-                    : `Contains ${active.fragments} disconnected components, not one complete molecule. Passing fixed-region checks does not establish successful fragment linking; inspect connectivity before downstream design.`}
-                </p>
-              )}
-
               {(selected.object?.reference.conformer ?? 0) === 0 ? (
                 <MolecularPreview
                   label={label(selected)}
@@ -99,6 +87,14 @@ export function GeneratedCandidates({
         </div>
       }
     >
+      {active && <GeneratedMetricsView active={active} language={language} />}
+      {selected && generated && !active && (
+        <p className="field-help" role="status">
+          {zh
+            ? "此记录的逐结构检查信息未提供，不能据此认定构象已通过质控。"
+            : "Per-structure checks are unavailable for this record; pose-quality acceptance has not been established."}
+        </p>
+      )}
       <div
         className={optimization ? "optimization-candidate-table" : undefined}
       >
@@ -148,7 +144,6 @@ export function GeneratedCandidates({
           })}
         />
       </div>
-      {active && <GeneratedMetricsView active={active} language={language} />}
       {optimization && (
         <OptimizationFigures
           data={optimization}

@@ -27,10 +27,32 @@ it("keeps full precision and original record order including native steric warni
     ],
   };
   const metrics = generatedMetrics(report)!;
-  expect(metrics[0]).toEqual({ ...row, fragments: null, heavy_atoms: null });
+  expect(metrics[0]).toEqual({
+    ...row,
+    fragments: null,
+    heavy_atoms: null,
+    relaxation_converged: null,
+  });
   expect(metrics[1].molecular_weight).toBe(308.5);
   expect(metrics[0].pocket_atom_pairs_under_1_2_angstrom).toBe(4);
   expect(report.molecules[0]).toEqual(row);
+});
+
+it("retains true and false convergence separately from absent or malformed historical metadata", () => {
+  for (const value of [undefined, null, "true", "false", 0, 1]) {
+    expect(
+      generatedMetrics({
+        molecules: [{ ...row, relaxation_converged: value }],
+      })![0].relaxation_converged,
+    ).toBeNull();
+  }
+  for (const value of [true, false]) {
+    const source = { ...row, relaxation_converged: value };
+    expect(
+      generatedMetrics({ molecules: [source] })![0].relaxation_converged,
+    ).toBe(value);
+    expect(source.relaxation_converged).toBe(value);
+  }
 });
 
 it("retains reported component counts without guessing connectivity for older or invalid metadata", () => {

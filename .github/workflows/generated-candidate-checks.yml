@@ -21,6 +21,7 @@ on:
       - "frontend/src/viewer/frame.ts"
       - "server_tests/test_generated_quality_browser.py"
       - ".github/workflows/generated-candidate-checks.yml"
+      - "scripts/generated-result-scope.py"
   pull_request:
     paths: *generated_paths
 permissions:
@@ -33,6 +34,13 @@ jobs:
       WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select changed result presentation and direct consumers
+        id: scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/generated-result-scope.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -40,10 +48,17 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Selected candidate identity, fragment interpretation and exact quality inputs
+        if: steps.scope.outputs.review_only != 'true'
         id: unit
         continue-on-error: true
         working-directory: frontend
         run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/optimization-model.test.ts src/diffsbdd/OptimizationSummary.test.tsx src/diffsbdd/OptimizationFigures.test.tsx src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/viewer-connection.test.tsx
+      - name: Selected structure checks, truthful counts and direct result consumers only
+        if: steps.scope.outputs.review_only == 'true'
+        id: review
+        continue-on-error: true
+        working-directory: frontend
+        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/GenerationSummary.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:
@@ -59,7 +74,7 @@ jobs:
       - name: Native 3D and selected source questionnaire in desktop English and narrow Chinese
         run: uv run --locked python -m pytest -x -q server_tests/test_generated_quality_browser.py
       - name: Require the selected component checks after collecting browser evidence
-        if: always() && steps.unit.outcome != 'success'
+        if: always() && ((steps.scope.outputs.review_only == 'true' && steps.review.outcome != 'success') || (steps.scope.outputs.review_only != 'true' && steps.unit.outcome != 'success'))
         run: exit 1
       - uses: actions/upload-artifact@v4
         if: always()

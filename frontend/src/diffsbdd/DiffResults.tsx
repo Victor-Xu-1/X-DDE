@@ -190,8 +190,8 @@ export function DiffResults({
               ? "通过固定区域复核 / 采样尝试"
               : "Fixed-region checks passed / sampling attempts"
             : zh
-              ? "化学有效候选 / 尝试数量"
-              : "Chemically valid candidates / attempts"}
+              ? "可读取结构 / 生成尝试"
+              : "Readable structures / generation attempts"}
           : {data.valid} / {String(data.attempted)}
         </p>
       )}

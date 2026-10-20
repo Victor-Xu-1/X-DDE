@@ -57,6 +57,69 @@ const metrics = [
   },
 ];
 
+it.each(["en", "zh"] as const)(
+  "keeps selected convergence and warnings before the candidate list in %s",
+  (language) => {
+    const named = [
+      ...metrics.map((row, i) => ({ ...row, relaxation_converged: i !== 0 })),
+    ];
+    const props = {
+      records: rows,
+      selected: rows[0],
+      url: "/poses.sdf",
+      metrics: named,
+      language,
+      onSelect: vi.fn(),
+    };
+    const { rerender } = render(<GeneratedCandidates {...props} />);
+    const region = screen.getByRole("region", {
+      name: language === "zh" ? "所选构象检查" : "Selected structure checks",
+    });
+    const table = screen.getByRole("table", {
+      name:
+        language === "zh" ? "生成的候选分子" : "Generated candidate molecules",
+    });
+    expect(
+      region.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(region).toHaveTextContent(
+      language === "zh" ? "未收敛" : "Not converged",
+    );
+    rerender(<GeneratedCandidates {...props} selected={rows[1]} />);
+    expect(region).toHaveTextContent(
+      language === "zh" ? "已报告收敛" : "Reported converged",
+    );
+    expect(region).not.toHaveTextContent(
+      language === "zh" ? "未收敛" : "Not converged",
+    );
+    expect(region).toHaveTextContent(
+      language === "zh" ? "包含 3 个未连接" : "Contains 3 disconnected",
+    );
+    expect(region).toHaveTextContent(
+      language === "zh"
+        ? "不代表完整受体"
+        : "does not establish independently checked full-receptor",
+    );
+  },
+);
+
+it("does not convert missing convergence into convergence or a passing pose", () => {
+  render(
+    <GeneratedCandidates
+      records={rows}
+      selected={rows[0]}
+      url="/poses.sdf"
+      metrics={metrics}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(
+    screen.getByRole("region", { name: "Selected structure checks" }),
+  ).toHaveTextContent("Convergence not reported");
+  expect(screen.queryByText("Reported converged")).toBeNull();
+});
+
 it("puts optimization descriptors first without changing native record identity when sorting", () => {
   const review = optimizationReview(nativeOptimization, "qed");
   if (review.state !== "ready")
