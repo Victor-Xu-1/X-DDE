@@ -64,6 +64,10 @@ verified before following typed source/parent references. Unconsumed old pins,
 private annotations and same-name files are not exported. Original requests,
 validation labels and immutable pins remain unchanged; lineage checks are not
 relaxed to make an incomplete package pass.
+Subset exports declare source pins separately from the selected module results.
+Restore checks that inventory and reconstructs the typed dependency projection
+in isolated state before merging. It rejects undeclared or unconsumed source pins
+and never expands the requested module's visible result scope to its dependencies.
 
 Updating computational examples does not promote their scientific claims.
 Generation proposes chemical structures; state preparation produces unbound

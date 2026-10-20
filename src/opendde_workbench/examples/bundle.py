@@ -7,6 +7,7 @@ from ..store import Store
 from .bundle_archive import safe_path, sha256, write_archive
 from .bundle_catalogue import bundle_catalogue
 from .bundle_notices import bundle_notices
+from .bundle_pin_scope import dependency_inventory
 from .bundle_projection import project_records, references
 from .bundle_restore import restore_bundle as restore_bundle
 from .bundle_sources import archive_sources
@@ -142,6 +143,7 @@ def export_bundle(settings, target, source_revision, *, capabilities=None, profi
         "catalogue_sha256": catalogue.digest,
         "source_revision": source_revision,
         "capabilities": list(selected),
+        "source_pin_dependencies": dependency_inventory(rows, selected),
         "summary": summary,
         "records": rows,
         "notices": bundle_notices(

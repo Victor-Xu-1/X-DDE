@@ -10,6 +10,7 @@ from ..assets import AssetStore
 from ..store import ConflictError, Store
 from .bundle_archive import read_archive, safe_path, sha256
 from .bundle_catalogue import bundle_catalogue
+from .bundle_pin_scope import validate_closure, validate_inventory
 from .bundle_projection import TABLES
 from .bundle_sources import archive_sources
 from .catalogue import FILES
@@ -51,11 +52,14 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                 catalogue = historical_study_catalogue(manifest["catalogue_sha256"])
         if manifest.get("capabilities") is not None:
             declared = manifest["capabilities"]
+            if not isinstance(declared, list) or not all(isinstance(key, str) for key in declared):
+                raise ValueError("The declared public case scope must list module identities.")
             permitted_modules = set(catalogue.modules if selected is None else selected)
             pinned_modules = {
                 row["capability_id"]
                 for table in ("example_pins", "example_record_pins")
                 for row in rows.get(table, [])
+                if table == "example_record_pins" or row["capability_id"] in declared
             }
             if (
                 not isinstance(declared, list)
@@ -67,9 +71,12 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
                 raise ValueError(
                     "The declared public case scope differs from its reviewed native pins."
                 )
+            validate_inventory(manifest, rows, catalogue, declared)
             selected = tuple(declared)
         elif profile != "archive":
             raise ValueError("A current study bundle must declare its reviewed module scope.")
+        elif manifest.get("source_pin_dependencies"):
+            raise ValueError("Native source dependencies require an explicit selected case scope.")
         optional = {"research_state_sets"}
         if selected is not None:
             optional.add("research_evidence")
@@ -157,6 +164,8 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             if selected is None
             else verify_examples(replace(settings, state_dir=staging), selected)
         )
+        if selected is not None:
+            validate_closure(manifest, replace(settings, state_dir=staging), catalogue, selected)
         for row in rows["jobs"]:
             if row["id"] in retry_history:
                 continue

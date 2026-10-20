@@ -7,6 +7,7 @@ import pytest
 
 from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
 from opendde_workbench.examples.bundle_pin_dependencies import source_pins
+from opendde_workbench.examples.bundle_pin_scope import dependency_inventory, validate_inventory
 
 
 def source_row():
@@ -56,3 +57,21 @@ def test_source_pin_cannot_substitute_another_job_identity():
     row["job_id"] = str(uuid4())
     with pytest.raises(ValueError, match="stored identity"):
         source_pins([row], bundle_catalogue("stat6").modules, {"gnina.dock"})
+
+
+@pytest.mark.parametrize("mutation", ["missing", "duplicate", "wrong_job", "extra_field"])
+def test_subset_export_requires_exact_explicit_source_pin_inventory(mutation):
+    rows = {"example_pins": [source_row()]}
+    primary = {"chemistry.states"}
+    manifest = {"source_pin_dependencies": dependency_inventory(rows, primary)}
+    validate_inventory(manifest, rows, bundle_catalogue("stat6"), primary)
+    if mutation == "missing":
+        manifest.clear()
+    elif mutation == "duplicate":
+        manifest["source_pin_dependencies"] *= 2
+    elif mutation == "wrong_job":
+        manifest["source_pin_dependencies"][0]["job_id"] = str(uuid4())
+    else:
+        manifest["source_pin_dependencies"][0]["unexpected"] = "ignored?"
+    with pytest.raises(ValueError, match="declared inventory"):
+        validate_inventory(manifest, rows, bundle_catalogue("stat6"), primary)
