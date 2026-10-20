@@ -54,10 +54,19 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
         expect(drawing.get_by_role("img")).to_be_visible()
         handle = page.locator('iframe[title="Local 2D molecule drawing service"]').element_handle()
         frame = handle.content_frame()
-        native = frame.evaluate("""async () => ({
-            mol: await window.ketcher.getMolfile(),
-            ket: JSON.parse(await window.ketcher.getKet()),
-        })""")
+        native = frame.evaluate("""async (smiles) => {
+            const editor = window.ketcher;
+            const mol = await editor.getMolfile();
+            const ket = JSON.parse(await editor.getKet());
+            const converted = await editor.structService.convert({struct: smiles,
+                input_format: 'chemical/x-daylight-smiles', output_format: 'chemical/x-indigo-ket'});
+            const arranged = await editor.structService.layout({struct: converted.struct,
+                output_format: 'chemical/x-indigo-ket'});
+            return {mol, ket, converted, arranged};
+        }""", SCAFFOLD)
+        (evidence / f"native-{language}-{width}.mol").write_text(native["mol"])
+        (evidence / f"native-{language}-{width}.json").write_text(json.dumps(native))
+        page.screenshot(path=evidence / f"scaffold-{language}-{width}.png", full_page=True)
         mol = Chem.MolFromMolBlock(native["mol"], removeHs=False, strictParsing=True)
         assert mol is not None and not any(atom.HasQuery() for atom in mol.GetAtoms())
         expected = Chem.MolFromSmiles(SCAFFOLD)
@@ -70,9 +79,6 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
         assert all(atom.GetAtomicNum() != 1 or all(
             neighbor.GetAtomicNum() in {7, 8, 16} for neighbor in atom.GetNeighbors()
         ) for atom in mol.GetAtoms())
-        (evidence / f"native-{language}-{width}.mol").write_text(native["mol"])
-        (evidence / f"native-{language}-{width}.ket").write_text(json.dumps(native["ket"]))
-        page.screenshot(path=evidence / f"scaffold-{language}-{width}.png", full_page=True)
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         page.get_by_role("button", name="上一步" if zh else "Back", exact=True).click()
         expect(source).to_have_value(SCAFFOLD)
