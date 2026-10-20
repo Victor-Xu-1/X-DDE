@@ -71,6 +71,7 @@ class Native:
             "del_fastq",
             "del_count_table",
             "del_statistics",
+            "del_support",
         ):
             self.monkeypatch.delitem(sys.modules, candidate, raising=False)
         self.monkeypatch.delitem(sys.modules, name, raising=False)

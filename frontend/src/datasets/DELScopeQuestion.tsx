@@ -3,6 +3,7 @@ import { DELSampleDesign } from "./DELSampleDesign";
 import { DELReadFiles } from "./DELReadFiles";
 import { DELExpertSettings } from "./DELExpertSettings";
 import type { DELFormState } from "./useDELForm";
+import { DELCountUnit } from "./DELCountUnit";
 
 export function DELScopeQuestion({ model }: { model: DELFormState }) {
   const {
@@ -56,21 +57,12 @@ export function DELScopeQuestion({ model }: { model: DELFormState }) {
                 </select>
               </label>
             )}
-            <label className="field">
-              {zh ? "计数来源" : "Count unit"}
-              <select
-                value={countUnit}
-                onChange={(e) => setCountUnit(e.target.value)}
-              >
-                <option value="corrected_umi">
-                  {zh ? "纠错后的 UMI" : "Corrected UMIs"}
-                </option>
-                <option value="unique_umi">
-                  {zh ? "独立 UMI" : "Unique UMIs"}
-                </option>
-                <option value="reads">{zh ? "原始读段" : "Raw reads"}</option>
-              </select>
-            </label>
+            <DELCountUnit
+              value={countUnit}
+              onChange={setCountUnit}
+              imported={inputKind === "new"}
+              zh={zh}
+            />
           </div>
           <DELSampleDesign
             language={language}

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { ResearchTable } from "./ResearchTable";
 import * as transport from "../api";
@@ -100,4 +100,89 @@ it("retains truncated and historical UMI observations in a searchable native tab
   expect(transportCall.mock.calls[0][0]).toContain("view=decoded");
   await userEvent.setup().type(screen.getByRole("searchbox"), "A071");
   expect(transportCall.mock.calls.at(-1)![0]).toContain("search=A071");
+});
+
+it("does not present old comparison rows while a changed query is pending", async () => {
+  let finish!: (value: unknown) => void;
+  const call = vi
+    .spyOn(transport, "request")
+    .mockResolvedValueOnce({
+      rows: [{ member: "first-comparison-only" }],
+      total: 1,
+      offset: 0,
+      has_more: false,
+    })
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+  const { rerender } = render(
+    <ResearchTable
+      jobId="study"
+      view="enrichment"
+      comparison="e1"
+      language="en"
+    />,
+  );
+  expect(await screen.findByText("first-comparison-only")).toBeVisible();
+  rerender(
+    <ResearchTable
+      jobId="study"
+      view="enrichment"
+      comparison="e2"
+      language="en"
+    />,
+  );
+  expect(screen.queryByText("first-comparison-only")).toBeNull();
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Loading selected results",
+  );
+  await act(async () =>
+    finish({
+      rows: [
+        {
+          member: "second-comparison-only",
+          supporting_samples: 2,
+          target_samples: 3,
+        },
+      ],
+      total: 1,
+      offset: 0,
+      has_more: false,
+    }),
+  );
+  expect(await screen.findByText("second-comparison-only")).toBeVisible();
+  expect(
+    screen.getByRole("columnheader", { name: "Supporting samples" }),
+  ).toBeVisible();
+  expect(call.mock.calls[1][0]).toContain("comparison=e2");
+});
+
+it("keeps old tables complete and opts new consistency analyses into the explicit filter", async () => {
+  const call = vi
+    .spyOn(transport, "request")
+    .mockResolvedValue({ rows: [], total: 0, offset: 0, has_more: false });
+  const { unmount } = render(
+    <ResearchTable jobId="legacy" view="enrichment" language="en" />,
+  );
+  expect(
+    await screen.findByText("No members match the current criteria"),
+  ).toBeVisible();
+  expect(call.mock.calls[0][0]).toContain("prioritized=false");
+  expect(
+    screen.queryByRole("columnheader", { name: "Supporting samples" }),
+  ).toBeNull();
+  unmount();
+  render(
+    <ResearchTable
+      jobId="new"
+      view="enrichment"
+      language="en"
+      defaultPrioritized
+    />,
+  );
+  expect(screen.getByRole("checkbox")).toBeChecked();
+  expect(call.mock.calls.at(-1)![0]).toContain("prioritized=true");
 });

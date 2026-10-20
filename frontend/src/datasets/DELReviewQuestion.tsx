@@ -48,6 +48,17 @@ export function DELReviewQuestion({ model }: { model: DELFormState }) {
           </>
         )}
       </div>
+      {mode === "analyze" && (
+        <p className="field-help">
+          {zh ? "优先条件：靶点计数 ≥ " : "Prioritization: target counts ≥ "}
+          {model.minimum}
+          {" · "}
+          {zh ? "富集 ≥ " : "enrichment ≥ "}
+          {model.enrichment}×{" · "}
+          {zh ? "支持样本 ≥ " : "supporting samples ≥ "}
+          {model.minimumSupport}
+        </p>
+      )}
       <DELExecutionSettings
         value={model.execution}
         onChange={model.setExecution}

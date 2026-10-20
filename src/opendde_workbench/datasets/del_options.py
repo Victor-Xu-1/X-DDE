@@ -74,12 +74,13 @@ class DELOptions(BaseModel):
     smiles_column: str = Field(default="SMILES", max_length=100)
     cycle_columns: list[str] = Field(default_factory=list, max_length=8)
     delimiter: Literal[",", "\t"] = ","
-    count_unit: Literal["reads", "unique_umi", "corrected_umi"] = "corrected_umi"
+    count_unit: Literal["reads", "unique_umi", "corrected_umi", "reported_counts"] = "corrected_umi"
     samples: list[DELSample] = Field(default_factory=list, max_length=64)
     comparisons: list[DELComparison] = Field(default_factory=list, max_length=16)
     library_size: int | None = Field(default=None, ge=2, le=10000000000)
     minimum_counts: int = Field(default=10, ge=1, le=1000000)
     minimum_enrichment: float = Field(default=3, gt=0, le=1000000, allow_inf_nan=False)
+    minimum_supporting_samples: int = Field(default=1, ge=1, le=64, strict=True)
     retain: int = Field(default=100, ge=1, le=500)
     chosen_comparison: str = Field(default="", max_length=64)
     selected_ids: list[str] = Field(default_factory=list, max_length=500)
@@ -102,6 +103,8 @@ class DELOptions(BaseModel):
     @model_serializer(mode="wrap")
     def stable_wire(self, handler):
         value = handler(self)
+        if self.minimum_supporting_samples == 1:
+            value.pop("minimum_supporting_samples", None)
         if self.attachment_policy == "retain":
             value.pop("attachment_policy", None)
         if not self.followup_relation_column:
@@ -116,6 +119,10 @@ class DELOptions(BaseModel):
 
     @model_validator(mode="after")
     def study_design(self):
+        if self.minimum_supporting_samples > 1 and (self.mode != "analyze" or not self.comparisons):
+            raise ValueError("Target-sample support requires an explicit enrichment comparison.")
+        if self.count_unit == "reported_counts" and self.mode != "analyze":
+            raise ValueError("Externally reported counts belong to imported enrichment tables.")
         if self.model_action != "train" and self.mode != "model":
             raise ValueError("Research-model reuse belongs to the model module.")
         if self.min_read_length > self.max_read_length:
@@ -146,6 +153,8 @@ class DELOptions(BaseModel):
                 )
             selection = [sample for sample in self.samples if sample.group == comparison.selection]
             reference = [sample for sample in self.samples if sample.group == comparison.reference]
+            if self.minimum_supporting_samples > len(selection):
+                raise ValueError("The required supporting samples exceed the target study group.")
             if any(sample.role != "target" for sample in selection):
                 raise ValueError("An enrichment selection group must consist of target samples.")
             if any(sample.role == "target" for sample in reference):

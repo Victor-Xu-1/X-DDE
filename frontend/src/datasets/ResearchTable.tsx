@@ -32,7 +32,9 @@ const labels: Record<string, [string, string]> = {
   score: ["富集倍数", "Enrichment"],
   lower: ["计数区间下限", "Count lower"],
   upper: ["计数区间上限", "Count upper"],
-  replicate_cv: ["重复差异", "Replicate CV"],
+  replicate_cv: ["靶点样本 CV", "Target-sample CV"],
+  supporting_samples: ["支持样本数", "Supporting samples"],
+  target_samples: ["靶点样本数", "Target samples"],
   sample: ["样本", "Sample"],
   raw: ["读段", "Reads"],
   unique_umi: ["独立 UMI", "Unique UMIs"],
@@ -117,6 +119,7 @@ export function ResearchTable({
   onSelection,
   selection = [],
   onRowsLoaded,
+  defaultPrioritized = false,
 }: {
   jobId: string;
   view: keyof typeof views;
@@ -126,22 +129,33 @@ export function ResearchTable({
   onSelection?(ids: string[]): void;
   selection?: string[];
   onRowsLoaded?(rows: TableRow[]): void;
+  defaultPrioritized?: boolean;
 }) {
   const receiver = useRef(onRowsLoaded);
   receiver.current = onRowsLoaded;
   const zh = language === "zh",
-    [page, setPage] = useState<Page | null>(null),
+    [loaded, setPage] = useState<(Page & { queryKey: string }) | null>(null),
     [offset, setOffset] = useState(0),
     [search, setSearch] = useState(""),
-    [filter, setFilter] = useState(false),
+    [filter, setFilter] = useState(defaultPrioritized),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const queryKey = JSON.stringify([
+    jobId,
+    view,
+    comparison,
+    offset,
+    search,
+    filter,
+  ]);
+  const page = loaded?.queryKey === queryKey ? loaded : null;
   useEffect(() => {
     setOffset(0);
   }, [jobId, view, comparison, search, filter]);
   useEffect(() => {
     const c = new AbortController();
     setBusy(true);
+    setPage(null);
     setError("");
     const path =
       view === "library" || view === "index"
@@ -158,7 +172,7 @@ export function ResearchTable({
     void request<Page>(`${path}?${params}`, { signal: c.signal })
       .then((value) => {
         if (!c.signal.aborted) {
-          setPage(value);
+          setPage({ ...value, queryKey });
           receiver.current?.(value.rows);
         }
       })
@@ -171,6 +185,16 @@ export function ResearchTable({
     return () => c.abort();
   }, [jobId, view, comparison, offset, search, filter]);
   const selected = new Set(selection);
+  const columns: readonly string[] =
+    view === "enrichment" &&
+    page?.rows.some((row) => row.supporting_samples != null)
+      ? [
+          ...views[view].slice(0, -1),
+          "supporting_samples",
+          "target_samples",
+          "flags",
+        ]
+      : views[view];
   function choose(id: string) {
     onSelection?.(
       selected.has(id)
@@ -238,7 +262,7 @@ export function ResearchTable({
           <thead>
             <tr>
               {onSelection && <th aria-label={zh ? "选择" : "Select"} />}
-              {views[view].map((key) => (
+              {columns.map((key) => (
                 <th key={key} className={`dataset-column-${key}`}>
                   {labels[key]?.[zh ? 0 : 1] ?? key}
                 </th>
@@ -270,7 +294,7 @@ export function ResearchTable({
                       />
                     </td>
                   )}
-                  {views[view].map((key) => (
+                  {columns.map((key) => (
                     <td key={key} className={`dataset-column-${key}`}>
                       {key === "smiles" ? (
                         row.smiles ? (
@@ -361,6 +385,11 @@ export function ResearchTable({
           {error}
         </p>
       )}
+      {busy && (
+        <p className="field-help" role="status">
+          {zh ? "正在加载所选结果…" : "Loading selected results…"}
+        </p>
+      )}
       {page && !page.rows.length && (
         <p className="dataset-empty">
           {zh
@@ -373,7 +402,11 @@ export function ResearchTable({
           {onSelection && selection.length
             ? `${zh ? "已选择" : "Selected"} ${selection.length} · `
             : ""}
-          {page ? `${offset + 1}–${offset + page.rows.length}` : ""}
+          {page
+            ? page.rows.length
+              ? `${offset + 1}–${offset + page.rows.length}`
+              : "0"
+            : ""}
         </span>
         <button
           type="button"

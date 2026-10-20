@@ -8,7 +8,11 @@ export const evidenceLabels: Record<string, [string, string]> = {
     "单个重复，尚未评估生物学重复性",
     "Single replicate; biological reproducibility unassessed",
   ],
-  replicate_variation: ["重复之间差异较大", "High replicate variation"],
+  replicate_variation: ["靶点样本之间差异较大", "High target-sample variation"],
+  insufficient_sample_support: [
+    "支持的靶点样本不足",
+    "Insufficient supporting target samples",
+  ],
 };
 export function evidenceNotes(value: unknown, zh: boolean): string[] {
   if (typeof value !== "string") return [];

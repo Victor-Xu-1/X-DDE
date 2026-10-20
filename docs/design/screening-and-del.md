@@ -143,3 +143,14 @@ Correlation masks preserve unavailable entries as gray and keep genuine zero cor
 
 SVG export keeps editable axes and labels. Native heatmaps can include a bounded, self-contained PNG cell layer; active embedded documents and external resources are rejected. UI acceptance reuses published native cases and never launches new sequencing/model tasks for layout.
 SVG 保留可编辑坐标和文字；原生热图可带有受限、独立的 PNG 色块层，拒绝活动文档及外部资源。界面验收复用已发布原生案例，不为检查布局重新启动测序或模型任务。
+
+### Count provenance and sample support / 计数来源与样本支持
+
+Imported nonnegative integer counts can be explicitly labeled `reported_counts` when their processing or UMI accuracy has not been independently established. Source values are preserved; the Poisson-Gamma interval is a working count-model interval, not validated measurement uncertainty. This label cannot be applied to a native count result or to normalized/noninteger scores.
+外部整数计数在处理流程或 UMI 准确性尚未独立核实时，可明确选择“外部报告计数”。保留原值；区间只描述假设的计数模型，不代表已验证的测量误差。此类型不适用于原生计数来源或归一化后的非整数分数。
+
+Enrichment can require a minimum number of supporting target samples. A supporting sample has a positive observed count and its global-depth-normalized DELi ratio against the pooled matched control reaches the selected enrichment threshold. Every comparison must have enough target samples with nonzero depth. All members, pooled estimates and flags remain in the native table/CSV; consistency filtering only changes prioritization. Requiring multiple samples defaults the results view and candidate excerpt to prioritized members; the complete table remains accessible. Historical requests retain the one-sample policy and their sealed request bytes.
+可要求至少若干个靶点样本支持：每个支持样本必须有实际正计数，且按全局深度归一化后，相对于匹配的合并对照达到所选富集倍数。各比较必须有足够的非零深度样本。完整成员、合并估计和提示均保留在原生表及 CSV 中；该条件只影响优先级。多样本条件下，结果页和候选片段默认显示符合条件的成员，仍可查看完整数据。历史任务保持原有单样本策略和请求字节。
+
+Sample support and target-sample CV describe observed sample consistency. They do not establish biological replication, specificity, FDR, affinity or off-DNA activity. A zero reference count is not proof of absence. No counts are clipped or modified to satisfy a threshold.
+支持数和靶点样本 CV 只描述观察到的一致性，不能证明生物学重复性、特异性、FDR、亲和力或脱 DNA 活性。对照为零不等于不存在；不为满足阈值裁剪或改写任何计数。

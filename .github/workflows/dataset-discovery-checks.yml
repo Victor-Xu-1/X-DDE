@@ -189,10 +189,13 @@ jobs:
         run: >-
           uv run --locked pytest -q tests/test_del_umi.py tests/test_dataset_contracts.py
           tests/test_dataset_views.py tests/test_dataset_worker.py tests/test_dataset_workflows.py
+          tests/test_del_analysis_support.py
       - name: Actual UMI method choices and unchanged template replay
         if: steps.scope.outputs.del_only == 'true'
         working-directory: frontend
-        run: npx vitest run src/datasets/UMICountChoices.test.tsx src/datasets/DELTemplateReplay.test.tsx
+        run: >-
+          npx vitest run src/datasets/UMICountChoices.test.tsx src/datasets/DELTemplateReplay.test.tsx
+          src/datasets/DELAnalysisSupport.test.tsx src/datasets/ResearchTable.test.tsx
   native-del-data:
     if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04
@@ -212,7 +215,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Install the reviewed independent DEL environment, without platform interpreter changes
-        if: steps.scope.outputs.del_only != 'true' || steps.scope.outputs.native_umi_changed == 'true'
+        if: steps.scope.outputs.del_only != 'true' || steps.scope.outputs.native_umi_changed == 'true' || steps.scope.outputs.native_enrichment_changed == 'true'
         run: |
           uv venv --python 3.13 .dataset-native
           uv pip install --python .dataset-native/bin/python --require-hashes -r src/opendde_workbench/integrations/recipes/deli.txt
@@ -231,6 +234,14 @@ jobs:
         run: >-
           .dataset-native/bin/python -m pytest -q server_tests/test_del_umi_count.py
           server_tests/test_dataset_native.py -k 'umi'
+      - name: Native enrichment, observed sample support and unchanged public DELi ratio
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed == 'true'
+        env:
+          PYTHONPATH: src
+          WB_TEST_DATASET_NATIVE: '1'
+        run: >-
+          .dataset-native/bin/python -m pytest -q server_tests/test_del_analysis_support.py
+          server_tests/test_dataset_native.py -k 'support or public_del_counts_enrichment or exact_count_model'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

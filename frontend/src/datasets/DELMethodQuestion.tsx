@@ -4,6 +4,7 @@ import { Hint } from "../guided/Hint";
 import { SourcePicker } from "./SourcePicker";
 import type { DELFormState } from "./useDELForm";
 import { DELExpertSettings } from "./DELExpertSettings";
+import { targetSampleCapacity } from "./del-analysis-readiness";
 
 export function DELMethodQuestion({ model }: { model: DELFormState }) {
   const {
@@ -64,6 +65,43 @@ export function DELMethodQuestion({ model }: { model: DELFormState }) {
               <option value={3}>3×</option>
               <option value={5}>5×</option>
             </select>
+          </label>
+          <label className="field">
+            {zh
+              ? "至少多少个靶点样本支持？"
+              : "Minimum supporting target samples"}
+            <select
+              value={model.minimumSupport}
+              onChange={(event) =>
+                model.setMinimumSupport(Number(event.target.value))
+              }
+            >
+              {Array.from(
+                {
+                  length: Math.max(
+                    model.minimumSupport,
+                    targetSampleCapacity(model.samples, model.comparisons),
+                  ),
+                },
+                (_, index) => index + 1,
+              ).map((value) => (
+                <option
+                  key={value}
+                  value={value}
+                  disabled={
+                    value >
+                    targetSampleCapacity(model.samples, model.comparisons)
+                  }
+                >
+                  {value}
+                </option>
+              ))}
+            </select>
+            <span className="field-help">
+              {zh
+                ? "样本须有实际计数，且单样本富集达到所选倍数。样本一致性不等于生物学重复验证。"
+                : "Each supporting sample needs observed counts and the selected enrichment. Sample consistency does not establish biological reproducibility."}
+            </span>
           </label>
         </div>
       )}

@@ -45,6 +45,8 @@ def validate_task(task):
     elif mode == "count":
         valid = not roles and source_roles == ["decoded"]
     elif mode == "analyze":
+        if task.payload.count_unit == "reported_counts" and source_roles:
+            raise ValueError("Externally reported counts require an imported count table.")
         valid = (roles == ["counts"] and not source_roles) or (
             not roles and source_roles == ["counts"]
         )

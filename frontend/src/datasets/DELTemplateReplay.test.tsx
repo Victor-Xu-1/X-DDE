@@ -66,6 +66,7 @@ it("submits the actual selected template options, full-cohort denominator and ma
         chosen_comparison: "second-eluate",
         cycle_columns: ["ID_A", "ID_B", "ID_C"],
         minimum_counts: 30,
+        minimum_supporting_samples: 2,
         samples: [
           {
             column: "raw",
@@ -99,6 +100,7 @@ it("submits the actual selected template options, full-cohort denominator and ma
     max_members: 600000,
     chosen_comparison: "second-eluate",
     minimum_counts: 30,
+    minimum_supporting_samples: 2,
     count_unit: "reads",
   });
   act(() =>
@@ -108,4 +110,14 @@ it("submits the actual selected template options, full-cohort denominator and ma
     await result.current.submit();
   });
   expect(state.submit.mock.calls[1][0].payload.library_size).toBeUndefined();
+  act(() => {
+    result.current.setAsset(asset);
+    result.current.setMinimumSupport(1);
+  });
+  await act(async () => {
+    await result.current.submit();
+  });
+  expect(state.submit.mock.calls[2][0].payload.minimum_supporting_samples).toBe(
+    1,
+  );
 });

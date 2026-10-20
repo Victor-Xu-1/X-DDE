@@ -33,6 +33,7 @@ FILES = (
     "native_del_count.py",
     "del_count_table.py",
     "del_statistics.py",
+    "del_support.py",
     "native_del_analysis.py",
     "native_del_series.py",
     "native_del_model.py",

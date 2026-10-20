@@ -1,4 +1,4 @@
-"""Select only the DEL barcode/UMI change set; unknown changes keep wider consumer checks."""
+"""Select DEL evidence changes; separate native enrichment from barcode/UMI consumers."""
 
 import fnmatch
 import os
@@ -19,8 +19,13 @@ PATTERNS = (
     "frontend/src/datasets/result-labels.ts",
     "frontend/src/datasets/useDELForm.ts",
     "frontend/src/datasets/DELMethodQuestion.tsx",
+    "frontend/src/datasets/DELReviewQuestion.tsx",
     "frontend/src/datasets/DELForm.tsx",
     "frontend/src/datasets/DELScopeQuestion.tsx",
+    "frontend/src/datasets/DELCountUnit.tsx",
+    "frontend/src/datasets/DELAnalysisSupport.test.tsx",
+    "frontend/src/datasets/del-analysis-readiness.ts",
+    "frontend/src/datasets/evidence-labels.ts",
     "frontend/src/datasets/supplier-label*",
     "frontend/src/datasets/datasets.css",
     "frontend/src/datasets/DELTemplateReplay.test.tsx",
@@ -29,6 +34,10 @@ PATTERNS = (
     "src/opendde_workbench/datasets/native_del_decode.py",
     "src/opendde_workbench/datasets/native_del_count.py",
     "src/opendde_workbench/datasets/backend.py",
+    "src/opendde_workbench/datasets/del_options.py",
+    "src/opendde_workbench/datasets/del_contract.py",
+    "src/opendde_workbench/datasets/del_support.py",
+    "src/opendde_workbench/datasets/native_del_analysis.py",
     "src/opendde_workbench/datasets/bindings.py",
     "src/opendde_workbench/datasets/result.py",
     "src/opendde_workbench/datasets/routes.py",
@@ -44,6 +53,10 @@ PATTERNS = (
     "tests/test_del_umi.py",
     "server_tests/test_del_umi_count.py",
     "server_tests/test_dataset_native.py",
+    "server_tests/dataset_native_fixture.py",
+    "server_tests/test_del_analysis_support.py",
+    "tests/test_del_analysis_support.py",
+    "docs/design/screening-and-del.md",
     "server_tests/barcode_quality_browser.py",
     "server_tests/decoding_quality_browser.py",
     "server_tests/responsive_chart_browser.py",
@@ -103,6 +116,19 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("del_only=" + str(selected).lower() + "\n")
+        native_paths = {
+            name for name in changed if name.startswith("src/opendde_workbench/datasets/")
+        }
+        enrichment_paths = {
+            "src/opendde_workbench/datasets/backend.py",
+            "src/opendde_workbench/datasets/del_options.py",
+            "src/opendde_workbench/datasets/del_contract.py",
+            "src/opendde_workbench/datasets/del_support.py",
+            "src/opendde_workbench/datasets/native_del_analysis.py",
+        }
+        enrichment = bool(native_paths & enrichment_paths) or (
+            "server_tests/test_del_analysis_support.py" in changed
+        )
         native = any(
             name.startswith("src/opendde_workbench/datasets/")
             or name
@@ -113,7 +139,22 @@ def main():
             }
             for name in changed
         )
-        output.write("native_umi_changed=" + str(native).lower() + "\n")
+        # Shared/unknown native edits retain the existing broader gate. A proven
+        # enrichment-only batch does not rerun unrelated FASTQ decoding.
+        only_enrichment = (
+            enrichment
+            and native_paths <= enrichment_paths
+            and not any(
+                name in changed
+                for name in (
+                    "server_tests/test_dataset_native.py",
+                    "server_tests/test_del_umi_count.py",
+                    "tests/test_del_umi.py",
+                )
+            )
+        )
+        output.write("native_umi_changed=" + str(native and not only_enrichment).lower() + "\n")
+        output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
     print(
         "DEL evidence, catalogue and shared table consumers"
         if selected

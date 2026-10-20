@@ -12,6 +12,7 @@ import { newReadLane, validReadLanes, type ReadLane } from "./DELReadFiles";
 import { delExpertDefaults } from "./DELExpertSettings";
 import { useDatasetExample } from "./useDatasetExample";
 import { umiCountingIssue } from "./umi-count-readiness";
+import { validCountAnalysis } from "./del-analysis-readiness";
 import {
   defaultDELExecution,
   executionForDEL,
@@ -60,6 +61,7 @@ export function useDELForm({
     [cycleB, setCycleB] = useState(1),
     [minimum, setMinimum] = useState(10),
     [enrichment, setEnrichment] = useState(3),
+    [minimumSupport, setMinimumSupport] = useState(1),
     [endpoint, setEndpoint] = useState("KD"),
     [unit, setUnit] = useState("nM"),
     [valueColumn, setValueColumn] = useState("value"),
@@ -96,6 +98,7 @@ export function useDELForm({
     setExecution(executionForDEL(task));
     setMinimum(Number(payload.minimum_counts ?? 10));
     setEnrichment(Number(payload.minimum_enrichment ?? 3));
+    setMinimumSupport(Number(payload.minimum_supporting_samples ?? 1));
     setSamples((payload.samples as DELSample[]) ?? []);
     setComparisons((payload.comparisons as DELComparison[]) ?? []);
     setComparison(String(payload.chosen_comparison ?? ""));
@@ -181,6 +184,7 @@ export function useDELForm({
     setComparisons([]);
     setReadLanes([newReadLane()]);
     setExecution(defaultDELExecution());
+    setMinimumSupport(1);
   }, [tool]);
   useEffect(() => {
     if (!preview?.columns.length) return;
@@ -242,6 +246,13 @@ export function useDELForm({
       ? firstValid && (umi === "raw" || umiIssue === null)
       : mode === "analyze"
         ? samples.length > 0 &&
+          validCountAnalysis(
+            inputKind === "new",
+            countUnit,
+            minimumSupport,
+            samples,
+            comparisons,
+          ) &&
           (!preview?.table || preview.columns.includes(memberId))
         : mode === "enumerate"
           ? !!library && (allMembers || !!members.trim())
@@ -329,6 +340,9 @@ export function useDELForm({
           holdout_cycle: cycleA,
           minimum_counts: minimum,
           minimum_enrichment: enrichment,
+          ...(mode === "analyze"
+            ? { minimum_supporting_samples: minimumSupport }
+            : {}),
           followup_id_column: memberId,
           followup_value_column: valueColumn,
           followup_endpoint: endpoint,
@@ -396,6 +410,8 @@ export function useDELForm({
     setMinimum,
     enrichment,
     setEnrichment,
+    minimumSupport,
+    setMinimumSupport,
     endpoint,
     setEndpoint,
     unit,

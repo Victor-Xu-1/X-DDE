@@ -127,6 +127,23 @@ export function DatasetResults({
           )}
         </div>
       )}
+      {tableView === "enrichment" &&
+        result.metadata.minimum_supporting_samples != null && (
+          <p className="field-help">
+            {zh ? "优先条件：" : "Prioritization: "}
+            {zh ? "靶点计数 ≥ " : "target counts ≥ "}
+            {String(result.metadata.minimum_counts)}
+            {" · "}
+            {zh ? "富集 ≥ " : "enrichment ≥ "}
+            {String(result.metadata.minimum_enrichment)}×{" · "}
+            {zh ? "支持样本 ≥ " : "supporting samples ≥ "}
+            {String(result.metadata.minimum_supporting_samples)}
+            {result.metadata.count_unit === "reported_counts" &&
+              (zh
+                ? "。外部报告计数，处理方法未独立核实；区间仅为计数模型估计。"
+                : ". Externally reported counts; processing unverified. Intervals are count-model estimates only.")}
+          </p>
+        )}
       {showTabs && tab === "quality" ? (
         <DatasetCharts job={job} result={result} language={language} />
       ) : (
@@ -149,10 +166,15 @@ export function DatasetResults({
           )}
           {tableView && tableView !== "index" && tableView !== "library" && (
             <ResearchTable
+              key={job.id}
               jobId={job.id}
               view={tableView}
               comparison={chosen}
               language={language}
+              defaultPrioritized={
+                tableView === "enrichment" &&
+                Number(result.metadata.minimum_supporting_samples ?? 1) > 1
+              }
             />
           )}
           {result.candidates.length > 0 && tableView && (

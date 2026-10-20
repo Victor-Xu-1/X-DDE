@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from del_count_table import prepare_counts
 from del_statistics import enrichment, evidence, groups
+from del_support import supporting_samples
 from platformnative_io import finish, progress, write_csv
 
 
@@ -14,11 +15,13 @@ def run(request):
     options = request["payload"]
     database, totals, observed = prepare_counts(request)
     group_map, comparisons = groups(options, totals)
+    required_support = options.get("minimum_supporting_samples", 1)
     database.executescript("""
         CREATE TABLE comparisons (id TEXT PRIMARY KEY, definition TEXT NOT NULL);
         CREATE TABLE enrichment (member TEXT, comparison TEXT,
           selection INTEGER, reference INTEGER, score REAL,
           lower REAL, upper REAL, replicate_cv REAL, flags TEXT, prioritizable INTEGER,
+          supporting_samples INTEGER, target_samples INTEGER,
           PRIMARY KEY(member,comparison));
         CREATE INDEX enrichment_order ON enrichment(comparison,score DESC,member);
     """)
@@ -43,6 +46,7 @@ def run(request):
             sums += logged.sum(axis=0)
             cross += logged.T @ logged
             for comparison in comparisons:
+                supported = supporting_samples(counts, comparison, totals, options)
                 selection = counts[:, comparison["selected_columns"]].sum(axis=1)
                 reference = counts[:, comparison["reference_columns"]].sum(axis=1)
                 score, lower, upper = enrichment(
@@ -59,6 +63,8 @@ def run(request):
                         normalized[index, comparison["selected_columns"]],
                         options,
                     )
+                    if supported[index] < required_support:
+                        flags.append("insufficient_sample_support")
                     if not np.isfinite(score[index]):
                         raise ValueError(
                             "The selected enrichment model returned a nonfinite ranking score."
@@ -66,6 +72,7 @@ def run(request):
                     priority = (
                         selection[index] >= options["minimum_counts"]
                         and score[index] >= options["minimum_enrichment"]
+                        and supported[index] >= required_support
                     )
                     output.append(
                         (
@@ -79,9 +86,13 @@ def run(request):
                             cv,
                             json.dumps(flags),
                             int(priority),
+                            int(supported[index]),
+                            len(comparison["selected_columns"]),
                         )
                     )
-                database.executemany("INSERT INTO enrichment VALUES (?,?,?,?,?,?,?,?,?,?)", output)
+                database.executemany(
+                    "INSERT INTO enrichment VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", output
+                )
             completed += len(rows)
             database.commit()
             progress("Comparing DEL enrichment and reference evidence", completed, observed)
@@ -117,6 +128,8 @@ def run(request):
                 "replicate_CV",
                 "evidence_flags",
                 "prioritizable",
+                "supporting_samples",
+                "target_samples",
             ],
             database.execute("SELECT * FROM enrichment ORDER BY comparison,score DESC,member"),
         )
@@ -125,9 +138,10 @@ def run(request):
             raise ValueError("The displayed comparison is absent from the confirmed study design.")
         candidates = []
         if selected:
+            candidate_filter = " AND e.prioritizable=1" if required_support > 1 else ""
             for row in database.execute(
                 "SELECT m.*,e.score FROM enrichment e JOIN members m ON m.id=e.member "
-                "WHERE e.comparison=? ORDER BY e.score DESC,m.id LIMIT ?",
+                "WHERE e.comparison=?" + candidate_filter + " ORDER BY e.score DESC,m.id LIMIT ?",
                 (selected, options["retain"]),
             ):
                 candidates.append(
@@ -158,12 +172,27 @@ def run(request):
         )
     if options["count_unit"] == "reads":
         warnings.append("Raw-read analysis does not remove PCR amplification bias.")
+    if options["count_unit"] == "reported_counts":
+        warnings.append(
+            "Externally reported counts retain the source processing; UMI accuracy is not "
+            "independently verified. Intervals use a working count model, not validated "
+            "measurement uncertainty."
+        )
+    if required_support > 1:
+        warnings.append("Target-sample consistency does not establish biological reproducibility.")
     method = {
         "enrichment": "DELi MLE ratio; pooled matched reference; global sequencing depths",
         "reference": "10.1021/acsomega.3c02152",
         "pseudocount": 3 / 8,
         "interval": "95% independent Poisson-Gamma count posterior; Gamma shape=count+3/8",
-        "interval_scope": "sequencing_count_uncertainty; not biological reproducibility",
+        "interval_scope": (
+            "working_count_model; external_processing_unverified; not biological reproducibility"
+            if options["count_unit"] == "reported_counts"
+            else "sequencing_count_uncertainty; not biological reproducibility"
+        ),
+        "minimum_supporting_samples": required_support,
+        "sample_support_definition": "positive count and per-sample depth-normalized ratio "
+        "at least the selected enrichment threshold; not an independent biological replicate claim",
         "fdr": "not_calculated",
         "count_unit": options["count_unit"],
         "comparisons": comparisons,
@@ -195,6 +224,10 @@ def run(request):
             ],
             "chosen_comparison": selected,
             "count_unit": options["count_unit"],
+            "minimum_counts": options["minimum_counts"],
+            "minimum_enrichment": options["minimum_enrichment"],
+            "minimum_supporting_samples": required_support,
+            "candidate_scope": "prioritizable_members" if required_support > 1 else "top_scores",
             "scope": "enrichment evidence; not KD, IC50 or proven binding",
         },
         warnings=warnings,
