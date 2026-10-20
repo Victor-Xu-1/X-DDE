@@ -16,6 +16,7 @@ on:
       - 'src/opendde_workbench/examples/bundle_projection.py'
       - 'src/opendde_workbench/examples/bundle_pin_dependencies.py'
       - 'tests/test_case_output_witnesses.py'
+      - 'tests/test_case_pin_dependencies.py'
       - 'scripts/revise-study-modules.py'
       - 'tests/test_study_module_revisions.py'
       - 'tests/test_receptor_copy_provenance.py'
@@ -61,6 +62,7 @@ jobs:
           src/opendde_workbench/examples/bundle_output_witnesses.py
           src/opendde_workbench/examples/bundle_projection.py tests/test_case_output_witnesses.py
           src/opendde_workbench/examples/bundle_pin_dependencies.py
+          tests/test_case_pin_dependencies.py
       - run: uv run --locked python scripts/revise-study-modules.py
       - name: Exact revision, source, request replay and cold-restore consumers; no inference
         run: >-
@@ -70,3 +72,4 @@ jobs:
           tests/test_stat6_case_bundle.py tests/test_example_supporting.py
           tests/test_stat6_prepared_handoff.py tests/test_receptor_copy_provenance.py
           tests/test_case_output_witnesses.py
+          tests/test_case_pin_dependencies.py
