@@ -15,6 +15,58 @@ from server_tests.responsive_chart_browser import wait_for_responsive_width
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
+def test_retained_enrichment_search_and_native_download(language):
+    """Open the genuine archived native analysis; no scientific jobs are submitted."""
+    evidence = Path("outputs/statistical-previews/del.analyze")
+    evidence.mkdir(parents=True, exist_ok=True)
+    with (
+        platform(Settings.from_env().state_dir, evidence / (language + ".log")) as base,
+        sync_playwright() as p,
+    ):
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
+        before = page.request.get(base + "/api/jobs").json()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        response = page.request.get(base + "/api/examples/del.analyze?profile=archive")
+        assert response.ok
+        case = response.json()
+        identifier = case["pin"]["job_id"]
+        result = page.request.get(base + "/api/jobs/" + identifier + "/result").json()
+        comparison = result["metadata"]["chosen_comparison"]
+        native = page.request.get(
+            base
+            + f"/api/datasets/{identifier}/table?view=enrichment&comparison={comparison}&limit=20"
+        ).json()
+        member = native["rows"][0]["member"]
+        page.goto(base + "/#task=" + identifier)
+        root = page.locator(".dataset-results")
+        expect(root).to_be_visible(timeout=30000)
+        search = root.get_by_role("searchbox")
+        search.fill(member)
+        expect(root.locator("tbody tr")).to_have_count(1, timeout=30000)
+        expect(root.locator("tbody tr")).to_contain_text(member)
+        expect(
+            root.get_by_role(
+                "columnheader", name="Target-sample CV" if language == "en" else "靶点样本 CV"
+            )
+        ).to_be_visible()
+        # Old native cases have no synthesized support columns or new defaults.
+        expect(root.get_by_role("checkbox")).not_to_be_checked()
+        root.locator(".dataset-download-menu > summary").click()
+        with page.expect_download() as downloading:
+            root.get_by_role("link", name="enrichment.csv", exact=False).click()
+        download = downloading.value
+        download.save_as(str(evidence / (language + "-enrichment.csv")))
+        assert (evidence / (language + "-enrichment.csv")).stat().st_size > 100
+        page.screenshot(path=str(evidence / (language + "-native-table.png")), full_page=False)
+        assert page.request.get(base + "/api/jobs").json() == before
+        assert not errors
+        browser.close()
+
+
+@pytest.mark.parametrize("language", ["en", "zh"])
 @pytest.mark.parametrize(
     "capability", ["del.library", "del.decode", "del.count", "del.series", "del.model"]
 )

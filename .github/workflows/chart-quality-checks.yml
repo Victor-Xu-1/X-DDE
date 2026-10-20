@@ -76,13 +76,17 @@ jobs:
           src/publication/embedded-raster.test.ts src/viewer/style.test.ts
           src/simulations/SimulationResults.test.tsx
       - name: Native barcode evidence, missing/contradictory checks and direct result consumers
-        if: steps.scope.outputs.del_only == 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/BarcodeQuality.test.tsx src/datasets/chart-documents.test.ts
           src/datasets/DatasetCharts.test.tsx src/datasets/DatasetResults.test.tsx
           src/datasets/sequencing-quality.test.ts src/datasets/SequencingDiagnostics.test.tsx
           src/datasets/ResearchTable.test.tsx src/datasets/statistical-plots.test.tsx
+      - name: Changed enrichment table and direct result routing only
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed == 'true'
+        working-directory: frontend
+        run: npx vitest run src/datasets/ResearchTable.test.tsx src/datasets/DatasetResults.test.tsx
       - name: Restore public research cases and graphical tools; never re-run science for layout
         env:
           GH_TOKEN: ${{ github.token }}
@@ -98,8 +102,11 @@ jobs:
         if: steps.scope.outputs.del_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py
       - name: Actual retained barcode quality, bilingual downloads and mobile overflow
-        if: steps.scope.outputs.del_only == 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.library or del.decode'
+      - name: Actual retained enrichment result, native table search and download in both languages
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'retained_enrichment'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

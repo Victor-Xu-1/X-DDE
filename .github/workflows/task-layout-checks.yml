@@ -330,6 +330,7 @@ on:
       - "!frontend/src/datasets/DELCountUnit.tsx"
       - "!frontend/src/datasets/DELAnalysisSupport.test.tsx"
       - "!frontend/src/datasets/DELReviewQuestion.tsx"
+      - "!frontend/src/datasets/DELTemplateReplay.test.tsx"
       - "!frontend/src/datasets/supplier-label*"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/CovalentEditor.tsx"

@@ -11,6 +11,7 @@ from opendde_workbench.datasets.del_options import DELOptions
 
 def design():
     return {
+        "kind": "deli",
         "mode": "analyze",
         "samples": [
             {"column": name, "group": "target", "role": "target", "replicate": i}

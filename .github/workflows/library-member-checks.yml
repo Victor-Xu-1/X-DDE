@@ -65,6 +65,7 @@ jobs:
         run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
   native:
     needs: scope
+    if: needs.scope.outputs.del_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
