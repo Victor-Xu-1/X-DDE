@@ -71,7 +71,11 @@ def test_known_smiles_is_a_molecule_not_a_query(case_id, language, width, struct
                 output_format: 'chemical/x-mdl-molfile'}, {'aromaticity-model': 'generic'});
             const ketCopy = await editor.structService.layout({struct: kekule.struct,
                 output_format: 'chemical/x-indigo-ket'});
-            return {mol, ket, laid, kekule, ketCopy};
+            const perceived = await editor.structService.aromatize({struct: laid.struct,
+                output_format: 'chemical/x-mdl-molfile'}, {'aromaticity-model': 'generic'});
+            const normalized = await editor.structService.dearomatize({struct: perceived.struct,
+                output_format: 'chemical/x-mdl-molfile'}, {'aromaticity-model': 'generic'});
+            return {mol, ket, laid, kekule, ketCopy, perceived, normalized};
         }""", structure)
         (evidence / f"native-{case_id}.mol").write_text(native["mol"])
         (evidence / f"native-{case_id}.json").write_text(json.dumps(native))
