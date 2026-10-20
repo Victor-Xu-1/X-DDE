@@ -88,6 +88,7 @@ def row_references(row):
 
 def project_records(store, roots, *, capabilities=None, modules=MODULES):
     from .bundle_output_witnesses import OutputWitnesses
+    from .input_lineage import molecule_references
 
     selected = {name: [] for name in TABLES}
     identifiers, seen = set(roots), set()
@@ -114,6 +115,12 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                 for row in selected["jobs"]
                 for identifier in input_identifiers(TASK_ADAPTER.validate_json(row["request"]))
             }
+            unversioned_assets = {
+                str(reference.asset_id)
+                for row in selected["jobs"]
+                for reference in molecule_references(TASK_ADAPTER.validate_json(row["request"]))
+                if reference.version_id is None
+            }
             run_ids = {row["id"] for row in selected["workflow_runs"]}
             for name, values in rows.items():
                 for index, row in enumerate(values):
@@ -129,7 +136,9 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                             "native_generated",
                         }
                         if not included:
-                            included = witnesses.includes(row, job_ids, input_assets, identifiers)
+                            included = witnesses.includes(
+                                row, job_ids, input_assets, identifiers, unversioned_assets
+                            )
                     elif name == "research_state_sets" and not included:
                         included = row["source_job"] in job_ids
                     elif name == "workflow_attempts":

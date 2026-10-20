@@ -56,6 +56,14 @@ module definitions, including request replay and follow-up lineage. It cannot
 downgrade or overwrite a newer installed pin. Unknown catalogues, changed source
 manifests or altered frozen module definitions remain explicit failures.
 
+An unversioned native-file input retains its exact automatically indexed source
+when that source was derived from a selected study input. Export verifies the
+deterministic output identity, original asset bytes and native artifact inventory
+before following its typed source/parent references. Private annotations,
+unconsumed sibling versions and same-name files are not provenance authorities.
+The retained validation label is unchanged; portability never upgrades scientific
+acceptance or modifies the sealed task request.
+
 Updating computational examples does not promote their scientific claims.
 Generation proposes chemical structures; state preparation produces unbound
 conformers; docking proposes binding hypotheses. Native geometry checks and
