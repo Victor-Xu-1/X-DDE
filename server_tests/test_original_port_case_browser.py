@@ -73,6 +73,11 @@ def test_revised_module_example_stages_and_exact_replay(language, capability, pr
                 and response.body()
                 == (settings.state_dir / "jobs" / primary / "output" / "pose-002.sdf").read_bytes()
             )
+        capture = page.get_by_role(
+            "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True
+        )
+        expect(capture).to_be_enabled(timeout=30000)
+        page.screenshot(path=evidence / "native-primary-view.png", full_page=True)
         choose.select_option(support)
         if capability == "reinvent.design":
             expect(
@@ -90,6 +95,7 @@ def test_revised_module_example_stages_and_exact_replay(language, capability, pr
                 else ["Pass: 15", "Not assessed: 6", "Not applicable: 1"]
             ):
                 expect(summary.get_by_text(text, exact=True)).to_be_visible()
+        expect(capture).to_be_enabled(timeout=30000)
         page.screenshot(path=evidence / "reviewed-followup.png", full_page=True)
         choose.select_option(primary)
         with page.expect_response(
