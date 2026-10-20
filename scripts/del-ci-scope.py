@@ -188,7 +188,16 @@ def main():
         )
         candidate_views = (
             selected
-            and any("DELCandidateEvidence" in name for name in changed)
+            and any(
+                name.startswith(
+                    (
+                        "frontend/src/datasets/CandidateView",
+                        "frontend/src/datasets/DELCandidateEvidence",
+                        "frontend/src/datasets/useDELCandidateEvidence",
+                    )
+                )
+                for name in changed
+            )
             and all(
                 any(fnmatch.fnmatchcase(name, pattern) for pattern in candidate_patterns)
                 for name in changed

@@ -180,3 +180,6 @@ handoff result. Missing historical provenance stays unavailable rather than
 borrowing a nearby member. The final handoff review names the comparison,
 selected members and explicit attachment treatment. The existing pose-session
 optimization remains the single preview/minimization and pose-history authority.
+The candidate download is explicitly labeled as the original result structure.
+It preserves the native record; the pose-session download separately exports
+the currently displayed optimized or restored pose.

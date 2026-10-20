@@ -59,6 +59,39 @@ const result = (...candidates: DatasetCandidate[]) =>
     metadata: {},
   }) as unknown as DatasetResult;
 
+it.each([
+  ["en", "Download original result structure"],
+  ["zh", "下载原始结果结构"],
+] as const)(
+  "distinguishes the native download from the displayed pose in %s",
+  (language, label) => {
+    render(
+      <CandidateView
+        job={job}
+        language={language}
+        result={result(
+          candidate("DEL-reference", "unbound_conformer", 0),
+          candidate("DEL / comparison", "unbound_conformer", 1),
+        )}
+      />,
+    );
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      "/api/datasets/native-panel/candidate-structure?compound=DEL-reference",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "DEL / comparison" }));
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      "/api/datasets/native-panel/candidate-structure?compound=DEL%20%2F%20comparison",
+    );
+    expect(
+      screen.queryByRole("link", {
+        name: /Download selected structure|下载当前结构/,
+      }),
+    ).toBeNull();
+  },
+);
+
 it("binds encoded count evidence to the exact selected DEL member", () => {
   const data = {
     ...result(

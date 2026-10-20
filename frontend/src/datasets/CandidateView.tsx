@@ -121,7 +121,7 @@ export function CandidateView({
                 className="secondary-button"
                 href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
               >
-                {zh ? "下载当前结构" : "Download selected structure"}
+                {zh ? "下载原始结果结构" : "Download original result structure"}
               </a>
             )}
             <Hint label={zh ? "预览说明" : "Preview help"}>
