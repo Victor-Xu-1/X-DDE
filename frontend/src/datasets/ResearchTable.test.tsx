@@ -14,6 +14,73 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it.each([
+  ["en", "Literature binding report"],
+  ["zh", "文献结合报告"],
+] as const)(
+  "shows a qualitative observation once with a readable endpoint in %s",
+  async (language, label) => {
+    const observation = "Reported binding; exact KD was not supplied";
+    vi.spyOn(transport, "request").mockResolvedValue({
+      rows: [
+        {
+          member: "A035-B040-C030",
+          endpoint: "reported_binding",
+          unit: "qualitative",
+          value: null,
+          qualifier: observation,
+          matched: 1,
+        },
+      ],
+      total: 1,
+      offset: 0,
+      has_more: false,
+    });
+    render(
+      <ResearchTable jobId="followup" view="followup" language={language} />,
+    );
+    expect(await screen.findByText(label)).toBeVisible();
+    expect(screen.getAllByText(observation)).toHaveLength(1);
+    expect(screen.queryByText("reported_binding")).toBeNull();
+    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
+  },
+);
+
+it("preserves zero, censored numeric precision and additional reported observations", async () => {
+  vi.spyOn(transport, "request").mockResolvedValue({
+    rows: [
+      {
+        member: "measured-zero",
+        endpoint: "inhibition",
+        unit: "percent",
+        value: 0,
+        qualifier: "",
+        relation: "=",
+        matched: 1,
+      },
+      {
+        member: "reported-limit",
+        endpoint: "KD",
+        unit: "nM",
+        value: 5.123456789,
+        qualifier: "Original assay annotation",
+        relation: "<",
+        matched: 0,
+      },
+    ],
+    total: 2,
+    offset: 0,
+    has_more: false,
+  });
+  render(<ResearchTable jobId="followup" view="followup" language="en" />);
+  expect(await screen.findByRole("cell", { name: "0" })).toBeVisible();
+  expect(
+    screen.getByRole("cell", {
+      name: "<5.123456789 · Original assay annotation",
+    }),
+  ).toBeVisible();
+});
+
 it("labels selection with the public name while retaining the exact internal identity", async () => {
   vi.spyOn(transport, "request").mockResolvedValue({
     rows: [
@@ -187,14 +254,12 @@ it("keeps old tables complete and opts new consistency analyses into the explici
   expect(call.mock.calls.at(-1)![0]).toContain("prioritized=true");
 });
 it("sends a literal block search and series type to the native table, retaining explicit row labels", async () => {
-  const call = vi
-    .spyOn(transport, "request")
-    .mockResolvedValue({
-      rows: [{ kind: "mono", block_a: "B040", block_b: "", score: 2 }],
-      total: 9402,
-      offset: 0,
-      has_more: false,
-    });
+  const call = vi.spyOn(transport, "request").mockResolvedValue({
+    rows: [{ kind: "mono", block_a: "B040", block_b: "", score: 2 }],
+    total: 9402,
+    offset: 0,
+    has_more: false,
+  });
   render(<ResearchTable jobId="series" view="series" language="en" />);
   expect(await screen.findByText("Monosynthon")).toBeVisible();
   const user = userEvent.setup();

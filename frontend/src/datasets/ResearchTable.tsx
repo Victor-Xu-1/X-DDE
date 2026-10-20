@@ -9,6 +9,7 @@ import { ResultRow } from "../presentation/ResultRow";
 import { memberPageCsv } from "./member-page-export";
 import { downloadBlob } from "../presentation/visual-export";
 import { umiStateLabel } from "./sequencing-quality";
+import { followupObservation } from "./followup-observation";
 
 export type TableRow = Record<string, string | number | null>;
 interface Page {
@@ -100,7 +101,7 @@ const views = {
     "lower",
     "upper",
   ],
-  followup: ["member", "endpoint", "unit", "value", "qualifier", "matched"],
+  followup: ["member", "endpoint", "unit", "value", "matched"],
 } as const;
 function format(value: unknown) {
   if (value == null) return "—";
@@ -298,7 +299,11 @@ export function ResearchTable({
               {onSelection && <th aria-label={zh ? "选择" : "Select"} />}
               {columns.map((key) => (
                 <th key={key} className={`dataset-column-${key}`}>
-                  {labels[key]?.[zh ? 0 : 1] ?? key}
+                  {view === "followup" && key === "value"
+                    ? zh
+                      ? "报告结果"
+                      : "Reported result"
+                    : (labels[key]?.[zh ? 0 : 1] ?? key)}
                 </th>
               ))}
             </tr>
@@ -414,8 +419,16 @@ export function ResearchTable({
                             )}
                           </span>
                         )
-                      ) : key === "value" && row.value == null ? (
-                        format(row.qualifier)
+                      ) : view === "followup" &&
+                        key === "endpoint" &&
+                        row.endpoint === "reported_binding" ? (
+                        zh ? (
+                          "文献结合报告"
+                        ) : (
+                          "Literature binding report"
+                        )
+                      ) : view === "followup" && key === "value" ? (
+                        followupObservation(row)
                       ) : (
                         format(row[key])
                       )}

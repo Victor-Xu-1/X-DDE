@@ -10,6 +10,7 @@ PATTERNS = (
     "frontend/src/datasets/DatasetCharts*",
     "frontend/src/datasets/DatasetResults*",
     "frontend/src/datasets/ResearchTable*",
+    "frontend/src/datasets/followup-observation*",
     "frontend/src/datasets/CandidateView*",
     "frontend/src/datasets/DELCandidateEvidence*",
     "frontend/src/datasets/useDELCandidateEvidence*",
@@ -169,6 +170,8 @@ def main():
             )
         )
         candidate_patterns = (
+            "frontend/src/datasets/ResearchTable*",
+            "frontend/src/datasets/followup-observation*",
             "frontend/src/datasets/CandidateView*",
             "frontend/src/datasets/DELCandidateEvidence*",
             "frontend/src/datasets/useDELCandidateEvidence*",
@@ -194,6 +197,8 @@ def main():
                         "frontend/src/datasets/CandidateView",
                         "frontend/src/datasets/DELCandidateEvidence",
                         "frontend/src/datasets/useDELCandidateEvidence",
+                        "frontend/src/datasets/ResearchTable",
+                        "frontend/src/datasets/followup-observation",
                     )
                 )
                 for name in changed

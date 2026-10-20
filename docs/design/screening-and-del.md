@@ -183,3 +183,6 @@ optimization remains the single preview/minimization and pose-history authority.
 The candidate download is explicitly labeled as the original result structure.
 It preserves the native record; the pose-session download separately exports
 the currently displayed optimized or restored pose.
+Follow-up tables show each reported observation once. Qualitative literature
+reports retain their original text without becoming numerical measurements;
+numeric results retain censoring relations, zeroes, precision and any annotation.

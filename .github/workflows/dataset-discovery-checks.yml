@@ -212,11 +212,12 @@ jobs:
       - name: Exact source-report and readonly table consumers
         if: steps.scope.outputs.candidate_views_only == 'true'
         run: uv run --locked pytest -q tests/test_dataset_source_context.py tests/test_dataset_views.py
-      - name: Candidate evidence, source switches, selection review and template replay only
+      - name: Candidate evidence, retained rows, source switches and template replay only
         if: steps.scope.outputs.candidate_views_only == 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/DELCandidateEvidence.test.tsx
+          src/datasets/ResearchTable.test.tsx
           src/datasets/DELReviewQuestion.test.tsx src/datasets/CandidateView.test.tsx
           src/datasets/DELTemplateReplay.test.tsx
   native-del-data:
