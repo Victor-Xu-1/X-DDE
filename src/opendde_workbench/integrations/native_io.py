@@ -87,23 +87,10 @@ def csv_file(name, header, rows):
 
 
 def molecular_candidate(smiles, index, seed, metrics=()):
+    from native_generated_molecule import prepared_molecule
     from rdkit import Chem
-    from rdkit.Chem import AllChem
 
-    molecule = Chem.MolFromSmiles(smiles)
-    if molecule is None or len(Chem.GetMolFrags(molecule)) != 1:
-        raise ValueError("Native generator returned an invalid or disconnected chemical graph.")
-    conformer = Chem.AddHs(molecule)
-    parameters = AllChem.ETKDGv3()
-    parameters.randomSeed = seed
-    geometry = "none"
-    if AllChem.EmbedMolecule(conformer, parameters) == 0:
-        if AllChem.MMFFHasAllMoleculeParams(conformer):
-            AllChem.MMFFOptimizeMolecule(conformer, maxIters=500)
-        molecule = Chem.RemoveHs(conformer)
-        geometry = "unbound_conformer"
-    else:
-        AllChem.Compute2DCoords(molecule)
+    molecule, energy = prepared_molecule(smiles, seed)
     name = f"molecule-{index:03d}.sdf"
     with Chem.SDWriter(str(Path("/output", name))) as writer:
         writer.write(molecule)
@@ -111,8 +98,17 @@ def molecular_candidate(smiles, index, seed, metrics=()):
         "id": f"molecule-{index:03d}",
         "artifact": name,
         "smiles": Chem.MolToSmiles(molecule, isomericSmiles=True),
-        "metrics": list(metrics),
-        "geometry": geometry,
+        "metrics": [
+            *metrics,
+            metric(
+                "Unbound conformer energy",
+                energy,
+                "kcal/mol",
+                "MMFF94s; converged in at most 1000 iterations",
+                "energy",
+            ),
+        ],
+        "geometry": "unbound_conformer",
     }
 
 

@@ -1,0 +1,34 @@
+name: Generated molecular identity and minimization
+on:
+  push:
+    paths: &generated_conformer_paths
+      - 'src/opendde_workbench/integrations/native_generated_molecule.py'
+      - 'src/opendde_workbench/integrations/native_io.py'
+      - 'src/opendde_workbench/integrations/backend.py'
+      - 'src/opendde_workbench/chemistry/molfile_stereo.py'
+      - 'server_tests/test_generated_conformers.py'
+      - '.github/workflows/generated-conformer-checks.yml'
+  pull_request:
+    paths: *generated_conformer_paths
+permissions:
+  contents: read
+jobs:
+  generated-conformers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact changed serializer, existing stereo authority and staged source contracts
+        run: uv run --locked ruff check src/opendde_workbench/integrations/native_generated_molecule.py src/opendde_workbench/integrations/native_io.py src/opendde_workbench/integrations/backend.py server_tests/test_generated_conformers.py
+      - name: Real managed RDKit, native SDF readback and declared scaffold consumers
+        run: >-
+          uv run --locked --with rdkit==2026.3.6 pytest -q
+          server_tests/test_generated_conformers.py
+          server_tests/test_source_stereo_serialization.py
+          tests/test_reinvent_scope.py

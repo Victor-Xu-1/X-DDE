@@ -47,6 +47,10 @@ class ScientificBackend(PreparedContainerBackend):
             shared["native_reinvent_scope.py"] = Path(__file__).with_name(
                 "native_reinvent_scope.py"
             )
+            shared["native_generated_molecule.py"] = Path(__file__).with_name(
+                "native_generated_molecule.py"
+            )
+            shared["molfile_stereo.py"] = root / "chemistry/molfile_stereo.py"
         if identifier in {"openmm", "openfe", "gromacs"}:
             names = {
                 "openmm": ("md_input", "md_system", "md_analysis", "dynamics", "md_outputs"),
