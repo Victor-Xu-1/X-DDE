@@ -10,6 +10,7 @@ import { ResearchDownloads } from "./ResearchDownloads";
 import { chartArtifacts } from "./chart-documents";
 import { countSummary } from "./count-summary";
 import { IndexedLibraryResults } from "./IndexedLibraryResults";
+import { DELSeriesContext } from "./DELSeriesContext";
 
 export function DatasetResults({
   job,
@@ -92,6 +93,9 @@ export function DatasetResults({
               : "UMI completeness was not assessed for these historical counts. The original result is retained; decode and count again before UMI comparisons."}
           </p>
         )}
+      {tableView === "series" && (
+        <DELSeriesContext key={job.id} job={job} language={language} />
+      )}
       {(showTabs || hasComparisons) && (
         <div className="dataset-result-tabs">
           {showTabs && (

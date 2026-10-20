@@ -186,3 +186,27 @@ it("keeps old tables complete and opts new consistency analyses into the explici
   expect(screen.getByRole("checkbox")).toBeChecked();
   expect(call.mock.calls.at(-1)![0]).toContain("prioritized=true");
 });
+it("sends a literal block search and series type to the native table, retaining explicit row labels", async () => {
+  const call = vi
+    .spyOn(transport, "request")
+    .mockResolvedValue({
+      rows: [{ kind: "mono", block_a: "B040", block_b: "", score: 2 }],
+      total: 9402,
+      offset: 0,
+      has_more: false,
+    });
+  render(<ResearchTable jobId="series" view="series" language="en" />);
+  expect(await screen.findByText("Monosynthon")).toBeVisible();
+  const user = userEvent.setup();
+  await user.type(
+    screen.getByRole("searchbox", { name: "Search building blocks" }),
+    "B040",
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Series type" }),
+    "mono",
+  );
+  expect(call.mock.calls.at(-1)![0]).toContain("search=B040");
+  expect(call.mock.calls.at(-1)![0]).toContain("series_kind=mono");
+  expect(call.mock.calls.at(-1)![0]).toContain("offset=0");
+});

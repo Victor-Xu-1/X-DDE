@@ -19,6 +19,8 @@ export interface SeriesRow {
   cycle_b?: number;
   lower?: number;
   upper?: number;
+  selection?: number;
+  reference?: number;
 }
 export interface ChartDocuments {
   sequencing_quality?: SequencingDocument;
@@ -116,6 +118,8 @@ export function validateChartDocument(role: string, value: unknown) {
           finite(row.score) &&
           row.score >= 0 &&
           count(row.members) &&
+          (row.selection === undefined || count(row.selection)) &&
+          (row.reference === undefined || count(row.reference)) &&
           (row.cycle_a === undefined || count(row.cycle_a)) &&
           (row.cycle_b === undefined ||
             (Number.isInteger(row.cycle_b) &&

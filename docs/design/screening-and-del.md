@@ -154,3 +154,15 @@ Enrichment can require a minimum number of supporting target samples. A supporti
 
 Sample support and target-sample CV describe observed sample consistency. They do not establish biological replication, specificity, FDR, affinity or off-DNA activity. A zero reference count is not proof of absence. No counts are clipped or modified to satisfy a threshold.
 支持数和靶点样本 CV 只描述观察到的一致性，不能证明生物学重复性、特异性、FDR、亲和力或脱 DNA 活性。对照为零不等于不存在；不为满足阈值裁剪或改写任何计数。
+
+### Retained series exploration
+
+Series views use the immutable parent analysis report, aggregate every observed member
+before enrichment, and keep monosynthon cycles distinct. Native counts and count-model
+intervals remain downloadable; molecule hit filters do not select the aggregation cohort.
+The full SQLite table supports literal block search and mono/disynthon filtering.
+Heatmap axes use stable block identities, and the monosynthon view reports its explicit
+view subset. Missing chart rows are never filled with invented zeroes. Parent count
+units are resolved against the exact recorded report digest, with cancellation and
+retry; raw PCR bias, unverified imported processing, and affinity/replicate limitations
+remain visible. These presentation/read-only API changes do not re-run native science.

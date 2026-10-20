@@ -138,6 +138,7 @@ export function ResearchTable({
     [offset, setOffset] = useState(0),
     [search, setSearch] = useState(""),
     [filter, setFilter] = useState(defaultPrioritized),
+    [seriesKind, setSeriesKind] = useState("all"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const queryKey = JSON.stringify([
@@ -147,11 +148,12 @@ export function ResearchTable({
     offset,
     search,
     filter,
+    seriesKind,
   ]);
   const page = loaded?.queryKey === queryKey ? loaded : null;
   useEffect(() => {
     setOffset(0);
-  }, [jobId, view, comparison, search, filter]);
+  }, [jobId, view, comparison, search, filter, seriesKind]);
   useEffect(() => {
     const c = new AbortController();
     setBusy(true);
@@ -168,6 +170,7 @@ export function ResearchTable({
       ...(view === "library" || view === "index"
         ? {}
         : { view, comparison, prioritized: String(filter) }),
+      ...(view === "series" ? { series_kind: seriesKind } : {}),
     });
     void request<Page>(`${path}?${params}`, { signal: c.signal })
       .then((value) => {
@@ -183,7 +186,7 @@ export function ResearchTable({
         if (!c.signal.aborted) setBusy(false);
       });
     return () => c.abort();
-  }, [jobId, view, comparison, offset, search, filter]);
+  }, [jobId, view, comparison, offset, search, filter, seriesKind]);
   const selected = new Set(selection);
   const columns: readonly string[] =
     view === "enrichment" &&
@@ -209,9 +212,38 @@ export function ResearchTable({
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={zh ? "搜索成员或货号" : "Search members or IDs"}
-          aria-label={zh ? "搜索成员或货号" : "Search members or IDs"}
+          placeholder={
+            view === "series"
+              ? zh
+                ? "搜索砌块"
+                : "Search building blocks"
+              : zh
+                ? "搜索成员或货号"
+                : "Search members or IDs"
+          }
+          aria-label={
+            view === "series"
+              ? zh
+                ? "搜索砌块"
+                : "Search building blocks"
+              : zh
+                ? "搜索成员或货号"
+                : "Search members or IDs"
+          }
         />
+        {view === "series" && (
+          <label>
+            {zh ? "系列类型" : "Series type"}
+            <select
+              value={seriesKind}
+              onChange={(e) => setSeriesKind(e.target.value)}
+            >
+              <option value="all">{zh ? "全部系列" : "All series"}</option>
+              <option value="mono">{zh ? "单砌块" : "Monosynthons"}</option>
+              <option value="di">{zh ? "双砌块" : "Disynthons"}</option>
+            </select>
+          </label>
+        )}
         {(view === "library" || view === "index") && (
           <button
             type="button"
@@ -308,6 +340,19 @@ export function ResearchTable({
                           <span className="dataset-unresolved">
                             {zh ? "结构待解析" : "Unresolved"}
                           </span>
+                        )
+                      ) : key === "kind" &&
+                        (row.kind === "mono" || row.kind === "di") ? (
+                        row.kind === "mono" ? (
+                          zh ? (
+                            "单砌块"
+                          ) : (
+                            "Monosynthon"
+                          )
+                        ) : zh ? (
+                          "双砌块"
+                        ) : (
+                          "Disynthon"
                         )
                       ) : key === "umi_status" ? (
                         umiStateLabel(row.umi_status, zh)

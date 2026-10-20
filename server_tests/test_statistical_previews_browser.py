@@ -13,6 +13,7 @@ from server_tests.browser_platform import platform
 from server_tests.decoding_quality_browser import check_decoding_quality
 from server_tests.publication_browser_helpers import export_figure, inspect_svg
 from server_tests.responsive_chart_browser import wait_for_responsive_width
+from server_tests.series_quality_browser import check_series_quality
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
@@ -231,6 +232,8 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             expect(root.locator(".research-plot-canvas").last).to_have_attribute(
                 "aria-busy", "false"
             )
+        if capability == "del.series":
+            check_series_quality(page, root, base, identifier, evidence, language)
         for width in (1440, 768, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             chart.scroll_into_view_if_needed()

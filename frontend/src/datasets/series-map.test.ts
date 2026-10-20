@@ -78,3 +78,23 @@ it("checks native excerpt counts and posterior intervals while accepting retaine
     }),
   ).toThrow();
 });
+it("orders complete axes by block identity rather than enrichment rank", () => {
+  const rows = [10, 2, 1].map((i) => ({
+    kind: "di",
+    block_a: "B" + i,
+    block_b: "C" + i,
+    score: i,
+    members: 1,
+  }));
+  expect(seriesMap(rows, "reported", false).a).toEqual(["B1", "B2", "B10"]);
+  expect(seriesMap(rows, "reported", false).z).toEqual([
+    [1, null, null],
+    [null, 2, null],
+    [null, null, 10],
+  ]);
+  expect(() =>
+    validateChartDocument("del_series_visualization", {
+      series: [{ ...rows[0], selection: -1 }],
+    }),
+  ).toThrow();
+});

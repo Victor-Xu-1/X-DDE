@@ -22,6 +22,8 @@ on:
       - "frontend/src/datasets/SourcePicker*"
       - "frontend/src/datasets/useDatasetSources*"
       - "frontend/src/datasets/DEL*"
+      # Retained DEL series views have exact SQLite/chart/browser checks.
+      - "!frontend/src/datasets/DELSeriesContext*"
       - "!frontend/src/datasets/DELCountMaterials*"
       - "!frontend/src/datasets/DELMaterialQuestion.tsx"
       - "frontend/src/datasets/DatasetForm*"

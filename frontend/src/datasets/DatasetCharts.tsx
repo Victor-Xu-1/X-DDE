@@ -2,7 +2,7 @@ import { Bars } from "./CountBars";
 import { SequencingQualityPlot } from "./SequencingQualityPlot";
 import { ModelValidationPlot } from "./ModelValidationPlot";
 import { SampleCorrelationPlot } from "./SampleCorrelationPlot";
-import { SeriesEnrichmentPlot } from "./SeriesEnrichmentPlot";
+import { SeriesEvidencePlots } from "./SeriesEvidencePlots";
 import { useChartDocuments } from "./useChartDocuments";
 import { countSummary } from "./count-summary";
 import { CountEvidencePlot } from "./CountEvidencePlot";
@@ -114,7 +114,7 @@ export function DatasetCharts({
         </>
       )}
       {series && (
-        <SeriesEnrichmentPlot
+        <SeriesEvidencePlots
           series={series.series}
           totalSeries={series.total_series}
           language={language}

@@ -14,6 +14,9 @@ on:
       - "frontend/src/datasets/DatasetHeatmaps*"
       - "frontend/src/datasets/SampleCorrelationPlot*"
       - "frontend/src/datasets/SeriesEnrichmentPlot*"
+      - "frontend/src/datasets/SeriesEvidencePlots*"
+      - "frontend/src/datasets/MonosynthonPlot*"
+      - "frontend/src/datasets/DELSeriesContext*"
       - "frontend/src/datasets/series-map*"
       - "frontend/src/datasets/SequencingQualityPlot*"
       - "frontend/src/datasets/ModelValidationPlot*"
@@ -25,6 +28,7 @@ on:
       - "frontend/src/viewer/style.ts"
       - "frontend/src/simulations/OverlapHeatmap.tsx"
       - "server_tests/test_statistical_previews_browser.py"
+      - "server_tests/series_quality_browser.py"
       - "server_tests/barcode_quality_browser.py"
       - "server_tests/decoding_quality_browser.py"
       - "server_tests/responsive_chart_browser.py"
@@ -76,7 +80,7 @@ jobs:
           src/publication/embedded-raster.test.ts src/viewer/style.test.ts
           src/simulations/SimulationResults.test.tsx
       - name: Native barcode evidence, missing/contradictory checks and direct result consumers
-        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true' && steps.scope.outputs.series_views_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/BarcodeQuality.test.tsx src/datasets/chart-documents.test.ts
@@ -87,6 +91,14 @@ jobs:
         if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed == 'true'
         working-directory: frontend
         run: npx vitest run src/datasets/ResearchTable.test.tsx src/datasets/DatasetResults.test.tsx
+      - name: Retained series plots, literal search, source changes and direct chart consumers
+        if: steps.scope.outputs.series_views_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/SeriesEvidencePlots.test.tsx src/datasets/DELSeriesContext.test.tsx
+          src/datasets/series-map.test.ts src/datasets/chart-documents.test.ts
+          src/datasets/ResearchTable.test.tsx src/datasets/DatasetCharts.test.tsx
+          src/datasets/DatasetResults.test.tsx
       - name: Restore public research cases and graphical tools; never re-run science for layout
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,11 +114,14 @@ jobs:
         if: steps.scope.outputs.del_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py
       - name: Actual retained barcode quality, bilingual downloads and mobile overflow
-        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true' && steps.scope.outputs.series_views_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.library or del.decode'
       - name: Actual retained enrichment result, native table search and download in both languages
         if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'retained_enrichment'
+      - name: Actual retained mono/disynthon results, search, native values and exports in both languages
+        if: steps.scope.outputs.series_views_only == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.series'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

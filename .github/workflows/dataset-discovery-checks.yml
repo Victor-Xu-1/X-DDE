@@ -27,6 +27,9 @@ on:
       - "!frontend/src/datasets/SampleCorrelationPlot.tsx"
       - "!frontend/src/datasets/SequencingQualityPlot.tsx"
       - "!frontend/src/datasets/SeriesEnrichmentPlot.tsx"
+      - "!frontend/src/datasets/SeriesEvidencePlots*"
+      - "!frontend/src/datasets/MonosynthonPlot*"
+      - "!frontend/src/datasets/DELSeriesContext*"
       - "!frontend/src/datasets/chart-documents*"
       - "!frontend/src/datasets/BarcodeQuality*"
       - "!frontend/src/datasets/barcode-quality*"
@@ -189,17 +192,23 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/datasets src/studio/research-modules.test.ts src/deployment/component-groups.test.ts src/workflows/model.test.ts
       - name: DEL completeness, submission, source integrity, paging and direct worker contracts
-        if: steps.scope.outputs.del_only == 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.series_views_only != 'true'
         run: >-
           uv run --locked pytest -q tests/test_del_umi.py tests/test_dataset_contracts.py
           tests/test_dataset_views.py tests/test_dataset_worker.py tests/test_dataset_workflows.py
           tests/test_del_analysis_support.py
       - name: Actual UMI method choices and unchanged template replay
-        if: steps.scope.outputs.del_only == 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.series_views_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/UMICountChoices.test.tsx src/datasets/DELTemplateReplay.test.tsx
           src/datasets/DELAnalysisSupport.test.tsx src/datasets/ResearchTable.test.tsx
+      - name: Retained SQLite series/follow-up search, source integrity and shared route consumers
+        if: steps.scope.outputs.series_views_only == 'true'
+        run: >-
+          uv run --locked pytest -q tests/test_dataset_series_views.py
+          tests/test_dataset_source_context.py tests/test_dataset_views.py
+          tests/test_dataset_contracts.py
   native-del-data:
     if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
     runs-on: ubuntu-24.04

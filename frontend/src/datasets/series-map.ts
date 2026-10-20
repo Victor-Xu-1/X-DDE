@@ -26,8 +26,10 @@ export function seriesMap(
         ? `${row.cycle_a}:${row.cycle_b}`
         : "reported") === pair,
   );
-  const a = [...new Set(selected.map((row) => row.block_a))],
-    b = [...new Set(selected.map((row) => row.block_b))];
+  const natural = (a: string, b: string) =>
+    a.localeCompare(b, "en", { numeric: true });
+  const a = [...new Set(selected.map((row) => row.block_a))].sort(natural),
+    b = [...new Set(selected.map((row) => row.block_b))].sort(natural);
   const lookup = new Map<string, SeriesRow>();
   for (const row of selected) {
     const key = JSON.stringify([row.block_a, row.block_b]);

@@ -167,6 +167,7 @@ def register(app, store, settings, assets, mutation):
         offset: int = Query(default=0, ge=0, le=100000000),
         search: str = Query(default="", max_length=120),
         prioritized: bool = False,
+        series_kind: str = Query(default="all", pattern="^(all|mono|di)$"),
     ):
         _, root, result, _ = completed(job_id)
         file_and_role = {
@@ -224,10 +225,21 @@ def register(app, store, settings, assets, mutation):
                 query += " ORDER BY c.raw DESC,c.member,c.sample"
                 total = result.counts["member_sample_pairs"]
             elif view == "series":
-                query = "SELECT * FROM series ORDER BY score DESC,kind,block_a,block_b"
+                query = "SELECT * FROM series WHERE 1=1"
+                if search:
+                    query += " AND (block_a LIKE ? ESCAPE '\\' OR block_b LIKE ? ESCAPE '\\')"
+                    values.extend((pattern, pattern))
+                if series_kind != "all":
+                    query += " AND kind=?"
+                    values.append(series_kind)
+                query += " ORDER BY score DESC,kind,cycle_a,cycle_b,block_a,block_b"
                 total = result.counts["series"]
             else:
-                query = "SELECT * FROM measurements ORDER BY record"
+                query = "SELECT * FROM measurements"
+                if search:
+                    query += " WHERE member LIKE ? ESCAPE '\\'"
+                    values.append(pattern)
+                query += " ORDER BY record"
                 total = result.counts["reported"]
             rows = database.execute(
                 query + " LIMIT ? OFFSET ?", (*values, limit + 1, offset)

@@ -10,6 +10,12 @@ PATTERNS = (
     "frontend/src/datasets/DatasetCharts*",
     "frontend/src/datasets/DatasetResults*",
     "frontend/src/datasets/ResearchTable*",
+    "frontend/src/datasets/SeriesEvidencePlots*",
+    "frontend/src/datasets/SeriesEnrichmentPlot*",
+    "frontend/src/datasets/MonosynthonPlot*",
+    "frontend/src/datasets/DELSeriesContext*",
+    "frontend/src/datasets/series-map*",
+    "frontend/src/datasets/statistical-plots*",
     "frontend/src/datasets/chart-documents*",
     "frontend/src/datasets/SequencingDiagnostics*",
     "frontend/src/datasets/SequencingQualityPlot*",
@@ -56,12 +62,14 @@ PATTERNS = (
     "server_tests/dataset_native_fixture.py",
     "server_tests/test_del_analysis_support.py",
     "tests/test_del_analysis_support.py",
+    "tests/test_dataset_series_views.py",
     "docs/design/screening-and-del.md",
     "server_tests/barcode_quality_browser.py",
     "server_tests/decoding_quality_browser.py",
     "server_tests/responsive_chart_browser.py",
     "server_tests/test_result_visuals_browser.py",
     "server_tests/test_statistical_previews_browser.py",
+    "server_tests/series_quality_browser.py",
     "scripts/del-ci-scope.py",
     "pyproject.toml",
     "uv.lock",
@@ -119,6 +127,43 @@ def main():
         native_paths = {
             name for name in changed if name.startswith("src/opendde_workbench/datasets/")
         }
+        # Retained-table/visualization edits do not change native chemistry,
+        # FASTQ decoding or enrichment. Their real SQLite/browser gate runs below.
+        series_patterns = (
+            "frontend/src/datasets/SeriesEvidencePlots*",
+            "frontend/src/datasets/SeriesEnrichmentPlot*",
+            "frontend/src/datasets/MonosynthonPlot*",
+            "frontend/src/datasets/DELSeriesContext*",
+            "frontend/src/datasets/series-map*",
+            "frontend/src/datasets/chart-documents*",
+            "frontend/src/datasets/ResearchTable*",
+            "frontend/src/datasets/DatasetCharts*",
+            "frontend/src/datasets/DatasetResults*",
+            "frontend/src/datasets/datasets.css",
+            "src/opendde_workbench/datasets/routes.py",
+            "tests/test_dataset_series_views.py",
+            "server_tests/series_quality_browser.py",
+            "server_tests/test_statistical_previews_browser.py",
+            "docs/design/screening-and-del.md",
+            "scripts/del-ci-scope.py",
+            ".github/workflows/*",
+            "pyproject.toml",
+            "uv.lock",
+            "frontend/package*.json",
+            "install.sh",
+            "install.ps1",
+        )
+        series_views = (
+            selected
+            and any(
+                "SeriesEvidencePlots" in name or "test_dataset_series_views" in name
+                for name in changed
+            )
+            and all(
+                any(fnmatch.fnmatchcase(name, pattern) for pattern in series_patterns)
+                for name in changed
+            )
+        )
         enrichment_paths = {
             "src/opendde_workbench/datasets/backend.py",
             "src/opendde_workbench/datasets/del_options.py",
@@ -153,8 +198,13 @@ def main():
                 )
             )
         )
-        output.write("native_umi_changed=" + str(native and not only_enrichment).lower() + "\n")
+        output.write(
+            "native_umi_changed="
+            + str(native and not only_enrichment and not series_views).lower()
+            + "\n"
+        )
         output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
+        output.write("series_views_only=" + str(series_views).lower() + "\n")
     print(
         "DEL evidence, catalogue and shared table consumers"
         if selected

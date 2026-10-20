@@ -574,6 +574,24 @@
   min-width: 0;
   max-width: 100%;
 }
+.dataset-series-evidence {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.dataset-map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.dataset-map-controls label {
+  display: grid;
+  gap: 5px;
+}
+.dataset-series-context p {
+  margin: 6px 0;
+}
 .dataset-chart {
   min-width: 0;
   background: white;
