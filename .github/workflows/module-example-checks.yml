@@ -50,7 +50,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           python - <<'PY'
-          import os, subprocess
+          import json, os, subprocess, zipfile
           base = os.environ.get("BASE", "")
           changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
           data = {
@@ -150,19 +150,23 @@ jobs:
               subprocess.run(['gh', 'release', 'download', tag, '--repo', os.environ['GITHUB_REPOSITORY'], '--pattern', name, '--dir', os.environ['RUNNER_TEMP']], check=True)
               file = Path(os.environ['RUNNER_TEMP']) / name
               print(restore_bundle(file, settings, spec.SHA256))
+              if spec is stat6_bundle_release:
+                  with zipfile.ZipFile(file) as archive:
+                      study_digest = json.loads(archive.read('manifest.json'))['catalogue_sha256']
           from opendde_workbench.assets import AssetStore
           from opendde_workbench.examples.pins import ExamplePins
           from opendde_workbench.examples.records import ExampleRecords
-          from opendde_workbench.examples.stat6.catalogue import MODULES
+          from opendde_workbench.examples.catalogue_profiles import historical_study_catalogue
           from opendde_workbench.examples.stat6.preparation import prepare_stat6
           from opendde_workbench.research.storage import ScientificStore
           from opendde_workbench.store import Store
           store = Store(settings.state_dir / 'jobs.sqlite3')
           assets = AssetStore(store, settings.state_dir / 'assets')
-          records = ExampleRecords(store, assets, settings, modules=MODULES)
-          pinned = ExamplePins(store, settings.state_dir, modules=MODULES).get('gnina.dock', verify=True)
+          modules = historical_study_catalogue(study_digest).modules
+          records = ExampleRecords(store, assets, settings, modules=modules)
+          pinned = ExamplePins(store, settings.state_dir, modules=modules).get('gnina.dock', verify=True)
           before = len(store.list_jobs())
-          prepared = prepare_stat6('gnina.dock', ScientificStore(store, assets), records=records)
+          prepared = prepare_stat6('gnina.dock', ScientificStore(store, assets), records=records, modules=modules)
           ref = store.get(str(pinned.job_id)).request.receptor.model_dump(mode='json')
           assert prepared.request['receptor'] == prepared.request['search']['frame'] == ref
           assert len(store.list_jobs()) == before
