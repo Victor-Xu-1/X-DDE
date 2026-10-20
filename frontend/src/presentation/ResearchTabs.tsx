@@ -20,7 +20,10 @@ export function ResearchTabs({
 }) {
   const id = useId(),
     [active, setActive] = useState(tabs[0]?.id);
-  const [visited, setVisited] = useState(new Set([tabs[0]?.id]));
+  const [visited, setVisited] = useState(
+    () =>
+      new Set([tabs.find((tab) => tab.id === controlled)?.id ?? tabs[0]?.id]),
+  );
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const selected = controlled ?? active;
   const current = tabs.some((t) => t.id === selected) ? selected : tabs[0]?.id;

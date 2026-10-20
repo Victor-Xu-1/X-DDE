@@ -42,3 +42,19 @@ unchanged original file. Bounds, empty/missing records and changed bytes fail
 explicitly. The docking result can hand the selected saved pose and its matching
 receptor directly to the existing PoseBusters questionnaire; coordinate-frame
 confirmation remains required and opening the questionnaire runs no calculation.
+
+The chosen 2D/3D view belongs to the preview workspace, independently of molecular
+identity. Changing a candidate, protomer or conformer retains that choice while
+the existing pose controller resets input selection/history to the new exact
+source. Tabs remount for a new pose with only the chosen view visited; a hidden
+3D preview must not initialize a newly selected molecule. Downloads and downstream
+inputs still follow the selected scientific record, never the prior candidate.
+
+Known SMILES enter the native Ketcher drawing service with an explicit Daylight
+SMILES input format before layout, hydrogen folding and dearomatization. Native
+format auto-detection can otherwise import an aromatic `[nH]` as a SMARTS query.
+This transformation applies only to a display copy. The original SMILES, SDF,
+coordinates and user editor are immutable; failed native conversion is reported
+instead of silently falling back to query import or editing SVG pixels. Focused
+CI checks actual native Molfile graph identity, non-query atoms, retained donor
+hydrogen and alternating aromatic bonds through the bilingual questionnaire.

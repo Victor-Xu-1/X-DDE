@@ -79,6 +79,7 @@ function PoseViewTabs(props: Parameters<typeof ResearchTabs>[0]) {
   const session = usePoseSession();
   return (
     <ResearchTabs
+      key={session?.plan.key}
       {...props}
       active={session?.view}
       onChange={session?.chooseView}

@@ -59,7 +59,6 @@ export function StateCollectionPreview({
               </h3>
             </header>
             <MolecularPreview
-              key={String(state.index) + ":" + String(current?.record)}
               label={String(state.index + 1)}
               language={language}
               source={{ smiles: state.smiles }}

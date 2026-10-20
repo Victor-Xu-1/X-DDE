@@ -253,3 +253,58 @@ it("normalizes the displayed molecular record to the same selected input record"
     }).base.records,
   ).toEqual([3]);
 });
+
+it("retains the chosen view but resets chemical input and history for another candidate", async () => {
+  nativeReplies();
+  const user = userEvent.setup();
+  function WorkspaceState() {
+    const session = usePoseSession()!;
+    return (
+      <>
+        <output data-testid="view">{session.view ?? "default"}</output>
+        <output data-testid="input-mode">{session.inputMode}</output>
+        <button onClick={() => session.chooseView("2d")}>Choose 2D</button>
+        <button onClick={() => session.chooseInput("original")}>
+          Use original
+        </button>
+        <PreviewControls />
+      </>
+    );
+  }
+  const { rerender } = render(
+    <PoseSession frame={frame}>
+      <WorkspaceState />
+    </PoseSession>,
+  );
+  expect(screen.getByTestId("view")).toHaveTextContent("default");
+  await user.click(screen.getByRole("button", { name: "Minimize" }));
+  await waitFor(() =>
+    expect(screen.getByTestId("displayed-file")).toHaveTextContent(
+      saved.pose.reference.asset_id,
+    ),
+  );
+  await user.click(screen.getByRole("button", { name: "Choose 2D" }));
+  await user.click(screen.getByRole("button", { name: "Use original" }));
+  rerender(
+    <PoseSession
+      frame={{
+        ...frame,
+        records: [9],
+        molecularSource: {
+          url: frame.urls[0],
+          record: 9,
+        },
+      }}
+    >
+      <WorkspaceState />
+    </PoseSession>,
+  );
+  expect(screen.getByTestId("view")).toHaveTextContent("2d");
+  expect(screen.getByTestId("input-mode")).toHaveTextContent("displayed");
+  expect(screen.getByTestId("displayed-file")).toHaveTextContent("?record=9");
+  expect(screen.getByTestId("displayed-file")).not.toHaveTextContent(
+    saved.pose.reference.asset_id,
+  );
+  await user.click(screen.getByRole("button", { name: "Undo" }));
+  expect(screen.getByTestId("displayed-file")).toHaveTextContent("?record=9");
+});

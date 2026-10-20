@@ -22,6 +22,10 @@ function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
     structService: {
+      convert: vi.fn(async (data: { struct: string }) => {
+        calls.push("smiles-import");
+        return { struct: data.struct };
+      }),
       layout: vi.fn(async (data: { struct: string }) => {
         calls.push("layout");
         return { struct: nativeRecord(data.struct, true) };
@@ -77,6 +81,7 @@ describe("Native aromatic depiction", () => {
       await renderer.render(source, new AbortController().signal, 2.2);
       expect(calls).toEqual([
         "style",
+        "smiles-import",
         "layout",
         "fold-hydrogens",
         "load",
@@ -88,6 +93,11 @@ describe("Native aromatic depiction", () => {
         JSON.parse(editor.editor.setOptions.mock.calls[0][0]),
       ).toMatchObject({
         showHydrogenLabels: "Hetero",
+      });
+      expect(editor.structService.convert).toHaveBeenCalledWith({
+        struct: source.smiles,
+        input_format: "chemical/x-daylight-smiles",
+        output_format: "chemical/x-indigo-ket",
       });
       expect(editor.structService.toggleExplicitHydrogens).toHaveBeenCalledWith(
         {
@@ -122,6 +132,22 @@ describe("Native aromatic depiction", () => {
       await renderer.render(source, new AbortController().signal);
       expect(editor.dearomatize).toHaveBeenCalledTimes(2);
       expect(editor.generateImage).toHaveBeenCalledTimes(1);
+    } finally {
+      renderer.close();
+    }
+  });
+  it("does not silently auto-detect a known SMILES after an explicit import failure", async () => {
+    const { renderer, editor } = nativeRenderer();
+    editor.structService.convert.mockRejectedValueOnce(
+      new Error("Invalid SMILES"),
+    );
+    try {
+      await expect(
+        renderer.render({ smiles: "[nH]1cccc1" }, new AbortController().signal),
+      ).rejects.toThrow("Invalid SMILES");
+      expect(editor.structService.layout).not.toHaveBeenCalled();
+      expect(editor.setMolecule).not.toHaveBeenCalled();
+      expect(editor.generateImage).not.toHaveBeenCalled();
     } finally {
       renderer.close();
     }

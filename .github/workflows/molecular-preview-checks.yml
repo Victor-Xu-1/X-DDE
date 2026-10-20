@@ -1,0 +1,59 @@
+name: Molecular view selection and native SMILES depiction
+on:
+  push:
+    paths: &molecular_preview_paths
+      - 'frontend/src/viewer/PoseSession*'
+      - 'frontend/src/presentation/ResearchTabs*'
+      - 'frontend/src/presentation/MolecularPreview.tsx'
+      - 'frontend/src/chemistry/StateCollectionPreview*'
+      - 'frontend/src/presentation/depiction-renderer*'
+      - 'frontend/src/editors/scientificEditor.ts'
+      - 'server_tests/test_molecular_preview_browser.py'
+      - '.github/workflows/molecular-preview-checks.yml'
+  pull_request:
+    paths: *molecular_preview_paths
+permissions:
+  contents: read
+jobs:
+  molecular-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: View preference, chemical ownership, source switching and native drawing queue
+        working-directory: frontend
+        run: >-
+          npx vitest run src/viewer/PoseSession.test.tsx
+          src/viewer/usePoseOptimization.test.tsx src/presentation/ResearchTabs.test.tsx
+          src/chemistry/StateCollectionPreview.test.tsx src/chemistry/StateResults.test.tsx
+          src/presentation/depiction-renderer.test.ts src/editors/ketcher-hydrogens.test.ts
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked ruff check server_tests/test_molecular_preview_browser.py
+      - name: Prepare only the native chemical drawing component
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-molecular-preview" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-molecular-preview/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-molecular-preview" WB_STATE_DIR="$RUNNER_TEMP/x-dde-molecular-preview/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Real bilingual questionnaire, Ketcher native graph and pixels; no scientific inference
+        run: |
+          mkdir -p outputs/molecular-preview
+          .venv/bin/python -m opendde_workbench --port 4330 > outputs/molecular-preview/service.log 2>&1 &
+          service_pid=$!
+          trap 'kill "$service_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null
+          uv run --locked --with rdkit==2026.3.6 pytest -x -q server_tests/test_molecular_preview_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: molecular-preview-evidence
+          path: outputs/molecular-preview/**

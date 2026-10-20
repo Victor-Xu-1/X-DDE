@@ -8,6 +8,11 @@ export { MoleculeSaveIntent } from "./molecule-save-intent";
 
 export interface Ketcher {
   structService?: {
+    convert?(data: {
+      struct: string;
+      input_format: "chemical/x-daylight-smiles";
+      output_format: "chemical/x-indigo-ket";
+    }): Promise<{ struct: string }>;
     layout?(data: {
       struct: string;
       output_format: "chemical/x-indigo-ket";

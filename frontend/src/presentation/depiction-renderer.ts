@@ -152,9 +152,26 @@ export class DepictionRenderer {
             throw new Error(
               "Update Ketcher to draw alternating aromatic bonds.",
             );
-          await editor.setMolecule(
-            await foldDisplayHydrogens(editor, structure),
-          );
+          // The source contract already identifies SMILES. Letting Indigo
+          // auto-detect it can import [nH] as a SMARTS query atom instead.
+          // Convert explicitly before the existing layout/folding pipeline.
+          let display = structure;
+          if ("smiles" in source) {
+            if (!editor.structService?.convert)
+              throw new Error("Update Ketcher to import SMILES structures.");
+            display = (
+              await editor.structService.convert({
+                struct: structure,
+                input_format: "chemical/x-daylight-smiles",
+                output_format: "chemical/x-indigo-ket",
+              })
+            ).struct;
+            if (!display?.trim() || display.length > 5 * 1024 ** 2)
+              throw new Error(
+                "The native SMILES display copy is unavailable or too large.",
+              );
+          }
+          await editor.setMolecule(await foldDisplayHydrogens(editor, display));
           // Ketcher assigns a valid Kekulé form to this display copy. Removing
           // circles from an SVG would lose the aromatic bond information.
           await editor.dearomatize();

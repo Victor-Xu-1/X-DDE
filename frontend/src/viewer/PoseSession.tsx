@@ -45,7 +45,9 @@ function OwnedPoseSession({
     mode: "displayed" as "displayed" | "original",
   });
   const inputMode = choice.key === plan.key ? choice.mode : "displayed";
-  const [view, setView] = useState<{ key: string; id: string } | null>(null);
+  // Presentation is a workspace preference. Chemical inputs and pose history
+  // remain owned by plan.key; changing a candidate must not change the view.
+  const [view, setView] = useState<string>();
   return (
     <PoseContext.Provider
       value={{
@@ -53,8 +55,8 @@ function OwnedPoseSession({
         controller,
         inputMode,
         chooseInput: (mode) => setChoice({ key: plan.key, mode }),
-        view: view?.key === plan.key ? view.id : undefined,
-        chooseView: (id) => setView({ key: plan.key, id }),
+        view,
+        chooseView: setView,
       }}
     >
       {children}
