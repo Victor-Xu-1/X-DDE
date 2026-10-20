@@ -8,18 +8,13 @@ export { MoleculeSaveIntent } from "./molecule-save-intent";
 
 export interface Ketcher {
   structService?: {
-    convert?(data: {
-      struct: string;
-      input_format: "chemical/x-daylight-smiles";
-      output_format: "chemical/x-mdl-molfile";
-    }): Promise<{ struct: string }>;
-    dearomatize?(data: {
-      struct: string;
-      output_format: "chemical/x-mdl-molfile";
-    }): Promise<{ struct: string }>;
+    dearomatize?(
+      data: { struct: string; output_format: "chemical/x-mdl-molfile" },
+      options: { "aromaticity-model": "generic" },
+    ): Promise<{ struct: string }>;
     layout?(data: {
       struct: string;
-      output_format: "chemical/x-indigo-ket";
+      output_format: "chemical/x-indigo-ket" | "chemical/x-mdl-molfile";
     }): Promise<{ struct: string }>;
     toggleExplicitHydrogens(data: {
       struct: string;

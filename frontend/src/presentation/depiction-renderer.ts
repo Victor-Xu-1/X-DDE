@@ -152,17 +152,15 @@ export class DepictionRenderer {
             throw new Error(
               "Update Ketcher to draw alternating aromatic bonds.",
             );
-          // The source contract already identifies SMILES. Letting Indigo
-          // auto-detect it can import [nH] as a SMARTS query atom instead.
-          // Convert explicitly before the existing layout/folding pipeline.
+          // Assign native stereochemical drawing coordinates before Molfile
+          // export; a coordinate-free SMILES conversion loses wedge bonds.
           let display = structure;
           if ("smiles" in source) {
-            if (!editor.structService?.convert)
-              throw new Error("Update Ketcher to import SMILES structures.");
+            if (!editor.structService.layout)
+              throw new Error("Update Ketcher to lay out SMILES structures.");
             display = (
-              await editor.structService.convert({
+              await editor.structService.layout({
                 struct: structure,
-                input_format: "chemical/x-daylight-smiles",
                 output_format: "chemical/x-mdl-molfile",
               })
             ).struct;
@@ -175,10 +173,13 @@ export class DepictionRenderer {
           // Assign native Kekule bonds while it is still a molecular Molfile,
           // before layout imports it into the canvas. Never rewrite SVG bonds.
           display = (
-            await editor.structService.dearomatize({
-              struct: display,
-              output_format: "chemical/x-mdl-molfile",
-            })
+            await editor.structService.dearomatize(
+              { struct: display, output_format: "chemical/x-mdl-molfile" },
+              // Ketcher's standard service options enable Indigo's generic
+              // model for aromatic rings with external double bonds. Native
+              // dearomatization verification remains enabled.
+              { "aromaticity-model": "generic" },
+            )
           ).struct;
           if (!display?.trim() || display.length > 5 * 1024 ** 2)
             throw new Error(

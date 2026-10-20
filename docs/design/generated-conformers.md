@@ -50,10 +50,14 @@ source. Tabs remount for a new pose with only the chosen view visited; a hidden
 3D preview must not initialize a newly selected molecule. Downloads and downstream
 inputs still follow the selected scientific record, never the prior candidate.
 
-Known SMILES enter the native Ketcher drawing service with an explicit Daylight
-SMILES input format into a molecular Molfile. Native dearomatization assigns
+Known SMILES first receive native stereochemical layout into a molecular
+Molfile: exporting a coordinate-free chiral SMILES directly loses wedge bonds.
+Native dearomatization with the generic aromaticity model assigns
 alternating bonds before KET layout and hydrogen folding: an aromatic `[nH]`
 implicit-H field can otherwise become a SMARTS query on a KET/editor roundtrip.
+The generic model supports aromatic rings with external double bonds while
+native dearomatization verification stays enabled. See the upstream
+[Indigo aromaticity options](https://lifescience.opensource.epam.com/indigo/options/aromaticity.html).
 This transformation applies only to a display copy. The original SMILES, SDF,
 coordinates and user editor are immutable; failed native conversion is reported
 instead of silently falling back to query import or editing SVG pixels. Focused

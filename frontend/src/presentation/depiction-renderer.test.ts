@@ -22,15 +22,15 @@ function nativeRenderer() {
   const calls: string[] = [];
   const editor = {
     structService: {
-      convert: vi.fn(async (data: { struct: string }) => {
-        calls.push("smiles-import");
-        return { struct: data.struct };
-      }),
       dearomatize: vi.fn(async (data: { struct: string }) => {
         calls.push("kekule");
         return { struct: data.struct };
       }),
-      layout: vi.fn(async (data: { struct: string }) => {
+      layout: vi.fn(async (data: { struct: string; output_format: string }) => {
+        if (data.output_format === "chemical/x-mdl-molfile") {
+          calls.push("smiles-layout");
+          return { struct: data.struct };
+        }
         calls.push("layout");
         return { struct: nativeRecord(data.struct, true) };
       }),
@@ -82,7 +82,7 @@ describe("Native aromatic depiction", () => {
       await renderer.render(source, new AbortController().signal, 2.2);
       expect(calls).toEqual([
         "style",
-        "smiles-import",
+        "smiles-layout",
         "kekule",
         "layout",
         "fold-hydrogens",
@@ -95,11 +95,14 @@ describe("Native aromatic depiction", () => {
       ).toMatchObject({
         showHydrogenLabels: "Hetero",
       });
-      expect(editor.structService.convert).toHaveBeenCalledWith({
+      expect(editor.structService.layout).toHaveBeenNthCalledWith(1, {
         struct: source.smiles,
-        input_format: "chemical/x-daylight-smiles",
         output_format: "chemical/x-mdl-molfile",
       });
+      expect(editor.structService.dearomatize).toHaveBeenCalledWith(
+        { struct: source.smiles, output_format: "chemical/x-mdl-molfile" },
+        { "aromaticity-model": "generic" },
+      );
       expect(editor.structService.toggleExplicitHydrogens).toHaveBeenCalledWith(
         {
           struct: nativeRecord(source.smiles, true),
@@ -139,16 +142,16 @@ describe("Native aromatic depiction", () => {
       renderer.close();
     }
   });
-  it("does not silently auto-detect a known SMILES after an explicit import failure", async () => {
+  it("does not continue after native stereochemical SMILES layout fails", async () => {
     const { renderer, editor } = nativeRenderer();
-    editor.structService.convert.mockRejectedValueOnce(
+    editor.structService.layout.mockRejectedValueOnce(
       new Error("Invalid SMILES"),
     );
     try {
       await expect(
         renderer.render({ smiles: "[nH]1cccc1" }, new AbortController().signal),
       ).rejects.toThrow("Invalid SMILES");
-      expect(editor.structService.layout).not.toHaveBeenCalled();
+      expect(editor.structService.dearomatize).not.toHaveBeenCalled();
       expect(editor.setMolecule).not.toHaveBeenCalled();
       expect(editor.generateImage).not.toHaveBeenCalled();
     } finally {
