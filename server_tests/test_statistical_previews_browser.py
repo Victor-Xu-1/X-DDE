@@ -1,5 +1,6 @@
 """Interactive retained DEL outputs; no scientific execution."""
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -45,8 +46,9 @@ def test_retained_enrichment_search_and_native_download(language):
         expect(root).to_be_visible(timeout=30000)
         search = root.get_by_role("searchbox")
         search.fill(member)
-        expect(root.locator("tbody tr")).to_have_count(1, timeout=30000)
-        expect(root.locator("tbody tr")).to_contain_text(member)
+        table = root.locator(".dataset-enrichment-table")
+        expect(table.locator("tbody tr")).to_have_count(1, timeout=30000)
+        expect(table.locator("tbody tr")).to_contain_text(member)
         expect(
             root.get_by_role(
                 "columnheader", name="Target-sample CV" if language == "en" else "靶点样本 CV"
@@ -59,7 +61,11 @@ def test_retained_enrichment_search_and_native_download(language):
             root.get_by_role("link", name="enrichment.csv", exact=False).click()
         download = downloading.value
         download.save_as(str(evidence / (language + "-enrichment.csv")))
-        assert (evidence / (language + "-enrichment.csv")).stat().st_size > 100
+        expected = next(item for item in result["artifacts"] if item["name"] == "enrichment.csv")
+        saved = evidence / (language + "-enrichment.csv")
+        assert saved.stat().st_size == expected["size"]
+        with saved.open("rb") as stream:
+            assert hashlib.file_digest(stream, "sha256").hexdigest() == expected["sha256"]
         page.screenshot(path=str(evidence / (language + "-native-table.png")), full_page=False)
         assert page.request.get(base + "/api/jobs").json() == before
         assert not errors
