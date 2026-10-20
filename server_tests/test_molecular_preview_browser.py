@@ -61,12 +61,18 @@ def test_known_smiles_is_a_molecule_not_a_query(case_id, language, width, struct
         expect(drawing.get_by_role("img")).to_be_visible()
         handle = page.locator('iframe[title="Local 2D molecule drawing service"]').element_handle()
         frame = handle.content_frame()
-        native = frame.evaluate("""async () => {
+        native = frame.evaluate("""async (smiles) => {
             const editor = window.ketcher;
             const mol = await editor.getMolfile();
             const ket = JSON.parse(await editor.getKet());
-            return {mol, ket};
-        }""")
+            const laid = await editor.structService.layout({struct: smiles,
+                output_format: 'chemical/x-mdl-molfile'});
+            const kekule = await editor.structService.dearomatize({struct: laid.struct,
+                output_format: 'chemical/x-mdl-molfile'}, {'aromaticity-model': 'generic'});
+            const ketCopy = await editor.structService.layout({struct: kekule.struct,
+                output_format: 'chemical/x-indigo-ket'});
+            return {mol, ket, laid, kekule, ketCopy};
+        }""", structure)
         (evidence / f"native-{case_id}.mol").write_text(native["mol"])
         (evidence / f"native-{case_id}.json").write_text(json.dumps(native))
         page.screenshot(path=evidence / f"scaffold-{case_id}.png", full_page=True)
