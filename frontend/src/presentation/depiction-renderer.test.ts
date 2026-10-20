@@ -26,6 +26,10 @@ function nativeRenderer() {
         calls.push("smiles-import");
         return { struct: data.struct };
       }),
+      dearomatize: vi.fn(async (data: { struct: string }) => {
+        calls.push("kekule");
+        return { struct: data.struct };
+      }),
       layout: vi.fn(async (data: { struct: string }) => {
         calls.push("layout");
         return { struct: nativeRecord(data.struct, true) };
@@ -45,9 +49,6 @@ function nativeRenderer() {
     }),
     layout: vi.fn(async () => {
       calls.push("layout");
-    }),
-    dearomatize: vi.fn(async () => {
-      calls.push("kekule");
     }),
     getMolfile: vi.fn(async () => {
       calls.push("read");
@@ -82,10 +83,10 @@ describe("Native aromatic depiction", () => {
       expect(calls).toEqual([
         "style",
         "smiles-import",
+        "kekule",
         "layout",
         "fold-hydrogens",
         "load",
-        "kekule",
         "read",
         "draw",
       ]);
@@ -97,7 +98,7 @@ describe("Native aromatic depiction", () => {
       expect(editor.structService.convert).toHaveBeenCalledWith({
         struct: source.smiles,
         input_format: "chemical/x-daylight-smiles",
-        output_format: "chemical/x-indigo-ket",
+        output_format: "chemical/x-mdl-molfile",
       });
       expect(editor.structService.toggleExplicitHydrogens).toHaveBeenCalledWith(
         {
@@ -123,14 +124,16 @@ describe("Native aromatic depiction", () => {
   it("does not export or cache an incomplete aromatic transformation", async () => {
     const { renderer, editor } = nativeRenderer();
     const source = { smiles: "c1ccccc1" };
-    editor.dearomatize.mockRejectedValueOnce(new Error("No valid Kekulé form"));
+    editor.structService.dearomatize.mockRejectedValueOnce(
+      new Error("No valid Kekulé form"),
+    );
     try {
       await expect(
         renderer.render(source, new AbortController().signal),
       ).rejects.toThrow("No valid Kekulé form");
       expect(editor.generateImage).not.toHaveBeenCalled();
       await renderer.render(source, new AbortController().signal);
-      expect(editor.dearomatize).toHaveBeenCalledTimes(2);
+      expect(editor.structService.dearomatize).toHaveBeenCalledTimes(2);
       expect(editor.generateImage).toHaveBeenCalledTimes(1);
     } finally {
       renderer.close();

@@ -51,8 +51,9 @@ source. Tabs remount for a new pose with only the chosen view visited; a hidden
 inputs still follow the selected scientific record, never the prior candidate.
 
 Known SMILES enter the native Ketcher drawing service with an explicit Daylight
-SMILES input format before layout, hydrogen folding and dearomatization. Native
-format auto-detection can otherwise import an aromatic `[nH]` as a SMARTS query.
+SMILES input format into a molecular Molfile. Native dearomatization assigns
+alternating bonds before KET layout and hydrogen folding: an aromatic `[nH]`
+implicit-H field can otherwise become a SMARTS query on a KET/editor roundtrip.
 This transformation applies only to a display copy. The original SMILES, SDF,
 coordinates and user editor are immutable; failed native conversion is reported
 instead of silently falling back to query import or editing SVG pixels. Focused

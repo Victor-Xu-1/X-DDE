@@ -11,7 +11,11 @@ export interface Ketcher {
     convert?(data: {
       struct: string;
       input_format: "chemical/x-daylight-smiles";
-      output_format: "chemical/x-indigo-ket";
+      output_format: "chemical/x-mdl-molfile";
+    }): Promise<{ struct: string }>;
+    dearomatize?(data: {
+      struct: string;
+      output_format: "chemical/x-mdl-molfile";
     }): Promise<{ struct: string }>;
     layout?(data: {
       struct: string;

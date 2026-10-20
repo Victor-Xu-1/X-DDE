@@ -148,7 +148,7 @@ export class DepictionRenderer {
         drawing = (async () => {
           // This canvas belongs only to the invisible drawing service. Native
           // layout changes a display copy; scientific files and the user's editor stay intact.
-          if (!editor.dearomatize)
+          if (!editor.structService?.dearomatize)
             throw new Error(
               "Update Ketcher to draw alternating aromatic bonds.",
             );
@@ -163,7 +163,7 @@ export class DepictionRenderer {
               await editor.structService.convert({
                 struct: structure,
                 input_format: "chemical/x-daylight-smiles",
-                output_format: "chemical/x-indigo-ket",
+                output_format: "chemical/x-mdl-molfile",
               })
             ).struct;
             if (!display?.trim() || display.length > 5 * 1024 ** 2)
@@ -171,10 +171,20 @@ export class DepictionRenderer {
                 "The native SMILES display copy is unavailable or too large.",
               );
           }
+          // Aromatic [nH] becomes an implicit-H query on a KET/editor roundtrip.
+          // Assign native Kekule bonds while it is still a molecular Molfile,
+          // before layout imports it into the canvas. Never rewrite SVG bonds.
+          display = (
+            await editor.structService.dearomatize({
+              struct: display,
+              output_format: "chemical/x-mdl-molfile",
+            })
+          ).struct;
+          if (!display?.trim() || display.length > 5 * 1024 ** 2)
+            throw new Error(
+              "The native aromatic display copy is unavailable or too large.",
+            );
           await editor.setMolecule(await foldDisplayHydrogens(editor, display));
-          // Ketcher assigns a valid Kekulé form to this display copy. Removing
-          // circles from an SVG would lose the aromatic bond information.
-          await editor.dearomatize();
           const arranged = await editor.getMolfile();
           active.throwIfAborted();
           return editor.generateImage!(

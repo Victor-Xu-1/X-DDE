@@ -54,22 +54,12 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
         expect(drawing.get_by_role("img")).to_be_visible()
         handle = page.locator('iframe[title="Local 2D molecule drawing service"]').element_handle()
         frame = handle.content_frame()
-        native = frame.evaluate("""async (smiles) => {
+        native = frame.evaluate("""async () => {
             const editor = window.ketcher;
             const mol = await editor.getMolfile();
             const ket = JSON.parse(await editor.getKet());
-            const converted = await editor.structService.convert({struct: smiles,
-                input_format: 'chemical/x-daylight-smiles',
-                output_format: 'chemical/x-indigo-ket'});
-            const arranged = await editor.structService.layout({struct: converted.struct,
-                output_format: 'chemical/x-indigo-ket'});
-            const directMol = await editor.structService.convert({struct: smiles,
-                input_format: 'chemical/x-daylight-smiles',
-                output_format: 'chemical/x-mdl-molfile'});
-            const directKekule = await editor.structService.dearomatize({struct: smiles,
-                output_format: 'chemical/x-mdl-molfile'});
-            return {mol, ket, converted, arranged, directMol, directKekule};
-        }""", SCAFFOLD)
+            return {mol, ket};
+        }""")
         (evidence / f"native-{language}-{width}.mol").write_text(native["mol"])
         (evidence / f"native-{language}-{width}.json").write_text(json.dumps(native))
         page.screenshot(path=evidence / f"scaffold-{language}-{width}.png", full_page=True)
