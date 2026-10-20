@@ -125,6 +125,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-chart-export"
+          export WB_STATE_DIR="$RUNNER_TEMP/x-dde-chart-export/state"
           echo "WB_HOME=$RUNNER_TEMP/x-dde-chart-export" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-chart-export/state" >> "$GITHUB_ENV"
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
