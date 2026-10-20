@@ -13,8 +13,16 @@ def reference(raw=b"controlled\n"):
     return {"asset_id": str(uuid4()), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
-def quality_task():
+def quality_task(assets=None):
     molecule, protein = reference(), reference()
+    if assets is not None:
+        molecule, protein = [
+            {"asset_id": str(asset.id), "sha256": asset.sha256}
+            for asset in (
+                assets.save("controlled.sdf", "ligand", b"controlled\n"),
+                assets.save("controlled.pdb", "structure", b"controlled\n"),
+            )
+        ]
     return PoseQualityTask(
         molecule=molecule,
         protein=protein,
@@ -39,7 +47,11 @@ def quality_plan(task, *, downstream=True):
             {
                 "id": "properties",
                 "depends_on": ["quality"],
-                "request": {"operation": "properties", "smiles": ["CCN"]},
+                "request": {
+                    "operation": "properties",
+                    "name": "Controlled descriptors",
+                    "smiles": ["CCN"],
+                },
             }
         )
     return PlanInput.model_validate({"name": "Controlled gate fixture", "steps": steps})

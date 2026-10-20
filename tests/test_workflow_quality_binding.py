@@ -20,9 +20,16 @@ from opendde_workbench.workflows.bindings import resolve
 from opendde_workbench.workflows.contracts import PlanInput
 
 
-def docking_case():
+def docking_case(assets=None):
     value = result_body()
     value["receptor"]["sha256"] = hashlib.sha256(b"controlled receptor\n").hexdigest()
+    if assets is not None:
+        for role, name, kind, raw in (
+            ("receptor", "receptor.pdb", "structure", b"controlled receptor\n"),
+            ("ligand", "input.sdf", "ligand", b"controlled pose\n$$$$\n"),
+        ):
+            asset = assets.save(name, kind, raw)
+            value[role].update(asset_id=str(asset.id), sha256=asset.sha256)
     result = DockingResult.model_validate(value)
     task = DockingTask(
         name="Controlled scoring fixture",
@@ -69,7 +76,7 @@ def test_exact_paired_outputs_resolve_into_new_versions_not_old_template_inputs(
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")
     outputs = OutputCatalog(store, assets)
-    task, value = docking_case()
+    task, value = docking_case(assets)
     job = store.create(task, str(uuid4()), 20, 500)
     store.claim(job.id)
     output = settings.state_dir / "jobs" / job.id / "output"

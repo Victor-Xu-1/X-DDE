@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 from quality_workflow_case import quality_plan, quality_task, report, write_report
 
+from opendde_workbench.assets import AssetStore
 from opendde_workbench.models import Status
 from opendde_workbench.quality.assessment import assess_checks
 from opendde_workbench.quality.result import PoseQualityResult
@@ -37,7 +38,7 @@ def test_gate_controls_real_persisted_dispatch_without_changing_native_success(
     settings.state_dir.mkdir(parents=True)
     store = Store(settings.state_dir / "jobs.sqlite3")
     records = WorkflowRecords(store)
-    task = quality_task()
+    task = quality_task(AssetStore(store, settings.state_dir / "assets"))
     plan = records.save_plan(quality_plan(task, downstream=downstream), uuid4())
     run = records.start(plan["id"], plan["sha256"], uuid4())
     job = records.enqueue(run["id"], "quality", task, 20, 500)
