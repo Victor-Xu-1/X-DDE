@@ -184,14 +184,24 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
             bounds = plot.locator(".heatmaplayer image").first.bounding_box()
             assert bounds
             columns, rows = len(traces[0]["x"]), len(traces[0]["y"])
+            # Stable block ordering may place an unreported pair in the corner.
+            # Exercise a real native cell, preserving gaps and measured zeroes.
+            row, column = next(
+                (i, j)
+                for i, values in enumerate(traces[0]["z"])
+                for j, value in enumerate(values)
+                if value is not None
+            )
             page.mouse.move(
-                bounds["x"] + bounds["width"] / columns / 2,
-                bounds["y"] + bounds["height"] / rows / 2,
+                bounds["x"] + bounds["width"] * (column + 0.5) / columns,
+                bounds["y"] + bounds["height"] * (row + 0.5) / rows,
             )
             expect(plot.locator(".hoverlayer .hovertext").first).to_be_visible()
             expect(plot.locator(".hoverlayer")).to_contain_text(
                 "Enrichment" if language == "en" else "富集"
             )
+            expect(plot.locator(".hoverlayer")).to_contain_text(traces[0]["y"][row])
+            expect(plot.locator(".hoverlayer")).to_contain_text(traces[0]["x"][column])
         chart.get_by_role(
             "combobox", name="Chart interaction" if language == "en" else "图表操作"
         ).select_option("pan")
