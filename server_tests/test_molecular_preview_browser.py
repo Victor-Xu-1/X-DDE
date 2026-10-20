@@ -63,7 +63,12 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
                 output_format: 'chemical/x-indigo-ket'});
             const arranged = await editor.structService.layout({struct: converted.struct,
                 output_format: 'chemical/x-indigo-ket'});
-            return {mol, ket, converted, arranged};
+            const directMol = await editor.structService.convert({struct: smiles,
+                input_format: 'chemical/x-daylight-smiles',
+                output_format: 'chemical/x-mdl-molfile'});
+            const directKekule = await editor.structService.dearomatize({struct: smiles,
+                output_format: 'chemical/x-mdl-molfile'});
+            return {mol, ket, converted, arranged, directMol, directKekule};
         }""", SCAFFOLD)
         (evidence / f"native-{language}-{width}.mol").write_text(native["mol"])
         (evidence / f"native-{language}-{width}.json").write_text(json.dumps(native))
