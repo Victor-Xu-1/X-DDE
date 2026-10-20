@@ -50,7 +50,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           python - <<'PY'
-          import json, os, subprocess, zipfile
+          import os, subprocess
           base = os.environ.get("BASE", "")
           changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
           data = {
@@ -138,7 +138,7 @@ jobs:
           echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
           .venv/bin/python - <<'PY'
-          import os, subprocess
+          import json, os, subprocess, zipfile
           from pathlib import Path
           from opendde_workbench.examples.bundle import restore_bundle
           from opendde_workbench.examples import bundle_release, stat6_bundle_release, surface_bundle_release
