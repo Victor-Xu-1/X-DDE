@@ -59,7 +59,8 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
             const mol = await editor.getMolfile();
             const ket = JSON.parse(await editor.getKet());
             const converted = await editor.structService.convert({struct: smiles,
-                input_format: 'chemical/x-daylight-smiles', output_format: 'chemical/x-indigo-ket'});
+                input_format: 'chemical/x-daylight-smiles',
+                output_format: 'chemical/x-indigo-ket'});
             const arranged = await editor.structService.layout({struct: converted.struct,
                 output_format: 'chemical/x-indigo-ket'});
             return {mol, ket, converted, arranged};
