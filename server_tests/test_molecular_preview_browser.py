@@ -13,8 +13,15 @@ from server_tests.test_navigation_shell_browser import open_navigation
 SCAFFOLD = "*c1ccc2cc(C(=O)N(C)C)[nH]c2c1F"
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_known_smiles_is_a_molecule_not_a_query(language, width):
+@pytest.mark.parametrize("case_id,language,width,structure", [
+    ("aromatic-en", "en", 1440, SCAFFOLD),
+    ("aromatic-zh", "zh", 390, SCAFFOLD),
+    ("tautomer-stereo", "en", 1440,
+     "*N1CCN(c2ccc3c(c2F)=N[C@@H](C(=O)N(C)C)C=3)CC1"),
+    ("tautomer-enol", "en", 1440,
+     "*N1CCN(c2ccc3c(c2F)=N/C(=C(/O)N(C)C)C=3)CC1"),
+])
+def test_known_smiles_is_a_molecule_not_a_query(case_id, language, width, structure):
     base = os.environ["WB_BROWSER_URL"]
     evidence = Path("outputs/molecular-preview")
     evidence.mkdir(parents=True, exist_ok=True)
@@ -45,7 +52,7 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
             "textbox", name="片段结构（每行一个）" if zh else "Fragment structures (one per line)",
             exact=True,
         )
-        source.fill(SCAFFOLD)
+        source.fill(structure)
         page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
         scope = page.get_by_role("region", name="分子设计范围" if zh else "Molecular design scope",
                                  exact=True)
@@ -54,26 +61,30 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
         expect(drawing.get_by_role("img")).to_be_visible()
         handle = page.locator('iframe[title="Local 2D molecule drawing service"]').element_handle()
         frame = handle.content_frame()
-        native = frame.evaluate("""async () => {
+        native = frame.evaluate("""async (smiles) => {
             const editor = window.ketcher;
             const mol = await editor.getMolfile();
             const ket = JSON.parse(await editor.getKet());
-            return {mol, ket};
-        }""")
-        (evidence / f"native-{language}-{width}.mol").write_text(native["mol"])
-        (evidence / f"native-{language}-{width}.json").write_text(json.dumps(native))
-        page.screenshot(path=evidence / f"scaffold-{language}-{width}.png", full_page=True)
+            const direct = await editor.structService.dearomatize({struct: smiles,
+                output_format: 'chemical/x-mdl-molfile'});
+            return {mol, ket, direct};
+        }""", structure)
+        (evidence / f"native-{case_id}.mol").write_text(native["mol"])
+        (evidence / f"native-{case_id}.json").write_text(json.dumps(native))
+        page.screenshot(path=evidence / f"scaffold-{case_id}.png", full_page=True)
         mol = Chem.MolFromMolBlock(native["mol"], removeHs=False, strictParsing=True)
         # The deliberately supplied attachment '*' is a Molfile AtomNull query.
         # Every actual element, especially the donor N, must remain molecular.
         assert mol is not None and not any(
             atom.HasQuery() for atom in mol.GetAtoms() if atom.GetAtomicNum() != 0
         )
-        expected = Chem.MolFromSmiles(SCAFFOLD)
+        expected = Chem.MolFromSmiles(structure)
         assert Chem.MolToSmiles(mol, isomericSmiles=True) == Chem.MolToSmiles(expected)
         assert sum(atom.GetAtomicNum() == 0 for atom in mol.GetAtoms()) == 1
-        assert any(atom.GetAtomicNum() == 7 and atom.GetTotalNumHs() == 1
-                   for atom in mol.GetAtoms())
+        assert sum(atom.GetTotalNumHs() for atom in mol.GetAtoms()
+                   if atom.GetAtomicNum() in {7, 8, 16}) == sum(
+                       atom.GetTotalNumHs() for atom in expected.GetAtoms()
+                       if atom.GetAtomicNum() in {7, 8, 16})
         raw = Chem.MolFromMolBlock(native["mol"], sanitize=False, removeHs=False)
         assert not any(bond.GetBondType() == Chem.BondType.AROMATIC for bond in raw.GetBonds())
         assert all(atom.GetAtomicNum() != 1 or all(
@@ -81,7 +92,7 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
         ) for atom in mol.GetAtoms())
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         page.get_by_role("button", name="上一步" if zh else "Back", exact=True).click()
-        expect(source).to_have_value(SCAFFOLD)
+        expect(source).to_have_value(structure)
         assert not errors and not submissions
         assert page.request.get(base + "/api/jobs").json() == before
         browser.close()
