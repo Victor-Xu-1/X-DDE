@@ -166,3 +166,8 @@ view subset. Missing chart rows are never filled with invented zeroes. Parent co
 units are resolved against the exact recorded report digest, with cancellation and
 retry; raw PCR bias, unverified imported processing, and affinity/replicate limitations
 remain visible. These presentation/read-only API changes do not re-run native science.
+
+Print height for categorical charts follows distinct category rows, including numeric
+zero. Repeated confidence-interval endpoints and null separators never add rows.
+Native interval endpoints and marker values are preserved in a separate export pass;
+continuous traces retain compact sizing and heatmaps retain a square print layout.

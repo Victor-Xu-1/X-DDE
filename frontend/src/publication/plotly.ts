@@ -28,19 +28,40 @@ export async function plotlyFigure(
     }
   }
   const matrix = copy.data.some((trace) => trace.type === "heatmap");
-  const count = Math.max(
-    0,
-    ...copy.data.map((trace) =>
-      Array.isArray((trace as Plotly.PlotData).y)
-        ? (trace as Plotly.PlotData).y.length
-        : 0,
-    ),
-  );
-  const categorical = copy.data.some(
-    (trace) =>
-      Array.isArray((trace as Plotly.PlotData).y) &&
-      (trace as Plotly.PlotData).y.some((y) => typeof y === "string"),
-  );
+  const categorical =
+    copy.layout.yaxis?.type === "category" ||
+    copy.data.some((trace) => {
+      const values = (trace as Plotly.PlotData).y;
+      return (
+        Array.isArray(values) &&
+        values.some((value) => typeof value === "string")
+      );
+    });
+  let count = 0;
+  if (matrix) {
+    count = Math.max(
+      0,
+      ...copy.data.map((trace) =>
+        Array.isArray((trace as Plotly.PlotData).y)
+          ? (trace as Plotly.PlotData).y.length
+          : 0,
+      ),
+    );
+  } else if (categorical) {
+    const rows = new Set<string | number>();
+    for (const trace of copy.data) {
+      const values = (trace as Plotly.PlotData).y;
+      if (!Array.isArray(values)) continue;
+      for (const value of values) {
+        if (
+          typeof value === "string" ||
+          (typeof value === "number" && Number.isFinite(value))
+        )
+          rows.add(value);
+      }
+    }
+    count = rows.size;
+  }
   const height = matrix
     ? width
     : categorical

@@ -57,6 +57,27 @@ jobs:
       WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select chart-export sizing or simulation-view consumers
+        id: export_scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          base = os.environ.get('BASE', '')
+          if os.environ.get('GITHUB_REF_NAME') != 'main':
+              base = subprocess.check_output(['git','merge-base','origin/main','HEAD'], text=True).strip()
+          changed = subprocess.check_output(['git','diff','--name-only',base,'HEAD'], text=True).splitlines() if base and set(base) != {'0'} else []
+          allowed = {'frontend/src/publication/plotly.ts', 'frontend/src/publication/plotly.test.ts',
+                     '.github/workflows/simulation-view-checks.yml', 'docs/design/screening-and-del.md',
+                     'pyproject.toml', 'uv.lock', 'frontend/package.json', 'frontend/package-lock.json',
+                     'install.sh', 'install.ps1'}
+          only = bool(changed) and 'frontend/src/publication/plotly.ts' in changed and set(changed) <= allowed
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('only=' + str(only).lower() + '\n')
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -64,6 +85,7 @@ jobs:
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Changed simulation previews and direct result consumers
+        if: steps.export_scope.outputs.only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/simulations/SimulationResults.test.tsx
@@ -78,21 +100,45 @@ jobs:
           src/simulations/BoundPoseComparison.test.tsx
           src/simulations/comparison-figure.test.ts src/simulations/molecular-view-state.test.ts
           src/editors/molstar-appearance.test.ts
+      - name: Native chart sizing, intervals, category/heatmap/continuous consumers only
+        if: steps.export_scope.outputs.only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/publication/plotly.test.ts
+          src/datasets/SeriesEvidencePlots.test.tsx src/datasets/statistical-plots.test.tsx
+          src/presentation/plots/InteractivePlot.test.tsx
+          src/simulations/FreeEnergyCycle.test.tsx src/simulations/OverlapHeatmap.test.tsx
       - name: Restore retained MD and TYK2 plan; no new scientific execution
+        if: steps.export_scope.outputs.only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
       - run: uv run --locked playwright install chromium --with-deps
       - name: Native results, controlled completed-result diagnostics and exact downloads
+        if: steps.export_scope.outputs.only != 'true'
         run: >-
           uv run --locked python -m pytest -x -q
           server_tests/test_native_simulation_views.py
           server_tests/test_fep_diagnostics_browser.py -k 'not calculation'
+      - name: Restore retained DEL chart results for physical export checks, without science
+        if: steps.export_scope.outputs.only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-chart-export" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-chart-export/state" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components public-dataset-examples
+      - name: Actual bilingual retained series charts and native SVG downloads only
+        if: steps.export_scope.outputs.only == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.series'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: simulation-preview-evidence
           path: |
+            outputs/statistical-previews/**
             outputs/native-simulations/openmm.dynamics/browser/**
             outputs/native-simulations/openfe.rbfe/browser/**
             outputs/simulation-diagnostics/**
