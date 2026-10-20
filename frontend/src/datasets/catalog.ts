@@ -166,6 +166,7 @@ export const dataDefaults = {
     library_size: null,
     minimum_counts: 10,
     minimum_enrichment: 3,
+    minimum_supporting_samples: 1,
     retain: 100,
     chosen_comparison: "",
     attachment_policy: "retain",

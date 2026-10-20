@@ -99,7 +99,7 @@ jobs:
         if: steps.scope.outputs.deployment == 'true'
         run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py
       - name: Verify case installation into the active state
-        run: uv run --locked pytest -q tests/test_dataset_resources.py -k case_component_queue_restores_into_current_state
+        run: uv run --locked pytest -q tests/test_dataset_resources.py
       - name: Fetch the exact reviewed full-cohort DEL archive
         env:
           GH_TOKEN: ${{ github.token }}

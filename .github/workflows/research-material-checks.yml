@@ -9,6 +9,8 @@ on:
       - "frontend/src/studio/method-choices.ts"
       - "frontend/src/studio/MethodSwitch.test.tsx"
       - "frontend/src/deployment/labels.ts"
+      - "frontend/src/datasets/catalog.ts"
+      - "src/opendde_workbench/datasets/del_options.py"
       - "frontend/src/guided/ChoiceCards.tsx"
       - "frontend/src/datasets/DELCountMaterials*"
       - "frontend/src/datasets/DELMaterialQuestion.tsx"
@@ -41,6 +43,7 @@ jobs:
           npx vitest run src/studio/MethodSwitch.test.tsx
           src/datasets/DELCountMaterials.test.tsx src/datasets/DatasetPicker.test.tsx
           src/datasets/SourcePicker.test.tsx src/datasets/upload.test.ts
+          src/datasets/DELTemplateReplay.test.tsx src/datasets/DELAnalysisSupport.test.tsx
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual material transitions and existing component display; no scientific analysis
         run: >-

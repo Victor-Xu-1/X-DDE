@@ -10,6 +10,10 @@ on:
       - '!frontend/src/datasets/CandidateHandoff*'
       - '!frontend/src/datasets/CandidateView*'
       - 'tests/test_dataset*'
+      # Resource transfer/installation has its full-file checks in the case bundle gate.
+      - '!tests/test_dataset_resources.py'
+      # Generated DEL defaults and exact replay are owned by research-material-checks.yml.
+      - '!frontend/src/datasets/catalog.ts'
       - 'tests/test_supplier*'
       - 'server_tests/*dataset*'
       - 'server_tests/test_del_umi_count.py'
