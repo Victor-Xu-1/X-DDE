@@ -554,3 +554,14 @@ publication. Only a fully closed ZIP is published without replacing another call
 Historical manifest schemas, catalogue identities, native results and immutable pins remain
 subject to their existing verification. A successful archive copy does not rerun scientific
 work or improve its scientific acceptance level.
+
+“DEL 完整研究示例”组件通过现有部署队列，将 Data 2 的库定义、成员结构、读段解码、
+UMI 计数及全量富集分析载入当前工作区。组件保留原实验靶点 BRD4、完整的 518,285
+个成员、计算方法及限制；安装不要求 DELi 计算环境，不启动推理或其他研究任务。
+固定示例从各子模块的“示例结果”入口打开，历史与个人数据保持独立。
+
+The DEL research examples component restores Data 2 through the existing deployment queue
+into the active workspace: library definition, member structures, read decoding, UMI counts
+and full-cohort enrichment. It preserves the original BRD4 target, all 518,285 observed members,
+methods and limitations. Installation needs no DELi calculation environment and launches no
+scientific tasks. Each submodule opens its own Example results; personal history is preserved.

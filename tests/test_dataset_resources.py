@@ -13,7 +13,13 @@ from opendde_workbench.integrations.specs import PROGRAMS
 
 
 @pytest.mark.parametrize(
-    "package", ["public-examples", "public-dataset-examples", "public-surface-examples"]
+    "package",
+    [
+        "public-examples",
+        "public-dataset-examples",
+        "public-surface-examples",
+        "public-del-examples",
+    ],
 )
 def test_case_component_queue_restores_into_current_state(package, tmp_path, monkeypatch):
     """Exercise installer/archive/SQLite boundaries without pretending to compute science."""

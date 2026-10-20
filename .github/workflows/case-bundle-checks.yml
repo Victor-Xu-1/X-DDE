@@ -6,6 +6,8 @@ on:
       - 'src/opendde_workbench/examples/bundle*.py'
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
       - 'src/opendde_workbench/examples/stat6_bundle_release.py'
+      - 'src/opendde_workbench/examples/del_bundle_release.py'
+      - 'tests/test_del_case_component.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
       - 'tests/ci/test_case_bundle_scope.py'
@@ -32,6 +34,8 @@ on:
       - 'src/opendde_workbench/examples/bundle*.py'
       - 'src/opendde_workbench/examples/surface_bundle_release.py'
       - 'src/opendde_workbench/examples/stat6_bundle_release.py'
+      - 'src/opendde_workbench/examples/del_bundle_release.py'
+      - 'tests/test_del_case_component.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
       - 'tests/ci/test_case_bundle_scope.py'
@@ -96,6 +100,18 @@ jobs:
         run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py
       - name: Verify case installation into the active state
         run: uv run --locked pytest -q tests/test_dataset_resources.py -k case_component_queue_restores_into_current_state
+      - name: Fetch the exact reviewed full-cohort DEL archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.del_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          [[ "${source[0]}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "${source[1]}" = del6-reviewed-results-v2.zip
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_DEL_DATA2=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
+      - name: Full-cohort native rows, immutable module examples and idempotent cold restore only
+        run: uv run --locked pytest -q tests/test_del_case_component.py
       - name: Stage the exact accepted release data without scientific recomputation
         env:
           GH_TOKEN: ${{ github.token }}

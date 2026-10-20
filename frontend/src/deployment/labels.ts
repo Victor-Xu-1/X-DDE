@@ -7,6 +7,7 @@ export const names: Record<string, string> = {
   "public-pose-examples": "结合模式分群案例",
   "public-channel-examples": "通道与瓶颈案例",
   "public-dataset-examples": "高通量筛选与 DEL 案例",
+  "public-del-examples": "DEL 完整研究示例",
   "supplier-libraries": "供应商公开结构文件",
   drugclip: "高通量筛选引擎",
   "drugclip-models": "六模型筛选资源",

@@ -19,6 +19,10 @@ from ..examples.channel_bundle_release import VERSION as CHANNEL_CASE_VERSION
 from ..examples.dataset_bundle_release import SHA256 as DATA_CASE_SHA
 from ..examples.dataset_bundle_release import URL as DATA_CASE_URL
 from ..examples.dataset_bundle_release import VERSION as DATA_CASE_VERSION
+from ..examples.del_bundle_release import BYTES as DEL_CASE_BYTES
+from ..examples.del_bundle_release import SHA256 as DEL_CASE_SHA
+from ..examples.del_bundle_release import URL as DEL_CASE_URL
+from ..examples.del_bundle_release import VERSION as DEL_CASE_VERSION
 from ..examples.manifest import MANIFEST as EXAMPLE_MANIFEST
 from ..examples.pose_bundle_release import SHA256 as POSE_CASE_SHA
 from ..examples.pose_bundle_release import URL as POSE_CASE_URL
@@ -324,6 +328,7 @@ CASE_BUNDLE_IDS = (
     "public-stat6-examples",
     "public-examples",
     "public-dataset-examples",
+    "public-del-examples",
     "public-surface-examples",
     "public-pose-examples",
     "public-channel-examples",
@@ -445,6 +450,21 @@ PACKAGES["public-dataset-examples"] = Package(
     url=DATA_CASE_URL,
     checksum=DATA_CASE_SHA,
     license="MIT; CC-BY-4.0; ChEMBL CC-BY-SA-3.0; retrieval model outputs CC-BY-NC-4.0",
+    engine="x-dde",
+    kind="data",
+)
+
+PACKAGES["public-del-examples"] = Package(
+    "public-del-examples",
+    DEL_CASE_VERSION,
+    "DEL research examples",
+    "5 个模块的完整实验计数与原生结果 / Full-cohort counts and native results for 5 modules",
+    f"{DEL_CASE_BYTES / 1_000_000:.1f} MB 下载；建议 1.5 GiB 导入空间 / "
+    f"{DEL_CASE_BYTES / 1_000_000:.1f} MB download; 1.5 GiB import space",
+    automatic=True,
+    url=DEL_CASE_URL,
+    checksum=DEL_CASE_SHA,
+    license="MIT source data; computational enrichment and sample support, not binding proof",
     engine="x-dde",
     kind="data",
 )

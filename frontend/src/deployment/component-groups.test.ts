@@ -1,6 +1,22 @@
 import { expect, it } from "vitest";
 import { componentGroups } from "./component-groups";
 import { packageOf } from "./fixtures";
+import { componentName } from "./labels";
+
+it("groups the full DEL cohort with its workflow without requesting a scientific environment", () => {
+  const data = packageOf("public-del-examples", {
+    engine: "x-dde",
+    kind: "data",
+    name: "DEL research examples",
+  });
+  const groups = componentGroups([data]);
+  expect(groups).toHaveLength(1);
+  expect(groups[0].id).toBe("large-libraries");
+  expect(groups[0].packages).toEqual([data]);
+  expect(groups[0].recommended).toContain("public-del-examples");
+  expect(componentName(data, true)).toBe("DEL 完整研究示例");
+  expect(componentName(data, false)).toBe("DEL research examples");
+});
 
 it("presents all interchangeable simulation engines without expanding the recommended installation", () => {
   const [group] = componentGroups([
