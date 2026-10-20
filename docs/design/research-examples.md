@@ -56,13 +56,14 @@ module definitions, including request replay and follow-up lineage. It cannot
 downgrade or overwrite a newer installed pin. Unknown catalogues, changed source
 manifests or altered frozen module definitions remain explicit failures.
 
-An unversioned native-file input retains its exact automatically indexed source
-when that source was derived from a selected study input. Export verifies the
-deterministic output identity, original asset bytes and native artifact inventory
-before following its typed source/parent references. Private annotations,
-unconsumed sibling versions and same-name files are not provenance authorities.
-The retained validation label is unchanged; portability never upgrades scientific
-acceptance or modifies the sealed task request.
+When a new case consumes a file from an earlier reviewed case, export retains
+that source pin as a dependency. It must belong to the same study, match its
+stored identity and not exceed the module's current revision. The deterministic
+native output identity, exact asset bytes and native artifact inventory are
+verified before following typed source/parent references. Unconsumed old pins,
+private annotations and same-name files are not exported. Original requests,
+validation labels and immutable pins remain unchanged; lineage checks are not
+relaxed to make an incomplete package pass.
 
 Updating computational examples does not promote their scientific claims.
 Generation proposes chemical structures; state preparation produces unbound

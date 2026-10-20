@@ -161,6 +161,14 @@ def test_unversioned_file_retains_exact_native_origin_from_selected_input(settin
             scientific_inputs=[native.reference.model_copy(update={"version_id": None})],
         ),
     )
+    old_modules = dict(bundle_catalogue("stat6").modules)
+    old_modules["properties"] = old_modules["properties"].model_copy(update={"revision": 2})
+    older = ExamplePins(store, settings.state_dir, modules=old_modules).pin(
+        "properties",
+        producer.id,
+        prepared.model_copy(update={"module": old_modules["properties"]}),
+        review=review,
+    )
     pin = pins.pin("properties", consumer.id, prepared, review=review)
     archive = tmp_path / "native-file-source.zip"
     exported = export_bundle(
@@ -169,6 +177,7 @@ def test_unversioned_file_retains_exact_native_origin_from_selected_input(settin
     manifest = read_archive(archive, tmp_path / "inspect-origin", exported["sha256"])
     objects = {row["id"] for row in manifest["records"]["scientific_objects"]}
     assert str(native.id) in objects and str(private.id) not in objects
+    assert {row["revision"] for row in manifest["records"]["example_pins"]} == {2, 3}
     assert {row["id"] for row in manifest["records"]["jobs"]} == {producer.id, consumer.id}
     destination = replace(settings, state_dir=tmp_path / "restored-native-origin")
     assert restore_bundle(archive, destination, exported["sha256"])["computed"] == 1
@@ -178,4 +187,10 @@ def test_unversioned_file_retains_exact_native_origin_from_selected_input(settin
             "properties", verify=True
         )
         == pin
+    )
+    assert (
+        ExamplePins(restored, destination.state_dir, modules=old_modules).get(
+            "properties", verify=True
+        )
+        == older
     )

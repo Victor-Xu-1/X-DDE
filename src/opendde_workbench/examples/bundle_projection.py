@@ -88,13 +88,14 @@ def row_references(row):
 
 def project_records(store, roots, *, capabilities=None, modules=MODULES):
     from .bundle_output_witnesses import OutputWitnesses
-    from .input_lineage import molecule_references
+    from .bundle_pin_dependencies import source_pins
 
     selected = {name: [] for name in TABLES}
     identifiers, seen = set(roots), set()
     witnesses = OutputWitnesses(store)
     with store.connect() as db:
         rows = {name: [dict(row) for row in db.execute("SELECT * FROM " + name)] for name in TABLES}
+        dependencies = source_pins(rows["example_pins"], modules, capabilities)
         for name in ("example_pins", "example_record_pins"):
             for index, row in enumerate(rows[name]):
                 module = modules.get(row["capability_id"])
@@ -115,19 +116,18 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                 for row in selected["jobs"]
                 for identifier in input_identifiers(TASK_ADAPTER.validate_json(row["request"]))
             }
-            unversioned_assets = {
-                str(reference.asset_id)
-                for row in selected["jobs"]
-                for reference in molecule_references(TASK_ADAPTER.validate_json(row["request"]))
-                if reference.version_id is None
-            }
             run_ids = {row["id"] for row in selected["workflow_runs"]}
             for name, values in rows.items():
                 for index, row in enumerate(values):
-                    if (name, index) in seen or name in {"example_pins", "example_record_pins"}:
+                    if (name, index) in seen or name == "example_record_pins":
                         continue
                     included = row.get("id") in identifiers
-                    if name == "job_environments":
+                    if name == "example_pins":
+                        included = (
+                            index in dependencies.get(row["job_id"], ())
+                            and row["job_id"] in identifiers
+                        )
+                    elif name == "job_environments":
                         included = row["job_id"] in job_ids
                     elif name == "scientific_objects" and not included:
                         body = json.loads(row["body"])
@@ -136,9 +136,7 @@ def project_records(store, roots, *, capabilities=None, modules=MODULES):
                             "native_generated",
                         }
                         if not included:
-                            included = witnesses.includes(
-                                row, job_ids, input_assets, identifiers, unversioned_assets
-                            )
+                            included = witnesses.includes(row, job_ids, input_assets, dependencies)
                     elif name == "research_state_sets" and not included:
                         included = row["source_job"] in job_ids
                     elif name == "workflow_attempts":
