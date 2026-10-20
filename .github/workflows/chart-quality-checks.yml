@@ -63,11 +63,15 @@ jobs:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.candidate_views_only != 'true'
         with:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
+        if: steps.scope.outputs.candidate_views_only != 'true'
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
+        if: steps.scope.outputs.candidate_views_only != 'true'
       - run: uv sync --locked --group dev --group browser
+        if: steps.scope.outputs.candidate_views_only != 'true'
       - name: Changed chart, document, structure appearance and direct simulation consumers
         if: steps.scope.outputs.del_only != 'true'
         working-directory: frontend
@@ -80,7 +84,7 @@ jobs:
           src/publication/embedded-raster.test.ts src/viewer/style.test.ts
           src/simulations/SimulationResults.test.tsx
       - name: Native barcode evidence, missing/contradictory checks and direct result consumers
-        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true' && steps.scope.outputs.series_views_only != 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true' && steps.scope.outputs.series_views_only != 'true' && steps.scope.outputs.candidate_views_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/BarcodeQuality.test.tsx src/datasets/chart-documents.test.ts
@@ -100,6 +104,7 @@ jobs:
           src/datasets/ResearchTable.test.tsx src/datasets/DatasetCharts.test.tsx
           src/datasets/DatasetResults.test.tsx
       - name: Restore public research cases and graphical tools; never re-run science for layout
+        if: steps.scope.outputs.candidate_views_only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -110,11 +115,12 @@ jobs:
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-dataset-examples
           uv run --locked playwright install chromium --with-deps
+        if: steps.scope.outputs.candidate_views_only != 'true'
       - name: Actual bilingual statistical charts, interactions and paper figures
         if: steps.scope.outputs.del_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py
       - name: Actual retained barcode quality, bilingual downloads and mobile overflow
-        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true' && steps.scope.outputs.series_views_only != 'true'
+        if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed != 'true' && steps.scope.outputs.series_views_only != 'true' && steps.scope.outputs.candidate_views_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_statistical_previews_browser.py -k 'del.library or del.decode'
       - name: Actual retained enrichment result, native table search and download in both languages
         if: steps.scope.outputs.del_only == 'true' && steps.scope.outputs.native_enrichment_changed == 'true'

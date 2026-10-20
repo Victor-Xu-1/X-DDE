@@ -17,6 +17,11 @@ vi.mock("./CandidateHandoff", () => ({
     return <>{children}</>;
   },
 }));
+vi.mock("./DELCandidateEvidence", () => ({
+  DELCandidateEvidence: ({ candidate }: { candidate: DatasetCandidate }) => (
+    <p role="note">Evidence: {candidate.id}</p>
+  ),
+}));
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: (props: unknown) => {
     probes.structure(props);
@@ -53,6 +58,22 @@ const result = (...candidates: DatasetCandidate[]) =>
     artifacts: [],
     metadata: {},
   }) as unknown as DatasetResult;
+
+it("binds encoded count evidence to the exact selected DEL member", () => {
+  const data = {
+    ...result(
+      candidate("DEL-reference", "unbound_conformer", 0),
+      candidate("DEL-hypothesis", "unbound_conformer", 1),
+    ),
+    operation: "del_candidates" as const,
+  };
+  render(<CandidateView job={job} result={data} language="en" />);
+  expect(screen.getByRole("note")).toHaveTextContent("Evidence: DEL-reference");
+  fireEvent.click(screen.getByRole("button", { name: "DEL-hypothesis" }));
+  expect(screen.getByRole("note")).toHaveTextContent(
+    "Evidence: DEL-hypothesis",
+  );
+});
 
 it("opens a fixed native case without mounting an interactive research handoff", () => {
   render(

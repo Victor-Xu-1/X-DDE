@@ -87,6 +87,8 @@ on:
       - "frontend/src/datasets/DEL*"
       # Retained DEL series views have exact SQLite/chart/browser checks.
       - "!frontend/src/datasets/DELSeriesContext*"
+      - "!frontend/src/datasets/DELCandidateEvidence*"
+      - "!frontend/src/datasets/DELReviewQuestion.test.tsx"
       - "!frontend/src/datasets/DELCountMaterials*"
       - "!frontend/src/datasets/DELMaterialQuestion.tsx"
       - "frontend/src/receptors/SurfaceForm*"
@@ -375,6 +377,8 @@ on:
       - "frontend/src/datasets/DEL*"
       # Retained DEL series views have exact SQLite/chart/browser checks.
       - "!frontend/src/datasets/DELSeriesContext*"
+      - "!frontend/src/datasets/DELCandidateEvidence*"
+      - "!frontend/src/datasets/DELReviewQuestion.test.tsx"
       - "!frontend/src/datasets/DELCountMaterials*"
       - "!frontend/src/datasets/DELMaterialQuestion.tsx"
       - "frontend/src/receptors/SurfaceForm*"

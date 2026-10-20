@@ -171,3 +171,12 @@ Print height for categorical charts follows distinct category rows, including nu
 zero. Repeated confidence-interval endpoints and null separators never add rows.
 Native interval endpoints and marker values are preserved in a separate export pass;
 continuous traces retain compact sizing and heatmaps retain a square print layout.
+
+DEL candidate previews resolve count evidence against the exact source analysis
+report digest, comparison and member identity. Counts, conditional intervals,
+sample support and target-sample CV follow the selected candidate; late replies
+from a prior candidate cannot replace them. Source scores must agree with the
+handoff result. Missing historical provenance stays unavailable rather than
+borrowing a nearby member. The final handoff review names the comparison,
+selected members and explicit attachment treatment. The existing pose-session
+optimization remains the single preview/minimization and pose-history authority.

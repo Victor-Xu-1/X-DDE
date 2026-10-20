@@ -9,6 +9,7 @@ import type { DatasetResult } from "./types";
 import { CandidateHandoff } from "./CandidateHandoff";
 import { CandidateTable } from "./CandidateTable";
 import { PoseSession } from "../viewer/PoseSession";
+import { DELCandidateEvidence } from "./DELCandidateEvidence";
 export function CandidateView({
   job,
   result,
@@ -132,6 +133,14 @@ export function CandidateView({
         </section>
       }
     >
+      {result.operation === "del_candidates" && candidate && (
+        <DELCandidateEvidence
+          jobId={job.id}
+          candidate={candidate}
+          result={result}
+          language={language}
+        />
+      )}
       <CandidateTable
         result={result}
         language={language}

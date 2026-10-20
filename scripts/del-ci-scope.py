@@ -10,6 +10,10 @@ PATTERNS = (
     "frontend/src/datasets/DatasetCharts*",
     "frontend/src/datasets/DatasetResults*",
     "frontend/src/datasets/ResearchTable*",
+    "frontend/src/datasets/CandidateView*",
+    "frontend/src/datasets/DELCandidateEvidence*",
+    "frontend/src/datasets/useDELCandidateEvidence*",
+    "frontend/src/datasets/candidate-evidence.css",
     "frontend/src/datasets/SeriesEvidencePlots*",
     "frontend/src/datasets/SeriesEnrichmentPlot*",
     "frontend/src/datasets/MonosynthonPlot*",
@@ -25,7 +29,7 @@ PATTERNS = (
     "frontend/src/datasets/result-labels.ts",
     "frontend/src/datasets/useDELForm.ts",
     "frontend/src/datasets/DELMethodQuestion.tsx",
-    "frontend/src/datasets/DELReviewQuestion.tsx",
+    "frontend/src/datasets/DELReviewQuestion*",
     "frontend/src/datasets/DELForm.tsx",
     "frontend/src/datasets/DELScopeQuestion.tsx",
     "frontend/src/datasets/DELCountUnit.tsx",
@@ -164,6 +168,32 @@ def main():
                 for name in changed
             )
         )
+        candidate_patterns = (
+            "frontend/src/datasets/CandidateView*",
+            "frontend/src/datasets/DELCandidateEvidence*",
+            "frontend/src/datasets/useDELCandidateEvidence*",
+            "frontend/src/datasets/candidate-evidence.css",
+            "frontend/src/datasets/DELReviewQuestion*",
+            "scripts/del-ci-scope.py",
+            ".github/workflows/dataset-discovery-checks.yml",
+            ".github/workflows/chart-quality-checks.yml",
+            ".github/workflows/task-layout-checks.yml",
+            ".github/workflows/user-interface-checks.yml",
+            "docs/design/screening-and-del.md",
+            "pyproject.toml",
+            "uv.lock",
+            "frontend/package*.json",
+            "install.sh",
+            "install.ps1",
+        )
+        candidate_views = (
+            selected
+            and any("DELCandidateEvidence" in name for name in changed)
+            and all(
+                any(fnmatch.fnmatchcase(name, pattern) for pattern in candidate_patterns)
+                for name in changed
+            )
+        )
         enrichment_paths = {
             "src/opendde_workbench/datasets/backend.py",
             "src/opendde_workbench/datasets/del_options.py",
@@ -205,6 +235,7 @@ def main():
         )
         output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
         output.write("series_views_only=" + str(series_views).lower() + "\n")
+        output.write("candidate_views_only=" + str(candidate_views).lower() + "\n")
     print(
         "DEL evidence, catalogue and shared table consumers"
         if selected

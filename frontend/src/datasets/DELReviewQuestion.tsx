@@ -47,7 +47,46 @@ export function DELReviewQuestion({ model }: { model: DELFormState }) {
             </div>
           </>
         )}
+        {mode === "candidates" && (
+          <>
+            <div>
+              <span>{zh ? "选择成员" : "Selected members"}</span>
+              <strong>{model.selected.length}</strong>
+            </div>
+            <div>
+              <span>{zh ? "结构处理" : "Structure treatment"}</span>
+              <strong>
+                {model.attachmentPolicy === "cap_hydrogen"
+                  ? zh
+                    ? "去除连接标记，以氢封端"
+                    : "Cap terminal attachment with hydrogen"
+                  : zh
+                    ? "保留原始结构"
+                    : "Retain supplied chemistry"}
+              </strong>
+            </div>
+            <div>
+              <span>{zh ? "比较" : "Comparison"}</span>
+              <strong>
+                {model.availableComparisons
+                  .filter((item) => item.id === model.comparison)
+                  .map((item) => `${item.selection} / ${item.reference}`)
+                  .join("") || (zh ? "未选择" : "Not selected")}
+              </strong>
+            </div>
+          </>
+        )}
       </div>
+      {mode === "candidates" && (
+        <details className="dataset-method-note">
+          <summary>{zh ? "查看所选成员" : "Review selected members"}</summary>
+          <ul>
+            {model.selected.map((id) => (
+              <li key={id}>{id}</li>
+            ))}
+          </ul>
+        </details>
+      )}
       {mode === "analyze" && (
         <p className="field-help">
           {zh ? "优先条件：靶点计数 ≥ " : "Prioritization: target counts ≥ "}

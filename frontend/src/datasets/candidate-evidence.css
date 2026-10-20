@@ -1,0 +1,33 @@
+.dataset-candidate-evidence {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+.dataset-candidate-evidence h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.dataset-candidate-evidence dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+.dataset-candidate-evidence dt,
+.dataset-candidate-evidence p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.dataset-candidate-evidence dd {
+  margin: 3px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.dataset-candidate-evidence p {
+  margin: 12px 0 0;
+}
+.dataset-candidate-evidence .dataset-evidence-comparison {
+  margin: -6px 0 12px;
+}
