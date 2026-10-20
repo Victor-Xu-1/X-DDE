@@ -66,7 +66,7 @@ jobs:
           uv run --locked python scripts/generate-capability-catalog.py --check
           uv run --locked python server_tests/prepare_quality_context_cases.py
           uv run --locked playwright install chromium --with-deps
-          uv run --locked pytest -x -q server_tests/test_workflow_template_browser.py server_tests/test_quality_context_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_workflow_template_browser.py server_tests/test_quality_context_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
