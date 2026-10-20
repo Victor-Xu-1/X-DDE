@@ -1,0 +1,76 @@
+name: Measured workflow quality and STAT6 handoff
+on:
+  push:
+    paths: &quality_workflow_paths
+      - 'src/opendde_workbench/workflows/**'
+      - 'src/opendde_workbench/quality/assessment.py'
+      - 'src/opendde_workbench/quality/result.py'
+      - 'src/opendde_workbench/examples/stat6/workflow_replay.py'
+      - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'frontend/src/workflows/**'
+      - 'frontend/src/quality/assessment.ts'
+      - 'frontend/src/quality/generated.ts'
+      - 'tests/test_workflow_quality*.py'
+      - 'tests/quality_workflow_case.py'
+      - 'server_tests/test_workflow_template_browser.py'
+      - 'scripts/workflow-quality-scope.py'
+      - '.github/workflows/workflow-quality-checks.yml'
+  pull_request:
+    paths: *quality_workflow_paths
+permissions:
+  contents: read
+jobs:
+  measured-handoff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Measured gates, exact paired output versions and queue lifecycle
+        run: >-
+          uv run --locked pytest -q tests/test_workflow_quality.py tests/test_workflow_quality_binding.py
+          tests/test_workflows.py tests/test_workflow_cancellation.py tests/test_dataset_workflows.py
+          tests/test_pose_quality.py
+      - name: Guided workflow state, quality presentation and direct consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/workflows/model.test.ts src/workflows/WorkflowCenter.test.tsx
+          src/workflows/RunMonitor.test.tsx src/quality/tests/QualityAssessment.test.tsx
+          src/quality/tests/QualityResults.test.tsx src/quality/QualityReview.test.tsx
+          src/presentation/research-content.test.ts
+      - name: Reviewed native recipes and unchanged historical scientific data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-quality-workflow"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          uv run --locked python - <<'PY'
+          import os
+          from pathlib import Path
+          from server_tests.prepare_quality_context_cases import download_archive
+          archive = download_archive(Path(os.environ['RUNNER_TEMP']) / 'reviewed-stat6-data')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'WB_REVIEWED_STAT6_ARCHIVE={archive}\n')
+          PY
+          uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_prepared_handoff.py tests/test_stat6_recipe_replay.py
+          uv run --locked python scripts/generate-capability-catalog.py --check
+          uv run --locked python server_tests/prepare_quality_context_cases.py
+          uv run --locked playwright install chromium --with-deps
+          uv run --locked pytest -x -q server_tests/test_workflow_template_browser.py server_tests/test_quality_context_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: measured-workflow-evidence
+          path: |
+            outputs/workflow-template
+            outputs/quality-context
+            outputs/reviewed-recipe-replay

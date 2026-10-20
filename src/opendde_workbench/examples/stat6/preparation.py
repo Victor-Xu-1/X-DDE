@@ -217,6 +217,13 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
             if isinstance(reference, dict) and reference.get("version_id"):
                 objects[role] = scientific.get(reference["version_id"])
     study = study_context(capability)
+    workflow_plan = None
+    if capability == "workflows":
+        from .workflow_replay import study_workflow
+
+        workflow_plan = study_workflow(scientific, records, modules=modules)
+        if workflow_plan is not None:
+            study = {**study, "required_materials": []}
     if capability == "ligandmpnn.design" and "structure" not in objects:
         study["required_materials"] = [
             (
@@ -234,6 +241,7 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         sequences=sequences,
         sequence_sources=sequence_sources,
         sources=case.sources,
+        workflow_plan=workflow_plan,
         request=native_request
         if native_request is not None
         else study_request(capability, objects, sequences),

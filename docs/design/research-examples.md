@@ -19,6 +19,24 @@ optional pin review retains the interpretation and limitations; it is computatio
 review, not experimental validation. MD/FEP examples are excluded from the current
 owner case campaign while those calculations remain paused.
 
+The STAT6 continuous-task template uses verified docking, PoseBusters and
+property recipes. It docks again, passes the first qualified pose and the exact
+native receptor together to the dock-profile quality task, and calculates that
+pose's properties only after the required measured checks pass. A preset or a
+successful process exit is never a quality pass. The immutable plan records the
+required checks. Any native failure rejects the handoff; missing required
+measurements or inapplicable required features also reject it. Missing optional
+water/cofactor context remains unassessed, rather than evidence of absence.
+Original reports and native task statuses stay intact. Corrupt, changed or
+incomplete report evidence blocks dispatch for investigation. Existing ungated
+plans retain their original serialization and behavior.
+
+Loading the template starts no calculation. Save and review the plan before
+starting a new run. The shared Worker, workflow records and scientific output
+store remain the only execution and asset authorities. This is a computational
+pose-plausibility and descriptor study, not a binding-affinity, selectivity or
+experimental activity claim. Historical results remain unchanged.
+
 The STAT6 REINVENT template uses the source-verified fluoroindole scaffold from
 the supplied study molecule, with one explicitly marked R-group attachment site,
 a 20-candidate budget and the retained CPU/memory/seed settings. Loading the

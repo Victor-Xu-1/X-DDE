@@ -63,3 +63,42 @@ it("uses the actual docking output role and refuses descriptor-only predecessors
     ),
   ).toThrow("real molecular outputs");
 });
+
+it("gates properties on measured pose quality while passing the same docking producer", () => {
+  const tasks = [
+    {
+      id: "dock",
+      request: { operation: "docking", mode: "dock", name: "Dock" },
+    },
+    {
+      id: "qc",
+      request: {
+        operation: "pose_quality",
+        name: "Check",
+        options: { profile: "dock" },
+      },
+    },
+    { ...jobs[1], id: "props" },
+  ] as Job[];
+  const plan = planFromJobs(
+    "Measured handoff",
+    ["dock", "qc", "props"],
+    tasks,
+    new Set([1, 2]),
+    1,
+  );
+  expect(plan.steps[1].bindings.map((b) => [b.target, b.result_field])).toEqual(
+    [
+      ["quality_molecule", "pose_artifact"],
+      ["quality_protein", "receptor_artifact"],
+    ],
+  );
+  expect(plan.steps[1].quality_gate?.required_checks).toContain(
+    "minimum_distance_to_protein",
+  );
+  expect(plan.steps[2].depends_on).toEqual(["step_2", "step_1"]);
+  expect(plan.steps[2].bindings[0].from_step).toBe("step_1");
+  expect(() =>
+    planFromJobs("Wrong producer", ["props", "qc"], tasks, new Set([1]), 1),
+  ).toThrow("immediately after docking");
+});

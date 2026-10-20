@@ -7,16 +7,18 @@ export interface WorkflowStep {
   retry_backoff_seconds?: number;
   bindings: {
     from_step: string;
-    target: "property_input";
-    kind: "ligand";
+    target: "property_input" | "quality_molecule" | "quality_protein";
+    kind: "ligand" | "structure";
     record: number;
     artifact?: string;
     result_field?:
       | "molecule_artifact"
       | "pose_artifact"
+      | "receptor_artifact"
       | "state_artifact"
       | "conformer_artifact";
   }[];
+  quality_gate?: { required_checks: string[] };
   data_bindings?: {
     from_step: string;
     slot: number;

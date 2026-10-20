@@ -56,7 +56,7 @@ it("loads a guided case plan and requires saving and review before running", asy
     screen.getByRole("combobox", { name: "如何准备研究计划？" }),
   ).toHaveValue("case");
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
-  expect(screen.getByText("对接输出自动成为性质计算输入")).toBeInTheDocument();
+  expect(screen.getByText("Protocol")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   expect(transport.post).not.toHaveBeenCalled();

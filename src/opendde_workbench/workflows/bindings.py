@@ -5,6 +5,7 @@ import json
 from ..artifacts import contained
 from ..requests import TASK_ADAPTER
 from .data_bindings import resolve_data
+from .quality_bindings import TARGETS, validate_source
 
 
 def resolve(step, latest, store, outputs, settings):
@@ -25,11 +26,15 @@ def resolve(step, latest, store, outputs, settings):
             if not isinstance(name, str) or not 1 <= len(name) <= 500:
                 raise ValueError("The declared output role is missing from the real result.")
         file = contained(root, name)
+        if binding.target in TARGETS:
+            validate_source(binding, job, root, file)
         _, versions = outputs.preserve(job.id, file, binding.kind)
         if binding.record >= len(versions):
             raise ValueError("Selected output record does not exist.")
         ref = versions[binding.record].reference.model_dump(mode="json")
-        if binding.target == "docking_ligand":
+        if binding.target in TARGETS:
+            body["molecule" if binding.target == "quality_molecule" else "protein"] = ref
+        elif binding.target == "docking_ligand":
             body["ligand"] = ref
         elif binding.target == "property_input":
             body["ligand_files"] = [ref["asset_id"]]
@@ -42,5 +47,9 @@ def resolve(step, latest, store, outputs, settings):
         else:
             body["payload"][binding.target] = ref
     body = resolve_data(step, latest, store, settings, body)
+    if body["operation"] == "pose_quality":
+        body["scientific_inputs"] = [
+            body[name] for name in ("molecule", "protein", "reference") if body.get(name)
+        ]
     # Contract validation rejects stale pocket/fixed-atom references and incompatible formats.
     return TASK_ADAPTER.validate_python(body)

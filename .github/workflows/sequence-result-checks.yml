@@ -36,7 +36,21 @@ on:
 permissions:
   contents: read
 jobs:
+  workflow-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      workflow_only: ${{ steps.scope.outputs.workflow_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/workflow-quality-scope.py
   result-inspection:
+    needs: workflow-scope
+    if: needs.workflow-scope.outputs.workflow_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

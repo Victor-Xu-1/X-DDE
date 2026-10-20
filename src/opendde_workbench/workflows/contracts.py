@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_valid
 
 from ..requests import TaskRequest
 from .data_bindings import DataBinding, validate_graph
+from .quality_bindings import TARGETS, validate_bindings
+from .quality_gate import PoseQualityGate, validate_gate_request
 
 
 class Binding(BaseModel):
@@ -35,7 +37,14 @@ class Binding(BaseModel):
     kind: Literal["structure", "ligand"]
     record: int = Field(default=0, ge=0, le=499)
     target: Literal[
-        "protein", "initial", "molecule", "reference_ligand", "property_input", "docking_ligand"
+        "protein",
+        "initial",
+        "molecule",
+        "reference_ligand",
+        "property_input",
+        "docking_ligand",
+        "quality_molecule",
+        "quality_protein",
     ]
 
 
@@ -46,6 +55,9 @@ class Step(BaseModel):
     depends_on: tuple[str, ...] = Field(default=(), max_length=30)
     bindings: tuple[Binding, ...] = Field(default=(), max_length=20)
     data_bindings: tuple[DataBinding, ...] = Field(default=(), max_length=35)
+    quality_gate: PoseQualityGate | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     retries: int = Field(default=0, ge=0, le=2)
     retry_backoff_seconds: int = Field(default=5, ge=1, le=300)
 
@@ -91,6 +103,7 @@ class PlanInput(BaseModel):
             raise ValueError("Job budget must cover steps and permitted retries.")
         resolved = set()
         for step in self.steps:
+            validate_gate_request(step)
             deps = set(step.depends_on)
             if len(deps) != len(step.depends_on) or not deps <= resolved:
                 raise ValueError(
@@ -103,6 +116,9 @@ class PlanInput(BaseModel):
             validate_graph(
                 step, {previous.id: previous for previous in self.steps if previous.id in resolved}
             )
+            validate_bindings(
+                step, {previous.id: previous for previous in self.steps if previous.id in resolved}
+            )
             for binding in step.bindings:
                 predecessor = next(s for s in self.steps if s.id == binding.from_step)
                 if predecessor.request.operation == "molecular_states" and binding.target not in {
@@ -113,6 +129,8 @@ class PlanInput(BaseModel):
                         "Prepared states/conformers require property calculation or new docking; "
                         "they are not aligned binding poses."
                     )
+                if binding.target in TARGETS:
+                    continue
                 if (binding.target == "protein") != (binding.kind == "structure"):
                     raise ValueError(
                         "Protein slots require structures; molecular slots require ligands."

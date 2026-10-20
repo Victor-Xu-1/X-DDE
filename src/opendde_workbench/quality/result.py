@@ -1,7 +1,7 @@
 """Independent typed report validation binds every test to the exact input and profile."""
 
 import hashlib
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, FiniteFloat, model_validator
 
@@ -28,7 +28,7 @@ class PoseQualityResult(ScientificModel):
     coordinate_basis: Literal["user_confirmed"] | None
     classification: Literal["passes", "fails", "incomplete"]
     checks: tuple[Check, ...] = Field(min_length=1, max_length=50)
-    metrics: dict[str, FiniteFloat] = Field(max_length=150)
+    metrics: dict[str, Annotated[FiniteFloat, Field(strict=True)]] = Field(max_length=150)
     versions: dict[str, str]
     native_config_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     previews_sha256: dict[str, str]

@@ -98,8 +98,8 @@ export function WorkflowCenter({
       {source === "case" ? (
         <p className="field-help">
           {zh
-            ? "先探索所选分子的结合姿势，再把首个真实姿势交接给性质计算。"
-            : "Dock the selected study molecule, then hand the first real pose to molecular-property calculation."}
+            ? "沿着已复核的研究步骤计算。质控条件未通过时，会保留结果并停止后续步骤。"
+            : "Follow the reviewed study steps. If required quality checks do not pass, retain the results and stop downstream steps."}
         </p>
       ) : source === "draft" ? (
         <>
@@ -190,16 +190,18 @@ export function WorkflowCenter({
     ) : source === "case" && !expert ? (
       <>
         <ol>
-          <li>
-            {zh
-              ? "本研究受体与分子的真实输入版本"
-              : "Exact receptor and molecule input versions for this study"}
-          </li>
-          <li>
-            {zh
-              ? "对接输出自动成为性质计算输入"
-              : "Docking output becomes the property input"}
-          </li>
+          {example?.workflow_plan?.steps.map((step) => (
+            <li key={step.id}>
+              {step.request.name}
+              {step.quality_gate && (
+                <span className="field-help">
+                  {zh
+                    ? " · 必须通过指定实测检查"
+                    : " · Required measured checks must pass"}
+                </span>
+              )}
+            </li>
+          ))}
         </ol>
         <button
           type="button"
@@ -251,8 +253,9 @@ export function WorkflowCenter({
               </select>
             </label>
             {index > 0 &&
-              jobs.find((j) => j.id === id)?.request.operation ===
-                "properties" && (
+              ["properties", "pose_quality"].includes(
+                jobs.find((j) => j.id === id)?.request.operation ?? "",
+              ) && (
                 <label>
                   <input
                     type="checkbox"
@@ -266,8 +269,8 @@ export function WorkflowCenter({
                     }
                   />
                   {zh
-                    ? "使用上一步生成的 molecules 输出第一个分子，不使用模板中的旧分子"
-                    : "Use the first molecule from the preceding step's molecular output instead of the template's old input"}
+                    ? "接收新计算的结构；姿势检查同时接收对应受体，并作为后续步骤的质控关卡"
+                    : "Use newly computed structures; pose checks also receive the paired receptor and gate downstream steps"}
                 </label>
               )}
           </section>

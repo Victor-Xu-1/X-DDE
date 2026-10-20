@@ -21,6 +21,30 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+def test_stat6_workflow_prepares_verified_recipes_with_a_measured_quality_gate(settings):
+    from opendde_workbench.quality.assessment import POSE_GATE_CHECKS
+    from opendde_workbench.workflows.contracts import PlanInput
+
+    restore_bundle(Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, spec.SHA256)
+    store = Store(settings.state_dir / "jobs.sqlite3")
+    assets = AssetStore(store, settings.state_dir / "assets")
+    scientific = ScientificStore(store, assets)
+    records = ExampleRecords(store, assets, settings, modules=MODULES)
+    before = len(store.list_jobs(1000))
+    prepared = prepare_stat6("workflows", scientific, records=records)
+    plan = PlanInput.model_validate(prepared.workflow_plan)
+    assert [step.request.operation for step in plan.steps] == [
+        "docking",
+        "pose_quality",
+        "properties",
+    ]
+    assert plan.steps[1].quality_gate.required_checks == POSE_GATE_CHECKS
+    assert plan.steps[2].depends_on == ("dock", "quality")
+    assert plan.steps[2].bindings[0].from_step == "dock"
+    assert prepared.study["required_materials"] == []
+    assert len(store.list_jobs(1000)) == before
+
+
 def test_every_retained_native_task_recipe_replays_exactly_without_starting_jobs(settings):
     restore_bundle(Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, spec.SHA256)
     store = Store(settings.state_dir / "jobs.sqlite3")

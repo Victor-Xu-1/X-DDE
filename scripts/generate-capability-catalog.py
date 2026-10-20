@@ -39,6 +39,7 @@ from opendde_workbench.integrations.options import (
 )
 from opendde_workbench.pose_ensembles.contracts import ExplorationOptions
 from opendde_workbench.proximity.options import TernaryPayload
+from opendde_workbench.quality.assessment import CONTEXT_METRICS, FEATURE_COUNTS, POSE_GATE_CHECKS
 from opendde_workbench.quality.options import QualityOptions
 from opendde_workbench.receptors.selection import EnsembleOptions, MemberSelection
 from opendde_workbench.research.constraint_contract import ConstraintSet, SpatialBoundsCondition
@@ -187,7 +188,14 @@ def main() -> None:
         "quality/generated.ts": header
         + "export const qualityDefaults = "
         + json.dumps(QualityOptions().model_dump(mode="json"), indent=2)
-        + ";\n",
+        + ";\nexport const contextMetrics: Record<string, "
+        "readonly [string, 'distance' | 'overlap']> = "
+        + json.dumps(CONTEXT_METRICS, indent=2)
+        + ";\nexport const featureCounts: Record<string, string> = "
+        + json.dumps(FEATURE_COUNTS, indent=2)
+        + ";\nexport const poseGateChecks = "
+        + json.dumps(POSE_GATE_CHECKS, indent=2)
+        + " as const;\n",
         "antibodies/generated.ts": header
         + "export const numberingDefaults = "
         + json.dumps(NumberingOptions().model_dump(mode="json"), indent=2)

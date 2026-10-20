@@ -31,6 +31,11 @@ export function unwrapResult(value: unknown): unknown {
   return value;
 }
 const messages: Record<string, [string, string]> = {
+  "Required pose-quality checks did not pass. Open the quality step for measured results and missing checks.":
+    [
+      "姿势质控未通过指定检查。请打开质控步骤，查看实测结果及缺失的检查。",
+      "Required pose-quality checks did not pass. Open the quality step for measured results and missing checks.",
+    ],
   "The task action could not be confirmed. Try again to continue the same action.":
     [
       "未能确认任务操作的结果。请重试，系统会继续同一次操作。",

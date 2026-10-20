@@ -1,3 +1,4 @@
+import { contextMetrics, featureCounts } from "./generated";
 import type { PoseQualityResult } from "./types";
 
 type NativeCheck = PoseQualityResult["checks"][number];
@@ -16,40 +17,6 @@ export interface AssessedCheck extends NativeCheck {
   assessment: AssessmentOutcome;
   reason?: AssessmentReason;
 }
-
-// PoseBusters 0.6.5 can return a passing flag without a finite contextual
-// measurement. Absence of a measurement does not establish biological absence.
-const contextMetrics: Record<string, [string, "distance" | "overlap"]> = {
-  "protein-ligand_maximum_distance": ["smallest_distance_protein", "distance"],
-  minimum_distance_to_protein: ["smallest_distance_protein", "distance"],
-  minimum_distance_to_organic_cofactors: [
-    "smallest_distance_organic_cofactors",
-    "distance",
-  ],
-  minimum_distance_to_inorganic_cofactors: [
-    "smallest_distance_inorganic_cofactors",
-    "distance",
-  ],
-  minimum_distance_to_waters: ["smallest_distance_waters", "distance"],
-  volume_overlap_with_protein: ["volume_overlap_protein", "overlap"],
-  volume_overlap_with_organic_cofactors: [
-    "volume_overlap_organic_cofactors",
-    "overlap",
-  ],
-  volume_overlap_with_inorganic_cofactors: [
-    "volume_overlap_inorganic_cofactors",
-    "overlap",
-  ],
-  volume_overlap_with_waters: ["volume_overlap_waters", "overlap"],
-};
-const featureCounts: Record<string, string> = {
-  bond_lengths: "number_bonds",
-  bond_angles: "number_angles",
-  internal_steric_clash: "number_noncov_pairs",
-  aromatic_ring_flatness: "number_aromatic_rings_checked",
-  "non-aromatic_ring_non-flatness": "number_non-aromatic_rings_checked",
-  double_bond_flatness: "number_double_bonds_checked",
-};
 
 function assessCheck(
   row: NativeCheck,

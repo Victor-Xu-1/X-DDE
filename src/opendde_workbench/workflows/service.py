@@ -6,6 +6,7 @@ from ..models import TERMINAL
 from ..store import CapacityError, ConflictError
 from .bindings import resolve
 from .contracts import PlanInput
+from .quality_gate import QualityGateRejected, require_quality
 
 
 class WorkflowService:
@@ -65,6 +66,22 @@ class WorkflowService:
                 )
                 continue
             latest = {a["step_id"]: a for a in run["attempts"]}
+            try:
+                require_quality(
+                    plan,
+                    latest,
+                    self.records.store,
+                    self.settings,
+                    dependencies={
+                        key for key, value in latest.items() if value["status"] == "succeeded"
+                    },
+                )
+            except QualityGateRejected as exc:
+                self.update(run["id"], "failed", str(exc))
+                continue
+            except (ValueError, OSError, KeyError) as exc:
+                self.update(run["id"], "blocked", str(exc))
+                continue
             if all(
                 step.id in latest and latest[step.id]["status"] == "succeeded"
                 for step in plan.steps
