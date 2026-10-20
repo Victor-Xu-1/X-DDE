@@ -62,7 +62,7 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write(f'WB_REVIEWED_STAT6_ARCHIVE={archive}\n')
           PY
-          uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_prepared_handoff.py tests/test_stat6_recipe_replay.py
+          uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_prepared_handoff.py tests/test_stat6_recipe_replay.py tests/test_example_records.py
           uv run --locked python scripts/generate-capability-catalog.py --check
           uv run --locked python server_tests/prepare_quality_context_cases.py
           uv run --locked playwright install chromium --with-deps

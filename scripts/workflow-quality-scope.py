@@ -30,6 +30,7 @@ PATTERNS = (
     ".github/workflows/stat6-template-checks.yml",
     ".github/workflows/module-example-checks.yml",
     ".github/workflows/harness-input-checks.yml",
+    ".github/workflows/examples-checks.yml",
     "docs/design/research-examples.md",
     "pyproject.toml",
     "uv.lock",
