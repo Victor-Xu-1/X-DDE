@@ -13,12 +13,20 @@ ROOT = Path(__file__).parent
 MANIFEST = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
 CASE = CaseStudy.model_validate(MANIFEST["case"])
 FILES = {key: SourceFile.model_validate(value) for key, value in MANIFEST["files"].items()}
+MODULE_REVISIONS = json.loads((ROOT / "module-revisions.json").read_text(encoding="utf-8"))
+if not set(MODULE_REVISIONS) <= set(ARCHIVE_MODULES):
+    raise ValueError("Study module revisions must name existing reviewed capabilities.")
+if any(
+    type(value) is not int or value < ARCHIVE_MODULES[key].revision + 2
+    for key, value in MODULE_REVISIONS.items()
+):
+    raise ValueError("Study module revisions must be positive authored successors.")
 MODULES = MappingProxyType(
     {
         key: ModuleExample(
             case_id=CASE.id,
             capability_id=key,
-            revision=value.revision + 2,
+            revision=MODULE_REVISIONS.get(key, value.revision + 2),
             pinned_run_required=value.pinned_run_required,
             parent_capability=value.parent_capability,
         )

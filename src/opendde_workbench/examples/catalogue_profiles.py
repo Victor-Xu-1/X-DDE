@@ -38,6 +38,22 @@ def compatible_modules(digest, *, profile="archive"):
 
 
 def compatible_study_modules(digest):
+    return tuple(_study_snapshot(digest))
+
+
+def historical_study_catalogue(digest):
+    """Verify old pins against their authored modules, never today's revisions."""
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    from .bundle_catalogue import bundle_catalogue
+
+    modules = _study_snapshot(digest)
+    return replace(bundle_catalogue("stat6"), modules=MappingProxyType(modules), digest=digest)
+
+
+def _study_snapshot(digest):
+    from .contracts import ModuleExample
     from .stat6 import catalogue
 
     profiles = json.loads((catalogue.ROOT / "catalogue-profiles.json").read_text(encoding="utf-8"))
@@ -64,15 +80,27 @@ def compatible_study_modules(digest):
     if bundle_catalogue("stat6").digest not in profiles:
         raise ValueError("Historical study sources or module revisions changed.")
     try:
+        overrides = profile.get("module_overrides", {})
+        if not isinstance(overrides, dict) or not set(overrides) <= set(profile["module_ids"]):
+            raise ValueError("Historical study module snapshots are invalid.")
+        modules = {
+            key: ModuleExample.model_validate(overrides[key])
+            if key in overrides
+            else catalogue.MODULES[key]
+            for key in profile["module_ids"]
+        }
+        if any(
+            value.capability_id != key or value.revision > catalogue.MODULES[key].revision
+            for key, value in modules.items()
+        ):
+            raise ValueError("Historical study module snapshots are invalid.")
         manifest = {
             **source_manifest,
             "files": {key: source_manifest["files"][key] for key in profile["file_keys"]},
         }
         content = {
             "manifest": manifest,
-            "modules": {
-                key: catalogue.MODULES[key].model_dump(mode="json") for key in profile["module_ids"]
-            },
+            "modules": {key: value.model_dump(mode="json") for key, value in modules.items()},
         }
     except KeyError as exc:
         raise ValueError("Historical study sources or module definitions are unavailable.") from exc
@@ -81,4 +109,4 @@ def compatible_study_modules(digest):
     ).hexdigest()
     if actual != digest:
         raise ValueError("Historical study sources or module revisions changed.")
-    return tuple(profile["module_ids"])
+    return modules

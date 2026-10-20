@@ -20,8 +20,10 @@ def catalogue_digest(profile="archive"):
     return bundle_catalogue(profile).digest
 
 
-def verify_examples(settings, capabilities=None, *, profile="archive"):
-    catalogue = bundle_catalogue(profile)
+def verify_examples(settings, capabilities=None, *, profile="archive", catalogue=None):
+    catalogue = catalogue or bundle_catalogue(profile)
+    if catalogue.profile != profile:
+        raise ValueError("The verification catalogue belongs to another study profile.")
     modules = catalogue.modules
     store = Store(settings.state_dir / "jobs.sqlite3")
     assets = AssetStore(store, settings.state_dir / "assets")

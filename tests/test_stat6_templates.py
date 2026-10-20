@@ -21,7 +21,9 @@ def test_every_affected_template_has_stat6_identity_and_a_distinct_revision():
     assert set(catalogue.MODULES) == set(ARCHIVE_MODULES)
     for key, module in catalogue.MODULES.items():
         assert module.case_id == "stat6-defined-molecules"
-        assert module.revision == ARCHIVE_MODULES[key].revision + 2
+        assert module.revision == catalogue.MODULE_REVISIONS.get(
+            key, ARCHIVE_MODULES[key].revision + 2
+        )
         assert catalogue.study_context(key)["target"] == "STAT6"
     assert ARCHIVE_MODULES["p2rank.detect"].case_id == "brd4-jq1"
 

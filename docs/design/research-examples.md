@@ -38,12 +38,28 @@ including explicitly declared stereochemistry. Their 3D previews and downloads
 retain the native calculated SDF. This avoids assigning apparent stereocenters
 from an arbitrary unbound conformation when drawing the 2D graph.
 
-The reviewed STAT6 data package contains 39 primary module examples (38 native
+The reviewed STAT6 data package contains 42 primary module examples (41 native
 computational examples and one reported-data example), plus one nested follow-up.
 It includes the source-verified single-site R-group study and the original 9BIG
 mmCIF contact map (7 hydrogen bonds and 4 hydrophobic contacts). Its immutable archive
 retains original requests, native files and computational interpretations.
 Cold restoration is idempotent and never executes historical calculations.
+
+Module examples have independent authored revisions. A replacement computation
+advances only its affected module through `scripts/revise-study-modules.py
+--set capability=NEXT`; the product counter remains governed by
+`scripts/release-version.py`. The authoring tool freezes complete prior module
+definitions in the existing published catalogue profiles and registers the new
+canonical digest. Existing pins, source files and native task requests are never
+rewritten. Historical restoration validates the old bundle against its frozen
+module definitions, including request replay and follow-up lineage. It cannot
+downgrade or overwrite a newer installed pin. Unknown catalogues, changed source
+manifests or altered frozen module definitions remain explicit failures.
+
+Updating computational examples does not promote their scientific claims.
+Generation proposes chemical structures; state preparation produces unbound
+conformers; docking proposes binding hypotheses. Native geometry checks and
+similar scores do not establish measured affinity or a unique binding mode.
 PNG snapshot previews retain the original native pixels, while their download
 links use bounded Blob URLs for browser compatibility and release those URLs
 when the preview closes or its source changes.

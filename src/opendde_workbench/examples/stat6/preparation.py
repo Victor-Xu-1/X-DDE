@@ -47,10 +47,10 @@ def register_input(scientific, key):
     )
 
 
-def prepare_stat6(capability, scientific, *, records=None):
-    module = MODULES[capability]
+def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
+    module = modules[capability]
     case = case_for(capability)
-    native_request = reviewed_request(capability, scientific, records)
+    native_request = reviewed_request(capability, scientific, records, modules=modules)
     originals = {
         key: register_input(scientific, key)
         for key in input_keys(capability)

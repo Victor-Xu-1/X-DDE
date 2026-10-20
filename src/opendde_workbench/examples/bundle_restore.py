@@ -45,6 +45,10 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
             from .catalogue_profiles import compatible_modules
 
             selected = compatible_modules(manifest.get("catalogue_sha256"), profile=profile)
+            if profile == "stat6":
+                from .catalogue_profiles import historical_study_catalogue
+
+                catalogue = historical_study_catalogue(manifest["catalogue_sha256"])
         if manifest.get("capabilities") is not None:
             declared = manifest["capabilities"]
             permitted_modules = set(catalogue.modules if selected is None else selected)
@@ -145,7 +149,9 @@ def restore_bundle(archive, settings, expected_sha, checkpoint=lambda: None):
 
         validate_states(stage_store, stage_assets, staging, rows["research_state_sets"])
         summary = (
-            verify_examples(replace(settings, state_dir=staging), selected, profile=profile)
+            verify_examples(
+                replace(settings, state_dir=staging), selected, profile=profile, catalogue=catalogue
+            )
             if profile != "archive"
             else verify_examples(replace(settings, state_dir=staging))
             if selected is None

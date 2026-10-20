@@ -50,7 +50,7 @@ class BundleCatalogue:
         if profile == "stat6":
             from .stat6.preparation import prepare_stat6
 
-            return prepare_stat6(capability, scientific, records=records)
+            return prepare_stat6(capability, scientific, records=records, modules=self.modules)
         if profile == "del6":
             from .del6.preparation import prepare_del6
 

@@ -1,0 +1,53 @@
+name: Authored module revisions and exact historical cases
+on:
+  push:
+    paths: &module_revision_paths
+      - 'src/opendde_workbench/examples/stat6/catalogue.py'
+      - 'src/opendde_workbench/examples/stat6/module-revisions.json'
+      - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
+      - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'src/opendde_workbench/examples/catalogue_profiles.py'
+      - 'src/opendde_workbench/examples/bundle.py'
+      - 'src/opendde_workbench/examples/bundle_catalogue.py'
+      - 'src/opendde_workbench/examples/bundle_restore.py'
+      - 'scripts/revise-study-modules.py'
+      - 'tests/test_study_module_revisions.py'
+      - 'tests/test_stat6_templates.py'
+      - '.github/workflows/study-module-revision-checks.yml'
+  pull_request:
+    paths: *module_revision_paths
+permissions:
+  contents: read
+jobs:
+  authored-cases:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: '0'
+      WB_TEST_DATA24: ${{ runner.temp }}/stat6-reviewed-results-v24.zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Fetch the exact immutable prior native archive only
+        run: |
+          curl --fail --location --retry 2 --max-time 120 --output "$WB_TEST_DATA24" https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.42/stat6-reviewed-results-v24.zip
+          echo "9512b41060d611056cafc13fb49c12a7f3dcfe4c3c0d34581b1412cf9e206d3e  $WB_TEST_DATA24" | sha256sum --check
+      - name: Check changed catalogue and restoration code
+        run: >-
+          uv run --locked ruff check
+          src/opendde_workbench/examples/stat6/catalogue.py
+          src/opendde_workbench/examples/stat6/preparation.py
+          src/opendde_workbench/examples/catalogue_profiles.py
+          src/opendde_workbench/examples/bundle.py
+          src/opendde_workbench/examples/bundle_catalogue.py
+          src/opendde_workbench/examples/bundle_restore.py
+          scripts/revise-study-modules.py tests/test_study_module_revisions.py
+          tests/test_stat6_templates.py
+      - run: uv run --locked python scripts/revise-study-modules.py
+      - name: Exact revision, source, request replay and cold-restore consumers; no inference
+        run: >-
+          uv run --locked python -m pytest -x -q
+          tests/test_study_module_revisions.py tests/test_stat6_source_revisions.py
+          tests/test_stat6_predicted_references.py tests/test_stat6_templates.py
+          tests/test_stat6_case_bundle.py tests/test_example_supporting.py

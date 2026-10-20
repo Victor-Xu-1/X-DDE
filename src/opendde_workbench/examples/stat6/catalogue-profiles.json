@@ -101,7 +101,23 @@
       "workflows"
     ],
     "manifest_file": "manifest-v1.json",
-    "manifest_sha256": "90075f30f6af069f07c825d63283e6309343067267c03a3741de18af658cf7d4"
+    "manifest_sha256": "90075f30f6af069f07c825d63283e6309343067267c03a3741de18af658cf7d4",
+    "module_overrides": {
+      "reinvent.design": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "reinvent.design",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      },
+      "gnina.dock": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "gnina.dock",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
   },
   "353136d88e3c4c8f01f54a13f40136bb5ff81bbc2f24f9a87402c9b9044698a0": {
     "file_keys": [
@@ -209,7 +225,23 @@
       "gromacs.dynamics"
     ],
     "manifest_file": "manifest-v2.json",
-    "manifest_sha256": "4008b09f8c63dc91d475abd45085fab116f461902c345768724f87db8cb2e158"
+    "manifest_sha256": "4008b09f8c63dc91d475abd45085fab116f461902c345768724f87db8cb2e158",
+    "module_overrides": {
+      "reinvent.design": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "reinvent.design",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      },
+      "gnina.dock": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "gnina.dock",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
   },
   "659b1ee378fd45281f02fd86b6af6454ba99bb4e650c78a20a8465e93a7dca27": {
     "file_keys": [
@@ -317,7 +349,23 @@
       "gromacs.dynamics"
     ],
     "manifest_file": "manifest-v1.json",
-    "manifest_sha256": "90075f30f6af069f07c825d63283e6309343067267c03a3741de18af658cf7d4"
+    "manifest_sha256": "90075f30f6af069f07c825d63283e6309343067267c03a3741de18af658cf7d4",
+    "module_overrides": {
+      "reinvent.design": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "reinvent.design",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      },
+      "gnina.dock": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "gnina.dock",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
   },
   "ab96cb1a23c22b7bc7294efe39262caa463d1e9fc6f71b643166120918dc1d0e": {
     "file_keys": [
@@ -425,7 +473,23 @@
       "gromacs.dynamics"
     ],
     "manifest_file": "manifest-v3.json",
-    "manifest_sha256": "2fb58f3ebef42c2424c16f31a8561bc1f005d8aa4c600dc40fbab5965441d4be"
+    "manifest_sha256": "2fb58f3ebef42c2424c16f31a8561bc1f005d8aa4c600dc40fbab5965441d4be",
+    "module_overrides": {
+      "reinvent.design": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "reinvent.design",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      },
+      "gnina.dock": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "gnina.dock",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
   },
   "732e9555bbf83d1bb46098bbcd3e893a85d3583a9ee0efb288a8b28e8195a888": {
     "file_keys": [
@@ -533,7 +597,23 @@
       "openmm.dynamics",
       "openfe.rbfe",
       "gromacs.dynamics"
-    ]
+    ],
+    "module_overrides": {
+      "reinvent.design": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "reinvent.design",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      },
+      "gnina.dock": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "gnina.dock",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
   },
   "8327a0a86cec16f957699876c7bd6c76feb7f08a5a42a7f35828446f2e336946": {
     "file_keys": [
@@ -564,6 +644,131 @@
       "stat6_structure",
       "study_ligand",
       "study_protac"
+    ],
+    "module_ids": [
+      "antibody.humanize",
+      "admet.predict",
+      "posebusters.check",
+      "antibody.number",
+      "chemistry.screen",
+      "biopython.prepare",
+      "discovery.import",
+      "discovery.target",
+      "discovery.disease",
+      "predict",
+      "properties",
+      "campaign",
+      "esm",
+      "esm2",
+      "mpnn",
+      "fold",
+      "epitope",
+      "structure",
+      "rmsd",
+      "evolution",
+      "compare",
+      "protrek-sequence",
+      "protrek-structure",
+      "target-msa",
+      "features",
+      "import",
+      "resources",
+      "diffsbdd.generate",
+      "diffsbdd.inpaint",
+      "diffsbdd.diversify",
+      "diffsbdd.optimize",
+      "diffsbdd.pocket",
+      "diffsbdd.prepare",
+      "diffsbdd.interactions",
+      "diffsbdd.properties",
+      "diffsbdd.export",
+      "regions",
+      "workflows",
+      "p2rank.detect",
+      "gnina.dock",
+      "gnina.score",
+      "gnina.minimize",
+      "chemistry.states",
+      "biopython.ensemble",
+      "pose_exploration",
+      "boltz.predict",
+      "reinvent.design",
+      "ligandmpnn.design",
+      "boltzgen.design",
+      "openmm.refine",
+      "apbs.potential",
+      "chemprop.train",
+      "chemprop.predict",
+      "plip.profile",
+      "library.import",
+      "library.select",
+      "drugclip.index",
+      "drugclip.screen",
+      "screening.dock",
+      "del.library",
+      "del.enumerate",
+      "del.decode",
+      "del.count",
+      "del.analyze",
+      "del.series",
+      "del.model",
+      "del.candidates",
+      "del.followup",
+      "biopython.exposure",
+      "experimental.evidence",
+      "pose.cluster",
+      "caver.paths",
+      "deepternary.model",
+      "openmm.dynamics",
+      "openfe.rbfe",
+      "gromacs.dynamics"
+    ],
+    "module_overrides": {
+      "reinvent.design": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "reinvent.design",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      },
+      "gnina.dock": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "gnina.dock",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
+  },
+  "602f451cb5b62c32a3a04ba16992e8fbe22faaf98fa2e9cd66119a26b332a409": {
+    "file_keys": [
+      "stat6_sequence",
+      "stat6_structure",
+      "stat6_receptor",
+      "stat6_alternative",
+      "crbn_receptor",
+      "study_ligand",
+      "study_protac",
+      "bound_reference",
+      "stat6_alternative_receptor",
+      "calculated_pose",
+      "calculated_poses",
+      "calculated_receptor",
+      "dupilumab_complex",
+      "dupilumab_heavy",
+      "dupilumab_light",
+      "dupilumab_antigen",
+      "stat6_assay_library",
+      "stat6_measurements",
+      "dupilumab_variable_domains",
+      "stat6_observed_sequence",
+      "stat6_prediction",
+      "stat6_predicted_construct",
+      "stat6_prediction_metadata",
+      "stat6_prediction_provenance",
+      "stat6_spr_library",
+      "stat6_spr_provenance",
+      "stat6_dna_bound"
     ],
     "module_ids": [
       "antibody.humanize",
