@@ -54,14 +54,15 @@ jobs:
           export WB_STATE_DIR="$WB_HOME/state"
           echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
-          uv run --locked python - <<'PY'
+          archive_path="$(uv run --locked python - <<'PY'
           import os
           from pathlib import Path
           from server_tests.prepare_quality_context_cases import download_archive
           archive = download_archive(Path(os.environ['RUNNER_TEMP']) / 'reviewed-stat6-data')
-          with open(os.environ['GITHUB_ENV'], 'a') as output:
-              output.write(f'WB_REVIEWED_STAT6_ARCHIVE={archive}\n')
+          print(archive)
           PY
+          )"
+          export WB_REVIEWED_STAT6_ARCHIVE="$archive_path"
           uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_prepared_handoff.py tests/test_stat6_recipe_replay.py tests/test_example_records.py
           uv run --locked python scripts/generate-capability-catalog.py --check
           uv run --locked python server_tests/prepare_quality_context_cases.py
