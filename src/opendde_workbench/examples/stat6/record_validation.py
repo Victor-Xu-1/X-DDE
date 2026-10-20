@@ -27,6 +27,18 @@ def validate_study_record(capability, source, prepared, store, *, job_ids=None):
     if capability in {"workflows", "pose_exploration", "campaign"}:
         from ..pin_validation import validate_input_lineage
 
+        if capability == "workflows":
+            from ...workflows.contracts import PlanInput
+
+            if prepared.workflow_plan is None:
+                raise ValueError("A fixed workflow requires the complete reviewed study plan.")
+            expected = PlanInput.model_validate(prepared.workflow_plan)
+            actual = PlanInput.model_validate(source["value"]["body"])
+            if actual.model_copy(update={"name": expected.name}) != expected:
+                raise ValueError(
+                    "The fixed workflow must retain its reviewed steps and quality gates."
+                )
+
         if not job_ids:
             raise ValueError(
                 "Actual STAT6 source-validation evidence is required for this fixed record."

@@ -13,6 +13,7 @@ PATTERNS = (
     "src/opendde_workbench/quality/result.py",
     "src/opendde_workbench/examples/stat6/preparation.py",
     "src/opendde_workbench/examples/stat6/workflow_replay.py",
+    "src/opendde_workbench/examples/stat6/record_validation.py",
     "frontend/src/workflows/*",
     "frontend/src/quality/assessment.ts",
     "frontend/src/quality/generated.ts",

@@ -137,3 +137,18 @@ def test_ci_scope_routes_only_exact_quality_workflow_consumers():
     assert not select(["frontend/src/quality/generated.ts"])
     assert not select(changed + ["src/opendde_workbench/worker.py"])
     assert not select(changed + ["src/opendde_workbench/workflows/storage.py"])
+
+
+def test_fixed_study_record_cannot_drop_its_reviewed_quality_gate():
+    from opendde_workbench.examples.stat6.record_validation import validate_study_record
+
+    body = quality_plan(quality_task()).model_dump(mode="json")
+    altered = {**body, "steps": [{**body["steps"][0], "quality_gate": None}, body["steps"][1]]}
+    with pytest.raises(ValueError, match="reviewed steps and quality gates"):
+        validate_study_record(
+            "workflows",
+            {"value": {"body": altered}},
+            SimpleNamespace(workflow_plan=body),
+            None,
+            job_ids=["unrelated"],
+        )

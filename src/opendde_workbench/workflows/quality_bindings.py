@@ -45,6 +45,7 @@ def validate_source(binding, job, root, file):
         or result.ligand != job.request.ligand
         or result.options != job.request.options
         or result.mode != job.request.mode
+        or result.search != job.request.search
     ):
         raise ValueError("Docking handoff differs from the completed native request.")
     expected = getattr(result, TARGETS[binding.target][1])
