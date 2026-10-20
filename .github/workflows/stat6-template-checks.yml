@@ -86,7 +86,7 @@ jobs:
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: '0'
-      WB_TEMPLATE_CAPABILITIES: 'reinvent.design,gnina.dock,del.define'
+      WB_TEMPLATE_CAPABILITIES: 'reinvent.design,gnina.dock,del.library'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -46,7 +46,7 @@ def test_selected_modules_load_their_reviewed_inputs_without_task_spam():
         expect(page.locator("html")).to_have_attribute("lang", "en")
         before = page.request.get(base + "/api/jobs").json()
         keys = os.environ.get(
-            "WB_TEMPLATE_CAPABILITIES", "reinvent.design,gnina.dock,del.define"
+            "WB_TEMPLATE_CAPABILITIES", "reinvent.design,gnina.dock,del.library"
         ).split(",")
         assert keys and len(keys) == len(set(keys))
         assert all(key in CAPABILITIES and CAPABILITIES[key].frontend_form for key in keys)
