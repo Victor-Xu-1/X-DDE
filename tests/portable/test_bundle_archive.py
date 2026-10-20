@@ -79,14 +79,14 @@ def test_failed_export_cleans_owned_staging_and_allows_retry(
     )
     with monkeypatch.context() as patch:
         if failure in {"member", "interrupt"}:
-            original_write = zipfile.ZipFile.write
+            original_write = bundle_archive._write_member
 
-            def fail_second_member(archive, source, name):
+            def fail_second_member(archive, source, name, evidence):
                 if name == "outputs/second.txt":
                     raise error
-                return original_write(archive, source, name)
+                return original_write(archive, source, name, evidence)
 
-            patch.setattr(zipfile.ZipFile, "write", fail_second_member)
+            patch.setattr(bundle_archive, "_write_member", fail_second_member)
         elif failure == "close":
 
             def fail_close(archive):
@@ -137,14 +137,14 @@ def test_export_never_overwrites_or_removes_another_destination(export_files, mo
     if timing == "preexisting":
         target.write_bytes(retained)
     elif timing == "during_write":
-        original_write = zipfile.ZipFile.write
+        original_write = bundle_archive._write_member
 
-        def fail_after_other_writer(archive, source, name):
-            original_write(archive, source, name)
+        def fail_after_other_writer(archive, source, name, evidence):
+            original_write(archive, source, name, evidence)
             target.write_bytes(retained)
             raise OSError(errno.ENOSPC, "controlled writer failure")
 
-        monkeypatch.setattr(zipfile.ZipFile, "write", fail_after_other_writer)
+        monkeypatch.setattr(bundle_archive, "_write_member", fail_after_other_writer)
     else:
         original_link = os.link
 
@@ -182,7 +182,7 @@ def test_export_cleanup_error_preserves_primary_error_or_receipt(
         with monkeypatch.context() as patch:
             patch.setattr(bundle_archive.tempfile.TemporaryDirectory, "cleanup", fail_cleanup)
             if failed_write:
-                patch.setattr(zipfile.ZipFile, "write", fail_write)
+                patch.setattr(bundle_archive, "_write_member", fail_write)
                 with pytest.raises(OSError) as caught:
                     bundle_archive.write_archive(target, manifest, paths)
                 assert caught.value is error
@@ -198,3 +198,91 @@ def test_export_cleanup_error_preserves_primary_error_or_receipt(
         assert list(target.parent.iterdir()) == []
     else:
         assert_export_roundtrip(target, manifest, paths, receipt, tmp_path / "restored")
+
+
+def test_native_sized_member_above_legacy_limit_roundtrips_without_truncation(tmp_path):
+    from opendde_workbench.examples import bundle_archive
+
+    source = tmp_path / "full-cohort.sqlite"
+    with source.open("wb") as stream:
+        stream.truncate(64 * 1024**2 + 4096)
+    target = tmp_path / "exports/case.zip"
+    receipt = bundle_archive.write_archive(
+        target, {"schema_version": 1}, {"jobs/reviewed/output/analysis.sqlite": source}
+    )
+    restored = tmp_path / "restored"
+    manifest = read_archive(target, restored, receipt["sha256"])
+    native = restored / "jobs/reviewed/output/analysis.sqlite"
+    assert native.stat().st_size == source.stat().st_size
+    assert sha256(native) == sha256(source)
+    assert (
+        manifest["files"]["jobs/reviewed/output/analysis.sqlite"]["bytes"] == native.stat().st_size
+    )
+
+
+@pytest.mark.parametrize("limit", ["file", "total", "manifest", "members"])
+def test_export_rejects_unrestorable_budgets_before_publication(export_files, monkeypatch, limit):
+    from opendde_workbench.examples import bundle_archive
+
+    target, manifest, paths = export_files
+    field = {
+        "file": "MAX_FILE",
+        "total": "MAX_TOTAL",
+        "manifest": "MAX_MANIFEST",
+        "members": "MAX_MEMBERS",
+    }[limit]
+    monkeypatch.setattr(bundle_archive, field, 1)
+    with pytest.raises(ValueError, match="bounded|file limit"):
+        bundle_archive.write_archive(target, manifest, paths)
+    assert not target.exists()
+    assert list(target.parent.iterdir()) == []
+
+
+@pytest.mark.parametrize("limit", ["MAX_FILE", "MAX_TOTAL", "MAX_MANIFEST", "MAX_MEMBERS"])
+def test_import_rejects_the_same_budgets_before_extracting(
+    export_files, tmp_path, monkeypatch, limit
+):
+    from opendde_workbench.examples import bundle_archive
+
+    target, manifest, paths = export_files
+    receipt = bundle_archive.write_archive(target, manifest, paths)
+    monkeypatch.setattr(bundle_archive, limit, 1)
+    staging = tmp_path / "restored"
+    with pytest.raises(ValueError):
+        read_archive(target, staging, receipt["sha256"])
+    assert not staging.exists()
+
+
+@pytest.mark.parametrize("change", ["same_size", "grow", "shrink"])
+def test_changed_native_source_never_publishes_a_false_manifest(export_files, monkeypatch, change):
+    from opendde_workbench.examples import bundle_archive
+
+    target, manifest, paths = export_files
+    original = bundle_archive._write_member
+
+    def mutate_before_stream(archive, source, name, evidence):
+        value = source.read_bytes()
+        source.write_bytes(
+            b"X" * len(value)
+            if change == "same_size"
+            else value + b"growth"
+            if change == "grow"
+            else value[:-1]
+        )
+        return original(archive, source, name, evidence)
+
+    monkeypatch.setattr(bundle_archive, "_write_member", mutate_before_stream)
+    with pytest.raises(ValueError, match="grew|changed"):
+        bundle_archive.write_archive(target, manifest, paths)
+    assert not target.exists()
+    assert list(target.parent.iterdir()) == []
+
+
+@pytest.mark.parametrize("name", ["../private", "jobs/../private", "manifest.json"])
+def test_export_rejects_unsafe_or_reserved_paths(export_files, monkeypatch, name):
+    from opendde_workbench.examples import bundle_archive
+
+    target, manifest, paths = export_files
+    with pytest.raises(ValueError, match="Unsafe|reserved"):
+        bundle_archive.write_archive(target, manifest, {name: next(iter(paths.values()))})
+    assert not target.exists()

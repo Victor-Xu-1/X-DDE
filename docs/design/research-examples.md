@@ -537,3 +537,20 @@ For restored results without registered inputs, Prepare for follow-up uses the e
 idempotent native-output registration API. It rechecks the original digest and record count,
 keeps the selected record, and never launches scientific calculation. Preparation can be
 retried after failure; an old response cannot replace another task's selected candidates.
+
+### 完整数据的可移植交付 / Portable full-cohort data
+
+案例传输保留完整的原生数据库和表格，不为适配界面或包大小裁剪成员。当前统一限制为：
+每文件 512 MiB、解压后合计 2 GiB、最多 5,000 个文件（包含清单），清单最多 16 MiB。
+导出和导入执行相同的限额及路径校验。导出时逐块核对实际写入的字节数和摘要，
+源文件增长、缩小或内容改变均不会发布结果包；只在完整关闭 ZIP 后才以不可覆盖方式发布。
+旧的清单协议、目录摘要、原生结果、固定版本和来源验证仍然有效。
+
+Transfers retain complete native databases and tables rather than truncating members to fit a
+preview or archive. Export and import share bounded limits: 512 MiB per file, 2 GiB total
+uncompressed data, 5,000 members including the manifest, and a 16 MiB manifest. Export checks
+the exact streamed size and digest, rejecting growing, shortened or altered sources before
+publication. Only a fully closed ZIP is published without replacing another caller's target.
+Historical manifest schemas, catalogue identities, native results and immutable pins remain
+subject to their existing verification. A successful archive copy does not rerun scientific
+work or improve its scientific acceptance level.

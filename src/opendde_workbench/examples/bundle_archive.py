@@ -9,9 +9,12 @@ import zipfile
 from contextlib import suppress
 from pathlib import Path, PurePosixPath
 
-MAX_TOTAL = 512 * 1024**2
-MAX_FILE = 64 * 1024**2
+# Full-cohort DEL analysis retains a ~376 MiB SQLite file and a ~222 MiB CSV.
+# Transfer limits apply symmetrically; they never authorize scientific recomputation.
+MAX_TOTAL = 2 * 1024**3
+MAX_FILE = 512 * 1024**2
 MAX_MEMBERS = 5000
+MAX_MANIFEST = 16 * 1024**2
 
 
 def sha256(path):
@@ -59,7 +62,7 @@ def read_archive(archive, staging, expected_sha):
             ):
                 raise ValueError("Case bundles contain bounded regular, unencrypted files only.")
             safe_path(staging, member.filename)
-        if "manifest.json" not in names or source.getinfo("manifest.json").file_size > 16 * 1024**2:
+        if "manifest.json" not in names or source.getinfo("manifest.json").file_size > MAX_MANIFEST:
             raise ValueError("Missing or oversized case manifest.")
         manifest = json.loads(source.read("manifest.json"))
         if manifest.get("schema_version") != 1 or set(names) != {
@@ -83,26 +86,54 @@ def read_archive(archive, staging, expected_sha):
     return manifest
 
 
+def _write_member(archive, source, name, evidence):
+    """Bound a changing source while hashing the exact bytes placed in the ZIP."""
+    digest, size = hashlib.sha256(), 0
+    with source.open("rb") as incoming, archive.open(name, "w") as outgoing:
+        while block := incoming.read(1024**2):
+            size += len(block)
+            if size > evidence["bytes"]:
+                raise ValueError("A case source grew beyond its reviewed transfer size.")
+            digest.update(block)
+            outgoing.write(block)
+    if size != evidence["bytes"] or digest.hexdigest() != evidence["sha256"]:
+        raise ValueError("A case source changed during export; no archive was published.")
+
+
 def write_archive(target, manifest, paths):
     target.parent.mkdir(parents=True, exist_ok=True)
+    if len(paths) + 1 > MAX_MEMBERS or "manifest.json" in paths:
+        raise ValueError("Case export exceeds its file limit or uses the reserved manifest path.")
+    files, total_size = {}, 0
+    for name, path in sorted(paths.items()):
+        safe_path(target.parent, name)
+        info = path.stat()
+        if path.is_symlink() or not stat.S_ISREG(info.st_mode) or info.st_size > MAX_FILE:
+            raise ValueError("Case exports contain bounded regular files only.")
+        total_size += info.st_size
+        if total_size > MAX_TOTAL:
+            raise ValueError("Case export exceeds its bounded total size.")
+        files[name] = {"sha256": sha256(path), "bytes": info.st_size}
     manifest = {
         **manifest,
-        "files": {
-            name: {"sha256": sha256(path), "bytes": path.stat().st_size}
-            for name, path in sorted(paths.items())
-        },
+        "files": files,
     }
+    document = json.dumps(manifest, ensure_ascii=False, sort_keys=True)
+    document_size = len(document.encode("utf-8"))
+    if (
+        document_size > MAX_MANIFEST
+        or sum(row["bytes"] for row in files.values()) + document_size > MAX_TOTAL
+    ):
+        raise ValueError("Case export exceeds its bounded manifest or total size.")
     staging = tempfile.TemporaryDirectory(prefix=".case-bundle-", dir=target.parent)
     try:
         staged = Path(staging.name) / target.name
         with zipfile.ZipFile(
             staged, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=6
         ) as archive:
-            archive.writestr(
-                "manifest.json", json.dumps(manifest, ensure_ascii=False, sort_keys=True)
-            )
+            archive.writestr("manifest.json", document)
             for name, path in sorted(paths.items()):
-                archive.write(path, name)
+                _write_member(archive, path, name, files[name])
         receipt = {"sha256": sha256(staged), "bytes": staged.stat().st_size}
         # A same-filesystem hard link publishes complete bytes without replacing any target.
         # Unsupported filesystems fail closed rather than weaken the no-overwrite contract.
