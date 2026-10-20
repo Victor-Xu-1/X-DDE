@@ -64,7 +64,11 @@ def test_known_smiles_is_a_molecule_not_a_query(language, width):
         (evidence / f"native-{language}-{width}.json").write_text(json.dumps(native))
         page.screenshot(path=evidence / f"scaffold-{language}-{width}.png", full_page=True)
         mol = Chem.MolFromMolBlock(native["mol"], removeHs=False, strictParsing=True)
-        assert mol is not None and not any(atom.HasQuery() for atom in mol.GetAtoms())
+        # The deliberately supplied attachment '*' is a Molfile AtomNull query.
+        # Every actual element, especially the donor N, must remain molecular.
+        assert mol is not None and not any(
+            atom.HasQuery() for atom in mol.GetAtoms() if atom.GetAtomicNum() != 0
+        )
         expected = Chem.MolFromSmiles(SCAFFOLD)
         assert Chem.MolToSmiles(mol, isomericSmiles=True) == Chem.MolToSmiles(expected)
         assert sum(atom.GetAtomicNum() == 0 for atom in mol.GetAtoms()) == 1
