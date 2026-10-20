@@ -158,6 +158,36 @@ describe("Native aromatic depiction", () => {
       renderer.close();
     }
   });
+  it("never exports unresolved aromatic circles or disables native verification", async () => {
+    const { renderer, editor } = nativeRenderer();
+    editor.structService.layout
+      .mockResolvedValueOnce({ struct: "native-laid-mol" })
+      .mockResolvedValueOnce({
+        struct: JSON.stringify({
+          mol0: {
+            type: "molecule",
+            atoms: [{ label: "C" }, { label: "C" }],
+            bonds: [{ type: 4, atoms: [0, 1] }],
+          },
+        }),
+      });
+    try {
+      await expect(
+        renderer.render(
+          { smiles: "mixed-aromatic-form" },
+          new AbortController().signal,
+        ),
+      ).rejects.toThrow("original SDF/MOL record");
+      expect(editor.setMolecule).not.toHaveBeenCalled();
+      expect(editor.generateImage).not.toHaveBeenCalled();
+      expect(editor.structService.dearomatize).toHaveBeenCalledWith(
+        { struct: "native-laid-mol", output_format: "chemical/x-mdl-molfile" },
+        { "aromaticity-model": "generic" },
+      );
+    } finally {
+      renderer.close();
+    }
+  });
 });
 
 describe("Native SVG image transport under the platform CSP", () => {

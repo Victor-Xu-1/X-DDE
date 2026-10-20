@@ -12,8 +12,8 @@ vi.mock("../viewer/StructureViewer", () => ({
   ),
 }));
 vi.mock("../presentation/MoleculeImage", () => ({
-  MoleculeImage: ({ source }: { source: { smiles: string } }) => (
-    <output data-testid="native-2d-source">{source.smiles}</output>
+  MoleculeImage: ({ source }: { source: unknown }) => (
+    <output data-testid="native-2d-source">{JSON.stringify(source)}</output>
   ),
 }));
 afterEach(cleanup);
@@ -119,12 +119,20 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
   expect(screen.queryByTestId("native-3d-source")).toBeNull();
   expect(
     screen.getByRole("tabpanel", { name: "2D structure" }),
-  ).toHaveTextContent(cation);
+  ).toHaveTextContent("cation-010.sdf");
   expect(
     screen.getByRole("link", { name: "Download current conformer SDF" }),
   ).toHaveAttribute("href", expect.stringContaining("cation-010.sdf"));
   await user.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(screen.getByTestId("native-3d-source")).toHaveTextContent(
     "cation-010.sdf",
+  );
+  expect(
+    screen.getAllByTestId("native-2d-source").map((node) => node.textContent),
+  ).toContain(
+    JSON.stringify({
+      url: `/api/jobs/${job.id}/download?name=states.sdf`,
+      record: 1,
+    }),
   );
 });

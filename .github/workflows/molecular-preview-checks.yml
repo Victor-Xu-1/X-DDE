@@ -9,6 +9,7 @@ on:
       - 'frontend/src/presentation/depiction-renderer*'
       - 'frontend/src/editors/scientificEditor.ts'
       - 'server_tests/test_molecular_preview_browser.py'
+      - 'server_tests/fixtures/stat6-generated-states-v0645.*'
       - '.github/workflows/molecular-preview-checks.yml'
   pull_request:
     paths: *molecular_preview_paths

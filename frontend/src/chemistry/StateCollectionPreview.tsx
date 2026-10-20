@@ -61,7 +61,13 @@ export function StateCollectionPreview({
             <MolecularPreview
               label={String(state.index + 1)}
               language={language}
-              source={{ smiles: state.smiles }}
+              source={{
+                url: artifactUrl(
+                  job.id,
+                  current?.artifact ?? data.state_artifact,
+                ),
+                record: current ? 0 : state.index,
+              }}
               defaultView={current ? "3d" : "2d"}
               urls={
                 current ? [artifactUrl(job.id, current.artifact)] : undefined
@@ -145,7 +151,10 @@ export function StateCollectionPreview({
                 >
                   <MoleculeImage
                     compact
-                    source={{ smiles: value.smiles }}
+                    source={{
+                      url: artifactUrl(job.id, data.state_artifact),
+                      record: value.index,
+                    }}
                     language={language}
                     label={String(value.index + 1)}
                   />

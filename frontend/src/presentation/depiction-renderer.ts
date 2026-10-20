@@ -185,7 +185,12 @@ export class DepictionRenderer {
             throw new Error(
               "The native aromatic display copy is unavailable or too large.",
             );
-          await editor.setMolecule(await foldDisplayHydrogens(editor, display));
+          const folded = await foldDisplayHydrogens(editor, display);
+          if (hasUnlocalizedBonds(folded))
+            throw new Error(
+              "This aromatic form needs its original SDF/MOL record for an exact drawing.",
+            );
+          await editor.setMolecule(folded);
           const arranged = await editor.getMolfile();
           active.throwIfAborted();
           return editor.generateImage!(
@@ -249,4 +254,17 @@ export class DepictionRenderer {
     this.controller.abort();
     this.cache.clear();
   }
+}
+
+function hasUnlocalizedBonds(ket: string) {
+  return Object.values(JSON.parse(ket) as Record<string, unknown>).some(
+    (node) => {
+      if (!node || typeof node !== "object") return false;
+      const molecule = node as { type?: string; bonds?: { type: number }[] };
+      return (
+        molecule.type === "molecule" &&
+        molecule.bonds?.some((bond) => bond.type === 4)
+      );
+    },
+  );
 }

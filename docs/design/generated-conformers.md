@@ -63,3 +63,14 @@ coordinates and user editor are immutable; failed native conversion is reported
 instead of silently falling back to query import or editing SVG pixels. Focused
 CI checks actual native Molfile graph identity, non-query atoms, retained donor
 hydrogen and alternating aromatic bonds through the bilingual questionnaire.
+
+Prepared-state previews use their exact native SDF records. Thumbnails use
+`states.sdf` at the validated state index; the main view uses the selected
+conformer artifact when one exists, so its optimization/download authority stays
+the actual 3D source. Re-importing a canonical SMILES can change how different
+toolkits perceive mixed aromatic/nonaromatic tautomer systems. Original native
+Molfile bond orders and stereochemical markers avoid that lossy interchange.
+If native dearomatization still leaves aromatic bonds in a SMILES-only drawing,
+the renderer reports it unavailable and refuses export; it never disables
+verification, invents bond orders or paints over circles. Native source-record
+browser checks separately prove stereo/enol fidelity without running research.

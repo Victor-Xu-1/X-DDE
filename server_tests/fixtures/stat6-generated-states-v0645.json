@@ -1,0 +1,8 @@
+{
+  "source": "Actual owner frontend task and unmodified native artifact",
+  "job": "ff3d98a3-9465-4cbb-a240-8d52996c2104",
+  "artifact": "states.sdf",
+  "platform_version": "0.6.45",
+  "sha256": "19605c96836e74bd9475cf1231830d1ea75a4e53618260c50e8a1d91d6a0eff1",
+  "purpose": "Exact SDF bond/stereo depiction regression; not affinity, activity, experimental binding or dominant tautomer populations"
+}
