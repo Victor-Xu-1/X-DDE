@@ -97,6 +97,8 @@ const views = {
     "selection",
     "reference",
     "score",
+    "lower",
+    "upper",
   ],
   followup: ["member", "endpoint", "unit", "value", "qualifier", "matched"],
 } as const;
@@ -271,7 +273,7 @@ export function ResearchTable({
             {zh ? "符合所选筛选条件" : "Selected prioritization criteria"}
           </label>
         )}
-        {view === "enrichment" && (
+        {(view === "enrichment" || view === "series") && (
           <Hint label={zh ? "富集与区间说明" : "Enrichment and interval help"}>
             {zh
               ? "富集是相对于所选对照的测序计数比值。区间只表示计数模型的不确定性；不代表实测亲和力或生物学重复误差。"

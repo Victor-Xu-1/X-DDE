@@ -85,7 +85,7 @@ export function SeriesEnrichmentPlot({
             text: map.cells.map((row) =>
               row.map((cell) =>
                 cell
-                  ? `${zh ? "富集" : "Enrichment"}: ${cell.score.toPrecision(4)}<br>${zh ? "观察成员" : "Observed members"}: ${cell.members}<br>${zh ? "计数后验区间" : "Count posterior interval"}: ${cell.lower ?? (zh ? "未报告" : "not reported")} – ${cell.upper ?? (zh ? "未报告" : "not reported")}`
+                  ? `${zh ? "富集" : "Enrichment"}: ${cell.score.toPrecision(4)}<br>${zh ? "观察成员" : "Observed members"}: ${cell.members}<br>${zh ? "靶点 / 对照计数" : "Target / reference counts"}: ${cell.selection ?? "—"} / ${cell.reference ?? "—"}<br>${zh ? "计数后验区间" : "Count posterior interval"}: ${cell.lower?.toPrecision(4) ?? (zh ? "未报告" : "not reported")} – ${cell.upper?.toPrecision(4) ?? (zh ? "未报告" : "not reported")}`
                   : zh
                     ? "此视图未报告"
                     : "Not reported in this view",
@@ -137,6 +137,9 @@ export function SeriesEnrichmentPlot({
         {zh
           ? "灰色：未出现在此视图，不推断为未观察。悬停查看原始富集与成员数。"
           : "Gray: absent from this view; it is not inferred to be unobserved. Hover for raw enrichment and member counts."}
+        {zh
+          ? " 对照计数为零表示未观察到，不证明不存在；富集不等于亲和力或协同性。"
+          : " Zero reference counts mean not observed, not proven absent; enrichment is not affinity or cooperativity."}
         {totalSeries !== undefined && totalSeries > series.length
           ? ` ${series.length} / ${totalSeries} ${zh ? "项系列；完整数据可在系列表中查看。" : "series; inspect the series table for the full data."}`
           : ""}
