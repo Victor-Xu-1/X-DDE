@@ -4,41 +4,7 @@ import json
 import subprocess
 
 from .managed_containers import attached_container
-
-
-def remove_finished(container):
-    """A timed-out client does not prove removal failed or that it succeeded."""
-    try:
-        subprocess.run(
-            ["docker", "rm", container], check=True, capture_output=True, text=True, timeout=15
-        )
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as error:
-        try:
-            inspection = subprocess.run(
-                ["docker", "inspect", "--format", "{{json .State}}", container],
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=15,
-            )
-            missing = inspection.returncode and inspection.stderr.strip().lower() in {
-                "error: no such object: " + container,
-                "error response from daemon: no such container: " + container,
-            }
-            if missing:
-                daemon = subprocess.run(
-                    ["docker", "info", "--format", "{{json .ServerVersion}}"],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=15,
-                )
-                version = json.loads(daemon.stdout)
-                if isinstance(version, str) and version.strip():
-                    return
-        except (OSError, ValueError, subprocess.SubprocessError):
-            pass
-        raise RuntimeError("Owned native container removal could not be confirmed.") from error
+from .native_container_cleanup import remove_finished
 
 
 def attach(directory, prefix):
@@ -61,7 +27,7 @@ def attach(directory, prefix):
         )
     )
     if not state.get("Running"):
-        remove_finished(container)
+        remove_finished(container, directory / "native-cleanup.json")
     if code or state.get("Running") or state.get("ExitCode") != 0 or state.get("OOMKilled"):
         raise RuntimeError(
             "Native scientific container did not finish successfully; inspect native-exit.json."

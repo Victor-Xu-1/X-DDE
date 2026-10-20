@@ -25,8 +25,8 @@ on:
       - "frontend/src/docking/types.ts"
       - "frontend/src/docking/results.css"
       - "src/opendde_workbench/assets.py"
-      - "src/opendde_workbench/container_supervision.py"
-      - "tests/test_native_container_cleanup.py"
+      # Shared attach/removal changes use native-container-checks.yml; they do not
+      # change GNINA science or require downloading and rerunning its model.
       - "tests/test_docking_runtime_qualification.py"
       - "tests/test_docking.py"
       - "tests/test_docking_scoring.py"

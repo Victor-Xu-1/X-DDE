@@ -9,6 +9,15 @@ Artifact or health failures cannot delay publication of successful task metadata
 
 ## Bounded reads and recovery
 
+Native execution records its original exit status before removing its exact
+owned container. A timed-out removal client is reconciled for at most 45 seconds
+using bounded inspections of that same name and a healthy-daemon check. Removal
+is sent once; scientific work is never restarted by this reconciliation. A
+container still present, running, or unavailable for verification remains a
+failure, with `native-cleanup.json` retained beside the original exit record.
+Confirmed cleanup cannot override a nonzero exit or an OOM. These are server
+diagnostics; the researcher sees the task state and retained scientific files.
+
 - Each workbench read has a 30-second deadline composed with its effect's
   cancellation signal. The deadline also bounds a body reader or transport that
   does not reject its promise when cancelled.

@@ -1,0 +1,36 @@
+name: Native task cleanup reconciliation
+on:
+  push:
+    paths: &cleanup_paths
+      - 'src/opendde_workbench/container_supervision.py'
+      - 'src/opendde_workbench/native_container_cleanup.py'
+      - 'tests/test_native_container_cleanup.py'
+      - 'tests/test_managed_containers.py'
+      - 'server_tests/native_cleanup_probe.py'
+      - '.github/workflows/native-container-checks.yml'
+  pull_request:
+    paths: *cleanup_paths
+permissions:
+  contents: read
+jobs:
+  lifecycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - run: uv run --locked ruff check src/opendde_workbench/container_supervision.py src/opendde_workbench/native_container_cleanup.py tests/test_native_container_cleanup.py server_tests/native_cleanup_probe.py
+      - name: Shared supervision, exact namespace and native failure consumers
+        run: uv run --locked pytest -q tests/test_native_container_cleanup.py tests/test_managed_containers.py tests/test_docking.py::test_failed_native_container_records_exit_and_is_removed
+      - name: Real native process, artifacts, delayed cleanup observations and preserved sibling
+        run: uv run --locked python server_tests/native_cleanup_probe.py --output "$RUNNER_TEMP/native-cleanup"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-cleanup-evidence
+          path: ${{ runner.temp }}/native-cleanup/**
