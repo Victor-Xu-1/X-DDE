@@ -1,16 +1,16 @@
 """Use a reviewed native preparation by exact provenance, never by a filename guess."""
 
-from ...receptors.preparation_contract import StructurePrepareTask
 from ...receptors.preparation_result import StructurePrepareResult, validate_preparation
 from ..pins import ExamplePins
-from .catalogue import FILES, MODULES
+from ..receptor_provenance import prepared_receptor_origin
+from .catalogue import FILES
 
 
 def reviewed_receptor(scientific, records, *, retain_reference_ligand=False):
     if records is None:
         return None
     state = records.settings.state_dir
-    pin = ExamplePins(scientific.store, state, modules=MODULES).get(
+    pin = ExamplePins(scientific.store, state, modules=records.modules).get(
         "biopython.prepare", verify=True
     )
     if pin is None or pin.review is None:
@@ -48,7 +48,9 @@ def reviewed_protein_only_receptor(scientific, records):
     if records is None:
         return None
     state = records.settings.state_dir
-    pin = ExamplePins(scientific.store, state, modules=MODULES).get("gnina.dock", verify=True)
+    pin = ExamplePins(scientific.store, state, modules=records.modules).get(
+        "gnina.dock", verify=True
+    )
     if pin is None or pin.review is None:
         return None
     docking = scientific.store.get(str(pin.job_id))
@@ -56,12 +58,9 @@ def reviewed_protein_only_receptor(scientific, records):
     if ref.version_id is None:
         raise ValueError("The reviewed docking receptor requires an exact prepared version.")
     scientific.validate_reference(ref)
-    version = scientific.get(ref.version_id)
-    preparation = scientific.store.get(str(version.source_job)) if version.source_job else None
-    if preparation is None or not isinstance(preparation.request, StructurePrepareTask):
-        raise ValueError("The reviewed docking receptor is not a native preparation output.")
-    if preparation.status != "succeeded" or scientific.store.environment(preparation.id) is None:
-        raise ValueError("The docking receptor preparation has no successful native evidence.")
+    version, preparation = prepared_receptor_origin(
+        scientific, state, scientific.get(ref.version_id)
+    )
     output = state / "jobs" / preparation.id / "output"
     result = validate_preparation(
         StructurePrepareResult.model_validate_json((output / "result.json").read_text()),
@@ -82,7 +81,7 @@ def reviewed_protein_only_receptor(scientific, records):
         raise ValueError(
             "The reviewed docking receptor differs from the explicit STAT6 preparation."
         )
-    asset = scientific.assets.get(ref.asset_id)
+    asset = scientific.assets.get(version.reference.asset_id)
     if (asset.name, asset.kind, asset.sha256) != (result.artifact, "structure", result.sha256):
         raise ValueError("The docking receptor asset differs from its native prepared artifact.")
     if scientific.assets.path(asset).read_bytes() != (output / result.artifact).read_bytes():

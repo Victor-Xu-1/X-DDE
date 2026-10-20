@@ -6,12 +6,15 @@ on:
       - 'src/opendde_workbench/examples/stat6/module-revisions.json'
       - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'src/opendde_workbench/examples/stat6/prepared_inputs.py'
+      - 'src/opendde_workbench/examples/receptor_provenance.py'
       - 'src/opendde_workbench/examples/catalogue_profiles.py'
       - 'src/opendde_workbench/examples/bundle.py'
       - 'src/opendde_workbench/examples/bundle_catalogue.py'
       - 'src/opendde_workbench/examples/bundle_restore.py'
       - 'scripts/revise-study-modules.py'
       - 'tests/test_study_module_revisions.py'
+      - 'tests/test_receptor_copy_provenance.py'
       - 'tests/test_stat6_templates.py'
       - '.github/workflows/study-module-revision-checks.yml'
   pull_request:
@@ -43,12 +46,14 @@ jobs:
           uv run --locked ruff check
           src/opendde_workbench/examples/stat6/catalogue.py
           src/opendde_workbench/examples/stat6/preparation.py
+          src/opendde_workbench/examples/stat6/prepared_inputs.py
+          src/opendde_workbench/examples/receptor_provenance.py
           src/opendde_workbench/examples/catalogue_profiles.py
           src/opendde_workbench/examples/bundle.py
           src/opendde_workbench/examples/bundle_catalogue.py
           src/opendde_workbench/examples/bundle_restore.py
           scripts/revise-study-modules.py tests/test_study_module_revisions.py
-          tests/test_stat6_templates.py
+          tests/test_stat6_templates.py tests/test_receptor_copy_provenance.py
       - run: uv run --locked python scripts/revise-study-modules.py
       - name: Exact revision, source, request replay and cold-restore consumers; no inference
         run: >-
@@ -56,3 +61,4 @@ jobs:
           tests/test_study_module_revisions.py tests/test_stat6_source_revisions.py
           tests/test_stat6_predicted_references.py tests/test_stat6_templates.py
           tests/test_stat6_case_bundle.py tests/test_example_supporting.py
+          tests/test_stat6_prepared_handoff.py tests/test_receptor_copy_provenance.py
