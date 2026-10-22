@@ -61,8 +61,11 @@ def downloaded_pose(scientific, assets, base, url):
     )
     asset = assets.get(str(pose.reference.asset_id))
     assert asset.sha256 == pose.reference.sha256 and pose.reference.conformer == 0
-    expected = split_records(assets.path(asset).read_bytes())[record] + b"\n$$$$\n"
-    assert read(base, url) == expected
+    original = assets.path(asset).read_bytes()
+    # Each computed child is a distinct one-record asset. Its download must
+    # retain every original byte, including native SD properties and framing.
+    assert record == 0 and len(split_records(original)) == 1
+    assert read(base, url) == original
     return pose
 
 
