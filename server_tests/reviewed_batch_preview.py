@@ -55,7 +55,9 @@ def review_batch_example(page, base, language, evidence):
     ready_structure(page, zh)
     with page.expect_download() as transfer:
         preview.get_by_role(
-            "link", name="下载当前结构" if zh else "Download selected structure", exact=True
+            "link",
+            name="下载原始结果结构" if zh else "Download original result structure",
+            exact=True,
         ).click()
     sdf = evidence / "batch-CHEMBL512894-native.sdf"
     transfer.value.save_as(sdf)

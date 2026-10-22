@@ -26,7 +26,7 @@ def review_retrieval_example(page, base, language, evidence):
     ).count()
     with page.expect_download() as transfer:
         candidate.get_by_role(
-            "link", name="下载当前结构" if zh else "Download selected structure"
+            "link", name="下载原始结果结构" if zh else "Download original result structure"
         ).click()
     native = evidence / "CHEMBL458325-retrieval-native.sdf"
     transfer.value.save_as(native)

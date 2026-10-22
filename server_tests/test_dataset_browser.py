@@ -89,8 +89,8 @@ def test_all_data_modules_real_templates_results_and_questionnaire_navigation(tm
                 assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
                 if capability in {"screening.dock", "drugclip.screen", "del.candidates"}:
                     assert page.locator(".dataset-candidate-table").is_visible()
-                    page.get_by_text("下载当前结构", exact=True).first.wait_for(timeout=20000)
-                    selected = page.get_by_role("link", name="下载当前结构", exact=True).first
+                    page.get_by_text("下载原始结果结构", exact=True).first.wait_for(timeout=20000)
+                    selected = page.get_by_role("link", name="下载原始结果结构", exact=True).first
                     downloaded = context.get(
                         "http://127.0.0.1:4320" + selected.get_attribute("href")
                     )
