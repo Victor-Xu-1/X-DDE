@@ -15,16 +15,22 @@ vi.mock("react-msaview", () => ({
     drawTree: boolean;
     highlightColumns: number[];
   }) => {
-    useEffect(
-      () =>
-        onModel({
-          viewInitialized: true,
-          colWidth: 12,
-          msaCanvasWidth: 720,
-          setScrollX: scroll,
-        }),
-      [],
-    );
+    useEffect(() => {
+      const nativeModel = {
+        viewInitialized: true,
+        colWidth: 12,
+        scrollX: 0,
+        msaCanvasWidth: 720,
+        setScrollX(value: number) {
+          nativeModel.scrollX = value;
+          scroll(value);
+        },
+        setColWidth(value: number) {
+          nativeModel.colWidth = value;
+        },
+      };
+      onModel(nativeModel);
+    }, []);
     return (
       <div>
         scheme:{colorScheme} tree:{String(drawTree)} column:
@@ -61,6 +67,11 @@ it("navigates the same one-based query position repeatedly without changing the 
   await user.click(screen.getByRole("button", { name: /^Go$/ }));
   await user.click(screen.getByRole("button", { name: /^Go$/ }));
   expect(scroll.mock.calls).toEqual([[-6996], [-6996]]);
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Column width" }),
+    "18",
+  );
+  expect(scroll).toHaveBeenLastCalledWith(-10674);
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Color" }),
     "jalview_zappo",

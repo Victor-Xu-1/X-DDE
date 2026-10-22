@@ -21,6 +21,9 @@ Users can scroll through the complete alignment, change residue colors and
 column widths, navigate to a one-based query position, inspect a clicked residue,
 download the original A3M, and export the visible region as SVG. The visible-region
 export is deliberately labelled as such; it is not a complete-alignment export.
+Changing column width retains the currently centered query position. Scientific
+download URLs remain alive for60 seconds so an embedded browser can complete a
+deferred file handoff; the bytes are then released.
 
 Preview admission is bounded to25 MiB,50000 rows,10000 columns and30 million match
 cells. Oversized or inconsistent metadata is rejected with the source report

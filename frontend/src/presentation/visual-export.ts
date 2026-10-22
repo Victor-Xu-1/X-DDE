@@ -18,7 +18,9 @@ export function downloadBlob(blob: Blob, filename: string) {
     .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
     .slice(0, 140);
   link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // Embedded browsers may retrieve a large scientific SVG after dispatching its
+  // download event. Keep the bytes alive through that asynchronous handoff.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 /** Export the currently displayed scientific SVG, including its actual labels and styles. */
 export function displayedSvg(svg: SVGSVGElement): Blob {

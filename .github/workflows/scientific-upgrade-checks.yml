@@ -80,6 +80,8 @@ jobs:
           npx vitest run src/presentation/alignment/alignment-data.test.ts
           src/presentation/alignment/AlignmentResults.test.tsx
           src/presentation/alignment/AlignmentCanvas.test.tsx
+          src/presentation/visual-export.test.ts
+          src/publication/FigureExport.test.tsx src/presentation/SequenceTrack.test.tsx
           src/operations/TargetMsaResults.test.tsx
           src/datasets/ModelValidationPlot.test.tsx
           src/operations/HarnessResults.test.tsx

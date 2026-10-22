@@ -76,7 +76,20 @@ export default function AlignmentCanvas({
           {zh ? "列宽" : "Column width"}
           <select
             value={zoom}
-            onChange={(event) => setZoom(Number(event.target.value))}
+            onChange={(event) => {
+              const width = Number(event.target.value),
+                current = model.current;
+              if (current?.viewInitialized) {
+                const center =
+                  (-current.scrollX + current.msaCanvasWidth / 2) /
+                  current.colWidth;
+                current.setColWidth(width);
+                current.setScrollX(
+                  -center * width + current.msaCanvasWidth / 2,
+                );
+              }
+              setZoom(width);
+            }}
           >
             {[6, 12, 18, 24].map((value) => (
               <option key={value} value={value}>
