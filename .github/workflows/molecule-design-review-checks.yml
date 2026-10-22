@@ -35,8 +35,13 @@ on:
 permissions:
   contents: read
 jobs:
+  model-context:
+    uses: ./.github/workflows/property-model-review-checks.yml
+    with:
+      scope_only: true
   design-review:
-    if: github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire'
+    needs: model-context
+    if: needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from test_model_case_sources import model_files
 
+from opendde_workbench.assets import AssetStore
 from opendde_workbench.integrations.bindings import trained_model
 from opendde_workbench.integrations.routes import register_scientific_routes
 from opendde_workbench.models import Status
@@ -20,7 +21,17 @@ from opendde_workbench.store import Store
 def model_context(settings):
     settings.state_dir.mkdir()
     store = Store(settings.state_dir / "jobs.sqlite3")
-    task, _ = model_files(settings.state_dir / "prototype")
+    assets = AssetStore(store, settings.state_dir / "assets")
+    source = assets.save("controlled-source.sdf", "ligand", b"Controlled model-source fixture\n")
+    task, _ = model_files(
+        settings.state_dir / "prototype",
+        {
+            "asset_id": source.id,
+            "sha256": source.sha256,
+            "record": 0,
+            "conformer": 0,
+        },
+    )
     job = store.create(task, str(uuid4()), 20, 500)
     store.claim(job.id)
     output = settings.state_dir / "jobs" / job.id / "output"

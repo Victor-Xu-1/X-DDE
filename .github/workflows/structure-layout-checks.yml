@@ -93,6 +93,10 @@ on:
 permissions:
   contents: read
 jobs:
+  model-context:
+    uses: ./.github/workflows/property-model-review-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -107,8 +111,8 @@ jobs:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
   view-alignment:
-    needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    needs: [scope, model-context]
+    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
@@ -174,8 +178,8 @@ jobs:
           name: structure-workbench-evidence
           path: outputs/structure-workbench/**
   adjacent-result-consumers:
-    needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    needs: [scope, model-context]
+    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

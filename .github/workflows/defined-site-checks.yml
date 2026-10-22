@@ -39,6 +39,10 @@ on:
 permissions:
   contents: read
 jobs:
+  model-context:
+    uses: ./.github/workflows/property-model-review-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -53,8 +57,8 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: python3 scripts/del-ci-scope.py
   definitions:
-    needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    needs: [scope, model-context]
+    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

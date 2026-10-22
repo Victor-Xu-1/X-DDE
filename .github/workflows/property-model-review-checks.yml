@@ -11,6 +11,8 @@ on:
       - 'frontend/src/integrations/ScientificResults.tsx'
       - 'frontend/src/integrations/types.ts'
       - 'tests/test_property_model_context.py'
+      - 'tests/test_property_model_scope.py'
+      - 'scripts/property-model-scope.py'
       - 'tests/test_model_case_sources.py'
       - 'server_tests/test_property_model_reuse_browser.py'
       - '.github/workflows/property-model-review-checks.yml'
@@ -18,13 +20,33 @@ on:
     paths: *model_context_paths
   workflow_call:
     inputs:
+      scope_only:
+        type: boolean
+        default: false
       runner:
         type: string
         default: ubuntu-24.04
+    outputs:
+      model_context_only:
+        value: ${{ jobs.scope.outputs.model_context_only }}
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      model_context_only: ${{ steps.select.outputs.model_context_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/property-model-scope.py
   model-review:
+    if: inputs.scope_only != true
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
     env:
@@ -38,7 +60,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Exact model context, checkpoint admission and preserved historical evidence
-        run: uv run --locked pytest -q tests/test_property_model_context.py tests/test_model_case_sources.py
+        run: uv run --locked pytest -q tests/test_property_model_context.py tests/test_model_case_sources.py tests/test_property_model_scope.py
       - name: Explicit original-source and adjacent potential-transfer review
         if: github.event_name == 'workflow_dispatch'
         run: uv run --locked pytest -q tests/test_potential_case_sources.py tests/test_case_bundle_sources.py
@@ -48,7 +70,8 @@ jobs:
           npx vitest run src/integrations/property-model-evidence.test.ts
           src/integrations/PropertyModelEvidence.test.tsx src/integrations/PropertyModelSelection.test.tsx
           src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx
-          src/integrations/ScientificForm.test.tsx
+          src/integrations/ScientificForm.test.tsx src/integrations/ReinventReview.test.tsx
+          src/integrations/PlipReview.test.tsx
       - name: Get the current immutable public case data for cold restoration
         env:
           GH_TOKEN: ${{ github.token }}
