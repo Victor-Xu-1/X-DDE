@@ -5,6 +5,7 @@ import { MetricScatter } from "../presentation/MetricScatter";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import type { NativeResult } from "./types";
+import { propertyModelEvidence } from "./property-model-evidence";
 
 export function PropertyModelResults({
   result,
@@ -36,13 +37,13 @@ export function PropertyModelResults({
       )}
     </span>
   );
-  const r2 = result.metrics.find((metric) => metric.name === "Test R²")?.value;
+  const evidence = propertyModelEvidence(result.metrics);
   return (
     <section
       className="property-model-review"
       aria-label={zh ? "性质模型测试集复核" : "Property model held-out review"}
     >
-      {r2 !== undefined && r2 <= 0 && (
+      {evidence.status === "insufficient" && (
         <p className="property-model-warning" role="status">
           {zh
             ? "测试表现不足：R² ≤ 0。该模型未优于测试集均值这一统计参照，不能据此声称有可靠预测能力。请检查逐个分子的误差和适用范围。"

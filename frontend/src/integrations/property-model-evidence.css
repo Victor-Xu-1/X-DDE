@@ -1,0 +1,22 @@
+.property-model-context {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.property-model-context p {
+  margin: 0;
+}
+.property-model-context dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 0;
+}
+.property-model-context dt {
+  font-size: 12px;
+  color: var(--text-secondary, #64748b);
+}
+.property-model-context dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

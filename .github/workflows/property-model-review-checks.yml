@@ -1,5 +1,21 @@
 name: Property model review scoped checks
 on:
+  push:
+    paths: &model_context_paths
+      - 'src/opendde_workbench/integrations/property_models.py'
+      - 'src/opendde_workbench/integrations/bindings.py'
+      - 'src/opendde_workbench/integrations/routes.py'
+      - 'frontend/src/integrations/PropertyModel*'
+      - 'frontend/src/integrations/property-model-evidence*'
+      - 'frontend/src/integrations/ScientificReview.tsx'
+      - 'frontend/src/integrations/ScientificResults.tsx'
+      - 'frontend/src/integrations/types.ts'
+      - 'tests/test_property_model_context.py'
+      - 'tests/test_model_case_sources.py'
+      - 'server_tests/test_property_model_reuse_browser.py'
+      - '.github/workflows/property-model-review-checks.yml'
+  pull_request:
+    paths: *model_context_paths
   workflow_call:
     inputs:
       runner:
@@ -9,7 +25,7 @@ permissions:
   contents: read
 jobs:
   model-review:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
     env:
       WB_AUTO_DEPLOY: "0"
@@ -21,11 +37,18 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
-      - name: Sealed checkpoints and adjacent potential and original-source transfer boundaries
-        run: uv run --locked pytest -q tests/test_model_case_sources.py tests/test_potential_case_sources.py tests/test_case_bundle_sources.py
-      - name: Linked structures, errors, units, model downloads and ordinary candidate results
+      - name: Exact model context, checkpoint admission and preserved historical evidence
+        run: uv run --locked pytest -q tests/test_property_model_context.py tests/test_model_case_sources.py
+      - name: Explicit original-source and adjacent potential-transfer review
+        if: github.event_name == 'workflow_dispatch'
+        run: uv run --locked pytest -q tests/test_potential_case_sources.py tests/test_case_bundle_sources.py
+      - name: Model selection, stale replies, submission review and prediction-result consumers
         working-directory: frontend
-        run: npx vitest run src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx src/presentation/MetricScatter.test.tsx
+        run: >-
+          npx vitest run src/integrations/property-model-evidence.test.ts
+          src/integrations/PropertyModelEvidence.test.tsx src/integrations/PropertyModelSelection.test.tsx
+          src/integrations/PropertyModelResults.test.tsx src/integrations/ScientificResults.test.tsx
+          src/integrations/ScientificForm.test.tsx
       - name: Get the current immutable public case data for cold restoration
         env:
           GH_TOKEN: ${{ github.token }}
@@ -41,15 +64,21 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
       - name: Existing sealed pins remain portable without changing their bytes or executing history
+        if: github.event_name == 'workflow_dispatch'
         run: uv run --locked pytest -q tests/test_stat6_case_data.py
       - name: Install native Ketcher only; no training or scientific engine
         run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps
-      - name: Actual restored model and region examples in English desktop and Chinese mobile browsers
+      - name: Actual restored model reuse in English desktop and Chinese mobile without calculation
+        run: uv run --locked pytest -x -q server_tests/test_property_model_reuse_browser.py
+      - name: Explicit full model and region review remains available to its existing caller
+        if: github.event_name == 'workflow_dispatch'
         run: uv run --locked pytest -x -q server_tests/test_property_model_review_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: property-model-review
-          path: server_tests/evidence/property-model-review
+          path: |
+            server_tests/evidence/property-model-review
+            server_tests/evidence/property-model-reuse
           if-no-files-found: warn

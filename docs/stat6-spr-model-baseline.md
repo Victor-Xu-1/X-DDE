@@ -35,6 +35,21 @@ private study molecules. Do not search seeds or tune against this test set to
 obtain a preferred score. Further predictive claims require defensible new
 validation and appropriate experimental data.
 
+Model reuse retains this limitation. The model list and the exact model lookup
+read the successful training job, validate its native result and checkpoint, and
+return the original held-out metrics, record count and report digest. They share
+the same model-source validation used at prediction admission; there is no second
+model registry. The selected endpoint, units and checkpoint must match the task.
+
+The selection page, final submission review and prediction-result inspector show
+this exact model's recorded evaluation. A late reply for another model or an old
+checksum is discarded. Unavailable evidence stays explicitly unverified; missing
+metrics do not become zero errors. Positive held-out performance is described as
+reported evidence, never automatic external validation or proven applicability.
+The original training result opens in a separate tab so the current task's inputs
+remain in place. This change does not retrain the model, alter old results, or
+turn the negative STAT6 baseline into an accepted affinity predictor.
+
 The browser review links each held-out record to its actual molecular graph,
 reported value, prediction and error. The original model and data remain
 downloadable. Portable case export follows the validated native result manifest

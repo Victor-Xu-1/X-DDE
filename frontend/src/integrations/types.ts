@@ -47,7 +47,10 @@ export interface NativeCandidate {
   sequence?: string | null;
   metrics: NativeMetric[];
   geometry:
-    "predicted_structure" | "unbound_conformer" | "source_frame" | "none";
+    | "predicted_structure"
+    | "unbound_conformer"
+    | "source_frame"
+    | "none";
 }
 export interface NativeInteraction {
   kind: string;
@@ -105,6 +108,9 @@ export interface PropertyModel {
   activity_property: string;
   activity_unit: string;
   sha256: string;
+  source_report_sha256?: string;
+  validation_metrics?: NativeMetric[];
+  validation_records?: number;
 }
 
 export const scientificForms = {

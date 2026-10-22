@@ -3,6 +3,7 @@ import { request } from "../api";
 import { researchError } from "../presentation/research-content";
 import type { Language } from "../types";
 import type { PropertyModel, ScientificPayload } from "./types";
+import { BoundPropertyModelEvidence } from "./PropertyModelEvidence";
 
 export function PropertyModelSelection({
   language,
@@ -72,6 +73,9 @@ export function PropertyModelSelection({
           </select>
         </label>
       )}
+      {payload.model_job && payload.model_sha256 ? (
+        <BoundPropertyModelEvidence payload={payload} language={language} />
+      ) : null}
       {loading ? (
         <p role="status">
           {zh ? "正在读取研究模型…" : "Loading research models…"}

@@ -1,14 +1,19 @@
 """Discover reusable models through the existing successful-job authority."""
 
-import json
+from uuid import UUID
 
-from ..artifacts import contained
-from .contract import IntegratedTask
-from .result import validate_result
+from fastapi import HTTPException
+
+from .property_models import (
+    PropertyModelCatalogue,
+    PropertyModelSummary,
+    PropertyModelUnavailable,
+    verified_property_model,
+)
 
 
 def register_scientific_routes(app, store, settings):
-    @app.get("/api/scientific/property-models")
+    @app.get("/api/scientific/property-models", response_model=PropertyModelCatalogue)
     def models():
         selected = []
         # Bound enumeration; use the existing store rather than a competing model registry.
@@ -22,28 +27,21 @@ def register_scientific_routes(app, store, settings):
                 )
             ]
         for identifier in ids:
-            job = store.get(identifier)
-            if not isinstance(job.request, IntegratedTask):
-                continue
-            output = settings.state_dir / "jobs" / job.id / "output"
             try:
-                report = contained(output, "result.json")
-                if report.stat().st_size > 4 * 1024**2:
-                    continue
-                result = validate_result(
-                    json.loads(report.read_text(encoding="utf-8")), job.request, output
-                )
-                if not result.model_artifact:
-                    continue
-                selected.append(
-                    {
-                        "job_id": job.id,
-                        "name": job.request.name,
-                        "activity_property": job.request.payload.activity_property,
-                        "activity_unit": job.request.payload.activity_unit,
-                        "sha256": result.artifact_sha256[result.model_artifact],
-                    }
-                )
+                model = verified_property_model(settings.state_dir, store.get(identifier))
+                selected.append(model.summary.model_dump(mode="json"))
             except (OSError, ValueError, KeyError):
                 continue
         return {"models": selected}
+
+    @app.get("/api/scientific/property-models/{identifier}", response_model=PropertyModelSummary)
+    def model(identifier: UUID):
+        try:
+            value = verified_property_model(settings.state_dir, store.get(str(identifier)))
+            return value.summary
+        except PropertyModelUnavailable as exc:
+            raise HTTPException(404, "The selected research model is unavailable.") from exc
+        except (OSError, ValueError, KeyError) as exc:
+            raise HTTPException(
+                409, "The selected model's checkpoint or training evidence could not be verified."
+            ) from exc

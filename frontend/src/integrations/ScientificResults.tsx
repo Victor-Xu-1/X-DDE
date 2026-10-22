@@ -15,6 +15,7 @@ import { ProteinInterfaceResults } from "./ProteinInterfaceResults";
 import { PotentialResults } from "./PotentialResults";
 import { ProximityResults } from "../proximity/Results";
 import { PropertyModelResults } from "./PropertyModelResults";
+import { BoundPropertyModelEvidence } from "./PropertyModelEvidence";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import "./results.css";
 import { DynamicsResults } from "../simulations/DynamicsResults";
@@ -220,6 +221,16 @@ export function ScientificResults({
             />
           )}
           <StructureWorkbench preview={view}>
+            {result.operation === "chemprop_predict" && (
+              <BoundPropertyModelEvidence
+                payload={
+                  job.request?.operation === "chemprop_predict"
+                    ? job.request.payload
+                    : { kind: "chemprop", mode: "predict" }
+                }
+                language={language}
+              />
+            )}
             <ResearchTable
               rows={rows}
               columns={columns}
