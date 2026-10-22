@@ -132,6 +132,9 @@ def scored_sources(settings):
     sequences = [parent, parent[:613] + "A" + parent[614:], parent[:613] + "Q" + parent[614:]]
     request = {
         **prepared.request,
+        "scientific_inputs": [
+            prepared.objects["protein_sequence"].reference.model_dump(mode="json")
+        ],
         "payload": {**prepared.request["payload"], "sequences": sequences},
     }
     job, output = retain(
