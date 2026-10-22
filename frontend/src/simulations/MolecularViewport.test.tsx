@@ -58,7 +58,11 @@ it("keeps frame capture unavailable until the requested native frame is confirme
     />,
   );
   const download = screen.getByRole("button", { name: "Download view" });
-  await waitFor(() => expect(download).toBeEnabled());
+  await waitFor(() => {
+    expect(download).toBeEnabled();
+    expect(ready.mock.lastCall?.[0]).toBe(true);
+    expect(handles.mock.lastCall?.[0]?.capture).toEqual(expect.any(Function));
+  });
   const previous = handles.mock.lastCall![0];
   let finish!: () => void;
   seek.mockImplementationOnce(
