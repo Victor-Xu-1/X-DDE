@@ -201,14 +201,10 @@ it("ties the single atom-selection notice to the currently chosen pose", async (
     <DockingResults language="en" job={{ id: "j" } as Job} result={result} />,
   );
   expect(screen.queryByRole("note")).toBeNull();
-  await userEvent.click(
-    screen.getByRole("button", { name: "Pose 2", exact: true }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^Pose 2$/ }));
   expect(screen.getAllByRole("note")).toHaveLength(1);
   expect(screen.getByRole("note")).toHaveTextContent("this pose");
-  await userEvent.click(
-    screen.getByRole("button", { name: "Pose 1", exact: true }),
-  );
+  await userEvent.click(screen.getByRole("button", { name: /^Pose 1$/ }));
   expect(screen.queryByRole("note")).toBeNull();
   expect(mocks.authorized).not.toHaveBeenCalled();
 });

@@ -187,7 +187,7 @@ it("keeps rejected poses and failed hard constraints visible and non-reusable", 
   expect(within(table).getByText(/1\.234 Å/)).toBeVisible();
   const rejected = within(table).getByRole("row", { name: /Pose 1/ });
   expect(
-    within(rejected).getByRole("button", { name: "Pose 1", exact: true }),
+    within(rejected).getByRole("button", { name: /^Pose 1$/ }),
   ).toBeDisabled();
   await userEvent.click(rejected);
   expect(onSelect).not.toHaveBeenCalled();
