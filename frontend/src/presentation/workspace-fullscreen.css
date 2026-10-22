@@ -35,12 +35,15 @@
 @media (max-width: 1000px) {
   .structure-workbench:fullscreen {
     grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    align-content: start;
     padding: 12px;
     overflow: auto;
   }
   .structure-workbench:fullscreen > .structure-workbench-view,
   .structure-workbench:fullscreen > .structure-workbench-details {
     height: auto;
+    min-height: auto;
     overflow: visible;
     padding-inline-end: 0;
   }

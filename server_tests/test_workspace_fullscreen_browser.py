@@ -68,6 +68,25 @@ def test_native_workspace_keeps_structure_controls_selection_and_downloads(
             expect(table).to_be_visible()
             if capability != "posebusters.check":
                 row = table.locator("tbody tr").nth(1)
+                row.scroll_into_view_if_needed()
+                bounds = row.bounding_box()
+                assert bounds
+                (evidence / "selection-hit.json").write_text(
+                    json.dumps(
+                        page.evaluate(
+                            """({x,y}) => ({x,y,hit:document.elementFromPoint(x,y)?.outerHTML.slice(0,600),
+                    frame:[...document.querySelectorAll('.molecular-stage')].map(el=>el.getBoundingClientRect().toJSON()),
+                    workspace:[...document.querySelectorAll('.structure-workbench:fullscreen')].map(el=>({
+                      bounds:el.getBoundingClientRect().toJSON(),rows:getComputedStyle(el).gridTemplateRows}))})""",
+                            {
+                                "x": bounds["x"] + bounds["width"] / 2,
+                                "y": bounds["y"] + bounds["height"] / 2,
+                            },
+                        ),
+                        indent=2,
+                    ),
+                    encoding="utf-8",
+                )
                 row.click()
                 expect(row).to_have_attribute("aria-selected", "true")
                 selected = row.inner_text()

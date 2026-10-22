@@ -35,7 +35,9 @@ def inspect_full_workspace(
         assert view["width"] > details["width"] * 1.7
         assert abs(view["y"] - details["y"]) < 2
     else:
-        assert view["y"] < details["y"]
+        assert view["y"] + view["height"] <= details["y"] + 2
+        scene = viewer.locator(".molecular-stage, .simulation-webgl").first.bounding_box()
+        assert scene and scene["y"] + scene["height"] <= details["y"] + 2
     assert source.evaluate("(node,original) => node === original", original)
     if inspect:
         inspect()

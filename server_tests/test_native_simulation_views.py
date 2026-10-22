@@ -179,6 +179,10 @@ def test_native_result_views_and_downloads(case, language):
             # View export is separate from scientific coordinate-file download.
             inspect_full_workspace(page, viewer, evidence, language, language + "-md")
             expect(viewer).to_have_attribute("data-frame", "2")
+            page.set_viewport_size({"width": 390, "height": 1000})
+            inspect_full_workspace(page, viewer, evidence, language, language + "-md-narrow")
+            expect(viewer).to_have_attribute("data-frame", "2")
+            page.set_viewport_size({"width": 1440, "height": 1000})
             png = export_figure(
                 page,
                 viewer.get_by_role(
@@ -331,6 +335,14 @@ def test_native_result_views_and_downloads(case, language):
                 loaded(restored.nth(index).get_by_test_id("molstar-viewport"))
             for width in (1440, 768, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
+                if width == 390:
+                    inspect_full_workspace(
+                        page,
+                        restored.nth(0).get_by_test_id("molstar-viewport"),
+                        evidence,
+                        language,
+                        language + "-fep-paired-narrow",
+                    )
                 # CDP viewport changes return before native ResizeObserver and
                 # the browser's next paint. Verify the resulting rendered layout,
                 # without retrying selection, reloading or relaxing overflow.
