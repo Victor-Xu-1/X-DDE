@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import type { Job } from "../types";
 import { TargetMsaResults } from "./TargetMsaResults";
 vi.mock("../presentation/alignment/AlignmentResults", () => ({
@@ -38,11 +39,12 @@ it("shows real portable alignments without the historical missing-file message",
   expect(screen.getByText("Complete native alignments: 1")).toBeVisible();
   expect(screen.queryByText(/did not retain|no inferred alignment/)).toBeNull();
 });
-it("keeps historical query-only results honest and rejects malformed manifests", () => {
+it("keeps historical query-only results honest and rejects malformed manifests", async () => {
   const view = render(
     <TargetMsaResults job={job} language="en" value={{ alignment_depth: 2 }} />,
   );
   expect(screen.getByText(/historical result did not retain/)).toBeVisible();
+  await userEvent.setup().click(screen.getByText("View full sequence"));
   expect(screen.getByText("ACDE")).toBeVisible();
   view.rerender(
     <TargetMsaResults
