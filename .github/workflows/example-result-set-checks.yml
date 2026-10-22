@@ -41,6 +41,7 @@ on:
       - "frontend/src/operations/OperationResults*"
       - "frontend/src/examples/types.ts"
       - "server_tests/test_reviewed_example_previews_browser.py"
+      - "server_tests/test_dataset_browser.py"
       - "server_tests/example_preview_actions.py"
       - "server_tests/reviewed_retrieval_preview.py"
       - "server_tests/reviewed_disease_preview.py"

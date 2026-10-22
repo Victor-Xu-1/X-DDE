@@ -16,6 +16,9 @@ on:
       - '!frontend/src/datasets/catalog.ts'
       - 'tests/test_supplier*'
       - 'server_tests/*dataset*'
+      # Shared result labels/downloads use the real retained-case browser gate;
+      # changing its old manual fixture must not run unrelated native DEL engines.
+      - '!server_tests/test_dataset_browser.py'
       - 'server_tests/test_del_umi_count.py'
       - 'tests/test_del_umi.py'
       - 'scripts/del-ci-scope.py'
