@@ -4,6 +4,7 @@ import json
 from importlib.metadata import version
 from pathlib import Path
 
+from native_boltz_inputs import protein_msa
 from native_io import copy_artifact, csv_file, execute, finish, metric, source_molecule
 
 
@@ -12,6 +13,8 @@ def run(request):
     from rdkit import Chem
 
     payload = request["payload"]
+    raw = Path("/output/native")
+    raw.mkdir()
     sequences = []
     for component in payload["components"]:
         body = {"id": component["id"]}
@@ -27,14 +30,12 @@ def run(request):
         else:
             body["sequence"] = component["value"]
             if component["kind"] == "protein":
-                body["msa"] = "empty"
+                body["msa"] = protein_msa(request, component, raw / "msas")
         sequences.append({component["kind"]: body})
     specification = {"version": 1, "sequences": sequences}
     if payload["affinity"]:
         binder = next(c["id"] for c in payload["components"] if c["kind"] == "ligand")
         specification["properties"] = [{"affinity": {"binder": binder}}]
-    raw = Path("/output/native")
-    raw.mkdir()
     source = raw / "prediction.yaml"
     source.write_text(yaml.safe_dump(specification, sort_keys=False))
     options = request["options"]

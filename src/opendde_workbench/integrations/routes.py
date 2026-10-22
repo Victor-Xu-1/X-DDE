@@ -2,8 +2,10 @@
 
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
+from pydantic import BaseModel, ConfigDict, Field
 
+from ..scientific_objects import MoleculeRef
 from .property_models import (
     PropertyModelCatalogue,
     PropertyModelSummary,
@@ -12,7 +14,28 @@ from .property_models import (
 )
 
 
-def register_scientific_routes(app, store, settings):
+class MsaInspection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reference: MoleculeRef
+    sequence: str = Field(min_length=1, max_length=5000, pattern=r"^[ACDEFGHIKLMNPQRSTVWYX]+$")
+
+
+def register_scientific_routes(app, store, settings, assets, mutation):
+    @app.post("/api/scientific/boltz/msa-check", dependencies=[Depends(mutation)])
+    def inspect_msa(value: MsaInspection):
+        from .boltz_inputs import checked_msa
+
+        if value.reference.record or value.reference.conformer:
+            raise HTTPException(422, "Choose the complete original alignment file.")
+        try:
+            return checked_msa(value.reference, value.sequence, assets)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, "The selected alignment is unavailable.") from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except OSError as exc:
+            raise HTTPException(409, "The selected alignment could not be read.") from exc
+
     @app.get("/api/scientific/property-models", response_model=PropertyModelCatalogue)
     def models():
         selected = []

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..scientific_objects import MoleculeRef
 
-ObjectKind = Literal["molecule", "structure", "sequence", "analysis", "pocket"]
+ObjectKind = Literal["molecule", "structure", "sequence", "alignment", "analysis", "pocket"]
 Relationship = Literal["edited_from", "prepared_from", "derived_from"]
 
 

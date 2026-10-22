@@ -6,6 +6,11 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../research/input-catalog";
+import {
+  boltzMaterialInputs,
+  boltzMsaKey,
+  type BoltzComponent,
+} from "./boltz-inputs";
 import { nativeDefaults } from "./generated";
 import { ScientificInputs } from "./ScientificInputs";
 import { ScientificChoices } from "./ScientificChoices";
@@ -87,6 +92,7 @@ export function ScientificForm({
     null,
   );
   const [scaffold, setScaffold] = useState<MoleculeRef | null>(null);
+  const [msaVerified, setMsaVerified] = useState<Record<string, string>>({});
   const [payload, setPayload] = useState<ScientificPayload>(() => ({
     ...structuredClone(nativeDefaults[program]),
     kind: program,
@@ -100,6 +106,7 @@ export function ScientificForm({
               id: "A",
               kind: "protein",
               value: example?.sequences.protein ?? "",
+              msa_mode: "provided",
             },
             { id: "B", kind: "ligand", value: "", source: initialLigand },
           ],
@@ -128,11 +135,10 @@ export function ScientificForm({
   function update(patch: Partial<ScientificPayload>) {
     setPayload((value) => ({ ...value, ...patch }));
   }
-  const inputs: ScientificTask["inputs"] = [];
-  if (program === "boltz") {
-    for (const c of payload.components as { source?: MoleculeRef | null }[])
-      if (c.source) inputs.push({ role: "ligand", source: c.source });
-  }
+  const inputs: ScientificTask["inputs"] =
+    program === "boltz"
+      ? boltzMaterialInputs(payload.components as BoltzComponent[])
+      : [];
   if (structure) inputs.push({ role: "structure", source: structure });
   if (scaffold && ["antibody", "nanobody"].includes(String(payload.modality)))
     inputs.push({ role: "scaffold", source: scaffold });
@@ -143,15 +149,24 @@ export function ScientificForm({
     });
   const inputValid =
     program === "boltz"
-      ? validBoltzComponents(payload.components, payload.affinity)
+      ? validBoltzComponents(payload.components, payload.affinity) &&
+        (payload.components as BoltzComponent[]).every(
+          (component) =>
+            component.kind !== "protein" ||
+            component.msa_mode === "single" ||
+            Boolean(
+              component.msa &&
+                msaVerified[component.id] === boltzMsaKey(component),
+            ),
+        )
       : program === "reinvent"
         ? validDesignFragments(payload) &&
           (!usesMolecularInput(payload) || Boolean(ligand))
         : program === "chemprop"
           ? Boolean(
               ligand &&
-              verifiedLibrary &&
-              referenceKey(ligand) === referenceKey(verifiedLibrary),
+                verifiedLibrary &&
+                referenceKey(ligand) === referenceKey(verifiedLibrary),
             )
           : Boolean(structure) &&
             (program !== "boltzgen" ||
@@ -165,7 +180,7 @@ export function ScientificForm({
       !["antibody", "nanobody"].includes(String(payload.modality)) ||
       Boolean(
         payload.scaffold_chain &&
-        (payload.scaffold_residues as string[] | undefined)?.length,
+          (payload.scaffold_residues as string[] | undefined)?.length,
       ));
   const optionsValid =
     validScientificChoices(payload) &&
@@ -207,6 +222,13 @@ export function ScientificForm({
           valid: inputValid,
           content: (
             <ScientificInputs
+              onBoltzMsaVerified={(chain, valid) =>
+                setMsaVerified((previous) =>
+                  previous[chain] === valid
+                    ? previous
+                    : { ...previous, [chain]: valid },
+                )
+              }
               onLibraryVerified={setVerifiedLibrary}
               program={program}
               language={language}

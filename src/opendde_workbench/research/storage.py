@@ -12,6 +12,7 @@ EXPECTED = {
     "molecule": "ligand",
     "structure": "structure",
     "sequence": "sequences",
+    "alignment": "msa",
     "analysis": "config",
     "pocket": "structure",
 }

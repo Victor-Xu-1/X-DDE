@@ -56,7 +56,15 @@ def native_payload_tag(value):
 class MaterialInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     role: Literal[
-        "structure", "ligand", "library", "scaffold", "partner_a", "partner_b", "arm_a", "arm_b"
+        "structure",
+        "ligand",
+        "library",
+        "scaffold",
+        "partner_a",
+        "partner_b",
+        "arm_a",
+        "arm_b",
+        "msa",
     ]
     source: MoleculeRef
 
@@ -99,7 +107,7 @@ class IntegratedTask(TaskMetadata):
     ]
     name: str = Field(min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$")
     project_id: UUID | None = None
-    inputs: list[MaterialInput] = Field(default_factory=list, max_length=5)
+    inputs: list[MaterialInput] = Field(default_factory=list, max_length=8)
     payload: Payload
     options: ExecutionOptions = Field(default_factory=ExecutionOptions)
 
@@ -114,7 +122,7 @@ class IntegratedTask(TaskMetadata):
         interface = isinstance(self.payload, ProteinInterfacePayload)
         if (self.operation == "protein_interface") != interface:
             raise ValueError("Choose the protein-interface protocol for this operation.")
-        if not interface and len(roles) != len(self.inputs):
+        if not interface and self.payload.kind != "boltz" and len(roles) != len(self.inputs):
             raise ValueError("Select each input role exactly once.")
         if interface:
             from .protein_interface_contract import validate_interface_inputs
@@ -197,20 +205,9 @@ class IntegratedTask(TaskMetadata):
             if roles != expected:
                 raise ValueError("Choose one whole SDF library for property modeling.")
         elif kind == "boltz":
-            sources = [c.source for c in self.payload.components if c.source]
-            if (
-                len(sources) > 1
-                or (sources and (roles != {"ligand"} or self.inputs[0].source != sources[0]))
-                or (not sources and roles)
-            ):
-                raise ValueError("Confirm the selected ligand file once in the exact task inputs.")
-            if any(
-                (c.source and (c.kind != "ligand" or c.value)) or (not c.source and not c.value)
-                for c in self.payload.components
-            ):
-                raise ValueError(
-                    "Choose either a ligand file or text for each molecular component."
-                )
+            from .boltz_inputs import validate_input_contract
+
+            validate_input_contract(self)
         elif roles != expected:
             raise ValueError("The selected input roles differ from this task's requirements.")
         if kind == "boltz":

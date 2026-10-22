@@ -30,7 +30,7 @@ EXTENSIONS = {
     "measurements": {".csv"},
     "structure": {".pdb", ".cif"},
     "ligand": {".sdf", ".mol", ".mol2", ".pdb"},
-    "msa": {".a3m"},
+    "msa": {".a3m", ".csv"},
     "template": {".a3m", ".hhr"},
     "config": {".json", ".yaml", ".yml"},
     "sequences": {".fasta", ".fa"},
@@ -107,7 +107,20 @@ class AssetStore:
             text = content.decode("utf-8-sig")
         except UnicodeError as exc:
             raise ValueError("Scientific text inputs must use UTF-8 encoding.") from exc
-        if kind in {"msa", "sequences"} and not text.lstrip().startswith(">"):
+        if kind == "msa" and suffix == ".csv":
+            from .alignment_files import checked_alignment
+
+            checked_alignment(text, suffix)
+        elif kind == "msa" and not next(
+            (
+                line.strip()
+                for line in text.splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ),
+            "",
+        ).startswith(">"):
+            raise ValueError("Alignment input must start with a FASTA header.")
+        elif kind == "sequences" and not text.lstrip().startswith(">"):
             raise ValueError("Alignment/sequence input must start with a FASTA header.")
         if suffix == ".json":
             try:
@@ -369,6 +382,8 @@ class AssetStore:
                 asset = self.get(identifier)
                 if asset.kind != expected:
                     raise ValueError(f"{field} requires an uploaded {expected} file.")
+                if expected == "msa" and asset.suffix != ".a3m":
+                    raise ValueError("This prediction engine requires an A3M alignment.")
                 if field == "source_sequence":
                     from .discovery.sequence import validate_sequence_source
 

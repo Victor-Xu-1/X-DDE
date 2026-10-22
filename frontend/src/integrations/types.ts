@@ -22,7 +22,8 @@ export interface ScientificTask extends BaseTask {
       | "partner_a"
       | "partner_b"
       | "arm_a"
-      | "arm_b";
+      | "arm_b"
+      | "msa";
     source: MoleculeRef;
   }[];
   payload: ScientificPayload;

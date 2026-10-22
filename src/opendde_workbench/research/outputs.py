@@ -17,11 +17,13 @@ KINDS = {
     ".cif": "structure",
     ".fasta": "sequences",
     ".fa": "sequences",
+    ".a3m": "msa",
 }
 OBJECT_KINDS = {
     "ligand": "molecule",
     "structure": "structure",
     "sequences": "sequence",
+    "msa": "alignment",
     "config": "analysis",
 }
 

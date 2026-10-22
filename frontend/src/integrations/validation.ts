@@ -113,6 +113,23 @@ export function validBoltzComponents(
     )
       return false;
     ids.add(item.id);
+    if (
+      item.msa_mode != null &&
+      (item.kind !== "protein" ||
+        !["provided", "single"].includes(item.msa_mode) ||
+        (item.msa_mode === "provided") !== Boolean(item.msa))
+    )
+      return false;
+    if (
+      item.msa &&
+      (item.kind !== "protein" ||
+        typeof item.msa.asset_id !== "string" ||
+        !/^[a-f0-9-]{36}$/.test(item.msa.asset_id) ||
+        !/^[a-f0-9]{64}$/.test(item.msa.sha256) ||
+        item.msa.record !== 0 ||
+        item.msa.conformer !== 0)
+    )
+      return false;
     const alphabet = {
       protein: /^[ACDEFGHIKLMNPQRSTVWYX]+$/,
       rna: /^[ACGU]+$/,

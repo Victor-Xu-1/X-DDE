@@ -8,6 +8,30 @@ vi.mock("../guided/useTaskReadiness", () => ({
   useTaskReadiness: () => ({ ready: true, error: "", recheck: vi.fn() }),
 }));
 afterEach(() => vi.restoreAllMocks());
+it("keeps a consciously chosen single-sequence baseline when navigating back to inputs", async () => {
+  vi.spyOn(client, "request").mockResolvedValue({
+    availability: { configuration_present: true },
+  } as never);
+  const user = userEvent.setup();
+  render(
+    <ScientificForm form="boltz.predict" language="en" onCreated={vi.fn()} />,
+  );
+  await user.type(screen.getByRole("textbox", { name: "Sequence" }), "ACDE");
+  await user.click(
+    screen.getAllByRole("button", { name: "Remove component" })[1],
+  );
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Evolutionary information" }),
+    "single",
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  expect(
+    screen.getByRole("combobox", { name: "Evolutionary information" }),
+  ).toHaveValue("single");
+  expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+});
 it.each(["chemprop.train", "chemprop.predict"] as const)(
   "%s blocks its first step until the selected whole file is verified",
   async (form) => {

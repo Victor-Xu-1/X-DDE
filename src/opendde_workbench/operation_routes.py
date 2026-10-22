@@ -16,7 +16,7 @@ def register_operations(app, store, assets, settings, mutation):
     from .datasets.routes import register as register_dataset_routes
     from .integrations.routes import register_scientific_routes
 
-    register_scientific_routes(app, store, settings)
+    register_scientific_routes(app, store, settings, assets, mutation)
     register_dataset_routes(app, store, settings, assets, mutation)
     from .datasets.input_preview import register as register_dataset_preview
 

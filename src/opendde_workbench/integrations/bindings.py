@@ -11,17 +11,31 @@ def validate_bindings(request, assets):
         ref = item.source
         asset = assets.get(ref.asset_id)
         expected = (
-            "structure"
+            "msa"
+            if item.role == "msa"
+            else "structure"
             if item.role in {"structure", "scaffold", "partner_a", "partner_b"}
             else "ligand"
         )
-        suffixes = {".pdb", ".cif"} if expected == "structure" else {".sdf", ".mol"}
+        suffixes = (
+            {".a3m", ".csv"}
+            if expected == "msa"
+            else {".pdb", ".cif"}
+            if expected == "structure"
+            else {".sdf", ".mol"}
+        )
         if item.role == "library":
             suffixes = {".sdf"}
         if asset.kind != expected or asset.suffix not in suffixes or asset.sha256 != ref.sha256:
             raise ValueError("Choose an exact supported file matching the selected input role.")
         assets.path(asset)
         result[asset.id] = asset
+    if request.operation == "boltz_predict":
+        from .boltz_inputs import checked_msa
+
+        for component in request.payload.components:
+            if component.msa:
+                checked_msa(component.msa, component.value, assets)
     if request.operation == "chemprop_predict":
         trained_model(assets.root.parent, assets.store, request.payload)
     return result

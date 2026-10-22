@@ -60,7 +60,7 @@ def model_context(settings):
     (output / "result.json").write_text(json.dumps(report))
     store.finish(job.id, Status.SUCCEEDED)
     app = FastAPI()
-    register_scientific_routes(app, store, settings)
+    register_scientific_routes(app, store, settings, assets, lambda: None)
     with TestClient(app) as client:
         yield client, store, job, output, report
 

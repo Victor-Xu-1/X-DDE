@@ -38,6 +38,9 @@ class ScientificBackend(PreparedContainerBackend):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
+        if identifier == "boltz":
+            shared["native_alignment_files.py"] = root / "alignment_files.py"
+            shared["native_boltz_inputs.py"] = Path(__file__).with_name("native_boltz_inputs.py")
         if identifier in {"plip", "apbs", "openmm", "ligandmpnn"}:
             shared["receptor_native_io.py"] = root / "receptors/native_io.py"
         if identifier == "ligandmpnn":

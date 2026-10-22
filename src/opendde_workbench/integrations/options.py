@@ -21,6 +21,10 @@ class MolecularComponent(BaseModel):
     kind: Literal["protein", "rna", "dna", "ligand"]
     value: str = Field(default="", max_length=5000, pattern=r"^[^\s\x00-\x1f\x7f]*$")
     source: MoleculeRef | None = None
+    msa: MoleculeRef | None = Field(default=None, exclude_if=lambda value: value is None)
+    msa_mode: Literal["provided", "single"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class BoltzPayload(BaseModel):

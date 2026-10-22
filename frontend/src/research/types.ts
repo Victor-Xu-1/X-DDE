@@ -6,7 +6,12 @@ export interface MoleculeRef {
   version_id?: string | null;
 }
 export type ObjectKind =
-  "molecule" | "structure" | "sequence" | "analysis" | "pocket";
+  | "molecule"
+  | "structure"
+  | "sequence"
+  | "alignment"
+  | "analysis"
+  | "pocket";
 export interface ScientificObject {
   id: string;
   family_id: string;
@@ -71,6 +76,7 @@ export const objectLabels: Record<string, [string, string]> = {
   molecule: ["分子", "Molecule"],
   structure: ["结构", "Structure"],
   sequence: ["序列", "Sequence"],
+  alignment: ["多序列比对", "Sequence alignment"],
   analysis: ["分析结果", "Analysis"],
   pocket: ["口袋", "Pocket"],
   file: ["原始文件", "Source file"],
