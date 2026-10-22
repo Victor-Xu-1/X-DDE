@@ -1,17 +1,26 @@
-"""Reviewed STAT6 outputs and the measured docking-quality-property workflow."""
+"""Reviewed native STAT6 outputs, complete alignments and the bounded workflow example."""
 
-VERSION = "26"
+VERSION = "27"
 URL = (
-    "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.61/stat6-reviewed-results-v26.zip"
+    "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v27.zip"
 )
-SHA256 = "3a4a58d34a7713ec8b544904ed0b9259a3fe0d333f0b5e295cdbfc8db9bc514e"
-BYTES = 18733233
-SOURCE_REVISION = "1fe10f6ee98ba389c45d8e2b712db157d0dc2604"
+SHA256 = "5aa4a556a7f9c349927d1311cdc58ef453eed587806541beba27462b97e68207"
+BYTES = 20671880
+SOURCE_REVISION = "7f09d528d8398f8227ea6cbb7e193dd5b29dbadf"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
+    "ligandmpnn.design",
+    "openmm.refine",
     "apbs.potential",
+    "chemprop.train",
+    "chemprop.predict",
     "plip.profile",
+    "library.import",
+    "library.select",
+    "drugclip.index",
+    "drugclip.screen",
+    "screening.dock",
     "antibody.humanize",
     "admet.predict",
     "posebusters.check",
@@ -23,12 +32,27 @@ CAPABILITIES = (
     "discovery.target",
     "discovery.disease",
     "properties",
+    "esm",
+    "epitope",
+    "structure",
+    "rmsd",
+    "evolution",
+    "compare",
+    "protrek-sequence",
+    "target-msa",
+    "features",
+    "import",
     "diffsbdd.generate",
+    "diffsbdd.diversify",
+    "diffsbdd.optimize",
     "diffsbdd.pocket",
     "diffsbdd.prepare",
     "diffsbdd.interactions",
     "diffsbdd.properties",
     "diffsbdd.export",
+    "experimental.evidence",
+    "regions",
+    "workflows",
     "p2rank.detect",
     "gnina.dock",
     "gnina.score",
@@ -37,19 +61,4 @@ CAPABILITIES = (
     "biopython.ensemble",
     "pose_exploration",
     "pose.cluster",
-    "library.import",
-    "library.select",
-    "drugclip.index",
-    "drugclip.screen",
-    "screening.dock",
-    "experimental.evidence",
-    "chemprop.train",
-    "regions",
-    "openmm.refine",
-    "ligandmpnn.design",
-    "diffsbdd.diversify",
-    "diffsbdd.optimize",
-    "structure",
-    "rmsd",
-    "workflows",
 )

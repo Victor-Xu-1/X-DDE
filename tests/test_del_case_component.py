@@ -20,7 +20,7 @@ def test_del_data_component_is_data_only_and_uses_the_single_existing_queue():
     assert package.id in CASE_BUNDLE_IDS
     assert package.kind == "data" and package.engine == "x-dde" and package.automatic
     assert package.url == source.URL and package.checksum == source.SHA256
-    assert package.version == source.VERSION == "3"
+    assert package.version == source.VERSION == "4"
     assert source.CAPABILITIES == (
         "del.library",
         "del.enumerate",
@@ -28,6 +28,7 @@ def test_del_data_component_is_data_only_and_uses_the_single_existing_queue():
         "del.count",
         "del.analyze",
         "del.series",
+        "del.model",
         "del.candidates",
         "del.followup",
     )
@@ -58,8 +59,8 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
         )
     restore_bundle(archive, settings, source.SHA256)
     assert verify_examples(settings, source.CAPABILITIES, profile="del6") == {
-        "modules": 8,
-        "computed": 8,
+        "modules": 9,
+        "computed": 9,
         "validated": 0,
     }
     with store.connect() as db:
@@ -67,7 +68,7 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
             table: db.execute("SELECT COUNT(*) FROM " + table).fetchone()[0]
             for table in ("jobs", "assets", "example_pins")
         }
-        assert before == {"jobs": 14, "assets": 5, "example_pins": 8}
+        assert before == {"jobs": 15, "assets": 5, "example_pins": 9}
         assert not db.execute(
             "SELECT id FROM jobs WHERE status IN ('queued','running','cancelling')"
         ).fetchall()
@@ -111,9 +112,30 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
             downloaded = client.get(f"/api/jobs/{job_id}/download", params={"name": filename})
             assert downloaded.status_code == 200
             assert downloaded.content == result_path.with_name(filename).read_bytes()
-        # No trained predictive model is inferred from the other eight stages.
+        # The real held-out BB1 model is an independent-validation rejection example.
         model = client.get("/api/examples/del.model").json()
-        assert not model["computed_result_available"] and model["pin"] is None
+        assert model["computed_result_available"]
+        assert model["pin"]["job_id"] == "d8fb2c6c-7eb5-4d9e-96f8-7368b0f489b7"
+        native = settings.state_dir / "jobs" / model["pin"]["job_id"] / "output/result.json"
+        result = json.loads(native.read_text())
+        assert result["complete"]
+        assert result["counts"] == {
+            "source_members": 518285,
+            "sampled_members": 50000,
+            "training": 39250,
+            "heldout": 10750,
+            "unresolved_structures": 0,
+        }
+        assert result["metrics"]["rmse_log1p_enrichment"] > result["metrics"]["mean_baseline_rmse"]
+        assert result["metrics"]["spearman_enrichment"] < 0.04
+        downloaded = client.get(
+            f"/api/jobs/{model['pin']['job_id']}/download",
+            params={"name": "holdout-predictions.csv"},
+        )
+        assert downloaded.status_code == 200
+        assert downloaded.content == native.with_name("holdout-predictions.csv").read_bytes()
+        assert len(downloaded.content.splitlines()) == 10751
+        assert model["pin"]["review"]["scope"] == "reviewed_computational_example"
     restore_bundle(archive, settings, source.SHA256)
     with store.connect() as db:
         assert before == {

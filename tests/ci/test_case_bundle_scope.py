@@ -31,7 +31,7 @@ class CaseBundleScopeTests(unittest.TestCase):
         base_status=0,
         diff_status=0,
         grep_status=None,
-        del_data_only=False,
+        case_data_only=False,
     ):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -69,7 +69,7 @@ class CaseBundleScopeTests(unittest.TestCase):
                     "BASE": "base",
                     "HEAD": "head",
                     "EVENT": event,
-                    "DEL_DATA_ONLY": str(del_data_only).lower(),
+                    "CASE_DATA_ONLY": str(case_data_only).lower(),
                     "GITHUB_OUTPUT": str(output),
                     "BASE_STATUS": str(base_status),
                     "DIFF_STATUS": str(diff_status),
@@ -115,7 +115,7 @@ class CaseBundleScopeTests(unittest.TestCase):
         result, output = self.run_selector(
             base_status=128,
             diff_status=128,
-            del_data_only=True,
+            case_data_only=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(output, "deployment=false\n")

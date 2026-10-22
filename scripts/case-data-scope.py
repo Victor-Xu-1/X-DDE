@@ -1,17 +1,22 @@
-"""Select only the direct case-data consumers for a DEL release-metadata batch."""
+"""Select direct archive consumers for immutable STAT6 and DEL data updates."""
 
 import os
 import subprocess
 
-SOURCE = "src/opendde_workbench/examples/del_bundle_release.py"
+SOURCES = {
+    "src/opendde_workbench/examples/del_bundle_release.py",
+    "src/opendde_workbench/examples/stat6_bundle_release.py",
+}
 PATHS = {
-    SOURCE,
+    *SOURCES,
     "tests/test_del_case_component.py",
-    "scripts/del-case-scope.py",
-    "tests/ci/test_del_case_scope.py",
+    "tests/test_reviewed_stat6_case_data.py",
+    "scripts/case-data-scope.py",
+    "tests/ci/test_case_data_scope.py",
     "tests/ci/test_case_bundle_scope.py",
     ".github/workflows/case-bundle-checks.yml",
     "docs/design/screening-and-del.md",
+    "docs/reviewed-example-data.md",
     "pyproject.toml",
     "uv.lock",
     "frontend/package.json",
@@ -23,7 +28,7 @@ PATHS = {
 
 def selected(changed):
     changed = set(changed)
-    return SOURCE in changed and changed <= PATHS
+    return bool(SOURCES & changed) and changed <= PATHS
 
 
 def main():
@@ -41,7 +46,7 @@ def main():
     )
     value = os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch" and selected(changed)
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-        output.write("del_data_only=" + str(value).lower() + "\n")
+        output.write("case_data_only=" + str(value).lower() + "\n")
 
 
 if __name__ == "__main__":
