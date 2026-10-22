@@ -430,6 +430,10 @@ on:
       - "!frontend/src/studio/PredictionResults.tsx"
       - "!frontend/src/viewer/MinimizedPoseResults.tsx"
       - "!frontend/src/presentation/StructureWorkbench.tsx"
+      # Native workspace fullscreen and retained figure/trajectory checks have exact scopes.
+      - "!frontend/src/presentation/WorkspaceFullscreenControl*"
+      - "!frontend/src/presentation/useWorkspaceFullscreen.ts"
+      - "!frontend/src/presentation/workspace-fullscreen.css"
       - "!frontend/src/presentation/structure-workbench.css"
       # Defined-region sources and exact PLIP review use defined-site-checks.yml.
       - "!frontend/src/docking/BoxFields.tsx"

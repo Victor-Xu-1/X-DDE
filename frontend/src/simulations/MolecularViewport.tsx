@@ -15,6 +15,7 @@ import {
   type MolecularViewHandle,
 } from "./molecular-view-state";
 import { useMolecularPresentation } from "./useMolecularPresentation";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 
 export function MolecularViewport({
   sources = [],
@@ -262,15 +263,7 @@ export function MolecularViewport({
             return controller.current.figure(settings);
           }}
         />
-        <button
-          type="button"
-          className="text-button"
-          onClick={() => {
-            void container.current?.parentElement?.requestFullscreen();
-          }}
-        >
-          {zh ? "全屏" : "Fullscreen"}
-        </button>
+        <WorkspaceFullscreenControl anchor={container} language={language} />
       </div>
       <div
         ref={container}

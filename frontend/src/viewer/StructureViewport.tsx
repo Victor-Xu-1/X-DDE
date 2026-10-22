@@ -2,7 +2,6 @@ import { version as productVersion } from "../../package.json";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   CameraOutlined,
-  FullscreenOutlined,
   DownloadOutlined,
   LoadingOutlined,
   MinusOutlined,
@@ -33,6 +32,7 @@ import { researchError } from "../presentation/research-content";
 import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
 import { useViewerConnection } from "./useViewerConnection";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import { FigureExport } from "../publication/FigureExport";
 import type { PoseController } from "./PoseSession";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
@@ -439,21 +439,11 @@ export function StructureViewport({
           >
             <CameraOutlined />
           </button>
-          <button
-            type="button"
-            aria-label={zh ? "全屏显示结构" : "Fullscreen structure"}
-            title={zh ? "全屏" : "Fullscreen"}
-            onClick={() =>
-              void frame.current
-                ?.closest("section")
-                ?.requestFullscreen()
-                .catch(() =>
-                  setError(zh ? "浏览器未允许全屏" : "Fullscreen unavailable"),
-                )
-            }
-          >
-            <FullscreenOutlined />
-          </button>
+          <WorkspaceFullscreenControl
+            anchor={frame}
+            language={language}
+            compact
+          />
         </div>
       </div>
       {loaded && !comparison && (!overlay || scene.hasInteractionContext) && (

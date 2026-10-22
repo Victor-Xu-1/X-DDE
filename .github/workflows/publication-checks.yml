@@ -5,6 +5,9 @@ on:
     paths: &figure_paths
       - "frontend/src/publication/**"
       - "frontend/src/presentation/useReveal*"
+      - "frontend/src/presentation/WorkspaceFullscreenControl*"
+      - "frontend/src/presentation/useWorkspaceFullscreen.ts"
+      - "frontend/src/presentation/workspace-fullscreen.css"
       - "frontend/src/presentation/ResearchTabs.tsx"
       - "frontend/src/presentation/ResearchTabs.test.tsx"
       - "frontend/src/presentation/research-tabs.css"
@@ -46,6 +49,8 @@ on:
       - "frontend/src/simulations/InteractivePlot.tsx"
       - "server_tests/*publication*"
       - "server_tests/*native_annotation*"
+      - "server_tests/test_workspace_fullscreen_browser.py"
+      - "server_tests/fullscreen_browser_helpers.py"
       - ".github/workflows/publication-checks.yml"
       - ".github/workflows/stat6-template-checks.yml"
       - ".github/workflows/examples-checks.yml"
@@ -98,6 +103,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/publication/settings-svg.test.ts src/publication/png-resolution.test.ts
+          src/presentation/WorkspaceFullscreenControl.test.tsx
           src/publication/molecular-vector.test.ts
           src/publication/render-deadline.test.ts
           src/publication/figure-render-queue.test.ts
@@ -139,9 +145,30 @@ jobs:
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
           server_tests/test_publication_browser.py
           server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
+      - name: Current sealed STAT6 examples for native workspace fullscreen, without calculation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP" --skip-existing
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Real desktop and narrow structure, candidate controls, native exit and figure downloads
+        env:
+          WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
+        run: uv run --locked pytest -x -q server_tests/test_workspace_fullscreen_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: scientific-figure-evidence
           path: |
             outputs/publication-browser/**
+            outputs/workspace-fullscreen/**

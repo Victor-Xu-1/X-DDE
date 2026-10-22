@@ -7,6 +7,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
+from server_tests.fullscreen_browser_helpers import inspect_full_workspace
 from server_tests.publication_browser_helpers import export_figure, inspect_png, inspect_svg
 
 
@@ -176,6 +177,8 @@ def test_native_result_views_and_downloads(case, language):
                 "href", f"/api/jobs/{identifier}/download?name=repeat-1-frame-0003.pdb"
             )
             # View export is separate from scientific coordinate-file download.
+            inspect_full_workspace(page, viewer, evidence, language, language + "-md")
+            expect(viewer).to_have_attribute("data-frame", "2")
             png = export_figure(
                 page,
                 viewer.get_by_role(
@@ -278,6 +281,12 @@ def test_native_result_views_and_downloads(case, language):
                 root.get_by_role(
                     "combobox",
                     name="Binding pose display" if language == "en" else "结合姿势显示",
+                )
+            ).to_have_value("b")
+            inspect_full_workspace(page, pose, evidence, language, language + "-fep-overlay")
+            expect(
+                root.get_by_role(
+                    "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
                 )
             ).to_have_value("b")
             png = export_figure(

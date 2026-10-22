@@ -22,6 +22,9 @@ on:
       - "frontend/src/simulations/comparison-figure*"
       - "frontend/src/simulations/molecular-view-state*"
       - "frontend/src/simulations/MolecularViewport*"
+      - "frontend/src/presentation/WorkspaceFullscreenControl*"
+      - "frontend/src/presentation/useWorkspaceFullscreen.ts"
+      - "frontend/src/presentation/workspace-fullscreen.css"
       - "frontend/src/simulations/molecular-surfaces*"
       - "frontend/src/simulations/molecular-update-queue*"
       - "frontend/src/simulations/useMolecularPresentation*"
@@ -44,6 +47,7 @@ on:
       - "frontend/src/presentation/plots/InteractivePlot*"
       - "server_tests/test_fep_diagnostics_browser.py"
       - "server_tests/test_native_simulation_views.py"
+      - "server_tests/fullscreen_browser_helpers.py"
       - ".github/workflows/simulation-view-checks.yml"
   pull_request:
     paths: *simulation_paths
@@ -89,6 +93,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/simulations/SimulationResults.test.tsx
+          src/presentation/WorkspaceFullscreenControl.test.tsx
           src/simulations/FreeEnergyCycle.test.tsx src/publication/plotly.test.ts
           src/simulations/OverlapHeatmap.test.tsx src/simulations/overlap-data.test.ts
           src/presentation/plots/InteractivePlot.test.tsx

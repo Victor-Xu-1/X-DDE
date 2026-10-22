@@ -97,6 +97,17 @@ and Chromium checks. Native adapter, molecular-state and receptor calculations
 remain in the scientific workflow for backend changes or explicit dispatch;
 moving a choice panel does not justify unrelated native scientific runs.
 
+The structure fullscreen control expands the existing research workspace, including
+the large left view and the related candidate table, quality checks or trajectory
+controls on the right. Desktop columns scroll independently; narrow screens keep
+the same view before its controls. The original iframe or Mol* canvas stays mounted,
+so entering and leaving fullscreen does not reset the selected record, trajectory
+frame or binding-pose display. Native Escape and the Exit fullscreen control restore
+the inline page. A standalone viewer expands its own panel. Browser refusal remains
+a visible, retryable presentation error; it never starts a calculation, creates a
+replacement overlay, or disables the scientific view. Figure export retains its
+existing source and physical-resolution controls inside the expanded workspace.
+
 Sequence scoring places its table and comparison plot in one column, with the
 selected exact sequence beside them. This avoids stacking two tall views beside
 a short table. Selection, native score precision, position identity and original
