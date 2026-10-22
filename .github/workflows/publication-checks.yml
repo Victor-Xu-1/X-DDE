@@ -140,11 +140,6 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-pose-examples
           .venv/bin/python server_tests/restore_publication_cases.py --annotations
           uv run --locked playwright install chromium --with-deps
-      - name: Bilingual native figure downloads, retained views and responsive questionnaires
-        run: >-
-          uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
-          server_tests/test_publication_browser.py
-          server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
       - name: Current sealed STAT6 examples for native workspace fullscreen, without calculation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -165,6 +160,11 @@ jobs:
           WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
         run: uv run --locked pytest -x -q server_tests/test_workspace_fullscreen_browser.py
+      - name: Bilingual native figure downloads, retained views and responsive questionnaires
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
+          server_tests/test_publication_browser.py
+          server_tests/test_molecular_publication_browser.py server_tests/test_publication_controls_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

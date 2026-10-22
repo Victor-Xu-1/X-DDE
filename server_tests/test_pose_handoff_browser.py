@@ -5,7 +5,7 @@ import json
 import os
 import time
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -43,6 +43,27 @@ def wait_pose(page, language):
     raise AssertionError(
         "Native pose preparation did not finish: " + page.locator("main").inner_text()
     )
+
+
+def downloaded_pose(scientific, assets, base, url):
+    """The download must identify the displayed immutable record, not the entire file."""
+    from opendde_workbench.chemistry.sdf_io import split_records
+
+    parsed = urlsplit(url)
+    query = parse_qs(parsed.query, strict_parsing=True)
+    assert set(query) == {"record"} and len(query["record"]) == 1
+    record = int(query["record"][0])
+    pose = next(
+        value
+        for value in scientific.list(200)
+        if "/api/assets/" + str(value.reference.asset_id) == parsed.path
+        and value.reference.record == record
+    )
+    asset = assets.get(str(pose.reference.asset_id))
+    assert asset.sha256 == pose.reference.sha256 and pose.reference.conformer == 0
+    expected = split_records(assets.path(asset).read_bytes())[record] + b"\n$$$$\n"
+    assert read(base, url) == expected
+    return pose
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
@@ -109,12 +130,7 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
         panel.get_by_role("tab", name="三维结构" if zh else "3D structure", exact=True).click()
         control, pose_link = wait_pose(page, language)
         first_url = pose_link.get_attribute("href")
-        first_objects = scientific.list(200)
-        first_object = next(
-            value
-            for value in first_objects
-            if "/api/assets/" + str(value.reference.asset_id) == first_url
-        )
+        first_object = downloaded_pose(scientific, assets, base, first_url)
         control.get_by_role(
             "button", name="能量最小化" if zh else "Minimize energy", exact=True
         ).click()
@@ -124,11 +140,7 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
         _, pose_link = wait_pose(page, language)
         current_url = pose_link.get_attribute("href")
         assert current_url != first_url
-        current = next(
-            value
-            for value in scientific.list(200)
-            if "/api/assets/" + str(value.reference.asset_id) == current_url
-        )
+        current = downloaded_pose(scientific, assets, base, current_url)
         assert current.reference.record == 0 and current.relation == "edited_from"
         with page.expect_download() as event:
             pose_link.click()

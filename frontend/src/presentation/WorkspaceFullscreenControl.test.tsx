@@ -138,7 +138,29 @@ it("can expand the workspace while its molecular iframe is still loading", async
   expect(screen.getByRole("status")).toHaveTextContent("Loading native scene");
 });
 
-it("follows native Escape/external exit events and restores the expand action", async () => {
+it("exits through the native API on Escape and leaves an open figure dialog to handle its own Escape", async () => {
+  const user = userEvent.setup();
+  render(<Workbench />);
+  await user.click(
+    screen.getByRole("button", { name: "Fullscreen research workspace" }),
+  );
+  const dialog = document.createElement("dialog");
+  dialog.open = true;
+  document.body.append(dialog);
+  try {
+    await user.keyboard("{Escape}");
+    expect(exit).not.toHaveBeenCalled();
+  } finally {
+    dialog.remove();
+  }
+  await user.keyboard("{Escape}");
+  expect(exit).toHaveBeenCalledOnce();
+  expect(
+    screen.getByRole("button", { name: "Fullscreen research workspace" }),
+  ).toBeEnabled();
+});
+
+it("follows native external exit events and restores the expand action", async () => {
   const user = userEvent.setup();
   render(<Workbench />);
   await user.click(
@@ -148,6 +170,31 @@ it("follows native Escape/external exit events and restores the expand action", 
   expect(
     screen.getByRole("button", { name: "Fullscreen research workspace" }),
   ).toHaveAttribute("aria-pressed", "false");
+});
+
+it("sends one native exit request when paired views share a fullscreen workspace", async () => {
+  const user = userEvent.setup();
+  render(
+    <StructureWorkbench
+      preview={
+        <>
+          <Preview />
+          <Preview />
+        </>
+      }
+    >
+      <p>Paired pose controls</p>
+    </StructureWorkbench>,
+  );
+  await user.click(
+    screen.getAllByRole("button", { name: "Fullscreen research workspace" })[0],
+  );
+  await user.keyboard("{Escape}");
+  expect(exit).toHaveBeenCalledOnce();
+  expect(
+    screen.getAllByRole("button", { name: "Fullscreen research workspace" }),
+  ).toHaveLength(2);
+  expect(screen.queryByRole("alert")).toBeNull();
 });
 
 it.each(["viewer-panel", "simulation-molecular-viewport"])(
