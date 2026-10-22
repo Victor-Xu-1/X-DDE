@@ -159,7 +159,7 @@ jobs:
         env:
           WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
-        run: uv run --locked pytest -x -q server_tests/test_workspace_fullscreen_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_workspace_fullscreen_browser.py
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
