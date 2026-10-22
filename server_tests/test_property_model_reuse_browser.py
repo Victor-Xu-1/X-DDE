@@ -53,6 +53,32 @@ def test_reused_model_keeps_native_negative_evidence_and_preserves_the_draft(
             "button", name="性质与安全性" if zh else "Properties and safety", exact=True
         ).click()
         page.locator(".module-task-picker select:visible").select_option("chemprop.predict")
+        expect(
+            page.get_by_role("radio", name="上传新文件" if zh else "Upload a new file", exact=True)
+        ).to_be_checked()
+        # Follow the actual questionnaire. This restored library is inspected
+        # only to reach model selection; no predictions are submitted.
+        library = next(
+            item["source"] for item in job["request"]["inputs"] if item["role"] == "library"
+        )
+        original = page.request.get(base + "/api/assets/" + library["asset_id"] + "/metadata")
+        assert original.ok and original.json()["sha256"] == library["sha256"]
+        page.get_by_role("radio", name="历史文件" if zh else "Historical files", exact=True).check()
+        page.get_by_role("searchbox", name="查找历史材料" if zh else "Find historical inputs").fill(
+            original.json()["name"]
+        )
+        historical = page.get_by_role(
+            "combobox",
+            name="整组 SDF 分子文件 · 历史文件"
+            if zh
+            else "Whole SDF molecular library · Historical files",
+            exact=True,
+        )
+        expect(historical).to_be_enabled()
+        historical.select_option("file:" + library["asset_id"])
+        next_step = page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
+        expect(next_step).to_be_enabled()
+        next_step.click()
         picker = page.get_by_role(
             "combobox", name="选择已训练的研究模型" if zh else "Choose a trained research model"
         )
