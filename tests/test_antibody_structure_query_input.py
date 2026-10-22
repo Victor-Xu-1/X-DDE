@@ -67,7 +67,7 @@ def test_template_uses_a_reusable_edited_reference_with_strict_existing_lineage(
     request = TASK_ADAPTER.validate_python(prepared.request)
     assert request.allow_external and request.payload["chain"] == "A"
     assert request.payload["structure_path"] == "asset:" + str(query.reference.asset_id)
-    assert request.scientific_inputs == (query.reference,)
+    assert request.scientific_inputs == [query.reference]
     assert (
         prepare_stat6("protrek-structure", scientific, records=records).objects["receptor"] == query
     )

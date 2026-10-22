@@ -4,6 +4,10 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "fold": (
+        "重新预测 6WGL 抗体可变域与 IL-4Rα 的 STAT6 通路参考复合物。",
+        "Re-predict the deposited 6WGL Fv–IL-4Rα STAT6-pathway reference complex.",
+    ),
     "protrek-structure": (
         "使用 6WGL 重链可变域的实验结构检索抗体样同源线索。",
         "Retrieve antibody-domain analogues using the deposited 6WGL heavy variable domain.",
@@ -114,6 +118,29 @@ def objective(capability):
 
 
 def steps(capability):
+    if capability == "fold":
+        return [
+            (
+                "载入 6WGL 实验构建体：125 aa 重链、112 aa 轻链与 218 aa IL-4Rα 链。",
+                "Load the deposited 6WGL constructs: 125-aa heavy, 112-aa light "
+                "and 218-aa IL-4Rα chains.",
+            ),
+            (
+                "核对抗体链 A、B 与受体链 C；这是 STAT6 通路参考，不是直接结合 STAT6 的抗体。",
+                "Confirm Fv chains A/B and receptor chain C; this is a STAT6-pathway "
+                "reference, not a direct anti-STAT6 antibody.",
+            ),
+            (
+                "选择构象数量及可用计算资源；预测与实验参考分开保存。",
+                "Choose the sample count and available compute resources; "
+                "keep the prediction separate from the experimental reference.",
+            ),
+            (
+                "比较预测与 6WGL 的链对应、界面和置信度；预测不能替代亲和力或功能实验。",
+                "Compare chain correspondence, interfaces and confidence against 6WGL; "
+                "prediction does not replace affinity or functional experiments.",
+            ),
+        ]
     if capability == "protrek-structure":
         return [
             (

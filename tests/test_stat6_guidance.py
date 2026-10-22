@@ -5,6 +5,15 @@ import pytest
 from opendde_workbench.examples.stat6.guidance import steps
 
 
+def test_fold_guidance_names_deposited_constructs_and_pathway_scope():
+    guidance = steps("fold")
+    assert len(guidance) == 4 and all(len(item) == 2 for item in guidance)
+    english = " ".join(item[1] for item in guidance)
+    assert all(length in english for length in ("125-aa", "112-aa", "218-aa"))
+    assert "IL-4Rα" in english and "not a direct anti-STAT6 antibody" in english
+    assert "experimental reference" in english and "functional experiments" in english
+
+
 def test_library_selection_instructions_preserve_assay_and_chemical_method_scope():
     guidance = steps("chemistry.screen")
     assert len(guidance) == 4 and all(len(item) == 2 for item in guidance)

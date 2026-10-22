@@ -62,7 +62,7 @@ def harness_study(capability, objects, sequences):
         "fold": {
             "candidates": [
                 {
-                    "candidate_id": "dupilumab-6WGL",
+                    "candidate_id": "6WGL-deposited-Fv-control",
                     "chains": {"A": sequences["heavy"], "B": sequences["light"]},
                 }
             ],
