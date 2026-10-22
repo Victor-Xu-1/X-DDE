@@ -213,7 +213,7 @@ export function TaskDetail({
           {files.length ? (
             files.map((file) => (
               <a key={file.name} href={artifactUrl(job.id, file.name)} download>
-                <span className="file-icon">
+                <span className="file-icon" aria-hidden="true">
                   {file.name.split(".").pop()?.toUpperCase()}
                 </span>
                 <span className="file-name">

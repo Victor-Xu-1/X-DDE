@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { TaskDetail } from "./TaskDetail";
 import { defaults } from "./form-model";
@@ -77,7 +78,7 @@ it("never shows artifacts belonging to the previous selection", () => {
 });
 it.each(["en", "zh"] as const)(
   "keeps native alignment and template downloads usable without exposing engineering snapshots (%s)",
-  (language) => {
+  async (language) => {
     render(
       <TaskDetail
         job={{
@@ -112,6 +113,7 @@ it.each(["en", "zh"] as const)(
         onChange={vi.fn()}
       />,
     );
+    await userEvent.setup().click(screen.getByText(/· 4$/));
     const labels =
       language === "en"
         ? [
