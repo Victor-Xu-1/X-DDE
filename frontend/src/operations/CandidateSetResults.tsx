@@ -2,6 +2,7 @@ import type { Language } from "../types";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { MetricBars } from "../presentation/MetricBars";
 import { ResultTree } from "./StructuredResults";
+import { DesignLineagePlot } from "./DesignLineagePlot";
 const record = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v)
     ? (v as Record<string, unknown>)
@@ -167,6 +168,7 @@ export function EvolutionResults({
           {lineage.root_ids.map(String).join(" · ")}
         </p>
       )}
+      <DesignLineagePlot value={lineage} language={language} />
       {mutations.length > 0 && (
         <div className="result-master-detail">
           <ResearchTable
@@ -201,15 +203,7 @@ export function EvolutionResults({
           />
         </div>
       )}
-      {Object.keys(trees).length > 0 ? (
-        <ResultTree value={trees} zh={zh} />
-      ) : (
-        <p className="field-help">
-          {zh
-            ? "本次没有形成可展示的父子谱系；仍可查看候选数和变异记录。"
-            : "No displayable parent-child lineage was formed; candidate counts and mutation records remain available."}
-        </p>
-      )}
+      {Object.keys(trees).length > 0 && <ResultTree value={trees} zh={zh} />}
       {Object.keys(record(value.conservation)).length > 0 && (
         <ResultTree value={value.conservation} zh={zh} />
       )}

@@ -13,6 +13,8 @@ def test_native_contracts_import_as_standalone_modules(tmp_path):
     code = (
         "import sys; sys.path.insert(0,sys.argv[1]); "
         "from harness_tools import TOOLS,LOCAL_MODELS,validate_payload; "
+        "from harness_alignments import collect_target_alignments; "
+        "from harness_result_validation import validate_search_response; "
         "validate_payload({'sequences':['EVQLVESGGGLVQPGGSLRLSCAAS']}); "
         "assert TOOLS['esm'][0]=='EsmScoreRequest'; "
         "assert set(LOCAL_MODELS)=={'rmsd','compare'}; "

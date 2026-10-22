@@ -9,11 +9,13 @@ export function ModelValidationPlot({
   metrics,
   language,
   application = false,
+  totalPoints,
 }: {
   points: ModelPoint[];
   metrics: Record<string, number>;
   language: Language;
   application?: boolean;
+  totalPoints?: number;
 }) {
   const zh = language === "zh";
   const values = points.flatMap((p) => [p.observed, p.predicted]);
@@ -89,6 +91,23 @@ export function ModelValidationPlot({
             ? "灰色虚线：预测与观察值一致。"
             : "Gray dotted line: equal predicted and observed values."}
         </p>
+        {!application &&
+          Number.isSafeInteger(totalPoints) &&
+          Number(totalPoints) >= points.length && (
+            <p className="field-help">
+              {points.length === totalPoints
+                ? (zh ? "完整显示 " : "Showing all ") +
+                  points.length.toLocaleString(zh ? "zh-CN" : "en-US") +
+                  (zh ? " 个留出样本。" : " held-out pairs.")
+                : (zh ? "图中显示 " : "Plot preview: ") +
+                  points.length.toLocaleString(zh ? "zh-CN" : "en-US") +
+                  " / " +
+                  Number(totalPoints).toLocaleString(zh ? "zh-CN" : "en-US") +
+                  (zh
+                    ? " 个留出样本；指标使用完整留出集，完整预测表可下载。"
+                    : " held-out pairs. Metrics use the full holdout; complete predictions remain downloadable.")}
+            </p>
+          )}
       </div>
       {!application && (
         <section

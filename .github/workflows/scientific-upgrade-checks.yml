@@ -13,6 +13,7 @@ on:
             boltz-template,
             boltz-runtime,
             case-inputs,
+            result-completeness,
             chemistry,
             admet,
             openmm,
@@ -62,6 +63,31 @@ on:
 permissions:
   contents: read
 jobs:
+  result-completeness:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'result-completeness'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact MSA output authority, standalone bridge and scored-case guidance
+        run: >-
+          uv run --locked pytest -q tests/test_harness_alignments.py
+          tests/test_harness_standalone.py tests/test_harness_sequences.py
+          tests/test_stat6_guidance.py tests/test_curated_native_case_inputs.py
+      - name: Complete heldout points, native lineage, cancellation and research downloads
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/FullHoldoutCharts.test.tsx
+          src/datasets/DatasetCharts.test.tsx src/datasets/ModelValidationPlot.test.tsx
+          src/datasets/chart-documents.test.ts src/operations/DesignLineagePlot.test.tsx
+          src/operations/HarnessResults.test.tsx src/presentation/artifact-digest.test.ts
+          src/presentation/research-files.test.tsx src/TaskDetail.test.tsx
   case-inputs:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'case-inputs'
     runs-on: ubuntu-24.04

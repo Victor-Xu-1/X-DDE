@@ -6,6 +6,8 @@ it("retains structures, sequences, tables and reports while excluding engineerin
   for (const name of [
     "del-definition.json",
     "barcode-review.json",
+    "lineage-analysis.json",
+    "candidate-comparison.json",
     "BRD4-JQ1/complex.cif",
     "BRD4_receptor.pdb",
     "candidate_12.sdf",

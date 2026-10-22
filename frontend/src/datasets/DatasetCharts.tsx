@@ -127,6 +127,10 @@ export function DatasetCharts({
             metrics={result.metrics}
             language={language}
             application={Boolean(documents.research_model_application)}
+            totalPoints={
+              documents.independent_holdout_evaluation?.heldout_members ??
+              result.counts.heldout
+            }
           />
         ) : (
           <p className="dataset-empty">

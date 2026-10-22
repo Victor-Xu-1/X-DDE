@@ -6,12 +6,18 @@ import {
   type ChartDocuments,
 } from "./chart-documents";
 import type { DatasetArtifact } from "./types";
+import { holdoutPlotLimit, readHoldoutPoints } from "./holdout-predictions";
 
 export function useChartDocuments(jobId: string, artifacts: DatasetArtifact[]) {
   const files = chartArtifacts(artifacts);
+  const holdout = artifacts.find(
+    (file) =>
+      file.role === "heldout_member_predictions" && file.format === "csv",
+  );
   const key = JSON.stringify([
     jobId,
     files.map((file) => [file.role, file.name, file.sha256]),
+    holdout,
   ]);
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{
@@ -25,9 +31,10 @@ export function useChartDocuments(jobId: string, artifacts: DatasetArtifact[]) {
       controller.signal,
       AbortSignal.timeout(30000),
     ]);
-    const [study, entries] = JSON.parse(key) as [
+    const [study, entries, predictionFile] = JSON.parse(key) as [
       string,
       [string, string, string][],
+      DatasetArtifact | null,
     ];
     setState({ key, documents: {}, status: "loading" });
     void Promise.all(
@@ -36,10 +43,23 @@ export function useChartDocuments(jobId: string, artifacts: DatasetArtifact[]) {
           signal,
         });
         if (!response.ok) throw new Error("Chart unavailable");
-        return [
-          role,
-          validateChartDocument(role, await response.json()),
-        ] as const;
+        const document = validateChartDocument(role, await response.json());
+        if (
+          role === "independent_holdout_evaluation" &&
+          predictionFile &&
+          predictionFile.size <= holdoutPlotLimit &&
+          typeof document.heldout_members === "number" &&
+          document.heldout_members <= 100000
+        ) {
+          const points = await readHoldoutPoints(
+            study,
+            predictionFile,
+            document.heldout_members,
+            signal,
+          );
+          return [role, { ...document, heldout_predictions: points }] as const;
+        }
+        return [role, document] as const;
       }),
     )
       .then((entries) => {

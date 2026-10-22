@@ -147,7 +147,7 @@ it("keeps unavailable genealogy truthful while displaying native recurring mutat
       }}
     />,
   );
-  expect(screen.getByText(/没有形成可展示的父子谱系/)).toBeVisible();
+  expect(screen.getByText(/没有提供明确的父子路径/)).toBeVisible();
   expect(
     screen.getByRole("img", { name: "变异出现情况 · 出现候选数" }),
   ).toBeVisible();

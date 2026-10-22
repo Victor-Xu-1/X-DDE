@@ -29,6 +29,8 @@ const researchExtensions = new Set([
 const internalName =
   /(?:^|[_.-])(manifest|provenance|environment|audit|diagnostic|stdout|stderr|bindings|checkpoint|execution|request|verification|runtime[_.-]lock)(?:[_.-]|$)/i;
 const scientificJSON = new Map([
+  ["lineage-analysis.json", ["候选谱系分析", "Candidate lineage analysis"]],
+  ["candidate-comparison.json", ["候选集比较", "Candidate set comparison"]],
   ["del-definition.json", ["DEL 库定义", "DEL library definition"]],
   ["barcode-review.json", ["条码质量", "Barcode quality"]],
 ]);

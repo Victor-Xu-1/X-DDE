@@ -107,6 +107,10 @@ async def main(directory):
             top_k=config.top_k,
             minimize=not config.maximize,
         )
+        (directory / "output/candidate-comparison.json").write_text(
+            json.dumps(report.model_dump(mode="json"), ensure_ascii=False, allow_nan=False),
+            encoding="utf-8",
+        )
         (directory / "output/result.json").write_text(
             json.dumps(
                 {
@@ -164,16 +168,34 @@ async def main(directory):
                 "Harness service is unavailable: "
                 + str(result.get("reason") or result.get("error") or tool)
             )
+        from harness_result_validation import validate_search_response
+
+        validate_search_response(tool, result)
         (directory / "output/native-result.json").write_text(
             json.dumps(result, ensure_ascii=False, allow_nan=False), encoding="utf-8"
         )
+        if tool == "evolution":
+            if not isinstance(result.get("result"), dict):
+                raise ValueError(
+                    "The lineage analysis lacks its complete native scientific report."
+                )
+            (directory / "output/lineage-analysis.json").write_text(
+                json.dumps(result["result"], ensure_ascii=False, allow_nan=False),
+                encoding="utf-8",
+            )
         result, structures = await collect_structures(client, result, directory, directory.name)
+        alignments = []
+        if tool == "target-msa":
+            from harness_alignments import collect_target_alignments
+
+            result, alignments = collect_target_alignments(result, request["payload"], directory)
         body = {
             "operation": "harness",
             "complete": True,
             "tool": tool,
             "result": result,
             "structures": structures,
+            **({"alignments": alignments} if alignments else {}),
         }
         (directory / "output/result.json").write_text(
             json.dumps(body, ensure_ascii=False, allow_nan=False), encoding="utf-8"

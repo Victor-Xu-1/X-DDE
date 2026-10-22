@@ -236,6 +236,24 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
             "required_materials": [],
             "guide": {
                 **study["guide"],
+                "steps": [
+                    (
+                        "核对已评分的野生型和单点假设来源。",
+                        "Review the scored parent and single-site hypothesis sources.",
+                    ),
+                    (
+                        "核对负 PLL 损失及越低越好的比较方向。",
+                        "Review negative PLL loss and its lower-is-better direction.",
+                    ),
+                    (
+                        "命名本次比较；不把序列评分当作亲和力。",
+                        "Name this comparison; sequence scores are not affinity.",
+                    ),
+                    (
+                        "提交分析并核对各候选、分支与原始分数。",
+                        "Submit the analysis and inspect candidates, paths and original scores.",
+                    ),
+                ],
                 "interpretation": (
                     "比较同一序列模型已评分的野生型与单点假设；"
                     "负 PLL 为损失，越低越好。没有亲和力、结构或药效结论。",

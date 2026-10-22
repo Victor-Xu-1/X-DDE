@@ -33,6 +33,7 @@ export interface ChartDocuments {
   };
   independent_holdout_evaluation?: {
     heldout_predictions: { observed: number; predicted: number }[];
+    heldout_members?: number;
   };
   research_model_application?: {
     heldout_predictions: { observed: number; predicted: number }[];
@@ -148,7 +149,10 @@ export function validateChartDocument(role: string, value: unknown) {
       Array.isArray(value.heldout_predictions) &&
       value.heldout_predictions.every(
         (row) => object(row) && finite(row.observed) && finite(row.predicted),
-      );
+      ) &&
+      (value.heldout_members === undefined ||
+        (count(value.heldout_members) &&
+          value.heldout_members >= value.heldout_predictions.length));
   }
   if (!valid) throw new Error("Invalid chart data");
   return value;
