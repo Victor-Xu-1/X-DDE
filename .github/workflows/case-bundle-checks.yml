@@ -96,8 +96,11 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD: ${{ github.sha }}
           EVENT: ${{ github.event_name }}
+          DEL_DATA_ONLY: ${{ needs.workflow-scope.outputs.del_data_only }}
         run: |
-          if [ "$EVENT" = workflow_dispatch ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+          if [ "${DEL_DATA_ONLY:-false}" = true ]; then
+            echo 'deployment=false' >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = workflow_dispatch ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             echo 'deployment=true' >> "$GITHUB_OUTPUT"
           else
             # Keep diff errors out of a conditional; errexit must stop this step.

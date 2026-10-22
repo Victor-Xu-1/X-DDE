@@ -9,6 +9,7 @@ PATHS = {
     "tests/test_del_case_component.py",
     "scripts/del-case-scope.py",
     "tests/ci/test_del_case_scope.py",
+    "tests/ci/test_case_bundle_scope.py",
     ".github/workflows/case-bundle-checks.yml",
     "docs/design/screening-and-del.md",
     "pyproject.toml",
