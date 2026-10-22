@@ -190,14 +190,16 @@ def test_native_a3m_outputs_keep_task_lineage_in_the_existing_scientific_store(c
     from test_jobs import submit
 
     script = (
-        "from pathlib import Path; Path('output/query.a3m').write_text('>q\\nACDE\\n>h\\nAC-E\\n')"
+        "from pathlib import Path; "
+        "Path('output/result.cif').write_text('controlled-process-output'); "
+        "Path('output/query.a3m').write_text('>q\\nACDE\\n>h\\nAC-E\\n')"
     )
     with client_factory(ProcessEngine(script)) as client:
         job = submit(client).json()
         wait_status(client, job["id"], {"succeeded"})
         versions = client.get("/api/research/objects").json()
-        assert len(versions) == 1
-        obj = versions[0]
+        assert len(versions) == 2
+        obj = next(value for value in versions if value["kind"] == "alignment")
         assert obj["kind"] == "alignment" and obj["source_job"] == job["id"]
         before = obj["reference"]
         assert client.post(f"/api/jobs/{job['id']}/index-assets").json()["state"] == "complete"
