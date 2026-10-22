@@ -14,6 +14,7 @@ on:
             boltz-runtime,
             case-inputs,
             result-completeness,
+            alignment-views,
             chemistry,
             admet,
             openmm,
@@ -63,6 +64,25 @@ on:
 permissions:
   contents: read
 jobs:
+  alignment-views:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'alignment-views'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Exact alignment bytes, task switching, retry and complete holdout rendering
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/alignment/alignment-data.test.ts
+          src/presentation/alignment/AlignmentResults.test.tsx
+          src/operations/TargetMsaResults.test.tsx
+          src/datasets/ModelValidationPlot.test.tsx
+          src/operations/HarnessResults.test.tsx
+          src/presentation/artifact-digest.test.ts
   result-completeness:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'result-completeness'
     runs-on: ubuntu-24.04

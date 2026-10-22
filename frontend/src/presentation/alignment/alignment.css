@@ -1,0 +1,51 @@
+.research-alignment {
+  min-width: 0;
+  margin-block: 20px;
+}
+.research-alignment .evidence-material-toolbar {
+  align-items: center;
+  gap: 16px;
+}
+.alignment-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin: 12px 0;
+}
+.alignment-controls label,
+.research-alignment header label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.alignment-controls form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+.alignment-controls input {
+  width: 86px;
+}
+.alignment-controls button,
+.alignment-controls select,
+.alignment-controls input,
+.research-alignment header select {
+  min-height: 34px;
+}
+.alignment-canvas {
+  min-width: 0;
+}
+.alignment-canvas > p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .alignment-controls {
+    gap: 8px;
+  }
+  .alignment-controls label {
+    flex-wrap: wrap;
+  }
+}

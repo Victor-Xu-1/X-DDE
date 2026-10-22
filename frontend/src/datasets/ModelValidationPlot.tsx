@@ -18,9 +18,13 @@ export function ModelValidationPlot({
   totalPoints?: number;
 }) {
   const zh = language === "zh";
-  const values = points.flatMap((p) => [p.observed, p.predicted]);
-  const min = Math.min(0, ...values),
-    max = Math.max(1, ...values);
+  // Large complete holdouts exceed the JS function-argument limit when spread.
+  let min = 0,
+    max = 1;
+  for (const point of points) {
+    min = Math.min(min, point.observed, point.predicted);
+    max = Math.max(max, point.observed, point.predicted);
+  }
   const padding = (max - min) * 0.08;
   const compared =
     Number.isFinite(metrics.rmse_log1p_enrichment) &&

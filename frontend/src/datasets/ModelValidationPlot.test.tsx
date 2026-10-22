@@ -4,6 +4,21 @@ import { ModelValidationPlot } from "./ModelValidationPlot";
 
 afterEach(cleanup);
 const points = [{ observed: 0.8, predicted: 0.6 }];
+it("renders a complete large holdout without exceeding the JavaScript argument limit", () => {
+  const large = Array.from({ length: 100000 }, (_, index) => ({
+    observed: index / 10000,
+    predicted: 0.4,
+  }));
+  render(
+    <ModelValidationPlot
+      points={large}
+      metrics={{}}
+      language="en"
+      totalPoints={100000}
+    />,
+  );
+  expect(screen.getByText("Showing all 100,000 held-out pairs.")).toBeVisible();
+});
 it("compares native held-out error with the baseline without declaring model acceptance", () => {
   const { rerender } = render(
     <ModelValidationPlot

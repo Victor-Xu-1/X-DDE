@@ -29,3 +29,10 @@ Princeton BioMolecular and ChemRar file references retain their original supplie
 source pages and terms. Public download availability is not a redistribution
 grant. X-DDE distributes reviewed download metadata and checksums, not the raw
 supplier structure archives or current-stock/experimental-activity claims.
+
+Interactive native MSA inspection added in v0.6.74
+JBrowseMSA / react-msaview 9.8.0, Copyright (c) 2023 Colin Diesh, is used under
+the MIT License. The complete upstream notice is retained in
+frontend/public/licenses/JBrowseMSA-MIT.txt and the installed web resources.
+Its GMOD/JBrowse, MobX, MUI and Emotion dependencies retain their respective
+upstream licenses. No externally hosted alignment viewer receives user sequences.
