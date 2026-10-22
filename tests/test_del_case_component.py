@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from fastapi.testclient import TestClient
 
 from opendde_workbench.deployment.catalog import CASE_BUNDLE_IDS, PACKAGES, dependencies
 from opendde_workbench.examples import del_bundle_release as source
@@ -19,7 +20,17 @@ def test_del_data_component_is_data_only_and_uses_the_single_existing_queue():
     assert package.id in CASE_BUNDLE_IDS
     assert package.kind == "data" and package.engine == "x-dde" and package.automatic
     assert package.url == source.URL and package.checksum == source.SHA256
-    assert package.version == source.VERSION == "2"
+    assert package.version == source.VERSION == "3"
+    assert source.CAPABILITIES == (
+        "del.library",
+        "del.enumerate",
+        "del.decode",
+        "del.count",
+        "del.analyze",
+        "del.series",
+        "del.candidates",
+        "del.followup",
+    )
     assert dependencies(package.id) == [package.id]
 
 
@@ -27,7 +38,7 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
     from opendde_workbench.api import create_app
     from opendde_workbench.store import Store
 
-    filename = os.environ.get("WB_REVIEWED_DEL_DATA2")
+    filename = os.environ.get("WB_REVIEWED_DEL_ARCHIVE")
     if not filename:
         pytest.skip("The exact full-cohort archive is supplied by the scoped delivery gate")
     archive = Path(filename)
@@ -37,7 +48,7 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
     assert manifest["profile"] == "del6"
     assert manifest["source_revision"] == source.SOURCE_REVISION
     assert manifest["capabilities"] == list(source.CAPABILITIES)
-    create_app(settings)
+    app = create_app(settings)
     store = Store(settings.state_dir / "jobs.sqlite3")
     private = str(uuid4())
     with store.connect() as db:
@@ -47,8 +58,8 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
         )
     restore_bundle(archive, settings, source.SHA256)
     assert verify_examples(settings, source.CAPABILITIES, profile="del6") == {
-        "modules": 5,
-        "computed": 5,
+        "modules": 8,
+        "computed": 8,
         "validated": 0,
     }
     with store.connect() as db:
@@ -56,7 +67,7 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
             table: db.execute("SELECT COUNT(*) FROM " + table).fetchone()[0]
             for table in ("jobs", "assets", "example_pins")
         }
-        assert before == {"jobs": 6, "assets": 3, "example_pins": 5}
+        assert before == {"jobs": 14, "assets": 5, "example_pins": 8}
         assert not db.execute(
             "SELECT id FROM jobs WHERE status IN ('queued','running','cancelling')"
         ).fetchall()
@@ -64,6 +75,45 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
             db.execute("SELECT description FROM projects WHERE id=?", (private,)).fetchone()[0]
             == "Retain"
         )
+    expected = (
+        (
+            "del.series",
+            "58cee50b-25d1-4e9d-8be9-74916c0cd135",
+            "mono-disynthon.csv",
+            {"observed_members": 518285, "series": 9402, "shown_series": 9402},
+        ),
+        (
+            "del.candidates",
+            "5d4e2972-685a-41ee-8237-c135626ad35b",
+            "del-candidates.sdf",
+            {"selected": 5, "resolved": 5, "failed": 0},
+        ),
+        (
+            "del.followup",
+            "f8d334e1-de23-4411-b48e-a2fa728ceca9",
+            "followup-measurements.csv",
+            {"reported": 1, "matched": 1, "unmatched": 0},
+        ),
+    )
+    with TestClient(app) as client:
+        for capability, job_id, filename, expected_counts in expected:
+            detail = client.get("/api/examples/" + capability)
+            assert detail.status_code == 200
+            example = detail.json()
+            assert example["computed_result_available"]
+            assert example["pin"]["case_id"] == "del-unc006-brd4"
+            assert example["pin"]["revision"] == 5
+            assert example["pin"]["job_id"] == job_id
+            assert example["pin"]["review"]["scope"] == "reviewed_computational_example"
+            result_path = settings.state_dir / "jobs" / job_id / "output/result.json"
+            result = json.loads(result_path.read_text())
+            assert result["complete"] and result["counts"] == expected_counts
+            downloaded = client.get(f"/api/jobs/{job_id}/download", params={"name": filename})
+            assert downloaded.status_code == 200
+            assert downloaded.content == result_path.with_name(filename).read_bytes()
+        # No trained predictive model is inferred from the other eight stages.
+        model = client.get("/api/examples/del.model").json()
+        assert not model["computed_result_available"] and model["pin"] is None
     restore_bundle(archive, settings, source.SHA256)
     with store.connect() as db:
         assert before == {

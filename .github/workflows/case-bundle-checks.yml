@@ -11,6 +11,8 @@ on:
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
       - 'tests/ci/test_case_bundle_scope.py'
+      - 'scripts/del-case-scope.py'
+      - 'tests/ci/test_del_case_scope.py'
       - 'tests/portable/test_bundle_archive.py'
       - 'src/opendde_workbench/deployment/**'
       - 'src/opendde_workbench/settings.py'
@@ -38,6 +40,8 @@ on:
       - 'tests/test_del_case_component.py'
       - 'scripts/stage-release-examples.py'
       - 'tests/test_dataset_resources.py'
+      - 'scripts/del-case-scope.py'
+      - 'tests/ci/test_del_case_scope.py'
       - 'tests/ci/test_case_bundle_scope.py'
       - 'tests/test_case_bundle.py'
       - 'tests/test_case_output_witnesses.py'
@@ -61,6 +65,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       workflow_only: ${{ steps.scope.outputs.workflow_only }}
+      del_data_only: ${{ steps.del.outputs.del_data_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,6 +74,10 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/workflow-quality-scope.py
+      - id: del
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/del-case-scope.py
   scoped-delivery:
     needs: workflow-scope
     if: needs.workflow-scope.outputs.workflow_only != 'true'
@@ -78,7 +87,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Verify consumer selection
-        run: python3 -m unittest discover -s tests/ci -p test_case_bundle_scope.py
+        run: |
+          python3 -m unittest discover -s tests/ci -p test_case_bundle_scope.py
+          python3 -m unittest discover -s tests/ci -p test_del_case_scope.py
       - name: Select checks for affected consumers
         id: scope
         env:
@@ -108,11 +119,13 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_case_output_witnesses.py tests/test_example_supporting.py tests/test_stat6_case_bundle.py tests/test_case_retry_history.py tests/test_case_bundle_sources.py tests/test_potential_case_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_research_assets.py tests/test_api_security.py
+      - if: needs.workflow-scope.outputs.del_data_only != 'true'
+        run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_case_output_witnesses.py tests/test_example_supporting.py tests/test_stat6_case_bundle.py tests/test_case_retry_history.py tests/test_case_bundle_sources.py tests/test_potential_case_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_research_assets.py tests/test_api_security.py
       - name: Changed deployment consumers
         if: steps.scope.outputs.deployment == 'true'
         run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py
       - name: Verify case installation into the active state
+        if: needs.workflow-scope.outputs.del_data_only != 'true'
         run: uv run --locked pytest -q tests/test_dataset_resources.py
       - name: Fetch the exact reviewed full-cohort DEL archive
         env:
@@ -121,12 +134,13 @@ jobs:
           readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.del_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
           test "${#source[@]}" -eq 2
           [[ "${source[0]}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          test "${source[1]}" = del6-reviewed-results-v2.zip
+          test "${source[1]}" = del6-reviewed-results-v3.zip
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
-          echo "WB_REVIEWED_DEL_DATA2=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
+          echo "WB_REVIEWED_DEL_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - name: Full-cohort native rows, immutable module examples and idempotent cold restore only
         run: uv run --locked pytest -q tests/test_del_case_component.py
       - name: Stage the exact accepted release data without scientific recomputation
+        if: needs.workflow-scope.outputs.del_data_only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -138,7 +152,7 @@ jobs:
 
   archive-publication-windows:
     needs: workflow-scope
-    if: needs.workflow-scope.outputs.workflow_only != 'true'
+    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.del_data_only != 'true'
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
