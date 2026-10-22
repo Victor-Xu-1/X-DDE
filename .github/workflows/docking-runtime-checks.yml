@@ -20,7 +20,7 @@ on:
       - "src/opendde_workbench/docking/result.py"
       - "frontend/src/docking/DockingReview*"
       - "frontend/src/docking/ReferenceComparison*"
-      - "frontend/src/docking/PoseTable*"
+      # Pose-table defaults have sealed native view/download coverage in pose-handoff-checks.yml.
       - "frontend/src/docking/DockingForm*"
       - "frontend/src/docking/types.ts"
       - "frontend/src/docking/results.css"
@@ -38,7 +38,6 @@ on:
       - "server_tests/docking_source_tools.py"
       - "server_tests/docking_browser.py"
       - "server_tests/test_native_docking.py"
-      - ".github/workflows/docking-runtime-checks.yml"
   pull_request:
     paths: *docking_runtime_paths
 permissions:
