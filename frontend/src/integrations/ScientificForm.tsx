@@ -70,23 +70,27 @@ export function ScientificForm({
     "imatinib",
   );
   const [structure, setStructure] = useState<MoleculeRef | null>(
-    chosenStructure ??
-      preset?.inputs.find((i) => i.role === "structure")?.source ??
-      (["boltz", "reinvent", "chemprop"].includes(program)
-        ? null
-        : initialStructure),
+    program === "boltz"
+      ? null
+      : (chosenStructure ??
+          preset?.inputs.find((i) => i.role === "structure")?.source ??
+          (["reinvent", "chemprop"].includes(program)
+            ? null
+            : initialStructure)),
   );
   const [ligand, setLigand] = useState<MoleculeRef | null>(
-    preset?.inputs.find((i) => ["ligand", "library"].includes(i.role))
-      ?.source ??
-      (program === "chemprop" ||
-      (program === "reinvent" &&
-        usesStartingMolecule({
-          kind: "reinvent",
-          mode: preset?.payload?.mode ?? nativeDefaults.reinvent.mode,
-        }))
-        ? initialLigand
-        : null),
+    program === "boltz"
+      ? null
+      : (preset?.inputs.find((i) => ["ligand", "library"].includes(i.role))
+          ?.source ??
+          (program === "chemprop" ||
+          (program === "reinvent" &&
+            usesStartingMolecule({
+              kind: "reinvent",
+              mode: preset?.payload?.mode ?? nativeDefaults.reinvent.mode,
+            }))
+            ? initialLigand
+            : null)),
   );
   const [verifiedLibrary, setVerifiedLibrary] = useState<MoleculeRef | null>(
     null,
@@ -139,14 +143,16 @@ export function ScientificForm({
     program === "boltz"
       ? boltzMaterialInputs(payload.components as BoltzComponent[])
       : [];
-  if (structure) inputs.push({ role: "structure", source: structure });
-  if (scaffold && ["antibody", "nanobody"].includes(String(payload.modality)))
-    inputs.push({ role: "scaffold", source: scaffold });
-  if (ligand && (program !== "reinvent" || usesMolecularInput(payload)))
-    inputs.push({
-      role: program === "chemprop" ? "library" : "ligand",
-      source: ligand,
-    });
+  if (program !== "boltz") {
+    if (structure) inputs.push({ role: "structure", source: structure });
+    if (scaffold && ["antibody", "nanobody"].includes(String(payload.modality)))
+      inputs.push({ role: "scaffold", source: scaffold });
+    if (ligand && (program !== "reinvent" || usesMolecularInput(payload)))
+      inputs.push({
+        role: program === "chemprop" ? "library" : "ligand",
+        source: ligand,
+      });
+  }
   const inputValid =
     program === "boltz"
       ? validBoltzComponents(payload.components, payload.affinity) &&

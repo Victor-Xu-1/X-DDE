@@ -10,6 +10,7 @@ on:
           [
             contracts,
             boltz-msa,
+            boltz-template,
             chemistry,
             admet,
             openmm,
@@ -60,7 +61,8 @@ permissions:
   contents: read
 jobs:
   boltz-msa:
-    if: github.event_name == 'workflow_dispatch' && inputs.check == 'boltz-msa'
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["boltz-msa","boltz-template"]'), inputs.check)
+    name: ${{ inputs.check }}
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 18
     steps:
@@ -72,23 +74,31 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
       - name: Exact alignment admission, file/version authority and existing task envelope
+        if: inputs.check == 'boltz-msa'
         run: >-
           uv run --locked pytest -q tests/test_boltz_msa.py
           tests/test_integrated_science.py
           tests/test_research_assets.py
           tests/test_property_model_context.py
       - name: Changed guided inputs, cancellation and exact declared scientific files
+        if: inputs.check == 'boltz-msa'
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/BoltzInputs.test.tsx
           src/integrations/useBoltzMsa.test.ts
           src/integrations/ScientificForm.test.tsx
           src/integrations/validation.test.ts
+      - name: Exact template input ownership and direct shared-form consumers
+        if: inputs.check == 'boltz-template'
+        working-directory: frontend
+        run: npx vitest run src/integrations/ScientificForm.test.tsx
       - name: Install only the official parser's dependencies, without model or GPU libraries
+        if: inputs.check == 'boltz-msa'
         run: |
           uv pip install --python .venv/bin/python --no-deps boltz==2.2.1
           uv pip install --python .venv/bin/python numpy==1.26.4 pandas==2.2.3 mashumaro==3.14 rdkit==2026.3.6
       - name: Unmodified Boltz 2.2.1 parser consumes the actual hashed snapshot and normalized transport
+        if: inputs.check == 'boltz-msa'
         run: .venv/bin/python -m pytest -q server_tests/test_native_boltz_msa.py
   local-scope:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'local-scope'
