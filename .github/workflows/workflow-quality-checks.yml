@@ -9,6 +9,7 @@ on:
       - 'src/opendde_workbench/examples/stat6/record_validation.py'
       - 'src/opendde_workbench/examples/stat6/preparation.py'
       - 'frontend/src/workflows/**'
+      - 'frontend/src/examples/ExampleRecordResult*'
       - 'frontend/src/quality/assessment.ts'
       - 'frontend/src/quality/generated.ts'
       - 'tests/test_workflow_quality*.py'
@@ -43,6 +44,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/workflows/model.test.ts src/workflows/WorkflowCenter.test.tsx
+          src/workflows/useWorkflowController.test.ts src/examples/ExampleRecordResult.test.tsx
           src/workflows/RunMonitor.test.tsx src/quality/tests/QualityAssessment.test.tsx
           src/quality/tests/QualityResults.test.tsx src/quality/QualityReview.test.tsx
           src/presentation/research-content.test.ts
