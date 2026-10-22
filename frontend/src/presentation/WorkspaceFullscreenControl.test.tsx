@@ -197,6 +197,38 @@ it("sends one native exit request when paired views share a fullscreen workspace
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
+it("keeps fullscreen and its exit control when a newly selected source mounts its own scene", async () => {
+  function ChangingScene() {
+    const [source, select] = useState("Source 1");
+    return (
+      <StructureWorkbench preview={<Preview key={source} />}>
+        <label>
+          Source
+          <select value={source} onChange={(e) => select(e.target.value)}>
+            <option>Source 1</option>
+            <option>Source 2</option>
+          </select>
+        </label>
+      </StructureWorkbench>
+    );
+  }
+  const user = userEvent.setup();
+  const { container } = render(<ChangingScene />);
+  await user.click(
+    screen.getByRole("button", { name: "Fullscreen research workspace" }),
+  );
+  const original = screen.getByTestId("native-canvas");
+  await user.selectOptions(screen.getByRole("combobox"), "Source 2");
+  expect(screen.getByTestId("native-canvas")).not.toBe(original);
+  expect(document.fullscreenElement).toBe(
+    container.querySelector(".structure-workbench"),
+  );
+  const selected = screen.getByTestId("native-canvas");
+  await user.click(screen.getByRole("button", { name: "Exit fullscreen" }));
+  expect(screen.getByRole("combobox")).toHaveValue("Source 2");
+  expect(screen.getByTestId("native-canvas")).toBe(selected);
+});
+
 it.each(["viewer-panel", "simulation-molecular-viewport"])(
   "keeps a standalone %s usable without a research workspace",
   async (className) => {

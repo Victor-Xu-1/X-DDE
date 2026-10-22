@@ -3,7 +3,9 @@
 from playwright.sync_api import expect
 
 
-def inspect_full_workspace(page, viewer, evidence, language, name, inspect=None):
+def inspect_full_workspace(
+    page, viewer, evidence, language, name, inspect=None, changes_source=False
+):
     zh = language == "zh"
     workspace = viewer.locator(
         "xpath=ancestor::*[contains(concat(' ',normalize-space(@class),' '),"
@@ -37,10 +39,15 @@ def inspect_full_workspace(page, viewer, evidence, language, name, inspect=None)
     assert source.evaluate("(node,original) => node === original", original)
     if inspect:
         inspect()
+    if not changes_source:
+        assert source.evaluate("(node,original) => node === original", original)
+    # Choosing another candidate legitimately loads its own scene. Fullscreen
+    # exit must retain that selected scene rather than restoring the old one.
+    selected_source = source.element_handle()
     page.screenshot(path=str(evidence / (name + "-full-workspace.png")), full_page=False)
     viewer.get_by_role("button", name="退出全屏" if zh else "Exit fullscreen", exact=True).click()
     expect(focused).to_have_count(0)
-    assert source.evaluate("(node,original) => node === original", original)
+    assert source.evaluate("(node,original) => node === original", selected_source)
     expect(expand).to_be_enabled()
     expand.click()
     expect(focused).to_be_visible()
@@ -50,7 +57,7 @@ def inspect_full_workspace(page, viewer, evidence, language, name, inspect=None)
     page.keyboard.press("Escape")
     expect(focused).to_have_count(0)
     expect(expand).to_be_enabled()
-    assert source.evaluate("(node,original) => node === original", original)
+    assert source.evaluate("(node,original) => node === original", selected_source)
     return {
         "view": view,
         "details": details,

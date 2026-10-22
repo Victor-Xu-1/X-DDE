@@ -78,7 +78,15 @@ def test_native_workspace_keeps_structure_controls_selection_and_downloads(
                 )
                 inspect_png(figure)
 
-        geometry = inspect_full_workspace(page, viewer, evidence, language, "native", inspect)
+        geometry = inspect_full_workspace(
+            page,
+            viewer,
+            evidence,
+            language,
+            "native",
+            inspect,
+            changes_source=capability != "posebusters.check",
+        )
         if selected:
             expect(table.locator('tr[aria-selected="true"]')).to_have_text(selected)
         assert not errors and not writes, {"errors": errors, "writes": writes}

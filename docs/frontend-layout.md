@@ -102,7 +102,8 @@ the large left view and the related candidate table, quality checks or trajector
 controls on the right. Desktop columns scroll independently; narrow screens keep
 the same view before its controls. The original iframe or Mol* canvas stays mounted,
 so entering and leaving fullscreen does not reset the selected record, trajectory
-frame or binding-pose display. Native Escape and the Exit fullscreen control restore
+frame or binding-pose display. Selecting another candidate uses that candidate's
+own scene and retains it when returning inline. Native Escape and the Exit fullscreen control restore
 the inline page. A standalone viewer expands its own panel. Browser refusal remains
 a visible, retryable presentation error; it never starts a calculation, creates a
 replacement overlay, or disables the scientific view. Figure export retains its

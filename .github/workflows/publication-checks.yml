@@ -126,20 +126,8 @@ jobs:
           tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
           tests/test_api_security.py::test_csrf_origin_and_host_boundaries
           tests/test_stat6_guidance.py
-      - name: Restore archival native annotation results; no scientific execution
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
-          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
-          .venv/bin/python server_tests/download_publication_cases.py --annotations
-          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
-      - name: Restore case data and managed editor in isolated CI state
-        run: |
-          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
-          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-pose-examples
-          .venv/bin/python server_tests/restore_publication_cases.py --annotations
-          uv run --locked playwright install chromium --with-deps
+      - name: Native browser runtime for the changed workspace and retained exports
+        run: uv run --locked playwright install chromium --with-deps
       - name: Current sealed STAT6 examples for native workspace fullscreen, without calculation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -160,6 +148,19 @@ jobs:
           WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
         run: uv run --locked python -m pytest -x -q server_tests/test_workspace_fullscreen_browser.py
+      - name: Restore archival native annotation results; no scientific execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-figures" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-figures/state" >> "$GITHUB_ENV"
+          .venv/bin/python server_tests/download_publication_cases.py --annotations
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - name: Restore case data and managed editor in isolated CI state
+        run: |
+          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-pose-examples
+          .venv/bin/python server_tests/restore_publication_cases.py --annotations
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
