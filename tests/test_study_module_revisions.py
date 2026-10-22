@@ -25,7 +25,11 @@ def test_only_the_authored_module_identities_advance():
     current = bundle_catalogue("stat6")
     assert set(old.modules) == set(current.modules)
     for key, previous in old.modules.items():
-        expected = previous.model_copy(update={"revision": 4}) if key in CHANGED else previous
+        expected = (
+            previous.model_copy(update={"revision": 4})
+            if key in CHANGED | {"workflows"}
+            else previous
+        )
         assert current.modules[key] == expected
     assert all(old.modules[key].revision == 3 for key in CHANGED)
     assert current.digest != old.digest == PREVIOUS
