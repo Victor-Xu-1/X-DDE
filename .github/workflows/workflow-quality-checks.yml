@@ -8,6 +8,7 @@ on:
       - 'src/opendde_workbench/examples/stat6/workflow_replay.py'
       - 'src/opendde_workbench/examples/stat6/record_validation.py'
       - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'src/opendde_workbench/examples/stat6_bundle_release.py'
       - 'frontend/src/workflows/**'
       - 'frontend/src/examples/ExampleRecordResult*'
       - 'frontend/src/quality/assessment.ts'
@@ -65,7 +66,7 @@ jobs:
           PY
           )"
           export WB_REVIEWED_STAT6_ARCHIVE="$archive_path"
-          uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_prepared_handoff.py tests/test_stat6_recipe_replay.py tests/test_example_records.py
+          uv run --locked pytest -q tests/test_stat6_templates.py tests/test_stat6_prepared_handoff.py tests/test_stat6_recipe_replay.py tests/test_stat6_case_data.py tests/test_example_records.py
           uv run --locked python scripts/generate-capability-catalog.py --check
           uv run --locked python server_tests/prepare_quality_context_cases.py
           uv run --locked playwright install chromium --with-deps

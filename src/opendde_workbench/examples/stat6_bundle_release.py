@@ -1,12 +1,12 @@
-"""Reviewed STAT6 outputs: original-port analogues, contact-box poses and retained source cases."""
+"""Reviewed STAT6 outputs and the measured docking-quality-property workflow."""
 
-VERSION = "25"
+VERSION = "26"
 URL = (
-    "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.48/stat6-reviewed-results-v25.zip"
+    "https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.61/stat6-reviewed-results-v26.zip"
 )
-SHA256 = "74d06df0f275bb3c1be72546aa77ec16a8e973c4f75c3feb88fe19558936a046"
-BYTES = 18554175
-SOURCE_REVISION = "98b018f0cb0a91d5d59a88890dfa6f3159b94333"
+SHA256 = "3a4a58d34a7713ec8b544904ed0b9259a3fe0d333f0b5e295cdbfc8db9bc514e"
+BYTES = 18733233
+SOURCE_REVISION = "1fe10f6ee98ba389c45d8e2b712db157d0dc2604"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
@@ -51,4 +51,5 @@ CAPABILITIES = (
     "diffsbdd.optimize",
     "structure",
     "rmsd",
+    "workflows",
 )

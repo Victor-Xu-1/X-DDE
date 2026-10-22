@@ -42,6 +42,9 @@ An older startup history response cannot replace a newer observed completion.
 Loaded study templates retain their exact time and job budgets; draft settings
 apply only to a newly assembled plan. The ordinary review shows authored task
 names and the quality condition, with machine step IDs left to expert editing.
+The reviewed STAT6 data component includes this completed workflow and its
+three native outputs. Installing or restoring it reads the recorded calculations;
+it never schedules a rerun. Historical study pins remain independently readable.
 
 The STAT6 REINVENT template uses the source-verified fluoroindole scaffold from
 the supplied study molecule, with one explicitly marked R-group attachment site,

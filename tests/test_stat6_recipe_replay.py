@@ -82,7 +82,12 @@ def test_every_retained_native_task_recipe_replays_exactly_without_starting_jobs
     with store.connect() as db:
         for table, original in retained.items():
             assert set(db.execute("SELECT * FROM " + table).fetchall()) == original, table
-    assert set(record_examples) == {"pose_exploration", "experimental.evidence", "regions"}
+    assert set(record_examples) == {
+        "pose_exploration",
+        "experimental.evidence",
+        "regions",
+        "workflows",
+    }
     assert not different, "Prepared recipes differ from reviewed native tasks: " + ", ".join(
         different
     )
