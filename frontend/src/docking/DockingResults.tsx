@@ -156,6 +156,17 @@ export function DockingResults({
                 <a href={artifactUrl(job.id, selected.artifact)} download>
                   {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
                 </a>
+                {selected.mapping_status ===
+                  "ambiguous_reconfirm_selections" && (
+                  <p className="field-help" role="note">
+                    <strong>
+                      {zh ? "重选原子区域" : "Reselect atom regions"}
+                    </strong>
+                    {zh
+                      ? "：如需限定原子区域，请在当前姿势上重新选择。"
+                      : ": select atoms on this pose before adding region constraints."}
+                  </p>
+                )}
                 <PoseStudyInput original={version} language={language}>
                   {(selection, waiting) =>
                     selection ? (

@@ -40,6 +40,9 @@ export function PoseTable({
 }) {
   const zh = language === "zh";
   const referenceReady = result.reference_comparison?.status === "ready";
+  const showQualification = result.poses.some(
+    (pose) => !pose.valid || Boolean(pose.constraint_checks?.length),
+  );
   const scoreNames = [
     ...new Map(
       result.poses.flatMap((p) =>
@@ -236,9 +239,15 @@ export function PoseTable({
               "CNNscore:model_output",
               "reference_all_heavy",
               "reference_contact",
-              ...(result.poses.some((pose) => !pose.valid) ? ["status"] : []),
+              ...(showQualification ? ["status"] : []),
             ]
-          : undefined
+          : scoreNames.length
+            ? [
+                "pose",
+                ...scoreNames.map((score) => score.name + ":" + score.unit),
+                ...(showQualification ? ["status"] : []),
+              ]
+            : undefined
       }
     />
   );

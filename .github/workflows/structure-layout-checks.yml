@@ -88,6 +88,8 @@ on:
       # Fixed-case stage checks verify these exact native preview layouts.
       - "!frontend/src/datasets/CandidateView.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
+      # Docking defaults and linked native geometry have exact pose-continuity coverage.
+      - "!frontend/src/docking/DockingResults.tsx"
   pull_request:
     paths: *structure_paths
 permissions:

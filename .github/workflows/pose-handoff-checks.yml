@@ -16,6 +16,7 @@ on:
       - "frontend/src/presentation/MolecularPreview.tsx"
       - "frontend/src/presentation/ResearchTabs*"
       - "frontend/src/docking/DockingResults*"
+      - "frontend/src/docking/PoseTable*"
       - "frontend/src/datasets/CandidateHandoff*"
       - "frontend/src/datasets/CandidateView*"
       - "frontend/src/poses/PoseDetail*"
@@ -29,6 +30,7 @@ on:
       - "frontend/src/research/ResearchWorkspace*"
       - "server_tests/prepare_pose_handoff.py"
       - "server_tests/test_pose_handoff_browser.py"
+      - "server_tests/test_docking_table_browser.py"
       - ".github/workflows/pose-handoff-checks.yml"
       # Candidate-specific drafts use generated-candidate-checks.yml; shared continuity stays here.
       - "!frontend/src/diffsbdd/DiffResults*"
@@ -68,6 +70,8 @@ jobs:
           src/presentation/ResearchTabs.test.tsx
           src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
+          src/docking/PoseTable.test.tsx src/docking/ReferenceComparison.test.tsx
+          src/presentation/ResearchTable.test.tsx
           src/docking/poseScore.test.ts src/quality/QualityForm.test.tsx
           src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx
           src/chemistry/StateResults.test.tsx src/diffsbdd/DiffResults.test.tsx
@@ -83,8 +87,30 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked playwright install chromium --with-deps
           uv run --locked python -m pytest -x -q server_tests/test_pose_handoff_browser.py
+      - name: Current sealed STAT6 docking results; no new scientific calculation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/x-dde-docking-table
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-docking-table/state
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP" --skip-existing
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Bilingual native docking table, linked fullscreen and complete original downloads
+        env:
+          WB_HOME: ${{ runner.temp }}/x-dde-docking-table
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-docking-table/state
+        run: uv run --locked python -m pytest -q server_tests/test_docking_table_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-selected-pose-evidence
-          path: outputs/pose-handoff/**
+          path: |
+            outputs/pose-handoff/**
+            outputs/docking-table/**

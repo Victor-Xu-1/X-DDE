@@ -120,6 +120,9 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
     "/artifact/j/poses.sdf",
   );
   expect(screen.getByText("重选原子区域")).toBeVisible();
+  expect(screen.getAllByRole("note")).toHaveLength(1);
+  expect(screen.getByRole("note")).toHaveTextContent("当前姿势");
+  expect(screen.getByRole("table")).not.toHaveTextContent("重选原子区域");
   expect(screen.getByTestId("native-score")).toHaveTextContent('"value":-7');
   expect(screen.getByTestId("native-score")).toHaveTextContent(
     '"scope":"whole_pose"',
@@ -169,6 +172,45 @@ it("offers explicit reindexing rather than pretending a missing asset is reusabl
       expect.objectContaining({ method: "POST", body: "{}" }),
     ),
   );
+});
+
+it("ties the single atom-selection notice to the currently chosen pose", async () => {
+  mocks.request.mockImplementation((path: string) =>
+    path.includes("artifact-metadata")
+      ? {
+          job_id: "j",
+          name: new URL(path, "http://localhost").searchParams.get("name"),
+          size: 123,
+          sha256: receptor.sha256,
+        }
+      : [],
+  );
+  const result: DockingResult = {
+    ...data,
+    poses: [
+      {
+        ...data.poses[1],
+        record: 0,
+        artifact: "pose-001.sdf",
+        mapping_status: "native_atom_maps",
+      },
+      data.poses[1],
+    ],
+  };
+  render(
+    <DockingResults language="en" job={{ id: "j" } as Job} result={result} />,
+  );
+  expect(screen.queryByRole("note")).toBeNull();
+  await userEvent.click(
+    screen.getByRole("button", { name: "Pose 2", exact: true }),
+  );
+  expect(screen.getAllByRole("note")).toHaveLength(1);
+  expect(screen.getByRole("note")).toHaveTextContent("this pose");
+  await userEvent.click(
+    screen.getByRole("button", { name: "Pose 1", exact: true }),
+  );
+  expect(screen.queryByRole("note")).toBeNull();
+  expect(mocks.authorized).not.toHaveBeenCalled();
 });
 
 it("hands the actually selected saved pose and its receptor to the existing quality questionnaire", async () => {
