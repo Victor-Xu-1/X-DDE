@@ -74,7 +74,8 @@ def test_native_workspace_keeps_structure_controls_selection_and_downloads(
                 (evidence / "selection-hit.json").write_text(
                     json.dumps(
                         page.evaluate(
-                            """({x,y}) => ({x,y,hit:document.elementFromPoint(x,y)?.outerHTML.slice(0,600),
+                            """({x,y}) => ({x,y,
+                    hit:document.elementFromPoint(x,y)?.outerHTML.slice(0,600),
                     frame:[...document.querySelectorAll('.molecular-stage')].map(el=>el.getBoundingClientRect().toJSON()),
                     workspace:[...document.querySelectorAll('.structure-workbench:fullscreen')].map(el=>({
                       bounds:el.getBoundingClientRect().toJSON(),rows:getComputedStyle(el).gridTemplateRows}))})""",
