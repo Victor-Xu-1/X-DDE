@@ -1,5 +1,7 @@
 """Real retained study recipes load through the questionnaire without starting inference."""
 
+import csv
+import json
 import os
 from pathlib import Path
 
@@ -52,5 +54,46 @@ def test_workflow_template_is_guided_measured_and_does_not_submit_on_load(langua
         ).to_be_visible()
         assert page.locator("main .questionnaire > fieldset:visible").count() == 1
         page.screenshot(path=evidence / "measured-steps.png", full_page=True)
+        assert page.request.get(base + "/api/jobs").json() == before
+        # Read the actual recorded child and verify a user download, without
+        # submitting a substitute descriptor calculation or changing its inputs.
+        fixed = page.request.get(base + "/api/examples/workflows/result?profile=stat6")
+        assert fixed.ok
+        record = fixed.json()["record"]
+        property_job = next(
+            row["job_id"] for row in record["run"]["attempts"] if row["step_id"] == "properties"
+        )
+        native = page.request.get(base + "/api/jobs/" + property_job + "/result").json()
+        expected = native["molecules"][0]
+        page.goto(base + "/#task=" + property_job)
+        table = page.get_by_role(
+            "table", name="分子性质 · RDKit 计算" if zh else "Molecular properties · RDKit"
+        )
+        expect(table).to_be_visible(timeout=30000)
+        with page.expect_download() as download:
+            page.get_by_role(
+                "button", name="导出筛选结果" if zh else "Export filtered rows", exact=True
+            ).click()
+        target = evidence / "native-properties.csv"
+        download.value.save_as(target)
+        with target.open(encoding="utf-8-sig", newline="") as stream:
+            rows = list(csv.reader(stream))
+        assert len(rows) == 2 and len(rows[1]) == 9
+        assert [float(value) for value in rows[1][1:]] == [
+            expected[key]
+            for key in ("mw", "logp", "tpsa", "qed", "sa", "hbd", "hba", "rotatable_bonds")
+        ]
+        (evidence / "native-property-download.json").write_text(
+            json.dumps(
+                {
+                    "source_job": property_job,
+                    "exact_native_metrics_preserved": True,
+                    "scientific_tasks_created": 0,
+                    "language": language,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
         assert page.request.get(base + "/api/jobs").json() == before
         browser.close()
