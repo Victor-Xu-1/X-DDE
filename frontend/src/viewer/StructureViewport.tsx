@@ -439,11 +439,7 @@ export function StructureViewport({
           >
             <CameraOutlined />
           </button>
-          <WorkspaceFullscreenControl
-            anchor={frame}
-            language={language}
-            compact
-          />
+          <WorkspaceFullscreenControl language={language} compact />
         </div>
       </div>
       {loaded && !comparison && (!overlay || scene.hasInteractionContext) && (

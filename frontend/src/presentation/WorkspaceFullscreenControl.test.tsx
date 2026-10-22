@@ -6,7 +6,7 @@ import {
   screen,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { StructureWorkbench } from "./StructureWorkbench";
 import { WorkspaceFullscreenControl } from "./WorkspaceFullscreenControl";
@@ -23,14 +23,13 @@ function Preview({
   language?: "en" | "zh";
   surfaceClass?: string;
 }) {
-  const anchor = useRef<HTMLDivElement>(null);
   useEffect(() => {
     mounts();
   }, []);
   return (
     <section className={surfaceClass}>
-      <WorkspaceFullscreenControl anchor={anchor} language={language} />
-      <div ref={anchor} data-testid="native-canvas" />
+      <WorkspaceFullscreenControl language={language} />
+      <div data-testid="native-canvas" />
     </section>
   );
 }
@@ -115,6 +114,29 @@ it.each(["en", "zh"] as const)(
     expect(mounts).toHaveBeenCalledOnce();
   },
 );
+
+it("can expand the workspace while its molecular iframe is still loading", async () => {
+  const user = userEvent.setup();
+  const { container } = render(
+    <StructureWorkbench
+      preview={
+        <section className="viewer-panel">
+          <WorkspaceFullscreenControl language="en" />
+          <p role="status">Loading native scene</p>
+        </section>
+      }
+    >
+      <p>Candidate controls</p>
+    </StructureWorkbench>,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Fullscreen research workspace" }),
+  );
+  expect(document.fullscreenElement).toBe(
+    container.querySelector(".structure-workbench"),
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("Loading native scene");
+});
 
 it("follows native Escape/external exit events and restores the expand action", async () => {
   const user = userEvent.setup();

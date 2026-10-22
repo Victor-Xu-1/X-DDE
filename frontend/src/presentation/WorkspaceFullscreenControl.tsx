@@ -1,18 +1,17 @@
 import { FullscreenExitOutlined, FullscreenOutlined } from "@ant-design/icons";
-import type { RefObject } from "react";
+import { useRef } from "react";
 import type { Language } from "../types";
 import { useWorkspaceFullscreen } from "./useWorkspaceFullscreen";
 import "./workspace-fullscreen.css";
 
 export function WorkspaceFullscreenControl({
-  anchor,
   language,
   compact = false,
 }: {
-  anchor: RefObject<HTMLElement | null>;
   language: Language;
   compact?: boolean;
 }) {
+  const anchor = useRef<HTMLButtonElement>(null);
   const fullscreen = useWorkspaceFullscreen(anchor),
     zh = language === "zh";
   const label = fullscreen.active
@@ -29,6 +28,7 @@ export function WorkspaceFullscreenControl({
   return (
     <>
       <button
+        ref={anchor}
         type="button"
         className={compact ? undefined : "text-button"}
         aria-label={label}

@@ -263,7 +263,7 @@ export function MolecularViewport({
             return controller.current.figure(settings);
           }}
         />
-        <WorkspaceFullscreenControl anchor={container} language={language} />
+        <WorkspaceFullscreenControl language={language} />
       </div>
       <div
         ref={container}
