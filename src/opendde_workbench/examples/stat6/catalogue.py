@@ -81,15 +81,18 @@ def study_context(capability):
                 "Real STAT6 library definition, sequencing or count data",
             )
         )
-    if capability in {
-        "evolution",
-        "compare",
-        "campaign",
-    }:
+    if capability == "campaign":
         requirements.append(
             (
                 "STAT6 相关抗体的真实可变域序列",
                 "Actual variable-domain sequences of STAT6-related antibodies",
+            )
+        )
+    if capability in {"evolution", "compare"}:
+        requirements.append(
+            (
+                "先完成并复核 STAT6 野生型与单点假设的原生序列评分。",
+                "Review native scores for the STAT6 parent and single-site hypotheses.",
             )
         )
     if capability == "chemprop.predict":

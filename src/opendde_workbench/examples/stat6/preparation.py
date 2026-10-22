@@ -170,6 +170,18 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
     )
     for key in ("heavy", "light"):
         sequences[key] = "".join(verified_input("dupilumab_" + key).decode().splitlines()[1:])
+    if capability in {"boltz.predict", "predict"}:
+        from .prediction_inputs import reviewed_prediction_inputs
+
+        prediction_inputs = reviewed_prediction_inputs(scientific, records, sequence)
+        if prediction_inputs is not None:
+            objects.update(prediction_inputs["objects"])
+            objects["protein_sequence"] = objects["prediction_construct"]
+            sequences["protein"] = prediction_inputs["sequence"]
+    if capability in {"evolution", "compare"}:
+        from .sequence_populations import reviewed_sequence_populations
+
+        objects.update(reviewed_sequence_populations(scientific, records, sequence))
     if capability in {"antibody.humanize", "antibody.number", "fold", "epitope", "campaign"}:
         sequences["antigen"] = "".join(
             verified_input("dupilumab_antigen").decode().splitlines()[1:]
@@ -194,6 +206,7 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
     sequence_sources = {
         key: (sequence,) for key in ("protein_sequence", "target_sequence", "stat6_sequence")
     }
+    sequence_sources["protein_sequence"] = (sequences["protein"],)
     sequence_sources.update(
         {
             "antigen_sequence": (sequences["antigen"],),
@@ -217,6 +230,21 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
             if isinstance(reference, dict) and reference.get("version_id"):
                 objects[role] = scientific.get(reference["version_id"])
     study = study_context(capability)
+    if capability in {"evolution", "compare"} and "proposal_history" in objects:
+        study = {
+            **study,
+            "required_materials": [],
+            "guide": {
+                **study["guide"],
+                "interpretation": (
+                    "比较同一序列模型已评分的野生型与单点假设；"
+                    "负 PLL 为损失，越低越好。没有亲和力、结构或药效结论。",
+                    "Compare the scored parent and single-site hypotheses from one sequence model. "
+                    "Negative PLL is the loss; lower is better. "
+                    "No affinity, folding or activity result is implied.",
+                ),
+            },
+        }
     workflow_plan = None
     if capability == "workflows":
         from .workflow_replay import study_workflow

@@ -35,6 +35,7 @@ def study_request(capability, objects, sequences):
         return objects[key].reference.model_dump(mode="json")
 
     if capability == "predict":
+        has_msa = "prediction_msa" in objects
         return {
             "operation": "predict",
             "name": "STAT6 · defined-molecule complex prediction",
@@ -45,6 +46,11 @@ def study_request(capability, objects, sequences):
                     "count": 1,
                     "chain_ids": ["A"],
                     "source_sequence": str(objects["protein_sequence"].reference.asset_id),
+                    **(
+                        {"unpaired_msa": str(objects["prediction_msa"].reference.asset_id)}
+                        if has_msa
+                        else {}
+                    ),
                 },
                 {
                     "kind": "ligand",
@@ -58,10 +64,14 @@ def study_request(capability, objects, sequences):
                 "samples": 1,
                 "seed": 20261009,
                 "model": "standard",
-                "feature_mode": "none",
+                "feature_mode": "uploaded" if has_msa else "none",
                 "allow_network": False,
             },
-            "scientific_inputs": [reference("protein_sequence"), reference("ligand")],
+            "scientific_inputs": [
+                reference("protein_sequence"),
+                reference("ligand"),
+                *([reference("prediction_msa")] if has_msa else []),
+            ],
         }
     if capability == "p2rank.detect":
         return {

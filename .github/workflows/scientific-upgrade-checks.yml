@@ -12,6 +12,7 @@ on:
             boltz-msa,
             boltz-template,
             boltz-runtime,
+            case-inputs,
             chemistry,
             admet,
             openmm,
@@ -61,6 +62,26 @@ on:
 permissions:
   contents: read
 jobs:
+  case-inputs:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'case-inputs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact reviewed input derivation, source integrity and shared template consumers
+        run: >-
+          uv run --locked pytest -q tests/test_curated_native_case_inputs.py
+          tests/test_stat6_templates.py tests/test_stat6_guidance.py
+          tests/test_stat6_prepared_handoff.py tests/test_stat6_preparation_presets.py
+      - name: Exact prepared-request authority in the frontend
+        working-directory: frontend
+        run: npx vitest run src/examples/stat6-harness.test.ts src/integrations/ScientificForm.test.tsx
   boltz-msa:
     if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["boltz-msa","boltz-template","boltz-runtime"]'), inputs.check)
     name: ${{ inputs.check }}

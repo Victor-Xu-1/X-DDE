@@ -10,6 +10,38 @@ def harness_study(capability, objects, sequences):
     sequence = sequences["protein"]
     observed = sequences["observed_protein"]
     mutable = MANIFEST["observed_construct"]["mutable_position"]
+    if capability in {"evolution", "compare"}:
+        required = (
+            ["proposal_history"]
+            if capability == "evolution"
+            else ["proposal_reference", "proposal_current"]
+        )
+        if any(key not in objects for key in required):
+            return None
+        payload = (
+            {
+                "candidates_json_path": "asset:"
+                + str(objects["proposal_history"].reference.asset_id),
+                "current_parent_id": "STAT6-WT",
+                "objective_key": "loss",
+                "minimize": True,
+                "cycle": 1,
+                "binder_chain_ids": ["A"],
+            }
+            if capability == "evolution"
+            else {
+                "legacy_path": "asset:" + str(objects["proposal_reference"].reference.asset_id),
+                "current_path": "asset:" + str(objects["proposal_current"].reference.asset_id),
+                "top_k": 3,
+                "maximize": False,
+            }
+        )
+        return HarnessTask(
+            name="STAT6 · Scored single-site hypothesis " + capability,
+            tool=capability,
+            payload=payload,
+            scientific_inputs=[objects[key].reference for key in required],
+        ).model_dump(mode="json")
     payloads = {
         "esm": {"sequences": [sequence], "options": {"offline": True, "batch_size": 1}},
         "esm2": {

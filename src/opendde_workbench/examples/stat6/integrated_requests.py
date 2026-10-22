@@ -41,11 +41,13 @@ def integrated_study(capability, objects, sequences):
         )
     elif kind == "boltz":
         ligand = add("ligand", "study_ligand")
+        msa = add("msa", "prediction_msa") if "prediction_msa" in objects else None
         payload["components"] = [
-            MolecularComponent(id="A", kind="protein", value=sequences["protein"]),
+            MolecularComponent(id="A", kind="protein", value=sequences["protein"], msa=msa),
             MolecularComponent(id="B", kind="ligand", source=ligand),
         ]
-        payload["samples"] = 3
+        payload["samples"] = 1
+        options.update(memory_mib=6144, seed=101)
     elif kind == "reinvent":
         add("ligand", "study_ligand")
         payload.update(
