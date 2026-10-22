@@ -95,7 +95,7 @@ def test_published_full_del_data_cold_restore_preserves_records_without_executio
             {"reported": 1, "matched": 1, "unmatched": 0},
         ),
     )
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1:4320") as client:
         for capability, job_id, filename, expected_counts in expected:
             detail = client.get("/api/examples/" + capability)
             assert detail.status_code == 200
