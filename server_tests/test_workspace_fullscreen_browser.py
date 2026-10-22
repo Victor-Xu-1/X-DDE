@@ -88,7 +88,9 @@ def test_native_workspace_keeps_structure_controls_selection_and_downloads(
             changes_source=capability != "posebusters.check",
         )
         if selected:
-            expect(table.locator('tr[aria-selected="true"]')).to_have_text(selected)
+            expect(table.locator('tr[aria-selected="true"]')).to_have_text(
+                selected, use_inner_text=True
+            )
         assert not errors and not writes, {"errors": errors, "writes": writes}
         assert {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)} == before
         assert pins.get(capability, verify=True) == pin

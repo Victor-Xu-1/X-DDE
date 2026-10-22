@@ -147,7 +147,7 @@ jobs:
         env:
           WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
-        run: uv run --locked python -m pytest -x -q server_tests/test_workspace_fullscreen_browser.py
+        run: uv run --locked python -m pytest -q server_tests/test_workspace_fullscreen_browser.py
       - name: Restore archival native annotation results; no scientific execution
         env:
           GH_TOKEN: ${{ github.token }}
