@@ -13,6 +13,8 @@ const researchExtensions = new Set([
   "fa",
   "faa",
   "fna",
+  "a3m",
+  "hhr",
   "csv",
   "tsv",
   "xlsx",
@@ -30,6 +32,16 @@ const scientificJSON = new Map([
   ["del-definition.json", ["DEL 库定义", "DEL library definition"]],
   ["barcode-review.json", ["条码质量", "Barcode quality"]],
 ]);
+const alignmentNames = new Map([
+  ["non_pairing.a3m", ["非配对序列比对", "Unpaired sequence alignment"]],
+  ["pairing.a3m", ["配对序列比对", "Paired sequence alignment"]],
+  ["hmmsearch.a3m", ["结构模板比对", "Structural template alignment"]],
+  ["uniref.a3m", ["UniRef 序列比对", "UniRef sequence alignment"]],
+  [
+    "bfd.mgnify30.metaeuk30.smag30.a3m",
+    ["环境与宏基因组序列比对", "Environmental sequence alignment"],
+  ],
+]);
 export function isResearchFile(name: string) {
   const base = name.replaceAll("\\", "/").split("/").at(-1) ?? "";
   const extension = base.split(".").at(-1)?.toLowerCase() ?? "";
@@ -41,7 +53,7 @@ export function isResearchFile(name: string) {
 export function isInternalResearchFile(name: string) {
   const path = name.replaceAll("\\", "/");
   if (
-    /^(?:native-inputs\/|native\/(?:backbones|packed)\/|native-packed-\d+\.pdb$)/.test(
+    /^(?:native-inputs\/|native\/(?:backbones|packed|msas)\/|native-packed-\d+\.pdb$)/.test(
       path,
     )
   )
@@ -54,6 +66,15 @@ export function researchFileLabel(name: string, zh: boolean) {
   const numbered = /^pose[-_](\d+)/i.exec(base);
   if (scientificJSON.has(base))
     return scientificJSON.get(base)![zh ? 0 : 1] + " · JSON";
+  if (ext === "A3M")
+    return (
+      (alignmentNames.get(base.toLowerCase()) ?? [
+        "序列比对",
+        "Sequence alignment",
+      ])[zh ? 0 : 1] + " · A3M"
+    );
+  if (ext === "HHR")
+    return (zh ? "结构模板匹配" : "Structural template matches") + " · HHR";
   if (numbered)
     return (
       (zh ? "结合姿势 " : "Binding pose ") + Number(numbered[1]) + " · " + ext

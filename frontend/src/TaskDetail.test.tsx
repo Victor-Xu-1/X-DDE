@@ -75,3 +75,76 @@ it("never shows artifacts belonging to the previous selection", () => {
   expect(screen.queryByText("wrong.cif")).toBeNull();
   expect(screen.getByRole("alert")).toHaveTextContent("Connection failed");
 });
+it.each(["en", "zh"] as const)(
+  "keeps native alignment and template downloads usable without exposing engineering snapshots (%s)",
+  (language) => {
+    render(
+      <TaskDetail
+        job={{
+          ...job,
+          request: {
+            name: "STAT6 alignment and template preparation",
+            operation: "mt",
+            components: [{ kind: "protein", value: "ACDE", count: 1 }],
+            parameters: {
+              ...defaults,
+              feature_mode: "search",
+              allow_network: true,
+              use_template: true,
+            },
+          },
+        }}
+        detail={{
+          id: job.id,
+          artifacts: [
+            { name: "native/msa/0/non_pairing.a3m", size: 3147334 },
+            { name: "native/msa/0/pairing.a3m", size: 855 },
+            { name: "native/msa/0/hmmsearch.a3m", size: 590335 },
+            { name: "templates/hits.hhr", size: 100 },
+            { name: "native-inputs/query.a3m", size: 100 },
+            { name: "native/msas/msa-private-input-snapshot.a3m", size: 100 },
+            { name: "source-manifest.csv", size: 100 },
+            { name: "run.log", size: 100 },
+          ],
+        }}
+        failed={false}
+        language={language}
+        onChange={vi.fn()}
+      />,
+    );
+    const labels =
+      language === "en"
+        ? [
+            "Unpaired sequence alignment · A3M",
+            "Paired sequence alignment · A3M",
+            "Structural template alignment · A3M",
+            "Structural template matches · HHR",
+          ]
+        : [
+            "非配对序列比对 · A3M",
+            "配对序列比对 · A3M",
+            "结构模板比对 · A3M",
+            "结构模板匹配 · HHR",
+          ];
+    const paths = [
+      "native/msa/0/non_pairing.a3m",
+      "native/msa/0/pairing.a3m",
+      "native/msa/0/hmmsearch.a3m",
+      "templates/hits.hhr",
+    ];
+    labels.forEach((label, index) =>
+      expect(
+        screen.getByRole("link", { name: new RegExp("^" + label) }),
+      ).toHaveAttribute(
+        "href",
+        `/api/jobs/${job.id}/download?name=${encodeURIComponent(paths[index])}`,
+      ),
+    );
+    expect(
+      screen.queryByText(/source-manifest|run.log|native-inputs/),
+    ).toBeNull();
+    expect(
+      document.querySelectorAll('a[href^="/api/jobs/abc/download?name="]'),
+    ).toHaveLength(4);
+  },
+);

@@ -36,6 +36,12 @@ Boltz-2 的每条蛋白可选择经过核验的 A3M，或使用 `sequence`、`ke
 本项使用 Scientific upgrade scoped checks 的 `boltz-msa` 检查：仅核对输入、共享资产/任务直接使用者、
 前端材料切换与 Boltz 2.2.1 官方解析器，不下载权重或运行结构推理。
 
+当前 Boltz 托管配方使用其官方原生 PyTorch 算子路径，适配器显式传入 `--no_kernels`；
+环境没有声明安装可选的 cuEquivariance 加速库，不能依赖上游 CLI 的加速默认值。
+权重、MSA、严格检查点加载和结构采样方法保持原生程序的定义；性能与加速算子版本应分开验收。
+`boltz-runtime` 专项只检查官方 CLI 实际解析、两个原生三角算子与序列比对文件下载；
+模型权重和真实结构预测仍通过目标环境上的前端任务验证。
+
 ## 发布编号
 
 Windows 启动器会向指定的 X-DDE WSL 进程传递当前 HTTP(S) 代理，并保持

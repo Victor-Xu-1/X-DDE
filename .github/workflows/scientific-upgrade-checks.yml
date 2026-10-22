@@ -11,6 +11,7 @@ on:
             contracts,
             boltz-msa,
             boltz-template,
+            boltz-runtime,
             chemistry,
             admet,
             openmm,
@@ -61,7 +62,7 @@ permissions:
   contents: read
 jobs:
   boltz-msa:
-    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["boltz-msa","boltz-template"]'), inputs.check)
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["boltz-msa","boltz-template","boltz-runtime"]'), inputs.check)
     name: ${{ inputs.check }}
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 18
@@ -92,6 +93,16 @@ jobs:
         if: inputs.check == 'boltz-template'
         working-directory: frontend
         run: npx vitest run src/integrations/ScientificForm.test.tsx
+      - name: Scientific alignment downloads and engineering-file isolation
+        if: inputs.check == 'boltz-runtime'
+        working-directory: frontend
+        run: npx vitest run src/TaskDetail.test.tsx src/presentation/research-files.test.tsx
+      - name: Exact provider CLI and CPU operators, without weights or optional CUDA kernels
+        if: inputs.check == 'boltz-runtime'
+        run: uv pip install --python .venv/bin/python boltz==2.2.1 torch==2.8.0 --torch-backend cpu
+      - name: Actual official CLI argument parsing and triangular operators only
+        if: inputs.check == 'boltz-runtime'
+        run: .venv/bin/python -m pytest -q server_tests/test_native_boltz_runtime.py
       - name: Install only the official parser's dependencies, without model or GPU libraries
         if: inputs.check == 'boltz-msa'
         run: |

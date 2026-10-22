@@ -54,6 +54,8 @@ def run(request):
             "gpu",
             "--devices",
             "1",
+            # The managed recipe provides native PyTorch operators, not optional cuEquivariance.
+            "--no_kernels",
             "--diffusion_samples",
             payload["samples"],
             "--recycling_steps",
