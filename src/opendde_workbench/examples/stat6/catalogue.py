@@ -160,7 +160,15 @@ def study_context(capability):
         ],
         "required_materials": requirements,
         "task_target": "IL-4R alpha · STAT6 pathway"
-        if capability in {"antibody.humanize", "antibody.number", "fold", "epitope", "campaign"}
+        if capability
+        in {
+            "antibody.humanize",
+            "antibody.number",
+            "fold",
+            "epitope",
+            "campaign",
+            "protrek-structure",
+        }
         else "STAT6",
         "supporting_sources": MANIFEST.get("supporting_sources", {}),
         "guide": {

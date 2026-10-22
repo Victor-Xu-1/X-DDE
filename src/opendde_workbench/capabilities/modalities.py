@@ -116,7 +116,7 @@ _MEMBERSHIP = {
     "evolution": _ANTIBODY,
     "compare": _ANTIBODY,
     "protrek-sequence": _PROTEIN,
-    "protrek-structure": _PROTEIN,
+    "protrek-structure": _ANTIBODY,
     "target-msa": _ANTIBODY,
     "features": _PROTEIN + ("rna",),
     "import": _ALL,

@@ -24,7 +24,42 @@ export function NativeReport({
 }) {
   const hits = sequenceHits(text),
     reports = contactReport(text);
-  if (hits.length) return <SequenceSearchResults hits={hits} zh={zh} />;
+  if (hits.length) {
+    const request = job?.request;
+    const structureSearch =
+      request?.operation === "harness" && request.tool === "protrek-structure";
+    const source =
+      structureSearch && typeof request.payload.structure_path === "string"
+        ? request.payload.structure_path
+        : "";
+    const id = source.startsWith("asset:") ? source.slice(6) : "";
+    const declared = job?.request.scientific_inputs?.some(
+      (input) => input.asset_id === id,
+    );
+    const content = (
+      <SequenceSearchResults
+        hits={hits}
+        zh={zh}
+        structureSearch={structureSearch}
+      />
+    );
+    return structureSearch ? (
+      <StructureWorkbench
+        preview={
+          declared ? (
+            <StructureViewer
+              urls={["/api/assets/" + encodeURIComponent(id)]}
+              language={zh ? "zh" : "en"}
+            />
+          ) : null
+        }
+      >
+        {content}
+      </StructureWorkbench>
+    ) : (
+      content
+    );
+  }
   if (reports.length)
     return (
       <section>

@@ -14,6 +14,21 @@ PREDICTION_SOURCES = (
 
 
 def case_for(capability):
+    if capability == "protrek-structure":
+        return CASE.model_copy(
+            update={
+                "label": (
+                    "STAT6 通路 · 6WGL 抗体结构同源检索",
+                    "STAT6 pathway · 6WGL antibody structural analogues",
+                ),
+                "description": (
+                    "使用 6WGL 重链可变域的实验坐标寻找抗体样结构线索；"
+                    "靶点为 IL-4Rα，属于 STAT6 通路。",
+                    "Search with deposited 6WGL heavy-variable-domain coordinates. "
+                    "The binder targets IL-4Ralpha in the STAT6 pathway, not STAT6 directly.",
+                ),
+            }
+        )
     if capability == "rmsd":
         return CASE.model_copy(
             update={

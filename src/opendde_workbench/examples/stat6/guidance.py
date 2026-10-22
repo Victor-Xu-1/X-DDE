@@ -4,6 +4,10 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "protrek-structure": (
+        "使用 6WGL 重链可变域的实验结构检索抗体样同源线索。",
+        "Retrieve antibody-domain analogues using the deposited 6WGL heavy variable domain.",
+    ),
     "ligandmpnn.design": (
         "在明确选择替代位置并保留参考配体的 STAT6 结构中，"
         "探索接触位点 A566、A588、A590 的局部序列设计。",
@@ -110,6 +114,28 @@ def objective(capability):
 
 
 def steps(capability):
+    if capability == "protrek-structure":
+        return [
+            (
+                "载入 6WGL 重链 A1–125；它是 STAT6 通路参考抗体的实验可变域。",
+                "Load 6WGL heavy-chain A1–125, an experimental STAT6-pathway "
+                "reference variable domain.",
+            ),
+            (
+                "核对查询链 A，保留原始坐标与残基编号。",
+                "Confirm query chain A; coordinates and author residue numbers stay unchanged.",
+            ),
+            (
+                "选择返回条数；当前后端保留抗体样可变域结果，不用于任意蛋白的全库结构比对。",
+                "Choose the hit count. Results retain antibody-like domains, "
+                "not unrestricted whole-protein structural alignments.",
+            ),
+            (
+                "核对来源条目与序列；模型搜索分数不等于亲和力、TM-score 或功能验证。",
+                "Review source entries and sequences; retrieval scores are not "
+                "affinity, TM-score or functional validation.",
+            ),
+        ]
     if capability == "ligandmpnn.design":
         return [
             (

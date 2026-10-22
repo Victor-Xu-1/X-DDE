@@ -15,6 +15,7 @@ on:
             case-inputs,
             result-completeness,
             alignment-views,
+            structure-query-inputs,
             chemistry,
             admet,
             openmm,
@@ -64,6 +65,27 @@ on:
 permissions:
   contents: read
 jobs:
+  structure-query-inputs:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'structure-query-inputs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact reference-domain selection and existing scientific input authority
+        run: >-
+          uv run --locked pytest -q tests/test_antibody_structure_query_input.py
+          tests/test_stat6_templates.py tests/test_stat6_guidance.py tests/test_capabilities.py
+      - name: Actual native report formats, source structure and sequence-view consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/SequenceSearchResults.test.tsx
+          src/operations/HarnessResults.test.tsx src/presentation/SequenceTrack.test.tsx
   alignment-views:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'alignment-views'
     runs-on: ubuntu-24.04

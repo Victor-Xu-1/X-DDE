@@ -11,17 +11,16 @@ export function sequenceHits(text: string): SearchHit[] {
   const chunks = text.split(/(?=^\d+\. \*\*)/m),
     hits: SearchHit[] = [];
   for (const chunk of chunks) {
-    const head =
-      /^\d+\. \*\*([A-Za-z0-9._-]+)\*\* \(score=([\d.e+-]+), identity=([\d.]+)%, aligned_identity=([\d.]+)%, length=(\d+)\)/.exec(
-        chunk,
-      );
-    if (head)
+    const head = /^\d+\. \*\*([A-Za-z0-9._-]+)\*\* \(([^\n)]+)\)/.exec(chunk);
+    const score = head && /(?:^|,\s*)score=([\d.e+-]+)(?=,|$)/.exec(head[2]);
+    if (head && score && Number.isFinite(Number(score[1])))
       hits.push({
         accession: head[1],
-        score: head[2],
-        identity: head[3],
-        alignedIdentity: head[4],
-        length: head[5],
+        score: score[1],
+        identity: /(?:^|,\s*)identity=([\d.]+)%/.exec(head[2])?.[1] ?? "",
+        alignedIdentity:
+          /(?:^|,\s*)aligned_identity=([\d.]+)%/.exec(head[2])?.[1] ?? "",
+        length: /(?:^|,\s*)length=(\d+)(?=,|$)/.exec(head[2])?.[1] ?? "",
         sequence: /sequence: \x60([^\x60]+)\x60/.exec(chunk)?.[1] ?? "",
         alternatives:
           /natural alternatives \(0-based\): ([^\n]+)/.exec(chunk)?.[1] ?? "",

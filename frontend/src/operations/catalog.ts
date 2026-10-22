@@ -778,13 +778,13 @@ export const tools = [
   {
     id: "protrek-structure",
     group: "search",
-    label: ["按蛋白结构检索", "Search by protein structure"],
+    label: ["抗体结构同源检索", "Antibody structural analogues"],
     note: [
-      "选择结构和链，使用 ProTrek 检索。",
-      "Search ProTrek using a structure and chain.",
+      "使用抗体可变域结构检索，仅返回抗体样域。",
+      "Search variable-domain structures, returning antibody-like domains.",
     ],
     source: "Harness / ProTrek",
-    modalities: ["biologic", "antibody", "protein", "peptide"],
+    modalities: ["biologic", "antibody", "protein"],
     modality_role: "research_object",
   },
   {

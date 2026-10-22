@@ -182,12 +182,25 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         from .sequence_populations import reviewed_sequence_populations
 
         objects.update(reviewed_sequence_populations(scientific, records, sequence))
-    if capability in {"antibody.humanize", "antibody.number", "fold", "epitope", "campaign"}:
+    if capability in {
+        "antibody.humanize",
+        "antibody.number",
+        "fold",
+        "epitope",
+        "campaign",
+        "protrek-structure",
+    }:
         sequences["antigen"] = "".join(
             verified_input("dupilumab_antigen").decode().splitlines()[1:]
         )
         objects["antigen_sequence"] = originals["dupilumab_antigen"]
         objects["structure"] = originals["dupilumab_complex"]
+    if capability == "protrek-structure":
+        from .antibody_structure_input import reviewed_antibody_structure
+
+        domain = reviewed_antibody_structure(scientific, originals["dupilumab_complex"])
+        objects["receptor"] = domain
+        objects["structure"] = domain
     from .experimental_inputs import evidence_draft
     from .requests import study_request
 

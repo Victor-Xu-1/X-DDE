@@ -108,7 +108,12 @@ def harness_study(capability, objects, sequences):
 
     visit(payloads[capability])
     return HarnessTask(
-        name=("STAT6 pathway · " if capability in {"fold", "epitope"} else "STAT6 · ") + capability,
+        name=(
+            "STAT6 pathway · "
+            if capability in {"fold", "epitope", "protrek-structure"}
+            else "STAT6 · "
+        )
+        + capability,
         tool=capability,
         payload=payloads[capability],
         scientific_inputs=references,

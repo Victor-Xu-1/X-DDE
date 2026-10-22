@@ -140,8 +140,11 @@ _ROWS = (
     (
         "protrek-structure",
         "search",
-        ("按蛋白结构检索", "Search by protein structure"),
-        ("选择结构和链，使用 ProTrek 检索。", "Search ProTrek using a structure and chain."),
+        ("抗体结构同源检索", "Antibody structural analogues"),
+        (
+            "使用抗体可变域结构检索，仅返回抗体样域。",
+            "Search variable-domain structures, returning antibody-like domains.",
+        ),
         "Harness / ProTrek",
     ),
     (
