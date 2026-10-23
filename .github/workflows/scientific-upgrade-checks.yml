@@ -22,6 +22,7 @@ on:
             reviewed-view,
             binder-quality,
             native-sequence-views,
+            model-identity,
             chemistry,
             admet,
             openmm,
@@ -71,6 +72,24 @@ on:
 permissions:
   contents: read
 jobs:
+  model-identity:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'model-identity'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact model identity, native manifest guards and shared direct consumers
+        run: >-
+          uv run --locked pytest -q tests/test_model_recipe_compatibility.py
+          tests/test_integrated_science.py tests/test_boltzgen_molecule_layout.py
   native-sequence-views:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'native-sequence-views'
     runs-on: ubuntu-24.04

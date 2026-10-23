@@ -1,0 +1,36 @@
+{
+  "folds": [
+    {
+      "name": "fold_0.pt",
+      "size": 1199477971,
+      "sha256": "129196ea9eb211c6b931d8dc5cd4edccbc4c6fd382aae7200b455d3bc3847e5c"
+    },
+    {
+      "name": "fold_1.pt",
+      "size": 1199477971,
+      "sha256": "2c17fce79d67da039fb396c2352a5c251b0d04c679ce9a0ea9f294dffccc9aa2"
+    },
+    {
+      "name": "fold_2.pt",
+      "size": 1199477971,
+      "sha256": "8638bf55304287591fe20b82ee9d09508ff621fb2f71ba6d75f8bdb369bcd293"
+    },
+    {
+      "name": "fold_3.pt",
+      "size": 1199477971,
+      "sha256": "80f5fec6026636935e3e100d155a6803f12d1593e7f74c32de46e74b7739831c"
+    },
+    {
+      "name": "fold_4.pt",
+      "size": 1199477971,
+      "sha256": "931577ba8217fd08db744763ef9613562f67e8d390f6266450a7b8b2b06e13e3"
+    },
+    {
+      "name": "fold_5.pt",
+      "size": 1199477971,
+      "sha256": "fe9ddd7f83201b25c70715a9e4010c93b3249fe9022005d612ffa52b6a5a1fc1"
+    }
+  ],
+  "recipe": "ab0363175f4cc81e2d9e73c3bd6aa0c8eaa941ad5c69e03874db29d7dde6648e",
+  "encoding": "six_fold128_v1;heavy_atoms;bos_eos_zero_distance;seeded_etkdgv3;no_standardization"
+}

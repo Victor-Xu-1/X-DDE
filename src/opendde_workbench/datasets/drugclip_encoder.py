@@ -7,19 +7,22 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from native_resources import model_files, model_recipe_identity
 
 POLICY = "six_fold128_v1;heavy_atoms;bos_eos_zero_distance;seeded_etkdgv3;no_standardization"
 
 
-def fingerprint():
-    root = Path("/models")
-    manifest = json.loads((root / "manifest.json").read_text())
+def fingerprint(root=Path("/models"), recipes=Path("/platform/recipes.json")):
+    spec = json.loads(recipes.read_text())["programs"]["drugclip"]
+    manifest = model_files(root, spec)
     folds = [row for row in manifest["files"] if row["name"] in {f"fold_{i}.pt" for i in range(6)}]
     if len(folds) != 6:
         raise ValueError("The exact six-fold official weights are required.")
     body = {
         "folds": sorted(folds, key=lambda row: row["name"]),
-        "recipe": manifest["recipe_sha256"],
+        # Keep the original serialized encoder identity for existing index shards.
+        # The task environment separately records the exact current runtime recipe.
+        "recipe": model_recipe_identity(spec),
         "encoding": POLICY,
     }
     return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest(), body
