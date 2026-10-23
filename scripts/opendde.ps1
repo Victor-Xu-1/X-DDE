@@ -1,6 +1,16 @@
 $ErrorActionPreference = 'Stop'
 function Get-XddeNetworkEnvironment($Configuration) {
     $network = @()
+    $buildNetwork = $Configuration.PSObject.Properties['install_build_network']
+    if ($buildNetwork) {
+        $mode = ([string]$buildNetwork.Value).ToLowerInvariant()
+        if ($mode -notin @('default', 'host')) {
+            throw 'install_build_network must be default or host.'
+        }
+        # This setting affects Docker builds only; scientific execution keeps
+        # its existing explicit offline/network policy.
+        $network += "WB_INSTALL_BUILD_NETWORK=$mode"
+    }
     $configured = $Configuration.PSObject.Properties['network_proxy']
     if ($configured -and $configured.Value) {
         $address = [string]$configured.Value

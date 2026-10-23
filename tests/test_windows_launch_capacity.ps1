@@ -99,6 +99,28 @@ if ($forwarded -notmatch 'HTTPS_PROXY=http://127.0.0.1:7890' -or
     $forwarded -notmatch 'NO_PROXY=localhost,127.0.0.1,::1') {
     throw 'The application proxy or local-service bypass was not forwarded to WSL.'
 }
+if ($forwarded -match 'WB_INSTALL_BUILD_NETWORK=host') { throw 'A proxy alone silently enabled host build networking.' }
+$value | Add-Member -NotePropertyName install_build_network -NotePropertyValue 'HOST'
+$value | ConvertTo-Json | Set-Content -LiteralPath $configuration -Encoding utf8
+$marker = Join-Path $target 'host-build-network.native-call'
+$result = Invoke-LauncherBoundary 'UI' $marker -Running -Available
+if ($result.exit -ne 0 -or [IO.File]::ReadAllText($marker) -notmatch 'WB_INSTALL_BUILD_NETWORK=host') {
+    throw 'The explicitly configured installer network was not retained on startup.'
+}
+$value.install_build_network = 'default'
+$value | ConvertTo-Json | Set-Content -LiteralPath $configuration -Encoding utf8
+$marker = Join-Path $target 'default-build-network.native-call'
+$result = Invoke-LauncherBoundary 'START' $marker -Running -Available
+$forwarded = [IO.File]::ReadAllText($marker)
+if ($result.exit -ne 0 -or $forwarded -notmatch 'WB_INSTALL_BUILD_NETWORK=default' -or $forwarded -match 'WB_INSTALL_BUILD_NETWORK=host') {
+    throw 'An explicit default build network was overridden.'
+}
+$value.install_build_network = 'host --privileged'
+$value | ConvertTo-Json | Set-Content -LiteralPath $configuration -Encoding utf8
+$marker = Join-Path $target 'invalid-build-network.native-call'
+$result = Invoke-LauncherBoundary 'UI' $marker -Running -Available
+if ($result.exit -eq 0 -or (Test-Path -LiteralPath $marker)) { throw 'Invalid installer network reached WSL.' }
+$value.install_build_network = 'host'
 $value.network_proxy = 'http://127.0.0.1:7890/bad-path'
 $value | ConvertTo-Json | Set-Content -LiteralPath $configuration -Encoding utf8
 $marker = Join-Path $target 'invalid-proxy.native-call'
@@ -106,4 +128,4 @@ $result = Invoke-LauncherBoundary 'status' $marker -Running
 if ($result.exit -eq 0 -or (Test-Path -LiteralPath $marker)) {
     throw 'Invalid network configuration reached native WSL execution.'
 }
-Write-Output 'Proxy transmission remains application-scoped and preserves the localhost bypass.'
+Write-Output 'Explicit installer networking and proxy transmission remain application-scoped; default and offline policies are preserved.'

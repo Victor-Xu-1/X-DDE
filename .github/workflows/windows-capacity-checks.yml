@@ -13,6 +13,21 @@ on:
 permissions:
   contents: read
 jobs:
+  installer-network-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Explicit installer networking cannot change scientific execution or offline builds
+        run: uv run --locked pytest -q tests/test_install_network.py
   windows-entry:
     runs-on: windows-latest
     timeout-minutes: 15

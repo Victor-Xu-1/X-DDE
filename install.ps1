@@ -3,7 +3,7 @@ param(
     [string]$Distribution = '',
     [string]$LinuxUser = '',
     [string]$InstallRoot = '',
-    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.6.89'
+    [ValidatePattern('^v[0-9A-Za-z.-]+$')][string]$Release = 'v0.6.90'
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -22,6 +22,10 @@ $savedConfig = $null
 if (Test-Path -LiteralPath $savedConfigPath -PathType Leaf) {
     try { $savedConfig = Get-Content -LiteralPath $savedConfigPath -Raw | ConvertFrom-Json }
     catch { throw 'Existing workbench.json is invalid. Review the local configuration before upgrading.' }
+}
+$savedBuildNetwork = if ($savedConfig) { $savedConfig.PSObject.Properties['install_build_network'] } else { $null }
+if ($savedBuildNetwork -and ([string]$savedBuildNetwork.Value).ToLowerInvariant() -notin @('default', 'host')) {
+    throw 'install_build_network must be default or host.'
 }
 New-Item -ItemType Directory -Path (Join-Path $InstallRoot 'tmp') -Force | Out-Null
 $env:TEMP = Join-Path $InstallRoot 'tmp'
@@ -113,6 +117,7 @@ if ($savedConfig) {
     }
     $savedProxy = $savedConfig.PSObject.Properties['network_proxy']
     if ($savedProxy -and $savedProxy.Value) { $appConfig.network_proxy = $savedProxy.Value }
+    if ($savedBuildNetwork) { $appConfig.install_build_network = ([string]$savedBuildNetwork.Value).ToLowerInvariant() }
 }
 $appConfig | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $bin 'workbench.json') -Encoding UTF8
 foreach ($launcher in @('X-DDE.cmd', 'xdde.cmd', 'opendde.cmd')) {
