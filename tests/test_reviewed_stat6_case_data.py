@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import zipfile
+from dataclasses import replace
 from pathlib import Path
 from uuid import uuid4
 
@@ -89,7 +90,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
     assert manifest["profile"] == "stat6"
     assert manifest["source_revision"] == source.SOURCE_REVISION
     assert manifest["capabilities"] == list(source.CAPABILITIES)
-    app = create_app(settings)
+    app = create_app(replace(settings, allowed_origins=("http://127.0.0.1:4322",)))
     store = Store(settings.state_dir / "jobs.sqlite3")
     private = str(uuid4())
     with store.connect() as db:
