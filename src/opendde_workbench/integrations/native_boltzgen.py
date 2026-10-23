@@ -5,6 +5,7 @@ from importlib.metadata import version
 from pathlib import Path
 
 from native_io import copy_artifact, csv_file, execute, finish, input_file, metric
+from native_resources import protein_molecule_directory
 
 
 def run(request):
@@ -46,6 +47,7 @@ def run(request):
         "antibody": "antibody-anything",
         "nanobody": "nanobody-anything",
     }[payload["modality"]]
+    molecule_directory = protein_molecule_directory(Path("/models"))
     execute(
         [
             "boltzgen",
@@ -71,7 +73,7 @@ def run(request):
             "--affinity_checkpoint",
             "/models/boltz2_aff.ckpt",
             "--moldir",
-            "/models/mols",
+            molecule_directory,
         ]
     )
     selected = raw / "designs/final_ranked_designs"

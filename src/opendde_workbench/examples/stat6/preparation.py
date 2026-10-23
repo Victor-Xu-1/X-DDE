@@ -332,7 +332,9 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         source_record=records.prepared(module.parent_capability)
         if records and module.parent_capability
         else None,
-        study=replay_context(study, capability) if native_request is not None else study,
+        study=replay_context(study, capability, native_request)
+        if native_request is not None
+        else study,
         evidence_draft=evidence_draft(scientific, objects, measurements)
         if capability == "experimental.evidence"
         else None,

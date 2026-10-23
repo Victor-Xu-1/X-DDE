@@ -41,8 +41,50 @@ def reviewed_request(capability, scientific, records, *, modules=MODULES):
     return request
 
 
-def replay_context(study, capability):
+def replay_context(study, capability, request=None):
     """Preparation is supplied by the sealed request; new dispatch still needs review."""
+    components = (request or {}).get("components", [])
+    if (
+        capability == "predict"
+        and len(components) == 1
+        and (components[0].get("kind") == "protein" and components[0].get("count", 1) == 1)
+    ):
+        return {
+            **study,
+            "required_materials": [],
+            "guide": {
+                **study["guide"],
+                "steps": [
+                    (
+                        "预测这条 STAT6 蛋白序列的三维结构。",
+                        "Predict the structure of this STAT6 protein sequence.",
+                    ),
+                    (
+                        "核对序列范围及已保存的非配对 MSA。",
+                        "Review the sequence interval and saved unpaired MSA.",
+                    )
+                    if components[0].get("unpaired_msa")
+                    else (
+                        "核对序列范围及保存的输入材料。",
+                        "Review the sequence interval and saved input materials.",
+                    ),
+                    (
+                        "核对原任务的构象数量、模型和进化信息设置。",
+                        "Review the saved sample count, model and evolutionary inputs.",
+                    ),
+                    (
+                        "确认后提交新任务；查看局部结构置信度和误差图。",
+                        "Submit a new task after confirmation; "
+                        "inspect local confidence and error maps.",
+                    ),
+                ],
+                "interpretation": (
+                    "这是蛋白单体结构示例；截取区段的结果不能代表全长蛋白或结合活性。",
+                    "This is a protein monomer example; an isolated construct does not establish "
+                    "full-length behavior or binding activity.",
+                ),
+            },
+        }
     if capability not in {"diffsbdd." + mode for mode in DESIGN_MODES}:
         return {**study, "required_materials": []}
     return {

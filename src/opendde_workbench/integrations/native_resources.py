@@ -4,6 +4,21 @@ import hashlib
 import json
 from pathlib import PurePosixPath
 
+PROTEIN_COMPONENTS = (
+    "ALA ARG ASN ASP CYS GLN GLU GLY HIS ILE LEU LYS MET PHE PRO SER THR TRP TYR VAL".split()
+)
+
+
+def protein_molecule_directory(root):
+    """The reviewed BoltzGen mols.zip contains flat CCD files, not a mols/ folder."""
+    for component in PROTEIN_COMPONENTS:
+        file = root / (component + ".pkl")
+        if file.is_symlink() or not file.is_file() or file.stat().st_size == 0:
+            raise ValueError(
+                "The native protein molecule library is missing a canonical component."
+            )
+    return root
+
 
 def model_files(root, spec, *, full_hash=False):
     file = root / "manifest.json"
@@ -25,7 +40,8 @@ def model_files(root, spec, *, full_hash=False):
         for resource in expected.get("selected_members", [expected]):
             saved = by_name.get(resource["name"])
             if not saved or (saved["sha256"], saved["size"]) != (
-                resource["sha256"], resource["size"]
+                resource["sha256"],
+                resource["size"],
             ):
                 raise ValueError("A required official model resource is missing or changed.")
     for row in entries:
@@ -45,4 +61,6 @@ def model_files(root, spec, *, full_hash=False):
                 digest = hashlib.file_digest(stream, "sha256").hexdigest()
             if digest != row["sha256"]:
                 raise ValueError("Native model resource integrity check failed.")
+    if spec.get("name") == "BoltzGen":
+        protein_molecule_directory(root)
     return manifest

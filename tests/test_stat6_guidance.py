@@ -3,6 +3,33 @@
 import pytest
 
 from opendde_workbench.examples.stat6.guidance import steps
+from opendde_workbench.examples.stat6.request_replay import replay_context
+
+
+def test_reviewed_monomer_recipe_does_not_receive_small_molecule_complex_instructions():
+    study = {"required_materials": ["old material"], "guide": {"steps": steps("predict")}}
+    request = {
+        "components": [
+            {
+                "kind": "protein",
+                "count": 1,
+                "value": "ACDE",
+                "unpaired_msa": "sealed-alignment-fixture",
+            }
+        ]
+    }
+    guidance = replay_context(study, "predict", request)
+    assert guidance["required_materials"] == []
+    english = " ".join(item[1] for item in guidance["guide"]["steps"])
+    assert "protein sequence" in english and "saved unpaired MSA" in english
+    assert "small molecule" not in english and "complex" not in english
+    assert "binding activity" in guidance["guide"]["interpretation"][1]
+    assert study["required_materials"] == ["old material"]
+    complex_request = {"components": [*request["components"], {"kind": "ligand", "count": 1}]}
+    assert replay_context(study, "predict", complex_request)["guide"] == study["guide"]
+    assert replay_context(study, "predict")["guide"] == study["guide"]
+    without_msa = {"components": [{"kind": "protein", "count": 1, "value": "ACDE"}]}
+    assert "MSA" not in replay_context(study, "predict", without_msa)["guide"]["steps"][1][1]
 
 
 def test_fold_guidance_names_deposited_constructs_and_pathway_scope():
