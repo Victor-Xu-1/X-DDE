@@ -29,6 +29,7 @@ CAPABILITIES = (
     "discovery.import",
     "discovery.target",
     "discovery.disease",
+    "predict",
     "properties",
     "esm",
     "epitope",
@@ -59,5 +60,4 @@ CAPABILITIES = (
     "biopython.ensemble",
     "pose_exploration",
     "pose.cluster",
-    "predict",
 )
