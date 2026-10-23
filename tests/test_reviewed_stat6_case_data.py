@@ -17,6 +17,7 @@ from opendde_workbench.examples.bundle import restore_bundle, verify_examples
 from opendde_workbench.store import Store
 
 NATIVE_EXAMPLES = {
+    "predict": "716024e7-0a4a-4b9f-8962-fae4257bba48",
     "epitope": "2d356d5b-b02d-4dea-be17-118234f9c62c",
     "esm": "081476d2-6fcf-4e17-b7c0-18576f848938",
     "protrek-sequence": "39a51984-ac65-4a02-a164-7134cdc8beea",
@@ -70,10 +71,10 @@ def check_exploratory_model_limits(settings):
 
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "27"
+    assert package.kind == "data" and package.version == source.VERSION == "28"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
-    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 53
+    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 54
     assert not set(source.CAPABILITIES) & {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"}
 
 
@@ -96,7 +97,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             "INSERT INTO projects VALUES(?,?,?,?)",
             (private, "Personal research", "Retain", "today"),
         )
-    summary = {"modules": 53, "computed": 53, "validated": 0}
+    summary = {"modules": 54, "computed": 54, "validated": 0}
     assert restore_bundle(archive, settings, source.SHA256) == summary
     assert verify_examples(settings, source.CAPABILITIES, profile="stat6") == summary
     with TestClient(app, base_url="http://127.0.0.1:4322") as client:
@@ -110,6 +111,26 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             assert store.get(identifier).status == "succeeded"
         check_complete_alignment_downloads(client, settings)
         check_exploratory_model_limits(settings)
+        job = store.get(NATIVE_EXAMPLES["predict"])
+        assert len(job.request.components) == 1
+        assert len(job.request.components[0].value) == 116
+        response = client.post(
+            "/api/examples/predict/prepare",
+            headers={
+                "Origin": "http://127.0.0.1:4322",
+                "X-Workbench-CSRF": client.get("/api/session").json()["csrf_token"],
+            },
+        )
+        assert response.status_code == 200
+        prepared = response.json()
+        with store.connect() as db:
+            original_request = db.execute(
+                "SELECT request FROM jobs WHERE id=?", (job.id,)
+            ).fetchone()[0]
+        assert prepared["request"] == json.loads(original_request)
+        assert "protein sequence" in prepared["study"]["guide"]["steps"][0][1]
+        alignment = prepared["objects"]["prediction_msa"]
+        assert alignment["reference"]["asset_id"] == str(job.request.components[0].unpaired_msa)
     tables = ("jobs", "assets", "example_pins", "example_record_pins", "scientific_objects")
     with store.connect() as db:
         before = {

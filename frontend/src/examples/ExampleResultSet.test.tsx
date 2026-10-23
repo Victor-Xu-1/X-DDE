@@ -12,7 +12,20 @@ import { ExampleResultSet } from "./ExampleResultSet";
 const transport = vi.hoisted(() => ({ request: vi.fn() }));
 vi.mock("../api", () => ({ request: transport.request }));
 vi.mock("./ExampleJobResult", () => ({
-  ExampleJobResult: ({ job }: { job: Job }) => <p>Native output {job.id}</p>,
+  ExampleJobResult: ({
+    job,
+    initialCandidateId,
+  }: {
+    job: Job;
+    initialCandidateId?: string;
+  }) => (
+    <p>
+      Native output {job.id}
+      <span data-testid={`initial-${job.id}`}>
+        {initialCandidateId ?? "native-order"}
+      </span>
+    </p>
+  ),
 }));
 const primary = {
   id: "generator",
@@ -32,6 +45,30 @@ const quality = {
 const supporting = [{ job_id: refined.id }, { job_id: quality.id }];
 beforeEach(() => {
   transport.request.mockReset();
+});
+
+it("keeps a reviewed initial view on its primary result only", async () => {
+  transport.request.mockResolvedValue(refined);
+  render(
+    <ExampleResultSet
+      job={primary}
+      supporting={supporting}
+      language="en"
+      initialCandidateId="structure-003"
+    />,
+  );
+  expect(screen.getByTestId("initial-generator")).toHaveTextContent(
+    "structure-003",
+  );
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "Study result stage" }),
+    { target: { value: refined.id } },
+  );
+  await waitFor(() =>
+    expect(screen.getByTestId("initial-refined")).toHaveTextContent(
+      "native-order",
+    ),
+  );
 });
 
 it("names retained stages immediately from the case projection without extra requests", async () => {

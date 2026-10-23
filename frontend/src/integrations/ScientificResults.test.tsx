@@ -21,6 +21,68 @@ vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 
 afterEach(cleanup);
 
+it("opens a reviewed candidate while keeping native rows and allowing normal selection", () => {
+  const result: NativeResult = {
+    operation: "boltz_predict",
+    program: "boltz",
+    version: "2.2.1",
+    candidates: [1, 2, 3].map((index) => ({
+      id: `structure-00${index}`,
+      smiles: "CN(C)C(=O)c1cc2ccc(F)cc2[nH]1",
+      artifact: `structure-00${index}.cif`,
+      geometry: "predicted_structure" as const,
+      metrics: [],
+    })),
+    metrics: [],
+    artifact_sha256: {},
+    interactions: [],
+    validation_points: [],
+  };
+  const selected = () =>
+    JSON.parse(screen.getByLabelText("Selected molecular sources").textContent!)
+      .urls;
+  const view = render(
+    <ScientificResults
+      job={{ id: "first" } as Job}
+      result={result}
+      language="en"
+      initialCandidateId="structure-003"
+    />,
+  );
+  expect(selected()).toEqual([
+    "/api/jobs/first/download?name=structure-003.cif",
+  ]);
+  for (const id of ["structure-001", "structure-002", "structure-003"])
+    expect(screen.getByRole("button", { name: id })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "structure-001" }));
+  expect(selected()).toEqual([
+    "/api/jobs/first/download?name=structure-001.cif",
+  ]);
+  view.rerender(
+    <ScientificResults
+      job={{ id: "second" } as Job}
+      result={result}
+      language="en"
+      initialCandidateId="structure-003"
+    />,
+  );
+  expect(selected()).toEqual([
+    "/api/jobs/second/download?name=structure-003.cif",
+  ]);
+  view.rerender(
+    <ScientificResults
+      job={{ id: "second" } as Job}
+      result={result}
+      language="en"
+      initialCandidateId="absent"
+    />,
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "reviewed candidate is unavailable",
+  );
+  expect(screen.queryByLabelText("Selected molecular sources")).toBeNull();
+});
+
 it("offers the restored scientific structure and sequence without transport aliases", () => {
   const result: NativeResult = {
     operation: "ligandmpnn_design",

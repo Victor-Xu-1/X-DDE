@@ -33,15 +33,21 @@ export function ScientificResults({
   result,
   language,
   onCreated,
+  initialCandidateId,
 }: {
   job: Job;
   result: NativeResult;
   language: Language;
   onCreated?(job: Job): void;
+  initialCandidateId?: string;
 }) {
   const zh = language === "zh",
     rows = result.candidates;
-  const [selected, setSelected] = useState(rows[0]?.id ?? "");
+  const initial = initialCandidateId ?? rows[0]?.id ?? "";
+  const [choice, setChoice] = useState({ job: job.id, initial, id: initial });
+  const selected =
+    choice.job === job.id && choice.initial === initial ? choice.id : initial;
+  const setSelected = (id: string) => setChoice({ job: job.id, initial, id });
   const active = rows.find((row) => row.id === selected) ?? rows[0];
   const columns = useMemo<ResearchColumn<NativeCandidate>[]>(() => {
     const metrics = [
@@ -103,6 +109,14 @@ export function ScientificResults({
       })),
     ];
   }, [rows, zh]);
+  if (initialCandidateId && !rows.some((row) => row.id === initialCandidateId))
+    return (
+      <p role="alert" className="error">
+        {zh
+          ? "已复核的候选无法读取，请刷新或重新核对示例。"
+          : "The reviewed candidate is unavailable. Refresh or review this example again."}
+      </p>
+    );
   if (
     ["molecular_dynamics", "gromacs_dynamics"].includes(result.operation) &&
     result.dynamics

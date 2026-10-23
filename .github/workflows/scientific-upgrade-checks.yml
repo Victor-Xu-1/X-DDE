@@ -19,6 +19,7 @@ on:
             binder-budget,
             domain-inputs,
             binder-runtime,
+            reviewed-view,
             chemistry,
             admet,
             openmm,
@@ -68,6 +69,40 @@ on:
 permissions:
   contents: read
 jobs:
+  reviewed-view:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'reviewed-view'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Guarded initial candidate and immutable example pointers
+        run: >-
+          uv run --locked pytest -q tests/test_example_initial_candidate.py tests/test_example_pins.py
+      - name: Exact reviewed selection, stage switching and example result consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/ScientificResults.test.tsx
+          src/examples/ExampleResultSet.test.tsx src/examples/ExampleJobResult.test.tsx
+          src/examples/ExampleActions.test.tsx
+      - name: Fetch the exact immutable SH2 case archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${source[0]}" = examples-v2
+          test "${source[1]}" = stat6-reviewed-results-v28.zip
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
+      - name: Real native case restore, unchanged original recipes and monomer replay
+        run: >-
+          uv run --locked pytest -q tests/test_reviewed_stat6_case_data.py
+          tests/test_stat6_recipe_replay.py
   binder-runtime:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'binder-runtime'
     runs-on: ubuntu-24.04

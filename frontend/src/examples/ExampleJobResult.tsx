@@ -11,9 +11,11 @@ import { TemplatePreviewContext } from "./context";
 export function ExampleJobResult({
   job,
   language,
+  initialCandidateId,
 }: {
   job: Job;
   language: Language;
+  initialCandidateId?: string;
 }) {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState("");
@@ -74,7 +76,11 @@ export function ExampleJobResult({
             />
           </StructureWorkbench>
         ) : (
-          <OperationResults job={job} language={language} />
+          <OperationResults
+            job={job}
+            language={language}
+            initialCandidateId={initialCandidateId}
+          />
         )}
       </section>
     </TemplatePreviewContext.Provider>

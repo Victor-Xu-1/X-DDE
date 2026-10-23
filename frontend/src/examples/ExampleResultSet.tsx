@@ -19,13 +19,20 @@ export function ExampleResultSet(
     supporting: { job_id: string }[];
     stageNames?: Record<string, string>;
     language: Language;
+    initialCandidateId?: string;
   },
 ) {
   const { supporting, language } = props;
   const root = props.job
     ? {
         id: props.job.id,
-        content: <ExampleJobResult job={props.job} language={language} />,
+        content: (
+          <ExampleJobResult
+            job={props.job}
+            language={language}
+            initialCandidateId={props.initialCandidateId}
+          />
+        ),
       }
     : {
         id: props.primaryId,

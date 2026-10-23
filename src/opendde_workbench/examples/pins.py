@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from ..store import ConflictError, now
+from .candidate_review import validate_initial_candidate
 from .catalogue import MODULES
 from .contracts import ExamplePin, JobEvidence
 from .evidence import capture_job, verify_job
@@ -46,6 +47,12 @@ class ExamplePins:
             )
             for evidence in record.supporting_evidence:
                 verify_job(self.store, self.state, evidence)
+            validate_initial_candidate(
+                record.initial_candidate_id,
+                record.review,
+                self.store.get(str(record.job_id)),
+                self.state,
+            )
         return record
 
     def request(self, capability_id, *, reviewed=False):
@@ -61,7 +68,16 @@ class ExamplePins:
             raise ValueError("The original fixed-example request changed or is unavailable.")
         return json.loads(row["request"])
 
-    def pin(self, capability_id, job_id, prepared, *, review=None, supporting_job_ids=()):
+    def pin(
+        self,
+        capability_id,
+        job_id,
+        prepared,
+        *,
+        review=None,
+        supporting_job_ids=(),
+        initial_candidate_id=None,
+    ):
         module = self.modules[capability_id]
         if prepared.module != module:
             raise ValueError("The prepared inputs belong to a different reviewed study revision.")
@@ -69,6 +85,7 @@ class ExamplePins:
         if job is None or job.status != "succeeded":
             raise ValueError("Only successful native tasks can become fixed computed examples.")
         validate_case_job(capability_id, job, prepared, self.store)
+        validate_initial_candidate(initial_candidate_id, review, job, self.state)
         evidence = capture_job(self.store, self.state, job_id)
         from .supporting import supporting_evidence
 
@@ -84,6 +101,7 @@ class ExamplePins:
             artifact_sha256=digests,
             created_at=now(),
             review=review,
+            initial_candidate_id=initial_candidate_id,
             supporting_evidence=followups,
         )
         with self.store.connect() as db:
@@ -100,6 +118,7 @@ class ExamplePins:
                     or existing.request_sha256 != record.request_sha256
                     or existing.environment_sha256 != record.environment_sha256
                     or existing.review != record.review
+                    or existing.initial_candidate_id != record.initial_candidate_id
                     or existing.supporting_evidence != record.supporting_evidence
                 ):
                     raise ConflictError("The fixed example is immutable; publish a new revision.")

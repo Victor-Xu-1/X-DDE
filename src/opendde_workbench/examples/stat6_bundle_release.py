@@ -1,12 +1,10 @@
 """Reviewed native STAT6 outputs, complete alignments and the bounded workflow example."""
 
-VERSION = "27"
-URL = (
-    "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v27.zip"
-)
-SHA256 = "5aa4a556a7f9c349927d1311cdc58ef453eed587806541beba27462b97e68207"
-BYTES = 20671880
-SOURCE_REVISION = "7f09d528d8398f8227ea6cbb7e193dd5b29dbadf"
+VERSION = "28"
+URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v28.zip"
+SHA256 = "0657bed32f49d41d288410e2dce27b65c62746515418db9df61ef288c382807d"
+BYTES = 22211365
+SOURCE_REVISION = "cb5ed9302660f543d9afa99ab68eb0c22962ca2b"
 CAPABILITIES = (
     "caver.paths",
     "reinvent.design",
@@ -61,4 +59,5 @@ CAPABILITIES = (
     "biopython.ensemble",
     "pose_exploration",
     "pose.cluster",
+    "predict",
 )

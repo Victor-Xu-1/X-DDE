@@ -107,6 +107,7 @@ def register_examples(app, store, assets, settings, mutation):
                 value.job_id,
                 prepared(capability_id, profile),
                 review=value.review,
+                initial_candidate_id=value.initial_candidate_id,
                 supporting_job_ids=value.supporting_job_ids,
             )
         except (ValueError, OSError, ConflictError) as exc:

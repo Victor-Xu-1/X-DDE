@@ -74,6 +74,9 @@ export function ExampleActions(
               <ExampleResultSet
                 key={state.result.job.id}
                 job={state.result.job}
+                initialCandidateId={
+                  state.info?.pin?.initial_candidate_id ?? undefined
+                }
                 supporting={state.info?.pin?.supporting_evidence ?? []}
                 stageNames={state.info?.supporting_stage_names}
                 language={language}

@@ -90,6 +90,7 @@ class ExampleReview(ExampleModel):
 class PinRequest(ExampleModel):
     job_id: UUID
     review: ExampleReview | None = None
+    initial_candidate_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,80}$")
     supporting_job_ids: tuple[UUID, ...] = Field(default=(), max_length=8)
 
 
@@ -110,6 +111,7 @@ class ExamplePin(ExampleModel):
     artifact_sha256: dict[str, str]
     created_at: str
     review: ExampleReview | None = None
+    initial_candidate_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,80}$")
     supporting_evidence: tuple[JobEvidence, ...] = Field(default=(), max_length=8)
 
 

@@ -60,6 +60,7 @@ export interface ExampleInfo {
   computed_result_available: boolean;
   pin: null | {
     job_id: string;
+    initial_candidate_id?: string | null;
     artifact_sha256: Record<string, string>;
     supporting_evidence?: ExampleJobEvidence[];
     review?: ExampleReview | null;

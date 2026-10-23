@@ -58,11 +58,13 @@ export function OperationResults({
   language,
   onDraft,
   onCreated,
+  initialCandidateId,
 }: {
   job: Job;
   language: Language;
   onDraft?(request: Prediction): void;
   onCreated?(job: Job): void;
+  initialCandidateId?: string;
 }) {
   const zh = language === "zh";
   const [response, setResponse] = useState<{
@@ -145,6 +147,7 @@ export function OperationResults({
       <ScientificResults
         key={job.id}
         job={job}
+        initialCandidateId={initialCandidateId}
         result={data as unknown as NativeResult}
         language={language}
         onCreated={onCreated}
