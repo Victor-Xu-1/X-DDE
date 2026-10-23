@@ -48,10 +48,7 @@ export interface NativeCandidate {
   sequence?: string | null;
   metrics: NativeMetric[];
   geometry:
-    | "predicted_structure"
-    | "unbound_conformer"
-    | "source_frame"
-    | "none";
+    "predicted_structure" | "unbound_conformer" | "source_frame" | "none";
 }
 export interface NativeInteraction {
   kind: string;
@@ -82,6 +79,27 @@ export interface NativeResult {
   dynamics?: DynamicsResult | null;
   free_energy?: FreeEnergyResult | null;
   sequence_design?: import("./sequence-design").SequenceDesignResult | null;
+  binder_quality?: BinderQualityReport | null;
+}
+export interface BinderQualityReport {
+  source_artifact: string;
+  source_sha256: string;
+  attempted: number;
+  passed: number;
+  retained: number;
+  designs: {
+    native_id: string;
+    candidate_id?: string | null;
+    sequence: string;
+    passed: boolean;
+    failed_filters: string[];
+    interface_confidence: number;
+    complex_confidence: number;
+    binder_refold_confidence: number;
+    binder_refold_rmsd: number;
+    complex_refold_rmsd: number;
+    buried_area: number;
+  }[];
 }
 export interface ProteinInterfaceInteraction extends NativeInteraction {
   insertion_code: string;

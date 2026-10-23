@@ -9,6 +9,7 @@ from ..artifacts import contained
 from ..proximity.result_models import TernaryResult
 from ..scientific_objects import MoleculeRef
 from ..simulations.results import DynamicsResult, FreeEnergyResult, validate_simulation
+from .binder_result import BinderQuality
 from .sequence_design_result import SequenceDesignResult, validate_sequence_design
 
 
@@ -48,6 +49,7 @@ class NativeResult(BaseModel):
     dynamics: DynamicsResult | None = None
     free_energy: FreeEnergyResult | None = None
     sequence_design: SequenceDesignResult | None = None
+    binder_quality: BinderQuality | None = None
     structure_artifact: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,160}$")
     potential_unit: Literal["kBT/e"] | None = None
     interactions: list["NativeInteraction"] = Field(default_factory=list, max_length=1000)
@@ -174,4 +176,11 @@ def validate_result(value, request, output):
     elif result.proximity is not None:
         raise ValueError("Ternary evidence belongs only to its exact native operation.")
     validate_simulation(result, request)
+    from .binder_evidence import binder_evidence
+
+    quality = binder_evidence(output, request, result.candidates)
+    expected_quality = BinderQuality.model_validate(quality) if quality is not None else None
+    if result.binder_quality is not None and result.binder_quality != expected_quality:
+        raise ValueError("Binder quality differs from its retained native report.")
+    result.binder_quality = expected_quality
     return result

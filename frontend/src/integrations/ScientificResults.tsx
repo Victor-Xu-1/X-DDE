@@ -22,6 +22,7 @@ import { DynamicsResults } from "../simulations/DynamicsResults";
 import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
 import { SequenceDesignOverview } from "./SequenceDesignOverview";
 import { isInternalResearchFile } from "../presentation/research-files";
+import { BinderQuality } from "./BinderQuality";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
   "Initial potential energy": ["优化前势能", "Initial energy"],
@@ -235,6 +236,21 @@ export function ScientificResults({
             />
           )}
           <StructureWorkbench preview={view}>
+            {result.program === "boltzgen" &&
+              (result.binder_quality ? (
+                <BinderQuality
+                  report={result.binder_quality}
+                  jobId={job.id}
+                  selected={active?.id ?? ""}
+                  language={language}
+                />
+              ) : (
+                <p role="status">
+                  {zh
+                    ? "缺少完整原生筛选报告，无法确认候选是否合格。"
+                    : "The complete native filter report is unavailable; candidate qualification is unconfirmed."}
+                </p>
+              ))}
             {result.operation === "chemprop_predict" && (
               <BoundPropertyModelEvidence
                 payload={

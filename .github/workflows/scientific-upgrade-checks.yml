@@ -20,6 +20,7 @@ on:
             domain-inputs,
             binder-runtime,
             reviewed-view,
+            binder-quality,
             chemistry,
             admet,
             openmm,
@@ -69,6 +70,27 @@ on:
 permissions:
   contents: read
 jobs:
+  binder-quality:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'binder-quality'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Actual native rejection report, exact structure copies and existing result boundary
+        run: >-
+          uv run --locked pytest -q tests/test_binder_quality_report.py
+          tests/test_integrated_science.py tests/test_example_initial_candidate.py
+      - name: Exact bilingual quality, candidate switching and scientific result consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/BinderQuality.test.tsx
+          src/integrations/ScientificResults.test.tsx
   reviewed-view:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'reviewed-view'
     runs-on: ubuntu-24.04

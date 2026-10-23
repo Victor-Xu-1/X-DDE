@@ -1,0 +1,9 @@
+{
+  "job_id": "aec7273f-84e1-496c-92eb-d8e15a66df86",
+  "submitted_through_frontend": true,
+  "software_version": "0.6.81",
+  "native_program": "BoltzGen 0.3.2",
+  "target": "Human STAT6 SH2 517-632 predicted reference",
+  "native_report_sha256": "71985f9431981a68caccd4c89d455f36c8eaaa96d33554ef00566159de1c7e78",
+  "scope": "Actual native metrics only. All four designs failed unchanged native filters. No scientifically accepted binder is represented."
+}
