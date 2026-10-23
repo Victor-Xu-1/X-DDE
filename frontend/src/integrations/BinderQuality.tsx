@@ -36,7 +36,11 @@ export function BinderQuality({
   const active = report.designs.find((row) => row.candidate_id === selected);
   return (
     <section aria-label={zh ? "结合蛋白质量" : "Binder quality"}>
-      <p role="status" className={report.passed ? "notice" : "warning"}>
+      <p
+        role="status"
+        aria-label={zh ? "原生筛选结论" : "Native filter conclusion"}
+        className={report.passed ? "notice" : "warning"}
+      >
         <strong>
           {zh
             ? `${report.passed} / ${report.attempted} 条通过原生筛选`

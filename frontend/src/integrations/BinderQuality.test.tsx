@@ -41,12 +41,15 @@ it.each(["en", "zh"] as const)(
         language={language}
       />,
     );
-    expect(screen.getByRole("status")).toHaveTextContent(
+    const conclusion = screen.getByRole("status", {
+      name: language === "en" ? "Native filter conclusion" : "原生筛选结论",
+    });
+    expect(conclusion).toHaveTextContent(
       language === "en"
         ? "0 / 4 designs pass native filters"
         : "0 / 4 条通过原生筛选",
     );
-    expect(screen.getByRole("status")).toHaveTextContent(
+    expect(conclusion).toHaveTextContent(
       language === "en"
         ? "retention does not imply qualification"
         : "保留不等于合格",
