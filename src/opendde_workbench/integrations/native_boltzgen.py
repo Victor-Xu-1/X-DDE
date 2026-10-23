@@ -63,6 +63,11 @@ def run(request):
             payload["retain"],
             "--cache",
             "/models",
+            # The locked Torch 2.8 runtime does not provide the FX symbols used
+            # by the optional cuEquivariance kernels. Use the official Torch
+            # implementation explicitly; weights and scientific filters stay intact.
+            "--use_kernels",
+            "false",
             "--design_checkpoints",
             "/models/boltzgen1_diverse.ckpt",
             "/models/boltzgen1_adherence.ckpt",

@@ -104,6 +104,7 @@ def test_native_dispatch_points_to_the_actual_verified_flat_library(
     assert captured[captured.index("--moldir") + 1] == str(models)
     assert captured[captured.index("--num_designs") + 1] == "4"
     assert captured[captured.index("--budget") + 1] == "2"
+    assert captured[captured.index("--use_kernels") + 1] == "false"
     assert captured[captured.index("--protocol") + 1] == modality + "-anything"
     import yaml
 
