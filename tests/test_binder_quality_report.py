@@ -66,6 +66,7 @@ def fixture(tmp_path):
     request = IntegratedTask.model_validate(
         {
             "operation": "boltzgen_design",
+            "name": "Sealed binder result transport fixture",
             "inputs": [{"role": "structure", "source": ref}],
             "scientific_inputs": [ref],
             "payload": {"kind": "boltzgen", "target_chains": ["A"], "candidates": 4, "retain": 2},
