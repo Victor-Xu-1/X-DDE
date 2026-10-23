@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib
+import json
 from pathlib import Path
 
 import pytest
@@ -128,3 +129,31 @@ def test_error_prose_is_not_a_successful_protein_homology_result(bridge):
         "protrek-structure", {"available": True, "result": "No matching homologues were found."}
     )
     validate("esm2", {"available": True, "result": {"candidates": []}})
+
+
+def test_rejected_homology_envelope_is_preserved_privately_without_a_success_report(bridge, tmp_path):
+    validate = importlib.import_module("harness_result_validation").validate_search_response
+    provider = {
+        "available": True,
+        "result": "ProTrek structure search unavailable: provider returned an empty body.",
+        "error": None,
+    }
+    with pytest.raises(RuntimeError, match="did not return a usable result"):
+        validate("protrek-structure", provider, directory=tmp_path)
+    original = (tmp_path / "native-search-response.json").read_bytes()
+    assert json.loads(original) == provider
+    assert not (tmp_path / "output/result.json").exists()
+    with pytest.raises(RuntimeError):
+        validate("protrek-structure", provider, directory=tmp_path)
+    with pytest.raises(ValueError, match="remain unchanged"):
+        validate("protrek-structure", {"result": "Different response"}, directory=tmp_path)
+    assert (tmp_path / "native-search-response.json").read_bytes() == original
+
+
+def test_homology_failure_evidence_is_bounded_and_does_not_apply_to_other_tools(bridge, tmp_path):
+    validate = importlib.import_module("harness_result_validation").validate_search_response
+    with pytest.raises(ValueError, match="evidence limit"):
+        validate("protrek-sequence", {"result": "x" * (4 * 1024**2)}, directory=tmp_path)
+    assert not list(tmp_path.iterdir())
+    validate("esm2", {"result": {"candidates": []}}, directory=tmp_path)
+    assert not list(tmp_path.iterdir())

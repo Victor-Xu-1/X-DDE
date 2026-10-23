@@ -21,6 +21,7 @@ on:
             binder-runtime,
             reviewed-view,
             binder-quality,
+            native-sequence-views,
             chemistry,
             admet,
             openmm,
@@ -70,6 +71,45 @@ on:
 permissions:
   contents: read
 jobs:
+  native-sequence-views:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'native-sequence-views'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Restore the exact immutable native STAT6 study archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-native-sequences" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-native-sequences/state" >> "$GITHUB_ENV"
+          gh release download examples-v2 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v30.zip --dir "$RUNNER_TEMP"
+      - name: Exact native sequence and original download verification in hosted Chromium
+        run: |
+          uv run --locked python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/stat6-reviewed-results-v30.zip"
+          uv run --locked python -m playwright install --with-deps chromium
+          mkdir -p server_tests/evidence/native-surface-sequences
+          uv run --locked python -m opendde_workbench --port 4330 > server_tests/evidence/native-surface-sequences/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          uv run --locked pytest -x -q server_tests/test_native_surface_sequences_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-surface-sequence-browser-evidence
+          path: server_tests/evidence/native-surface-sequences
+          if-no-files-found: error
   binder-quality:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'binder-quality'
     runs-on: ubuntu-24.04
@@ -195,6 +235,7 @@ jobs:
         run: >-
           uv run --locked pytest -q tests/test_antibody_structure_query_input.py
           tests/test_stat6_templates.py tests/test_stat6_guidance.py tests/test_capabilities.py
+          tests/test_harness_alignments.py tests/test_harness_standalone.py
       - name: Actual native report formats, source structure and sequence-view consumers
         working-directory: frontend
         run: >-

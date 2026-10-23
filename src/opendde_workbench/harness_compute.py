@@ -163,14 +163,14 @@ async def main(directory):
             result = result.model_dump(mode="json")
         if not isinstance(result, dict):
             raise ValueError("Harness returned an invalid result contract.")
+        from harness_result_validation import validate_search_response
+
+        validate_search_response(tool, result, directory=directory)
         if result.get("available") is False:
             raise RuntimeError(
                 "Harness service is unavailable: "
                 + str(result.get("reason") or result.get("error") or tool)
             )
-        from harness_result_validation import validate_search_response
-
-        validate_search_response(tool, result)
         (directory / "output/native-result.json").write_text(
             json.dumps(result, ensure_ascii=False, allow_nan=False), encoding="utf-8"
         )
