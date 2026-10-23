@@ -22,6 +22,8 @@ NATIVE_EXAMPLES = {
     "boltz.predict": "1190e938-51af-44a3-9dbc-4aacc77b5821",
     "epitope": "2d356d5b-b02d-4dea-be17-118234f9c62c",
     "esm": "081476d2-6fcf-4e17-b7c0-18576f848938",
+    "esm2": "c689b556-3e00-4f94-a578-c631ef7717e4",
+    "mpnn": "e9ccf58d-d7c9-41ec-ae8b-f952a4b9fd3d",
     "protrek-sequence": "39a51984-ac65-4a02-a164-7134cdc8beea",
     "import": "a7b7271b-39e6-40dc-84ac-94e8d76ddbf5",
     "features": "f71f9f99-a40b-41bc-a108-18afc4d6202a",
@@ -99,12 +101,40 @@ def check_reviewed_pose_and_chemical_followup(client, settings):
     assert followup["artifact_sha256"]["interaction-structure.cif"] == expected_sha
 
 
+def check_native_surface_sequence_examples(settings, store):
+    """Read actual retained proposals and preserve their different scientific scores."""
+    esm_job = store.get(NATIVE_EXAMPLES["esm2"])
+    assert esm_job.request.payload["options"]["model_name"] == "facebook/esm2_t33_650M_UR50D"
+    assert esm_job.request.payload["min_llr"] == 0
+    esm = json.loads(result_path(settings, esm_job.id).read_text())["result"]["result"][
+        "candidates"
+    ]
+    assert len(esm) == 4 and len({row["sequence"] for row in esm}) == 4
+    assert [row["metadata"]["esm2_llr"] for row in esm] == [7.8242, 0.6367, 2.4539, 0.2051]
+    mpnn_job = store.get(NATIVE_EXAMPLES["mpnn"])
+    request = mpnn_job.request.payload
+    assert request["num_sequences"] == 8 and request["parameters"]["temperature"] == 0.3
+    parent = request["parent_chains"]["A"]
+    assert len(parent) == 116
+    proposals = json.loads(result_path(settings, mpnn_job.id).read_text())["result"][
+        "candidates"
+    ]
+    assert len(proposals) == len({row["sequence"] for row in proposals}) == 8
+    for proposal in proposals:
+        sequence = proposal["sequence"]
+        assert len(sequence) == 116
+        changed = {i for i, pair in enumerate(zip(parent, sequence, strict=True)) if pair[0] != pair[1]}
+        assert changed and changed <= {32, 36, 63, 68, 93}
+        assert all(sequence[i] not in "CP" for i in changed)
+    assert proposals[4]["sequence"][68] == "K"  # Preserve the actual fifth sample.
+
+
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "29"
+    assert package.kind == "data" and package.version == source.VERSION == "30"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
-    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 55
+    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 57
     assert not set(source.CAPABILITIES) & {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"}
 
 
@@ -127,7 +157,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             "INSERT INTO projects VALUES(?,?,?,?)",
             (private, "Personal research", "Retain", "today"),
         )
-    summary = {"modules": 55, "computed": 55, "validated": 0}
+    summary = {"modules": 57, "computed": 57, "validated": 0}
     assert restore_bundle(archive, settings, source.SHA256) == summary
     assert verify_examples(settings, source.CAPABILITIES, profile="stat6") == summary
     with TestClient(app, base_url="http://127.0.0.1:4322") as client:
@@ -142,6 +172,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
         check_complete_alignment_downloads(client, settings)
         check_exploratory_model_limits(settings)
         check_reviewed_pose_and_chemical_followup(client, settings)
+        check_native_surface_sequence_examples(settings, store)
         job = store.get(NATIVE_EXAMPLES["predict"])
         assert len(job.request.components) == 1
         assert len(job.request.components[0].value) == 116

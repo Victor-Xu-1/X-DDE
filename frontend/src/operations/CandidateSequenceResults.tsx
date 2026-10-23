@@ -16,6 +16,7 @@ import {
 } from "./candidate-sequence-model";
 import { mutationDescription } from "./sequence-result";
 import { candidateStructure } from "./candidate-structures";
+import { SequenceProposalSummary } from "./SequenceProposalSummary";
 import "./candidate-results.css";
 
 export function CandidateSequenceResults({
@@ -30,7 +31,9 @@ export function CandidateSequenceResults({
   language: Language;
 }) {
   const zh = language === "zh",
-    [selected, setSelected] = useState(0);
+    [selection, setSelection] = useState({ job: job.id, index: 0 });
+  const selected = selection.job === job.id ? selection.index : 0;
+  const select = (index: number) => setSelection({ job: job.id, index });
   const rows = candidates.map((value, index) => ({
     value,
     index,
@@ -65,6 +68,7 @@ export function CandidateSequenceResults({
             <SequenceTrack
               sequence={original[chain] as string}
               language={language}
+              recordName={`${job.id}:parent:${chain || "sequence"}`}
               label={
                 (zh ? "原始序列" : "Original sequence") +
                 (chain ? " · " + chain : "")
@@ -74,6 +78,7 @@ export function CandidateSequenceResults({
           <SequenceTrack
             sequence={sequence}
             language={language}
+            recordName={`${job.id}:sample-${current.index + 1}:${chain || "sequence"}`}
             label={
               (zh ? "候选序列" : "Candidate sequence") +
               (chain ? " · " + chain : "")
@@ -133,6 +138,12 @@ export function CandidateSequenceResults({
           ? "模型结果；序列、界面与结构评分不等于实验结合活性。"
           : "Model outputs; sequence, interface and structure scores are not measured binding activity."}
       </p>
+      <SequenceProposalSummary
+        candidates={candidates}
+        parent={original}
+        selected={current.index}
+        language={language}
+      />
       <StructureWorkbench
         preview={
           <div className="result-inspector">
@@ -162,7 +173,6 @@ export function CandidateSequenceResults({
                   metrics: current.metrics,
                   strategy: current.value.strategy,
                   objective: current.value.objective,
-                  risk_level: current.value.risk_level,
                 }}
               />
             </details>
@@ -176,13 +186,14 @@ export function CandidateSequenceResults({
             title={zh ? "序列候选" : "Sequence candidates"}
             rowId={(row) => String(row.index)}
             selected={String(current.index)}
-            onSelect={(row) => setSelected(row.index)}
+            onSelect={(row) => select(row.index)}
             initialVisibleColumns={[
               "candidate",
               "length",
               ...["iptm", "plddt", "esm2_llr"].filter((key) =>
                 keys.includes(key),
               ),
+              ...keys.filter((key) => key.startsWith("soluble_mpnn_scores:")),
             ]}
             columns={[
               {
@@ -204,7 +215,7 @@ export function CandidateSequenceResults({
               },
               ...keys.map((key) => ({
                 key,
-                label: candidateMetricLabel(key),
+                label: candidateMetricLabel(key, language),
                 numeric: true,
                 value: (row: (typeof rows)[number]) => row.metrics[key] ?? null,
               })),
@@ -218,7 +229,7 @@ export function CandidateSequenceResults({
               rowId={(row) => String(row.index)}
               rowLabel={candidateLabel}
               selected={String(current.index)}
-              onSelect={(row) => setSelected(row.index)}
+              onSelect={(row) => select(row.index)}
               metrics={[
                 {
                   key: "candidate",
@@ -227,7 +238,7 @@ export function CandidateSequenceResults({
                 },
                 ...keys.map((key) => ({
                   key,
-                  label: candidateMetricLabel(key),
+                  label: candidateMetricLabel(key, language),
                   value: (row: (typeof rows)[number]) =>
                     row.metrics[key] ?? null,
                 })),

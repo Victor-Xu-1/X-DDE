@@ -38,11 +38,18 @@ export function candidateMetrics(value: Record<string, unknown>) {
   }
   return result;
 }
-export function candidateMetricLabel(key: string) {
+export function candidateMetricLabel(key: string, language = "en") {
   if (key.startsWith("soluble_mpnn_scores:"))
-    return "MPNN · " + key.split(":")[1];
+    return (
+      (language === "zh" ? "MPNN 设计分数 ↓ · " : "MPNN design score ↓ · ") +
+      key.split(":")[1]
+    );
   if (key.startsWith("soluble_mpnn_seqids:"))
-    return "MPNN seqid · " + key.split(":")[1];
+    return (
+      (language === "zh"
+        ? "设计位点保留率 (0–1) · "
+        : "Design-site recovery (0–1) · ") + key.split(":")[1]
+    );
   return (
     (
       {

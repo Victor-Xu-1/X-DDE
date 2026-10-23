@@ -112,13 +112,15 @@ jobs:
           npx vitest run src/integrations/ScientificResults.test.tsx
           src/examples/ExampleResultSet.test.tsx src/examples/ExampleJobResult.test.tsx
           src/examples/ExampleActions.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx
+          src/operations/HarnessResults.test.tsx src/presentation/SequenceTrack.test.tsx
       - name: Fetch the exact immutable SH2 case archive
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
           test "${source[0]}" = examples-v2
-          test "${source[1]}" = stat6-reviewed-results-v29.zip
+          test "${source[1]}" = stat6-reviewed-results-v30.zip
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - name: Real native case restore, unchanged original recipes and monomer replay

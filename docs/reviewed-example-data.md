@@ -4,12 +4,14 @@ These immutable archives contain actual native inputs, outputs, provenance and m
 
 | Archive | Primary module examples | Additional workflow example | Native scope |
 | --- | ---: | ---: | --- |
-| STAT6 data 29 | 54 | 1 | Defined-molecule studies, a reviewed three-pose SH2 hypothesis with a native chemical-contact follow-up, complete alignments, an independently checked SH2 reconstruction, and a bounded research workflow |
+| STAT6 data 30 | 56 | 1 | Defined-molecule studies, reviewed SH2 pose hypotheses, native ESM2 and backbone-conditioned surface-construct proposals, complete alignments, and a bounded research workflow |
 | DEL data 4 | 9 | 0 | Public UNC DEL006 / BRD4 selection data, including independent held-out building-block validation |
 
-The required primary-module acceptance ledger is **63/71**. Eight primary cases remain unaccepted; MD and FEP remain excluded and paused. Archive installation is a technical data-delivery check, separate from experimental validation of a scientific conclusion.
+The required primary-module acceptance ledger is **65/71**. Six primary cases remain unaccepted; MD and FEP remain excluded and paused. Archive installation is a technical data-delivery check, separate from experimental validation of a scientific conclusion.
 
 The three-pose example opens the reviewed third sample without changing original native ranks. Higher-scoring samples collide with omitted experimentally observed receptor domains. The third sample is a regional hypothesis with changed side-chain rotamers, rather than a validated binding mode. Its linked PLIP stage retains a long, geometry-dependent Q590 hydrogen-bond candidate (donor–acceptor 3.77 Å); this is not a binding-strength measurement.
+
+The sequence-design examples preserve their actual sampling behavior. ESM2 650M proposes four distinct single mutants using a nonnegative masked log-likelihood ratio. A bounded backbone-conditioned follow-up yields eight distinct sequences while preserving all111 non-design positions. Several proposals introduce an exposed Q585L/I substitution and remain developability concerns; favorable model scores do not establish improved solubility or function. Earlier duplicate-rich and unchanged-WT samples remain historical evidence. The results distinguish samples from unique sequences and changed variants, retain original ranks, and identify exported FASTA records by task, sample and chain.
 
 The STAT6 alignment example preserves all **3,245 × 847** unpaired match columns and the original one-row paired file. A query-only paired alignment supplies no interchain coevolution evidence. The 6WGL antibody examples target IL-4Rα in the STAT6 pathway, rather than binding STAT6 directly.
 

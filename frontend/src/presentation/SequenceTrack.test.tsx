@@ -2,7 +2,12 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { SequenceTrack } from "./SequenceTrack";
-afterEach(cleanup);
+import { downloadBlob } from "./visual-export";
+vi.mock("./visual-export", () => ({ downloadBlob: vi.fn() }));
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
 it("binds residue selection to the displayed source rather than retaining an index on a different sequence", async () => {
   const user = userEvent.setup();
@@ -75,4 +80,37 @@ it("supports one keyboard entry point and crosses bounded segments without chang
   expect(
     document.querySelectorAll(".sequence-residue-grid button"),
   ).toHaveLength(600);
+});
+
+it("exports the currently displayed exact sequence with a traceable record identity", async () => {
+  const view = render(
+    <SequenceTrack
+      sequence="ACDEF"
+      label="Candidate sequence · A"
+      recordName="study-123:sample-1:A"
+      language="en"
+    />,
+  );
+  view.rerender(
+    <SequenceTrack
+      sequence="AKDEF"
+      label="Candidate sequence · A"
+      recordName="study-123:sample-2:A"
+      language="en"
+    />,
+  );
+  await userEvent
+    .setup()
+    .click(
+      screen.getByRole("button", { name: "Download this sequence FASTA" }),
+    );
+  const [blob, filename] = vi.mocked(downloadBlob).mock.calls[0];
+  expect(filename).toBe("study-123_sample-2_A.fasta");
+  const text = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+  expect(text).toBe(">study-123:sample-2:A\nAKDEF\n");
 });

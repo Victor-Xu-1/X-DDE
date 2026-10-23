@@ -14,6 +14,7 @@ export function SequenceTrack({
   sequence,
   language,
   label,
+  recordName,
   regions = [],
   onSelect,
   selectedPosition,
@@ -22,12 +23,14 @@ export function SequenceTrack({
   sequence: string;
   language: Language;
   label: string;
+  recordName?: string;
   regions?: readonly SequenceRegion[];
   onSelect?(position: number): void;
   selectedPosition?: number | null;
   unit?: "aa" | "nt" | "positions";
 }) {
   const zh = language === "zh";
+  const fastaLabel = recordName ?? label;
   const [selection, setSelection] = useState({
     sequence,
     label,
@@ -78,14 +81,14 @@ export function SequenceTrack({
               new Blob(
                 [
                   ">" +
-                    label.replace(/[\r\n]/g, " ") +
+                    fastaLabel.replace(/[\r\n]/g, " ") +
                     "\n" +
                     (sequence.match(/.{1,80}/g)?.join("\n") ?? "") +
                     "\n",
                 ],
                 { type: "text/plain;charset=utf-8" },
               ),
-              label + ".fasta",
+              fastaLabel.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_") + ".fasta",
             )
           }
         >
