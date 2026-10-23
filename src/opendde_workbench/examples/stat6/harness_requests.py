@@ -107,6 +107,19 @@ def harness_study(capability, objects, sequences):
                 visit(item)
 
     visit(payloads[capability])
+    # Sequence-only native tools still need immutable material authority. The
+    # inline sequence is an execution value, not a substitute for its source.
+    sequence_roles = (
+        ("protein_sequence",)
+        if capability in {"esm", "esm2", "protrek-sequence", "target-msa"}
+        else ("variable_domains", "antigen_sequence")
+        if capability == "fold"
+        else ()
+    )
+    for role in sequence_roles:
+        reference = objects[role].reference
+        if reference not in references:
+            references.append(reference)
     return HarnessTask(
         name=(
             "STAT6 pathway · "
