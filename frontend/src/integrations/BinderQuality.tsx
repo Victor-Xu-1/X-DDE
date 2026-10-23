@@ -53,10 +53,10 @@ export function BinderQuality({
       </p>
       {active && (
         <>
-          <dl className="metrics-grid">
+          <div className="dataset-review-strip">
             <div>
-              <dt>{zh ? "原生筛选" : "Native filters"}</dt>
-              <dd>
+              <span>{zh ? "原生筛选" : "Native filters"}</span>
+              <strong>
                 {active.passed
                   ? zh
                     ? "通过"
@@ -64,23 +64,23 @@ export function BinderQuality({
                   : zh
                     ? "未通过"
                     : "Rejected"}
-              </dd>
+              </strong>
             </div>
             <div>
-              <dt>{zh ? "结合体重预测 RMSD" : "Binder refold RMSD"}</dt>
-              <dd>{active.binder_refold_rmsd.toFixed(2)} Å</dd>
+              <span>{zh ? "结合体重预测 RMSD" : "Binder refold RMSD"}</span>
+              <strong>{active.binder_refold_rmsd.toFixed(2)} Å</strong>
             </div>
             <div>
-              <dt>{zh ? "单体置信度" : "Binder-only confidence"}</dt>
-              <dd>
+              <span>{zh ? "单体置信度" : "Binder-only confidence"}</span>
+              <strong>
                 {(active.binder_refold_confidence * 100).toFixed(1)} / 100
-              </dd>
+              </strong>
             </div>
             <div>
-              <dt>{zh ? "界面埋藏面积" : "Interface buried area"}</dt>
-              <dd>{active.buried_area.toFixed(0)} Å²</dd>
+              <span>{zh ? "界面埋藏面积" : "Interface buried area"}</span>
+              <strong>{active.buried_area.toFixed(0)} Å²</strong>
             </div>
-          </dl>
+          </div>
           {active.failed_filters.length > 0 && (
             <p>
               {active.failed_filters
