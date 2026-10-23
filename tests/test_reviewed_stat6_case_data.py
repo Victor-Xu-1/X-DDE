@@ -19,6 +19,7 @@ from opendde_workbench.store import Store
 
 NATIVE_EXAMPLES = {
     "predict": "716024e7-0a4a-4b9f-8962-fae4257bba48",
+    "boltz.predict": "1190e938-51af-44a3-9dbc-4aacc77b5821",
     "epitope": "2d356d5b-b02d-4dea-be17-118234f9c62c",
     "esm": "081476d2-6fcf-4e17-b7c0-18576f848938",
     "protrek-sequence": "39a51984-ac65-4a02-a164-7134cdc8beea",
@@ -70,12 +71,40 @@ def check_exploratory_model_limits(settings):
     assert metrics["Test R²"] == pytest.approx(-0.19374784151046387)
 
 
+def check_reviewed_pose_and_chemical_followup(client, settings):
+    """Cold restore the real reviewed view and its exact computed descendant."""
+    value = client.get("/api/examples/boltz.predict").json()
+    pin = value["pin"]
+    assert pin["initial_candidate_id"] == "structure-003"
+    assert [row["job_id"] for row in pin["supporting_evidence"]] == [
+        "a5773abd-8315-49f7-ab66-7df445c39d45"
+    ]
+    assert "regional pose hypothesis" in pin["review"]["limitations"]
+    assert "3.77 Å" in pin["review"]["limitations"]
+    identifier = NATIVE_EXAMPLES["boltz.predict"]
+    primary = json.loads(result_path(settings, identifier).read_text())
+    assert [row["id"] for row in primary["candidates"]] == [
+        "structure-001", "structure-002", "structure-003"
+    ]
+    expected_sha = "dc4450f8f061bce82bfd3c69330da1af4d86b20f7bd8af46435e936d151d72cf"
+    response = client.get(
+        f"/api/jobs/{identifier}/download", params={"name": "structure-003.cif"}
+    )
+    assert response.status_code == 200
+    assert hashlib.sha256(response.content).hexdigest() == expected_sha
+    followup = json.loads(
+        result_path(settings, "a5773abd-8315-49f7-ab66-7df445c39d45").read_text()
+    )
+    assert followup["program"] == "plip" and len(followup["interactions"]) == 3
+    assert followup["artifact_sha256"]["interaction-structure.cif"] == expected_sha
+
+
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "28"
+    assert package.kind == "data" and package.version == source.VERSION == "29"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
-    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 54
+    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 55
     assert not set(source.CAPABILITIES) & {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"}
 
 
@@ -98,7 +127,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             "INSERT INTO projects VALUES(?,?,?,?)",
             (private, "Personal research", "Retain", "today"),
         )
-    summary = {"modules": 54, "computed": 54, "validated": 0}
+    summary = {"modules": 55, "computed": 55, "validated": 0}
     assert restore_bundle(archive, settings, source.SHA256) == summary
     assert verify_examples(settings, source.CAPABILITIES, profile="stat6") == summary
     with TestClient(app, base_url="http://127.0.0.1:4322") as client:
@@ -112,6 +141,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             assert store.get(identifier).status == "succeeded"
         check_complete_alignment_downloads(client, settings)
         check_exploratory_model_limits(settings)
+        check_reviewed_pose_and_chemical_followup(client, settings)
         job = store.get(NATIVE_EXAMPLES["predict"])
         assert len(job.request.components) == 1
         assert len(job.request.components[0].value) == 116

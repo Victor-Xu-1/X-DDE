@@ -118,7 +118,7 @@ jobs:
         run: |
           readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
           test "${source[0]}" = examples-v2
-          test "${source[1]}" = stat6-reviewed-results-v28.zip
+          test "${source[1]}" = stat6-reviewed-results-v29.zip
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - name: Real native case restore, unchanged original recipes and monomer replay
