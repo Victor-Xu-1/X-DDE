@@ -9,14 +9,19 @@ PROTEIN_COMPONENTS = (
 )
 
 # Existing schema-1 manifests and encoded libraries retain these reviewed identities.
-# Each value hashes every recipe field EXCEPT system_packages. A weight, source,
-# patch, Python dependency, base-image or other recipe change cannot use this bridge.
+# Each profile hashes every field except system_packages, which is checked below
+# against the exact graphics-library set and the reviewed Expat repair versions.
 _REVIEWED_MODEL_PROFILES = {
-    "ab0363175f4cc81e2d9e73c3bd6aa0c8eaa941ad5c69e03874db29d7dde6648e":
+    "ab0363175f4cc81e2d9e73c3bd6aa0c8eaa941ad5c69e03874db29d7dde6648e": (
         "fec1f9c8fbcb689cc8a8b24948d0bcfffbae7cb0f1158caa5bb2facf540ab98e",
-    "5c795106ff2a9f697f8288c09a8d0e0f2fd9f955405e1726c7d1652f336ed3f5":
+        {"libxrender1=1:0.9.10-1.1", "libxext6=2:1.3.4-1+b1", "libsm6=2:1.2.3-1"},
+    ),
+    "5c795106ff2a9f697f8288c09a8d0e0f2fd9f955405e1726c7d1652f336ed3f5": (
         "26333a7e4294d5c8161a60b6f839b90c54a52fa3f699f0ff7ea50a045dc585cb",
+        {"libxrender1=1:0.9.10-1.1", "libxext6=2:1.3.4-1+b1"},
+    ),
 }
+_REVIEWED_EXPAT_REPAIRS = {"libexpat1=2.5.0-1+deb12u4", "libexpat1=2.5.0-1+deb12u5"}
 
 
 def _recipe_hash(value):
@@ -26,10 +31,16 @@ def _recipe_hash(value):
 
 
 def model_recipe_identity(spec):
-    """Retain a known model identity through system-library-only recipe repairs."""
+    """Retain a known model identity through the explicitly reviewed Expat repair."""
     profile = _recipe_hash({key: value for key, value in spec.items() if key != "system_packages"})
-    for legacy, expected in _REVIEWED_MODEL_PROFILES.items():
-        if profile == expected:
+    packages = set(spec.get("system_packages", []))
+    for legacy, (expected, libraries) in _REVIEWED_MODEL_PROFILES.items():
+        if (
+            profile == expected
+            and len(spec.get("system_packages", [])) == len(packages) == len(libraries) + 1
+            and libraries < packages
+            and packages - libraries <= _REVIEWED_EXPAT_REPAIRS
+        ):
             return legacy
     return _recipe_hash(spec)
 
@@ -50,10 +61,10 @@ def model_files(root, spec, *, full_hash=False):
     if file.is_symlink() or file.stat().st_size > 25 * 1024**2:
         raise ValueError("Invalid native model manifest.")
     manifest = json.loads(file.read_text(encoding="utf-8"))
-    if (
-        manifest.get("recipe_sha256") not in {_recipe_hash(spec), model_recipe_identity(spec)}
-        or not manifest.get("files")
-    ):
+    if manifest.get("recipe_sha256") not in {
+        _recipe_hash(spec),
+        model_recipe_identity(spec),
+    } or not manifest.get("files"):
         raise ValueError("Native model resources differ from the reviewed recipe.")
     entries = manifest["files"]
     if not isinstance(entries, list) or len(entries) > 200000:

@@ -8,14 +8,15 @@ Runtime installation and scientific asset reuse have separate verification dutie
 | --- | --- |
 | Runtime image | The complete current recipe, fixed base image, dependency locks and image labels remain mandatory. An old image cannot claim the repaired recipe. |
 | Model resources | Every required resource name, size and SHA-256 must match. Existing manifest bytes and their installed SHA-256 are retained. Task execution still verifies file integrity. |
-| Existing schema-1 manifests | Two explicitly reviewed legacy profiles can survive changes to `system_packages` only. Every other recipe field remains part of the profile hash. Unknown recipe identities are rejected. |
+| Existing schema-1 manifests | Two explicitly reviewed legacy profiles can survive the declared Expat security repair only. The other graphics-library pins and every other recipe field remain exact. Unknown recipe identities are rejected. |
 | Screening index | The original six-fold encoder identity remains stable for the same weights, source, patches, Python dependencies, base image and encoding policy. The actual task environment separately records the current runtime identity. |
 
 The compatibility profiles are in `integrations/native_resources.py`; this is the
 same guard mounted into native executions. They cover the existing six-fold
 screening and REINVENT4 resources whose Debian Expat pin changed from bookworm
 security revision `deb12u4` to `deb12u5`. They do not permit a weight, source,
-compatibility patch, Python dependency or base-image change to reuse that profile.
+compatibility patch, Python dependency, base-image change, additional system library
+or unreviewed system-library version to reuse that profile.
 Other programs retain their exact full-recipe requirement.
 
 The real retained 38-compound STAT6 index has encoder fingerprint
@@ -34,7 +35,7 @@ acceptance or equivalence of different models.
 
 运行镜像仍必须符合完整的当前配方和依赖锁；不能把旧镜像标成已修复。
 模型资源继续校验原有清单、文件名、大小和 SHA-256。仅两份明确核对过的历史资源配置，
-允许在其他配方字段完全一致时接受系统库更新，不重写原清单或重新计算筛选向量。
+允许在其他系统库和配方字段完全一致时接受已明确核对的 Expat 补丁，不重写原清单或重新计算筛选向量。
 
 真实 STAT6 38 分子索引的原始编码配置用于专项回归。权重、源码、补丁、Python 依赖、
 基础镜像或编码方法发生变化时，不能继续套用历史身份。校验通过只表示旧资产的身份兼容，

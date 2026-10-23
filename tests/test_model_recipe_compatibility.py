@@ -13,7 +13,6 @@ import pytest
 from opendde_workbench.integrations import native_resources
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
-
 LEGACY = {
     "drugclip": "ab0363175f4cc81e2d9e73c3bd6aa0c8eaa941ad5c69e03874db29d7dde6648e",
     "reinvent": "5c795106ff2a9f697f8288c09a8d0e0f2fd9f955405e1726c7d1652f336ed3f5",
@@ -24,9 +23,35 @@ LEGACY = {
 def test_only_system_library_changes_retain_the_reviewed_model_identity(program):
     current = deepcopy(PROGRAMS[program])
     assert native_resources.model_recipe_identity(current) == LEGACY[program]
-    current["system_packages"] = ["libexpat1=reviewed-future-os-version"]
+    current["system_packages"] = [
+        "libexpat1=2.5.0-1+deb12u4" if value.startswith("libexpat1=") else value
+        for value in current["system_packages"]
+    ]
+    assert (
+        hashlib.sha256(
+            json.dumps(current, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        == LEGACY[program]
+    )
     assert native_resources.model_recipe_identity(current) == LEGACY[program]
-    assert recipe_digest(program) != LEGACY[program], "Runtime images still require the repaired recipe."
+    assert recipe_digest(program) != LEGACY[program], (
+        "Runtime images still require the repaired recipe."
+    )
+
+
+@pytest.mark.parametrize("program", LEGACY)
+@pytest.mark.parametrize("change", ["additional_library", "unreviewed_expat", "changed_graphics"])
+def test_other_system_changes_do_not_claim_the_reviewed_encoder_profile(program, change):
+    changed = deepcopy(PROGRAMS[program])
+    if change == "additional_library":
+        changed["system_packages"].append("libopenblas0=unreviewed")
+    elif change == "unreviewed_expat":
+        changed["system_packages"] = [
+            value.replace("deb12u5", "deb12u6") for value in changed["system_packages"]
+        ]
+    else:
+        changed["system_packages"][0] = "libxrender1=unreviewed"
+    assert native_resources.model_recipe_identity(changed) != LEGACY[program]
 
 
 @pytest.mark.parametrize("program", LEGACY)
@@ -39,8 +64,11 @@ def test_any_other_recipe_change_cannot_claim_legacy_compatibility(program, fiel
 
 def test_resource_checks_still_reject_unknown_recipe_or_changed_weight_bytes(tmp_path):
     content = b"original scientific weights"
-    resource = {"name": "weights.pt", "size": len(content),
-                "sha256": hashlib.sha256(content).hexdigest()}
+    resource = {
+        "name": "weights.pt",
+        "size": len(content),
+        "sha256": hashlib.sha256(content).hexdigest(),
+    }
     spec = {"name": "isolated fixture", "models": [resource]}
     manifest = {"files": [resource], "recipe_sha256": native_resources.model_recipe_identity(spec)}
     (tmp_path / "weights.pt").write_bytes(content)
