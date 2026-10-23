@@ -3,12 +3,14 @@
 import hashlib
 
 
-def slice_columns(rows, query, start, stop):
+def slice_columns(rows, query, start, stop, *, keep_leading_insertions=True):
     """Select a zero-based half-open interval and its preceding insertions.
 
     A lowercase insertion is attached to the next aligned column, matching the
     official Boltz deletion-index convention. Preserve headers and input order;
-    exclude only rows with no aligned residue in the selected interval.
+    exclude only rows with no aligned residue in the selected interval. Domain
+    constructs may explicitly discard the insertion overhang before their first
+    retained column; internal insertions are never removed.
     """
     if (
         type(start) is not int
@@ -22,7 +24,9 @@ def slice_columns(rows, query, start, stop):
     for header, sequence in rows:
         column, selected = 0, []
         for letter in sequence:
-            if start <= column < stop:
+            if start <= column < stop and not (
+                not keep_leading_insertions and column == start and letter.islower()
+            ):
                 selected.append(letter)
             if not letter.islower():
                 column += 1

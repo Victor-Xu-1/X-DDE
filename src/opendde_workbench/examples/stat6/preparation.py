@@ -178,6 +178,19 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
             objects.update(prediction_inputs["objects"])
             objects["protein_sequence"] = objects["prediction_construct"]
             sequences["protein"] = prediction_inputs["sequence"]
+    if capability in {"boltz.predict", "predict", "mpnn", "esm2", "boltzgen.design"}:
+        from .domain_inputs import reviewed_domain_inputs
+
+        domain = reviewed_domain_inputs(
+            scientific, records, sequence, register_input(scientific, "stat6_predicted_construct")
+        )
+        if domain is not None:
+            objects.update(domain["objects"])
+            if capability in {"boltz.predict", "predict"}:
+                objects["prediction_construct"] = objects["sh2_sequence"]
+                objects["protein_sequence"] = objects["sh2_sequence"]
+                objects["prediction_msa"] = objects["sh2_msa"]
+                sequences["protein"] = domain["sequence"]
     if capability in {"evolution", "compare"}:
         from .sequence_populations import reviewed_sequence_populations
 

@@ -2,7 +2,18 @@
 
 from .catalogue import CASE, FILES
 
-PREDICTED_CAPABILITIES = frozenset({"pose_exploration", "pose.cluster", "openmm.refine"})
+PREDICTED_CAPABILITIES = frozenset(
+    {
+        "pose_exploration",
+        "pose.cluster",
+        "openmm.refine",
+        "predict",
+        "boltz.predict",
+        "mpnn",
+        "esm2",
+        "boltzgen.design",
+    }
+)
 PREDICTED_STRUCTURES = ("stat6_prediction", "stat6_predicted_construct")
 PREDICTED_RECEIPTS = ("stat6_prediction_metadata", "stat6_prediction_provenance")
 PREDICTION_SOURCES = (
