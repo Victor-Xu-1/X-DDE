@@ -92,7 +92,17 @@ def test_native_encoder_keeps_the_actual_38_compound_index_fingerprint(
     # Retained native job f027c8d6-9b47-4455-abf9-4f545d624642, no inference fixture.
     policy = json.loads((Path(__file__).parent / "fixtures/encoder-policy-v1.json").read_text())
     monkeypatch.setitem(sys.modules, "native_resources", native_resources)
-    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace())
+
+    def refuse_checkpoint_load(*args, **kwargs):
+        pytest.fail("Identity inspection must not load scientific checkpoints.")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "torch",
+        SimpleNamespace(
+            inference_mode=lambda: lambda function: function, load=refuse_checkpoint_load
+        ),
+    )
     path = Path(__file__).parents[1] / "src/opendde_workbench/datasets/drugclip_encoder.py"
     definition = importlib.util.spec_from_file_location("reviewed_encoder_identity", path)
     encoder = importlib.util.module_from_spec(definition)
