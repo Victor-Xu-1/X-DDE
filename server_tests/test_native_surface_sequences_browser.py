@@ -83,7 +83,7 @@ def test_native_sequences_select_export_and_fit_without_submitting_jobs(language
         for width in (1440, 390):
             page.set_viewport_size({"width": width, "height": 1000})
             summary.scroll_into_view_if_needed()
-            page.wait_for_function("document.documentElement.scrollWidth <= innerWidth + 1")
+            page.wait_for_function("() => document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=destination / f"native-result-{width}.png")
         assert not errors, errors
         assert not submissions, submissions
