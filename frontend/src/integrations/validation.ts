@@ -49,7 +49,7 @@ export function validScientificChoices(p: ScientificPayload): boolean {
     case "boltzgen":
       return (
         bounded(p.candidates, 1, 200, true) &&
-        bounded(p.retain, 1, Number(p.candidates), true) &&
+        bounded(p.retain, 1, Math.min(50, Number(p.candidates)), true) &&
         range(p.length, 8, 300, true) &&
         (p.length as number[]).every(Number.isInteger)
       );

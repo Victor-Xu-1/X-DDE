@@ -71,6 +71,20 @@ describe("scientific form guidance", () => {
   });
   it("does not retain more designs than it generates", () => {
     expect(
+      validScientificChoices({
+        ...nativeDefaults.boltzgen,
+        candidates: 4,
+        retain: 2,
+      }),
+    ).toBe(true);
+    expect(
+      validScientificChoices({
+        ...nativeDefaults.boltzgen,
+        candidates: 200,
+        retain: 51,
+      }),
+    ).toBe(false);
+    expect(
       validScientificChoices({ ...nativeDefaults.boltzgen, retain: 50 }),
     ).toBe(false);
     expect(

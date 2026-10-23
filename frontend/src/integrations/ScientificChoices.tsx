@@ -69,11 +69,14 @@ export function ScientificChoices({
               value={Number(payload.retain)}
               onChange={(e) => onChange({ retain: Number(e.target.value) })}
             >
-              {[5, 10, 20].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
+              {Array.from(new Set([5, 10, 20, Number(payload.retain)]))
+                .filter((n) => Number.isInteger(n) && n >= 1 && n <= 50)
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
             </select>
           </label>
         </>

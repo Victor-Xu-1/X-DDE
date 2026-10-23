@@ -16,6 +16,7 @@ on:
             result-completeness,
             alignment-views,
             structure-query-inputs,
+            binder-budget,
             chemistry,
             admet,
             openmm,
@@ -65,6 +66,21 @@ on:
 permissions:
   contents: read
 jobs:
+  binder-budget:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'binder-budget'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Exact bounded design choices and existing submission consumer
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/ScientificChoices.test.tsx
+          src/integrations/validation.test.ts src/integrations/ScientificForm.test.tsx
   structure-query-inputs:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'structure-query-inputs'
     runs-on: ubuntu-24.04
