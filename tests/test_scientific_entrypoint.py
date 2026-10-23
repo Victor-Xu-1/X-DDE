@@ -104,7 +104,7 @@ def test_reinvent_recipe_contains_reviewed_rdkit_drawing_libraries():
     assert {
         "libxrender1=1:0.9.10-1.1",
         "libxext6=2:1.3.4-1+b1",
-        "libexpat1=2.5.0-1+deb12u4",
+        "libexpat1=2.5.0-1+deb12u5",
     } <= set(PROGRAMS["reinvent"]["system_packages"])
 
 

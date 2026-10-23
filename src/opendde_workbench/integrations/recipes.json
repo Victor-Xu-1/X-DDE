@@ -136,7 +136,7 @@
       "system_packages": [
         "libxrender1=1:0.9.10-1.1",
         "libxext6=2:1.3.4-1+b1",
-        "libexpat1=2.5.0-1+deb12u4"
+        "libexpat1=2.5.0-1+deb12u5"
       ],
       "system_packages_after_python": true,
       "pip": [
@@ -288,7 +288,7 @@
         "libxrender1=1:0.9.10-1.1",
         "libxext6=2:1.3.4-1+b1",
         "libsm6=2:1.2.3-1",
-        "libexpat1=2.5.0-1+deb12u4"
+        "libexpat1=2.5.0-1+deb12u5"
       ]
     },
     "drugclip": {
@@ -428,7 +428,7 @@
         "libxrender1=1:0.9.10-1.1",
         "libxext6=2:1.3.4-1+b1",
         "libsm6=2:1.2.3-1",
-        "libexpat1=2.5.0-1+deb12u4"
+        "libexpat1=2.5.0-1+deb12u5"
       ]
     },
     "deli": {
@@ -443,7 +443,7 @@
         "libxrender1=1:0.9.10-1.1",
         "libxext6=2:1.3.4-1+b1",
         "libsm6=2:1.2.3-1",
-        "libexpat1=2.5.0-1+deb12u4"
+        "libexpat1=2.5.0-1+deb12u5"
       ]
     },
     "deepternary": {

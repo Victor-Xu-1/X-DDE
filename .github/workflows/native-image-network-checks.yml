@@ -4,7 +4,10 @@ on:
   push:
     paths:
       - "src/opendde_workbench/integrations/image.py"
+      - "src/opendde_workbench/integrations/recipes.json"
       - "tests/test_native_image_network.py"
+      - "tests/test_scientific_entrypoint.py"
+      - "scripts/verify-native-system-libraries.py"
       - ".github/workflows/native-image-network-checks.yml"
 permissions:
   contents: read
@@ -26,3 +29,14 @@ jobs:
         run: >-
           uv run --locked python -m pytest -q tests/test_native_image_network.py
           tests/test_install_network.py tests/test_scientific_archives.py
+          tests/test_scientific_entrypoint.py
+      - name: Install the exact system-library pins from both native base images
+        run: >-
+          python scripts/verify-native-system-libraries.py
+          --program drugclip --program deli --program chemprop --program reinvent
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-system-library-evidence
+          path: server_tests/evidence/native-system-libraries.json
+          if-no-files-found: error
