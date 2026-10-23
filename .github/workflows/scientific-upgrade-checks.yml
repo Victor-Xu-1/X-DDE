@@ -23,6 +23,7 @@ on:
             binder-quality,
             native-sequence-views,
             model-identity,
+            install-probe,
             chemistry,
             admet,
             openmm,
@@ -72,6 +73,29 @@ on:
 permissions:
   contents: read
 jobs:
+  install-probe:
+    if: github.event_name == 'workflow_dispatch' && inputs.check == 'install-probe'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Changed installation probe, native admission and shared cleanup only
+        run: >-
+          uv run --locked pytest -q tests/test_install_probe_lifecycle.py
+          tests/test_scientific_entrypoint.py tests/test_scientific_cache.py
+          tests/test_native_container_cleanup.py
+      - name: Real offline native exit and removal on the locked official base; no models or science
+        env:
+          WB_TEST_NATIVE_INSTALL_PROBE: "1"
+        run: uv run --locked pytest -x -q server_tests/test_install_probe_native.py
   model-identity:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'model-identity'
     runs-on: ubuntu-24.04

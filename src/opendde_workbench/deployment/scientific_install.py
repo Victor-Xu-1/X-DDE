@@ -37,7 +37,7 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
         checkpoint()
         destination.mkdir(parents=True, exist_ok=False)
         report("Reusing the reviewed native environment from the local image cache")
-        return verified_runtime(identifier, destination, image, execute, report)
+        return verified_runtime(identifier, destination, image, execute, report, work)
     if available_bytes(root) < 16 * 1024**3:
         raise ValueError("The isolated scientific environment needs at least 16 GiB staging space.")
     source = None
@@ -84,17 +84,17 @@ def install_runtime(identifier, root, work, execute, report, checkpoint):
     network = ["--network=none"] if identifier == "openfe" else []
     execute(["docker", "build", *network, "--tag", tag, context], timeout=7200)
     image = execute(["docker", "image", "inspect", "--format", "{{.Id}}", tag]).strip()
-    return verified_runtime(identifier, destination, image, execute, report)
+    return verified_runtime(identifier, destination, image, execute, report, work)
 
 
-def verified_runtime(identifier, destination, image, execute, report):
+def verified_runtime(identifier, destination, image, execute, report, work):
     """A cache hit and a source build share the same native readiness and receipt boundary."""
     if not image.startswith("sha256:") or len(image) != 71:
         raise ValueError("Native image build returned no immutable image identity.")
     from .native_readiness import verify_native_entrypoint
 
     report("Checking the installed native command entrypoint")
-    verify_native_entrypoint(identifier, image, execute)
+    verify_native_entrypoint(identifier, image, execute, work)
     return {
         "directory": str(destination),
         "image": image,

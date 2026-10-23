@@ -88,8 +88,9 @@ def test_cached_install_still_checks_full_native_cli_before_returning_receipt(
     monkeypatch.setattr(scientific_install, "available_bytes", no_staging)
     calls = []
 
-    def verify(identifier, image, execute):
+    def verify(identifier, image, execute, directory):
         calls.append((identifier, image))
+        assert directory == tmp_path / "work"
 
     monkeypatch.setattr(
         "opendde_workbench.deployment.native_readiness.verify_native_entrypoint", verify

@@ -9,14 +9,29 @@ from opendde_workbench.integrations.image import prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS
 
 
+@pytest.fixture(autouse=True)
+def probe_command_boundary(monkeypatch):
+    # These tests cover each native command's isolation/import contract. The
+    # owned create/attach/exit/cleanup lifecycle has its own regression tests.
+    def command(identifier, image, arguments, execute, directory):
+        assert isinstance(directory, Path)
+        return execute(arguments, timeout=120)
+
+    monkeypatch.setattr("opendde_workbench.deployment.native_readiness.run_probe", command)
+
+
 def test_reinvent_cli_probe_preserves_offline_nonroot_execution_and_does_not_load_models(
     monkeypatch,
+    tmp_path,
 ):
     monkeypatch.setattr("opendde_workbench.deployment.native_readiness.os.getuid", lambda: 12345)
     monkeypatch.setattr("opendde_workbench.deployment.native_readiness.os.getgid", lambda: 23456)
     calls = []
     verify_native_entrypoint(
-        "reinvent", "sha256:fixed-image", lambda args, **kwargs: calls.append((args, kwargs))
+        "reinvent",
+        "sha256:fixed-image",
+        lambda args, **kwargs: calls.append((args, kwargs)),
+        tmp_path,
     )
     args, kwargs = calls[0]
     assert args[args.index("--user") + 1] == "12345:23456"
@@ -29,12 +44,12 @@ def test_reinvent_cli_probe_preserves_offline_nonroot_execution_and_does_not_loa
 
 
 @pytest.mark.parametrize("identifier", ["reinvent", "plip", "ligandmpnn"])
-def test_failed_cli_initialization_is_not_advertised_as_installed(identifier):
+def test_failed_cli_initialization_is_not_advertised_as_installed(identifier, tmp_path):
     def fail(args, **kwargs):
         raise RuntimeError("native CLI has a missing runtime library")
 
     with pytest.raises(RuntimeError, match="missing runtime library"):
-        verify_native_entrypoint(identifier, "sha256:fixed-image", fail)
+        verify_native_entrypoint(identifier, "sha256:fixed-image", fail, tmp_path)
 
 
 def test_ligandmpnn_startup_is_nonroot_offline_and_never_mounts_models(monkeypatch, tmp_path):
@@ -42,7 +57,10 @@ def test_ligandmpnn_startup_is_nonroot_offline_and_never_mounts_models(monkeypat
     monkeypatch.setattr("opendde_workbench.deployment.native_readiness.os.getgid", lambda: 23456)
     calls = []
     verify_native_entrypoint(
-        "ligandmpnn", "sha256:fixed-image", lambda args, **kwargs: calls.append((args, kwargs))
+        "ligandmpnn",
+        "sha256:fixed-image",
+        lambda args, **kwargs: calls.append((args, kwargs)),
+        tmp_path,
     )
     args, kwargs = calls[0]
     assert args[-5:] == [
@@ -81,10 +99,13 @@ def test_ligandmpnn_startup_is_nonroot_offline_and_never_mounts_models(monkeypat
     assert constants.read_text().count("dtype=np.int)") == 3
 
 
-def test_plip_installation_probes_its_declared_mmcif_parser_without_loading_research():
+def test_plip_installation_probes_its_declared_mmcif_parser_without_loading_research(tmp_path):
     calls = []
     verify_native_entrypoint(
-        "plip", "sha256:fixed-image", lambda args, **kwargs: calls.append((args, kwargs))
+        "plip",
+        "sha256:fixed-image",
+        lambda args, **kwargs: calls.append((args, kwargs)),
+        tmp_path,
     )
     args, kwargs = calls[0]
     assert args[-5:-1] == ["--entrypoint", "python", "sha256:fixed-image", "-c"]

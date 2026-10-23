@@ -36,7 +36,7 @@ def test_managed_ligandmpnn_imports_sidechain_dependencies_under_the_owning_uid(
     assert installed["runtime_lock_sha256"] == lock_digest("ligandmpnn")
     assert "models" not in installed
     assert "Checking the installed native command entrypoint" in stages
-    log = log_file.read_text()
+    log = log_file.with_name("native-cli.log").read_text()
     assert "--pack_side_chains" in log and "--checkpoint_path_sc" in log
     assert "ModuleNotFoundError" not in log and "Traceback" not in log
     (evidence / "acceptance.json").write_text(

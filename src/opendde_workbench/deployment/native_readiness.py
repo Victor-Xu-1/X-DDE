@@ -3,16 +3,14 @@
 import os
 
 from ..integrations.cache_environment import torch_cache_arguments
+from .native_probe import run_probe
 
 
-def verify_native_entrypoint(identifier, image, execute):
+def verify_native_entrypoint(identifier, image, execute, directory):
     """Probe the declared native entry points without loading models or research inputs."""
     if identifier not in {"reinvent", "plip", "ligandmpnn"}:
         return
     args = [
-        "docker",
-        "run",
-        "--rm",
         "--network",
         "none",
         "--read-only",
@@ -59,4 +57,4 @@ def verify_native_entrypoint(identifier, image, execute):
             "from Bio.PDB import MMCIFParser, PDBIO; "
             "from plip.structure.preparation import PDBComplex",
         ]
-    execute([*args, *entrypoint], timeout=120)
+    run_probe(identifier, image, [*args, *entrypoint], execute, directory)
