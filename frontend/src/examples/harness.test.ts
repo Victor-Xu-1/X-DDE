@@ -116,4 +116,17 @@ describe("native example input provenance", () => {
     (loaded.mutable_positions as Record<string, number[]>).B.push(3);
     expect(request.payload.mutable_positions.B).toEqual([2]);
   });
+  it("uses the exact selected domain sequence source and detaches it after a sequence edit", () => {
+    const domain = {
+      ...example,
+      objects: { sh2_sequence: fasta, protein_sequence: unused },
+      sequence_sources: { sh2_sequence: [heavy], protein_sequence: [heavy + light] },
+    };
+    expect(
+      exampleHarnessInputs("esm2", { parent_chains: { A: heavy } }, domain),
+    ).toEqual([fasta.reference]);
+    expect(
+      exampleHarnessInputs("esm2", { parent_chains: { A: heavy + "A" } }, domain),
+    ).toEqual([]);
+  });
 });

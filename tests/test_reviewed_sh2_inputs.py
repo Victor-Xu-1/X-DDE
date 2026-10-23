@@ -102,9 +102,19 @@ def test_exact_domain_sources_lineage_and_prediction_consumers(settings):
     for capability in ("predict", "boltz.predict", "mpnn", "esm2", "boltzgen.design"):
         prepared = prepare_stat6(capability, scientific, records=records)
         assert prepared.objects["sh2_msa"].id == msa.id
+        assert prepared.sequence_sources["sh2_sequence"] == (canonical[516:632],)
         if capability in {"predict", "boltz.predict"}:
             assert prepared.sequences["protein"] == canonical[516:632]
             task = store.create(TASK_ADAPTER.validate_python(prepared.request), capability, 20, 500)
+            validate_input_lineage(task, prepared, store)
+        if capability == "esm2":
+            request = prepared.request
+            request["payload"]["parent_chains"] = {"A": canonical[516:632]}
+            request["payload"]["mutable_positions"] = {"A": [32, 36, 63, 68, 93]}
+            request["scientific_inputs"] = [
+                prepared.objects["sh2_sequence"].reference.model_dump(mode="json")
+            ]
+            task = store.create(TASK_ADAPTER.validate_python(request), "domain-sequence", 20, 500)
             validate_input_lineage(task, prepared, store)
     # An existing uploaded file gets its genuine derived version, not a new hash authority.
     prepared = prepare_stat6("predict", scientific, records=records)

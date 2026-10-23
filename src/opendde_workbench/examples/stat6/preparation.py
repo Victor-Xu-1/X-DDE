@@ -186,6 +186,7 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         )
         if domain is not None:
             objects.update(domain["objects"])
+            sequences["sh2"] = domain["sequence"]
             if capability in {"boltz.predict", "predict"}:
                 objects["prediction_construct"] = objects["sh2_sequence"]
                 objects["protein_sequence"] = objects["sh2_sequence"]
@@ -233,6 +234,8 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         key: (sequence,) for key in ("protein_sequence", "target_sequence", "stat6_sequence")
     }
     sequence_sources["protein_sequence"] = (sequences["protein"],)
+    if "sh2_sequence" in objects:
+        sequence_sources["sh2_sequence"] = (sequences["sh2"],)
     sequence_sources.update(
         {
             "antigen_sequence": (sequences["antigen"],),

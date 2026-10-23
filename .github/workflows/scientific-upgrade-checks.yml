@@ -159,6 +159,9 @@ jobs:
           uv run --locked pytest -q tests/test_reviewed_sh2_inputs.py
           tests/test_curated_native_case_inputs.py tests/test_example_native_lineage.py
           tests/test_stat6_templates.py
+      - name: Exact native sequence-source ownership and detachment after editing
+        working-directory: frontend
+        run: npx vitest run src/examples/harness.test.ts
   binder-budget:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'binder-budget'
     runs-on: ubuntu-24.04
