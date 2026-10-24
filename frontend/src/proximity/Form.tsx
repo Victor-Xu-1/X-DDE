@@ -25,6 +25,9 @@ export function ProximityForm({
   onCreated(job: Job): void;
 }) {
   const example = useExampleTask("ternary_model");
+  const [name, setName] = useState(example?.name ?? "");
+  const validName =
+    Array.from(name).length <= 80 && !/[\u0000-\u001f\u007f]/.test(name);
   const [execution, setExecution] = useState<TernaryExecution>(() => ({
     ...(example?.options ?? defaultExecution),
   }));
@@ -74,9 +77,11 @@ export function ProximityForm({
         ];
         return run.submit({
           operation: "ternary_model",
-          name: zh
-            ? "诱导邻近 · 三元装配探索"
-            : "Induced proximity · ternary assemblies",
+          name:
+            name.trim() ||
+            (zh
+              ? "诱导邻近 · 三元装配探索"
+              : "Induced proximity · ternary assemblies"),
           inputs,
           scientific_inputs: inputs.map((i) => i.source),
           payload,
@@ -118,15 +123,34 @@ export function ProximityForm({
             firstReady &&
             secondReady &&
             planReady &&
+            validName &&
             validExecution(execution),
           content: (
-            <ProximityPlan
-              execution={execution}
-              setExecution={setExecution}
-              payload={payload}
-              setPayload={setPayload}
-              language={language}
-            />
+            <>
+              <label className="field">
+                {zh ? "任务名称（可选）" : "Task name (optional)"}
+                <input
+                  value={name}
+                  maxLength={80}
+                  aria-invalid={!validName}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </label>
+              {!validName && (
+                <p role="alert">
+                  {zh
+                    ? "任务名称最多 80 个字符，且不能包含控制字符。"
+                    : "Use at most 80 characters without control characters."}
+                </p>
+              )}
+              <ProximityPlan
+                execution={execution}
+                setExecution={setExecution}
+                payload={payload}
+                setPayload={setPayload}
+                language={language}
+              />
+            </>
           ),
         },
       ]}

@@ -13,7 +13,7 @@ import type { ScientificTask } from "../integrations/types";
 
 const mocks = vi.hoisted(() => ({
   submit: vi.fn(),
-  example: null as { options: ScientificTask["options"] } | null,
+  example: null as { name?: string; options: ScientificTask["options"] } | null,
 }));
 vi.mock("../examples/context", async () => ({
   ...(await vi.importActual<typeof import("../examples/context")>(
@@ -108,6 +108,7 @@ it("submits the visible4GiB default through the real questionnaire and retains a
   );
   await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
   const request = mocks.submit.mock.calls[0][0] as ScientificTask;
+  expect(request.name).toBe("Induced proximity · ternary assemblies");
   expect(request.options).toEqual({
     device: "cpu",
     cpu: 2,
@@ -206,3 +207,62 @@ it("submits the selected target anchor without changing protein roles or binary 
   ]);
   expect(request.options.memory_mib).toBe(4096);
 });
+
+it("keeps a chosen study name across review navigation and language switching", async () => {
+  const user = userEvent.setup();
+  const view = render(<ProximityForm language="en" onCreated={vi.fn()} />);
+  for (let step = 0; step < 3; step++)
+    await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.type(
+    screen.getByRole("textbox", { name: "Task name (optional)" }),
+    "STAT6 / CRBN · R branch",
+  );
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  view.rerender(<ProximityForm language="zh" onCreated={vi.fn()} />);
+  expect(screen.getByRole("textbox", { name: "任务名称（可选）" })).toHaveValue(
+    "STAT6 / CRBN · R branch",
+  );
+  await user.click(screen.getByRole("button", { name: "开始三元建模" }));
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  expect(mocks.submit.mock.calls[0][0].name).toBe("STAT6 / CRBN · R branch");
+});
+
+it("prefills an example name and lets the researcher name their own variation", async () => {
+  mocks.example = {
+    name: "Reference ternary study",
+    options: { device: "cpu", cpu: 2, memory_mib: 4096, seed: 31 },
+  };
+  const user = await review("zh");
+  const field = screen.getByRole("textbox", { name: "任务名称（可选）" });
+  expect(field).toHaveValue("Reference ternary study");
+  await user.clear(field);
+  await user.type(field, "  STAT6 三元复合物 S 构型  ");
+  await user.click(screen.getByRole("button", { name: "开始三元建模" }));
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  expect(mocks.submit.mock.calls[0][0].name).toBe("STAT6 三元复合物 S 构型");
+  expect(mocks.example.name).toBe("Reference ternary study");
+});
+
+it.each(["x".repeat(81), "Study\u007f"])(
+  "blocks a name outside the existing server contract and recovers without losing inputs",
+  async (name) => {
+    const user = await review();
+    const field = screen.getByRole("textbox", { name: "Task name (optional)" });
+    fireEvent.change(field, { target: { value: name } });
+    expect(screen.getByRole("alert")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Start ternary modeling" }),
+    ).toBeDisabled();
+    expect(mocks.submit).not.toHaveBeenCalled();
+    fireEvent.change(field, { target: { value: " " } });
+    await user.click(
+      screen.getByRole("button", { name: "Start ternary modeling" }),
+    );
+    await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+    expect(mocks.submit.mock.calls[0][0].name).toBe(
+      "Induced proximity · ternary assemblies",
+    );
+    expect(mocks.submit.mock.calls[0][0].inputs).toHaveLength(5);
+  },
+);
