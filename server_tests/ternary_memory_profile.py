@@ -223,7 +223,7 @@ def run_profiles(root, image, models):
         for branch in provenance["branches"]:
             baseline = native_case(root, image, models, source, branch, 4096)
             records.append(baseline)
-            smaller = native_case(root, image, models, source, branch, 2048)
+            smaller = native_case(root, image, models, source, branch, 1536)
             records.append(smaller)
             assert (
                 smaller["scientific_atom_bond_coordinates"]
@@ -232,11 +232,16 @@ def run_profiles(root, image, models):
             assert smaller["native_assemblies"] == baseline["native_assemblies"], (
                 "Memory limit changed native ranking, geometry or source-frame evidence."
             )
-            assert smaller["profile"]["cgroup_peak_bytes"] <= 0.8 * 2048 * 1024**2, (
-                "Keep at least20 percent measured container headroom."
+            measured = smaller["profile"]
+            conservative_peak = max(
+                measured["cgroup_peak_bytes"],
+                measured["self_peak_rss_bytes"] + measured["child_peak_rss_bytes"],
+            )
+            assert conservative_peak <= 0.8 * 1536 * 1024**2, (
+                "Retain20percent observed memory margin in the isolated stress test."
             )
         result = {
-            "proposed_memory_mib": 2048,
+            "proposed_memory_mib": 1536,
             "records": records,
             "exact_native_output_invariant": True,
             "native_recipe_sha256": recipe_digest("deepternary"),
@@ -245,6 +250,11 @@ def run_profiles(root, image, models):
             "scientific_accuracy_accepted": False,
             "owner_frontend_tasks": 0,
             "platform_budget_enabled": False,
+            "published_minimum_memory_mib": 4096,
+            "scope": (
+                "Isolated kernel-cap measurement only; "
+                "no production budget, contract or owner admission change."
+            ),
         }
         (root / "memory-budget-review.json").write_text(json.dumps(result, indent=2))
     finally:

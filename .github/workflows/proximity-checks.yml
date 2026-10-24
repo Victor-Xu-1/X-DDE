@@ -121,7 +121,7 @@ jobs:
       - run: uv sync --locked --python 3.12 --group dev
       - name: Static checks for native profiling instrumentation
         run: uv run --locked ruff check server_tests/deepternary_native_probe.py server_tests/ternary_memory_profile.py server_tests/ternary_memory_entry.py
-      - name: Same STAT6 R/S inputs and sampling under enforced four and two GiB limits
+      - name: Isolated STAT6 kernel-cap measurement; production request remains four GiB
         run: uv run --locked python server_tests/deepternary_native_probe.py --output "$RUNNER_TEMP/ternary-memory" --profile-only
       - uses: actions/upload-artifact@v4
         if: always()
