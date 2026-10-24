@@ -225,7 +225,9 @@ it("cannot restore a delayed template after starting a new task in the same modu
   );
   expect(screen.queryByRole("button", { name: "New blank task" })).toBeNull();
   expect(
-    screen.getByRole("radio", { name: "Upload a new file" }),
+    screen.getByRole("radio", {
+      name: "Upload a new molecular file (recommended)",
+    }),
   ).toBeChecked();
   expect(
     screen.getByRole("button", { name: "Use this template" }),
