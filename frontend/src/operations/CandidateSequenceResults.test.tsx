@@ -182,3 +182,56 @@ it("resets candidate ownership when a different task replaces the displayed resu
   );
   expect(screen.getByRole("heading", { name: "first" })).toBeVisible();
 });
+
+it("switches the native quality status with the selected pose and restores it on task replacement", async () => {
+  const candidates = [
+    {
+      candidate_id: "native-failed",
+      chains: { A: "ACDEF" },
+      metrics: { iptm: 0.91, gate_passed: 0 },
+      metadata: { gate_passed: false },
+    },
+    {
+      candidate_id: "native-passed",
+      chains: { A: "AKDEF" },
+      metrics: { iptm: 0.4, gate_passed: 1 },
+      metadata: { gate_passed: true },
+    },
+  ];
+  const original = JSON.stringify(candidates);
+  const view = render(
+    <CandidateSequenceResults
+      job={job}
+      candidates={candidates}
+      structures={[]}
+      language="en"
+    />,
+  );
+  const status = () =>
+    within(
+      screen.getByRole("region", { name: "Interface assessment" }),
+    ).getByRole("status");
+  expect(status()).toHaveTextContent("Native interface check not passed");
+  await userEvent
+    .setup()
+    .click(
+      within(
+        screen.getByRole("table", { name: "Sequence candidates" }),
+      ).getByRole("button", { name: "native-passed" }),
+    );
+  expect(status()).toHaveTextContent("Native interface check passed");
+  view.rerender(
+    <CandidateSequenceResults
+      job={{ ...job, id: "next-fold" }}
+      candidates={candidates}
+      structures={[]}
+      language="zh"
+    />,
+  );
+  expect(
+    within(screen.getByRole("region", { name: "界面质量评估" })).getByRole(
+      "status",
+    ),
+  ).toHaveTextContent("原生界面检查未通过");
+  expect(JSON.stringify(candidates)).toBe(original);
+});

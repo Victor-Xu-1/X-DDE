@@ -1,0 +1,31 @@
+name: Fold interface assessment checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &assessment_paths
+      - 'frontend/src/operations/fold-assessment*'
+      - 'frontend/src/operations/FoldAssessment*'
+      - 'frontend/src/operations/CandidateSequenceResults*'
+      - 'frontend/src/operations/candidate-results.css'
+      - '.github/workflows/fold-assessment-checks.yml'
+  pull_request:
+    paths: *assessment_paths
+permissions:
+  contents: read
+jobs:
+  assessment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Native gate flags, CDR evidence, bilingual display and selected-candidate ownership
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/fold-assessment.test.ts
+          src/operations/FoldAssessment.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx
+          src/operations/HarnessResults.test.tsx

@@ -16,3 +16,31 @@
   white-space: nowrap;
   overflow-wrap: normal;
 }
+
+.sequence-candidate-results .fold-assessment {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.sequence-candidate-results .fold-assessment h3 {
+  margin: 0 0 8px;
+}
+.sequence-candidate-results .fold-assessment p {
+  margin: 6px 0;
+}
+.sequence-candidate-results .fold-assessment[data-state="failed"] strong,
+.sequence-candidate-results .fold-assessment[data-state="inconsistent"] strong {
+  color: var(--danger, #a62636);
+}
+.sequence-candidate-results .fold-assessment dl {
+  margin: 10px 0;
+}
+.sequence-candidate-results .fold-assessment dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  justify-content: space-between;
+}
+.sequence-candidate-results .fold-assessment dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

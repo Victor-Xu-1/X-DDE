@@ -17,6 +17,7 @@ import {
 import { mutationDescription } from "./sequence-result";
 import { candidateStructure } from "./candidate-structures";
 import { SequenceProposalSummary } from "./SequenceProposalSummary";
+import { FoldAssessment } from "./FoldAssessment";
 import "./candidate-results.css";
 
 export function CandidateSequenceResults({
@@ -180,6 +181,11 @@ export function CandidateSequenceResults({
         }
       >
         <div className="result-inspector">
+          <FoldAssessment
+            job={job}
+            candidate={current.value}
+            language={language}
+          />
           <ResearchTable
             rows={rows}
             language={language}
