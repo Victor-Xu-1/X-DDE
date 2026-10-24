@@ -14,7 +14,7 @@ from opendde_workbench.integrations.image import lock_digest, prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
 
-def main(root):
+def main(root, *, profile_only=False):
     if os.environ.get("CI") != "true":
         raise RuntimeError("Run this scientific baseline in the isolated CI environment.")
     root.mkdir(parents=True, exist_ok=False)
@@ -67,6 +67,11 @@ def main(root):
     image_id = subprocess.check_output(
         ["docker", "image", "inspect", "--format", "{{.Id}}", image], text=True
     ).strip()
+    if profile_only:
+        from ternary_memory_profile import run_profiles
+
+        run_profiles(root, image_id, models)
+        return
     output = root / "output"
     output.mkdir()
     entry = Path(__file__).with_name("deepternary_protocol_entry.py").resolve()
@@ -152,4 +157,6 @@ def main(root):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
-    main(parser.parse_args().output.resolve())
+    parser.add_argument("--profile-only", action="store_true")
+    args = parser.parse_args()
+    main(args.output.resolve(), profile_only=args.profile_only)

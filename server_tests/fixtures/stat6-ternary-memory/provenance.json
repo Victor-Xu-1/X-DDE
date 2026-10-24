@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "scope": "Exact prospective STAT6 R/S inputs used only for native resource-budget integration checks; not owner research acceptance or fixed module examples.",
+  "stereochemistry": "The original user PROTAC has an unassigned center; R/S are separate conditional hypotheses, not assigned drug identity.",
+  "receptors": {
+    "protein-a.pdb": "Observed engineered CRBN-midi construct from public8RQA; retain mutations and observed gaps.",
+    "protein-b.pdb": "Observed public STAT6 9BIG chainA, coherent altA; no unresolved residues invented."
+  },
+  "arms": "Native GNINA hypotheses with exact source graph/stereo; not experimental poses.",
+  "sampling": {
+    "samples": 3,
+    "attempt_budget": 12,
+    "wall_seconds": 600,
+    "seed": 31,
+    "cpu": 2,
+    "device": "cpu"
+  },
+  "files": {
+    "protein-a.pdb": {
+      "sha256": "36397dab833888f554ec141b80f65ecc4af14b89aa12876d2c7cf03b17ba553b",
+      "role": "partner_a"
+    },
+    "protein-b.pdb": {
+      "sha256": "a8f67e20bb237bb19a3e61c8888f28605a01f15643d76f9d8ae3fe9fbf4e0448",
+      "role": "partner_b"
+    },
+    "arm-b.sdf": {
+      "sha256": "865acb238c81aa40f35c18c04fc2ef4835f004933a3c2bcf3bde0d578ba0cb38",
+      "role": "arm_b"
+    },
+    "full-R.sdf": {
+      "sha256": "f4b0a80b091e014036d42d5cdb7d8e0a65486991742a3109c32b6e93ef6072d6",
+      "role": "ligand"
+    },
+    "arm-a-R.sdf": {
+      "sha256": "49fc8f840307b027cefbf6c6f06da96b60db8431a30fca87aa276a4765e77f2c",
+      "role": "arm_a"
+    },
+    "full-S.sdf": {
+      "sha256": "30d7556334b3c1361c15ec9b70f788e21f4765854b67b191be5a32b872a4092b",
+      "role": "ligand"
+    },
+    "arm-a-S.sdf": {
+      "sha256": "180ccfdec599d2517821b6354d53dfaf18047652f7131391acd7ac26538f4125",
+      "role": "arm_a"
+    }
+  },
+  "branches": [
+    {
+      "configuration": "R",
+      "sources": {
+        "partner_a": "protein-a.pdb",
+        "partner_b": "protein-b.pdb",
+        "arm_b": "arm-b.sdf",
+        "ligand": "full-R.sdf",
+        "arm_a": "arm-a-R.sdf"
+      },
+      "payload": {
+        "kind": "deepternary",
+        "input_mode": "binary_poses",
+        "mechanism": "protac",
+        "partner_a_name": "Engineered CRBN-midi / 8RQA",
+        "partner_a_chain": "A",
+        "partner_b_name": "STAT6 observed receptor / 9BIG altA",
+        "partner_b_chain": "A",
+        "samples": 3,
+        "attempt_budget": 12,
+        "wall_seconds": 600,
+        "ligand_correction": true,
+        "anchor_partner": "a",
+        "arm_a_map": [
+          52,
+          53,
+          54,
+          55,
+          56,
+          60,
+          57,
+          58,
+          59,
+          2,
+          3,
+          4,
+          49,
+          61,
+          50,
+          51,
+          0,
+          1
+        ],
+        "arm_b_map": [
+          41,
+          40,
+          39,
+          19,
+          20,
+          21,
+          37,
+          48,
+          38,
+          42,
+          14,
+          13,
+          12,
+          11,
+          17,
+          18,
+          15,
+          16,
+          22,
+          23,
+          24,
+          25,
+          26,
+          28,
+          36,
+          27,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          45,
+          44,
+          46,
+          43,
+          47
+        ]
+      }
+    },
+    {
+      "configuration": "S",
+      "sources": {
+        "partner_a": "protein-a.pdb",
+        "partner_b": "protein-b.pdb",
+        "arm_b": "arm-b.sdf",
+        "ligand": "full-S.sdf",
+        "arm_a": "arm-a-S.sdf"
+      },
+      "payload": {
+        "kind": "deepternary",
+        "input_mode": "binary_poses",
+        "mechanism": "protac",
+        "partner_a_name": "Engineered CRBN-midi / 8RQA",
+        "partner_a_chain": "A",
+        "partner_b_name": "STAT6 observed receptor / 9BIG altA",
+        "partner_b_chain": "A",
+        "samples": 3,
+        "attempt_budget": 12,
+        "wall_seconds": 600,
+        "ligand_correction": true,
+        "anchor_partner": "a",
+        "arm_a_map": [
+          52,
+          53,
+          54,
+          55,
+          56,
+          60,
+          57,
+          58,
+          59,
+          2,
+          3,
+          4,
+          49,
+          61,
+          50,
+          51,
+          0,
+          1
+        ],
+        "arm_b_map": [
+          41,
+          40,
+          39,
+          19,
+          20,
+          21,
+          37,
+          48,
+          38,
+          42,
+          14,
+          13,
+          12,
+          11,
+          17,
+          18,
+          15,
+          16,
+          22,
+          23,
+          24,
+          25,
+          26,
+          28,
+          36,
+          27,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          45,
+          44,
+          46,
+          43,
+          47
+        ]
+      }
+    }
+  ],
+  "scientific_accuracy_accepted": false,
+  "owner_frontend_tasks_submitted": 0,
+  "public_structure_sources": [
+    "https://www.rcsb.org/structure/8RQA",
+    "https://www.rcsb.org/structure/9BIG"
+  ],
+  "source_parent_molecule": "examples/stat6/inputs/STAT6-user-PROTAC-stereo-uncertainty-v2.sdf; conditional minimized conformers retain its exact62heavy-atom graph."
+}

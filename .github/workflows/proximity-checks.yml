@@ -1,6 +1,12 @@
 name: Induced proximity scoped checks
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Native method checks or the bounded memory investigation
+        type: choice
+        options: [native, memory_profile]
+        default: native
   push:
     paths:
       - 'src/opendde_workbench/proximity/**'
@@ -27,6 +33,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native:
+    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'memory_profile'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -98,3 +105,30 @@ jobs:
             ${{ runner.temp }}/deepternary/platform/*.zip
             ${{ runner.temp }}/deepternary/platform/*.png
             ${{ runner.temp }}/proximity-data-install/*.json
+
+  memory-profile:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'memory_profile'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.12 --group dev
+      - name: Static checks for native profiling instrumentation
+        run: uv run --locked ruff check server_tests/deepternary_native_probe.py server_tests/ternary_memory_profile.py server_tests/ternary_memory_entry.py
+      - name: Same STAT6 R/S inputs and sampling under enforced four and two GiB limits
+        run: uv run --locked python server_tests/deepternary_native_probe.py --output "$RUNNER_TEMP/ternary-memory" --profile-only
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stat6-native-memory-evidence
+          path: |
+            ${{ runner.temp }}/ternary-memory/*.json
+            ${{ runner.temp }}/ternary-memory/*.log
+            ${{ runner.temp }}/ternary-memory/stat6-*/request.json
+            ${{ runner.temp }}/ternary-memory/stat6-*/native-exit.json
+            ${{ runner.temp }}/ternary-memory/stat6-*/execution.log
+            ${{ runner.temp }}/ternary-memory/stat6-*/review.json
+            ${{ runner.temp }}/ternary-memory/stat6-*/output/*.json
+            ${{ runner.temp }}/ternary-memory/stat6-*/output/*.pdb
+            ${{ runner.temp }}/ternary-memory/stat6-*/output/*.sdf
