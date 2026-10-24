@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+from pathlib import Path
 from uuid import uuid4
 
 from proximity_adapter_probe import run_adapter
@@ -21,29 +22,6 @@ def prepare_binary_inputs(root, image):
     backend = ScientificBackend(None, "deepternary")
     for name in backend.files:
         shutil.copyfile(backend.shared_sources.get(name, backend.root / name), adapter / name)
-    code = """
-import sys
-sys.path.insert(0, '/platform')
-from rdkit import Chem
-from native_proximity_chemistry import fragment_from_indices
-full = Chem.RemoveHs(Chem.SDMolSupplier('/inputs/ligand.sdf', removeHs=False)[0])
-assert full.GetNumAtoms() == 69
-original = Chem.MolToSmiles(full, isomericSmiles=True)
-for variant in ('original', 'translated'):
-    out = Path('/output') / variant
-    out.mkdir()
-    for role, region in (('a',list(range(32))), ('b',list(range(42,69)))):
-        arm, mapping = fragment_from_indices(full, list(range(69)), region)
-        assert list(mapping) == region
-        with Chem.SDWriter(str(out / ('arm-' + role + '.sdf'))) as writer: writer.write(arm)
-    whole = Chem.Mol(full)
-    if variant == 'translated':
-        conf = whole.GetConformer()
-        for i, xyz in enumerate(conf.GetPositions()):
-            conf.SetAtomPosition(i, xyz + [350., -120., 80.])
-    assert Chem.MolToSmiles(whole, isomericSmiles=True) == original
-    with Chem.SDWriter(str(out / 'ligand.sdf')) as writer: writer.write(whole)
-"""
     container = "xdde-binary-inputs-" + uuid4().hex
     command = [
         "docker",
@@ -78,7 +56,18 @@ for variant in ('original', 'translated'):
             "--mount",
             f"type=bind,source={source},target={target}" + (",readonly" if readonly else ""),
         ]
-    command += ["--entrypoint", "python", image, "-B", "-c", code]
+    entry = Path(__file__).with_name("proximity_binary_inputs.py").resolve()
+    command += [
+        "--mount",
+        f"type=bind,source={entry},target=/probe/prepare.py,readonly",
+        "--env",
+        "PYTHONPATH=/platform",
+        "--entrypoint",
+        "python",
+        image,
+        "-B",
+        "/probe/prepare.py",
+    ]
     try:
         subprocess.run(command, check=True, timeout=90)
     finally:
