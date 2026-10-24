@@ -16,6 +16,10 @@ on:
       - 'tests/test_reviewed_stat6_case_data.py'
       - 'tests/portable/test_bundle_archive.py'
       - 'src/opendde_workbench/deployment/**'
+      # Exact container bindings and installer consumers run in native-container-checks.
+      - '!src/opendde_workbench/deployment/native_probe*.py'
+      - '!src/opendde_workbench/deployment/installers.py'
+      - '!src/opendde_workbench/deployment/network.py'
       - 'src/opendde_workbench/settings.py'
       - 'tests/test_case_bundle.py'
       - 'tests/test_case_output_witnesses.py'
@@ -56,6 +60,10 @@ on:
       - 'tests/test_potential_case_sources.py'
       - 'tests/portable/test_bundle_archive.py'
       - 'src/opendde_workbench/deployment/**'
+      # Exact container bindings and installer consumers run in native-container-checks.
+      - '!src/opendde_workbench/deployment/native_probe*.py'
+      - '!src/opendde_workbench/deployment/installers.py'
+      - '!src/opendde_workbench/deployment/network.py'
       - 'src/opendde_workbench/settings.py'
       - 'frontend/src/deployment/**'
       - '!frontend/src/deployment/component-groups.ts'

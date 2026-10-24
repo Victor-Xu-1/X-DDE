@@ -1,5 +1,6 @@
 """Runtime changes cannot redirect an existing task or falsely clean an old probe."""
 
+import asyncio
 import json
 import subprocess
 from types import SimpleNamespace
@@ -82,15 +83,14 @@ def test_wrong_daemon_cannot_start_observe_or_remove_any_container(monkeypatch, 
     assert calls == [["docker", "--host", ENDPOINT, "info", "--format", "{{json .ID}}"]]
 
 
-@pytest.mark.asyncio
-async def test_parent_async_creation_always_uses_verified_explicit_host():
+def test_parent_async_creation_always_uses_verified_explicit_host():
     calls = []
 
     async def execute(*args, **kwargs):
         calls.append(args)
         return (0, json.dumps(DAEMON)) if args[3] == "info" else (0, "container")
 
-    assert await BOUND.command(execute, "docker", "create", "image") == (0, "container")
+    assert asyncio.run(BOUND.command(execute, "docker", "create", "image")) == (0, "container")
     assert calls[-1] == ("docker", "--host", ENDPOINT, "create", "image")
 
 
@@ -147,9 +147,8 @@ def test_symlink_and_malformed_receipts_never_fall_back_to_default_daemon(tmp_pa
         runtime.read(tmp_path)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("backend_name", ["preparation", "docking"])
-async def test_actual_cancellation_uses_job_receipt_after_environment_switch(
+def test_actual_cancellation_uses_job_receipt_after_environment_switch(
     tmp_path, monkeypatch, backend_name
 ):
     from uuid import uuid4
@@ -178,7 +177,7 @@ async def test_actual_cancellation_uses_job_receipt_after_environment_switch(
         )
     else:
         backend = docking_backend.DockingBackend(settings)
-    await backend.stop(directory.name, directory)
+    asyncio.run(backend.stop(directory.name, directory))
     assert calls[-2] == (
         "docker",
         "--host",
