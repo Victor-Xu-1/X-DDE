@@ -83,6 +83,7 @@ def test_alternate_anchor_restores_the_original_a_frame_and_all_inter_partner_di
     }
     snapshot = deepcopy(native)
     actual = canonical_prediction(native, "b")
+    assert actual["translation"].shape == (1, 3), "Preserve the native transform ABI."
     np.testing.assert_allclose(actual["ligand_positions"], ligand, atol=1e-12)
     # Native partner 2 is original A; the output keeps original A unchanged.
     a_native = a @ rotation.T + offset

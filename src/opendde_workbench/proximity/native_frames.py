@@ -51,6 +51,7 @@ def canonical_prediction(prediction, anchor):
     return {
         **prediction,
         "rotation": inverse,
-        "translation": offset,
+        # DeepTernary's native rotate_and_translate requires a 1x3 row.
+        "translation": offset.reshape(1, 3),
         "ligand_positions": ligand @ inverse.T + offset,
     }
