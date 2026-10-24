@@ -33,51 +33,57 @@ vi.mock("./InitialMaterials", () => ({
 vi.mock("./PartnerQuestion", () => ({
   PartnerQuestion: () => <p>Confirmed binary pose</p>,
 }));
-vi.mock("./useProximityDraft", () => ({
-  useProximityDraft: () => ({
-    ligand: {
-      asset_id: "full",
-      sha256: "a".repeat(64),
-      record: 0,
-      conformer: 0,
+vi.mock("./useProximityDraft", async () => {
+  const { useState } = await import("react");
+  return {
+    useProximityDraft: () => {
+      const [payload, setPayload] = useState({
+        ...defaults,
+        partner_a_name: "Recruiter",
+        partner_b_name: "Target",
+      });
+      return {
+        ligand: {
+          asset_id: "full",
+          sha256: "a".repeat(64),
+          record: 0,
+          conformer: 0,
+        },
+        first: {
+          asset_id: "first",
+          sha256: "b".repeat(64),
+          record: 0,
+          conformer: 0,
+        },
+        second: {
+          asset_id: "second",
+          sha256: "c".repeat(64),
+          record: 0,
+          conformer: 0,
+        },
+        armA: {
+          asset_id: "arm-a",
+          sha256: "d".repeat(64),
+          record: 0,
+          conformer: 0,
+        },
+        armB: {
+          asset_id: "arm-b",
+          sha256: "e".repeat(64),
+          record: 0,
+          conformer: 0,
+        },
+        binary: true,
+        firstReady: true,
+        secondReady: true,
+        planReady: true,
+        payload,
+        setPayload,
+        onLigand: vi.fn(),
+      };
     },
-    first: {
-      asset_id: "first",
-      sha256: "b".repeat(64),
-      record: 0,
-      conformer: 0,
-    },
-    second: {
-      asset_id: "second",
-      sha256: "c".repeat(64),
-      record: 0,
-      conformer: 0,
-    },
-    armA: {
-      asset_id: "arm-a",
-      sha256: "d".repeat(64),
-      record: 0,
-      conformer: 0,
-    },
-    armB: {
-      asset_id: "arm-b",
-      sha256: "e".repeat(64),
-      record: 0,
-      conformer: 0,
-    },
-    binary: true,
-    firstReady: true,
-    secondReady: true,
-    planReady: true,
-    payload: {
-      ...defaults,
-      partner_a_name: "Recruiter",
-      partner_b_name: "Target",
-    },
-    setPayload: vi.fn(),
-    onLigand: vi.fn(),
-  }),
-}));
+  };
+});
 afterEach(() => {
   cleanup();
   mocks.example = null;
@@ -174,4 +180,29 @@ it("preserves archived example resources rather than silently changing their rep
   );
   await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
   expect(mocks.submit.mock.calls[0][0].options).toEqual(mocks.example.options);
+});
+
+it("submits the selected target anchor without changing protein roles or binary poses", async () => {
+  const user = await review();
+  await user.click(screen.getByText("Expert settings"));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Fixed protein" }),
+    "b",
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Start ternary modeling" }),
+  );
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  const request = mocks.submit.mock.calls[0][0] as ScientificTask;
+  expect(request.payload.anchor_partner).toBe("b");
+  expect(request.payload.partner_a_name).toBe("Recruiter");
+  expect(request.payload.partner_b_name).toBe("Target");
+  expect(request.inputs.map((input) => input.role)).toEqual([
+    "ligand",
+    "partner_a",
+    "partner_b",
+    "arm_a",
+    "arm_b",
+  ]);
+  expect(request.options.memory_mib).toBe(4096);
 });

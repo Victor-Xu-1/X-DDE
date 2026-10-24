@@ -9,6 +9,7 @@ import torch
 from deepternary.models.correct import correct_ligand
 from deepternary.models.rotate_utils import kabsch, rotate_and_translate
 from native_proximity_chemistry import ConformerUnavailable
+from native_proximity_frames import canonical_prediction
 from native_proximity_graphs import load_model, partner_graph, proposal
 
 
@@ -20,9 +21,9 @@ def expired(*_):
     raise BudgetExpired("The declared ternary wall-time budget was exhausted.")
 
 
-def predict_one(full, arms, graphs, cfg, model, seed, correction):
+def predict_one(full, arms, graphs, cfg, model, seed, correction, *, binary_pockets=False):
     random.seed(seed)
-    data, molecule = proposal(full, arms, graphs, cfg, seed)
+    data, molecule = proposal(full, arms, graphs, cfg, seed, binary_pockets=binary_pockets)
     with torch.no_grad():
         predicted = model(**data, mode="predict")[0]
     ligand = predicted["ligs_coords_pred"]
@@ -67,6 +68,10 @@ def predict_one(full, arms, graphs, cfg, model, seed, correction):
 
 def predictions(request, full, arms, partners):
     payload = request["payload"]
+    anchor = payload.get("anchor_partner") or "a"
+    ordered_partners = partners if anchor == "a" else partners[::-1]
+    ordered_arms = arms if anchor == "a" else arms[::-1]
+    binary_pockets = payload["input_mode"] == "binary_poses" and bool(arms)
     torch.set_num_threads(request["options"]["cpu"])
     started = time.monotonic()
     signal.signal(signal.SIGALRM, expired)
@@ -75,15 +80,24 @@ def predictions(request, full, arms, partners):
     status = "attempt_budget"
     try:
         cfg, model = load_model(payload["mechanism"] == "molecular_glue")
-        graphs = [partner_graph(partner, cfg.test_dataloader.dataset) for partner in partners]
+        graphs = [
+            partner_graph(partner, cfg.test_dataloader.dataset) for partner in ordered_partners
+        ]
         for attempt in range(payload["attempt_budget"]):
             attempted += 1
             seed = (request["options"]["seed"] + attempt) % 2147483647
             try:
                 value = predict_one(
-                    full, arms, graphs, cfg, model, seed, payload["ligand_correction"]
+                    full,
+                    ordered_arms,
+                    graphs,
+                    cfg,
+                    model,
+                    seed,
+                    payload["ligand_correction"],
+                    binary_pockets=binary_pockets,
                 )
-                returned.append(value)
+                returned.append(canonical_prediction(value, anchor))
             except ConformerUnavailable as error:
                 failures.append({"seed": seed, "reason": str(error)[:300]})
             if len(returned) == payload["samples"]:
@@ -94,6 +108,10 @@ def predictions(request, full, arms, partners):
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
     return returned, {
+        "anchor_partner": anchor,
+        "initialization_protocol": "binary_chemical_frames_v2"
+        if binary_pockets
+        else "observed_complex_v1",
         "attempted": attempted,
         "requested": payload["samples"],
         "attempt_budget": payload["attempt_budget"],

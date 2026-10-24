@@ -82,3 +82,33 @@ def test_unreviewed_gpu_and_inadequate_memory_are_not_silent_cpu_fallbacks():
         invalid = {**value, "options": {**value["options"], **change}}
         with pytest.raises(ValidationError):
             IntegratedTask.model_validate(invalid)
+
+
+def test_fixed_partner_is_explicit_and_unknown_or_glue_alternatives_are_rejected():
+    assert task(anchor_partner="b").payload.anchor_partner == "b"
+    for mechanism, value in (("protac", "unknown"), ("molecular_glue", "b")):
+        with pytest.raises(ValidationError):
+            task(mechanism, anchor_partner=value)
+
+
+def test_legacy_request_serialization_does_not_gain_a_new_default_field():
+    original = task().model_dump_json()
+    assert '"anchor_partner"' not in original
+    assert IntegratedTask.model_validate_json(original).model_dump_json() == original
+    explicit = task(anchor_partner="a").model_dump_json()
+    assert '"anchor_partner":"a"' in explicit
+
+
+def test_legacy_native_search_evidence_keeps_its_original_fields():
+    from opendde_workbench.proximity.result_models import TernarySearch
+
+    original = {
+        "attempted": 3,
+        "requested": 3,
+        "attempt_budget": 12,
+        "returned": 3,
+        "status": "requested_samples",
+        "seconds": 4.2,
+        "failures": [],
+    }
+    assert TernarySearch.model_validate(original).model_dump() == original

@@ -125,6 +125,12 @@ class SearchFailure(EvidenceModel):
 
 
 class TernarySearch(EvidenceModel):
+    anchor_partner: Literal["a", "b"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    initialization_protocol: Literal["binary_chemical_frames_v2", "observed_complex_v1"] | None = (
+        Field(default=None, exclude_if=lambda value: value is None)
+    )
     attempted: int = Field(ge=0, le=60)
     requested: Literal[3, 10, 20]
     attempt_budget: int = Field(ge=3, le=60)

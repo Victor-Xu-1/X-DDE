@@ -12,6 +12,7 @@ from deepternary.models.process_mols import (
 )
 from deepternary.models.ternary_pdb import get_pocket_and_mask
 from native_proximity_chemistry import aligned_arm_conformer
+from native_proximity_frames import pocket_in_ligand_frame
 
 
 def load_model(glue):
@@ -65,7 +66,7 @@ def mapped_pocket(arm, mapping, protein, count, cutoff):
     return full_mask, torch.stack([row[1] for row in selected]), protein_mask
 
 
-def proposal(full, arms, partners, cfg, seed):
+def proposal(full, arms, partners, cfg, seed, *, binary_pockets=False):
     from predict import get_lig_graph_protac, get_lig_graph_revised
 
     torch.manual_seed(seed)
@@ -119,8 +120,21 @@ def proposal(full, arms, partners, cfg, seed):
             # The official MGD interface supplies empty ligand-sized masks for
             # all four pocket fields; no known pocket is injected into this model.
             protein_mask = torch.zeros(count, dtype=torch.bool)
+        # Binary inputs have separate protein frames. Their ligand-side pockets
+        # must share the initialized conformer's frame before randomization.
+        ligand_coordinates = coordinates.clone()
+        if arms and binary_pockets:
+            selected = torch.nonzero(mask, as_tuple=False).flatten().tolist()
+            ligand_coordinates = torch.from_numpy(
+                pocket_in_ligand_frame(
+                    arm.GetConformer().GetPositions(),
+                    mapping,
+                    ligand.ndata["new_x"].numpy(),
+                    selected,
+                )
+            ).float()
         data[prefix + "lig_lig_pocket_mask"] = [mask]
-        data[prefix + "lig_lig_pocket_coords"] = [coordinates.clone()]
+        data[prefix + "lig_lig_pocket_coords"] = [ligand_coordinates]
         data[prefix + "lig_" + prefix + "_pocket_mask"] = [protein_mask]
         data[prefix + "lig_" + prefix + "_pocket_coords"] = [coordinates.clone()]
     # Official MGD keeps both observed partner frames and the ligand's observed x.

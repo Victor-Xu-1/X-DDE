@@ -71,6 +71,23 @@ def validate_ternary(result, request, output):
     ):
         if any(atom.chain != chain for atom in partner.atoms):
             raise ValueError("The selected original partner chain changed during modeling.")
+    if value.search.anchor_partner is None:
+        if payload.anchor_partner not in {None, "a"}:
+            raise ValueError("The alternate fixed partner has no native execution evidence.")
+    elif value.search.anchor_partner != (payload.anchor_partner or "a"):
+        raise ValueError("Native fixed partner differs from the selected research plan.")
+    if payload.anchor_partner == "b" and value.search.initialization_protocol is None:
+        raise ValueError("The alternate fixed partner has no native initialization evidence.")
+    if value.search.initialization_protocol is not None:
+        expected_protocol = (
+            "binary_chemical_frames_v2"
+            if payload.input_mode == "binary_poses" and payload.mechanism != "molecular_glue"
+            else "observed_complex_v1"
+        )
+        if value.search.initialization_protocol != expected_protocol:
+            raise ValueError(
+                "Native pocket initialization differs from its input coordinate protocol."
+            )
     atoms = value.ligand_atom_indices
     for index, mapping in enumerate(value.arm_maps):
         declared = (payload.arm_a_map, payload.arm_b_map)[index]

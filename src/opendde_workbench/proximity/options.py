@@ -26,6 +26,9 @@ class TernaryPayload(BaseModel):
     binding_region_a: list[int] = Field(default_factory=list, max_length=256)
     binding_region_b: list[int] = Field(default_factory=list, max_length=256)
     ligand_correction: bool = True
+    anchor_partner: Literal["a", "b"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def bounded(self) -> Self:
@@ -54,6 +57,10 @@ class TernaryPayload(BaseModel):
         if set(self.binding_region_a) & set(self.binding_region_b):
             raise ValueError("The two binding regions cannot overlap.")
         if self.mechanism == "molecular_glue":
+            if self.anchor_partner not in {None, "a"}:
+                raise ValueError(
+                    "The reviewed molecular-glue protocol retains its original fixed partner."
+                )
             if any((self.arm_a_map, self.arm_b_map, self.binding_region_a, self.binding_region_b)):
                 raise ValueError("Molecular-glue modeling has no compulsory pair of arm maps.")
         elif self.input_mode == "shared_complex":

@@ -15,7 +15,7 @@ from opendde_workbench.integrations.specs import recipe_digest
 from opendde_workbench.proximity.options import TernaryPayload
 
 
-def run_adapter(root, image, models, glue_case=None):
+def run_adapter(root, image, models, glue_case=None, *, binary_case=None):
     if os.environ.get("CI") != "true":
         raise RuntimeError("Native model acceptance belongs in isolated CI.")
     # Freeze actual selected official bytes under the same manifest contract as installation.
@@ -36,17 +36,17 @@ def run_adapter(root, image, models, glue_case=None):
             }
         )
     )
-    work = root / ("adapter-job" if glue_case is None else glue_case["id"] + "-adapter-job")
+    case = binary_case or glue_case
+    work = root / ("adapter-job" if case is None else case["id"] + "-adapter-job")
     work.mkdir()
     assets = work / "assets"
     assets.mkdir()
     bindings, inputs = {}, []
-    for role, name in (
-        ("partner_a", "protein1.pdb"),
-        ("partner_b", "protein2.pdb"),
-        ("ligand", "ligand.sdf"),
-    ):
-        source = root / "inputs" / name if glue_case is None else glue_case["inputs"] / name
+    roles = [("partner_a", "protein1.pdb"), ("partner_b", "protein2.pdb"), ("ligand", "ligand.sdf")]
+    if binary_case is not None:
+        roles += [("arm_a", "arm-a.sdf"), ("arm_b", "arm-b.sdf")]
+    for role, name in roles:
+        source = root / "inputs" / name if case is None else case["inputs"] / name
         identifier = str(uuid4())
         copied = assets / (identifier + source.suffix)
         shutil.copyfile(source, copied)
@@ -81,6 +81,21 @@ def run_adapter(root, image, models, glue_case=None):
             samples=3,
             attempt_budget=3,
             wall_seconds=600,
+        )
+    if binary_case is not None:
+        payload = TernaryPayload(
+            input_mode="binary_poses",
+            mechanism="protac",
+            anchor_partner="b",
+            partner_a_name="VHL",
+            partner_b_name="BRD4",
+            partner_a_chain="A",
+            partner_b_chain="B",
+            samples=3,
+            attempt_budget=3,
+            wall_seconds=600,
+            arm_a_map=list(range(32)),
+            arm_b_map=list(range(42, 69)),
         )
     request = IntegratedTask(
         operation="ternary_model",
@@ -180,6 +195,20 @@ def run_adapter(root, image, models, glue_case=None):
     report = validate_result(json.loads((output / "result.json").read_text()), request, output)
     if report.proximity.search.returned != 3:
         raise AssertionError("The real adapter did not finish its declared three proposals.")
+    if binary_case is not None:
+        if (
+            report.proximity.search.anchor_partner != "b"
+            or report.proximity.search.initialization_protocol != "binary_chemical_frames_v2"
+        ):
+            raise AssertionError("Native alternate-anchor or binary frame evidence is missing.")
+        changed = json.loads((output / "result.json").read_text())
+        changed["proximity"]["search"]["anchor_partner"] = "a"
+        try:
+            validate_result(changed, request, output)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("A mismatched native anchor was accepted.")
     receipt = json.loads((output / "native-checks.json").read_text())
     receipt.update(
         {

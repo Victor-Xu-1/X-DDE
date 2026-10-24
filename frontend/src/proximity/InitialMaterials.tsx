@@ -47,6 +47,9 @@ export function InitialMaterials({
           setPayload({
             ...payload,
             mechanism,
+            ...(mechanism === "molecular_glue"
+              ? { anchor_partner: "a" as const }
+              : {}),
             arm_a_map: [],
             arm_b_map: [],
             binding_region_a: [],

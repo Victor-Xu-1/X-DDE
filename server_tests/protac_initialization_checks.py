@@ -82,7 +82,29 @@ def verify_initialization(full, arms, partners, seed):
     assert torch.allclose(
         ligand.ndata["mu_r_norm"], reference.ndata["mu_r_norm"], atol=0.00001, rtol=0
     )
+    # Binary-bound arms are independent of the arbitrary full-conformer frame.
+    legacy_moved, _ = proposal(translated, arms, graphs, cfg, seed)
+    assert not torch.allclose(
+        data["p1lig_lig_pocket_coords"][0],
+        legacy_moved["p1lig_lig_pocket_coords"][0],
+        atol=0.0002,
+        rtol=0,
+    ), "The regression control must expose the old independent-frame mismatch."
+    binary, _ = proposal(full, arms, graphs, cfg, seed, binary_pockets=True)
+    moved, _ = proposal(translated, arms, graphs, cfg, seed, binary_pockets=True)
+    for key in ("new_x",):
+        assert torch.allclose(
+            binary["lig_graph"].ndata[key], moved["lig_graph"].ndata[key], atol=0.0002, rtol=0
+        )
+    for prefix in ("p1", "p2"):
+        for suffix in ("lig_pocket_coords", prefix + "_pocket_coords"):
+            key = prefix + "lig_" + suffix
+            assert torch.allclose(binary[key][0], moved[key][0], atol=0.0002, rtol=0), key
+        assert torch.equal(
+            binary[prefix + "lig_lig_pocket_mask"][0], moved[prefix + "lig_lig_pocket_mask"][0]
+        )
     return {
+        "binary_full_conformer_translation_invariance_passed": True,
         "observed_and_generated_frames_distinct": True,
         "independent_kabsch_reference_passed": True,
         "initial_graph_and_coordinate_reference_passed": True,

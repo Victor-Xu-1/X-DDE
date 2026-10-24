@@ -34,6 +34,12 @@ export function ProximityResults({
   );
   const active = rows.find((r) => r.id === selected) ?? rows[0];
   const qualified = rows.filter((r) => r.quality.accepted).length;
+  const payload: Record<string, unknown> =
+    job.request.operation === "ternary_model" ? job.request.payload : {};
+  const anchorName =
+    payload[
+      result.search.anchor_partner === "b" ? "partner_b_name" : "partner_a_name"
+    ];
   const columns = useMemo<ResearchColumn<AssemblyProposal>[]>(
     () => [
       {
@@ -234,6 +240,18 @@ export function ProximityResults({
                     ? "结构范围与结果说明"
                     : "Structure scope and interpretation"}
                 </summary>
+                {result.search.anchor_partner && (
+                  <p className="proximity-caption">
+                    {zh ? "固定蛋白：" : "Fixed protein: "}
+                    {typeof anchorName === "string"
+                      ? anchorName
+                      : result.search.anchor_partner.toUpperCase()}
+                    .
+                    {zh
+                      ? "模型排序分数仅用于相同固定端方案内比较。"
+                      : " Compare model ranking scores within the same fixed-partner protocol."}
+                  </p>
+                )}
                 <p className="proximity-caption">
                   {zh
                     ? "链 A：伙伴 1 · 链 B：伙伴 2 · 链 L：完整分子"

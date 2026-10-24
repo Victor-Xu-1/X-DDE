@@ -66,6 +66,12 @@ export function ProximityPlan({
         <dd>
           {payload.partner_b_name} · {payload.partner_b_chain}
         </dd>
+        <dt>{zh ? "固定蛋白" : "Fixed protein"}</dt>
+        <dd>
+          {payload.anchor_partner === "b"
+            ? payload.partner_b_name
+            : payload.partner_a_name}
+        </dd>
         <dt>{zh ? "计算预算" : "Compute budget"}</dt>
         <dd>
           {execution.cpu} CPU · {execution.memory_mib / 1024} GiB
@@ -80,6 +86,27 @@ export function ProximityPlan({
       <details className="proximity-expert">
         <summary>{zh ? "专家微调" : "Expert settings"}</summary>
         <div className="inline-fields">
+          {payload.mechanism !== "molecular_glue" && (
+            <label>
+              {zh ? "固定蛋白" : "Fixed protein"}
+              <select
+                value={payload.anchor_partner ?? "a"}
+                onChange={(event) =>
+                  setPayload({
+                    ...payload,
+                    anchor_partner: event.target.value as "a" | "b",
+                  })
+                }
+              >
+                <option value="a">
+                  {roles[0]} · {payload.partner_a_name}
+                </option>
+                <option value="b">
+                  {roles[1]} · {payload.partner_b_name}
+                </option>
+              </select>
+            </label>
+          )}
           <ExecutionSettings
             value={execution}
             onChange={setExecution}

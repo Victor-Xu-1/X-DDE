@@ -82,6 +82,7 @@ class ScientificBackend(PreparedContainerBackend):
                     "regions",
                     "partners",
                     "graphs",
+                    "frames",
                     "prediction",
                     "quality",
                     "outputs",

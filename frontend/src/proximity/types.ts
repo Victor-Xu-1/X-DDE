@@ -17,6 +17,7 @@ export interface TernaryPayload {
   binding_region_a: number[];
   binding_region_b: number[];
   ligand_correction: boolean;
+  anchor_partner?: "a" | "b";
   [key: string]: unknown;
 }
 export interface AssemblyQuality {
@@ -64,6 +65,9 @@ export interface TernaryResult {
   };
   assemblies: AssemblyProposal[];
   search: {
+    anchor_partner?: "a" | "b";
+    initialization_protocol?:
+      "binary_chemical_frames_v2" | "observed_complex_v1";
     requested: number;
     attempted: number;
     returned: number;
