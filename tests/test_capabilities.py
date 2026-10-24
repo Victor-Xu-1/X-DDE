@@ -28,7 +28,7 @@ def test_inventory_matches_router_and_excludes_unimplemented_forms():
     assert "DrugCLIP" not in PACKAGES["drugclip-models"].name
     assert (
         recipe_digest("drugclip")
-        == "ab0363175f4cc81e2d9e73c3bd6aa0c8eaa941ad5c69e03874db29d7dde6648e"
+        == "acc4f684329406f628965dd006a0f4b02de6831565090e78c10751d9dd2c1d8f"
     )
 
 

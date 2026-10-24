@@ -633,7 +633,12 @@ def deployment_admission_app(settings, monkeypatch):
 
     manager = DeploymentManager(settings.state_dir)
     manager.configure(str(settings.state_dir.parent / "components"), False)
-    monkeypatch.setattr(api, "DeploymentManager", lambda _: manager)
+
+    def configured_manager(state, *, msa_url):
+        assert state == settings.state_dir and msa_url == settings.msa_url
+        return manager
+
+    monkeypatch.setattr(api, "DeploymentManager", configured_manager)
     monkeypatch.setattr(manager.compute, "ensure", lambda: None)
 
     async def worker_start(self):

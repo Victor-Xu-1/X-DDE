@@ -123,6 +123,13 @@
         "revision": 3,
         "pinned_run_required": false,
         "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
       }
     }
   },
@@ -253,6 +260,13 @@
         "capability_id": "workflows",
         "revision": 3,
         "pinned_run_required": false,
+        "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
         "parent_capability": null
       }
     }
@@ -385,6 +399,13 @@
         "revision": 3,
         "pinned_run_required": false,
         "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
       }
     }
   },
@@ -516,6 +537,13 @@
         "revision": 3,
         "pinned_run_required": false,
         "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
       }
     }
   },
@@ -646,6 +674,13 @@
         "capability_id": "workflows",
         "revision": 3,
         "pinned_run_required": false,
+        "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
         "parent_capability": null
       }
     }
@@ -779,6 +814,13 @@
         "revision": 3,
         "pinned_run_required": false,
         "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
       }
     }
   },
@@ -897,10 +939,135 @@
         "revision": 3,
         "pinned_run_required": false,
         "parent_capability": null
+      },
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
       }
     }
   },
   "8b2e19f13171051ca998ad541706e45a8c20a812fd5b2ff70296ddd4ca383fac": {
+    "file_keys": [
+      "stat6_sequence",
+      "stat6_structure",
+      "stat6_receptor",
+      "stat6_alternative",
+      "crbn_receptor",
+      "study_ligand",
+      "study_protac",
+      "bound_reference",
+      "stat6_alternative_receptor",
+      "calculated_pose",
+      "calculated_poses",
+      "calculated_receptor",
+      "dupilumab_complex",
+      "dupilumab_heavy",
+      "dupilumab_light",
+      "dupilumab_antigen",
+      "stat6_assay_library",
+      "stat6_measurements",
+      "dupilumab_variable_domains",
+      "stat6_observed_sequence",
+      "stat6_prediction",
+      "stat6_predicted_construct",
+      "stat6_prediction_metadata",
+      "stat6_prediction_provenance",
+      "stat6_spr_library",
+      "stat6_spr_provenance",
+      "stat6_dna_bound"
+    ],
+    "module_ids": [
+      "antibody.humanize",
+      "admet.predict",
+      "posebusters.check",
+      "antibody.number",
+      "chemistry.screen",
+      "biopython.prepare",
+      "discovery.import",
+      "discovery.target",
+      "discovery.disease",
+      "predict",
+      "properties",
+      "campaign",
+      "esm",
+      "esm2",
+      "mpnn",
+      "fold",
+      "epitope",
+      "structure",
+      "rmsd",
+      "evolution",
+      "compare",
+      "protrek-sequence",
+      "protrek-structure",
+      "target-msa",
+      "features",
+      "import",
+      "resources",
+      "diffsbdd.generate",
+      "diffsbdd.inpaint",
+      "diffsbdd.diversify",
+      "diffsbdd.optimize",
+      "diffsbdd.pocket",
+      "diffsbdd.prepare",
+      "diffsbdd.interactions",
+      "diffsbdd.properties",
+      "diffsbdd.export",
+      "regions",
+      "workflows",
+      "p2rank.detect",
+      "gnina.dock",
+      "gnina.score",
+      "gnina.minimize",
+      "chemistry.states",
+      "biopython.ensemble",
+      "pose_exploration",
+      "boltz.predict",
+      "reinvent.design",
+      "ligandmpnn.design",
+      "boltzgen.design",
+      "openmm.refine",
+      "apbs.potential",
+      "chemprop.train",
+      "chemprop.predict",
+      "plip.profile",
+      "library.import",
+      "library.select",
+      "drugclip.index",
+      "drugclip.screen",
+      "screening.dock",
+      "del.library",
+      "del.enumerate",
+      "del.decode",
+      "del.count",
+      "del.analyze",
+      "del.series",
+      "del.model",
+      "del.candidates",
+      "del.followup",
+      "biopython.exposure",
+      "experimental.evidence",
+      "pose.cluster",
+      "caver.paths",
+      "deepternary.model",
+      "openmm.dynamics",
+      "openfe.rbfe",
+      "gromacs.dynamics"
+    ],
+    "module_overrides": {
+      "predict": {
+        "case_id": "stat6-defined-molecules",
+        "capability_id": "predict",
+        "revision": 3,
+        "pinned_run_required": true,
+        "parent_capability": null
+      }
+    }
+  },
+  "05dc352e8bdf842f02563f2aafd4edb772ba02c485dafcbaae982c7683e1d931": {
     "file_keys": [
       "stat6_sequence",
       "stat6_structure",
