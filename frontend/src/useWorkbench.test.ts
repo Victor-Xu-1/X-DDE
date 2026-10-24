@@ -36,25 +36,28 @@ function boundary() {
       }) as Response,
   );
 }
-it.each(["tasks", "results"])("preserves a %s result module while choosing history but clears its route for a new task", async (view) => {
-  window.history.replaceState(
-    null,
-    "",
-    `/#view=${view}&module=binding&q=STAT6&page=2`,
-  );
-  boundary();
-  vi.spyOn(api, "jobs").mockResolvedValue([]);
-  vi.spyOn(api, "artifacts").mockResolvedValue([]);
-  const { result, unmount } = renderHook(() => useWorkbench());
-  await waitFor(() => expect(result.current.loading).toBe(false));
-  act(() => result.current.select("11111111-1111-4111-8111-111111111111"));
-  expect(window.location.hash).toContain("module=binding");
-  expect(window.location.hash).toContain("page=2");
-  act(() => result.current.select("", false));
-  expect(window.location.hash).toBe("#task=");
-  expect(result.current.selected).toBe("");
-  unmount();
-});
+it.each(["tasks", "results"])(
+  "preserves a %s result module while choosing history but clears its route for a new task",
+  async (view) => {
+    window.history.replaceState(
+      null,
+      "",
+      `/#view=${view}&module=binding&q=STAT6&page=2`,
+    );
+    boundary();
+    vi.spyOn(api, "jobs").mockResolvedValue([]);
+    vi.spyOn(api, "artifacts").mockResolvedValue([]);
+    const { result, unmount } = renderHook(() => useWorkbench());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.select("11111111-1111-4111-8111-111111111111"));
+    expect(window.location.hash).toContain("module=binding");
+    expect(window.location.hash).toContain("page=2");
+    act(() => result.current.select("", false));
+    expect(window.location.hash).toBe("#task=");
+    expect(result.current.selected).toBe("");
+    unmount();
+  },
+);
 it("preserves a new-task selection across refresh instead of selecting an old job", async () => {
   window.history.replaceState(null, "", "/#task=");
   const fetch = boundary();
@@ -122,5 +125,26 @@ it("invalidates previous readiness and requires a fresh health response after Re
   await act(() => vi.advanceTimersByTimeAsync(0));
   expect(result.current.health?.worker_ready).toBe(true);
   expect(result.current.connectionError).toBe(false);
+  unmount();
+});
+
+it("does not fetch an old result included in an explicit new-task address", async () => {
+  window.history.replaceState(
+    null,
+    "",
+    "/#view=new&tool=deepternary.model&task=11111111-1111-4111-8111-111111111111",
+  );
+  const fetch = boundary();
+  vi.spyOn(api, "jobs").mockResolvedValue([
+    job("11111111-1111-4111-8111-111111111111"),
+  ]);
+  const artifacts = vi.spyOn(api, "artifacts").mockResolvedValue([]);
+  const { result, unmount } = renderHook(() => useWorkbench());
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.selected).toBe("");
+  expect(result.current.selectedJob).toBeNull();
+  expect(result.current.detail).toBeNull();
+  expect(artifacts).not.toHaveBeenCalled();
+  expect(fetch).not.toHaveBeenCalled();
   unmount();
 });

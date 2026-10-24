@@ -135,7 +135,7 @@ it("starts the chosen task module's questionnaire without reusing or submitting 
   expect(screen.getByRole("combobox", { name: "Research task" })).toHaveValue(
     "p2rank.detect",
   );
-  expect(window.location.hash).toBe("#task=");
+  expect(window.location.hash).toBe("#view=new&tool=p2rank.detect");
   expect(submit).not.toHaveBeenCalled();
 });
 
@@ -350,7 +350,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
   expect(
     screen.queryByRole("heading", { name: "Task results" }),
   ).not.toBeInTheDocument();
-  expect(window.location.hash).toBe("#task=");
+  expect(window.location.hash).toBe("#view=new&tool=predict");
   expect(submit).not.toHaveBeenCalled();
 });
 
@@ -540,4 +540,91 @@ it("keeps confirmed project metadata through failed refresh, page reentry and GE
   expect(screen.getAllByRole("button", { name: /Created study/ })).toHaveLength(
     1,
   );
+});
+
+it.each([
+  ["en", "p2rank.detect", "Pockets and docking"],
+  ["zh", "p2rank.detect", "口袋与对接"],
+  ["en", "deepternary.model", "Induced proximity"],
+  ["zh", "deepternary.model", "诱导邻近设计"],
+  ["en", "boltzgen.design", "Biologics research"],
+  ["zh", "boltzgen.design", "生物药研究"],
+] as const)(
+  "restores a new %s %s questionnaire without selecting historical inputs",
+  async (language, tool, title) => {
+    vi.mocked(i18n.restoreLanguage).mockReturnValue(language);
+    vi.mocked(apiClient.request).mockResolvedValue({
+      availability: { configuration_present: false },
+    } as never);
+    const submit = vi.spyOn(api, "submit");
+    window.history.replaceState(null, "", "/#view=new&tool=" + tool);
+    render(<App />);
+    expect(
+      await screen.findByRole("combobox", {
+        name: language === "zh" ? "研究任务" : "Research task",
+      }),
+    ).toHaveValue(tool);
+    expect(document.querySelector(".page-context-title")).toHaveTextContent(
+      title,
+    );
+    expect(api.artifacts).not.toHaveBeenCalled();
+    expect(submit).not.toHaveBeenCalled();
+    expect(
+      vi
+        .mocked(apiClient.request)
+        .mock.calls.some(([path]) => path.startsWith("/jobs/")),
+    ).toBe(false);
+  },
+);
+
+it("restores the exact submodule after remounting at its new-task URL", async () => {
+  vi.mocked(apiClient.request).mockResolvedValue({
+    availability: { configuration_present: false },
+  } as never);
+  const user = userEvent.setup();
+  const first = render(<App />);
+  await user.click(
+    within(
+      screen.getByRole("navigation", { name: "Main navigation" }),
+    ).getByRole("button", { name: "Pockets and docking" }),
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Research task" }),
+    "gnina.dock",
+  );
+  expect(window.location.hash).toBe("#view=new&tool=gnina.dock");
+  first.unmount();
+  render(<App />);
+  expect(
+    await screen.findByRole("combobox", { name: "Research task" }),
+  ).toHaveValue("gnina.dock");
+  expect(api.artifacts).not.toHaveBeenCalled();
+});
+
+it("keeps the preceding filtered result location when opening a new questionnaire", async () => {
+  vi.mocked(apiClient.request).mockResolvedValue({
+    availability: { configuration_present: false },
+  } as never);
+  const original = "#view=results&module=binding&q=STAT6";
+  window.history.replaceState(null, "", "/" + original);
+  const user = userEvent.setup();
+  render(<App />);
+  const workspace = screen.getByRole("navigation", {
+    name: "Module workspace",
+  });
+  await user.click(within(workspace).getByRole("button", { name: "New task" }));
+  expect(window.location.hash).toBe("#view=new&tool=p2rank.detect");
+  act(() => window.history.back());
+  await waitFor(() => expect(window.location.hash).toBe(original));
+  expect(
+    await screen.findByRole("heading", { name: "Task results" }),
+  ).toBeVisible();
+  act(() => window.history.forward());
+  await waitFor(() =>
+    expect(window.location.hash).toBe("#view=new&tool=p2rank.detect"),
+  );
+  expect(
+    await screen.findByRole("combobox", { name: "Research task" }),
+  ).toHaveValue("p2rank.detect");
+  expect(api.artifacts).not.toHaveBeenCalled();
 });

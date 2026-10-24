@@ -3,7 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import IconContext from "@ant-design/icons/es/components/Context";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
-import { useWorkbench, taskIdFromHash } from "./useWorkbench";
+import {
+  useWorkbench,
+  taskIdFromHash,
+  type SelectionNavigation,
+} from "./useWorkbench";
 import { WorkbenchReadStatus } from "./WorkbenchReadStatus";
 import { useScience } from "./studio/useScience";
 import { Navigation } from "./studio/Navigation";
@@ -23,6 +27,7 @@ import { PredictionResults } from "./studio/PredictionResults";
 import { TaskWorkspace } from "./studio/TaskWorkspace";
 import { TaskWorkspaceSelectionState } from "./studio/TaskWorkspaceSelectionState";
 import { taskHistoryHash, taskHistoryRoute } from "./studio/task-history-route";
+import { taskEntryHash, taskEntryRoute } from "./studio/task-entry-route";
 import { WorkspaceTabs } from "./studio/WorkspaceTabs";
 import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
 import { HelpWorkspace } from "./studio/HelpWorkspace";
@@ -53,20 +58,34 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const requestedTask = useRef(taskIdFromHash(location.hash));
-  const [requestedView, setView] = useState<View>(() =>
-      taskHistoryRoute(location.hash)?.module
-        ? viewForResults(taskHistoryRoute(location.hash)!.module!)
-        : taskIdFromHash(location.hash)
+  const [requestedView, setView] = useState<View>(() => {
+      const entry = taskEntryRoute(location.hash);
+      if (entry) return entry.tool ? viewForTool(entry.tool) : "tools";
+      const history = taskHistoryRoute(location.hash);
+      return history?.module
+        ? viewForResults(history.module)
+        : taskIdFromHash(location.hash) || history
           ? "tasks"
-          : "tools",
-    ),
+          : "tools";
+    }),
     [projectId, setProjectId] = useState<string | null>(
-      () => taskHistoryRoute(location.hash)?.project ?? null,
+      () =>
+        taskEntryRoute(location.hash)?.project ??
+        taskHistoryRoute(location.hash)?.project ??
+        null,
     );
   useEffect(() => {
     function navigate() {
+      const entry = taskEntryRoute(window.location.hash);
       const route = taskHistoryRoute(window.location.hash);
-      if (taskIdFromHash(window.location.hash) || route) {
+      if (entry) {
+        requestedTask.current = "";
+        setView(entry.tool ? viewForTool(entry.tool) : "tools");
+        setProjectId(entry.project);
+        setDraft(null);
+        setEntryRevision((value) => value + 1);
+        if (entry.tool === "predict") setInputVersion((value) => value + 1);
+      } else if (taskIdFromHash(window.location.hash) || route) {
         requestedTask.current = taskIdFromHash(window.location.hash);
         setView(route?.module ? viewForResults(route.module) : "tasks");
         setProjectId(route?.project ?? null);
@@ -156,9 +175,9 @@ export function App() {
       content.current?.focus({ preventScroll: true });
   }, [view]);
 
-  function chooseJob(id: string, preserveHistory = true) {
+  function chooseJob(id: string, navigation: SelectionNavigation = true) {
     requestedTask.current = id;
-    select(id, preserveHistory);
+    select(id, navigation);
     setCandidateId(null);
     setCompared([]);
     setFocusResidue(null);
@@ -206,14 +225,16 @@ export function App() {
     return created;
   }
   function prepareDraft(value: Prediction) {
-    chooseJob("", false);
+    chooseJob("", {
+      pushHash: taskEntryHash("predict", value.project_id ?? null),
+    });
     setDraft(value);
     setProjectId(value.project_id ?? null);
     setInputVersion((n) => n + 1);
     setView("home");
   }
   function openTool(tool: ToolId | null) {
-    chooseJob("", false);
+    chooseJob("", { pushHash: taskEntryHash(tool, projectId) });
     setDraft(null);
     setEntryRevision((n) => n + 1);
     if (tool === "predict") setInputVersion((n) => n + 1);
@@ -222,11 +243,8 @@ export function App() {
   function navigate(next: View) {
     const module = resultModule(next);
     if (module) {
-      chooseJob("", false);
-      window.history.pushState(
-        null,
-        "",
-        taskHistoryHash({
+      chooseJob("", {
+        pushHash: taskHistoryHash({
           module,
           type: "all",
           status: "all",
@@ -234,7 +252,7 @@ export function App() {
           page: 0,
           project: projectId,
         }),
-      );
+      });
       setView(next);
       return;
     }

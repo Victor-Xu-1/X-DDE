@@ -8,11 +8,16 @@ import {
 } from "./workbench-polling";
 
 export function taskIdFromHash(hash: string) {
-  const value = new URLSearchParams(hash.slice(1)).get("task") ?? "";
+  const params = new URLSearchParams(hash.slice(1));
+  if (params.get("view") === "new") return "";
+  const value = params.get("task") ?? "";
   return /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value)
     ? value.toLowerCase()
     : "";
 }
+
+/** Explicit module navigation pushes a location; task selections keep their existing filters. */
+export type SelectionNavigation = boolean | { pushHash: string };
 
 interface SelectedRead {
   id: string;
@@ -71,16 +76,35 @@ export function useWorkbench() {
     [record],
   );
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
-  const select = useCallback((id: string, preserveHistory = true) => {
-    setSelected(id);
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    if (preserveHistory && ["tasks", "results"].includes(params.get("view") ?? "")) {
-      if (id) params.set("task", id);
-      else params.delete("task");
-      window.history.replaceState(null, "", "#" + params);
-    } else
-      window.history.replaceState(null, "", `#task=${encodeURIComponent(id)}`);
-  }, []);
+  const select = useCallback(
+    (id: string, navigation: SelectionNavigation = true) => {
+      if (
+        typeof navigation === "object" &&
+        !navigation.pushHash.startsWith("#")
+      )
+        throw new Error("Task navigation requires a local hash route");
+      setSelected(id);
+      if (typeof navigation === "object") {
+        window.history.pushState(null, "", navigation.pushHash);
+        return;
+      }
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      if (
+        navigation &&
+        ["tasks", "results"].includes(params.get("view") ?? "")
+      ) {
+        if (id) params.set("task", id);
+        else params.delete("task");
+        window.history.replaceState(null, "", "#" + params);
+      } else
+        window.history.replaceState(
+          null,
+          "",
+          `#task=${encodeURIComponent(id)}`,
+        );
+    },
+    [],
+  );
   useEffect(() => {
     function navigate() {
       setSelected(taskIdFromHash(window.location.hash));
