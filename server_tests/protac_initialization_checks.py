@@ -75,7 +75,9 @@ def verify_initialization(full, arms, partners, seed):
     ).T + translation
     data, _ = proposal(full, arms, graphs, cfg, seed)
     ligand = data["lig_graph"]
-    assert np.allclose(ligand.ndata["x"].numpy(), observed, atol=0.00001, rtol=0)
+    # Native DGL reference coordinates are explicitly float32. Compare exact
+    # representable values, including large valid translations of the input.
+    assert np.array_equal(ligand.ndata["x"].numpy(), observed.astype(np.float32))
     assert torch.allclose(ligand.ndata["new_x"], expected_input, atol=0.0001, rtol=0)
     assert all(torch.equal(a, b) for a, b in zip(ligand.edges(), reference.edges(), strict=True))
     assert torch.allclose(ligand.edata["feat"], reference.edata["feat"], atol=0.00001, rtol=0)
