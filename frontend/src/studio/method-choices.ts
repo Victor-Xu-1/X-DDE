@@ -947,7 +947,7 @@ export const methodChoices = [
   },
   {
     id: "method.protrek-structure",
-    label: ["按蛋白结构检索", "Search by protein structure"],
+    label: ["抗体结构同源检索", "Antibody structural analogues"],
     default: "protrek-structure",
     default_basis: [
       "当前唯一接入的方法，已默认选中。",
@@ -958,8 +958,8 @@ export const methodChoices = [
         id: "protrek-structure",
         label: "Harness / ProTrek",
         note: [
-          "选择结构和链，使用 ProTrek 检索。",
-          "Search ProTrek using a structure and chain.",
+          "使用抗体可变域结构检索，仅返回抗体样域。",
+          "Search variable-domain structures, returning antibody-like domains.",
         ],
       },
     ],
