@@ -1,5 +1,6 @@
 name: Harness scientific files and concrete review
 on:
+  workflow_dispatch:
   push:
     paths: &harness_input_paths
       - 'frontend/src/operations/HarnessForm.tsx'
