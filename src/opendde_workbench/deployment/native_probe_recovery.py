@@ -4,6 +4,7 @@ import json
 import re
 from uuid import uuid4
 
+from .. import container_runtime
 from ..locations import atomic_json
 from .native_probe_ownership import cleanup_probe
 
@@ -23,18 +24,33 @@ def recover_probe(directory, identifier):
         or not re.fullmatch(r"sha256:[a-f0-9]{64}", previous.get("image", ""))
     ):
         raise RuntimeError("Previous installation probe ownership receipt is invalid.")
+    runtime = container_runtime.read(directory)
+    if previous.get("container_runtime") != runtime.value:
+        raise RuntimeError(
+            "Previous installation probe Docker binding differs from its frozen receipt."
+        )
     history = directory / "native-probe-history" / token
     history.mkdir(parents=True, exist_ok=True)
-    for filename in ("native-probe.json", "native-cli.log", "native-cleanup.json"):
+    for filename in (
+        "native-probe.json",
+        "native-cli.log",
+        "native-cleanup.json",
+        container_runtime.RECEIPT,
+    ):
         source, target = directory / filename, history / filename
         if source.is_file() and not target.exists():
             with target.open("xb") as stream:
                 stream.write(source.read_bytes())
     attempt = history / ("recovery-" + uuid4().hex)
     attempt.mkdir()
-    proof = {"container": name, "image": previous["image"], "state": "pending"}
+    proof = {
+        "container": name,
+        "image": previous["image"],
+        "state": "pending",
+        "container_runtime": runtime.value,
+    }
     try:
-        cleanup_probe(name, token, identifier, previous["image"], attempt, proof)
+        cleanup_probe(name, token, identifier, previous["image"], attempt, proof, runtime=runtime)
         proof["state"] = "removed"
     except Exception as error:
         proof.update(state="unconfirmed", error=type(error).__name__)

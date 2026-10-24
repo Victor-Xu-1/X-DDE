@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import local_process
+from . import container_runtime, local_process
 from .engine import command
 from .managed_containers import CONTAINER_STYLES, container_name
 
@@ -49,6 +49,7 @@ class PreparedContainerBackend:
         return self.execution_arguments(job, directory)
 
     async def start(self, job, directory):
+        runtime = container_runtime.task(self.settings, self.identifier, directory)
         image = self.image_for(job, directory)
         adapter = directory / "adapter"
         adapter.mkdir(exist_ok=False)
@@ -106,7 +107,7 @@ class PreparedContainerBackend:
             )
         args.extend(await self.prepare_execution_arguments(job, directory))
         args.extend(["--entrypoint", "python", image, "-B", "/platform/runner.py"])
-        code, text = await command(*args)
+        code, text = await runtime.command(command, *args)
         if code:
             raise RuntimeError("Unable to create the preparation task container: " + text)
         env = {
@@ -116,14 +117,21 @@ class PreparedContainerBackend:
         }
         try:
             (directory / (self.identifier + "-execution.json")).write_text(
-                json.dumps({"image": image, "adapter_sha256": checksums}), encoding="utf-8"
+                json.dumps(
+                    {
+                        "image": image,
+                        "adapter_sha256": checksums,
+                        "container_runtime": runtime.value,
+                    }
+                ),
+                encoding="utf-8",
             )
             return await local_process.start(
                 Path(sys.executable), self.root / "supervise.py", directory, env
             )
         except Exception as error:
-            cleanup_code, cleanup_text = await command(
-                "docker", "rm", "--force", self.container(job.id)
+            cleanup_code, cleanup_text = await runtime.command(
+                command, "docker", "rm", "--force", self.container(job.id)
             )
             if cleanup_code and "No such container" not in cleanup_text:
                 raise RuntimeError(
@@ -132,7 +140,10 @@ class PreparedContainerBackend:
             raise
 
     async def stop(self, job_id, directory):
-        code, text = await command("docker", "rm", "--force", self.container(job_id))
+        runtime = container_runtime.read(directory)
+        code, text = await runtime.command(
+            command, "docker", "rm", "--force", self.container(job_id)
+        )
         if code and "No such container" not in text:
             raise RuntimeError("Preparation container cancellation is unconfirmed.")
         await local_process.stop(self.root / "supervise.py", directory)

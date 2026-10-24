@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 from uuid import uuid4
 
+from opendde_workbench.container_runtime import DockerRuntime, freeze
 from opendde_workbench.container_supervision import attach
 from opendde_workbench.receptors.image import PYTHON_IMAGE
 
@@ -22,10 +23,11 @@ def lost_cleanup_observations(run, delayed, commands):
         value = run(arguments, **kwargs)
         # Execute real calls before injecting lost replies; positive absence,
         # program output and exit status are always read from the real daemon.
-        if delayed and arguments[1] == "rm":
+        command = arguments[3] if arguments[1:2] == ["--host"] else arguments[1]
+        if delayed and command == "rm":
             removed = True
             raise subprocess.TimeoutExpired(arguments, kwargs["timeout"])
-        if delayed and removed and arguments[1] == "inspect" and lost_reads < 2:
+        if delayed and removed and command == "inspect" and lost_reads < 2:
             lost_reads += 1
             raise subprocess.TimeoutExpired(arguments, kwargs["timeout"])
         return value
@@ -36,11 +38,22 @@ def lost_cleanup_observations(run, delayed, commands):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--bind-local-daemon", action="store_true")
     args = parser.parse_args()
     output = args.output.resolve()
     assert output.is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     output.mkdir(parents=True, exist_ok=False)
     run = subprocess.run
+    runtime = DockerRuntime()
+    if args.bind_local_daemon:
+        observed = run(
+            ["docker", "info", "--format", "{{json .ID}}"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        runtime = DockerRuntime("unix:///var/run/docker.sock", json.loads(observed.stdout))
     run(["docker", "pull", PYTHON_IMAGE], check=True, timeout=180)
     sibling = "xdde-reinvent-" + str(uuid4())
     run(
@@ -54,6 +67,7 @@ def main():
         for delayed, code in ((False, 0), (True, 0), (True, 7)):
             directory = output / str(uuid4())
             directory.mkdir()
+            freeze(directory, runtime)
             name = "xdde-reinvent-" + directory.name
             artifact = directory / "native-output.txt"
             run(
@@ -109,9 +123,31 @@ def main():
                 assert state["ExitCode"] == code and not state["Running"] and not state["OOMKilled"]
                 assert cleanup["state"] == "removed"
                 assert artifact.read_text() == "original native artifact"
-                assert sum(command[1] == "start" for command in commands) == 1
-                assert sum(command[1] == "rm" for command in commands) == 1
-                assert all(name in command for command in commands if command[1] != "info")
+                assert (
+                    sum(
+                        (command[3] if command[1:2] == ["--host"] else command[1]) == "start"
+                        for command in commands
+                    )
+                    == 1
+                )
+                assert (
+                    sum(
+                        (command[3] if command[1:2] == ["--host"] else command[1]) == "rm"
+                        for command in commands
+                    )
+                    == 1
+                )
+                assert all(
+                    name in command
+                    for command in commands
+                    if (command[3] if command[1:2] == ["--host"] else command[1]) != "info"
+                )
+                if args.bind_local_daemon:
+                    assert all(
+                        command[:3] == ["docker", "--host", runtime.endpoint]
+                        for command in commands
+                    )
+                    assert cleanup["container_runtime"] == runtime.value
                 sibling_id = run(
                     ["docker", "inspect", "--format", "{{.Id}}", sibling],
                     check=True,
@@ -141,6 +177,7 @@ def main():
                 "fault_injection": "lost rm reply and two inspection replies after real calls",
                 "native_calls_reexecuted": False,
                 "scientific_research_acceptance": False,
+                "frozen_container_runtime": runtime.value,
             },
             indent=2,
         )

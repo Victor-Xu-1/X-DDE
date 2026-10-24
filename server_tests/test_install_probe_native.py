@@ -6,6 +6,7 @@ import subprocess
 
 import pytest
 
+from opendde_workbench.container_runtime import DockerRuntime, freeze
 from opendde_workbench.deployment.native_probe import run_probe
 from opendde_workbench.deployment.process import run
 from opendde_workbench.integrations.specs import PROGRAMS
@@ -27,14 +28,31 @@ def official_image():
     ).strip()
 
 
+@pytest.mark.parametrize("bound", [False, True])
 @pytest.mark.parametrize("exit_code", [0, 7])
 def test_actual_attached_exit_and_owned_cleanup_without_auto_removal(
     tmp_path,
     official_image,
     exit_code,
+    bound,
 ):
+    runtime = DockerRuntime()
+    if bound:
+        observed = subprocess.check_output(
+            ["docker", "info", "--format", "{{json .ID}}"], text=True, timeout=10
+        )
+        runtime = DockerRuntime("unix:///var/run/docker.sock", json.loads(observed))
+    freeze(tmp_path, runtime)
+
     def execute(args, timeout):
-        return run(args, tmp_path / "process", lambda: None, lambda _: None, timeout=timeout)
+        runtime.require()
+        return run(
+            runtime.arguments(args),
+            tmp_path / "process",
+            lambda: None,
+            lambda _: None,
+            timeout=timeout,
+        )
 
     arguments = [
         "--network",
@@ -68,6 +86,7 @@ def test_actual_attached_exit_and_owned_cleanup_without_auto_removal(
     receipt = json.loads((tmp_path / "native-probe.json").read_text())
     assert receipt["state"] == ("failed" if exit_code else "succeeded")
     assert receipt["cleanup_confirmed"]
+    assert receipt["container_runtime"] == runtime.value
     assert receipt["cleanup_observed_state"]["ExitCode"] == exit_code
     assert json.loads((tmp_path / "native-cleanup.json").read_text())["state"] == "removed"
     inspection = subprocess.run(

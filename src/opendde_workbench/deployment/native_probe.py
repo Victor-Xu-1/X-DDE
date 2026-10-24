@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from uuid import uuid4
 
+from .. import container_runtime
 from ..locations import atomic_json
 from .native_probe_ownership import PROGRAM_LABEL, TOKEN_LABEL, cleanup_probe, owned_probe
 from .native_probe_recovery import recover_probe
@@ -15,6 +16,7 @@ def run_probe(identifier, image, arguments, execute, directory):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     recover_probe(directory, identifier)
+    runtime = container_runtime.read(directory)
     token = uuid4().hex
     name = "xdde-install-" + identifier + "-" + token
     receipt = directory / "native-probe.json"
@@ -25,6 +27,7 @@ def run_probe(identifier, image, arguments, execute, directory):
         "container": name,
         "image": image,
         "state": "preparing",
+        "container_runtime": runtime.value,
     }
     atomic_json(receipt, record)
     failure = None

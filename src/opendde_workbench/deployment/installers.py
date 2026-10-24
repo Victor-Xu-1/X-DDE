@@ -4,6 +4,7 @@ import shutil
 import sys
 from uuid import uuid4
 
+from .. import container_runtime
 from .catalog import CASE_BUNDLE_IDS, PACKAGES
 from .diffsbdd_install import install_model, install_runtime
 from .docking_install import install_docking
@@ -21,10 +22,15 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None, 
     spec = PACKAGES[key]
     work = root / "operations" / operation
     work.mkdir(parents=True, exist_ok=True)
+    runtime = container_runtime.installation(root, key, work)
 
     def execute(args, timeout=3600):
         checkpoint()
-        return run([str(v) for v in args], work, checkpoint, report, timeout=timeout)
+        args = [str(v) for v in args]
+        if args and args[0] == "docker":
+            runtime.require()
+            args = runtime.arguments(args)
+        return run(args, work, checkpoint, report, timeout=timeout)
 
     metadata = {"version": spec.version, "provisioning": provisioning_origin(key, operation)}
     report("Preparing verified release")
@@ -169,4 +175,6 @@ def install(key, root, installed, operation, report, checkpoint, *, state=None, 
     else:
         raise ValueError("Unknown installer recipe")
     checkpoint()
+    if metadata.get("image"):
+        metadata["container_runtime"] = runtime.value
     return metadata

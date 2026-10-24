@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-from .. import local_process
+from .. import container_runtime, local_process
 from ..engine import command
 from .manifest import VERSION
 from .runtime import configuration, labels_match
@@ -29,8 +29,10 @@ class DockingBackend:
             "scientific_acceptance": "pending_server_validation",
         }
         try:
+            runtime = container_runtime.installed(self.settings, "gnina")
             image = configuration(self.settings)
-            code, text = await command(
+            code, text = await runtime.command(
+                command,
                 "docker",
                 "image",
                 "inspect",
@@ -44,7 +46,8 @@ class DockingBackend:
                 raise ValueError(
                     "GNINA image is missing or differs from the reviewed runtime contract."
                 )
-            code, text = await command(
+            code, text = await runtime.command(
+                command,
                 "docker",
                 "info",
                 "--format",
@@ -60,6 +63,7 @@ class DockingBackend:
         return result
 
     async def start(self, job, directory):
+        runtime = container_runtime.task(self.settings, "gnina", directory)
         image = configuration(self.settings)
         source = Path(__file__).parent
         adapter, adapter_files = capture(directory, source)
@@ -116,11 +120,13 @@ class DockingBackend:
         if options.use_gpu:
             args.extend(["--gpus", "device=" + str(options.gpu_device)])
         args.extend(["--entrypoint", "python", image, "-B", "/platform/docking/native.py"])
-        code, text = await command(*args)
+        code, text = await runtime.command(command, *args)
         if code:
             raise RuntimeError("Unable to create the GNINA task container: " + text)
         (directory / "docking-execution.json").write_text(
-            json.dumps({"image": image, "adapter_files": adapter_files})
+            json.dumps(
+                {"image": image, "adapter_files": adapter_files, "container_runtime": runtime.value}
+            )
         )
         env = {
             "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -132,11 +138,14 @@ class DockingBackend:
                 Path(sys.executable), source / "supervise.py", directory, env
             )
         except Exception:
-            await command("docker", "rm", "--force", self.container(job.id))
+            await runtime.command(command, "docker", "rm", "--force", self.container(job.id))
             raise
 
     async def stop(self, job_id, directory):
-        code, text = await command("docker", "rm", "--force", self.container(job_id))
+        runtime = container_runtime.read(directory)
+        code, text = await runtime.command(
+            command, "docker", "rm", "--force", self.container(job_id)
+        )
         if code and "No such container" not in text:
             raise RuntimeError("GNINA container cancellation is unconfirmed.")
         await local_process.stop(Path(__file__).with_name("supervise.py"), directory)

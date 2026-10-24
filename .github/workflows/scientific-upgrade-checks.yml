@@ -52,6 +52,8 @@ on:
   push:
     paths:
       - "src/opendde_workbench/integrations/**"
+      # Runtime location is covered with its direct consumers in native-container-checks.
+      - "!src/opendde_workbench/integrations/runtime.py"
       - "src/opendde_workbench/deployment/native_readiness.py"
       - "src/opendde_workbench/deployment/scientific_install.py"
       - "src/opendde_workbench/deployment/scientific_cache.py"

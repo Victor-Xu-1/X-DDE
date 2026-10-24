@@ -3,6 +3,10 @@ on:
   push:
     paths:
       - 'src/opendde_workbench/deployment/**'
+      # The native-container gate covers these exact bindings and installer consumers.
+      - '!src/opendde_workbench/deployment/native_probe*.py'
+      - '!src/opendde_workbench/deployment/installers.py'
+      - '!src/opendde_workbench/deployment/network.py'
       - 'frontend/src/deployment/**'
       # UI composition does not change native installation; use the component presentation gate.
       - '!frontend/src/deployment/ComponentLibrary*'
@@ -19,6 +23,10 @@ on:
   pull_request:
     paths:
       - 'src/opendde_workbench/deployment/**'
+      # The native-container gate covers these exact bindings and installer consumers.
+      - '!src/opendde_workbench/deployment/native_probe*.py'
+      - '!src/opendde_workbench/deployment/installers.py'
+      - '!src/opendde_workbench/deployment/network.py'
       - 'frontend/src/deployment/**'
       # UI composition does not change native installation; use the component presentation gate.
       - '!frontend/src/deployment/ComponentLibrary*'

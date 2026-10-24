@@ -4,14 +4,21 @@ import json
 import subprocess
 import time
 
+from .container_runtime import DockerRuntime
 from .locations import atomic_json
 
 CONFIRM_SECONDS = 45
 OBSERVE_SECONDS = 5
 
 
-def remove_finished(container, receipt=None):
-    record = {"container": container, "state": "pending", "observations": []}
+def remove_finished(container, receipt=None, *, runtime=None):
+    runtime = runtime or DockerRuntime()
+    record = {
+        "container": container,
+        "state": "pending",
+        "observations": [],
+        "container_runtime": runtime.value,
+    }
 
     def save():
         if receipt is not None:
@@ -19,17 +26,25 @@ def remove_finished(container, receipt=None):
 
     save()
     try:
-        subprocess.run(
+        runtime.require()
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        record.update(state="unconfirmed", daemon_error=type(error).__name__)
+        save()
+        raise RuntimeError(
+            "Owned native container removal could not verify its bound daemon."
+        ) from error
+    try:
+        runtime.run(
             ["docker", "rm", container], check=True, capture_output=True, text=True, timeout=15
         )
-    except (OSError, subprocess.SubprocessError) as error:
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
         record["removal_client_error"] = type(error).__name__
         deadline = time.monotonic() + CONFIRM_SECONDS
         while time.monotonic() < deadline:
             observed = {"state": "unconfirmed"}
             try:
                 timeout = min(OBSERVE_SECONDS, max(0.01, deadline - time.monotonic()))
-                inspection = subprocess.run(
+                inspection = runtime.run(
                     ["docker", "inspect", "--format", "{{json .State}}", container],
                     check=False,
                     capture_output=True,
@@ -43,7 +58,7 @@ def remove_finished(container, receipt=None):
                 if missing:
                     observed["state"] = "absent_daemon_unconfirmed"
                     timeout = min(OBSERVE_SECONDS, max(0.01, deadline - time.monotonic()))
-                    daemon = subprocess.run(
+                    daemon = runtime.run(
                         ["docker", "info", "--format", "{{json .ServerVersion}}"],
                         check=True,
                         capture_output=True,
@@ -59,7 +74,12 @@ def remove_finished(container, receipt=None):
                     observed["state"] = "running" if state.get("Running") else "still_present"
                 else:
                     observed["state"] = "inspection_failed"
-            except (OSError, ValueError, subprocess.SubprocessError) as observation_error:
+            except (
+                OSError,
+                ValueError,
+                RuntimeError,
+                subprocess.SubprocessError,
+            ) as observation_error:
                 observed["error"] = type(observation_error).__name__
             record["observations"].append(observed)
             save()

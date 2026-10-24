@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from .. import container_runtime
 from ..engine import command
 from ..locations import read_json
 from .specs import PROGRAMS, recipe_digest
@@ -37,7 +38,9 @@ async def readiness(settings, identifier):
     }
     try:
         image, models = configuration(settings, identifier)
-        code, output = await command(
+        runtime = container_runtime.installed(settings, identifier)
+        code, output = await runtime.command(
+            command,
             "docker",
             "image",
             "inspect",
