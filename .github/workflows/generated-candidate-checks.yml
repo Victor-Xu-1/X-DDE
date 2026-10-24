@@ -5,6 +5,8 @@ on:
     paths: &generated_paths
       - "frontend/src/diffsbdd/CandidateFollowup*"
       - "frontend/src/diffsbdd/GenerationSummary*"
+      - "frontend/src/diffsbdd/GenerationRejections*"
+      - "frontend/src/diffsbdd/CoreVerification*"
       - "frontend/src/diffsbdd/DiffQualityHandoff*"
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/GeneratedCandidates*"
@@ -52,13 +54,13 @@ jobs:
         id: unit
         continue-on-error: true
         working-directory: frontend
-        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/optimization-model.test.ts src/diffsbdd/OptimizationSummary.test.tsx src/diffsbdd/OptimizationFigures.test.tsx src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/viewer-connection.test.tsx
+        run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/optimization-model.test.ts src/diffsbdd/OptimizationSummary.test.tsx src/diffsbdd/OptimizationFigures.test.tsx src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/viewer-connection.test.tsx
       - name: Selected structure checks, truthful counts and direct result consumers only
         if: steps.scope.outputs.review_only == 'true'
         id: review
         continue-on-error: true
         working-directory: frontend
-        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/GenerationSummary.test.tsx
+        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/GenerationSummary.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:

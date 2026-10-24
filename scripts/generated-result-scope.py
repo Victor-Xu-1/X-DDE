@@ -9,6 +9,8 @@ PATTERNS = (
     "frontend/src/diffsbdd/GeneratedMetricsView*",
     "frontend/src/diffsbdd/generated-metrics*",
     "frontend/src/diffsbdd/DiffResults*",
+    "frontend/src/diffsbdd/GenerationRejections*",
+    "frontend/src/diffsbdd/CoreVerification*",
     "server_tests/test_generated_quality_browser.py",
     "scripts/generated-result-scope.py",
     ".github/workflows/generated-candidate-checks.yml",

@@ -189,6 +189,7 @@ it("does not open an empty SDF when no candidate passed scientific checks", () =
   expect(screen.getByRole("status")).toHaveTextContent(
     "没有得到符合要求的候选",
   );
+  expect(screen.getByText("为什么没有有效候选？")).toBeInTheDocument();
 });
 
 it("shows native candidates by output digest even when their original asset names differ", async () => {

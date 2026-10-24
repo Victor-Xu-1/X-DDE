@@ -11,7 +11,7 @@ import type { OperationResult } from "../operations/types";
 import { CoreVerification } from "./CoreVerification";
 import { isResearchFile } from "../presentation/research-files";
 import { StructureViewer } from "../viewer/StructureViewer";
-import { ResultTree } from "../operations/StructuredResults";
+import { GenerationRejections } from "./GenerationRejections";
 import { isDesign } from "./types";
 import { ScientificDetails } from "./ScientificDetails";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
@@ -209,18 +209,12 @@ export function DiffResults({
             : "No qualified candidates were returned. Review the starting molecule and fixed region, or adjust the design settings before retrying."}
         </p>
       )}
-      {data.valid === 0 && Boolean(data.report) && (
-        <details>
-          <summary>
-            {zh ? "为什么没有有效候选？" : "Why were no candidates accepted?"}
-          </summary>
-          <ResultTree
-            value={{
-              rejected: (data.report as Record<string, unknown>).rejected,
-            }}
-            zh={zh}
-          />
-        </details>
+      {data.valid === 0 && (
+        <GenerationRejections
+          report={data.report}
+          verification={data.core_verification}
+          language={language}
+        />
       )}
       {designing && data.valid === 0 && (
         <DesignInputContext job={job} language={language} />

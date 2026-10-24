@@ -59,6 +59,16 @@ const reasons: Record<string, [string, string]> = {
   ],
 };
 
+export function coreFailureText(reason: string | null, language: Language) {
+  const zh = language === "zh";
+  return (
+    (reason && reasons[reason]?.[zh ? 0 : 1]) ||
+    (zh
+      ? "未通过固定区域复核，请查看诊断结构。"
+      : "Fixed-region verification did not pass; inspect the diagnostic structure.")
+  );
+}
+
 export function CoreVerification({
   data,
   jobId,
@@ -128,14 +138,7 @@ export function CoreVerification({
                 {c.maximum_displacement.toFixed(4)} Å
               </span>
             )}
-            {c.reason && (
-              <p>
-                {reasons[c.reason]?.[zh ? 0 : 1] ??
-                  (zh
-                    ? "复核未通过，请查看报告。"
-                    : "Verification did not pass; inspect the report.")}
-              </p>
-            )}
+            {c.reason && <p>{coreFailureText(c.reason, language)}</p>}
             {c.mapping.length > 0 && (
               <details>
                 <summary>
