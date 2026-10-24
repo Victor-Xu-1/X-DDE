@@ -5,6 +5,7 @@ on:
       - 'frontend/src/operations/HarnessForm.tsx'
       - 'frontend/src/operations/HarnessReview*'
       - 'frontend/src/operations/HarnessSourcesForm*'
+      - 'frontend/src/operations/HarnessSubmissionRecovery*'
       - 'frontend/src/operations/harness-sources*'
       - 'frontend/src/operations/useHarnessSources*'
       - 'frontend/src/operations/harness-generated.ts'
@@ -49,5 +50,6 @@ jobs:
         run: >-
           npx vitest run src/operations/harness-sources.test.ts
           src/operations/useHarnessSources.test.tsx src/operations/HarnessSourcesForm.test.tsx
+          src/operations/HarnessSubmissionRecovery.test.tsx
           src/operations/HarnessReview.test.tsx src/operations/ToolQuestionnaires.test.tsx
           src/examples/harness.test.ts src/operations/HarnessResults.test.tsx

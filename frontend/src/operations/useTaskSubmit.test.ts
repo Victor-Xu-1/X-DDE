@@ -112,3 +112,38 @@ it("does not open a result page after its form is unmounted", async () => {
   });
   expect(created).not.toHaveBeenCalled();
 });
+
+it("clears a corrected validation error without resetting the retry identity", async () => {
+  const send = vi
+    .spyOn(api, "submit")
+    .mockRejectedValueOnce(new Error("Invalid task name"))
+    .mockResolvedValue(accepted());
+  const view = renderHook(() => useTaskSubmit(vi.fn()));
+  await act(async () => {
+    await view.result.current.submit(input());
+  });
+  expect(view.result.current.error).toBe("Invalid task name");
+  act(() => view.result.current.clearError());
+  expect(view.result.current.error).toBe("");
+  await act(async () => {
+    await view.result.current.submit(input());
+  });
+  expect(send.mock.calls[1]).toEqual(send.mock.calls[0]);
+});
+it("does not dismiss recovery information for an already accepted task", async () => {
+  const send = vi.spyOn(api, "submit").mockResolvedValue(accepted());
+  const created = vi.fn().mockImplementationOnce(() => {
+    throw new Error("View unavailable");
+  });
+  vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  const view = renderHook(() => useTaskSubmit(created));
+  await act(async () => {
+    await view.result.current.submit(input());
+  });
+  act(() => view.result.current.clearError());
+  expect(view.result.current.error).toContain("Task created");
+  await act(async () => {
+    await view.result.current.submit(input());
+  });
+  expect(send).toHaveBeenCalledTimes(1);
+});

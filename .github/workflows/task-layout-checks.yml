@@ -340,6 +340,7 @@ on:
       - "!frontend/src/operations/CovalentEditor.tsx"
       - "!frontend/src/operations/FeatureForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
+      - "!frontend/src/operations/HarnessSubmissionRecovery*"
       - "!frontend/src/operations/HarnessReview*"
       - "!frontend/src/operations/HarnessSourcesForm*"
       - "!frontend/src/operations/harness-sources*"

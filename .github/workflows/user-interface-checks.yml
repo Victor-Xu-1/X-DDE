@@ -212,6 +212,7 @@ on:
       - "!frontend/src/datasets/supplier-label*"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
+      - "!frontend/src/operations/HarnessSubmissionRecovery*"
       # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
       - "!frontend/src/integrations/ProteinInterface*"
       - "!frontend/src/viewer/modified-polymer*"
@@ -489,6 +490,7 @@ on:
       - "!frontend/src/datasets/supplier-label*"
       - "!frontend/src/humanization/HumanizationForm.tsx"
       - "!frontend/src/operations/HarnessForm.tsx"
+      - "!frontend/src/operations/HarnessSubmissionRecovery*"
       # Exact interface and deposited-PTM checks use protein-interface-checks.yml.
       - "!frontend/src/integrations/ProteinInterface*"
       - "!frontend/src/viewer/modified-polymer*"

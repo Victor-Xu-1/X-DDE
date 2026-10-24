@@ -42,6 +42,7 @@ export function HarnessForm({
     [name, setName] = useState(""),
     run = useTaskSubmit(onCreated);
   const readiness = useTaskReadiness(tool);
+  const validName = name.trim().length <= 80;
   const needsExternal = [
     "target-msa",
     "protrek-sequence",
@@ -242,8 +243,19 @@ export function HarnessForm({
         <input
           value={name}
           maxLength={80}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            run.clearError();
+          }}
+          aria-invalid={!validName}
         />
+        {!validName && (
+          <span role="alert">
+            {zh
+              ? "任务名称不能超过 80 个字符。"
+              : "Use at most 80 characters for the task name."}
+          </span>
+        )}
       </label>
     </>
   );
@@ -314,12 +326,12 @@ export function HarnessForm({
         {
           title: zh ? "运行设置" : "Run settings",
           content: execution,
-          valid: !needsExternal || external,
+          valid: validName && (!needsExternal || external),
         },
         {
           title: zh ? "确认启动" : "Review & start",
           content: review,
-          valid: !needsExternal || external,
+          valid: validName && (!needsExternal || external),
         },
       ]}
     />

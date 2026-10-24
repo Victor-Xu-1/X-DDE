@@ -58,5 +58,9 @@ export function useTaskSubmit(onCreated: (job: Job) => void) {
       if (mounted.current) setBusy(false);
     }
   }
-  return { busy, error, submit };
+  function clearError() {
+    // Editing a rejected input does not erase accepted-task navigation recovery.
+    if (!pending.current && !request.current.accepted) setError("");
+  }
+  return { busy, error, submit, clearError };
 }
