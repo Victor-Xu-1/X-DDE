@@ -67,7 +67,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     assets = AssetStore(store, settings.state_dir / "assets")
     example_library = ExampleLibrary(store)
     worker = Worker(store, engine, settings, assets)
-    deployments = DeploymentManager(settings.state_dir)
+    deployments = DeploymentManager(settings.state_dir, msa_url=settings.msa_url)
     csrf = secrets.token_urlsafe(32)
     mutations = asyncio.Lock()
     # The managed router performs expensive native observations. Injected engines

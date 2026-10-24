@@ -25,6 +25,7 @@ NATIVE_EXAMPLES = {
     "esm2": "c689b556-3e00-4f94-a578-c631ef7717e4",
     "mpnn": "e9ccf58d-d7c9-41ec-ae8b-f952a4b9fd3d",
     "protrek-sequence": "39a51984-ac65-4a02-a164-7134cdc8beea",
+    "protrek-structure": "757a1703-2cf4-4998-9891-f617a3f7715f",
     "import": "a7b7271b-39e6-40dc-84ac-94e8d76ddbf5",
     "features": "f71f9f99-a40b-41bc-a108-18afc4d6202a",
     "evolution": "92943087-2a75-412f-8124-d5805b9765c1",
@@ -86,17 +87,15 @@ def check_reviewed_pose_and_chemical_followup(client, settings):
     identifier = NATIVE_EXAMPLES["boltz.predict"]
     primary = json.loads(result_path(settings, identifier).read_text())
     assert [row["id"] for row in primary["candidates"]] == [
-        "structure-001", "structure-002", "structure-003"
+        "structure-001",
+        "structure-002",
+        "structure-003",
     ]
     expected_sha = "dc4450f8f061bce82bfd3c69330da1af4d86b20f7bd8af46435e936d151d72cf"
-    response = client.get(
-        f"/api/jobs/{identifier}/download", params={"name": "structure-003.cif"}
-    )
+    response = client.get(f"/api/jobs/{identifier}/download", params={"name": "structure-003.cif"})
     assert response.status_code == 200
     assert hashlib.sha256(response.content).hexdigest() == expected_sha
-    followup = json.loads(
-        result_path(settings, "a5773abd-8315-49f7-ab66-7df445c39d45").read_text()
-    )
+    followup = json.loads(result_path(settings, "a5773abd-8315-49f7-ab66-7df445c39d45").read_text())
     assert followup["program"] == "plip" and len(followup["interactions"]) == 3
     assert followup["artifact_sha256"]["interaction-structure.cif"] == expected_sha
 
@@ -116,25 +115,64 @@ def check_native_surface_sequence_examples(settings, store):
     assert request["num_sequences"] == 8 and request["parameters"]["temperature"] == 0.3
     parent = request["parent_chains"]["A"]
     assert len(parent) == 116
-    proposals = json.loads(result_path(settings, mpnn_job.id).read_text())["result"][
-        "candidates"
-    ]
+    proposals = json.loads(result_path(settings, mpnn_job.id).read_text())["result"]["candidates"]
     assert len(proposals) == len({row["sequence"] for row in proposals}) == 8
     for proposal in proposals:
         sequence = proposal["sequence"]
         assert len(sequence) == 116
-        changed = {i for i, pair in enumerate(zip(parent, sequence, strict=True)) if pair[0] != pair[1]}
+        changed = {
+            i for i, pair in enumerate(zip(parent, sequence, strict=True)) if pair[0] != pair[1]
+        }
         assert changed and changed <= {32, 36, 63, 68, 93}
         assert all(sequence[i] not in "CP" for i in changed)
     assert proposals[4]["sequence"][68] == "K"  # Preserve the actual fifth sample.
 
 
+def check_native_antibody_structure_search(client, settings, store):
+    """Restore the real query and returned sequence without inventing hit coordinates."""
+    identifier = NATIVE_EXAMPLES["protrek-structure"]
+    job = store.get(identifier)
+    assert job.request.payload == {
+        "structure_path": "asset:5c2df31c-8ad4-4624-bb74-e8d3e4bb18ab",
+        "chain": "A",
+        "topk": 5,
+    }
+    native = json.loads(result_path(settings, identifier).read_text())
+    assert native["complete"] and native["result"]["available"]
+    assert native["structures"] == []
+    text = native["result"]["result"]
+    assert "**P01823** (score=32.816, length=113)" in text
+    sequence = (
+        "EVQLQESGPSLVKPSQTLSLTCSVTGDSITSDYWNWIRKFPGNKLEHMGYISYSGSTYYNPSLKSRISITR"
+        "DTSKNQYYLQLNSVTSEDTATYYCTSLRFAYWGQGTLVTVSA"
+    )
+    assert sequence in text
+    query = client.get("/api/assets/5c2df31c-8ad4-4624-bb74-e8d3e4bb18ab")
+    assert query.status_code == 200
+    assert hashlib.sha256(query.content).hexdigest() == (
+        "a099acf214a36bcd9044b6f6ded303817be149b49be2c448c6b8d3c61ba68071"
+    )
+    value = client.get("/api/examples/protrek-structure").json()
+    assert value["pin"]["job_id"] == identifier
+    limits = value["pin"]["review"]["limitations"]
+    assert "mouse reference" in limits and "no candidate coordinates" in limits
+    replay = client.post(
+        "/api/examples/protrek-structure/prepare",
+        headers={
+            "Origin": "http://127.0.0.1:4322",
+            "X-Workbench-CSRF": client.get("/api/session").json()["csrf_token"],
+        },
+    )
+    assert replay.status_code == 200
+    assert replay.json()["request"]["payload"] == job.request.payload
+
+
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "30"
+    assert package.kind == "data" and package.version == source.VERSION == "31"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
-    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 57
+    assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 58
     assert not set(source.CAPABILITIES) & {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"}
 
 
@@ -157,7 +195,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             "INSERT INTO projects VALUES(?,?,?,?)",
             (private, "Personal research", "Retain", "today"),
         )
-    summary = {"modules": 57, "computed": 57, "validated": 0}
+    summary = {"modules": 58, "computed": 58, "validated": 0}
     assert restore_bundle(archive, settings, source.SHA256) == summary
     assert verify_examples(settings, source.CAPABILITIES, profile="stat6") == summary
     with TestClient(app, base_url="http://127.0.0.1:4322") as client:
@@ -173,6 +211,7 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
         check_exploratory_model_limits(settings)
         check_reviewed_pose_and_chemical_followup(client, settings)
         check_native_surface_sequence_examples(settings, store)
+        check_native_antibody_structure_search(client, settings, store)
         job = store.get(NATIVE_EXAMPLES["predict"])
         assert len(job.request.components) == 1
         assert len(job.request.components[0].value) == 116

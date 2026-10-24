@@ -56,6 +56,9 @@ def launch_arguments(connection, root, checkpoint):
         code_mode="managed",
         idle_seconds=86400,
         shm_size="2g",
+        # Pin the protocol-compatible endpoint instead of inheriting Harness's
+        # older Protenix default. This is operator configuration, never task JSON.
+        env={"MMSEQS_SERVICE_HOST_URL": connection["msa_url"]},
     )
     port = urlsplit(connection["url"]).port
     args, env = create_arguments(

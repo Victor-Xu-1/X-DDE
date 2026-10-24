@@ -6,9 +6,10 @@ import secrets
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..locations import atomic_json, read_json
+from .msa_config import DEFAULT_MSA_ENDPOINT, msa_endpoint
 
 
 class ComputeConfiguration(BaseModel):
@@ -25,6 +26,13 @@ class ComputeConfiguration(BaseModel):
     code: str
     network: str = Field(pattern=r"^(host|bridge)$")
     automatic: bool = True
+    # None preserves readable legacy connections until an idle owned replacement.
+    msa_url: str | None = None
+
+    @field_validator("msa_url")
+    @classmethod
+    def checked_msa_endpoint(cls, value):
+        return None if value is None else msa_endpoint(value)
 
     @model_validator(mode="after")
     def owned_loopback(self):
@@ -105,6 +113,7 @@ def prepare_connection(state, root, installed, network):
         image=installed["compute"]["image"],
         code=installed["runtime"]["code"],
         network=network,
+        msa_url=DEFAULT_MSA_ENDPOINT,
     )
     atomic_json(state / "compute-service.json", value.model_dump())
     return value

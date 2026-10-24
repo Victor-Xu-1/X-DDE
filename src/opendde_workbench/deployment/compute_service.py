@@ -9,11 +9,13 @@ from pathlib import Path
 
 from ..locations import atomic_json, read_json
 from .compute_config import read_connection
+from .msa_config import msa_endpoint
 
 
 class ComputeService:
-    def __init__(self, state):
+    def __init__(self, state, *, msa_url=None):
         self.state = state
+        self.msa_url = msa_endpoint(msa_url)
         self.lock = threading.RLock()
         self.cached = (0.0, {"configured": False, "running": False, "ready": False})
 
@@ -37,6 +39,7 @@ class ComputeService:
             changed = (
                 installed.get("compute", {}).get("image") != connection.image
                 or installed.get("runtime", {}).get("code") != connection.code
+                or connection.msa_url != self.msa_url
             )
             if changed and action == "start":
                 # Retire only this instance, with native queue/identity proof, before replacing it.
@@ -46,6 +49,7 @@ class ComputeService:
                         "image": installed["compute"]["image"],
                         "code": installed["runtime"]["code"],
                         "container_id": None,
+                        "msa_url": self.msa_url,
                     }
                 )
                 replacement = type(connection).model_validate(replacement.model_dump())

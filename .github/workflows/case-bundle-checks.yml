@@ -128,7 +128,7 @@ jobs:
         run: uv run --locked pytest -q tests/portable/test_bundle_archive.py tests/test_case_bundle.py tests/test_case_output_witnesses.py tests/test_example_supporting.py tests/test_stat6_case_bundle.py tests/test_case_retry_history.py tests/test_case_bundle_sources.py tests/test_potential_case_sources.py tests/test_example_pins.py tests/test_example_records.py tests/test_research_assets.py tests/test_api_security.py
       - name: Changed deployment consumers
         if: steps.scope.outputs.deployment == 'true'
-        run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_deployment.py
+        run: uv run --locked pytest -q tests/test_reference_import.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_deployment.py
       - name: Verify case installation into the active state
         if: needs.workflow-scope.outputs.case_data_only != 'true'
         run: uv run --locked pytest -q tests/test_dataset_resources.py
@@ -151,7 +151,7 @@ jobs:
           readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
           test "${#source[@]}" -eq 2
           [[ "${source[0]}" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+|examples-v[0-9]+)$ ]]
-          test "${source[1]}" = stat6-reviewed-results-v28.zip
+          test "${source[1]}" = stat6-reviewed-results-v31.zip
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - name: Actual STAT6 outputs, complete alignments and repeat-import preservation
