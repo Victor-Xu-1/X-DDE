@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -627,4 +634,46 @@ it("keeps the preceding filtered result location when opening a new questionnair
     await screen.findByRole("combobox", { name: "Research task" }),
   ).toHaveValue("p2rank.detect");
   expect(api.artifacts).not.toHaveBeenCalled();
+});
+
+it("restores a newly typed history query after immediately opening a new task", async () => {
+  vi.mocked(apiClient.request).mockResolvedValue({
+    availability: { configuration_present: false },
+  } as never);
+  window.history.replaceState(null, "", "/#view=results&module=binding");
+  vi.useFakeTimers();
+  const view = render(<App />);
+  try {
+    await act(async () => vi.advanceTimersByTimeAsync(0));
+    fireEvent.change(
+      screen.getByRole("searchbox", { name: "Search this module" }),
+      { target: { value: "STAT6 fragment" } },
+    );
+    expect(new URLSearchParams(window.location.hash.slice(1)).get("q")).toBe(
+      "STAT6 fragment",
+    );
+    expect(
+      vi
+        .mocked(api.taskHistory)
+        .mock.calls.some(([path]) => path.includes("q=STAT6")),
+    ).toBe(false);
+    fireEvent.click(
+      within(
+        screen.getByRole("navigation", { name: "Module workspace" }),
+      ).getByRole("button", { name: "New task" }),
+    );
+    expect(window.location.hash).toBe("#view=new&tool=p2rank.detect");
+    act(() => window.history.back());
+    await act(async () => vi.advanceTimersByTimeAsync(10));
+    expect(new URLSearchParams(window.location.hash.slice(1)).get("q")).toBe(
+      "STAT6 fragment",
+    );
+    expect(
+      screen.getByRole("searchbox", { name: "Search this module" }),
+    ).toHaveValue("STAT6 fragment");
+    expect(api.artifacts).not.toHaveBeenCalled();
+  } finally {
+    view.unmount();
+    vi.useRealTimers();
+  }
 });

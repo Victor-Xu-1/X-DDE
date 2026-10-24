@@ -50,10 +50,13 @@ interface Props {
 export function TaskWorkspace(p: Props) {
   const zh = p.language === "zh";
   const restored = taskHistoryRoute(window.location.hash);
-  const initialRoute = useRef(restored?.module === p.scopedModule ? restored : null);
+  const initialRoute = useRef(
+    restored?.module === p.scopedModule ? restored : null,
+  );
   const taskJob =
-    p.job && moduleForKind(kindForJob(p.job)) === p.scopedModule
-      && (!p.projectId || p.job.request.project_id === p.projectId)
+    p.job &&
+    moduleForKind(kindForJob(p.job)) === p.scopedModule &&
+    (!p.projectId || p.job.request.project_id === p.projectId)
       ? p.job
       : null;
   const module = p.scopedModule;
@@ -92,11 +95,11 @@ export function TaskWorkspace(p: Props) {
       null,
       "",
       taskHistoryHash(
-        { module, type, status, query: search, page, project: p.projectId },
+        { module, type, status, query, page, project: p.projectId },
         taskIdFromHash(window.location.hash),
       ),
     );
-  }, [module, type, status, search, page, p.projectId, taskJob?.id]);
+  }, [module, type, status, query, page, p.projectId, taskJob?.id]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(query);
@@ -170,7 +173,10 @@ export function TaskWorkspace(p: Props) {
   const filtered = type !== "all" || status !== "all" || Boolean(query.trim());
   return (
     <section className="utility-page task-history-workspace">
-      <h1 className="sr-only">{historyModuleLabel(module, p.language)} · {zh ? "任务结果" : "Task results"}</h1>
+      <h1 className="sr-only">
+        {historyModuleLabel(module, p.language)} ·{" "}
+        {zh ? "任务结果" : "Task results"}
+      </h1>
       <TaskHistoryToolbar
         language={p.language}
         module={module}
@@ -200,7 +206,7 @@ export function TaskWorkspace(p: Props) {
             module,
             type,
             status,
-            query: search,
+            query,
             page,
             project: p.projectId,
           })}

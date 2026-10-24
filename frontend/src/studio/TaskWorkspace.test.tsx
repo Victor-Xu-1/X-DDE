@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -103,7 +104,9 @@ it("opens an exact linked task in its owning module and masks foreign selected r
   view.rerender(<TaskWorkspace key="evaluation" {...props({ job })} />);
   await modulePage();
   expect(screen.queryByText("Actual prediction result")).toBeNull();
-  expect(screen.queryByRole("combobox", { name: "Switch task module" })).toBeNull();
+  expect(
+    screen.queryByRole("combobox", { name: "Switch task module" }),
+  ).toBeNull();
 });
 it("filters within the chosen module and offers a clear empty state", async () => {
   render(<TaskWorkspace {...props()} />);
@@ -191,7 +194,10 @@ it("keeps projects isolated and hides a selected task belonging to another proje
 });
 it("keeps a just-submitted task visible when its history request fails", async () => {
   vi.mocked(api.taskHistory).mockRejectedValue(new Error("Unavailable"));
-  const p = props({ scopedModule: "structures", job: { ...job, status: "queued" } });
+  const p = props({
+    scopedModule: "structures",
+    job: { ...job, status: "queued" },
+  });
   render(<TaskWorkspace {...p} />);
   expect(
     await screen.findByRole("heading", { name: "STAT6 structure" }),
@@ -208,7 +214,9 @@ it("opens other tasks without discarding unclassified history", async () => {
   ];
   render(<TaskWorkspace {...props({ scopedModule: "other" })} />);
   await screen.findByRole("button", { name: "Environment check" });
-  expect(screen.queryByRole("combobox", { name: "Switch task module" })).toBeNull();
+  expect(
+    screen.queryByRole("combobox", { name: "Switch task module" }),
+  ).toBeNull();
 });
 it("does not expose a global module picker or foreign results", async () => {
   render(<TaskWorkspace {...props({ job })} />);
@@ -235,10 +243,47 @@ it("restores an unselected module and its search after remount instead of openin
   expect(window.location.hash).toContain("module=evaluation");
   first.unmount();
   render(<TaskWorkspace {...p} />);
-  expect(screen.queryByRole("combobox", { name: "Switch task module" })).toBeNull();
+  expect(
+    screen.queryByRole("combobox", { name: "Switch task module" }),
+  ).toBeNull();
   expect(
     screen.getByRole("searchbox", { name: "Search this module" }),
   ).toHaveValue("STAT6");
   await screen.findByRole("button", { name: "STAT6 descriptors" });
   expect(screen.queryByRole("button", { name: "STAT6 structure" })).toBeNull();
 });
+
+it.each(["en", "zh"] as const)(
+  "persists the visible %s search before the debounced server query",
+  async (language) => {
+    vi.useFakeTimers();
+    const view = render(<TaskWorkspace {...props({ language })} />);
+    try {
+      await act(async () => vi.advanceTimersByTimeAsync(0));
+      fireEvent.change(
+        screen.getByRole("searchbox", {
+          name: language === "zh" ? "搜索模块内任务" : "Search this module",
+        }),
+        { target: { value: "STAT6 fragment" } },
+      );
+      expect(new URLSearchParams(window.location.hash.slice(1)).get("q")).toBe(
+        "STAT6 fragment",
+      );
+      expect(
+        vi
+          .mocked(api.taskHistory)
+          .mock.calls.some(([path]) => path.includes("q=STAT6")),
+      ).toBe(false);
+      await act(async () => vi.advanceTimersByTimeAsync(250));
+      expect(vi.mocked(api.taskHistory).mock.calls.at(-1)?.[0]).toContain(
+        "q=STAT6+fragment",
+      );
+      expect(new URLSearchParams(window.location.hash.slice(1)).get("q")).toBe(
+        "STAT6 fragment",
+      );
+    } finally {
+      view.unmount();
+      vi.useRealTimers();
+    }
+  },
+);

@@ -96,3 +96,32 @@ def test_new_task_keeps_prior_result_filter_and_ignores_stale_task(fixture_page,
         "Results filter remains in browser history; "
         "an explicit new route never reads the attached stale task.",
     )
+
+
+@pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
+def test_immediate_new_task_preserves_uncommitted_search(fixture_page, language, width):
+    page, _, counts, _, capture = fixture_page
+    empty_history(page)
+    page.goto(os.environ["WB_BROWSER_URL"] + "/#view=results&module=proximity")
+    zh = language == "zh"
+    search = page.get_by_role(
+        "searchbox", name="搜索模块内任务" if zh else "Search this module", exact=True
+    )
+    search.fill("STAT6 ternary")
+    # This fixture's browser clock is paused: the 250 ms request debounce cannot hide a lost URL.
+    expect(page).to_have_url(re.compile(r"q=STAT6"))
+    page.get_by_role(
+        "navigation", name="模块工作区" if zh else "Module workspace", exact=True
+    ).get_by_role("button", name="新建任务" if zh else "New task", exact=True).click()
+    expect(
+        page.get_by_role("combobox", name="研究任务" if zh else "Research task", exact=True)
+    ).to_have_value("deepternary.model")
+    page.go_back()
+    expect(search).to_have_value("STAT6 ternary")
+    assert parse_qs(urlsplit(page.url).fragment)["q"] == ["STAT6 ternary"]
+    assert counts[f"/jobs/{A}"] == counts[f"/jobs/{B}"] == 0
+    capture(
+        "immediate-search-preservation",
+        "Visible search persisted before its request debounce; "
+        "immediate New task and Back retain the text.",
+    )
