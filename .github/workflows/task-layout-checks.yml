@@ -355,7 +355,7 @@ on:
       - "!frontend/src/viewer/scientific-data.ts"
       - "!.github/workflows/task-layout-checks.yml"
       # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
-      - "!frontend/src/diffsbdd/DiffResults.tsx"
+      - "!frontend/src/diffsbdd/DiffResults*"
       - "!frontend/src/presentation/MolecularPreview*"
       - "!frontend/src/viewer/PoseSession.test.tsx"
       - "!frontend/src/viewer/PoseSession.tsx"

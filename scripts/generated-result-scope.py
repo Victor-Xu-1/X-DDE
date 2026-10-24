@@ -14,6 +14,8 @@ PATTERNS = (
     "server_tests/test_generated_quality_browser.py",
     "scripts/generated-result-scope.py",
     ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/user-interface-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
     ".github/workflows/reference-pocket-checks.yml",
     "docs/frontend-layout.md",
     "pyproject.toml",

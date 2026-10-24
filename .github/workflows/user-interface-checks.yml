@@ -222,7 +222,7 @@ on:
       - "!frontend/src/docking/DockingResults*"
       # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
       - "!frontend/src/chemistry/StateResults.tsx"
-      - "!frontend/src/diffsbdd/DiffResults.tsx"
+      - "!frontend/src/diffsbdd/DiffResults*"
       - "!frontend/src/presentation/MolecularPreview*"
       - "!frontend/src/operations/OperationResults*"
       # Molecular view alignment has structure-layout-checks.yml.
@@ -497,7 +497,7 @@ on:
       - "!frontend/src/docking/DockingResults*"
       # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
       - "!frontend/src/chemistry/StateResults.tsx"
-      - "!frontend/src/diffsbdd/DiffResults.tsx"
+      - "!frontend/src/diffsbdd/DiffResults*"
       - "!frontend/src/presentation/MolecularPreview*"
       - "!frontend/src/operations/OperationResults*"
       # Molecular view alignment has structure-layout-checks.yml.
