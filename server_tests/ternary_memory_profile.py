@@ -34,7 +34,7 @@ def request_case(root, source, branch, memory_mib):
         shutil.copyfile(source / name, target)
         ref = {"asset_id": identifier, "record": 0, "sha256": digest(target)}
         inputs.append({"role": role, "source": ref})
-        bindings[identifier] = "/input/assets/" + target.name
+        bindings[identifier] = "/job/assets/" + target.name
     # Keep the published4GiB request contract while explicitly stress-testing a lower
     # kernel cap in CI. This does not enable a smaller platform task budget.
     request = IntegratedTask(
