@@ -109,7 +109,7 @@ export function ToolCenter({
       {current ? (
         <>
           <ExampleActions
-            key={current.id}
+            key={current.id + ":" + entryRevision}
             capability={current.id}
             language={language}
             onBack={() => onSelectTool(null)}

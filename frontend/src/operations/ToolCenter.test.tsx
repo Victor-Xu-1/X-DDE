@@ -2,6 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
+import * as client from "../api";
+import { act, waitFor } from "@testing-library/react";
+import type { PreparedExample, ExampleInfo } from "../examples/types";
 import { useState, type ComponentProps } from "react";
 import type { Language } from "../types";
 import { tools, type ToolId } from "./catalog";
@@ -152,4 +155,81 @@ it("returns a direct task entry to the catalogue through the shared navigation",
     screen.getByRole("button", { name: "Back to all capabilities" }),
   );
   expect(onBrowse).toHaveBeenCalledOnce();
+});
+
+it("cannot restore a delayed template after starting a new task in the same module", async () => {
+  const metadata: ExampleInfo = {
+    module: {
+      capability_id: "properties",
+      case_id: "controlled-template",
+      revision: 1,
+    },
+    case: {
+      id: "controlled-template",
+      revision: 1,
+      label: ["受控模板", "Controlled template"],
+      description: ["仅交互验证", "Interaction fixture only"],
+      sources: ["https://www.rcsb.org/structure/9BIG"],
+    },
+    files: [],
+    computed_result_available: false,
+    pin: null,
+  };
+  vi.spyOn(client, "request").mockImplementation(
+    async (path) => (path === "/examples/properties" ? metadata : []) as never,
+  );
+  let resolve!: (value: PreparedExample) => void;
+  const pending = new Promise<PreparedExample>((done) => {
+    resolve = done;
+  });
+  const prepare = vi
+    .spyOn(api, "post")
+    .mockImplementation(() => pending as never);
+  const handlers = props(),
+    user = userEvent.setup();
+  const view = render(
+    <ControlledToolCenter
+      {...handlers}
+      selectedTool="properties"
+      onSelectTool={vi.fn()}
+      entryRevision={1}
+    />,
+  );
+  await user.click(
+    await screen.findByRole("button", { name: "Use this template" }),
+  );
+  await waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+  view.rerender(
+    <ControlledToolCenter
+      {...handlers}
+      selectedTool="properties"
+      onSelectTool={vi.fn()}
+      entryRevision={2}
+    />,
+  );
+  await screen.findByRole("button", { name: "Use this template" });
+  await act(async () =>
+    resolve({
+      module: metadata.module,
+      case: metadata.case,
+      objects: {},
+      sequences: {},
+      sources: metadata.case.sources,
+      request: {
+        operation: "properties",
+        name: "Late old study",
+        smiles: ["NC(=O)c1ccc(F)cc1"],
+        ligand_files: [],
+      },
+    }),
+  );
+  expect(screen.queryByRole("button", { name: "New blank task" })).toBeNull();
+  expect(
+    screen.getByRole("radio", { name: "Upload a new file" }),
+  ).toBeChecked();
+  expect(
+    screen.getByRole("button", { name: "Use this template" }),
+  ).toBeEnabled();
+  expect(prepare).toHaveBeenCalledTimes(1);
+  expect(handlers.onCreated).not.toHaveBeenCalled();
 });
