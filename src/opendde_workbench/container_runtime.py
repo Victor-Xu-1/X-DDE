@@ -93,13 +93,19 @@ class DockerRuntime:
         return await execute(*self.arguments(args), **kwargs)
 
 
-def installed(settings, identifier):
+def installed_entry(settings, identifier):
     state = getattr(settings, "state_dir", None)
     deployment = document(Path(state) / "deployment.json") if state is not None else {}
     if not deployment.get("root"):
-        return DockerRuntime()
+        return {}
     record = document(Path(deployment["root"]) / "installed.json").get(identifier, {})
-    return DockerRuntime.parse(record.get("container_runtime"))
+    if not isinstance(record, dict):
+        raise ValueError("Installed Docker environment record must be an object.")
+    return record
+
+
+def installed(settings, identifier):
+    return DockerRuntime.parse(installed_entry(settings, identifier).get("container_runtime"))
 
 
 def configured(root, identifier):
@@ -120,7 +126,24 @@ def read(directory):
     if not path.exists() and not path.is_symlink():
         return DockerRuntime()
     record = document(path)
-    if set(record) != {"schema", "runtime"} or record["schema"] != 1:
+    allowed = {"schema", "runtime"}
+    if record.get("schema") == 2:
+        allowed |= {"image"}
+        if any(key in record for key in ("lease_id", "lease_expires_at", "source_image")):
+            allowed |= {"lease_id", "lease_expires_at", "source_image"}
+        from .native_runtime_leases import IMAGE, validate_provenance
+
+        if "lease_id" in record and set(record) == allowed:
+            validate_provenance(record)
+            if record.get("runtime") is None:
+                raise ValueError("Frozen native runtime lease needs an explicit Docker binding.")
+        if not isinstance(record.get("image"), str) or not IMAGE.fullmatch(record["image"]):
+            raise ValueError("Frozen Docker task image is invalid.")
+    if (
+        set(record) != allowed
+        or type(record.get("schema")) is not int
+        or record["schema"] not in (1, 2)
+    ):
         raise ValueError("Frozen Docker runtime receipt is invalid.")
     return DockerRuntime.parse(record["runtime"])
 
@@ -132,10 +155,30 @@ def freeze(directory, runtime):
     return runtime
 
 
-def task(settings, identifier, directory):
-    if (directory / RECEIPT).exists() or (directory / RECEIPT).is_symlink():
-        return read(directory)
-    return freeze(directory, installed(settings, identifier))
+def selection(settings, identifier, image):
+    from .native_runtime_leases import active
+
+    entry = installed_entry(settings, identifier)
+    lease = active(settings, identifier, image, entry)
+    return (
+        (lease.image, lease.runtime, lease.provenance)
+        if lease
+        else (image, DockerRuntime.parse(entry.get("container_runtime")), {})
+    )
+
+
+def prepare(settings, identifier, directory, image):
+    path = directory / RECEIPT
+    if path.exists() or path.is_symlink():
+        runtime = read(directory)
+        return document(path).get("image", image), runtime
+    selected, runtime, provenance = selection(settings, identifier, image)
+    from .native_runtime_leases import IMAGE
+
+    if not isinstance(selected, str) or not IMAGE.fullmatch(selected):
+        raise ValueError("Docker tasks require an immutable image ID.")
+    atomic_json(path, {"schema": 2, "runtime": runtime.value, "image": selected, **provenance})
+    return selected, runtime
 
 
 def installation(root, identifier, directory):

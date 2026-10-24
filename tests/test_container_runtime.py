@@ -59,14 +59,19 @@ def test_task_cancel_and_installer_retry_use_frozen_binding_after_configuration_
         root / "container-runtimes.json", {"schema": 1, "engines": {"deepternary": BOUND.value}}
     )
     settings = SimpleNamespace(state_dir=state)
-    assert runtime.task(settings, "deepternary", job) == BOUND
+    assert runtime.prepare(settings, "deepternary", job, "sha256:" + "a" * 64)[1] == BOUND
     assert runtime.installation(root, "deepternary", operation) == BOUND
     atomic_json(root / "installed.json", {})
     atomic_json(root / "container-runtimes.json", {"schema": 1, "engines": {}})
     assert runtime.read(job) == BOUND
-    assert runtime.task(settings, "deepternary", job) == BOUND
+    assert runtime.prepare(settings, "deepternary", job, "sha256:" + "a" * 64)[1] == BOUND
     assert runtime.installation(root, "deepternary", operation) == BOUND
-    assert runtime.task(settings, "deepternary", tmp_path / "new-job").value is None
+    assert (
+        runtime.prepare(settings, "deepternary", tmp_path / "new-job", "sha256:" + "a" * 64)[
+            1
+        ].value
+        is None
+    )
 
 
 @pytest.mark.parametrize("action", ["start", "inspect", "rm", "kill"])
@@ -136,7 +141,7 @@ def test_install_network_still_applies_after_explicit_docker_host():
 
 
 def test_symlink_and_malformed_receipts_never_fall_back_to_default_daemon(tmp_path):
-    atomic_json(tmp_path / runtime.RECEIPT, {"schema": 2, "runtime": BOUND.value})
+    atomic_json(tmp_path / runtime.RECEIPT, {"schema": 3, "runtime": BOUND.value})
     with pytest.raises(ValueError, match="receipt is invalid"):
         runtime.read(tmp_path)
     (tmp_path / runtime.RECEIPT).unlink()

@@ -38,7 +38,7 @@ async def readiness(settings, identifier):
     }
     try:
         image, models = configuration(settings, identifier)
-        runtime = container_runtime.installed(settings, identifier)
+        image, runtime, _ = container_runtime.selection(settings, identifier, image)
         code, output = await runtime.command(
             command,
             "docker",

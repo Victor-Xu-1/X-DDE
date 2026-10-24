@@ -29,8 +29,8 @@ class DockingBackend:
             "scientific_acceptance": "pending_server_validation",
         }
         try:
-            runtime = container_runtime.installed(self.settings, "gnina")
             image = configuration(self.settings)
+            image, runtime, _ = container_runtime.selection(self.settings, "gnina", image)
             code, text = await runtime.command(
                 command,
                 "docker",
@@ -63,8 +63,8 @@ class DockingBackend:
         return result
 
     async def start(self, job, directory):
-        runtime = container_runtime.task(self.settings, "gnina", directory)
         image = configuration(self.settings)
+        image, runtime = container_runtime.prepare(self.settings, "gnina", directory, image)
         source = Path(__file__).parent
         adapter, adapter_files = capture(directory, source)
         output = directory / "output"

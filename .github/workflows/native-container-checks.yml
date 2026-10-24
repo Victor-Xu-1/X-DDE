@@ -4,6 +4,8 @@ on:
   push:
     paths: &cleanup_paths
       - 'src/opendde_workbench/container_runtime.py'
+      - 'src/opendde_workbench/native_runtime_leases.py'
+      - 'tests/test_native_runtime_leases.py'
       - 'src/opendde_workbench/prepared_container.py'
       - 'src/opendde_workbench/integrations/runtime.py'
       - 'src/opendde_workbench/docking/backend.py'
@@ -35,9 +37,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
-      - run: uv run --locked ruff check src/opendde_workbench/container_runtime.py src/opendde_workbench/prepared_container.py src/opendde_workbench/integrations/runtime.py src/opendde_workbench/docking/backend.py src/opendde_workbench/deployment/native_probe*.py src/opendde_workbench/deployment/installers.py src/opendde_workbench/deployment/network.py src/opendde_workbench/container_supervision.py src/opendde_workbench/native_container_cleanup.py tests/test_container_runtime.py tests/test_native_container_cleanup.py server_tests/native_cleanup_probe.py
+      - run: uv run --locked ruff check src/opendde_workbench/native_runtime_leases.py tests/test_native_runtime_leases.py src/opendde_workbench/container_runtime.py src/opendde_workbench/prepared_container.py src/opendde_workbench/integrations/runtime.py src/opendde_workbench/docking/backend.py src/opendde_workbench/deployment/native_probe*.py src/opendde_workbench/deployment/installers.py src/opendde_workbench/deployment/network.py src/opendde_workbench/container_supervision.py src/opendde_workbench/native_container_cleanup.py tests/test_container_runtime.py tests/test_native_container_cleanup.py server_tests/native_cleanup_probe.py
       - name: Shared supervision, exact namespace and native failure consumers
-        run: uv run --locked pytest -q tests/test_container_runtime.py tests/test_native_container_cleanup.py tests/test_managed_containers.py tests/test_install_probe_lifecycle.py tests/test_install_network.py tests/test_scientific_entrypoint.py tests/test_scientific_cache.py tests/test_deployment.py tests/test_integrated_science.py tests/test_docking.py
+        run: uv run --locked pytest -q tests/test_native_runtime_leases.py tests/test_container_runtime.py tests/test_native_container_cleanup.py tests/test_managed_containers.py tests/test_install_probe_lifecycle.py tests/test_install_network.py tests/test_scientific_entrypoint.py tests/test_scientific_cache.py tests/test_deployment.py tests/test_integrated_science.py tests/test_docking.py
       - name: Real native process, artifacts, delayed cleanup observations and preserved sibling
         run: |
           uv run --locked python server_tests/native_cleanup_probe.py --output "$RUNNER_TEMP/native-cleanup/default"

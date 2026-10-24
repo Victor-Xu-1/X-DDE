@@ -49,8 +49,8 @@ class PreparedContainerBackend:
         return self.execution_arguments(job, directory)
 
     async def start(self, job, directory):
-        runtime = container_runtime.task(self.settings, self.identifier, directory)
         image = self.image_for(job, directory)
+        image, runtime = container_runtime.prepare(self.settings, self.identifier, directory, image)
         adapter = directory / "adapter"
         adapter.mkdir(exist_ok=False)
         checksums = {}

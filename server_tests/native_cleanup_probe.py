@@ -5,12 +5,16 @@ import hashlib
 import json
 import os
 import subprocess
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import uuid4
 
-from opendde_workbench.container_runtime import DockerRuntime, freeze
+from opendde_workbench.container_runtime import DockerRuntime, freeze, prepare
 from opendde_workbench.container_supervision import attach
+from opendde_workbench.locations import atomic_json
+from opendde_workbench.native_runtime_leases import FILE, entry_digest
 from opendde_workbench.receptors.image import PYTHON_IMAGE
 
 
@@ -62,15 +66,47 @@ def main():
         capture_output=True,
         timeout=20,
     )
+    settings = SimpleNamespace(state_dir=output / "state")
+    components = output / "components"
+    entry = {"image": PYTHON_IMAGE}
+    atomic_json(settings.state_dir / "deployment.json", {"root": str(components)})
+    atomic_json(components / "installed.json", {"reinvent": entry})
+    installed_bytes = (components / "installed.json").read_bytes()
     cases = []
     try:
         for delayed, code in ((False, 0), (True, 0), (True, 7)):
             directory = output / str(uuid4())
             directory.mkdir()
-            freeze(directory, runtime)
+            if args.bind_local_daemon:
+                now = datetime.now(UTC)
+                atomic_json(
+                    settings.state_dir / FILE,
+                    {
+                        "schema": 1,
+                        "owner": "X-DDE",
+                        "id": str(uuid4()),
+                        "created_at": (now - timedelta(seconds=1)).isoformat(),
+                        "expires_at": (now + timedelta(minutes=5)).isoformat(),
+                        "engines": {
+                            "reinvent": {
+                                "image": PYTHON_IMAGE,
+                                "source_image": PYTHON_IMAGE,
+                                "source_entry_sha256": entry_digest(entry),
+                                "container_runtime": runtime.value,
+                            }
+                        },
+                    },
+                )
+                selected_image, selected_runtime = prepare(
+                    settings, "reinvent", directory, PYTHON_IMAGE
+                )
+                assert selected_image == PYTHON_IMAGE and selected_runtime == runtime
+                (settings.state_dir / FILE).unlink()
+            else:
+                freeze(directory, runtime)
             name = "xdde-reinvent-" + directory.name
             artifact = directory / "native-output.txt"
-            run(
+            runtime.run(
                 [
                     "docker",
                     "create",
@@ -120,6 +156,9 @@ def main():
                         attach(directory, "xdde-reinvent-")
                 state = json.loads((directory / "native-exit.json").read_text())
                 cleanup = json.loads((directory / "native-cleanup.json").read_text())
+                assert (components / "installed.json").read_bytes() == installed_bytes
+                assert not (components / "container-runtimes.json").exists()
+                assert not (settings.state_dir / FILE).exists()
                 assert state["ExitCode"] == code and not state["Running"] and not state["OOMKilled"]
                 assert cleanup["state"] == "removed"
                 assert artifact.read_text() == "original native artifact"
@@ -167,7 +206,7 @@ def main():
                     }
                 )
             finally:
-                run(["docker", "rm", "--force", name], capture_output=True, timeout=20)
+                runtime.run(["docker", "rm", "--force", name], capture_output=True, timeout=20)
     finally:
         run(["docker", "rm", "--force", sibling], capture_output=True, timeout=20)
     (output / "acceptance.json").write_text(
@@ -178,6 +217,8 @@ def main():
                 "native_calls_reexecuted": False,
                 "scientific_research_acceptance": False,
                 "frozen_container_runtime": runtime.value,
+                "temporary_profile_removed_before_attach": args.bind_local_daemon,
+                "installed_components_unchanged": True,
             },
             indent=2,
         )
