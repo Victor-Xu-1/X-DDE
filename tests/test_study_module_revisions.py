@@ -27,7 +27,7 @@ def test_only_the_authored_module_identities_advance():
     for key, previous in old.modules.items():
         expected = (
             previous.model_copy(update={"revision": 4})
-            if key in CHANGED | {"workflows"}
+            if key in CHANGED | {"workflows", "predict"}
             else previous
         )
         assert current.modules[key] == expected
