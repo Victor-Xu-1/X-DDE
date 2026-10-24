@@ -1,0 +1,32 @@
+name: Ternary form resource budget checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &form_paths
+      - 'frontend/src/proximity/Form*'
+      - 'frontend/src/proximity/Plan.tsx'
+      - 'frontend/src/proximity/ExecutionSettings.tsx'
+      - 'frontend/src/proximity/execution.ts'
+      - '.github/workflows/proximity-form-checks.yml'
+  pull_request:
+    paths: *form_paths
+permissions:
+  contents: read
+jobs:
+  form:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Bilingual resource choices, invalid seed, navigation and exact submitted request
+        working-directory: frontend
+        run: npx vitest run src/proximity/Form.test.tsx
+      - name: Existing backend budget and chemical-input contract
+        run: |
+          uv sync --locked --group dev
+          uv run --locked pytest -q tests/test_proximity_contract.py

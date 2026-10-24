@@ -1,3 +1,10 @@
+import { useState } from "react";
+import { useExampleTask } from "../examples/context";
+import {
+  defaultExecution,
+  validExecution,
+  type TernaryExecution,
+} from "./execution";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -17,6 +24,10 @@ export function ProximityForm({
   language: Language;
   onCreated(job: Job): void;
 }) {
+  const example = useExampleTask("ternary_model");
+  const [execution, setExecution] = useState<TernaryExecution>(() => ({
+    ...(example?.options ?? defaultExecution),
+  }));
   const zh = language === "zh",
     draft = useProximityDraft(language);
   const {
@@ -69,7 +80,7 @@ export function ProximityForm({
           inputs,
           scientific_inputs: inputs.map((i) => i.source),
           payload,
-          options: { device: "cpu", cpu: 2, memory_mib: 6144, seed: 31 },
+          options: execution,
         });
       }}
       steps={[
@@ -102,9 +113,16 @@ export function ProximityForm({
         },
         {
           title: zh ? "确认探索方案" : "Review exploration",
-          valid: Boolean(ligand) && firstReady && secondReady && planReady,
+          valid:
+            Boolean(ligand) &&
+            firstReady &&
+            secondReady &&
+            planReady &&
+            validExecution(execution),
           content: (
             <ProximityPlan
+              execution={execution}
+              setExecution={setExecution}
               payload={payload}
               setPayload={setPayload}
               language={language}

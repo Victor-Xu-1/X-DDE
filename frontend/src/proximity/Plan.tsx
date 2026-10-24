@@ -1,12 +1,18 @@
+import { ExecutionSettings } from "./ExecutionSettings";
+import { validExecution, type TernaryExecution } from "./execution";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
 import { mechanismLabels, partnerRoles, type TernaryPayload } from "./types";
 import type { Language } from "../types";
 export function ProximityPlan({
+  execution,
+  setExecution,
   payload,
   setPayload,
   language,
 }: {
+  execution: TernaryExecution;
+  setExecution(value: TernaryExecution): void;
   payload: TernaryPayload;
   setPayload(value: TernaryPayload): void;
   language: Language;
@@ -60,6 +66,10 @@ export function ProximityPlan({
         <dd>
           {payload.partner_b_name} · {payload.partner_b_chain}
         </dd>
+        <dt>{zh ? "计算预算" : "Compute budget"}</dt>
+        <dd>
+          {execution.cpu} CPU · {execution.memory_mib / 1024} GiB
+        </dd>
         <dt>{zh ? "结构检查" : "Structural assessment"}</dt>
         <dd>
           {zh
@@ -70,6 +80,11 @@ export function ProximityPlan({
       <details className="proximity-expert">
         <summary>{zh ? "专家微调" : "Expert settings"}</summary>
         <div className="inline-fields">
+          <ExecutionSettings
+            value={execution}
+            onChange={setExecution}
+            language={language}
+          />
           <label>
             {zh ? "最多尝试" : "Maximum attempts"}
             <input
@@ -109,6 +124,13 @@ export function ProximityPlan({
           </label>
         </div>
       </details>
+      {!validExecution(execution) && (
+        <p role="alert">
+          {zh
+            ? "请选择有效的 CPU 预算（1–4 线程、4–16 GiB）和非负整数随机种子。"
+            : "Choose a valid CPU budget (1–4 threads, 4–16 GiB) and a nonnegative integer seed."}
+        </p>
+      )}
       <p className="proximity-caption">
         {zh
           ? "未通过基本几何检查的装配保留供诊断，不作为可复用候选。"

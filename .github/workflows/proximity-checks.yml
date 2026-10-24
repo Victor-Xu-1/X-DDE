@@ -14,6 +14,11 @@ on:
       - 'frontend/src/proximity/**'
       # Study-only prefills use the STAT6 template gate, without native model execution.
       - '!frontend/src/proximity/useProximityDraft.ts'
+      # Form-only budgets use the focused form gate; native model/geometry is unchanged.
+      - '!frontend/src/proximity/Form*'
+      - '!frontend/src/proximity/Plan.tsx'
+      - '!frontend/src/proximity/ExecutionSettings.tsx'
+      - '!frontend/src/proximity/execution.ts'
 permissions:
   contents: read
   actions: read
