@@ -14,6 +14,9 @@ on:
       - "tests/test_compute_limits.py"
       - "tests/test_compute_probe.py"
       - "tests/test_compute_service.py"
+      - "src/opendde_workbench/readiness_cache.py"
+      - "tests/test_readiness_cache.py"
+      - "tests/test_health_recovery.py"
       - "frontend/src/deployment/ComputeServicePanel*"
       - "frontend/src/deployment/client.ts"
       - "tests/test_harness_admission.py"
@@ -65,8 +68,8 @@ jobs:
       - name: Resource policy, owned migration, handoff, API wiring and their direct consumers
         run: |
           python -m unittest discover -s tests/ci -p test_managed_compute_scope.py
-          uv run --locked ruff check src/opendde_workbench/opendde_limits.py src/opendde_workbench/deployment/compute_service.py src/opendde_workbench/deployment/native_compute_service.py src/opendde_workbench/deployment/native_compute_probe.py src/opendde_workbench/deployment/native_compute_limits.py src/opendde_workbench/harness_admission.py tests/test_compute_limits.py tests/test_compute_probe.py tests/test_harness_admission.py server_tests/test_managed_compute_limits.py scripts/managed_compute_scope.py
-          uv run --locked pytest -q tests/test_compute_limits.py tests/test_compute_probe.py tests/test_harness_admission.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_opendde_limits.py tests/test_harness_process.py tests/test_harness_stop.py tests/test_campaign_handoff.py tests/test_deployment.py::test_deployment_api_origin_validation_and_saved_state tests/test_deployment.py::test_resume_and_scientific_submission_share_atomic_admission
+          uv run --locked ruff check src/opendde_workbench/opendde_limits.py src/opendde_workbench/deployment/compute_service.py src/opendde_workbench/deployment/native_compute_service.py src/opendde_workbench/deployment/native_compute_probe.py src/opendde_workbench/deployment/native_compute_limits.py src/opendde_workbench/harness_admission.py src/opendde_workbench/readiness_cache.py tests/test_readiness_cache.py tests/test_health_recovery.py tests/test_compute_service.py tests/test_compute_limits.py tests/test_compute_probe.py tests/test_harness_admission.py server_tests/test_managed_compute_limits.py scripts/managed_compute_scope.py
+          uv run --locked pytest -q tests/test_compute_limits.py tests/test_compute_probe.py tests/test_harness_admission.py tests/test_compute_service.py tests/test_readiness_cache.py tests/test_health_recovery.py tests/test_compute_msa_protocol.py tests/test_opendde_limits.py tests/test_harness_process.py tests/test_harness_stop.py tests/test_campaign_handoff.py tests/test_deployment.py::test_deployment_api_origin_validation_and_saved_state tests/test_deployment.py::test_resume_and_scientific_submission_share_atomic_admission
       - name: Bilingual cleanup status, protected active jobs and existing start controls
         working-directory: frontend
         run: npx vitest run src/deployment/ComputeServicePanel.test.tsx

@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from opendde_workbench.readiness_cache import ReadinessCache
+from opendde_workbench.readiness_cache import ReadinessCache, ReadinessTimedOut
 
 
 def test_concurrent_consumers_share_exactly_one_native_probe():
@@ -109,5 +109,88 @@ def test_changed_source_never_reuses_an_inflight_old_source_result():
         gate.set()
         assert await old == {"revision": 1}
         assert await new == {"revision": 2}
+
+    asyncio.run(scenario())
+
+
+def test_unfinished_probe_has_bounded_readers_and_no_overlapping_retry():
+    async def scenario():
+        gate = asyncio.Event()
+        calls = 0
+
+        async def observe():
+            nonlocal calls
+            calls += 1
+            number = calls
+            if number == 1:
+                await gate.wait()
+            return {"ready": number == 1}
+
+        cache = ReadinessCache(observe, observation_timeout=0.025)
+        readers = [asyncio.create_task(cache.read("a")) for _ in range(12)]
+        outcomes = await asyncio.wait_for(asyncio.gather(*readers, return_exceptions=True), 1)
+        assert all(isinstance(value, ReadinessTimedOut) for value in outcomes)
+        assert calls == 1 and cache._task is not None and not cache._task.done()
+        for key in ("a", "changed-source"):
+            with pytest.raises(ReadinessTimedOut, match="Retry the availability check"):
+                await asyncio.wait_for(cache.read(key), 0.2)
+        assert calls == 1
+        gate.set()
+        await cache._task
+        assert await cache.read("changed-source") == {"ready": False}
+        assert calls == 2  # The late ready result was discarded, not cached.
+        await cache.close()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("late_failure", [False, True])
+def test_late_completion_is_discarded_without_fabricated_availability(late_failure):
+    async def scenario():
+        gate = asyncio.Event()
+        calls = 0
+        failures = []
+        asyncio.get_running_loop().set_exception_handler(lambda _, value: failures.append(value))
+
+        async def observe():
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                await gate.wait()
+                if late_failure:
+                    raise RuntimeError("private native diagnostics")
+                return {"ready": True}
+            return {"ready": False, "reason": "Native environment is unavailable."}
+
+        cache = ReadinessCache(observe, observation_timeout=0.02)
+        with pytest.raises(ReadinessTimedOut):
+            await cache.read("a")
+        gate.set()
+        await asyncio.sleep(0)
+        assert await cache.read("a") == {
+            "ready": False,
+            "reason": "Native environment is unavailable.",
+        }
+        await cache.close()
+        assert not failures and calls == 2
+
+    asyncio.run(scenario())
+
+
+def test_close_cancels_an_unfinished_observation_after_read_timeout():
+    async def scenario():
+        stopped = asyncio.Event()
+
+        async def observe():
+            try:
+                await asyncio.Event().wait()
+            finally:
+                stopped.set()
+
+        cache = ReadinessCache(observe, observation_timeout=0.02)
+        with pytest.raises(ReadinessTimedOut):
+            await cache.read("a")
+        await asyncio.wait_for(cache.close(), 1)
+        assert stopped.is_set() and cache._task is None
 
     asyncio.run(scenario())

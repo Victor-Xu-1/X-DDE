@@ -7,7 +7,7 @@ from opendde_workbench.deployment.compute_config import (
     read_connection,
     state_identity,
 )
-from opendde_workbench.deployment.native_compute_service import idle, owned
+from opendde_workbench.deployment.native_compute_service import confirm_service, idle, owned
 from opendde_workbench.locations import atomic_json
 
 
@@ -198,3 +198,32 @@ def test_controller_timeout_returns_safe_actionable_error_without_changing_conne
         caught.value
     )
     assert read_connection(tmp_path) == config
+
+
+@pytest.mark.parametrize("kind", [RuntimeError, ValueError, TimeoutError])
+def test_upstream_wrapped_probe_error_retains_only_private_cause(tmp_path, kind):
+    config = connection(tmp_path).model_dump()
+    upstream = kind(
+        "Command ['/private/runtime/python', '/private/worker.py', '--probe-import'] "
+        + config["token"]
+        + " timed out after 30 seconds. Run doctor."
+    )
+
+    def wait(url, token, backend, *, timeout):
+        assert (url, token, backend, timeout) == (config["url"], config["token"], "local", 65)
+        raise upstream
+
+    with pytest.raises(ValueError, match="Check the current service status") as caught:
+        confirm_service(config, wait)
+    assert caught.value.__cause__ is upstream
+    assert all(
+        value not in str(caught.value)
+        for value in ("/private", config["token"], "Command", "doctor", "--probe-import")
+    )
+
+
+def test_confirmed_probe_keeps_existing_native_success_contract(tmp_path):
+    calls = []
+    config = connection(tmp_path).model_dump()
+    confirm_service(config, lambda *args, **kwargs: calls.append((args, kwargs)))
+    assert calls == [((config["url"], config["token"], "local"), {"timeout": 65})]

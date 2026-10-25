@@ -12,6 +12,15 @@ duplicate work or silently change the selected material. Verify supported behavi
 and actionable unavailable/error states in focused module checks. Installation,
 software integration and scientific method acceptance remain distinct evidence.
 
+Shared native availability checks give HTTP readers twelve seconds to obtain a
+current observation. A timed-out check remains the sole in-flight probe, so retries
+and browser reconnections cannot multiply native commands. Late results are
+discarded; after completion, the next request obtains a fresh observation. Unknown
+availability returns an actionable 503 and blocks scientific admission. It never
+reuses a late success as current readiness. Native setup failures retain their
+redacted chained diagnostic on the server; the interface receives an actionable
+status message without upstream commands or filesystem paths.
+
 DiffSBDD's final review shows the actual selected files and molecular records,
 the selected pocket residues or reference ligand, the current model, candidate
 count, molecular size and sampling budget. Local redesign also identifies its
