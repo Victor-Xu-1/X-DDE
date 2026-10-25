@@ -58,6 +58,8 @@ jobs:
               'frontend/src/proximity/Results.tsx', 'frontend/src/proximity/Results.test.tsx',
               'server_tests/test_proximity_browser.py', 'server_tests/deepternary_native_probe.py',
               '.github/workflows/proximity-checks.yml', 'docs/design/proximity-design.md',
+              '.github/workflows/structure-layout-checks.yml',
+              '.github/workflows/user-interface-checks.yml',
               'pyproject.toml', 'uv.lock', 'frontend/package.json', 'frontend/package-lock.json',
               'install.sh', 'install.ps1',
           }

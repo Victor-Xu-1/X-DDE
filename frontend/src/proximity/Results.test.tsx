@@ -90,7 +90,7 @@ it.each<Language>(["en", "zh"])(
           screen.getByText(zh ? "装配 2" : "Assembly 2", { exact: true }),
         );
       const frame = within(panel()).getByTitle(
-        "Interactive molecular structure",
+        zh ? "可交互分子结构" : "Interactive molecular structure",
       ) as HTMLIFrameElement;
       const post = vi.spyOn(frame.contentWindow!, "postMessage");
       announce(frame, "ready", { instanceId: `diagnostic-${number}` });

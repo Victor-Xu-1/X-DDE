@@ -90,6 +90,8 @@ on:
       - "!frontend/src/examples/ExampleJobResult.tsx"
       # Docking defaults and linked native geometry have exact pose-continuity coverage.
       - "!frontend/src/docking/DockingResults.tsx"
+      # Native ternary tabs, exact coordinates and desktop widths use proximity-checks.
+      - "!frontend/src/proximity/Results.tsx"
   pull_request:
     paths: *structure_paths
 permissions:

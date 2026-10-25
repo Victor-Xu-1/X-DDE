@@ -31,6 +31,8 @@ on:
       - "frontend/src/studio/runtime-status.css"
       - "frontend/src/operations/filter*"
       - "frontend/src/**/*Results*"
+      # Bilingual native ternary results have the focused proximity preview gate.
+      - "!frontend/src/proximity/Results*"
       # Structural comparison has exact bilingual/native lifecycle checks.
       - "!frontend/src/structure-comparison/**"
       - "!frontend/src/operations/OperationResults*"
@@ -346,6 +348,8 @@ on:
       - "frontend/src/operations/filter*"
       - "frontend/src/**/*Results*"
       # Structural comparison has exact bilingual/native lifecycle checks.
+      # Native ternary result tabs use the focused proximity preview gate.
+      - "!frontend/src/proximity/Results*"
       - "!frontend/src/structure-comparison/**"
       - "!frontend/src/operations/OperationResults*"
       # Paired-result inspection is verified by viewer-checks.yml.
