@@ -1,0 +1,40 @@
+name: Ternary complementary method protocol review
+on:
+  push:
+    branches: [research/ternary-method-control]
+    paths:
+      - server_tests/ternify_candidate_io.py
+      - server_tests/ternify_native_control.py
+      - .github/workflows/ternary-method-control.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ternary-method-control-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-method-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Candidate-only scientific dependencies; no product environment changes
+        run: |
+          uv venv --python 3.12 "$RUNNER_TEMP/candidate-python"
+          uv pip install --python "$RUNNER_TEMP/candidate-python/bin/python" rdkit==2026.3.6 numpy==2.2.6 scipy==1.15.3
+          uv tool run --from ruff==0.16.9 ruff check server_tests/ternify_candidate_io.py server_tests/ternify_native_control.py
+      - name: Original source control under measured kernel limits; no owner-machine inference
+        run: |
+          sudo systemd-run --scope --quiet --collect --unit="xdde-ternary-${GITHUB_RUN_ID}" \
+            -p MemoryMax=1536M -p MemorySwapMax=0 -p CPUQuota=100% -p TasksMax=64 \
+            timeout --signal=TERM --kill-after=5s 570s \
+            env CI=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+            "$RUNNER_TEMP/candidate-python/bin/python" server_tests/ternify_native_control.py \
+            --root "$RUNNER_TEMP/ternary-method-review"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ternary-method-protocol-review
+          path: ${{ runner.temp }}/ternary-method-review
+          if-no-files-found: error
