@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from uuid import uuid4
 
 from browser_platform import platform
 from playwright.sync_api import expect, sync_playwright
@@ -13,7 +14,7 @@ def test_ternary_fixed_result_and_stepwise_submission():
     root = Path(os.environ["WB_PROXIMITY_CASE"])
     accepted = json.loads((root / "acceptance.json").read_text())
     result = json.loads((root / "result.json").read_text())
-    errors, submissions = [], []
+    errors, submissions, pose_mutations = [], [], []
     with platform(root / "state", root / "browser-server.log") as base:
         with sync_playwright() as driver:
             browser = driver.chromium.launch()
@@ -25,6 +26,14 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 lambda request: (
                     submissions.append(request.url)
                     if request.method == "POST" and request.url.endswith("/api/jobs")
+                    else None
+                ),
+            )
+            page.on(
+                "request",
+                lambda request: (
+                    pose_mutations.append(request.url)
+                    if request.method == "POST" and "/api/research/poses/" in request.url
                     else None
                 ),
             )
@@ -82,6 +91,57 @@ def test_ternary_fixed_result_and_stepwise_submission():
             assert (
                 hashlib.sha256(saved.read_bytes()).hexdigest()
                 == result["artifact_sha256"][first["ligand_artifact"]]
+            )
+            # Native failures remain inspectable evidence, never reusable poses.
+            first = next(
+                row for row in result["proximity"]["assemblies"] if not row["quality"]["accepted"]
+            )
+            page.get_by_text("装配 " + str(int(first["id"].split("-")[1])), exact=True).click()
+            page.get_by_role("tab", name="分子三维", exact=True).click()
+            ligand_panel = page.get_by_role("tabpanel", name="分子三维", exact=True)
+            expect(
+                ligand_panel.get_by_role("button", name="生成三维视图图片", exact=True)
+            ).to_be_enabled(timeout=30000)
+            expect(ligand_panel.get_by_text("三维构象尚未准备好", exact=False)).not_to_be_visible()
+            expect(ligand_panel.get_by_label("pose 优化与历史", exact=True)).to_have_count(0)
+            assert not pose_mutations, (
+                "Reading a computed diagnostic pose must not prepare or save it."
+            )
+            assert first["ligand_artifact"] not in {row["artifact"] for row in result["candidates"]}
+            with page.expect_download() as info:
+                page.get_by_role("link", name="下载分子 SDF", exact=True).click()
+            assert (
+                hashlib.sha256(Path(info.value.path()).read_bytes()).hexdigest()
+                == result["artifact_sha256"][first["ligand_artifact"]]
+            )
+            page.screenshot(path=str(root / "proximity-diagnostic-ligand-3d.png"), full_page=True)
+            jobs_before = page.request.get(base + "/api/jobs").json()
+            denied = page.request.post(
+                base + "/api/research/poses/initial",
+                headers={
+                    "X-Workbench-CSRF": page.request.get(base + "/api/session").json()[
+                        "csrf_token"
+                    ],
+                    "Idempotency-Key": str(uuid4()),
+                },
+                data={
+                    "source": {
+                        "kind": "artifact",
+                        "job_id": accepted["job_id"],
+                        "name": first["ligand_artifact"],
+                        "record": 0,
+                    }
+                },
+            )
+            assert denied.status == 422
+            assert (
+                "Diagnostic ternary structures cannot become reusable qualified candidates"
+                in denied.json()["detail"]
+            )
+            assert page.request.get(base + "/api/jobs").json() == jobs_before
+            assert (
+                page.request.get(base + "/api/jobs/" + accepted["job_id"] + "/result").json()
+                == result
             )
             page.get_by_role("tab", name="分子二维", exact=True).click()
             expect(page.locator(".proximity-assembly-preview .molecule-image img")).to_be_visible(
@@ -155,6 +215,7 @@ def test_ternary_fixed_result_and_stepwise_submission():
             assert not submissions, (
                 "Viewing fixed evidence and filling a template must not submit jobs."
             )
+            assert not pose_mutations
             assert not errors
             browser.close()
     (root / "browser-acceptance.json").write_text(
@@ -165,6 +226,8 @@ def test_ternary_fixed_result_and_stepwise_submission():
                 "native_assemblies": 3,
                 "fixed_results_not_personal_jobs": True,
                 "real_sdf_download": True,
+                "diagnostic_native_ligand_3d_read_only": True,
+                "no_initial_pose_or_minimization_submissions": True,
                 "fresh_input_default": True,
                 "active_stat6_template_requires_real_bound_poses": True,
                 "archived_native_case_keeps_its_exact_task_id": True,

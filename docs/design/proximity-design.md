@@ -46,6 +46,13 @@ different methods by averaging them.
 
 ## Shared data and execution contracts
 
+Native assembly results are read-only coordinate snapshots in both the complete
+complex and standalone ligand views. Inspecting or exporting a diagnostic ligand
+uses its declared, validated native SDF without initial pose preparation, energy
+minimization or scientific asset promotion. A failed assembly keeps its geometry
+warning and remains ineligible for qualified reuse; changing display mode does
+not change its chemical graph, coordinates or acceptance decision.
+
 - Retain the two partner identities, full chemical molecule/version, source binary
   poses, atom maps, logical binding/linker regions and coordinate transforms.
   Unknown binding arms first create explicit binary hypotheses through existing
