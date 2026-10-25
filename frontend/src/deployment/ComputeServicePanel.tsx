@@ -25,42 +25,51 @@ export function ComputeServicePanel({
         <span
           className={service.ready ? "status-pill installed" : "status-pill"}
         >
-          {service.ready
+          {service.cleanup_pending
             ? zh
-              ? "已就绪"
-              : "Ready"
-            : service.running
+              ? "正在清理"
+              : "Cleaning up"
+            : service.ready
               ? zh
-                ? "资源待配置"
-                : "Resources needed"
-              : zh
-                ? "已停止"
-                : "Stopped"}
+                ? "已就绪"
+                : "Ready"
+              : service.running
+                ? zh
+                  ? "资源待配置"
+                  : "Resources needed"
+                : zh
+                  ? "已停止"
+                  : "Stopped"}
         </span>
       </div>
       {!service.ready && (
         <p className="field-help">
-          {!service.configured
+          {service.cleanup_pending
             ? zh
-              ? "请先安装下方所需的计算组件，再启动服务。"
-              : "Install the required compute components below, then start the service."
-            : service.restart_required
+              ? "服务正在结束上一次操作，请等待状态更新后再启动。"
+              : "The previous service operation is finishing. Wait for its status to update before starting."
+            : !service.configured
               ? zh
-                ? "环境已更新，点击“应用环境更新”使配置生效。"
-                : "The environment changed. Apply the update to use its new configuration."
-              : service.running
+                ? "请先安装下方所需的计算组件，再启动服务。"
+                : "Install the required compute components below, then start the service."
+              : service.restart_required
                 ? zh
-                  ? "服务正在运行，所需资源尚未就绪；请检查组件与模型。"
-                  : "The service is running, but required resources are unavailable. Check its components and models."
-                : zh
-                  ? "启动计算服务后，可在运行状态中检查是否就绪。"
-                  : "Start the compute service, then check its readiness in Runtime status."}
+                  ? "环境已更新，点击“应用环境更新”使配置生效。"
+                  : "The environment changed. Apply the update to use its new configuration."
+                : service.running
+                  ? zh
+                    ? "服务正在运行，所需资源尚未就绪；请检查组件与模型。"
+                    : "The service is running, but required resources are unavailable. Check its components and models."
+                  : zh
+                    ? "启动计算服务后，可在运行状态中检查是否就绪。"
+                    : "Start the compute service, then check its readiness in Runtime status."}
         </p>
       )}
       <div className="component-actions">
         <button
           disabled={
             busy ||
+            service.cleanup_pending ||
             working ||
             !service.configured ||
             (service.running && !service.restart_required)
@@ -81,7 +90,9 @@ export function ComputeServicePanel({
         </button>
         <button
           className="secondary-button"
-          disabled={busy || !service.running || working}
+          disabled={
+            busy || service.cleanup_pending || !service.running || working
+          }
           onClick={() =>
             void execute(() => api.post("/deployment/compute/stop", {}))
           }

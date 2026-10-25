@@ -30,6 +30,7 @@ export interface Deployment {
     dependencies?: string[];
   }[];
   compute_service?: {
+    cleanup_pending?: boolean;
     restart_required?: boolean;
     configured: boolean;
     running: boolean;

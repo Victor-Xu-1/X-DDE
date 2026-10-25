@@ -66,6 +66,14 @@ container cgroups, and isolated OOM containment. Controlled CI services are
 resource-contract fixtures, not scientific model validation or accepted research
 examples. Unrelated API changes cannot use the managed-compute CI scope.
 
+On WSL, GPU-loader setup uses a named, labelled and resource-limited probe with
+an exact container ID. Process completion is independent of filesystem cleanup:
+only an already stopped, identity-verified container may remain recorded as
+awaiting removal. An active, foreign or unverifiable probe cannot qualify setup.
+Probe intent and cleanup receipts remain private. A service already being removed
+rejects repeated changes; the UI shows a waiting state. Lifecycle timeouts return
+an actionable error, while commands and diagnostic traces stay in server logs.
+
 ## Whole-platform visual acceptance
 
 The owner sets Awwwards, Webby Awards and FWA as quality references, not a claim

@@ -45,6 +45,22 @@ class ManagedComputeScopeTests(unittest.TestCase):
         self.assertFalse(MODULE.selected([MODULE.CORE, "src/opendde_workbench/assets.py"]))
         self.assertFalse(MODULE.selected([MODULE.CORE, "frontend/src/docking/DockingForm.tsx"]))
 
+    def test_only_the_exact_cleanup_status_field_can_use_the_resource_gate(self):
+        before = "interface Deployment {\n  compute_service?: {\n    ready: boolean;\n  };\n}\n"
+        after = before.replace(
+            "  compute_service?: {\n", "  compute_service?: {\n    cleanup_pending?: boolean;\n"
+        )
+        changed = [MODULE.CORE, MODULE.CLIENT]
+        self.assertTrue(MODULE.selected(changed, before_client=before, after_client=after))
+        self.assertFalse(MODULE.selected(changed))
+        self.assertFalse(
+            MODULE.selected(
+                changed,
+                before_client=before,
+                after_client=after.replace("ready: boolean", "ready: string"),
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

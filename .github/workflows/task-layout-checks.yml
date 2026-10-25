@@ -417,6 +417,8 @@ on:
       - "!frontend/src/proximity/BindingRegion.tsx"
       - "!frontend/src/proximity/PartnerStep.tsx"
       - "!frontend/src/proximity/Results.tsx"
+      # Compute cleanup controls have the exact managed-compute lifecycle/UI gate.
+      - "!frontend/src/deployment/ComputeServicePanel*"
       - "!frontend/src/proximity/proximity.css"
       - "!frontend/src/quality/QualityResults.tsx"
       - "!frontend/src/receptors/ReceptorResults.tsx"

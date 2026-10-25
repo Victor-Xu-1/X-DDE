@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from uuid import uuid4
@@ -11,7 +12,9 @@ import pytest
 
 from opendde_workbench.chemistry.image import PYTHON_IMAGE
 from opendde_workbench.deployment import native_compute_limits as resources
+from opendde_workbench.deployment import native_compute_probe as probe
 from opendde_workbench.deployment import native_compute_service as native
+from opendde_workbench.opendde_limits import OpenDDELimits
 
 POLICY = {"cpus": 1, "memory_mib": 256, "pids": 64}
 HEALTH = {
@@ -38,6 +41,54 @@ def docker(*args, **kwargs):
 
 def inspect(identifier):
     return json.loads(docker("container", "inspect", identifier))[0]
+
+
+def test_owned_loader_probe_real_lifecycle_without_automatic_removal(monkeypatch, tmp_path):
+    """Real Docker/cgroups with a controlled loader response; no CUDA claim in CI."""
+    original = subprocess.run
+    observed = []
+
+    def cpu_protocol(arguments, **kwargs):
+        arguments = list(arguments)
+        if arguments[:2] == ["docker", "run"]:
+            assert "--rm" not in arguments
+            index = arguments.index("--gpus")
+            assert arguments[index + 1] == "all"
+            del arguments[index : index + 2]
+            # The CI runner has no GPU. Only its device response is controlled;
+            # launch, ownership, kernel limits and exact-ID cleanup remain real.
+            arguments[-1] = (
+                "import contextlib,sys\nwith contextlib.redirect_stdout(sys.stderr):\n"
+                + textwrap.indent(KERNEL, "    ")
+                + "\nprint(json.dumps(['/usr/lib/wsl/drivers/ci_protocol/libcuda_loader.so']))"
+            )
+            value = original(arguments, **kwargs)
+            observed.append(json.loads(value.stderr.strip()))
+            return value
+        return original(arguments, **kwargs)
+
+    monkeypatch.setattr(probe.subprocess, "run", cpu_protocol)
+    connection = {"state_id": "ci-owned-probe", "image": PYTHON_IMAGE}
+    assert probe.load_cuda(connection, OpenDDELimits(**POLICY), tmp_path).endswith(
+        "libcuda_loader.so"
+    )
+    assert observed == [
+        {
+            "memory.max": str(256 * 1024**2),
+            "memory.swap.max": "0",
+            "cpu.max": "100000 100000",
+            "pids.max": "64",
+        }
+    ]
+    receipt = json.loads(next((tmp_path / "native-probes").glob("*.json")).read_text())
+    assert receipt["phase"] == "removed" and receipt["returncode"] == 0
+    destination = Path("server_tests/evidence/managed-compute-limits")
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "owned-loader-probe.json").write_text(
+        json.dumps(
+            {"kernel": observed[0], "receipt": receipt, "cuda_or_model_execution": False}, indent=2
+        )
+    )
 
 
 @pytest.fixture

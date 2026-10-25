@@ -2,16 +2,18 @@
 
 import json
 import os
-import re
 import subprocess
 import sys
+import traceback
 from pathlib import Path
 from urllib.parse import urlsplit
 
 if __package__:
     from . import native_compute_limits as resources
+    from .native_compute_probe import load_cuda
 else:
     import native_compute_limits as resources
+    from native_compute_probe import load_cuda
 
 
 def owned(container, connection):
@@ -112,47 +114,17 @@ def launch_arguments(connection, root, checkpoint, resource_limits=None):
                 env[name] = os.environ[name]
     # Probe only the installed image and its native GPU loader; no shared daemon changes.
     if Path("/proc/sys/kernel/osrelease").read_text().lower().find("microsoft") >= 0:
-        probe = subprocess.run(
-            [
-                "docker",
-                "run",
-                "--rm",
-                *limits.arguments(),
-                "--network",
-                "none",
-                "--gpus",
-                "all",
-                "--entrypoint",
-                "python",
-                connection["image"],
-                "-c",
-                (
-                    "import ctypes,pathlib,json;ctypes.CDLL('libcuda.so.1');"
-                    "print(json.dumps(sorted({s.split()[-1] for s in "
-                    "pathlib.Path('/proc/self/maps').read_text().splitlines() "
-                    "if 'libcuda_loader.so' in s})))"
-                ),
-            ],
-            capture_output=True,
-            text=True,
-            timeout=25,
-            check=True,
-        )
-        loaders = json.loads(probe.stdout)
-        if len(loaders) != 1 or not re.fullmatch(
-            r"/usr/lib/wsl/drivers/[A-Za-z0-9_.-]+/libcuda_loader\.so", loaders[0]
-        ):
-            raise ValueError("The native WSL CUDA loader could not be verified.")
+        loader = load_cuda(connection, limits, shared)
         linker = shared / "native-linker"
         linker.mkdir(exist_ok=True)
         link = linker / "libcuda.so"
         if link.is_symlink():
-            if str(link.readlink()) != loaders[0]:
+            if str(link.readlink()) != loader:
                 link.unlink()
         elif link.exists():
             raise ValueError("The native linker path contains an unowned file.")
         if not link.is_symlink():
-            link.symlink_to(loaders[0])
+            link.symlink_to(loader)
         env["LIBRARY_PATH"] = str(linker)
     index = reviewed.index("--entrypoint")
     # Native factory already includes env names; add only scoped compatibility extras.
@@ -169,6 +141,11 @@ def execute(message):
     name = connection["container"]
     current = inspect_container(name)
     owned(current, connection)
+    cleanup_pending = bool(current and current.get("State", {}).get("Status") == "removing")
+    if cleanup_pending and action != "status":
+        raise ValueError(
+            "This compute service is still cleaning up. Wait before changing it again."
+        )
     running = bool(current and current.get("State", {}).get("Running"))
     value = health(connection) if running else None
     if action in {"stop", "retire"} and running:
@@ -213,7 +190,8 @@ def execute(message):
     if running and limits_verified:
         resources.require_support()
     ready = (
-        bool(value)
+        not cleanup_pending
+        and bool(value)
         and limits_verified
         and all(
             backend.get(key) is True
@@ -224,6 +202,7 @@ def execute(message):
     return {
         "container": name,
         "running": running,
+        "cleanup_pending": cleanup_pending,
         "ready": ready,
         "container_id": current.get("Id") if current else None,
         "resource_limits": limits.model_dump(),
@@ -235,7 +214,9 @@ def execute(message):
         "active": queue.get("running", 0)
         if isinstance(queue.get("running", 0), int)
         else len(queue.get("running", [])),
-        "reason": None
+        "reason": "This compute service is still cleaning up. Wait before changing it again."
+        if cleanup_pending
+        else None
         if ready
         else (
             "Apply the native compute update before new tasks; hard resource limits are unverified."
@@ -252,4 +233,11 @@ if __name__ == "__main__":
     except Exception as exc:
         token = message.get("connection", {}).get("token", "")
         error = str(exc).replace(token, "[redacted]") if token else str(exc)
-        print(json.dumps({"ok": False, "error": error[:1000]}))
+        diagnostic = (
+            traceback.format_exc().replace(token, "[redacted]") if token else traceback.format_exc()
+        )
+        if isinstance(exc, (subprocess.SubprocessError, OSError)):
+            error = (
+                "Compute setup did not finish. Check the current service status before retrying."
+            )
+        print(json.dumps({"ok": False, "error": error[:1000], "diagnostic": diagnostic[-8000:]}))
