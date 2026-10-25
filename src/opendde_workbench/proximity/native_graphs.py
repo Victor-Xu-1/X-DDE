@@ -12,7 +12,7 @@ from deepternary.models.process_mols import (
 )
 from deepternary.models.ternary_pdb import get_pocket_and_mask
 from native_proximity_chemistry import aligned_arm_conformer
-from native_proximity_frames import pocket_in_ligand_frame
+from native_proximity_frames import local_binary_coordinates, pocket_in_ligand_frame
 
 
 def load_model(glue):
@@ -71,7 +71,13 @@ def proposal(full, arms, partners, cfg, seed, *, binary_pockets=False):
 
     torch.manual_seed(seed)
     np.random.seed(seed)
-    generated = aligned_arm_conformer(full, arms, seed) if arms else deepcopy(full)
+    reference = full
+    if binary_pockets:
+        reference = deepcopy(full)
+        local = local_binary_coordinates(full.GetConformer().GetPositions())
+        for index, position in enumerate(local):
+            reference.GetConformer().SetAtomPosition(index, position)
+    generated = aligned_arm_conformer(reference, arms, seed) if arms else deepcopy(reference)
     config = cfg.test_dataloader.dataset
     graph_function = get_lig_graph_protac if arms else get_lig_graph_revised
     molecule, ligand = graph_function(
@@ -90,7 +96,7 @@ def proposal(full, arms, partners, cfg, seed, *, binary_pockets=False):
     # it and the observed binding pockets; neither input file is changed.
     if arms:
         ligand.ndata["new_x"] = ligand.ndata["x"].clone()
-        ligand.ndata["x"] = torch.from_numpy(full.GetConformer().GetPositions()).float()
+        ligand.ndata["x"] = torch.from_numpy(reference.GetConformer().GetPositions()).float()
     first, second = [deepcopy(graph) for graph in partners]
     geometry = get_geometry_graph_ring(molecule)
     count = full.GetNumAtoms()

@@ -5,7 +5,11 @@ from copy import deepcopy
 import numpy as np
 import pytest
 
-from opendde_workbench.proximity.native_frames import canonical_prediction, pocket_in_ligand_frame
+from opendde_workbench.proximity.native_frames import (
+    canonical_prediction,
+    local_binary_coordinates,
+    pocket_in_ligand_frame,
+)
 
 
 def geometry():
@@ -109,3 +113,37 @@ def test_invalid_native_transforms_cannot_be_reinterpreted_as_an_alternate_ancho
             },
             "b",
         )
+
+
+def test_native_precision_binary_translations_have_identical_local_model_input():
+    # Cancellation at a large world origin must not reach float32/SVD/model correction.
+    source = np.array(
+        [
+            [1.2334, -24.8271, 13.1256],
+            [2.7275, -24.5367, 12.1104],
+            [0.7913, -23.9274, 14.3357],
+            [0.0996, -25.1268, 13.3369],
+        ]
+    )
+    before = source.copy()
+    actual = local_binary_coordinates(source)
+    for offset in ([350.0, -120.0, 80.0], [90000.0, -80000.0, 60000.0]):
+        np.testing.assert_array_equal(actual, local_binary_coordinates(source + offset))
+    np.testing.assert_allclose(actual, source - source[0], atol=1e-8, rtol=0)
+    np.testing.assert_array_equal(source, before)
+    np.testing.assert_allclose(
+        np.linalg.norm(actual[:, None, :] - actual[None, :, :], axis=2),
+        np.linalg.norm(source[:, None, :] - source[None, :, :], axis=2),
+        atol=2e-8,
+        rtol=0,
+    )
+
+
+@pytest.mark.parametrize(
+    "points", [np.zeros((2, 3)), np.zeros((3, 2)), np.full((3, 3), np.nan), np.full((3, 3), 100001)]
+)
+def test_binary_local_frame_rejects_invalid_coordinates_without_mutating_them(points):
+    before = points.copy()
+    with pytest.raises(ValueError, match="finite, bounded"):
+        local_binary_coordinates(points)
+    np.testing.assert_array_equal(points, before)
