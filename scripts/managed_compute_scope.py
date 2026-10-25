@@ -22,6 +22,7 @@ PATTERNS = (
     "tests/test_harness_admission.py",
     "tests/test_compute_service.py",
     "tests/test_compute_msa_protocol.py",
+    "tests/test_deployment.py",
     "server_tests/test_managed_compute_limits.py",
     "scripts/managed_compute_scope.py",
     "tests/ci/test_managed_compute_scope.py",
