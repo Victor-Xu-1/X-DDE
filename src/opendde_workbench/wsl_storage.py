@@ -7,6 +7,9 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import wsl_storage_identity as identity
+from .wsl_mount import host_mount
+
 
 class StorageUnavailable(RuntimeError):
     pass
@@ -21,6 +24,16 @@ class BackingVolume:
 def probe(distribution: str) -> BackingVolume:
     if not distribution or len(distribution) > 256 or any(ord(c) < 32 for c in distribution):
         raise StorageUnavailable("Cannot identify the WSL storage location.")
+    try:
+        bound = identity.load(distribution)
+        if bound is not None:
+            location, mount = bound
+            free = shutil.disk_usage(mount).free
+            if type(free) is not int or not 0 <= free <= 2**63 - 1:
+                raise ValueError("Invalid live host filesystem capacity.")
+            return BackingVolume(location, free)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise StorageUnavailable("Cannot verify the registered host storage identity.") from exc
     executable = shutil.which("powershell.exe")
     if not executable:
         raise StorageUnavailable("Cannot verify free space on the host disk.")
@@ -43,6 +56,8 @@ def probe(distribution: str) -> BackingVolume:
             raise ValueError("Invalid physical free-space value.")
         if not isinstance(location, str) or not 1 <= len(location) <= 80:
             raise ValueError("Invalid physical storage label.")
+        if identity.cache_path() is not None and host_mount(location) is not None:
+            identity.save(value, distribution)
         return BackingVolume(location, free)
     except (OSError, subprocess.TimeoutExpired, ValueError, KeyError, UnicodeError) as exc:
         raise StorageUnavailable("Cannot verify free space on the host disk.") from exc
