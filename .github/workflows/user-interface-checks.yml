@@ -610,7 +610,7 @@ jobs:
       scope_only: true
   presentation:
     needs: model-context
-    if: needs.model-context.outputs.model_context_only != 'true'
+    if: needs.model-context.outputs.model_context_only != 'true' && needs.model-context.outputs.managed_compute_only != 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

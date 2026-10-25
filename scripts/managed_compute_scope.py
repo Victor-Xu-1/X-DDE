@@ -35,6 +35,8 @@ PATTERNS = (
     ".github/workflows/task-readiness-checks.yml",
     ".github/workflows/harness-checks.yml",
     ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/property-model-review-checks.yml",
+    ".github/workflows/user-interface-checks.yml",
     "frontend/src/deployment/ComputeServicePanel.tsx",
     "frontend/src/deployment/ComputeServicePanel.test.tsx",
     CLIENT,
