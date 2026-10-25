@@ -37,6 +37,7 @@ from .examples.routes import register_examples
 from .execution_environment import EnvironmentRecord
 from .harness_routes import register_harness
 from .models import TERMINAL, Job
+from .opendde_limits import OpenDDELimits
 from .operation_routes import register_operations
 from .pockets.runtime import validate as validate_pockets
 from .pose_ensembles.routes import register_pose_explorations
@@ -67,7 +68,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     assets = AssetStore(store, settings.state_dir / "assets")
     example_library = ExampleLibrary(store)
     worker = Worker(store, engine, settings, assets)
-    deployments = DeploymentManager(settings.state_dir, msa_url=settings.msa_url)
+    deployments = DeploymentManager(
+        settings.state_dir,
+        msa_url=settings.msa_url,
+        resource_limits=OpenDDELimits.configured(settings),
+    )
     csrf = secrets.token_urlsafe(32)
     mutations = asyncio.Lock()
     # The managed router performs expensive native observations. Injected engines

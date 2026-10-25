@@ -213,6 +213,17 @@ class HarnessService:
         }
 
     async def start(self, identifier, digest, reconcile=False):
+        proof = None
+        if not reconcile:
+            existing = self.plan(str(identifier))
+            if (
+                existing["digest"] == digest
+                and existing["state"] == "validated"
+                and not existing["task_id"]
+            ):
+                from .harness_admission import require_managed_compute
+
+                proof = await require_managed_compute(self.settings)
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             plan = self.plan_in(db, str(identifier))
@@ -252,6 +263,16 @@ class HarnessService:
                 )
                 self.active_cache = (0.0, True)
         try:
+            if proof is not None:
+                from .locations import atomic_json
+
+                atomic_json(
+                    self.settings.state_dir
+                    / "design-plans"
+                    / plan["id"]
+                    / "compute-resource-limits.json",
+                    proof,
+                )
             message = (
                 {"operation": "reconcile", "plan_id": plan["id"]}
                 if reconcile

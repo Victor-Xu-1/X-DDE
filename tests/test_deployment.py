@@ -634,8 +634,9 @@ def deployment_admission_app(settings, monkeypatch):
     manager = DeploymentManager(settings.state_dir)
     manager.configure(str(settings.state_dir.parent / "components"), False)
 
-    def configured_manager(state, *, msa_url):
+    def configured_manager(state, *, msa_url, resource_limits):
         assert state == settings.state_dir and msa_url == settings.msa_url
+        assert resource_limits == manager.compute.resource_limits
         return manager
 
     monkeypatch.setattr(api, "DeploymentManager", configured_manager)

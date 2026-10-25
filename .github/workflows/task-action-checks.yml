@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       workflow_only: ${{ steps.scope.outputs.workflow_only }}
+      managed_compute_only: ${{ steps.managed.outputs.managed_compute_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,9 +32,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/workflow-quality-scope.py
+      - id: managed
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/managed_compute_scope.py
   actions:
     needs: workflow-scope
-    if: needs.workflow-scope.outputs.workflow_only != 'true'
+    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.managed_compute_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

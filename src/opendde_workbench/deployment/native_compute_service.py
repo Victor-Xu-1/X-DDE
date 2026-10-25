@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 from urllib.parse import urlsplit
 
+if __package__:
+    from . import native_compute_limits as resources
+else:
+    import native_compute_limits as resources
+
 
 def owned(container, connection):
     if container is None:
@@ -37,7 +42,7 @@ def idle(value):
         raise ValueError("Finish native compute tasks before stopping the service.")
 
 
-def launch_arguments(connection, root, checkpoint):
+def launch_arguments(connection, root, checkpoint, resource_limits=None):
     from opendde_harness.cli.onboard_compute import DockerSettings, create_arguments
 
     shared = Path(connection["shared_dir"])
@@ -64,6 +69,8 @@ def launch_arguments(connection, root, checkpoint):
     args, env = create_arguments(
         settings, connection["token"], "", name=connection["container"], port=port
     )
+    limits = resources.policy(resource_limits)
+    limit_flags = resources.launch_flags(args, limits)
     reviewed, index = [], 0
     while index < len(args):
         if args[index] == "--rm":
@@ -79,6 +86,7 @@ def launch_arguments(connection, root, checkpoint):
         index += 1
     index = reviewed.index("--detach") + 1
     reviewed[index:index] = [
+        *limit_flags,
         "--restart",
         "unless-stopped",
         "--user",
@@ -109,6 +117,7 @@ def launch_arguments(connection, root, checkpoint):
                 "docker",
                 "run",
                 "--rm",
+                *limits.arguments(),
                 "--network",
                 "none",
                 "--gpus",
@@ -156,6 +165,7 @@ def execute(message):
     from opendde_harness.cli.onboard_compute import docker, inspect_container, wait_for_service
 
     connection, action = message["connection"], message["action"]
+    limits = resources.policy(message.get("resource_limits"))
     name = connection["container"]
     current = inspect_container(name)
     owned(current, connection)
@@ -165,29 +175,59 @@ def execute(message):
         idle(value)
         docker("stop", name)
         running, value = False, None
-    elif action == "start" and not running:
-        if current:
-            docker("start", name)
-        else:
-            args, env = launch_arguments(connection, Path(message["root"]), message["checkpoint"])
-            docker(*args, env=env)
-        wait_for_service(connection["url"], connection["token"], "local", timeout=65)
-        running, value = True, health(connection)
+    elif action == "start":
+        if current and not resources.verified(current, limits):
+            current = resources.apply_existing(
+                current, limits, inspect_container, owned, connection, lambda: idle(value)
+            )
+        if not running:
+            resources.require_support()
+            if current:
+                docker("start", current["Id"])
+            else:
+                args, env = launch_arguments(
+                    connection,
+                    Path(message["root"]),
+                    message["checkpoint"],
+                    limits.model_dump(),
+                )
+                docker(*args, env=env)
+            current = inspect_container(name)
+            owned(current, connection)
+            if (
+                current is None
+                or not current.get("State", {}).get("Running")
+                or not resources.verified(current, limits)
+            ):
+                raise ValueError("Native compute limits were not applied; service is unavailable.")
+            wait_for_service(connection["url"], connection["token"], "local", timeout=65)
+            running, value = True, health(connection)
     elif action not in {"status", "start", "stop", "retire"}:
         raise ValueError("Unknown native compute lifecycle action.")
     if action == "retire" and current is not None:
         # A stopped instance can be removed only after the ownership check above.
         docker("rm", name)
+        current = None
     backend = (value or {}).get("workers", {}).get("backend", {})
-    ready = bool(value) and all(
-        backend.get(key) is True
-        for key in ("code_ready", "root_ready", "common_ready", "checkpoint_ready")
+    limits_verified = bool(current) and resources.verified(current, limits)
+    if running and limits_verified:
+        resources.require_support()
+    ready = (
+        bool(value)
+        and limits_verified
+        and all(
+            backend.get(key) is True
+            for key in ("code_ready", "root_ready", "common_ready", "checkpoint_ready")
+        )
     )
     queue = (value or {}).get("workers", {}).get("queue", {})
     return {
         "container": name,
         "running": running,
         "ready": ready,
+        "container_id": current.get("Id") if current else None,
+        "resource_limits": limits.model_dump(),
+        "resource_limits_verified": limits_verified,
         "model_provider_required": False,
         "queued": queue.get("queued", 0)
         if isinstance(queue.get("queued", 0), int)
@@ -197,7 +237,11 @@ def execute(message):
         else len(queue.get("running", [])),
         "reason": None
         if ready
-        else "Native compute is stopped or its local resources are not ready.",
+        else (
+            "Apply the native compute update before new tasks; hard resource limits are unverified."
+            if running and not limits_verified
+            else "Native compute is stopped or its local resources are not ready."
+        ),
     }
 
 

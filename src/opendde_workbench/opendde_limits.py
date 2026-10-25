@@ -57,6 +57,12 @@ class OpenDDELimits(BaseModel):
             }.items()
         ):
             raise RuntimeError("OpenDDE container identity could not be verified; not started.")
+        return self.verify_resources(value)
+
+    def verify_resources(self, value):
+        """The same hard limits apply to managed native services and task containers."""
+        if not isinstance(value, dict):
+            raise RuntimeError("OpenDDE hard resource limits were not applied; not started.")
         expected = {
             "memory": self.memory_mib * 1024**2,
             "memory_swap": self.memory_mib * 1024**2,
@@ -81,6 +87,11 @@ async def require_support(command):
         raise RuntimeError(
             "Docker resource controllers could not be checked; OpenDDE is unavailable."
         )
+    return parse_support(output)
+
+
+def parse_support(output):
+    """Validate controller support at both asynchronous and native IPC boundaries."""
     try:
         value = json.loads(output)
     except (ValueError, TypeError) as exc:

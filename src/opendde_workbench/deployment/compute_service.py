@@ -8,14 +8,18 @@ import time
 from pathlib import Path
 
 from ..locations import atomic_json, read_json
+from ..opendde_limits import OpenDDELimits
 from .compute_config import read_connection
 from .msa_config import msa_endpoint
 
 
 class ComputeService:
-    def __init__(self, state, *, msa_url=None):
+    def __init__(self, state, *, msa_url=None, resource_limits=None):
         self.state = state
         self.msa_url = msa_endpoint(msa_url)
+        self.resource_limits = OpenDDELimits.model_validate(
+            {} if resource_limits is None else resource_limits
+        )
         self.lock = threading.RLock()
         self.cached = (0.0, {"configured": False, "running": False, "ready": False})
 
@@ -60,6 +64,7 @@ class ComputeService:
                 "connection": connection.model_dump(),
                 "root": str(root),
                 "checkpoint": "opendde_abag.pt" if "abag" in installed else "opendde.pt",
+                "resource_limits": self.resource_limits.model_dump(),
             }
             env = {
                 key: value
