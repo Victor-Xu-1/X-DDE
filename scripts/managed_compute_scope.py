@@ -8,10 +8,12 @@ from pathlib import Path
 
 API = "src/opendde_workbench/api.py"
 CORE = "src/opendde_workbench/deployment/native_compute_service.py"
+CLIENT = "frontend/src/deployment/client.ts"
 PATTERNS = (
     API,
     CORE,
     "src/opendde_workbench/deployment/native_compute_limits.py",
+    "src/opendde_workbench/deployment/native_compute_probe.py",
     "src/opendde_workbench/deployment/compute_service.py",
     "src/opendde_workbench/deployment/manager.py",
     "src/opendde_workbench/opendde_limits.py",
@@ -19,6 +21,7 @@ PATTERNS = (
     "src/opendde_workbench/harness_process.py",
     "src/opendde_workbench/harness_service.py",
     "tests/test_compute_limits.py",
+    "tests/test_compute_probe.py",
     "tests/test_harness_admission.py",
     "tests/test_compute_service.py",
     "tests/test_compute_msa_protocol.py",
@@ -31,6 +34,12 @@ PATTERNS = (
     ".github/workflows/task-action-checks.yml",
     ".github/workflows/task-readiness-checks.yml",
     ".github/workflows/harness-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/property-model-review-checks.yml",
+    ".github/workflows/user-interface-checks.yml",
+    "frontend/src/deployment/ComputeServicePanel.tsx",
+    "frontend/src/deployment/ComputeServicePanel.test.tsx",
+    CLIENT,
     "docs/design/README.md",
     "pyproject.toml",
     "uv.lock",
@@ -80,9 +89,21 @@ def candidates(changed):
     )
 
 
-def selected(changed, before_api=None, after_api=None):
+def selected(changed, before_api=None, after_api=None, *, before_client=None, after_client=None):
     if not candidates(changed):
         return False
+    if CLIENT in changed:
+        anchor = "  compute_service?: {\n"
+        if (
+            not isinstance(before_client, str)
+            or not isinstance(after_client, str)
+            or before_client.count(anchor) != 1
+        ):
+            return False
+        if after_client != before_client.replace(
+            anchor, anchor + "    cleanup_pending?: boolean;\n", 1
+        ):
+            return False
     return API not in changed or (
         before_api is not None and after_api is not None and api_wiring_only(before_api, after_api)
     )
@@ -105,8 +126,20 @@ def main():
     if candidates(changed) and API in changed:
         before = subprocess.check_output(["git", "show", base + ":" + API], text=True)
         after = Path(API).read_text(encoding="utf-8")
+    before_client = after_client = None
+    if candidates(changed) and CLIENT in changed:
+        before_client = subprocess.check_output(["git", "show", base + ":" + CLIENT], text=True)
+        after_client = Path(CLIENT).read_text(encoding="utf-8")
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-        output.write("managed_compute_only=" + str(selected(changed, before, after)).lower() + "\n")
+        output.write(
+            "managed_compute_only="
+            + str(
+                selected(
+                    changed, before, after, before_client=before_client, after_client=after_client
+                )
+            ).lower()
+            + "\n"
+        )
 
 
 if __name__ == "__main__":

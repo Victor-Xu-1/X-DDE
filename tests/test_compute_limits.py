@@ -147,6 +147,21 @@ def test_status_is_read_only_and_does_not_call_an_unbounded_service_ready(native
     assert all(call[0] == "inspect" for call in native_boundary.calls)
 
 
+def test_owned_removal_status_never_reports_ready_or_dispatches_cleanup(native_boundary):
+    native_boundary.current["State"].update(Status="removing", Running=False, Pid=0)
+    result = native.execute({**native_boundary.message, "action": "status"})
+    assert result["cleanup_pending"] and not result["ready"] and not result["running"]
+    assert all(call[0] == "inspect" for call in native_boundary.calls)
+
+
+@pytest.mark.parametrize("action", ["start", "stop", "retire"])
+def test_removing_owned_service_cannot_receive_repeated_mutations(native_boundary, action):
+    native_boundary.current["State"].update(Status="removing", Running=False, Pid=0)
+    with pytest.raises(ValueError, match="still cleaning up"):
+        native.execute({**native_boundary.message, "action": action})
+    assert all(call[0] == "inspect" for call in native_boundary.calls)
+
+
 def test_zero_exit_without_applied_limits_still_fails(native_boundary):
     native_boundary.mutate[0] = False
     with pytest.raises(RuntimeError, match="not applied"):

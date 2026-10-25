@@ -161,3 +161,40 @@ def test_busy_retirement_cannot_update_private_configuration(tmp_path, monkeypat
     with pytest.raises(ValueError, match="Finish"):
         ComputeService(tmp_path).invoke("start")
     assert read_connection(tmp_path) == config
+
+
+@pytest.mark.parametrize("action", ["start", "stop"])
+def test_controller_timeout_returns_safe_actionable_error_without_changing_connection(
+    tmp_path, monkeypatch, action
+):
+    import subprocess
+
+    from opendde_workbench.deployment.compute_service import ComputeService
+    from opendde_workbench.deployment.msa_config import DEFAULT_MSA_ENDPOINT
+
+    config = connection(tmp_path).model_copy(update={"msa_url": DEFAULT_MSA_ENDPOINT})
+    atomic_json(tmp_path / "compute-service.json", config.model_dump())
+    root = tmp_path / "runtime"
+    root.mkdir()
+    interpreter = root / "python"
+    interpreter.write_text("Protocol interpreter fixture")
+    atomic_json(tmp_path / "deployment.json", {"root": str(root)})
+    atomic_json(
+        root / "installed.json",
+        {
+            "harness": {"python": str(interpreter)},
+            "compute": {"image": config.image},
+            "runtime": {"code": config.code},
+        },
+    )
+
+    def timeout(*args, **kwargs):
+        raise subprocess.TimeoutExpired(["docker", config.token, "private-filesystem-path"], 25)
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    with pytest.raises(ValueError, match="Check the current service status") as caught:
+        ComputeService(tmp_path).invoke(action)
+    assert config.token not in str(caught.value) and "private-filesystem-path" not in str(
+        caught.value
+    )
+    assert read_connection(tmp_path) == config

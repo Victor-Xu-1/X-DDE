@@ -2,20 +2,20 @@ name: Property model review scoped checks
 on:
   push:
     paths: &model_context_paths
-      - 'src/opendde_workbench/integrations/property_models.py'
-      - 'src/opendde_workbench/integrations/bindings.py'
-      - 'src/opendde_workbench/integrations/routes.py'
-      - 'frontend/src/integrations/PropertyModel*'
-      - 'frontend/src/integrations/property-model-evidence*'
-      - 'frontend/src/integrations/ScientificReview.tsx'
-      - 'frontend/src/integrations/ScientificResults.tsx'
-      - 'frontend/src/integrations/types.ts'
-      - 'tests/test_property_model_context.py'
-      - 'tests/test_property_model_scope.py'
-      - 'scripts/property-model-scope.py'
-      - 'tests/test_model_case_sources.py'
-      - 'server_tests/test_property_model_reuse_browser.py'
-      - '.github/workflows/property-model-review-checks.yml'
+      - "src/opendde_workbench/integrations/property_models.py"
+      - "src/opendde_workbench/integrations/bindings.py"
+      - "src/opendde_workbench/integrations/routes.py"
+      - "frontend/src/integrations/PropertyModel*"
+      - "frontend/src/integrations/property-model-evidence*"
+      - "frontend/src/integrations/ScientificReview.tsx"
+      - "frontend/src/integrations/ScientificResults.tsx"
+      - "frontend/src/integrations/types.ts"
+      - "tests/test_property_model_context.py"
+      - "tests/test_property_model_scope.py"
+      - "scripts/property-model-scope.py"
+      - "tests/test_model_case_sources.py"
+      - "server_tests/test_property_model_reuse_browser.py"
+      - ".github/workflows/property-model-review-checks.yml"
   pull_request:
     paths: *model_context_paths
   workflow_call:
@@ -29,6 +29,8 @@ on:
     outputs:
       model_context_only:
         value: ${{ jobs.scope.outputs.model_context_only }}
+      managed_compute_only:
+        value: ${{ jobs.scope.outputs.managed_compute_only }}
 permissions:
   contents: read
 jobs:
@@ -37,6 +39,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       model_context_only: ${{ steps.select.outputs.model_context_only }}
+      managed_compute_only: ${{ steps.compute.outputs.managed_compute_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,8 +48,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/property-model-scope.py
+      - id: compute
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/managed_compute_scope.py
   model-review:
-    if: inputs.scope_only != true
+    needs: scope
+    if: inputs.scope_only != true && needs.scope.outputs.managed_compute_only != 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
     env:

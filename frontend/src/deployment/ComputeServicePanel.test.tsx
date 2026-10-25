@@ -108,3 +108,43 @@ it("offers a guarded update for a changed installed environment", () => {
   );
   expect(screen.getByRole("button", { name: "应用环境更新" })).toBeEnabled();
 });
+
+it.each([true, false])(
+  "keeps pending cleanup read-only in either language (%s)",
+  (zh) => {
+    const execute = vi.fn();
+    render(
+      <ComputeServicePanel
+        data={{
+          ...data,
+          compute_service: {
+            configured: true,
+            running: false,
+            ready: false,
+            restart_required: true,
+            cleanup_pending: true,
+            reason: "docker rm /internal-state-and-command",
+          },
+        }}
+        zh={zh}
+        busy={false}
+        execute={execute}
+      />,
+    );
+    expect(screen.getByText(zh ? "正在清理" : "Cleaning up")).toBeVisible();
+    const start = screen.getByRole("button", {
+      name: zh ? "应用环境更新" : "Apply environment update",
+    });
+    expect(start).toBeDisabled();
+    expect(
+      screen.getByRole("button", {
+        name: zh ? "停止计算服务" : "Stop compute",
+      }),
+    ).toBeDisabled();
+    fireEvent.click(start);
+    expect(execute).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(/docker rm|internal-state-and-command/),
+    ).toBeNull();
+  },
+);

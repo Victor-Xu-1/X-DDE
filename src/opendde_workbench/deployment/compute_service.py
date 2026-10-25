@@ -1,6 +1,7 @@
 """X-DDE owns environment service lifecycle; the native factory owns launch arguments."""
 
 import json
+import logging
 import os
 import subprocess
 import threading
@@ -84,20 +85,33 @@ class ComputeService:
                     "CUDA_VISIBLE_DEVICES",
                 }
             }
-            result = subprocess.run(
-                [python, str(Path(__file__).with_name("native_compute_service.py"))],
-                input=json.dumps(message),
-                capture_output=True,
-                text=True,
-                env=env,
-                timeout=110 if action == "start" else 25,
-            )
+            try:
+                result = subprocess.run(
+                    [python, str(Path(__file__).with_name("native_compute_service.py"))],
+                    input=json.dumps(message),
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    timeout=110 if action == "start" else 25,
+                )
+            except subprocess.TimeoutExpired:
+                raise ValueError(
+                    "Compute setup did not finish. "
+                    "Check the current service status before retrying."
+                ) from None
             if result.returncode:
                 raise RuntimeError(
                     "Native service lifecycle failed. Check Docker and the installed environment."
                 )
             reply = json.loads(result.stdout)
             if not reply.get("ok"):
+                diagnostic = reply.get("diagnostic")
+                if isinstance(diagnostic, str):
+                    logging.getLogger(__name__).warning(
+                        "Native compute %s failed: %s",
+                        action,
+                        diagnostic[-8000:].replace(connection.token, "[redacted]"),
+                    )
                 raise ValueError(
                     str(reply.get("error", "Native service operation failed.")).replace(
                         connection.token, "[redacted]"
@@ -112,8 +126,11 @@ class ComputeService:
                 reply["result"].update(
                     ready=False,
                     restart_required=True,
-                    reason="The installed environment changed. Apply its update before new tasks.",
                 )
+                if not reply["result"].get("cleanup_pending"):
+                    reply["result"]["reason"] = (
+                        "The installed environment changed. Apply its update before new tasks."
+                    )
             status = {
                 "configured": True,
                 "automatic": action == "start" if action != "status" else connection.automatic,
