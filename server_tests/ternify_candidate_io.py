@@ -55,9 +55,9 @@ def restore(root):
     return control, {name: digest(control / name) for name in INPUTS}
 
 
-def pdb_atoms(path, *, native_subset=False):
+def pdb_atoms(path, *, native_subset=False, lines=None):
     rows = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text().splitlines() if lines is None else lines:
         if line.startswith("END"):
             break
         if not line.startswith(("ATOM  ", "HETATM")):
@@ -72,23 +72,52 @@ def pdb_atoms(path, *, native_subset=False):
     return [key for key, _ in rows], np.array([xyz for _, xyz in rows])
 
 
-def inspect_output(control):
-    source = next(m for m in Chem.SDMolSupplier(str(control / "protac.sdf")) if m)
-    generated = [m for m in Chem.SDMolSupplier(str(control / "TC_protac.sdf")) if m]
-    if len(generated) != 1:
-        raise ValueError("The bounded control must return exactly one parseable native molecule.")
-    molecule = generated[0]
+def protein_models(path):
+    models, current = [], None
+    for line in path.read_text().splitlines():
+        if line.startswith("MODEL"):
+            if current is not None:
+                raise ValueError("Nested native protein models are invalid.")
+            current = []
+        elif line.startswith("ENDMDL"):
+            if not current:
+                raise ValueError("Empty native protein models are invalid.")
+            models.append(current)
+            current = None
+        elif current is not None:
+            current.append(line)
+        elif line.startswith(("ATOM", "HETATM")):
+            raise ValueError("Unbound native protein records are invalid.")
+    if current is not None:
+        raise ValueError("The native protein model was not completed.")
+    return models
+
+
+def inspect_record(control, source, molecule, model):
     def identity(molecule):
         return Chem.MolToSmiles(Chem.RemoveHs(molecule), isomericSmiles=True)
 
     if identity(source) != identity(molecule):
         raise ValueError("The native control changed the full molecular graph or stereochemistry.")
+    expected = {
+        a.GetIdx(): a.GetProp("_CIPCode") for a in source.GetAtoms() if a.HasProp("_CIPCode")
+    }
+    physical = Chem.Mol(molecule)
+    Chem.RemoveStereochemistry(physical)
+    Chem.AssignStereochemistryFrom3D(physical, replaceExistingTags=True)
+    Chem.AssignStereochemistry(physical, cleanIt=True, force=True)
+    if any(
+        not physical.GetAtomWithIdx(i).HasProp("_CIPCode")
+        or physical.GetAtomWithIdx(i).GetProp("_CIPCode") != value
+        for i, value in expected.items()
+    ):
+        raise ValueError("The native physical conformer changed known input stereochemistry.")
     positions = molecule.GetConformer().GetPositions()
     score = float(molecule.GetProp("score"))
     if not np.isfinite(positions).all() or not np.isfinite(score):
         raise ValueError("The native control returned non-finite geometry or score.")
     names, original = pdb_atoms(control / "poi.pdb", native_subset=True)
-    output_names, transformed = pdb_atoms(control / "TC_protein.pdb", native_subset=True)
+    output_names, transformed = pdb_atoms(None, native_subset=True, lines=model)
     if names != output_names:
         raise ValueError("The native moving protein changed its source atom correspondence.")
     left, right = original.mean(axis=0), transformed.mean(axis=0)
@@ -102,14 +131,40 @@ def inspect_output(control):
     complete = (complete - left) @ rotation + right
     _, anchor = pdb_atoms(control / "e3.pdb")
     contacts = cKDTree(anchor).query_ball_tree(cKDTree(complete), 1.2)
+    signature = hashlib.sha256(
+        positions.tobytes() + transformed.tobytes() + str(score).encode()
+    ).hexdigest()
     return {
-        "native_molecules": 1,
         "full_graph_and_stereo_preserved": True,
+        "physical_known_CIP_centres_checked": len(expected),
         "moving_protein_atoms": len(names),
         "proper_rigid_transform_rmsd_A": rmsd,
         "observed_context_pairs_below_1_2_A": sum(map(len, contacts)),
         "native_score": score,
         "score_interpretation": "Native mixed-term score; not binding affinity or cooperativity.",
+        "scientific_accuracy_accepted": False,
+        "coordinate_score_signature": signature,
+    }
+
+
+def inspect_output(control):
+    source = next(m for m in Chem.SDMolSupplier(str(control / "protac.sdf")) if m)
+    generated = [m for m in Chem.SDMolSupplier(str(control / "TC_protac.sdf")) if m]
+    models = protein_models(control / "TC_protein.pdb")
+    if len(generated) != len(models) or len(generated) != 3:
+        raise ValueError("All three declared native controls must have matching complete outputs.")
+    rows = [
+        inspect_record(control, source, molecule, model)
+        for molecule, model in zip(generated, models, strict=True)
+    ]
+    if rows[0]["coordinate_score_signature"] != rows[1]["coordinate_score_signature"]:
+        raise ValueError("Equal native worker seeds did not reproduce their final structures.")
+    return {
+        "native_molecules": len(rows),
+        "records": rows,
+        "equal_root_seed_reproduced": True,
+        "changed_seed_same_final_geometry": rows[0]["coordinate_score_signature"]
+        == rows[2]["coordinate_score_signature"],
         "scientific_accuracy_accepted": False,
     }
 

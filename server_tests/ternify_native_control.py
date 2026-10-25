@@ -2,6 +2,7 @@
 
 import argparse
 import importlib.metadata
+import json
 import os
 import signal
 import subprocess
@@ -33,6 +34,19 @@ def resource_proof():
     return value
 
 
+def resource_usage():
+    relative = next(
+        line.split(":", 2)[2]
+        for line in Path("/proc/self/cgroup").read_text().splitlines()
+        if line.startswith("0::")
+    )
+    group = Path("/sys/fs/cgroup") / relative.lstrip("/")
+    return {
+        name: (group / name).read_text().strip()
+        for name in ("memory.peak", "memory.events", "cpu.stat")
+    }
+
+
 def run_native(control, root):
     settings = (control / "tcs.inp").read_text()
     for key, value in {"N_ini": 12, "N_search": 1, "N_keep": 1, "N_processes": 1}.items():
@@ -46,14 +60,21 @@ def run_native(control, root):
     (control / "bounded.inp").write_text(settings)
     with (root / "native.log").open("wb") as log:
         process = subprocess.Popen(
-            [sys.executable, str(root / "source/src/ternify.py"), "-p", "bounded.inp"],
+            [
+                sys.executable,
+                str(Path(__file__).with_name("ternify_seed_policy.py")),
+                "--source",
+                str(root / "source/src"),
+                "--control",
+                str(control),
+            ],
             cwd=control,
             stdout=log,
             stderr=subprocess.STDOUT,
             start_new_session=True,
         )
         try:
-            code = process.wait(timeout=540)
+            code = process.wait(timeout=900)
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGTERM)
             try:
@@ -81,8 +102,10 @@ def main():
         "research_template_acceptance": False,
         "production_integration": False,
         "kernel_limits": resource_proof(),
-        "native_worker_seed_controlled": False,
-        "sampling": {"initial": 12, "optimize": 1, "keep": 1, "processes": 1},
+        "native_worker_seed_controlled": True,
+        "worker_policy_sha256": digest(Path(__file__).with_name("ternify_seed_policy.py")),
+        "root_seeds": [31, 31, 137],
+        "sampling_per_record": {"initial": 12, "optimize": 1, "keep": 1, "processes": 1},
         "packages": {
             name: importlib.metadata.version(name) for name in ("rdkit", "numpy", "scipy")
         },
@@ -93,12 +116,14 @@ def main():
         run_native(control, root)
         if any(digest(control / name) != expected for name, expected in identities.items()):
             raise ValueError("The native method changed its source input files.")
+        proof["worker_seed_proof"] = json.loads((control / "worker-seed-proof.json").read_text())
         proof.update(inspect_output(control), native_protocol_verified=True)
     except BaseException as exc:
         proof.update(native_protocol_verified=False, error_type=type(exc).__name__)
         raise
     finally:
         proof["elapsed_seconds"] = time.monotonic() - started
+        proof["kernel_usage"] = resource_usage()
         write_report(root / "protocol-review.json", proof)
 
 
