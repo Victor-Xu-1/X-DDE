@@ -8,7 +8,7 @@ import numpy as np
 from Bio.PDB import PDBIO
 from Bio.PDB.Model import Model
 from Bio.PDB.Structure import Structure
-from deepternary.models.rotate_utils import rotate_and_translate
+from native_proximity_frames import apply_rigid_transform
 from native_proximity_quality import check_candidate
 from rdkit import Chem
 
@@ -56,7 +56,7 @@ def assembly_models(partners, prediction):
         chain.detach_parent()
         chain.id = "AB"[index]
         if index == 1:
-            positions = rotate_and_translate(
+            positions = apply_rigid_transform(
                 partner["coordinates"],
                 prediction["rotation"],
                 prediction["translation"],

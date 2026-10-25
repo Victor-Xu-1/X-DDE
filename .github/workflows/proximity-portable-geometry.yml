@@ -1,0 +1,48 @@
+name: Portable ternary coordinate and result checks
+on:
+  push:
+    paths: &geometry_paths
+      - src/opendde_workbench/proximity/native_frames.py
+      - src/opendde_workbench/proximity/native_quality.py
+      - src/opendde_workbench/proximity/native_outputs.py
+      - tests/test_proximity_frames.py
+      - tests/test_proximity_portable_io.py
+      - .github/workflows/proximity-portable-geometry.yml
+  pull_request:
+    paths: *geometry_paths
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: portable-proximity-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  structural-consumers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - numpy: 1.26.4
+            rdkit: 2023.9.3
+          - numpy: 2.2.6
+            rdkit: 2026.3.6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Prepare the real package without unrelated frontend suites
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --python 3.12 --group dev
+      - name: Exact frame, source-identity and quality/writer consumers; no model inference
+        run: |
+          uv run --locked --python 3.12 \
+            --with "numpy==${{ matrix.numpy }}" --with "rdkit==${{ matrix.rdkit }}" \
+            --with scipy==1.15.3 --with biopython==1.88 \
+            pytest -q tests/test_proximity_frames.py tests/test_proximity_portable_io.py
+          uv run --locked ruff check src/opendde_workbench/proximity/native_frames.py src/opendde_workbench/proximity/native_quality.py src/opendde_workbench/proximity/native_outputs.py tests/test_proximity_frames.py tests/test_proximity_portable_io.py

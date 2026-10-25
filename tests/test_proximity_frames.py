@@ -6,10 +6,47 @@ import numpy as np
 import pytest
 
 from opendde_workbench.proximity.native_frames import (
+    apply_rigid_transform,
     canonical_prediction,
     local_binary_coordinates,
     pocket_in_ligand_frame,
 )
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+@pytest.mark.parametrize("offset_shape", [(3,), (1, 3)])
+def test_shared_rigid_transform_retains_native_convention_dtype_and_source_atoms(
+    dtype, offset_shape
+):
+    source = np.array([[1.25, -4.5, 8.0], [3.4, 9.2, -0.25], [-7.1, 2.3, 4.0]], dtype=dtype)
+    rotation = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]], dtype=dtype)
+    translation = np.array([10.0, -50.0, 8.0], dtype=dtype).reshape(offset_shape)
+    original = source.copy(), rotation.copy(), translation.copy()
+    expected = (rotation @ source.T).T + translation
+    result = apply_rigid_transform(source, rotation, translation)
+    np.testing.assert_array_equal(result, expected)
+    assert result.dtype == expected.dtype
+    for observed, before in zip((source, rotation, translation), original, strict=True):
+        np.testing.assert_array_equal(observed, before)
+
+
+@pytest.mark.parametrize(
+    "points,rotation,translation",
+    [
+        ([], np.eye(3), np.zeros(3)),
+        ([[1, 2]], np.eye(3), np.zeros(3)),
+        ([[np.nan, 2, 3]], np.eye(3), np.zeros(3)),
+        ([[1, 2, 3]], np.diag([-1, 1, 1]), np.zeros(3)),
+        ([[1, 2, 3]], np.eye(3) * 2, np.zeros(3)),
+        ([[1, 2, 3]], np.eye(3), np.zeros((3, 1))),
+        ([["x", "y", "z"]], np.eye(3), np.zeros(3)),
+    ],
+)
+def test_shared_rigid_transform_rejects_invented_or_nonphysical_frames(
+    points, rotation, translation
+):
+    with pytest.raises(ValueError, match="proper rigid transform"):
+        apply_rigid_transform(points, rotation, translation)
 
 
 def geometry():

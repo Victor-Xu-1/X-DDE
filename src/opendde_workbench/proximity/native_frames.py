@@ -3,6 +3,26 @@
 import numpy as np
 
 
+def apply_rigid_transform(points, rotation, translation):
+    """Apply a confirmed proper source transform without importing a model framework."""
+    coordinates, matrix, offset = (np.asarray(value) for value in (points, rotation, translation))
+    if (
+        coordinates.ndim != 2
+        or coordinates.shape[1] != 3
+        or not len(coordinates)
+        or matrix.shape != (3, 3)
+        or offset.shape not in {(3,), (1, 3)}
+        or any(value.dtype.kind not in "fiu" for value in (coordinates, matrix, offset))
+        or not all(np.isfinite(value).all() for value in (coordinates, matrix, offset))
+        or not np.allclose(matrix.T @ matrix, np.eye(3), atol=1e-4, rtol=0)
+        or abs(np.linalg.det(matrix) - 1) > 1e-4
+    ):
+        raise ValueError("Native assembly coordinates need one finite proper rigid transform.")
+    # Retain NumPy's original input dtype promotion and column-vector convention,
+    # as used by the native model. Never fit, reflect, relabel or modify a source.
+    return (matrix @ coordinates.T).T + offset
+
+
 def local_binary_coordinates(points):
     """Remove only a binary ligand's arbitrary world translation before float32 use."""
     coordinates = np.asarray(points, dtype=np.float64)

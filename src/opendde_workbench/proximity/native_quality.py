@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 import numpy as np
-from deepternary.models.rotate_utils import rotate_and_translate
+from native_proximity_frames import apply_rigid_transform
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from scipy.spatial import cKDTree
@@ -80,7 +80,7 @@ def check_candidate(source, candidate, arms, partners, prediction):
             limit = 0.65 * (table.GetRvdw(elements[a]) + table.GetRvdw(elements[b]))
             internal += float(np.linalg.norm(position[a] - position[b])) < limit
     first = partners[0]["coordinates"]
-    second = rotate_and_translate(
+    second = apply_rigid_transform(
         partners[1]["coordinates"],
         prediction["rotation"],
         prediction["translation"],
@@ -97,7 +97,9 @@ def check_candidate(source, candidate, arms, partners, prediction):
         binary = arm.GetConformer().GetPositions()
         protein = first
         if index == 1:
-            binary = rotate_and_translate(binary, prediction["rotation"], prediction["translation"])
+            binary = apply_rigid_transform(
+                binary, prediction["rotation"], prediction["translation"]
+            )
             protein = second
         rmsd = float(np.sqrt(np.mean(np.sum((position[list(mapping)] - binary) ** 2, axis=1))))
         nearest, _ = cKDTree(protein).query(position[list(mapping)], k=1)
