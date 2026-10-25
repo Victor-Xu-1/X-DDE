@@ -342,6 +342,11 @@ on:
       - "!frontend/src/operations/HarnessForm.tsx"
       - "!frontend/src/operations/HarnessSubmissionRecovery*"
       - "!frontend/src/operations/HarnessReview*"
+      # Native fold MSA inputs and concrete review use harness-input-checks.yml.
+      - "!frontend/src/operations/HarnessFoldInputs*"
+      - "!frontend/src/operations/FoldReview*"
+      - "!frontend/src/operations/harness-questionnaire-model.ts"
+      - "!frontend/src/operations/guided-contract.ts"
       - "!frontend/src/operations/HarnessSourcesForm*"
       - "!frontend/src/operations/harness-sources*"
       - "!frontend/src/operations/harness-generated.ts"
