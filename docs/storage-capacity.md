@@ -50,3 +50,25 @@ applications, and do not provide automatic scientific-checkpoint continuation.
 Primary references: [Microsoft WSL disk space](https://learn.microsoft.com/en-us/windows/wsl/disk-space)
 and [Windows Get-Volume](https://learn.microsoft.com/en-us/powershell/module/storage/get-volume),
 plus [WSL DrvFS and Plan9](https://wsl.dev/technical-documentation/drvfs/).
+## Registered WSL volume identity
+
+When the platform state directory is configured, a successful Windows registry
+probe retains only the registered backing-volume identity in a private state
+file. The binding includes the distribution, current Linux boot and observed
+registered directory identity. Each later capacity check reads the live host
+filesystem and retains the tighter physical/VHD limit; saved free-space numbers
+are never an authority.
+
+A new boot requires the original Windows producer again. Unsafe permissions,
+foreign ownership, symbolic links, replaced directories and missing or ambiguous
+host mounts fail closed. This permits ordinary restarts in the same boot when
+Windows interoperability is temporarily unavailable.
+
+For operator recovery, the packaged `wsl_storage.ps1` producer can run directly
+on Windows for the actual registered distribution. Its fresh JSON observation
+can be adopted inside that distribution with `WB_STATE_DIR` set to the real
+platform state directory and
+`python -m opendde_workbench.wsl_storage_identity --host-proof PATH`. The command
+validates the current mount and registration directory, binds the observation to
+this boot, and creates private identity metadata. It never starts WSL, changes a
+disk configuration, accepts a supplied capacity as available space, or modifies research data.

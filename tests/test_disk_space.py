@@ -11,6 +11,8 @@ from opendde_workbench import disk_space, wsl_storage
 
 @pytest.fixture(autouse=True)
 def fresh_cache(monkeypatch):
+    monkeypatch.delenv("WB_STATE_DIR", raising=False)
+    monkeypatch.delenv("WB_HOME", raising=False)
     monkeypatch.setattr(disk_space, "_cached", None)
     monkeypatch.setattr(disk_space, "_expires", 0)
     monkeypatch.setattr(disk_space, "_distribution", None)

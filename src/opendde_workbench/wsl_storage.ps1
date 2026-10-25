@@ -10,4 +10,11 @@ if ($taskEntries.Count -ne 1 -or -not $taskEntries[0].BasePath) { throw 'Cannot 
 $taskVolumes = @(Get-Volume -FilePath $taskEntries[0].BasePath)
 if ($taskVolumes.Count -ne 1) { throw 'Cannot identify the WSL backing volume.' }
 $taskLabel = if ($taskVolumes[0].DriveLetter) { [string]$taskVolumes[0].DriveLetter + ':' } else { 'Host storage' }
-@{location=$taskLabel; free_bytes=[uint64]$taskVolumes[0].SizeRemaining} | ConvertTo-Json -Compress
+@{
+    location=$taskLabel
+    free_bytes=[uint64]$taskVolumes[0].SizeRemaining
+    distribution=$taskDistribution
+    base_path=[string]$taskEntries[0].BasePath
+    volume_id=[string]$taskVolumes[0].UniqueId
+    observed_at_utc=[DateTime]::UtcNow.ToString('o')
+} | ConvertTo-Json -Compress
