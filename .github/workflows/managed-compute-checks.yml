@@ -1,0 +1,80 @@
+name: Managed native compute resource checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: &managed_paths
+      - 'src/opendde_workbench/deployment/*compute*'
+      - 'src/opendde_workbench/deployment/manager.py'
+      - 'src/opendde_workbench/opendde_limits.py'
+      - 'src/opendde_workbench/harness_admission.py'
+      - 'src/opendde_workbench/harness_process.py'
+      - 'src/opendde_workbench/harness_service.py'
+      - 'src/opendde_workbench/api.py'
+      - 'tests/test_compute_limits.py'
+      - 'tests/test_harness_admission.py'
+      - 'tests/ci/test_managed_compute_scope.py'
+      - 'scripts/managed_compute_scope.py'
+      - 'server_tests/test_managed_compute_limits.py'
+      - '.github/workflows/managed-compute-checks.yml'
+  pull_request:
+    paths: *managed_paths
+permissions:
+  contents: read
+concurrency:
+  group: managed-compute-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  resource-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - name: Build package assets without unrelated frontend suites
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          uv sync --locked --group dev
+      - name: Prove the reported factory regression on its original published source
+        env:
+          BASELINE: dda8bf5aebe9b486ba13ed16f655619b57594387
+        run: |
+          source=src/opendde_workbench/deployment/native_compute_service.py
+          cp "$source" "$RUNNER_TEMP/fixed-native-compute.py"
+          trap 'cp "$RUNNER_TEMP/fixed-native-compute.py" "$source"' EXIT
+          git show "$BASELINE:$source" > "$source"
+          set +e
+          uv run --locked pytest -q tests/test_compute_limits.py::test_native_factory_bounds_before_entrypoint --junitxml="$RUNNER_TEMP/managed-compute-regression.xml"
+          code=$?
+          set -e
+          test "$code" = 1
+          python -c 'import os,xml.etree.ElementTree as E; r=E.parse(os.environ["RUNNER_TEMP"]+"/managed-compute-regression.xml"); assert not r.findall(".//error"); f=r.findall(".//failure"); assert len(f)==1 and "resource flags are missing" in f[0].get("message", "")'
+          cp "$RUNNER_TEMP/fixed-native-compute.py" "$source"
+          trap - EXIT
+          git diff --exit-code
+      - name: Resource policy, owned migration, handoff, API wiring and their direct consumers
+        run: |
+          python -m unittest discover -s tests/ci -p test_managed_compute_scope.py
+          uv run --locked ruff check src/opendde_workbench/opendde_limits.py src/opendde_workbench/deployment/compute_service.py src/opendde_workbench/deployment/native_compute_service.py src/opendde_workbench/deployment/native_compute_limits.py src/opendde_workbench/harness_admission.py tests/test_compute_limits.py tests/test_harness_admission.py server_tests/test_managed_compute_limits.py scripts/managed_compute_scope.py
+          uv run --locked pytest -q tests/test_compute_limits.py tests/test_harness_admission.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_opendde_limits.py tests/test_harness_process.py tests/test_harness_stop.py tests/test_campaign_handoff.py tests/test_deployment.py::test_deployment_api_origin_validation_and_saved_state tests/test_deployment.py::test_resume_and_scientific_submission_share_atomic_admission
+      - name: Existing pinned small kernel probe image; no research models
+        run: |
+          image=$(uv run --locked python -c 'from opendde_workbench.chemistry.image import PYTHON_IMAGE; print(PYTHON_IMAGE)')
+          docker pull "$image"
+      - name: Actual new/legacy native service cgroups and inherited no-swap OOM containment
+        run: uv run --locked pytest -x -q server_tests/test_managed_compute_limits.py server_tests/test_opendde_limits.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: managed-compute-resource-evidence
+          path: |
+            server_tests/evidence/managed-compute-limits
+            server_tests/evidence/opendde-limits
+            ${{ runner.temp }}/managed-compute-regression.xml
+          if-no-files-found: warn

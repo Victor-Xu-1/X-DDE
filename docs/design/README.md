@@ -40,6 +40,32 @@ the task requires a fresh bounded check. Checking, confirmed unavailable and fai
 status queries remain distinct, and no scientific readiness or model accuracy is
 inferred from these configuration observations.
 
+## Managed native compute resource boundary
+
+The existing `WB_OPENDDE_CPUS`, `WB_OPENDDE_MEMORY_MIB` and
+`WB_OPENDDE_PIDS` operator settings govern both standalone OpenDDE containers
+and the X-DDE-owned Harness compute service. Defaults are two CPUs, 4096 MiB
+physical memory, no container swap and 256 processes. The canonical
+`OpenDDELimits` policy validates both execution boundaries; task JSON cannot
+override this service policy.
+
+The native factory receives hard limits before its entry point runs. An existing
+owned instance may be updated only after an authenticated idle-queue check;
+updates target its exact container ID and verify the returned identity and limits.
+Status checks never change a service. An unbounded or unverifiable service is
+unavailable for new managed scientific jobs, even when its HTTP health endpoint
+responds. Native job and campaign handoffs retain a private resource receipt;
+failed pre-dispatch campaign admission leaves the plan reviewable, while existing
+task IDs and reconciliation remain idempotent. Explicit remote compute retains
+its external operator authority. Original models, scientific inputs, outputs and
+other applications are preserved.
+
+Focused CI covers the previous unbounded-factory regression, ownership and busy
+guards, exact configured API wiring, job/campaign admission, real new and repaired
+container cgroups, and isolated OOM containment. Controlled CI services are
+resource-contract fixtures, not scientific model validation or accepted research
+examples. Unrelated API changes cannot use the managed-compute CI scope.
+
 ## Whole-platform visual acceptance
 
 The owner sets Awwwards, Webby Awards and FWA as quality references, not a claim

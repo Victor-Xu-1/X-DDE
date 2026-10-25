@@ -43,6 +43,11 @@ async def start(settings, directory):
         raise ValueError(
             "Configure WB_HARNESS_PYTHON with the installed Harness Python executable."
         )
+    from .harness_admission import require_managed_compute
+
+    proof = await require_managed_compute(settings, request_path=directory / "request.json")
+    if proof is not None:
+        atomic_json(directory / "compute-resource-limits.json", proof)
     owner = uuid4().hex
     boot = boot_id()
     env = environment(settings)

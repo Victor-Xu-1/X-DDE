@@ -23,9 +23,9 @@ from .storage import ACTIVE, DeployStore, managed_root
 
 
 class DeploymentManager:
-    def __init__(self, state: Path, *, msa_url=None):
+    def __init__(self, state: Path, *, msa_url=None, resource_limits=None):
         self.store = DeployStore(state)
-        self.compute = ComputeService(state, msa_url=msa_url)
+        self.compute = ComputeService(state, msa_url=msa_url, resource_limits=resource_limits)
         self.closing = threading.Event()
         self.mutex = threading.RLock()
         self.task = None

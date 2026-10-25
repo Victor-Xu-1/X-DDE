@@ -30,7 +30,21 @@ on:
       - '.github/workflows/harness-checks.yml'
   workflow_dispatch:
 jobs:
+  managed-compute-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      managed_compute_only: ${{ steps.managed.outputs.managed_compute_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: managed
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/managed_compute_scope.py
   native-bridge:
+    needs: managed-compute-scope
+    if: needs.managed-compute-scope.outputs.managed_compute_only != 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
