@@ -133,6 +133,19 @@ def launch_arguments(connection, root, checkpoint, resource_limits=None):
     return reviewed, env
 
 
+def confirm_service(connection, wait_for_service):
+    """The upstream probe may wrap subprocess arguments in an ordinary exception."""
+    try:
+        wait_for_service(connection["url"], connection["token"], "local", timeout=65)
+    except Exception as exc:
+        # Keep the original chained traceback in the private lifecycle diagnostic.
+        # Never pass arbitrary upstream commands or filesystem paths to the UI.
+        raise ValueError(
+            "Compute readiness could not be confirmed. "
+            "Check the current service status before retrying."
+        ) from exc
+
+
 def execute(message):
     from opendde_harness.cli.onboard_compute import docker, inspect_container, wait_for_service
 
@@ -177,7 +190,7 @@ def execute(message):
                 or not resources.verified(current, limits)
             ):
                 raise ValueError("Native compute limits were not applied; service is unavailable.")
-            wait_for_service(connection["url"], connection["token"], "local", timeout=65)
+            confirm_service(connection, wait_for_service)
             running, value = True, health(connection)
     elif action not in {"status", "start", "stop", "retire"}:
         raise ValueError("Unknown native compute lifecycle action.")

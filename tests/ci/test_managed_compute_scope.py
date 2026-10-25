@@ -25,6 +25,21 @@ def create_app(settings):
 
 
 class ManagedComputeScopeTests(unittest.TestCase):
+    def test_availability_recovery_uses_its_explicit_direct_consumer_checks(self):
+        self.assertTrue(
+            MODULE.selected(
+                [
+                    MODULE.CORE,
+                    "src/opendde_workbench/readiness_cache.py",
+                    "tests/test_readiness_cache.py",
+                    "tests/test_health_recovery.py",
+                ]
+            )
+        )
+        self.assertFalse(
+            MODULE.selected([MODULE.CORE, "src/opendde_workbench/backend_router.py"])
+        )
+
     def test_exact_operator_policy_wiring_has_its_direct_gate(self):
         self.assertTrue(MODULE.selected([MODULE.CORE, MODULE.API], BEFORE, AFTER))
         self.assertTrue(MODULE.selected([MODULE.CORE]))
