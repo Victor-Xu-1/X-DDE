@@ -5,6 +5,10 @@ on:
     paths: &harness_input_paths
       - 'frontend/src/operations/HarnessForm.tsx'
       - 'frontend/src/operations/HarnessReview*'
+      - 'frontend/src/operations/HarnessFoldInputs*'
+      - 'frontend/src/operations/FoldReview*'
+      - 'frontend/src/operations/harness-questionnaire-model.ts'
+      - 'frontend/src/operations/guided-contract.ts'
       - 'frontend/src/operations/HarnessSourcesForm*'
       - 'frontend/src/operations/HarnessSubmissionRecovery*'
       - 'frontend/src/operations/harness-sources*'
@@ -52,5 +56,6 @@ jobs:
           npx vitest run src/operations/harness-sources.test.ts
           src/operations/useHarnessSources.test.tsx src/operations/HarnessSourcesForm.test.tsx
           src/operations/HarnessSubmissionRecovery.test.tsx
-          src/operations/HarnessReview.test.tsx src/operations/ToolQuestionnaires.test.tsx
+          src/operations/HarnessReview.test.tsx src/operations/HarnessFoldInputs.test.tsx
+          src/operations/ToolQuestionnaires.test.tsx
           src/examples/harness.test.ts src/operations/HarnessResults.test.tsx

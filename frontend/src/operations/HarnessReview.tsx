@@ -2,6 +2,7 @@ import type { Language } from "../types";
 import { Fragment } from "react";
 import { harnessFields } from "./harness-fields";
 import { tools } from "./catalog";
+import { FoldReview } from "./FoldReview";
 import type { Asset } from "./types";
 
 function summary(value: unknown, kind: string, zh: boolean): string | null {
@@ -81,6 +82,7 @@ export function HarnessReview({
           </dd>
         </>
       )}
+      {tool === "fold" && <FoldReview payload={payload} language={language} />}
       {(harnessFields[tool] ?? []).map((field) => {
         const value = summary(payload[field.key], field.kind, zh);
         if (!value) return null;

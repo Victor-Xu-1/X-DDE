@@ -1,10 +1,20 @@
 import { harnessFields } from "./harness-fields";
+import { candidateChains } from "./candidate-sequence-model";
 const record = (v: unknown): v is Record<string, unknown> =>
   Boolean(v) && typeof v === "object" && !Array.isArray(v);
 const chains = (v: unknown) =>
   record(v) &&
   Object.keys(v).length > 0 &&
   Object.values(v).every((x) => typeof x === "string" && Boolean(x.trim()));
+/** Native fold chains may carry their exact sequence and per-chain MSA files. */
+const nativeChains = (value: unknown) => {
+  if (!record(value) || Object.keys(value).length === 0) return false;
+  const entries = candidateChains({ chains: value });
+  return (
+    entries.length === Object.keys(value).length &&
+    entries.every(({ sequence }) => Boolean(sequence.trim()))
+  );
+};
 export function harnessInputsComplete(
   tool: string,
   payload: Record<string, unknown>,
@@ -25,7 +35,7 @@ function complete(
   if (tool === "fold")
     return (
       record(payload.options) &&
-      chains(payload.options.target_chains) &&
+      nativeChains(payload.options.target_chains) &&
       Array.isArray(payload.candidates) &&
       payload.candidates.length > 0 &&
       payload.candidates.every(
@@ -33,7 +43,7 @@ function complete(
           record(c) &&
           typeof c.candidate_id === "string" &&
           Boolean(c.candidate_id.trim()) &&
-          chains(c.chains),
+          nativeChains(c.chains),
       )
     );
   if (!harnessFields[tool]) return false;
