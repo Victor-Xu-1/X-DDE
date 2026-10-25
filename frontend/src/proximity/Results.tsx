@@ -162,6 +162,7 @@ export function ProximityResults({
                     label: zh ? "完整复合物" : "Complete complex",
                     content: (
                       <StructureViewer
+                        sourceSnapshot
                         initialMode="cartoon"
                         key={active.id + "-complex"}
                         urls={[url(active.complex_artifact)]}
@@ -178,6 +179,7 @@ export function ProximityResults({
                     label: zh ? "分子三维" : "Molecule 3D",
                     content: (
                       <StructureViewer
+                        sourceSnapshot
                         key={active.id + "-ligand"}
                         urls={[url(active.ligand_artifact)]}
                         language={language}
