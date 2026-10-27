@@ -2,10 +2,12 @@
 
 import base64
 import json
+import os
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from . import wsl_storage_identity as identity
 from .wsl_mount import host_mount
@@ -21,6 +23,23 @@ class BackingVolume:
     free_bytes: int
 
 
+def powershell_executable() -> str | None:
+    """Locate Windows PowerShell even when the launcher supplies a minimal PATH."""
+    executable = shutil.which("powershell.exe")
+    if executable:
+        return executable
+    root = PureWindowsPath(os.environ.get("WB_WINDOWS_SYSTEMROOT", ""))
+    if not root.is_absolute() or not re.fullmatch(r"[A-Za-z]:", root.drive) or ".." in root.parts:
+        return None
+    mount = host_mount(root.drive)
+    if mount is None:
+        return None
+    candidate = mount.joinpath(
+        *root.parts[1:], "System32", "WindowsPowerShell", "v1.0", "powershell.exe"
+    )
+    return str(candidate) if candidate.is_file() else None
+
+
 def probe(distribution: str) -> BackingVolume:
     if not distribution or len(distribution) > 256 or any(ord(c) < 32 for c in distribution):
         raise StorageUnavailable("Cannot identify the WSL storage location.")
@@ -34,7 +53,7 @@ def probe(distribution: str) -> BackingVolume:
             return BackingVolume(location, free)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise StorageUnavailable("Cannot verify the registered host storage identity.") from exc
-    executable = shutil.which("powershell.exe")
+    executable = powershell_executable()
     if not executable:
         raise StorageUnavailable("Cannot verify free space on the host disk.")
     name = base64.b64encode(json.dumps(distribution).encode()).decode()

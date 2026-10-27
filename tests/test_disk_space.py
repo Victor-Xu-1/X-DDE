@@ -55,6 +55,7 @@ def test_effective_space_is_the_tighter_real_boundary(monkeypatch, native, physi
 
 def test_expired_success_is_not_used_after_a_failed_physical_refresh(monkeypatch):
     wsl(monkeypatch)
+    monkeypatch.setattr(disk_space, "host_mount", lambda _: None)
     native_free(monkeypatch, 999)
     clock = [10.0]
     monkeypatch.setattr(disk_space.time, "monotonic", lambda: clock[0])
@@ -117,3 +118,35 @@ def test_capacity_guard_rejects_the_full_backing_drive(monkeypatch):
     monkeypatch.setattr(disk_space, "probe", lambda _: wsl_storage.BackingVolume("E:", 0))
     with pytest.raises(disk_space.StorageCapacityError, match="storage drive"):
         disk_space.require_space("/research", 1)
+
+
+def test_probe_finds_windows_powershell_from_registered_systemroot(monkeypatch, tmp_path):
+    monkeypatch.setattr(wsl_storage.shutil, "which", lambda _: None)
+    monkeypatch.setenv("WB_WINDOWS_SYSTEMROOT", r"C:\Windows")
+    monkeypatch.setattr(
+        wsl_storage, "host_mount", lambda drive: tmp_path if drive == "C:" else None
+    )
+    executable = tmp_path / "Windows" / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"test")
+    calls = []
+
+    def run(arguments, **kwargs):
+        calls.append(arguments)
+        return SimpleNamespace(returncode=0, stdout=b'{"location":"E:","free_bytes":123}')
+
+    monkeypatch.setattr(wsl_storage.subprocess, "run", run)
+    monkeypatch.setattr(wsl_storage.identity, "load", lambda _: None)
+    monkeypatch.setattr(wsl_storage.identity, "cache_path", lambda: None)
+    assert wsl_storage.probe("WSL").free_bytes == 123
+    assert calls[0][0] == str(executable)
+
+
+def test_probe_rejects_unmapped_or_traversing_systemroot(monkeypatch, tmp_path):
+    monkeypatch.setattr(wsl_storage.shutil, "which", lambda _: None)
+    monkeypatch.setattr(wsl_storage.identity, "load", lambda _: None)
+    monkeypatch.setattr(wsl_storage, "host_mount", lambda _: tmp_path)
+    for root in (r"C:\Windows\..\Other", r"C:relative", r"\\server\share"):
+        monkeypatch.setenv("WB_WINDOWS_SYSTEMROOT", root)
+        with pytest.raises(wsl_storage.StorageUnavailable):
+            wsl_storage.probe("WSL")
