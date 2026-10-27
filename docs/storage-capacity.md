@@ -72,3 +72,8 @@ platform state directory and
 validates the current mount and registration directory, binds the observation to
 this boot, and creates private identity metadata. It never starts WSL, changes a
 disk configuration, accepts a supplied capacity as available space, or modifies research data.
+
+On Windows launch, the system directory is passed to the platform so it can find
+PowerShell through the actual WSL drive mount when the service has a minimal PATH.
+The registered distribution and live backing volume remain independently verified;
+no drive letter or free-space value is assumed.

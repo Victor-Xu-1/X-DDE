@@ -81,6 +81,10 @@ foreach ($command in @('UI','DASHBOARD','START')) {
     $result = Invoke-LauncherBoundary $command $marker -Running -Available
     if ($result.exit -ne 0 -or !(Test-Path -LiteralPath $marker)) { throw "Available startup failed: $command" }
     $invocation = [IO.File]::ReadAllText($marker)
+    $systemRoot = $env:SystemRoot -replace '\\', '/'
+    if (!$systemRoot -or !$invocation.Contains("WB_WINDOWS_SYSTEMROOT=$systemRoot")) {
+        throw 'Startup did not pass the normalized Windows system directory for host disk detection.'
+    }
     if ($invocation -notmatch ' --cd / (?:-- )?env ' -or $invocation -notmatch '/environment/bin/xdde') {
         throw 'Startup did not enter the registered distribution from an explicit Linux directory.'
     }
