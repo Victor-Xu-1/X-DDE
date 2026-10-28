@@ -5,7 +5,11 @@ import type { ScientificObject } from "../research/types";
 import type { CoreVerificationData } from "./types";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { MolecularPreview } from "../presentation/MolecularPreview";
-import { generatedRecordMap, type GeneratedMetrics } from "./generated-metrics";
+import {
+  generatedRecordMap,
+  qualifiedRecordMap,
+  type GeneratedMetrics,
+} from "./generated-metrics";
 import { generatedColumns } from "./generated-columns";
 import { GeneratedMetricsView } from "./GeneratedMetricsView";
 import { GeneratedCandidatesBatch } from "./GeneratedCandidatesBatch";
@@ -41,10 +45,11 @@ export function GeneratedCandidates({
   children?: ReactNode;
 }) {
   const zh = language === "zh";
+  const qualified = qualifiedRecordMap(records, verification);
   const mapping = generatedRecordMap(records, metrics, verification);
   const label = (v: GeneratedRecord) =>
     (generated ? (zh ? "候选 " : "Candidate ") : zh ? "分子 " : "Molecule ") +
-    ((mapping?.get(v.record) ?? v.record) + 1);
+    ((qualified?.get(v.record) ?? v.record) + 1);
   const metric = (v: GeneratedRecord) =>
     mapping?.has(v.record) ? metrics?.[mapping.get(v.record)!] : undefined;
   const active = selected ? metric(selected) : undefined;
@@ -140,7 +145,7 @@ export function GeneratedCandidates({
             language,
             generated,
             selected,
-            verification: Boolean(verification && mapping),
+            verification: Boolean(qualified),
             metrics: Boolean(mapping),
             optimization,
             label,

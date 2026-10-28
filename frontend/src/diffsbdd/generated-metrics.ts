@@ -17,7 +17,39 @@ export interface GeneratedMetrics {
   relaxation_converged?: boolean | null;
 }
 
-/** Resolve displayed records only when the complete native mapping is unambiguous. */
+/** Fixed-region evidence is independent of the optional property report. */
+export function qualifiedRecordMap(
+  records: { record: number }[],
+  verification: CoreVerificationData | undefined,
+) {
+  if (!verification || !records.length) return null;
+  const ids = records.map(({ record }) => record);
+  if (
+    ids.some((id) => !Number.isSafeInteger(id) || id < 0) ||
+    new Set(ids).size !== ids.length
+  )
+    return null;
+  const qualified = verification.candidates.filter(
+    (c) => c.qualified_record !== null,
+  );
+  if (
+    qualified.length !== verification.qualified_count ||
+    qualified.some((c) =>
+      c.status !== "passed" || !Number.isSafeInteger(c.record) || c.record < 0 ||
+      !Number.isSafeInteger(c.qualified_record) || c.qualified_record! < 0,
+    ) ||
+    new Set(qualified.map((c) => c.record)).size !== qualified.length ||
+    new Set(qualified.map((c) => c.qualified_record)).size !== qualified.length
+  ) return null;
+  const original = ids.map((id) => {
+    const match = qualified.find((c) => c.qualified_record === id);
+    return match?.record ?? -1;
+  });
+  if (original.some((id) => id < 0)) return null;
+  return new Map(ids.map((id, index) => [id, original[index]] as const));
+}
+
+/** Resolve displayed records only when the native property mapping is unambiguous. */
 export function generatedRecordMap(
   records: { record: number }[],
   metrics: GeneratedMetrics[] | null | undefined,
@@ -25,26 +57,13 @@ export function generatedRecordMap(
 ) {
   if (!metrics || !records.length) return null;
   const ids = records.map(({ record }) => record);
-  if (
-    ids.some((id) => !Number.isSafeInteger(id) || id < 0) ||
-    new Set(ids).size !== ids.length
-  )
-    return null;
+  if (ids.some((id) => !Number.isSafeInteger(id) || id < 0) ||
+      new Set(ids).size !== ids.length) return null;
   let original: number[];
   if (verification) {
-    if (verification.qualified_count !== ids.length) return null;
-    const qualified = verification.candidates.filter(
-      (c) => c.qualified_record !== null,
-    );
-    if (
-      qualified.length !== ids.length ||
-      qualified.some((c) => c.status !== "passed")
-    )
-      return null;
-    original = ids.map((id) => {
-      const matches = qualified.filter((c) => c.qualified_record === id);
-      return matches.length === 1 ? matches[0].record : -1;
-    });
+    const qualified = qualifiedRecordMap(records, verification);
+    if (!qualified) return null;
+    original = ids.map((id) => qualified.get(id)!);
   } else {
     // A filtered table can retain a strict subset of native records; original
     // record numbers still index the complete ordered native report.
@@ -71,6 +90,7 @@ export function generatedBatchSummary(
   if (!mapping || !metrics) return null;
   // A subset is safe for individual lookup, but cannot represent the full batch.
   if (!verification && records.length !== metrics.length) return null;
+  if (verification && records.length !== verification.qualified_count) return null;
   const rows = records.map(({ record }) => metrics[mapping.get(record)!]);
   return {
     total: rows.length,
