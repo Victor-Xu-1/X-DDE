@@ -110,6 +110,7 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   render(
     <DockingResults language="zh" job={{ id: "j" } as Job} result={data} />,
   );
+  expect(screen.getByText(/实际范围/)).toBeVisible();
   expect(screen.getByRole("button", { name: "姿势 1" })).toBeDisabled();
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "姿势 2" }));
