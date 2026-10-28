@@ -46,7 +46,9 @@ export function generatedRecordMap(
       return matches.length === 1 ? matches[0].record : -1;
     });
   } else {
-    if (ids.length !== metrics.length) return null;
+    // A filtered table can retain a strict subset of native records; original
+    // record numbers still index the complete ordered native report.
+    if (ids.length > metrics.length) return null;
     original = ids;
   }
   if (
@@ -67,6 +69,8 @@ export function generatedBatchSummary(
 ) {
   const mapping = generatedRecordMap(records, metrics, verification);
   if (!mapping || !metrics) return null;
+  // A subset is safe for individual lookup, but cannot represent the full batch.
+  if (!verification && records.length !== metrics.length) return null;
   const rows = records.map(({ record }) => metrics[mapping.get(record)!]);
   return {
     total: rows.length,
