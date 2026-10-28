@@ -9,6 +9,10 @@ import { ExampleToolbar } from "./ExampleToolbar";
 import { ExampleFeedback } from "./ExampleFeedback";
 import { TemplatePreviewContext } from "./context";
 import { reviewedHighlight } from "./review-highlights";
+import {
+  hasReviewedReferenceContacts,
+  ReviewedReferenceContacts,
+} from "./review-highlights-contacts";
 import "./examples.css";
 
 export function ExampleActions(
@@ -115,6 +119,10 @@ export function ExampleActions(
               />
             )}
           </TemplatePreviewContext.Provider>
+          {state.result.job?.status === "succeeded" &&
+            hasReviewedReferenceContacts(state.info, state.result.job.id) && (
+              <ReviewedReferenceContacts language={language} />
+            )}
           {review && (
             <details className="example-result-review">
               <summary>

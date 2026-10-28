@@ -86,7 +86,7 @@ jobs:
             case "$path" in
               frontend/src/examples/review-highlights*) found=true ;;
               frontend/src/examples/useExampleTemplate.ts) loader_changed=true ;;
-              frontend/src/examples/ExampleActions.tsx|frontend/src/examples/ExampleActions.test.tsx|frontend/src/examples/examples.css|docs/design/research-examples.md|.github/workflows/example-result-set-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              frontend/src/examples/ExampleActions.tsx|frontend/src/examples/ExampleActions.test.tsx|frontend/src/examples/examples.css|docs/design/research-examples.md|.github/workflows/example-result-set-checks.yml|.github/workflows/structure-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) review_only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)
