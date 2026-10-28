@@ -22,6 +22,8 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
     settings, store, pins = restored_workspace
     pin = pins.get("gnina.dock", verify=True)
     assert pin
+    # Current sealed user-warhead case; never silently accept an older case's count/methods.
+    assert str(pin.job_id) == "cf623a70-e687-47d1-9727-4433dc6429b5"
     evidence = Path("outputs/docking-table") / language
     evidence.mkdir(parents=True, exist_ok=True)
     before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
@@ -32,14 +34,17 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         response = page.request.get(base + "/api/jobs/" + str(pin.job_id) + "/result")
         assert response.ok
         original = response.json()
-        assert len(original["poses"]) == 20
+        assert len(original["poses"]) == 9
         assert all(
             pose["valid"] and not pose.get("constraint_checks") for pose in original["poses"]
         )
         assert all(
-            len(pose["scores"]) == 1
-            and pose["scores"][0]["name"] == "minimizedAffinity"
-            and pose["scores"][0]["unit"] == "kcal/mol"
+            {(score["name"], score["unit"], score["direction"]) for score in pose["scores"]}
+            == {
+                ("minimizedAffinity", "kcal/mol", "lower"),
+                ("CNNscore", "model_output", "higher"),
+                ("CNNaffinity", "model_output", "higher"),
+            }
             for pose in original["poses"]
         )
         errors, writes = [], []
@@ -66,10 +71,15 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         energy = (
             "经验对接分数 (kcal/mol)" if language == "zh" else "Empirical docking score (kcal/mol)"
         )
+        score_labels = {
+            "minimizedAffinity": energy,
+            "CNNscore": "模型姿势分数" if language == "zh" else "CNN pose score",
+            "CNNaffinity": "模型结合分数" if language == "zh" else "CNN binding score",
+        }
         selected = original["poses"][1]
 
         def inspect():
-            expect(table.get_by_role("columnheader")).to_have_count(3)
+            expect(table.get_by_role("columnheader")).to_have_count(5)
             expect(table.get_by_role("columnheader", name=mapping, exact=True)).to_have_count(0)
             expect(table.get_by_role("columnheader", name=status, exact=True)).to_have_count(0)
             row = table.locator("tbody tr").nth(1)
@@ -90,19 +100,20 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             assert len(rows) == len(original["poses"])
             for exported, pose in zip(rows, original["poses"], strict=True):
                 assert exported[pose_label] == pose_label + " " + str(pose["record"] + 1)
-                assert float(exported[energy]) == pose["scores"][0]["value"]
+                for score in pose["scores"]:
+                    assert float(exported[score_labels[score["name"]]]) == score["value"]
                 assert exported[mapping] == pose["mapping_status"]
                 assert exported[status] == str(pose["valid"]).lower()
             choices = workspace.locator(".table-columns")
             choices.locator("summary").click()
             choices.get_by_role("checkbox", name=mapping, exact=True).check()
             choices.get_by_role("checkbox", name=status, exact=True).check()
-            expect(table.get_by_role("columnheader")).to_have_count(5)
+            expect(table.get_by_role("columnheader")).to_have_count(7)
             page.screenshot(path=str(evidence / "optional-details.png"))
             choices.get_by_role(
                 "button", name="常用指标" if language == "zh" else "Core metrics", exact=True
             ).click()
-            expect(table.get_by_role("columnheader")).to_have_count(3)
+            expect(table.get_by_role("columnheader")).to_have_count(5)
             choices.locator("summary").click()
             expect(row).to_have_attribute("aria-selected", "true")
             link = workspace.get_by_role(
@@ -123,6 +134,14 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             page, viewer, evidence, language, "core-metrics", inspect, changes_source=True
         )
         expect(table.locator('tr[aria-selected="true"]')).to_contain_text(pose_label + " 2")
+        complete = page.locator(".docking-results > details").last
+        complete.locator("summary").click()
+        with page.expect_download() as full_download:
+            complete.get_by_role("link", name="完整姿势集" if language == "zh" else "Complete pose set", exact=True).click()
+        full_path = evidence / "complete-native-pose-set.sdf"
+        full_download.value.save_as(full_path)
+        assert hashlib.sha256(full_path.read_bytes()).hexdigest() == pin.artifact_sha256[original["pose_artifact"]]
+        assert full_path.read_bytes().count(b"$$$$") == len(original["poses"])
         assert not errors and not writes, {"errors": errors, "writes": writes}
         assert {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)} == before
         assert pins.get("gnina.dock", verify=True) == pin
@@ -132,11 +151,12 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
                     "source_job": str(pin.job_id),
                     "language": language,
                     "geometry": geometry,
-                    "default_columns": 2,
+                    "default_columns": 4,
                     "optional_columns_reachable": True,
-                    "csv_rows": 20,
+                    "csv_rows": len(original["poses"]),
                     "all_original_metrics_and_units_retained": True,
                     "selected_pose_download_matches_native_sha256": True,
+                    "complete_pose_set_matches_native_sha256": True,
                     "source_pins_unchanged": True,
                     "new_scientific_tasks": 0,
                     "errors": errors,
