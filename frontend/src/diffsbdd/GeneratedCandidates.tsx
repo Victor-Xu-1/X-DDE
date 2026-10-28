@@ -5,7 +5,7 @@ import type { ScientificObject } from "../research/types";
 import type { CoreVerificationData } from "./types";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { MolecularPreview } from "../presentation/MolecularPreview";
-import type { GeneratedMetrics } from "./generated-metrics";
+import { generatedRecordMap, type GeneratedMetrics } from "./generated-metrics";
 import { generatedColumns } from "./generated-columns";
 import { GeneratedMetricsView } from "./GeneratedMetricsView";
 import { GeneratedCandidatesBatch } from "./GeneratedCandidatesBatch";
@@ -41,16 +41,12 @@ export function GeneratedCandidates({
   children?: ReactNode;
 }) {
   const zh = language === "zh";
+  const mapping = generatedRecordMap(records, metrics, verification);
   const label = (v: GeneratedRecord) =>
     (generated ? (zh ? "候选 " : "Candidate ") : zh ? "分子 " : "Molecule ") +
-    ((verification?.candidates.find((c) => c.qualified_record === v.record)
-      ?.record ?? v.record) +
-      1);
+    ((mapping?.get(v.record) ?? v.record) + 1);
   const metric = (v: GeneratedRecord) =>
-    metrics?.[
-      verification?.candidates.find((c) => c.qualified_record === v.record)
-        ?.record ?? v.record
-    ];
+    mapping?.has(v.record) ? metrics?.[mapping.get(v.record)!] : undefined;
   const active = selected ? metric(selected) : undefined;
   return (
     <StructureWorkbench
@@ -144,8 +140,8 @@ export function GeneratedCandidates({
             language,
             generated,
             selected,
-            verification: Boolean(verification),
-            metrics: Boolean(metrics),
+            verification: Boolean(verification && mapping),
+            metrics: Boolean(mapping),
             optimization,
             label,
             metric,

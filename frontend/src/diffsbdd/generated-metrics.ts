@@ -17,8 +17,8 @@ export interface GeneratedMetrics {
   relaxation_converged?: boolean | null;
 }
 
-/** Summarize only when every displayed record maps uniquely to its original report row. */
-export function generatedBatchSummary(
+/** Resolve displayed records only when the complete native mapping is unambiguous. */
+export function generatedRecordMap(
   records: { record: number }[],
   metrics: GeneratedMetrics[] | null | undefined,
   verification?: CoreVerificationData,
@@ -56,7 +56,18 @@ export function generatedBatchSummary(
     new Set(original).size !== original.length
   )
     return null;
-  const rows = original.map((id) => metrics[id]);
+  return new Map(ids.map((id, index) => [id, original[index]] as const));
+}
+
+/** Summarize only when every displayed record maps uniquely to its original report row. */
+export function generatedBatchSummary(
+  records: { record: number }[],
+  metrics: GeneratedMetrics[] | null | undefined,
+  verification?: CoreVerificationData,
+) {
+  const mapping = generatedRecordMap(records, metrics, verification);
+  if (!mapping || !metrics) return null;
+  const rows = records.map(({ record }) => metrics[mapping.get(record)!]);
   return {
     total: rows.length,
     disconnected: rows.filter(

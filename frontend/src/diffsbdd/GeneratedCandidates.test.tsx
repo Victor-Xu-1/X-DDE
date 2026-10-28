@@ -57,6 +57,88 @@ const metrics = [
   },
 ];
 
+it("does not attach per-candidate metrics when the result records cannot be matched", () => {
+  render(
+    <GeneratedCandidates
+      records={rows}
+      selected={rows[0]}
+      url="/poses.sdf"
+      metrics={[metrics[0]]}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.getByText(/Batch checks are incomplete/)).toBeVisible();
+  expect(screen.getByText(/Per-structure checks are unavailable/)).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Selected structure checks" })).toBeNull();
+  expect(screen.queryByText("410.45")).toBeNull();
+});
+
+it("uses the same verified original record for selected and batch metrics", () => {
+  const entry = (record: number, qualified: number) => ({
+    record,
+    qualified_record: qualified,
+    status: "passed" as const,
+    diagnostic_artifact: null,
+    reason: null,
+    maximum_displacement: null,
+    mapping: [],
+  });
+  render(
+    <GeneratedCandidates
+      records={rows}
+      selected={rows[0]}
+      url="/poses.sdf"
+      metrics={metrics}
+      verification={{
+        method: "rdkit_fixed_core_v1",
+        preserve_bonds: true,
+        qualified_count: 2,
+        qualified_sha256: "fixture",
+        candidates: [entry(0, 1), entry(1, 0)],
+      }}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.getByRole("region", { name: "Selected structure checks" }))
+    .toHaveTextContent("Contains 3 disconnected components");
+  expect(screen.getByRole("region", { name: "Batch structure checks" }))
+    .toHaveTextContent("1 / 2");
+});
+
+it("does not show candidate properties for ambiguous qualified-record mappings", () => {
+  const duplicate = {
+    record: 0,
+    qualified_record: 0,
+    status: "passed" as const,
+    diagnostic_artifact: null,
+    reason: null,
+    maximum_displacement: null,
+    mapping: [],
+  };
+  render(
+    <GeneratedCandidates
+      records={rows}
+      selected={rows[0]}
+      url="/poses.sdf"
+      metrics={metrics}
+      verification={{
+        method: "rdkit_fixed_core_v1",
+        preserve_bonds: true,
+        qualified_count: 2,
+        qualified_sha256: "fixture",
+        candidates: [duplicate, { ...duplicate, record: 1 }],
+      }}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.getByText(/Per-structure checks are unavailable/)).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Selected structure checks" })).toBeNull();
+  expect(screen.queryByText("Fixed-region checks passed")).toBeNull();
+});
+
 it.each(["en", "zh"] as const)(
   "shows truthful batch warnings and missingness in %s",
   (language) => {
