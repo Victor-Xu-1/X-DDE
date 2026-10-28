@@ -30,15 +30,17 @@ const highlights = [
     capability: "gnina.dock",
     revision: 5,
     job: "cf623a70-e687-47d1-9727-4433dc6429b5",
-    result: "a0cd9fe2e3405f1aea4094fd3e683bb91c3c032b355e334fce56049c3fa8362",
+    result: "a0cd9fe2e3405f1aea4094fd3e683bb91c3c032b355e334fce56049c3e1bdf3b",
     supporting: [
       {
         job: "8969b071-879b-4374-9044-f9108ba29588",
-        result: "b2ddd68b1d5c298a1850080ac41bfc5a7a94202b294dc41600e85c5e665521df",
+        result:
+          "b2ddd68b1d5c298a1850080ac41bfc5a7a94202b294dc41600e85c5e665521df",
       },
       {
         job: "ca498efb-cb18-40ca-9262-c2597ab422da",
-        result: "639c5abca478299a191aa45a0b21880ec1d3c083cb41aca2caadeed22b306e8d",
+        result:
+          "639c5abca478299a191aa45a0b21880ec1d3c083cb41aca2caadeed22b306e8d",
       },
     ],
     text: [
