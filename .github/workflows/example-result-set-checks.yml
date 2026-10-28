@@ -106,7 +106,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Evidence-bound bilingual conclusions and module rendering
         working-directory: frontend
-        run: npx vitest run src/examples/review-highlights.test.ts src/examples/ExampleActions.test.tsx
+        run: npx vitest run src/examples/review-highlights.test.ts src/examples/review-highlights-view.test.tsx src/examples/ExampleActions.test.tsx
   immutable-stages:
     needs: scope
     if: needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
