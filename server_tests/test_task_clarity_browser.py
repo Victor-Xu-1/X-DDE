@@ -175,11 +175,11 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
         if available:
             expect(submit).to_be_enabled()
             expect(recheck).to_have_count(0)
-            expect(method).not_to_contain_text("未配置" if zh else "Not configured")
+            expect(method).not_to_contain_text("暂不可用" if zh else "Unavailable")
         else:
             expect(recheck).to_be_enabled()
             expect(submit).to_be_disabled()
-            expect(method).to_contain_text("未配置" if zh else "Not configured")
+            expect(method).to_contain_text("暂不可用" if zh else "Unavailable")
         expect(method).not_to_contain_text("暂无法确认" if zh else "Status unavailable")
         expect(page.get_by_label("SMILES", exact=True)).to_have_value(smiles)
         expect(form.get_by_role("heading", level=2)).to_contain_text(

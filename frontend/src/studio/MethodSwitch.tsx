@@ -40,7 +40,7 @@ function MethodButton({
       ) : availability.ready === undefined ? (
         <small>{zh ? "正在检查…" : "Checking…"}</small>
       ) : availability.ready === false ? (
-        <small>{zh ? "未配置" : "Not configured"}</small>
+        <small>{zh ? "暂不可用" : "Unavailable"}</small>
       ) : null}
     </button>
   );
