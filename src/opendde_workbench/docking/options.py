@@ -1,5 +1,7 @@
 """Pure models reused by the platform and the isolated native interpreter."""
 
+import math
+import re
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -14,6 +16,46 @@ class SearchBox(BaseModel):
     center: tuple[Coordinate, Coordinate, Coordinate]
     size: tuple[Length, Length, Length]
     unit: Literal["angstrom"] = "angstrom"
+
+
+class SearchReport(BaseModel):
+    """Nominal box printed by GNINA, before grid discretization.
+
+    GNINA prints floating-point values at limited precision. The reported box is
+    not an atom containment constraint or a claim about exact grid edges.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    center: tuple[float, float, float]
+    size: tuple[float, float, float]
+    unit: Literal["angstrom"] = "angstrom"
+    precision: Literal["engine_log_rounded"] = "engine_log_rounded"
+    automatic_ligand_extension: Literal[False] = False
+
+    @model_validator(mode="after")
+    def finite_box(self) -> Self:
+        if not all(math.isfinite(x) for x in (*self.center, *self.size)) or not all(
+            x > 0 for x in self.size
+        ):
+            raise ValueError("Engine-reported search box must have finite positive dimensions.")
+        return self
+
+
+_NUMBER = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+_SEARCH_BOX = re.compile(
+    rf"^Using search box with center ({_NUMBER}),({_NUMBER}),({_NUMBER}) "
+    rf"and size ({_NUMBER}),({_NUMBER}),({_NUMBER})\s*$",
+    re.MULTILINE,
+)
+
+
+def parse_search_report(log: str) -> SearchReport:
+    """Require the native engine's own unambiguous box, not inferred coordinates."""
+    matches = _SEARCH_BOX.findall(log)
+    if len(matches) != 1:
+        raise ValueError("GNINA did not report exactly one unambiguous search box.")
+    values = tuple(float(value) for value in matches[0])
+    return SearchReport(center=values[:3], size=values[3:])
 
 
 class DockingOptions(BaseModel):
@@ -62,6 +104,10 @@ def arguments(options: DockingOptions, mode: str) -> list[str]:
     if mode == "dock":
         args.extend(
             [
+                "--autobox_extend",
+                "false",
+                "--verbosity",
+                "2",
                 "--exhaustiveness",
                 str(options.exhaustiveness),
                 "--num_modes",

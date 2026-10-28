@@ -8,7 +8,7 @@ from ..research.constraint_contract import ConstraintReference
 from ..scientific_objects import MoleculeRef, ScientificModel
 from .contract import Search
 from .manifest import BINARY_SHA256, VERSION
-from .options import DockingOptions
+from .options import DockingOptions, SearchReport
 from .quality import BoundsCheck
 from .reference_contract import ReferenceComparison, ReferenceRmsd
 from .scoring import require_score_names
@@ -110,6 +110,7 @@ class DockingResult(ScientificModel):
     frame: MoleculeRef
     options: DockingOptions
     search: Search | None
+    search_report: SearchReport | None = None
     initial_conformer_generated: bool
     poses: tuple[Pose, ...] = Field(max_length=100)
     pose_artifact: Literal["poses.sdf", "qualified-poses.sdf"]
@@ -127,10 +128,14 @@ class DockingResult(ScientificModel):
         value = handler(self)
         if self.reference_comparison is None:
             value.pop("reference_comparison", None)
+        if self.search_report is None:
+            value.pop("search_report", None)
         return value
 
     @model_validator(mode="after")
     def provenance(self) -> Self:
+        if self.search_report is not None and self.mode != "dock":
+            raise ValueError("A search box report is only valid for docking.")
         if (
             self.software_version != VERSION
             or self.binary_sha256 != BINARY_SHA256

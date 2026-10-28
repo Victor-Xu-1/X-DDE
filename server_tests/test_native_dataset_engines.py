@@ -177,11 +177,26 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
         original = verified_file(campaign.root / "public", FILES["brd4"])
         prepared = (pose_root / "receptor.pdb").read_bytes()
         assert b"HETATM" not in prepared
+        # The explicit alternate-location selection clears only the PDB altLoc
+        # column; all remaining source bytes, including coordinates, are retained.
+        source_atoms = {
+            line[:16] + b" " + line[17:]
+            for line in original.splitlines()
+            if line.startswith(b"ATOM  ")
+        }
         assert all(
-            line in original.splitlines()
+            line in source_atoms
             for line in prepared.splitlines()
             if line.startswith(b"ATOM  ")
         )
+        selection = json.loads((pose_root / "receptor-selection.json").read_text())
+        assert selection["alternate_location_policy"] == "highest_occupancy"
+        assert selection["coordinates"] == "unchanged_observed_coordinates"
+        method = json.loads((pose_root / "docking-method.json").read_text())
+        reports = method["engine_reported_search_by_candidate"]
+        assert {row["id"] for row in docked["candidates"]} <= set(reports)
+        assert all(report["automatic_ligand_extension"] is False for report in reports.values())
+        assert all(report["precision"] == "engine_log_rounded" for report in reports.values())
         complex_name = docked["candidates"][0]["complex_artifact"]
         heterogen = next(
             line
@@ -198,6 +213,10 @@ def test_gnina_actual_shortlist_batch_and_downloaded_poses(tmp_path):
         assert neural["counts"]["selected"] == len(selected)
         assert neural["counts"]["docked"] + neural["counts"]["failed"] == len(selected)
         assert neural["candidates"], "Native neural rescoring must produce real qualified poses"
+        neural_method = json.loads((neural_root / "docking-method.json").read_text())
+        assert {row["id"] for row in neural["candidates"]} <= set(
+            neural_method["engine_reported_search_by_candidate"]
+        )
         assert all(
             row["geometry"] == "binding_pose"
             and all(np.isfinite(row[key]) for key in ("docking_score", "cnn_score", "cnn_affinity"))

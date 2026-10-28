@@ -92,9 +92,21 @@ def test_empirical_only_mode_and_legacy_serialization_keep_their_original_contra
     parsed = DockingResult.model_validate(value)
     dumped = parsed.model_dump(mode="json")
     assert "reference_comparison" not in dumped
+    assert "search_report" not in dumped
     assert "reference_rmsd" not in dumped["poses"][0]
     assert [score["name"] for score in dumped["poses"][0]["scores"]] == ["minimizedAffinity"]
     assert value == original
+    with pytest.raises(ValidationError, match="only valid for docking"):
+        DockingResult.model_validate(
+            {
+                **value,
+                "search_report": {
+                    "center": [1, 2, 3],
+                    "size": [20, 20, 20],
+                    "automatic_ligand_extension": False,
+                },
+            }
+        )
     value["poses"][0]["scores"].extend(parse_score_only(NATIVE_LOG, "rescore")[1:])
     with pytest.raises(ValidationError, match="Disabled CNN"):
         DockingResult.model_validate(value)

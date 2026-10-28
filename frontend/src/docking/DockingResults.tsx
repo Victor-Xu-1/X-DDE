@@ -116,7 +116,9 @@ export function DockingResults({
           : "Empirical scores compare candidates within the same method; they are not measured affinity. Chemical and coordinate checks do not establish experimental pose validity."}
       </p>
       {result.mode === "dock" && (
-        <p className="field-help">{searchNotice(language)}</p>
+        <p className="field-help">
+          {searchNotice(language, result.search_report)}
+        </p>
       )}
       <StructureWorkbench
         preview={
