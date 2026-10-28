@@ -27,6 +27,7 @@ export function CandidateFollowup({
         language={language}
         initialMolecule={molecule}
         initialProtein={protein}
+        initialProfile="dock"
         onCreated={onCreated}
       />
     );

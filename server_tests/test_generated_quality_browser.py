@@ -30,6 +30,9 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
     receptor_asset = str(job.request.payload.protein.asset_id)
     root = settings.state_dir / "jobs" / job.id / "output"
     result = json.loads((root / "result.json").read_text())
+    native_receptor_digest = hashlib.sha256(
+        (root / result["protein_artifact"]).read_bytes()
+    ).hexdigest()
     assert result["valid"] >= 2
     native_row = result["report"]["molecules"][1]
     molecule_digest = hashlib.sha256((root / result["molecule_artifact"]).read_bytes()).hexdigest()
@@ -214,6 +217,17 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         references = page.request.get(
             base + "/api/research/objects?source_job=" + job.id + "&limit=200"
         ).json()
+        if job.request.payload.protein.sha256 != native_receptor_digest:
+            matching_receptors = {
+                node["reference"]["asset_id"]
+                for node in references
+                if node["kind"] == "structure"
+                and node["reference"]["sha256"] == native_receptor_digest
+                and node["reference"]["record"] == 0
+                and node["reference"]["conformer"] == 0
+            }
+            assert len(matching_receptors) == 1
+            receptor_asset = matching_receptors.pop()
         selected_assets = {
             node["reference"]["asset_id"]
             for node in references

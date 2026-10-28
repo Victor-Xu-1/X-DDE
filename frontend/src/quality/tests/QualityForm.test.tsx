@@ -36,6 +36,23 @@ it("leaves a new task blank without explicitly loading a template", () => {
   render(<QualityForm language="en" onCreated={vi.fn()} />);
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 });
+it("keeps the receptor pose check selected and blocks progress when its matching protein is unavailable", () => {
+  render(
+    <QualityForm
+      language="en"
+      onCreated={vi.fn()}
+      initialMolecule={molecule}
+      initialProfile="dock"
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(
+    screen.getByRole("radio", { name: "Pose within a protein" }),
+  ).toBeChecked();
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(mocks.submit).not.toHaveBeenCalled();
+});
 beforeEach(() => {
   mocks.ready = true;
   mocks.submit.mockReset();

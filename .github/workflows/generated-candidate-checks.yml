@@ -16,6 +16,8 @@ on:
       - "frontend/src/diffsbdd/optimization-*"
       - "frontend/src/diffsbdd/Optimization*"
       - "frontend/src/diffsbdd/useGeneratedRecords*"
+      - "frontend/src/quality/QualityForm.tsx"
+      - "frontend/src/quality/tests/QualityForm.test.tsx"
       - "frontend/src/viewer/viewer-connection.test.tsx"
       - "frontend/src/viewer/useViewerConnection.ts"
       - "frontend/src/viewer/StructureViewport.tsx"
@@ -60,7 +62,7 @@ jobs:
         id: review
         continue-on-error: true
         working-directory: frontend
-        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/GenerationSummary.test.tsx
+        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/quality/tests/QualityForm.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:

@@ -6,9 +6,16 @@ import { api } from "../api";
 import * as client from "../api";
 import type { Job } from "../types";
 import { artifactInfo } from "../presentation/artifact-digest";
+import { readArtifactFile } from "../presentation/artifact-file";
 
 vi.mock("../presentation/artifact-digest", () => ({
   artifactInfo: vi.fn(async () => ({ sha256: "a".repeat(64), records: 2 })),
+}));
+vi.mock("../presentation/artifact-file", () => ({
+  readArtifactFile: vi.fn(async () => ({
+    sha256: "b".repeat(64),
+    bytes: new Uint8Array([1]),
+  })),
 }));
 vi.mock("../presentation/MolecularPreview", () => ({
   MolecularPreview: () => <span>Retained molecular preview</span>,
@@ -30,6 +37,143 @@ afterEach(() => {
       sha256: "a".repeat(64),
       records: 2,
     });
+  vi.mocked(readArtifactFile)
+    .mockReset()
+    .mockResolvedValue({ sha256: "b".repeat(64), bytes: new Uint8Array([1]) });
+});
+
+it("uses the actual native receptor when it differs from the submitted input", async () => {
+  const user = userEvent.setup();
+  const native = {
+    asset_id: "native-receptor",
+    sha256: "c".repeat(64),
+    record: 0,
+    conformer: 0,
+    version_id: "native-version",
+  };
+  vi.mocked(readArtifactFile).mockResolvedValue({
+    sha256: native.sha256,
+    bytes: new Uint8Array([1]),
+  });
+  vi.spyOn(client, "request").mockResolvedValue([
+    object("generation", 0),
+    object("generation", 1),
+    { source_job: "generation", kind: "structure", reference: native },
+    {
+      source_job: "generation",
+      kind: "structure",
+      reference: { ...native, sha256: "d".repeat(64), asset_id: "pocket" },
+    },
+  ] as never);
+  render(<DiffResults {...props("generation")} />);
+  const button = await screen.findByRole("button", {
+    name: "Check this candidate's pose quality",
+  });
+  await user.click(button);
+  expect(
+    JSON.parse(screen.getByTestId("quality-input").textContent!),
+  ).toMatchObject({
+    initialMolecule: reference("generation", 0),
+    initialProtein: native,
+    initialProfile: "dock",
+  });
+});
+
+it("never substitutes the original input when the native receptor is unregistered", async () => {
+  const user = userEvent.setup();
+  vi.mocked(readArtifactFile).mockResolvedValue({
+    sha256: "c".repeat(64),
+    bytes: new Uint8Array([1]),
+  });
+  vi.spyOn(client, "request").mockResolvedValue([
+    object("generation", 0),
+    object("generation", 1),
+  ] as never);
+  render(<DiffResults {...props("generation")} />);
+  await screen.findByText(/receptor used for generation has not been verified/);
+  await user.click(
+    screen.getByRole("button", { name: "Check this candidate's pose quality" }),
+  );
+  expect(
+    JSON.parse(screen.getByTestId("quality-input").textContent!),
+  ).toMatchObject({
+    initialMolecule: reference("generation", 0),
+    initialProtein: null,
+    initialProfile: "dock",
+  });
+});
+
+it("prepares the exact native receptor if the molecule was already registered", async () => {
+  const user = userEvent.setup();
+  const native = {
+    asset_id: "native-receptor",
+    sha256: "c".repeat(64),
+    record: 0,
+    conformer: 0,
+    version_id: "native-version",
+  };
+  vi.mocked(readArtifactFile).mockResolvedValue({
+    sha256: native.sha256,
+    bytes: new Uint8Array([1]),
+  });
+  let indexed = false;
+  vi.spyOn(client, "request").mockImplementation(
+    async () =>
+      [
+        object("generation", 0),
+        object("generation", 1),
+        ...(indexed
+          ? [{ source_job: "generation", kind: "structure", reference: native }]
+          : []),
+      ] as never,
+  );
+  vi.spyOn(api, "post").mockImplementation(async () => {
+    indexed = true;
+    return {} as never;
+  });
+  render(<DiffResults {...props("generation")} />);
+  await screen.findByText(/receptor used for generation has not been verified/);
+  await user.click(
+    screen.getByRole("button", { name: "Prepare for follow-up" }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.queryByText(/receptor used for generation has not been verified/),
+    ).toBeNull(),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Check this candidate's pose quality" }),
+  );
+  expect(
+    JSON.parse(screen.getByTestId("quality-input").textContent!),
+  ).toMatchObject({ initialProtein: native, initialProfile: "dock" });
+});
+
+it("rejects a receptor that changes while research materials are being prepared", async () => {
+  const user = userEvent.setup();
+  vi.mocked(readArtifactFile)
+    .mockResolvedValueOnce({
+      sha256: "b".repeat(64),
+      bytes: new Uint8Array([1]),
+    })
+    .mockResolvedValueOnce({
+      sha256: "c".repeat(64),
+      bytes: new Uint8Array([2]),
+    });
+  vi.spyOn(client, "request").mockResolvedValue([] as never);
+  vi.spyOn(api, "post").mockResolvedValue({} as never);
+  render(<DiffResults {...props("generation")} />);
+  await user.click(
+    await screen.findByRole("button", { name: "Prepare for follow-up" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "original receptor file changed",
+  );
+  expect(
+    screen.queryByRole("button", {
+      name: "Check this candidate's pose quality",
+    }),
+  ).toBeNull();
 });
 
 const protein = {

@@ -4,7 +4,10 @@ import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { PoseSession } from "../viewer/PoseSession";
-import { PoseStudyInput } from "../viewer/PoseStudyInput";
+import {
+  PoseStudyInput,
+  type PoseStudySelection,
+} from "../viewer/PoseStudyInput";
 import { usePoseHandoff } from "../viewer/usePoseHandoff";
 import { posePlan } from "../viewer/pose-plan";
 import type { OperationResult } from "../operations/types";
@@ -51,7 +54,16 @@ export function DiffResults({
       : undefined;
   const optimization =
     mode === "optimize" ? optimizationReview(data.report, objective) : null;
-  const candidates = useGeneratedRecords(job.id, targetArtifact, data);
+  const inputReceptor =
+    job.request.operation === "diffsbdd" && "protein" in job.request.payload
+      ? (job.request.payload.protein as MoleculeRef | null)
+      : null;
+  const candidates = useGeneratedRecords(
+    job.id,
+    targetArtifact,
+    data,
+    inputReceptor,
+  );
   const records = candidates.records,
     selectedRecord = candidates.selected;
   const selected = selectedRecord?.object ?? null;
@@ -121,6 +133,14 @@ export function DiffResults({
       posePlan(frame).key,
     ]),
   );
+  const handoffSelection = (
+    selection: PoseStudySelection,
+  ): PoseStudySelection => ({
+    ...selection,
+    receptor: selection.displayed
+      ? (selection.receptor ?? null)
+      : candidates.receptor,
+  });
   const action = handoff.value?.action;
   const nextInput = handoff.value?.selection.reference;
   if (nextInput && action)
@@ -131,12 +151,7 @@ export function DiffResults({
           action={action}
           language={language}
           molecule={nextInput}
-          protein={
-            handoff.value?.selection.receptor ??
-            (job.request.operation === "diffsbdd"
-              ? (job.request.payload.protein as MoleculeRef)
-              : null)
-          }
+          protein={handoff.value?.selection.receptor ?? null}
           onCreated={() =>
             setMessage(
               zh
@@ -266,21 +281,30 @@ export function DiffResults({
               handoff.clear();
             }}
           >
-            {designing && selectedRecord && !selected && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={candidates.preparing}
-                onClick={() => void candidates.prepare()}
-              >
-                {candidates.preparing
-                  ? zh
-                    ? "正在准备研究材料…"
-                    : "Preparing research inputs…"
-                  : zh
-                    ? "准备后续研究材料"
-                    : "Prepare for follow-up"}
-              </button>
+            {designing &&
+              selectedRecord &&
+              (!selected || (protein && !candidates.receptor)) && (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={candidates.preparing}
+                  onClick={() => void candidates.prepare()}
+                >
+                  {candidates.preparing
+                    ? zh
+                      ? "正在准备研究材料…"
+                      : "Preparing research inputs…"
+                    : zh
+                      ? "准备后续研究材料"
+                      : "Prepare for follow-up"}
+                </button>
+              )}
+            {designing && selected && protein && !candidates.receptor && (
+              <p className="field-help" role="status">
+                {zh
+                  ? "尚未核对生成时使用的受体。请准备研究材料；若仍不可用，请在姿势质控中选择对应受体。"
+                  : "The receptor used for generation has not been verified. Prepare research inputs; if it remains unavailable, select the matching receptor in pose quality."}
+              </p>
             )}
             <PoseStudyInput original={selected} language={language}>
               {(selection) => (
@@ -299,7 +323,8 @@ export function DiffResults({
                             const value = (
                               ["inpaint", "diversify", "optimize"] as const
                             ).find((v) => v === e.target.value);
-                            if (value) handoff.open(value, selection);
+                            if (value)
+                              handoff.open(value, handoffSelection(selection));
                           }}
                         >
                           <option value="">—</option>
@@ -325,7 +350,9 @@ export function DiffResults({
                         <button
                           type="button"
                           disabled={!selection.ready}
-                          onClick={() => handoff.open("quality", selection)}
+                          onClick={() =>
+                            handoff.open("quality", handoffSelection(selection))
+                          }
                         >
                           {zh
                             ? "检查这个候选的姿势质量"
@@ -335,7 +362,12 @@ export function DiffResults({
                       <button
                         type="button"
                         disabled={!selection.ready}
-                        onClick={() => handoff.open("properties", selection)}
+                        onClick={() =>
+                          handoff.open(
+                            "properties",
+                            handoffSelection(selection),
+                          )
+                        }
                       >
                         {zh
                           ? "计算这个候选的性质"
@@ -344,7 +376,9 @@ export function DiffResults({
                       <button
                         type="button"
                         disabled={!selection.ready}
-                        onClick={() => handoff.open("export", selection)}
+                        onClick={() =>
+                          handoff.open("export", handoffSelection(selection))
+                        }
                       >
                         {zh ? "导出这个候选" : "Export this candidate"}
                       </button>
