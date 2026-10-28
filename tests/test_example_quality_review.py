@@ -73,3 +73,30 @@ def test_missing_review_or_missing_pin_does_not_invent_one(tmp_path):
     assert quality_review(None, store, tmp_path) == (None, None)
     empty = pin.model_copy(update={"review": None})
     assert quality_review(empty, store, tmp_path) == (empty, None)
+
+
+def test_example_api_exposes_projected_review_and_preserves_recorded_text(
+    settings, client_factory, monkeypatch
+):
+    pin, _, _ = sample(settings.state_dir)
+    projected = pin.model_copy(
+        update={
+            "review": pin.review.model_copy(update={"interpretation": "Evidence-derived review."})
+        }
+    )
+    monkeypatch.setattr(
+        "opendde_workbench.examples.routes.ExamplePins.get", lambda *_args, **_kwargs: pin
+    )
+    monkeypatch.setattr(
+        "opendde_workbench.examples.routes.ExampleRecords.get", lambda *_args, **_kwargs: None
+    )
+    monkeypatch.setattr(
+        "opendde_workbench.examples.routes.quality_review",
+        lambda *_args: (projected, pin.review),
+    )
+    with client_factory() as client:
+        response = client.get("/api/examples/posebusters.check?profile=stat6")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["pin"]["review"]["interpretation"] == "Evidence-derived review."
+    assert body["recorded_review"]["interpretation"] == pin.review.interpretation
