@@ -64,3 +64,15 @@ def test_corrected_protac_matches_supplied_identity_without_recomputing_or_movin
         for i in proof["source_undefined_stereocenters"]
     )
     assert proof["new_geometry_or_energy_calculations"] == 0
+
+
+def test_pose_review_successor_preserves_published_v31_catalogue():
+    from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
+    from opendde_workbench.examples.catalogue_profiles import historical_study_catalogue
+
+    old_digest = "05dc352e8bdf842f02563f2aafd4edb772ba02c485dafcbaae982c7683e1d931"
+    old = historical_study_catalogue(old_digest)
+    current = bundle_catalogue("stat6")
+    assert old.modules["pose_exploration"].revision == 3
+    assert current.modules["pose_exploration"].revision == 4
+    assert old.modules["pose_exploration"].case_id == current.modules["pose_exploration"].case_id
