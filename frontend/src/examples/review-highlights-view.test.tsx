@@ -1,6 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ExampleActions } from "./ExampleActions";
+import { hasReviewedReferenceContacts } from "./review-highlights-contacts";
+import contacts from "./review-highlights-contact-data.json";
+import type { ExampleInfo } from "./types";
 
 const transport = vi.hoisted(() => ({ request: vi.fn(), post: vi.fn() }));
 vi.mock("../api", () => ({
@@ -34,10 +37,7 @@ const actualCase = {
   computed_result_available: true,
   pin: {
     job_id: jobId,
-    artifact_sha256: {
-      "result.json":
-        "a0cd9fe2e3405f1aea4094fd3e683bb91c3c032b355e334fce56049c3e1bdf3b",
-    },
+    artifact_sha256: contacts.artifacts,
     review: { interpretation: "Review", limitations: "Limitations" },
     supporting_evidence: [
       {
@@ -64,13 +64,11 @@ beforeEach(() => {
 it.each(["zh", "en"] as const)(
   "shows the actual STAT6 docking review before expanding details (%s)",
   async (language) => {
-    transport.request
-      .mockResolvedValueOnce(actualCase)
-      .mockResolvedValueOnce({
-        id: jobId,
-        status: "succeeded",
-        request: { operation: "docking" },
-      });
+    transport.request.mockResolvedValueOnce(actualCase).mockResolvedValueOnce({
+      id: jobId,
+      status: "succeeded",
+      request: { operation: "docking" },
+    });
     render(
       <ExampleActions
         capability="gnina.dock"
@@ -93,6 +91,66 @@ it.each(["zh", "en"] as const)(
       ),
     ).toBeVisible();
     expect(screen.getByText(`Native output ${jobId}`)).toBeVisible();
+    fireEvent.click(
+      screen.getByText(
+        language === "zh" ? "参考区域接触比较" : "Reference-region contacts",
+        { selector: "summary" },
+      ),
+    );
+    const table = screen.getByRole("table", {
+      name:
+        language === "zh" ? "参考区域接触比较" : "Reference-region contacts",
+    });
+    expect(within(table).getAllByRole("row")).toHaveLength(10);
+    const rows = within(table).getAllByRole("row");
+    expect(rows[3]).toHaveTextContent("5 / 16");
+    expect(rows[9]).toHaveTextContent("7 / 16");
+    expect(rows[1]).toHaveTextContent(
+      language === "zh" ? "本次未评估" : "Not assessed here",
+    );
+    expect(rows[3]).toHaveTextContent(
+      language === "zh" ? "部分未评估" : "some checks missing",
+    );
+    const download = screen.getByRole("link", {
+      name: language === "zh" ? "下载接触比较" : "Download contact comparison",
+    });
+    expect(download).toHaveAttribute(
+      "download",
+      "stat6-9big-reference-contacts.csv",
+    );
+    expect(decodeURIComponent(download.getAttribute("href") ?? "")).toContain(
+      "pose,reference,cutoff_angstrom",
+    );
     expect(transport.post).not.toHaveBeenCalled();
   },
 );
+
+it("does not attach reference comparisons to changed native sources or quality evidence", () => {
+  const info = actualCase as unknown as ExampleInfo;
+  expect(hasReviewedReferenceContacts(info, jobId)).toBe(true);
+  expect(hasReviewedReferenceContacts(info, "different-job")).toBe(false);
+  for (const name of [
+    "result.json",
+    "receptor.pdb",
+    "reference-ligand.sdf",
+    "pose-003.sdf",
+  ]) {
+    const changed = {
+      ...info,
+      pin: {
+        ...info.pin!,
+        artifact_sha256: {
+          ...info.pin!.artifact_sha256,
+          [name]: "0".repeat(64),
+        },
+      },
+    };
+    expect(hasReviewedReferenceContacts(changed, jobId)).toBe(false);
+  }
+  expect(
+    hasReviewedReferenceContacts(
+      { ...info, pin: { ...info.pin!, supporting_evidence: [] } },
+      jobId,
+    ),
+  ).toBe(false);
+});

@@ -231,3 +231,17 @@
     max-height: calc(100dvh - 108px);
   }
 }
+.reference-contacts-table-wrap {
+  overflow-x: auto;
+}
+.reference-contacts-table-wrap table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+}
+.reference-contacts-table-wrap th,
+.reference-contacts-table-wrap td {
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  padding: 0.65rem;
+  vertical-align: top;
+}

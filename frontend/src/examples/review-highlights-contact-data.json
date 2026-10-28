@@ -1,0 +1,165 @@
+{
+  "case_id": "stat6-defined-molecules",
+  "capability_id": "gnina.dock",
+  "revision": 5,
+  "job_id": "cf623a70-e687-47d1-9727-4433dc6429b5",
+  "source_sha256": "6a116614692defb2b092e18e61d20c7256de59943c26188b702b167bf4e2c544",
+  "cutoff_angstrom": 4.5,
+  "reference_contacts": [
+    "A:ARG562",
+    "A:ARG605",
+    "A:ASN588",
+    "A:ASP565",
+    "A:ASP596",
+    "A:GLN590",
+    "A:GLU567",
+    "A:GLU587",
+    "A:ILE589",
+    "A:LEU609",
+    "A:LYS544",
+    "A:PHE592",
+    "A:PRO591",
+    "A:SER564",
+    "A:SER566",
+    "A:THR572"
+  ],
+  "artifacts": {
+    "result.json": "a0cd9fe2e3405f1aea4094fd3e683bb91c3c032b355e334fce56049c3e1bdf3b",
+    "receptor.pdb": "3250c6da6a3f406b62db8824e4ef8b27c89027da42d846393ec9601898a5ffa4",
+    "reference-ligand.sdf": "76f63e26025a35e1ec5ff7445a5a260f140d7e3357bc2a42fb7e51ea33d180a6",
+    "pose-001.sdf": "97b603b09c2068e6f727569fe07b07be5d0cd437212ccb83e4730fc6570590fd",
+    "pose-002.sdf": "0aef3a3716bd0dfcda2574ad626283406dcd4485e1bbd50cb672ad5ca22b9ee2",
+    "pose-003.sdf": "436dd0142538fbe36e875fd75bc42b7f2fb45a41ab80f1c238a2f1c437e0f0ef",
+    "pose-004.sdf": "c3d15b3fd465a2a9dbc83ec8e7b8f848de4db6ea900bc4f2d29adf9316b8d877",
+    "pose-005.sdf": "5bc8befc2b7d7ea318bfedfe938675722bf91737341034f7f7efdf477d72c08c",
+    "pose-006.sdf": "cd9ec87e8de62e84300c8a733bb9621f9d24cf1a15ae6f845b3a32da13d59717",
+    "pose-007.sdf": "0ce0357411bdcb04bc61a3d0ca2cd6108c0cc06d6a22d5bb5548803b4823791c",
+    "pose-008.sdf": "732de29b46452064d209f04a12d00c1a19cd3025cffa849d8142f0100388679e",
+    "pose-009.sdf": "98f834e782a61bda9bbea255197929bb542ce26e9b074494ad2b2b2b4a9e78fd"
+  },
+  "supporting": [
+    {
+      "job_id": "8969b071-879b-4374-9044-f9108ba29588",
+      "result_sha256": "b2ddd68b1d5c298a1850080ac41bfc5a7a94202b294dc41600e85c5e665521df"
+    },
+    {
+      "job_id": "ca498efb-cb18-40ca-9262-c2597ab422da",
+      "result_sha256": "639c5abca478299a191aa45a0b21880ec1d3c083cb41aca2caadeed22b306e8d"
+    }
+  ],
+  "poses": [
+    {
+      "pose": 1,
+      "shared_residues": [
+        "A:ARG562",
+        "A:ASN588",
+        "A:ASP565",
+        "A:GLN590",
+        "A:GLU587",
+        "A:LYS544",
+        "A:PRO591",
+        "A:SER564",
+        "A:SER566",
+        "A:THR572"
+      ],
+      "pose_contact_residues": 10,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 2,
+      "shared_residues": [
+        "A:ARG605",
+        "A:ASN588",
+        "A:GLN590",
+        "A:GLU587",
+        "A:ILE589",
+        "A:LEU609",
+        "A:PHE592"
+      ],
+      "pose_contact_residues": 10,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 3,
+      "shared_residues": [
+        "A:ARG605",
+        "A:GLU587",
+        "A:ILE589",
+        "A:LEU609",
+        "A:PHE592"
+      ],
+      "pose_contact_residues": 8,
+      "independent_quality_job": "8969b071-879b-4374-9044-f9108ba29588"
+    },
+    {
+      "pose": 4,
+      "shared_residues": [
+        "A:ARG605",
+        "A:ASP596",
+        "A:GLN590",
+        "A:GLU567",
+        "A:ILE589",
+        "A:LEU609",
+        "A:PHE592",
+        "A:PRO591"
+      ],
+      "pose_contact_residues": 10,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 5,
+      "shared_residues": ["A:ARG605", "A:ILE589", "A:LEU609", "A:PHE592"],
+      "pose_contact_residues": 8,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 6,
+      "shared_residues": [
+        "A:ARG605",
+        "A:ASN588",
+        "A:GLN590",
+        "A:GLU587",
+        "A:ILE589",
+        "A:LEU609",
+        "A:PHE592"
+      ],
+      "pose_contact_residues": 10,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 7,
+      "shared_residues": ["A:ARG605", "A:GLU587", "A:ILE589", "A:LEU609"],
+      "pose_contact_residues": 8,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 8,
+      "shared_residues": [
+        "A:ARG605",
+        "A:ASP596",
+        "A:GLN590",
+        "A:GLU587",
+        "A:ILE589",
+        "A:LEU609",
+        "A:PHE592",
+        "A:PRO591"
+      ],
+      "pose_contact_residues": 9,
+      "independent_quality_job": null
+    },
+    {
+      "pose": 9,
+      "shared_residues": [
+        "A:ARG605",
+        "A:ASP596",
+        "A:GLN590",
+        "A:GLU567",
+        "A:ILE589",
+        "A:PHE592",
+        "A:PRO591"
+      ],
+      "pose_contact_residues": 10,
+      "independent_quality_job": "ca498efb-cb18-40ca-9262-c2597ab422da"
+    }
+  ]
+}
