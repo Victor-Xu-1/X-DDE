@@ -7,6 +7,13 @@ import type { OperationResult } from "../operations/types";
 import type { Site } from "./types";
 import { compareReference, isReferenceJob } from "./reference-comparison";
 
+export interface ReferenceSession {
+  jobs: Job[] | null;
+  selected: string;
+  confirmed: boolean;
+  loaded: { job: Job; result: OperationResult } | null;
+  limited: boolean;
+}
 /** Read existing results only; no task, asset or coordinate is created here. */
 export function ReferenceComparison({
   protein,
@@ -15,6 +22,8 @@ export function ReferenceComparison({
   onOverlay,
   onGenerate,
   onDock,
+  initialSession,
+  onSession,
 }: {
   protein: MoleculeRef;
   site: Site;
@@ -22,20 +31,27 @@ export function ReferenceComparison({
   onOverlay(value: string | null): void;
   onGenerate(ligand: MoleculeRef): void;
   onDock(ligand: MoleculeRef): void;
+  initialSession?: ReferenceSession | null;
+  onSession?(value: ReferenceSession): void;
 }) {
   const zh = language === "zh";
-  const [jobs, setJobs] = useState<Job[] | null>(null);
-  const [selected, setSelected] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
+  const [jobs, setJobs] = useState<Job[] | null>(initialSession?.jobs ?? null);
+  const [selected, setSelected] = useState(initialSession?.selected ?? "");
+  const [confirmed, setConfirmed] = useState(
+    initialSession?.confirmed ?? false,
+  );
   const [loaded, setLoaded] = useState<{
     job: Job;
     result: OperationResult;
-  } | null>(null);
+  } | null>(initialSession?.loaded ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [limited, setLimited] = useState(false);
+  const [limited, setLimited] = useState(initialSession?.limited ?? false);
   const active = useRef<AbortController | null>(null);
   useEffect(() => () => active.current?.abort(), []);
+  useEffect(() => {
+    onSession?.({ jobs, selected, confirmed, loaded, limited });
+  }, [jobs, selected, confirmed, loaded, limited, onSession]);
   const comparison = useMemo(
     () =>
       loaded && confirmed

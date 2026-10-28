@@ -1,5 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ResearchTable } from "../presentation/ResearchTable";
 import "./pocket-results.css";
 import type { Job, Language } from "../types";
@@ -11,7 +11,10 @@ import { artifactUrl } from "../api";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { Hint } from "../guided/Hint";
 import { PocketSelection } from "./PocketSelection";
-import { ReferenceComparison } from "./ReferenceComparison";
+import {
+  ReferenceComparison,
+  type ReferenceSession,
+} from "./ReferenceComparison";
 import type { MoleculeRef } from "../research/types";
 export function PocketResults({
   job,
@@ -39,6 +42,15 @@ export function PocketResults({
       kind: "generate" | "dock";
       ligand: MoleculeRef;
     } | null>(null);
+  const [referenceSession, setReferenceSession] = useState<{
+    pocketJobId: string;
+    session: ReferenceSession;
+  } | null>(null);
+  const saveReferenceSession = useCallback(
+    (session: ReferenceSession) =>
+      setReferenceSession({ pocketJobId: job.id, session }),
+    [job.id],
+  );
   function selectSite(site: Site) {
     setSelected(site);
     setContinue(false);
@@ -224,6 +236,12 @@ export function PocketResults({
               protein={result.protein}
               site={selected}
               language={language}
+              initialSession={
+                referenceSession?.pocketJobId === job.id
+                  ? referenceSession.session
+                  : null
+              }
+              onSession={saveReferenceSession}
               onOverlay={setOverlay}
               onGenerate={(ligand) =>
                 setReferenceHandoff({ kind: "generate", ligand })
