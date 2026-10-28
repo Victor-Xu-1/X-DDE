@@ -54,7 +54,7 @@ export function PoseOptimizationControls({
         <button
           type="button"
           className="primary-button"
-          disabled={disabled || state.busy}
+          disabled={disabled || state.busy || !state.available}
           onClick={() => void state.minimize(method, iterations)}
         >
           {state.busy && <LoadingOutlined spin />}
@@ -157,6 +157,13 @@ export function PoseOptimizationControls({
           </div>
         </details>
       </div>
+      {!state.available && !state.busy && (
+        <p className="pose-version-label" role="status">
+          {zh
+            ? "计算服务暂不可用；已有 pose 可继续查看、切换和下载。"
+            : "The task service is unavailable; existing poses remain viewable, selectable and downloadable."}
+        </p>
+      )}
       {state.pose.energy && (
         <p className="pose-energy" role="status">
           <span>

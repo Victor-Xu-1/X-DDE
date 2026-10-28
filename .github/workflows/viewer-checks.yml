@@ -90,6 +90,11 @@ on:
       - "!frontend/src/viewer/pose-types.ts"
       - "!frontend/src/viewer/usePoseHandoff.ts"
       - "!frontend/src/viewer/usePoseOptimization.test.tsx"
+      # Task-service admission and retained poses have their focused availability gate.
+      - "!frontend/src/viewer/usePoseOptimization.ts"
+      - "!frontend/src/viewer/PreviewAvailability.test.tsx"
+      - "!frontend/src/viewer/InitialPoseStatus.tsx"
+      - "!frontend/src/viewer/PoseOptimizationControls.tsx"
   pull_request:
     paths: *viewer_paths
 permissions:
