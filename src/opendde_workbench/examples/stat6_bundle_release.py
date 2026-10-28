@@ -1,10 +1,10 @@
 """Reviewed native STAT6 outputs, complete alignments and the bounded workflow example."""
 
-VERSION = "32"
-URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v32.zip"
-SHA256 = "91d0ce752a0ca8727caa79cca607b355042a9a0ca5b07c228ec4143e86655bc6"
-BYTES = 22706057
-SOURCE_REVISION = "dbfcc16484985fc04d2c4db1acc1d22eeb901fc2"
+VERSION = "33"
+URL = "https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v33.zip"
+SHA256 = "b9b4d34cb9a2568eb2c654f8ed89fd19ae7c538fea5041088c3d584ec990a365"
+BYTES = 22705411
+SOURCE_REVISION = "f98e2c8ad251a4b70b08d84fad9ca91b995dca38"
 CAPABILITIES = (
     "caver.paths",
     "boltz.predict",
