@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from . import container_runtime, local_process
+from .container_supervision import stop_owned
 from .engine import command
 from .managed_containers import CONTAINER_STYLES, container_name
 
@@ -140,10 +141,10 @@ class PreparedContainerBackend:
             raise
 
     async def stop(self, job_id, directory):
-        runtime = container_runtime.read(directory)
-        code, text = await runtime.command(
-            command, "docker", "rm", "--force", self.container(job_id)
+        await stop_owned(
+            directory,
+            self.container(job_id),
+            self.root / "supervise.py",
+            command,
+            label="Preparation",
         )
-        if code and "No such container" not in text:
-            raise RuntimeError("Preparation container cancellation is unconfirmed.")
-        await local_process.stop(self.root / "supervise.py", directory)

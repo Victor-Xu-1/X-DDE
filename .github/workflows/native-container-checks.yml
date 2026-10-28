@@ -40,10 +40,15 @@ jobs:
       - id: change
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT: ${{ github.event_name }}
+          BRANCH_REF: ${{ github.ref }}
         shell: bash
         run: |
           stop_only=true
           found=false
+          if [[ "$EVENT" == push && "$BRANCH_REF" != refs/heads/main ]]; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
           if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             BASE=$(git merge-base HEAD origin/main)
           fi

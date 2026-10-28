@@ -50,6 +50,12 @@ def cancellation(request, tmp_path, monkeypatch):
             raise asyncio.CancelledError("controlled cancellation during removal")
         if state.fault == "nonzero":
             return 1, "controlled removal failure"
+        if state.fault == "foreign_missing":
+            return 1, "Error response from daemon: No such container: different-owned-task"
+        if state.fault == "embedded_missing":
+            return 1, "proxy unavailable; No such container: " + arguments[-1]
+        if state.fault == "wrong_missing_code":
+            return 125, "Error response from daemon: No such container: " + arguments[-1]
         if state.fault == "missing":
             return 1, "Error response from daemon: No such container: " + arguments[-1]
         return 0, ""
@@ -75,6 +81,9 @@ def cancellation(request, tmp_path, monkeypatch):
         ("cancelled", asyncio.CancelledError),
         ("wrong_daemon", RuntimeError),
         ("invalid_receipt", ValueError),
+        ("foreign_missing", RuntimeError),
+        ("embedded_missing", RuntimeError),
+        ("wrong_missing_code", RuntimeError),
     ],
 )
 def test_container_failure_still_cleans_the_owned_host_process(cancellation, fault, error):

@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from .. import container_runtime, local_process
+from ..container_supervision import stop_owned
 from ..engine import command
 from .manifest import VERSION
 from .runtime import configuration, labels_match
@@ -142,10 +143,10 @@ class DockingBackend:
             raise
 
     async def stop(self, job_id, directory):
-        runtime = container_runtime.read(directory)
-        code, text = await runtime.command(
-            command, "docker", "rm", "--force", self.container(job_id)
+        await stop_owned(
+            directory,
+            self.container(job_id),
+            Path(__file__).with_name("supervise.py"),
+            command,
+            label="GNINA",
         )
-        if code and "No such container" not in text:
-            raise RuntimeError("GNINA container cancellation is unconfirmed.")
-        await local_process.stop(Path(__file__).with_name("supervise.py"), directory)
