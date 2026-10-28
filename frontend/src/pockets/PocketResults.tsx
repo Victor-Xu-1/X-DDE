@@ -153,6 +153,9 @@ export function PocketResults({
       <StructureWorkbench
         preview={
           <StructureViewer
+            key={overlay ?? "protein-only"}
+            focusModel={overlay ? 1 : undefined}
+            initialMode={overlay ? "pocket" : undefined}
             urls={[
               artifactUrl(job.id, result.protein_artifact),
               ...(overlay ? [overlay] : []),

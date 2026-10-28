@@ -101,6 +101,9 @@ it("requires coordinate confirmation, compares source residues and hands off the
     ),
   ).toBeVisible();
   expect(screen.getByText("A:542")).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "View source pocket result" }),
+  ).toHaveAttribute("href", "/#task=reference-job");
   expect(onOverlay).toHaveBeenLastCalledWith(
     "/api/jobs/reference-job/download?name=reference.sdf",
   );

@@ -82,7 +82,7 @@ jobs:
         run: >-
           npx vitest run src/pockets/reference-comparison.test.ts
           src/pockets/ReferenceComparison.test.tsx src/pockets/PocketResults.test.tsx
-          src/docking/DockingForm.test.tsx
+          src/docking/DockingForm.test.tsx src/viewer/source-layout.test.ts
   pocket-results:
     needs: scope
     if: needs.scope.outputs.comparison_only != 'true'

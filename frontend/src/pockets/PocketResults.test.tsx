@@ -25,12 +25,23 @@ vi.mock("./ReferenceComparison", () => ({
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({
     residueRegion,
+    urls,
+    focusModel,
+    initialMode,
   }: {
     residueRegion?: Site["residues"];
+    urls: string[];
+    focusModel?: number;
+    initialMode?: string;
   }) => (
-    <output aria-label="Viewer region">
-      {JSON.stringify(residueRegion ?? [])}
-    </output>
+    <>
+      <output aria-label="Viewer region">
+        {JSON.stringify(residueRegion ?? [])}
+      </output>
+      <output aria-label="Viewer sources">
+        {JSON.stringify({ urls, focusModel, initialMode })}
+      </output>
+    </>
   ),
 }));
 vi.mock("../diffsbdd/DiffForm", () => ({
@@ -236,5 +247,29 @@ it("hands the selected reference ligand to generation and docking without changi
   await user.click(screen.getByRole("button", { name: "Reference dock" }));
   expect(screen.getByLabelText("Docking input")).toHaveTextContent(
     JSON.stringify({ initialReceptor: protein, initialReference: reference }),
+  );
+});
+
+it("treats the confirmed reference as a ligand in the same complex", async () => {
+  const user = userEvent.setup();
+  render(
+    <PocketResults
+      job={{ id: "retained-pockets" }}
+      result={result}
+      language="en"
+    />,
+  );
+  expect(screen.getByLabelText("Viewer sources")).not.toHaveTextContent(
+    "focusModel",
+  );
+  await user.click(screen.getByRole("button", { name: "Show reference" }));
+  expect(screen.getByLabelText("Viewer sources")).toHaveTextContent(
+    '"focusModel":1',
+  );
+  expect(screen.getByLabelText("Viewer sources")).toHaveTextContent(
+    '"initialMode":"pocket"',
+  );
+  expect(screen.getByLabelText("Viewer sources")).toHaveTextContent(
+    "reference.sdf",
   );
 });
