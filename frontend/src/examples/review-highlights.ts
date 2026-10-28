@@ -27,6 +27,26 @@ const highlights = [
     ],
   },
   {
+    capability: "gnina.dock",
+    revision: 5,
+    job: "cf623a70-e687-47d1-9727-4433dc6429b5",
+    result: "a0cd9fe2e3405f1aea4094fd3e683bb91c3c032b355e334fce56049c3fa8362",
+    supporting: [
+      {
+        job: "8969b071-879b-4374-9044-f9108ba29588",
+        result: "b2ddd68b1d5c298a1850080ac41bfc5a7a94202b294dc41600e85c5e665521df",
+      },
+      {
+        job: "ca498efb-cb18-40ca-9262-c2597ab422da",
+        result: "639c5abca478299a191aa45a0b21880ec1d3c083cb41aca2caadeed22b306e8d",
+      },
+    ],
+    text: [
+      "仅姿势 3 和 9 有独立质控；默认姿势 1 尚无对应质控。对接分数不是实测亲和力，姿势仍需实验验证。",
+      "Only poses 3 and 9 have independent quality checks; the default pose 1 has none in this study. Docking scores are not measured affinity, and poses require experimental validation.",
+    ],
+  },
+  {
     capability: "diffsbdd.generate",
     revision: 3,
     job: "be6389cf-e6ce-4d2e-ae5a-9786d62dfe8a",
@@ -53,7 +73,15 @@ export function reviewedHighlight(
       item.capability === info.module.capability_id &&
       item.revision === info.module.revision &&
       item.job === info.pin?.job_id &&
-      item.result === info.pin?.artifact_sha256?.["result.json"],
+      item.result === info.pin?.artifact_sha256?.["result.json"] &&
+      (!("supporting" in item) ||
+        item.supporting.every((expected) =>
+          info.pin?.supporting_evidence?.some(
+            (actual) =>
+              actual.job_id === expected.job &&
+              actual.artifact_sha256?.["result.json"] === expected.result,
+          ),
+        )),
   );
   return match ? match.text[language === "zh" ? 0 : 1] : null;
 }
