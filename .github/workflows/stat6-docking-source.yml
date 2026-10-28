@@ -35,4 +35,4 @@ jobs:
       - run: >-
           uv run --locked pytest -q tests/test_stat6_predicted_references.py
           tests/test_example_native_lineage.py tests/test_receptor_copy_provenance.py
-          -k 'docking_retains_exact_prediction or predicted_references_are_opt_in or prediction_construct or native_graph_cannot_admit or ensemble_reference or docking_copies or unproved_or_modified_copies or identical_user_file'
+          -k 'docking_retains_exact_prediction or predicted_references_are_opt_in or prediction_construct or native_graph_cannot_admit or ensemble_reference or docking_copies or unproved_or_modified_copies or identical_user_file or known_published_catalogue or published_catalogue_module_mutation'

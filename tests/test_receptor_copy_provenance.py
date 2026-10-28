@@ -102,7 +102,8 @@ def ensemble_reference_copy(store, scientific, settings, native, *, mutation=Non
         "selected_chains": ["A"], "parser_warnings": [], "parser_warnings_truncated": False,
         "atom_count": 3, "observed_residue_count": 3,
         "protein_chains": [{"chain": "A", "observed_ca_count": 3, "sequence": "AAA"}],
-        "incomplete_backbone": [], "backbone_complete": True, "sidechain_completeness": "not_checked",
+        "incomplete_backbone": [], "backbone_complete": True,
+        "sidechain_completeness": "not_checked",
         "unobserved_residues": "not_inferred", "bfactor_mean": None,
         "bfactor_interpretation": "raw_bfactor_not_automatic_plddt", "occupancy_minimum": None,
         "biological_assembly": "provided_coordinates_only", "source_profile": "unspecified"}
@@ -124,14 +125,17 @@ def ensemble_reference_copy(store, scientific, settings, native, *, mutation=Non
         "options": request.options.model_dump(mode="json"), "members": members,
         "qualified_count": 2, "collection_status": "aligned",
         "coordinate_frame": "selected_reference_structure", "coordinate_unit": "angstrom",
-        "export_rounding_tolerance_angstrom": 0.001, "versions": {"biopython": "1.88", "numpy": "1.26.4"},
+        "export_rounding_tolerance_angstrom": 0.001,
+        "versions": {"biopython": "1.88", "numpy": "1.26.4"},
         "method_scope": "observed_ca_rigid_superposition_not_conformation_sampling",
-        "biological_assembly": "provided_coordinates_only", "chemical_validation": "not_full_atom_parameterization"}
+        "biological_assembly": "provided_coordinates_only",
+        "chemical_validation": "not_full_atom_parameterization"}
     (output / "result.json").write_text(json.dumps(report))
     store.bind_environment(job.id, capture(settings, "biopython"))
     store.finish(job.id, Status.SUCCEEDED)
     asset = scientific.assets.save("ensemble-copy.pdb", "structure", raw)
-    copy = scientific.create(VersionInput(asset_id=asset.id, kind="structure", label="Reference copy",
+    copy = scientific.create(VersionInput(
+        asset_id=asset.id, kind="structure", label="Reference copy",
         parent_id=other.id if mutation == "wrong_parent" else native.id,
         relation="prepared_from"), uuid4(), source_job=job.id)
     if mutation == "changed_output":
