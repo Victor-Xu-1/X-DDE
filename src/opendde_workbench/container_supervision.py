@@ -1,11 +1,29 @@
-"""Shared attach/exit verification; adapters retain scientific output normalization."""
+"""Shared attach/exit/cancellation; adapters retain scientific output normalization."""
 
 import json
 import subprocess
 
-from . import container_runtime
+from . import container_runtime, local_process
 from .managed_containers import attached_container
 from .native_container_cleanup import remove_finished
+
+
+async def stop_owned(directory, container, script, execute, *, label):
+    """Attempt both owned boundaries; neither failure can count as confirmed cleanup."""
+    try:
+        runtime = container_runtime.read(directory)
+        code, text = await runtime.command(execute, "docker", "rm", "--force", container)
+        missing = code == 1 and text.strip().lower() in {
+            "error response from daemon: no such container: " + container.lower(),
+            "error: no such container: " + container.lower(),
+        }
+        if code and not missing:
+            raise RuntimeError(f"{label} container cancellation is unconfirmed.")
+    finally:
+        # Daemon loss, malformed receipts, client timeouts and caller cancellation
+        # must not orphan the recorded host group. Its existing kernel-identity
+        # checks still apply, and a local failure retains the daemon exception.
+        await local_process.stop(script, directory)
 
 
 def attach(directory, prefix):
