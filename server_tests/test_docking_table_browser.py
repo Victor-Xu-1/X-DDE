@@ -64,7 +64,9 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         page.goto(base + "/#task=" + str(pin.job_id))
         workspace = page.locator(".docking-results .structure-workbench")
         viewer = workspace.locator(".viewer-panel")
-        table = workspace.locator(".research-table table").first
+        table = workspace.get_by_role(
+            "table", name="GNINA " + original["software_version"], exact=True
+        )
         export = viewer.get_by_role(
             "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓", exact=True
         )
