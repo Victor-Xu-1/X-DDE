@@ -58,6 +58,56 @@ const metrics = [
 ];
 
 it.each(["en", "zh"] as const)(
+  "shows truthful batch warnings and missingness in %s",
+  (language) => {
+    render(
+      <GeneratedCandidates
+        records={rows}
+        selected={rows[0]}
+        url="/poses.sdf"
+        metrics={metrics}
+        language={language}
+        onSelect={vi.fn()}
+      />,
+    );
+    const batch = screen.getByRole("region", {
+      name: language === "zh" ? "批次结构检查" : "Batch structure checks",
+    });
+    expect(batch).toHaveTextContent(
+      language === "zh"
+        ? "输出包含多个片段"
+        : "Outputs with disconnected fragments",
+    );
+    expect(batch).toHaveTextContent("1 / 2");
+    expect(batch).toHaveTextContent(
+      language === "zh" ? "2 条未报告" : "2 not reported",
+    );
+    expect(batch).toHaveTextContent(
+      language === "zh"
+        ? "不证明结合活性"
+        : "does not establish full-receptor pose quality or binding activity",
+    );
+  },
+);
+
+it("does not summarize unmatched metrics as a batch", () => {
+  render(
+    <GeneratedCandidates
+      records={[rows[1]]}
+      selected={rows[1]}
+      url="/poses.sdf"
+      metrics={metrics}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.getByText(/Batch checks are incomplete/)).toBeVisible();
+  expect(
+    screen.queryByRole("region", { name: "Batch structure checks" }),
+  ).toBeNull();
+});
+
+it.each(["en", "zh"] as const)(
   "keeps selected convergence and warnings before the candidate list in %s",
   (language) => {
     const named = [

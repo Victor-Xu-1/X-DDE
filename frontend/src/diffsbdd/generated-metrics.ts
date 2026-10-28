@@ -1,3 +1,5 @@
+import type { CoreVerificationData } from "./types";
+
 /** Native row order is the molecular record authority, not the current table order. */
 export interface GeneratedMetrics {
   heavy_atoms?: number | null;
@@ -13,6 +15,64 @@ export interface GeneratedMetrics {
   pocket_atom_pairs_under_1_2_angstrom: number;
   fragments: number | null;
   relaxation_converged?: boolean | null;
+}
+
+/** Summarize only when every displayed record maps uniquely to its original report row. */
+export function generatedBatchSummary(
+  records: { record: number }[],
+  metrics: GeneratedMetrics[] | null | undefined,
+  verification?: CoreVerificationData,
+) {
+  if (!metrics || !records.length) return null;
+  const ids = records.map(({ record }) => record);
+  if (
+    ids.some((id) => !Number.isSafeInteger(id) || id < 0) ||
+    new Set(ids).size !== ids.length
+  )
+    return null;
+  let original: number[];
+  if (verification) {
+    if (verification.qualified_count !== ids.length) return null;
+    const qualified = verification.candidates.filter(
+      (c) => c.qualified_record !== null,
+    );
+    if (
+      qualified.length !== ids.length ||
+      qualified.some((c) => c.status !== "passed")
+    )
+      return null;
+    original = ids.map((id) => {
+      const matches = qualified.filter((c) => c.qualified_record === id);
+      return matches.length === 1 ? matches[0].record : -1;
+    });
+  } else {
+    if (ids.length !== metrics.length) return null;
+    original = ids;
+  }
+  if (
+    original.some(
+      (id) => !Number.isSafeInteger(id) || id < 0 || id >= metrics.length,
+    ) ||
+    new Set(original).size !== original.length
+  )
+    return null;
+  const rows = original.map((id) => metrics[id]);
+  return {
+    total: rows.length,
+    disconnected: rows.filter(
+      (row) => row.fragments !== null && row.fragments > 1,
+    ).length,
+    connectivityReported: rows.filter((row) => row.fragments !== null).length,
+    nearPocket: rows.filter(
+      (row) => row.pocket_atom_pairs_under_1_2_angstrom > 0,
+    ).length,
+    relaxationUnconverged: rows.filter(
+      (row) => row.relaxation_converged === false,
+    ).length,
+    relaxationReported: rows.filter(
+      (row) => typeof row.relaxation_converged === "boolean",
+    ).length,
+  };
 }
 
 export function generatedMetrics(report: unknown): GeneratedMetrics[] | null {

@@ -8,6 +8,7 @@ import { MolecularPreview } from "../presentation/MolecularPreview";
 import type { GeneratedMetrics } from "./generated-metrics";
 import { generatedColumns } from "./generated-columns";
 import { GeneratedMetricsView } from "./GeneratedMetricsView";
+import { GeneratedCandidatesBatch } from "./GeneratedCandidatesBatch";
 import { OptimizationFigures } from "./OptimizationFigures";
 import type { OptimizationData } from "./optimization-model";
 export interface GeneratedRecord {
@@ -87,6 +88,14 @@ export function GeneratedCandidates({
         </div>
       }
     >
+      {generated && !optimization && records.length > 0 && (
+        <GeneratedCandidatesBatch
+          records={records}
+          metrics={metrics}
+          verification={verification}
+          language={language}
+        />
+      )}
       {active && <GeneratedMetricsView active={active} language={language} />}
       {selected && generated && !active && (
         <p className="field-help" role="status">
