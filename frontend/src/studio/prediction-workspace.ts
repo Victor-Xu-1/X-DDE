@@ -14,6 +14,7 @@ export interface PredictionWorkspaceProps {
   inputVersion?: number;
   language: Language;
   ready: boolean;
+  retryAvailable?: boolean;
   health: Health | null;
   connectionError: boolean;
   onRefresh(): void;

@@ -42,6 +42,40 @@ const child = (): Job => ({
   status: "queued",
 });
 
+it.each(["zh", "en"] as const)(
+  "waits for the task service before retrying, then recovers (%s)",
+  async (language) => {
+    const retry = vi.spyOn(api, "retry").mockResolvedValue(child());
+    const changed = vi.fn();
+    const job = {
+      ...source(),
+      status: "failed" as const,
+      error: "Task cleanup/cancellation is unconfirmed; queue paused.",
+    };
+    const props = {
+      job,
+      detail: null,
+      failed: false,
+      language,
+      onChange: changed,
+    };
+    const view = render(<TaskDetail {...props} retryAvailable={false} />);
+    const label = language === "zh" ? "重新运行" : "Run again";
+    const button = screen.getByRole("button", { name: label });
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(retry).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      language === "zh" ? "恢复后" : "after it recovers",
+    );
+    view.rerender(<TaskDetail {...props} retryAvailable />);
+    expect(screen.getByRole("button", { name: label })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: label }));
+    await waitFor(() => expect(changed).toHaveBeenCalledWith(child()));
+    expect(retry).toHaveBeenCalledOnce();
+  },
+);
+
 it("retains a retry key until the confirmed child is delivered to the task view", async () => {
   const retry = vi.spyOn(api, "retry").mockResolvedValue(child());
   const changed = vi.fn().mockImplementationOnce(() => {

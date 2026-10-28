@@ -88,6 +88,14 @@ export function researchText(text: string, zh: boolean) {
   return messages[clean]?.[zh ? 0 : 1] ?? clean;
 }
 export function researchError(message: string, zh: boolean) {
+  if (
+    /cleanup\/cancellation is unconfirmed|container (?:cancellation|removal) (?:is unconfirmed|could not be confirmed)|Recovery could not confirm task cancellation/i.test(
+      message,
+    )
+  )
+    return zh
+      ? "任务收尾尚未确认，计算队列已暂停。已有任务文件已保留，请在运行状态恢复后重试。"
+      : "Task cleanup is not confirmed and the compute queue is paused. Existing task files are retained; retry after the task service recovers.";
   if (/Research evidence is invalid or changed/i.test(message))
     return zh
       ? "参考材料无法核验。请检查原始文件或重新获取材料，再用于后续任务。"

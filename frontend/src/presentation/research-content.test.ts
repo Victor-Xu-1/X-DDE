@@ -40,3 +40,15 @@ it("keeps accepted-task recovery wording independent of link placement", () => {
     "任务已创建，但未能自动打开。请使用任务链接。",
   );
 });
+
+it.each([
+  "Task cleanup/cancellation is unconfirmed; queue paused. Preparation container cancellation is unconfirmed.",
+  "Recovery could not confirm task cancellation; queue paused.",
+])(
+  "explains unconfirmed cleanup without suggesting installation: %s",
+  (message) => {
+    expect(researchError(message, true)).toContain("计算队列已暂停");
+    expect(researchError(message, false)).toContain("compute queue is paused");
+    expect(researchError(message, true)).not.toContain("安装");
+  },
+);

@@ -1,0 +1,32 @@
+name: Task service availability and retry controls
+on:
+  pull_request:
+    paths: &paths
+      - 'frontend/src/TaskDetail*'
+      - 'frontend/src/presentation/research-content*'
+      - 'frontend/src/studio/TaskWorkspace*'
+      - 'frontend/src/studio/PredictionResults*'
+      - 'frontend/src/studio/prediction-workspace.ts'
+      - 'frontend/src/studio/RuntimeStatus*'
+      - 'frontend/src/App.tsx'
+      - '.github/workflows/task-service-availability.yml'
+  push:
+    paths: *paths
+permissions:
+  contents: read
+jobs:
+  availability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Retry blocking, recovery, bilingual failures and module consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
+          src/presentation/research-content.test.ts src/studio/TaskWorkspace.test.tsx
+          src/studio/PredictionResults.test.tsx src/studio/RuntimeStatus.test.tsx src/App.test.tsx

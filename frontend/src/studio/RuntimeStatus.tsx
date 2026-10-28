@@ -75,8 +75,8 @@ export function RuntimeStatus({
           {health?.worker_error && (
             <p role="alert">
               {zh
-                ? "任务服务暂不可用，请检查安装状态。"
-                : "Task service unavailable; check installation status."}
+                ? "任务服务暂不可用；已有文件已保留，请待服务恢复后再提交。"
+                : "Task service unavailable. Existing files are retained; submit after the service recovers."}
             </p>
           )}
 
