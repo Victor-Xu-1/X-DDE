@@ -68,7 +68,7 @@ jobs:
           while IFS= read -r file; do
             case "$file" in
               frontend/src/docking/PoseComparison.tsx) found=true ;;
-              frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|frontend/src/docking/PoseTable.tsx|frontend/src/presentation/ResearchTable.tsx|frontend/src/presentation/ResearchTable.test.tsx|server_tests/test_docking_table_browser.py|.github/workflows/pose-handoff-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|frontend/src/docking/PoseTable.tsx|frontend/src/presentation/ResearchTable.tsx|frontend/src/presentation/ResearchTable.test.tsx|server_tests/test_docking_table_browser.py|.github/workflows/pose-handoff-checks.yml|.github/workflows/user-interface-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)
@@ -111,11 +111,12 @@ jobs:
           echo "WB_HOME=$RUNNER_TEMP/x-dde-pose-handoff" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-pose-handoff/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-pose-handoff" WB_STATE_DIR="$RUNNER_TEMP/x-dde-pose-handoff/state" .venv/bin/python server_tests/prepare_pose_handoff.py
+      - name: Prepare the ephemeral CI browser for retained-source inspection
+        run: uv run --locked playwright install chromium --with-deps
       - name: Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads
         if: steps.scope.outputs.overlay_only != 'true'
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
-          uv run --locked playwright install chromium --with-deps
           uv run --locked python -m pytest -x -q server_tests/test_pose_handoff_browser.py
       - name: Current sealed STAT6 docking results; no new scientific calculation
         env:
