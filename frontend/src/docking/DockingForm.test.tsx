@@ -146,3 +146,47 @@ it("does not offer CNN search/refinement for scoring an existing pose", async ()
     }),
   );
 });
+
+it("retains a handed-off reference ligand and requires coordinate confirmation", async () => {
+  mocks.request.mockImplementation(async (path: string) =>
+    path.startsWith("/research/constraints")
+      ? []
+      : { availability: { configuration_present: true } },
+  );
+  const reference = {
+    ...ligand,
+    asset_id: "reference",
+    sha256: "b".repeat(64),
+  };
+  const user = userEvent.setup();
+  render(
+    <DockingForm
+      language="en"
+      onCreated={() => {}}
+      initialReceptor={receptor}
+      initialLigand={ligand}
+      initialReference={reference}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  const confirmed = screen.getByRole("checkbox", {
+    name: /confirm the reference\/existing pose/i,
+  });
+  expect(confirmed).not.toBeChecked();
+  await user.click(confirmed);
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Explore binding poses" }),
+    ).toBeEnabled(),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Explore binding poses" }),
+  );
+  expect(mocks.submit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      search: expect.objectContaining({ kind: "reference_ligand", reference }),
+    }),
+  );
+});
