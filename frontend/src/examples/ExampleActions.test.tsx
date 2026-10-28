@@ -78,6 +78,7 @@ describe("module templates", () => {
   it.each([
     { id: "different-job", status: "succeeded" },
     { id: "256b08a8-b466-47c4-a69e-32ad1d3bc9d9", status: "failed" },
+    null,
   ])("rejects an unexpected or unfinished pinned job %#", async (returned) => {
     const caseId = "stat6-defined-molecules";
     transport.request

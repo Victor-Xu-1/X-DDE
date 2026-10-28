@@ -146,6 +146,7 @@ export function useExampleTemplate({
       if (
         info.pin &&
         (!("job" in value) ||
+          !value.job ||
           value.job.id !== info.pin.job_id ||
           value.job.status !== "succeeded")
       ) {

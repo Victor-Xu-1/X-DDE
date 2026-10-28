@@ -73,7 +73,7 @@ jobs:
         run: python3 scripts/del-ci-scope.py
       - id: review_scope
         env:
-          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         shell: bash
         run: |
           review_only=true
