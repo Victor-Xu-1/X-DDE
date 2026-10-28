@@ -21,6 +21,11 @@ const pocket = { kind: "ligand", ligand };
 const job = {
   id: "reference-job",
   status: "succeeded",
+  created_at: "2026-01-01T00:00:00Z",
+  started_at: null,
+  finished_at: null,
+  error: null,
+  parent_id: null,
   request: {
     name: "Reference",
     operation: "diffsbdd",
