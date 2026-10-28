@@ -66,10 +66,13 @@ def owned_container(runtime, name):
     return identifier
 
 
-@pytest.mark.parametrize("kind", ["preparation", "docking", "pockets"])
+@pytest.mark.parametrize(
+    "kind,bound",
+    [("preparation", True), ("docking", True), ("pockets", True), ("pockets", False)],
+)
 @pytest.mark.parametrize("outcome", ["confirmed", "lost_reply", "daemon_unavailable"])
 def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
-    tmp_path, monkeypatch, kind, outcome
+    tmp_path, monkeypatch, kind, bound, outcome
 ):
     directory = tmp_path / str(uuid4())
     directory.mkdir()
@@ -88,8 +91,10 @@ def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
     runtime = container_runtime.DockerRuntime(
         "unix:///var/run/docker.sock", json.loads(observed.stdout)
     )
-    container_runtime.freeze(directory, runtime)
-    receipt_bytes = (directory / container_runtime.RECEIPT).read_bytes()
+    if bound:
+        container_runtime.freeze(directory, runtime)
+    receipt_path = directory / container_runtime.RECEIPT
+    receipt_bytes = receipt_path.read_bytes() if bound else None
     settings = SimpleNamespace(state_dir=directory / "state")
     if kind == "preparation":
         module = prepared_container
@@ -108,11 +113,13 @@ def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
 
     async def execute(*arguments, **options):
         commands.append(arguments)
-        assert arguments[:3] == ("docker", "--host", runtime.endpoint)
-        if outcome == "daemon_unavailable" and arguments[3] == "info":
+        prefix = ("docker", "--host", runtime.endpoint) if bound else ("docker",)
+        assert arguments[: len(prefix)] == prefix
+        operation = arguments[len(prefix)]
+        if outcome == "daemon_unavailable" and operation == ("info" if bound else "rm"):
             return 1, "controlled unavailable-daemon observation"
         value = await native_command(*arguments, **options)
-        if outcome == "lost_reply" and arguments[3] == "rm":
+        if outcome == "lost_reply" and operation == "rm":
             assert value[0] == 0
             raise TimeoutError("controlled lost reply after real owned removal")
         return value
@@ -151,7 +158,8 @@ def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
             assert foreign_process.returncode is None
             assert (sibling_directory / "process.json").is_file()
             assert hashlib.sha256(artifact.read_bytes()).hexdigest() == artifact_sha
-            assert (directory / container_runtime.RECEIPT).read_bytes() == receipt_bytes
+            assert (receipt_path.read_bytes() if bound else None) == receipt_bytes
+            assert receipt_path.exists() == bound
         finally:
             await local_process.stop(script, directory)
             await local_process.stop(sibling_script, sibling_directory)
@@ -181,15 +189,17 @@ def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
         if outcome == "daemon_unavailable":
             assert still_present.returncode == 0
             assert json.loads(still_present.stdout)["Running"]
-            assert not any("rm" in call for call in commands)
+            assert any("rm" in call for call in commands) == (not bound)
         else:
             assert still_present.returncode == 1 and "No such" in still_present.stderr
-        evidence = Path(os.environ["RUNNER_TEMP"]) / "container-stop" / f"{kind}-{outcome}.json"
+        label = kind if bound else kind + "-legacy-default"
+        evidence = Path(os.environ["RUNNER_TEMP"]) / "container-stop" / f"{label}-{outcome}.json"
         evidence.parent.mkdir(parents=True, exist_ok=True)
         evidence.write_text(
             json.dumps(
                 {
                     "backend": kind,
+                    "explicit_runtime_receipt": bound,
                     "outcome": outcome,
                     "host_tree_stopped": True,
                     "container_absent": outcome != "daemon_unavailable",
