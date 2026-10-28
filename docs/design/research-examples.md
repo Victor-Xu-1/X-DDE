@@ -19,6 +19,14 @@ optional pin review retains the interpretation and limitations; it is computatio
 review, not experimental validation. MD/FEP examples are excluded from the current
 owner case campaign while those calculations remain paused.
 
+The pocket, docking and generation previews display short bilingual conclusions
+derived from their reviewed limitations. Each conclusion is bound to the exact
+case, capability, module revision, job ID and `result.json` SHA-256. A changed,
+missing or unreviewed pin does not inherit an old conclusion; the full review
+remains available and the original scientific files are never altered. The
+pocket example's reference-contact comparison uses a 5 Å heavy-atom cutoff and
+is specific to its retained 9BIG receptor and reference ligand.
+
 The STAT6 continuous-task template uses verified docking, PoseBusters and
 property recipes. It docks again, passes the first qualified pose and the exact
 native receptor together to the dock-profile quality task, and calculates that

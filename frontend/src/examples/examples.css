@@ -169,6 +169,15 @@
   border: 0;
   background: transparent;
 }
+.example-review-highlight {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-inline-start: 3px solid #bc8332;
+  background: #fff8eb;
+  color: #634a1f;
+  font-size: 13px;
+  line-height: 1.5;
+}
 .template-step-help {
   padding: 0;
   margin: -6px 0 18px;

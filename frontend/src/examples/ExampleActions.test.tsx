@@ -75,6 +75,51 @@ it.each(["zh", "en"] as const)(
   },
 );
 describe("module templates", () => {
+  it.each(["zh", "en"] as const)(
+    "shows the reviewed pocket limitation alongside its exact example result (%s)",
+    async (language) => {
+      const caseId = "stat6-defined-molecules";
+      const jobId = "256b08a8-b466-47c4-a69e-32ad1d3bc9d9";
+      transport.request
+        .mockResolvedValueOnce({
+          ...info,
+          module: {
+            capability_id: "p2rank.detect",
+            case_id: caseId,
+            revision: 3,
+          },
+          case: { ...info.case, id: caseId },
+          computed_result_available: true,
+          pin: {
+            job_id: jobId,
+            artifact_sha256: {
+              "result.json":
+                "6d1683d952f64163c752a6d5d729e7179df86e66b82a8d5b1a6b0d61c3fa8362",
+            },
+            review: { interpretation: "Review", limitations: "Limitations" },
+          },
+        })
+        .mockResolvedValueOnce({ id: jobId, status: "succeeded" });
+      render(
+        <ExampleActions
+          capability="p2rank.detect"
+          language={language}
+          onLoad={vi.fn()}
+        />,
+      );
+      fireEvent.click(
+        await screen.findByRole("button", {
+          name: language === "zh" ? "示例结果" : "Example results",
+        }),
+      );
+      expect(
+        await screen.findByText(
+          new RegExp(language === "zh" ? "17 个接触残基" : "17 residues"),
+        ),
+      ).toBeVisible();
+      expect(screen.getByText(`Native output ${jobId}`)).toBeVisible();
+    },
+  );
   it.each(["en", "zh"] as const)(
     "uses the prepared recipe guide only while its template is loaded (%s)",
     async (language) => {

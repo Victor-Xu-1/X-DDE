@@ -8,6 +8,7 @@ import { ExampleRecordResult } from "./ExampleRecordResult";
 import { ExampleToolbar } from "./ExampleToolbar";
 import { ExampleFeedback } from "./ExampleFeedback";
 import { TemplatePreviewContext } from "./context";
+import { reviewedHighlight } from "./review-highlights";
 import "./examples.css";
 
 export function ExampleActions(
@@ -27,6 +28,7 @@ export function ExampleActions(
   }, [state.result]);
   const zh = language === "zh";
   const review = state.info?.pin?.review ?? state.info?.record_pin?.review;
+  const highlight = reviewedHighlight(state.info, language);
   return (
     <section
       className={"module-template" + (state.result ? " is-preview" : "")}
@@ -69,6 +71,12 @@ export function ExampleActions(
           className="module-example-result"
           aria-label={zh ? "模块内示例结果" : "In-module example results"}
         >
+          {highlight && (
+            <p className="example-review-highlight">
+              <strong>{zh ? "案例关键结论：" : "Key finding: "}</strong>
+              {highlight}
+            </p>
+          )}
           <TemplatePreviewContext.Provider value={true}>
             {state.result.job && (
               <ExampleResultSet
