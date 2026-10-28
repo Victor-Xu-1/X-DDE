@@ -48,9 +48,12 @@ def reviewed_protein_only_receptor(scientific, records):
     if records is None:
         return None
     state = records.settings.state_dir
-    pin = ExamplePins(scientific.store, state, modules=records.modules).get(
-        "gnina.dock", verify=True
-    )
+    pins = ExamplePins(scientific.store, state, modules=records.modules)
+    pin = pins.get("gnina.dock", verify=True)
+    if pin is None:
+        # A successor cannot be pinned until its inputs have been prepared.
+        # Reuse only the latest sealed predecessor and validate its source below.
+        pin = pins.predecessor("gnina.dock", verify=True)
     if pin is None or pin.review is None:
         return None
     docking = scientific.store.get(str(pin.job_id))

@@ -68,6 +68,27 @@ class ExamplePins:
             raise ValueError("The original fixed-example request changed or is unavailable.")
         return json.loads(row["request"])
 
+    def predecessor(self, capability_id, *, verify=False):
+        """Find the immediately preceding saved revision within the same study."""
+        module = self.modules[capability_id]
+        with self.store.connect() as db:
+            rows = db.execute(
+                "SELECT revision,body FROM example_pins WHERE capability_id=? AND revision<? "
+                "ORDER BY revision DESC",
+                (capability_id, module.revision),
+            ).fetchall()
+        row = next(
+            (row for row in rows if json.loads(row["body"])["case_id"] == module.case_id),
+            None,
+        )
+        if row is None:
+            return None
+        modules = dict(self.modules)
+        modules[capability_id] = module.model_copy(update={"revision": row["revision"]})
+        return ExamplePins(self.store, self.state, modules=modules).get(
+            capability_id, verify=verify
+        )
+
     def pin(
         self,
         capability_id,
