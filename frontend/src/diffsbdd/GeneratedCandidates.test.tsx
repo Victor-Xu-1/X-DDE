@@ -80,12 +80,53 @@ it.each(["en", "zh"] as const)(
     );
     expect(batch).toHaveTextContent("1 / 2");
     expect(batch).toHaveTextContent(
-      language === "zh" ? "2 条未报告" : "2 not reported",
+      language === "zh" ? "未报告（2 条）" : "Not reported (2 records)",
     );
     expect(batch).toHaveTextContent(
       language === "zh"
         ? "不证明结合活性"
         : "does not establish full-receptor pose quality or binding activity",
+    );
+  },
+);
+
+it.each(["en", "zh"] as const)(
+  "does not turn missing batch measurements into zero failures in %s",
+  (language) => {
+    const partial = [
+      { ...metrics[0], fragments: null, relaxation_converged: false },
+      { ...metrics[1], fragments: 2, relaxation_converged: null },
+    ];
+    const props = {
+      records: rows,
+      selected: rows[0],
+      url: "/poses.sdf",
+      metrics: partial,
+      language,
+      onSelect: vi.fn(),
+    };
+    const { rerender } = render(<GeneratedCandidates {...props} />);
+    const batch = screen.getByRole("region", {
+      name: language === "zh" ? "批次结构检查" : "Batch structure checks",
+    });
+    expect(batch).toHaveTextContent(
+      language === "zh" ? "1 / 1（1 条未报告）" : "1 / 1 (1 not reported)",
+    );
+    rerender(
+      <GeneratedCandidates
+        {...props}
+        metrics={partial.map((row) => ({
+          ...row,
+          fragments: null,
+          relaxation_converged: null,
+        }))}
+      />,
+    );
+    expect(batch).toHaveTextContent(
+      language === "zh" ? "未报告（2 条）" : "Not reported (2 records)",
+    );
+    expect(batch).not.toHaveTextContent(
+      language === "zh" ? "0 / 2（2 条未报告）" : "0 / 2 (2 not reported)",
     );
   },
 );
