@@ -11,6 +11,7 @@ from .contracts import PinRequest, PreparedExample, RecordPinRequest
 from .pins import ExamplePins
 from .quality_review import quality_review
 from .records import ExampleRecords
+from .review_corrections import correct_review
 from .supporting import supporting_stage_names
 
 ExampleProfile = Literal["current", "stat6", "del6", "archive"]
@@ -43,6 +44,8 @@ def register_examples(app, store, assets, settings, mutation):
         recorded_review = None
         if capability_id == "posebusters.check":
             record, recorded_review = quality_review(record, store, settings.state_dir)
+        else:
+            record, recorded_review = correct_review(record)
         value = {
             "module": catalogue.modules[capability_id],
             "case": catalogue.case_for(capability_id),
