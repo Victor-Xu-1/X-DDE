@@ -9,6 +9,7 @@ on:
       - 'src/opendde_workbench/prepared_container.py'
       - 'src/opendde_workbench/integrations/runtime.py'
       - 'src/opendde_workbench/docking/backend.py'
+      - 'src/opendde_workbench/pockets/backend.py'
       - 'src/opendde_workbench/deployment/native_probe*.py'
       - 'src/opendde_workbench/deployment/installers.py'
       - 'src/opendde_workbench/deployment/network.py'
@@ -55,7 +56,7 @@ jobs:
           while IFS= read -r path; do
             case "$path" in
               tests/test_container_stop.py|server_tests/test_container_stop_native.py) found=true ;;
-              src/opendde_workbench/prepared_container.py|src/opendde_workbench/docking/backend.py|src/opendde_workbench/container_supervision.py|.github/workflows/native-container-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              src/opendde_workbench/prepared_container.py|src/opendde_workbench/docking/backend.py|src/opendde_workbench/pockets/backend.py|src/opendde_workbench/container_supervision.py|.github/workflows/native-container-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) stop_only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)
@@ -78,11 +79,13 @@ jobs:
         run: >-
           uv run --locked ruff check src/opendde_workbench/container_supervision.py
           src/opendde_workbench/prepared_container.py src/opendde_workbench/docking/backend.py
+          src/opendde_workbench/pockets/backend.py
           tests/test_container_stop.py server_tests/test_container_stop_native.py
       - name: Only owned cancellation, frozen runtimes and durable worker recovery
         run: >-
           uv run --locked pytest -q tests/test_container_stop.py tests/test_container_runtime.py
           tests/test_native_container_cleanup.py tests/test_local_process.py
+          tests/test_pockets.py
           tests/test_storage_consumers.py::test_cancel_and_unconfirmed_cleanup_preserve_halt_until_restart
       - name: One small official image for isolated lifecycle verification
         run: docker pull "$(uv run --locked python -c 'from opendde_workbench.receptors.image import PYTHON_IMAGE; print(PYTHON_IMAGE)')"

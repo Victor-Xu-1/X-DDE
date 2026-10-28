@@ -15,6 +15,7 @@ import pytest
 from opendde_workbench import container_runtime, local_process, prepared_container
 from opendde_workbench.docking import backend as docking_backend
 from opendde_workbench.engine import command as native_command
+from opendde_workbench.pockets import backend as pocket_backend
 from opendde_workbench.receptors.image import PYTHON_IMAGE
 
 pytestmark = pytest.mark.skipif(
@@ -65,7 +66,7 @@ def owned_container(runtime, name):
     return identifier
 
 
-@pytest.mark.parametrize("kind", ["preparation", "docking"])
+@pytest.mark.parametrize("kind", ["preparation", "docking", "pockets"])
 @pytest.mark.parametrize("outcome", ["confirmed", "lost_reply", "daemon_unavailable"])
 def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
     tmp_path, monkeypatch, kind, outcome
@@ -95,9 +96,12 @@ def test_cancel_stops_only_its_process_tree_without_hiding_docker_failure(
         backend = module.PreparedContainerBackend(
             settings, "posebusters", directory, ["runner.py"], None, None
         )
-    else:
+    elif kind == "docking":
         module = docking_backend
         backend = module.DockingBackend(settings)
+    else:
+        module = pocket_backend
+        backend = module.PocketBackend(settings)
     container = owned_container(runtime, backend.container(directory.name))
     sibling = None
     commands = []

@@ -11,6 +11,7 @@ import pytest
 from opendde_workbench import container_runtime, local_process, prepared_container
 from opendde_workbench.docking import backend as docking_backend
 from opendde_workbench.models import Status
+from opendde_workbench.pockets import backend as pocket_backend
 from opendde_workbench.prediction import Prediction
 from opendde_workbench.store import Store
 from opendde_workbench.worker import Worker
@@ -18,7 +19,7 @@ from opendde_workbench.worker import Worker
 DAEMON = "318e9cd2-c1e9-4ec0-8635-c2d2e12eba39"
 
 
-@pytest.fixture(params=["preparation", "docking"])
+@pytest.fixture(params=["preparation", "docking", "pockets"])
 def cancellation(request, tmp_path, monkeypatch):
     directory = tmp_path / str(uuid4())
     runtime = container_runtime.DockerRuntime("unix:///tmp/xdde-test.sock", DAEMON)
@@ -30,9 +31,13 @@ def cancellation(request, tmp_path, monkeypatch):
             settings, "posebusters", tmp_path, ["runner.py"], None, None
         )
         script = tmp_path / "supervise.py"
-    else:
+    elif request.param == "docking":
         module = docking_backend
         backend = module.DockingBackend(settings)
+        script = Path(module.__file__).with_name("supervise.py")
+    else:
+        module = pocket_backend
+        backend = module.PocketBackend(settings)
         script = Path(module.__file__).with_name("supervise.py")
     calls = []
     state = SimpleNamespace(fault=None, local_error=None)
@@ -121,6 +126,44 @@ def test_both_failures_remain_in_the_server_exception_chain(cancellation):
         asyncio.run(context.backend.stop(context.directory.name, context.directory))
     assert isinstance(raised.value.__context__, TimeoutError)
     assert context.calls[-1][0] == "local_stop"
+
+
+@pytest.mark.parametrize(
+    "fault,error",
+    [
+        ("nonzero", RuntimeError),
+        ("timeout", TimeoutError),
+        ("cancelled", asyncio.CancelledError),
+        ("foreign_missing", RuntimeError),
+    ],
+)
+def test_legacy_default_pocket_cleanup_cannot_orphan_host_or_accept_foreign_missing(
+    tmp_path, monkeypatch, fault, error
+):
+    directory = tmp_path / str(uuid4())
+    directory.mkdir()
+    backend = pocket_backend.PocketBackend(SimpleNamespace(state_dir=tmp_path))
+    stopped = []
+
+    async def execute(*arguments, **unused):
+        assert arguments == ("docker", "rm", "--force", backend.container(directory.name))
+        if fault == "timeout":
+            raise TimeoutError("controlled lost legacy-daemon reply")
+        if fault == "cancelled":
+            raise asyncio.CancelledError("controlled caller cancellation")
+        if fault == "foreign_missing":
+            return 1, "Error response from daemon: No such container: another-task"
+        return 1, "controlled daemon refusal"
+
+    async def local_stop(script, job_directory):
+        stopped.append((script, job_directory))
+
+    monkeypatch.setattr(pocket_backend, "command", execute)
+    monkeypatch.setattr(local_process, "stop", local_stop)
+    with pytest.raises(error):
+        asyncio.run(backend.stop(directory.name, directory))
+    assert stopped == [(Path(pocket_backend.__file__).with_name("supervise.py"), directory)]
+    assert not (directory / container_runtime.RECEIPT).exists()
 
 
 def test_host_cleanup_cannot_release_worker_halt_while_container_is_unconfirmed(
