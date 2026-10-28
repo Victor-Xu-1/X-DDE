@@ -22,6 +22,10 @@ def register_pose_minimization(app, store, assets, settings, mutation, enqueue):
             task, pose = initial.resolve(value)
             if pose is not None:
                 return {"state": "ready", "pose": pose.model_dump(mode="json")}
+            if not value.allow_compute:
+                raise HTTPException(
+                    503, "Task service is unavailable; previously calculated poses remain available."
+                )
             # Reopening the same record shares its native task rather than
             # computing a new pose for every panel or browser refresh.
             key = uuid5(NAMESPACE_URL, "x-dde-initial-pose-v1:" + task.model_dump_json())

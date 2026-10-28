@@ -1,6 +1,6 @@
 import "./presentation/result-layout.css";
 import { useEffect, useRef, useState } from "react";
-import IconContext from "@ant-design/icons/es/components/Context";
+import { ApplicationScope } from "./studio/ApplicationScope";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import {
@@ -123,9 +123,10 @@ export function App() {
     science = useScience(job),
     t = translator(language),
     zh = language === "zh";
-  const ready = Boolean(
-    health?.engine.ready && health.worker_ready && !work.connectionError,
+  const taskServiceAvailable = Boolean(
+    health?.worker_ready && !work.connectionError,
   );
+  const ready = Boolean(health?.engine.ready && taskServiceAvailable);
   // Legacy links wait for their exact task. Ownership is a pure projection of
   // that selection, so switching within one module cannot stall in a pending view.
   const view: View =
@@ -273,7 +274,7 @@ export function App() {
     language,
     ready,
     health,
-    retryAvailable: Boolean(health?.worker_ready && !work.connectionError),
+    retryAvailable: taskServiceAvailable,
     job,
     detail,
     // Source-specific read failures and Retry appear once above the workspace.
@@ -290,7 +291,7 @@ export function App() {
     onCandidate: chooseCandidate,
   };
   return (
-    <IconContext.Provider value={{ zeroRuntime: true }}>
+    <ApplicationScope taskServiceAvailable={taskServiceAvailable}>
       <div className="studio-app">
         <Navigation
           view={view}
@@ -548,6 +549,6 @@ export function App() {
           </main>
         </div>
       </div>
-    </IconContext.Provider>
+    </ApplicationScope>
   );
 }

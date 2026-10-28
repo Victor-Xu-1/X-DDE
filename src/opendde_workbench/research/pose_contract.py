@@ -53,3 +53,4 @@ class InitialPoseInput(ScientificModel):
     source: PoseSource
     method: Literal["MMFF94s", "UFF"] = "MMFF94s"
     retry: bool = Field(default=False, strict=True)
+    allow_compute: bool = Field(default=True, strict=True)

@@ -16,6 +16,7 @@ export function InitialPoseStatus({
   const failed = ["error", "failed", "cancelled", "interrupted"].includes(
     state.phase,
   );
+  const unavailable = !state.available && !state.busy;
   return (
     <div
       className="viewer-message initial-pose-status"
@@ -23,20 +24,28 @@ export function InitialPoseStatus({
     >
       {state.busy && <LoadingOutlined spin />}
       <strong>
-        {failed
+        {unavailable
           ? zh
-            ? "三维构象尚未准备好"
-            : "3D conformer is not ready"
-          : zh
-            ? "正在准备优化后的三维构象…"
-            : "Preparing an optimized 3D conformer…"}
+            ? "新的三维构象暂时无法计算"
+            : "New 3D conformers cannot be calculated right now"
+          : failed
+            ? zh
+              ? "三维构象尚未准备好"
+              : "3D conformer is not ready"
+            : zh
+              ? "正在准备优化后的三维构象…"
+              : "Preparing an optimized 3D conformer…"}
       </strong>
       <span>
-        {failed
-          ? poseError(state.error || "Minimization did not succeed.", zh)
-          : zh
-            ? "首次查看会生成构象并最小化能量，原始分子保持不变。"
-            : "First viewing generates and minimizes a conformer. The original molecule stays unchanged."}
+        {unavailable
+          ? zh
+            ? "计算服务恢复后可重试；已计算的结构仍会直接使用，不会重复最小化。"
+            : "Retry when the task service recovers. Previously calculated structures are reused without duplicate minimization."
+          : failed
+            ? poseError(state.error || "Minimization did not succeed.", zh)
+            : zh
+              ? "首次查看会生成构象并最小化能量，原始分子保持不变。"
+              : "First viewing generates and minimizes a conformer. The original molecule stays unchanged."}
       </span>
       {failed && state.pose.source && (
         <div className="initial-pose-actions">
@@ -53,6 +62,7 @@ export function InitialPoseStatus({
           <button
             className="secondary-button"
             type="button"
+            disabled={!state.available}
             onClick={() => void state.prepareInitial(method, true)}
           >
             {zh ? "重试" : "Retry"}

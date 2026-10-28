@@ -5,6 +5,7 @@ import { optimizedPose, computedPose } from "./pose-source";
 import type { ScientificObject } from "../research/types";
 import type { PreviewPose, SavedPose } from "./pose-types";
 import { poseDownloadUrl } from "./pose-download";
+import { useTaskServiceAvailability } from "../studio/ApplicationScope";
 
 type Phase = Status | "idle" | "submitting" | "saving" | "error";
 interface State {
@@ -20,6 +21,7 @@ interface State {
 
 /** View history is local; durable poses and lineage belong to X-DDE's scientific store. */
 export function usePoseOptimization(base: PreviewPose, index: number) {
+  const available = useTaskServiceAvailability();
   const key = JSON.stringify(base);
   const initial = (): State => ({
     key,
@@ -137,7 +139,7 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
   }, [state.job, state.key, key, poll]);
 
   async function minimize(forceField: "MMFF94s" | "UFF", iterations: number) {
-    if (busy || submitting.current || !pose.source) return;
+    if (!available || busy || submitting.current || !pose.source) return;
     const generation = epoch.current;
     submitting.current = true;
     const body = {
@@ -180,7 +182,13 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
     method: "MMFF94s" | "UFF" = "MMFF94s",
     retry = false,
   ) {
-    if (busy || submitting.current || visible.initialReady || !pose.source)
+    if (
+      (retry && !available) ||
+      busy ||
+      submitting.current ||
+      visible.initialReady ||
+      !pose.source
+    )
       return;
     const generation = epoch.current;
     submitting.current = true;
@@ -208,7 +216,12 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
         { state: "ready"; pose: ScientificObject } | { state: "task"; job: Job }
       >(
         "/research/poses/initial",
-        { source, method, retry },
+        {
+          source,
+          method,
+          retry,
+          ...(!available ? { allow_compute: false } : {}),
+        },
         crypto.randomUUID(),
       );
       if (generation !== epoch.current) return;
@@ -249,6 +262,7 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
   return {
     pose,
     downloadUrl: poseDownloadUrl(pose, index),
+    available,
     busy,
     phase: visible.phase,
     error: visible.error,
