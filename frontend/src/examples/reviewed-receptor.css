@@ -1,0 +1,59 @@
+.reviewed-receptor {
+  padding: 10px 0;
+  margin: 0 0 12px;
+  border-block: 1px solid var(--border, #dce4ee);
+  font-size: 13px;
+}
+.reviewed-receptor summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.reviewed-receptor > p {
+  max-width: 100ch;
+  line-height: 1.6;
+}
+.reviewed-receptor-finding {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 12px 0;
+  color: var(--muted);
+}
+.reviewed-receptor-finding strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.reviewed-receptor-table {
+  overflow-x: auto;
+}
+.reviewed-receptor table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.reviewed-receptor th,
+.reviewed-receptor td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border, #dce4ee);
+  vertical-align: top;
+}
+.reviewed-receptor td:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+}
+.reviewed-receptor-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 12px 0;
+}
+@media (max-width: 600px) {
+  .reviewed-receptor th,
+  .reviewed-receptor td {
+    min-width: 110px;
+  }
+  .reviewed-receptor-finding {
+    gap: 6px 10px;
+  }
+}

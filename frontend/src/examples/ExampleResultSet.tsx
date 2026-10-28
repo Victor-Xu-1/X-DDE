@@ -20,6 +20,7 @@ export function ExampleResultSet(
     stageNames?: Record<string, string>;
     language: Language;
     initialCandidateId?: string;
+    stageSummary?(onSelect: (jobId: string) => void): ReactNode;
   },
 ) {
   const { supporting, language } = props;
@@ -73,18 +74,22 @@ export function ExampleResultSet(
     return () => controller.abort();
   }, [selected, root.id, loaded]);
   const current = selected === root.id ? null : loaded[selected];
+  function chooseStage(id: string) {
+    if (id !== root.id && !supporting.some((entry) => entry.job_id === id))
+      return;
+    setFailure(null);
+    setChoice({ root: root.id, id });
+  }
   if (!supporting.length) return <>{root.content}</>;
   return (
     <>
+      {props.stageSummary?.(chooseStage)}
       <label className="field">
         {zh ? "研究阶段结果" : "Study result stage"}
         <select
           aria-label={zh ? "研究阶段结果" : "Study result stage"}
           value={selected}
-          onChange={(event) => {
-            setFailure(null);
-            setChoice({ root: root.id, id: event.target.value });
-          }}
+          onChange={(event) => chooseStage(event.target.value)}
         >
           <option value={root.id}>
             {props.job

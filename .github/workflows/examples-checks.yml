@@ -3,139 +3,146 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'src/opendde_workbench/examples/**'
+      - "src/opendde_workbench/examples/**"
       # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
-      - '!src/opendde_workbench/examples/stat6/manifest.json'
-      - '!src/opendde_workbench/examples/stat6/catalogue.py'
-      - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
-      - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
-      - '!src/opendde_workbench/examples/stat6/requests.py'
-      - '!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif'
+      - "!src/opendde_workbench/examples/stat6/manifest.json"
+      - "!src/opendde_workbench/examples/stat6/catalogue.py"
+      - "!src/opendde_workbench/examples/stat6/catalogue-profiles.json"
+      - "!src/opendde_workbench/examples/stat6/reference_inputs.py"
+      - "!src/opendde_workbench/examples/stat6/requests.py"
+      - "!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif"
       # Protein-interface presets have exact source/chain and native result checks.
-      - '!src/opendde_workbench/examples/stat6/harness_requests.py'
+      - "!src/opendde_workbench/examples/stat6/harness_requests.py"
       # DEL cohort wording has its exact stage-guidance gate, without unrelated forms.
-      - '!src/opendde_workbench/examples/del6/guidance.py'
-      - '!src/opendde_workbench/examples/del6/stage_hints.py'
-      - '!src/opendde_workbench/examples/del6/current-inputs.json'
-      - '!src/opendde_workbench/examples/del6/compatibility.py'
-      - '!src/opendde_workbench/examples/del6/catalogue-profiles.json'
-      - '!src/opendde_workbench/examples/del6/manifest-v1.json'
+      - "!src/opendde_workbench/examples/del6/guidance.py"
+      - "!src/opendde_workbench/examples/del6/stage_hints.py"
+      - "!src/opendde_workbench/examples/del6/current-inputs.json"
+      - "!src/opendde_workbench/examples/del6/compatibility.py"
+      - "!src/opendde_workbench/examples/del6/catalogue-profiles.json"
+      - "!src/opendde_workbench/examples/del6/manifest-v1.json"
       # Exact DEL and existing STAT6 archive consumers have the cohort gate.
-      - '!src/opendde_workbench/examples/catalogue_profiles.py'
-      - '!src/opendde_workbench/examples/bundle*.py'
-      - '!src/opendde_workbench/examples/native_sources.py'
-      - '!src/opendde_workbench/examples/evidence.py'
+      - "!src/opendde_workbench/examples/catalogue_profiles.py"
+      - "!src/opendde_workbench/examples/bundle*.py"
+      - "!src/opendde_workbench/examples/native_sources.py"
+      - "!src/opendde_workbench/examples/evidence.py"
       # Exact immutable stage consumers have example-result-set-checks.yml.
-      - '!src/opendde_workbench/examples/supporting.py'
-      - '!src/opendde_workbench/examples/contracts.py'
-      - '!src/opendde_workbench/examples/pins.py'
-      - '!src/opendde_workbench/examples/routes.py'
-      - '!src/opendde_workbench/examples/library.py'
+      - "!src/opendde_workbench/examples/supporting.py"
+      - "!src/opendde_workbench/examples/contracts.py"
+      - "!src/opendde_workbench/examples/pins.py"
+      - "!src/opendde_workbench/examples/routes.py"
+      - "!src/opendde_workbench/examples/library.py"
       # Simulation template additions and old task bytes have a focused integration gate.
-      - '!src/opendde_workbench/examples/catalogue.json'
+      - "!src/opendde_workbench/examples/catalogue.json"
       # Immutable historical profiles are verified by actual retained-case imports.
-      - '!src/opendde_workbench/examples/catalogue-profiles.json'
-      - '!src/opendde_workbench/examples/preparation.py'
-      - '!src/opendde_workbench/examples/stat6/guidance.py'
-      - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
+      - "!src/opendde_workbench/examples/catalogue-profiles.json"
+      - "!src/opendde_workbench/examples/preparation.py"
+      - "!src/opendde_workbench/examples/stat6/guidance.py"
+      - "!src/opendde_workbench/examples/stat6/simulation_guidance.py"
       # Native integrated presets have exact questionnaire/chemical-source checks.
-      - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
+      - "!src/opendde_workbench/examples/stat6/integrated_requests.py"
       # Recipe replay and portable stage consumers have the focused module gate.
-      - '!src/opendde_workbench/examples/stat6/preparation.py'
-      - '!src/opendde_workbench/examples/stat6/*_replay.py'
-      - '!src/opendde_workbench/examples/stat6_bundle_release.py'
-      - '!src/opendde_workbench/examples/del_bundle_release.py'
-      - 'frontend/src/examples/**'
-      - '!frontend/src/examples/stat6-harness*'
-      - '!frontend/src/examples/RecipeInputs.test.tsx'
-      - 'frontend/src/poses/PoseForm.test.tsx'
+      - "!src/opendde_workbench/examples/stat6/preparation.py"
+      - "!src/opendde_workbench/examples/stat6/*_replay.py"
+      - "!src/opendde_workbench/examples/stat6_bundle_release.py"
+      - "!src/opendde_workbench/examples/del_bundle_release.py"
+      - "frontend/src/examples/**"
+      # Evidence-bound case comparisons use example-result-set-checks.yml.
+      - "!frontend/src/examples/review-highlights*"
+      - "!frontend/src/examples/reviewed-*"
+      - "!frontend/src/examples/ReviewedReceptorComparison*"
+      - "!frontend/src/examples/stat6-harness*"
+      - "!frontend/src/examples/RecipeInputs.test.tsx"
+      - "frontend/src/poses/PoseForm.test.tsx"
       # Task identity and its direct consumers have task-history-checks.yml.
-      - '!frontend/src/examples/useTaskLabel.ts'
-      - '!frontend/src/examples/useTaskLabel.test.tsx'
+      - "!frontend/src/examples/useTaskLabel.ts"
+      - "!frontend/src/examples/useTaskLabel.test.tsx"
       # This read-only material view is covered by the native figure browser gate.
-      - '!frontend/src/examples/StudyInputPreview.tsx'
-      - '!frontend/src/examples/ExampleActions*'
-      - '!frontend/src/examples/ExampleJobResult*'
-      - '!frontend/src/examples/ExampleResultSet*'
-      - '!frontend/src/examples/types.ts'
-      - '!frontend/src/examples/ExampleToolbar*'
-      - '!frontend/src/examples/ExampleGuide*'
-      - '!frontend/src/examples/ExampleFeedback*'
-      - '!frontend/src/examples/useExampleTemplate*'
-      - '!frontend/src/examples/examples.css'
-      - '!frontend/src/examples/guide-data.json'
-      - '!frontend/src/examples/guide.ts'
-      - '!frontend/src/examples/guide.test.ts'
-      - 'frontend/src/App.tsx'
-      - 'frontend/src/App.test.tsx'
+      - "!frontend/src/examples/StudyInputPreview.tsx"
+      - "!frontend/src/examples/ExampleActions*"
+      - "!frontend/src/examples/ExampleJobResult*"
+      - "!frontend/src/examples/ExampleResultSet*"
+      - "!frontend/src/examples/types.ts"
+      - "!frontend/src/examples/ExampleToolbar*"
+      - "!frontend/src/examples/ExampleGuide*"
+      - "!frontend/src/examples/ExampleFeedback*"
+      - "!frontend/src/examples/useExampleTemplate*"
+      - "!frontend/src/examples/examples.css"
+      - "!frontend/src/examples/guide-data.json"
+      - "!frontend/src/examples/guide.ts"
+      - "!frontend/src/examples/guide.test.ts"
+      - "frontend/src/App.tsx"
+      - "frontend/src/App.test.tsx"
       # The direct application consumer now runs in task-history-checks.yml.
-      - '!frontend/src/App.tsx'
-      - '!frontend/src/App.test.tsx'
-      - 'tests/test_examples.py'
-      - 'tests/test_example_observed_inputs.py'
-      - 'tests/test_example_pins.py'
-      - '!tests/test_example_pins.py'
-      - 'tests/test_example_library.py'
+      - "!frontend/src/App.tsx"
+      - "!frontend/src/App.test.tsx"
+      - "tests/test_examples.py"
+      - "tests/test_example_observed_inputs.py"
+      - "tests/test_example_pins.py"
+      - "!tests/test_example_pins.py"
+      - "tests/test_example_library.py"
   pull_request:
     paths:
-      - 'src/opendde_workbench/examples/**'
+      - "src/opendde_workbench/examples/**"
       # Exact structural study sources and all preserved profiles use structure-comparison-checks.yml.
-      - '!src/opendde_workbench/examples/stat6/manifest.json'
-      - '!src/opendde_workbench/examples/stat6/catalogue.py'
-      - '!src/opendde_workbench/examples/stat6/catalogue-profiles.json'
-      - '!src/opendde_workbench/examples/stat6/reference_inputs.py'
-      - '!src/opendde_workbench/examples/stat6/requests.py'
-      - '!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif'
-      - '!src/opendde_workbench/examples/del6/guidance.py'
-      - '!src/opendde_workbench/examples/del6/stage_hints.py'
-      - '!src/opendde_workbench/examples/del6/current-inputs.json'
-      - '!src/opendde_workbench/examples/del6/compatibility.py'
-      - '!src/opendde_workbench/examples/del6/catalogue-profiles.json'
-      - '!src/opendde_workbench/examples/del6/manifest-v1.json'
-      - '!src/opendde_workbench/examples/catalogue_profiles.py'
-      - '!src/opendde_workbench/examples/del_bundle_release.py'
-      - '!src/opendde_workbench/examples/bundle*.py'
-      - '!src/opendde_workbench/examples/native_sources.py'
-      - '!src/opendde_workbench/examples/evidence.py'
-      - '!src/opendde_workbench/examples/supporting.py'
-      - '!src/opendde_workbench/examples/contracts.py'
-      - '!src/opendde_workbench/examples/pins.py'
-      - '!src/opendde_workbench/examples/routes.py'
-      - '!src/opendde_workbench/examples/library.py'
-      - '!src/opendde_workbench/examples/catalogue.json'
-      - '!src/opendde_workbench/examples/catalogue-profiles.json'
-      - '!src/opendde_workbench/examples/preparation.py'
-      - '!src/opendde_workbench/examples/stat6/guidance.py'
-      - '!src/opendde_workbench/examples/stat6/simulation_guidance.py'
-      - '!src/opendde_workbench/examples/stat6/integrated_requests.py'
-      - '!src/opendde_workbench/examples/stat6/preparation.py'
-      - '!src/opendde_workbench/examples/stat6/*_replay.py'
-      - '!src/opendde_workbench/examples/stat6_bundle_release.py'
-      - 'frontend/src/examples/**'
-      - '!frontend/src/examples/stat6-harness*'
-      - '!frontend/src/examples/RecipeInputs.test.tsx'
-      - 'frontend/src/poses/PoseForm.test.tsx'
+      - "!src/opendde_workbench/examples/stat6/manifest.json"
+      - "!src/opendde_workbench/examples/stat6/catalogue.py"
+      - "!src/opendde_workbench/examples/stat6/catalogue-profiles.json"
+      - "!src/opendde_workbench/examples/stat6/reference_inputs.py"
+      - "!src/opendde_workbench/examples/stat6/requests.py"
+      - "!src/opendde_workbench/examples/stat6/inputs/4Y5W.cif"
+      - "!src/opendde_workbench/examples/del6/guidance.py"
+      - "!src/opendde_workbench/examples/del6/stage_hints.py"
+      - "!src/opendde_workbench/examples/del6/current-inputs.json"
+      - "!src/opendde_workbench/examples/del6/compatibility.py"
+      - "!src/opendde_workbench/examples/del6/catalogue-profiles.json"
+      - "!src/opendde_workbench/examples/del6/manifest-v1.json"
+      - "!src/opendde_workbench/examples/catalogue_profiles.py"
+      - "!src/opendde_workbench/examples/del_bundle_release.py"
+      - "!src/opendde_workbench/examples/bundle*.py"
+      - "!src/opendde_workbench/examples/native_sources.py"
+      - "!src/opendde_workbench/examples/evidence.py"
+      - "!src/opendde_workbench/examples/supporting.py"
+      - "!src/opendde_workbench/examples/contracts.py"
+      - "!src/opendde_workbench/examples/pins.py"
+      - "!src/opendde_workbench/examples/routes.py"
+      - "!src/opendde_workbench/examples/library.py"
+      - "!src/opendde_workbench/examples/catalogue.json"
+      - "!src/opendde_workbench/examples/catalogue-profiles.json"
+      - "!src/opendde_workbench/examples/preparation.py"
+      - "!src/opendde_workbench/examples/stat6/guidance.py"
+      - "!src/opendde_workbench/examples/stat6/simulation_guidance.py"
+      - "!src/opendde_workbench/examples/stat6/integrated_requests.py"
+      - "!src/opendde_workbench/examples/stat6/preparation.py"
+      - "!src/opendde_workbench/examples/stat6/*_replay.py"
+      - "!src/opendde_workbench/examples/stat6_bundle_release.py"
+      - "frontend/src/examples/**"
+      - "!frontend/src/examples/review-highlights*"
+      - "!frontend/src/examples/reviewed-*"
+      - "!frontend/src/examples/ReviewedReceptorComparison*"
+      - "!frontend/src/examples/stat6-harness*"
+      - "!frontend/src/examples/RecipeInputs.test.tsx"
+      - "frontend/src/poses/PoseForm.test.tsx"
       # Task identity and its direct consumers have task-history-checks.yml.
-      - '!frontend/src/examples/useTaskLabel.ts'
-      - '!frontend/src/examples/useTaskLabel.test.tsx'
-      - '!frontend/src/examples/StudyInputPreview.tsx'
-      - '!frontend/src/examples/ExampleActions*'
-      - '!frontend/src/examples/ExampleJobResult*'
-      - '!frontend/src/examples/ExampleResultSet*'
-      - '!frontend/src/examples/types.ts'
-      - '!frontend/src/examples/ExampleToolbar*'
-      - '!frontend/src/examples/ExampleGuide*'
-      - '!frontend/src/examples/ExampleFeedback*'
-      - '!frontend/src/examples/useExampleTemplate*'
-      - '!frontend/src/examples/examples.css'
-      - '!frontend/src/examples/guide-data.json'
-      - '!frontend/src/examples/guide.ts'
-      - '!frontend/src/examples/guide.test.ts'
-      - 'tests/test_examples.py'
-      - 'tests/test_example_observed_inputs.py'
-      - 'tests/test_example_pins.py'
-      - '!tests/test_example_pins.py'
-      - 'tests/test_example_library.py'
+      - "!frontend/src/examples/useTaskLabel.ts"
+      - "!frontend/src/examples/useTaskLabel.test.tsx"
+      - "!frontend/src/examples/StudyInputPreview.tsx"
+      - "!frontend/src/examples/ExampleActions*"
+      - "!frontend/src/examples/ExampleJobResult*"
+      - "!frontend/src/examples/ExampleResultSet*"
+      - "!frontend/src/examples/types.ts"
+      - "!frontend/src/examples/ExampleToolbar*"
+      - "!frontend/src/examples/ExampleGuide*"
+      - "!frontend/src/examples/ExampleFeedback*"
+      - "!frontend/src/examples/useExampleTemplate*"
+      - "!frontend/src/examples/examples.css"
+      - "!frontend/src/examples/guide-data.json"
+      - "!frontend/src/examples/guide.ts"
+      - "!frontend/src/examples/guide.test.ts"
+      - "tests/test_examples.py"
+      - "tests/test_example_observed_inputs.py"
+      - "tests/test_example_pins.py"
+      - "!tests/test_example_pins.py"
+      - "tests/test_example_library.py"
 permissions:
   contents: read
 jobs:
@@ -159,7 +166,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev

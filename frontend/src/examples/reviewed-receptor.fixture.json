@@ -1,0 +1,233 @@
+{
+  "module": {
+    "case_id": "stat6-defined-molecules",
+    "capability_id": "diffsbdd.diversify",
+    "revision": 3,
+    "pinned_run_required": true,
+    "parent_capability": null
+  },
+  "case": {
+    "id": "stat6-defined-molecules",
+    "revision": 2,
+    "label": ["STAT6 · 指定分子研究", "STAT6 · Defined-molecule study"],
+    "description": [
+      "使用人 STAT6 的真实序列与结构，以及指定的小分子和 PROTAC。结构参考、未结合态计算构象和真实任务结果分别保留来源。",
+      "Use the real human STAT6 sequence and structures with the specified small molecule and PROTAC. Reference structures, computed unbound conformers and actual task results retain their distinct provenance."
+    ],
+    "files": [
+      "stat6_sequence",
+      "stat6_structure",
+      "stat6_receptor",
+      "stat6_alternative",
+      "crbn_receptor",
+      "study_ligand",
+      "study_protac",
+      "bound_reference",
+      "stat6_alternative_receptor",
+      "calculated_pose",
+      "calculated_poses",
+      "calculated_receptor",
+      "dupilumab_complex",
+      "dupilumab_heavy",
+      "dupilumab_light",
+      "dupilumab_antigen",
+      "stat6_assay_library",
+      "stat6_measurements",
+      "dupilumab_variable_domains",
+      "stat6_observed_sequence"
+    ],
+    "sources": [
+      "https://www.uniprot.org/uniprotkb/P42226",
+      "https://www.rcsb.org/structure/9BIG",
+      "https://www.rcsb.org/structure/4Y5U",
+      "https://www.rcsb.org/structure/8RQA",
+      "https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-stat6-v1",
+      "https://models.rcsb.org/v1/9big/ligand?auth_asym_id=A&auth_seq_id=701&encoding=sdf",
+      "https://www.ebi.ac.uk/chembl/api/data/assay/CHEMBL982109.json",
+      "https://www.rcsb.org/structure/6WGL",
+      "https://platform.opentargets.org/disease/MONDO_0004979/associations"
+    ],
+    "evidence_entities": {
+      "structure": {
+        "id": "9BIG",
+        "description": "STAT6 bound to AK-1690; this reference ligand differs from the study PROTAC.",
+        "name": "STAT6 experimental reference"
+      },
+      "target": {
+        "id": "ENSG00000166888",
+        "description": "Human signal transducer and activator of transcription 6.",
+        "name": "STAT6"
+      },
+      "protein": {
+        "id": "P42226",
+        "description": "Canonical human STAT6, 847 amino acids.",
+        "name": "STAT6"
+      },
+      "disease": {
+        "id": "MONDO_0004979",
+        "name": "asthma",
+        "description": "Asthma context in the reviewed human STAT6 evidence; association scores do not establish causal or clinical validation."
+      }
+    }
+  },
+  "files": [],
+  "computed_result_available": true,
+  "pin": {
+    "capability_id": "diffsbdd.diversify",
+    "case_id": "stat6-defined-molecules",
+    "revision": 3,
+    "job_id": "59348536-7349-42a0-95ae-e76a7e07e78d",
+    "request_sha256": "9e854d1225483a426ab2c1c6a733f5b1ac3de6ab0474139f5af7d967db70db6d",
+    "environment_sha256": "ce167210917f722aef8f1395a42acb4154eaf632c2176b9b1f8161d4d69cac73",
+    "artifact_sha256": {
+      "native/20261018T025101Z_f834a1cb/edited_input.sdf": "65937569a8071ec798371ac9081b327d6e7dc0aad2addaf674c6698ab3232494",
+      "native/20261018T025101Z_f834a1cb/molecules.csv": "30146b7e235a2c9e97fb6ff87c8082584a6c9afff4774e963b44f07c85c06912",
+      "native/20261018T025101Z_f834a1cb/molecules.sdf": "727f47fd1748bf981733c6fdd007c34571c10100403442704cf98808d5e0b844",
+      "native/20261018T025101Z_f834a1cb/pocket.pdb": "e2e4c83da0a34b2450874fc8e0f15d7aba786ae5c9d3fe7a859b8e6d02b08807",
+      "native/20261018T025101Z_f834a1cb/protein.pdb": "d5e552ed3d4af876639df552cf394562460def6a91557da8fb83973c0cb2d460",
+      "native/20261018T025101Z_f834a1cb/raw_molecules.sdf": "bf57688a67b3aeb8a28dbce2dd4c527def528da36fba234394e62a3b1c9a9d6c",
+      "native/20261018T025101Z_f834a1cb/report.json": "758c3e065df0f852d491d5e35e7e7417cb7d391dc6448ac161e475868a1dd5a9",
+      "result.json": "3d4270f5377cdb13b9d86bb029ab5834fc7ed2329d96ea51e294b0fa7f114ed0"
+    },
+    "created_at": "2026-10-19T20:23:52.232885+08:00",
+    "review": {
+      "scope": "reviewed_computational_example",
+      "interpretation": "Three connected 30-heavy-atom scaffold hypotheses were generated in three native attempts; none retains the starting scaffold. Candidate 3 was prepared in its unchanged chemical state with ten converged MMFF94s conformers; the lowest reported energy selects record 3 (zero-based record 2). Matched GNINA searches retain twenty poses each for the paired predicted STAT6 436-658 receptor and the independently prepared 9BIG experimental construct, using the same ligand, reference, seed and search budget. Both nearly tied leading predicted-domain poses and the leading experimental-receptor pose have 15 assessed native quality passes, six unassessed environmental checks and one not-applicable check. Native files and computed source frames remain unchanged; actual 2D/3D selection and original SDF downloads were reviewed.",
+      "limitations": "This bounded computational tutorial is not a validated hit-finding campaign, binding-mode determination or affinity/selectivity measurement. Three generated molecules are not an enrichment benchmark or evidence of drug activity. The two best predicted poses differ by 4.61 A despite a score gap of 0.00661 kcal/mol; the experimental top pose differs by 11.20 A from the predicted top and is closest to predicted rank 14 (1.74 A). Receptor conditions change rankings. AK-1690 has a different graph and defines search extent only; no generated-ligand reference RMSD is inferred. The predicted reference placement has severe clashes, and the experimental construct has unresolved regions. Water/cofactor context is absent; six native true flags are unassessed. Quality plausibility and native UFF diagnostics do not prove binding or reduced MMFF strain. No dynamics or FEP was performed.",
+      "checked": [
+        "input_identity",
+        "method_scope",
+        "native_outputs",
+        "visual_preview",
+        "downloads"
+      ]
+    },
+    "initial_candidate_id": null,
+    "supporting_evidence": [
+      {
+        "job_id": "2f0d7c91-de44-49e9-b839-c352667f2c31",
+        "request_sha256": "0c492921211e546711547fb272aa3a6475f05812beb2a0336ec0c387591a99d3",
+        "environment_sha256": "fff1f0a01aa3fd9f7b7edaee2536ce3fa07a604ba2c36c3a07a77e7a31747330",
+        "artifact_sha256": {
+          "conformer-001.sdf": "57f7ba6601f0f8be6297679a4dfe1d6a0eac2f4ff316c7631985341e27c482f0",
+          "conformer-002.sdf": "e745104a2ac8dc1b5375e811422cc5cce9219cd1b3092fdd66a4ae8bb6c56af7",
+          "conformer-003.sdf": "406c1b59418ab40779b18b924427fa2f9d171eddf39ee04dd1d568bfb33b9c16",
+          "conformer-004.sdf": "20385371f01d6af4dbfcc40a0c87296c1e599849dc85ab98474d6fa599942933",
+          "conformer-005.sdf": "30ad9ccd78ebd2157840bf364267d0203811a51fba9214caa6f3313f397401d6",
+          "conformer-006.sdf": "07f73ed35b6cc0589bd18ee7ce303cdfc07674d76ab93a67094f97fd9b660b8c",
+          "conformer-007.sdf": "1a28f9c5caef6df1cd3b5011c2fd6d45cfc6d8e2f5e6ea6dbbc95133d78afd13",
+          "conformer-008.sdf": "02b7312cfd4b2f0d6495d4510cfd3f1f85c5e712ea5edc7fcb171e817b617428",
+          "conformer-009.sdf": "8fc7e0622277ee3b8d6a467e1e3e99ac7a977d7822432ed30a006885755d009e",
+          "conformer-010.sdf": "89eec8fa4c0381b719839b474e9795b884fd1818e487bff14098554506b49afe",
+          "conformers.sdf": "5bc53f89d6bace9e30fe51ac466b507c1f22ea63eb51654e92afe999fc84cf5a",
+          "result.json": "b971c286262dc124a61bf9e8b4f5511b80668b83dee5ff74bb47db7a1dab01b7",
+          "states.sdf": "daf6ca2b27d230e35eea7b69f3f528290668eb121d3bedbf8f2a0987c81f1d1f"
+        }
+      },
+      {
+        "job_id": "18fe1caa-401b-4bed-a704-31874deec47b",
+        "request_sha256": "638288a7d409e690c7cbb22584b250d906430a3a3c07f5c8842760115afd5da4",
+        "environment_sha256": "c101456058a0a76b21738a57ca41d31728529590579c031bbfe3e1af5c59cf88",
+        "artifact_sha256": {
+          "input-ligand.sdf": "85fc0598209d7a2142a0d011ed265c55b23e46457d94e4307dc7a56548f68bdd",
+          "pose-001.sdf": "0132d82c237582ccac2babe58e14b24b68cdc275768baf4bf49bdb5765c0655d",
+          "pose-002.sdf": "d4097c240e88215daf313259930451d64480452b00f94447280efbf897e7f6a7",
+          "pose-003.sdf": "ea069cb9536be39951d7cc6482cea9cf02af4b2b95bbdf9e410c7d4d4615f2ab",
+          "pose-004.sdf": "338e48fdd880134f327261da4a36bd13a71811df16d5ce57991fa3b0e6532003",
+          "pose-005.sdf": "7f0191959afe02f1a47f24799e3d097a75ff31dadfd9840802b851ef2ee147af",
+          "pose-006.sdf": "4dd3b857621d76c10d94071baad73c08fb552bf8526a1b62a2499955d0e41044",
+          "pose-007.sdf": "b82562474e9c814f02f861f22a61102f1a3aa6c30d8c9e59d38ee37dd101ec8c",
+          "pose-008.sdf": "27cfa791016c8abcf8f95e59c81ed6fb37875cccf7b5dfcfaf66e8066913db05",
+          "pose-009.sdf": "7317f57134535b81d3687d839c77d36c5f5347093305aee8e3d921c21de8874d",
+          "pose-010.sdf": "8e095b7f16c304dfd625d3523034ecd3d969cf34c996c511f94bcebf292e1f26",
+          "pose-011.sdf": "d75ddf7de3f76efdc3d1bbeea287c1b1b5752f5f0934b8944d39804f7fa74cbc",
+          "pose-012.sdf": "78f20b318800e893df7ace121441defb249c4cbb4b5289f5af6f99884c5a3d1b",
+          "pose-013.sdf": "9266c80d56e85746dc5f86f16d6b50c6009687d1f02623c8c830b56a46519466",
+          "pose-014.sdf": "5763b671eb4cb1ddcd031c835daaa3e878c6041ccdcae350841ca181dae5084d",
+          "pose-015.sdf": "ed4d4a13c40aa926c35e171309e9b8083de9ce1189e81de149189e38544ef129",
+          "pose-016.sdf": "70c16e4ca9ec3b66dd0564733feb710ca98ae4ee8ddd0f0daa2e043ec755c155",
+          "pose-017.sdf": "0a6dee485d42d1fd56c74e1c8c6d5756117ed9e42d533f756cb2c9c80ddadc12",
+          "pose-018.sdf": "14d270b50d6fe1b4aa896fe3cdf6b3117724ce9bc5f85ebcb557f983cef7bfee",
+          "pose-019.sdf": "12b4400cbde9cdc2b4fccdca7c87d5538a95d25c1fabc2e25f6dc026c60d56d5",
+          "pose-020.sdf": "ecdb75267819186663d25d2c553bf76618317f93d299902595ad61ef11ed1b61",
+          "poses.sdf": "133df02de60c75212fb12fcb723e34254b2ebf080654657b16b225668f87229e",
+          "qualified-poses.sdf": "dfddd9ec4cd85dbc724e74f24bb282891c1bcd11b79a63ffad829e9edf439ad3",
+          "receptor.pdb": "d5e552ed3d4af876639df552cf394562460def6a91557da8fb83973c0cb2d460",
+          "reference-ligand.sdf": "76f63e26025a35e1ec5ff7445a5a260f140d7e3357bc2a42fb7e51ea33d180a6",
+          "result.json": "c66b208555bff98d5c6d54c6a48d8775af364bff8104fa33b043341e0df3b9ac"
+        }
+      },
+      {
+        "job_id": "936b1612-1502-47bf-aa30-555d239f580e",
+        "request_sha256": "a456fed9d6f7bd79d2d32004169ecffedaf036b9d9abb1335a700faff08cb799",
+        "environment_sha256": "6be045fa92cdc06cfdae9aba0693df24b55fa905d505a2e51cdc278485f2f9a9",
+        "artifact_sha256": {
+          "molecule-preview.sdf": "c6608e5740e811f3110e178bfb58885a0f6b12ce90d3a16bb62b60bac053f2df",
+          "protein-preview.pdb": "d5e552ed3d4af876639df552cf394562460def6a91557da8fb83973c0cb2d460",
+          "result.json": "407dbbca839126ec08e30c32dbd5c0269f13757c55f11d3e40ebd99823c60c90"
+        }
+      },
+      {
+        "job_id": "4949ff4c-17f0-4fd6-84fe-e1fc4f460778",
+        "request_sha256": "3b901a0b8eb55fcd7b7e078bc8056dac28e2e9d8486efb33e6841ba6d4fc46be",
+        "environment_sha256": "6be045fa92cdc06cfdae9aba0693df24b55fa905d505a2e51cdc278485f2f9a9",
+        "artifact_sha256": {
+          "molecule-preview.sdf": "0843e834f0ecbabc637465b21724206f77cdeb6fb9c1f5f7c64e623b877fe9fb",
+          "protein-preview.pdb": "d5e552ed3d4af876639df552cf394562460def6a91557da8fb83973c0cb2d460",
+          "result.json": "93cc096a1631415197cbea9cb7fe699c05f96c628439756e3090f311fa271ecd"
+        }
+      },
+      {
+        "job_id": "2899703f-0bfd-46ba-85e6-5fec7a072610",
+        "request_sha256": "2f1c0e605a054022ad15ed229eb578164af1cf174d2d712e8388054ed6c92f92",
+        "environment_sha256": "c101456058a0a76b21738a57ca41d31728529590579c031bbfe3e1af5c59cf88",
+        "artifact_sha256": {
+          "input-ligand.sdf": "85fc0598209d7a2142a0d011ed265c55b23e46457d94e4307dc7a56548f68bdd",
+          "pose-001.sdf": "b6b87408b2bdaf6657a479628b89bee5015992016f90ef5177f8ef6c9ea7363a",
+          "pose-002.sdf": "380a1ea45cbbe78588d39b47db51364d1550b952db78bb18c8298f649afedf08",
+          "pose-003.sdf": "78ded2361f8752bc3357b7cddac3fbf6a9a7dc124700cb765bedd6129a9cc99e",
+          "pose-004.sdf": "a1dceb22e00a7d9fb330c506d5575a5e3e2e4d0539dab8bcf19256249c88b1ca",
+          "pose-005.sdf": "355c5fbc9ac97f58ab631caafdb1f1571bc02f47f63c67f9eae5100146e73002",
+          "pose-006.sdf": "50eec545caad58599758e314ba06eb1423a0b5d913dbee0f0121e2c40e80e648",
+          "pose-007.sdf": "8a2124f008fa0e16d9f94fd51dbbddd0cae9eace5c7e238de1d6abbbcfbcecb1",
+          "pose-008.sdf": "9f2ab8522400a34c03750d6192981192ad620c17b2e969f69c710d7a3676e998",
+          "pose-009.sdf": "3ffc3fc93280d2ea18fd757f117f1fa787c7e3ef4450a0fc4e024c5947519e8f",
+          "pose-010.sdf": "f0fa4e0c9392bb3a1d830b26b7635632f54df99fe0294d2588fac0fa8a058c05",
+          "pose-011.sdf": "155ca26cecc46bfbfbfacef3b9fac7e97a544d286c4d9eb9d7c0ea546d9f847c",
+          "pose-012.sdf": "71e520303cfc2eccbe75bb60d1464a16a6f439990b0737bceb2092c0036beb8d",
+          "pose-013.sdf": "ca70cc78f34a2aff6483bc4b325220a9a0ba120bbae04802ab17bbba343b582f",
+          "pose-014.sdf": "561a52101a04ef6fbe5a36799ea307a69e9d0af88dca38fb91fe0229fdd5f6b2",
+          "pose-015.sdf": "43a7e6fea14ef9f5729812bc3d6a84220119678656e34100b85c6463922ef2e9",
+          "pose-016.sdf": "25b38b8d794a75a592da01f73061c12653431e86e8fb9691ed3a4e6cab56f439",
+          "pose-017.sdf": "eae3a8232c5561e5c3cf1ac4cceb9028f3123bb931244208769b171abfb82791",
+          "pose-018.sdf": "9fec48bc3d50646d1eb51afc0ff83155a85dfee3da5e3d7ecb99bc29f3d3aab9",
+          "pose-019.sdf": "253d7ffc02e639da7a737db69d22d706174e3b5aee7e4189a39fa6879d61df2b",
+          "pose-020.sdf": "60448ad11b1ff9e7427cfbd4f155f59126fc15c84c658df936bd5e1620282000",
+          "poses.sdf": "26adef63d4c782f1124b10f4306bfbe38f113d5dfe226e246fab35d56f059fa9",
+          "qualified-poses.sdf": "41b6fcffe0f4f750b8e15731c89ce8727d93e55718c8a76cd4fc4b0122541aee",
+          "receptor.pdb": "3250c6da6a3f406b62db8824e4ef8b27c89027da42d846393ec9601898a5ffa4",
+          "reference-ligand.sdf": "76f63e26025a35e1ec5ff7445a5a260f140d7e3357bc2a42fb7e51ea33d180a6",
+          "result.json": "c592a69d83145e9cfbfdf7881ba96e27cd4ac1f88892d3d87b5009e8b36da291"
+        }
+      },
+      {
+        "job_id": "7028c808-67aa-4957-8d45-bb3dfbd26eb6",
+        "request_sha256": "1d4abd17f87143b475e3f1fa51fcbc649f9988261b737818a217d749b4f3768e",
+        "environment_sha256": "6be045fa92cdc06cfdae9aba0693df24b55fa905d505a2e51cdc278485f2f9a9",
+        "artifact_sha256": {
+          "molecule-preview.sdf": "0a9a070b7a619a9ef82ce25b18161347ecb822f4cfd261ac457ce056fd1384bd",
+          "protein-preview.pdb": "3250c6da6a3f406b62db8824e4ef8b27c89027da42d846393ec9601898a5ffa4",
+          "result.json": "ecd32f3a906dbaf31f34779867299107e124560198be3b06392bff54d1824155"
+        }
+      }
+    ]
+  },
+  "supporting_stage_names": {
+    "2f0d7c91-de44-49e9-b839-c352667f2c31": "STAT6 · diversified candidate 3 · MMFF94s conformer preparation",
+    "18fe1caa-401b-4bed-a704-31874deec47b": "STAT6 · prepared diversified candidate 3 · independent pose search",
+    "936b1612-1502-47bf-aa30-555d239f580e": "STAT6 · diversified candidate 3 · predicted receptor pose 1 quality",
+    "4949ff4c-17f0-4fd6-84fe-e1fc4f460778": "STAT6 · diversified candidate 3 · predicted receptor pose 2 quality",
+    "2899703f-0bfd-46ba-85e6-5fec7a072610": "STAT6 · diversified candidate 3 · 9BIG experimental receptor control",
+    "7028c808-67aa-4957-8d45-bb3dfbd26eb6": "STAT6 · diversified candidate 3 · experimental receptor pose 1 quality"
+  }
+}

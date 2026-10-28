@@ -102,7 +102,10 @@ def test_skipped_versions_are_rejected(monkeypatch, tmp_path):
 def manifest_fixture(root, version="0.4.1"):
     files = {
         "pyproject.toml": f'[project]\nversion = "{version}"\n',
-        "uv.lock": f'[[package]]\nname = "x-dde"\nversion = "{version}"\n',
+        "uv.lock": (
+            f'[[package]]\nname = "x-dde"\nversion = "{version}"\n'
+            'source = { editable = "." }\n'
+        ),
         "frontend/package.json": json.dumps({"version": version}),
         "frontend/package-lock.json": json.dumps(
             {"version": version, "packages": {"": {"version": version}}}
@@ -115,3 +118,51 @@ def manifest_fixture(root, version="0.4.1"):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(body)
     return root
+
+
+def test_publication_updates_only_project_lock_metadata_without_resolving_dependencies(
+    monkeypatch, tmp_path
+):
+    import subprocess
+
+    root = manifest_fixture(tmp_path)
+    dependency = (
+        '\n[[package]]\nname = "retained-dependency"\nversion = "1.2.3"\n'
+        'source = { registry = "https://pypi.org/simple" }\n'
+    )
+    lock = root / "uv.lock"
+    lock.write_text(lock.read_text() + dependency)
+    calls = []
+    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command))
+    assert release.bump(root) == "0.4.2"
+    assert lock.read_text().endswith(dependency)
+    assert calls == [["uv", "lock", "--check", "--offline"]]
+    assert str(release.check(root)) == "0.4.2"
+
+
+def test_unlocked_dependencies_roll_back_all_version_mirrors(monkeypatch, tmp_path):
+    import subprocess
+
+    root = manifest_fixture(tmp_path)
+    saved = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+
+    def reject(*args, **kwargs):
+        raise subprocess.CalledProcessError(1, args[0])
+
+    monkeypatch.setattr(subprocess, "run", reject)
+    with pytest.raises(subprocess.CalledProcessError):
+        release.bump(root)
+    assert all(path.read_bytes() == raw for path, raw in saved.items())
+
+
+@pytest.mark.parametrize(
+    "source", ['{ registry = "https://pypi.org/simple" }', '{ editable = "elsewhere" }']
+)
+def test_publication_refuses_another_lock_authority(tmp_path, source):
+    root = manifest_fixture(tmp_path)
+    lock = root / "uv.lock"
+    lock.write_text(lock.read_text().replace('{ editable = "." }', source))
+    before = lock.read_bytes()
+    with pytest.raises(ValueError, match="exactly one editable"):
+        release.sync_project_lock(root, "0.4.1", "0.4.2")
+    assert lock.read_bytes() == before

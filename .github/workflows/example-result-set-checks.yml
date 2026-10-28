@@ -30,6 +30,8 @@ on:
       - "frontend/src/examples/ExampleResultSet*"
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/examples/review-highlights*"
+      - "frontend/src/examples/reviewed-*"
+      - "frontend/src/examples/ReviewedReceptorComparison*"
       - "frontend/src/examples/examples.css"
       - "frontend/src/examples/useExampleTemplate.ts"
       - "frontend/src/examples/ExampleJobResult*"
@@ -43,6 +45,8 @@ on:
       - "frontend/src/operations/OperationResults*"
       - "frontend/src/examples/types.ts"
       - "server_tests/test_reviewed_example_previews_browser.py"
+      - "server_tests/test_receptor_case_comparison_browser.py"
+      - "server_tests/reviewed_receptor_audit.py"
       - "server_tests/test_dataset_browser.py"
       - "server_tests/example_preview_actions.py"
       - "server_tests/reviewed_retrieval_preview.py"
@@ -84,9 +88,9 @@ jobs:
           fi
           while IFS= read -r path; do
             case "$path" in
-              frontend/src/examples/review-highlights*) found=true ;;
+              frontend/src/examples/review-highlights*|frontend/src/examples/reviewed-*|frontend/src/examples/ReviewedReceptorComparison*|server_tests/test_receptor_case_comparison_browser.py|server_tests/reviewed_receptor_audit.py) found=true ;;
               frontend/src/examples/useExampleTemplate.ts) loader_changed=true ;;
-              frontend/src/examples/ExampleActions.tsx|frontend/src/examples/ExampleActions.test.tsx|frontend/src/examples/examples.css|docs/design/research-examples.md|.github/workflows/example-result-set-checks.yml|.github/workflows/structure-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              frontend/src/examples/ExampleResultSet.tsx|frontend/src/examples/ExampleResultSet.test.tsx|frontend/src/examples/ExampleActions.tsx|frontend/src/examples/ExampleActions.test.tsx|frontend/src/examples/examples.css|docs/design/research-examples.md|scripts/release-version.py|tests/test_versioning.py|.github/workflows/examples-checks.yml|.github/workflows/example-result-set-checks.yml|.github/workflows/structure-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) review_only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)
@@ -97,7 +101,7 @@ jobs:
     needs: scope
     if: needs.scope.outputs.review_only == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -106,7 +110,44 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Evidence-bound bilingual conclusions and module rendering
         working-directory: frontend
-        run: npx vitest run src/examples/review-highlights.test.ts src/examples/review-highlights-view.test.tsx src/examples/ExampleActions.test.tsx
+        run: >-
+          npx vitest run src/examples/review-highlights.test.ts src/examples/review-highlights-view.test.tsx
+          src/examples/ReviewedReceptorComparison.test.tsx src/examples/ExampleActions.test.tsx
+          src/examples/ExampleResultSet.test.tsx src/examples/ExampleJobResult.test.tsx
+      - uses: astral-sh/setup-uv@v6
+      - name: Restore the exact scientific case without model or engine installation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked pytest -q tests/test_versioning.py
+          echo "WB_AUTO_DEPLOY=0" >> "$GITHUB_ENV"
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-receptor-comparison" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-receptor-comparison/state" >> "$GITHUB_ENV"
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          tag="${source[0]}"
+          asset="${source[1]}"
+          [[ "$tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+|examples-v[0-9]+)$ ]]
+          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+      - name: Ketcher and Chromium for native 2D/3D and downloads
+        run: |
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Independent native-coordinate audit and exact bilingual stage navigation
+        env:
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+        run: >-
+          uv run --locked --with rdkit==2026.3.6 --with numpy==2.3.4
+          python -m pytest -x -q server_tests/test_receptor_case_comparison_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reviewed-receptor-comparison
+          path: outputs/receptor-case-comparison
   immutable-stages:
     needs: scope
     if: needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
