@@ -26,12 +26,14 @@ export function GeneratedCandidatesBatch({
           : "Batch checks are incomplete or cannot be matched to the original records; no summary is available."}
       </p>
     );
-  const missing = (reported: number) =>
-    reported < summary.total
-      ? zh
-        ? `（${summary.total - reported} 条未报告）`
-        : ` (${summary.total - reported} not reported)`
-      : "";
+  const reportedCount = (count: number, reported: number) => {
+    if (!reported)
+      return zh
+        ? `未报告（${summary.total} 条）`
+        : `Not reported (${summary.total} records)`;
+    const missing = summary.total - reported;
+    return `${count} / ${reported}${missing ? (zh ? `（${missing} 条未报告）` : ` (${missing} not reported)`) : ""}`;
+  };
   return (
     <section aria-label={zh ? "批次结构检查" : "Batch structure checks"}>
       <strong>{zh ? "批次结构检查" : "Batch structure checks"}</strong>
@@ -41,8 +43,7 @@ export function GeneratedCandidatesBatch({
             {zh ? "输出包含多个片段" : "Outputs with disconnected fragments"}
           </dt>
           <dd>
-            {summary.disconnected} / {summary.total}
-            {missing(summary.connectivityReported)}
+            {reportedCount(summary.disconnected, summary.connectivityReported)}
           </dd>
         </div>
         <div>
@@ -62,8 +63,10 @@ export function GeneratedCandidatesBatch({
               : "Intramolecular relaxation not converged"}
           </dt>
           <dd>
-            {summary.relaxationUnconverged} / {summary.total}
-            {missing(summary.relaxationReported)}
+            {reportedCount(
+              summary.relaxationUnconverged,
+              summary.relaxationReported,
+            )}
           </dd>
         </div>
       </dl>
