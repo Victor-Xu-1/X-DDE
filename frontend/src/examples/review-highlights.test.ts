@@ -109,4 +109,43 @@ describe("review highlights are tied to exact retained evidence", () => {
       ),
     ).toBeNull();
   });
+
+  it("shows the reviewed pose-quality scope only with both exact follow-up reports", () => {
+    const evidence = [
+      {
+        job_id: "8969b071-879b-4374-9044-f9108ba29588",
+        artifact_sha256: {
+          "result.json": "b2ddd68b1d5c298a1850080ac41bfc5a7a94202b294dc41600e85c5e665521df",
+        },
+      },
+      {
+        job_id: "ca498efb-cb18-40ca-9262-c2597ab422da",
+        artifact_sha256: {
+          "result.json": "639c5abca478299a191aa45a0b21880ec1d3c083cb41aca2caadeed22b306e8d",
+        },
+      },
+    ];
+    const info: ExampleInfo = {
+      ...base,
+      module: { ...base.module, capability_id: "gnina.dock", revision: 5 },
+      pin: {
+        ...base.pin!,
+        job_id: "cf623a70-e687-47d1-9727-4433dc6429b5",
+        artifact_sha256: {
+          "result.json": "a0cd9fe2e3405f1aea4094fd3e683bb91c3c032b355e334fce56049c3fa8362",
+        },
+        supporting_evidence: evidence,
+      },
+    };
+    expect(reviewedHighlight(info, "zh")).toContain("姿势 3 和 9");
+    expect(reviewedHighlight(info, "en")).toContain("default pose 1");
+    expect(reviewedHighlight({
+      ...info, pin: { ...info.pin!, supporting_evidence: [evidence[0]] },
+    }, "en")).toBeNull();
+    expect(reviewedHighlight({
+      ...info, pin: { ...info.pin!, supporting_evidence: [
+        evidence[0], { ...evidence[1], artifact_sha256: { "result.json": "0".repeat(64) } },
+      ] },
+    }, "en")).toBeNull();
+  });
 });
