@@ -60,7 +60,7 @@ jobs:
           while IFS= read -r file; do
             case "$file" in
               frontend/src/pockets/ReferenceComparison*|frontend/src/pockets/reference-comparison*) found=true ;;
-              frontend/src/pockets/PocketResults.tsx|frontend/src/pockets/PocketResults.test.tsx|frontend/src/pockets/pocket-results.css|frontend/src/docking/DockingForm.tsx|frontend/src/docking/DockingForm.test.tsx|.github/workflows/pocket-result-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              frontend/src/pockets/PocketResults*.tsx|frontend/src/pockets/pocket-results.css|frontend/src/docking/DockingForm.tsx|frontend/src/docking/DockingForm.test.tsx|.github/workflows/pocket-result-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)
@@ -82,6 +82,7 @@ jobs:
         run: >-
           npx vitest run src/pockets/reference-comparison.test.ts
           src/pockets/ReferenceComparison.test.tsx src/pockets/PocketResults.test.tsx
+          src/pockets/PocketResults.return.test.tsx
           src/docking/DockingForm.test.tsx src/viewer/source-layout.test.ts
   pocket-results:
     needs: scope
