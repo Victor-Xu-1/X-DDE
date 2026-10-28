@@ -2,10 +2,11 @@
 
 import hashlib
 from types import SimpleNamespace
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from opendde_workbench.examples.contracts import ExamplePin, ExampleReview
 from opendde_workbench.examples.quality_review import quality_review
+from opendde_workbench.examples.review_corrections import correct_review
 
 
 def sample(tmp_path):
@@ -100,3 +101,64 @@ def test_example_api_exposes_projected_review_and_preserves_recorded_text(
     body = response.json()
     assert body["pin"]["review"]["interpretation"] == "Evidence-derived review."
     assert body["recorded_review"]["interpretation"] == pin.review.interpretation
+
+
+def test_historical_minimization_correction_is_bound_to_exact_source(tmp_path):
+    pin, _, _ = sample(tmp_path)
+    review = pin.review.model_copy(update={
+        "interpretation": (
+            "Minimization retained the original geometry. "
+            "Independent PoseBusters 0.6.5 assessment passes the same "
+            "22 applicable geometry checks."
+        )
+    })
+    source = pin.model_copy(update={
+        "capability_id": "gnina.minimize", "revision": 3,
+        "job_id": UUID("22ccf2fe-cbcb-43aa-9852-af267c85b678"),
+        "artifact_sha256": {
+            "result.json": "7bae030d010dbb5e2091413462bb55103f891a6ba19f285d8b73a95b216e4c51"
+        },
+        "review": review,
+    })
+    shown, recorded = correct_review(source)
+    assert "cannot be verified from the retained evidence" in shown.review.interpretation
+    assert "原案例所述的 22 项适用质控未关联独立报告" in shown.review.interpretation
+    assert "Minimization retained the original geometry." in shown.review.interpretation
+    assert "passes the same 22 applicable" not in shown.review.interpretation
+    assert recorded == review
+    assert source.review == review
+    other = source.model_copy(update={"artifact_sha256": {"result.json": "0" * 64}})
+    assert correct_review(other) == (other, None)
+    changed_review = review.model_copy(update={"interpretation": "Another retained review."})
+    changed = source.model_copy(update={"review": changed_review})
+    assert "could not be verified" in correct_review(changed)[0].review.interpretation
+
+
+def test_minimization_example_api_keeps_recorded_review(settings, client_factory, monkeypatch):
+    pin, _, _ = sample(settings.state_dir)
+    review = pin.review.model_copy(update={
+        "interpretation": (
+            "Independent PoseBusters 0.6.5 assessment passes the same "
+            "22 applicable geometry checks."
+        )
+    })
+    source = pin.model_copy(update={
+        "capability_id": "gnina.minimize", "revision": 3,
+        "job_id": UUID("22ccf2fe-cbcb-43aa-9852-af267c85b678"),
+        "artifact_sha256": {
+            "result.json": "7bae030d010dbb5e2091413462bb55103f891a6ba19f285d8b73a95b216e4c51"
+        },
+        "review": review,
+    })
+    monkeypatch.setattr(
+        "opendde_workbench.examples.routes.ExamplePins.get", lambda *_args, **_kwargs: source
+    )
+    monkeypatch.setattr(
+        "opendde_workbench.examples.routes.ExampleRecords.get", lambda *_args, **_kwargs: None
+    )
+    with client_factory() as client:
+        response = client.get("/api/examples/gnina.minimize?profile=stat6")
+    assert response.status_code == 200
+    body = response.json()
+    assert "cannot be verified" in body["pin"]["review"]["interpretation"]
+    assert body["recorded_review"]["interpretation"] == review.interpretation
