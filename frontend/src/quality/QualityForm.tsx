@@ -17,11 +17,13 @@ export function QualityForm({
   onCreated,
   initialMolecule = null,
   initialProtein = null,
+  initialProfile,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
   initialProtein?: MoleculeRef | null;
+  initialProfile?: QualityProfile;
 }) {
   const exampleMolecule = useExampleReference("ligand", "jq1");
   const exampleProtein = useExampleReference("receptor", "brd4");
@@ -39,7 +41,9 @@ export function QualityForm({
       preset?.reference ?? null,
     );
   const [profile, setProfile] = useState<QualityProfile>(
-      preset?.options.profile ?? (initialProtein ? "dock" : "mol"),
+      initialProfile ??
+        preset?.options.profile ??
+        (initialProtein ? "dock" : "mol"),
     ),
     [confirmed, setConfirmed] = useState(false),
     [cpu, setCPU] = useState(preset?.options.cpu ?? qualityDefaults.cpu),

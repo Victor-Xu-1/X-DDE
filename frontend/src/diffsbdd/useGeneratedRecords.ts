@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { api, artifactUrl, request } from "../api";
 import { artifactInfo } from "../presentation/artifact-digest";
+import { readArtifactFile } from "../presentation/artifact-file";
 import type { OperationResult } from "../operations/types";
-import type { ScientificObject } from "../research/types";
+import type { MoleculeRef, ScientificObject } from "../research/types";
 import type { GeneratedRecord } from "./GeneratedCandidates";
 
 class SourceMismatch extends Error {}
@@ -12,11 +13,12 @@ interface RecordState {
   record: number | null;
   error: string;
   preparing: boolean;
+  receptor: MoleculeRef | null;
 }
 interface SourceHandle {
   key: string;
   controller: AbortController;
-  read(): Promise<GeneratedRecord[]>;
+  read(): Promise<{ records: GeneratedRecord[]; receptor: MoleculeRef | null }>;
 }
 
 /** Verified native records and the existing idempotent material-registration authority. */
@@ -24,14 +26,25 @@ export function useGeneratedRecords(
   job: string,
   file: string | null,
   data: OperationResult,
+  inputReceptor: MoleculeRef | null,
 ) {
-  const key = JSON.stringify([job, file, data.valid, data.core_verification]);
+  const receptorFile =
+    typeof data.protein_artifact === "string" ? data.protein_artifact : null;
+  const key = JSON.stringify([
+    job,
+    file,
+    data.valid,
+    data.core_verification,
+    receptorFile,
+    inputReceptor,
+  ]);
   const blank = (sourceKey: string): RecordState => ({
     key: sourceKey,
     records: [],
     record: null,
     error: "",
     preparing: false,
+    receptor: null,
   });
   const [state, setState] = useState<RecordState>(() => blank(key));
   const active = useRef<SourceHandle | null>(null);
@@ -40,11 +53,12 @@ export function useGeneratedRecords(
   useEffect(() => {
     const controller = new AbortController();
     let expected = "";
+    let expectedReceptor = "";
     const handle: SourceHandle = {
       key,
       controller,
       async read() {
-        if (!file || data.valid === 0) return [];
+        if (!file || data.valid === 0) return { records: [], receptor: null };
         const signal = AbortSignal.any([
           controller.signal,
           AbortSignal.timeout(30000),
@@ -66,40 +80,71 @@ export function useGeneratedRecords(
             "The qualified molecular result does not match its scientific checks.",
           );
         expected = info.sha256;
+        let receptorHash = "";
+        if (receptorFile) {
+          try {
+            receptorHash = (
+              await readArtifactFile(artifactUrl(job, receptorFile), signal, {
+                maxBytes: 25 * 1024 ** 2,
+              })
+            ).sha256;
+            if (expectedReceptor && expectedReceptor !== receptorHash)
+              throw new SourceMismatch("The original receptor file changed.");
+            expectedReceptor = receptorHash;
+          } catch (error) {
+            if (signal.aborted || error instanceof SourceMismatch) throw error;
+          }
+        }
         const objects: ScientificObject[] = [];
         for (let offset = 0; offset < 10000; offset += 200) {
           const page = await request<ScientificObject[]>(
             `/research/objects?source_job=${encodeURIComponent(job)}&limit=200&offset=${offset}`,
             { signal },
           );
-          objects.push(
-            ...page.filter(
-              (value) =>
-                value.source_job === job &&
-                value.kind === "molecule" &&
-                value.reference.sha256 === info.sha256 &&
-                value.reference.record < info.records &&
-                value.reference.conformer === 0,
-            ),
-          );
+          objects.push(...page.filter((value) => value.source_job === job));
           if (page.length < 200) break;
         }
         signal.throwIfAborted();
-        return Array.from({ length: info.records }, (_, record) => ({
+        const records = Array.from({ length: info.records }, (_, record) => ({
           record,
-          object: objects.find((value) => value.reference.record === record),
+          object: objects.find(
+            (value) =>
+              value.kind === "molecule" &&
+              value.reference.sha256 === info.sha256 &&
+              value.reference.record === record &&
+              value.reference.conformer === 0,
+          ),
         }));
+        const outputReceptor = receptorHash
+          ? objects.find(
+              (value) =>
+                value.kind === "structure" &&
+                value.reference.sha256 === receptorHash &&
+                value.reference.record === 0 &&
+                value.reference.conformer === 0,
+            )?.reference
+          : undefined;
+        const matchingInput =
+          inputReceptor &&
+          receptorHash &&
+          inputReceptor.sha256 === receptorHash &&
+          inputReceptor.record === 0 &&
+          inputReceptor.conformer === 0
+            ? inputReceptor
+            : null;
+        return { records, receptor: matchingInput ?? outputReceptor ?? null };
       },
     };
     active.current = handle;
     setState(blank(key));
     void handle
       .read()
-      .then((records) => {
+      .then(({ records, receptor }) => {
         if (!controller.signal.aborted)
           setState({
             ...blank(key),
             records,
+            receptor,
             record: records[0]?.record ?? null,
           });
       })
@@ -124,7 +169,7 @@ export function useGeneratedRecords(
     try {
       await api.post(`/jobs/${encodeURIComponent(job)}/index-assets`, {});
       if (active.current !== handle || handle.controller.signal.aborted) return;
-      const records = await handle.read();
+      const { records, receptor } = await handle.read();
       if (!records.find((value) => value.record === record)?.object)
         throw new Error(
           "The selected candidate is not available as a research input.",
@@ -132,7 +177,7 @@ export function useGeneratedRecords(
       if (active.current === handle && !handle.controller.signal.aborted)
         setState((value) =>
           value.key === key
-            ? { ...value, records, preparing: false, error: "" }
+            ? { ...value, records, receptor, preparing: false, error: "" }
             : value,
         );
     } catch (error) {
@@ -150,6 +195,7 @@ export function useGeneratedRecords(
   }
   return {
     records: visible.records,
+    receptor: visible.receptor,
     selected:
       visible.records.find((value) => value.record === visible.record) ?? null,
     error: visible.error,
