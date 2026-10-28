@@ -139,6 +139,40 @@ it("does not show candidate properties for ambiguous qualified-record mappings",
   expect(screen.queryByText("Fixed-region checks passed")).toBeNull();
 });
 
+it("retains independently verified core labels when property metrics are unavailable", () => {
+  const entry = (record: number, qualified: number) => ({
+    record,
+    qualified_record: qualified,
+    status: "passed" as const,
+    diagnostic_artifact: null,
+    reason: null,
+    maximum_displacement: null,
+    mapping: [],
+  });
+  render(
+    <GeneratedCandidates
+      records={[rows[0]]}
+      selected={rows[0]}
+      url="/poses.sdf"
+      metrics={null}
+      verification={{
+        method: "rdkit_fixed_core_v1",
+        preserve_bonds: true,
+        qualified_count: 2,
+        qualified_sha256: "fixture",
+        candidates: [entry(0, 1), entry(1, 0)],
+      }}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  expect(screen.getByRole("button", {
+    name: "Candidate 2 · Fixed-region checks passed",
+  })).toBeVisible();
+  expect(screen.getByText(/Per-structure checks are unavailable/)).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Selected structure checks" })).toBeNull();
+});
+
 it.each(["en", "zh"] as const)(
   "shows truthful batch warnings and missingness in %s",
   (language) => {
