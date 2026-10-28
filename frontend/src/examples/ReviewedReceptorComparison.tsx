@@ -68,9 +68,10 @@ export function ReviewedReceptorComparison({
       </summary>
       <p>
         {zh
-          ? `以下仅比较生成候选 ${data.candidate_number} 的后续研究。同一准备分子在两个受体中各搜索了 ${data.method.poses_per_receptor} 个姿势。预测域模型为 STAT6 436–658；实验构建体包含未解析区域。分数仅供相同方法和条件下比较，不能换算成亲和力。`
-          : `This compares follow-up studies of generated candidate ${data.candidate_number} only. The same prepared molecule was searched for ${data.method.poses_per_receptor} poses in each receptor. The predicted STAT6 model covers residues 436–658; the experimental construct has unresolved regions. Scores describe their specific method and conditions, not measured affinity.`}
+          ? `以下仅比较生成候选 ${data.candidate_number} 的后续研究。同一准备分子在两个受体中各搜索了 ${data.method.poses_per_receptor} 个姿势。预测域模型为 STAT6 436–658；实验构建体包含未解析区域。`
+          : `This compares follow-up studies of generated candidate ${data.candidate_number} only. The same prepared molecule was searched for ${data.method.poses_per_receptor} poses in each receptor. The predicted STAT6 model covers residues 436–658; the experimental construct has unresolved regions.`}
       </p>
+      <p className="field-help">{data.method.scoring}</p>
       <div className="reviewed-receptor-finding">
         <span>
           {zh ? "预测受体前两姿势" : "Top two predicted-receptor poses"}
@@ -158,8 +159,8 @@ export function ReviewedReceptorComparison({
       </div>
       <p className="field-help">
         {zh
-          ? `RMSD 比较同一化学结构的重原子，未重新叠合配体，也未改变坐标。两受体有 ${data.method.matched_ca_atoms} 个同编号同残基的 Cα 位点，未拟合 RMSD 为 ${data.method.no_fit_ca_rmsd_angstrom.toFixed(2)} Å。6 项未评估检查对应缺失的水与辅因子环境。几何合理不等于真实结合，仍需实验验证。`
-          : `RMSD compares heavy atoms of the same chemical structure without fitting the ligands or changing coordinates. The receptors share ${data.method.matched_ca_atoms} Cα positions with matched residue identities and numbers; their no-fit RMSD is ${data.method.no_fit_ca_rmsd_angstrom.toFixed(2)} Å. Six checks lack water/cofactor context. Plausible geometry does not establish binding; experimental validation remains necessary.`}
+          ? `RMSD 比较同一化学结构的重原子，未重新叠合配体，也未改变坐标。两受体有 ${data.method.matched_ca_atoms} 个同编号同残基的 Cα 位点，未拟合 RMSD 为 ${data.method.no_fit_ca_rmsd_angstrom.toFixed(2)} Å。6 项未评估检查对应缺失的水与辅因子环境。`
+          : `RMSD compares heavy atoms of the same chemical structure without fitting the ligands or changing coordinates. The receptors share ${data.method.matched_ca_atoms} Cα positions with matched residue identities and numbers; their no-fit RMSD is ${data.method.no_fit_ca_rmsd_angstrom.toFixed(2)} Å. Six checks lack water/cofactor context.`}
       </p>
     </details>
   );

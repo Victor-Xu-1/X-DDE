@@ -4,6 +4,7 @@ import { ExampleActions } from "./ExampleActions";
 import { hasReviewedReceptorComparison } from "./ReviewedReceptorComparison";
 import captured from "./reviewed-receptor.fixture.json";
 import type { ExampleInfo } from "./types";
+import { matchesReviewedSources } from "./reviewed-sources";
 
 const transport = vi.hoisted(() => ({ request: vi.fn(), post: vi.fn() }));
 vi.mock("../api", () => ({
@@ -38,6 +39,27 @@ beforeEach(() => {
 it("recognizes independently captured installed metadata rather than a generated self-fixture", () => {
   expect(hasReviewedReceptorComparison(actual, root)).toBe(true);
 });
+
+it.each([undefined, null, 123, "invalid-digest"])(
+  "refuses malformed expected artifact evidence (%s)",
+  (value) => {
+    const stage = actual.pin!.supporting_evidence![0];
+    expect(
+      matchesReviewedSources(actual, root, {
+        case_id: actual.case.id,
+        capability_id: actual.module.capability_id,
+        revision: actual.module.revision,
+        job_id: root,
+        artifacts: {
+          "result.json": actual.pin!.artifact_sha256["result.json"],
+        },
+        supporting: [
+          { job_id: stage.job_id, artifact_sha256: { "result.json": value } },
+        ],
+      }),
+    ).toBe(false);
+  },
+);
 
 it("rejects a changed result, molecule, receptor, quality report, version or case", () => {
   const changed = (edit: (info: ExampleInfo) => void) => {
