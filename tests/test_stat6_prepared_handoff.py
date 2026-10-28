@@ -195,6 +195,56 @@ def test_docking_template_uses_its_exact_reviewed_prepared_version(settings):
     assert len(store.list_jobs()) == before
 
 
+def test_docking_successor_reuses_verified_predecessor_until_new_pin_exists(settings):
+    store, scientific, records, version = docking_fixture(settings)
+    successor = dict(MODULES)
+    current = successor["gnina.dock"]
+    successor["gnina.dock"] = current.model_copy(update={"revision": current.revision + 1})
+    next_records = ExampleRecords(store, scientific.assets, settings, modules=successor)
+    before = len(store.list_jobs())
+
+    prepared = prepare_stat6("gnina.dock", scientific, records=next_records, modules=successor)
+    assert prepared.module.revision == current.revision + 1
+    assert prepared.objects["receptor"] == version
+    assert prepared.request["receptor"] == version.reference.model_dump(mode="json")
+    assert len(store.list_jobs()) == before
+
+    # A successor may not silently reuse a changed predecessor result.
+    pin = ExamplePins(store, settings.state_dir, modules=MODULES).get("gnina.dock")
+    (settings.state_dir / "jobs" / str(pin.job_id) / "output" / "result.json").write_text("{}")
+    with pytest.raises(ValueError):
+        prepare_stat6("gnina.dock", scientific, records=next_records, modules=successor)
+
+
+def test_successor_does_not_take_another_study_or_override_its_own_pin(settings):
+    store, scientific, _, version = docking_fixture(settings)
+    old = ExamplePins(store, settings.state_dir, modules=MODULES).get("gnina.dock")
+    current = MODULES["gnina.dock"]
+    other = old.model_copy(update={"revision": current.revision + 1, "case_id": "other-study"})
+    with store.connect() as db:
+        db.execute(
+            "INSERT INTO example_pins VALUES(?,?,?,?)",
+            (other.capability_id, other.revision, str(other.job_id), other.model_dump_json()),
+        )
+    successor = dict(MODULES)
+    successor["gnina.dock"] = current.model_copy(update={"revision": current.revision + 2})
+    next_records = ExampleRecords(store, scientific.assets, settings, modules=successor)
+    prepared = prepare_stat6("gnina.dock", scientific, records=next_records, modules=successor)
+    assert prepared.objects["receptor"] == version
+    new_pins = ExamplePins(store, settings.state_dir, modules=successor)
+    new_pins.pin("gnina.dock", old.job_id, prepared, review=old.review)
+
+    # Corrupt only the predecessor record, leaving the current sealed pin intact.
+    changed = old.model_copy(update={"request_sha256": "0" * 64})
+    with store.connect() as db:
+        db.execute(
+            "UPDATE example_pins SET body=? WHERE capability_id=? AND revision=?",
+            (changed.model_dump_json(), old.capability_id, old.revision),
+        )
+    ready = prepare_stat6("gnina.dock", scientific, records=next_records, modules=successor)
+    assert ready.objects["receptor"] == version
+
+
 def test_generation_template_requires_exact_prepared_receptor_and_matching_reference_frame(
     settings,
 ):
