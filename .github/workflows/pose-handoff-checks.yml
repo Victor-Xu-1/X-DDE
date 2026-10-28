@@ -97,7 +97,7 @@ jobs:
           test "${#source[@]}" -eq 2
           tag="${source[0]}"
           asset="${source[1]}"
-          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+|examples-v[0-9]+)$ ]]
           [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP" --skip-existing
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"

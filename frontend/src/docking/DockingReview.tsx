@@ -1,3 +1,4 @@
+import { searchNotice } from "./searchNotice";
 import type { ReactNode } from "react";
 import type { Language } from "../types";
 import { ReviewReference } from "../diffsbdd/ReviewReference";
@@ -119,6 +120,9 @@ export function DockingReview({
   }
   return (
     <section aria-label={zh ? "对接方案核对" : "Docking plan review"}>
+      {request.mode === "dock" && (
+        <p className="field-help">{searchNotice(language)}</p>
+      )}
       <table
         className="compact-table"
         aria-label={zh ? "材料与计算方案" : "Materials and calculation plan"}

@@ -75,6 +75,11 @@ it.each(["en", "zh"] as const)(
     expect(within(table).getByText("CPU × 3")).toBeVisible();
     expect(table).toHaveTextContent("17");
     expect(table).toHaveTextContent("6 Å");
+    expect(
+      screen.getByText(
+        language === "zh" ? /实际范围/ : /resulting bounds are not recorded/,
+      ),
+    ).toBeVisible();
     expect(screen.getByText("431")).toBeInTheDocument();
     expect(screen.getByText("2048 MiB")).toBeInTheDocument();
   },
@@ -107,6 +112,7 @@ it.each(["score", "minimize"] as const)(
       screen.queryByText("Exhaustiveness 8 · at most 17 poses"),
     ).toBeNull();
     expect(screen.queryByText(/experimental-reference/)).toBeNull();
+    expect(screen.queryByText(/resulting bounds are not recorded/)).toBeNull();
     expect(
       screen.getByText(
         mode === "score" ? /coordinates unchanged/ : /original pose retained/,

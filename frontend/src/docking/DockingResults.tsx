@@ -1,3 +1,4 @@
+import { searchNotice } from "./searchNotice";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
@@ -114,6 +115,9 @@ export function DockingResults({
           ? "经验评分用于同一方法下比较候选，不是实测亲和力。化学与坐标检查通过也不等于结合模式已被实验确认。"
           : "Empirical scores compare candidates within the same method; they are not measured affinity. Chemical and coordinate checks do not establish experimental pose validity."}
       </p>
+      {result.mode === "dock" && (
+        <p className="field-help">{searchNotice(language)}</p>
+      )}
       <StructureWorkbench
         preview={
           <div className="result-inspector">
