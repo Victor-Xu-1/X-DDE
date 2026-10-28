@@ -1,4 +1,4 @@
-import type { ExampleInfo, ExampleJobEvidence } from "./types";
+import type { ExampleInfo } from "./types";
 
 export interface ReviewedSources {
   case_id: string;
@@ -6,7 +6,25 @@ export interface ReviewedSources {
   revision: number;
   job_id: string;
   artifacts: Record<string, string>;
-  supporting: ExampleJobEvidence[];
+  supporting: {
+    job_id: string;
+    artifact_sha256: Record<string, unknown>;
+  }[];
+}
+
+function matchesArtifacts(
+  actual: Record<string, string> | undefined,
+  expected: Record<string, unknown>,
+) {
+  return (
+    Object.keys(expected).length > 0 &&
+    Object.entries(expected).every(
+      ([name, digest]) =>
+        typeof digest === "string" &&
+        /^[a-f0-9]{64}$/.test(digest) &&
+        actual?.[name] === digest,
+    )
+  );
 }
 
 /** Case interpretations never follow labels, a later revision or different coordinates. */
@@ -24,16 +42,12 @@ export function matchesReviewedSources(
     info.module.revision === source.revision &&
     pin.job_id === source.job_id &&
     jobId === source.job_id &&
-    Object.entries(source.artifacts).every(
-      ([name, digest]) => pin.artifact_sha256?.[name] === digest,
-    ) &&
+    matchesArtifacts(pin.artifact_sha256, source.artifacts) &&
     source.supporting.every((expected) =>
       pin.supporting_evidence?.some(
         (actual) =>
           actual.job_id === expected.job_id &&
-          Object.entries(expected.artifact_sha256).every(
-            ([name, digest]) => actual.artifact_sha256?.[name] === digest,
-          ),
+          matchesArtifacts(actual.artifact_sha256, expected.artifact_sha256),
       ),
     ),
   );
