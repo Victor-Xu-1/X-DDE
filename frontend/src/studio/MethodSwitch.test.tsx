@@ -55,18 +55,24 @@ it.each([
     expect(submit).not.toHaveBeenCalled();
   },
 );
-it("labels an unconfigured implementation without inventing installed status", async () => {
-  vi.spyOn(client, "request").mockResolvedValue({
-    availability: { configuration_present: false },
-  });
-  render(<MethodSwitch value="predict" language="en" onChange={vi.fn()} />);
-  expect(
-    await screen.findByRole("button", { name: /^Boltz-2.*Not configured/ }),
-  ).toBeVisible();
-  expect(
-    screen.queryByRole("button", { name: /RFdiffusion|CODesign|Rosetta/ }),
-  ).toBeNull();
-});
+it.each([
+  ["en", /Boltz-2.*Unavailable/],
+  ["zh", /Boltz-2.*暂不可用/],
+] as const)(
+  "does not infer installation status from an unavailable implementation in %s",
+  async (language, label) => {
+    vi.spyOn(client, "request").mockResolvedValue({
+      availability: { configuration_present: false },
+    });
+    render(
+      <MethodSwitch value="predict" language={language} onChange={vi.fn()} />,
+    );
+    expect(await screen.findByRole("button", { name: label })).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: /RFdiffusion|CODesign|Rosetta/ }),
+    ).toBeNull();
+  },
+);
 
 it("distinguishes a failed status query from a missing installation", async () => {
   vi.spyOn(client, "request").mockRejectedValue(
@@ -76,7 +82,7 @@ it("distinguishes a failed status query from a missing installation", async () =
   expect(
     await screen.findByRole("button", { name: /RDKit.*Status unavailable/ }),
   ).toHaveAttribute("aria-pressed", "true");
-  expect(screen.queryByText("Not configured")).toBeNull();
+  expect(screen.queryByText("Unavailable")).toBeNull();
 });
 it("selects the sole backend for a task and does not dispatch when clicked", async () => {
   const change = vi.fn(),

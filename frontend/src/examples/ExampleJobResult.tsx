@@ -49,6 +49,12 @@ export function ExampleJobResult({
           language === "zh" ? "模板的真实结果" : "Actual template result"
         }
       >
+        {job.request.name && (
+          <p className="field-help">
+            {language === "zh" ? "结果对应任务：" : "Source task: "}
+            {job.request.name}
+          </p>
+        )}
         {error && (
           <p className="error" role="alert">
             {error}

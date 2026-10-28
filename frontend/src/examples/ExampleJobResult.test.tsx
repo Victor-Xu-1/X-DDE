@@ -41,3 +41,26 @@ it("uses the operation result's single native presentation instead of fetching a
   expect(screen.queryByText("Extra native viewer")).not.toBeInTheDocument();
   expect(transport.results).toHaveBeenLastCalledWith(true);
 });
+
+it.each(["en", "zh"] as const)(
+  "shows the actual retained task identity in %s",
+  (language) => {
+    render(
+      <ExampleJobResult
+        language={language}
+        job={
+          {
+            id: "example-dock",
+            request: {
+              name: "STAT6 · R-group001 neutral · observed-contact-region docking",
+              operation: "docking",
+            },
+          } as unknown as Job
+        }
+      />,
+    );
+    expect(screen.getByText(/STAT6 · R-group001 neutral/)).toHaveTextContent(
+      language === "zh" ? "结果对应任务：" : "Source task:",
+    );
+  },
+);
