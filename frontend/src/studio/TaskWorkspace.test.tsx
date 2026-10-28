@@ -84,6 +84,13 @@ function props(
 async function modulePage() {
   await screen.findByRole("button", { name: "STAT6 descriptors" });
 }
+it("uses current task-service availability for retries inside a module", () => {
+  const p = props({ job: descriptors, retryAvailable: false });
+  const view = render(<TaskWorkspace {...p} />);
+  expect(screen.getByRole("button", { name: "Run again" })).toBeDisabled();
+  view.rerender(<TaskWorkspace {...p} retryAvailable />);
+  expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
+});
 function openList() {
   const picker = document.querySelector<HTMLDetailsElement>(".task-picker")!;
   picker.open = true;

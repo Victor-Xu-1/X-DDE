@@ -22,6 +22,7 @@ interface Props {
   detail: Detail | null;
   failed: boolean;
   language: Language;
+  retryAvailable?: boolean;
   onChange(job: Job): void;
   onDraft?(request: Prediction): void;
 }
@@ -30,6 +31,7 @@ export function TaskDetail({
   detail,
   failed,
   language,
+  retryAvailable = true,
   onChange,
   onDraft,
 }: Props) {
@@ -54,7 +56,12 @@ export function TaskDetail({
     };
   }, [job?.id]);
   async function action(kind: "cancel" | "retry") {
-    if (!job || actionPending.current.has(job.id)) return;
+    if (
+      !job ||
+      actionPending.current.has(job.id) ||
+      (kind === "retry" && !retryAvailable)
+    )
+      return;
     if (kind === "cancel" && !window.confirm(t("cancelConfirm"))) return;
     const generation = actionView.current.generation;
     const ownsView = () =>
@@ -142,7 +149,7 @@ export function TaskDetail({
             <button
               className="secondary-button"
               onClick={() => void action("retry")}
-              disabled={busy}
+              disabled={busy || !retryAvailable}
             >
               {t("retry")}
             </button>
@@ -172,6 +179,13 @@ export function TaskDetail({
           )}
         </div>
       </header>
+      {terminal(job.status) && !retryAvailable && (
+        <p className="notice" role="status">
+          {language === "zh"
+            ? "任务服务暂不可用；恢复后可重新运行，已有文件仍可查看。"
+            : "The task service is unavailable. Run again after it recovers; existing files remain accessible."}
+        </p>
+      )}
       {job.request.constraints && (
         <ConstraintReceipt key={job.id} job={job} language={language} />
       )}

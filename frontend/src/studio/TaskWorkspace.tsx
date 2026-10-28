@@ -34,6 +34,7 @@ interface Props {
   job: Job | null;
   detail: Detail | null;
   detailError: boolean;
+  retryAvailable?: boolean;
   selected?: string;
   selectedError?: Error | null;
   selectedLoading?: boolean;
@@ -305,6 +306,7 @@ export function TaskWorkspace(p: Props) {
                   job={currentJob}
                   detail={currentDetail}
                   failed={p.detailError}
+                  retryAvailable={p.retryAvailable}
                   onChange={p.onChanged}
                   onDraft={p.onDraft}
                 />

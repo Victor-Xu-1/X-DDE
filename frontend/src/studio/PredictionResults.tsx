@@ -14,6 +14,7 @@ export type PredictionResultsProps = Pick<
   | "job"
   | "detail"
   | "detailError"
+  | "retryAvailable"
   | "analysis"
   | "loadingAnalysis"
   | "analysisError"
@@ -109,6 +110,7 @@ export function PredictionResults(p: PredictionResultsProps) {
             job={p.job}
             detail={p.detail}
             failed={p.detailError}
+            retryAvailable={p.retryAvailable}
             onChange={p.onChanged}
           />
         </details>

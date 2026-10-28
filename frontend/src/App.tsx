@@ -273,6 +273,7 @@ export function App() {
     language,
     ready,
     health,
+    retryAvailable: Boolean(health?.worker_ready && !work.connectionError),
     job,
     detail,
     // Source-specific read failures and Retry appear once above the workspace.
