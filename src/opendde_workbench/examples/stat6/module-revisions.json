@@ -1,6 +1,7 @@
 {
-  "predict": 4,
   "gnina.dock": 4,
+  "pose_exploration": 4,
+  "predict": 4,
   "reinvent.design": 4,
   "workflows": 4
 }
