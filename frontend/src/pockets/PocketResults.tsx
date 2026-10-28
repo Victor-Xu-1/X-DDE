@@ -11,6 +11,8 @@ import { artifactUrl } from "../api";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { Hint } from "../guided/Hint";
 import { PocketSelection } from "./PocketSelection";
+import { ReferenceComparison } from "./ReferenceComparison";
+import type { MoleculeRef } from "../research/types";
 export function PocketResults({
   job,
   result,
@@ -31,12 +33,47 @@ export function PocketResults({
     ),
     [continueDesign, setContinue] = useState(false),
     [continueDocking, setDocking] = useState(false),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [overlay, setOverlay] = useState<string | null>(null),
+    [referenceHandoff, setReferenceHandoff] = useState<{
+      kind: "generate" | "dock";
+      ligand: MoleculeRef;
+    } | null>(null);
   function selectSite(site: Site) {
     setSelected(site);
     setContinue(false);
     setDocking(false);
   }
+  if (referenceHandoff)
+    return (
+      <ResearchHandoff
+        language={language}
+        onBack={() => setReferenceHandoff(null)}
+      >
+        {referenceHandoff.kind === "generate" ? (
+          <DiffForm
+            mode="generate"
+            language={language}
+            initialProtein={result.protein}
+            initialPocket={{ kind: "ligand", ligand: referenceHandoff.ligand }}
+            onCreated={() =>
+              setMessage(zh ? "生成任务已创建。" : "Generation task created.")
+            }
+          />
+        ) : (
+          <DockingForm
+            language={language}
+            initialReceptor={result.protein}
+            initialReference={referenceHandoff.ligand}
+            onCreated={() =>
+              setMessage(
+                zh ? "结合模式任务已创建。" : "Binding pose task created.",
+              )
+            }
+          />
+        )}
+      </ResearchHandoff>
+    );
   if (selected && (continueDesign || continueDocking))
     return (
       <ResearchHandoff
@@ -116,7 +153,11 @@ export function PocketResults({
       <StructureWorkbench
         preview={
           <StructureViewer
-            urls={[artifactUrl(job.id, result.protein_artifact)]}
+            urls={[
+              artifactUrl(job.id, result.protein_artifact),
+              ...(overlay ? [overlay] : []),
+            ]}
+            comparison={false}
             language={language}
             residueRegion={selected?.residues}
           />
@@ -173,6 +214,19 @@ export function PocketResults({
                 ? "面板只显示前列位点，其余内容保留在完整 CSV 中。"
                 : "The panel shows the leading sites; others remain in the full CSV."}
             </p>
+          )}
+          {selected && (
+            <ReferenceComparison
+              key={job.id}
+              protein={result.protein}
+              site={selected}
+              language={language}
+              onOverlay={setOverlay}
+              onGenerate={(ligand) =>
+                setReferenceHandoff({ kind: "generate", ligand })
+              }
+              onDock={(ligand) => setReferenceHandoff({ kind: "dock", ligand })}
+            />
           )}
           {selected && (
             <PocketSelection

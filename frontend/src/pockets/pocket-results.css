@@ -61,3 +61,23 @@
   color: var(--accent);
   font-size: 13px;
 }
+
+.pocket-reference-comparison {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.pocket-reference-comparison > label:not(.field) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pocket-reference-comparison p {
+  margin: 0;
+}

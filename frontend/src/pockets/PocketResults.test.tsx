@@ -5,6 +5,23 @@ import { PocketResults } from "./PocketResults";
 import type { PocketResult, Site } from "./types";
 import type { MoleculeRef } from "../research/types";
 
+vi.mock("./ReferenceComparison", () => ({
+  ReferenceComparison: ({
+    onGenerate,
+    onDock,
+    onOverlay,
+  }: {
+    onGenerate: (value: MoleculeRef) => void;
+    onDock: (value: MoleculeRef) => void;
+    onOverlay: (value: string | null) => void;
+  }) => (
+    <div>
+      <button onClick={() => onGenerate(reference)}>Reference generate</button>
+      <button onClick={() => onDock(reference)}>Reference dock</button>
+      <button onClick={() => onOverlay("reference.sdf")}>Show reference</button>
+    </div>
+  ),
+}));
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({
     residueRegion,
@@ -33,12 +50,14 @@ vi.mock("../docking/DockingForm", () => ({
   DockingForm: ({
     initialReceptor,
     initialBox,
+    initialReference,
   }: {
     initialReceptor: MoleculeRef;
     initialBox: unknown;
+    initialReference?: MoleculeRef;
   }) => (
     <output aria-label="Docking input">
-      {JSON.stringify({ initialReceptor, initialBox })}
+      {JSON.stringify({ initialReceptor, initialBox, initialReference })}
     </output>
   ),
 }));
@@ -52,6 +71,11 @@ const protein = {
   record: 0,
   conformer: 0,
 } as MoleculeRef;
+const reference: MoleculeRef = {
+  ...protein,
+  asset_id: "ref-ligand",
+  sha256: "b".repeat(64),
+};
 const sites: Site[] = [1, 2].map((rank) => ({
   rank,
   name: `pocket${rank}`,
@@ -190,4 +214,27 @@ it("preserves format restrictions and the empty result without inventing a selec
   ).toHaveAttribute("role", "status");
   expect(screen.queryByRole("region", { name: "Selected pocket" })).toBeNull();
   expect(screen.getByLabelText("Viewer region")).toHaveTextContent("[]");
+});
+
+it("hands the selected reference ligand to generation and docking without changing the receptor", async () => {
+  const user = userEvent.setup();
+  render(
+    <PocketResults
+      job={{ id: "retained-pockets" }}
+      result={result}
+      language="en"
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Reference generate" }));
+  expect(screen.getByLabelText("Generation input")).toHaveTextContent(
+    JSON.stringify({
+      initialProtein: protein,
+      initialPocket: { kind: "ligand", ligand: reference },
+    }),
+  );
+  await user.click(screen.getByRole("button", { name: "← Back to results" }));
+  await user.click(screen.getByRole("button", { name: "Reference dock" }));
+  expect(screen.getByLabelText("Docking input")).toHaveTextContent(
+    JSON.stringify({ initialReceptor: protein, initialReference: reference }),
+  );
 });

@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'frontend/src/pockets/ReferenceComparison*'
+      - 'frontend/src/pockets/reference-comparison*'
+      - 'frontend/src/docking/DockingForm.tsx'
+      - '.github/workflows/pocket-result-checks.yml'
       - 'frontend/src/pockets/PocketResults*'
       - 'frontend/src/pockets/PocketSelection*'
       - 'frontend/src/pockets/pocket-results.css'
@@ -35,7 +39,53 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      comparison_only: ${{ steps.scope.outputs.comparison_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
+          only=true
+          found=false
+          while IFS= read -r file; do
+            case "$file" in
+              frontend/src/pockets/ReferenceComparison*|frontend/src/pockets/reference-comparison*) found=true ;;
+              frontend/src/pockets/PocketResults.tsx|frontend/src/pockets/PocketResults.test.tsx|frontend/src/pockets/pocket-results.css|frontend/src/docking/DockingForm.tsx|frontend/src/docking/DockingForm.test.tsx|.github/workflows/pocket-result-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          [[ "$found" = true ]] || only=false
+          echo "comparison_only=$only" >> "$GITHUB_OUTPUT"
+  reference-comparison:
+    needs: scope
+    if: needs.scope.outputs.comparison_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Same-frame comparison and reference handoffs
+        working-directory: frontend
+        run: >-
+          npx vitest run src/pockets/reference-comparison.test.ts
+          src/pockets/ReferenceComparison.test.tsx src/pockets/PocketResults.test.tsx
+          src/docking/DockingForm.test.tsx
   pocket-results:
+    needs: scope
+    if: needs.scope.outputs.comparison_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
