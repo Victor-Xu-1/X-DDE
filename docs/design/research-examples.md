@@ -26,6 +26,9 @@ missing or unreviewed pin does not inherit an old conclusion; the full review
 remains available and the original scientific files are never altered. The
 pocket example's reference-contact comparison uses a 5 Å heavy-atom cutoff and
 is specific to its retained 9BIG receptor and reference ligand.
+Opening a pinned native example also checks that the returned job ID matches
+the pin and is still successful; a mismatched or unfinished job is reported as
+unavailable rather than displayed with another result's interpretation.
 
 The STAT6 continuous-task template uses verified docking, PoseBusters and
 property recipes. It docks again, passes the first qualified pose and the exact

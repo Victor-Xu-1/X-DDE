@@ -75,6 +75,47 @@ it.each(["zh", "en"] as const)(
   },
 );
 describe("module templates", () => {
+  it.each([
+    { id: "different-job", status: "succeeded" },
+    { id: "256b08a8-b466-47c4-a69e-32ad1d3bc9d9", status: "failed" },
+  ])("rejects an unexpected or unfinished pinned job %#", async (returned) => {
+    const caseId = "stat6-defined-molecules";
+    transport.request
+      .mockResolvedValueOnce({
+        ...info,
+        module: {
+          capability_id: "p2rank.detect",
+          case_id: caseId,
+          revision: 3,
+        },
+        case: { ...info.case, id: caseId },
+        computed_result_available: true,
+        pin: {
+          job_id: "256b08a8-b466-47c4-a69e-32ad1d3bc9d9",
+          artifact_sha256: {
+            "result.json":
+              "6d1683d952f64163c752a6d5d729e7179df86e66b82a8d5b1a6b0d61c3fa8362",
+          },
+          review: { interpretation: "Review", limitations: "Limitations" },
+        },
+      })
+      .mockResolvedValueOnce(returned);
+    const onLoad = vi.fn();
+    render(
+      <ExampleActions
+        capability="p2rank.detect"
+        language="en"
+        onLoad={onLoad}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Example results" }),
+    );
+    expect(await screen.findByRole("alert")).toBeVisible();
+    expect(screen.queryByText(/Native output/)).toBeNull();
+    expect(screen.queryByText(/17 residues/)).toBeNull();
+    expect(onLoad).not.toHaveBeenCalled();
+  });
   it.each(["zh", "en"] as const)(
     "shows the reviewed pocket limitation alongside its exact example result (%s)",
     async (language) => {

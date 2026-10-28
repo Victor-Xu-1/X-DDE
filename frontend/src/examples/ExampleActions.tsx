@@ -28,7 +28,11 @@ export function ExampleActions(
   }, [state.result]);
   const zh = language === "zh";
   const review = state.info?.pin?.review ?? state.info?.record_pin?.review;
-  const highlight = reviewedHighlight(state.info, language);
+  const highlight =
+    state.result?.job?.id === state.info?.pin?.job_id &&
+    state.result?.job?.status === "succeeded"
+      ? reviewedHighlight(state.info, language)
+      : null;
   return (
     <section
       className={"module-template" + (state.result ? " is-preview" : "")}
