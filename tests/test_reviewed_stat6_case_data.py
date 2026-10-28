@@ -169,7 +169,7 @@ def check_native_antibody_structure_search(client, settings, store):
 
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "31"
+    assert package.kind == "data" and package.version == source.VERSION == "32"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
     assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 58
@@ -249,3 +249,34 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
         assert before == {
             table: [tuple(row) for row in db.execute("SELECT * FROM " + table)] for table in tables
         }
+
+
+def test_stat6_pose_review_distinguishes_unassessed_native_flags(settings):
+    filename = os.environ.get("WB_REVIEWED_STAT6_ARCHIVE")
+    if not filename:
+        pytest.skip("The scoped delivery gate supplies the reviewed STAT6 archive")
+    app = create_app(replace(settings, allowed_origins=("http://127.0.0.1:4322",)))
+    restore_bundle(Path(filename), settings, source.SHA256)
+    with TestClient(app, base_url="http://127.0.0.1:4322") as client:
+        pose = client.get("/api/examples/pose_exploration").json()
+        assert pose["module"]["revision"] == 4
+        assert pose["record_pin"]["record_sha256"] == (
+            "5b761f8b6615e33ed72a86fe5945a1d784ea7249d090693fd4bd0041bc808d70"
+        )
+        review = pose["record_pin"]["review"]["interpretation"]
+        assert "15 PoseBusters checks" in review
+        assert "six water/cofactor checks were unassessed" in review
+        assert "pass 22 native PoseBusters" not in review
+        for identifier in (
+            "8969b071-879b-4374-9044-f9108ba29588",
+            "ca498efb-cb18-40ca-9262-c2597ab422da",
+            "448af5fb-2957-4f08-b3c9-3fbd5f84a9d1",
+        ):
+            result = json.loads(result_path(settings, identifier).read_text())
+            assert len(result["checks"]) == 22
+            assert all(check["outcome"] == "pass" for check in result["checks"])
+            metrics = result["metrics"]
+            assert metrics["number_double_bonds_checked"] == 0
+            for kind in ("organic_cofactors", "inorganic_cofactors", "waters"):
+                assert "smallest_distance_" + kind not in metrics
+                assert "volume_overlap_" + kind not in metrics

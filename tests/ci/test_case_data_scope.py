@@ -13,6 +13,17 @@ class CaseDataScopeTests(unittest.TestCase):
         for source in SCOPE["SOURCES"]:
             self.assertTrue(SCOPE["selected"]([source]))
 
+    def test_case_revision_metadata_keeps_direct_archive_checks(self):
+        self.assertTrue(SCOPE["selected"]([
+            "src/opendde_workbench/examples/stat6_bundle_release.py",
+            "src/opendde_workbench/examples/stat6/module-revisions.json",
+            "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
+            "tests/test_stat6_source_revisions.py",
+        ]))
+        self.assertFalse(SCOPE["selected"]([
+            "src/opendde_workbench/examples/stat6_bundle_release.py",
+            "src/opendde_workbench/examples/stat6/catalogue.py",
+        ]))
     def test_core_restore_changes_retain_their_existing_checks(self):
         for path in (
             "src/opendde_workbench/examples/bundle_restore.py",
