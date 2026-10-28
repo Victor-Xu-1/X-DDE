@@ -31,12 +31,14 @@ export function PoseTable({
   selected,
   onSelect,
   onDiagnostic,
+  onCompare,
 }: {
   result: DockingResult;
   language: Language;
   selected: number | null;
   onSelect(pose: Pose): void;
   onDiagnostic(artifact: string): void;
+  onCompare?(poses: readonly Pose[]): void;
 }) {
   const zh = language === "zh";
   const referenceReady = result.reference_comparison?.status === "ready";
@@ -231,6 +233,28 @@ export function PoseTable({
       canSelect={(pose) => pose.valid && !!pose.artifact}
       language={language}
       title={"GNINA " + result.software_version}
+      comparisonActions={
+        onCompare
+          ? (poses) => (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={
+                  poses.length !== 2 ||
+                  poses.some((pose) => !pose.valid || !pose.artifact)
+                }
+                title={
+                  zh
+                    ? "选择两个有效姿势，在原受体坐标中叠加查看。"
+                    : "Select two valid poses to overlay in their original receptor frame."
+                }
+                onClick={() => onCompare(poses)}
+              >
+                {zh ? "三维比较两个姿势" : "Compare two poses in 3D"}
+              </button>
+            )
+          : undefined
+      }
       initialVisibleColumns={
         referenceReady
           ? [

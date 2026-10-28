@@ -169,6 +169,12 @@ ssh -L 4320:127.0.0.1:4320 USER@SERVER
 
 ## 职责与故障恢复
 
+### 比较候选结合姿势
+
+在对接结果表勾选两个有效姿势，打开“对比”，再点“三维比较两个姿势”。左侧大视图显示同一任务的原始受体，以及橙色、紫色碳区分的两个姿势；不单独拟合或最小化配体。两个 SDF 可以分别下载，点击姿势名称或“返回单个姿势”可继续检查单个姿势的接触和质量。叠加视图不混合相互作用，也不显示一个共同的对接分数。指标并列对比仍支持最多四条记录；三维叠加需恰好两个有效姿势。
+
+In a docking result, mark two valid poses, open **Compare**, then choose **Compare two poses in 3D**. The large left viewport retains the original receptor frame; orange and purple carbon distinguish the two native poses. Neither ligand is fitted or minimized. Download either SDF separately, select its name to inspect it, or return to the previously selected single pose. Overlay does not establish a correct binding mode or combine interaction evidence and scores. Metric comparison still supports up to four records; structural overlay requires exactly two valid poses.
+
 - `frontend/src/operations`：能力目录、各任务表单、文件/原子/残基选择、原生参数编辑、设计计划和结果展示。
 - `entities` / `parameters` / `prediction` / `requests`：显式输入契约；`native_arguments` / `native_task` 只调用固定版本的原生命令。
 - `store` / `worker`：单一持久队列，批次原子提交，有限日志、超时、取消和重启恢复。普通预测/资源任务等待本工作台发起的原生设计结束，避免争抢同一计算资源；外部手动启动的进程仍需管理员协调。

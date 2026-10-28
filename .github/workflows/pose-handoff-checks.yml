@@ -17,6 +17,7 @@ on:
       - "frontend/src/presentation/ResearchTabs*"
       - "frontend/src/docking/DockingResults*"
       - "frontend/src/docking/PoseTable*"
+      - "frontend/src/docking/PoseComparison*"
       - "frontend/src/datasets/CandidateHandoff*"
       - "frontend/src/datasets/CandidateView*"
       - "frontend/src/poses/PoseDetail*"
@@ -39,7 +40,6 @@ on:
       - "!frontend/src/presentation/MolecularPreview*"
       - "!frontend/src/viewer/PoseSession*"
       - "!frontend/src/viewer/StructureViewer*"
-      - "!.github/workflows/pose-handoff-checks.yml"
   pull_request:
     paths: *pose_handoff_paths
 permissions:
@@ -52,6 +52,28 @@ jobs:
       WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        name: Select exact structural-comparison checks
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || (github.ref == 'refs/heads/main' && github.event.before) || '' }}
+        shell: bash
+        run: |
+          if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
+          only=true
+          found=false
+          while IFS= read -r file; do
+            case "$file" in
+              frontend/src/docking/PoseComparison.tsx) found=true ;;
+              frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|frontend/src/docking/PoseTable.tsx|frontend/src/presentation/ResearchTable.tsx|frontend/src/presentation/ResearchTable.test.tsx|server_tests/test_docking_table_browser.py|.github/workflows/pose-handoff-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          [[ "$found" = true ]] || only=false
+          echo "overlay_only=$only" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -63,26 +85,34 @@ jobs:
           uv sync --locked --group dev --group browser
       - name: Pose controller, explicit choices, record identity and direct research consumers
         working-directory: frontend
-        run: >-
-          npx vitest run src/viewer/PoseSession.test.tsx src/viewer/pose-source.test.ts
-          src/viewer/pose-plan.test.ts
-          src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx
-          src/presentation/ResearchTabs.test.tsx
-          src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts
-          src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
-          src/docking/PoseTable.test.tsx src/docking/ReferenceComparison.test.tsx
-          src/presentation/ResearchTable.test.tsx
-          src/docking/poseScore.test.ts src/quality/QualityForm.test.tsx
-          src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx
-          src/chemistry/StateResults.test.tsx src/diffsbdd/DiffResults.test.tsx
-          src/operations/PropertyForm.test.tsx
+        env:
+          OVERLAY_ONLY: ${{ steps.scope.outputs.overlay_only }}
+        run: |
+          if [ "$OVERLAY_ONLY" = true ]; then
+            npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx src/presentation/ResearchTable.test.tsx src/viewer/pose-plan.test.ts src/viewer/source-layout.test.ts src/viewer/focus-layout.test.ts src/viewer/contacts.test.ts src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
+            exit
+          fi
+          npx vitest run src/viewer/PoseSession.test.tsx src/viewer/pose-source.test.ts \
+          src/viewer/pose-plan.test.ts \
+          src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx \
+          src/presentation/ResearchTabs.test.tsx \
+          src/viewer/capture.test.ts src/viewer/useViewerSnapshot.test.ts \
+          src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx \
+          src/docking/PoseTable.test.tsx src/docking/ReferenceComparison.test.tsx \
+          src/presentation/ResearchTable.test.tsx \
+          src/docking/poseScore.test.ts src/quality/QualityForm.test.tsx \
+          src/poses/PoseResults.test.tsx src/admet/AdmetResults.test.tsx \
+          src/chemistry/StateResults.test.tsx src/diffsbdd/DiffResults.test.tsx \
+          src/operations/PropertyForm.test.tsx \
           src/research/SelectedAssetPreview.test.tsx src/research/ResearchWorkspace.test.tsx
       - name: Isolated native Chemistry and existing managed Ketcher
+        if: steps.scope.outputs.overlay_only != 'true'
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-pose-handoff" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-pose-handoff/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-pose-handoff" WB_STATE_DIR="$RUNNER_TEMP/x-dde-pose-handoff/state" .venv/bin/python server_tests/prepare_pose_handoff.py
       - name: Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads
+        if: steps.scope.outputs.overlay_only != 'true'
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked playwright install chromium --with-deps

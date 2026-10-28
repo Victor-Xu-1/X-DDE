@@ -3,6 +3,7 @@ import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
 import { PoseTable } from "./PoseTable";
+import { PoseComparison } from "./PoseComparison";
 import { ReferenceComparison } from "./ReferenceComparison";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
@@ -32,6 +33,19 @@ export function DockingResults({
 }) {
   const zh = language === "zh";
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<{
+    jobId: string;
+    records: number[];
+  } | null>(null);
+  const compared =
+    comparison?.jobId === job.id
+      ? result.poses.filter(
+          (pose) =>
+            comparison.records.includes(pose.record) &&
+            pose.valid &&
+            pose.artifact,
+        )
+      : [];
   const [record, setRecord] = useState<number | null>(
       () => result.poses.find((p) => p.valid && p.artifact)?.record ?? null,
     ),
@@ -123,103 +137,122 @@ export function DockingResults({
       <StructureWorkbench
         preview={
           <div className="result-inspector">
-            {diagnostic && (
+            {compared.length === 2 ? (
+              <PoseComparison
+                jobId={job.id}
+                result={result}
+                poses={compared}
+                language={language}
+                onClose={() => setComparison(null)}
+                onInspect={(pose) => {
+                  setRecord(pose.record);
+                  setComparison(null);
+                  handoff.clear();
+                }}
+              />
+            ) : (
               <>
-                <p className="field-help">
-                  {zh
-                    ? "仅供检查的规范化重原子坐标，不进入合格候选或自动复用。"
-                    : "Normalized heavy-atom coordinates for inspection only, excluded from qualified candidates and automatic handoff."}
-                </p>
-                <StructureViewer
-                  key={diagnostic}
-                  urls={[
-                    artifactUrl(job.id, result.receptor_artifact),
-                    artifactUrl(job.id, diagnostic),
-                  ]}
-                  language={language}
-                  focusModel={1}
-                />
-              </>
-            )}
-            {result.poses.length === 0 && (
-              <p role="status">{zh ? "没有返回姿势" : "No poses returned"}</p>
-            )}
-            {selected?.artifact && (
-              <>
-                <MolecularPreview
-                  key={selected.artifact}
-                  label={(zh ? "姿势 " : "Pose ") + (selected.record + 1)}
-                  source={{ url: artifactUrl(job.id, selected.artifact) }}
-                  defaultView="3d"
-                  nativeScore={poseScore(result, selected)}
-                  urls={[
-                    artifactUrl(job.id, result.receptor_artifact),
-                    artifactUrl(job.id, selected.artifact),
-                  ]}
-                  language={language}
-                  focusModel={1}
-                />
-                <a href={artifactUrl(job.id, selected.artifact)} download>
-                  {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
-                </a>
-                {selected.mapping_status ===
-                  "ambiguous_reconfirm_selections" && (
-                  <p className="field-help" role="note">
-                    <strong>
-                      {zh ? "重选原子区域" : "Reselect atom regions"}
-                    </strong>
-                    {zh
-                      ? "：如需限定原子区域，请在当前姿势上重新选择。"
-                      : ": select atoms on this pose before adding region constraints."}
+                {diagnostic && (
+                  <>
+                    <p className="field-help">
+                      {zh
+                        ? "仅供检查的规范化重原子坐标，不进入合格候选或自动复用。"
+                        : "Normalized heavy-atom coordinates for inspection only, excluded from qualified candidates and automatic handoff."}
+                    </p>
+                    <StructureViewer
+                      key={diagnostic}
+                      urls={[
+                        artifactUrl(job.id, result.receptor_artifact),
+                        artifactUrl(job.id, diagnostic),
+                      ]}
+                      language={language}
+                      focusModel={1}
+                    />
+                  </>
+                )}
+                {result.poses.length === 0 && (
+                  <p role="status">
+                    {zh ? "没有返回姿势" : "No poses returned"}
                   </p>
                 )}
-                <PoseStudyInput original={version} language={language}>
-                  {(selection, waiting) =>
-                    selection ? (
-                      <div className="editor-toolbar">
-                        {(["properties", "score", "quality"] as const).map(
-                          (v, n) => (
-                            <button
-                              className="secondary-button"
-                              type="button"
-                              key={v}
-                              disabled={
-                                !selection.ready ||
-                                ((v === "score" || v === "quality") &&
-                                  selection.displayed &&
-                                  selection.receptor === null)
-                              }
-                              onClick={() => {
-                                handoff.open(v, selection);
-                              }}
-                            >
-                              {
-                                (zh
-                                  ? ["计算性质", "重新评分", "检查姿势质量"]
-                                  : [
-                                      "Calculate properties",
-                                      "Rescore",
-                                      "Check pose quality",
-                                    ])[n]
-                              }
-                            </button>
-                          ),
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        className="secondary-button"
-                        type="button"
-                        disabled={assets.busy || waiting}
-                        onClick={() => void assets.refresh()}
-                      >
+                {selected?.artifact && (
+                  <>
+                    <MolecularPreview
+                      key={selected.artifact}
+                      label={(zh ? "姿势 " : "Pose ") + (selected.record + 1)}
+                      source={{ url: artifactUrl(job.id, selected.artifact) }}
+                      defaultView="3d"
+                      nativeScore={poseScore(result, selected)}
+                      urls={[
+                        artifactUrl(job.id, result.receptor_artifact),
+                        artifactUrl(job.id, selected.artifact),
+                      ]}
+                      language={language}
+                      focusModel={1}
+                    />
+                    <a href={artifactUrl(job.id, selected.artifact)} download>
+                      {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                    </a>
+                    {selected.mapping_status ===
+                      "ambiguous_reconfirm_selections" && (
+                      <p className="field-help" role="note">
+                        <strong>
+                          {zh ? "重选原子区域" : "Reselect atom regions"}
+                        </strong>
                         {zh
-                          ? "登记并读取这个姿势"
-                          : "Register and load this pose"}
-                      </button>
-                    )
-                  }
-                </PoseStudyInput>
+                          ? "：如需限定原子区域，请在当前姿势上重新选择。"
+                          : ": select atoms on this pose before adding region constraints."}
+                      </p>
+                    )}
+                    <PoseStudyInput original={version} language={language}>
+                      {(selection, waiting) =>
+                        selection ? (
+                          <div className="editor-toolbar">
+                            {(["properties", "score", "quality"] as const).map(
+                              (v, n) => (
+                                <button
+                                  className="secondary-button"
+                                  type="button"
+                                  key={v}
+                                  disabled={
+                                    !selection.ready ||
+                                    ((v === "score" || v === "quality") &&
+                                      selection.displayed &&
+                                      selection.receptor === null)
+                                  }
+                                  onClick={() => {
+                                    handoff.open(v, selection);
+                                  }}
+                                >
+                                  {
+                                    (zh
+                                      ? ["计算性质", "重新评分", "检查姿势质量"]
+                                      : [
+                                          "Calculate properties",
+                                          "Rescore",
+                                          "Check pose quality",
+                                        ])[n]
+                                  }
+                                </button>
+                              ),
+                            )}
+                          </div>
+                        ) : (
+                          <button
+                            className="secondary-button"
+                            type="button"
+                            disabled={assets.busy || waiting}
+                            onClick={() => void assets.refresh()}
+                          >
+                            {zh
+                              ? "登记并读取这个姿势"
+                              : "Register and load this pose"}
+                          </button>
+                        )
+                      }
+                    </PoseStudyInput>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -228,18 +261,34 @@ export function DockingResults({
         <div>
           <ReferenceComparison result={result} language={language} />
           <PoseTable
+            key={job.id}
             result={result}
             language={language}
             selected={record}
             onSelect={(pose) => {
               setDiagnostic(null);
+              setComparison(null);
               setRecord(pose.record);
               handoff.clear();
             }}
             onDiagnostic={(artifact) => {
               setRecord(null);
+              setComparison(null);
               handoff.clear();
               setDiagnostic(artifact);
+            }}
+            onCompare={(poses) => {
+              if (
+                poses.length !== 2 ||
+                poses.some((pose) => !pose.valid || !pose.artifact)
+              )
+                return;
+              setDiagnostic(null);
+              handoff.clear();
+              setComparison({
+                jobId: job.id,
+                records: poses.map((pose) => pose.record),
+              });
             }}
           />
           <PoseViolations poses={result.poses} language={language} />
