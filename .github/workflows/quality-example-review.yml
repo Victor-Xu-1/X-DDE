@@ -1,0 +1,26 @@
+name: Evidence-derived quality example review
+on:
+  pull_request:
+    paths: &review_paths
+      - 'src/opendde_workbench/examples/quality_review.py'
+      - 'src/opendde_workbench/examples/routes.py'
+      - 'tests/test_example_quality_review.py'
+      - '.github/workflows/quality-example-review.yml'
+  push:
+    paths: *review_paths
+permissions:
+  contents: read
+jobs:
+  quality-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - run: uv run --locked ruff check src/opendde_workbench/examples/quality_review.py src/opendde_workbench/examples/routes.py tests/test_example_quality_review.py
+      - run: uv run --locked python -m pytest -q tests/test_example_quality_review.py

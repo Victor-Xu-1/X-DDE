@@ -9,6 +9,7 @@ from ..store import ConflictError
 from .bundle_catalogue import bundle_catalogue
 from .contracts import PinRequest, PreparedExample, RecordPinRequest
 from .pins import ExamplePins
+from .quality_review import quality_review
 from .records import ExampleRecords
 from .supporting import supporting_stage_names
 
@@ -39,6 +40,9 @@ def register_examples(app, store, assets, settings, mutation):
             compound = records[profile].get(capability_id, verify=verify)
         except (ValueError, OSError) as exc:
             raise HTTPException(409, str(exc)) from exc
+        recorded_review = None
+        if capability_id == "posebusters.check":
+            record, recorded_review = quality_review(record, store, settings.state_dir)
         value = {
             "module": catalogue.modules[capability_id],
             "case": catalogue.case_for(capability_id),
@@ -49,6 +53,8 @@ def register_examples(app, store, assets, settings, mutation):
             "computed_result_available": record is not None
             or bool(compound and compound.computed_result_available),
         }
+        if recorded_review is not None:
+            value["recorded_review"] = recorded_review
         if (study := catalogue.study(capability_id)) is not None:
             value["study"] = study
         return value
