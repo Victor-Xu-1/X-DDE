@@ -7,7 +7,12 @@ from pydantic import ValidationError
 
 from opendde_workbench.assets import AssetStore
 from opendde_workbench.docking.contract import DockingTask
-from opendde_workbench.docking.options import DockingOptions, SearchBox, arguments
+from opendde_workbench.docking.options import (
+    DockingOptions,
+    SearchBox,
+    arguments,
+    parse_search_report,
+)
 from opendde_workbench.docking.runtime import configuration, validate
 from opendde_workbench.engine_registry import engine_for
 from opendde_workbench.native_arguments import needs_gpu
@@ -21,6 +26,28 @@ from opendde_workbench.workflows.contracts import PlanInput
 
 def reference():
     return {"asset_id": str(uuid4()), "sha256": "a" * 64}
+
+
+def test_dock_uses_recorded_nominal_box_without_ligand_expansion():
+    args = arguments(DockingOptions(), "dock")
+    assert args[args.index("--autobox_extend") + 1] == "false"
+    assert args[args.index("--verbosity") + 1] == "2"
+    for mode in ("score", "minimize"):
+        assert "--autobox_extend" not in arguments(DockingOptions(), mode)
+    log = "Using search box with center -1.25,2,3e+1 and size 4,20.5,6\n"
+    report = parse_search_report(log)
+    assert report.center == (-1.25, 2, 30)
+    assert report.size == (4, 20.5, 6)
+    assert report.automatic_ligand_extension is False
+    assert report.precision == "engine_log_rounded"
+    for invalid in (
+        "",
+        log + log,
+        log.replace("size 4", "size 0"),
+        log.replace("2,3e+1", "nan,3e+1"),
+    ):
+        with pytest.raises(ValueError):
+            parse_search_report(invalid)
 
 
 def task():

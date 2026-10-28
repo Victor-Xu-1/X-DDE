@@ -302,6 +302,16 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
             ).json()
             result = client.get("/api/jobs/" + identifier + "/result").json()
             assert result["mode"] == mode and result["complete"]
+            if mode == "dock":
+                report = result["search_report"]
+                assert report["automatic_ligand_extension"] is False
+                assert report["precision"] == "engine_log_rounded"
+                assert "Using search box with center " in (output / "native.log").read_text()
+                if operation == "dock":
+                    assert report["center"] == pytest.approx(explicit_box["center"], abs=0.001)
+                    assert report["size"] == pytest.approx(explicit_box["size"], abs=0.001)
+            else:
+                assert "search_report" not in result
             if stage == "dock":
                 receipt = client.get("/api/jobs/" + identifier + "/constraints")
                 assert receipt.status_code == 200, receipt.text

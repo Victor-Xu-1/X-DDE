@@ -68,6 +68,13 @@ export interface DockingResult {
   raw_pose_artifact?: string | null;
   receptor_artifact: string;
   search?: DockingTask["search"];
+  search_report?: {
+    center: [number, number, number];
+    size: [number, number, number];
+    unit: "angstrom";
+    precision: "engine_log_rounded";
+    automatic_ligand_extension: false;
+  };
   poses: PoseResult[];
   scientific_outcome: string;
   reference_comparison?: {

@@ -17,7 +17,7 @@ from chemistry import (
     summarize_poses,
 )
 from manifest import BINARY_SHA256, VERSION
-from options import DockingOptions, SearchBox, arguments
+from options import DockingOptions, SearchBox, arguments, parse_search_report
 from receptor_input import require_explicit_alternates
 from reference import ReferenceGeometry
 from scoring import parse_score_only
@@ -129,6 +129,7 @@ def main():
             "GNINA reached the task wall-time limit; no completed result is claimed."
         ) from exc
     text = log.read_text() if log.stat().st_size <= 8 * 1024**2 else ""
+    search_report = parse_search_report(text) if mode == "dock" else None
     if mode == "score":
         metrics = parse_score_only(text, options.cnn_scoring)
         for metric in metrics:
@@ -189,6 +190,7 @@ def main():
         "frame": request["receptor"],
         "options": options.model_dump(mode="json"),
         "search": search,
+        **({"search_report": search_report.model_dump()} if search_report else {}),
         "reference_comparison": reference_geometry.metadata if reference_geometry else None,
         "initial_conformer_generated": generated_conformer,
         "poses": poses,

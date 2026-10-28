@@ -87,6 +87,31 @@ const data: DockingResult = {
     },
   ],
 };
+it.each(["en", "zh"] as const)(
+  "shows the engine-reported box for new results in %s",
+  (language) => {
+    render(
+      <DockingResults
+        language={language}
+        job={{ id: "j" } as Job}
+        result={{
+          ...data,
+          search_report: {
+            center: [1, -2, 3],
+            size: [20, 22, 24],
+            unit: "angstrom",
+            precision: "engine_log_rounded",
+            automatic_ligand_extension: false,
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText(/1 \/ -2 \/ 3 Å/)).toHaveTextContent(
+      "20 × 22 × 24 Å",
+    );
+    expect(screen.queryByText(/resulting bounds are not recorded/)).toBeNull();
+  },
+);
 it("previews only the chosen valid pose and reuses its exact saved record", async () => {
   const versions = [
     {

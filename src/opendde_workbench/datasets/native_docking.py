@@ -7,7 +7,7 @@ from pathlib import Path
 from docking_chemistry import comparison_graph, digest, export_molecule, molecule, summarize_poses
 from docking_inputs import candidate_molecule
 from docking_manifest import BINARY_SHA256, VERSION
-from docking_options import DockingOptions, SearchBox, arguments
+from docking_options import DockingOptions, SearchBox, arguments, parse_search_report
 from docking_receptor import prepare as prepare_receptor
 from platformnative_io import finish, input_file, progress, source_result, write_csv
 from scoring import select_pose
@@ -70,7 +70,7 @@ def run(request):
     region = pocket_arguments(request)
     folder = Path("/output/native-docking")
     folder.mkdir()
-    rows, failures, poses, artifacts = [], [], [], {}
+    rows, failures, poses, artifacts, search_reports = [], [], [], {}, {}
     writer = Chem.SDWriter("/output/best-poses.sdf")
     try:
         for index, identifier in enumerate(selected):
@@ -114,6 +114,9 @@ def run(request):
                     )
                 if completed.returncode:
                     raise RuntimeError("native_gnina_failure")
+                if log.stat().st_size > 8 * 1024**2:
+                    raise ValueError("native_search_log_exceeds_limit")
+                search_reports[identifier] = parse_search_report(log.read_text()).model_dump()
                 native = summarize_poses(output, source, options)
                 valid = [pose for pose in native if pose["valid"]]
                 if not valid:
@@ -214,6 +217,7 @@ def run(request):
                 "preparation": "original ATOM coordinates; explicitly retained HETATM cofactors",
                 "retained_heterogens": request["payload"].get("retain_heterogens", []),
                 "search": request["payload"]["search"],
+                "engine_reported_search_by_candidate": search_reports,
                 "candidate_set": request["sources"][0],
                 "pose_validation": "existing_GNINA_chemical_identity_and_coordinate_validator",
                 "independent_posebusters": "not_run; available as separate follow-up",
