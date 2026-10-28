@@ -143,6 +143,19 @@ export function useExampleTemplate({
                 ),
               };
       if (!current()) return;
+      if (
+        info.pin &&
+        (!("job" in value) ||
+          !value.job ||
+          value.job.id !== info.pin.job_id ||
+          value.job.status !== "succeeded")
+      ) {
+        throw new Error(
+          language === "zh"
+            ? "已固定的示例结果不可用，请重新检查。"
+            : "The pinned example result is unavailable. Please check it again.",
+        );
+      }
       setResult(value);
       onPreviewChange?.(true);
     });

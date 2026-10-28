@@ -29,6 +29,8 @@ on:
       - "tests/test_stat6_predicted_references.py"
       - "frontend/src/examples/ExampleResultSet*"
       - "frontend/src/examples/ExampleActions*"
+      - "frontend/src/examples/review-highlights*"
+      - "frontend/src/examples/examples.css"
       - "frontend/src/examples/useExampleTemplate.ts"
       - "frontend/src/examples/ExampleJobResult*"
       - "frontend/src/datasets/CandidateView*"
@@ -59,6 +61,8 @@ jobs:
     timeout-minutes: 3
     outputs:
       del_only: ${{ steps.change.outputs.del_only }}
+      review_only: ${{ steps.review_scope.outputs.review_only }}
+      loader_changed: ${{ steps.review_scope.outputs.loader_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,9 +71,45 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
+      - id: review_scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          review_only=true
+          found=false
+          loader_changed=false
+          if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
+          while IFS= read -r path; do
+            case "$path" in
+              frontend/src/examples/review-highlights*) found=true ;;
+              frontend/src/examples/useExampleTemplate.ts) loader_changed=true ;;
+              frontend/src/examples/ExampleActions.tsx|frontend/src/examples/ExampleActions.test.tsx|frontend/src/examples/examples.css|docs/design/research-examples.md|.github/workflows/example-result-set-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) review_only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          if [[ "$found" != true ]]; then review_only=false; fi
+          echo "review_only=$review_only" >> "$GITHUB_OUTPUT"
+          echo "loader_changed=$loader_changed" >> "$GITHUB_OUTPUT"
+  review-highlights:
+    needs: scope
+    if: needs.scope.outputs.review_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Evidence-bound bilingual conclusions and module rendering
+        working-directory: frontend
+        run: npx vitest run src/examples/review-highlights.test.ts src/examples/ExampleActions.test.tsx
   immutable-stages:
     needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    if: needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -118,7 +158,7 @@ jobs:
         run: npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
   native-preview:
     needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    if: needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     env:
