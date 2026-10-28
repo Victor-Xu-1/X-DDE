@@ -169,9 +169,10 @@ jobs:
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-structure-layout" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-structure-layout/state" >> "$GITHUB_ENV"
-          gh release download examples-stat6-results-v4 --pattern stat6-reviewed-results-v4.zip --dir "$RUNNER_TEMP"
+          version=$(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import VERSION; print(VERSION)')
+          gh release download examples-v2 --pattern "stat6-reviewed-results-v${version}.zip" --dir "$RUNNER_TEMP"
           export WB_HOME="$RUNNER_TEMP/x-dde-structure-layout" WB_STATE_DIR="$RUNNER_TEMP/x-dde-structure-layout/state"
-          .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/"stat6-reviewed-results-v4.zip", Settings.from_env(), "bdf1d3884e0089f8c88fc56d941d7bbd816e98e541f5c68be46ed48ab663943f"))'
+          .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.examples.stat6_bundle_release import SHA256, VERSION; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/f"stat6-reviewed-results-v{VERSION}.zip", Settings.from_env(), SHA256))'
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps
       - name: Native STAT6 layout geometry and preserved task identity, desktop and narrow
