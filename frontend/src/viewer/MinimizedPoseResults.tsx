@@ -64,8 +64,8 @@ export function MinimizedPoseResults({
         </div>
         <p className="field-help">
           {zh
-            ? "分子内能量仅用于相同化学状态和方法下的比较，不能作为结合亲和力。原 pose 保留在历史文件中。"
-            : "Intramolecular energies compare the same chemical state and method; they are not binding affinity. The original pose remains in history."}
+            ? "这是仅考虑配体的分子内优化，不考虑蛋白；能量下降不代表口袋姿势改善，可能产生受体碰撞。请与对应受体一起检查并进行姿势质控。能量不能作为结合亲和力；原 pose 保留在历史文件中。"
+            : "This ligand-only minimization does not include the protein. Lower energy does not establish a better binding pose and may introduce receptor clashes. Inspect the matching receptor and check pose quality. The energy is not binding affinity; the original pose remains in history."}
         </p>
         <a
           className="secondary-button"
