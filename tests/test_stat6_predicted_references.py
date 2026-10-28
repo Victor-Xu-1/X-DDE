@@ -80,10 +80,12 @@ def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage
     from uuid import uuid4
 
     from opendde_workbench.examples.input_lineage import validate_input_lineage
+    from opendde_workbench.examples.pins import ExamplePins
     from opendde_workbench.requests import Properties
     from opendde_workbench.research.contracts import VersionInput
 
     store, scientific = scientific_store(tmp_path)
+    ExamplePins(store, tmp_path, modules=catalogue.MODULES)
     docking = prepare_stat6("gnina.dock", scientific)
     exploration = prepare_stat6("pose_exploration", scientific)
     reference = docking.objects["stat6_predicted_construct"].reference
