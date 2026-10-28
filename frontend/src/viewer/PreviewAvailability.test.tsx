@@ -19,21 +19,28 @@ vi.mock("../api", () => ({
 }));
 afterEach(() => vi.resetAllMocks());
 const id = "00000000-0000-4000-8000-000000000001";
+const savedId = "00000000-0000-4000-8000-000000000002";
+const savedAsset = "00000000-0000-4000-8000-000000000003";
+const nativeJob = "00000000-0000-4000-8000-000000000004";
 const base: PreviewPose = {
   urls: [`/api/assets/${id}`],
   source: { kind: "asset", asset_id: id, record: 2 },
   receptor: null,
 };
 const saved = {
-  job_id: "native-task",
+  job_id: nativeJob,
   pose: {
-    id: "saved-version",
+    id: savedId,
     kind: "molecule",
     reference: {
-      asset_id: "saved-file",
+      asset_id: savedAsset,
       record: 0,
-      version_id: "saved-version",
+      conformer: 0,
+      sha256: "a".repeat(64),
+      version_id: savedId,
     },
+    source_job: nativeJob,
+    relation: "edited_from",
   },
   energy: null,
   native_score: null,
@@ -77,7 +84,7 @@ function Controls({
   );
   return (
     <>
-      <output data-testid="pose-file">{controller.downloadUrl}</output>
+      <span data-testid="pose-file">{controller.downloadUrl}</span>
       {initial ? (
         <InitialPoseStatus state={controller} language={zh ? "zh" : "en"} />
       ) : (
@@ -125,7 +132,7 @@ it("resolves a calculated pose while paused using cache-only admission, without 
   );
   expect(controller.initialReady).toBe(true);
   expect(screen.getByTestId("pose-file")).toHaveTextContent(
-    "saved-file?record=0",
+    `${savedAsset}?record=0`,
   );
   expect(request).not.toHaveBeenCalled();
 });
@@ -178,12 +185,12 @@ it("retains saved downloads and undo/redo after the task service pauses", async 
   ).toBeDisabled();
   expect(
     screen.getByRole("link", { name: "Download current pose" }),
-  ).toHaveAttribute("href", "/api/assets/saved-file?record=0");
+  ).toHaveAttribute("href", `/api/assets/${savedAsset}?record=0`);
   fireEvent.click(screen.getByRole("button", { name: "Previous pose" }));
   expect(screen.getByTestId("pose-file")).toHaveTextContent(`${id}?record=2`);
   fireEvent.click(screen.getByRole("button", { name: "Next pose" }));
   expect(screen.getByTestId("pose-file")).toHaveTextContent(
-    "saved-file?record=0",
+    `${savedAsset}?record=0`,
   );
   expect(api.post).toHaveBeenCalledTimes(2);
 });
