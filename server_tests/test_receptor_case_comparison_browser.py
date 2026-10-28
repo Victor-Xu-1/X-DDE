@@ -123,7 +123,9 @@ def test_retained_receptor_comparison_opens_exact_quality_and_docking_without_jo
         ).click()
         expect(stage).to_have_value(DATA["poses"][2]["docking_job"])
         ready_structure(page, zh)
-        expect(page.locator(".docking-results:visible table tbody tr")).to_have_count(20)
+        expect(
+            page.get_by_role("table", name="GNINA 1.3.3", exact=True).locator("tbody tr")
+        ).to_have_count(20)
         page.screenshot(path=str(evidence / "experimental-poses.png"), full_page=True)
         stage.select_option(DATA["job_id"])
         ready_structure(page, zh)
