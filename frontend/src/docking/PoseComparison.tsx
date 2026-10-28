@@ -2,6 +2,7 @@ import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { Language } from "../types";
 import type { DockingResult, PoseResult } from "./types";
+import "./PoseComparison.css";
 
 /** Display only: both poses retain the same task's exact receptor coordinate frame. */
 export function PoseComparison({
@@ -39,7 +40,7 @@ export function PoseComparison({
           ? "同一受体坐标中的原始姿势，不拟合配体。叠加不表示已验证结合；请分别查看各姿势的接触和质量检查。"
           : "Original poses in the same receptor frame, without fitting the ligands. Overlay does not validate binding; inspect contacts and quality checks for each pose separately."}
       </p>
-      <div className="editor-toolbar">
+      <div className="pose-comparison-sources">
         {poses.map((pose, index) => (
           <span key={pose.record}>
             <button

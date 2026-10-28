@@ -67,7 +67,7 @@ jobs:
           found=false
           while IFS= read -r file; do
             case "$file" in
-              frontend/src/docking/PoseComparison.tsx) found=true ;;
+              frontend/src/docking/PoseComparison.tsx|frontend/src/docking/PoseComparison.css) found=true ;;
               frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|frontend/src/docking/PoseTable.tsx|frontend/src/presentation/ResearchTable.tsx|frontend/src/presentation/ResearchTable.test.tsx|server_tests/test_docking_table_browser.py|.github/workflows/pose-handoff-checks.yml|.github/workflows/user-interface-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) only=false ;;
             esac
