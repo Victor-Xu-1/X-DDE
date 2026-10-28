@@ -1,0 +1,13 @@
+.pose-comparison-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  margin-block: 12px;
+}
+.pose-comparison-sources > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}

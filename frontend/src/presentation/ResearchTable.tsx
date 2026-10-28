@@ -38,6 +38,7 @@ export function ResearchTable<T>({
   initialSort,
   initialVisibleColumns,
   compare = true,
+  comparisonActions,
   exportName = "research-results.csv",
 }: {
   rows: readonly T[];
@@ -51,6 +52,7 @@ export function ResearchTable<T>({
   initialSort?: SortOrder;
   initialVisibleColumns?: readonly string[];
   compare?: boolean;
+  comparisonActions?(rows: readonly T[]): ReactNode;
   exportName?: string;
 }) {
   const zh = language === "zh",
@@ -238,6 +240,7 @@ export function ResearchTable<T>({
               ))}
             </tbody>
           </table>
+          {comparisonActions?.(compared)}
         </div>
       )}
       <div className="research-table-scroll table-scroll">

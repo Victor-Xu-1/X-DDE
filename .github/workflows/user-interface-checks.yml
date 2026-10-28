@@ -328,6 +328,8 @@ on:
   pull_request:
     paths:
       - "frontend/src/presentation/**"
+      # Match push scope: shared table selection has exact result/pose checks.
+      - "!frontend/src/presentation/ResearchTable*"
       - "frontend/src/integrations/**"
       # Shared form defaults/validation have the exact scientific-form contract gate.
       - "!frontend/src/integrations/generated.ts"

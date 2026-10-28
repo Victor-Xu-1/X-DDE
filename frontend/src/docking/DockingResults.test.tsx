@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { DockingResults } from "./DockingResults";
@@ -14,13 +20,19 @@ vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({
     urls,
     nativeScore,
+    ...display
   }: {
     urls: string[];
     nativeScore?: unknown;
+    comparison?: boolean;
+    sourceSnapshot?: boolean;
+    focusModels?: number[];
+    records?: number[];
   }) => (
     <div data-testid="viewer">
       {urls.join(";")}
       <span data-testid="native-score">{JSON.stringify(nativeScore)}</span>
+      <span data-testid="display-spec">{JSON.stringify(display)}</span>
     </div>
   ),
 }));
@@ -271,5 +283,144 @@ it("hands the actually selected saved pose and its receptor to the existing qual
   expect(screen.getByTestId("viewer")).toHaveTextContent(
     "/artifact/j/pose-002.sdf",
   );
+  expect(mocks.authorized).not.toHaveBeenCalled();
+});
+
+it.each(["en", "zh"] as const)(
+  "%s overlays two exact native poses and returns to single-pose inspection without writes",
+  async (language) => {
+    mocks.request.mockResolvedValue([]);
+    const result: DockingResult = {
+      ...data,
+      poses: [
+        { ...data.poses[1], record: 0, artifact: "pose-001.sdf" },
+        data.poses[1],
+      ],
+    };
+    const original = JSON.stringify(result),
+      zh = language === "zh";
+    const user = userEvent.setup();
+    const view = render(
+      <DockingResults
+        language={language}
+        job={{ id: "j" } as Job}
+        result={result}
+      />,
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: zh ? "对比 姿势 1" : "Compare Pose 1",
+      }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: zh ? "对比 姿势 2" : "Compare Pose 2",
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: zh ? "对比 (2)" : "Compare (2)" }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: zh ? "三维比较两个姿势" : "Compare two poses in 3D",
+      }),
+    );
+    const comparison = screen.getByRole("region", {
+      name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
+    });
+    expect(within(comparison).getByTestId("viewer")).toHaveTextContent(
+      "/artifact/j/receptor.pdb;/artifact/j/pose-001.sdf;/artifact/j/pose-002.sdf",
+    );
+    const spec = JSON.parse(
+      within(comparison).getByTestId("display-spec").textContent!,
+    );
+    expect(spec).toEqual(
+      expect.objectContaining({
+        comparison: true,
+        sourceSnapshot: true,
+        focusModels: [1, 2],
+        records: [0, 0, 0],
+      }),
+    );
+    expect(
+      within(comparison).getByTestId("native-score"),
+    ).toBeEmptyDOMElement();
+    expect(
+      within(comparison)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["/artifact/j/pose-001.sdf", "/artifact/j/pose-002.sdf"]);
+    expect(
+      screen.queryByRole("button", {
+        name: zh ? "检查姿势质量" : "Check pose quality",
+      }),
+    ).toBeNull();
+    await user.click(
+      within(comparison).getByRole("button", {
+        name: zh ? "姿势 2 · 紫色碳" : "Pose 2 · Purple carbon",
+      }),
+    );
+    expect(
+      screen.queryByRole("region", {
+        name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
+      }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("link", {
+        name: zh ? "下载所选姿势 SDF" : "Download selected pose SDF",
+      }),
+    ).toHaveAttribute("href", "/artifact/j/pose-002.sdf");
+    expect(screen.getByTestId("native-score")).toHaveTextContent('"value":-7');
+    await user.click(
+      screen.getByRole("button", {
+        name: zh ? "三维比较两个姿势" : "Compare two poses in 3D",
+      }),
+    );
+    view.rerender(
+      <DockingResults
+        language={language}
+        job={{ id: "another-job" } as Job}
+        result={result}
+      />,
+    );
+    expect(
+      screen.queryByRole("region", {
+        name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
+      }),
+    ).toBeNull();
+    expect(screen.getByTestId("viewer")).not.toHaveTextContent("/artifact/j/");
+    expect(JSON.stringify(result)).toBe(original);
+    expect(mocks.authorized).not.toHaveBeenCalled();
+  },
+);
+
+it("leaves rejected and more-than-two metric selections out of the structural overlay", async () => {
+  mocks.request.mockResolvedValue([]);
+  const result = {
+    ...data,
+    poses: [
+      ...data.poses,
+      { ...data.poses[1], record: 2, artifact: "pose-003.sdf" },
+    ],
+  };
+  render(
+    <DockingResults language="en" job={{ id: "j" } as Job} result={result} />,
+  );
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("checkbox", { name: "Compare Pose 1" }));
+  await user.click(screen.getByRole("checkbox", { name: "Compare Pose 2" }));
+  await user.click(screen.getByRole("button", { name: "Compare (2)" }));
+  expect(
+    screen.getByRole("button", { name: "Compare two poses in 3D" }),
+  ).toBeDisabled();
+  await user.click(screen.getByRole("checkbox", { name: "Compare Pose 3" }));
+  expect(
+    screen.getByRole("button", { name: "Compare two poses in 3D" }),
+  ).toBeDisabled();
+  expect(
+    screen.queryByRole("region", {
+      name: "Binding pose structural comparison",
+    }),
+  ).toBeNull();
   expect(mocks.authorized).not.toHaveBeenCalled();
 });

@@ -29,6 +29,41 @@ const columns = [
     numeric: true,
   },
 ];
+it("offers comparison actions for exact marked source rows without changing row selection", async () => {
+  const user = userEvent.setup(),
+    action = vi.fn(),
+    onSelect = vi.fn();
+  render(
+    <ResearchTable
+      rows={rows}
+      columns={columns}
+      rowId={(row) => row.id}
+      title="Action comparison"
+      language="en"
+      onSelect={onSelect}
+      comparisonActions={(selected) => (
+        <button onClick={() => action(selected)}>
+          Inspect marked structures
+        </button>
+      )}
+    />,
+  );
+  expect(
+    screen.queryByRole("button", { name: "Inspect marked structures" }),
+  ).toBeNull();
+  await user.click(screen.getByRole("checkbox", { name: "Compare Sotorasib" }));
+  await user.click(screen.getByRole("checkbox", { name: "Compare JQ1" }));
+  await user.click(screen.getByRole("button", { name: "Compare (2)" }));
+  await user.click(
+    screen.getByRole("button", { name: "Inspect marked structures" }),
+  );
+  expect(action).toHaveBeenCalledExactlyOnceWith([rows[0], rows[1]]);
+  expect(onSelect).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Compare (2)" }));
+  expect(
+    screen.queryByRole("button", { name: "Inspect marked structures" }),
+  ).toBeNull();
+});
 it("selects a whole row by pointer or keyboard without stealing comparison and nested actions", async () => {
   const user = userEvent.setup(),
     onSelect = vi.fn(),
@@ -65,9 +100,7 @@ it("selects a whole row by pointer or keyboard without stealing comparison and n
   await user.keyboard("{Enter} ");
   expect(onSelect).toHaveBeenCalledTimes(2);
   onSelect.mockClear();
-  await user.click(
-    within(row).getByRole("button", { name: "JQ1" }),
-  );
+  await user.click(within(row).getByRole("button", { name: "JQ1" }));
   expect(onSelect).toHaveBeenCalledExactlyOnceWith(rows[1]);
   onSelect.mockClear();
   await user.click(within(row).getByRole("checkbox", { name: "Compare JQ1" }));
