@@ -15,6 +15,8 @@ on:
       - 'src/opendde_workbench/container_supervision.py'
       - 'src/opendde_workbench/native_container_cleanup.py'
       - 'tests/test_container_runtime.py'
+      - 'tests/test_container_stop.py'
+      - 'server_tests/test_container_stop_native.py'
       - 'tests/test_install_probe_lifecycle.py'
       - 'tests/test_install_network.py'
       - 'tests/test_native_container_cleanup.py'
@@ -26,7 +28,51 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      stop_only: ${{ steps.change.outputs.stop_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: change
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          stop_only=true
+          found=false
+          if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
+          while IFS= read -r path; do
+            case "$path" in
+              tests/test_container_stop.py|server_tests/test_container_stop_native.py) found=true ;;
+              src/opendde_workbench/prepared_container.py|src/opendde_workbench/docking/backend.py|src/opendde_workbench/container_supervision.py|.github/workflows/native-container-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) stop_only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          if [[ "$found" != true ]]; then stop_only=false; fi
+          echo "stop_only=$stop_only" >> "$GITHUB_OUTPUT"
+  cancellation:
+    needs: scope
+    if: needs.scope.outputs.stop_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Only owned cancellation, frozen runtimes and durable worker recovery
+        run: >-
+          uv run --locked pytest -q tests/test_container_stop.py tests/test_container_runtime.py
+          tests/test_native_container_cleanup.py tests/test_local_process.py
+          tests/test_storage_consumers.py::test_cancel_and_unconfirmed_cleanup_preserve_halt_until_restart
   lifecycle:
+    needs: scope
+    if: needs.scope.outputs.stop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
