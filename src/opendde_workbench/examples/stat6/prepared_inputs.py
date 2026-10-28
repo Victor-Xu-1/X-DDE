@@ -72,7 +72,8 @@ def reviewed_protein_only_receptor(scientific, records):
     )
     options = result.options
     if (
-        result.source.sha256 != FILES["stat6_structure"].sha256
+        result.source.sha256
+        not in {FILES["stat6_structure"].sha256, FILES["stat6_receptor"].sha256}
         or result.sha256 != ref.sha256
         or options.format != "pdb"
         or options.chains != ("A",)
