@@ -1,0 +1,24 @@
+name: Ligand-only minimization result scope
+on:
+  pull_request:
+    paths: &paths
+      - 'frontend/src/viewer/MinimizedPoseResults.tsx'
+      - 'frontend/src/viewer/MinimizedPoseResults.test.tsx'
+      - '.github/workflows/ligand-energy-scope.yml'
+  push:
+    paths: *paths
+permissions:
+  contents: read
+jobs:
+  ligand-energy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Ligand-only scope and source download
+        working-directory: frontend
+        run: npx vitest run src/viewer/MinimizedPoseResults.test.tsx
