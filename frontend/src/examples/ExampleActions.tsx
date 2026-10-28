@@ -14,6 +14,11 @@ import {
   ReviewedReferenceContacts,
 } from "./review-highlights-contacts";
 import "./examples.css";
+import {
+  hasReviewedReceptorComparison,
+  ReviewedReceptorComparison,
+  reviewedReceptorFinding,
+} from "./ReviewedReceptorComparison";
 
 export function ExampleActions(
   options: ExampleTemplateOptions & { onBack?(): void },
@@ -32,10 +37,15 @@ export function ExampleActions(
   }, [state.result]);
   const zh = language === "zh";
   const review = state.info?.pin?.review ?? state.info?.record_pin?.review;
+  const receptorComparison = Boolean(
+    state.result?.job?.status === "succeeded" &&
+    hasReviewedReceptorComparison(state.info, state.result.job.id),
+  );
   const highlight =
     state.result?.job?.id === state.info?.pin?.job_id &&
     state.result?.job?.status === "succeeded"
-      ? reviewedHighlight(state.info, language)
+      ? (reviewedHighlight(state.info, language) ??
+        (receptorComparison ? reviewedReceptorFinding(language) : null))
       : null;
   return (
     <section
@@ -96,6 +106,16 @@ export function ExampleActions(
                 supporting={state.info?.pin?.supporting_evidence ?? []}
                 stageNames={state.info?.supporting_stage_names}
                 language={language}
+                stageSummary={
+                  receptorComparison
+                    ? (onStage) => (
+                        <ReviewedReceptorComparison
+                          language={language}
+                          onStage={onStage}
+                        />
+                      )
+                    : undefined
+                }
               />
             )}
             {state.result.example && (

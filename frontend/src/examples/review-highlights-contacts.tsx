@@ -1,32 +1,20 @@
 import type { Language } from "../types";
 import type { ExampleInfo } from "./types";
 import data from "./review-highlights-contact-data.json";
+import { matchesReviewedSources } from "./reviewed-sources";
 
 /** Only show the saved geometric review for the exact native sources it used. */
 export function hasReviewedReferenceContacts(
   info: ExampleInfo | null,
   jobId: string,
 ) {
-  if (!info?.pin?.review) return false;
-  const pin = info.pin;
-  return Boolean(
-    info.case.id === data.case_id &&
-    info.module.case_id === data.case_id &&
-    info.module.capability_id === data.capability_id &&
-    info.module.revision === data.revision &&
-    pin.job_id === data.job_id &&
-    jobId === data.job_id &&
-    Object.entries(data.artifacts).every(
-      ([name, digest]) => pin.artifact_sha256?.[name] === digest,
-    ) &&
-    data.supporting.every((expected) =>
-      pin.supporting_evidence?.some(
-        (actual) =>
-          actual.job_id === expected.job_id &&
-          actual.artifact_sha256?.["result.json"] === expected.result_sha256,
-      ),
-    ),
-  );
+  return matchesReviewedSources(info, jobId, {
+    ...data,
+    supporting: data.supporting.map((expected) => ({
+      job_id: expected.job_id,
+      artifact_sha256: { "result.json": expected.result_sha256 },
+    })),
+  });
 }
 
 export function ReviewedReferenceContacts({

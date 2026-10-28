@@ -14,6 +14,26 @@ def read_version(root):
     return tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
 
 
+def sync_project_lock(root, old, target):
+    """A publication changes the editable project's identity, not its dependencies."""
+    path = root / "uv.lock"
+    text = path.read_text()
+    blocks = list(re.finditer(r"(?ms)^\[\[package\]\]\n.*?(?=^\[\[package\]\]|\Z)", text))
+    own = [
+        block
+        for block in blocks
+        if (package := tomllib.loads(block[0])["package"][0])["name"] == "x-dde"
+        and package.get("source") == {"editable": "."}
+    ]
+    if len(own) != 1:
+        raise ValueError("The lock must contain exactly one editable X-DDE project.")
+    block = own[0]
+    body, count = re.subn(rf'(?m)^version = "{re.escape(old)}"$', f'version = "{target}"', block[0])
+    if count != 1:
+        raise ValueError("The editable project lock version differs from the publication base.")
+    path.write_text(text[: block.start()] + body + text[block.end() :])
+
+
 def check(root, base=None):
     current = ReleaseNumber.parse(read_version(root))
     value = str(current)
@@ -75,7 +95,10 @@ def bump(root):
         for name in ("install.sh", "install.ps1"):
             path = root / name
             path.write_text(path.read_text().replace("v" + old, "v" + target))
-        subprocess.run(["uv", "lock", "--offline"], cwd=root, check=True)
+        sync_project_lock(root, old, target)
+        # Validate the existing graph without resolving or changing package versions.
+        # Dependency edits must be locked explicitly before preparing a publication.
+        subprocess.run(["uv", "lock", "--check", "--offline"], cwd=root, check=True)
         check(root)
     except Exception:
         for path, body in saved.items():

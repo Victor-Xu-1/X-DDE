@@ -47,6 +47,29 @@ beforeEach(() => {
   transport.request.mockReset();
 });
 
+it("lets a reviewed summary select only an existing retained stage", async () => {
+  transport.request.mockResolvedValue(quality);
+  render(
+    <ExampleResultSet
+      job={primary}
+      supporting={supporting}
+      language="en"
+      stageSummary={(choose) => (
+        <>
+          <button onClick={() => choose("outside-case")}>Unrelated</button>
+          <button onClick={() => choose(quality.id)}>Exact quality</button>
+        </>
+      )}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Unrelated" }));
+  expect(transport.request).not.toHaveBeenCalled();
+  expect(screen.getByText("Native output generator")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Exact quality" }));
+  expect(await screen.findByText("Native output quality")).toBeVisible();
+  expect(screen.getByRole("combobox")).toHaveValue(quality.id);
+});
+
 it("keeps a reviewed initial view on its primary result only", async () => {
   transport.request.mockResolvedValue(refined);
   render(
