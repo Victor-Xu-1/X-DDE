@@ -4,6 +4,7 @@ import asyncio
 import os
 from pathlib import Path
 
+from ..container_supervision import stop_owned
 from ..engine import command
 from .runtime import configuration, verify_files
 
@@ -132,9 +133,10 @@ class PocketBackend:
         )
 
     async def stop(self, job_id, directory):
-        from .. import local_process
-
-        code, output = await command("docker", "rm", "--force", self.container(job_id))
-        if code and "No such container" not in output:
-            raise RuntimeError("P2Rank container cancellation is unconfirmed.")
-        await local_process.stop(Path(__file__).with_name("supervise.py"), directory)
+        await stop_owned(
+            directory,
+            self.container(job_id),
+            Path(__file__).with_name("supervise.py"),
+            command,
+            label="P2Rank",
+        )
