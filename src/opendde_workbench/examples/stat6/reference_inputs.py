@@ -6,6 +6,7 @@ PREDICTED_CAPABILITIES = frozenset(
     {
         "pose_exploration",
         "pose.cluster",
+        "gnina.dock",
         "openmm.refine",
         "predict",
         "boltz.predict",

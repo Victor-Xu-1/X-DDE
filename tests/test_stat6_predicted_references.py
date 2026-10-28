@@ -76,6 +76,45 @@ def test_predicted_references_are_opt_in_to_relevant_modules_without_jobs(tmp_pa
     assert store.list_jobs() == []
 
 
+def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage(tmp_path):
+    from uuid import uuid4
+
+    from opendde_workbench.examples.input_lineage import validate_input_lineage
+    from opendde_workbench.requests import Properties
+    from opendde_workbench.research.contracts import VersionInput
+
+    store, scientific = scientific_store(tmp_path)
+    docking = prepare_stat6("gnina.dock", scientific)
+    exploration = prepare_stat6("pose_exploration", scientific)
+    reference = docking.objects["stat6_predicted_construct"].reference
+    assert reference == exploration.objects["stat6_predicted_construct"].reference
+    assert reference.sha256 == catalogue.FILES["stat6_predicted_construct"].sha256
+    assert "stat6_predicted_construct" in docking.case.files
+    assert set(PREDICTED_RECEIPTS) <= docking.data_assets.keys()
+
+    # A second scientific version can refer to the same retained bytes; its
+    # asset is still the reviewed source, not an arbitrary personal input.
+    alias = scientific.create(
+        VersionInput(asset_id=reference.asset_id, kind="structure", label="Reviewed source alias"),
+        uuid4(),
+    )
+    job = store.create(
+        Properties(name="Source boundary fixture", ligand_files=[reference.asset_id],
+                   scientific_inputs=[alias.reference]), str(uuid4()), 20, 500
+    )
+    validate_input_lineage(job, docking, store)
+    foreign_asset = scientific.assets.save("foreign.pdb", "structure", b"HEADER unrelated\nEND\n")
+    foreign = scientific.create(
+        VersionInput(asset_id=foreign_asset.id, kind="structure", label="Unrelated"), uuid4()
+    )
+    unrelated = store.create(
+        Properties(name="Foreign source fixture", ligand_files=[foreign.reference.asset_id],
+                   scientific_inputs=[foreign.reference]), str(uuid4()), 20, 500
+    )
+    with pytest.raises(ValueError, match="lineage"):
+        validate_input_lineage(unrelated, docking, store)
+
+
 def test_refinement_uses_a_documented_continuous_construct_without_starting_science(tmp_path):
     store, scientific = scientific_store(tmp_path)
     prepared = prepare_stat6("openmm.refine", scientific)
