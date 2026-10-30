@@ -20,6 +20,11 @@ const parent = (id = "stopped-binder") =>
   ({
     id,
     status: "interrupted",
+    created_at: "2026-10-30T00:00:00Z",
+    started_at: null,
+    finished_at: null,
+    error: "Service restarted while the task was active.",
+    parent_id: null,
     request: {
       operation: "boltzgen_design",
       name: "STAT6 SH2 native study",
