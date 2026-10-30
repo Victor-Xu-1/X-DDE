@@ -13,13 +13,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 6
     env:
-      WB_CORE_EXPERIMENT_OUTPUT: ${{ runner.temp }}/core-experiment
       OMP_NUM_THREADS: '1'
       OPENBLAS_NUM_THREADS: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Exact retained STAT6 source and hard invariants only; no diffusion inference
+        env:
+          WB_CORE_EXPERIMENT_OUTPUT: ${{ runner.temp }}/core-experiment
         run: >-
           uv run --no-project --python 3.10 --with pytest==9.1.1
           --with numpy==1.26.4 --with rdkit==2023.9.6
