@@ -219,11 +219,17 @@ def test_continuation_uses_readonly_exact_source_mounts_and_original_image(
         "opendde_workbench.integrations.backend.configuration",
         lambda *args: (image, {"models": str(models)}),
     )
+
+    def selection_changed_after_freeze(*args):
+        raise AssertionError("The exact execution image is already frozen, not selected again.")
+
     monkeypatch.setattr(
-        "opendde_workbench.container_runtime.selection", lambda *args: (image, None, None)
+        "opendde_workbench.container_runtime.selection", selection_changed_after_freeze
     )
     child = tmp_path / "child"
     child.mkdir()
+    receipt = child / "container-runtime.json"
+    receipt.write_text(json.dumps({"schema": 2, "runtime": None, "image": image}))
     arguments = backend.execution_arguments(SimpleNamespace(request=request), child)
     assert (
         f"type=bind,source={directory / 'output/native/designs'},"
@@ -234,10 +240,7 @@ def test_continuation_uses_readonly_exact_source_mounts_and_original_image(
     assert (
         directory / "output/native/designs/intermediate_designs/design_00.cif"
     ).read_text() == "data_native_storage_fixture\n"
-    monkeypatch.setattr(
-        "opendde_workbench.container_runtime.selection",
-        lambda *args: ("sha256:" + "c" * 64, None, None),
-    )
+    receipt.write_text(json.dumps({"schema": 2, "runtime": None, "image": "sha256:" + "c" * 64}))
     with pytest.raises(ValueError, match="exact original native binder image"):
         backend.execution_arguments(SimpleNamespace(request=request), child)
 

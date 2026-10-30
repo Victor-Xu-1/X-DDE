@@ -135,7 +135,7 @@ class ScientificBackend(PreparedContainerBackend):
             "NUMBA_CACHE_DIR=/tmp/numba",
         ]
         if self.program == "boltzgen" and job.request.payload.continuation:
-            from ..container_runtime import selection
+            from ..container_runtime import RECEIPT, document, read
             from .binder_checkpoints import validate_continuation
 
             source, manifest = validate_continuation(
@@ -143,9 +143,11 @@ class ScientificBackend(PreparedContainerBackend):
                 self.settings.state_dir,
                 Store(self.settings.state_dir / "jobs.sqlite3"),
             )
-            installed_image, _ = configuration(self.settings, self.program)
-            selected_image, _, _ = selection(self.settings, self.program, installed_image)
-            if selected_image != manifest["image"]:
+            # The shared lifecycle already froze the image used by docker create.
+            # Re-reading a mutable installation/lease selection here could approve
+            # a different image if configuration changed between these operations.
+            read(directory)
+            if document(directory / RECEIPT).get("image") != manifest["image"]:
                 raise ValueError("Continue with the exact original native binder image.")
             receipt = directory / "binder-checkpoint.json"
             receipt.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")))
