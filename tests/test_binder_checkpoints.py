@@ -28,6 +28,7 @@ def source(tmp_path):
     ref = {"asset_id": str(uuid4()), "sha256": "a" * 64}
     request = IntegratedTask(
         operation="boltzgen_design",
+        name="STAT6 stopped native binder study",
         scientific_inputs=[ref],
         inputs=[{"role": "structure", "source": ref}],
         payload={"kind": "boltzgen", "target_chains": ["A"], "candidates": 2, "retain": 1},
