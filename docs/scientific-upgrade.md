@@ -67,6 +67,11 @@ unchanged. A two-design pilot and loaded custom counts remain visible in the
 questionnaire; pilots do not establish a hit rate or experimental binding.
 The review page states that this version does not provide seed-controlled
 sampling replay. Historical requests and original outputs remain intact.
+Before submission it also shows the actual modality, target-chain selection,
+original structure downloads, generated/retained counts and CPU/memory budget.
+Protein/peptide design shows the requested length range; scaffold-based
+antibody/nanobody design shows the framework chain and selected design-position
+count instead of presenting the unused free-length setting as an executed limit.
 
 REINVENT R-group design accepts one connected scaffold with single-bonded wildcard
 attachment sites. An optional exact source-molecule reference is consumed by the
