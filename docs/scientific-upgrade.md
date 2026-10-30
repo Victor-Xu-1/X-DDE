@@ -58,6 +58,16 @@ experimental binding measurement. BoltzGen antibody mode designs a selected vari
 framework chain; it does not promise whole-IgG design. Its upstream pipeline controls
 randomness; the UI does not expose an unsupported seed override.
 
+The locked BoltzGen 0.3.2 bridge explicitly uses one device, zero DataLoader
+workers and diffusion batch size one. These are native CLI controls, not new
+model dependencies. Larger requests remain sequential at the diffusion-batch
+level; the existing container CPU/memory ceilings still apply and insufficient
+resources can fail a run. Native weights, ranking and scientific filters are
+unchanged. A two-design pilot and loaded custom counts remain visible in the
+questionnaire; pilots do not establish a hit rate or experimental binding.
+The review page states that this version does not provide seed-controlled
+sampling replay. Historical requests and original outputs remain intact.
+
 REINVENT R-group design accepts one connected scaffold with single-bonded wildcard
 attachment sites. An optional exact source-molecule reference is consumed by the
 native adapter to validate the core, stereochemistry and declared sites before

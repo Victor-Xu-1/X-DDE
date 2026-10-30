@@ -15,7 +15,7 @@ on:
       # Molecular design scope has exact bilingual browser/layout checks.
       - "!frontend/src/integrations/Reinvent*"
       - "!frontend/src/integrations/reinvent-modes.ts"
-      - "!frontend/src/integrations/ScientificReview.tsx"
+      - "!frontend/src/integrations/ScientificReview*"
       - "!frontend/src/integrations/ScientificSelection.tsx"
       - "!frontend/src/integrations/ScientificChoices*"
       - "!frontend/src/integrations/inputs.css"

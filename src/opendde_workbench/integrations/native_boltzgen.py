@@ -61,6 +61,15 @@ def run(request):
             payload["candidates"],
             "--budget",
             payload["retain"],
+            # Explicit 0.3.2 CLI controls: avoid all-device discovery, DataLoader
+            # child workers, and the automatic ten-sample batch on larger runs.
+            # Container CPU/memory limits remain the resource authority.
+            "--devices",
+            "1",
+            "--num_workers",
+            "0",
+            "--diffusion_batch_size",
+            "1",
             "--cache",
             "/models",
             # The locked Torch 2.8 runtime does not provide the FX symbols used

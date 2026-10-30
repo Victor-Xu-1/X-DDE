@@ -13,7 +13,7 @@ on:
       # Chemical-scope questionnaires have a focused native Ketcher/review gate.
       - "!frontend/src/integrations/Reinvent*"
       - "!frontend/src/integrations/reinvent-modes.ts"
-      - "!frontend/src/integrations/ScientificReview.tsx"
+      - "!frontend/src/integrations/ScientificReview*"
       - "!frontend/src/integrations/ScientificSelection.tsx"
       - "!frontend/src/integrations/ScientificChoices*"
       - "!frontend/src/integrations/inputs.css"
@@ -336,7 +336,7 @@ on:
       - "!frontend/src/integrations/validation*"
       - "!frontend/src/integrations/Reinvent*"
       - "!frontend/src/integrations/reinvent-modes.ts"
-      - "!frontend/src/integrations/ScientificReview.tsx"
+      - "!frontend/src/integrations/ScientificReview*"
       - "!frontend/src/integrations/ScientificSelection.tsx"
       - "!frontend/src/integrations/ScientificChoices*"
       - "!frontend/src/integrations/inputs.css"
