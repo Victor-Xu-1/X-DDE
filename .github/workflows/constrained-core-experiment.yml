@@ -1,0 +1,32 @@
+name: Prospective fixed-core construction experiment
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'server_tests/inpaint_reconstruction_experiment.py'
+      - 'server_tests/test_inpaint_core_reconstruction.py'
+      - '.github/workflows/constrained-core-experiment.yml'
+permissions:
+  contents: read
+jobs:
+  exact-stat6-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    env:
+      WB_CORE_EXPERIMENT_OUTPUT: ${{ runner.temp }}/core-experiment
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Exact retained STAT6 source and hard invariants only; no diffusion inference
+        run: >-
+          uv run --no-project --python 3.10 --with pytest==9.1.1
+          --with numpy==1.26.4 --with rdkit==2023.9.6
+          python -m pytest -q server_tests/test_inpaint_core_reconstruction.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prospective-core-geometry
+          path: ${{ runner.temp }}/core-experiment
+          if-no-files-found: warn
