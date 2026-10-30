@@ -59,7 +59,7 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
             assert abs(resolution.bounding_box()["height"] - capture.bounding_box()["height"]) < 2
             assert resolution.bounding_box()["height"] <= 34
             expect(page.get_by_role("button", name="放大", exact=True)).to_be_visible()
-            expect(page.get_by_role("button", name="全屏显示结构", exact=True)).to_be_visible()
+            expect(page.get_by_role("button", name="全屏研究工作区", exact=True)).to_be_visible()
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")
             bounds = controls.bounding_box()
             preview = page.locator(".scientific-target-preview").bounding_box()
