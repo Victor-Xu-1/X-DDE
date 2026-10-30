@@ -191,7 +191,11 @@ export function TaskDetail({
       )}
       {(error || job.error) && (
         <div className="error-box" role="alert">
-          {researchError(error || job.error || "", language === "zh")}
+          {researchError(
+            error || job.error || "",
+            language === "zh",
+            !error && terminal(job.status) ? "historical-task" : "current",
+          )}
         </div>
       )}
       {failed && (

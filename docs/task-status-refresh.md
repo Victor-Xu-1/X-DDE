@@ -18,6 +18,14 @@ failure, with `native-cleanup.json` retained beside the original exit record.
 Confirmed cleanup cannot override a nonzero exit or an OOM. These are server
 diagnostics; the researcher sees the task state and retained scientific files.
 
+Stored cleanup failures describe why that historical task ended. They never
+assert that the queue is still paused after recovery. Current service availability
+and retry controls continue to follow live health; fresh action failures retain
+their current-status explanation. Original errors and scientific files are unchanged.
+
+已保存的收尾失败说明该次任务结束时的情况，不据此断言当前队列仍然暂停。
+计算服务提示和重试按钮继续依据实时健康状态；原始错误和研究文件不变。
+
 - Each workbench read has a 30-second deadline composed with its effect's
   cancellation signal. The deadline also bounds a body reader or transport that
   does not reject its promise when cancelled.
