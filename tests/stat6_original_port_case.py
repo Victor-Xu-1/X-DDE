@@ -5,6 +5,8 @@ import json
 
 import pytest
 
+from opendde_workbench.examples.pins import ExamplePins
+
 GENERATION = "23e97ba7-f90e-484d-a21d-0813454c608d"
 STATES = "ff3d98a3-9465-4cbb-a240-8d52996c2104"
 DOCKING = "5d2c6867-0563-488a-bda0-9f063458f0d8"
@@ -16,7 +18,11 @@ def retained_original_port(settings, store, pins):
         return settings.state_dir / "jobs" / identifier / "output" / name
 
     generated = pins.get("reinvent.design", verify=True)
-    docked = pins.get("gnina.dock", verify=True)
+    # The analogue study is deliberately revision 4. The current revision 5
+    # studies the supplied warhead; it cannot stand in for this historical case.
+    modules = dict(pins.modules)
+    modules["gnina.dock"] = modules["gnina.dock"].model_copy(update={"revision": 4})
+    docked = ExamplePins(store, settings.state_dir, modules=modules).get("gnina.dock", verify=True)
     assert generated.revision == docked.revision == 4
     assert str(generated.job_id) == GENERATION and str(docked.job_id) == DOCKING
     assert [str(row.job_id) for row in generated.supporting_evidence] == [STATES]
