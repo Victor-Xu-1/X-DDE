@@ -7,6 +7,8 @@ on:
       # Research-file classification has exact result/input handoff checks.
       - "!frontend/src/presentation/research-files*"
       - "frontend/src/integrations/**"
+      # Explicit stopped-binder recovery has its own exact continuation gate.
+      - "!frontend/src/integrations/BinderContinuation*"
       # Shared form defaults/validation have the exact scientific-form contract gate.
       - "!frontend/src/integrations/generated.ts"
       - "!frontend/src/integrations/validation*"

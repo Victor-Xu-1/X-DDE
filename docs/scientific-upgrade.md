@@ -33,6 +33,18 @@ immutable conda artifact URLs/SHA-256 and pip hashes.
 
 ## Research inputs and results
 
+Interrupted or failed BoltzGen studies can explicitly inspect and continue their
+calculated stages. The original task stays stopped and its files remain unchanged;
+the continuation is a new task in the same queue. X-DDE verifies the original
+request, recipe, exact native image and bounded CIF/NPZ byte inventory, then mounts
+the source read-only and uses BoltzGen 0.3.2's `--reuse` option. The design plan,
+inputs and resource budget cannot change during continuation. Changed, incomplete,
+oversized or redirected checkpoints fail before native execution. Fresh studies
+never receive this flag. Completed stages are reused; this does not imply that
+uncontrolled sampling is seed-reproducible, or that a completed binder binds in
+experiment. Final results still require the normal native report and scientific
+review, plus a sealed reference to their source checkpoint.
+
 Protein-interface analysis uses the same managed PLIP environment and task queue as
 small-molecule interaction profiling. Select one to three complete complexes and
 disjoint target/partner chain sets. Each comparison retains its exact source input,

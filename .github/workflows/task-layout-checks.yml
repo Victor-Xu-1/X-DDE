@@ -9,6 +9,8 @@ on:
       - "!frontend/src/guided/MolecularInputs.tsx"
       - "!frontend/src/guided/ChoiceCards.tsx"
       - "frontend/src/integrations/**"
+      # Explicit stopped-binder recovery has its own exact continuation gate.
+      - "!frontend/src/integrations/BinderContinuation*"
       # Shared form defaults/validation have the exact scientific-form contract gate.
       - "!frontend/src/integrations/generated.ts"
       - "!frontend/src/integrations/validation*"

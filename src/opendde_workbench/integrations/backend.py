@@ -1,5 +1,6 @@
 """Use the existing bounded container lifecycle, queue, recovery and scientific snapshots."""
 
+import json
 from pathlib import Path
 
 from ..prepared_container import PreparedContainerBackend
@@ -38,6 +39,10 @@ class ScientificBackend(PreparedContainerBackend):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
+        if identifier == "boltzgen":
+            shared["native_binder_checkpoint.py"] = Path(__file__).with_name(
+                "native_binder_checkpoint.py"
+            )
         if identifier == "boltz":
             shared["native_alignment_files.py"] = root / "alignment_files.py"
             shared["native_boltz_inputs.py"] = Path(__file__).with_name("native_boltz_inputs.py")
@@ -129,6 +134,28 @@ class ScientificBackend(PreparedContainerBackend):
             "--env",
             "NUMBA_CACHE_DIR=/tmp/numba",
         ]
+        if self.program == "boltzgen" and job.request.payload.continuation:
+            from ..container_runtime import selection
+            from .binder_checkpoints import validate_continuation
+
+            source, manifest = validate_continuation(
+                job.request,
+                self.settings.state_dir,
+                Store(self.settings.state_dir / "jobs.sqlite3"),
+            )
+            installed_image, _ = configuration(self.settings, self.program)
+            selected_image, _, _ = selection(self.settings, self.program, installed_image)
+            if selected_image != manifest["image"]:
+                raise ValueError("Continue with the exact original native binder image.")
+            receipt = directory / "binder-checkpoint.json"
+            receipt.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")))
+            for host, target in (
+                (source / "output/native/designs", "/input/binder-checkpoint"),
+                (receipt, "/input/binder-checkpoint.json"),
+            ):
+                if host.is_symlink() or "," in str(host):
+                    raise ValueError("Binder checkpoint mounts must be exact managed paths.")
+                args += ["--mount", f"type=bind,source={host},target={target},readonly"]
         # Native CLI imports must also work for a UID absent from the image passwd.
         args += torch_cache_arguments(self.program)
         if self.program in {"openfe", "gromacs"}:

@@ -1,6 +1,7 @@
 """Bounded execution choices shared by the isolated scientific adapters."""
 
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -59,6 +60,12 @@ class LigandMPNNPayload(BaseModel):
     pack_sidechains: bool = True
 
 
+class BinderContinuation(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    job_id: UUID
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
 class BoltzGenPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: Literal["boltzgen"] = "boltzgen"
@@ -69,6 +76,9 @@ class BoltzGenPayload(BaseModel):
     retain: int = Field(default=5, ge=1, le=50)
     scaffold_chain: str | None = Field(default=None, pattern=r"^[A-Za-z0-9]$")
     scaffold_residues: list[str] = Field(default_factory=list, max_length=100)
+    continuation: BinderContinuation | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class RefinementPayload(BaseModel):
