@@ -50,5 +50,15 @@ it.each([
     expect(researchError(message, true)).toContain("计算队列已暂停");
     expect(researchError(message, false)).toContain("compute queue is paused");
     expect(researchError(message, true)).not.toContain("安装");
+    expect(researchError(message, true, "historical-task")).toContain("曾因");
+    expect(researchError(message, false, "historical-task")).toContain(
+      "ended while",
+    );
+    expect(researchError(message, true, "historical-task")).not.toContain(
+      "队列已暂停",
+    );
+    expect(researchError(message, false, "historical-task")).not.toContain(
+      "queue is paused",
+    );
   },
 );

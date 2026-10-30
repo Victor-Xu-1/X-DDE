@@ -68,8 +68,20 @@ it.each(["zh", "en"] as const)(
     expect(screen.getByRole("status")).toHaveTextContent(
       language === "zh" ? "恢复后" : "after it recovers",
     );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      language === "zh"
+        ? "曾因收尾未获确认而结束"
+        : "ended while cleanup was unconfirmed",
+    );
     view.rerender(<TaskDetail {...props} retryAvailable />);
     expect(screen.getByRole("button", { name: label })).toBeEnabled();
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("alert")).not.toHaveTextContent(
+      language === "zh" ? "队列已暂停" : "queue is paused",
+    );
+    expect(job.error).toBe(
+      "Task cleanup/cancellation is unconfirmed; queue paused.",
+    );
     fireEvent.click(screen.getByRole("button", { name: label }));
     await waitFor(() => expect(changed).toHaveBeenCalledWith(child()));
     expect(retry).toHaveBeenCalledOnce();
@@ -99,6 +111,34 @@ it("retains a retry key until the confirmed child is delivered to the task view"
   await waitFor(() => expect(changed).toHaveBeenCalledTimes(2));
   expect(retry.mock.calls[0]).toEqual(retry.mock.calls[1]);
 });
+
+it.each(["zh", "en"] as const)(
+  "keeps a fresh cleanup failure distinct from task history (%s)",
+  async (language) => {
+    vi.spyOn(api, "retry").mockRejectedValue(
+      new Error("Task cleanup/cancellation is unconfirmed; queue paused."),
+    );
+    render(
+      <TaskDetail
+        job={source()}
+        detail={null}
+        failed={false}
+        language={language}
+        onChange={vi.fn()}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: language === "zh" ? "重新运行" : "Run again",
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        language === "zh" ? "计算队列已暂停" : "compute queue is paused",
+      ),
+    );
+  },
+);
 
 it.each(["resolved", "rejected"])(
   "does not change a newer selection after an older action %s",
