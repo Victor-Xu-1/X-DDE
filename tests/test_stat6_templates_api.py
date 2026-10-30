@@ -50,7 +50,8 @@ def test_explicit_stat6_profile_preserves_every_module_and_prepares_without_jobs
         assert {(asset["name"], asset["sha256"]) for asset in assets} == expected_assets
         assert len(assets) == len(expected_assets)
         original_ids = {asset["id"] for asset in assets}
-        assert client.post("/api/examples/protrek-structure/prepare?profile=stat6").status_code == 200
+        repeated = client.post("/api/examples/protrek-structure/prepare?profile=stat6")
+        assert repeated.status_code == 200
         assert {asset["id"] for asset in client.get("/api/assets").json()} == original_ids
         assert client.get("/api/jobs").json() == []
         assert client.get("/api/examples/predict?profile=unknown").status_code == 422
