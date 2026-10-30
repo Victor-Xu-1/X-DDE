@@ -10,7 +10,7 @@ it.each(["en", "zh"] as const)(
     const props = {
       language,
       inputs: [],
-      payload: { kind: "boltzgen", candidates: 2, retain: 2 },
+      payload: { kind: "boltzgen" as const, candidates: 2, retain: 2 },
       options: { device: "cuda" as const, cpu: 1, memory_mib: 6144, seed: 101 },
     };
     const { rerender } = render(
@@ -23,7 +23,13 @@ it.each(["en", "zh"] as const)(
     expect(screen.getByText(limitation)).toBeVisible();
     expect(screen.getByRole("table")).toHaveTextContent("GPU");
     // The restriction belongs to this engine, not all scientific programs.
-    rerender(<ScientificReview {...props} program="ligandmpnn" />);
+    rerender(
+      <ScientificReview
+        {...props}
+        program="ligandmpnn"
+        payload={{ kind: "ligandmpnn", candidates: 2 }}
+      />,
+    );
     expect(screen.queryByText(limitation)).not.toBeInTheDocument();
   },
 );
