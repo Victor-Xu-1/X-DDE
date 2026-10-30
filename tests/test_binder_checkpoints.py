@@ -135,10 +135,27 @@ def test_mutable_or_unconfirmed_native_sources_fail_closed(source, tmp_path):
         "intermediate_designs/../../escape.npz",
         "intermediate_designs/design_0.py",
         "intermediate_designs\\design_0.cif",
+        "intermediate_designs/refold_cif/design_00.cif",
     ],
 )
 def test_no_browser_or_manifest_path_can_escape_the_calculated_stage(name):
     assert not allowed(name)
+
+
+def test_native_generation_resume_rejects_holes_the_upstream_max_index_skip_cannot_fill(tmp_path):
+    root = tmp_path / "stages"
+    folder = stages(root)
+    for suffix in (".cif", ".npz"):
+        (folder / ("design_02" + suffix)).write_bytes(
+            (folder / ("design_00" + suffix)).read_bytes()
+        )
+    with pytest.raises(ValueError, match="contiguous prefix"):
+        inventory(root, 3)
+    for suffix in (".cif", ".npz"):
+        (folder / ("design_01" + suffix)).write_bytes(
+            (folder / ("design_00" + suffix)).read_bytes()
+        )
+    assert len(inventory(root, 3)) == 6
 
 
 def test_native_checkpoint_rejects_truncated_arrays_missing_pairs_symlinks_and_oversize(
@@ -210,8 +227,7 @@ def test_continuation_uses_readonly_exact_source_mounts_and_original_image(
     arguments = backend.execution_arguments(SimpleNamespace(request=request), child)
     assert (
         f"type=bind,source={directory / 'output/native/designs'},"
-        "target=/input/binder-checkpoint,readonly"
-        in arguments
+        "target=/input/binder-checkpoint,readonly" in arguments
     )
     manifest = json.loads((child / "binder-checkpoint.json").read_text())
     assert manifest["image"] == image

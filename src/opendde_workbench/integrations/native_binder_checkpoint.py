@@ -20,7 +20,13 @@ def allowed(name):
         "\\" not in name
         and len(path.parts) in {2, 3}
         and path.parts[0] in STAGES
-        and (len(path.parts) == 2 or path.parts[1] in SUBSTAGES)
+        and (
+            len(path.parts) == 2
+            or (
+                path.parts[0] == "intermediate_designs_inverse_folded"
+                and path.parts[1] in SUBSTAGES
+            )
+        )
         and re.fullmatch(r"design_[0-9]+\.(cif|npz)", path.name) is not None
     )
 
@@ -72,9 +78,20 @@ def inventory(root, count):
                 "sha256": hashlib.sha256(file.read_bytes()).hexdigest(),
                 "size": file.stat().st_size,
             }
-    generated = [n for n in files if n.startswith("intermediate_designs/") and n.endswith(".cif")]
+    generated = [
+        n
+        for n in files
+        if n.startswith("intermediate_designs/")
+        and len(PurePosixPath(n).parts) == 2
+        and n.endswith(".cif")
+    ]
     if not generated:
         raise ValueError("No calculated binder conformers are available to continue.")
+    # The installed generation loader skips through its highest existing index;
+    # unlike the later loaders it does NOT fill holes in a generated prefix.
+    generated_indices = sorted(int(re.search(r"design_(\d+)", n).group(1)) for n in generated)
+    if generated_indices != list(range(len(generated_indices))):
+        raise ValueError("Calculated binder generation must be a contiguous prefix from zero.")
     for stage in STAGES:
         for suffix in (".cif", ".npz"):
             names = [n for n in files if n.startswith(stage + "/") and n.endswith(suffix)]

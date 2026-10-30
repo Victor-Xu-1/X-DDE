@@ -133,8 +133,8 @@ function Continuation({
         <>
           <p>
             {zh
-              ? "原生程序将跳过已完成阶段，继续计算缺少的结果。原任务保留为中断记录，本次结果另行保存。"
-              : "The native program skips completed stages and calculates missing results. The interrupted task stays intact; this continuation saves a separate result."}
+              ? "沿用已保存的结构与回算结果，继续完成原生计算流程。原任务保留为中断记录，本次结果另行保存。"
+              : "Reuse saved structures and refolds, then complete the remaining native pipeline. The interrupted task stays intact; this continuation saves a separate result."}
           </p>
           <table
             className="compact-table"
