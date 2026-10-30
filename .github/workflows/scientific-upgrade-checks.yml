@@ -264,6 +264,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/ScientificChoices.test.tsx
+          src/integrations/ScientificReview.test.tsx
           src/integrations/validation.test.ts src/integrations/ScientificForm.test.tsx
   structure-query-inputs:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'structure-query-inputs'

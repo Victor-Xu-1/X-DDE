@@ -35,12 +35,19 @@ export function ScientificChoices({
       : ["reinvent", "ligandmpnn", "boltzgen"].includes(program)
         ? "candidates"
         : null;
-  const choices =
+  const standardChoices =
     program === "boltz"
       ? [1, 3, 5]
       : program === "ligandmpnn"
         ? [8, 20, 50]
         : [20, 50, 100];
+  const currentCount = countField ? Number(payload[countField]) : NaN;
+  const choices =
+    program === "boltzgen"
+      ? Array.from(new Set([2, ...standardChoices, currentCount]))
+          .filter((n) => Number.isInteger(n) && n >= 1 && n <= 200)
+          .sort((a, b) => a - b)
+      : standardChoices;
   return (
     <>
       {countField && (
@@ -69,7 +76,7 @@ export function ScientificChoices({
               value={Number(payload.retain)}
               onChange={(e) => onChange({ retain: Number(e.target.value) })}
             >
-              {Array.from(new Set([5, 10, 20, Number(payload.retain)]))
+              {Array.from(new Set([1, 2, 5, 10, 20, Number(payload.retain)]))
                 .filter((n) => Number.isInteger(n) && n >= 1 && n <= 50)
                 .sort((a, b) => a - b)
                 .map((n) => (

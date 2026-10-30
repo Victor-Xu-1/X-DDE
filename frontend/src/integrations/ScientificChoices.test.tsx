@@ -79,6 +79,11 @@ it.each(["en", "zh"] as const)(
     expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: toggle }));
     expect(
+      screen.getByRole("radio", {
+        name: language === "en" ? "4 candidates" : "4 个候选",
+      }),
+    ).toBeChecked();
+    expect(
       screen.getByRole("combobox", {
         name: language === "en" ? "Retain candidates" : "保留候选",
       }),
@@ -89,6 +94,38 @@ it.each(["en", "zh"] as const)(
         name: language === "en" ? "Generated candidates" : "生成候选数",
       }),
     ).toHaveValue(4);
+  },
+);
+
+it.each(["en", "zh"] as const)(
+  "supports an explicit two-design pilot without expert controls in %s",
+  async (language) => {
+    render(<BudgetForm language={language} />);
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("radio", {
+        name: language === "en" ? "2 candidates" : "2 个候选",
+      }),
+    );
+    expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: language === "en" ? "Retain candidates" : "保留候选",
+      }),
+      "2",
+    );
+    expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
+    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", {
+        name: language === "en" ? "Expert tuning" : "专家微调",
+      }),
+    );
+    expect(
+      screen.queryByRole("spinbutton", {
+        name: language === "en" ? "Random seed" : "随机种子",
+      }),
+    ).not.toBeInTheDocument();
   },
 );
 

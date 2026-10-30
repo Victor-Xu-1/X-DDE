@@ -66,6 +66,16 @@ export function ScientificReview({
             <th>{zh ? "计算设备" : "Device"}</th>
             <td>{options.device === "cuda" ? "GPU" : "CPU"}</td>
           </tr>
+          {program === "boltzgen" && (
+            <tr>
+              <th>{zh ? "设计采样" : "Design sampling"}</th>
+              <td>
+                {zh
+                  ? "此版本不支持用随机种子重现采样；结果保留原生结构和评分。"
+                  : "This version does not support seed-controlled replay; native structures and scores are retained."}
+              </td>
+            </tr>
+          )}
           {program === "boltz" &&
             (payload.components as BoltzComponent[])
               .filter((component) => component.kind === "protein")
