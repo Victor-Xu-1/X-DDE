@@ -214,7 +214,20 @@ def test_real_structures_tables_and_sequences():
                 timeout=30000
             )
             expect(page.locator(".molecule-record")).to_have_count(5)
-            expect(page.locator(".molecule-image img").first).to_be_visible(timeout=90000)
+            # The enlarged structure workspace can leave the lazy native
+            # thumbnails below the fold. Inspect the actual candidate row,
+            # rather than an unrelated image elsewhere in the workbench.
+            first_candidate = page.locator(".molecule-record").first
+            first_candidate.scroll_into_view_if_needed()
+            drawing = first_candidate.locator(".molecule-image")
+            expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=90000)
+            image = drawing.get_by_role("img")
+            expect(image).to_be_visible(timeout=30000)
+            page.wait_for_function(
+                "image => image.complete && image.naturalWidth > 0",
+                arg=image.element_handle(),
+                timeout=30000,
+            )
             expect(page.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
                 timeout=30000
             )

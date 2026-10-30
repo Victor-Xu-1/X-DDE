@@ -23,6 +23,7 @@ import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
 import { SequenceDesignOverview } from "./SequenceDesignOverview";
 import { isInternalResearchFile } from "../presentation/research-files";
 import { BinderQuality } from "./BinderQuality";
+import { binderFilterColumn } from "./ScientificResultsBinderColumn";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
   "Initial potential energy": ["优化前势能", "Initial energy"],
@@ -63,6 +64,9 @@ export function ScientificResults({
     ];
     return [
       { key: "id", label: zh ? "候选" : "Candidate", value: (row) => row.id },
+      ...(result.program === "boltzgen"
+        ? [binderFilterColumn(result.binder_quality, language)]
+        : []),
       ...(rows.some((r) => r.smiles)
         ? [
             {
@@ -109,7 +113,7 @@ export function ScientificResults({
         },
       })),
     ];
-  }, [rows, zh]);
+  }, [rows, zh, language, result.program, result.binder_quality]);
   if (initialCandidateId && !rows.some((row) => row.id === initialCandidateId))
     return (
       <p role="alert" className="error">

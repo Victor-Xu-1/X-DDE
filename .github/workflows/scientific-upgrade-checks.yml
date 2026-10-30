@@ -177,6 +177,7 @@ jobs:
         run: >-
           npx vitest run src/integrations/BinderQuality.test.tsx
           src/integrations/ScientificResults.test.tsx
+          src/integrations/ScientificResultsBinderColumn.test.tsx
   reviewed-view:
     if: github.event_name == 'workflow_dispatch' && inputs.check == 'reviewed-view'
     runs-on: ubuntu-24.04

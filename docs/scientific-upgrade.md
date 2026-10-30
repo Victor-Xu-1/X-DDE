@@ -73,6 +73,14 @@ Protein/peptide design shows the requested length range; scaffold-based
 antibody/nanobody design shows the framework chain and selected design-position
 count instead of presenting the unused free-length setting as an executed limit.
 
+Binder candidate tables show the original native filter decision alongside scores,
+including when sorting, searching, comparing or exporting rows. These decisions
+come from the complete source-verified report mapped to exact candidate IDs;
+shortlist membership and interface scores never substitute for a pass. Historical
+results without that report remain explicitly unassessed. All candidates and
+original rankings/files are retained; a native-filter pass is not experimental
+binding validation.
+
 REINVENT R-group design accepts one connected scaffold with single-bonded wildcard
 attachment sites. An optional exact source-molecule reference is consumed by the
 native adapter to validate the core, stereochemistry and declared sites before
