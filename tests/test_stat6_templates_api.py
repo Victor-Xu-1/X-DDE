@@ -22,6 +22,7 @@ def test_explicit_stat6_profile_preserves_every_module_and_prepares_without_jobs
         assert response.status_code == 200
         values = response.json()["examples"]
         assert {value["module"]["capability_id"] for value in values} == set(catalogue.MODULES)
+        expected_assets = {(file.name, file.sha256) for file in catalogue.FILES.values()}
         for value in values:
             assert value["case"]["id"] == catalogue.CASE.id
             assert not value["computed_result_available"]
@@ -35,8 +36,24 @@ def test_explicit_stat6_profile_preserves_every_module_and_prepares_without_jobs
             assert data["record"] is None and data["source_record"] is None
             if data["request"]:
                 TASK_ADAPTER.validate_python(data["request"])
+            if capability == "protrek-structure":
+                # The deposited VH selection is a derived reference, not another
+                # manifest input or a newly computed antibody structure.
+                expected_assets.add(
+                    (
+                        "6WGL-heavy-variable-A1-125.pdb",
+                        data["objects"]["structure"]["reference"]["sha256"],
+                    )
+                )
         assert client.get("/api/jobs").json() == []
-        assert len(client.get("/api/assets").json()) == len(catalogue.FILES)
+        assets = client.get("/api/assets").json()
+        assert {(asset["name"], asset["sha256"]) for asset in assets} == expected_assets
+        assert len(assets) == len(expected_assets)
+        original_ids = {asset["id"] for asset in assets}
+        repeated = client.post("/api/examples/protrek-structure/prepare?profile=stat6")
+        assert repeated.status_code == 200
+        assert {asset["id"] for asset in client.get("/api/assets").json()} == original_ids
+        assert client.get("/api/jobs").json() == []
         assert client.get("/api/examples/predict?profile=unknown").status_code == 422
 
 

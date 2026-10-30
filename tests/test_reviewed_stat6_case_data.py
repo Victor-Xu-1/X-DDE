@@ -169,7 +169,7 @@ def check_native_antibody_structure_search(client, settings, store):
 
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "32"
+    assert package.kind == "data" and package.version == source.VERSION == "34"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
     assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 58
@@ -280,3 +280,44 @@ def test_stat6_pose_review_distinguishes_unassessed_native_flags(settings):
             for kind in ("organic_cofactors", "inorganic_cofactors", "waters"):
                 assert "smallest_distance_" + kind not in metrics
                 assert "volume_overlap_" + kind not in metrics
+
+
+def test_supplied_ligand_quality_successor_restores_exact_pose_and_replay(settings):
+    filename = os.environ.get("WB_REVIEWED_STAT6_ARCHIVE")
+    if not filename:
+        pytest.skip("The scoped delivery gate supplies the reviewed STAT6 archive")
+    restore_bundle(Path(filename), settings, source.SHA256)
+    app = create_app(replace(settings, allowed_origins=("http://127.0.0.1:4322",)))
+    identifier = "2d477ae5-2d28-4d20-b7f9-55c464113d27"
+    with TestClient(app, base_url="http://127.0.0.1:4322") as client:
+        fixed = client.get("/api/examples/posebusters.check").json()
+        assert fixed["module"]["revision"] == 4
+        assert fixed["pin"]["job_id"] == identifier
+        assert "15 checks passed" in fixed["pin"]["review"]["interpretation"]
+        native = client.get(f"/api/jobs/{identifier}/result").json()
+        assert native["inputs"]["molecule"]["sha256"] == (
+            "97b603b09c2068e6f727569fe07b07be5d0cd437212ccb83e4730fc6570590fd"
+        )
+        assert native["inputs"]["protein"]["sha256"] == (
+            "3250c6da6a3f406b62db8824e4ef8b27c89027da42d846393ec9601898a5ffa4"
+        )
+        assert native["metrics"]["smallest_distance_protein"] == pytest.approx(2.904979831255287)
+        assert native["metrics"]["num_pairwise_clashes_protein"] == 0
+        for name, digest in native["previews_sha256"].items():
+            response = client.get(f"/api/jobs/{identifier}/download", params={"name": name})
+            assert response.status_code == 200
+            assert hashlib.sha256(response.content).hexdigest() == digest
+        replay = client.post(
+            "/api/examples/posebusters.check/prepare",
+            headers={
+                "Origin": "http://127.0.0.1:4322",
+                "X-Workbench-CSRF": client.get("/api/session").json()["csrf_token"],
+            },
+        )
+        assert replay.status_code == 200
+        store = Store(settings.state_dir / "jobs.sqlite3")
+        assert replay.json()["request"] == store.get(identifier).request.model_dump(mode="json")
+        with store.connect() as db:
+            assert not db.execute(
+                "SELECT id FROM jobs WHERE status IN ('queued','running','cancelling')"
+            ).fetchall()

@@ -48,6 +48,29 @@ retained with the inputs. These inputs are **not predicted binding poses**.
 depictions and source downloads. A reference preview is labelled separately
 from **Example results**, which requires verified computational evidence.
 
+### Independent quality of the supplied small-molecule pose
+
+The fourth pose-quality template revision uses the supplied study molecule's
+first native docking pose against the observed 9BIG protein-only receptor.
+It preserves the exact coordinates and the receptor's preparation/alignment
+history; the predicted comparison construct remains a provenance input rather
+than an experimental structure. PoseBusters 0.6.5 assessed 15 passing checks,
+six unassessed water/cofactor checks and one inapplicable double-bond check.
+The closest protein heavy-atom distance is 2.905 Å. The native internal-energy
+ratio is 1.431, not a binding energy or an affinity measurement.
+
+The interactive preview and downloadable SDF, PDB and report retain the native
+files. Unresolved receptor loops, omitted waters and the deposited ARG562
+rotamer/GLN590 orientation concerns remain limitations. A geometrically plausible
+pose is not an experimentally verified binding mode. Earlier quality-template
+revisions and their results remain available without alteration.
+
+**中文：**第四版姿势质控模板使用用户指定小分子的第一个原生对接姿势，搭配
+9BIG 实验观测蛋白的准备结构；保留坐标及完整准备、对齐来源。质控有 15 项通过、
+6 项水或辅因子检查未评估、1 项不适用，最近蛋白重原子距离为 2.905 Å。
+内部能量比 1.431 不是结合能或亲和力。缺失环区、移除的结构水以及 ARG562/GLN590
+局部构象疑点仍需后续研究，不能据此声称已验证结合模式。旧版模板和原始结果不变。
+
 The [reviewed result package Data 16](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.9/stat6-reviewed-results-v16.zip)
 contains 35 independently reviewed examples: 34 primary task examples and one
 nested result stage. It retains 87 scientific files and 62 source-task records,

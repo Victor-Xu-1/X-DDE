@@ -76,7 +76,10 @@ def test_predicted_references_are_opt_in_to_relevant_modules_without_jobs(tmp_pa
     assert store.list_jobs() == []
 
 
-def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage(tmp_path):
+@pytest.mark.parametrize("capability", ["gnina.dock", "posebusters.check"])
+def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage(
+    tmp_path, capability
+):
     from uuid import uuid4
 
     from opendde_workbench.examples.input_lineage import validate_input_lineage
@@ -86,7 +89,7 @@ def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage
 
     store, scientific = scientific_store(tmp_path)
     ExamplePins(store, tmp_path, modules=catalogue.MODULES)
-    docking = prepare_stat6("gnina.dock", scientific)
+    docking = prepare_stat6(capability, scientific)
     exploration = prepare_stat6("pose_exploration", scientific)
     reference = docking.objects["stat6_predicted_construct"].reference
     assert reference == exploration.objects["stat6_predicted_construct"].reference
@@ -101,8 +104,14 @@ def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage
         uuid4(),
     )
     job = store.create(
-        Properties(name="Source boundary fixture", ligand_files=[reference.asset_id],
-                   scientific_inputs=[alias.reference]), str(uuid4()), 20, 500
+        Properties(
+            name="Source boundary fixture",
+            ligand_files=[reference.asset_id],
+            scientific_inputs=[alias.reference],
+        ),
+        str(uuid4()),
+        20,
+        500,
     )
     validate_input_lineage(job, docking, store)
     foreign_asset = scientific.assets.save("foreign.pdb", "structure", b"HEADER unrelated\nEND\n")
@@ -110,8 +119,14 @@ def test_docking_retains_exact_prediction_reference_for_aligned_receptor_lineage
         VersionInput(asset_id=foreign_asset.id, kind="structure", label="Unrelated"), uuid4()
     )
     unrelated = store.create(
-        Properties(name="Foreign source fixture", ligand_files=[foreign.reference.asset_id],
-                   scientific_inputs=[foreign.reference]), str(uuid4()), 20, 500
+        Properties(
+            name="Foreign source fixture",
+            ligand_files=[foreign.reference.asset_id],
+            scientific_inputs=[foreign.reference],
+        ),
+        str(uuid4()),
+        20,
+        500,
     )
     with pytest.raises(ValueError, match="lineage"):
         validate_input_lineage(unrelated, docking, store)

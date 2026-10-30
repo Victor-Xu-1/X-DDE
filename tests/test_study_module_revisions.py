@@ -18,6 +18,7 @@ from opendde_workbench.store import Store
 PREVIOUS = "8327a0a86cec16f957699876c7bd6c76feb7f08a5a42a7f35828446f2e336946"
 DATA24_SHA = "9512b41060d611056cafc13fb49c12a7f3dcfe4c3c0d34581b1412cf9e206d3e"
 CHANGED = {"reinvent.design", "gnina.dock"}
+QUALITY_PREDECESSOR = "49f1a7402ad83cb94feef91988430bf140991e9953e12eb50413c3e1e3a71f4e"
 
 
 def test_only_the_authored_module_identities_advance():
@@ -25,14 +26,28 @@ def test_only_the_authored_module_identities_advance():
     current = bundle_catalogue("stat6")
     assert set(old.modules) == set(current.modules)
     for key, previous in old.modules.items():
+        revisions = {"gnina.dock": 5, "posebusters.check": 4}
         expected = (
-            previous.model_copy(update={"revision": 4})
-            if key in CHANGED | {"workflows", "predict", "pose_exploration"}
+            previous.model_copy(update={"revision": revisions.get(key, 4)})
+            if (key in CHANGED | {"workflows", "predict", "pose_exploration", "posebusters.check"})
             else previous
         )
         assert current.modules[key] == expected
     assert all(old.modules[key].revision == 3 for key in CHANGED)
     assert current.digest != old.digest == PREVIOUS
+
+
+def test_quality_successor_preserves_every_other_authored_module():
+    previous = historical_study_catalogue(QUALITY_PREDECESSOR)
+    current = bundle_catalogue("stat6")
+    assert set(previous.modules) == set(current.modules)
+    for key, module in previous.modules.items():
+        expected = (
+            module.model_copy(update={"revision": 4}) if key == "posebusters.check" else module
+        )
+        assert current.modules[key] == expected
+    assert previous.modules["posebusters.check"].revision == 3
+    assert current.digest != previous.digest == QUALITY_PREDECESSOR
 
 
 @pytest.mark.parametrize("mutation", ["revision", "capability_id", "unknown_override"])

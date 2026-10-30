@@ -45,7 +45,7 @@ def test_unowned_or_unreviewed_sources_are_not_dependencies(scope):
     if scope == "foreign_study":
         body["case_id"] = "another-research-study"
     elif scope == "future_revision":
-        row["revision"] = body["revision"] = 5
+        row["revision"] = body["revision"] = modules["gnina.dock"].revision + 1
     elif scope == "unreviewed":
         body["review"] = None
     row["body"] = json.dumps(body)
