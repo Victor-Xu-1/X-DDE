@@ -4,10 +4,17 @@ These immutable archives contain actual native inputs, outputs, provenance and m
 
 | Archive | Primary module examples | Additional workflow example | Native scope |
 | --- | ---: | ---: | --- |
-| STAT6 data 31 | 57 | 1 | Defined-molecule studies, reviewed SH2 pose hypotheses, native ESM2 and backbone-conditioned surface-construct proposals, complete alignments, an antibody-family structural search, and a bounded research workflow |
+| STAT6 data 34 | 57 | 1 | Defined-molecule studies, reviewed SH2 pose hypotheses, independent quality of the supplied ligand against observed 9BIG, native ESM2 and backbone-conditioned surface-construct proposals, complete alignments, an antibody-family structural search, and a bounded research workflow |
 | DEL data 4 | 9 | 0 | Public UNC DEL006 / BRD4 selection data, including independent held-out building-block validation |
 
 The required primary-module acceptance ledger is **66/71**. Five primary cases remain unaccepted; MD and FEP remain excluded and paused. Archive installation is a technical data-delivery check, separate from experimental validation of a scientific conclusion.
+
+Data 34 advances only the pose-quality example to revision 4. The supplied ligand's
+native first docking pose was independently checked through the released frontend:
+15 checks passed, six water/cofactor checks were unassessed, and one was inapplicable.
+Its exact coordinates, report and receptor lineage are retained alongside earlier
+case revisions. This is a reviewed geometric example, not evidence of binding
+affinity or an experimentally confirmed pose; the acceptance count does not increase.
 
 The three-pose example opens the reviewed third sample without changing original native ranks. Higher-scoring samples collide with omitted experimentally observed receptor domains. The third sample is a regional hypothesis with changed side-chain rotamers, rather than a validated binding mode. Its linked PLIP stage retains a long, geometry-dependent Q590 hydrogen-bond candidate (donor–acceptor 3.77 Å); this is not a binding-strength measurement.
 
