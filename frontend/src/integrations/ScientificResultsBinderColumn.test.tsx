@@ -94,12 +94,12 @@ it.each(["en", "zh"] as const)(
       name: zh ? "研究候选" : "Research candidates",
     });
     expect(
-      within(screen.getByRole("row", { name: /binder-001/ })).getByText(
+      within(within(table).getByRole("row", { name: /binder-001/ })).getByText(
         zh ? "通过" : "Pass",
       ),
     ).toBeVisible();
     expect(
-      within(screen.getByRole("row", { name: /binder-002/ })).getByText(
+      within(within(table).getByRole("row", { name: /binder-002/ })).getByText(
         zh ? "未通过" : "Rejected",
       ),
     ).toBeVisible();
