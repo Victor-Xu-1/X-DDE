@@ -36,6 +36,7 @@ PATHS = (
     ".github/workflows/structure-comparison-checks.yml",
     ".github/workflows/defined-site-checks.yml",
     ".github/workflows/workflow-quality-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
     "docs/research/stat6-study.md",
     "pyproject.toml",
     "uv.lock",

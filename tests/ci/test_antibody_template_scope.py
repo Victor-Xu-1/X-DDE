@@ -8,6 +8,13 @@ CORE = "src/opendde_workbench/examples/stat6/antibody_cdr_inputs.py"
 
 def test_exact_cdr_batch_and_publication_companions_use_the_focused_gate():
     assert selected([CORE, "frontend/src/examples/harness.ts", "pyproject.toml"])
+    assert selected(
+        [
+            CORE,
+            "frontend/src/operations/HarnessField.tsx",
+            ".github/workflows/task-layout-checks.yml",
+        ]
+    )
 
 
 def test_unknown_shared_scientific_or_unrelated_changes_keep_original_gates():

@@ -488,13 +488,25 @@ on:
 permissions:
   contents: read
 jobs:
+  antibody-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      antibody_only: ${{ steps.scope.outputs.antibody_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/antibody_template_scope.py
   model-context:
     uses: ./.github/workflows/property-model-review-checks.yml
     with:
       scope_only: true
   scoped-layout:
-    needs: model-context
-    if: needs.model-context.outputs.model_context_only != 'true'
+    needs: [model-context, antibody-scope]
+    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.model-context.outputs.model_context_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
