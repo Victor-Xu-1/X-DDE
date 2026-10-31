@@ -111,11 +111,15 @@ def inspect_refinement_browser(settings, image, identifier, source, pair, result
                 path = root / (language + "-downloaded-receptor.pdb")
                 captured.value.save_as(path)
                 assert hashlib.sha256(path.read_bytes()).hexdigest() == receipt["receptor_sha256"]
-                expect(
-                    page.frame_locator('iframe[title="Interactive molecular structure"]')
-                    .locator("canvas")
-                    .first
-                ).to_be_visible(timeout=30000)
+                title = "可交互分子结构" if zh else "Interactive molecular structure"
+                try:
+                    expect(
+                        page.frame_locator(f'iframe[title="{title}"]').locator("canvas").first
+                    ).to_be_visible(timeout=30000)
+                except Exception:
+                    page.screenshot(path=root / (language + "-viewer-failure.png"), full_page=True)
+                    (root / (language + "-viewer-failure.html")).write_text(page.content())
+                    raise
                 assert page.evaluate(
                     "document.documentElement.scrollWidth <= window.innerWidth + 1"
                 )
