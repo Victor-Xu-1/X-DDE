@@ -96,6 +96,7 @@ jobs:
         run: |
           python3 -m unittest discover -s tests/ci -p test_docking_refinement_scope.py
           uv run --locked ruff check server_tests/flexible_receptor_browser.py server_tests/flexible_receptor_questionnaire.py
+          uv run --locked python -c "import sys; sys.path.insert(0, 'server_tests'); import flexible_receptor_browser"
           uv run --locked ruff check src/opendde_workbench/docking/flexible_contract.py src/opendde_workbench/docking/receptor_atoms.py src/opendde_workbench/docking/receptor_links.py src/opendde_workbench/docking/residue_geometry.py src/opendde_workbench/docking/flexible_receptor.py src/opendde_workbench/docking/flexible_validation.py server_tests/flexible_receptor_probe.py tests/test_flexible_receptor.py
           uv run --locked pytest -q tests/test_flexible_receptor.py
           uv run --locked pytest -q tests/test_workflow_quality_binding.py

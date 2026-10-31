@@ -6,10 +6,9 @@ import os
 import time
 from unittest.mock import patch
 
+from browser_platform import platform
 from flexible_receptor_questionnaire import inspect_questionnaire
 from playwright.sync_api import expect, sync_playwright
-
-from server_tests.browser_platform import platform
 
 CONFIRM = "I confirm the reference/existing pose is in the selected receptor coordinate frame"
 
