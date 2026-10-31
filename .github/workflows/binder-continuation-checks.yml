@@ -26,6 +26,15 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev
+      - name: Reproduce and verify the shared generated input contract
+        run: |
+          uv run --locked python scripts/generate-capability-catalog.py
+          git diff --exit-code -- frontend/src
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: binder-continuation-generated-contract
+          path: frontend/src/integrations/generated.ts
       - name: Check only changed checkpoint boundaries and native bridge
         run: >-
           uv run --locked ruff check src/opendde_workbench/integrations/binder_checkpoints.py
