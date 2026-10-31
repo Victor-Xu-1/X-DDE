@@ -18,6 +18,18 @@ on:
       - "src/opendde_workbench/docking/snapshot.py"
       - "src/opendde_workbench/docking/reference*.py"
       - "src/opendde_workbench/docking/result.py"
+      - "src/opendde_workbench/docking/flexible*.py"
+      - "src/opendde_workbench/docking/receptor_atoms.py"
+      - "src/opendde_workbench/docking/receptor_links.py"
+      - "src/opendde_workbench/docking/residue_geometry.py"
+      - "tests/test_flexible_receptor.py"
+      - "scripts/docking-refinement-scope.py"
+      - "tests/ci/test_docking_refinement_scope.py"
+      - "server_tests/flexible_receptor_probe.py"
+      - "frontend/src/docking/FlexibleReceptor*"
+      - "frontend/src/docking/ReceptorRefinementSummary*"
+      - "frontend/src/docking/useReceptorRefinement*"
+      - ".github/workflows/docking-runtime-checks.yml"
       - "frontend/src/docking/DockingReview*"
       - "frontend/src/docking/ReferenceComparison*"
       # Pose-table defaults have sealed native view/download coverage in pose-handoff-checks.yml.
@@ -42,6 +54,9 @@ on:
     paths: *docking_runtime_paths
 permissions:
   contents: read
+concurrency:
+  group: docking-runtime-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
   scope:
     runs-on: ubuntu-24.04
@@ -76,9 +91,14 @@ jobs:
           uv sync --locked --group dev --group browser
       - name: Exact binding, source snapshot and runtime contracts
         run: |
+          python3 -m unittest discover -s tests/ci -p test_docking_refinement_scope.py
+          uv run --locked ruff check src/opendde_workbench/docking/flexible_contract.py src/opendde_workbench/docking/receptor_atoms.py src/opendde_workbench/docking/receptor_links.py src/opendde_workbench/docking/residue_geometry.py src/opendde_workbench/docking/flexible_receptor.py src/opendde_workbench/docking/flexible_validation.py server_tests/flexible_receptor_probe.py tests/test_flexible_receptor.py
+          uv run --locked pytest -q tests/test_flexible_receptor.py
+          uv run --locked pytest -q tests/test_research_assets.py tests/test_result_metadata.py tests/test_input_catalog.py tests/test_example_pins.py tests/test_case_output_witnesses.py
           uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/chemistry.py src/opendde_workbench/docking/scoring.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/docking/reference.py src/opendde_workbench/docking/reference_contract.py src/opendde_workbench/docking/result.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_scoring.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py server_tests/reference_geometry_checks.py server_tests/docking_scoring_checks.py server_tests/test_native_docking.py
           uv run --locked pytest -q tests/test_docking.py tests/test_docking_scoring.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py tests/test_locked_packages.py tests/test_pose_minimization.py tests/test_pose_score_ranking.py
           cd frontend
+          npx vitest run src/docking/FlexibleReceptorForm.test.tsx
           npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/ReferenceComparison.test.tsx
       - name: Direct source handoff with the real pinned chemical parser
         env:
@@ -98,6 +118,12 @@ jobs:
         run: |
           uv run --locked playwright install chromium --with-deps
           uv run --locked pytest -x -q server_tests/test_native_docking.py
+      - name: Preserve the exact frontend for candidate-only browser acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: docking-refinement-frontend-${{ github.sha }}
+          path: src/opendde_workbench/web
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         if: always()
         with:

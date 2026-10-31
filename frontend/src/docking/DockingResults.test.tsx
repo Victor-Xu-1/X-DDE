@@ -424,3 +424,95 @@ it("leaves rejected and more-than-two metric selections out of the structural ov
   ).toBeNull();
   expect(mocks.authorized).not.toHaveBeenCalled();
 });
+
+it.each([true, false])(
+  "hands off only the exact adjusted receptor; indexed=%s",
+  async (indexed) => {
+    const adjusted = {
+      ...receptor,
+      asset_id: "adjusted-receptor",
+      sha256: "c".repeat(64),
+      version_id: "rv",
+    };
+    const selected = {
+      ...receptor,
+      asset_id: "paired-ligand",
+      version_id: "lv",
+    };
+    const result: DockingResult = {
+      ...data,
+      mode: "minimize",
+      poses: [{ ...data.poses[1], record: 0, artifact: "pose-001.sdf" }],
+      receptor_refinement: {
+        method: "gnina_local_sidechains_v1",
+        residues: [{ chain: "A", number: 152, insertion_code: "" }],
+        input_receptor_artifact: "input-receptor.pdb",
+        moved_sidechain_atoms: 4,
+        maximum_sidechain_displacement_angstrom: 0.8,
+        convergence: "not_reported",
+      },
+    };
+    mocks.request.mockImplementation((path: string) => {
+      const query = new URL(path, "http://test").searchParams;
+      if (path.includes("artifact-metadata")) {
+        const name = query.get("name");
+        return {
+          job_id: "j",
+          name,
+          size: 123,
+          sha256: name === "receptor.pdb" ? adjusted.sha256 : selected.sha256,
+        };
+      }
+      if (query.get("asset_name") === "receptor.pdb")
+        return indexed
+          ? [
+              {
+                id: "rv",
+                source_job: "j",
+                kind: "structure",
+                label: "receptor.pdb",
+                reference: adjusted,
+              },
+            ]
+          : [];
+      return [
+        {
+          id: "lv",
+          source_job: "j",
+          kind: "molecule",
+          label: "pose-001.sdf",
+          reference: selected,
+        },
+      ];
+    });
+    render(
+      <DockingResults language="en" job={{ id: "j" } as Job} result={result} />,
+    );
+    const quality = await screen.findByRole("button", {
+      name: "Check pose quality",
+      exact: true,
+    });
+    if (indexed) {
+      await waitFor(() => expect(quality).toBeEnabled());
+      await userEvent.setup().click(quality);
+      expect(screen.getByTestId("quality-inputs")).toHaveTextContent(
+        '"asset_id":"adjusted-receptor"',
+      );
+      expect(screen.getByTestId("quality-inputs")).toHaveTextContent(
+        '"asset_id":"paired-ligand"',
+      );
+    } else {
+      expect(quality).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Rescore", exact: true }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole("button", {
+          name: "Load paired receptor",
+          exact: true,
+        }),
+      ).toBeInTheDocument();
+      expect(screen.queryByTestId("quality-inputs")).toBeNull();
+    }
+  },
+);
