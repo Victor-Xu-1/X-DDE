@@ -1,6 +1,8 @@
 """Bounded optional receptor-sidechain protocol; no new execution authority."""
 
-from typing import Annotated, Literal, Self
+from __future__ import annotations
+
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -27,7 +29,7 @@ class FlexibleReceptor(BaseModel):
         return [residue.token for residue in self.residues]
 
     @model_validator(mode="after")
-    def unique(self) -> Self:
+    def unique(self) -> FlexibleReceptor:
         if len(set(self.tokens)) != len(self.residues):
             raise ValueError("Select each receptor residue once.")
         return self
