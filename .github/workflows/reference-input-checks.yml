@@ -2,7 +2,6 @@ name: Exact research input selection and recovery
 on:
   workflow_dispatch:
     inputs:
-    needs: refinement-scope
       coordinate_confirmation_only:
         type: boolean
         default: false
@@ -103,6 +102,7 @@ jobs:
           name: coordinate-confirmation-evidence
           path: outputs/coordinate-confirmation
   inputs:
+    needs: refinement-scope
     if: ${{ !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20

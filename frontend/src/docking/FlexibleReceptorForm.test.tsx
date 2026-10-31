@@ -95,7 +95,6 @@ function setup(language: Language) {
 const next = (language: Language) =>
   screen.getByRole("button", {
     name: language === "zh" ? "下一步" : "Next",
-    exact: true,
   });
 const label = (language: Language) =>
   language === "zh"
@@ -119,18 +118,13 @@ it.each(["en", "zh"] as const)(
     const user = setup(language);
     await plan(user, language);
     expect(
-      screen.getByRole("checkbox", { name: label(language), exact: true }),
+      screen.getByRole("checkbox", { name: label(language) }),
     ).not.toBeChecked();
-    await user.click(
-      screen.getByRole("checkbox", { name: label(language), exact: true }),
-    );
+    await user.click(screen.getByRole("checkbox", { name: label(language) }));
     expect(next(language)).toBeDisabled();
-    expect(
-      screen.queryByRole("option", { name: "A:ALA153", exact: true }),
-    ).toBeNull();
+    expect(screen.queryByRole("option", { name: "A:ALA153" })).toBeNull();
     const choices = screen.getByRole("combobox", {
       name: language === "zh" ? "选择需要调整的侧链" : "Sidechains to adjust",
-      exact: true,
     });
     await user.selectOptions(choices, "ile152");
     await user.selectOptions(choices, "lys595");
@@ -140,7 +134,6 @@ it.each(["en", "zh"] as const)(
     ).toBeInTheDocument();
     const submit = screen.getByRole("button", {
       name: language === "zh" ? "局部最小化" : "Local minimization",
-      exact: true,
     });
     await waitFor(() => expect(submit).toBeEnabled());
     await user.click(submit);
@@ -167,7 +160,6 @@ it("retains the exact legacy rigid-receptor request by default", async () => {
   await user.click(next("en"));
   const submit = screen.getByRole("button", {
     name: "Local minimization",
-    exact: true,
   });
   await waitFor(() => expect(submit).toBeEnabled());
   await user.click(submit);
@@ -177,24 +169,18 @@ it("retains the exact legacy rigid-receptor request by default", async () => {
 it("clears the selection on a changed receptor instead of applying stale residue numbers", async () => {
   const user = setup("en");
   await plan(user, "en");
-  await user.click(
-    screen.getByRole("checkbox", { name: label("en"), exact: true }),
-  );
+  await user.click(screen.getByRole("checkbox", { name: label("en") }));
   await user.selectOptions(
-    screen.getByRole("combobox", { name: "Sidechains to adjust", exact: true }),
+    screen.getByRole("combobox", { name: "Sidechains to adjust" }),
     "ile152",
   );
   await user.click(
-    screen.getByRole("button", { name: "Step 1: Choose inputs", exact: true }),
+    screen.getByRole("button", { name: "Step 1: Choose inputs" }),
   );
-  await user.click(
-    screen.getByRole("button", { name: "Change receptor", exact: true }),
-  );
+  await user.click(screen.getByRole("button", { name: "Change receptor" }));
   await user.click(next("en"));
   expect(screen.getByRole("checkbox", { name: /I confirm/ })).not.toBeChecked();
   await user.click(screen.getByRole("checkbox", { name: /I confirm/ }));
   await user.click(next("en"));
-  expect(
-    screen.getByRole("checkbox", { name: label("en"), exact: true }),
-  ).not.toBeChecked();
+  expect(screen.getByRole("checkbox", { name: label("en") })).not.toBeChecked();
 });

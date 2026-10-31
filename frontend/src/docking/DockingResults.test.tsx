@@ -490,7 +490,6 @@ it.each([true, false])(
     );
     const quality = await screen.findByRole("button", {
       name: "Check pose quality",
-      exact: true,
     });
     if (indexed) {
       await waitFor(() => expect(quality).toBeEnabled());
@@ -503,13 +502,10 @@ it.each([true, false])(
       );
     } else {
       expect(quality).toBeDisabled();
-      expect(
-        screen.getByRole("button", { name: "Rescore", exact: true }),
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Rescore" })).toBeDisabled();
       expect(
         screen.getByRole("button", {
           name: "Load paired receptor",
-          exact: true,
         }),
       ).toBeInTheDocument();
       expect(screen.queryByTestId("quality-inputs")).toBeNull();
