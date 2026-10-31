@@ -10,7 +10,7 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 
 
-def inspect_refinement(settings, receptor_raw, ligand_reference, evidence):
+def inspect_refinement(settings, image, receptor_raw, ligand_reference, evidence):
     from opendde_workbench.api import create_app
 
     # The upstream fixture contains explicit H. Prepare its heavy-atom profile without
@@ -142,3 +142,8 @@ def inspect_refinement(settings, receptor_raw, ligand_reference, evidence):
                 indent=2,
             )
         )
+    from flexible_receptor_browser import inspect_refinement_browser
+
+    inspect_refinement_browser(
+        settings, image, identifier, source, {"receptor": receptor, "ligand": ligand}, result, root
+    )

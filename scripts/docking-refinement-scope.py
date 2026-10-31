@@ -4,6 +4,8 @@ import os
 import subprocess
 
 FILES = {
+    "server_tests/flexible_receptor_browser.py",
+    "server_tests/flexible_receptor_questionnaire.py",
     "src/opendde_workbench/research/pose_minimization.py",
     "src/opendde_workbench/workflows/quality_bindings.py",
     "tests/test_docking.py",

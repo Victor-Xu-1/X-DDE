@@ -553,4 +553,6 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
 
     from flexible_receptor_probe import inspect_refinement
 
-    inspect_refinement(settings, upstream_fixture("184l_rec.pdb"), refs["ligand"], evidence)
+    inspect_refinement(
+        settings, installed["image"], upstream_fixture("184l_rec.pdb"), refs["ligand"], evidence
+    )
