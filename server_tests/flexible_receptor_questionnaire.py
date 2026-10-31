@@ -4,6 +4,7 @@ from playwright.sync_api import expect
 
 
 def inspect_questionnaire(page, base, source, pair, zh, root, before, confirm):
+    language = "zh" if zh else "en"
     # Inspect the actual sidechain selector without dispatching another model.
     page.goto(base + "/#view=new&tool=gnina.minimize")
     history = "历史文件" if zh else "Historical files"
