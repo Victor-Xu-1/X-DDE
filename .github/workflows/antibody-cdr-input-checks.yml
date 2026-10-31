@@ -11,6 +11,8 @@ on:
       - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - 'frontend/src/examples/antibody-inputs*'
       - 'frontend/src/examples/harness.ts'
+      - 'frontend/src/operations/HarnessField.tsx'
+      - 'frontend/src/operations/HarnessCdrInputs.test.tsx'
       - 'tests/antibody_cdr_case.py'
       - 'tests/test_antibody_cdr_inputs.py'
       - 'tests/fixtures/stat6/antibody_cdr/**'
@@ -53,12 +55,13 @@ jobs:
           npx vitest run src/examples/antibody-inputs.test.ts src/examples/harness.test.ts
           src/examples/stat6-harness.test.ts src/operations/HarnessFoldInputs.test.tsx
           src/operations/HarnessReview.test.tsx src/operations/useHarnessSources.test.tsx
+          src/operations/HarnessCdrInputs.test.tsx src/operations/ToolQuestionnaires.test.tsx
           src/operations/fold-assessment.test.ts src/operations/FoldAssessment.test.tsx
-      - name: Unchanged upstream native contact gate on real deposited coordinates
+      - name: Unchanged native gate and six-region epitope analysis on deposited coordinates
         env:
           WB_NATIVE_CDR_GATE: '1'
         run: >-
-          uv run --locked --with biotite==1.6.0 --with numpy==1.26.4
+          uv run --locked --with biotite==1.6.0 --with numpy==1.26.4 --with pyyaml==6.0.3
           pytest -x -q server_tests/test_native_antibody_cdr_gate.py
       - name: English desktop and Chinese mobile template preparation, review, download and blank reset
         run: |

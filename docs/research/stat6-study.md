@@ -4,7 +4,8 @@ Fold and epitope input preparation requires a reviewed native antibody-numbering
 example for the exact deposited 6WGL VH/VL sequences. IMGT region labels are
 mapped using their original sequence positions into the native tools' zero-based,
 chain-local indices. Epitope preparation also verifies both deposited coordinate
-prefixes. The derived annotation remains an immutable input with its numbering
+prefixes and uses distinct heavy/light CDR names so contact totals do not merge.
+The derived annotation remains an immutable input with its numbering
 source; editing chains, sequences or CDRs detaches that provenance. Ordinary
 compute settings can be adjusted without losing an unchanged annotation.
 Missing numbering stays an explicit prerequisite. Existing saved requests,
@@ -13,7 +14,8 @@ proof of affinity, correct folding or acceptable interface geometry.
 
 折叠与表位模板先读取经过复核、序列完全一致的 6WGL 可变域原生编号。
 按原始序列位置将 IMGT 区域转换为后端需要的链内零起始位置；表位模板另核对
-两条链的沉积坐标前缀。派生注释保留来源，修改序列、链或 CDR 后解除原注释关联。
+两条链的沉积坐标前缀，区分重链与轻链六个 CDR 的名称，避免接触统计合并。
+派生注释保留来源，修改序列、链或 CDR 后解除原注释关联。
 缺少编号时明确提示前置条件。旧任务的原始请求、结果和门控判定保持不变；
 CDR 注释不能替代亲和力、折叠或界面几何验证。
 

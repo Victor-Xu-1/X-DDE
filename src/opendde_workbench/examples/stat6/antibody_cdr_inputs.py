@@ -33,6 +33,17 @@ def interface_positions(result, sequences):
     return groups
 
 
+def named_epitope_regions(groups):
+    """Use the native VH/VL convention so heavy/light contact totals cannot merge."""
+    return {
+        chain: {
+            name + ("_H" if chain == "A" else "_L"): positions
+            for name, positions in regions.items()
+        }
+        for chain, regions in groups.items()
+    }
+
+
 def reviewed_antibody_cdr(
     scientific, records, sequence_parent, sequences, *, structure_parent=None
 ):
@@ -97,7 +108,7 @@ def reviewed_antibody_cdr(
     )
     return {
         "object": obj,
-        "groups": groups,
+        "groups": named_epitope_regions(groups),
         "cdr_regions": {chain: sum(regions.values(), []) for chain, regions in groups.items()},
         "cdr3_positions": {chain: regions["CDR3"] for chain, regions in groups.items()},
     }
@@ -136,7 +147,7 @@ def replayed_antibody_cdr(scientific, request):
             matches = (
                 payload.get("structure_path") == "asset:" + str(obj.reference.asset_id)
                 and payload.get("antibody_chains") == list(notes["chains"])
-                and payload.get("cdr_regions") == groups
+                and payload.get("cdr_regions") == named_epitope_regions(groups)
             )
         if not matches:
             raise ValueError("The saved task differs from its interface annotation version.")

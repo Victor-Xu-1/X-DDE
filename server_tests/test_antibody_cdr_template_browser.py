@@ -73,6 +73,16 @@ def test_numbered_interface_template_loads_reviews_and_resets_without_submitting
         expect(next_step).to_be_enabled(timeout=30000)
         next_step.click()
         expect(next_step).to_be_enabled()
+        if tool == "epitope":
+            page.get_by_text(
+                "区域与其他微调（可选）" if zh else "Regions & further adjustments (optional)",
+                exact=True,
+            ).click()
+            for chain, regions in prepared["request"]["payload"]["cdr_regions"].items():
+                for region, positions in regions.items():
+                    expect(page.get_by_label(chain + " · " + region, exact=True)).to_have_value(
+                        ",".join(str(position + 1) for position in positions)
+                    )
         page.screenshot(path=evidence / "regions.png", full_page=True, animations="disabled")
         next_step.click()
         if tool == "fold":

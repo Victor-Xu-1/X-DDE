@@ -132,7 +132,10 @@ export function HarnessField({
         </p>
         {((payload.antibody_chains ?? []) as string[]).map((chain) => (
           <div key={chain}>
-            {["CDR1", "CDR2", "CDR3"].map((cdr) => (
+            {(Object.keys(groups[chain] ?? {}).length
+              ? Object.keys(groups[chain])
+              : ["CDR1", "CDR2", "CDR3"].map((name) => `${name}_${chain}`)
+            ).map((cdr) => (
               <PositionInput
                 key={cdr}
                 label={`${chain} · ${cdr}`}

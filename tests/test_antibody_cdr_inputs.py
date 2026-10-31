@@ -15,6 +15,7 @@ from opendde_workbench.examples.contracts import ExampleReview
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.examples.stat6.antibody_cdr_inputs import (
     interface_positions,
+    named_epitope_regions,
     replayed_antibody_cdr,
 )
 from opendde_workbench.examples.stat6.antibody_structure_input import (
@@ -91,7 +92,8 @@ def test_reviewed_native_numbering_prefills_typed_requests_and_retains_source(se
             chain: group["CDR3"] for chain, group in groups.items()
         }
     else:
-        assert task.payload["cdr_regions"] == groups
+        assert task.payload["cdr_regions"] == named_epitope_regions(groups)
+        assert len({name for value in task.payload["cdr_regions"].values() for name in value}) == 6
     assert scientific.store.get(job.id).model_dump(mode="json") == before
     assert len(scientific.store.list_jobs()) == 1
     assert not prepared.study["required_materials"]

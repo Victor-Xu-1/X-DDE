@@ -17,6 +17,8 @@ PATHS = (
     "src/opendde_workbench/examples/stat6/module-revisions.json",
     "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
     "frontend/src/examples/harness.ts",
+    "frontend/src/operations/HarnessField.tsx",
+    "frontend/src/operations/HarnessCdrInputs.test.tsx",
     "frontend/src/examples/antibody-inputs.test.ts",
     "tests/antibody_cdr_case.py",
     "tests/test_antibody_cdr_inputs.py",
