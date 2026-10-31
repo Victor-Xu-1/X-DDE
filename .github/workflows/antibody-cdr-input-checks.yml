@@ -1,0 +1,90 @@
+name: Native-numbered antibody interface input checks
+on:
+  push:
+    paths: &cdr_paths
+      - 'src/opendde_workbench/examples/stat6/antibody_cdr_inputs.py'
+      - 'src/opendde_workbench/examples/stat6/antibody_structure_input.py'
+      - 'src/opendde_workbench/examples/stat6/preparation.py'
+      - 'src/opendde_workbench/examples/stat6/requests.py'
+      - 'src/opendde_workbench/examples/stat6/harness_requests.py'
+      - 'src/opendde_workbench/examples/stat6/guidance.py'
+      - 'src/opendde_workbench/examples/stat6/module-revisions.json'
+      - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
+      - 'frontend/src/examples/antibody-inputs*'
+      - 'frontend/src/examples/harness.ts'
+      - 'frontend/src/operations/HarnessField.tsx'
+      - 'frontend/src/operations/HarnessCdrInputs.test.tsx'
+      - 'tests/antibody_cdr_case.py'
+      - 'tests/test_antibody_cdr_inputs.py'
+      - 'tests/fixtures/stat6/antibody_cdr/**'
+      - 'tests/ci/test_antibody_template_scope.py'
+      - 'scripts/antibody_template_scope.py'
+      - 'server_tests/test_native_antibody_cdr_gate.py'
+      - 'server_tests/test_antibody_cdr_template_browser.py'
+      - '.github/workflows/antibody-cdr-input-checks.yml'
+  pull_request:
+    paths: *cdr_paths
+permissions:
+  contents: read
+jobs:
+  cdr-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WB_AUTO_DEPLOY: '0'
+      PYTHONPATH: .:tests:src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Exact input changes and delegated source/replay/coordinate consumers
+        run: >-
+          uv run --locked pytest -x -q
+          tests/test_antibody_cdr_inputs.py tests/ci/test_antibody_template_scope.py
+          tests/test_antibody_numbering.py tests/test_antibody_structure_query_input.py
+          tests/test_stat6_prepared_handoff.py
+          tests/test_study_module_revisions.py -k 'not published_data24'
+      - name: Validate all retained catalogue identities without scientific execution
+        run: uv run --locked python scripts/revise-study-modules.py
+      - name: Frontend annotation edits and direct questionnaire/result consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/examples/antibody-inputs.test.ts src/examples/harness.test.ts
+          src/examples/stat6-harness.test.ts src/operations/HarnessFoldInputs.test.tsx
+          src/operations/HarnessReview.test.tsx src/operations/useHarnessSources.test.tsx
+          src/operations/HarnessCdrInputs.test.tsx src/operations/ToolQuestionnaires.test.tsx
+          src/operations/fold-assessment.test.ts src/operations/FoldAssessment.test.tsx
+      - name: Unchanged native gate and six-region epitope analysis on deposited coordinates
+        env:
+          WB_NATIVE_CDR_GATE: '1'
+        run: >-
+          uv run --locked --with biotite==1.6.0 --with numpy==1.26.4 --with pyyaml==6.0.3
+          pytest -x -q server_tests/test_native_antibody_cdr_gate.py
+      - name: English desktop and Chinese mobile template preparation, review, download and blank reset
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-antibody-cdr"
+          export WB_STATE_DIR="$WB_HOME/state"
+          uv run --locked python -m playwright install --with-deps chromium
+          uv run --locked pytest -x -q server_tests/test_antibody_cdr_template_browser.py
+      - name: Changed Python files only
+        run: >-
+          uv run --locked ruff check
+          src/opendde_workbench/examples/stat6/antibody_cdr_inputs.py
+          src/opendde_workbench/examples/stat6/antibody_structure_input.py
+          src/opendde_workbench/examples/stat6/preparation.py
+          src/opendde_workbench/examples/stat6/requests.py
+          src/opendde_workbench/examples/stat6/harness_requests.py
+          src/opendde_workbench/examples/stat6/guidance.py
+          tests/antibody_cdr_case.py tests/test_antibody_cdr_inputs.py
+          tests/test_study_module_revisions.py tests/ci/test_antibody_template_scope.py
+          scripts/antibody_template_scope.py server_tests/test_native_antibody_cdr_gate.py
+          server_tests/test_antibody_cdr_template_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: antibody-cdr-input-evidence
+          path: outputs/antibody-cdr

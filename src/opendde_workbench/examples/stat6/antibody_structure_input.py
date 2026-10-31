@@ -18,13 +18,13 @@ AA = dict(
 )
 
 
-def variable_domain_pdb(data, sequence):
-    """Select deposited A1..125; no inference, renumbering or atom repair."""
-    if len(sequence) != 125:
-        raise ValueError("Use the reviewed 125-residue deposited heavy variable domain.")
+def variable_domain_atoms(data, sequence, chain):
+    """Validate an exact deposited sequence prefix in observed residue order."""
+    if not sequence or chain not in {"A", "B"}:
+        raise ValueError("Select a named deposited heavy or light variable domain.")
     selected, residues = [], {}
     for line in data.splitlines(keepends=True):
-        if not line.startswith(b"ATOM  ") or line[21:22] != b"A":
+        if not line.startswith(b"ATOM  ") or line[21:22] != chain.encode("ascii"):
             continue
         number = int(line[22:26])
         if not 1 <= number <= len(sequence):
@@ -40,6 +40,8 @@ def variable_domain_pdb(data, sequence):
         if not all(math.isfinite(float(line[start : start + 8])) for start in (30, 38, 46)):
             raise ValueError("Invalid variable-domain coordinates.")
         atom = line[12:16].strip()
+        if number not in residues and number != len(residues) + 1:
+            raise ValueError("Deposited variable-domain residue order changed.")
         names = residues.setdefault(number, set())
         if atom in names:
             raise ValueError("Duplicate variable-domain atom identity.")
@@ -48,12 +50,20 @@ def variable_domain_pdb(data, sequence):
     if set(residues) != set(range(1, len(sequence) + 1)) or any(
         not {b"N", b"CA", b"C", b"O"} <= names for names in residues.values()
     ):
-        raise ValueError("The deposited heavy variable domain has incomplete backbone coverage.")
+        raise ValueError("The deposited variable domain has incomplete backbone coverage.")
+    return b"".join(selected)
+
+
+def variable_domain_pdb(data, sequence):
+    """Select deposited A1..125; no inference, renumbering or atom repair."""
+    if len(sequence) != 125:
+        raise ValueError("Use the reviewed 125-residue deposited heavy variable domain.")
+    selected = variable_domain_atoms(data, sequence, "A")
     header = (
         b"REMARK 900 6WGL HEAVY VARIABLE DOMAIN A1-125; ORIGINAL COORDINATES\n"
         b"REMARK 900 IL-4R ALPHA / STAT6 PATHWAY; NOT A DIRECT STAT6 ANTIBODY\n"
     )
-    return header + b"".join(selected) + b"TER\nEND\n"
+    return header + selected + b"TER\nEND\n"
 
 
 def reviewed_antibody_structure(scientific, parent):
