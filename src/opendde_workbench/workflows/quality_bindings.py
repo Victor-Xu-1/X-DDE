@@ -3,6 +3,7 @@
 import hashlib
 
 from ..artifacts import contained
+from ..docking.flexible_validation import verify_refinement
 from ..docking.result import DockingResult
 
 TARGETS = {
@@ -40,6 +41,7 @@ def validate_source(binding, job, root, file):
     if report.stat().st_size > 2 * 1024**2:
         raise ValueError("Docking report exceeds its typed handoff limit.")
     result = DockingResult.model_validate_json(report.read_text())
+    verify_refinement(root, job.request, result)
     if (
         result.receptor != job.request.receptor
         or result.ligand != job.request.ligand
@@ -52,7 +54,12 @@ def validate_source(binding, job, root, file):
     if file != contained(root, expected):
         raise ValueError("Quality input is not the declared native output.")
     if binding.target == "quality_protein":
-        if hashlib.sha256(file.read_bytes()).hexdigest() != result.frame.sha256:
+        digest = (
+            result.receptor_refinement.receptor_sha256
+            if result.receptor_refinement is not None
+            else result.frame.sha256
+        )
+        if hashlib.sha256(file.read_bytes()).hexdigest() != digest:
             raise ValueError("Quality receptor bytes differ from the native coordinate frame.")
     else:
         eligible_records = {

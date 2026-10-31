@@ -242,6 +242,11 @@ def test_task_native_snapshot_is_isolated_from_later_source_changes(tmp_path):
         "docking/receptor_input.py",
         "docking/reference.py",
         "docking/scoring.py",
+        "docking/flexible_contract.py",
+        "docking/flexible_receptor.py",
+        "docking/receptor_atoms.py",
+        "docking/receptor_links.py",
+        "docking/residue_geometry.py",
         "scientific_objects.py",
         "docking/molfile_stereo.py",
     }

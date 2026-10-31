@@ -550,3 +550,9 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         from pose_native_acceptance import inspect_pose_campaign
 
         inspect_pose_campaign(settings, installed["image"])
+
+    from flexible_receptor_probe import inspect_refinement
+
+    inspect_refinement(
+        settings, installed["image"], upstream_fixture("184l_rec.pdb"), refs["ligand"], evidence
+    )
